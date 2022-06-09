@@ -15,6 +15,7 @@
 #include "Renderer.h"
 #include "Events/Event.h"
 #include "View/Editor.h"
+#include "View/Debug.h"
 
 int main(int argc, char** argv);
 
@@ -30,14 +31,15 @@ class Controller {
 
   void onEntry();
   void onInput();
-  void onLoad() const;
+  void onLoad();
   void doRender();
   void onExit();
 
  private:
   Window window;  
   Renderer renderer;
-  std::unique_ptr<View::Editor> editor;
+  View::Debug debug;
+  View::Editor editor;
   bool active = false;
   void quit() { active = false; }
   friend int ::main(int argc, char** argv);

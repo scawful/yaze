@@ -78,8 +78,8 @@ void Controller::onInput() {
   io.MouseWheel = static_cast<float>(wheel);
 }
 
-void Controller::onLoad() const { 
-  editor->UpdateScreen();
+void Controller::onLoad() { 
+  editor.UpdateScreen();
 }
 
 void Controller::doRender() {
