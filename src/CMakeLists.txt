@@ -31,7 +31,10 @@ add_executable(
     Application/Core/Renderer.cc
     Application/Core/Window.cc
     Application/Events/Event.cc
+    Application/View/Debug.cc
     Application/View/Editor.cc
+    Application/Utils/Compression.cc
+    Application/Utils/ROM.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp
