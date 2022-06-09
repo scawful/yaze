@@ -3,11 +3,8 @@
 
 #include "Controller.h"
 
-using namespace yaze::Application::Core;
-
-int main(int argc, char** argv) 
-{
-  Controller controller;
+int main(int argc, char** argv) {
+  yaze::Application::Core::Controller controller;
 
   controller.onEntry();
   while (controller.isActive()) {
