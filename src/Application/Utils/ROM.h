@@ -1,13 +1,14 @@
 #ifndef YAZE_APPLICATION_UTILS_ROM_H
 #define YAZE_APPLICATION_UTILS_ROM_H
 
+#include <bits/postypes.h>
+
+#include <cstddef>
+#include <fstream>
+#include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
-#include <bits/postypes.h>
-#include <memory>
-#include <iostream>
-#include <fstream>
-#include <cstddef>
 
 #include "Compression.h"
 #include "Core/Constants.h"
@@ -18,7 +19,7 @@ namespace Utils {
 
 class ROM {
  public:
-  void LoadFromFile(const std::string & path);
+  void LoadFromFile(const std::string& path);
 
  private:
   std::vector<char*> original_rom_;
@@ -27,8 +28,8 @@ class ROM {
   ALTTPCompression alttp_compressor_;
 };
 
-}
-}
-}
- 
+}  // namespace Utils
+}  // namespace Application
+}  // namespace yaze
+
 #endif

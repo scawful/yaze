@@ -1,8 +1,8 @@
 #ifndef YAZE_APPLICATION_UTILS_COMPRESSION_H
 #define YAZE_APPLICATION_UTILS_COMPRESSION_H
 
-#include <cstdlib>
 #include <cstddef>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -27,9 +27,9 @@ class StdNintendoCompression {
    */
 
   char* Decompress(const char* c_data, const unsigned int start,
-                                unsigned int max_length,
-                                unsigned int* uncompressed_data_size,
-                                unsigned int* compressed_length, char mode);
+                   unsigned int max_length,
+                   unsigned int* uncompressed_data_size,
+                   unsigned int* compressed_length, char mode);
 
   /*
    * This function compress u_data following the compression format used by
@@ -42,15 +42,16 @@ class StdNintendoCompression {
    */
 
   char* Compress(const char* u_data, const unsigned int start,
-                              const unsigned int length,
-                              unsigned int* compressed_size, char mode);
+                 const unsigned int length, unsigned int* compressed_size,
+                 char mode);
+
  private:
   std::string compression_error_;
   std::string decompression_error_;
   bool std_nintendo_compression_sanity_check = false;
 
   struct CompressionComponent_;
-  using CompressionComponent = CompressionComponent_; 
+  using CompressionComponent = CompressionComponent_;
   struct CompressionComponent_ {
     char command;
     unsigned int length;
@@ -59,17 +60,16 @@ class StdNintendoCompression {
     CompressionComponent* next;
   };
 
-  void PrintComponent(CompressionComponent * piece);
+  void PrintComponent(CompressionComponent* piece);
   CompressionComponent* CreateComponent(const char command,
-                                         const unsigned int length,
-                                         const char* args,
-                                         const unsigned int argument_length);
+                                        const unsigned int length,
+                                        const char* args,
+                                        const unsigned int argument_length);
   void DestroyComponent(CompressionComponent* piece);
   void DestroyChain(CompressionComponent* piece);
   CompressionComponent* merge_copy(CompressionComponent* start);
-  unsigned int create_compression_string(CompressionComponent* start, char* output,
-                                       char mode);
-
+  unsigned int create_compression_string(CompressionComponent* start,
+                                         char* output, char mode);
 };
 
 class ALTTPCompression {
@@ -124,7 +124,6 @@ class ALTTPCompression {
   std::string compression_error_;
   std::string decompression_error_;
 };
-
 
 }  // namespace Utils
 }  // namespace Application
