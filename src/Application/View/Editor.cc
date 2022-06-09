@@ -36,11 +36,25 @@ void Editor::DrawYazeMenu() const {
     }
     ImGui::EndMenuBar();
   }
+
+  // display
+  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+    // action if OK
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+    }
+    
+    // close
+    ImGuiFileDialog::Instance()->Close();
+  }
+
 }
 
 void Editor::DrawFileMenu() const {
   if (ImGui::MenuItem("Open", "Ctrl+O")) {
     // TODO: Add the ability to open ALTTP ROM
+    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM", ".sfc,.smc", ".");
   }
   if (ImGui::BeginMenu("Open Recent")) {
     ImGui::MenuItem("alttp.sfc");

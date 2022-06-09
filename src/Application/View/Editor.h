@@ -6,6 +6,7 @@
 #include "imgui/backends/imgui_impl_sdl.h"
 #include "imgui/backends/imgui_impl_sdlrenderer.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 
 namespace yaze {
 namespace Application {
