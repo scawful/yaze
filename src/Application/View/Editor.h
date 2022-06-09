@@ -1,12 +1,15 @@
 #ifndef YAZE_APPLICATION_VIEW_EDITOR_H
 #define YAZE_APPLICATION_VIEW_EDITOR_H
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
+#include <memory>
+
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "Utils/ROM.h"
 #include "imgui/backends/imgui_impl_sdl.h"
 #include "imgui/backends/imgui_impl_sdlrenderer.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 
 namespace yaze {
 namespace Application {
@@ -14,12 +17,16 @@ namespace View {
 
 class Editor {
  public:
-  void UpdateScreen() const;
+  void UpdateScreen();
 
  private:
-  void DrawYazeMenu() const;
+  void DrawYazeMenu();
   void DrawFileMenu() const;
   void DrawEditMenu() const;
+
+  void DrawOverworldEditor();
+
+  Utils::ROM rom;
 };
 
 }  // namespace View
