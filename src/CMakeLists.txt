@@ -1,6 +1,9 @@
 # SDL libraries --------------------------------------------------------------------------------------------------
 find_package(SDL2 REQUIRED)
 
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+
 # ImGui library --------------------------------------------------------------------------------------------------
 set(IMGUI_PATH  "Library/imgui")                         # Set where the ImGui files are stored
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)             # Compile as static library 
@@ -26,10 +29,10 @@ add_executable(
     Application/Core/Window.cc
     Application/Data/Overworld.cc
     Application/Data/OverworldMap.cc
-    Application/Data/Tile.cc
+    Application/Graphics/Bitmap.cc
+    Application/Graphics/Tile.cc
     Application/Editor/Editor.cc
     Application/Events/Event.cc
-    Application/Graphics/Bitmap.cc
     Application/Utils/Compression.cc
     Application/Utils/ROM.cc
     # GUI libraries 
@@ -47,11 +50,14 @@ target_include_directories(
   yaze PUBLIC
   Library/
   Application/
+  ${SDL2_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   yaze 
   ${SDL2_LIBRARIES} 
+  ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
   ImGui
 )
