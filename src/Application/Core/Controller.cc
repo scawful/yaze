@@ -84,6 +84,7 @@ void Controller::onLoad() {
 
 void Controller::doRender() {
   renderer.Render();
+  window.Swap();
 }
 
 void Controller::onExit() {

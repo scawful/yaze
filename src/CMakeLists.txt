@@ -1,11 +1,7 @@
-
-# Boost library --------------------------------------------------------------------------------------------------
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
 # SDL libraries --------------------------------------------------------------------------------------------------
 find_package(SDL2 REQUIRED)
+
+find_package(OpenGL REQUIRED)
 
 # ImGui library --------------------------------------------------------------------------------------------------
 set(IMGUI_PATH  "Library/imgui")                         # Set where the ImGui files are stored
@@ -31,9 +27,11 @@ add_executable(
     Application/Core/Renderer.cc
     Application/Core/Window.cc
     Application/Data/Overworld.cc
+    Application/Data/Tile.cc
     Application/Events/Event.cc
     Application/View/Debug.cc
     Application/View/Editor.cc
+    Application/Utils/Bitmap.cc
     Application/Utils/Compression.cc
     Application/Utils/ROM.cc
     # GUI libraries 
@@ -42,6 +40,7 @@ add_executable(
     ${IMGUI_PATH}/imgui_draw.cpp 
     ${IMGUI_PATH}/imgui_widgets.cpp
     ${IMGUI_PATH}/backends/imgui_impl_sdl.cpp
+    ${IMGUI_PATH}/backends/imgui_impl_opengl2.cpp 
     ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer.cpp 
     ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
     ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
@@ -55,8 +54,8 @@ target_include_directories(
 
 target_link_libraries(
   yaze 
-  ${BOOST_LIBRARIES} 
-  ${SDL2_LIBRARIES} 
+  opengl32 glew32 freeglut glu32
   ${OPENGL_LIBRARIES} 
+  ${SDL2_LIBRARIES} 
   ImGui
 )

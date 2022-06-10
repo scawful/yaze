@@ -1,9 +1,11 @@
 #ifndef YAZE_APPLICATION_CORE_CONTROLLER_H
 #define YAZE_APPLICATION_CORE_CONTROLLER_H
+#define SDL_MAIN_HANDLED
 
 #include <memory>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"

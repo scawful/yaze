@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "Data/Overworld.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "Utils/ROM.h"
 #include "imgui/backends/imgui_impl_sdl.h"
@@ -26,6 +27,8 @@ class Editor {
 
   void DrawOverworldEditor();
 
+  std::unique_ptr<Data::Overworld> overworld =
+      std::make_unique<Data::Overworld>(rom);
   Utils::ROM rom;
 };
 

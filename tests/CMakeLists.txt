@@ -16,7 +16,6 @@ add_executable(
 
 target_link_libraries(
   yaze_test
-  ${BOOST_LIBRARIES} 
   ${SDL2_LIBRARIES} 
   ${OPENGL_LIBRARIES}
   gtest_main
