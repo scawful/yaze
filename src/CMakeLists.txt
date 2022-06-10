@@ -1,9 +1,3 @@
-
-# Boost library --------------------------------------------------------------------------------------------------
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
 # SDL libraries --------------------------------------------------------------------------------------------------
 find_package(SDL2 REQUIRED)
 
@@ -31,9 +25,11 @@ add_executable(
     Application/Core/Renderer.cc
     Application/Core/Window.cc
     Application/Data/Overworld.cc
+    Application/Data/OverworldMap.cc
+    Application/Data/Tile.cc
+    Application/Editor/Editor.cc
     Application/Events/Event.cc
-    Application/View/Debug.cc
-    Application/View/Editor.cc
+    Application/Graphics/Bitmap.cc
     Application/Utils/Compression.cc
     Application/Utils/ROM.cc
     # GUI libraries 
@@ -55,7 +51,6 @@ target_include_directories(
 
 target_link_libraries(
   yaze 
-  ${BOOST_LIBRARIES} 
   ${SDL2_LIBRARIES} 
   ${OPENGL_LIBRARIES} 
   ImGui

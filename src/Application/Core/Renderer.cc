@@ -22,7 +22,7 @@ void Renderer::Create(SDL_Window* window) {
 
   // Create the ImGui and ImPlot contexts
   ImGui::CreateContext();
-
+  
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
   ImGui_ImplSDLRenderer_Init(renderer);
