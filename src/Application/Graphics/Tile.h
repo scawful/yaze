@@ -5,7 +5,7 @@
 
 namespace yaze {
 namespace Application {
-namespace Data {
+namespace Graphics {
 
 using byte = unsigned char;
 using ushort = unsigned short;

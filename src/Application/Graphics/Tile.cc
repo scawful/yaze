@@ -2,7 +2,7 @@
 
 namespace yaze {
 namespace Application {
-namespace Data {
+namespace Graphics {
 
 ushort TileInfo::toShort() {
   ushort value = 0;
