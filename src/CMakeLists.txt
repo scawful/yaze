@@ -30,6 +30,7 @@ add_executable(
     Application/Core/Controller.cc
     Application/Core/Renderer.cc
     Application/Core/Window.cc
+    Application/Data/Overworld.cc
     Application/Events/Event.cc
     Application/View/Debug.cc
     Application/View/Editor.cc
