@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "Data/Overworld.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "Utils/ROM.h"
 #include "imgui/backends/imgui_impl_sdl.h"
@@ -26,6 +27,7 @@ class Editor {
 
   void DrawOverworldEditor();
 
+  Data::Overworld overworld;
   Utils::ROM rom;
 };
 

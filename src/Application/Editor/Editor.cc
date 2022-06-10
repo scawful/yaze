@@ -20,10 +20,14 @@ void Editor::UpdateScreen() {
     return;
   }
   DrawYazeMenu();
+
   if (ImGui::BeginTabBar("##TabBar")) {
     DrawOverworldEditor();
     ImGui::EndTabBar();
   }
+
+  ImGui::ShowDemoWindow();
+
   ImGui::End();
 }
 
@@ -124,11 +128,11 @@ void Editor::DrawEditMenu() const {
 // 4) get the tiles32 data
 // 5) get the tiles16 data
 // 6) get the map32 data (they must be decompressed as well with a lz2 variant
-// not the same as gfx compression but pretty similar) 
-// 7) get the gfx data of the map 
+// not the same as gfx compression but pretty similar)
+// 7) get the gfx data of the map
 // yeah i forgot that one and load 4bpp in a pseudo vram and use that to
 // render tiles on screen
-// 8) try to render the tiles on the bitmap in black & white to start 
+// 8) try to render the tiles on the bitmap in black & white to start
 // 9) get the palettes data and try to find how they're loaded in
 // the game that's a big puzzle to solve then 9 you'll have an overworld map
 // viewer, in less than few hours if are able to understand the data quickly
