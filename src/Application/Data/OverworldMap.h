@@ -1,7 +1,7 @@
 #include <memory>
 
-#include "Tile.h"
 #include "Graphics/Bitmap.h"
+#include "Graphics/Tile.h"
 #include "Utils/ROM.h"
 #include "imgui/imgui.h"
 
@@ -41,19 +41,19 @@ class OverworldMap {
   void BuildMap(byte* mapParent, int count, int gameState);
   void CopyTile8bpp16(int x, int y, int tile, int* destbmpPtr,
                       int* sourcebmpPtr);
-  void CopyTile8bpp16From8(int xP, int yP, int tileID,
-                           int* destbmpPtr,
+  void CopyTile8bpp16From8(int xP, int yP, int tileID, int* destbmpPtr,
                            int* sourcebmpPtr);
 
  private:
   void BuildTiles16Gfx(int count);
   // void ReloadPalettes() { LoadPalette(); }
 
-  void CopyTile(int x, int y, int xx, int yy, int offset, TileInfo tile,
-                byte* gfx16Pointer, byte* gfx8Pointer);
+  void CopyTile(int x, int y, int xx, int yy, int offset,
+                Graphics::TileInfo tile, byte* gfx16Pointer, byte* gfx8Pointer);
 
-  void CopyTileToMap(int x, int y, int xx, int yy, int offset, TileInfo tile,
-                     byte* gfx16Pointer, byte* gfx8Pointer);
+  void CopyTileToMap(int x, int y, int xx, int yy, int offset,
+                     Graphics::TileInfo tile, byte* gfx16Pointer,
+                     byte* gfx8Pointer);
 
   /* void LoadPalette();
 

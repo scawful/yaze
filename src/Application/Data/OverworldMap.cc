@@ -5,6 +5,7 @@ namespace Application {
 namespace Data {
 
 using namespace Core;
+using namespace Graphics;
 
 OverworldMap::OverworldMap(Utils::ROM rom, byte index)
     : rom_(rom), index(index), parent(index) {

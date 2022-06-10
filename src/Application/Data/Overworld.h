@@ -6,8 +6,8 @@
 
 #include "Core/Constants.h"
 #include "Graphics/Bitmap.h"
+#include "Graphics/Tile.h"
 #include "OverworldMap.h"
-#include "Tile.h"
 #include "Utils/Compression.h"
 #include "Utils/ROM.h"
 
@@ -23,7 +23,7 @@ class Overworld {
   Overworld() = default;
   Overworld(Utils::ROM rom);
 
-  void Load();
+  void Load(Utils::ROM rom);
 
  private:
   Utils::ROM rom_;
@@ -35,9 +35,9 @@ class Overworld {
   std::vector<std::vector<ushort>> allmapsTilesDW;  // 64 maps * (32*32 tiles)
   std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
 
-  std::vector<Tile16> tiles16;
-  std::vector<Tile32> tiles32;
-  std::vector<Tile32> map16tiles;
+  std::vector<Graphics::Tile16> tiles16;
+  std::vector<Graphics::Tile32> tiles32;
+  std::vector<Graphics::Tile32> map16tiles;
 
   std::vector<OverworldMap> allmaps;
 
@@ -51,10 +51,10 @@ class Overworld {
       Core::Constants::map32TilesBL, Core::Constants::map32TilesBR};
 
   std::unique_ptr<int> overworldMapPointer;
-  Utils::Bitmap overworldMapBitmap;
+  Graphics::Bitmap overworldMapBitmap;
 
   std::unique_ptr<int> owactualMapPointer;
-  Utils::Bitmap owactualMapBitmap;
+  Graphics::Bitmap owactualMapBitmap;
 
   enum Dimension {
     map32TilesTL = 0,

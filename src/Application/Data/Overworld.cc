@@ -1,12 +1,13 @@
 #include "Overworld.h"
 
-#include "Tile.h"
+#include "Graphics/Tile.h"
 
 namespace yaze {
 namespace Application {
 namespace Data {
 
 using namespace Core;
+using namespace Graphics;
 
 static TileInfo GetTilesInfo(ushort tile) {
   // vhopppcc cccccccc
@@ -49,6 +50,8 @@ Overworld::Overworld(Utils::ROM rom) : rom_(rom) {
 
   isLoaded = true;
 }
+
+void Overworld::Load(Utils::ROM rom) {}
 
 ushort Overworld::GenerateTile32(int i, int k, int dimension) {
   return (ushort)(rom_.GetRawData()[map32address[dimension] + k + (i)] +
