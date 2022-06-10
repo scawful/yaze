@@ -33,6 +33,21 @@ Overworld::Overworld(Utils::ROM rom) : rom_(rom) {
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
+  DecompressAllMapTiles();
+
+  // Map Initialization :
+  for (int i = 0; i < 160; i++) {
+    allmaps.push_back(OverworldMap(rom_, (byte)i));
+  }
+  FetchLargeMaps();
+  LoadOverworldMap();
+
+  auto size = tiles16.size();
+  for (int i = 0; i < 160; i++) {
+    allmaps[i].BuildMap(mapParent, size, gameState);
+  }
+
+  isLoaded = true;
 }
 
 ushort Overworld::GenerateTile32(int i, int k, int dimension) {
@@ -190,6 +205,63 @@ void Overworld::DecompressAllMapTiles() {
 
   std::cout << "MapPointers(lowest) : " << lowest << std::endl;
   std::cout << "MapPointers(highest) : " << highest << std::endl;
+}
+
+void Overworld::FetchLargeMaps() {
+  for (int i = 128; i < 145; i++) {
+    mapParent[i] = 0;
+  }
+
+  mapParent[128] = 128;
+  mapParent[129] = 129;
+  mapParent[130] = 129;
+  mapParent[137] = 129;
+  mapParent[138] = 129;
+  mapParent[136] = 136;
+  allmaps[136].largeMap = false;
+
+  bool mapChecked[64];
+  for (int i = 0; i < 64; i++) {
+    mapChecked[i] = false;
+  }
+  int xx = 0;
+  int yy = 0;
+  while (true) {
+    int i = xx + (yy * 8);
+    if (mapChecked[i] == false) {
+      if (allmaps[i].largeMap == true) {
+        mapChecked[i] = true;
+        mapParent[i] = (byte)i;
+        mapParent[i + 64] = (byte)(i + 64);
+
+        mapChecked[i + 1] = true;
+        mapParent[i + 1] = (byte)i;
+        mapParent[i + 65] = (byte)(i + 64);
+
+        mapChecked[i + 8] = true;
+        mapParent[i + 8] = (byte)i;
+        mapParent[i + 72] = (byte)(i + 64);
+
+        mapChecked[i + 9] = true;
+        mapParent[i + 9] = (byte)i;
+        mapParent[i + 73] = (byte)(i + 64);
+        xx++;
+      } else {
+        mapParent[i] = (byte)i;
+        mapParent[i + 64] = (byte)(i + 64);
+        mapChecked[i] = true;
+      }
+    }
+
+    xx++;
+    if (xx >= 8) {
+      xx = 0;
+      yy += 1;
+      if (yy >= 8) {
+        break;
+      }
+    }
+  }
 }
 
 void Overworld::LoadOverworldMap() {

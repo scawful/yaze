@@ -5,8 +5,9 @@
 #include <vector>
 
 #include "Core/Constants.h"
+#include "Graphics/Bitmap.h"
+#include "OverworldMap.h"
 #include "Tile.h"
-#include "Utils/Bitmap.h"
 #include "Utils/Compression.h"
 #include "Utils/ROM.h"
 
@@ -19,15 +20,28 @@ using byte = unsigned char;
 
 class Overworld {
  public:
+  Overworld() = default;
   Overworld(Utils::ROM rom);
+
+  void Load();
 
  private:
   Utils::ROM rom_;
   Utils::ALTTPCompression alttp_compressor_;
+  int gameState = 1;
+  byte mapParent[160];
+
+  unsigned short **allmapsTilesLW;
+  std::vector<std::vector<ushort>> allmapsTilesDW;  // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
 
   std::vector<Tile16> tiles16;
   std::vector<Tile32> tiles32;
   std::vector<Tile32> map16tiles;
+
+  std::vector<OverworldMap> allmaps;
+
+  bool isLoaded = false;
 
   std::vector<ushort> tileLeftEntrance;
   std::vector<ushort> tileRightEntrance;
@@ -49,16 +63,11 @@ class Overworld {
     map32TilesBR = 3
   };
 
-  unsigned short **allmapsTilesLW; 
-  
-  // 64 maps * (32*32 tiles) ushort[512, 512]
-  std::vector<std::vector<ushort>> allmapsTilesDW;  // 64 maps * (32*32 tiles)
-  std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
-
   ushort GenerateTile32(int i, int k, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
   void DecompressAllMapTiles();
+  void FetchLargeMaps();
   void LoadOverworldMap();
 };
 
