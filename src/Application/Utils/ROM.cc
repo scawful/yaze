@@ -4,6 +4,8 @@ namespace yaze {
 namespace Application {
 namespace Utils {
 
+using namespace Graphics;
+
 void ROM::LoadFromFile(const std::string& path) {
   std::cout << "filename: " << path << std::endl;
   std::ifstream stream(path, std::ios::in | std::ios::binary);
@@ -30,6 +32,32 @@ int ROM::SnesToPc(int addr) {
   }
   int temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
   return (temp + 0x0);
+}
+
+// TODO: FIXME
+int ROM::PcToSnes(int addr) {
+  byte b[4];
+  // = BitConverter.GetBytes(addr)
+  b[2] = (byte)(b[2] * 2);
+
+  if (b[1] >= 0x80) {
+    b[2] += 1;
+  } else {
+    b[1] += 0x80;
+  }
+
+  //return BitConverter.ToInt32(b, 0);
+  // snes always have + 0x8000 no matter what, the bank on pc is always / 2
+
+  return ((addr * 2) & 0xFF0000) + (addr & 0x7FFF) + 0x8000;
+}
+
+int ROM::AddressFromBytes(byte addr1, byte addr2, byte addr3) {
+  return (addr1 << 16) | (addr2 << 8) | addr3;
+}
+
+short ROM::AddressFromBytes(byte addr1, byte addr2) {
+  return (short)((addr1 << 8) | (addr2));
 }
 
 void ROM::Write(int addr, byte value) { working_rom_[addr] = value; }
