@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/make_shared.hpp>
 #include <cstddef>
 #include <iostream>
 #include <memory>
