@@ -36,11 +36,13 @@ class ROM {
   int ReadLong(int addr);
   void WriteLong(int addr, int value);
   void LoadFromFile(const std::string& path);
-  inline const char* GetRawData() { return working_rom_.data(); }
+  inline byte * GetRawData() { return current_rom_; }
 
  private:
   std::vector<char> original_rom_;
   std::vector<char> working_rom_;
+
+  byte* current_rom_;
 };
 
 }  // namespace Utils

@@ -33,27 +33,27 @@ namespace yaze {
 namespace Application {
 namespace Utils {
 
-char* ALTTPCompression::DecompressGfx(const char* c_data,
+unsigned char* ALTTPCompression::DecompressGfx(const unsigned char* c_data,
                                       const unsigned int start,
                                       unsigned int max_length,
                                       unsigned int* uncompressed_data_size,
                                       unsigned int* compressed_length) {
-  char* toret = std_nintendo_.Decompress(c_data, start, max_length,
+  unsigned char* toret = std_nintendo_.Decompress(c_data, start, max_length,
                                          uncompressed_data_size,
                                          compressed_length, D_NINTENDO_C_MODE2);
   return toret;
 }
 
-char* ALTTPCompression::DecompressOverworld(
-    const char* c_data, const unsigned int start, unsigned int max_length,
+unsigned char* ALTTPCompression::DecompressOverworld(
+    const unsigned char* c_data, const unsigned int start, unsigned int max_length,
     unsigned int* uncompressed_data_size, unsigned int* compressed_length) {
-  char* toret = std_nintendo_.Decompress(c_data, start, max_length,
+  unsigned char* toret = std_nintendo_.Decompress(c_data, start, max_length,
                                          uncompressed_data_size,
                                          compressed_length, D_NINTENDO_C_MODE1);
   return toret;
 }
 
-char* ALTTPCompression::CompressGfx(const char* u_data,
+unsigned char* ALTTPCompression::CompressGfx(const unsigned char* u_data,
                                     const unsigned int start,
                                     const unsigned int length,
                                     unsigned int* compressed_size) {
@@ -61,7 +61,7 @@ char* ALTTPCompression::CompressGfx(const char* u_data,
                                 D_NINTENDO_C_MODE2);
 }
 
-char* ALTTPCompression::CompressOverworld(const char* u_data,
+unsigned char* ALTTPCompression::CompressOverworld(const unsigned char* u_data,
                                           const unsigned int start,
                                           const unsigned int length,
                                           unsigned int* compressed_size) {
@@ -76,13 +76,13 @@ char* ALTTPCompression::CompressOverworld(const char* u_data,
  * Then you have a new header byte and so on, until you hit a header with the
  * value FF
  */
-char* StdNintendoCompression::Decompress(const char* c_data,
+unsigned char* StdNintendoCompression::Decompress(const unsigned char* c_data,
                                          const unsigned int start,
                                          unsigned int max_length,
                                          unsigned int* uncompressed_data_size,
                                          unsigned int* compressed_length,
                                          char mode) {
-  char* u_data;
+  unsigned char* u_data;
   unsigned char header;
   unsigned int c_data_pos;
   unsigned int u_data_pos;
@@ -93,7 +93,7 @@ char* StdNintendoCompression::Decompress(const char* c_data,
   if (max_length != 0) max_offset = start + max_length;
   header = c_data[start];
   u_data =
-      (char*)malloc(INITIAL_ALLOC_SIZE);  // No way to know the final size, we
+      (unsigned char*)malloc(INITIAL_ALLOC_SIZE);  // No way to know the final size, we
                                           // will probably realloc if needed
   allocated_memory = INITIAL_ALLOC_SIZE;
   u_data_pos = 0;
@@ -120,9 +120,9 @@ char* StdNintendoCompression::Decompress(const char* c_data,
 
     // length value starts at 0, 0 is 1
     length++;
-    printf("%d[%d]", command, length);
-    printf("header %02X - Command : %d , length : %d\n", header, command,
-           length);
+    // printf("%d[%d]", command, length);
+    // printf("header %02X - Command : %d , length : %d\n", header, command,
+    //        length);
     if (c_data_pos >= max_offset && max_offset != 0) {
       decompression_error_ =
           "Compression string exceed the max_length specified";
@@ -133,7 +133,7 @@ char* StdNintendoCompression::Decompress(const char* c_data,
     {
       printf("Memory get reallocated by %d was %d\n", INITIAL_ALLOC_SIZE,
              allocated_memory);
-      u_data = (char*)realloc(u_data, allocated_memory + INITIAL_ALLOC_SIZE);
+      u_data = (unsigned char*)realloc(u_data, allocated_memory + INITIAL_ALLOC_SIZE);
       if (u_data == NULL) {
         decompression_error_ = "Can't realloc memory";
         return NULL;
@@ -198,7 +198,7 @@ char* StdNintendoCompression::Decompress(const char* c_data,
           printf("Memory get reallocated by a copy,  %d was %d\n",
                  INITIAL_ALLOC_SIZE, allocated_memory);
           u_data =
-              (char*)realloc(u_data, allocated_memory + INITIAL_ALLOC_SIZE);
+              (unsigned char*)realloc(u_data, allocated_memory + INITIAL_ALLOC_SIZE);
           if (u_data == NULL) {
             decompression_error_ = "Can't realloc memory";
             return NULL;
@@ -306,7 +306,7 @@ StdNintendoCompression::merge_copy(CompressionComponent* start) {
 }
 
 unsigned int StdNintendoCompression::create_compression_string(
-    CompressionComponent* start, char* output, char mode) {
+    CompressionComponent* start, unsigned char* output, char mode) {
   unsigned int pos = 0;
   CompressionComponent* piece = start;
 
@@ -386,13 +386,13 @@ unsigned int StdNintendoCompression::create_compression_string(
 
 // TODO TEST compressed data border for each cmd
 
-char* StdNintendoCompression::Compress(const char* u_data,
+unsigned char* StdNintendoCompression::Compress(const unsigned char* u_data,
                                        const unsigned int start,
                                        const unsigned int length,
                                        unsigned int* compressed_size,
                                        char mode) {
   // we will realloc later
-  char* compressed_data = (char*)malloc(
+  unsigned char* compressed_data = (unsigned char*)malloc(
       length +
       10);  // Worse case should be a copy of the string with extended header
   CompressionComponent* compressed_chain = CreateComponent(1, 1, "aaa", 2);
@@ -561,12 +561,12 @@ char* StdNintendoCompression::Compress(const char* u_data,
     if (std_nintendo_compression_sanity_check &&
         compressed_chain_start->next != NULL) {
       // We don't call merge copy so we need more space
-      char* tmp = (char*)malloc(length * 2);
+      unsigned char* tmp = (unsigned char*) malloc(length * 2);
       *compressed_size =
           create_compression_string(compressed_chain_start->next, tmp, mode);
       unsigned int p;
       unsigned int k;
-      char* uncomp = Decompress(tmp, 0, 0, &p, &k, mode);
+      unsigned char* uncomp = Decompress(tmp, 0, 0, &p, &k, mode);
       if (uncomp == NULL) {
         fprintf(stderr, "%s\n", decompression_error_);
         return NULL;

@@ -15,15 +15,23 @@ namespace yaze {
 namespace Application {
 namespace Data {
 
-using ushort = ushort;
+using ushort = unsigned short;
 using byte = unsigned char;
 
 class Overworld {
  public:
   Overworld() = default;
-  Overworld(Utils::ROM rom);
+  ~Overworld();
 
   void Load(Utils::ROM rom);
+
+  byte* overworldMapPointer = new byte[0x40000];
+  Graphics::Bitmap* overworldMapBitmap;
+  GLuint overworldMapTexture;
+
+  byte* owactualMapPointer = new byte[0x40000];
+  Graphics::Bitmap* owactualMapBitmap;
+  GLuint owactualMapTexture;
 
  private:
   Utils::ROM rom_;
@@ -31,9 +39,9 @@ class Overworld {
   int gameState = 1;
   byte mapParent[160];
 
-  unsigned short **allmapsTilesLW;
-  std::vector<std::vector<ushort>> allmapsTilesDW;  // 64 maps * (32*32 tiles)
-  std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
+  ushort **allmapsTilesLW; // 64 maps * (32*32 tiles)
+  ushort **allmapsTilesDW; // 64 maps * (32*32 tiles)
+  ushort **allmapsTilesSP; // 32 maps * (32*32 tiles)
 
   std::vector<Graphics::Tile16> tiles16;
   std::vector<Graphics::Tile32> tiles32;
@@ -50,11 +58,6 @@ class Overworld {
       Core::Constants::map32TilesTL, Core::Constants::map32TilesTR,
       Core::Constants::map32TilesBL, Core::Constants::map32TilesBR};
 
-  std::unique_ptr<int> overworldMapPointer;
-  Graphics::Bitmap overworldMapBitmap;
-
-  std::unique_ptr<int> owactualMapPointer;
-  Graphics::Bitmap owactualMapBitmap;
 
   enum Dimension {
     map32TilesTL = 0,

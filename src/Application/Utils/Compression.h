@@ -26,7 +26,7 @@ class StdNintendoCompression {
    * of the define for it: D_NINTENDO_C_MODEX... 1 is is SMW, 2 is zelda3 gfx
    */
 
-  char* Decompress(const char* c_data, const unsigned int start,
+  unsigned char* Decompress(const unsigned char* c_data, const unsigned int start,
                    unsigned int max_length,
                    unsigned int* uncompressed_data_size,
                    unsigned int* compressed_length, char mode);
@@ -41,7 +41,7 @@ class StdNintendoCompression {
    * mode is the variation of the compression.
    */
 
-  char* Compress(const char* u_data, const unsigned int start,
+  unsigned char* Compress(const unsigned char* u_data, const unsigned int start,
                  const unsigned int length, unsigned int* compressed_size,
                  char mode);
 
@@ -69,7 +69,7 @@ class StdNintendoCompression {
   void DestroyChain(CompressionComponent* piece);
   CompressionComponent* merge_copy(CompressionComponent* start);
   unsigned int create_compression_string(CompressionComponent* start,
-                                         char* output, char mode);
+                                         unsigned char* output, char mode);
 };
 
 class ALTTPCompression {
@@ -86,16 +86,16 @@ class ALTTPCompression {
    * compressed_length is the length of the compressed data, meaning the number
    * of bytes read in c_data.
    */
-  char* Decompress(const char* c_data, const unsigned int start,
+  unsigned char* Decompress(const unsigned char* c_data, const unsigned int start,
                    unsigned int max_length,
                    unsigned int* uncompressed_data_size,
                    unsigned int* compressed_length, char mode);
 
-  char* DecompressGfx(const char* c_data, const unsigned int start,
+  unsigned char* DecompressGfx(const unsigned char* c_data, const unsigned int start,
                       unsigned int max_length,
                       unsigned int* uncompressed_data_size,
                       unsigned int* compressed_length);
-  char* DecompressOverworld(const char* c_data, const unsigned int start,
+  unsigned char* DecompressOverworld(const unsigned char* c_data, const unsigned int start,
                             unsigned int max_length,
                             unsigned int* uncompressed_data_size,
                             unsigned int* compressed_length);
@@ -109,13 +109,13 @@ class ALTTPCompression {
    * length is the length of u_data to compress
    * compressed_size is the resulting size of the compressed string.
    */
-  char* Compress(const char* u_data, const unsigned int start,
+  unsigned char* Compress(const unsigned char* u_data, const unsigned int start,
                  const unsigned int length, unsigned int* compressed_size,
                  char mode);
 
-  char* CompressGfx(const char* u_data, const unsigned int start,
+  unsigned char* CompressGfx(const unsigned char* u_data, const unsigned int start,
                     const unsigned int length, unsigned int* compressed_size);
-  char* CompressOverworld(const char* u_data, const unsigned int start,
+  unsigned char* CompressOverworld(const unsigned char* u_data, const unsigned int start,
                           const unsigned int length,
                           unsigned int* compressed_size);
 

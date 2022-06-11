@@ -27,6 +27,9 @@ class Editor {
 
   void DrawOverworldEditor();
 
+  bool isLoaded = false;
+  bool doneLoaded = false;
+  GLuint *overworld_texture;
   Data::Overworld overworld;
   Utils::ROM rom;
 };

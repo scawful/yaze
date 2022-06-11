@@ -7,12 +7,10 @@ namespace Data {
 using namespace Core;
 using namespace Graphics;
 
-OverworldMap::OverworldMap(Utils::ROM rom, byte index)
-    : rom_(rom), index(index), parent(index) {
-  // gfxBitmap = new Bitmap(512, 512, 512, PixelFormat.Format8bppIndexed,
-  // gfxPtr); messageID = (short)ROM.ReadShort(Constants::overworldMessages +
-  // (parent * 2));
-
+OverworldMap::OverworldMap(Utils::ROM rom,
+                           const std::vector<Graphics::Tile16> tiles16,
+                           byte index)
+    : rom_(rom), index(index), tiles16_(tiles16), parent(index) {
   if (index != 0x80) {
     if (index <= 150) {
       if (rom_.GetRawData()[Constants::overworldMapSize + (index & 0x3F)] !=
@@ -105,15 +103,16 @@ OverworldMap::OverworldMap(Utils::ROM rom, byte index)
   }
 }
 
-void OverworldMap::BuildMap(byte* mapParent, int count, int gameState) {
+void OverworldMap::BuildMap(byte* mapParent, int count, int gameState,
+                            ushort** allmapsTilesLW, ushort** allmapsTilesDW,
+                            ushort** allmapsTilesSP) {
+  tilesUsed = new ushort*[32];
+  for (int i = 0; i < 32; i++) tilesUsed[i] = new ushort;
+
   if (largeMap) {
     this->parent = mapParent[index];
 
     if (parent != index) {
-      // sprgfx[0] = rom_.GetRawData()[Constants::overworldSpriteset + parent];
-      // sprgfx[1] = rom_.GetRawData()[Constants::overworldSpriteset + parent +
-      // 64]; sprgfx[2] = rom_.GetRawData()[Constants::overworldSpriteset +
-      // parent + 128];
       if (!firstLoad) {
         gfx = rom_.GetRawData()[Constants::mapGfx + parent];
         palette = rom_.GetRawData()[Constants::overworldMapPalette + parent];
@@ -124,21 +123,19 @@ void OverworldMap::BuildMap(byte* mapParent, int count, int gameState) {
 
   BuildTileset(gameState);
   BuildTiles16Gfx(count);  // build on GFX.mapgfx16Ptr
-  //LoadPalette();
+  // LoadPalette();
 
   int world = 0;
 
-  // fix !! 
-  /* if (index < 64) {
-    tilesUsed = ow_.allmapsTilesLW;
-  } 
-  else if (index < 128 && index >= 64) {
-    tilesUsed = ow_.allmapsTilesDW.data();
+  if (index < 64) {
+    tilesUsed = allmapsTilesLW;
+  } else if (index < 128 && index >= 64) {
+    tilesUsed = allmapsTilesDW;
     world = 1;
   } else {
-    tilesUsed = ow_.allmapsTilesSP.data();
+    tilesUsed = allmapsTilesSP;
     world = 2;
-  } */
+  }
 
   int superY = ((index - (world * 64)) / 8);
   int superX = index - (world * 64) - (superY * 8);
@@ -146,15 +143,13 @@ void OverworldMap::BuildMap(byte* mapParent, int count, int gameState) {
   for (int y = 0; y < 32; y++) {
     for (int x = 0; x < 32; x++) {
       CopyTile8bpp16((x * 16), (y * 16),
-                     tilesUsed[x + (superX * 32)][y + (superY * 32)], 
-                     gfxPtr.get(), // fix 
-                     mapblockset16.get()); // fix 
+                     tilesUsed[x + (superX * 32)][y + (superY * 32)], gfxPtr,
+                     mapblockset16);
     }
   }
 }
 
-void OverworldMap::CopyTile8bpp16(int x, int y, int tile,
-                                  int* destbmpPtr,
+void OverworldMap::CopyTile8bpp16(int x, int y, int tile, int* destbmpPtr,
                                   int* sourcebmpPtr) {
   int sourceY = (tile / 8);
   int sourceX = (tile) - ((sourceY)*8);
@@ -163,7 +158,7 @@ void OverworldMap::CopyTile8bpp16(int x, int y, int tile,
   byte* sourcePtr = (byte*)sourcebmpPtr;
 
   int destPtrPos = (x + (y * 512));
-  byte* destPtr = (byte*) destbmpPtr;
+  byte* destPtr = (byte*)destbmpPtr;
 
   for (int ystrip = 0; ystrip < 16; ystrip++) {
     for (int xstrip = 0; xstrip < 16; xstrip++) {
@@ -174,22 +169,17 @@ void OverworldMap::CopyTile8bpp16(int x, int y, int tile,
 }
 
 void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
-                                       int* destbmpPtr,
-                                       int* sourcebmpPtr) {
-  auto gfx16Data = (byte*) destbmpPtr;
+                                       int* destbmpPtr, int* sourcebmpPtr) {
+  auto gfx16Data = (byte*)destbmpPtr;
 
-  auto gfx8Data = new byte[(128 * 512) / 2];
-      // (byte*)
-      //     GFX.currentOWgfx16Ptr.ToPointer()
+  auto gfx8Data = currentOWgfx16Ptr;
 
   int offsets[] = {0, 8, 4096, 4104};
 
-  //auto tiles = ow_.tiles16[tileID];
-  auto tiles = nullptr;
+  auto tiles = tiles16_[tileID];
 
   for (auto tile = 0; tile < 4; tile++) {
-    //TileInfo info = tiles.tiles_info[tile];
-    TileInfo info;
+    TileInfo info = tiles.tiles_info[tile];
     int offset = offsets[tile];
 
     for (auto y = 0; y < 8; y++) {
@@ -201,11 +191,9 @@ void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
 }
 
 void OverworldMap::BuildTiles16Gfx(int count) {
-  auto gfx16Data = new byte[1024];
-      // (byte*)GFX.mapblockset16.get();  //(byte*)allgfx8Ptr.ToPointer();
-  auto gfx8Data = new byte [1024];
-      // (byte*)
-      //     GFX.currentOWgfx16Ptr.get();  //(byte*)allgfx16Ptr.ToPointer();
+  byte* gfx16Data = (byte*)mapblockset16;
+  byte* gfx8Data = currentOWgfx16Ptr;
+
   int offsets[] = {0, 8, 1024, 1032};
   auto yy = 0;
   auto xx = 0;
@@ -213,12 +201,11 @@ void OverworldMap::BuildTiles16Gfx(int count) {
   for (auto i = 0; i < count; i++)  // number of tiles16 3748?
   {
     // 8x8 tile draw
-    // gfx8 = 4bpp so everyting is /2
-    // auto tiles = ow_.tiles16[i];
+    // gfx8 = 4bpp so everyting is /2F
+    auto tiles = tiles16_[i];
 
     for (auto tile = 0; tile < 4; tile++) {
-      //TileInfo info = ow_.tiles16[i].tiles_info[tile];
-      TileInfo info;
+      TileInfo info = tiles16_[i].tiles_info[tile];
       int offset = offsets[tile];
 
       for (auto y = 0; y < 8; y++) {
@@ -286,7 +273,7 @@ void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
   gfx16Pointer[index + r] = (byte)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
-/* 
+/*
 void OverworldMap::LoadPalette() {
   int previousPalId = 0;
   int previousSprPalId = 0;
@@ -615,12 +602,12 @@ void OverworldMap::BuildTileset(int gameState) {
     staticgfx[7] = 91;
   }
 
-  byte* currentmapgfx8Data = new byte [1024];
-      // (byte*)GFX.currentOWgfx16Ptr.ToPointer();  // loaded gfx for the current
-      //                                            // map (empty at this point)
-  byte* allgfxData = new byte [1024];
-      // (byte*)GFX.allgfx16Ptr
-      //     .ToPointer();  // all gfx of the game pack of 2048 bytes (4bpp)
+  byte* currentmapgfx8Data = new byte[(128 * 512) / 2];
+  // (byte*)GFX.currentOWgfx16Ptr.ToPointer();  // loaded gfx for the current
+  //                                            // map (empty at this point)
+  byte* allgfxData = new byte[(128 * 7136) / 2];
+  // (byte*)GFX.allgfx16Ptr
+  //     .ToPointer();  // all gfx of the game pack of 2048 bytes (4bpp)
 
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {

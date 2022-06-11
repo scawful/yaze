@@ -21,12 +21,20 @@ void Editor::UpdateScreen() {
   }
   DrawYazeMenu();
 
+  if (isLoaded) {
+    if (!doneLoaded) {
+      overworld.Load(rom);
+      overworld_texture = &overworld.owactualMapTexture;
+      doneLoaded = true;
+    }
+    ImGui::Image((void*)(intptr_t)overworld_texture, ImVec2(overworld.overworldMapBitmap->GetWidth(), overworld.overworldMapBitmap->GetHeight()));
+  }
+
   if (ImGui::BeginTabBar("##TabBar")) {
     DrawOverworldEditor();
     ImGui::EndTabBar();
   }
-
-  ImGui::ShowDemoWindow();
+  // ImGui::ShowDemoWindow();
 
   ImGui::End();
 }
@@ -52,6 +60,7 @@ void Editor::DrawYazeMenu() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom.LoadFromFile(filePathName);
+      isLoaded = true;
     }
 
     // close
@@ -145,10 +154,6 @@ void Editor::DrawOverworldEditor() {
     static bool adding_line = false;
 
     ImGui::Checkbox("Enable grid", &opt_enable_grid);
-    ImGui::Checkbox("Enable context menu", &opt_enable_context_menu);
-    ImGui::Text(
-        "Mouse Left: drag to add lines,\nMouse Right: drag to scroll, click "
-        "for context menu.");
 
     ImVec2 canvas_p0 =
         ImGui::GetCursorScreenPos();  // ImDrawList API uses screen coordinates!

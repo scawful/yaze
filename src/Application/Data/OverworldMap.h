@@ -26,19 +26,22 @@ class OverworldMap {
   byte sprpalette[3];
   byte musics[4];
 
-  // 512 * 512
-  std::unique_ptr<int> gfxPtr;
-  std::unique_ptr<int> mapblockset16;
-  // Bitmap gfxBitmap;  // Needs to be removed
+  int* gfxPtr = new int[512 * 512];
+  int* mapblockset16 = new int[1048576];
+  Graphics::Bitmap mapblockset16Bitmap;
+  Graphics::Bitmap gfxBitmap;
 
-  byte staticgfx[16];  // Need to be used to display map and not pre render it!
+  byte* staticgfx = new byte[16];  // Need to be used to display map and not pre render it!
   ushort** tilesUsed;
 
   bool needRefresh = false;
   Utils::ROM rom_;
 
-  OverworldMap(Utils::ROM rom, byte index);
-  void BuildMap(byte* mapParent, int count, int gameState);
+  byte *currentOWgfx16Ptr = new byte[(128 * 512) / 2];
+  std::vector<Graphics::Tile16> tiles16_;
+
+  OverworldMap(Utils::ROM rom, const std::vector<Graphics::Tile16> tiles16, byte index);
+  void BuildMap(byte* mapParent, int count, int gameState, ushort** allmapsTilesLW, ushort** allmapsTilesDW, ushort** allmapsTilesSP);
   void CopyTile8bpp16(int x, int y, int tile, int* destbmpPtr,
                       int* sourcebmpPtr);
   void CopyTile8bpp16From8(int xP, int yP, int tileID, int* destbmpPtr,
@@ -50,16 +53,15 @@ class OverworldMap {
 
   void CopyTile(int x, int y, int xx, int yy, int offset,
                 Graphics::TileInfo tile, byte* gfx16Pointer, byte* gfx8Pointer);
-
   void CopyTileToMap(int x, int y, int xx, int yy, int offset,
                      Graphics::TileInfo tile, byte* gfx16Pointer,
                      byte* gfx8Pointer);
 
-  /* void LoadPalette();
+  void LoadPalette();
 
   void SetColorsPalette(int index, ImVec4 main, ImVec4 animated, ImVec4 aux1,
                         ImVec4 aux2, ImVec4 hud, ImVec4 bgrcolor, ImVec4 spr,
-                        ImVec4 spr2); */
+                        ImVec4 spr2); 
 
   void BuildTileset(int gameState);
 };
