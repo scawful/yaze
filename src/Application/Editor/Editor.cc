@@ -27,11 +27,15 @@ void Editor::UpdateScreen() {
       overworld_texture = &overworld.owactualMapTexture;
       doneLoaded = true;
     }
-    ImGui::Image((void*)(intptr_t)overworld_texture, ImVec2(overworld.overworldMapBitmap->GetWidth(), overworld.overworldMapBitmap->GetHeight()));
+    // ImGui::Image((void*)(intptr_t)overworld_texture,
+    // ImVec2(overworld.overworldMapBitmap->GetWidth(),
+    // overworld.overworldMapBitmap->GetHeight()));
   }
 
   if (ImGui::BeginTabBar("##TabBar")) {
     DrawOverworldEditor();
+    DrawDungeonEditor();
+    DrawROMInfo();
     ImGui::EndTabBar();
   }
   // ImGui::ShowDemoWindow();
@@ -155,12 +159,8 @@ void Editor::DrawOverworldEditor() {
 
     ImGui::Checkbox("Enable grid", &opt_enable_grid);
 
-    ImVec2 canvas_p0 =
-        ImGui::GetCursorScreenPos();  // ImDrawList API uses screen coordinates!
-    ImVec2 canvas_sz =
-        ImGui::GetContentRegionAvail();  // Resize canvas to what's available
-    if (canvas_sz.x < 50.0f) canvas_sz.x = 50.0f;
-    if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
+    ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
+    ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
     ImVec2 canvas_p1 =
         ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
@@ -194,8 +194,6 @@ void Editor::DrawOverworldEditor() {
     }
 
     // Pan (we use a zero mouse threshold when there's no context menu)
-    // You may decide to make that threshold dynamic based on whether the mouse
-    // is hovering something etc.
     const float mouse_threshold_for_pan =
         opt_enable_context_menu ? -1.0f : 0.0f;
     if (is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right,
@@ -243,6 +241,23 @@ void Editor::DrawOverworldEditor() {
           IM_COL32(255, 255, 0, 255), 2.0f);
 
     draw_list->PopClipRect();
+
+    ImGui::EndTabItem();
+  }
+}
+void DrawDungeonEditor() {
+  if (ImGui::BeginTabItem("Dungeon")) {
+    ImGui::EndTabItem();
+  }
+}
+
+void Editor::DrawROMInfo() {
+  if (ImGui::BeginTabItem("ROM Info")) {
+    if (isLoaded) {
+      ImGui::Text("Title: %s", rom.getTitle());
+      ImGui::Text("Version: %d", rom.getVersion());
+      ImGui::Text("ROM Size: %ld", rom.getSize());
+    }
 
     ImGui::EndTabItem();
   }

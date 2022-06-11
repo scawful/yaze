@@ -26,6 +26,8 @@ class Editor {
   void DrawEditMenu() const;
 
   void DrawOverworldEditor();
+  void DrawDungeonEditor();
+  void DrawROMInfo();
 
   bool isLoaded = false;
   bool doneLoaded = false;

@@ -3,13 +3,48 @@
 
 #include <vector>
 
+#include "Palette.h"
+
 namespace yaze {
 namespace Application {
 namespace Graphics {
 
 using byte = unsigned char;
 using ushort = unsigned short;
+using uint = unsigned int;
 
+// SkarAlttp project code
+extern "C" {
+
+typedef struct {
+  unsigned int id;
+  char data[64];
+  unsigned int palette_id;
+} tile8;
+
+tile8 unpack_bpp8_tile(const char* data, const unsigned int offset);
+tile8 unpack_bpp4_tile(const char* data, const unsigned int offset);
+tile8 unpack_bpp3_tile(const char* data, const unsigned int offset);
+tile8 unpack_bpp2_tile(const char* data, const unsigned int offset);
+tile8 unpack_bpp1_tile(const char* data, const unsigned int offset);
+
+tile8 unpack_bpp_tile(const char* data, const unsigned int offset,
+                      const unsigned int bpp);
+
+byte* pack_bpp1_tile(const tile8 tile);
+byte* pack_bpp2_tile(const tile8 tile);
+byte* pack_bpp3_tile(const tile8 tile);
+byte* pack_bpp4_tile(const tile8 tile);
+byte* pack_bpp8_tile(const tile8 tile);
+
+byte* pack_bpp_tile(const tile8 tile, const unsigned int bpp,
+                    unsigned int* size);
+
+void export_tile_to_png(tile8 rawtile, const r_palette pal,
+                        const char* filename);
+}
+
+// End SkarAlttp project code
 class TileInfo {
  public:
   ushort id_;
@@ -84,7 +119,8 @@ class Tile16 {
     ;
   }
 };
-}  // namespace Data
+
+}  // namespace Graphics
 }  // namespace Application
 }  // namespace yaze
 
