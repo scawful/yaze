@@ -22,20 +22,10 @@ void Editor::UpdateScreen() {
 
   DrawYazeMenu();
 
-  if (isLoaded) {
-    if (!doneLoaded) {
-      overworld.Load(rom);
-      overworld_texture = &overworld.owactualMapTexture;
-      doneLoaded = true;
-    }
-    // ImGui::Image((void*)(intptr_t)overworld_texture,
-    // ImVec2(overworld.overworldMapBitmap->GetWidth(),
-    // overworld.overworldMapBitmap->GetHeight()));
-  }
-
   if (ImGui::BeginTabBar("##TabBar")) {
     DrawOverworldEditor();
     DrawDungeonEditor();
+    DrawSpriteEditor();
     DrawScreenEditor();
     DrawROMInfo();
     ImGui::EndTabBar();
@@ -50,6 +40,7 @@ void Editor::DrawYazeMenu() {
     DrawFileMenu();
     DrawEditMenu();
     DrawViewMenu();
+    DrawHelpMenu();
     ImGui::EndMenuBar();
   }
 
@@ -60,7 +51,8 @@ void Editor::DrawYazeMenu() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom.LoadFromFile(filePathName);
-      isLoaded = true;
+      owEditor.SetRom(rom);
+      rom_data_ = (void *)rom.GetRawData();
     }
 
     // close
@@ -137,8 +129,14 @@ void Editor::DrawEditMenu() const {
 void Editor::DrawViewMenu() const {
   static bool show_imgui_metrics = false;
   static bool show_imgui_style_editor = false;
+  static bool show_memory_editor = false;
   if (show_imgui_metrics) {
     ImGui::ShowMetricsWindow(&show_imgui_metrics);
+  }
+
+  if (show_memory_editor) {
+    static MemoryEditor mem_edit;
+    mem_edit.DrawWindow("Memory Editor", rom_data_, rom.getSize());
   }
 
   if (show_imgui_style_editor) {
@@ -154,12 +152,22 @@ void Editor::DrawViewMenu() const {
       ImGui::EndMenu();
     }
 
+    ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
+
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
       ImGui::MenuItem("Metrics (ImGui)", nullptr, &show_imgui_metrics);
       ImGui::MenuItem("Style Editor (ImGui)", nullptr,
                       &show_imgui_style_editor);
       ImGui::EndMenu();
+    }
+    ImGui::EndMenu();
+  }
+}
+
+void Editor::DrawHelpMenu() const {
+  if (ImGui::BeginMenu("Help")) {
+    if (ImGui::MenuItem("About")) {
     }
     ImGui::EndMenu();
   }
@@ -235,6 +243,12 @@ void Editor::DrawDungeonEditor() {
   }
 }
 
+void Editor::DrawSpriteEditor() {
+  if (ImGui::BeginTabItem("Sprites")) {
+    ImGui::EndTabItem();
+  }
+}
+
 void Editor::DrawScreenEditor() {
   if (ImGui::BeginTabItem("Screens")) {
     ImGui::EndTabItem();
@@ -243,7 +257,7 @@ void Editor::DrawScreenEditor() {
 
 void Editor::DrawROMInfo() {
   if (ImGui::BeginTabItem("ROM Info")) {
-    if (isLoaded) {
+    if (rom.isLoaded()) {
       ImGui::Text("Title: %s", rom.getTitle());
       ImGui::Text("Version: %d", rom.getVersion());
       ImGui::Text("ROM Size: %ld", rom.getSize());

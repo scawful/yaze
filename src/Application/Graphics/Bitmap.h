@@ -14,6 +14,7 @@ namespace Application {
 namespace Graphics {
 
 using byte = unsigned char;
+using namespace Core;
 
 class Bitmap {
 public:
@@ -31,8 +32,14 @@ private:
   int width_;
   int height_;
   byte *pixel_data_;
-  SDL_PixelFormat pixel_format_;
 };
+
+static bool isbpp3[Constants::NumberOfSheets];
+
+int GetPCGfxAddress(byte* romData, byte id);
+byte* CreateAllGfxDataRaw(byte* romData);
+void CreateAllGfxData(byte* romData, byte* allgfx16Ptr);
+
 } // namespace Graphics
 } // namespace Application
 } // namespace yaze

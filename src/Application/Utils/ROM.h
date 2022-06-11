@@ -48,11 +48,12 @@ int hirom_pc_to_snes(const unsigned int pc_addr);
 int hirom_sram_pc_to_snes(const unsigned int pc_addr);
 }
 
+int AddressFromBytes(byte addr1, byte addr2, byte addr3);
+
 class ROM {
  public:
   int SnesToPc(int addr);
   int PcToSnes(int addr);
-  int AddressFromBytes(byte addr1, byte addr2, byte addr3);
   short AddressFromBytes(byte addr1, byte addr2);
   ushort ReadShort(int addr);
   void Write(int addr, byte value);
@@ -69,9 +70,13 @@ class ROM {
   unsigned int getSize() const { return size; }
   char getVersion() const { return version; }
 
+  bool isLoaded() const { return loaded; }
+
  private:
   std::vector<char> original_rom_;
   std::vector<char> working_rom_;
+
+  bool loaded = false;
 
   byte* current_rom_;
 

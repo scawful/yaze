@@ -28,8 +28,8 @@ ushort TileInfo::toShort() {
   return value;
 }
 
-char* hexString(const char* str, const unsigned int size) {
-  char* toret = (char*)malloc(size * 3 + 1);
+char *hexString(const char *str, const unsigned int size) {
+  char *toret = (char *)malloc(size * 3 + 1);
 
   unsigned int i;
   for (i = 0; i < size; i++) {
@@ -40,8 +40,8 @@ char* hexString(const char* str, const unsigned int size) {
 }
 
 void export_tile_to_png(tile8 rawtile, const r_palette pal,
-                        const char* filename) {
-  FILE* fp = fopen(filename, "wb");
+                        const char *filename) {
+  FILE *fp = fopen(filename, "wb");
   png_structp png_ptr =
       png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   png_infop info_ptr = png_create_info_struct(png_ptr);
@@ -49,8 +49,8 @@ void export_tile_to_png(tile8 rawtile, const r_palette pal,
   png_set_strip_alpha(png_ptr);
   png_read_update_info(png_ptr, info_ptr);
 
-  png_color* png_palette =
-      (png_color*)png_malloc(png_ptr, pal.size * sizeof(png_color));
+  png_color *png_palette =
+      (png_color *)png_malloc(png_ptr, pal.size * sizeof(png_color));
 
   for (unsigned int i = 0; i < pal.size; i++) {
     png_palette[i].blue = pal.colors[i].blue;
@@ -65,9 +65,9 @@ void export_tile_to_png(tile8 rawtile, const r_palette pal,
   png_write_info(png_ptr, info_ptr);
   png_set_packing(png_ptr);
 
-  png_byte* row_pointers[8];
+  png_byte *row_pointers[8];
   for (unsigned int i = 0; i < 8; i++) {
-    row_pointers[i] = (png_byte*)png_malloc(png_ptr, sizeof(png_byte));
+    row_pointers[i] = (png_byte *)png_malloc(png_ptr, sizeof(png_byte));
     memcpy(row_pointers[i], rawtile.data + i * 8, 8);
   }
 
@@ -80,37 +80,37 @@ void export_tile_to_png(tile8 rawtile, const r_palette pal,
   png_free(png_ptr, row_pointers);
 }
 
-tile8 unpack_bpp1_tile(const char* data, const unsigned int offset) {
+tile8 unpack_bpp1_tile(const char *data, const unsigned int offset) {
   return (unpack_bpp_tile(data, offset, 1));
 }
 
-tile8 unpack_bpp2_tile(const char* data, const unsigned int offset) {
+tile8 unpack_bpp2_tile(const char *data, const unsigned int offset) {
   return (unpack_bpp_tile(data, offset, 2));
 }
 
-tile8 unpack_bpp3_tile(const char* data, const unsigned int offset) {
+tile8 unpack_bpp3_tile(const char *data, const unsigned int offset) {
   return (unpack_bpp_tile(data, offset, 3));
 }
 
-tile8 unpack_bpp4_tile(const char* data, const unsigned int offset) {
+tile8 unpack_bpp4_tile(const char *data, const unsigned int offset) {
   return (unpack_bpp_tile(data, offset, 4));
 }
 
-tile8 unpack_bpp8_tile(const char* data, const unsigned int offset) {
+tile8 unpack_bpp8_tile(const char *data, const unsigned int offset) {
   return (unpack_bpp_tile(data, offset, 8));
 }
 
-tile8 unpack_mode7_tile(const char* data, const unsigned int offset) {
+tile8 unpack_mode7_tile(const char *data, const unsigned int offset) {
   tile8 tile;
   memcpy(tile.data, data + offset, 64);
   return tile;
 }
 
-tile8 unpack_bpp_tile(const char* data, const unsigned int offset,
+tile8 unpack_bpp_tile(const char *data, const unsigned int offset,
                       const unsigned bpp) {
   tile8 tile;
   assert(bpp >= 1 && bpp <= 8);
-  unsigned int bpp_pos[8];  // More for conveniance and readibility
+  unsigned int bpp_pos[8]; // More for conveniance and readibility
   for (int col = 0; col < 8; col++) {
     for (int row = 0; row < 8; row++) {
       if (bpp == 1) {
@@ -155,33 +155,33 @@ tile8 unpack_bpp_tile(const char* data, const unsigned int offset,
   return tile;
 }
 
-byte* pack_bpp1_tile(const tile8 tile) {
+byte *pack_bpp1_tile(const tile8 tile) {
   unsigned int p = 1;
   return pack_bpp_tile(tile, 1, &p);
 }
 
-byte* pack_bpp2_tile(const tile8 tile) {
+byte *pack_bpp2_tile(const tile8 tile) {
   unsigned int p = 1;
   return pack_bpp_tile(tile, 2, &p);
 }
 
-byte* pack_bpp3_tile(const tile8 tile) {
+byte *pack_bpp3_tile(const tile8 tile) {
   unsigned int p = 1;
   return pack_bpp_tile(tile, 3, &p);
 }
 
-byte* pack_bpp4_tile(const tile8 tile) {
+byte *pack_bpp4_tile(const tile8 tile) {
   unsigned int p = 1;
   return pack_bpp_tile(tile, 4, &p);
 }
 
-byte* pack_bpp8_tile(const tile8 tile) {
+byte *pack_bpp8_tile(const tile8 tile) {
   unsigned int p = 1;
   return pack_bpp_tile(tile, 8, &p);
 }
 
-byte* pack_bpp_tile(tile8 tile, const unsigned int bpp, unsigned int* size) {
-  byte* output = (byte*)malloc(bpp * 8);
+byte *pack_bpp_tile(tile8 tile, const unsigned int bpp, unsigned int *size) {
+  byte *output = (byte *)malloc(bpp * 8);
   memset(output, 0, bpp * 8);
   unsigned maxcolor = 2 << bpp;
   *size = 0;
@@ -189,14 +189,17 @@ byte* pack_bpp_tile(tile8 tile, const unsigned int bpp, unsigned int* size) {
   for (unsigned int col = 0; col < 8; col++) {
     for (unsigned int row = 0; row < 8; row++) {
       byte color = tile.data[col * 8 + row];
-      if (color > maxcolor) return NULL;
+      if (color > maxcolor)
+        return NULL;
 
-      if (bpp == 1) output[col] += (byte)((color & 1) << (7 - row));
+      if (bpp == 1)
+        output[col] += (byte)((color & 1) << (7 - row));
       if (bpp >= 2) {
         output[col * 2] += (byte)((color & 1) << (7 - row));
         output[col * 2 + 1] += (byte)(((color & 2) == 2) << (7 - row));
       }
-      if (bpp == 3) output[16 + col] += (byte)(((color & 4) == 4) << (7 - row));
+      if (bpp == 3)
+        output[16 + col] += (byte)(((color & 4) == 4) << (7 - row));
       if (bpp >= 4) {
         output[16 + col * 2] += (byte)(((color & 4) == 4) << (7 - row));
         output[16 + col * 2 + 1] += (byte)(((color & 8) == 8) << (7 - row));
@@ -213,6 +216,6 @@ byte* pack_bpp_tile(tile8 tile, const unsigned int bpp, unsigned int* size) {
   return output;
 }
 
-}  // namespace Graphics
-}  // namespace Application
-}  // namespace yaze
+} // namespace Graphics
+} // namespace Application
+} // namespace yaze

@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "Core/Icons.h"
-#include "Data/Overworld.h"
 #include "OverworldEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "Utils/ROM.h"
@@ -13,6 +12,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui/imgui_memory_editor.h"
 
 namespace yaze {
 namespace Application {
@@ -27,20 +27,20 @@ class Editor {
   void DrawFileMenu() const;
   void DrawEditMenu() const;
   void DrawViewMenu() const;
+  void DrawHelpMenu() const;
 
   void DrawOverworldEditor();
   void DrawDungeonEditor();
+  void DrawSpriteEditor();
   void DrawScreenEditor();
   void DrawROMInfo();
 
-  bool isLoaded = false;
-  bool doneLoaded = false;
-  GLuint *overworld_texture;
-  Data::Overworld overworld;
-  ::yaze::Application::Editor::OverworldEditor owEditor;
+  OverworldEditor owEditor;
   Utils::ROM rom;
 
+  void* rom_data_;
 
+  bool isLoaded = true;
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
 };
 

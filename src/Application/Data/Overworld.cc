@@ -19,8 +19,8 @@ Overworld::~Overworld() {
   free(allmapsTilesDW);
   free(allmapsTilesSP);
 
-  delete overworldMapPointer;
-  delete owactualMapPointer;
+  delete[] overworldMapPointer;
+  delete[] owactualMapPointer;
 }
 
 static TileInfo GetTilesInfo(ushort tile) {

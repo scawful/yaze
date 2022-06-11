@@ -1,5 +1,7 @@
 #include "OverworldEditor.h"
 #include "Core/Icons.h"
+#include "Graphics/Bitmap.h"
+#include "Graphics/Tile.h"
 #include "imgui.h"
 #include <cmath>
 
@@ -7,6 +9,28 @@ namespace yaze {
 namespace Application {
 namespace Editor {
 void OverworldEditor::Update() {
+
+  if (rom_.isLoaded()) {
+    if (!doneLoaded) {
+      overworld.Load(rom_);
+      Graphics::CreateAllGfxData(rom_.GetRawData(), allGfx16Ptr);
+
+      // allgfxBitmap.LoadBitmapFromROM(allGfx16Ptr, allgfx_texture,
+      // &allgfx_width,
+      //                                &allgfx_height);
+      doneLoaded = true;
+    }
+    // Graphics::tile8 all_tiles;
+    // all_tiles.id = 1;
+    // all_tiles.data =
+    // Graphics::export_tile_to_png(tile8 rawtile, const r_palette pal, const
+    // char *filename)
+  }
+
+  if (show_changelist_) {
+    DrawChangelist();
+  }
+
   DrawToolset();
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
@@ -21,7 +45,7 @@ void OverworldEditor::Update() {
 }
 
 void OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("Toolset", 12, toolset_table_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("Toolset", 14, toolset_table_flags, ImVec2(0, 0))) {
 
     ImGui::TableSetupColumn("#undoTool");
     ImGui::TableSetupColumn("#redoTool");
@@ -31,10 +55,12 @@ void OverworldEditor::DrawToolset() {
     ImGui::TableSetupColumn("#zoomInTool");
     ImGui::TableSetupColumn("#separator");
     ImGui::TableSetupColumn("#history");
-    ImGui::TableSetupColumn("#entranceExitTool");
+    ImGui::TableSetupColumn("#entranceTool");
+    ImGui::TableSetupColumn("#exitTool");
     ImGui::TableSetupColumn("#itemTool");
     ImGui::TableSetupColumn("#spriteTool");
     ImGui::TableSetupColumn("#transportTool");
+    ImGui::TableSetupColumn("#musicTool");
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_UNDO);
@@ -43,7 +69,12 @@ void OverworldEditor::DrawToolset() {
     ImGui::Button(ICON_MD_REDO);
 
     ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_MANAGE_HISTORY);
+    if (ImGui::Button(ICON_MD_MANAGE_HISTORY)) {
+      if (!show_changelist_)
+        show_changelist_ = true;
+      else
+        show_changelist_ = false;
+    }
 
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
@@ -61,7 +92,10 @@ void OverworldEditor::DrawToolset() {
     ImGui::Button(ICON_MD_DRAW);
 
     ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_SENSOR_DOOR);
+    ImGui::Button(ICON_MD_DOOR_FRONT);
+
+    ImGui::TableNextColumn();
+    ImGui::Button(ICON_MD_DOOR_BACK);
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_GRASS);
@@ -71,6 +105,9 @@ void OverworldEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_ADD_LOCATION);
+
+    ImGui::TableNextColumn();
+    ImGui::Button(ICON_MD_MUSIC_NOTE);
 
     ImGui::EndTable();
   }
@@ -121,8 +158,8 @@ void OverworldEditor::DrawOverworldMapSettings() {
     ImGui::Text("Msg ID");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(50.f);
-    ImGui::InputText("##msgid", spr_palette_, kMessageIdSize);    
-    
+    ImGui::InputText("##msgid", spr_palette_, kMessageIdSize);
+
     ImGui::TableNextColumn();
     ImGui::Checkbox("Show grid", &opt_enable_grid);
     ImGui::EndTable();
@@ -222,16 +259,33 @@ void OverworldEditor::DrawOverworldCanvas() {
 }
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar")) {
+    if (ImGui::BeginTabItem("Tile8")) {
+      if (rom_.isLoaded()) {
+        ImGui::Image((void *)(intptr_t)overworld_texture,
+                     ImVec2(overworld.overworldMapBitmap->GetWidth(),
+                            overworld.overworldMapBitmap->GetHeight()));
+      }
+
+      ImGui::EndTabItem();
+    }
     if (ImGui::BeginTabItem("Tile16")) {
 
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Tile8")) {
 
-      ImGui::EndTabItem();
-    }
     ImGui::EndTabBar();
   }
+}
+
+void OverworldEditor::DrawChangelist() {
+  if (!ImGui::Begin("Changelist")) {
+    
+    ImGui::End();
+  }
+  
+  
+  ImGui::Text("Test");
+  ImGui::End();
 }
 
 } // namespace Editor

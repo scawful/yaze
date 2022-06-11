@@ -250,6 +250,7 @@ void ROM::LoadFromFile(const std::string& path) {
   fclose(file);
 
   memcpy(title, current_rom_, 21);
+  
   type = LoROM;
   fastrom = (current_rom_[21] & 0b00110000) == 0b00110000;
   if (current_rom_[21] & 1)
@@ -265,6 +266,11 @@ void ROM::LoadFromFile(const std::string& path) {
   make_sense = false;
   if ((checksum ^ checksum_comp) == 0xFFFF)
       make_sense = true;
+
+  loaded = true;
+
+  
+
 }
 
 int ROM::SnesToPc(int addr) {
@@ -293,7 +299,7 @@ int ROM::PcToSnes(int addr) {
   return ((addr * 2) & 0xFF0000) + (addr & 0x7FFF) + 0x8000;
 }
 
-int ROM::AddressFromBytes(byte addr1, byte addr2, byte addr3) {
+int AddressFromBytes(byte addr1, byte addr2, byte addr3) {
   return (addr1 << 16) | (addr2 << 8) | addr3;
 }
 
