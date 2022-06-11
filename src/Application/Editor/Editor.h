@@ -4,29 +4,31 @@
 #include <memory>
 
 #include "Core/Icons.h"
-#include "OverworldEditor.h"
+#include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "OverworldEditor.h"
 #include "Utils/ROM.h"
 #include "imgui/backends/imgui_impl_sdl.h"
 #include "imgui/backends/imgui_impl_sdlrenderer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui/imgui_memory_editor.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace Application {
 namespace Editor {
 
 class Editor {
- public:
+public:
+  Editor();
   void UpdateScreen();
 
- private:
+private:
   void DrawYazeMenu();
   void DrawFileMenu() const;
   void DrawEditMenu() const;
-  void DrawViewMenu() const;
+  void DrawViewMenu();
   void DrawHelpMenu() const;
 
   void DrawOverworldEditor();
@@ -34,18 +36,20 @@ class Editor {
   void DrawSpriteEditor();
   void DrawScreenEditor();
   void DrawROMInfo();
-
-  OverworldEditor owEditor;
+  
+  void *rom_data_;
+  bool isLoaded = true;  
+  
   Utils::ROM rom;
+  TextEditor asm_editor_;
+  TextEditor::LanguageDefinition language65816Def;
+  OverworldEditor overworld_editor_;
 
-  void* rom_data_;
-
-  bool isLoaded = true;
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
 };
 
-}  // namespace View
-}  // namespace Application
-}  // namespace yaze
+} // namespace Editor
+} // namespace Application
+} // namespace yaze
 
-#endif  // YAZE_APPLICATION_VIEW_EDITOR_H
+#endif // YAZE_APPLICATION_VIEW_EDITOR_H

@@ -4,6 +4,87 @@ namespace yaze {
 namespace Application {
 namespace Editor {
 
+Editor::Editor() {
+  static bool inited = false;
+  if (!inited) {
+    static const char *const keywords[] = {
+        "ADC", "AND", "ASL", "BCC",       "BCS", "BEQ", "BIT", "BMI", "BNE",
+        "BPL", "BRA", "BRL", "BVC",       "BVS", "CLC", "CLD", "CLI", "CLV",
+        "CMP", "CPX", "CPY", "DEC",       "DEX", "DEY", "EOR", "INC", "INX",
+        "INY", "JMP", "JSR", "JSL", "LDA",       "LDX", "LDY", "LSR", "MVN", "NOP",
+        "ORA", "PEA", "PER", "PHA",       "PHB", "PHD", "PHP", "PHX", "PHY",
+        "PLA", "PLB", "PLD", "PLP",       "PLX", "PLY", "REP", "ROL", "ROR",
+        "RTI", "RTL", "RTS", "SBC",       "SEC", "SEI", "SEP", "STA", "STP",
+        "STX", "STY", "STZ", "TAX",       "TAY", "TCD", "TCS", "TDC", "TRB",
+        "TSB", "TSC", "TSX", "TXA",       "TXS", "TXY", "TYA", "TYX", "WAI",
+        "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB" };
+    for (auto &k : keywords)
+      language65816Def.mKeywords.insert(k);
+
+    static const char *const identifiers[] = {
+        "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
+        "atof",    "atoi",    "atol",    "ceil",     "clock",   "cosh",
+        "ctime",   "div",     "exit",    "fabs",     "floor",   "fmod",
+        "getchar", "getenv",  "isalnum", "isalpha",  "isdigit", "isgraph",
+        "ispunct", "isspace", "isupper", "kbhit",    "log10",   "log2",
+        "log",     "memcmp",  "modf",    "pow",      "putchar", "putenv",
+        "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
+        "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
+        "toupper" };
+    for (auto &k : identifiers) {
+      TextEditor::Identifier id;
+      id.mDeclaration = "Built-in function";
+      language65816Def.mIdentifiers.insert(std::make_pair(std::string(k), id));
+    }
+
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "[ \\t]*#[ \\t]*[a-zA-Z_]+",
+            TextEditor::PaletteIndex::Preprocessor));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "L?\\\"(\\\\.|[^\\\"])*\\\"", TextEditor::PaletteIndex::String));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "\\'\\\\?[^\\']\\'", TextEditor::PaletteIndex::CharLiteral));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?[fF]?",
+            TextEditor::PaletteIndex::Number));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "[+-]?[0-9]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "0[0-7]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "0[xX][0-9a-fA-F]+[uU]?[lL]?[lL]?",
+            TextEditor::PaletteIndex::Number));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "[a-zA-Z_][a-zA-Z0-9_]*", TextEditor::PaletteIndex::Identifier));
+    language65816Def.mTokenRegexStrings.push_back(
+        std::make_pair<std::string, TextEditor::PaletteIndex>(
+            "[\\[\\]\\{\\}\\!\\%\\^\\&\\*\\(\\)\\-\\+\\=\\~\\|\\<\\>\\?\\/"
+            "\\;\\,\\.]",
+            TextEditor::PaletteIndex::Punctuation));
+
+    language65816Def.mCommentStart = "/*";
+    language65816Def.mCommentEnd = "*/";
+    language65816Def.mSingleLineComment = ";";
+
+    language65816Def.mCaseSensitive = false;
+    language65816Def.mAutoIndentation = true;
+
+    language65816Def.mName = "65816";
+
+    inited = true;
+  }
+  asm_editor_.SetLanguageDefinition(language65816Def);
+  asm_editor_.SetPalette(TextEditor::GetDarkPalette());
+}
+
 void Editor::UpdateScreen() {
   const ImGuiIO &io = ImGui::GetIO();
   ImGui::NewFrame();
@@ -51,7 +132,7 @@ void Editor::DrawYazeMenu() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom.LoadFromFile(filePathName);
-      owEditor.SetRom(rom);
+      overworld_editor_.SetRom(rom);
       rom_data_ = (void *)rom.GetRawData();
     }
 
@@ -126,10 +207,12 @@ void Editor::DrawEditMenu() const {
   }
 }
 
-void Editor::DrawViewMenu() const {
+void Editor::DrawViewMenu() {
   static bool show_imgui_metrics = false;
   static bool show_imgui_style_editor = false;
   static bool show_memory_editor = false;
+  static bool show_asm_editor = false;
+
   if (show_imgui_metrics) {
     ImGui::ShowMetricsWindow(&show_imgui_metrics);
   }
@@ -137,6 +220,31 @@ void Editor::DrawViewMenu() const {
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
     mem_edit.DrawWindow("Memory Editor", rom_data_, rom.getSize());
+  }
+
+  if (show_asm_editor) {
+    static bool asm_is_loaded = false;
+    auto cpos = asm_editor_.GetCursorPosition();
+    static const char *fileToEdit = "assets/bunnyhood.asm";
+    if (!asm_is_loaded) {
+      std::ifstream t(fileToEdit);
+      if (t.good()) {
+        std::string str((std::istreambuf_iterator<char>(t)),
+                        std::istreambuf_iterator<char>());
+        asm_editor_.SetText(str);
+      }
+      asm_is_loaded = true;
+    }
+
+    ImGui::Begin("ASM Editor", &show_asm_editor);
+    ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
+                cpos.mColumn + 1, asm_editor_.GetTotalLines(),
+                asm_editor_.IsOverwrite() ? "Ovr" : "Ins",
+                asm_editor_.CanUndo() ? "*" : " ",
+                asm_editor_.GetLanguageDefinition().mName.c_str(), fileToEdit);
+
+    asm_editor_.Render(fileToEdit);
+    ImGui::End();
   }
 
   if (show_imgui_style_editor) {
@@ -153,6 +261,7 @@ void Editor::DrawViewMenu() const {
     }
 
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
+    ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
 
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
@@ -193,7 +302,7 @@ void Editor::DrawHelpMenu() const {
 // understand the data quickly
 void Editor::DrawOverworldEditor() {
   if (ImGui::BeginTabItem("Overworld")) {
-    owEditor.Update();
+    overworld_editor_.Update();
     ImGui::EndTabItem();
   }
 }

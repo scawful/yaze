@@ -20,6 +20,13 @@ target_include_directories(ImGuiFileDialog PUBLIC ${IMGUI_PATH})
 target_include_directories(ImGuiFileDialog PUBLIC ${SDL2_INCLUDE_DIR})
 target_compile_definitions(ImGuiFileDialog PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
+set(IMGUI_COLOR_TEXT_EDIT_PATH "Library/ImGuiColorTextEdit")
+file(GLOB IMGUI_COLOR_TEXT_EDIT_SOURCES ${IMGUI_COLOR_TEXT_EDIT_PATH}/*.cpp)
+add_library("ImGuiColorTextEdit" STATIC ${IMGUI_COLOR_TEXT_EDIT_SOURCES})
+target_include_directories(ImGuiColorTextEdit PUBLIC ${IMGUI_PATH})
+target_include_directories(ImGuiColorTextEdit PUBLIC ${SDL2_INCLUDE_DIR})
+target_compile_definitions(ImGuiColorTextEdit PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
+
 # Executable Linkage --------------------------------------------------------------------------------------
 add_executable(
     yaze
@@ -45,6 +52,7 @@ add_executable(
     ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer.cpp 
     ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
     ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
+    ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
 )
 
 target_include_directories(

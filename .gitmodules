@@ -4,3 +4,6 @@
 [submodule "src/Library/ImGuiFileDialog"]
 	path = src/Library/ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog.git
+[submodule "src/Library/ImGuiColorTextEdit"]
+	path = src/Library/ImGuiColorTextEdit
+	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
