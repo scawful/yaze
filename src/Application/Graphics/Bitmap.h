@@ -16,25 +16,25 @@ namespace Graphics {
 using byte = unsigned char;
 
 class Bitmap {
- public:
-  Bitmap()=default;
-  Bitmap(int width, int height, byte* data);
+public:
+  Bitmap() = default;
+  Bitmap(int width, int height, byte *data);
 
-  void Create(GLuint* out_texture);
+  void Create(GLuint *out_texture);
   int GetWidth();
   int GetHeight();
 
-  bool LoadBitmapFromROM(unsigned char* texture_data, GLuint* out_texture,
-                         int* out_width, int* out_height);
+  bool LoadBitmapFromROM(unsigned char *texture_data, GLuint *out_texture,
+                         int *out_width, int *out_height);
 
- private:
+private:
   int width_;
   int height_;
-  byte* pixel_data_;
+  byte *pixel_data_;
   SDL_PixelFormat pixel_format_;
 };
-}  // namespace Graphics
-}  // namespace Application
-}  // namespace yaze
+} // namespace Graphics
+} // namespace Application
+} // namespace yaze
 
 #endif

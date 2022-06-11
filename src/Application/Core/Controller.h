@@ -6,9 +6,9 @@
 
 #include <memory>
 
+#include "Editor/Editor.h"
 #include "Events/Event.h"
 #include "Renderer.h"
-#include "Editor/Editor.h"
 #include "Window.h"
 #include "imgui/backends/imgui_impl_sdl.h"
 #include "imgui/backends/imgui_impl_sdlrenderer.h"
@@ -37,7 +37,7 @@ class Controller {
  private:
   Window window;
   Renderer renderer;
-  View::Editor editor;
+  Editor::Editor editor;
   bool active = false;
   void quit() { active = false; }
   friend int ::main(int argc, char** argv);

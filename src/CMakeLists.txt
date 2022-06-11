@@ -32,6 +32,7 @@ add_executable(
     Application/Graphics/Bitmap.cc
     Application/Graphics/Tile.cc
     Application/Editor/Editor.cc
+    Application/Editor/OverworldEditor.cc
     Application/Events/Event.cc
     Application/Utils/Compression.cc
     Application/Utils/ROM.cc
@@ -50,6 +51,7 @@ target_include_directories(
   yaze PUBLIC
   Library/
   Application/
+  Resources/
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
 )
@@ -59,5 +61,13 @@ target_link_libraries(
   ${SDL2_LIBRARIES} 
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
+  png
   ImGui
 )
+
+set (source "${CMAKE_SOURCE_DIR}/assets")
+set (destination "${CMAKE_CURRENT_BINARY_DIR}/assets")
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E create_symlink ${source} ${destination} 
+                   DEPENDS ${destination}
+                   COMMENT "symbolic link resources folder from ${source} => ${destination}")

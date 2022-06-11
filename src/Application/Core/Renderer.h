@@ -3,25 +3,27 @@
 
 #include <SDL2/SDL.h>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
+#include "Icons.h"
+#include "Style.h"
 #include "imgui/backends/imgui_impl_sdl.h"
 #include "imgui/backends/imgui_impl_sdlrenderer.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace Application {
 namespace Core {
 
-  class Renderer {
-    public:
-      void Create(SDL_Window* window);
-      void Render();
-      void Destroy();
+class Renderer {
+ public:
+  void Create(SDL_Window* window);
+  void Render();
+  void Destroy();
 
-    private:
-      SDL_Renderer* renderer = nullptr;
-  };
+ private:
+  SDL_Renderer* renderer = nullptr;
+};
 
 }  // namespace Core
 }  // namespace Application

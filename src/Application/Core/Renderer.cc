@@ -22,10 +22,30 @@ void Renderer::Create(SDL_Window* window) {
 
   // Create the ImGui and ImPlot contexts
   ImGui::CreateContext();
-  
+
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
   ImGui_ImplSDLRenderer_Init(renderer);
+
+  // Load available fonts
+  const ImGuiIO& io = ImGui::GetIO();
+      io.Fonts->AddFontFromFileTTF("assets/Fonts/Karla-Regular.ttf", 14.0f);
+
+  // merge in icons from Google Material Design
+  static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
+  ImFontConfig icons_config;
+  icons_config.MergeMode = true;
+  icons_config.GlyphOffset.y = 5.0f;
+  icons_config.GlyphMinAdvanceX = 13.0f;
+  icons_config.PixelSnapH = true;
+  io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, 18.0f, &icons_config,
+                               icons_ranges);
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/Roboto-Medium.ttf", 14.0f);
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/Cousine-Regular.ttf", 14.0f);
+    io.Fonts->AddFontFromFileTTF("assets/Fonts/DroidSans.ttf", 16.0f);
+
+
+  Style::StyleColorsYaze();
 
   // Build a new ImGui frame
   ImGui_ImplSDLRenderer_NewFrame();
@@ -43,7 +63,6 @@ void Renderer::Destroy() {
   SDL_DestroyRenderer(renderer);
   renderer = nullptr;
 }
-
 
 }  // namespace Core
 }  // namespace Application
