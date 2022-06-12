@@ -9,8 +9,13 @@
 #include <string>
 #include <vector>
 
+#include "Compression.h"
 #include "Core/Constants.h"
 #include "Graphics/Tile.h"
+#include "compressions/alttpcompression.h"
+#include "compressions/stdnintendo.h"
+#include "rommapping.h"
+#include "tile.h"
 
 namespace yaze {
 namespace Application {
@@ -19,39 +24,16 @@ namespace Utils {
 using byte = unsigned char;
 using ushort = unsigned short;
 
-extern "C" {
-
-enum rom_type { LoROM, HiROM, ExLoROM, ExHiROM };
-
-extern char* rommapping_error_text;
-
-int rommapping_snes_to_pc(const unsigned int snes_addr, enum rom_type rom_type,
-                          bool header);
-int rommapping_pc_to_snes(const unsigned int pc_addr, enum rom_type rom_type,
-                          bool header);
-
-int rommapping_sram_snes_to_pc(const unsigned int snes_addr,
-                               enum rom_type rom_type, bool header);
-int rommapping_sram_pc_to_snes(const unsigned int pc_addr,
-                               enum rom_type rom_type, bool header);
-
-int lorom_snes_to_pc(const unsigned int snes_addr, char** info);
-int lorom_sram_snes_to_pc(const unsigned int snes_addr);
-int lorom_pc_to_snes(const unsigned int pc_addr);
-int lorom_sram_pc_to_snes(const unsigned int pc_addr);
-
-int hirom_snes_to_pc(const unsigned int snes_addr, char** info);
-int hirom_sram_snes_to_pc(const unsigned int snes_addr);
-int hirom_pc_to_snes(const unsigned int pc_addr);
-int hirom_sram_pc_to_snes(const unsigned int pc_addr);
-}
+using namespace Graphics;
 
 int AddressFromBytes(byte addr1, byte addr2, byte addr3);
 
 class ROM {
  public:
+  void LoadFromFile(const std::string& path);
+  std::vector<tile8> ExtractTiles(unsigned int bpp, unsigned int length);
+
   int SnesToPc(int addr);
-  int PcToSnes(int addr);
   short AddressFromBytes(byte addr1, byte addr2);
   ushort ReadShort(int addr);
   void Write(int addr, byte value);
@@ -61,7 +43,6 @@ class ROM {
   void WriteShort(int addr, int value);
   int ReadLong(int addr);
   void WriteLong(int addr, int value);
-  void LoadFromFile(const std::string& path);
   inline byte* GetRawData() { return current_rom_; }
 
   const unsigned char* getTitle() const { return title; }

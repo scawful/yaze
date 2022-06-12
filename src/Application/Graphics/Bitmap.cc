@@ -1,6 +1,7 @@
 #include "Bitmap.h"
 #include "Utils/ROM.h"
 #include "Utils/Compression.h"
+#include "rommapping.h"
 
 namespace yaze {
 namespace Application {
@@ -9,20 +10,20 @@ namespace Graphics {
 int GetPCGfxAddress(byte *romData, byte id) {
   char** info1, **info2,** info3, **info4;
   int gfxPointer1 =
-      Utils::lorom_snes_to_pc((romData[Constants::gfx_1_pointer + 1] << 8) +
+      lorom_snes_to_pc((romData[Constants::gfx_1_pointer + 1] << 8) +
                       (romData[Constants::gfx_1_pointer]), info1);
   int gfxPointer2 =
-      Utils::lorom_snes_to_pc((romData[Constants::gfx_2_pointer + 1] << 8) +
+      lorom_snes_to_pc((romData[Constants::gfx_2_pointer + 1] << 8) +
                       (romData[Constants::gfx_2_pointer]), info2);
   int gfxPointer3 =
-      Utils::lorom_snes_to_pc((romData[Constants::gfx_3_pointer + 1] << 8) +
+      lorom_snes_to_pc((romData[Constants::gfx_3_pointer + 1] << 8) +
                       (romData[Constants::gfx_3_pointer]), info3);
 
   byte gfxGamePointer1 = romData[gfxPointer1 + id];
   byte gfxGamePointer2 = romData[gfxPointer2 + id];
   byte gfxGamePointer3 = romData[gfxPointer3 + id];
 
-  return Utils::lorom_snes_to_pc(Utils::AddressFromBytes(gfxGamePointer1, gfxGamePointer2,
+  return lorom_snes_to_pc(Utils::AddressFromBytes(gfxGamePointer1, gfxGamePointer2,
                                                gfxGamePointer3), info4);
 }
 

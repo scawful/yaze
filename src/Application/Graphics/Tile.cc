@@ -4,12 +4,15 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 
 #include "png.h"
 
 namespace yaze {
 namespace Application {
 namespace Graphics {
+
+std::unordered_map<std::string, TilesPattern> TilesPattern::m_Patterns;
 
 ushort TileInfo::toShort() {
   ushort value = 0;
@@ -39,228 +42,293 @@ char *hexString(const char *str, const unsigned int size) {
   return toret;
 }
 
-void export_all_gfx_to_png(byte *tiledata) {
-
-  auto tile = unpack_bpp3_tile(tiledata, 0);
-  Graphics::r_palette *pal = palette_create(8, 0);
-
-  for (unsigned int i = 0; i < 8; i++) {
-    pal->colors[i].red = i * 30;
-    pal->colors[i].blue = i * 30;
-    pal->colors[i].green = i * 30;
-  }
-
-  FILE *fp = fopen("test.png", "wb");
-  png_structp png_ptr =
-      png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-  png_infop info_ptr = png_create_info_struct(png_ptr);
-  png_init_io(png_ptr, fp);
-  png_set_strip_alpha(png_ptr);
-  png_read_update_info(png_ptr, info_ptr);
-
-  png_color *png_palette =
-      (png_color *)png_malloc(png_ptr, pal->size * sizeof(png_color));
-
-  for (unsigned int i = 0; i < pal->size; i++) {
-    png_palette[i].blue = pal->colors[i].blue;
-    png_palette[i].green = pal->colors[i].green;
-    png_palette[i].red = pal->colors[i].red;
-  }
-  png_set_IHDR(png_ptr, info_ptr, 8, 8, 8, PNG_COLOR_TYPE_PALETTE,
-               PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-               PNG_FILTER_TYPE_BASE);
-  png_set_PLTE(png_ptr, info_ptr, png_palette, pal->size);
-
-  png_write_info(png_ptr, info_ptr);
-  png_set_packing(png_ptr);
-
-  png_byte *row_pointers[8];
-  for (unsigned int i = 0; i < 8; i++) {
-    row_pointers[i] = (png_byte *)png_malloc(png_ptr, sizeof(png_byte));
-    memcpy(row_pointers[i], tile.data + i * 8, 8);
-  }
-
-  png_write_image(png_ptr, row_pointers);
-
-  png_write_end(png_ptr, info_ptr);
-  png_destroy_write_struct(&png_ptr, &info_ptr);
-
-  png_free(png_ptr, png_palette);
-  png_free(png_ptr, row_pointers);
+TilesPattern::TilesPattern() {
+  tilesPerRow = 16;
+  numberOfTiles = 16;
 }
+// [pattern]
+// name = "32x32 B (4x4)"
+// number_of_tile = 16
+// pattern = 
+void TilesPattern::default_settings() {
+  numberOfTiles = 16;
+  std::string patternString = "[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, A, B], [C, D, E, F]";
 
-void export_tile_to_png(tile8 rawtile, const r_palette pal,
-                        const char *filename) {
-  FILE *fp = fopen(filename, "wb");
-  png_structp png_ptr =
-      png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-  png_infop info_ptr = png_create_info_struct(png_ptr);
-  png_init_io(png_ptr, fp);
-  png_set_strip_alpha(png_ptr);
-  png_read_update_info(png_ptr, info_ptr);
+  transformVector.clear();
 
-  png_color *png_palette =
-      (png_color *)png_malloc(png_ptr, pal.size * sizeof(png_color));
+  //  if (regex_match ("softwareTesting", regex("(soft)(.*)") ))
+  //     cout << "string:literal => matched\n";
+ 
+  //  const char mystr[] = "SoftwareTestingHelp";
+  //  string str ("software");
+  //  regex str_expr ("(soft)(.*)");
+ 
+  //  if (regex_match (str,str_expr))
+  //     cout << "string:object => matched\n";
+ 
+  //  if ( regex_match ( str.begin(), str.end(), str_expr ) )
+  //     cout << "string:range(begin-end)=> matched\n";
+ 
+  //  cmatch cm;
+  //  regex_match (mystr,cm,str_expr);
+    
+  //  smatch sm;
+  //  regex_match (str,sm,str_expr);
+  //  regex_match ( str.cbegin(), str.cend(), sm, str_expr);
+  //  cout << "String:range, size:" << sm.size() << " matches\n";
+   
+  //  regex_match ( mystr, cm, str_expr, regex_constants::match_default );
+  std::cmatch cm; 
+  std::regex arrayRegExp("(\\[[\\s|0-F|a-f|,]+\\])");
 
-  for (unsigned int i = 0; i < pal.size; i++) {
-    png_palette[i].blue = pal.colors[i].blue;
-    png_palette[i].green = pal.colors[i].green;
-    png_palette[i].red = pal.colors[i].red;
-  }
-  png_set_IHDR(png_ptr, info_ptr, 8, 8, 8, PNG_COLOR_TYPE_PALETTE,
-               PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-               PNG_FILTER_TYPE_BASE);
-  png_set_PLTE(png_ptr, info_ptr, png_palette, pal.size);
+  int pos = 0;
+  while (arrayRegExp.indexIn(patternString, pos) != -1) {
+    std::string arrayString = arrayRegExp.cap(1);
+    std::vector<int> tmpVect;
+    // std::cout << arrayString;
+    unsigned int stringPos = 1;
 
-  png_write_info(png_ptr, info_ptr);
-  png_set_packing(png_ptr);
+    while (arrayString[stringPos] != ']') {
+      while (arrayString[stringPos] == ' ') stringPos++;
+      std::regex hex("([0-F|a-f]+)");
+      bool ok;
 
-  png_byte *row_pointers[8];
-  for (unsigned int i = 0; i < 8; i++) {
-    row_pointers[i] = (png_byte *)png_malloc(png_ptr, sizeof(png_byte));
-    memcpy(row_pointers[i], rawtile.data + i * 8, 8);
-  }
-
-  png_write_image(png_ptr, row_pointers);
-
-  png_write_end(png_ptr, info_ptr);
-  png_destroy_write_struct(&png_ptr, &info_ptr);
-
-  png_free(png_ptr, png_palette);
-  png_free(png_ptr, row_pointers);
-}
-
-tile8 unpack_bpp1_tile(const byte *data, const unsigned int offset) {
-  return (unpack_bpp_tile(data, offset, 1));
-}
-
-tile8 unpack_bpp2_tile(const byte *data, const unsigned int offset) {
-  return (unpack_bpp_tile(data, offset, 2));
-}
-
-tile8 unpack_bpp3_tile(const byte *data, const unsigned int offset) {
-  return (unpack_bpp_tile(data, offset, 3));
-}
-
-tile8 unpack_bpp4_tile(const byte *data, const unsigned int offset) {
-  return (unpack_bpp_tile(data, offset, 4));
-}
-
-tile8 unpack_bpp8_tile(const byte *data, const unsigned int offset) {
-  return (unpack_bpp_tile(data, offset, 8));
-}
-
-tile8 unpack_mode7_tile(const byte *data, const unsigned int offset) {
-  tile8 tile;
-  memcpy(tile.data, data + offset, 64);
-  return tile;
-}
-
-tile8 unpack_bpp_tile(const byte *data, const unsigned int offset,
-                      const unsigned bpp) {
-  tile8 tile;
-  assert(bpp >= 1 && bpp <= 8);
-  unsigned int bpp_pos[8];  // More for conveniance and readibility
-  for (int col = 0; col < 8; col++) {
-    for (int row = 0; row < 8; row++) {
-      if (bpp == 1) {
-        tile.data[col * 8 + row] = (data[offset + col] >> (7 - row)) & 0x01;
-        continue;
+      if (hex.indexIn(arrayString, stringPos) == stringPos) {
+        tmpVect.push_back(hex.cap(1).toInt(&ok, 16));
       }
-      /* SNES bpp format interlace each byte of the first 2 bitplanes.
-       * | byte 1 of first bitplane | byte 1 of the second bitplane | byte 2 of
-       * first bitplane | byte 2 of second bitplane | ..
-       */
-      bpp_pos[0] = offset + col * 2;
-      bpp_pos[1] = offset + col * 2 + 1;
-      char mask = 1 << (7 - row);
-      tile.data[col * 8 + row] = (data[bpp_pos[0]] & mask) == mask;
-      tile.data[col * 8 + row] |= ((data[bpp_pos[1]] & mask) == mask) << 1;
-      if (bpp == 3) {
-        // When we have 3 bitplanes, the bytes for the third bitplane are after
-        // the 16 bytes of the 2 bitplanes.
-        bpp_pos[2] = offset + 16 + col;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[2]] & mask) == mask) << 2;
-      }
-      if (bpp >= 4) {
-        // For 4 bitplanes, the 2 added bitplanes are interlaced like the first
-        // two.
-        bpp_pos[2] = offset + 16 + col * 2;
-        bpp_pos[3] = offset + 16 + col * 2 + 1;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[2]] & mask) == mask) << 2;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[3]] & mask) == mask) << 3;
-      }
-      if (bpp == 8) {
-        bpp_pos[4] = offset + 32 + col * 2;
-        bpp_pos[5] = offset + 32 + col * 2 + 1;
-        bpp_pos[6] = offset + 48 + col * 2;
-        bpp_pos[7] = offset + 48 + col * 2 + 1;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[4]] & mask) == mask) << 4;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[5]] & mask) == mask) << 5;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[6]] & mask) == mask) << 6;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[7]] & mask) == mask) << 7;
+      while (arrayString[stringPos] == ' ') stringPos++;
+      stringPos++;  // should be the comma
+    }
+
+    pos += arrayRegExp.matchedLength();
+    transformVector.push_back(tmpVect);
+  }
+  std::cout << transformVector.size() << std::endl;
+  for ( const auto & each : transformVector )
+    std::cout << each << std::endl;
+}
+
+bool TilesPattern::load(std::string patternFile) {
+  // QSettings pFile(patternFile, QSettings::IniFormat);
+  // name = pFile.value("pattern/name").toString();
+  // description = pFile.value("pattern/description").toString();
+  // numberOfTiles = pFile.value("pattern/number_of_tile").toInt();
+  // std::cout << name;
+  // // unsigned int nbOfTile = pFile.value("_/number_of_tile").toUInt();
+  // std::string patternString = pFile.value("pattern/pattern").toString();
+  // std::cout << patternString;
+
+  // // Pattern String is a array description
+
+  // transformVector.clear();
+  // QRegExp arrayRegExp("(\\[[\\s|0-F|a-f|,]+\\])");
+  // int pos = 0;
+  // while (arrayRegExp.indexIn(patternString, pos) != -1) {
+  //   std::string arrayString = arrayRegExp.cap(1);
+  //   std::vector<int> tmpVect;
+  //   // std::cout << arrayString;
+  //   unsigned int stringPos = 1;
+
+  //   while (arrayString[stringPos] != ']') {
+  //     while (arrayString[stringPos].isSpace()) stringPos++;
+  //     QRegExp hex("([0-F|a-f]+)");
+  //     bool ok;
+  //     if (hex.indexIn(arrayString, stringPos) == stringPos) {
+  //       tmpVect.append(hex.cap(1).toInt(&ok, 16));
+  //     }
+  //     while (arrayString[stringPos].isSpace()) stringPos++;
+  //     stringPos++;  // should be the comma
+  //   }
+  //   pos += arrayRegExp.matchedLength();
+  //   transformVector.append(tmpVect);
+  // }
+  // std::cout << transformVector.size() << transformVector;
+  return true;
+}
+
+bool TilesPattern::loadPatterns() {
+  // foreach (std::string fileName, patternDirectory.entryList(QDir::Files)) {
+  //   TilesPattern tp;
+  //   std::cout << "Loading " << fileName;
+  //   if (!tp.load(patternDirectory.absoluteFilePath(fileName))) return false;
+  //   m_Patterns[tp.name] = tp;
+  // }
+  return true;
+}
+
+TilesPattern TilesPattern::pattern(std::string name) {
+  return m_Patterns[name];
+}
+
+std::unordered_map<std::string, TilesPattern> TilesPattern::Patterns() {
+  return m_Patterns;
+}
+
+std::vector<std::vector<tile8> > TilesPattern::transform(
+    const std::vector<tile8> &tiles) const {
+  unsigned int repeatOffsetY = 0;
+  unsigned int repeatOffsetX = 0;
+  unsigned int tVectHeight = transformVector.size();
+  unsigned int tVectWidth = transformVector[0].size();
+  unsigned int repeat = 0;
+  std::vector<std::vector<tile8> > toret;
+  unsigned int transPerRow = tilesPerRow / tVectWidth;
+  unsigned int nbTransform = tiles.size() / numberOfTiles;
+  printf("Tiles size : %d - nbtransform : %d - pattern number of tiles : %d",
+         tiles.size(), nbTransform, numberOfTiles);
+  if (transPerRow > nbTransform)
+    toret.resize(tVectHeight);
+  else
+    toret.resize(
+        ((unsigned int)(((double)nbTransform / (double)transPerRow) + 0.5)) *
+        tVectHeight);
+
+  std::vector<std::vector<tile8> > vec(toret);
+  auto it = vec.begin();
+  for (auto each : vec) {
+    each.resize(tilesPerRow);
+  }
+  // while (it.hasNext()) {
+  //   it.next().resize(tilesPerRow);
+  // }
+  // std::cout << toret[0].size() << "x" << toret.size();
+  while (repeat != nbTransform) {
+    // std::cout << "repeat" << repeat;
+    for (unsigned int j = 0; j < tVectHeight; j++) {
+      for (unsigned int i = 0; i < tVectWidth; i++) {
+        unsigned int posTile = transformVector[j][i] + numberOfTiles * repeat;
+        unsigned int posX = i + repeatOffsetX;
+        unsigned int posY = j + repeatOffsetY;
+        // qDebug("X: %d - Y: %d - posTile : %d", posX, posY, posTile);
+        toret[posY][posX] = tiles[posTile];
       }
     }
+    if (repeatOffsetX + tVectWidth == tilesPerRow) {
+      repeatOffsetX = 0;
+      repeatOffsetY += tVectHeight;
+    } else
+      repeatOffsetX += tVectWidth;
+    repeat++;
   }
-  return tile;
+  std::cout << "End of transform";
+  return toret;
 }
 
-byte *pack_bpp1_tile(const tile8 tile) {
-  unsigned int p = 1;
-  return pack_bpp_tile(tile, 1, &p);
-}
+std::vector<tile8> TilesPattern::reverse(
+    const std::vector<tile8> &tiles) const {
+  unsigned int repeatOffsetY = 0;
+  unsigned int repeatOffsetX = 0;
+  unsigned int tVectHeight = transformVector.size();
+  unsigned int tVectWidth = transformVector[0].size();
+  unsigned int repeat = 0;
+  unsigned int nbTransPerRow = tilesPerRow / tVectWidth;
+  unsigned int nbTiles = tiles.size();
+  std::vector<tile8> toretVec(tiles.size());
 
-byte *pack_bpp2_tile(const tile8 tile) {
-  unsigned int p = 1;
-  return pack_bpp_tile(tile, 2, &p);
-}
+  for (unsigned int i = 0; i < nbTiles; i++) {
+    unsigned int lineNb = i / tilesPerRow;
+    unsigned int lineInTab = lineNb % tVectHeight;
+    unsigned int colInTab = i % tVectWidth;
+    unsigned int tileNb = transformVector[lineInTab][colInTab];
 
-byte *pack_bpp3_tile(const tile8 tile) {
-  unsigned int p = 1;
-  return pack_bpp_tile(tile, 3, &p);
-}
+    unsigned int lineBlock = i / (nbTransPerRow * numberOfTiles);
+    unsigned int blockNB =
+        (i % (nbTransPerRow * numberOfTiles) % tilesPerRow) / tVectWidth;
 
-byte *pack_bpp4_tile(const tile8 tile) {
-  unsigned int p = 1;
-  return pack_bpp_tile(tile, 4, &p);
-}
-
-byte *pack_bpp8_tile(const tile8 tile) {
-  unsigned int p = 1;
-  return pack_bpp_tile(tile, 8, &p);
-}
-
-byte *pack_bpp_tile(tile8 tile, const unsigned int bpp, unsigned int *size) {
-  byte *output = (byte *)malloc(bpp * 8);
-  memset(output, 0, bpp * 8);
-  unsigned maxcolor = 2 << bpp;
-  *size = 0;
-
-  for (unsigned int col = 0; col < 8; col++) {
-    for (unsigned int row = 0; row < 8; row++) {
-      byte color = tile.data[col * 8 + row];
-      if (color > maxcolor) return NULL;
-
-      if (bpp == 1) output[col] += (byte)((color & 1) << (7 - row));
-      if (bpp >= 2) {
-        output[col * 2] += (byte)((color & 1) << (7 - row));
-        output[col * 2 + 1] += (byte)(((color & 2) == 2) << (7 - row));
-      }
-      if (bpp == 3) output[16 + col] += (byte)(((color & 4) == 4) << (7 - row));
-      if (bpp >= 4) {
-        output[16 + col * 2] += (byte)(((color & 4) == 4) << (7 - row));
-        output[16 + col * 2 + 1] += (byte)(((color & 8) == 8) << (7 - row));
-      }
-      if (bpp == 8) {
-        output[32 + col * 2] += (byte)(((color & 16) == 16) << (7 - row));
-        output[32 + col * 2 + 1] += (byte)(((color & 32) == 32) << (7 - row));
-        output[48 + col * 2] += (byte)(((color & 64) == 64) << (7 - row));
-        output[48 + col * 2 + 1] += (byte)(((color & 128) == 128) << (7 - row));
-      }
-    }
+    // std::cout << colInTab << lineInTab << " = " << tileNb;
+    // unsigned int pos = tileNb + ((i % tilesPerRow) / nbTransPerRow) *
+    // numberOfTiles;
+    unsigned int pos = tileNb + (lineBlock + blockNB) * numberOfTiles;
+    // std::cout << i << "Goes to : " << pos;
+    toretVec[pos] = tiles[i];
   }
-  *size = bpp * 8;
-  return output;
+  return toretVec;
+}
+
+std::vector<std::vector<tile8> > TilesPattern::transform(
+    const TilesPattern &pattern, const std::vector<tile8> &tiles) {
+  return pattern.transform(tiles);
+}
+
+std::vector<std::vector<tile8> > TilesPattern::transform(
+    const std::string id, const std::vector<tile8> &tiles) {
+  return m_Patterns[id].transform(tiles);
+}
+
+std::vector<tile8> TilesPattern::reverse(const TilesPattern &pattern,
+                                         const std::vector<tile8> &tiles) {
+  return pattern.reverse(tiles);
+}
+
+
+TilePreset::TilePreset()
+{
+    name = "";
+    romName = "";
+    romType = "";
+
+    pcTilesLocation = -1;
+    SNESTilesLocation = 0;
+    length = 0;
+    bpp = 0;
+    compression = "None";
+    pcPaletteLocation = 0;
+    SNESPaletteLocation = 0;
+    paletteNoZeroColor = false;
+}
+
+bool TilePreset::save(const std::string &file)
+{
+    // QSettings pFile(file, QSettings::IniFormat);
+
+    // if (pFile.isWritable() == false)
+    //     return false;
+
+    // pFile.setValue("_/name", name);
+    // pFile.setValue("rom/name", romName);
+    // pFile.setValue("rom/type", romType);
+
+    // pFile.setValue("tiles/pc_location", QString::number(pcTilesLocation, 16));
+    // pFile.setValue("tiles/snes_location", QString::number(SNESTilesLocation, 16));
+    // pFile.setValue("tiles/length", length);
+    // pFile.setValue("tiles/bpp", bpp);
+    // pFile.setValue("tiles/compression", compression);
+    // pFile.setValue("tiles/pattern", tilesPattern.name);
+
+    // pFile.setValue("palette/pc_location", QString::number(pcPaletteLocation, 16));
+    // pFile.setValue("palette/snes_location", QString::number(SNESPaletteLocation, 16));
+    // pFile.setValue("palette/nozerocolor", paletteNoZeroColor);
+
+    return true;
+}
+
+bool TilePreset::load(const std::string& file)
+{
+    // QSettings   pFile(file, QSettings::IniFormat);
+
+    // /* Meh solution to know if the file is right*/
+    // if (pFile.value("_/name").toString().isEmpty())
+    //     return false;
+    // name = pFile.value("_/name").toString();
+    // romName = pFile.value("rom/name").toString();
+    // romType = pFile.value("rom/type").toString();
+
+    // /* Locations are stored in a hex string */
+    // bool ok;
+    // pcTilesLocation = pFile.value("tiles/pc_location").toString().toUInt(&ok, 16);
+    // SNESTilesLocation = pFile.value("tiles/snes_location").toString().toUInt(&ok, 16);
+    // length = pFile.value("tiles/length").toInt();
+    // bpp = pFile.value("tiles/bpp").toInt();
+    // compression = pFile.value("tiles/compression").toString();
+    // QString patternName = pFile.value("tiles/pattern").toString();
+    // if (patternName.isEmpty())
+    //     patternName = "normal";
+    // tilesPattern = TilesPattern::pattern(patternName);
+
+    // pcPaletteLocation = pFile.value("palette/pc_location").toString().toUInt(&ok, 16);
+    // SNESPaletteLocation = pFile.value("palette/snes_location").toString().toUInt(&ok, 16);
+    // paletteNoZeroColor = pFile.value("palette/nozerocolor").toBool();
+    return true;
 }
 
 }  // namespace Graphics

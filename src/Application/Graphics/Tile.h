@@ -1,6 +1,11 @@
 #ifndef YAZE_APPLICATION_DATA_TILE_H
 #define YAZE_APPLICATION_DATA_TILE_H
 
+#include <tile.h>
+
+#include <regex>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "Palette.h"
@@ -13,40 +18,6 @@ using byte = unsigned char;
 using ushort = unsigned short;
 using uint = unsigned int;
 
-// SkarAlttp project code
-extern "C" {
-
-typedef struct {
-  unsigned int id;
-  byte data[64];
-  unsigned int palette_id;
-} tile8;
-
-tile8 unpack_bpp8_tile(const byte* data, const unsigned int offset);
-tile8 unpack_bpp4_tile(const byte* data, const unsigned int offset);
-tile8 unpack_bpp3_tile(const byte* data, const unsigned int offset);
-tile8 unpack_bpp2_tile(const byte* data, const unsigned int offset);
-tile8 unpack_bpp1_tile(const byte* data, const unsigned int offset);
-
-tile8 unpack_bpp_tile(const byte* data, const unsigned int offset,
-                      const unsigned int bpp);
-
-byte* pack_bpp1_tile(const tile8 tile);
-byte* pack_bpp2_tile(const tile8 tile);
-byte* pack_bpp3_tile(const tile8 tile);
-byte* pack_bpp4_tile(const tile8 tile);
-byte* pack_bpp8_tile(const tile8 tile);
-
-byte* pack_bpp_tile(const tile8 tile, const unsigned int bpp,
-                    unsigned int* size);
-
-void export_all_gfx_to_png(byte* tiledata);
-
-void export_tile_to_png(tile8 rawtile, const r_palette pal,
-                        const char* filename);
-}
-
-// End SkarAlttp project code
 class TileInfo {
  public:
   ushort id_;
@@ -120,6 +91,62 @@ class Tile16 {
            (unsigned long)((tile0_.toShort()));
     ;
   }
+};
+
+class TilesPattern {
+ public:
+  TilesPattern();
+  std::string name;
+  std::string description;
+  bool custom;
+  unsigned int tilesPerRow;
+  unsigned int numberOfTiles;
+
+  void default_settings();
+
+  bool load(std::string patternFile);
+
+  static bool loadPatterns();
+  static TilesPattern pattern(std::string name);
+  static std::unordered_map<std::string, TilesPattern> Patterns();
+  static std::vector<std::vector<tile8> > transform(
+      const TilesPattern& pattern, const std::vector<tile8>& tiles);
+  static std::vector<std::vector<tile8> > transform(
+      const std::string id, const std::vector<tile8>& tiles);
+  static std::vector<tile8> reverse(const TilesPattern& pattern,
+                                    const std::vector<tile8>& tiles);
+
+ protected:
+  std::vector<std::vector<tile8> > transform(
+      const std::vector<tile8>& tiles) const;
+  std::vector<tile8> reverse(const std::vector<tile8>& tiles) const;
+  std::vector<std::vector<int> > transformVector;
+
+ private:
+  static std::unordered_map<std::string, TilesPattern> m_Patterns;
+};
+
+class TilePreset {
+ public:
+  TilePreset();
+
+  bool save(const std::string& file);
+  bool load(const std::string& file);
+
+  std::string name;
+  std::string romName;
+  std::string romType;
+  TilesPattern tilesPattern;
+
+  unsigned int SNESTilesLocation;
+  int pcTilesLocation;
+  unsigned int SNESPaletteLocation;
+  unsigned int pcPaletteLocation;
+  bool paletteNoZeroColor;
+  unsigned int length;
+
+  unsigned int bpp;
+  std::string compression;
 };
 
 }  // namespace Graphics

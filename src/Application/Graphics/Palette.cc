@@ -7,67 +7,68 @@ namespace yaze {
 namespace Application {
 namespace Graphics {
 
-r_palette* palette_create(const unsigned int size, const unsigned int id) {
-  r_palette* new_pal = (r_palette*)malloc(sizeof(r_palette));
-  new_pal->colors = (m_color*)malloc(sizeof(m_color) * size);
-  new_pal->id = id;
-  new_pal->size = size;
-  return new_pal;
+SNESColor::SNESColor() {
+  rgb = ImVec4(0.f, 0.f, 0.f, 0.f);
+  snes = 0;
 }
 
-void palette_free(r_palette* tofree) {
-  free(tofree->colors);
-  free(tofree);
+void SNESColor::setRgb(ImVec4 val) {
+  rgb = val;
+  m_color col;
+  col.red = val.x;
+  col.blue = val.y;
+  col.green = val.z;
+  snes = convertcolor_rgb_to_snes(col);
 }
 
-r_palette* palette_extract(const char* data, const unsigned int offset,
-                           const unsigned int palette_size) {
-  r_palette* toret = palette_create(palette_size, 0);
-  unsigned colnum = 0;
-  for (int i = 0; i < palette_size * 2; i += 2) {
-    unsigned short snes_color;
-    snes_color = ((uchar)data[offset + i + 1]) << 8;
-    snes_color = snes_color | ((uchar)data[offset + i]);
-    toret->colors[colnum] = convertcolor_snes_to_rgb(snes_color);
-    colnum++;
+void SNESColor::setSNES(uint16_t val) {
+  snes = val;
+  m_color col = convertcolor_snes_to_rgb(val);
+  rgb = ImVec4(col.red, col.green, col.blue, 1.f);
+}
+
+SNESPalette::SNESPalette() { size = 0; }
+
+SNESPalette::SNESPalette(uint8_t mSize) {
+  size = mSize;
+  for (unsigned int i = 0; i < mSize; i++) {
+    SNESColor col;
+    colors.push_back(col);
   }
-  return toret;
 }
 
-char* palette_convert(const r_palette pal) {
-  char* toret = (char*)malloc(pal.size * 2);
-  for (unsigned int i = 0; i < pal.size; i++) {
-    unsigned short snes_data = convertcolor_rgb_to_snes(pal.colors[i]);
-    toret[i * 2] = snes_data & 0xFF;
-    toret[i * 2 + 1] = snes_data >> 8;
+SNESPalette::SNESPalette(char* data) {
+  //assert((data.size() % 4 == 0) && data.size() <= 32);
+  //size = data.size() / 2;
+  size = sizeof(data) / 2;
+  for (unsigned i = 0; i < sizeof(data); i += 2) {
+    SNESColor col;
+    col.snes = static_cast<uchar>(data[i + 1]) << 8;
+    col.snes = col.snes | static_cast<uchar>(data[i]);
+    m_color mColor = convertcolor_snes_to_rgb(col.snes);
+    col.rgb = ImVec4(mColor.red, mColor.green, mColor.blue, 1.f);
+    colors.push_back(col);
   }
-  return toret;
 }
 
-m_color convertcolor_snes_to_rgb(const unsigned short snes_color) {
-  m_color toret;
-
-  toret.red = ((snes_color) % 32) * 8;
-  toret.green = ((snes_color / 32) % 32) * 8;
-  toret.blue = ((snes_color / 1024) % 32) * 8;
-
-  toret.red = toret.red + toret.red / 32;
-  toret.green = toret.green + toret.green / 32;
-  toret.blue = toret.blue + toret.blue / 32;
-  return toret;
+SNESPalette::SNESPalette(std::vector<ImVec4> cols) {
+  // foreach (ImVec4 col, cols) {
+  //   SNESColor scol;
+  //   scol.setRgb(col);
+  //   colors.push_back(scol);
+  // }
+  // size = cols.size();
 }
 
-unsigned short convertcolor_rgb_to_snes(const m_color color) {
-  return convertcolor_rgb_to_snes2(color.red, color.green, color.blue);
-}
-
-unsigned short convertcolor_rgb_to_snes2(const uchar red, const uchar green,
-                                         const uchar blue) {
-  uchar R = red / 8;
-  uchar G = green / 8;
-  uchar B = blue / 8;
-
-  return B * 1024 + G * 32 + R;
+char* SNESPalette::encode() {
+  //char* data(size * 2, 0);
+  char* data = new char[size * 2];
+  for (unsigned int i = 0; i < size; i++) {
+    //std::cout << QString::number(colors[i].snes, 16);
+    data[i * 2] = (char)(colors[i].snes & 0xFF);
+    data[i * 2 + 1] = (char)(colors[i].snes >> 8);
+  }
+  return data;
 }
 
 }  // namespace Graphics

@@ -15,14 +15,13 @@ namespace yaze {
 namespace Application {
 namespace Core {
 
+static SDL_Renderer* renderer = nullptr;
+
 class Renderer {
  public:
   void Create(SDL_Window* window);
   void Render();
   void Destroy();
-
- private:
-  SDL_Renderer* renderer = nullptr;
 };
 
 }  // namespace Core

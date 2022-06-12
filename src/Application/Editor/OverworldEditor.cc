@@ -1,19 +1,31 @@
 #include "OverworldEditor.h"
+
+#include <imgui.h>
+
+#include <cmath>
+
 #include "Core/Icons.h"
 #include "Graphics/Bitmap.h"
 #include "Graphics/Tile.h"
-#include "imgui.h"
-#include <cmath>
 
 namespace yaze {
 namespace Application {
 namespace Editor {
 void OverworldEditor::Update() {
-
   if (rom_.isLoaded()) {
     if (!doneLoaded) {
       overworld.Load(rom_);
       Graphics::CreateAllGfxData(rom_.GetRawData(), allGfx16Ptr);
+      SDL_Surface *surface =
+          SDL_CreateRGBSurfaceFrom(allGfx16Ptr, 128, 7104, 4, 64,
+                                   0x0000FF,  // red mask
+                                   0x00FF00,  // green mask
+                                   0xFF0000,  // blue mask
+                                   1);
+
+      surface = current_scene_.buildSurface(
+          rom_.ExtractTiles(4, 2048), palette_, current_set_.tilesPattern);
+      gfx_texture = SDL_CreateTextureFromSurface(Core::renderer, surface);
       doneLoaded = true;
     }
   }
@@ -37,7 +49,6 @@ void OverworldEditor::Update() {
 
 void OverworldEditor::DrawToolset() {
   if (ImGui::BeginTable("Toolset", 14, toolset_table_flags, ImVec2(0, 0))) {
-
     ImGui::TableSetupColumn("#undoTool");
     ImGui::TableSetupColumn("#redoTool");
     ImGui::TableSetupColumn("#drawTool");
@@ -107,7 +118,6 @@ void OverworldEditor::DrawToolset() {
 void OverworldEditor::DrawOverworldMapSettings() {
   if (ImGui::BeginTable("#mapSettings", 7, ow_map_settings_flags, ImVec2(0, 0),
                         -1)) {
-
     ImGui::TableSetupColumn("##1stCol");
     ImGui::TableSetupColumn("##gfxCol");
     ImGui::TableSetupColumn("##palCol");
@@ -176,13 +186,13 @@ void OverworldEditor::DrawOverworldCanvas() {
   draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
 
   // This will catch our interactions
-  ImGui::InvisibleButton("canvas", canvas_sz,
-                         ImGuiButtonFlags_MouseButtonLeft |
-                             ImGuiButtonFlags_MouseButtonRight);
-  const bool is_hovered = ImGui::IsItemHovered(); // Hovered
-  const bool is_active = ImGui::IsItemActive();   // Held
+  ImGui::InvisibleButton(
+      "canvas", canvas_sz,
+      ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
+  const bool is_active = ImGui::IsItemActive();    // Held
   const ImVec2 origin(canvas_p0.x + scrolling.x,
-                      canvas_p0.y + scrolling.y); // Lock scrolled origin
+                      canvas_p0.y + scrolling.y);  // Lock scrolled origin
   const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
                                    io.MousePos.y - origin.y);
 
@@ -195,8 +205,7 @@ void OverworldEditor::DrawOverworldCanvas() {
   }
   if (adding_line) {
     points.back() = mouse_pos_in_canvas;
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-      adding_line = false;
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) adding_line = false;
   }
 
   // Pan (we use a zero mouse threshold when there's no context menu)
@@ -212,8 +221,7 @@ void OverworldEditor::DrawOverworldCanvas() {
   if (opt_enable_context_menu && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
     ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
   if (ImGui::BeginPopup("context")) {
-    if (adding_line)
-      points.resize(points.size() - 2);
+    if (adding_line) points.resize(points.size() - 2);
     adding_line = false;
     if (ImGui::MenuItem("Remove one", NULL, false, points.Size > 0)) {
       points.resize(points.size() - 2);
@@ -252,15 +260,12 @@ void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar")) {
     if (ImGui::BeginTabItem("Tile8")) {
       if (rom_.isLoaded()) {
-        ImGui::Image((void *)(intptr_t)overworld_texture,
-                     ImVec2(overworld.overworldMapBitmap->GetWidth(),
-                            overworld.overworldMapBitmap->GetHeight()));
+        ImGui::Image((void *)(intptr_t)gfx_texture, ImVec2(128, 7104));
       }
 
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile16")) {
-
       ImGui::EndTabItem();
     }
 
@@ -270,7 +275,6 @@ void OverworldEditor::DrawTileSelector() {
 
 void OverworldEditor::DrawChangelist() {
   if (!ImGui::Begin("Changelist")) {
-
     ImGui::End();
   }
 
@@ -278,6 +282,6 @@ void OverworldEditor::DrawChangelist() {
   ImGui::End();
 }
 
-} // namespace Editor
-} // namespace Application
-} // namespace yaze
+}  // namespace Editor
+}  // namespace Application
+}  // namespace yaze

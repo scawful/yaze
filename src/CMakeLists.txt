@@ -1,11 +1,10 @@
-# SDL libraries --------------------------------------------------------------------------------------------------
+# find libraries --------------------------------------------------------------------------------------------------
 find_package(SDL2 REQUIRED)
-
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
-# ImGui library --------------------------------------------------------------------------------------------------
+# gui libraries ---------------------------------------------------------------------------------------------------
 set(IMGUI_PATH  "Library/imgui")                         # Set where the ImGui files are stored
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)             # Compile as static library 
 add_library("ImGui" STATIC ${IMGUI_SOURCES})
@@ -13,7 +12,6 @@ target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
 target_include_directories(ImGui PUBLIC ${SDL2_INCLUDE_DIR})
 target_compile_definitions(ImGui PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
-# ImGuiFileDialog
 set(IMGUI_FILE_DLG_PATH "Library/ImGuiFileDialog")
 file(GLOB IMGUI_FILE_DLG_SOURCES ${IMGUI_FILE_DLG_PATH}/*.cpp)
 add_library("ImGuiFileDialog" STATIC ${IMGUI_FILE_DLG_SOURCES})
@@ -44,6 +42,7 @@ add_executable(
     Application/Graphics/Bitmap.cc
     Application/Graphics/Tile.cc
     Application/Graphics/Palette.cc
+    Application/Graphics/Scene.cc
     Application/Editor/Editor.cc
     Application/Editor/OverworldEditor.cc
     Application/Events/Event.cc
@@ -61,6 +60,11 @@ add_executable(
     ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
     ${SNESHACKING_PATH}/compressions/alttpcompression.c
     ${SNESHACKING_PATH}/compressions/stdnintendo.c
+    ${SNESHACKING_PATH}/compressions/stdnintendo.c
+    ${SNESHACKING_PATH}/tile.c
+    ${SNESHACKING_PATH}/tilepng.c
+    ${SNESHACKING_PATH}/palette.c
+    ${SNESHACKING_PATH}/rommapping.c
 )
 
 target_include_directories(
