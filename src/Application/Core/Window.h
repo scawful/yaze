@@ -10,8 +10,8 @@ namespace Core {
 class Window {
  public:
   void Create();
-  SDL_Window* Get();
   void Destroy();
+  SDL_Window* Get();
 
  private:
   SDL_Window* window = nullptr;
