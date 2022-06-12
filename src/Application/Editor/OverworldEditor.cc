@@ -8,25 +8,90 @@
 #include "Graphics/Bitmap.h"
 #include "Graphics/Tile.h"
 
+// first step would be to decompress all graphics data from the game
+// (in alttp that's easy they're all located in the same location all the
+// same sheet size 128x32) have a code that convert PC address to SNES and
+// vice-versa
+
+// 1) find the gfx pointers (you could use ZS constant file)
+// 2) decompress all the gfx with your lz2 decompressor
+// 3) convert the 3bpp snes data into PC 4bpp (probably the hardest part)
+// 4) get the tiles32 data
+// 5) get the tiles16 data
+// 6) get the map32 data (they must be decompressed as well with a lz2
+// variant not the same as gfx compression but pretty similar) 7) get the
+// gfx data of the map yeah i forgot that one and load 4bpp in a pseudo vram
+// and use that to render tiles on screen 8) try to render the tiles on the
+// bitmap in black & white to start 9) get the palettes data and try to find
+// how they're loaded in the game that's a big puzzle to solve then 9 you'll
+// have an overworld map viewer, in less than few hours if are able to
+// understand the data quickly
 namespace yaze {
 namespace Application {
 namespace Editor {
 void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
     if (!doneLoaded) {
-      overworld.Load(rom_);
-      Graphics::CreateAllGfxData(rom_.GetRawData(), allGfx16Ptr);
-      SDL_Surface *surface =
-          SDL_CreateRGBSurfaceFrom(allGfx16Ptr, 128, 7104, 4, 64,
-                                   0x0000FF,  // red mask
-                                   0x00FF00,  // green mask
-                                   0xFF0000,  // blue mask
-                                   1);
+      //overworld.Load(rom_);
+    // name=The Legend of Zelda - Link Sprites
 
-      surface = current_scene_.buildSurface(
-          rom_.ExtractTiles(4, 2048), palette_, current_set_.tilesPattern);
-        
-      gfx_texture = SDL_CreateTextureFromSurface(Core::renderer, surface);
+    // [rom]
+    // name=
+    // type=LoROM
+
+    // [tiles]
+    // pc_location=80000
+    // snes_location=0
+    // length=28672
+    // bpp=4
+    // compression=None
+    // pattern=normal
+
+    // [tiles_arrangement]
+    // tiles_per_row=16
+
+    // [palette]
+    // pc_location=dd308
+    // snes_location=0
+    // nozerocolor=true
+
+    // name="The Legend of Zelda - Action Sprites, shields, shovel and book"
+
+    // [rom]
+    // name=
+    // type=LoROM
+
+    // [tiles]
+    // pc_location=c0d64
+    // snes_location=0
+    // length=1081
+    // bpp=3
+    // compression=zelda3
+
+    // [tiles_arrangement]
+    // tiles_per_row=16
+
+    // [palette]
+    // pc_location=0
+    // snes_location=0
+    // nozerocolor=true
+
+      current_set_.pcTilesLocation = 0x8000;
+      current_set_.SNESTilesLocation = 0;
+      current_set_.length = 1000;
+      current_set_.bpp = 3;
+      current_set_.compression = "zelda3";
+      current_set_.pcPaletteLocation = 0;
+      current_set_.SNESPaletteLocation = 0;
+
+      palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+      palette_.colors.push_back(ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
+      palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.4f, 1.0f));
+      palette_.colors.push_back(ImVec4(0.3f, 0.0f, 0.0f, 1.0f));
+      palette_.colors.push_back(ImVec4(0.3f, 0.7f, 0.9f, 1.0f));
+      palette_.colors.push_back(ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+      current_scene_.buildSurface(rom_.ExtractTiles(current_set_), palette_, current_set_.tilesPattern);
       doneLoaded = true;
     }
   }
@@ -261,7 +326,9 @@ void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile8")) {
       if (rom_.isLoaded()) {
-        ImGui::Image((void *)(intptr_t)gfx_texture, ImVec2(128, 7104));
+        for (const auto & [key, value] : current_scene_.imagesCache) {
+          ImGui::Image((void *)(SDL_Texture*)value, ImVec2(8, 8));
+        }
       }
 
       ImGui::EndTabItem();

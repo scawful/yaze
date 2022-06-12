@@ -10,17 +10,17 @@ using namespace Core;
 using namespace Graphics;
 
 Overworld::~Overworld() {
-  for (int i = 0; i < (int) tiles32.size(); i++) {
-    free(allmapsTilesLW[i]);
-    free(allmapsTilesDW[i]);
-    free(allmapsTilesSP[i]);
-  }
-  free(allmapsTilesLW);
-  free(allmapsTilesDW);
-  free(allmapsTilesSP);
+  // for (int i = 0; i < (int) tiles32.size(); i++) {
+  //   free(allmapsTilesLW[i]);
+  //   free(allmapsTilesDW[i]);
+  //   free(allmapsTilesSP[i]);
+  // }
+  // free(allmapsTilesLW);
+  // free(allmapsTilesDW);
+  // free(allmapsTilesSP);
 
-  delete[] overworldMapPointer;
-  delete[] owactualMapPointer;
+  // delete[] overworldMapPointer;
+  // delete[] owactualMapPointer;
 }
 
 static TileInfo GetTilesInfo(ushort tile) {

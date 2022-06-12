@@ -10,7 +10,6 @@
 #include "Core/Renderer.h"
 #include "Graphics/Tile.h"
 
-
 namespace yaze {
 namespace Application {
 namespace Graphics {
@@ -21,19 +20,21 @@ class Scene {
   void buildScene(const std::vector<tile8>& tiles, const SNESPalette mPalette,
                   const TilesPattern& tp);
 
-  SDL_Surface* buildSurface(const std::vector<tile8>& tiles,
-                            const SNESPalette mPalette, const TilesPattern& tp);
+  void buildSurface(const std::vector<tile8>& tiles,
+                            SNESPalette& mPalette, const TilesPattern& tp);
 
   void updateScene();
   void setTilesZoom(unsigned int tileZoom);
   void setTilesPattern(TilesPattern tp);
 
+  std::unordered_map<unsigned int, SDL_Texture*> imagesCache;
+  
  private:
-  std::vector<tile8> allTiles;
-  std::vector<std::vector<tile8> > arrangedTiles;
   unsigned int tilesZoom;
   TilesPattern tilesPattern;
-  // QMap<unsigned int, QPixmap>  imagesCache;
+  std::vector<tile8> allTiles;
+  std::vector<std::vector<tile8> > arrangedTiles;
+  
 };
 
 }  // namespace Graphics

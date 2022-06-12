@@ -31,12 +31,12 @@ class Editor {
   void DrawViewMenu();
   void DrawHelpMenu() const;
 
+  void DrawProjectEditor();
   void DrawOverworldEditor();
   void DrawDungeonEditor();
   void DrawGraphicsEditor();
   void DrawSpriteEditor();
   void DrawScreenEditor();
-  void DrawROMInfo();
 
   void *rom_data_;
   bool isLoaded = true;
@@ -47,6 +47,10 @@ class Editor {
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language65816Def;
   OverworldEditor overworld_editor_;
+
+  Graphics::Scene current_scene_;
+  Graphics::SNESPalette current_palette_;
+  Graphics::TilePreset current_set_;
 
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
 };

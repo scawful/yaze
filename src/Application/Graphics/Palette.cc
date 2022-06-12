@@ -12,6 +12,15 @@ SNESColor::SNESColor() {
   snes = 0;
 }
 
+SNESColor::SNESColor(ImVec4 val) { 
+  rgb = val; 
+  m_color col;
+  col.red = val.x;
+  col.blue = val.y;
+  col.green = val.z;
+  snes = convertcolor_rgb_to_snes(col);
+}
+
 void SNESColor::setRgb(ImVec4 val) {
   rgb = val;
   m_color col;
@@ -38,8 +47,8 @@ SNESPalette::SNESPalette(uint8_t mSize) {
 }
 
 SNESPalette::SNESPalette(char* data) {
-  //assert((data.size() % 4 == 0) && data.size() <= 32);
-  //size = data.size() / 2;
+  // assert((data.size() % 4 == 0) && data.size() <= 32);
+  // size = data.size() / 2;
   size = sizeof(data) / 2;
   for (unsigned i = 0; i < sizeof(data); i += 2) {
     SNESColor col;
@@ -61,14 +70,32 @@ SNESPalette::SNESPalette(std::vector<ImVec4> cols) {
 }
 
 char* SNESPalette::encode() {
-  //char* data(size * 2, 0);
+  // char* data(size * 2, 0);
   char* data = new char[size * 2];
   for (unsigned int i = 0; i < size; i++) {
-    //std::cout << QString::number(colors[i].snes, 16);
+    // std::cout << QString::number(colors[i].snes, 16);
     data[i * 2] = (char)(colors[i].snes & 0xFF);
     data[i * 2 + 1] = (char)(colors[i].snes >> 8);
   }
   return data;
+}
+
+SDL_Palette* SNESPalette::GetSDL_Palette() {
+  SDL_Palette* result = new SDL_Palette;
+  result->ncolors = size;
+  SDL_Color* sdl_colors = new SDL_Color[size];
+  for (int i = 0; i < size; i++) {
+    sdl_colors[i].r = (uint8_t) colors[i].rgb.x * 100;
+    sdl_colors[i].g = (uint8_t) colors[i].rgb.y * 100;
+    sdl_colors[i].b = (uint8_t) colors[i].rgb.z * 100;
+  }
+  result->colors = sdl_colors;
+
+  // store the pointers to free them later
+  sdl_palettes_.push_back(result);
+  colors_arrays_.push_back(sdl_colors);
+
+  return result;
 }
 
 }  // namespace Graphics

@@ -4,6 +4,37 @@ namespace yaze {
 namespace Application {
 namespace Graphics {
 
+void Scene::buildSurface(const std::vector<tile8>& tiles, SNESPalette& mPalette,
+                         const TilesPattern& tp) {
+  arrangedTiles = TilesPattern::transform(tp, tiles);
+  tilesPattern = tp;
+  allTiles = tiles;
+
+  for (unsigned int j = 0; j < arrangedTiles.size(); j++) {
+    for (unsigned int i = 0; i < arrangedTiles[0].size(); i++) {
+      tile8 tile = arrangedTiles[j][i];
+      // SDL_PIXELFORMAT_RGB888 ?
+      SDL_Surface* newImage = SDL_CreateRGBSurfaceWithFormat(
+          0, 8, 8, SDL_BITSPERPIXEL(3), SDL_PIXELFORMAT_RGB444);
+      SDL_PixelFormat* format = newImage->format;
+      format->palette = mPalette.GetSDL_Palette();
+
+
+      char* ptr = (char*)newImage->pixels;
+
+      for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+          ptr[i * 8 + j] = (char)tile.data[i * 8 + j];
+        }
+      }
+
+      SDL_Texture* texture =
+          SDL_CreateTextureFromSurface(Core::renderer, newImage);
+      imagesCache[tile.id] = texture;
+    }
+  }
+}
+
 void Scene::buildScene(const std::vector<tile8>& tiles,
                        const SNESPalette mPalette, const TilesPattern& tp) {
   arrangedTiles = TilesPattern::transform(tp, tiles);
@@ -31,30 +62,10 @@ void Scene::buildScene(const std::vector<tile8>& tiles,
       //                     j * newTileItem->boundingRect().width() + j);
     }
   }
-  // unsigned max_w =
-  //     items()[0]->boundingRect().width() * arrangedTiles[0].size() +
-  //     arrangedTiles[0].size();
-  // unsigned max_h = items()[0]->boundingRect().width() * arrangedTiles.size()
-  // +
-  //                  arrangedTiles.size();
-  // setSceneRect(QRect(0, 0, max_w, max_h));
-}
-
-SDL_Surface* Scene::buildSurface(const std::vector<tile8>& tiles,
-                                 const SNESPalette mPalette,
-                                 const TilesPattern& tp) {
-
-  SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, 128, 7104, SDL_BITSPERPIXEL(4), SDL_PIXELFORMAT_RGB444);
-
-  arrangedTiles = TilesPattern::transform(tp, tiles);
-  tilesPattern = tp;
-  allTiles = tiles;
-  for (unsigned int j = 0; j < arrangedTiles.size(); j++) {
-    for (unsigned int i = 0; i < arrangedTiles[0].size(); i++) {
-      tile8 tile = arrangedTiles[j][i];
-
-    }
-  }
+  // unsigned max_w = items()[0]->boundingRect().width() *
+  // arrangedTiles[0].size() + arrangedTiles[0].size(); unsigned max_h =
+  // items()[0]->boundingRect().width() * arrangedTiles.size() +
+  // arrangedTiles.size(); setSceneRect(QRect(0, 0, max_w, max_h));
 }
 
 void Scene::updateScene() {

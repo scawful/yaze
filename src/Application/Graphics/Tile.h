@@ -103,8 +103,6 @@ class TilesPattern {
 
   void default_settings();
 
-  bool load(std::string patternFile);
-
   static bool loadPatterns();
   static TilesPattern pattern(std::string name);
   static std::unordered_map<std::string, TilesPattern> Patterns();

@@ -31,9 +31,11 @@ int AddressFromBytes(byte addr1, byte addr2, byte addr3);
 class ROM {
  public:
   void LoadFromFile(const std::string& path);
-  std::vector<tile8> ExtractTiles(unsigned int bpp, unsigned int length);
+  std::vector<tile8> ExtractTiles(TilePreset& preset);
+  unsigned int getRomPosition(const TilePreset& preset, int directAddr,
+                              unsigned int snesAddr);
 
-  int SnesToPc(int addr);
+      int SnesToPc(int addr);
   short AddressFromBytes(byte addr1, byte addr2);
   ushort ReadShort(int addr);
   void Write(int addr, byte value);
@@ -55,17 +57,19 @@ class ROM {
   bool loaded = false;
 
   byte* current_rom_;
+  char* rom_data_;
+
+  bool overrideHeaderInfo;
+  bool overridenHeaderInfo;
+  unsigned int lastUnCompressSize;
+  unsigned int lastCompressedSize;
+  unsigned int lastCompressSize;
 
   enum rom_type type;
   bool fastrom;
-  bool make_sense;
   unsigned char title[21];
   long int size;
-  unsigned int sram_size;
-  uint16_t creator_id;
   unsigned char version;
-  unsigned char checksum_comp;
-  unsigned char checksum;
 };
 
 }  // namespace Utils

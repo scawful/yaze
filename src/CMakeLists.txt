@@ -45,7 +45,6 @@ add_executable(
     Application/Graphics/Scene.cc
     Application/Editor/Editor.cc
     Application/Editor/OverworldEditor.cc
-    Application/Events/Event.cc
     Application/Utils/Compression.cc
     Application/Utils/ROM.cc
     # GUI libraries 

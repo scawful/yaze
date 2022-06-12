@@ -20,45 +20,67 @@ void ROM::LoadFromFile(const std::string &path) {
   // Reading data to array of unsigned chars
   file = fopen(path.c_str(), "r+");
   current_rom_ = (unsigned char *)malloc(size);
+  rom_data_ = (char *) malloc(size);
+  fread(rom_data_, sizeof(char), size, file);
   int bytes_read = fread(current_rom_, sizeof(unsigned char), size, file);
   fclose(file);
 
   memcpy(title, current_rom_ + 32704, 21);
-
   type = LoROM;
-  fastrom = (current_rom_[21] & 0b00110000) == 0b00110000;
-  if (current_rom_[21] & 1) type = HiROM;
-  if ((current_rom_[21] & 0b00000111) == 0b00000111) type = ExHiROM;
-
-  sram_size = 0x400 << current_rom_[24];
-  creator_id = (current_rom_[26] << 8) | current_rom_[25];
   version = current_rom_[27];
   loaded = true;
 }
 
-
-std::vector<tile8> ROM::ExtractTiles(unsigned int bpp, unsigned int length) {
+std::vector<tile8> ROM::ExtractTiles(TilePreset &preset) {
+  std::cout << "Begin ROM::ExtractTiles" << std::endl;
   std::vector<tile8> rawTiles;
-  unsigned int lastCompressedSize;
-  unsigned int size = length;
-  char *data = alttp_decompress_gfx((char*)current_rom_, 0, length, &size, &lastCompressedSize);
+  uint filePos = 0;
+  unsigned int size = preset.length;
+  filePos =
+      getRomPosition(preset, preset.pcTilesLocation, preset.SNESTilesLocation);
+  char *data = (char *)rom_data_ + filePos;
+  memcpy(data, rom_data_ + filePos, preset.length);
+
+  data =
+      alttp_decompress_gfx(data, 0, preset.length, &size, &lastCompressedSize);
+  std::cout << "size: " << size << std::endl;
+  std::cout << "lastCompressedSize: " << lastCompressedSize << std::endl;
 
   if (data == NULL) {
+    std:: cout << alttp_decompression_error << std::endl;
     return rawTiles;
   }
 
   unsigned tileCpt = 0;
-  for (unsigned int tilePos = 0; tilePos < size; tilePos += bpp * 8) {
-    tile8 newTile = unpack_bpp_tile(data, tilePos, bpp);
+  for (unsigned int tilePos = 0; tilePos < size; tilePos += preset.bpp * 8) {
+    std::cout << "Unpacking tile..." << std::endl;
+    tile8 newTile = unpack_bpp_tile(data, tilePos, preset.bpp);
     newTile.id = tileCpt;
     rawTiles.push_back(newTile);
     tileCpt++;
   }
 
   free(data);
+  std::cout << "End ROM::ExtractTiles" << std::endl;
   return rawTiles;
 }
 
+unsigned int ROM::getRomPosition(const TilePreset &preset, int directAddr,
+                                 unsigned int snesAddr) {
+  bool romHasHeader = false;  // romInfo.hasHeader
+  if (overrideHeaderInfo) romHasHeader = overridenHeaderInfo;
+  unsigned int filePos = -1;
+  enum rom_type rType = LoROM;
+  std::cout << "ROM::getRomPosition: directAddr:" << directAddr << std::endl;
+  if (directAddr == -1) {
+    filePos = rommapping_snes_to_pc(snesAddr, rType, romHasHeader);
+  } else {
+    filePos = directAddr;
+    if (romHasHeader) filePos += 0x200;
+  }
+  std::cout << "ROM::getRomPosition: filePos:" << filePos << std::endl;
+  return filePos;
+}
 
 int ROM::SnesToPc(int addr) {
   if (addr >= 0x808000) {

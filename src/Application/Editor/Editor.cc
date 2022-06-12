@@ -93,9 +93,9 @@ void Editor::UpdateScreen() {
   ImGuiWindowFlags flags =
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
       ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_MenuBar;
+      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar;
 
-  if (!ImGui::Begin(title_.c_str(), nullptr, flags)) {
+  if (!ImGui::Begin("##YazeMain", nullptr, flags)) {
     ImGui::End();
     return;
   }
@@ -103,12 +103,12 @@ void Editor::UpdateScreen() {
   DrawYazeMenu();
 
   if (ImGui::BeginTabBar("##TabBar")) {
+    DrawProjectEditor();
     DrawOverworldEditor();
     DrawDungeonEditor();
     DrawGraphicsEditor();
     DrawSpriteEditor();
     DrawScreenEditor();
-    DrawROMInfo();
     ImGui::EndTabBar();
   }
 
@@ -121,6 +121,7 @@ void Editor::DrawYazeMenu() {
     DrawEditMenu();
     DrawViewMenu();
     DrawHelpMenu();
+
     ImGui::EndMenuBar();
   }
 
@@ -281,24 +282,18 @@ void Editor::DrawHelpMenu() const {
   }
 }
 
-// first step would be to decompress all graphics data from the game
-// (in alttp that's easy they're all located in the same location all the
-// same sheet size 128x32) have a code that convert PC address to SNES and
-// vice-versa
+void Editor::DrawProjectEditor() {
+  if (ImGui::BeginTabItem("Project")) {
+    if (rom.isLoaded()) {
+      ImGui::Text("Title: %s", rom.getTitle());
+      ImGui::Text("Version: %d", rom.getVersion());
+      ImGui::Text("ROM Size: %ld", rom.getSize());
+    }
 
-// 1) find the gfx pointers (you could use ZS constant file)
-// 2) decompress all the gfx with your lz2 decompressor
-// 3) convert the 3bpp snes data into PC 4bpp (probably the hardest part)
-// 4) get the tiles32 data
-// 5) get the tiles16 data
-// 6) get the map32 data (they must be decompressed as well with a lz2
-// variant not the same as gfx compression but pretty similar) 7) get the
-// gfx data of the map yeah i forgot that one and load 4bpp in a pseudo vram
-// and use that to render tiles on screen 8) try to render the tiles on the
-// bitmap in black & white to start 9) get the palettes data and try to find
-// how they're loaded in the game that's a big puzzle to solve then 9 you'll
-// have an overworld map viewer, in less than few hours if are able to
-// understand the data quickly
+    ImGui::EndTabItem();
+  }
+}
+
 void Editor::DrawOverworldEditor() {
   if (ImGui::BeginTabItem("Overworld")) {
     overworld_editor_.Update();
@@ -365,18 +360,6 @@ void Editor::DrawSpriteEditor() {
 
 void Editor::DrawScreenEditor() {
   if (ImGui::BeginTabItem("Screens")) {
-    ImGui::EndTabItem();
-  }
-}
-
-void Editor::DrawROMInfo() {
-  if (ImGui::BeginTabItem("ROM Info")) {
-    if (rom.isLoaded()) {
-      ImGui::Text("Title: %s", rom.getTitle());
-      ImGui::Text("Version: %d", rom.getVersion());
-      ImGui::Text("ROM Size: %ld", rom.getSize());
-    }
-
     ImGui::EndTabItem();
   }
 }

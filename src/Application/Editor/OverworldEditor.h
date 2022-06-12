@@ -16,6 +16,8 @@ namespace Editor {
 
 using byte = unsigned char;
 
+static constexpr unsigned int k4BPP = 4;
+
 class OverworldEditor {
  public:
   void Update();
