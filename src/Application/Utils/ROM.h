@@ -35,7 +35,7 @@ class ROM {
   unsigned int getRomPosition(const TilePreset& preset, int directAddr,
                               unsigned int snesAddr);
 
-      int SnesToPc(int addr);
+  int SnesToPc(int addr);
   short AddressFromBytes(byte addr1, byte addr2);
   ushort ReadShort(int addr);
   void Write(int addr, byte value);
@@ -59,17 +59,17 @@ class ROM {
   byte* current_rom_;
   char* rom_data_;
 
+  bool fastrom;
+  long int size;
+  enum rom_type type;
+  unsigned char title[21] = "ROM Not Loaded";
+  unsigned char version;
+
   bool overrideHeaderInfo;
   bool overridenHeaderInfo;
   unsigned int lastUnCompressSize;
   unsigned int lastCompressedSize;
   unsigned int lastCompressSize;
-
-  enum rom_type type;
-  bool fastrom;
-  unsigned char title[21];
-  long int size;
-  unsigned char version;
 };
 
 }  // namespace Utils
