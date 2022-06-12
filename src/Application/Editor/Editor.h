@@ -12,7 +12,7 @@
 #include "Core/Constants.h"
 #include "Core/Icons.h"
 #include "OverworldEditor.h"
-#include "Utils/ROM.h"
+#include "Data/ROM.h"
 
 namespace yaze {
 namespace Application {
@@ -40,7 +40,7 @@ class Editor {
   void *rom_data_;
   bool isLoaded = true;
 
-  Utils::ROM rom;
+  Data::ROM rom;
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language65816Def;
   OverworldEditor overworld_editor_;

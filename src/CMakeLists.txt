@@ -37,15 +37,15 @@ add_executable(
     Application/Core/Controller.cc
     Application/Core/Renderer.cc
     Application/Core/Window.cc
-    Application/Data/Overworld.cc
-    Application/Data/OverworldMap.cc
+    Application/Data/ROM.cc
+    Application/Data/OW/Overworld.cc
+    Application/Data/OW/OverworldMap.cc
     Application/Graphics/Bitmap.cc
     Application/Graphics/Tile.cc
     Application/Graphics/Palette.cc
     Application/Graphics/Scene.cc
     Application/Editor/Editor.cc
     Application/Editor/OverworldEditor.cc
-    Application/Utils/ROM.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp

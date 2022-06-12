@@ -1,6 +1,6 @@
 #include "Bitmap.h"
 
-#include "Utils/ROM.h"
+#include "Data/ROM.h"
 #include "rommapping.h"
 
 namespace yaze {
@@ -10,16 +10,16 @@ namespace Graphics {
 int GetPCGfxAddress(char *romData, char id) {
   char **info1, **info2, **info3, **info4;
   int gfxPointer1 =
-      lorom_snes_to_pc((romData[Constants::gfx_1_pointer + 1] << 8) +
-                           (romData[Constants::gfx_1_pointer]),
+      lorom_snes_to_pc((romData[Core::Constants::gfx_1_pointer + 1] << 8) +
+                           (romData[Core::Constants::gfx_1_pointer]),
                        info1);
   int gfxPointer2 =
-      lorom_snes_to_pc((romData[Constants::gfx_2_pointer + 1] << 8) +
-                           (romData[Constants::gfx_2_pointer]),
+      lorom_snes_to_pc((romData[Core::Constants::gfx_2_pointer + 1] << 8) +
+                           (romData[Core::Constants::gfx_2_pointer]),
                        info2);
   int gfxPointer3 =
-      lorom_snes_to_pc((romData[Constants::gfx_3_pointer + 1] << 8) +
-                           (romData[Constants::gfx_3_pointer]),
+      lorom_snes_to_pc((romData[Core::Constants::gfx_3_pointer + 1] << 8) +
+                           (romData[Core::Constants::gfx_3_pointer]),
                        info3);
 
   char gfxGamePointer1 = romData[gfxPointer1 + id];
@@ -27,8 +27,7 @@ int GetPCGfxAddress(char *romData, char id) {
   char gfxGamePointer3 = romData[gfxPointer3 + id];
 
   return lorom_snes_to_pc(
-      Utils::AddressFromBytes(gfxGamePointer1, gfxGamePointer2,
-                              gfxGamePointer3),
+      Data::AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3),
       info4);
 }
 
@@ -45,7 +44,7 @@ char *CreateAllGfxDataRaw(char *romData) {
   unsigned int uncompressedSize = 0;
   unsigned int compressedSize = 0;
 
-  for (int i = 0; i < Constants::NumberOfSheets; i++) {
+  for (int i = 0; i < Core::Constants::NumberOfSheets; i++) {
     isbpp3[i] = ((i >= 0 && i <= 112) ||    // Compressed 3bpp bg
                  (i >= 115 && i <= 126) ||  // Uncompressed 3bpp sprites
                  (i >= 127 && i <= 217)     // Compressed 3bpp sprites
@@ -53,15 +52,16 @@ char *CreateAllGfxDataRaw(char *romData) {
 
     // uncompressed sheets
     if (i >= 115 && i <= 126) {
-      data = new char[Constants::Uncompressed3BPPSize];
+      data = new char[Core::Constants::Uncompressed3BPPSize];
       int startAddress = GetPCGfxAddress(romData, (char)i);
-      for (int j = 0; j < Constants::Uncompressed3BPPSize; j++) {
+      for (int j = 0; j < Core::Constants::Uncompressed3BPPSize; j++) {
         data[j] = romData[j + startAddress];
       }
     } else {
-      data = alttp_decompress_gfx(
-          (char *)romData, GetPCGfxAddress(romData, (char)i),
-          Constants::UncompressedSheetSize, &uncompressedSize, &compressedSize);
+      data = alttp_decompress_gfx((char *)romData,
+                                  GetPCGfxAddress(romData, (char)i),
+                                  Core::Constants::UncompressedSheetSize,
+                                  &uncompressedSize, &compressedSize);
     }
 
     for (int j = 0; j < sizeof(data); j++) {
@@ -83,7 +83,7 @@ void CreateAllGfxData(char *romData, char *allgfx16Ptr) {
   int sheetPosition = 0;
 
   // 8x8 tile
-  for (int s = 0; s < Constants::NumberOfSheets; s++)  // Per Sheet
+  for (int s = 0; s < Core::Constants::NumberOfSheets; s++)  // Per Sheet
   {
     for (int j = 0; j < 4; j++)  // Per Tile Line Y
     {
@@ -161,9 +161,9 @@ void CreateAllGfxData(char *romData, char *allgfx16Ptr) {
     }
 
     if (isbpp3[s]) {
-      sheetPosition += Constants::Uncompressed3BPPSize;
+      sheetPosition += Core::Constants::Uncompressed3BPPSize;
     } else {
-      sheetPosition += Constants::UncompressedSheetSize;
+      sheetPosition += Core::Constants::UncompressedSheetSize;
     }
   }
 

@@ -1,14 +1,8 @@
 #include "ROM.h"
 
-#define ROMMAPPING_LOCATION_SNES_RESERVED -1
-#define ROMMAPPING_LOCATION_SRAM -2
-#define ROMMAPPING_LOCATION_WRAM -3
-
 namespace yaze {
 namespace Application {
-namespace Utils {
-
-using namespace Graphics;
+namespace Data {
 
 void ROM::LoadFromFile(const std::string &path) {
   FILE *file = fopen(path.c_str(), "r+");
@@ -32,16 +26,16 @@ void ROM::LoadFromFile(const std::string &path) {
 }
 
 std::vector<tile8> ROM::ExtractTiles(TilePreset &preset) {
-  std::cout << "Begin ROM::ExtractTiles" << std::endl;
-
+  std::cout << "Extracting tiles..." << std::endl;
   uint filePos = 0;
   uint size_out = 0;
   uint size = preset.length;
   int tilePos = preset.pcTilesLocation;
   std::vector<tile8> rawTiles;
-
   filePos = getRomPosition(preset, tilePos, preset.SNESTilesLocation);
-
+  std::cout << "ROM Position: " << filePos << " from "
+            << preset.SNESTilesLocation << std::endl;
+  
   // decompress the graphics
   char *data = (char *)malloc(sizeof(char) * size);
   memcpy(data, (rom_data_ + filePos), size);
@@ -52,7 +46,6 @@ std::vector<tile8> ROM::ExtractTiles(TilePreset &preset) {
     std::cout << alttp_decompression_error << std::endl;
     return rawTiles;
   }
-
   // unpack the tiles based on their depth
   unsigned tileCpt = 0;
   std::cout << "Unpacking tiles..." << std::endl;
@@ -62,8 +55,9 @@ std::vector<tile8> ROM::ExtractTiles(TilePreset &preset) {
     rawTiles.push_back(newTile);
     tileCpt++;
   }
-  std::cout << "End ROM::ExtractTiles" << std::endl;
+  std::cout << "Done unpacking tiles" << std::endl;
   free(data);
+  std::cout << "Done extracting tiles." << std::endl;
   return rawTiles;
 }
 
@@ -118,6 +112,6 @@ short ROM::AddressFromBytes(byte addr1, byte addr2) {
   return (short)((addr1 << 8) | (addr2));
 }
 
-}  // namespace Utils
+}  // namespace Data
 }  // namespace Application
 }  // namespace yaze

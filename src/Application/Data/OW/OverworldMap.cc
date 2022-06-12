@@ -1,5 +1,8 @@
 #include "OverworldMap.h"
 
+#include "Data/ROM.h"
+#include "Graphics/Tile.h"
+
 namespace yaze {
 namespace Application {
 namespace Data {
@@ -7,7 +10,7 @@ namespace Data {
 using namespace Core;
 using namespace Graphics;
 
-OverworldMap::OverworldMap(Utils::ROM rom,
+OverworldMap::OverworldMap(Data::ROM rom,
                            const std::vector<Graphics::Tile16> tiles16,
                            byte index)
     : rom_(rom), index(index), tiles16_(tiles16), parent(index) {

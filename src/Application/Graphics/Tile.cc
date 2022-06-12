@@ -7,8 +7,6 @@
 #include <iostream>
 #include <regex>
 
-#include "png.h"
-
 namespace yaze {
 namespace Application {
 namespace Graphics {

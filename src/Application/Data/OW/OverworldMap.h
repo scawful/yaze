@@ -1,9 +1,10 @@
 #include <memory>
 
+#include "Data/ROM.h"
 #include "Graphics/Bitmap.h"
 #include "Graphics/Tile.h"
-#include "Utils/ROM.h"
 #include "imgui/imgui.h"
+
 
 namespace yaze {
 namespace Application {
@@ -31,17 +32,21 @@ class OverworldMap {
   Graphics::Bitmap mapblockset16Bitmap;
   Graphics::Bitmap gfxBitmap;
 
-  byte* staticgfx = new byte[16];  // Need to be used to display map and not pre render it!
+  byte* staticgfx =
+      new byte[16];  // Need to be used to display map and not pre render it!
   ushort** tilesUsed;
 
   bool needRefresh = false;
-  Utils::ROM rom_;
+  Data::ROM rom_;
 
-  byte *currentOWgfx16Ptr = new byte[(128 * 512) / 2];
+  byte* currentOWgfx16Ptr = new byte[(128 * 512) / 2];
   std::vector<Graphics::Tile16> tiles16_;
 
-  OverworldMap(Utils::ROM rom, const std::vector<Graphics::Tile16> tiles16, byte index);
-  void BuildMap(byte* mapParent, int count, int gameState, ushort** allmapsTilesLW, ushort** allmapsTilesDW, ushort** allmapsTilesSP);
+  OverworldMap(Data::ROM rom, const std::vector<Graphics::Tile16> tiles16,
+               byte index);
+  void BuildMap(byte* mapParent, int count, int gameState,
+                ushort** allmapsTilesLW, ushort** allmapsTilesDW,
+                ushort** allmapsTilesSP);
   void CopyTile8bpp16(int x, int y, int tile, int* destbmpPtr,
                       int* sourcebmpPtr);
   void CopyTile8bpp16From8(int xP, int yP, int tileID, int* destbmpPtr,
@@ -61,7 +66,7 @@ class OverworldMap {
 
   void SetColorsPalette(int index, ImVec4 main, ImVec4 animated, ImVec4 aux1,
                         ImVec4 aux2, ImVec4 hud, ImVec4 bgrcolor, ImVec4 spr,
-                        ImVec4 spr2); 
+                        ImVec4 spr2);
 
   void BuildTileset(int gameState);
 };

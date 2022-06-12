@@ -6,14 +6,11 @@
 
 #include <memory>
 
-// #include "GL/glew.h"
-#include "Utils/ROM.h"
+#include "Core/Constants.h"
 
 namespace yaze {
 namespace Application {
 namespace Graphics {
-
-using namespace Core;
 
 class Bitmap {
  public:
@@ -33,7 +30,7 @@ class Bitmap {
   char *pixel_data_;
 };
 
-static bool isbpp3[Constants::NumberOfSheets];
+static bool isbpp3[Core::Constants::NumberOfSheets];
 
 int GetPCGfxAddress(char *romData, char id);
 char *CreateAllGfxDataRaw(char *romData);

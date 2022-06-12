@@ -38,7 +38,7 @@ static TileInfo GetTilesInfo(ushort tile) {
   return TileInfo(tid, p, v, h, o);
 }
 
-void Overworld::Load(Utils::ROM rom) {
+void Overworld::Load(Data::ROM rom) {
   rom_ = rom;
   for (int i = 0; i < 0x2B; i++) {
     // tileLeftEntrance.push_back(

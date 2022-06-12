@@ -4,7 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "Core/Icons.h"
-#include "Data/Overworld.h"
+#include "Data/OW/Overworld.h"
 #include "Graphics/Palette.h"
 #include "Graphics/Scene.h"
 #include "Graphics/Tile.h"
@@ -21,7 +21,7 @@ class OverworldEditor {
  public:
   void Update();
 
-  void SetRom(Utils::ROM &rom) { rom_ = rom; }
+  void SetRom(Data::ROM &rom) { rom_ = rom; }
 
  private:
   void DrawToolset();
@@ -33,7 +33,7 @@ class OverworldEditor {
 
   bool show_changelist_ = false;
 
-  Utils::ROM rom_;
+  Data::ROM rom_;
   Data::Overworld overworld;
   Graphics::Scene current_scene_;
   Graphics::Bitmap allgfxBitmap;

@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-
 #include "Core/Constants.h"
 #include "Graphics/Tile.h"
 #include "compressions/alttpcompression.h"
@@ -19,7 +18,7 @@
 
 namespace yaze {
 namespace Application {
-namespace Utils {
+namespace Data {
 
 using byte = unsigned char;
 using ushort = unsigned short;
@@ -61,7 +60,7 @@ class ROM {
   unsigned char title[21] = "ROM Not Loaded";
 };
 
-}  // namespace Utils
+}  // namespace Data
 }  // namespace Application
 }  // namespace yaze
 

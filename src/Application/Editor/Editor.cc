@@ -413,7 +413,7 @@ void Editor::DrawProjectEditor() {
           const float GRID_STEP = 8.0f;
           float x = fmodf(scrolling.x, GRID_STEP);
           float y = fmodf(scrolling.y, GRID_STEP);
-          draw_list->AddImage((void*)(intptr_t)value,
+          draw_list->AddImage((void *)(SDL_Surface *)value,
                               ImVec2(canvas_p0.x + x, canvas_p0.y),
                               ImVec2(canvas_p0.x + x, canvas_p1.y));
           x += GRID_STEP;

@@ -10,7 +10,7 @@
 #include "Graphics/Tile.h"
 #include "OverworldMap.h"
 
-#include "Utils/ROM.h"
+#include "Data/ROM.h"
 
 namespace yaze {
 namespace Application {
@@ -24,7 +24,7 @@ class Overworld {
   Overworld() = default;
   ~Overworld();
 
-  void Load(Utils::ROM rom);
+  void Load(Data::ROM rom);
 
   char* overworldMapPointer = new char[0x40000];
   Graphics::Bitmap* overworldMapBitmap;
@@ -35,7 +35,7 @@ class Overworld {
   GLuint owactualMapTexture;
 
  private:
-  Utils::ROM rom_;
+  Data::ROM rom_;
   int gameState = 1;
   bool isLoaded = false;
   byte mapParent[160];
