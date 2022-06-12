@@ -3,7 +3,6 @@
 
 #include <tile.h>
 
-#include <regex>
 #include <string>
 #include <unordered_map>
 #include <vector>

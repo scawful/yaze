@@ -41,8 +41,7 @@ std::vector<tile8> ROM::ExtractTiles(unsigned int bpp, unsigned int length) {
   std::vector<tile8> rawTiles;
   unsigned int lastCompressedSize;
   unsigned int size = length;
-  char *data =
-      alttp_decompress_gfx(data, 0, length, &size, &lastCompressedSize);
+  char *data = alttp_decompress_gfx((char*)current_rom_, 0, length, &size, &lastCompressedSize);
 
   if (data == NULL) {
     return rawTiles;

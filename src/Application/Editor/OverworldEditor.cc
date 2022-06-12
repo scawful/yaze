@@ -25,6 +25,7 @@ void OverworldEditor::Update() {
 
       surface = current_scene_.buildSurface(
           rom_.ExtractTiles(4, 2048), palette_, current_set_.tilesPattern);
+        
       gfx_texture = SDL_CreateTextureFromSurface(Core::renderer, surface);
       doneLoaded = true;
     }
@@ -257,7 +258,7 @@ void OverworldEditor::DrawOverworldCanvas() {
   draw_list->PopClipRect();
 }
 void OverworldEditor::DrawTileSelector() {
-  if (ImGui::BeginTabBar("##TabBar")) {
+  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile8")) {
       if (rom_.isLoaded()) {
         ImGui::Image((void *)(intptr_t)gfx_texture, ImVec2(128, 7104));
