@@ -82,6 +82,14 @@ Editor::Editor() {
   }
   asm_editor_.SetLanguageDefinition(language65816Def);
   asm_editor_.SetPalette(TextEditor::GetDarkPalette());
+
+  current_set_.bpp = 3;
+  current_set_.pcTilesLocation = 0x8000;
+  current_set_.SNESTilesLocation = 0;
+  current_set_.length = 1000;
+  current_set_.pcPaletteLocation = 0;
+  current_set_.SNESPaletteLocation = 0;
+  current_set_.compression = "zelda3";
 }
 
 void Editor::UpdateScreen() {
@@ -102,28 +110,25 @@ void Editor::UpdateScreen() {
 
   DrawYazeMenu();
 
-  if (ImGui::BeginTabBar("##TabBar")) {
+  TAB_BAR("##TabBar");
     DrawProjectEditor();
     DrawOverworldEditor();
     DrawDungeonEditor();
     DrawGraphicsEditor();
     DrawSpriteEditor();
     DrawScreenEditor();
-    ImGui::EndTabBar();
-  }
+  END_TAB_BAR();
 
   ImGui::End();
 }
 
 void Editor::DrawYazeMenu() {
-  if (ImGui::BeginMenuBar()) {
+  MENU_BAR();
     DrawFileMenu();
     DrawEditMenu();
     DrawViewMenu();
     DrawHelpMenu();
-
-    ImGui::EndMenuBar();
-  }
+  END_MENU_BAR();
 
   // display
   if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
@@ -283,12 +288,39 @@ void Editor::DrawHelpMenu() const {
 }
 
 void Editor::DrawProjectEditor() {
+  static bool inited = false;
+
   if (ImGui::BeginTabItem("Project")) {
-    if (rom.isLoaded()) {
+    ImGui::InputInt("PC Tile Location", &current_set_.pcTilesLocation);
+    ImGui::InputScalar("SNES Tile Location", ImGuiDataType_U32, (void*)&current_set_.SNESTilesLocation);
+    ImGui::InputScalar("Tile Preset Length", ImGuiDataType_U32, (void*)&current_set_.length);
+    ImGui::InputScalar("Bits per Pixel", ImGuiDataType_U32, (void*)&current_set_.bpp);
+    ImGui::InputScalar("PC Palette Location", ImGuiDataType_U32, (void*)&current_set_.pcPaletteLocation);
+    ImGui::InputScalar("SNES Palette Location", ImGuiDataType_U32, (void*)&current_set_.SNESPaletteLocation);
+
+    if (rom.isLoaded()) {      
+      
       ImGui::Text("Title: %s", rom.getTitle());
       ImGui::Text("Version: %d", rom.getVersion());
       ImGui::Text("ROM Size: %ld", rom.getSize());
+
+      if (!inited) {
+        current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+        current_palette_.colors.push_back(ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
+        current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.4f, 1.0f));
+        current_palette_.colors.push_back(ImVec4(0.3f, 0.0f, 0.0f, 1.0f));
+        current_palette_.colors.push_back(ImVec4(0.3f, 0.7f, 0.9f, 1.0f));
+        current_palette_.colors.push_back(ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+        current_scene_.buildSurface(rom.ExtractTiles(current_set_), current_palette_, current_set_.tilesPattern);
+        inited = true;
+      }
+ 
+      for (const auto & [key, value] : current_scene_.imagesCache) {
+        ImGui::Image((void *)(SDL_Texture*)value, ImVec2(8, 8));
+      }
     }
+
 
     ImGui::EndTabItem();
   }

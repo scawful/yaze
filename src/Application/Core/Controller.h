@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Editor/Editor.h"
-#include "Events/Event.h"
 #include "Renderer.h"
 #include "Window.h"
 #include "imgui/backends/imgui_impl_sdl.h"

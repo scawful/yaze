@@ -25,7 +25,7 @@ void ROM::LoadFromFile(const std::string &path) {
   int bytes_read = fread(current_rom_, sizeof(unsigned char), size, file);
   fclose(file);
 
-  memcpy(title, current_rom_ + 32704, 21);
+  memcpy(title, rom_data_ + 32704, 21);
   type = LoROM;
   version = current_rom_[27];
   loaded = true;

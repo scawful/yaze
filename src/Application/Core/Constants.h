@@ -4,6 +4,12 @@
 #include <array>
 #include <string>
 
+#define TAB_BAR(w)      if (ImGui::BeginTabBar(w)) {
+#define END_TAB_BAR()   ImGui::EndTabBar(); }
+
+#define MENU_BAR()      if (ImGui::BeginMenuBar()) {
+#define END_MENU_BAR()  ImGui::EndMenuBar(); }
+
 namespace yaze {
 namespace Application {
 namespace Core {

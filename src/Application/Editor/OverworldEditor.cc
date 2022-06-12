@@ -33,65 +33,6 @@ void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
     if (!doneLoaded) {
       //overworld.Load(rom_);
-    // name=The Legend of Zelda - Link Sprites
-
-    // [rom]
-    // name=
-    // type=LoROM
-
-    // [tiles]
-    // pc_location=80000
-    // snes_location=0
-    // length=28672
-    // bpp=4
-    // compression=None
-    // pattern=normal
-
-    // [tiles_arrangement]
-    // tiles_per_row=16
-
-    // [palette]
-    // pc_location=dd308
-    // snes_location=0
-    // nozerocolor=true
-
-    // name="The Legend of Zelda - Action Sprites, shields, shovel and book"
-
-    // [rom]
-    // name=
-    // type=LoROM
-
-    // [tiles]
-    // pc_location=c0d64
-    // snes_location=0
-    // length=1081
-    // bpp=3
-    // compression=zelda3
-
-    // [tiles_arrangement]
-    // tiles_per_row=16
-
-    // [palette]
-    // pc_location=0
-    // snes_location=0
-    // nozerocolor=true
-
-      current_set_.pcTilesLocation = 0x8000;
-      current_set_.SNESTilesLocation = 0;
-      current_set_.length = 1000;
-      current_set_.bpp = 3;
-      current_set_.compression = "zelda3";
-      current_set_.pcPaletteLocation = 0;
-      current_set_.SNESPaletteLocation = 0;
-
-      palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-      palette_.colors.push_back(ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
-      palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.4f, 1.0f));
-      palette_.colors.push_back(ImVec4(0.3f, 0.0f, 0.0f, 1.0f));
-      palette_.colors.push_back(ImVec4(0.3f, 0.7f, 0.9f, 1.0f));
-      palette_.colors.push_back(ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-
-      current_scene_.buildSurface(rom_.ExtractTiles(current_set_), palette_, current_set_.tilesPattern);
       doneLoaded = true;
     }
   }
@@ -325,11 +266,6 @@ void OverworldEditor::DrawOverworldCanvas() {
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile8")) {
-      if (rom_.isLoaded()) {
-        for (const auto & [key, value] : current_scene_.imagesCache) {
-          ImGui::Image((void *)(SDL_Texture*)value, ImVec2(8, 8));
-        }
-      }
 
       ImGui::EndTabItem();
     }
