@@ -8,18 +8,17 @@ Editor::Editor() {
   static bool inited = false;
   if (!inited) {
     static const char *const keywords[] = {
-        "ADC", "AND", "ASL", "BCC",       "BCS", "BEQ", "BIT", "BMI", "BNE",
-        "BPL", "BRA", "BRL", "BVC",       "BVS", "CLC", "CLD", "CLI", "CLV",
-        "CMP", "CPX", "CPY", "DEC",       "DEX", "DEY", "EOR", "INC", "INX",
-        "INY", "JMP", "JSR", "JSL", "LDA",       "LDX", "LDY", "LSR", "MVN", "NOP",
-        "ORA", "PEA", "PER", "PHA",       "PHB", "PHD", "PHP", "PHX", "PHY",
-        "PLA", "PLB", "PLD", "PLP",       "PLX", "PLY", "REP", "ROL", "ROR",
-        "RTI", "RTL", "RTS", "SBC",       "SEC", "SEI", "SEP", "STA", "STP",
-        "STX", "STY", "STZ", "TAX",       "TAY", "TCD", "TCS", "TDC", "TRB",
-        "TSB", "TSC", "TSX", "TXA",       "TXS", "TXY", "TYA", "TYX", "WAI",
-        "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB" };
-    for (auto &k : keywords)
-      language65816Def.mKeywords.insert(k);
+        "ADC", "AND", "ASL", "BCC", "BCS", "BEQ",   "BIT",   "BMI",       "BNE",
+        "BPL", "BRA", "BRL", "BVC", "BVS", "CLC",   "CLD",   "CLI",       "CLV",
+        "CMP", "CPX", "CPY", "DEC", "DEX", "DEY",   "EOR",   "INC",       "INX",
+        "INY", "JMP", "JSR", "JSL", "LDA", "LDX",   "LDY",   "LSR",       "MVN",
+        "NOP", "ORA", "PEA", "PER", "PHA", "PHB",   "PHD",   "PHP",       "PHX",
+        "PHY", "PLA", "PLB", "PLD", "PLP", "PLX",   "PLY",   "REP",       "ROL",
+        "ROR", "RTI", "RTL", "RTS", "SBC", "SEC",   "SEI",   "SEP",       "STA",
+        "STP", "STX", "STY", "STZ", "TAX", "TAY",   "TCD",   "TCS",       "TDC",
+        "TRB", "TSB", "TSC", "TSX", "TXA", "TXS",   "TXY",   "TYA",       "TYX",
+        "WAI", "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB"};
+    for (auto &k : keywords) language65816Def.mKeywords.emplace(k);
 
     static const char *const identifiers[] = {
         "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
@@ -30,7 +29,7 @@ Editor::Editor() {
         "log",     "memcmp",  "modf",    "pow",      "putchar", "putenv",
         "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
         "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
-        "toupper" };
+        "toupper"};
     for (auto &k : identifiers) {
       TextEditor::Identifier id;
       id.mDeclaration = "Built-in function";
@@ -94,9 +93,9 @@ void Editor::UpdateScreen() {
   ImGuiWindowFlags flags =
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
       ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar;
+      ImGuiWindowFlags_MenuBar;
 
-  if (!ImGui::Begin("#yaze", nullptr, flags)) {
+  if (!ImGui::Begin(title_.c_str(), nullptr, flags)) {
     ImGui::End();
     return;
   }
@@ -106,12 +105,12 @@ void Editor::UpdateScreen() {
   if (ImGui::BeginTabBar("##TabBar")) {
     DrawOverworldEditor();
     DrawDungeonEditor();
+    DrawGraphicsEditor();
     DrawSpriteEditor();
     DrawScreenEditor();
     DrawROMInfo();
     ImGui::EndTabBar();
   }
-  // ImGui::ShowDemoWindow();
 
   ImGui::End();
 }
@@ -131,6 +130,7 @@ void Editor::DrawYazeMenu() {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+      title_ = ImGuiFileDialog::Instance()->GetCurrentFileName();
       rom.LoadFromFile(filePathName);
       overworld_editor_.SetRom(rom);
       rom_data_ = (void *)rom.GetRawData();
@@ -167,8 +167,7 @@ void Editor::DrawFileMenu() const {
       static bool enabled = true;
       ImGui::MenuItem("Enabled", "", &enabled);
       ImGui::BeginChild("child", ImVec2(0, 60), true);
-      for (int i = 0; i < 10; i++)
-        ImGui::Text("Scrolling Text %d", i);
+      for (int i = 0; i < 10; i++) ImGui::Text("Scrolling Text %d", i);
       ImGui::EndChild();
       static float f = 0.5f;
       static int n = 0;
@@ -212,6 +211,7 @@ void Editor::DrawViewMenu() {
   static bool show_imgui_style_editor = false;
   static bool show_memory_editor = false;
   static bool show_asm_editor = false;
+  static bool show_imgui_demo = false;
 
   if (show_imgui_metrics) {
     ImGui::ShowMetricsWindow(&show_imgui_metrics);
@@ -220,6 +220,10 @@ void Editor::DrawViewMenu() {
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
     mem_edit.DrawWindow("Memory Editor", rom_data_, rom.getSize());
+  }
+
+  if (show_imgui_demo) {
+    ImGui::ShowDemoWindow();
   }
 
   if (show_asm_editor) {
@@ -254,14 +258,9 @@ void Editor::DrawViewMenu() {
   }
 
   if (ImGui::BeginMenu("View")) {
-    if (ImGui::BeginMenu("Appearance")) {
-      if (ImGui::MenuItem("Fullscreen")) {
-      }
-      ImGui::EndMenu();
-    }
-
-    ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
+    ImGui::MenuItem("HEX Editor", nullptr, &MemoryEditor::Open);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
+    ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
 
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
@@ -352,6 +351,12 @@ void Editor::DrawDungeonEditor() {
   }
 }
 
+void Editor::DrawGraphicsEditor() {
+  if (ImGui::BeginTabItem("Graphics")) {
+    ImGui::EndTabItem();
+  }
+}
+
 void Editor::DrawSpriteEditor() {
   if (ImGui::BeginTabItem("Sprites")) {
     ImGui::EndTabItem();
@@ -376,6 +381,6 @@ void Editor::DrawROMInfo() {
   }
 }
 
-} // namespace Editor
-} // namespace Application
-} // namespace yaze
+}  // namespace Editor
+}  // namespace Application
+}  // namespace yaze

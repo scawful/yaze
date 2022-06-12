@@ -20,11 +20,11 @@ namespace Application {
 namespace Editor {
 
 class Editor {
-public:
+ public:
   Editor();
   void UpdateScreen();
 
-private:
+ private:
   void DrawYazeMenu();
   void DrawFileMenu() const;
   void DrawEditMenu() const;
@@ -33,13 +33,16 @@ private:
 
   void DrawOverworldEditor();
   void DrawDungeonEditor();
+  void DrawGraphicsEditor();
   void DrawSpriteEditor();
   void DrawScreenEditor();
   void DrawROMInfo();
-  
+
   void *rom_data_;
-  bool isLoaded = true;  
-  
+  bool isLoaded = true;
+
+  std::string title_ = "YAZE";
+
   Utils::ROM rom;
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language65816Def;
@@ -48,8 +51,8 @@ private:
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
 };
 
-} // namespace Editor
-} // namespace Application
-} // namespace yaze
+}  // namespace Editor
+}  // namespace Application
+}  // namespace yaze
 
-#endif // YAZE_APPLICATION_VIEW_EDITOR_H
+#endif  // YAZE_APPLICATION_VIEW_EDITOR_H
