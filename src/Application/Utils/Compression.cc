@@ -10,6 +10,9 @@
 #include <memory>
 #include <vector>
 
+#include "compressions/stdnintendo.h"
+#include "compressions/alttpcompression.h"
+
 #define INITIAL_ALLOC_SIZE 1024
 
 #define D_CMD_COPY 0
@@ -38,6 +41,7 @@ unsigned char* ALTTPCompression::DecompressGfx(const unsigned char* c_data,
                                       unsigned int max_length,
                                       unsigned int* uncompressed_data_size,
                                       unsigned int* compressed_length) {
+  char* data = alttp_decompress_gfx((char*) c_data, start, max_length, uncompressed_data_size, compressed_length);
   unsigned char* toret = std_nintendo_.Decompress(c_data, start, max_length,
                                          uncompressed_data_size,
                                          compressed_length, D_NINTENDO_C_MODE2);

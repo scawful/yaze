@@ -14,17 +14,8 @@ void OverworldEditor::Update() {
     if (!doneLoaded) {
       overworld.Load(rom_);
       Graphics::CreateAllGfxData(rom_.GetRawData(), allGfx16Ptr);
-
-      // allgfxBitmap.LoadBitmapFromROM(allGfx16Ptr, allgfx_texture,
-      // &allgfx_width,
-      //                                &allgfx_height);
       doneLoaded = true;
     }
-    // Graphics::tile8 all_tiles;
-    // all_tiles.id = 1;
-    // all_tiles.data =
-    // Graphics::export_tile_to_png(tile8 rawtile, const r_palette pal, const
-    // char *filename)
   }
 
   if (show_changelist_) {
@@ -279,11 +270,10 @@ void OverworldEditor::DrawTileSelector() {
 
 void OverworldEditor::DrawChangelist() {
   if (!ImGui::Begin("Changelist")) {
-    
+
     ImGui::End();
   }
-  
-  
+
   ImGui::Text("Test");
   ImGui::End();
 }

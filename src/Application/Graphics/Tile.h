@@ -18,17 +18,17 @@ extern "C" {
 
 typedef struct {
   unsigned int id;
-  char data[64];
+  byte data[64];
   unsigned int palette_id;
 } tile8;
 
-tile8 unpack_bpp8_tile(const char* data, const unsigned int offset);
-tile8 unpack_bpp4_tile(const char* data, const unsigned int offset);
-tile8 unpack_bpp3_tile(const char* data, const unsigned int offset);
-tile8 unpack_bpp2_tile(const char* data, const unsigned int offset);
-tile8 unpack_bpp1_tile(const char* data, const unsigned int offset);
+tile8 unpack_bpp8_tile(const byte* data, const unsigned int offset);
+tile8 unpack_bpp4_tile(const byte* data, const unsigned int offset);
+tile8 unpack_bpp3_tile(const byte* data, const unsigned int offset);
+tile8 unpack_bpp2_tile(const byte* data, const unsigned int offset);
+tile8 unpack_bpp1_tile(const byte* data, const unsigned int offset);
 
-tile8 unpack_bpp_tile(const char* data, const unsigned int offset,
+tile8 unpack_bpp_tile(const byte* data, const unsigned int offset,
                       const unsigned int bpp);
 
 byte* pack_bpp1_tile(const tile8 tile);
@@ -39,6 +39,8 @@ byte* pack_bpp8_tile(const tile8 tile);
 
 byte* pack_bpp_tile(const tile8 tile, const unsigned int bpp,
                     unsigned int* size);
+
+void export_all_gfx_to_png(byte* tiledata);
 
 void export_tile_to_png(tile8 rawtile, const r_palette pal,
                         const char* filename);

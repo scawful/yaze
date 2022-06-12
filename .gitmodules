@@ -7,3 +7,6 @@
 [submodule "src/Library/ImGuiColorTextEdit"]
 	path = src/Library/ImGuiColorTextEdit
 	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+[submodule "src/Library/sneshacking"]
+	path = src/Library/sneshacking
+	url = https://github.com/Skarsnik/sneshacking.git

@@ -10,7 +10,7 @@ using namespace Core;
 using namespace Graphics;
 
 Overworld::~Overworld() {
-  for (int i = 0; i < tiles32.size(); i++) {
+  for (int i = 0; i < (int) tiles32.size(); i++) {
     free(allmapsTilesLW[i]);
     free(allmapsTilesDW[i]);
     free(allmapsTilesSP[i]);

@@ -40,10 +40,6 @@ inline static void StyleColorsYaze() {
   ImVec4 allttpLightGreen = ImVec4(0.36f, 0.45f, 0.36f, 1.0f);
   ImVec4 allttpLightestGreen = ImVec4(0.49f, 0.57f, 0.49f, 1.0f);
 
-  ImVec4 alttpBlue = ImVec4(0.f, 0.f, 0.47f, 1.0f);
-  ImVec4 alttpBlueHover = ImVec4(0.f, 0.f, 0.57f, 1.0f);
-  ImVec4 alttpBlueActive = ImVec4(0.f, 0.f, 0.67f, 1.0f);
-
   colors[ImGuiCol_MenuBarBg] = alttpDarkGreen;
   colors[ImGuiCol_TitleBg] = alttpMidGreen;
 

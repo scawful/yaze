@@ -1,6 +1,7 @@
 # SDL libraries --------------------------------------------------------------------------------------------------
 find_package(SDL2 REQUIRED)
 
+find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
@@ -27,6 +28,10 @@ target_include_directories(ImGuiColorTextEdit PUBLIC ${IMGUI_PATH})
 target_include_directories(ImGuiColorTextEdit PUBLIC ${SDL2_INCLUDE_DIR})
 target_compile_definitions(ImGuiColorTextEdit PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
+set(SNESHACKING_PATH "Library/sneshacking/src")
+file(GLOB SNESHACKING_SOURCES ${SNESHACKING_PATH}/*.c)
+add_library("NintendoCompression" STATIC ${SNESHACKING_SOURCES})
+
 # Executable Linkage --------------------------------------------------------------------------------------
 add_executable(
     yaze
@@ -38,6 +43,7 @@ add_executable(
     Application/Data/OverworldMap.cc
     Application/Graphics/Bitmap.cc
     Application/Graphics/Tile.cc
+    Application/Graphics/Palette.cc
     Application/Editor/Editor.cc
     Application/Editor/OverworldEditor.cc
     Application/Events/Event.cc
@@ -53,6 +59,8 @@ add_executable(
     ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
     ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
     ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
+    ${SNESHACKING_PATH}/compressions/alttpcompression.c
+    ${SNESHACKING_PATH}/compressions/stdnintendo.c
 )
 
 target_include_directories(
@@ -60,17 +68,25 @@ target_include_directories(
   Library/
   Application/
   Resources/
+  "C:/msys64/mingw64/include/libpng16"
+  "C:/msys64/mingw64/include/SDL2"
+  "C:/msys64/mingw64/include"
+  ${SNESHACKING_PATH}
+  ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
 )
 
 target_link_libraries(
-  yaze 
+  yaze
+  libstdc++ 
+  SDL2main
+  ${PNG_LIBRARIES}
   ${SDL2_LIBRARIES} 
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
-  png
   ImGui
+  NintendoCompression
 )
 
 set (source "${CMAKE_SOURCE_DIR}/assets")

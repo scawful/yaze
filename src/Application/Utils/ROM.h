@@ -1,8 +1,6 @@
 #ifndef YAZE_APPLICATION_UTILS_ROM_H
 #define YAZE_APPLICATION_UTILS_ROM_H
 
-#include <bits/postypes.h>
-
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -73,9 +71,6 @@ class ROM {
   bool isLoaded() const { return loaded; }
 
  private:
-  std::vector<char> original_rom_;
-  std::vector<char> working_rom_;
-
   bool loaded = false;
 
   byte* current_rom_;
