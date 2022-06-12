@@ -19,7 +19,6 @@ void Scene::buildSurface(const std::vector<tile8>& tiles, SNESPalette& mPalette,
       SDL_PixelFormat* format = newImage->format;
       format->palette = mPalette.GetSDL_Palette();
 
-
       char* ptr = (char*)newImage->pixels;
 
       for (int i = 0; i < 8; i++) {

@@ -4,6 +4,8 @@ namespace yaze {
 namespace Application {
 namespace Editor {
 
+using namespace Core;
+
 Editor::Editor() {
   static bool inited = false;
   if (!inited) {
@@ -83,13 +85,19 @@ Editor::Editor() {
   asm_editor_.SetLanguageDefinition(language65816Def);
   asm_editor_.SetPalette(TextEditor::GetDarkPalette());
 
-  current_set_.bpp = 3;
-  current_set_.pcTilesLocation = 0x8000;
+  current_set_.bpp = 4;
+  current_set_.pcTilesLocation = 0x80000;
   current_set_.SNESTilesLocation = 0;
-  current_set_.length = 1000;
-  current_set_.pcPaletteLocation = 0;
+  current_set_.length = 28672;
+  current_set_.pcPaletteLocation = 0xDD326;
   current_set_.SNESPaletteLocation = 0;
   current_set_.compression = "zelda3";
+  current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+  current_palette_.colors.push_back(ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
+  current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.4f, 1.0f));
+  current_palette_.colors.push_back(ImVec4(0.3f, 0.0f, 0.0f, 1.0f));
+  current_palette_.colors.push_back(ImVec4(0.3f, 0.7f, 0.9f, 1.0f));
+  current_palette_.colors.push_back(ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
 }
 
 void Editor::UpdateScreen() {
@@ -111,12 +119,12 @@ void Editor::UpdateScreen() {
   DrawYazeMenu();
 
   TAB_BAR("##TabBar");
-    DrawProjectEditor();
-    DrawOverworldEditor();
-    DrawDungeonEditor();
-    DrawGraphicsEditor();
-    DrawSpriteEditor();
-    DrawScreenEditor();
+  DrawProjectEditor();
+  DrawOverworldEditor();
+  DrawDungeonEditor();
+  DrawGraphicsEditor();
+  DrawSpriteEditor();
+  DrawScreenEditor();
   END_TAB_BAR();
 
   ImGui::End();
@@ -124,10 +132,10 @@ void Editor::UpdateScreen() {
 
 void Editor::DrawYazeMenu() {
   MENU_BAR();
-    DrawFileMenu();
-    DrawEditMenu();
-    DrawViewMenu();
-    DrawHelpMenu();
+  DrawFileMenu();
+  DrawEditMenu();
+  DrawViewMenu();
+  DrawHelpMenu();
   END_MENU_BAR();
 
   // display
@@ -136,7 +144,6 @@ void Editor::DrawYazeMenu() {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-      title_ = ImGuiFileDialog::Instance()->GetCurrentFileName();
       rom.LoadFromFile(filePathName);
       overworld_editor_.SetRom(rom);
       rom_data_ = (void *)rom.GetRawData();
@@ -264,7 +271,7 @@ void Editor::DrawViewMenu() {
   }
 
   if (ImGui::BeginMenu("View")) {
-    ImGui::MenuItem("HEX Editor", nullptr, &MemoryEditor::Open);
+    ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
 
@@ -291,37 +298,136 @@ void Editor::DrawProjectEditor() {
   static bool inited = false;
 
   if (ImGui::BeginTabItem("Project")) {
-    ImGui::InputInt("PC Tile Location", &current_set_.pcTilesLocation);
-    ImGui::InputScalar("SNES Tile Location", ImGuiDataType_U32, (void*)&current_set_.SNESTilesLocation);
-    ImGui::InputScalar("Tile Preset Length", ImGuiDataType_U32, (void*)&current_set_.length);
-    ImGui::InputScalar("Bits per Pixel", ImGuiDataType_U32, (void*)&current_set_.bpp);
-    ImGui::InputScalar("PC Palette Location", ImGuiDataType_U32, (void*)&current_set_.pcPaletteLocation);
-    ImGui::InputScalar("SNES Palette Location", ImGuiDataType_U32, (void*)&current_set_.SNESPaletteLocation);
+    if (ImGui::BeginTable("##projectTable", 2,
+                          ImGuiTableFlags_SizingStretchSame)) {
+      ImGui::TableSetupColumn("##inputs");
+      ImGui::TableSetupColumn("##outputs");
 
-    if (rom.isLoaded()) {      
-      
+      ImGui::TableNextColumn();
       ImGui::Text("Title: %s", rom.getTitle());
       ImGui::Text("Version: %d", rom.getVersion());
       ImGui::Text("ROM Size: %ld", rom.getSize());
 
-      if (!inited) {
-        current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-        current_palette_.colors.push_back(ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
-        current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.4f, 1.0f));
-        current_palette_.colors.push_back(ImVec4(0.3f, 0.0f, 0.0f, 1.0f));
-        current_palette_.colors.push_back(ImVec4(0.3f, 0.7f, 0.9f, 1.0f));
-        current_palette_.colors.push_back(ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+      ImGui::InputInt("PC Tile Location", &current_set_.pcTilesLocation);
+      // 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
 
-        current_scene_.buildSurface(rom.ExtractTiles(current_set_), current_palette_, current_set_.tilesPattern);
-        inited = true;
+      ImGui::InputScalar("SNES Tile Location", ImGuiDataType_U32,
+                         (void *)&current_set_.SNESTilesLocation);
+
+      ImGui::InputScalar("Tile Preset Length", ImGuiDataType_U32,
+                         (void *)&current_set_.length);
+
+      ImGui::InputScalar("Bits per Pixel", ImGuiDataType_U32,
+                         (void *)&current_set_.bpp);
+
+      ImGui::InputScalar("PC Palette Location", ImGuiDataType_U32,
+                         (void *)&current_set_.pcPaletteLocation);
+
+      ImGui::InputScalar("SNES Palette Location", ImGuiDataType_U32,
+                         (void *)&current_set_.SNESPaletteLocation);
+
+      BASIC_BUTTON("ExtractTiles") {
+        if (rom.isLoaded()) {
+          tiles_ = rom.ExtractTiles(current_set_);
+        }
       }
- 
-      for (const auto & [key, value] : current_scene_.imagesCache) {
-        ImGui::Image((void *)(SDL_Texture*)value, ImVec2(8, 8));
+
+      BASIC_BUTTON("BuildSurface") {
+        if (rom.isLoaded()) {
+          current_palette_ = rom.ExtractPalette(current_set_);
+          current_scene_.buildSurface(tiles_, current_palette_,
+                                      current_set_.tilesPattern);
+        }
       }
+
+      for (auto &[key, texture] : current_scene_.imagesCache) {
+        ImGui::Image((void *)(SDL_Texture *)texture, ImVec2(8, 8));
+      }
+
+      ImGui::TableNextColumn();
+
+      static ImVector<ImVec2> points;
+      static ImVec2 scrolling(0.0f, 0.0f);
+      static bool opt_enable_context_menu = true;
+      static bool opt_enable_grid = true;
+      ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
+      ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
+      ImVec2 canvas_p1 =
+          ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+
+      // Draw border and background color
+      const ImGuiIO &io = ImGui::GetIO();
+      ImDrawList *draw_list = ImGui::GetWindowDrawList();
+      draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(32, 32, 32, 255));
+      draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
+
+      // This will catch our interactions
+      ImGui::InvisibleButton(
+          "canvas", canvas_sz,
+          ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+      const bool is_hovered = ImGui::IsItemHovered();  // Hovered
+      const bool is_active = ImGui::IsItemActive();    // Held
+      const ImVec2 origin(canvas_p0.x + scrolling.x,
+                          canvas_p0.y + scrolling.y);  // Lock scrolled origin
+      const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
+                                       io.MousePos.y - origin.y);
+
+      // Pan (we use a zero mouse threshold when there's no context menu)
+      const float mouse_threshold_for_pan =
+          opt_enable_context_menu ? -1.0f : 0.0f;
+      if (is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right,
+                                              mouse_threshold_for_pan)) {
+        scrolling.x += io.MouseDelta.x;
+        scrolling.y += io.MouseDelta.y;
+      }
+
+      // Context menu (under default mouse threshold)
+      ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+      if (opt_enable_context_menu && drag_delta.x == 0.0f &&
+          drag_delta.y == 0.0f)
+        ImGui::OpenPopupOnItemClick("context",
+                                    ImGuiPopupFlags_MouseButtonRight);
+      if (ImGui::BeginPopup("context")) {
+        ImGui::MenuItem("Placeholder");
+        ImGui::EndPopup();
+      }
+
+      // Draw grid + all lines in the canvas
+      draw_list->PushClipRect(canvas_p0, canvas_p1, true);
+      if (opt_enable_grid) {
+        const float GRID_STEP = 64.0f;
+        for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x;
+             x += GRID_STEP)
+          draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y),
+                             ImVec2(canvas_p0.x + x, canvas_p1.y),
+                             IM_COL32(200, 200, 200, 40));
+        for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y;
+             y += GRID_STEP)
+          draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
+                             ImVec2(canvas_p1.x, canvas_p0.y + y),
+                             IM_COL32(200, 200, 200, 40));
+      }
+
+      if (current_scene_.imagesCache.size() != 0) {
+        for (const auto &[key, value] : current_scene_.imagesCache) {
+          const float GRID_STEP = 8.0f;
+          float x = fmodf(scrolling.x, GRID_STEP);
+          float y = fmodf(scrolling.y, GRID_STEP);
+          draw_list->AddImage((void*)(intptr_t)value,
+                              ImVec2(canvas_p0.x + x, canvas_p0.y),
+                              ImVec2(canvas_p0.x + x, canvas_p1.y));
+          x += GRID_STEP;
+          if (x == 128) {
+            x = 0;
+            y += GRID_STEP;
+          }
+        }
+      }
+
+      draw_list->PopClipRect();
+
+      ImGui::EndTable();
     }
-
-
     ImGui::EndTabItem();
   }
 }

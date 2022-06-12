@@ -1,19 +1,18 @@
 #ifndef YAZE_APPLICATION_VIEW_EDITOR_H
 #define YAZE_APPLICATION_VIEW_EDITOR_H
 
+#include <ImGuiColorTextEdit/TextEditor.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_memory_editor.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
+
 #include <memory>
 
+#include "Core/Constants.h"
 #include "Core/Icons.h"
-#include "ImGuiColorTextEdit/TextEditor.h"
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "OverworldEditor.h"
 #include "Utils/ROM.h"
-#include "imgui/backends/imgui_impl_sdl.h"
-#include "imgui/backends/imgui_impl_sdlrenderer.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "imgui/imgui_memory_editor.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace Application {
@@ -41,8 +40,6 @@ class Editor {
   void *rom_data_;
   bool isLoaded = true;
 
-  std::string title_ = "YAZE";
-
   Utils::ROM rom;
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language65816Def;
@@ -51,6 +48,8 @@ class Editor {
   Graphics::Scene current_scene_;
   Graphics::SNESPalette current_palette_;
   Graphics::TilePreset current_set_;
+
+  std::vector<tile8> tiles_;
 
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
 };

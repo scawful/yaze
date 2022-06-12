@@ -8,7 +8,6 @@
 #include "Graphics/Palette.h"
 #include "Graphics/Scene.h"
 #include "Graphics/Tile.h"
-#include "Utils/Compression.h"
 
 namespace yaze {
 namespace Application {
@@ -37,7 +36,6 @@ class OverworldEditor {
   Utils::ROM rom_;
   Data::Overworld overworld;
   Graphics::Scene current_scene_;
-  Utils::ALTTPCompression alttp_compressor_;
   Graphics::Bitmap allgfxBitmap;
   Graphics::SNESPalette palette_;
   Graphics::TilePreset current_set_;

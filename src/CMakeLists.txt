@@ -45,7 +45,6 @@ add_executable(
     Application/Graphics/Scene.cc
     Application/Editor/Editor.cc
     Application/Editor/OverworldEditor.cc
-    Application/Utils/Compression.cc
     Application/Utils/ROM.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
@@ -64,6 +63,7 @@ add_executable(
     ${SNESHACKING_PATH}/tilepng.c
     ${SNESHACKING_PATH}/palette.c
     ${SNESHACKING_PATH}/rommapping.c
+    ${SNESHACKING_PATH}/mapping_lorom.c
 )
 
 target_include_directories(

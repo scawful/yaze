@@ -13,47 +13,17 @@ namespace yaze {
 namespace Application {
 namespace Graphics {
 
-std::unordered_map<std::string, TilesPattern> TilesPattern::m_Patterns;
-
-ushort TileInfo::toShort() {
-  ushort value = 0;
-  // vhopppcc cccccccc
-  if (over_ == 1) {
-    value |= 0x2000;
-  };
-  if (horizontal_mirror_ == 1) {
-    value |= 0x4000;
-  };
-  if (vertical_mirror_ == 1) {
-    value |= 0x8000;
-  };
-  value |= (ushort)((palette_ << 10) & 0x1C00);
-  value |= (ushort)(id_ & 0x3FF);
-  return value;
-}
-
-char *hexString(const char *str, const unsigned int size) {
-  char *toret = (char *)malloc(size * 3 + 1);
-
-  unsigned int i;
-  for (i = 0; i < size; i++) {
-    sprintf(toret + i * 3, "%02X ", (unsigned char)str[i]);
-  }
-  toret[size * 3] = 0;
-  return toret;
-}
-
 TilesPattern::TilesPattern() {
   tilesPerRow = 16;
   numberOfTiles = 16;
-  transformVector.push_back(std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 9,
-                                             11, 12, 13, 14, 15, 16});
+  // std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 9, 11, 12, 13, 14, 15, 16});
 
-  // transformVector.push_back(std::vector<int>{0, 1, 2, 3});
-  // transformVector.push_back(std::vector<int>{4, 5, 6, 7});
-  // transformVector.push_back(std::vector<int>{8, 9, 11, 12});
-  // transformVector.push_back(std::vector<int>{13, 14, 15, 16});
+  transformVector.push_back(std::vector<int>{0, 1, 2, 3});
+  transformVector.push_back(std::vector<int>{4, 5, 6, 7});
+  transformVector.push_back(std::vector<int>{8, 9, 11, 12});
+  transformVector.push_back(std::vector<int>{13, 14, 15, 16});
 }
+
 // [pattern]
 // name = "32x32 B (4x4)"
 // number_of_tile = 16
@@ -97,62 +67,6 @@ void TilesPattern::default_settings() {
   std::cout << transformVector.size() << std::endl;
 }
 
-// bool TilesPattern::load(std::string patternFile) {
-// QSettings pFile(patternFile, QSettings::IniFormat);
-// name = pFile.value("pattern/name").toString();
-// description = pFile.value("pattern/description").toString();
-// numberOfTiles = pFile.value("pattern/number_of_tile").toInt();
-// std::cout << name;
-// // unsigned int nbOfTile = pFile.value("_/number_of_tile").toUInt();
-// std::string patternString = pFile.value("pattern/pattern").toString();
-// std::cout << patternString;
-
-// // Pattern String is a array description
-
-// transformVector.clear();
-// QRegExp arrayRegExp("(\\[[\\s|0-F|a-f|,]+\\])");
-// int pos = 0;
-// while (arrayRegExp.indexIn(patternString, pos) != -1) {
-//   std::string arrayString = arrayRegExp.cap(1);
-//   std::vector<int> tmpVect;
-//   // std::cout << arrayString;
-//   unsigned int stringPos = 1;
-
-//   while (arrayString[stringPos] != ']') {
-//     while (arrayString[stringPos].isSpace()) stringPos++;
-//     QRegExp hex("([0-F|a-f]+)");
-//     bool ok;
-//     if (hex.indexIn(arrayString, stringPos) == stringPos) {
-//       tmpVect.append(hex.cap(1).toInt(&ok, 16));
-//     }
-//     while (arrayString[stringPos].isSpace()) stringPos++;
-//     stringPos++;  // should be the comma
-//   }
-//   pos += arrayRegExp.matchedLength();
-//   transformVector.append(tmpVect);
-// }
-// std::cout << transformVector.size() << transformVector;
-// return true;
-// }
-
-bool TilesPattern::loadPatterns() {
-  // foreach (std::string fileName, patternDirectory.entryList(QDir::Files)) {
-  //   TilesPattern tp;
-  //   std::cout << "Loading " << fileName;
-  //   if (!tp.load(patternDirectory.absoluteFilePath(fileName))) return false;
-  //   m_Patterns[tp.name] = tp;
-  // }
-  return true;
-}
-
-TilesPattern TilesPattern::pattern(std::string name) {
-  return m_Patterns[name];
-}
-
-std::unordered_map<std::string, TilesPattern> TilesPattern::Patterns() {
-  return m_Patterns;
-}
-
 std::vector<std::vector<tile8> > TilesPattern::transform(
     const std::vector<tile8> &tiles) const {
   unsigned int repeatOffsetY = 0;
@@ -163,7 +77,7 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
   std::vector<std::vector<tile8> > toret;
   unsigned int transPerRow = tilesPerRow / tVectWidth;
   unsigned int nbTransform = tiles.size() / numberOfTiles;
-  printf("Tiles size : %d - nbtransform : %d - pattern number of tiles : %d",
+  printf("Tiles size : %d\nnbtransform : %d\npattern number of tiles : %d\n",
          tiles.size(), nbTransform, numberOfTiles);
 
   if (transPerRow > nbTransform)
@@ -173,15 +87,11 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
         ((unsigned int)(((double)nbTransform / (double)transPerRow) + 0.5)) *
         tVectHeight);
 
-  std::vector<std::vector<tile8> > vec(toret);
-  auto it = vec.begin();
-  for (auto &each : vec) {
+  for (auto &each : toret) {
     each.resize(tilesPerRow);
   }
-  // while (it.hasNext()) {
-  //   it.next().resize(tilesPerRow);
-  // }
-  // std::cout << toret[0].size() << "x" << toret.size();
+
+  std::cout << toret[0].size() << " x " << toret.size();
   while (repeat != nbTransform) {
     std::cout << "repeat" << repeat;
     for (unsigned int j = 0; j < tVectHeight; j++) {
@@ -190,7 +100,8 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
         unsigned int posX = i + repeatOffsetX;
         unsigned int posY = j + repeatOffsetY;
         printf("X: %d - Y: %d - posTile : %d", posX, posY, posTile);
-        toret[posY][posX] = tiles[posTile];
+        // toret[posY][posX] = tiles[posTile];
+        toret.at(posY).at(posX) = tiles[posTile];
       }
     }
     if (repeatOffsetX + tVectWidth == tilesPerRow) {
@@ -240,21 +151,7 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
   return pattern.transform(tiles);
 }
 
-std::vector<std::vector<tile8> > TilesPattern::transform(
-    const std::string id, const std::vector<tile8> &tiles) {
-  return m_Patterns[id].transform(tiles);
-}
-
-std::vector<tile8> TilesPattern::reverse(const TilesPattern &pattern,
-                                         const std::vector<tile8> &tiles) {
-  return pattern.reverse(tiles);
-}
-
 TilePreset::TilePreset() {
-  name = "";
-  romName = "";
-  romType = "";
-
   pcTilesLocation = -1;
   SNESTilesLocation = 0;
   length = 0;

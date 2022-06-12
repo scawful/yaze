@@ -13,13 +13,12 @@ namespace yaze {
 namespace Application {
 namespace Graphics {
 
-using byte = unsigned char;
 using namespace Core;
 
 class Bitmap {
  public:
   Bitmap() = default;
-  Bitmap(int width, int height, byte *data);
+  Bitmap(int width, int height, char *data);
 
   void Create(GLuint *out_texture);
   int GetWidth();
@@ -31,14 +30,14 @@ class Bitmap {
  private:
   int width_;
   int height_;
-  byte *pixel_data_;
+  char *pixel_data_;
 };
 
 static bool isbpp3[Constants::NumberOfSheets];
 
-int GetPCGfxAddress(byte *romData, byte id);
-byte *CreateAllGfxDataRaw(byte *romData);
-void CreateAllGfxData(byte *romData, byte *allgfx16Ptr);
+int GetPCGfxAddress(char *romData, char id);
+char *CreateAllGfxDataRaw(char *romData);
+void CreateAllGfxData(char *romData, char *allgfx16Ptr);
 
 }  // namespace Graphics
 }  // namespace Application

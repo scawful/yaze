@@ -47,8 +47,7 @@ SNESPalette::SNESPalette(uint8_t mSize) {
 }
 
 SNESPalette::SNESPalette(char* data) {
-  // assert((data.size() % 4 == 0) && data.size() <= 32);
-  // size = data.size() / 2;
+  assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
   size = sizeof(data) / 2;
   for (unsigned i = 0; i < sizeof(data); i += 2) {
     SNESColor col;

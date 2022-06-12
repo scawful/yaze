@@ -10,7 +10,6 @@
 #include <iostream>
 #include <vector>
 
-
 namespace yaze {
 namespace Application {
 namespace Graphics {
@@ -34,7 +33,6 @@ class SNESPalette {
   SNESPalette(std::vector<ImVec4>);
 
   char* encode();
-
   SDL_Palette* GetSDL_Palette();
 
   uint8_t size;

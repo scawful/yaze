@@ -3,12 +3,13 @@
 
 #include <memory>
 #include <vector>
+#include <rommapping.h>
 
 #include "Core/Constants.h"
 #include "Graphics/Bitmap.h"
 #include "Graphics/Tile.h"
 #include "OverworldMap.h"
-#include "Utils/Compression.h"
+
 #include "Utils/ROM.h"
 
 namespace yaze {
@@ -25,18 +26,18 @@ class Overworld {
 
   void Load(Utils::ROM rom);
 
-  byte* overworldMapPointer = new byte[0x40000];
+  char* overworldMapPointer = new char[0x40000];
   Graphics::Bitmap* overworldMapBitmap;
   GLuint overworldMapTexture;
 
-  byte* owactualMapPointer = new byte[0x40000];
+  char* owactualMapPointer = new char[0x40000];
   Graphics::Bitmap* owactualMapBitmap;
   GLuint owactualMapTexture;
 
  private:
   Utils::ROM rom_;
-  Utils::ALTTPCompression alttp_compressor_;
   int gameState = 1;
+  bool isLoaded = false;
   byte mapParent[160];
 
   ushort **allmapsTilesLW; // 64 maps * (32*32 tiles)
@@ -49,15 +50,12 @@ class Overworld {
 
   std::vector<OverworldMap> allmaps;
 
-  bool isLoaded = false;
-
   std::vector<ushort> tileLeftEntrance;
   std::vector<ushort> tileRightEntrance;
 
   int map32address[4] = {
       Core::Constants::map32TilesTL, Core::Constants::map32TilesTR,
       Core::Constants::map32TilesBL, Core::Constants::map32TilesBR};
-
 
   enum Dimension {
     map32TilesTL = 0,

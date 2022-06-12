@@ -41,10 +41,11 @@ static TileInfo GetTilesInfo(ushort tile) {
 void Overworld::Load(Utils::ROM rom) {
   rom_ = rom;
   for (int i = 0; i < 0x2B; i++) {
-    tileLeftEntrance.push_back(
-        rom_.ReadShort(Constants::overworldEntranceAllowedTilesLeft + (i * 2)));
-    tileRightEntrance.push_back(rom_.ReadShort(
-        Constants::overworldEntranceAllowedTilesRight + (i * 2)));
+    // tileLeftEntrance.push_back(
+    //     rom_.ReadShort(Constants::overworldEntranceAllowedTilesLeft + (i *
+    //     2)));
+    // tileRightEntrance.push_back(rom_.ReadShort(
+    //     Constants::overworldEntranceAllowedTilesRight + (i * 2)));
   }
 
   AssembleMap32Tiles();
@@ -132,8 +133,10 @@ void Overworld::DecompressAllMapTiles() {
               << 8) +
              (rom_.GetRawData()[(Constants::compressedAllMap32PointersHigh +
                                  (int)(3 * i))]);
-    p1 = rom_.SnesToPc(p1);
 
+    char* tmp = new char[256];
+    p1 = lorom_snes_to_pc(p1, &tmp);
+    std::cout << tmp << std::endl;
     int p2 = (rom_.GetRawData()[(Constants::compressedAllMap32PointersLow) + 2 +
                                 (int)(3 * i)]
               << 16) +
@@ -142,7 +145,9 @@ void Overworld::DecompressAllMapTiles() {
               << 8) +
              (rom_.GetRawData()[(Constants::compressedAllMap32PointersLow +
                                  (int)(3 * i))]);
-    p2 = rom_.SnesToPc(p2);
+    p2 = lorom_snes_to_pc(p2, &tmp);
+    std::cout << tmp << std::endl;
+    delete[] tmp;
 
     int ttpos = 0;
     unsigned int compressedSize1 = 0;
@@ -168,10 +173,12 @@ void Overworld::DecompressAllMapTiles() {
       }
     }
 
-    auto bytes = alttp_compressor_.DecompressOverworld(
-        rom_.GetRawData(), p2, 1000, &compressedSize1, &compressedLength1);
-    auto bytes2 = alttp_compressor_.DecompressOverworld(
-        rom_.GetRawData(), p1, 1000, &compressedSize2, &compressedLength2);
+    auto bytes =
+        alttp_decompress_overworld((char*)rom_.GetRawData(), p2, 1000,
+                                   &compressedSize1, &compressedLength1);
+    auto bytes2 =
+        alttp_decompress_overworld((char*)rom_.GetRawData(), p1, 1000,
+                                   &compressedSize2, &compressedLength2);
 
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
@@ -295,7 +302,7 @@ void Overworld::LoadOverworldMap() {
   owactualMapBitmap->Create(&owactualMapTexture);
 
   // Mode 7
-  byte* ptr = overworldMapPointer;
+  char* ptr = overworldMapPointer;
 
   int pos = 0;
   for (int sy = 0; sy < 16; sy++) {
