@@ -3,13 +3,12 @@
 
 #include <SDL2/SDL.h>
 
-#include "Icons.h"
-#include "Style.h"
+#include "Graphics/Icons.h"
+#include "Graphics/Style.h"
 #include "imgui/backends/imgui_impl_sdl.h"
 #include "imgui/backends/imgui_impl_sdlrenderer.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
+#include <imgui/imgui.h>
+// #include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace Application {

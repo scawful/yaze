@@ -3,7 +3,7 @@
 
 #include <imgui/imgui.h>
 
-#include "Core/Icons.h"
+#include "Graphics/Icons.h"
 #include "Data/OW/Overworld.h"
 #include "Graphics/Palette.h"
 #include "Graphics/Scene.h"

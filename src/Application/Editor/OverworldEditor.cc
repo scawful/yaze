@@ -4,8 +4,8 @@
 
 #include <cmath>
 
-#include "Core/Icons.h"
 #include "Graphics/Bitmap.h"
+#include "Graphics/Icons.h"
 #include "Graphics/Tile.h"
 
 // first step would be to decompress all graphics data from the game
@@ -32,7 +32,7 @@ namespace Editor {
 void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
     if (!doneLoaded) {
-      //overworld.Load(rom_);
+      // overworld.Load(rom_);
       doneLoaded = true;
     }
   }
@@ -266,7 +266,6 @@ void OverworldEditor::DrawOverworldCanvas() {
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile8")) {
-
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile16")) {
