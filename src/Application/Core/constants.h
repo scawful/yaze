@@ -16,7 +16,7 @@
   ImGui::EndMenuBar(); \
   }
 
-using byte = unsigned char;
+
 
 namespace yaze {
 namespace Application {

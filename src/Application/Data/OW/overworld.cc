@@ -11,18 +11,19 @@ using namespace Graphics;
 
 Overworld::~Overworld() {
   if (isLoaded) {
-    for (int i = 0; i < (int)tiles32.size(); i++) {
-      free(allmapsTilesLW[i]);
-      free(allmapsTilesDW[i]);
-      free(allmapsTilesSP[i]);
-    }
-    free(allmapsTilesLW);
-    free(allmapsTilesDW);
-    free(allmapsTilesSP);
-
-    delete[] overworldMapPointer;
-    delete[] owactualMapPointer;
+  for (int i = 0; i < (int) tiles32.size(); i++) {
+    free(allmapsTilesLW[i]);
+    free(allmapsTilesDW[i]);
+    free(allmapsTilesSP[i]);
   }
+  free(allmapsTilesLW);
+  free(allmapsTilesDW);
+  free(allmapsTilesSP);
+
+  delete[] overworldMapPointer;
+  delete[] owactualMapPointer;
+  }
+
 }
 
 static TileInfo GetTilesInfo(ushort tile) {
@@ -31,7 +32,7 @@ static TileInfo GetTilesInfo(ushort tile) {
   ushort v = 0;
   ushort h = 0;
   ushort tid = (ushort)(tile & 0x3FF);
-  byte p = (byte)((tile >> 10) & 0x07);
+  uchar p = (uchar)((tile >> 10) & 0x07);
 
   o = (ushort)((tile & 0x2000) >> 13);
   h = (ushort)((tile & 0x4000) >> 14);
@@ -56,7 +57,7 @@ void Overworld::Load(Data::ROM rom) {
 
   // Map Initialization :
   for (int i = 0; i < 160; i++) {
-    allmaps.push_back(OverworldMap(rom_, tiles16, (byte)i));
+    allmaps.push_back(OverworldMap(rom_, tiles16, (uchar)i));
   }
   FetchLargeMaps();
   LoadOverworldMap();
@@ -264,24 +265,24 @@ void Overworld::FetchLargeMaps() {
     if (mapChecked[i] == false) {
       if (allmaps[i].largeMap == true) {
         mapChecked[i] = true;
-        mapParent[i] = (byte)i;
-        mapParent[i + 64] = (byte)(i + 64);
+        mapParent[i] = (uchar)i;
+        mapParent[i + 64] = (uchar)(i + 64);
 
         mapChecked[i + 1] = true;
-        mapParent[i + 1] = (byte)i;
-        mapParent[i + 65] = (byte)(i + 64);
+        mapParent[i + 1] = (uchar)i;
+        mapParent[i + 65] = (uchar)(i + 64);
 
         mapChecked[i + 8] = true;
-        mapParent[i + 8] = (byte)i;
-        mapParent[i + 72] = (byte)(i + 64);
+        mapParent[i + 8] = (uchar)i;
+        mapParent[i + 72] = (uchar)(i + 64);
 
         mapChecked[i + 9] = true;
-        mapParent[i + 9] = (byte)i;
-        mapParent[i + 73] = (byte)(i + 64);
+        mapParent[i + 9] = (uchar)i;
+        mapParent[i + 73] = (uchar)(i + 64);
         xx++;
       } else {
-        mapParent[i] = (byte)i;
-        mapParent[i + 64] = (byte)(i + 64);
+        mapParent[i] = (uchar)i;
+        mapParent[i + 64] = (uchar)(i + 64);
         mapChecked[i] = true;
       }
     }

@@ -13,7 +13,7 @@ namespace yaze {
 namespace Application {
 namespace Graphics {
 
-using byte = unsigned char;
+
 using ushort = unsigned short;
 using uint = unsigned int;
 
@@ -26,9 +26,9 @@ class TileInfo {
   ushort over_;
   ushort vertical_mirror_;
   ushort horizontal_mirror_;
-  byte palette_;
+  uchar palette_;
   TileInfo() {}
-  TileInfo(ushort id, byte palette, ushort v, ushort h, ushort o)
+  TileInfo(ushort id, uchar palette, ushort v, ushort h, ushort o)
       : id_(id),
         palette_(palette),
         vertical_mirror_(v),

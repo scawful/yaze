@@ -13,8 +13,6 @@ namespace yaze {
 namespace Application {
 namespace Editor {
 
-using byte = unsigned char;
-
 static constexpr unsigned int k4BPP = 4;
 
 class OverworldEditor {
@@ -45,7 +43,7 @@ class OverworldEditor {
   int allgfx_width = 0;
   int allgfx_height = 0;
 
-  byte *allGfx16Ptr = new byte[(128 * 7136) / 2];
+  uchar *allGfx16Ptr = new uchar[(128 * 7136) / 2];
 
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
   ImGuiTableFlags ow_map_settings_flags = ImGuiTableFlags_Borders;
