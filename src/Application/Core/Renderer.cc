@@ -1,5 +1,13 @@
 #include "Renderer.h"
 
+#include <SDL2/SDL.h>
+#include <imgui/backends/imgui_impl_sdl.h>
+#include <imgui/backends/imgui_impl_sdlrenderer.h>
+#include <imgui/imgui.h>
+
+#include "graphics/icons.h"
+#include "graphics/style.h"
+
 namespace yaze {
 namespace Application {
 namespace Core {
@@ -29,7 +37,7 @@ void Renderer::Create(SDL_Window* window) {
 
   // Load available fonts
   const ImGuiIO& io = ImGui::GetIO();
-      io.Fonts->AddFontFromFileTTF("assets/Fonts/Karla-Regular.ttf", 14.0f);
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/Karla-Regular.ttf", 14.0f);
 
   // merge in icons from Google Material Design
   static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
@@ -42,10 +50,10 @@ void Renderer::Create(SDL_Window* window) {
                                icons_ranges);
   io.Fonts->AddFontFromFileTTF("assets/Fonts/Roboto-Medium.ttf", 14.0f);
   io.Fonts->AddFontFromFileTTF("assets/Fonts/Cousine-Regular.ttf", 14.0f);
-    io.Fonts->AddFontFromFileTTF("assets/Fonts/DroidSans.ttf", 16.0f);
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/DroidSans.ttf", 16.0f);
 
-
-  Style::StyleColorsYaze();
+  // Set the default style
+  Style::ColorsYaze();
 
   // Build a new ImGui frame
   ImGui_ImplSDLRenderer_NewFrame();

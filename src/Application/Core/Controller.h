@@ -3,17 +3,12 @@
 #define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
-#include <memory>
-
-#include "Editor/Editor.h"
-#include "Renderer.h"
-#include "Window.h"
-#include "imgui/backends/imgui_impl_sdl.h"
-#include "imgui/backends/imgui_impl_sdlrenderer.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "core/renderer.h"
+#include "core/window.h"
+#include "editor/editor.h"
 
 int main(int argc, char** argv);
 
@@ -26,7 +21,6 @@ class Controller {
   Controller() = default;
 
   bool isActive() const;
-
   void onEntry();
   void onInput();
   void onLoad();
@@ -34,12 +28,13 @@ class Controller {
   void onExit();
 
  private:
-  Window window;
-  Renderer renderer;
-  Editor::Editor editor;
-  bool active = false;
-  void quit() { active = false; }
+  inline void quit() { active_ = false; }
   friend int ::main(int argc, char** argv);
+
+  bool active_;
+  Window window_;
+  Renderer renderer_;
+  Editor::Editor editor_;
 };
 
 }  // namespace Core

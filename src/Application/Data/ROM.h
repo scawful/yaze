@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "Core/Constants.h"
-#include "Graphics/Tile.h"
+#include "graphics/tile.h"
 #include "compressions/alttpcompression.h"
 #include "compressions/stdnintendo.h"
 #include "rommapping.h"

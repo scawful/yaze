@@ -1,23 +1,30 @@
-#include "Controller.h"
+#include "controller.h"
+
+#include <SDL2/SDL.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+
+#include "core/renderer.h"
+#include "core/window.h"
+#include "editor/editor.h"
 
 namespace yaze {
 namespace Application {
 namespace Core {
 
-bool Controller::isActive() const { return active; }
+bool Controller::isActive() const { return active_; }
 
-void Controller::onEntry() noexcept(false) {
-  window.Create();
-  renderer.Create(window.Get());
+void Controller::onEntry() {
+  window_.Create();
+  renderer_.Create(window_.Get());
   ImGuiIO &io = ImGui::GetIO();
-
   io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
   io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
   io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
   io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
   io.KeyMap[ImGuiKey_LeftCtrl] = SDL_GetScancodeFromKey(SDLK_LCTRL);
-  active = true;
+  active_ = true;
 }
 
 void Controller::onInput() {
@@ -55,7 +62,7 @@ void Controller::onInput() {
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_CLOSE:
-            active = false;
+            active_ = false;
             break;
           case SDL_WINDOWEVENT_SIZE_CHANGED:
             io.DisplaySize.x = static_cast<float>(event.window.data1);
@@ -86,19 +93,19 @@ void Controller::onInput() {
   io.MouseWheel = static_cast<float>(wheel);
 }
 
-void Controller::onLoad() { editor.UpdateScreen(); }
+void Controller::onLoad() { editor_.UpdateScreen(); }
 
 void Controller::doRender() {
   SDL_Delay(10);
-  renderer.Render();
+  renderer_.Render();
 }
 
 void Controller::onExit() {
   ImGui_ImplSDLRenderer_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
-  window.Destroy();
-  renderer.Destroy();
+  window_.Destroy();
+  renderer_.Destroy();
   SDL_Quit();
 }
 

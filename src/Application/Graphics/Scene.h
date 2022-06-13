@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Core/Renderer.h"
-#include "Graphics/Tile.h"
+#include "graphics/tile.h"
 
 namespace yaze {
 namespace Application {

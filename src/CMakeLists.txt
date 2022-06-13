@@ -5,8 +5,8 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
 # gui libraries ---------------------------------------------------------------------------------------------------
-set(IMGUI_PATH  "Library/imgui")                         # Set where the ImGui files are stored
-file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)             # Compile as static library 
+set(IMGUI_PATH  "Library/imgui")
+file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
 add_library("ImGui" STATIC ${IMGUI_SOURCES})
 target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
 target_include_directories(ImGui PUBLIC ${SDL2_INCLUDE_DIR})
@@ -34,18 +34,19 @@ add_library("NintendoCompression" STATIC ${SNESHACKING_SOURCES})
 add_executable(
     yaze
     yaze.cc
-    Application/Core/Controller.cc
-    Application/Core/Renderer.cc
-    Application/Core/Window.cc
-    Application/Data/ROM.cc
-    Application/Data/OW/Overworld.cc
-    Application/Data/OW/OverworldMap.cc
-    Application/Graphics/Bitmap.cc
-    Application/Graphics/Tile.cc
-    Application/Graphics/Palette.cc
-    Application/Graphics/Scene.cc
-    Application/Editor/Editor.cc
-    Application/Editor/OverworldEditor.cc
+    Application/Core/controller.cc
+    Application/Core/renderer.cc
+    Application/Core/window.cc
+    Application/Data/rom.cc
+    Application/Data/OW/overworld.cc
+    Application/Data/OW/overworld_map.cc
+    Application/Graphics/bitmap.cc
+    Application/Graphics/tile.cc
+    Application/Graphics/palette.cc
+    Application/Graphics/style.cc
+    Application/Graphics/scene.cc
+    Application/Editor/editor.cc
+    Application/Editor/overworld_editor.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp
@@ -90,6 +91,13 @@ target_link_libraries(
   ${OPENGL_LIBRARIES} 
   ImGui
   NintendoCompression
+)
+
+set_target_properties(yaze
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
 set (source "${CMAKE_SOURCE_DIR}/assets")

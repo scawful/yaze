@@ -1,4 +1,4 @@
-#include "OverworldEditor.h"
+#include "overworld_editor.h"
 
 #include <imgui.h>
 
@@ -6,7 +6,7 @@
 
 #include "Graphics/Bitmap.h"
 #include "Graphics/Icons.h"
-#include "Graphics/Tile.h"
+#include "graphics/tile.h"
 
 // first step would be to decompress all graphics data from the game
 // (in alttp that's easy they're all located in the same location all the

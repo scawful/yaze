@@ -1,16 +1,16 @@
 #ifndef YAZE_APPLICATION_DATA_OVERWORLD_H
 #define YAZE_APPLICATION_DATA_OVERWORLD_H
 
-#include <memory>
-#include <vector>
 #include <rommapping.h>
 
-#include "Core/Constants.h"
-#include "Graphics/Bitmap.h"
-#include "Graphics/Tile.h"
-#include "OverworldMap.h"
+#include <memory>
+#include <vector>
 
-#include "Data/ROM.h"
+#include "core/constants.h"
+#include "data/rom.h"
+#include "graphics/bitmap.h"
+#include "graphics/tile.h"
+#include "overworld_map.h"
 
 namespace yaze {
 namespace Application {
@@ -40,9 +40,9 @@ class Overworld {
   bool isLoaded = false;
   byte mapParent[160];
 
-  ushort **allmapsTilesLW; // 64 maps * (32*32 tiles)
-  ushort **allmapsTilesDW; // 64 maps * (32*32 tiles)
-  ushort **allmapsTilesSP; // 32 maps * (32*32 tiles)
+  ushort** allmapsTilesLW;  // 64 maps * (32*32 tiles)
+  ushort** allmapsTilesDW;  // 64 maps * (32*32 tiles)
+  ushort** allmapsTilesSP;  // 32 maps * (32*32 tiles)
 
   std::vector<Graphics::Tile16> tiles16;
   std::vector<Graphics::Tile32> tiles32;

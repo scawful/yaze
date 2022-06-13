@@ -9,10 +9,10 @@
 
 #include <memory>
 
-#include "Core/Constants.h"
-#include "Data/ROM.h"
-#include "Graphics/Icons.h"
-#include "OverworldEditor.h"
+#include "Core/constants.h"
+#include "Data/rom.h"
+#include "Graphics/icons.h"
+#include "overworld_editor.h"
 
 namespace yaze {
 namespace Application {

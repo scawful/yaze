@@ -1,6 +1,6 @@
 #include "Bitmap.h"
 
-#include "Data/ROM.h"
+#include "data/rom.h"
 #include "rommapping.h"
 
 namespace yaze {

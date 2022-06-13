@@ -1,6 +1,6 @@
-#include "Overworld.h"
+#include "overworld.h"
 
-#include "Graphics/Tile.h"
+#include "graphics/tile.h"
 
 namespace yaze {
 namespace Application {

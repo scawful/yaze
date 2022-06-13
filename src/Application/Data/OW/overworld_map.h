@@ -1,8 +1,8 @@
 #include <memory>
 
-#include "Data/ROM.h"
+#include "data/rom.h"
 #include "Graphics/Bitmap.h"
-#include "Graphics/Tile.h"
+#include "graphics/tile.h"
 #include "imgui/imgui.h"
 
 

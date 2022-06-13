@@ -7,7 +7,7 @@
 #include "Data/OW/Overworld.h"
 #include "Graphics/Palette.h"
 #include "Graphics/Scene.h"
-#include "Graphics/Tile.h"
+#include "graphics/tile.h"
 
 namespace yaze {
 namespace Application {

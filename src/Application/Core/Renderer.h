@@ -2,13 +2,12 @@
 #define YAZE_APPLICATION_CORE_RENDERER_H
 
 #include <SDL2/SDL.h>
-
-#include "Graphics/Icons.h"
-#include "Graphics/Style.h"
-#include "imgui/backends/imgui_impl_sdl.h"
-#include "imgui/backends/imgui_impl_sdlrenderer.h"
+#include <imgui/backends/imgui_impl_sdl.h>
+#include <imgui/backends/imgui_impl_sdlrenderer.h>
 #include <imgui/imgui.h>
-// #include "imgui/imgui_internal.h"
+
+#include "graphics/icons.h"
+#include "graphics/style.h"
 
 namespace yaze {
 namespace Application {
