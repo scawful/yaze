@@ -35,28 +35,27 @@ class ROM {
   unsigned int getRomPosition(const TilePreset& preset, int directAddr,
                               unsigned int snesAddr);
   short AddressFromBytes(byte addr1, byte addr2);
+  char* Decompress(int pos, bool reversed = false);
+
   inline byte* GetRawData() { return current_rom_; }
   const unsigned char* getTitle() const { return title; }
-  unsigned int getSize() const { return size; }
-  char getVersion() const { return version; }
+  unsigned int getSize() const { return size_; }
+  char getVersion() const { return version_; }
   bool isLoaded() const { return loaded; }
 
  private:
   bool loaded = false;
 
   byte* current_rom_;
-  char* rom_data_;
+  char* data_;
 
-  bool fastrom;
-  long int size;
-  enum rom_type type;
+  long int size_;
+  enum rom_type type_;
 
-  bool overrideHeaderInfo;
-  bool overridenHeaderInfo;
-  unsigned int lastUnCompressSize;
-  unsigned int lastCompressedSize;
-  unsigned int lastCompressSize;
-  unsigned char version;
+  unsigned int uncompressed_size_;
+  unsigned int compressed_size_;
+  unsigned int compress_size_;
+  unsigned char version_;
   unsigned char title[21] = "ROM Not Loaded";
 };
 
