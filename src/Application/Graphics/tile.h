@@ -90,9 +90,6 @@ class TilePreset {
  public:
   TilePreset();
 
-  bool save(const std::string& file);
-  bool load(const std::string& file);
-
   bool paletteNoZeroColor;
   int pcTilesLocation;
   uint16_t SNESTilesLocation;
