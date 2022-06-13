@@ -5,8 +5,8 @@
 #include <imgui/backends/imgui_impl_sdlrenderer.h>
 #include <imgui/imgui.h>
 
-#include "graphics/icons.h"
-#include "graphics/style.h"
+#include "Graphics/icons.h"
+#include "Graphics/style.h"
 
 namespace yaze {
 namespace Application {
