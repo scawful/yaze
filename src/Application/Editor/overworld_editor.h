@@ -3,11 +3,11 @@
 
 #include <imgui/imgui.h>
 
-#include "Graphics/Icons.h"
 #include "Data/OW/Overworld.h"
+#include "Graphics/Icons.h"
 #include "Graphics/Palette.h"
 #include "Graphics/Scene.h"
-#include "graphics/tile.h"
+#include "Graphics/tile.h"
 
 namespace yaze {
 namespace Application {
@@ -44,11 +44,8 @@ class OverworldEditor {
 
   int allgfx_width = 0;
   int allgfx_height = 0;
-  GLuint *allgfx_texture = nullptr;
 
   byte *allGfx16Ptr = new byte[(128 * 7136) / 2];
-
-  GLuint *overworld_texture;
 
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
   ImGuiTableFlags ow_map_settings_flags = ImGuiTableFlags_Borders;

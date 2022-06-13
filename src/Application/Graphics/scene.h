@@ -7,8 +7,8 @@
 #include <iostream>
 #include <vector>
 
-#include "Core/Renderer.h"
-#include "graphics/tile.h"
+#include "Core/renderer.h"
+#include "Graphics/tile.h"
 
 namespace yaze {
 namespace Application {
@@ -20,21 +20,20 @@ class Scene {
   void buildScene(const std::vector<tile8>& tiles, const SNESPalette mPalette,
                   const TilesPattern& tp);
 
-  void buildSurface(const std::vector<tile8>& tiles,
-                            SNESPalette& mPalette, const TilesPattern& tp);
+  void buildSurface(const std::vector<tile8>& tiles, SNESPalette& mPalette,
+                    const TilesPattern& tp);
 
   void updateScene();
   void setTilesZoom(unsigned int tileZoom);
   void setTilesPattern(TilesPattern tp);
 
   std::unordered_map<unsigned int, SDL_Texture*> imagesCache;
-  
+
  private:
   unsigned int tilesZoom;
   TilesPattern tilesPattern;
   std::vector<tile8> allTiles;
-  std::vector<std::vector<tile8> > arrangedTiles;
-  
+  std::vector<std::vector<tile8>> arrangedTiles;
 };
 
 }  // namespace Graphics

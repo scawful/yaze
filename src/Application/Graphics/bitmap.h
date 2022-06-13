@@ -2,7 +2,6 @@
 #define YAZE_APPLICATION_UTILS_BITMAP_H
 
 #include <SDL2/SDL.h>
-#include <SDL_opengl.h>
 
 #include <memory>
 
@@ -17,11 +16,10 @@ class Bitmap {
   Bitmap() = default;
   Bitmap(int width, int height, char *data);
 
-  void Create(GLuint *out_texture);
   int GetWidth();
   int GetHeight();
 
-  bool LoadBitmapFromROM(unsigned char *texture_data, GLuint *out_texture,
+  bool LoadBitmapFromROM(unsigned char *texture_data,
                          int *out_width, int *out_height);
 
  private:

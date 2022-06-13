@@ -1,6 +1,6 @@
 #include "overworld.h"
 
-#include "graphics/tile.h"
+#include "Graphics/tile.h"
 
 namespace yaze {
 namespace Application {
@@ -297,9 +297,7 @@ void Overworld::FetchLargeMaps() {
 
 void Overworld::LoadOverworldMap() {
   overworldMapBitmap = new Bitmap(128, 128, overworldMapPointer);
-  overworldMapBitmap->Create(&overworldMapTexture);
   owactualMapBitmap = new Bitmap(512, 512, owactualMapPointer);
-  owactualMapBitmap->Create(&owactualMapTexture);
 
   // Mode 7
   char* ptr = overworldMapPointer;
