@@ -16,7 +16,7 @@ namespace Graphics {
 
 struct SNESColor {
   SNESColor();
-  SNESColor(ImVec4);
+  explicit SNESColor(ImVec4);
   uint16_t snes;
   ImVec4 rgb;
   void setRgb(ImVec4);
@@ -28,9 +28,9 @@ struct SNESColor {
 class SNESPalette {
  public:
   SNESPalette();
-  SNESPalette(uint8_t mSize);
-  SNESPalette(char* snesPal);
-  SNESPalette(std::vector<ImVec4>);
+  explicit SNESPalette(uint8_t mSize);
+  explicit SNESPalette(char* snesPal);
+  explicit SNESPalette(std::vector<ImVec4>);
 
   char* encode();
   SDL_Palette* GetSDL_Palette();
