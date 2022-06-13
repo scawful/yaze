@@ -21,9 +21,6 @@ namespace Application {
 namespace Data {
 
 using byte = unsigned char;
-using ushort = unsigned short;
-
-using namespace Graphics;
 
 int AddressFromBytes(byte addr1, byte addr2, byte addr3);
 
@@ -32,21 +29,19 @@ class ROM {
   ~ROM();
 
   void LoadFromFile(const std::string& path);
-  std::vector<tile8> ExtractTiles(TilePreset& preset);
-  SNESPalette ExtractPalette(TilePreset& preset);
-  unsigned int getRomPosition(const TilePreset& preset, int directAddr,
-                              unsigned int snesAddr);
-  short AddressFromBytes(byte addr1, byte addr2);
-  char* Decompress(int pos, bool reversed = false);
-
+  std::vector<tile8> ExtractTiles(Graphics::TilePreset& preset);
+  Graphics::SNESPalette ExtractPalette(Graphics::TilePreset& preset);
+  uint32_t GetRomPosition(const Graphics::TilePreset& preset,
+                              int directAddr, unsigned int snesAddr);
   inline byte* GetRawData() { return current_rom_; }
   const unsigned char* getTitle() const { return title; }
-  unsigned int getSize() const { return size_; }
+  long int getSize() const { return size_; }
   char getVersion() const { return version_; }
   bool isLoaded() const { return loaded; }
 
  private:
   bool loaded = false;
+  bool rom_has_header_ = false;
 
   byte* current_rom_;
   char* data_;
