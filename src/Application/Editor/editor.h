@@ -7,12 +7,10 @@
 #include <imgui/imgui_memory_editor.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
-#include <memory>
-
 #include "Core/constants.h"
 #include "Data/rom.h"
+#include "Editor/overworld_editor.h"
 #include "Graphics/icons.h"
-#include "overworld_editor.h"
 
 namespace yaze {
 namespace Application {
@@ -38,20 +36,24 @@ class Editor {
   void DrawScreenEditor();
 
   void *rom_data_;
-  bool isLoaded = true;
+  bool is_loaded_ = true;
 
-  Data::ROM rom;
+  std::vector<tile8> tiles_;
+
+  Data::ROM rom_;
   TextEditor asm_editor_;
-  TextEditor::LanguageDefinition language65816Def;
+  TextEditor::LanguageDefinition language_65816_;
   OverworldEditor overworld_editor_;
 
   Graphics::Scene current_scene_;
   Graphics::SNESPalette current_palette_;
   Graphics::TilePreset current_set_;
 
-  std::vector<tile8> tiles_;
-
-  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
+  ImGuiWindowFlags main_editor_flags_ =
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar;
+  ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
 };
 
 }  // namespace Editor

@@ -4,9 +4,9 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#include "core/renderer.h"
-#include "core/window.h"
-#include "editor/editor.h"
+#include "Core/renderer.h"
+#include "Core/window.h"
+#include "Editor/editor.h"
 
 namespace yaze {
 namespace Application {
@@ -29,8 +29,11 @@ void Controller::onEntry() {
 
 void Controller::onInput() {
   int wheel = 0;
+  int mouseX;
+  int mouseY;
   SDL_Event event;
   ImGuiIO &io = ImGui::GetIO();
+  const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
 
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -62,7 +65,7 @@ void Controller::onInput() {
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_CLOSE:
-            active_ = false;
+            quit();
             break;
           case SDL_WINDOWEVENT_SIZE_CHANGED:
             io.DisplaySize.x = static_cast<float>(event.window.data1);
@@ -82,10 +85,6 @@ void Controller::onInput() {
         break;
     }
   }
-
-  int mouseX;
-  int mouseY;
-  const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
   io.DeltaTime = 1.0f / 60.0f;
   io.MousePos = ImVec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
   io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
@@ -95,10 +94,7 @@ void Controller::onInput() {
 
 void Controller::onLoad() { editor_.UpdateScreen(); }
 
-void Controller::doRender() {
-  SDL_Delay(10);
-  renderer_.Render();
-}
+void Controller::doRender() { renderer_.Render(); }
 
 void Controller::onExit() {
   ImGui_ImplSDLRenderer_Shutdown();
