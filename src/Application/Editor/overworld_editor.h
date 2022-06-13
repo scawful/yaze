@@ -3,10 +3,10 @@
 
 #include <imgui/imgui.h>
 
-#include "Data/OW/Overworld.h"
-#include "Graphics/Icons.h"
-#include "Graphics/Palette.h"
-#include "Graphics/Scene.h"
+#include "Data/OW/overworld.h"
+#include "Graphics/icons.h"
+#include "Graphics/palette.h"
+#include "Graphics/scene.h"
 #include "Graphics/tile.h"
 
 namespace yaze {

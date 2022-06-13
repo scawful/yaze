@@ -4,9 +4,9 @@
 
 #include <cmath>
 
-#include "Graphics/Bitmap.h"
-#include "Graphics/Icons.h"
-#include "graphics/tile.h"
+#include "Graphics/bitmap.h"
+#include "Graphics/icons.h"
+#include "Graphics/tile.h"
 
 // first step would be to decompress all graphics data from the game
 // (in alttp that's easy they're all located in the same location all the

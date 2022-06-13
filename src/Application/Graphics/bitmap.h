@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "Core/Constants.h"
+#include "Core/constants.h"
 
 namespace yaze {
 namespace Application {
