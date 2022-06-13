@@ -28,6 +28,8 @@ int AddressFromBytes(byte addr1, byte addr2, byte addr3);
 
 class ROM {
  public:
+  ~ROM();
+
   void LoadFromFile(const std::string& path);
   std::vector<tile8> ExtractTiles(TilePreset& preset);
   SNESPalette ExtractPalette(TilePreset& preset);

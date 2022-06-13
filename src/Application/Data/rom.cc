@@ -6,22 +6,30 @@ namespace yaze {
 namespace Application {
 namespace Data {
 
+ROM::~ROM() {
+  if (loaded) {
+    delete[] current_rom_;
+    delete[] data_;
+  }
+}
+
 void ROM::LoadFromFile(const std::string &path) {
   type_ = LoROM;
   size_ = std::filesystem::file_size(path.c_str());
   std::ifstream file(path.c_str(), std::ios::binary);
   if (!file.is_open()) {
     std::cout << "Error: Could not open ROM file " << path << std::endl;
+    return;
   }
   current_rom_ = new unsigned char[size_];
   data_ = new char[size_];
-
   for (unsigned int i = 0; i < size_; i++) {
     char byte_read_ = ' ';
     file.read(&byte_read_, sizeof(char));
     current_rom_[i] = byte_read_;
     data_[i] = byte_read_;
   }
+  file.close();
 
   memcpy(title, data_ + 32704, 21);
   version_ = current_rom_[27];
@@ -42,15 +50,15 @@ std::vector<tile8> ROM::ExtractTiles(TilePreset &preset) {
   // decompress the graphics
   char *data = (char *)malloc(sizeof(char) * size);
   memcpy(data, (data_ + filePos), size);
-  //data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
-  // std::cout << "size: " << size << std::endl;
-  // std::cout << "lastCompressedSize: " << compressed_size_ << std::endl;
+  // data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
+  //  std::cout << "size: " << size << std::endl;
+  //  std::cout << "lastCompressedSize: " << compressed_size_ << std::endl;
   data = Decompress(filePos);
   if (data == NULL) {
     std::cout << alttp_decompression_error << std::endl;
     return rawTiles;
   }
-  
+
   // unpack the tiles based on their depth
   unsigned tileCpt = 0;
   std::cout << "Unpacking tiles..." << std::endl;
