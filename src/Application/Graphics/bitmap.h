@@ -3,8 +3,6 @@
 
 #include <SDL2/SDL.h>
 
-#include <memory>
-
 #include "Core/constants.h"
 
 namespace yaze {
@@ -14,13 +12,11 @@ namespace Graphics {
 class Bitmap {
  public:
   Bitmap() = default;
-  Bitmap(int width, int height, char *data);
+  Bitmap(int width, int height, char *data)
+      : width_(width), height_(height), pixel_data_(data) {}
 
-  int GetWidth();
-  int GetHeight();
-
-  bool LoadBitmapFromROM(unsigned char *texture_data, int *out_width,
-                         int *out_height);
+  int GetWidth() const { return width_; }
+  int GetHeight() const { return height_; }
 
  private:
   int width_;
