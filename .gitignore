@@ -1,3 +1,6 @@
 build/
 .cache/
 .vscode/
+src/Library/SDL2
+src/Library/cmake
+src/Library/GL
