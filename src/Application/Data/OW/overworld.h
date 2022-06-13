@@ -6,10 +6,10 @@
 #include <memory>
 #include <vector>
 
-#include "core/constants.h"
-#include "data/rom.h"
-#include "graphics/bitmap.h"
-#include "graphics/tile.h"
+#include "Core/constants.h"
+#include "Data/rom.h"
+#include "Graphics/bitmap.h"
+#include "Graphics/tile.h"
 #include "overworld_map.h"
 
 namespace yaze {
@@ -28,11 +28,9 @@ class Overworld {
 
   char* overworldMapPointer = new char[0x40000];
   Graphics::Bitmap* overworldMapBitmap;
-  GLuint overworldMapTexture;
 
   char* owactualMapPointer = new char[0x40000];
   Graphics::Bitmap* owactualMapBitmap;
-  GLuint owactualMapTexture;
 
  private:
   Data::ROM rom_;

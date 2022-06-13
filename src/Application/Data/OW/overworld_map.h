@@ -1,10 +1,9 @@
 #include <memory>
 
-#include "data/rom.h"
+#include "Data/rom.h"
 #include "Graphics/Bitmap.h"
-#include "graphics/tile.h"
+#include "Graphics/tile.h"
 #include "imgui/imgui.h"
-
 
 namespace yaze {
 namespace Application {
