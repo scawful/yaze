@@ -18,7 +18,6 @@ TEST(ROMTest, decompress_basic_test) {
   current_set.SNESTilesLocation = 0x0000;
   current_set.pcPaletteLocation = 0xDD326;
   current_set.SNESPaletteLocation = 0x0000;
-  current_set.compression = "zelda3";
   auto tiles_ = rom.ExtractTiles(current_set);
   auto current_palette_ = rom.ExtractPalette(current_set);
 }

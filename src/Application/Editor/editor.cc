@@ -65,7 +65,6 @@ Editor::Editor() {
   current_set_.length = 28672;
   current_set_.pcPaletteLocation = 0xDD326;
   current_set_.SNESPaletteLocation = 0x0000;
-  current_set_.compression = "zelda3";
 }
 
 void Editor::UpdateScreen() {
