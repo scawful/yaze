@@ -20,9 +20,7 @@ namespace yaze {
 namespace Application {
 namespace Data {
 
-using byte = unsigned char;
-
-int AddressFromBytes(byte addr1, byte addr2, byte addr3);
+int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
 
 class ROM {
  public:
@@ -31,9 +29,9 @@ class ROM {
   void LoadFromFile(const std::string& path);
   std::vector<tile8> ExtractTiles(Graphics::TilePreset& preset);
   Graphics::SNESPalette ExtractPalette(Graphics::TilePreset& preset);
-  uint32_t GetRomPosition(const Graphics::TilePreset& preset,
-                              int directAddr, unsigned int snesAddr);
-  inline byte* GetRawData() { return current_rom_; }
+  uint32_t GetRomPosition(const Graphics::TilePreset& preset, int directAddr,
+                          unsigned int snesAddr) const;
+  inline uchar* GetRawData() { return current_rom_; }
   const unsigned char* getTitle() const { return title; }
   long int getSize() const { return size_; }
   char getVersion() const { return version_; }
@@ -43,7 +41,7 @@ class ROM {
   bool loaded = false;
   bool rom_has_header_ = false;
 
-  byte* current_rom_;
+  uchar* current_rom_;
   char* data_;
 
   long int size_;

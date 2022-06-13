@@ -16,9 +16,6 @@ namespace yaze {
 namespace Application {
 namespace Data {
 
-using ushort = unsigned short;
-using byte = unsigned char;
-
 class Overworld {
  public:
   Overworld() = default;
@@ -36,7 +33,7 @@ class Overworld {
   Data::ROM rom_;
   int gameState = 1;
   bool isLoaded = false;
-  byte mapParent[160];
+  uchar mapParent[160];
 
   ushort** allmapsTilesLW;  // 64 maps * (32*32 tiles)
   ushort** allmapsTilesDW;  // 64 maps * (32*32 tiles)

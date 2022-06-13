@@ -1,4 +1,4 @@
-#include "Palette.h"
+#include "palette.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -7,17 +7,13 @@ namespace yaze {
 namespace Application {
 namespace Graphics {
 
-SNESColor::SNESColor() {
-  rgb = ImVec4(0.f, 0.f, 0.f, 0.f);
-  snes = 0;
-}
+SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}
 
-SNESColor::SNESColor(ImVec4 val) { 
-  rgb = val; 
+SNESColor::SNESColor(ImVec4 val) : rgb(val) {
   m_color col;
-  col.red = val.x;
-  col.blue = val.y;
-  col.green = val.z;
+  col.red = (uchar)val.x;
+  col.blue = (uchar)val.y;
+  col.green = (uchar)val.z;
   snes = convertcolor_rgb_to_snes(col);
 }
 
@@ -36,10 +32,7 @@ void SNESColor::setSNES(uint16_t val) {
   rgb = ImVec4(col.red, col.green, col.blue, 1.f);
 }
 
-SNESPalette::SNESPalette() { size = 0; }
-
-SNESPalette::SNESPalette(uint8_t mSize) {
-  size = mSize;
+SNESPalette::SNESPalette(uint8_t mSize) : size(mSize) {
   for (unsigned int i = 0; i < mSize; i++) {
     SNESColor col;
     colors.push_back(col);
@@ -84,9 +77,9 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
   result->ncolors = size;
   SDL_Color* sdl_colors = new SDL_Color[size];
   for (int i = 0; i < size; i++) {
-    sdl_colors[i].r = (uint8_t) colors[i].rgb.x * 100;
-    sdl_colors[i].g = (uint8_t) colors[i].rgb.y * 100;
-    sdl_colors[i].b = (uint8_t) colors[i].rgb.z * 100;
+    sdl_colors[i].r = (uint8_t)colors[i].rgb.x * 100;
+    sdl_colors[i].g = (uint8_t)colors[i].rgb.y * 100;
+    sdl_colors[i].b = (uint8_t)colors[i].rgb.z * 100;
   }
   result->colors = sdl_colors;
 

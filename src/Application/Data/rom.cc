@@ -102,7 +102,7 @@ Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
 }
 
 uint32_t ROM::GetRomPosition(const Graphics::TilePreset &preset, int directAddr,
-                             unsigned int snesAddr) {
+                             unsigned int snesAddr) const {
   unsigned int filePos = -1;
   enum rom_type rType = LoROM;
   std::cout << "directAddr:" << directAddr << std::endl;
@@ -116,7 +116,7 @@ uint32_t ROM::GetRomPosition(const Graphics::TilePreset &preset, int directAddr,
   return filePos;
 }
 
-int AddressFromBytes(byte addr1, byte addr2, byte addr3) {
+int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {
   return (addr1 << 16) | (addr2 << 8) | addr3;
 }
 
