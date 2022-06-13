@@ -6,9 +6,9 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#include "core/renderer.h"
-#include "core/window.h"
-#include "editor/editor.h"
+#include "Core/renderer.h"
+#include "Core/window.h"
+#include "Editor/editor.h"
 
 int main(int argc, char** argv);
 

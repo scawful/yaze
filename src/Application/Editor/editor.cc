@@ -1,4 +1,4 @@
-#include "Editor.h"
+#include "editor.h"
 
 namespace yaze {
 namespace Application {
@@ -7,97 +7,65 @@ namespace Editor {
 using namespace Core;
 
 Editor::Editor() {
-  static bool inited = false;
-  if (!inited) {
-    static const char *const keywords[] = {
-        "ADC", "AND", "ASL", "BCC", "BCS", "BEQ",   "BIT",   "BMI",       "BNE",
-        "BPL", "BRA", "BRL", "BVC", "BVS", "CLC",   "CLD",   "CLI",       "CLV",
-        "CMP", "CPX", "CPY", "DEC", "DEX", "DEY",   "EOR",   "INC",       "INX",
-        "INY", "JMP", "JSR", "JSL", "LDA", "LDX",   "LDY",   "LSR",       "MVN",
-        "NOP", "ORA", "PEA", "PER", "PHA", "PHB",   "PHD",   "PHP",       "PHX",
-        "PHY", "PLA", "PLB", "PLD", "PLP", "PLX",   "PLY",   "REP",       "ROL",
-        "ROR", "RTI", "RTL", "RTS", "SBC", "SEC",   "SEI",   "SEP",       "STA",
-        "STP", "STX", "STY", "STZ", "TAX", "TAY",   "TCD",   "TCS",       "TDC",
-        "TRB", "TSB", "TSC", "TSX", "TXA", "TXS",   "TXY",   "TYA",       "TYX",
-        "WAI", "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB"};
-    for (auto &k : keywords) language65816Def.mKeywords.emplace(k);
+  for (auto &k : Core::Constants::kKeywords)
+    language_65816_.mKeywords.emplace(k);
 
-    static const char *const identifiers[] = {
-        "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
-        "atof",    "atoi",    "atol",    "ceil",     "clock",   "cosh",
-        "ctime",   "div",     "exit",    "fabs",     "floor",   "fmod",
-        "getchar", "getenv",  "isalnum", "isalpha",  "isdigit", "isgraph",
-        "ispunct", "isspace", "isupper", "kbhit",    "log10",   "log2",
-        "log",     "memcmp",  "modf",    "pow",      "putchar", "putenv",
-        "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
-        "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
-        "toupper"};
-    for (auto &k : identifiers) {
-      TextEditor::Identifier id;
-      id.mDeclaration = "Built-in function";
-      language65816Def.mIdentifiers.insert(std::make_pair(std::string(k), id));
-    }
-
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "[ \\t]*#[ \\t]*[a-zA-Z_]+",
-            TextEditor::PaletteIndex::Preprocessor));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "L?\\\"(\\\\.|[^\\\"])*\\\"", TextEditor::PaletteIndex::String));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "\\'\\\\?[^\\']\\'", TextEditor::PaletteIndex::CharLiteral));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?[fF]?",
-            TextEditor::PaletteIndex::Number));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "[+-]?[0-9]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "0[0-7]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "0[xX][0-9a-fA-F]+[uU]?[lL]?[lL]?",
-            TextEditor::PaletteIndex::Number));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "[a-zA-Z_][a-zA-Z0-9_]*", TextEditor::PaletteIndex::Identifier));
-    language65816Def.mTokenRegexStrings.push_back(
-        std::make_pair<std::string, TextEditor::PaletteIndex>(
-            "[\\[\\]\\{\\}\\!\\%\\^\\&\\*\\(\\)\\-\\+\\=\\~\\|\\<\\>\\?\\/"
-            "\\;\\,\\.]",
-            TextEditor::PaletteIndex::Punctuation));
-
-    language65816Def.mCommentStart = "/*";
-    language65816Def.mCommentEnd = "*/";
-    language65816Def.mSingleLineComment = ";";
-
-    language65816Def.mCaseSensitive = false;
-    language65816Def.mAutoIndentation = true;
-
-    language65816Def.mName = "65816";
-
-    inited = true;
+  for (auto &k : Core::Constants::kIdentifiers) {
+    TextEditor::Identifier id;
+    id.mDeclaration = "Built-in function";
+    language_65816_.mIdentifiers.insert(std::make_pair(std::string(k), id));
   }
-  asm_editor_.SetLanguageDefinition(language65816Def);
+
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "[ \\t]*#[ \\t]*[a-zA-Z_]+", TextEditor::PaletteIndex::Preprocessor));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "L?\\\"(\\\\.|[^\\\"])*\\\"", TextEditor::PaletteIndex::String));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "\\'\\\\?[^\\']\\'", TextEditor::PaletteIndex::CharLiteral));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?[fF]?",
+          TextEditor::PaletteIndex::Number));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "[+-]?[0-9]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "0[0-7]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "0[xX][0-9a-fA-F]+[uU]?[lL]?[lL]?",
+          TextEditor::PaletteIndex::Number));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "[a-zA-Z_][a-zA-Z0-9_]*", TextEditor::PaletteIndex::Identifier));
+  language_65816_.mTokenRegexStrings.push_back(
+      std::make_pair<std::string, TextEditor::PaletteIndex>(
+          "[\\[\\]\\{\\}\\!\\%\\^\\&\\*\\(\\)\\-\\+\\=\\~\\|\\<\\>\\?\\/"
+          "\\;\\,\\.]",
+          TextEditor::PaletteIndex::Punctuation));
+
+  language_65816_.mCommentStart = "/*";
+  language_65816_.mCommentEnd = "*/";
+  language_65816_.mSingleLineComment = ";";
+
+  language_65816_.mCaseSensitive = false;
+  language_65816_.mAutoIndentation = true;
+
+  language_65816_.mName = "65816";
+  asm_editor_.SetLanguageDefinition(language_65816_);
   asm_editor_.SetPalette(TextEditor::GetDarkPalette());
 
   current_set_.bpp = 4;
   current_set_.pcTilesLocation = 0x80000;
-  current_set_.SNESTilesLocation = 0;
+  current_set_.SNESTilesLocation = 0x0000;
   current_set_.length = 28672;
   current_set_.pcPaletteLocation = 0xDD326;
-  current_set_.SNESPaletteLocation = 0;
+  current_set_.SNESPaletteLocation = 0x0000;
   current_set_.compression = "zelda3";
-  current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-  current_palette_.colors.push_back(ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
-  current_palette_.colors.push_back(ImVec4(0.0f, 0.0f, 0.4f, 1.0f));
-  current_palette_.colors.push_back(ImVec4(0.3f, 0.0f, 0.0f, 1.0f));
-  current_palette_.colors.push_back(ImVec4(0.3f, 0.7f, 0.9f, 1.0f));
-  current_palette_.colors.push_back(ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
 }
 
 void Editor::UpdateScreen() {
@@ -106,12 +74,8 @@ void Editor::UpdateScreen() {
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
   ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
-  ImGuiWindowFlags flags =
-      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar;
 
-  if (!ImGui::Begin("##YazeMain", nullptr, flags)) {
+  if (!ImGui::Begin("##YazeMain", nullptr, main_editor_flags_)) {
     ImGui::End();
     return;
   }
@@ -138,18 +102,14 @@ void Editor::DrawYazeMenu() {
   DrawHelpMenu();
   END_MENU_BAR();
 
-  // display
   if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
-    // action if OK
     if (ImGuiFileDialog::Instance()->IsOk()) {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-      rom.LoadFromFile(filePathName);
-      overworld_editor_.SetRom(rom);
-      rom_data_ = (void *)rom.GetRawData();
+      rom_.LoadFromFile(filePathName);
+      overworld_editor_.SetRom(rom_);
+      rom_data_ = (void *)rom_.GetRawData();
     }
-
-    // close
     ImGuiFileDialog::Instance()->Close();
   }
 }
@@ -157,13 +117,11 @@ void Editor::DrawYazeMenu() {
 void Editor::DrawFileMenu() const {
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
-      // TODO: Add the ability to open ALTTP ROM
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
                                               ".sfc,.smc", ".");
     }
     if (ImGui::BeginMenu("Open Recent")) {
       ImGui::MenuItem("alttp.sfc");
-      // TODO: Display recently accessed files here
       ImGui::EndMenu();
     }
     if (ImGui::MenuItem("Save", "Ctrl+S")) {
@@ -232,7 +190,7 @@ void Editor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", rom_data_, rom.getSize());
+    mem_edit.DrawWindow("Memory Editor", rom_data_, rom_.getSize());
   }
 
   if (show_imgui_demo) {
@@ -304,9 +262,9 @@ void Editor::DrawProjectEditor() {
       ImGui::TableSetupColumn("##outputs");
 
       ImGui::TableNextColumn();
-      ImGui::Text("Title: %s", rom.getTitle());
-      ImGui::Text("Version: %d", rom.getVersion());
-      ImGui::Text("ROM Size: %ld", rom.getSize());
+      ImGui::Text("Title: %s", rom_.getTitle());
+      ImGui::Text("Version: %d", rom_.getVersion());
+      ImGui::Text("ROM Size: %ld", rom_.getSize());
 
       ImGui::InputInt("PC Tile Location", &current_set_.pcTilesLocation);
       // 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
@@ -327,14 +285,14 @@ void Editor::DrawProjectEditor() {
                          (void *)&current_set_.SNESPaletteLocation);
 
       BASIC_BUTTON("ExtractTiles") {
-        if (rom.isLoaded()) {
-          tiles_ = rom.ExtractTiles(current_set_);
+        if (rom_.isLoaded()) {
+          tiles_ = rom_.ExtractTiles(current_set_);
         }
       }
 
       BASIC_BUTTON("BuildSurface") {
-        if (rom.isLoaded()) {
-          current_palette_ = rom.ExtractPalette(current_set_);
+        if (rom_.isLoaded()) {
+          current_palette_ = rom_.ExtractPalette(current_set_);
           current_scene_.buildSurface(tiles_, current_palette_,
                                       current_set_.tilesPattern);
         }
@@ -441,7 +399,7 @@ void Editor::DrawOverworldEditor() {
 
 void Editor::DrawDungeonEditor() {
   if (ImGui::BeginTabItem("Dungeon")) {
-    if (ImGui::BeginTable("DWToolset", 9, toolset_table_flags, ImVec2(0, 0))) {
+    if (ImGui::BeginTable("DWToolset", 9, toolset_table_flags_, ImVec2(0, 0))) {
       ImGui::TableSetupColumn("#undoTool");
       ImGui::TableSetupColumn("#redoTool");
       ImGui::TableSetupColumn("#history");

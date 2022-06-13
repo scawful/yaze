@@ -26,6 +26,32 @@ namespace Constants {
 using ushort = unsigned short;
 
 //===========================================================================================
+// 65816 LanguageDefinition
+//===========================================================================================
+static const char *const kKeywords[] = {
+    "ADC", "AND", "ASL", "BCC", "BCS", "BEQ",   "BIT",   "BMI",       "BNE",
+    "BPL", "BRA", "BRL", "BVC", "BVS", "CLC",   "CLD",   "CLI",       "CLV",
+    "CMP", "CPX", "CPY", "DEC", "DEX", "DEY",   "EOR",   "INC",       "INX",
+    "INY", "JMP", "JSR", "JSL", "LDA", "LDX",   "LDY",   "LSR",       "MVN",
+    "NOP", "ORA", "PEA", "PER", "PHA", "PHB",   "PHD",   "PHP",       "PHX",
+    "PHY", "PLA", "PLB", "PLD", "PLP", "PLX",   "PLY",   "REP",       "ROL",
+    "ROR", "RTI", "RTL", "RTS", "SBC", "SEC",   "SEI",   "SEP",       "STA",
+    "STP", "STX", "STY", "STZ", "TAX", "TAY",   "TCD",   "TCS",       "TDC",
+    "TRB", "TSB", "TSC", "TSX", "TXA", "TXS",   "TXY",   "TYA",       "TYX",
+    "WAI", "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB"};
+
+static const char *const kIdentifiers[] = {
+    "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
+    "atof",    "atoi",    "atol",    "ceil",     "clock",   "cosh",
+    "ctime",   "div",     "exit",    "fabs",     "floor",   "fmod",
+    "getchar", "getenv",  "isalnum", "isalpha",  "isdigit", "isgraph",
+    "ispunct", "isspace", "isupper", "kbhit",    "log10",   "log2",
+    "log",     "memcmp",  "modf",    "pow",      "putchar", "putenv",
+    "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
+    "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
+    "toupper"};
+    
+//===========================================================================================
 // Magic numbers
 //===========================================================================================
 
