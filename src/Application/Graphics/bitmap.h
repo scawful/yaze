@@ -19,8 +19,8 @@ class Bitmap {
   int GetWidth();
   int GetHeight();
 
-  bool LoadBitmapFromROM(unsigned char *texture_data,
-                         int *out_width, int *out_height);
+  bool LoadBitmapFromROM(unsigned char *texture_data, int *out_width,
+                         int *out_height);
 
  private:
   int width_;
