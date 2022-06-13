@@ -10,9 +10,8 @@
 #include <vector>
 
 #include "Core/Constants.h"
-#include "graphics/tile.h"
+#include "Graphics/tile.h"
 #include "compressions/alttpcompression.h"
-#include "compressions/stdnintendo.h"
 #include "rommapping.h"
 #include "tile.h"
 

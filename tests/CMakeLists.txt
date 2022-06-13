@@ -9,16 +9,41 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
+find_package(PNG REQUIRED)
+
+set(SNESHACKING_PATH "../src/Library/sneshacking/src")
+
 add_executable(
   yaze_test
   yaze_test.cc
+  rom_test.cc
+  ../src/Application/Data/rom.cc
+  ../src/Application/Graphics/tile.cc
+  ../src/Application/Graphics/tile.cc
+  ../src/Application/Graphics/palette.cc
+  ${SNESHACKING_PATH}/compressions/alttpcompression.c
+  ${SNESHACKING_PATH}/compressions/stdnintendo.c
+  ${SNESHACKING_PATH}/tile.c
+  ${SNESHACKING_PATH}/tilepng.c
+  ${SNESHACKING_PATH}/palette.c
+  ${SNESHACKING_PATH}/rommapping.c
+  ${SNESHACKING_PATH}/mapping_lorom.c
+)
+
+target_include_directories(
+  yaze_test PUBLIC
+  ../src/Library/
+  ../src/Application/
+  ${SNESHACKING_PATH}
 )
 
 target_link_libraries(
   yaze_test
-  ${BOOST_LIBRARIES} 
-  ${SDL2_LIBRARIES} 
+  ${PNG_LIBRARIES}
+  ${BOOST_LIBRARIES}
+  ${SDL2_LIBRARIES}
   ${OPENGL_LIBRARIES}
+  NintendoCompression
   gtest_main
   gtest
 )
