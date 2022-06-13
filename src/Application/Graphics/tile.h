@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Palette.h"
+#include "Graphics/palette.h"
 
 namespace yaze {
 namespace Application {

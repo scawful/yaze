@@ -263,10 +263,10 @@ void Editor::DrawProjectEditor() {
       ImGui::TableNextColumn();
       ImGui::Text("Title: %s", rom_.getTitle());
       ImGui::Text("Version: %d", rom_.getVersion());
-      ImGui::Text("ROM Size: %ld", rom_.getSize());
+      ImGui::Text("ROM Size: %u", rom_.getSize());
 
       ImGui::InputInt("PC Tile Location", &current_set_.pcTilesLocation);
-      // 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
+      // 1, 100, ImGuiInputTextFlags_CharsHexadecimal
 
       ImGui::InputScalar("SNES Tile Location", ImGuiDataType_U32,
                          (void *)&current_set_.SNESTilesLocation);

@@ -1,7 +1,7 @@
 #include "overworld_map.h"
 
-#include "data/rom.h"
-#include "graphics/tile.h"
+#include "Data/rom.h"
+#include "Graphics/tile.h"
 
 namespace yaze {
 namespace Application {

@@ -1,6 +1,10 @@
 #ifndef YAZE_APPLICATION_UTILS_ROM_H
 #define YAZE_APPLICATION_UTILS_ROM_H
 
+#include <compressions/alttpcompression.h>
+#include <rommapping.h>
+#include <tile.h>
+
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -9,11 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "Core/Constants.h"
+#include "Core/constants.h"
 #include "Graphics/tile.h"
-#include "compressions/alttpcompression.h"
-#include "rommapping.h"
-#include "tile.h"
 
 namespace yaze {
 namespace Application {

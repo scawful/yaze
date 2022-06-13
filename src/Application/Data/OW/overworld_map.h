@@ -1,9 +1,10 @@
+#include <imgui/imgui.h>
+
 #include <memory>
 
 #include "Data/rom.h"
-#include "Graphics/Bitmap.h"
+#include "Graphics/bitmap.h"
 #include "Graphics/tile.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace Application {
