@@ -102,7 +102,6 @@ class TilePreset {
   uint32_t bpp;
 
   TilesPattern tilesPattern;
-  std::string compression;
 };
 
 }  // namespace Graphics

@@ -59,7 +59,6 @@ add_executable(
     ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
     ${SNESHACKING_PATH}/compressions/alttpcompression.c
     ${SNESHACKING_PATH}/compressions/stdnintendo.c
-    ${SNESHACKING_PATH}/compressions/stdnintendo.c
     ${SNESHACKING_PATH}/tile.c
     ${SNESHACKING_PATH}/tilepng.c
     ${SNESHACKING_PATH}/palette.c
@@ -71,7 +70,6 @@ target_include_directories(
   yaze PUBLIC
   Library/
   Application/
-  Resources/
   "C:/msys64/mingw64/include/libpng16"
   "C:/msys64/mingw64/include/SDL2"
   "C:/msys64/mingw64/include"
