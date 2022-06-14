@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Core/constants.h"
 #include "Graphics/palette.h"
 
 namespace yaze {

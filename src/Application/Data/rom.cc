@@ -2,6 +2,8 @@
 
 #include <filesystem>
 
+#include "Core/constants.h"
+
 namespace yaze {
 namespace Application {
 namespace Data {
@@ -9,31 +11,25 @@ namespace Data {
 ROM::~ROM() {
   if (loaded) {
     delete[] current_rom_;
-    delete[] data_;
   }
 }
 
 // TODO: check if the rom has a header on load
 void ROM::LoadFromFile(const std::string &path) {
-  type_ = LoROM;
   size_ = std::filesystem::file_size(path.c_str());
   std::ifstream file(path.c_str(), std::ios::binary);
   if (!file.is_open()) {
     std::cout << "Error: Could not open ROM file " << path << std::endl;
     return;
   }
-
   current_rom_ = new unsigned char[size_];
-  data_ = new char[size_];
   for (unsigned int i = 0; i < size_; i++) {
     char byte_read_ = ' ';
     file.read(&byte_read_, sizeof(char));
     current_rom_[i] = byte_read_;
-    data_[i] = byte_read_;
   }
   file.close();
-
-  memcpy(title, data_ + 32704, 21);
+  memcpy(title, current_rom_ + 32704, 21);
   version_ = current_rom_[27];
   loaded = true;
 }
@@ -51,7 +47,7 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
 
   // decompress the graphics
   char *data = (char *)malloc(sizeof(char) * size);
-  memcpy(data, (data_ + filePos), size);
+  memcpy(data, (current_rom_ + filePos), size);
   data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
   std::cout << "size: " << size << std::endl;
   std::cout << "lastCompressedSize: " << compressed_size_ << std::endl;
@@ -81,7 +77,7 @@ Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
   std::cout << "Palette pos : " << filePos << std::endl;  // TODO: make this hex
   unsigned int palette_size = pow(2, preset.bpp);         // - 1;
   char *ab = (char *)malloc(sizeof(char) * (palette_size * 2));
-  memcpy(ab, data_ + filePos, palette_size * 2);
+  memcpy(ab, current_rom_ + filePos, palette_size * 2);
 
   for (int i = 0; i < palette_size; i++) {
     std::cout << ab[i];
@@ -104,13 +100,12 @@ Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
 uint32_t ROM::GetRomPosition(const Graphics::TilePreset &preset, int directAddr,
                              unsigned int snesAddr) const {
   unsigned int filePos = -1;
-  enum rom_type rType = LoROM;
   std::cout << "directAddr:" << directAddr << std::endl;
   if (directAddr == -1) {
-    filePos = rommapping_snes_to_pc(snesAddr, rType, rom_has_header_);
+    filePos = rommapping_snes_to_pc(snesAddr, type_, has_header_);
   } else {
     filePos = directAddr;
-    if (rom_has_header_) filePos += 0x200;
+    if (has_header_) filePos += 0x200;
   }
   std::cout << "filePos:" << filePos << std::endl;
   return filePos;

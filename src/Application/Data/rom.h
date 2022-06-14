@@ -32,26 +32,22 @@ class ROM {
   uint32_t GetRomPosition(const Graphics::TilePreset& preset, int directAddr,
                           unsigned int snesAddr) const;
   inline uchar* GetRawData() { return current_rom_; }
-  const unsigned char* getTitle() const { return title; }
+  const uchar* getTitle() const { return title; }
   long int getSize() const { return size_; }
   char getVersion() const { return version_; }
   bool isLoaded() const { return loaded; }
 
  private:
   bool loaded = false;
-  bool rom_has_header_ = false;
-
+  bool has_header_ = false;
   uchar* current_rom_;
-  char* data_;
-
+  uchar version_;
+  uchar title[21] = "ROM Not Loaded";
+  uint uncompressed_size_;
+  uint compressed_size_;
+  uint compress_size_;
   long int size_;
-  enum rom_type type_;
-
-  unsigned int uncompressed_size_;
-  unsigned int compressed_size_;
-  unsigned int compress_size_;
-  unsigned char version_;
-  unsigned char title[21] = "ROM Not Loaded";
+  enum rom_type type_ = LoROM;
 };
 
 }  // namespace Data
