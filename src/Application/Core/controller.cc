@@ -1,11 +1,13 @@
 #include "controller.h"
 
 #include <SDL2/SDL.h>
+#include <imgui/backends/imgui_impl_sdl.h>
+#include <imgui/backends/imgui_impl_sdlrenderer.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#include "Core/renderer.h"
-#include "Core/window.h"
+#include <memory>
+
 #include "Editor/editor.h"
 
 namespace yaze {
@@ -15,8 +17,9 @@ namespace Core {
 bool Controller::isActive() const { return active_; }
 
 void Controller::onEntry() {
-  window_.Create();
-  renderer_.Create(window_.Get());
+  CreateWindow();
+  CreateRenderer();
+  CreateGuiContext();
   ImGuiIO &io = ImGui::GetIO();
   io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
@@ -94,15 +97,86 @@ void Controller::onInput() {
 
 void Controller::onLoad() { editor_.UpdateScreen(); }
 
-void Controller::doRender() { renderer_.Render(); }
+void Controller::doRender() {
+  SDL_RenderClear(sdl_renderer_.get());
+  ImGui::Render();
+  ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+  SDL_RenderPresent(sdl_renderer_.get());
+}
 
 void Controller::onExit() {
   ImGui_ImplSDLRenderer_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
-  window_.Destroy();
-  renderer_.Destroy();
   SDL_Quit();
+}
+
+void Controller::CreateWindow() {
+  if (SDL_Init(SDL_INIT_EVERYTHING)) {
+    SDL_Log("SDL_Init: %s\n", SDL_GetError());
+  } else {
+    sdl_window_ = std::unique_ptr<SDL_Window, sdl_deleter>(
+        SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
+                         SDL_WINDOWPOS_UNDEFINED,      // initial x position
+                         SDL_WINDOWPOS_UNDEFINED,      // initial y position
+                         1200,                         // width, in pixels
+                         800,                          // height, in pixels
+                         SDL_WINDOW_RESIZABLE),
+        sdl_deleter());
+  }
+}
+
+void Controller::CreateRenderer() {
+  if (sdl_window_ == nullptr) {
+    SDL_Log("SDL_CreateWindow: %s\n", SDL_GetError());
+    SDL_Quit();
+  } else {
+    sdl_renderer_ = std::unique_ptr<SDL_Renderer, sdl_deleter>(
+        SDL_CreateRenderer(
+            sdl_window_.get(), -1,
+            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
+        sdl_deleter());
+    if (sdl_renderer_ == nullptr) {
+      SDL_Log("SDL_CreateRenderer: %s\n", SDL_GetError());
+      SDL_Quit();
+    } else {
+      SDL_SetRenderDrawBlendMode(sdl_renderer_.get(), SDL_BLENDMODE_BLEND);
+      SDL_SetRenderDrawColor(sdl_renderer_.get(), 0x00, 0x00, 0x00, 0x00);
+    }
+  }
+}
+
+void Controller::CreateGuiContext() {
+  // Create the ImGui and ImPlot contexts
+  ImGui::CreateContext();
+
+  // Initialize ImGui for SDL
+  ImGui_ImplSDL2_InitForSDLRenderer(sdl_window_.get(), sdl_renderer_.get());
+  ImGui_ImplSDLRenderer_Init(sdl_renderer_.get());
+
+  // Load available fonts
+  const ImGuiIO &io = ImGui::GetIO();
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/Karla-Regular.ttf", 14.0f);
+
+  // merge in icons from Google Material Design
+  static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
+  ImFontConfig icons_config;
+  icons_config.MergeMode = true;
+  icons_config.GlyphOffset.y = 5.0f;
+  icons_config.GlyphMinAdvanceX = 13.0f;
+  icons_config.PixelSnapH = true;
+  io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, 18.0f, &icons_config,
+                               icons_ranges);
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/Roboto-Medium.ttf", 14.0f);
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/Cousine-Regular.ttf", 14.0f);
+  io.Fonts->AddFontFromFileTTF("assets/Fonts/DroidSans.ttf", 16.0f);
+
+  // Set the default style
+  Style::ColorsYaze();
+
+  // Build a new ImGui frame
+  ImGui_ImplSDLRenderer_NewFrame();
+  ImGui_ImplSDL2_NewFrame(sdl_window_.get());
 }
 
 }  // namespace Core

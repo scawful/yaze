@@ -7,7 +7,6 @@
 #include <iostream>
 #include <vector>
 
-#include "Core/renderer.h"
 #include "Graphics/tile.h"
 
 namespace yaze {
@@ -17,9 +16,6 @@ namespace Graphics {
 class Scene {
  public:
   Scene() = default;
-  void buildScene(const std::vector<tile8>& tiles, const SNESPalette mPalette,
-                  const TilesPattern& tp);
-
   void buildSurface(const std::vector<tile8>& tiles, SNESPalette& mPalette,
                     const TilesPattern& tp);
 

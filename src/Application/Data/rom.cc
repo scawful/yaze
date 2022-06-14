@@ -38,8 +38,8 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
   std::cout << "Extracting tiles..." << std::endl;
   uint filePos = 0;
   uint size_out = 0;
-  uint size = preset.length;
-  int tilePos = preset.pcTilesLocation;
+  uint size = preset.length_;
+  int tilePos = preset.pc_tiles_location_;
   std::vector<tile8> rawTiles;
   filePos = GetRomPosition(preset, tilePos, preset.SNESTilesLocation);
   std::cout << "ROM Position: " << filePos << " from "
@@ -51,7 +51,7 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
   data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
   std::cout << "size: " << size << std::endl;
   std::cout << "lastCompressedSize: " << compressed_size_ << std::endl;
-  if (data == NULL) {
+  if (data == nullptr) {
     std::cout << alttp_decompression_error << std::endl;
     return rawTiles;
   }
@@ -59,8 +59,9 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
   // unpack the tiles based on their depth
   unsigned tileCpt = 0;
   std::cout << "Unpacking tiles..." << std::endl;
-  for (unsigned int tilePos = 0; tilePos < size; tilePos += preset.bpp * 8) {
-    tile8 newTile = unpack_bpp_tile(data, tilePos, preset.bpp);
+  for (unsigned int tilePos = 0; tilePos < size;
+       tilePos += preset.bits_per_pixel_ * 8) {
+    tile8 newTile = unpack_bpp_tile(data, tilePos, preset.bits_per_pixel_);
     newTile.id = tileCpt;
     rawTiles.push_back(newTile);
     tileCpt++;
@@ -72,10 +73,10 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
 }
 
 Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
-  unsigned int filePos = GetRomPosition(preset, preset.pcPaletteLocation,
+  unsigned int filePos = GetRomPosition(preset, preset.pc_palette_location_,
                                         preset.SNESPaletteLocation);
   std::cout << "Palette pos : " << filePos << std::endl;  // TODO: make this hex
-  unsigned int palette_size = pow(2, preset.bpp);         // - 1;
+  unsigned int palette_size = pow(2, preset.bits_per_pixel_);  // - 1;
   char *ab = (char *)malloc(sizeof(char) * (palette_size * 2));
   memcpy(ab, current_rom_ + filePos, palette_size * 2);
 
@@ -86,7 +87,7 @@ Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
 
   const char *data = ab;
   Graphics::SNESPalette pal(ab);
-  if (preset.paletteNoZeroColor) {
+  if (preset.no_zero_color_) {
     Graphics::SNESColor col;
 
     col.setRgb(ImVec4(153, 153, 153, 255));
