@@ -63,8 +63,8 @@ Editor::Editor() {
   current_set_.pcTilesLocation = 0x80000;
   current_set_.SNESTilesLocation = 0x0000;
   current_set_.length = 28672;
-  current_set_.pcPaletteLocation = 0xDD326;
-  current_set_.SNESPaletteLocation = 0x0000;
+  current_set_.pcPaletteLocation = 906022;
+  current_set_.SNESPaletteLocation = 0;
 }
 
 void Editor::UpdateScreen() {
@@ -263,22 +263,21 @@ void Editor::DrawProjectEditor() {
       ImGui::Text("Version: %d", rom_.getVersion());
       ImGui::Text("ROM Size: %ld", rom_.getSize());
 
+      ImGui::InputScalar("Bits per Pixel", ImGuiDataType_U32,
+                         (void *)&current_set_.bpp);
+
       ImGui::InputInt("PC Tile Location", &current_set_.pcTilesLocation);
       // 1, 100, ImGuiInputTextFlags_CharsHexadecimal
 
-      ImGui::InputScalar("SNES Tile Location", ImGuiDataType_U32,
+      ImGui::InputScalar("SNES Tile Location", ImGuiDataType_U16,
                          (void *)&current_set_.SNESTilesLocation);
 
       ImGui::InputScalar("Tile Preset Length", ImGuiDataType_U32,
                          (void *)&current_set_.length);
 
-      ImGui::InputScalar("Bits per Pixel", ImGuiDataType_U32,
-                         (void *)&current_set_.bpp);
+      ImGui::InputInt("PC Palette Location", &current_set_.pcPaletteLocation);
 
-      ImGui::InputScalar("PC Palette Location", ImGuiDataType_U32,
-                         (void *)&current_set_.pcPaletteLocation);
-
-      ImGui::InputScalar("SNES Palette Location", ImGuiDataType_U32,
+      ImGui::InputScalar("SNES Palette Location", ImGuiDataType_U16,
                          (void *)&current_set_.SNESPaletteLocation);
 
       BASIC_BUTTON("ExtractTiles") {
