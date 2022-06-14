@@ -31,6 +31,7 @@ class SNESPalette {
   SNESPalette() = default;
   explicit SNESPalette(uint8_t mSize);
   explicit SNESPalette(char* snesPal);
+  explicit SNESPalette(const unsigned char* snes_pal);
   explicit SNESPalette(std::vector<ImVec4>);
 
   char* encode();

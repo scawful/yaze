@@ -52,6 +52,19 @@ SNESPalette::SNESPalette(char* data) {
   }
 }
 
+SNESPalette::SNESPalette(const unsigned char* snes_pal) {
+  assert((sizeof(snes_pal) % 4 == 0) && (sizeof(snes_pal) <= 32));
+  size_ = sizeof(snes_pal) / 2;
+  for (unsigned i = 0; i < sizeof(snes_pal); i += 2) {
+    SNESColor col;
+    col.snes = snes_pal[i + 1] << (uint16_t) 8;
+    col.snes = col.snes | snes_pal[i];
+    m_color mColor = convertcolor_snes_to_rgb(col.snes);
+    col.rgb = ImVec4(mColor.red, mColor.green, mColor.blue, 1.f);
+    colors.push_back(col);
+  }
+}
+
 SNESPalette::SNESPalette(std::vector<ImVec4> cols) {
   for (const auto& each : cols) {
     SNESColor scol;
