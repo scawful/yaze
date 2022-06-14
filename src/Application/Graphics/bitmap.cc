@@ -77,10 +77,8 @@ char *CreateAllGfxDataRaw(char *romData) {
 
 void CreateAllGfxData(char *romData, char *allgfx16Ptr) {
   char *data = CreateAllGfxDataRaw(romData);
-  char *newData =
-      new char[0x6F800];  // NEED TO GET THE APPROPRIATE SIZE FOR THAT
-  unsigned char *mask =
-      new unsigned char[]{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+  char *newData = new char[0x6F800];
+  uchar *mask = new uchar[]{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
   int sheetPosition = 0;
 
   // 8x8 tile
