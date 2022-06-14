@@ -1,5 +1,8 @@
 #include "editor.h"
 
+#include "Graphics/palette.h"
+#include "Graphics/tile.h"
+
 namespace yaze {
 namespace Application {
 namespace Editor {
@@ -67,6 +70,10 @@ Editor::Editor() {
   current_set_.SNESPaletteLocation = 0;
 }
 
+void Editor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
+  sdl_renderer_ = renderer;
+}
+
 void Editor::UpdateScreen() {
   const ImGuiIO &io = ImGui::GetIO();
   ImGui::NewFrame();
@@ -81,25 +88,25 @@ void Editor::UpdateScreen() {
 
   DrawYazeMenu();
 
-  TAB_BAR("##TabBar");
+  TAB_BAR("##TabBar")
   DrawProjectEditor();
   DrawOverworldEditor();
   DrawDungeonEditor();
   DrawGraphicsEditor();
   DrawSpriteEditor();
   DrawScreenEditor();
-  END_TAB_BAR();
+  END_TAB_BAR()
 
   ImGui::End();
 }
 
 void Editor::DrawYazeMenu() {
-  MENU_BAR();
+  MENU_BAR()
   DrawFileMenu();
   DrawEditMenu();
   DrawViewMenu();
   DrawHelpMenu();
-  END_MENU_BAR();
+  END_MENU_BAR()
 
   if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
@@ -251,6 +258,39 @@ void Editor::DrawHelpMenu() const {
   }
 }
 
+void Editor::DrawSurface() {
+  arranged_tiles_ =
+      Graphics::TilesPattern::transform(current_set_.tilesPattern, tiles_);
+  for (unsigned int j = 0; j < arranged_tiles_.size(); j++) {
+    for (unsigned int i = 0; i < arranged_tiles_[0].size(); i++) {
+      tile8 tile = arranged_tiles_[j][i];
+      // SDL_PIXELFORMAT_RGB888 ?
+      SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(
+          0, 8, 8, SDL_BITSPERPIXEL(3), SDL_PIXELFORMAT_RGB444);
+      if (surface == nullptr) {
+        SDL_Log("SDL_CreateRGBSurfaceWithFormat() failed: %s", SDL_GetError());
+        exit(1);
+      }
+      SDL_PixelFormat *format = surface->format;
+      format->palette = current_palette_.GetSDL_Palette();
+      char *ptr = (char *)surface->pixels;
+
+      for (int k = 0; k < 8; k++) {
+        for (int l = 0; l < 8; l++) {
+          ptr[k * 8 + l] = tile.data[k * 8 + l];
+        }
+      }
+
+      SDL_Texture *texture =
+          SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
+      if (texture == nullptr) {
+        std::cout << "Error: " << SDL_GetError() << std::endl;
+      }
+      imagesCache[tile.id] = texture;
+    }
+  }
+}
+
 void Editor::DrawProjectEditor() {
   if (ImGui::BeginTabItem("Project")) {
     if (ImGui::BeginTable("##projectTable", 2,
@@ -284,16 +324,27 @@ void Editor::DrawProjectEditor() {
         }
       }
 
-      BASIC_BUTTON("BuildSurface") {
+      BASIC_BUTTON("ExtractPalette") {
         if (rom_.isLoaded()) {
           current_palette_ = rom_.ExtractPalette(current_set_);
-          current_scene_.buildSurface(tiles_, current_palette_,
-                                      current_set_.tilesPattern);
         }
       }
 
-      for (auto &[key, texture] : current_scene_.imagesCache) {
-        ImGui::Image((void *)(SDL_Texture *)texture, ImVec2(8, 8));
+      BASIC_BUTTON("BuildSurface") {
+        if (rom_.isLoaded()) {
+          DrawSurface();
+        }
+      }
+
+      static int i = 0;
+      for (auto &[key, texture] : imagesCache) {
+        ImGui::Image((void *)(SDL_Texture *)texture, ImVec2(32, 32));
+        if (i != 16) {
+          ImGui::SameLine();
+        } else if ( i == 16 ) {
+          i = 0;
+        }
+        i++;
       }
 
       ImGui::TableNextColumn();

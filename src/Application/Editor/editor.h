@@ -12,6 +12,7 @@
 #include "Data/rom.h"
 #include "Editor/overworld_editor.h"
 #include "Graphics/icons.h"
+#include "Graphics/tile.h"
 
 namespace yaze {
 namespace Application {
@@ -20,6 +21,7 @@ namespace Editor {
 class Editor {
  public:
   Editor();
+  void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
 
  private:
@@ -29,6 +31,7 @@ class Editor {
   void DrawViewMenu();
   void DrawHelpMenu() const;
 
+  void DrawSurface();
   void DrawProjectEditor();
   void DrawOverworldEditor();
   void DrawDungeonEditor();
@@ -40,6 +43,10 @@ class Editor {
   bool is_loaded_ = true;
 
   std::vector<tile8> tiles_;
+  std::vector<std::vector<tile8>> arranged_tiles_;
+  std::unordered_map<unsigned int, std::shared_ptr<SDL_Texture>> texture_cache_;
+  std::unordered_map<unsigned int, SDL_Texture *> imagesCache;
+  std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
   Data::ROM rom_;
   TextEditor asm_editor_;
