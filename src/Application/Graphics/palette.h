@@ -36,9 +36,9 @@ class SNESPalette {
   char* encode();
   SDL_Palette* GetSDL_Palette();
 
-  int size = 0;
+  int size_ = 0;
   std::vector<SNESColor> colors;
-  std::vector<SDL_Palette*> sdl_palettes_;
+  std::vector<std::shared_ptr<SDL_Palette>> sdl_palettes_;
   std::vector<SDL_Color*> colors_arrays_;
 };
 

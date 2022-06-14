@@ -32,7 +32,7 @@ void SNESColor::setSNES(uint16_t val) {
   rgb = ImVec4(col.red, col.green, col.blue, 1.f);
 }
 
-SNESPalette::SNESPalette(uint8_t mSize) : size(mSize) {
+SNESPalette::SNESPalette(uint8_t mSize) : size_(mSize) {
   for (unsigned int i = 0; i < mSize; i++) {
     SNESColor col;
     colors.push_back(col);
@@ -41,7 +41,7 @@ SNESPalette::SNESPalette(uint8_t mSize) : size(mSize) {
 
 SNESPalette::SNESPalette(char* data) {
   assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
-  size = sizeof(data) / 2;
+  size_ = sizeof(data) / 2;
   for (unsigned i = 0; i < sizeof(data); i += 2) {
     SNESColor col;
     col.snes = static_cast<uchar>(data[i + 1]) << 8;
@@ -58,13 +58,13 @@ SNESPalette::SNESPalette(std::vector<ImVec4> cols) {
     scol.setRgb(each);
     colors.push_back(scol);
   }
-  size = cols.size();
+  size_ = cols.size();
 }
 
 char* SNESPalette::encode() {
   // char* data(size * 2, 0);
-  char* data = new char[size * 2];
-  for (unsigned int i = 0; i < size; i++) {
+  char* data = new char[size_ * 2];
+  for (unsigned int i = 0; i < size_; i++) {
     // std::cout << QString::number(colors[i].snes, 16);
     data[i * 2] = (char)(colors[i].snes & 0xFF);
     data[i * 2 + 1] = (char)(colors[i].snes >> 8);
@@ -73,21 +73,22 @@ char* SNESPalette::encode() {
 }
 
 SDL_Palette* SNESPalette::GetSDL_Palette() {
-  SDL_Palette* result = new SDL_Palette;
-  result->ncolors = size;
-  SDL_Color* sdl_colors = new SDL_Color[size];
-  for (int i = 0; i < size; i++) {
+  auto sdl_palette = std::make_shared<SDL_Palette>();
+  sdl_palette->ncolors = size_;
+  
+  auto* sdl_colors = new SDL_Color[size_];
+  for (int i = 0; i < size_; i++) {
     sdl_colors[i].r = (uint8_t)colors[i].rgb.x * 100;
     sdl_colors[i].g = (uint8_t)colors[i].rgb.y * 100;
     sdl_colors[i].b = (uint8_t)colors[i].rgb.z * 100;
   }
-  result->colors = sdl_colors;
+  sdl_palette->colors = sdl_colors;
 
   // store the pointers to free them later
-  sdl_palettes_.push_back(result);
+  sdl_palettes_.push_back(sdl_palette);
   colors_arrays_.push_back(sdl_colors);
 
-  return result;
+  return sdl_palette.get();
 }
 
 }  // namespace Graphics

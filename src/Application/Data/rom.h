@@ -48,6 +48,8 @@ class ROM {
   uint compress_size_;
   long int size_;
   enum rom_type type_ = LoROM;
+
+  std::shared_ptr<uchar> rom_ptr_;
 };
 
 }  // namespace Data

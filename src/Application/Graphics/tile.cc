@@ -145,16 +145,6 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
   return pattern.transform(tiles);
 }
 
-TilePreset::TilePreset() {
-  bpp = 0;
-  length = 0;
-  pcTilesLocation = -1;
-  SNESTilesLocation = 0;
-  pcPaletteLocation = 0;
-  SNESPaletteLocation = 0;
-  paletteNoZeroColor = false;
-}
-
 }  // namespace Graphics
 }  // namespace Application
 }  // namespace yaze

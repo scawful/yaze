@@ -88,17 +88,15 @@ class TilesPattern {
 
 class TilePreset {
  public:
-  TilePreset();
-
-  bool paletteNoZeroColor;
-  int pcTilesLocation;
-  uint16_t SNESTilesLocation;
-  uint16_t SNESPaletteLocation;
-  uint32_t pcPaletteLocation;
-  uint32_t length;
-  uint32_t bpp;
-
+  TilePreset() = default;
   TilesPattern tilesPattern;
+  bool no_zero_color_ = false;
+  int pc_tiles_location_ = -1;
+  int pc_palette_location_ = 0;
+  uint32_t length_ = 0;
+  uint32_t bits_per_pixel_ = 0;
+  uint16_t SNESTilesLocation = 0;
+  uint16_t SNESPaletteLocation = 0;
 };
 
 }  // namespace Graphics
