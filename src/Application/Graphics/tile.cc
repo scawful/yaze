@@ -1,6 +1,7 @@
-#include "Tile.h"
+#include "tile.h"
 
 #include <cassert>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -12,15 +13,15 @@ namespace Application {
 namespace Graphics {
 
 TilesPattern::TilesPattern() {
-  tilesPerRow = 16;
-  numberOfTiles = 16;
+  tiles_per_row_ = 16;
+  number_of_tiles_ = 16;
   // std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 9, 11, 12, 13, 14, 15,
   // 16});
 
-  transformVector.push_back(std::vector<int>{0, 1, 2, 3});
-  transformVector.push_back(std::vector<int>{4, 5, 6, 7});
-  transformVector.push_back(std::vector<int>{8, 9, 11, 12});
-  transformVector.push_back(std::vector<int>{13, 14, 15, 16});
+  transform_vector_.push_back(std::vector<int>{0, 1, 2, 3});
+  transform_vector_.push_back(std::vector<int>{4, 5, 6, 7});
+  transform_vector_.push_back(std::vector<int>{8, 9, 11, 12});
+  transform_vector_.push_back(std::vector<int>{13, 14, 15, 16});
 }
 
 // [pattern]
@@ -28,11 +29,11 @@ TilesPattern::TilesPattern() {
 // number_of_tile = 16
 // pattern =
 void TilesPattern::default_settings() {
-  numberOfTiles = 16;
+  number_of_tiles_ = 16;
   std::string patternString =
       "[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, A, B], [C, D, E, F]";
 
-  transformVector.clear();
+  transform_vector_.clear();
 
   std::smatch cm;
   std::regex arrayRegExp("(\\[[\\s|0-F|a-f|,]+\\])");
@@ -41,7 +42,7 @@ void TilesPattern::default_settings() {
   while (std::regex_search(patternString, cm, arrayRegExp)) {
     std::string arrayString = cm[1];
     std::vector<int> tmpVect;
-    unsigned int stringPos = 1;
+    uint stringPos = 1;
 
     while (arrayString[stringPos] != ']') {
       while (arrayString[stringPos] == ' ') stringPos++;
@@ -59,48 +60,47 @@ void TilesPattern::default_settings() {
     }
 
     pos += cm.size();
-    transformVector.push_back(tmpVect);
+    transform_vector_.push_back(tmpVect);
   }
-  std::cout << transformVector.size() << std::endl;
+  std::cout << transform_vector_.size() << std::endl;
 }
 
 std::vector<std::vector<tile8> > TilesPattern::transform(
     const std::vector<tile8> &tiles) const {
-  unsigned int repeatOffsetY = 0;
-  unsigned int repeatOffsetX = 0;
-  unsigned int tVectHeight = transformVector.size();
-  unsigned int tVectWidth = transformVector[0].size();
-  unsigned int repeat = 0;
+  uint repeatOffsetY = 0;
+  uint repeatOffsetX = 0;
+  uint tVectHeight = transform_vector_.size();
+  uint tVectWidth = transform_vector_[0].size();
+  uint repeat = 0;
   std::vector<std::vector<tile8> > toret;
-  unsigned int transPerRow = tilesPerRow / tVectWidth;
-  unsigned int nbTransform = tiles.size() / numberOfTiles;
+  uint transPerRow = tiles_per_row_ / tVectWidth;
+  uint nbTransform = tiles.size() / number_of_tiles_;
   printf("Tiles size : %d\nnbtransform : %d\npattern number of tiles : %d\n",
-         tiles.size(), nbTransform, numberOfTiles);
+         tiles.size(), nbTransform, number_of_tiles_);
 
   if (transPerRow > nbTransform)
     toret.resize(tVectHeight);
   else
-    toret.resize(
-        ((unsigned int)(((double)nbTransform / (double)transPerRow) + 0.5)) *
-        tVectHeight);
+    toret.resize(((uint)(((double)nbTransform / (double)transPerRow) + 0.5)) *
+                 tVectHeight);
 
   for (auto &each : toret) {
-    each.resize(tilesPerRow);
+    each.resize(tiles_per_row_);
   }
 
   std::cout << toret[0].size() << " x " << toret.size();
   while (repeat != nbTransform) {
     std::cout << "repeat" << repeat;
-    for (unsigned int j = 0; j < tVectHeight; j++) {
-      for (unsigned int i = 0; i < tVectWidth; i++) {
-        unsigned int posTile = transformVector[j][i] + numberOfTiles * repeat;
-        unsigned int posX = i + repeatOffsetX;
-        unsigned int posY = j + repeatOffsetY;
+    for (uint j = 0; j < tVectHeight; j++) {
+      for (uint i = 0; i < tVectWidth; i++) {
+        uint posTile = transform_vector_[j][i] + number_of_tiles_ * repeat;
+        uint posX = i + repeatOffsetX;
+        uint posY = j + repeatOffsetY;
         printf("X: %d - Y: %d - posTile : %d", posX, posY, posTile);
         toret.at(posY).at(posX) = tiles[posTile];
       }
     }
-    if (repeatOffsetX + tVectWidth == tilesPerRow) {
+    if (repeatOffsetX + tVectWidth == tiles_per_row_) {
       repeatOffsetX = 0;
       repeatOffsetY += tVectHeight;
     } else
@@ -113,27 +113,27 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
 
 std::vector<tile8> TilesPattern::reverse(
     const std::vector<tile8> &tiles) const {
-  unsigned int repeatOffsetY = 0;
-  unsigned int repeatOffsetX = 0;
-  unsigned int tVectHeight = transformVector.size();
-  unsigned int tVectWidth = transformVector[0].size();
-  unsigned int repeat = 0;
-  unsigned int nbTransPerRow = tilesPerRow / tVectWidth;
-  unsigned int nbTiles = tiles.size();
+  uint repeatOffsetY = 0;
+  uint repeatOffsetX = 0;
+  uint tVectHeight = transform_vector_.size();
+  uint tVectWidth = transform_vector_[0].size();
+  uint repeat = 0;
+  uint nbTransPerRow = tiles_per_row_ / tVectWidth;
+  uint nbTiles = tiles.size();
   std::vector<tile8> toretVec(tiles.size());
 
-  for (unsigned int i = 0; i < nbTiles; i++) {
-    unsigned int lineNb = i / tilesPerRow;
-    unsigned int lineInTab = lineNb % tVectHeight;
-    unsigned int colInTab = i % tVectWidth;
-    unsigned int tileNb = transformVector[lineInTab][colInTab];
+  for (uint i = 0; i < nbTiles; i++) {
+    uint lineNb = i / tiles_per_row_;
+    uint lineInTab = lineNb % tVectHeight;
+    uint colInTab = i % tVectWidth;
+    uint tileNb = transform_vector_[lineInTab][colInTab];
 
-    unsigned int lineBlock = i / (nbTransPerRow * numberOfTiles);
-    unsigned int blockNB =
-        (i % (nbTransPerRow * numberOfTiles) % tilesPerRow) / tVectWidth;
+    uint lineBlock = i / (nbTransPerRow * number_of_tiles_);
+    uint blockNB =
+        (i % (nbTransPerRow * number_of_tiles_) % tiles_per_row_) / tVectWidth;
 
     std::cout << colInTab << lineInTab << " = " << tileNb;
-    unsigned int pos = tileNb + (lineBlock + blockNB) * numberOfTiles;
+    uint pos = tileNb + (lineBlock + blockNB) * number_of_tiles_;
     std::cout << i << "Goes to : " << pos;
     toretVec[pos] = tiles[i];
   }

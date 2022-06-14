@@ -53,12 +53,12 @@ SNESPalette::SNESPalette(char* data) {
 }
 
 SNESPalette::SNESPalette(std::vector<ImVec4> cols) {
-  // foreach (ImVec4 col, cols) {
-  //   SNESColor scol;
-  //   scol.setRgb(col);
-  //   colors.push_back(scol);
-  // }
-  // size = cols.size();
+  for (const auto& each : cols) {
+    SNESColor scol;
+    scol.setRgb(each);
+    colors.push_back(scol);
+  }
+  size = cols.size();
 }
 
 char* SNESPalette::encode() {

@@ -1,4 +1,13 @@
-#include "Scene.h"
+#include "scene.h"
+
+#include <SDL2/SDL.h>
+#include <tile.h>
+
+#include <iostream>
+#include <vector>
+
+#include "Core/renderer.h"
+#include "Graphics/tile.h"
 
 namespace yaze {
 namespace Application {

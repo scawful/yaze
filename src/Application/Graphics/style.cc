@@ -1,4 +1,4 @@
-#include "Style.h"
+#include "style.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -30,14 +30,14 @@ void ColorsYaze() {
 
   style->WindowRounding = 0.f;
   style->ChildRounding = 0.f;
-  style->FrameRounding = 5.4;
+  style->FrameRounding = 5.f;
   style->PopupRounding = 0.f;
   style->ScrollbarRounding = 5.f;
 
-  ImVec4 alttpDarkGreen = ImVec4(0.18f, 0.26f, 0.18f, 1.0f);
-  ImVec4 alttpMidGreen = ImVec4(0.28f, 0.36f, 0.28f, 1.0f);
-  ImVec4 allttpLightGreen = ImVec4(0.36f, 0.45f, 0.36f, 1.0f);
-  ImVec4 allttpLightestGreen = ImVec4(0.49f, 0.57f, 0.49f, 1.0f);
+  auto alttpDarkGreen = ImVec4(0.18f, 0.26f, 0.18f, 1.0f);
+  auto alttpMidGreen = ImVec4(0.28f, 0.36f, 0.28f, 1.0f);
+  auto allttpLightGreen = ImVec4(0.36f, 0.45f, 0.36f, 1.0f);
+  auto allttpLightestGreen = ImVec4(0.49f, 0.57f, 0.49f, 1.0f);
 
   colors[ImGuiCol_MenuBarBg] = alttpDarkGreen;
   colors[ImGuiCol_TitleBg] = alttpMidGreen;
