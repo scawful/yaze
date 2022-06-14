@@ -46,7 +46,7 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
             << preset.SNESTilesLocation << std::endl;
 
   // decompress the graphics
-  char *data = (char *)malloc(sizeof(char) * size);
+  auto data = (char *)malloc(sizeof(char) * size);
   memcpy(data, (current_rom_ + filePos), size);
   data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
   std::cout << "size: " << size << std::endl;
@@ -77,16 +77,20 @@ Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
                                         preset.SNESPaletteLocation);
   std::cout << "Palette pos : " << filePos << std::endl;  // TODO: make this hex
   unsigned int palette_size = pow(2, preset.bits_per_pixel_);  // - 1;
-  char *ab = (char *)malloc(sizeof(char) * (palette_size * 2));
-  memcpy(ab, current_rom_ + filePos, palette_size * 2);
+
+  auto palette_data = std::make_unique<unsigned char[]>(palette_size * 2);
+  memcpy(palette_data.get(), current_rom_ + filePos, palette_size * 2);
+
+  // char *ab = (char *)malloc(sizeof(char) * (palette_size * 2));
+  // memcpy(ab, current_rom_ + filePos, palette_size * 2);
 
   for (int i = 0; i < palette_size; i++) {
-    std::cout << ab[i];
+    std::cout << palette_data[i];
   }
   std::cout << std::endl;
 
-  const char *data = ab;
-  Graphics::SNESPalette pal(ab);
+  const unsigned char *data = palette_data.get();
+  Graphics::SNESPalette pal(data);
   if (preset.no_zero_color_) {
     Graphics::SNESColor col;
 
