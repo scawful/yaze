@@ -96,7 +96,7 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
         uint posTile = transform_vector_[j][i] + number_of_tiles_ * repeat;
         uint posX = i + repeatOffsetX;
         uint posY = j + repeatOffsetY;
-        printf("X: %d - Y: %d - posTile : %d", posX, posY, posTile);
+        printf("X: %d - Y: %d - posTile : %d \n", posX, posY, posTile);
         toret.at(posY).at(posX) = tiles[posTile];
       }
     }
@@ -107,7 +107,7 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
       repeatOffsetX += tVectWidth;
     repeat++;
   }
-  std::cout << "End of transform";
+  std::cout << "End of transform" << std::endl;
   return toret;
 }
 

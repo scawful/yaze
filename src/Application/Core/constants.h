@@ -16,14 +16,14 @@
   ImGui::EndMenuBar(); \
   }
 
-
+using ushort = unsigned short;
+using uint = unsigned int;
+using uchar = unsigned char;
 
 namespace yaze {
 namespace Application {
 namespace Core {
 namespace Constants {
-
-using ushort = unsigned short;
 
 //===========================================================================================
 // 65816 LanguageDefinition
@@ -50,7 +50,7 @@ static const char *const kIdentifiers[] = {
     "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
     "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
     "toupper"};
-    
+
 //===========================================================================================
 // Magic numbers
 //===========================================================================================
