@@ -20,6 +20,7 @@ void Controller::onEntry() {
   CreateWindow();
   CreateRenderer();
   CreateGuiContext();
+  editor_.SetupScreen(sdl_renderer_);
   ImGuiIO &io = ImGui::GetIO();
   io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
