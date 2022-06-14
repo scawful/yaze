@@ -9,7 +9,7 @@ namespace Application {
 namespace Graphics {
 
 int GetPCGfxAddress(char *romData, char id) {
-  char **info1, **info2, **info3, **info4;
+  char **info1 = new char *[255];
   int gfxPointer1 =
       lorom_snes_to_pc((romData[Core::Constants::gfx_1_pointer + 1] << 8) +
                            (romData[Core::Constants::gfx_1_pointer]),
@@ -17,11 +17,11 @@ int GetPCGfxAddress(char *romData, char id) {
   int gfxPointer2 =
       lorom_snes_to_pc((romData[Core::Constants::gfx_2_pointer + 1] << 8) +
                            (romData[Core::Constants::gfx_2_pointer]),
-                       info2);
+                       info1);
   int gfxPointer3 =
       lorom_snes_to_pc((romData[Core::Constants::gfx_3_pointer + 1] << 8) +
                            (romData[Core::Constants::gfx_3_pointer]),
-                       info3);
+                       info1);
 
   char gfxGamePointer1 = romData[gfxPointer1 + id];
   char gfxGamePointer2 = romData[gfxPointer2 + id];
@@ -29,7 +29,7 @@ int GetPCGfxAddress(char *romData, char id) {
 
   return lorom_snes_to_pc(
       Data::AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3),
-      info4);
+      info1);
 }
 
 char *CreateAllGfxDataRaw(char *romData) {

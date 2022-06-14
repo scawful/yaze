@@ -74,22 +74,22 @@ TEST_F(DecompressionTest, test_compress_decompress) {
     return;
   }
 
-  ///
-  for (unsigned int i = 0; i < size_; i++) {
-    char byte_read_ = ' ';
-    file.read(&byte_read_, sizeof(char));
-    current_rom_[i] = byte_read_;
-    data_[i] = byte_read_;
-  }
-  file.close();
+  // ///
+  // for (unsigned int i = 0; i < size_; i++) {
+  //   char byte_read_ = ' ';
+  //   file.read(&byte_read_, sizeof(char));
+  //   current_rom_[i] = byte_read_;
+  //   data_[i] = byte_read_;
+  // }
+  // file.close();
 
-  read(fd, buffer, 32);
-  ///
+  // read(fd, buffer, 32);
+  // ///
 
-  char *comdata = std_nintendo_compress(buffer, 0, 32, &compress_size);
-  CuAssertDataEquals_Msg(
-      tc, "Compressing/Uncompress testtilebpp4.tl", buffer, 32,
-      std_nintendo_decompress(comdata, 0, 0, &compress_size, &c_size));
+  // char *comdata = std_nintendo_compress(buffer, 0, 32, &compress_size);
+  // CuAssertDataEquals_Msg(
+  //     tc, "Compressing/Uncompress testtilebpp4.tl", buffer, 32,
+  //     std_nintendo_decompress(comdata, 0, 0, &compress_size, &c_size));
 }
 
 TEST_F(DecompressionTest, basic_test) {
