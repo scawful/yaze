@@ -74,14 +74,13 @@ TEST_F(DecompressionTest, test_compress_decompress) {
     return;
   }
 
-  // ///
-  // for (unsigned int i = 0; i < size_; i++) {
-  //   char byte_read_ = ' ';
-  //   file.read(&byte_read_, sizeof(char));
-  //   current_rom_[i] = byte_read_;
-  //   data_[i] = byte_read_;
-  // }
-  // file.close();
+  char data[1024];
+  for (unsigned int i = 0; i < c_size_; i++) {
+    char byte_read_ = ' ';
+    file.read(&byte_read_, sizeof(char));
+    data[i] = byte_read_;
+  }
+  file.close();
 
   // read(fd, buffer, 32);
   // ///
