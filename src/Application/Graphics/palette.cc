@@ -73,14 +73,18 @@ char* SNESPalette::encode() {
 }
 
 SDL_Palette* SNESPalette::GetSDL_Palette() {
+  std::cout << "Converting SNESPalette to SDL_Palette" << std::endl;
   auto sdl_palette = std::make_shared<SDL_Palette>();
   sdl_palette->ncolors = size_;
-  
+
   auto* sdl_colors = new SDL_Color[size_];
   for (int i = 0; i < size_; i++) {
     sdl_colors[i].r = (uint8_t)colors[i].rgb.x * 100;
     sdl_colors[i].g = (uint8_t)colors[i].rgb.y * 100;
     sdl_colors[i].b = (uint8_t)colors[i].rgb.z * 100;
+    std::cout << "Color " << i << " added (R:" << sdl_colors[i].r
+              << " G:" << sdl_colors[i].g << " B:" << sdl_colors[i].b << ")"
+              << std::endl;
   }
   sdl_palette->colors = sdl_colors;
 

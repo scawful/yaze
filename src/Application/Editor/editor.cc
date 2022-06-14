@@ -59,11 +59,11 @@ Editor::Editor() {
   asm_editor_.SetLanguageDefinition(language_65816_);
   asm_editor_.SetPalette(TextEditor::GetDarkPalette());
 
-  current_set_.bpp = 4;
-  current_set_.pcTilesLocation = 0x80000;
+  current_set_.bits_per_pixel_ = 4;
+  current_set_.pc_tiles_location_ = 0x80000;
   current_set_.SNESTilesLocation = 0x0000;
-  current_set_.length = 28672;
-  current_set_.pcPaletteLocation = 906022;
+  current_set_.length_ = 28672;
+  current_set_.pc_palette_location_ = 906022;
   current_set_.SNESPaletteLocation = 0;
 }
 
@@ -263,22 +263,20 @@ void Editor::DrawProjectEditor() {
       ImGui::Text("Version: %d", rom_.getVersion());
       ImGui::Text("ROM Size: %ld", rom_.getSize());
 
-      ImGui::InputScalar("Bits per Pixel", ImGuiDataType_U32,
-                         (void *)&current_set_.bpp);
+      ImGui::InputInt("Bits per Pixel", &current_set_.bits_per_pixel_);
 
-      ImGui::InputInt("PC Tile Location", &current_set_.pcTilesLocation);
-      // 1, 100, ImGuiInputTextFlags_CharsHexadecimal
+      yaze::Gui::InputHex("PC Tile Location", &current_set_.pc_tiles_location_);
 
-      ImGui::InputScalar("SNES Tile Location", ImGuiDataType_U16,
-                         (void *)&current_set_.SNESTilesLocation);
+      yaze::Gui::InputHex("SNES Tile Location",
+                          &current_set_.SNESTilesLocation);
 
-      ImGui::InputScalar("Tile Preset Length", ImGuiDataType_U32,
-                         (void *)&current_set_.length);
+      ImGui::InputInt("Tile Preset Length", &current_set_.length_);
 
-      ImGui::InputInt("PC Palette Location", &current_set_.pcPaletteLocation);
+      ImGui::InputInt("PC Palette Location",
+                      &current_set_.pc_palette_location_);
 
-      ImGui::InputScalar("SNES Palette Location", ImGuiDataType_U16,
-                         (void *)&current_set_.SNESPaletteLocation);
+      yaze::Gui::InputHex("SNES Palette Location",
+                          &current_set_.SNESPaletteLocation);
 
       BASIC_BUTTON("ExtractTiles") {
         if (rom_.isLoaded()) {
