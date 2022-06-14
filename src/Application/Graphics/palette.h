@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 namespace yaze {
@@ -27,7 +28,7 @@ struct SNESColor {
 
 class SNESPalette {
  public:
-  SNESPalette()=default;
+  SNESPalette() = default;
   explicit SNESPalette(uint8_t mSize);
   explicit SNESPalette(char* snesPal);
   explicit SNESPalette(std::vector<ImVec4>);
@@ -35,7 +36,7 @@ class SNESPalette {
   char* encode();
   SDL_Palette* GetSDL_Palette();
 
-  uint8_t size = 0;
+  int size = 0;
   std::vector<SNESColor> colors;
   std::vector<SDL_Palette*> sdl_palettes_;
   std::vector<SDL_Color*> colors_arrays_;

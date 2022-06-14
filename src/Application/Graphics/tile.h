@@ -3,6 +3,7 @@
 
 #include <tile.h>
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -12,10 +13,6 @@
 namespace yaze {
 namespace Application {
 namespace Graphics {
-
-
-using ushort = unsigned short;
-using uint = unsigned int;
 
 // vhopppcc cccccccc
 // [0, 1]
@@ -27,13 +24,13 @@ class TileInfo {
   ushort vertical_mirror_;
   ushort horizontal_mirror_;
   uchar palette_;
-  TileInfo() {}
+  TileInfo() = default;
   TileInfo(ushort id, uchar palette, ushort v, ushort h, ushort o)
       : id_(id),
-        palette_(palette),
+        over_(o),
         vertical_mirror_(v),
         horizontal_mirror_(h),
-        over_(o) {}
+        palette_(palette) {}
 };
 
 class Tile32 {
@@ -70,20 +67,22 @@ class TilesPattern {
   std::string name;
   std::string description;
   bool custom;
-  unsigned int tilesPerRow;
-  unsigned int numberOfTiles;
+  unsigned int tiles_per_row_;
+  unsigned int number_of_tiles_;
 
   void default_settings();
 
   static TilesPattern pattern(std::string name);
-  static std::vector<std::vector<tile8> > transform(
+  static std::vector<std::vector<tile8>> transform(
       const TilesPattern& pattern, const std::vector<tile8>& tiles);
 
  protected:
-  std::vector<std::vector<tile8> > transform(
+  std::vector<std::vector<tile8>> transform(
       const std::vector<tile8>& tiles) const;
   std::vector<tile8> reverse(const std::vector<tile8>& tiles) const;
-  std::vector<std::vector<int> > transformVector;
+
+ private:
+  std::vector<std::vector<int>> transform_vector_;
 };
 
 class TilePreset {
