@@ -15,13 +15,16 @@ namespace Graphics {
 TilesPattern::TilesPattern() {
   tiles_per_row_ = 16;
   number_of_tiles_ = 16;
-  // std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 9, 11, 12, 13, 14, 15,
-  // 16});
+  // transform_vector_.push_back(std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8,
+  //                                              9, 10, 11, 12, 13, 14, 15});
+  // transform_vector_.push_back(std::vector<int>{});
+  // transform_vector_.push_back(std::vector<int>{});
+  // transform_vector_.push_back(std::vector<int>{});
 
   transform_vector_.push_back(std::vector<int>{0, 1, 2, 3});
   transform_vector_.push_back(std::vector<int>{4, 5, 6, 7});
-  transform_vector_.push_back(std::vector<int>{8, 9, 11, 12});
-  transform_vector_.push_back(std::vector<int>{13, 14, 15, 16});
+  transform_vector_.push_back(std::vector<int>{8, 9, 10, 11});
+  transform_vector_.push_back(std::vector<int>{12, 13, 14, 15});
 }
 
 // [pattern]
