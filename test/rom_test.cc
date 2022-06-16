@@ -93,11 +93,11 @@ TEST_F(DecompressionTest, test_compress_decompress) {
 
 TEST_F(DecompressionTest, basic_test) {
   rom_.LoadFromFile("assets/alttp.sfc");
-  tile_preset_.bpp = 4;
-  tile_preset_.length = 28672;
-  tile_preset_.pcTilesLocation = 0x80000;
+  tile_preset_.bpp_ = 4;
+  tile_preset_.length_ = 28672;
+  tile_preset_.pc_tiles_location_ = 0x80000;
   tile_preset_.SNESTilesLocation = 0x0000;
-  tile_preset_.pcPaletteLocation = 0xDD326;
+  tile_preset_.pc_palette_location_ = 0xDD326;
   tile_preset_.SNESPaletteLocation = 0x0000;
   auto tiles_ = rom_.ExtractTiles(tile_preset_);
   auto current_palette_ = rom_.ExtractPalette(tile_preset_);
