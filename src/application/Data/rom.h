@@ -24,18 +24,20 @@ int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
 
 class ROM {
  public:
+  ROM() = default;
   ~ROM();
 
   void LoadFromFile(const std::string& path);
   std::vector<tile8> ExtractTiles(Graphics::TilePreset& preset);
   Graphics::SNESPalette ExtractPalette(Graphics::TilePreset& preset);
-  uint32_t GetRomPosition(const Graphics::TilePreset& preset, int directAddr,
-                          unsigned int snesAddr) const;
+
+  uint32_t GetRomPosition(int direct_addr, uint snes_addr) const;
   inline uchar* GetRawData() { return current_rom_; }
   const uchar* getTitle() const { return title; }
   long int getSize() const { return size_; }
   char getVersion() const { return version_; }
   bool isLoaded() const { return loaded; }
+  char* Decompress(int pos, bool reversed = false);
 
  private:
   bool loaded = false;
@@ -50,6 +52,8 @@ class ROM {
   enum rom_type type_ = LoROM;
 
   std::shared_ptr<uchar> rom_ptr_;
+  std::unordered_map<unsigned int, std::shared_ptr<uchar[2048]>>
+      decompressed_sheets;
 };
 
 }  // namespace Data
