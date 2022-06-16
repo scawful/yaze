@@ -3,7 +3,7 @@
 
 namespace YazeTests {
 
-TEST(YazeApplicationTests, TemplateTest) {
+TEST(YazeapplicationTests, TemplateTest) {
   int i = 0;
   ASSERT_EQ(i, 0);
 }

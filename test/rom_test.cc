@@ -35,8 +35,8 @@ class DecompressionTest : public ::testing::Test {
   void TearDown() override {}
 
   unsigned int c_size_;
-  yaze::Application::Data::ROM rom_;
-  yaze::Application::Graphics::TilePreset tile_preset_;
+  yaze::application::Data::ROM rom_;
+  yaze::application::Graphics::TilePreset tile_preset_;
 };
 
 TEST_F(DecompressionTest, test_valid_command_decompress) {
@@ -93,7 +93,7 @@ TEST_F(DecompressionTest, test_compress_decompress) {
 
 TEST_F(DecompressionTest, basic_test) {
   rom_.LoadFromFile("assets/alttp.sfc");
-  tile_preset_.bpp_ = 4;
+  tile_preset_.bits_per_pixel_ = 4;
   tile_preset_.length_ = 28672;
   tile_preset_.pc_tiles_location_ = 0x80000;
   tile_preset_.SNESTilesLocation = 0x0000;

@@ -17,10 +17,10 @@ add_executable(
   yaze_test
   yaze_test.cc
   rom_test.cc
-  ../src/Application/Data/rom.cc
-  ../src/Application/Graphics/tile.cc
-  ../src/Application/Graphics/tile.cc
-  ../src/Application/Graphics/palette.cc
+  ../src/application/Data/rom.cc
+  ../src/application/Graphics/tile.cc
+  ../src/application/Graphics/tile.cc
+  ../src/application/Graphics/palette.cc
   ${SNESHACKING_PATH}/compressions/alttpcompression.c
   ${SNESHACKING_PATH}/compressions/stdnintendo.c
   ${SNESHACKING_PATH}/tile.c
@@ -33,7 +33,7 @@ add_executable(
 target_include_directories(
   yaze_test PUBLIC
   ../src/Library/
-  ../src/Application/
+  ../src/application/
   ${SNESHACKING_PATH}
 )
 

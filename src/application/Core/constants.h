@@ -1,5 +1,5 @@
-#ifndef YAZE_application_CORE_CONSTANTS_H
-#define YAZE_application_CORE_CONSTANTS_H
+#ifndef YAZE_APPLICATION_CORE_CONSTANTS_H
+#define YAZE_APPLICATION_CORE_CONSTANTS_H
 
 #include <array>
 #include <string>

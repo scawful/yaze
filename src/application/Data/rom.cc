@@ -120,6 +120,7 @@ unsigned char *sheetBuffer = (unsigned char *)malloc(0x1000);
 unsigned char bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 void SNES3bppTo8bppSheet()  // 128x32
 {
+  char *buffer = new char[0x800];
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -161,13 +162,14 @@ void SNES3bppTo8bppSheet()  // 128x32
 }
 
 char *Decompress(int pos, bool reversed = false) {
-  // char* buffer = new char[0x800];
+  char *buffer = new char[0x800];
   for (int i = 0; i < 0x800; i++) {
     buffer[i] = 0;
   }
   unsigned int bufferPos = 0;
   unsigned char cmd = 0;
   unsigned int length = 0;
+  char romData[256];
   unsigned char databyte = (unsigned char)romData[pos];
   while (true) {
     databyte = (unsigned char)romData[pos];
