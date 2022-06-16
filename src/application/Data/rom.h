@@ -1,5 +1,5 @@
-#ifndef YAZE_application_UTILS_ROM_H
-#define YAZE_application_UTILS_ROM_H
+#ifndef YAZE_APPLICATION_UTILS_ROM_H
+#define YAZE_APPLICATION_UTILS_ROM_H
 
 #include <compressions/alttpcompression.h>
 #include <rommapping.h>
