@@ -120,6 +120,7 @@ uint32_t ROM::GetRomPosition(int direct_addr, uint snes_addr) const {
 uchar* ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
 {
   // 8bpp sheet out 
+  const uchar bitmask[8] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
   uchar *sheet_buffer_out = (unsigned char *)malloc(0x1000);
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;

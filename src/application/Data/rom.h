@@ -24,7 +24,6 @@ int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
 
 class ROM {
  public:
-  ROM() = default;
   ~ROM();
 
   void LoadFromFile(const std::string& path);
@@ -55,8 +54,6 @@ class ROM {
   std::shared_ptr<uchar> rom_ptr_;
   std::unordered_map<unsigned int, std::shared_ptr<uchar[2048]>>
       decompressed_sheets;
-
-  const uchar bitmmask[8] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 };
 
 }  // namespace Data
