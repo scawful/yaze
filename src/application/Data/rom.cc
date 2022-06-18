@@ -116,51 +116,52 @@ uint32_t ROM::GetRomPosition(int direct_addr, uint snes_addr) const {
   return filePos;
 }
 
-// unsigned char *sheetBuffer = (unsigned char *)malloc(0x1000);
-// unsigned char bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-// void SNES3bppTo8bppSheet()  // 128x32
-// {
-//   char *buffer = new char[0x800];
-//   int xx = 0;  // positions where we are at on the sheet
-//   int yy = 0;
-//   int pos = 0;
-//   int ypos = 0;
-//   for (int i = 0; i < 64; i++)  // for each tiles //16 per lines
-//   {
-//     for (int y = 0; y < 8; y++)  // for each lines
-//     {
-//       //[0] + [1] + [16]
-//       for (int x = 0; x < 8; x++) {
-//         unsigned char b1 =
-//             (unsigned char)((buffer[(y * 2) + (24 * pos)] & (bitmask[x])));
-//         unsigned char b2 =
-//             (unsigned char)(buffer[((y * 2) + (24 * pos)) + 1] &
-//             (bitmask[x]));
-//         unsigned char b3 =
-//             (unsigned char)(buffer[(16 + y) + (24 * pos)] & (bitmask[x]));
-//         unsigned char b = 0;
-//         if (b1 != 0) {
-//           b |= 1;
-//         };
-//         if (b2 != 0) {
-//           b |= 2;
-//         };
-//         if (b3 != 0) {
-//           b |= 4;
-//         };
-//         sheetBuffer[x + (xx) + (y * 128) + (yy * 1024)] = b;
-//       }
-//     }
-//     pos++;
-//     ypos++;
-//     xx += 8;
-//     if (ypos >= 16) {
-//       yy++;
-//       xx = 0;
-//       ypos = 0;
-//     }
-//   }
-// }
+// char *buffer = new char[0x800] AKA sheet_buffer_in 3bpp 
+uchar* ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
+{
+  // 8bpp sheet out 
+  uchar *sheet_buffer_out = (unsigned char *)malloc(0x1000);
+  int xx = 0;  // positions where we are at on the sheet
+  int yy = 0;
+  int pos = 0;
+  int ypos = 0;
+  for (int i = 0; i < 64; i++)  // for each tiles //16 per lines
+  {
+    for (int y = 0; y < 8; y++)  // for each lines
+    {
+      //[0] + [1] + [16]
+      for (int x = 0; x < 8; x++) {
+        unsigned char b1 =
+            (unsigned char)((sheet_buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
+        unsigned char b2 =
+            (unsigned char)(sheet_buffer_in[((y * 2) + (24 * pos)) + 1] &
+            (bitmask[x]));
+        unsigned char b3 =
+            (unsigned char)(sheet_buffer_in[(16 + y) + (24 * pos)] & (bitmask[x]));
+        unsigned char b = 0;
+        if (b1 != 0) {
+          b |= 1;
+        };
+        if (b2 != 0) {
+          b |= 2;
+        };
+        if (b3 != 0) {
+          b |= 4;
+        };
+        sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
+      }
+    }
+    pos++;
+    ypos++;
+    xx += 8;
+    if (ypos >= 16) {
+      yy++;
+      xx = 0;
+      ypos = 0;
+    }
+  }
+  return sheet_buffer_out;
+}
 
 char *ROM::Decompress(int pos, bool reversed) {
   char *buffer = new char[0x800];
