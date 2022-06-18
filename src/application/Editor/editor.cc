@@ -323,7 +323,7 @@ void Editor::DrawProjectEditor() {
       BASIC_BUTTON("Retrieve Graphics") {
         if (rom_.isLoaded()) {
           if (!loaded_image) {
-            image_data = rom_.LoadGraphicsSheet(current_set.pc_tiles_location_);
+            image_data = rom_.LoadGraphicsSheet(current_set_.pc_tiles_location_);
             loaded_image = true;
           } else {
             // TODO: build the sdl surface from the tilesheet data 
