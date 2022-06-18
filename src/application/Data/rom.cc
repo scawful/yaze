@@ -55,7 +55,6 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
     std::cout << alttp_decompression_error << std::endl;
     return rawTiles;
   }
-  // data = Decompress(filePos);
 
   // unpack the tiles based on their depth
   unsigned tileCpt = 0;
@@ -116,11 +115,18 @@ uint32_t ROM::GetRomPosition(int direct_addr, uint snes_addr) const {
   return filePos;
 }
 
-// char *buffer = new char[0x800] AKA sheet_buffer_in 3bpp 
-uchar* ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
+uchar* ROM::LoadGraphicsSheet(int offset) {
+  auto tilesheet_position = Core::Constants::gfx_1_pointer +
+                            (offset * Core::Constants::UncompressedSheetSize);
+  auto data = Decompress(tilesheet_position);
+  return SNES3bppTo8bppSheet(data);
+}
+
+// char *buffer = new char[0x800] AKA sheet_buffer_in 3bpp
+uchar *ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
 {
-  // 8bpp sheet out 
-  const uchar bitmask[8] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+  // 8bpp sheet out
+  const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
   uchar *sheet_buffer_out = (unsigned char *)malloc(0x1000);
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
@@ -132,13 +138,14 @@ uchar* ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
     {
       //[0] + [1] + [16]
       for (int x = 0; x < 8; x++) {
-        unsigned char b1 =
-            (unsigned char)((sheet_buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
+        unsigned char b1 = (unsigned char)((
+            sheet_buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
         unsigned char b2 =
             (unsigned char)(sheet_buffer_in[((y * 2) + (24 * pos)) + 1] &
-            (bitmask[x]));
+                            (bitmask[x]));
         unsigned char b3 =
-            (unsigned char)(sheet_buffer_in[(16 + y) + (24 * pos)] & (bitmask[x]));
+            (unsigned char)(sheet_buffer_in[(16 + y) + (24 * pos)] &
+                            (bitmask[x]));
         unsigned char b = 0;
         if (b1 != 0) {
           b |= 1;

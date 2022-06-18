@@ -317,6 +317,23 @@ void Editor::DrawProjectEditor() {
       yaze::Gui::InputHex("SNES Palette Location",
                           &current_set_.SNESPaletteLocation);
 
+      static bool loaded_image = false;
+      static uchar* image_data = nullptr;
+      ImGui::Text("Zarby Retrieval Code");
+      BASIC_BUTTON("Retrieve Graphics") {
+        if (rom_.isLoaded()) {
+          if (!loaded_image) {
+            image_data = rom_.LoadGraphicsSheet(current_set.pc_tiles_location_);
+            loaded_image = true;
+          } else {
+            // TODO: build the sdl surface from the tilesheet data 
+          }
+        }
+      }
+
+      ImGui::Separator();
+
+      ImGui::Text("Skarsnik Retrieval Code");
       BASIC_BUTTON("ExtractTiles") {
         if (rom_.isLoaded()) {
           tiles_ = rom_.ExtractTiles(current_set_);

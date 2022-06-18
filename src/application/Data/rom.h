@@ -29,14 +29,16 @@ class ROM {
   void LoadFromFile(const std::string& path);
   std::vector<tile8> ExtractTiles(Graphics::TilePreset& preset);
   Graphics::SNESPalette ExtractPalette(Graphics::TilePreset& preset);
-  uchar* SNES3bppTo8bppSheet(uchar *sheet_buffer_in);
 
   uint32_t GetRomPosition(int direct_addr, uint snes_addr) const;
   inline uchar* GetRawData() { return current_rom_; }
   const uchar* getTitle() const { return title; }
   long int getSize() const { return size_; }
   char getVersion() const { return version_; }
-  bool isLoaded() const { return loaded; }
+  bool isLoaded() const { return loaded; }  
+  
+  uchar* LoadGraphicsSheet(int offset);
+  uchar* SNES3bppTo8bppSheet(uchar *sheet_buffer_in);
   char* Decompress(int pos, bool reversed = false);
 
  private:
