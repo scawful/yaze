@@ -119,7 +119,7 @@ uchar* ROM::LoadGraphicsSheet(int offset) {
   auto tilesheet_position = Core::Constants::gfx_1_pointer +
                             (offset * Core::Constants::UncompressedSheetSize);
   auto data = Decompress(tilesheet_position);
-  return SNES3bppTo8bppSheet(data);
+  return SNES3bppTo8bppSheet((uchar*)data);
 }
 
 // char *buffer = new char[0x800] AKA sheet_buffer_in 3bpp
