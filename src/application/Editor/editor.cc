@@ -113,7 +113,6 @@ void Editor::DrawYazeMenu() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom_.LoadFromFile(filePathName);
-      overworld_editor_.SetRom(rom_);
       rom_data_ = (void *)rom_.GetRawData();
     }
     ImGuiFileDialog::Instance()->Close();

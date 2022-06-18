@@ -19,8 +19,6 @@ class OverworldEditor {
  public:
   void Update();
 
-  void SetRom(Data::ROM &rom) { rom_ = rom; }
-
  private:
   void DrawToolset();
   void DrawOverworldMapSettings();
