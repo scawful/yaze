@@ -306,7 +306,7 @@ void Editor::DrawGraphicsSheet(int offset) {
   snesAddr = (unsigned int)((
       ((unsigned char)(rom_.GetRawData()[0x4F80 + offset]) << 16) |
       ((unsigned char)(rom_.GetRawData()[0x505F + offset]) << 8) |
-      ((unsigned char)(rom_.GetRawData()[0x513E]))));
+      ((unsigned char)(rom_.GetRawData()[0x513E + offset]))));
   pcAddr = rom_.SnesToPc(snesAddr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = rom_.Decompress(pcAddr);
@@ -316,6 +316,7 @@ void Editor::DrawGraphicsSheet(int offset) {
   surface->pixels = sheet_buffer;
   std::cout << "Creating texture from surface..." << std::endl;
   sheet_texture = SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
+  imagesCache[offset] = sheet_texture;
   if (sheet_texture == nullptr) {
     std::cout << "Error: " << SDL_GetError() << std::endl;
   }
@@ -323,8 +324,9 @@ void Editor::DrawGraphicsSheet(int offset) {
 
 void Editor::DrawProjectEditor() {
   if (ImGui::BeginTabItem("Project")) {
-    if (ImGui::BeginTable("##projectTable", 2,
-                          ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable)) {
+    if (ImGui::BeginTable(
+            "##projectTable", 2,
+            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable)) {
       ImGui::TableSetupColumn("##inputs", ImGuiTableColumnFlags_WidthStretch);
       ImGui::TableSetupColumn("##outputs");
 
@@ -346,6 +348,17 @@ void Editor::DrawProjectEditor() {
           loaded_image = true;
         }
       }
+
+      BASIC_BUTTON("Get Multiple Sheets") {
+        if (rom_.isLoaded()) {
+          sheet_texture = SDL_CreateTextureFromSurface(
+              sdl_renderer_.get(), rom_.GetGraphicsSheet(tilesheet_offset));
+          if (sheet_texture == nullptr) {
+            std::cout << "Error: " << SDL_GetError() << std::endl;
+          }
+        }
+      }
+
       ImGui::Separator();
 
       // ----------------------------------------------------------------------
@@ -380,16 +393,16 @@ void Editor::DrawProjectEditor() {
         }
       }
 
-      static int i = 0;
-      for (auto &[key, texture] : imagesCache) {
-        ImGui::Image((void *)(SDL_Texture *)texture, ImVec2(32, 32));
-        if (i != 16) {
-          ImGui::SameLine();
-        } else if (i == 16) {
-          i = 0;
-        }
-        i++;
-      }
+      // static int i = 0;
+      // for (auto &[key, texture] : imagesCache) {
+      //   ImGui::Image((void *)(SDL_Texture *)texture, ImVec2(32, 32));
+      //   if (i != 16) {
+      //     ImGui::SameLine();
+      //   } else if (i == 16) {
+      //     i = 0;
+      //   }
+      //   i++;
+      // }
 
       ImGui::TableNextColumn();
 
@@ -457,9 +470,20 @@ void Editor::DrawProjectEditor() {
       }
 
       if (loaded_image) {
-        draw_list->AddImage((void *)(SDL_Texture *)sheet_texture,
-                            ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
-                            ImVec2(canvas_p0.x + 512, canvas_p0.y + 128));
+        // draw_list->AddImage((void *)(SDL_Texture *)sheet_texture,
+        //                     ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
+        //                     ImVec2(canvas_p0.x + 512, canvas_p0.y + 128));
+
+        for (const auto &[key, value] : imagesCache) {
+          int offset = 128 * (key + 1);
+          int top_left_y = canvas_p0.y + 2;
+          if (key >= 1) {
+            top_left_y = canvas_p0.y + 128 * key;
+          }
+          draw_list->AddImage((void *)(SDL_Texture *)value,
+                              ImVec2(canvas_p0.x + 2, top_left_y),
+                              ImVec2(canvas_p0.x + 512, canvas_p0.y + offset));
+        }
       }
 
       draw_list->PopClipRect();

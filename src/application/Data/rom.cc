@@ -249,7 +249,6 @@ SDL_Surface* ROM::GetGraphicsSheet(int num_sheets) {
       SDL_CreateRGBSurfaceWithFormat(0, 128, height, 8, SDL_PIXELFORMAT_INDEX8);
   std::cout << "Drawing surface" << std::endl;
   uchar *sheet_buffer = nullptr;
-  // int sheet_buffer_pos = 0;
   for (int i = 0; i < 8; i++) {
     surface->format->palette->colors[i].r = (unsigned char)(i * 31);
     surface->format->palette->colors[i].g = (unsigned char)(i * 31);
@@ -264,7 +263,7 @@ SDL_Surface* ROM::GetGraphicsSheet(int num_sheets) {
         16) |
                         ((unsigned char)(current_rom_[0x505F + i]) << 8)
                         |
-                        ((unsigned char)(current_rom_[0x513E]))));
+                        ((unsigned char)(current_rom_[0x513E + i]))));
     pcAddr = SnesToPc(snesAddr);
     std::cout << "Decompressing..." << std::endl;
     char *decomp = Decompress(pcAddr);
