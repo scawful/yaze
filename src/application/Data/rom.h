@@ -40,7 +40,7 @@ class ROM {
 
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
   char* Decompress(int pos, bool reversed = false);
-  SDL_Surface* GetGraphicsSheet(int num_sheets);
+  SDL_Surface* GetGraphicsSheet(int num_sheets = 1);
 
   unsigned int SnesToPc(unsigned int addr) {
     if (addr >= 0x808000) {
