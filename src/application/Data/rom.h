@@ -35,11 +35,20 @@ class ROM {
   const uchar* getTitle() const { return title; }
   long int getSize() const { return size_; }
   char getVersion() const { return version_; }
-  bool isLoaded() const { return loaded; }  
-  
-  uchar* LoadGraphicsSheet(int offset);
-  uchar* SNES3bppTo8bppSheet(uchar *sheet_buffer_in);
+  bool isLoaded() const { return loaded; }
+
+
+  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
   char* Decompress(int pos, bool reversed = false);
+  SDL_Surface* GetGraphicsSheet(int num_sheets);
+
+  unsigned int SnesToPc(unsigned int addr) {
+    if (addr >= 0x808000) {
+      addr -= 0x808000;
+    }
+    unsigned int temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
+    return (temp + 0x0);
+  }
 
  private:
   bool loaded = false;
@@ -54,8 +63,7 @@ class ROM {
   enum rom_type type_ = LoROM;
 
   std::shared_ptr<uchar> rom_ptr_;
-  std::unordered_map<unsigned int, std::shared_ptr<uchar[2048]>>
-      decompressed_sheets;
+  std::vector<SDL_Surface> surfaces_;
 };
 
 }  // namespace Data

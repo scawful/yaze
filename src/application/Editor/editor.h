@@ -32,6 +32,9 @@ class Editor {
   void DrawHelpMenu() const;
 
   void DrawSurface();
+
+  void DrawGraphicsSheet(int offset = 0);
+
   void DrawProjectEditor();
   void DrawOverworldEditor();
   void DrawDungeonEditor();
@@ -46,6 +49,7 @@ class Editor {
   std::vector<std::vector<tile8>> arranged_tiles_;
   std::unordered_map<unsigned int, std::shared_ptr<SDL_Texture>> texture_cache_;
   std::unordered_map<unsigned int, SDL_Texture *> imagesCache;
+  SDL_Texture *sheet_texture = nullptr;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
   Data::ROM rom_;
@@ -53,7 +57,6 @@ class Editor {
   TextEditor::LanguageDefinition language_65816_;
   OverworldEditor overworld_editor_;
 
-  Graphics::Scene current_scene_;
   Graphics::SNESPalette current_palette_;
   Graphics::TilePreset current_set_;
 
