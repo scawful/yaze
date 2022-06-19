@@ -44,7 +44,7 @@ void OverworldEditor::Update() {
   DrawToolset();
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#overworldCanvas");
+    ImGui::TableSetupColumn("#overworldCanvas", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x);
     ImGui::TableSetupColumn("#tileSelector");
     ImGui::TableNextColumn();
     DrawOverworldCanvas();
