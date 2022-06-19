@@ -115,15 +115,7 @@ uint32_t ROM::GetRomPosition(int direct_addr, uint snes_addr) const {
   return filePos;
 }
 
-uchar* ROM::LoadGraphicsSheet(int offset) {
-  auto tilesheet_position = Core::Constants::gfx_1_pointer +
-                            (offset * Core::Constants::UncompressedSheetSize);
-  auto data = Decompress(tilesheet_position);
-  return SNES3bppTo8bppSheet((uchar*)data);
-}
-
-// char *buffer = new char[0x800] AKA sheet_buffer_in 3bpp
-uchar *ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
+uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id)  // 128x32
 {
   // 8bpp sheet out
   const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
@@ -132,6 +124,11 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
   int yy = 0;
   int pos = 0;
   int ypos = 0;
+
+  if (sheet_id != 0) {
+    yy = sheet_id;
+  }
+
   for (int i = 0; i < 64; i++)  // for each tiles //16 per lines
   {
     for (int y = 0; y < 8; y++)  // for each lines
@@ -139,12 +136,12 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *sheet_buffer_in)  // 128x32
       //[0] + [1] + [16]
       for (int x = 0; x < 8; x++) {
         unsigned char b1 = (unsigned char)((
-            sheet_buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
+            buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
         unsigned char b2 =
-            (unsigned char)(sheet_buffer_in[((y * 2) + (24 * pos)) + 1] &
+            (unsigned char)(buffer_in[((y * 2) + (24 * pos)) + 1] &
                             (bitmask[x]));
         unsigned char b3 =
-            (unsigned char)(sheet_buffer_in[(16 + y) + (24 * pos)] &
+            (unsigned char)(buffer_in[(16 + y) + (24 * pos)] &
                             (bitmask[x]));
         unsigned char b = 0;
         if (b1 != 0) {
@@ -180,7 +177,7 @@ char *ROM::Decompress(int pos, bool reversed) {
   unsigned char cmd = 0;
   unsigned int length = 0;
 
-  unsigned char databyte = (unsigned char)current_rom_[pos];
+  uchar databyte = current_rom_[pos];
   while (true) {
     databyte = (unsigned char)current_rom_[pos];
     if (databyte == 0xFF)  // End of decompression
@@ -244,6 +241,40 @@ char *ROM::Decompress(int pos, bool reversed) {
     }
   }
   return buffer;
+}
+
+SDL_Surface* ROM::GetGraphicsSheet(int num_sheets) {
+  int height = 32 * num_sheets;
+  SDL_Surface *surface =
+      SDL_CreateRGBSurfaceWithFormat(0, 128, height, 8, SDL_PIXELFORMAT_INDEX8);
+  std::cout << "Drawing surface" << std::endl;
+  uchar *sheet_buffer = nullptr;
+  // int sheet_buffer_pos = 0;
+  for (int i = 0; i < 8; i++) {
+    surface->format->palette->colors[i].r = (unsigned char)(i * 31);
+    surface->format->palette->colors[i].g = (unsigned char)(i * 31);
+    surface->format->palette->colors[i].b = (unsigned char)(i * 31);
+  }
+
+  unsigned int snesAddr = 0;
+  unsigned int pcAddr = 0;
+  for (int i = 0; i < num_sheets; i++) {
+    snesAddr =
+        (unsigned int)((((unsigned char)(current_rom_[0x4F80 + i]) <<
+        16) |
+                        ((unsigned char)(current_rom_[0x505F + i]) << 8)
+                        |
+                        ((unsigned char)(current_rom_[0x513E]))));
+    pcAddr = SnesToPc(snesAddr);
+    std::cout << "Decompressing..." << std::endl;
+    char *decomp = Decompress(pcAddr);
+    std::cout << "Converting to 8bpp sheet..." << std::endl;
+    sheet_buffer = SNES3bppTo8bppSheet((uchar *)decomp, i);
+    std::cout << "Assigning pixel data..." << std::endl;
+  }
+
+  surface->pixels = sheet_buffer;
+  return surface;
 }
 
 int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {
