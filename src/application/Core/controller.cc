@@ -122,7 +122,7 @@ void Controller::CreateWindow() {
                          SDL_WINDOWPOS_UNDEFINED,      // initial y position
                          1200,                         // width, in pixels
                          800,                          // height, in pixels
-                         SDL_WINDOW_RESIZABLE),
+                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL),
         sdl_deleter());
   }
 }
