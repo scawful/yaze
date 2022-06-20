@@ -18,7 +18,7 @@
 
 namespace yaze {
 namespace app {
-
+namespace rom {
 int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {
   return (addr1 << 16) | (addr2 << 8) | addr3;
 }
@@ -301,6 +301,6 @@ SDL_Texture *ROM::DrawgfxSheet(int offset) {
   }
   return sheet_texture;
 }
-
+}  // namespace rom
 }  // namespace app
 }  // namespace yaze

@@ -1,12 +1,13 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
-#include "gfx/palette.h"
-#include "gfx/tile.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/tile.h"
+#include "app/zelda3/overworld.h"
 #include "gui/icons.h"
-#include "zelda3/overworld.h"
 
 namespace yaze {
 namespace gui {
@@ -16,7 +17,7 @@ static constexpr unsigned int k4BPP = 4;
 
 class OverworldEditor {
  public:
-  void SetupROM(app::ROM &rom);
+  void SetupROM(app::rom::ROM &rom);
   void Update();
 
  private:
@@ -29,7 +30,7 @@ class OverworldEditor {
 
   void Loadgfx();
 
-  app::ROM rom_;
+  app::rom::ROM rom_;
   app::zelda3::Overworld overworld_;
   app::gfx::Bitmap allgfxBitmap;
   app::gfx::SNESPalette palette_;

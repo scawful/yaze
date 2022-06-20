@@ -19,7 +19,7 @@
 
 namespace yaze {
 namespace app {
-
+namespace rom {
 int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
 
 class ROM {
@@ -68,6 +68,7 @@ class ROM {
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };
 
+}  // namespace rom
 }  // namespace app
 }  // namespace yaze
 

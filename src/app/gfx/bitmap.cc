@@ -1,8 +1,10 @@
 #include "bitmap.h"
 
+#include <SDL2/SDL.h>
 #include <rommapping.h>
 
-#include "rom.h"
+#include "app/core/constants.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -28,7 +30,7 @@ int GetPCGfxAddress(char *romData, char id) {
   char gfxGamePointer3 = romData[gfxPointer3 + id];
 
   return lorom_snes_to_pc(
-      AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3),
+      yaze::app::rom::AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3),
       info1);
 }
 

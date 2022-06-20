@@ -6,13 +6,13 @@
 #include <imgui/imgui_memory_editor.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
-#include "core/constants.h"
-#include "gfx/palette.h"
-#include "gfx/tile.h"
+#include "app/core/constants.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/tile.h"
+#include "app/rom.h"
 #include "gui/editor/overworld_editor.h"
 #include "gui/icons.h"
 #include "gui/input.h"
-#include "rom.h"
 
 namespace yaze {
 namespace gui {
@@ -518,6 +518,6 @@ void Editor::DrawHUDEditor() {
   }
 }
 
-}  // namespace Editor
-}  // namespace app
+}  // namespace editor
+}  // namespace gui
 }  // namespace yaze

@@ -37,10 +37,11 @@ add_executable(
     gui/editor/editor.cc
     gui/editor/overworld_editor.cc
     app/rom.cc
+    app/core/constants.cc
     app/core/controller.cc
     app/gfx/bitmap.cc
     app/gfx/tile.cc
-    app/gfx/palette.cc
+    app/gfx/snes_palette.cc
     app/zelda3/overworld.cc
     app/zelda3/overworld_map.cc
     # GUI libraries 
@@ -67,7 +68,6 @@ target_include_directories(
   /
   Library/
   app/
-  gui/
   "C:/msys64/mingw64/include/libpng16"
   "C:/msys64/mingw64/include/SDL2"
   "C:/msys64/mingw64/include"

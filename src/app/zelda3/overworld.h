@@ -6,11 +6,11 @@
 #include <memory>
 #include <vector>
 
-#include "Core/constants.h"
-#include "gfx/bitmap.h"
-#include "gfx/tile.h"
-#include "overworld_map.h"
-#include "rom.h"
+#include "app/core/constants.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/tile.h"
+#include "app/rom.h"
+#include "app/zelda3/overworld_map.h"
 
 namespace yaze {
 namespace app {
@@ -21,7 +21,7 @@ class Overworld {
   Overworld() = default;
   ~Overworld();
 
-  void Load(ROM& rom);
+  void Load(app::rom::ROM& rom);
 
   char* overworldMapPointer = new char[0x40000];
   gfx::Bitmap* overworldMapBitmap;
@@ -30,7 +30,7 @@ class Overworld {
   gfx::Bitmap* owactualMapBitmap;
 
  private:
-  ROM rom_;
+  app::rom::ROM rom_;
   int gameState = 1;
   bool isLoaded = false;
   uchar mapParent[160];

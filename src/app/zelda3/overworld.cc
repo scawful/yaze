@@ -1,7 +1,7 @@
 #include "overworld.h"
 
-#include "gfx/tile.h"
-#include "rom.h"
+#include "app/gfx/tile.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -41,7 +41,7 @@ static TileInfo GetTilesInfo(ushort tile) {
   return TileInfo(tid, p, v, h, o);
 }
 
-void Overworld::Load(ROM& rom) {
+void Overworld::Load(app::rom::ROM& rom) {
   rom_ = rom;
   for (int i = 0; i < 0x2B; i++) {
     tileLeftEntrance.push_back(constants::overworldEntranceAllowedTilesLeft +
