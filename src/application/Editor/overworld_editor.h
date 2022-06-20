@@ -6,7 +6,6 @@
 #include "Data/OW/overworld.h"
 #include "Graphics/icons.h"
 #include "Graphics/palette.h"
-#include "Graphics/scene.h"
 #include "Graphics/tile.h"
 
 namespace yaze {
@@ -31,7 +30,6 @@ class OverworldEditor {
 
   Data::ROM rom_;
   Data::Overworld overworld;
-  Graphics::Scene current_scene_;
   Graphics::Bitmap allgfxBitmap;
   Graphics::SNESPalette palette_;
   Graphics::TilePreset current_set_;
