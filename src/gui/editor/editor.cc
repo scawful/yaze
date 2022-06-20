@@ -6,10 +6,10 @@
 #include <imgui/imgui_memory_editor.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
-#include "Core/constants.h"
-#include "Editor/overworld_editor.h"
+#include "core/constants.h"
 #include "gfx/palette.h"
 #include "gfx/tile.h"
+#include "gui/editor/overworld_editor.h"
 #include "gui/icons.h"
 #include "gui/input.h"
 #include "rom.h"

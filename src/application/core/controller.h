@@ -8,7 +8,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#include "Editor/editor.h"
+#include "gui/editor/editor.h"
 #include "gui/icons.h"
 #include "gui/style.h"
 
@@ -48,7 +48,7 @@ class Controller {
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };
 
-}  // namespace Core
+}  // namespace core
 }  // namespace application
 }  // namespace yaze
 

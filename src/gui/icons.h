@@ -3,7 +3,7 @@
 // for use with https://github.com/google/material-design-icons/blob/master/font/MaterialIcons-Regular.ttf
 #pragma once
 
-#define FONT_ICON_FILE_NAME_MD "assets/Fonts/MaterialIcons-Regular.ttf"
+#define FONT_ICON_FILE_NAME_MD "assets/font/MaterialIcons-Regular.ttf"
 
 #define ICON_MIN_MD 0xe000
 #define ICON_MAX_MD 0x10fffd
