@@ -1225,7 +1225,7 @@ static const std::string TileTypeNames[] = {
     "$FF Door X top? (unused?)"};
 
 }  // namespace constants
-}  // namespace Core
+}  // namespace core
 }  // namespace app
 }  // namespace yaze
 
