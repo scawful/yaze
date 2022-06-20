@@ -8,7 +8,7 @@
 #include <cstdint>
 
 namespace yaze {
-namespace Gui {
+namespace gui {
 
 IMGUI_API bool InputHex(const char* label, int* data);
 IMGUI_API bool InputHexShort(const char* label, int* data);

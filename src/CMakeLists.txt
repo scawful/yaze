@@ -32,16 +32,15 @@ add_library("NintendoCompression" STATIC ${SNESHACKING_SOURCES})
 add_executable(
     yaze
     yaze.cc
+    gui/input.cc
+    gui/style.cc
     application/Core/controller.cc
-    application/Core/input.cc
     application/Data/rom.cc
     application/Data/OW/overworld.cc
     application/Data/OW/overworld_map.cc
     application/Graphics/bitmap.cc
     application/Graphics/tile.cc
     application/Graphics/palette.cc
-    application/Graphics/style.cc
-    application/Graphics/scene.cc
     application/Editor/editor.cc
     application/Editor/overworld_editor.cc
     # GUI libraries 
@@ -65,6 +64,7 @@ add_executable(
 
 target_include_directories(
   yaze PUBLIC
+  /
   Library/
   application/
   "C:/msys64/mingw64/include/libpng16"

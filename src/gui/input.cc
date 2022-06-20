@@ -4,7 +4,7 @@
 #include <imgui/imgui_internal.h>
 
 namespace yaze {
-namespace Gui {
+namespace gui {
 
 const int kStepOneHex = 0x01;
 const int kStepFastHex = 0x0F;

@@ -4,9 +4,10 @@
 #include <imgui/imgui.h>
 
 #include "Data/OW/overworld.h"
-#include "Graphics/icons.h"
 #include "Graphics/palette.h"
 #include "Graphics/tile.h"
+#include "gui/icons.h"
+
 
 namespace yaze {
 namespace application {
@@ -16,7 +17,7 @@ static constexpr unsigned int k4BPP = 4;
 
 class OverworldEditor {
  public:
-  void SetupROM(Data::ROM & rom);
+  void SetupROM(Data::ROM &rom);
   void Update();
 
  private:
