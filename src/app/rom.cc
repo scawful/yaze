@@ -1,12 +1,27 @@
 #include "rom.h"
 
-#include <filesystem>
+#include <compressions/alttpcompression.h>
+#include <rommapping.h>
+#include <tile.h>
 
-#include "Core/constants.h"
+#include <cstddef>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "app/core/constants.h"
+#include "app/gfx/tile.h"
 
 namespace yaze {
 namespace app {
-namespace Data {
+
+int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {
+  return (addr1 << 16) | (addr2 << 8) | addr3;
+}
 
 ROM::~ROM() {
   if (loaded) {
@@ -287,10 +302,5 @@ SDL_Texture *ROM::DrawgfxSheet(int offset) {
   return sheet_texture;
 }
 
-int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {
-  return (addr1 << 16) | (addr2 << 8) | addr3;
-}
-
-}  // namespace Data
 }  // namespace app
 }  // namespace yaze

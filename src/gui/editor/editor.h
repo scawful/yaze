@@ -15,8 +15,8 @@
 #include "rom.h"
 
 namespace yaze {
-namespace app {
-namespace Editor {
+namespace gui {
+namespace editor {
 
 class Editor {
  public:
@@ -45,20 +45,18 @@ class Editor {
   void *rom_data_;
   bool is_loaded_ = true;
 
-  std::vector<tile8> tiles_;
-  std::vector<std::vector<tile8>> arranged_tiles_;
-  std::unordered_map<unsigned int, std::shared_ptr<SDL_Texture>> texture_cache_;
-  std::unordered_map<unsigned int, SDL_Texture *> imagesCache;
-
-  std::shared_ptr<SDL_Renderer> sdl_renderer_;
-
-  Data::ROM rom_;
+  app::ROM rom_;
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language_65816_;
   OverworldEditor overworld_editor_;
 
+  std::vector<tile8> tiles_;
+  std::vector<std::vector<tile8>> arranged_tiles_;
+  std::unordered_map<uint, SDL_Texture *> imagesCache;
+  std::shared_ptr<SDL_Renderer> sdl_renderer_;
+
   ImVec4 current_palette_[8];
-  gfx::TilePreset current_set_;
+  app::gfx::TilePreset current_set_;
 
   ImGuiWindowFlags main_editor_flags_ =
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
@@ -67,7 +65,7 @@ class Editor {
   ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
 };
 
-}  // namespace Editor
+}  // namespace editor
 }  // namespace app
 }  // namespace yaze
 

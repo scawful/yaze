@@ -7,18 +7,18 @@
 
 #include <cstddef>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "Core/constants.h"
-#include "gfx/tile.h"
+#include "app/core/constants.h"
+#include "app/gfx/tile.h"
 
 namespace yaze {
 namespace app {
-namespace Data {
 
 int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
 
@@ -52,13 +52,13 @@ class ROM {
  private:
   bool loaded = false;
   bool has_header_ = false;
-  uchar* current_rom_;
-  uchar version_;
-  uchar title[21] = "ROM Not Loaded";
+  long int size_;
   uint uncompressed_size_;
   uint compressed_size_;
   uint compress_size_;
-  long int size_;
+  uchar* current_rom_;
+  uchar version_;
+  uchar title[21] = "ROM Not Loaded";
   enum rom_type type_ = LoROM;
 
   std::shared_ptr<uchar> rom_ptr_;
@@ -68,7 +68,6 @@ class ROM {
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };
 
-}  // namespace Data
 }  // namespace app
 }  // namespace yaze
 

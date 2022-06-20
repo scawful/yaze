@@ -1,5 +1,7 @@
 #include "tile.h"
 
+#include <tile.h>
+
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -7,6 +9,12 @@
 #include <cstring>
 #include <iostream>
 #include <regex>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "app/core/constants.h"
+#include "app/gfx/palette.h"
 
 namespace yaze {
 namespace app {

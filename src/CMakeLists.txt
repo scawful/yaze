@@ -38,11 +38,11 @@ add_executable(
     gui/editor/overworld_editor.cc
     app/rom.cc
     app/core/controller.cc
-    app/zelda3/overworld.cc
-    app/zelda3/overworld_map.cc
     app/gfx/bitmap.cc
     app/gfx/tile.cc
     app/gfx/palette.cc
+    app/zelda3/overworld.cc
+    app/zelda3/overworld_map.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp
@@ -67,6 +67,7 @@ target_include_directories(
   /
   Library/
   app/
+  gui/
   "C:/msys64/mingw64/include/libpng16"
   "C:/msys64/mingw64/include/SDL2"
   "C:/msys64/mingw64/include"
