@@ -15,7 +15,8 @@ namespace Graphics {
 TilesPattern::TilesPattern() {
   tiles_per_row_ = 16;
   number_of_tiles_ = 16;
-  // transform_vector_.push_back(std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8,
+  // transform_vector_.push_back(std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+  // 8,
   //                                              9, 10, 11, 12, 13, 14, 15});
   // transform_vector_.push_back(std::vector<int>{});
   // transform_vector_.push_back(std::vector<int>{});
@@ -25,47 +26,6 @@ TilesPattern::TilesPattern() {
   transform_vector_.push_back(std::vector<int>{4, 5, 6, 7});
   transform_vector_.push_back(std::vector<int>{8, 9, 10, 11});
   transform_vector_.push_back(std::vector<int>{12, 13, 14, 15});
-}
-
-// [pattern]
-// name = "32x32 B (4x4)"
-// number_of_tile = 16
-// pattern =
-void TilesPattern::default_settings() {
-  number_of_tiles_ = 16;
-  std::string patternString =
-      "[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, A, B], [C, D, E, F]";
-
-  transform_vector_.clear();
-
-  std::smatch cm;
-  std::regex arrayRegExp("(\\[[\\s|0-F|a-f|,]+\\])");
-
-  int pos = 0;
-  while (std::regex_search(patternString, cm, arrayRegExp)) {
-    std::string arrayString = cm[1];
-    std::vector<int> tmpVect;
-    uint stringPos = 1;
-
-    while (arrayString[stringPos] != ']') {
-      while (arrayString[stringPos] == ' ') stringPos++;
-      std::smatch cm_;
-      std::regex hex("([0-F|a-f]+)");
-      bool ok;
-
-      std::regex_search(arrayString, cm, hex);
-      if (cm[1] == stringPos) {
-        std::cout << "here" << std::endl;
-        // tmpVect.push_back(stoi(cm[1]));
-      }
-      while (arrayString[stringPos] == ' ') stringPos++;
-      stringPos++;  // should be the comma
-    }
-
-    pos += cm.size();
-    transform_vector_.push_back(tmpVect);
-  }
-  std::cout << transform_vector_.size() << std::endl;
 }
 
 std::vector<std::vector<tile8> > TilesPattern::transform(
