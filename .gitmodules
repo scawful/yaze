@@ -10,3 +10,6 @@
 [submodule "src/Library/sneshacking"]
 	path = src/Library/sneshacking
 	url = https://github.com/Skarsnik/sneshacking.git
+[submodule "assets/asm/alttp-hacker-workspace"]
+	path = assets/asm/alttp-hacker-workspace
+	url = https://github.com/scawful/alttp-hacker-workspace.git
