@@ -1,5 +1,16 @@
 #include "editor.h"
 
+#include <ImGuiColorTextEdit/TextEditor.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_memory_editor.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
+
+#include "Core/constants.h"
+#include "Core/input.h"
+#include "Data/rom.h"
+#include "Editor/overworld_editor.h"
+#include "Graphics/icons.h"
 #include "Graphics/palette.h"
 #include "Graphics/tile.h"
 
@@ -68,6 +79,19 @@ Editor::Editor() {
   current_set_.length_ = 28672;
   current_set_.pc_palette_location_ = 906022;
   current_set_.SNESPaletteLocation = 0;
+
+  for (int i = 0; i < 8; i++) {
+    current_palette_[i].x = (i * 0.21f);
+    current_palette_[i].y = (i * 0.21f);
+    current_palette_[i].z = (i * 0.21f);
+    current_palette_[i].w = 1.f;
+  }
+}
+
+Editor::~Editor() {
+  for (auto &each : imagesCache) {
+    SDL_DestroyTexture(each.second);
+  }
 }
 
 void Editor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
@@ -95,6 +119,7 @@ void Editor::UpdateScreen() {
   DrawGraphicsEditor();
   DrawSpriteEditor();
   DrawScreenEditor();
+  DrawHUDEditor();
   END_TAB_BAR()
 
   ImGui::End();
@@ -257,48 +282,18 @@ void Editor::DrawHelpMenu() const {
   }
 }
 
-void Editor::DrawSurface() {
-  arranged_tiles_ =
-      Graphics::TilesPattern::transform(current_set_.tilesPattern, tiles_);
-  for (unsigned int j = 0; j < arranged_tiles_.size(); j++) {
-    for (unsigned int i = 0; i < arranged_tiles_[0].size(); i++) {
-      tile8 tile = arranged_tiles_[j][i];
-      // SDL_PIXELFORMAT_RGB888 ?
-      SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(
-          0, 8, 8, SDL_BITSPERPIXEL(4), SDL_PIXELFORMAT_RGB444);
-      if (surface == nullptr) {
-        SDL_Log("SDL_CreateRGBSurfaceWithFormat() failed: %s", SDL_GetError());
-        exit(1);
-      }
-      SDL_PixelFormat *format = surface->format;
-      format->palette = current_palette_.GetSDL_Palette();
-      uchar *ptr = (uchar *)surface->pixels;
-
-      for (int k = 0; k < 8; k++) {
-        for (int l = 0; l < 8; l++) {
-          ptr[k * 8 + l] = tile.data[k * 8 + l];
-        }
-      }
-
-      SDL_Texture *texture =
-          SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
-      if (texture == nullptr) {
-        std::cout << "Error: " << SDL_GetError() << std::endl;
-      }
-      imagesCache[tile.id] = texture;
-    }
-  }
-}
-
 void Editor::DrawGraphicsSheet(int offset) {
   SDL_Surface *surface =
       SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
   std::cout << "Drawing surface" << std::endl;
   uchar *sheet_buffer = nullptr;
   for (int i = 0; i < 8; i++) {
-    surface->format->palette->colors[i].r = (unsigned char)(i * 31);
-    surface->format->palette->colors[i].g = (unsigned char)(i * 31);
-    surface->format->palette->colors[i].b = (unsigned char)(i * 31);
+    std::cout << "Red value: " << current_palette_[i].x << std::endl;
+    std::cout << "Green value: " << current_palette_[i].y << std::endl;
+    std::cout << "Blue value: " << current_palette_[i].z << std::endl;
+    surface->format->palette->colors[i].r = current_palette_[i].x * 255;
+    surface->format->palette->colors[i].g = current_palette_[i].y * 255;
+    surface->format->palette->colors[i].b = current_palette_[i].z * 255;
   }
 
   unsigned int snesAddr = 0;
@@ -335,13 +330,22 @@ void Editor::DrawProjectEditor() {
       ImGui::Text("Version: %d", rom_.getVersion());
       ImGui::Text("ROM Size: %ld", rom_.getSize());
       ImGui::Separator();
+
       // ----------------------------------------------------------------------
 
       static bool loaded_image = false;
       static int tilesheet_offset = 0;
+      ImGui::Text("Palette:");
+      for (int i = 0; i < 8; i++) {
+        std::string id = "##PaletteColor" + std::to_string(i);
+        ImGui::SameLine();
+        ImGui::ColorEdit4(id.c_str(), (float *)&current_palette_[i].x,
+                          ImGuiColorEditFlags_NoInputs |
+                              ImGuiColorEditFlags_DisplayRGB |
+                              ImGuiColorEditFlags_DisplayHex);
+      }
+      ImGui::SetNextItemWidth(100.f);
       ImGui::InputInt("Tilesheet Offset", &tilesheet_offset);
-
-      ImGui::Text("Zarby Retrieval Code");
       BASIC_BUTTON("Retrieve Graphics") {
         if (rom_.isLoaded()) {
           DrawGraphicsSheet(tilesheet_offset);
@@ -349,60 +353,7 @@ void Editor::DrawProjectEditor() {
         }
       }
 
-      BASIC_BUTTON("Get Multiple Sheets") {
-        if (rom_.isLoaded()) {
-          sheet_texture = SDL_CreateTextureFromSurface(
-              sdl_renderer_.get(), rom_.GetGraphicsSheet(tilesheet_offset));
-          if (sheet_texture == nullptr) {
-            std::cout << "Error: " << SDL_GetError() << std::endl;
-          }
-        }
-      }
-
-      ImGui::Separator();
-
       // ----------------------------------------------------------------------
-
-      ImGui::InputInt("Bits per Pixel", &current_set_.bits_per_pixel_);
-      yaze::Gui::InputHex("PC Tile Location", &current_set_.pc_tiles_location_);
-
-      yaze::Gui::InputHex("SNES Tile Location",
-                          &current_set_.SNESTilesLocation);
-      ImGui::InputInt("Tile Preset Length", &current_set_.length_);
-      ImGui::InputInt("PC Palette Location",
-                      &current_set_.pc_palette_location_);
-      yaze::Gui::InputHex("SNES Palette Location",
-                          &current_set_.SNESPaletteLocation);
-
-      ImGui::Text("Skarsnik Retrieval Code");
-      BASIC_BUTTON("ExtractTiles") {
-        if (rom_.isLoaded()) {
-          tiles_ = rom_.ExtractTiles(current_set_);
-        }
-      }
-
-      BASIC_BUTTON("ExtractPalette") {
-        if (rom_.isLoaded()) {
-          current_palette_ = rom_.ExtractPalette(current_set_);
-        }
-      }
-
-      BASIC_BUTTON("BuildSurface") {
-        if (rom_.isLoaded()) {
-          DrawSurface();
-        }
-      }
-
-      // static int i = 0;
-      // for (auto &[key, texture] : imagesCache) {
-      //   ImGui::Image((void *)(SDL_Texture *)texture, ImVec2(32, 32));
-      //   if (i != 16) {
-      //     ImGui::SameLine();
-      //   } else if (i == 16) {
-      //     i = 0;
-      //   }
-      //   i++;
-      // }
 
       ImGui::TableNextColumn();
 
@@ -412,7 +363,8 @@ void Editor::DrawProjectEditor() {
       static bool opt_enable_grid = true;
       ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
       // ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
-      ImVec2 canvas_sz = ImVec2(512 + 1, ImGui::GetContentRegionAvail().y);
+      ImVec2 canvas_sz = ImVec2(
+          512 + 1, ImGui::GetContentRegionAvail().y + (tilesheet_offset * 256));
       ImVec2 canvas_p1 =
           ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
@@ -453,8 +405,24 @@ void Editor::DrawProjectEditor() {
         ImGui::EndPopup();
       }
 
-      // Draw grid + all lines in the canvas
+      // Draw grid around the canvas
       draw_list->PushClipRect(canvas_p0, canvas_p1, true);
+
+      // Draw the tilesheets loaded from the ROM
+      if (loaded_image) {
+        for (const auto &[key, value] : imagesCache) {
+          int offset = 128 * (key + 1);
+          int top_left_y = canvas_p0.y + 2;
+          if (key >= 1) {
+            top_left_y = canvas_p0.y + 128 * key;
+          }
+          draw_list->AddImage((void *)(SDL_Texture *)value,
+                              ImVec2(canvas_p0.x + 2, top_left_y),
+                              ImVec2(canvas_p0.x + 512, canvas_p0.y + offset));
+        }
+      }
+
+      // Draw the tile grid
       if (opt_enable_grid) {
         const float GRID_STEP = 32.0f;
         for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x;
@@ -467,23 +435,6 @@ void Editor::DrawProjectEditor() {
           draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
                              ImVec2(canvas_p1.x, canvas_p0.y + y),
                              IM_COL32(200, 200, 200, 40));
-      }
-
-      if (loaded_image) {
-        // draw_list->AddImage((void *)(SDL_Texture *)sheet_texture,
-        //                     ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
-        //                     ImVec2(canvas_p0.x + 512, canvas_p0.y + 128));
-
-        for (const auto &[key, value] : imagesCache) {
-          int offset = 128 * (key + 1);
-          int top_left_y = canvas_p0.y + 2;
-          if (key >= 1) {
-            top_left_y = canvas_p0.y + 128 * key;
-          }
-          draw_list->AddImage((void *)(SDL_Texture *)value,
-                              ImVec2(canvas_p0.x + 2, top_left_y),
-                              ImVec2(canvas_p0.x + 512, canvas_p0.y + offset));
-        }
       }
 
       draw_list->PopClipRect();
@@ -560,6 +511,12 @@ void Editor::DrawSpriteEditor() {
 
 void Editor::DrawScreenEditor() {
   if (ImGui::BeginTabItem("Screens")) {
+    ImGui::EndTabItem();
+  }
+}
+
+void Editor::DrawHUDEditor() {
+  if (ImGui::BeginTabItem("HUD")) {
     ImGui::EndTabItem();
   }
 }

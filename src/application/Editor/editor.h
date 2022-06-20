@@ -21,6 +21,7 @@ namespace Editor {
 class Editor {
  public:
   Editor();
+  ~Editor();
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
 
@@ -31,8 +32,6 @@ class Editor {
   void DrawViewMenu();
   void DrawHelpMenu() const;
 
-  void DrawSurface();
-
   void DrawGraphicsSheet(int offset = 0);
 
   void DrawProjectEditor();
@@ -41,6 +40,7 @@ class Editor {
   void DrawGraphicsEditor();
   void DrawSpriteEditor();
   void DrawScreenEditor();
+  void DrawHUDEditor();
 
   void *rom_data_;
   bool is_loaded_ = true;
@@ -57,7 +57,7 @@ class Editor {
   TextEditor::LanguageDefinition language_65816_;
   OverworldEditor overworld_editor_;
 
-  Graphics::SNESPalette current_palette_;
+  ImVec4 current_palette_[8];
   Graphics::TilePreset current_set_;
 
   ImGuiWindowFlags main_editor_flags_ =
