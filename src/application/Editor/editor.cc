@@ -150,10 +150,6 @@ void Editor::DrawFileMenu() const {
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
                                               ".sfc,.smc", ".");
     }
-    if (ImGui::BeginMenu("Open Recent")) {
-      ImGui::MenuItem("alttp.sfc");
-      ImGui::EndMenu();
-    }
     if (ImGui::MenuItem("Save", "Ctrl+S")) {
       // TODO: Implement this
     }
