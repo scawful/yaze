@@ -42,7 +42,7 @@ class OverworldMap {
   uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
   std::vector<Graphics::Tile16> tiles16_;
 
-  OverworldMap(Data::ROM rom, const std::vector<Graphics::Tile16> tiles16,
+  OverworldMap(Data::ROM & rom, const std::vector<Graphics::Tile16> tiles16,
                uchar index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 ushort** allmapsTilesLW, ushort** allmapsTilesDW,

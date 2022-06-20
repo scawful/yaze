@@ -16,6 +16,7 @@ static constexpr unsigned int k4BPP = 4;
 
 class OverworldEditor {
  public:
+  void SetupROM(Data::ROM & rom);
   void Update();
 
  private:
@@ -23,16 +24,17 @@ class OverworldEditor {
   void DrawOverworldMapSettings();
   void DrawOverworldCanvas();
   void DrawTileSelector();
-
+  void DrawTile8Selector();
   void DrawChangelist();
 
-  bool show_changelist_ = false;
+  void LoadGraphics();
 
   Data::ROM rom_;
-  Data::Overworld overworld;
+  Data::Overworld overworld_;
   Graphics::Bitmap allgfxBitmap;
   Graphics::SNESPalette palette_;
   Graphics::TilePreset current_set_;
+  std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
 
   SDL_Texture *gfx_texture = nullptr;
 
@@ -40,12 +42,6 @@ class OverworldEditor {
   int allgfx_height = 0;
 
   uchar *allGfx16Ptr = new uchar[(128 * 7136) / 2];
-
-  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
-  ImGuiTableFlags ow_map_settings_flags = ImGuiTableFlags_Borders;
-  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
-                                  ImGuiTableFlags_Resizable |
-                                  ImGuiTableFlags_SizingStretchSame;
 
   float canvas_table_ratio = 30.f;
 
@@ -59,11 +55,21 @@ class OverworldEditor {
 
   bool isLoaded = false;
   bool doneLoaded = false;
+  bool opt_enable_grid = true;
+  bool show_changelist_ = false;
+  bool all_graphics_loaded_ = false;
 
   constexpr static int kByteSize = 3;
   constexpr static int kMessageIdSize = 5;
   constexpr static float kInputFieldSize = 30.f;
-  bool opt_enable_grid = true;
+  constexpr static int kNumSheetsToLoad = 50;
+  constexpr static int kTile8DisplayHeight = 64;
+
+  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
+  ImGuiTableFlags ow_map_settings_flags = ImGuiTableFlags_Borders;
+  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
+                                  ImGuiTableFlags_Resizable |
+                                  ImGuiTableFlags_SizingStretchSame;
 };
 }  // namespace Editor
 }  // namespace application

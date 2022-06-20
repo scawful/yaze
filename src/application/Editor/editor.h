@@ -49,7 +49,7 @@ class Editor {
   std::vector<std::vector<tile8>> arranged_tiles_;
   std::unordered_map<unsigned int, std::shared_ptr<SDL_Texture>> texture_cache_;
   std::unordered_map<unsigned int, SDL_Texture *> imagesCache;
-  SDL_Texture *sheet_texture = nullptr;
+
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
   Data::ROM rom_;
@@ -62,8 +62,8 @@ class Editor {
 
   ImGuiWindowFlags main_editor_flags_ =
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar;
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
+      ImGuiWindowFlags_NoTitleBar;
   ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
 };
 

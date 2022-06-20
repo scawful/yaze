@@ -10,7 +10,7 @@ namespace Data {
 using namespace Core;
 using namespace Graphics;
 
-OverworldMap::OverworldMap(Data::ROM rom,
+OverworldMap::OverworldMap(Data::ROM & rom,
                            const std::vector<Graphics::Tile16> tiles16,
                            uchar index)
     : rom_(rom), index(index), tiles16_(tiles16), parent(index) {
