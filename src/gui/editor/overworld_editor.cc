@@ -301,7 +301,7 @@ void OverworldEditor::DrawTileSelector() {
 void OverworldEditor::DrawTile8Selector() {
   static ImVec2 scrolling(0.0f, 0.0f);
   ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-  ImVec2 canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64);
+  ImVec2 canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);
   ImVec2 canvas_p1 =
       ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 

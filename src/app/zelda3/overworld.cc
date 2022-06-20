@@ -44,9 +44,9 @@ static TileInfo GetTilesInfo(ushort tile) {
 void Overworld::Load(Data::ROM& rom) {
   rom_ = rom;
   for (int i = 0; i < 0x2B; i++) {
-    tileLeftEntrance.push_back(Constants::overworldEntranceAllowedTilesLeft +
+    tileLeftEntrance.push_back(constants::overworldEntranceAllowedTilesLeft +
                                (i * 2));
-    tileRightEntrance.push_back(Constants::overworldEntranceAllowedTilesRight +
+    tileRightEntrance.push_back(constants::overworldEntranceAllowedTilesRight +
                                 (i * 2));
   }
 
@@ -105,7 +105,7 @@ void Overworld::AssembleMap32Tiles() {
 }
 
 void Overworld::AssembleMap16Tiles() {
-  int tpos = core::Constants::map16Tiles;
+  int tpos = core::constants::map16Tiles;
   for (int i = 0; i < 4096; i += 1)  // 3760
   {
     TileInfo t0 = GetTilesInfo((uintptr_t)rom_.GetRawData() + tpos);
@@ -127,25 +127,25 @@ void Overworld::DecompressAllMapTiles() {
   int sy = 0;
   int c = 0;
   for (int i = 0; i < 160; i++) {
-    int p1 = (rom_.GetRawData()[(Constants::compressedAllMap32PointersHigh) +
+    int p1 = (rom_.GetRawData()[(constants::compressedAllMap32PointersHigh) +
                                 2 + (int)(3 * i)]
               << 16) +
-             (rom_.GetRawData()[(Constants::compressedAllMap32PointersHigh) +
+             (rom_.GetRawData()[(constants::compressedAllMap32PointersHigh) +
                                 1 + (int)(3 * i)]
               << 8) +
-             (rom_.GetRawData()[(Constants::compressedAllMap32PointersHigh +
+             (rom_.GetRawData()[(constants::compressedAllMap32PointersHigh +
                                  (int)(3 * i))]);
 
     char* tmp = new char[256];
     p1 = lorom_snes_to_pc(p1, &tmp);
     std::cout << tmp << std::endl;
-    int p2 = (rom_.GetRawData()[(Constants::compressedAllMap32PointersLow) + 2 +
+    int p2 = (rom_.GetRawData()[(constants::compressedAllMap32PointersLow) + 2 +
                                 (int)(3 * i)]
               << 16) +
-             (rom_.GetRawData()[(Constants::compressedAllMap32PointersLow) + 1 +
+             (rom_.GetRawData()[(constants::compressedAllMap32PointersLow) + 1 +
                                 (int)(3 * i)]
               << 8) +
-             (rom_.GetRawData()[(Constants::compressedAllMap32PointersLow +
+             (rom_.GetRawData()[(constants::compressedAllMap32PointersLow +
                                  (int)(3 * i))]);
     p2 = lorom_snes_to_pc(p2, &tmp);
     std::cout << tmp << std::endl;

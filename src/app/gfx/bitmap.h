@@ -24,7 +24,7 @@ class Bitmap {
   char *pixel_data_;
 };
 
-static bool isbpp3[core::Constants::NumberOfSheets];
+static bool isbpp3[core::constants::NumberOfSheets];
 
 int GetPCGfxAddress(char *romData, char id);
 char *CreateAllGfxDataRaw(char *romData);
