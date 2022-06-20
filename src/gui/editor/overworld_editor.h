@@ -63,7 +63,7 @@ class OverworldEditor {
   constexpr static int kByteSize = 3;
   constexpr static int kMessageIdSize = 5;
   constexpr static float kInputFieldSize = 30.f;
-  constexpr static int kNumSheetsToLoad = 50;
+  constexpr static int kNumSheetsToLoad = 100;
   constexpr static int kTile8DisplayHeight = 64;
 
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;

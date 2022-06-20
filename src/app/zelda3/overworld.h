@@ -49,8 +49,8 @@ class Overworld {
   std::vector<ushort> tileRightEntrance;
 
   int map32address[4] = {
-      core::Constants::map32TilesTL, core::Constants::map32TilesTR,
-      core::Constants::map32TilesBL, core::Constants::map32TilesBR};
+      core::constants::map32TilesTL, core::constants::map32TilesTR,
+      core::constants::map32TilesBL, core::constants::map32TilesBR};
 
   enum Dimension {
     map32TilesTL = 0,

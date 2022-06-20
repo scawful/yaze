@@ -11,16 +11,16 @@ namespace gfx {
 int GetPCGfxAddress(char *romData, char id) {
   char **info1 = new char *[255];
   int gfxPointer1 =
-      lorom_snes_to_pc((romData[core::Constants::gfx_1_pointer + 1] << 8) +
-                           (romData[core::Constants::gfx_1_pointer]),
+      lorom_snes_to_pc((romData[core::constants::gfx_1_pointer + 1] << 8) +
+                           (romData[core::constants::gfx_1_pointer]),
                        info1);
   int gfxPointer2 =
-      lorom_snes_to_pc((romData[core::Constants::gfx_2_pointer + 1] << 8) +
-                           (romData[core::Constants::gfx_2_pointer]),
+      lorom_snes_to_pc((romData[core::constants::gfx_2_pointer + 1] << 8) +
+                           (romData[core::constants::gfx_2_pointer]),
                        info1);
   int gfxPointer3 =
-      lorom_snes_to_pc((romData[core::Constants::gfx_3_pointer + 1] << 8) +
-                           (romData[core::Constants::gfx_3_pointer]),
+      lorom_snes_to_pc((romData[core::constants::gfx_3_pointer + 1] << 8) +
+                           (romData[core::constants::gfx_3_pointer]),
                        info1);
 
   char gfxGamePointer1 = romData[gfxPointer1 + id];
@@ -45,7 +45,7 @@ char *CreateAllGfxDataRaw(char *romData) {
   unsigned int uncompressedSize = 0;
   unsigned int compressedSize = 0;
 
-  for (int i = 0; i < core::Constants::NumberOfSheets; i++) {
+  for (int i = 0; i < core::constants::NumberOfSheets; i++) {
     isbpp3[i] = ((i >= 0 && i <= 112) ||    // Compressed 3bpp bg
                  (i >= 115 && i <= 126) ||  // Uncompressed 3bpp sprites
                  (i >= 127 && i <= 217)     // Compressed 3bpp sprites
@@ -53,15 +53,15 @@ char *CreateAllGfxDataRaw(char *romData) {
 
     // uncompressed sheets
     if (i >= 115 && i <= 126) {
-      data = new char[core::Constants::Uncompressed3BPPSize];
+      data = new char[core::constants::Uncompressed3BPPSize];
       int startAddress = GetPCGfxAddress(romData, (char)i);
-      for (int j = 0; j < core::Constants::Uncompressed3BPPSize; j++) {
+      for (int j = 0; j < core::constants::Uncompressed3BPPSize; j++) {
         data[j] = romData[j + startAddress];
       }
     } else {
       data = alttp_decompress_gfx((char *)romData,
                                   GetPCGfxAddress(romData, (char)i),
-                                  core::Constants::UncompressedSheetSize,
+                                  core::constants::UncompressedSheetSize,
                                   &uncompressedSize, &compressedSize);
     }
 
@@ -82,7 +82,7 @@ void CreateAllGfxData(char *romData, char *allgfx16Ptr) {
   int sheetPosition = 0;
 
   // 8x8 tile
-  for (int s = 0; s < core::Constants::NumberOfSheets; s++)  // Per Sheet
+  for (int s = 0; s < core::constants::NumberOfSheets; s++)  // Per Sheet
   {
     for (int j = 0; j < 4; j++)  // Per Tile Line Y
     {
@@ -160,9 +160,9 @@ void CreateAllGfxData(char *romData, char *allgfx16Ptr) {
     }
 
     if (isbpp3[s]) {
-      sheetPosition += core::Constants::Uncompressed3BPPSize;
+      sheetPosition += core::constants::Uncompressed3BPPSize;
     } else {
-      sheetPosition += core::Constants::UncompressedSheetSize;
+      sheetPosition += core::constants::UncompressedSheetSize;
     }
   }
 

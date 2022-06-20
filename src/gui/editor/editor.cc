@@ -21,10 +21,10 @@ namespace Editor {
 using namespace core;
 
 Editor::Editor() {
-  for (auto &k : core::Constants::kKeywords)
+  for (auto &k : core::constants::kKeywords)
     language_65816_.mKeywords.emplace(k);
 
-  for (auto &k : core::Constants::kIdentifiers) {
+  for (auto &k : core::constants::kIdentifiers) {
     TextEditor::Identifier id;
     id.mDeclaration = "Built-in function";
     language_65816_.mIdentifiers.insert(std::make_pair(std::string(k), id));
@@ -497,7 +497,7 @@ void Editor::DrawDungeonEditor() {
 }
 
 void Editor::DrawgfxEditor() {
-  if (ImGui::BeginTabItem("gfx")) {
+  if (ImGui::BeginTabItem("Graphics")) {
     ImGui::EndTabItem();
   }
 }
