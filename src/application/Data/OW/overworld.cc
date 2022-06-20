@@ -6,7 +6,7 @@ namespace yaze {
 namespace application {
 namespace Data {
 
-using namespace Core;
+using namespace core;
 using namespace Graphics;
 
 Overworld::~Overworld() {
@@ -104,7 +104,7 @@ void Overworld::AssembleMap32Tiles() {
 }
 
 void Overworld::AssembleMap16Tiles() {
-  int tpos = Core::Constants::map16Tiles;
+  int tpos = core::Constants::map16Tiles;
   for (int i = 0; i < 4096; i += 1)  // 3760
   {
     TileInfo t0 = GetTilesInfo((uintptr_t)rom_.GetRawData() + tpos);
