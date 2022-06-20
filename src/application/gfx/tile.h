@@ -9,11 +9,11 @@
 #include <vector>
 
 #include "Core/constants.h"
-#include "Graphics/palette.h"
+#include "gfx/palette.h"
 
 namespace yaze {
 namespace application {
-namespace Graphics {
+namespace gfx {
 
 // vhopppcc cccccccc
 // [0, 1]
@@ -96,7 +96,7 @@ class TilePreset {
   int SNESPaletteLocation = 0;
 };
 
-}  // namespace Graphics
+}  // namespace gfx
 }  // namespace application
 }  // namespace yaze
 

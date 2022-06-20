@@ -5,7 +5,7 @@
 
 namespace yaze {
 namespace application {
-namespace Graphics {
+namespace gfx {
 
 SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}
 
@@ -108,6 +108,6 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
   return sdl_palette.get();
 }
 
-}  // namespace Graphics
+}  // namespace gfx
 }  // namespace application
 }  // namespace yaze

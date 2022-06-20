@@ -38,9 +38,9 @@ add_executable(
     application/Data/rom.cc
     application/Data/OW/overworld.cc
     application/Data/OW/overworld_map.cc
-    application/Graphics/bitmap.cc
-    application/Graphics/tile.cc
-    application/Graphics/palette.cc
+    application/gfx/bitmap.cc
+    application/gfx/tile.cc
+    application/gfx/palette.cc
     application/Editor/editor.cc
     application/Editor/overworld_editor.cc
     # GUI libraries 

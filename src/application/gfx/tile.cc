@@ -10,7 +10,7 @@
 
 namespace yaze {
 namespace application {
-namespace Graphics {
+namespace gfx {
 
 TilesPattern::TilesPattern() {
   tiles_per_row_ = 16;
@@ -108,6 +108,6 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
   return pattern.transform(tiles);
 }
 
-}  // namespace Graphics
+}  // namespace gfx
 }  // namespace application
 }  // namespace yaze

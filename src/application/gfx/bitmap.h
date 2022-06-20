@@ -7,7 +7,7 @@
 
 namespace yaze {
 namespace application {
-namespace Graphics {
+namespace gfx {
 
 class Bitmap {
  public:
@@ -30,7 +30,7 @@ int GetPCGfxAddress(char *romData, char id);
 char *CreateAllGfxDataRaw(char *romData);
 void CreateAllGfxData(char *romData, char *allgfx16Ptr);
 
-}  // namespace Graphics
+}  // namespace gfx
 }  // namespace application
 }  // namespace yaze
 

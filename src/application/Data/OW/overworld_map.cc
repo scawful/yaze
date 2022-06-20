@@ -1,17 +1,17 @@
 #include "overworld_map.h"
 
 #include "Data/rom.h"
-#include "Graphics/tile.h"
+#include "gfx/tile.h"
 
 namespace yaze {
 namespace application {
 namespace Data {
 
-using namespace Core;
-using namespace Graphics;
+using namespace core;
+using namespace gfx;
 
 OverworldMap::OverworldMap(Data::ROM & rom,
-                           const std::vector<Graphics::Tile16> tiles16,
+                           const std::vector<gfx::Tile16> tiles16,
                            uchar index)
     : rom_(rom), index(index), tiles16_(tiles16), parent(index) {
   if (index != 0x80) {
