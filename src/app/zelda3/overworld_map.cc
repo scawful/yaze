@@ -1,18 +1,17 @@
 #include "overworld_map.h"
 
-#include "rom.h"
 #include "gfx/tile.h"
+#include "rom.h"
 
 namespace yaze {
 namespace app {
-namespace Data {
+namespace zelda3 {
 
 using namespace core;
 using namespace gfx;
 
-OverworldMap::OverworldMap(Data::ROM & rom,
-                           const std::vector<gfx::Tile16> tiles16,
-                           uchar index)
+OverworldMap::OverworldMap(Data::ROM& rom,
+                           const std::vector<gfx::Tile16> tiles16, uchar index)
     : rom_(rom), index(index), tiles16_(tiles16), parent(index) {
   if (index != 0x80) {
     if (index <= 150) {
@@ -293,8 +292,8 @@ void OverworldMap::BuildTileset(int gameState) {
   for (int i = 0; i < 4; i++) {
     staticgfx[12 + i] =
         (uchar)(rom_.GetRawData()[constants::sprite_blockset_pointer +
-                                 (sprgfx[gameState] * 4) + i] +
-               115);
+                                  (sprgfx[gameState] * 4) + i] +
+                115);
   }
 
   // Main Blocksets
@@ -354,6 +353,6 @@ void OverworldMap::BuildTileset(int gameState) {
   }
 }
 
-}  // namespace Data
+}  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

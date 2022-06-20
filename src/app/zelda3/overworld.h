@@ -14,7 +14,7 @@
 
 namespace yaze {
 namespace app {
-namespace Data {
+namespace zelda3 {
 
 class Overworld {
  public:
@@ -67,7 +67,7 @@ class Overworld {
   void LoadOverworldMap();
 };
 
-}  // namespace Data
+}  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
 

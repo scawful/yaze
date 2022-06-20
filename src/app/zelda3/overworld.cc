@@ -5,7 +5,7 @@
 
 namespace yaze {
 namespace app {
-namespace Data {
+namespace zelda3 {
 
 using namespace core;
 using namespace gfx;
@@ -343,6 +343,6 @@ void Overworld::LoadOverworldMap() {
   // owactualMapBitmap.Palette = cp;
 }
 
-}  // namespace Data
+}  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
