@@ -36,13 +36,13 @@ add_executable(
     gui/style.cc
     gui/editor/editor.cc
     gui/editor/overworld_editor.cc
-    application/rom.cc
-    application/core/controller.cc
-    application/zelda3/overworld.cc
-    application/zelda3/overworld_map.cc
-    application/gfx/bitmap.cc
-    application/gfx/tile.cc
-    application/gfx/palette.cc
+    app/rom.cc
+    app/core/controller.cc
+    app/zelda3/overworld.cc
+    app/zelda3/overworld_map.cc
+    app/gfx/bitmap.cc
+    app/gfx/tile.cc
+    app/gfx/palette.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp
@@ -66,7 +66,7 @@ target_include_directories(
   yaze PUBLIC
   /
   Library/
-  application/
+  app/
   "C:/msys64/mingw64/include/libpng16"
   "C:/msys64/mingw64/include/SDL2"
   "C:/msys64/mingw64/include"

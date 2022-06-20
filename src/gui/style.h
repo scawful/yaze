@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_CORE_STYLE_H
-#define YAZE_APPLICATION_CORE_STYLE_H
+#ifndef YAZE_APP_CORE_STYLE_H
+#define YAZE_APP_CORE_STYLE_H
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>

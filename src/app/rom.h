@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_UTILS_ROM_H
-#define YAZE_APPLICATION_UTILS_ROM_H
+#ifndef YAZE_APP_UTILS_ROM_H
+#define YAZE_APP_UTILS_ROM_H
 
 #include <compressions/alttpcompression.h>
 #include <rommapping.h>
@@ -17,7 +17,7 @@
 #include "gfx/tile.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Data {
 
 int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
@@ -69,7 +69,7 @@ class ROM {
 };
 
 }  // namespace Data
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
 #endif

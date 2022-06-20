@@ -5,7 +5,7 @@
 #include "Core/constants.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Data {
 
 ROM::~ROM() {
@@ -292,5 +292,5 @@ int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {
 }
 
 }  // namespace Data
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

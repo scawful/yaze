@@ -16,10 +16,10 @@ set(SNESHACKING_PATH "../src/Library/sneshacking/src")
 add_executable(
   yaze_test
   yaze_test.cc
-  ../src/application/rom.cc
-  ../src/application/gfx/tile.cc
-  ../src/application/gfx/tile.cc
-  ../src/application/gfx/palette.cc
+  ../src/app/rom.cc
+  ../src/app/gfx/tile.cc
+  ../src/app/gfx/tile.cc
+  ../src/app/gfx/palette.cc
   ${SNESHACKING_PATH}/compressions/alttpcompression.c
   ${SNESHACKING_PATH}/compressions/stdnintendo.c
   ${SNESHACKING_PATH}/tile.c

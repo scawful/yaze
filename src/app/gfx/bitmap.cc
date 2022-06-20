@@ -5,7 +5,7 @@
 #include "rom.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace gfx {
 
 int GetPCGfxAddress(char *romData, char id) {
@@ -174,5 +174,5 @@ void CreateAllGfxData(char *romData, char *allgfx16Ptr) {
 }
 
 }  // namespace gfx
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

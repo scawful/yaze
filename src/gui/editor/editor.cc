@@ -15,7 +15,7 @@
 #include "rom.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Editor {
 
 using namespace core;
@@ -521,5 +521,5 @@ void Editor::DrawHUDEditor() {
 }
 
 }  // namespace Editor
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

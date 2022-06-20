@@ -8,7 +8,7 @@
 #include "gfx/tile.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Data {
 
 using ushort = unsigned short;
@@ -73,5 +73,5 @@ class OverworldMap {
 };
 
 }  // namespace Data
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

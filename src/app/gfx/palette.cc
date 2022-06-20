@@ -4,7 +4,7 @@
 #include <cstring>
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace gfx {
 
 SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}
@@ -109,5 +109,5 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
 }
 
 }  // namespace gfx
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

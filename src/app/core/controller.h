@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_CORE_CONTROLLER_H
-#define YAZE_APPLICATION_CORE_CONTROLLER_H
+#ifndef YAZE_APP_CORE_CONTROLLER_H
+#define YAZE_APP_CORE_CONTROLLER_H
 #define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
@@ -15,7 +15,7 @@
 int main(int argc, char **argv);
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace core {
 
 class Controller {
@@ -49,7 +49,7 @@ class Controller {
 };
 
 }  // namespace core
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
-#endif  // YAZE_APPLICATION_CORE_CONTROLLER_H
+#endif  // YAZE_APP_CORE_CONTROLLER_H

@@ -1696,7 +1696,7 @@
 #define ICON_MD_SET_MEAL "\xef\x87\xaa"	// U+f1ea
 #define ICON_MD_SETTINGS "\xee\xa2\xb8"	// U+e8b8
 #define ICON_MD_SETTINGS_ACCESSIBILITY "\xef\x81\x9d"	// U+f05d
-#define ICON_MD_SETTINGS_applicationS "\xee\xa2\xb9"	// U+e8b9
+#define ICON_MD_SETTINGS_APPLICATIONS "\xee\xa2\xb9"	// U+e8b9
 #define ICON_MD_SETTINGS_BACKUP_RESTORE "\xee\xa2\xba"	// U+e8ba
 #define ICON_MD_SETTINGS_BLUETOOTH "\xee\xa2\xbb"	// U+e8bb
 #define ICON_MD_SETTINGS_BRIGHTNESS "\xee\xa2\xbd"	// U+e8bd

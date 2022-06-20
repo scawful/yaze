@@ -1,12 +1,12 @@
-#ifndef YAZE_APPLICATION_UTILS_BITMAP_H
-#define YAZE_APPLICATION_UTILS_BITMAP_H
+#ifndef YAZE_APP_UTILS_BITMAP_H
+#define YAZE_APP_UTILS_BITMAP_H
 
 #include <SDL2/SDL.h>
 
 #include "Core/constants.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace gfx {
 
 class Bitmap {
@@ -31,7 +31,7 @@ char *CreateAllGfxDataRaw(char *romData);
 void CreateAllGfxData(char *romData, char *allgfx16Ptr);
 
 }  // namespace gfx
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
 #endif
