@@ -3,13 +3,13 @@
 #include <cstddef>
 #include <memory>
 
-#include "rom.h"
 #include "gfx/bitmap.h"
 #include "gfx/tile.h"
+#include "rom.h"
 
 namespace yaze {
 namespace app {
-namespace Data {
+namespace zelda3 {
 
 using ushort = unsigned short;
 
@@ -42,7 +42,7 @@ class OverworldMap {
   uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
   std::vector<gfx::Tile16> tiles16_;
 
-  OverworldMap(Data::ROM & rom, const std::vector<gfx::Tile16> tiles16,
+  OverworldMap(Data::ROM& rom, const std::vector<gfx::Tile16> tiles16,
                uchar index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 ushort** allmapsTilesLW, ushort** allmapsTilesDW,
@@ -56,9 +56,8 @@ class OverworldMap {
   void BuildTiles16Gfx(int count);
   // void ReloadPalettes() { LoadPalette(); }
 
-  void CopyTile(int x, int y, int xx, int yy, int offset,
-                gfx::TileInfo tile, uchar* gfx16Pointer,
-                uchar* gfx8Pointer);
+  void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
+                uchar* gfx16Pointer, uchar* gfx8Pointer);
   void CopyTileToMap(int x, int y, int xx, int yy, int offset,
                      gfx::TileInfo tile, uchar* gfx16Pointer,
                      uchar* gfx8Pointer);
@@ -72,6 +71,6 @@ class OverworldMap {
   void BuildTileset(int gameState);
 };
 
-}  // namespace Data
+}  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
