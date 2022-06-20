@@ -14,16 +14,19 @@ namespace gfx {
 class Bitmap {
  public:
   Bitmap() = default;
-  Bitmap(int width, int height, char *data)
-      : width_(width), height_(height), pixel_data_(data) {}
+  Bitmap(int width, int height, int depth, char *data);
 
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
+  SDL_Texture *CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
  private:
   int width_;
   int height_;
+  int depth_;
   char *pixel_data_;
+  SDL_Surface *surface_;
+  SDL_Texture *texture_;
 };
 
 static bool isbpp3[core::constants::NumberOfSheets];

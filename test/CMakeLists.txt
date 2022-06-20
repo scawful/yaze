@@ -17,8 +17,7 @@ add_executable(
   yaze_test
   yaze_test.cc
   ../src/app/rom.cc
-  ../src/app/gfx/tile.cc
-  ../src/app/gfx/tile.cc
+  ../src/app/gfx/tile16.cc
   ../src/app/gfx/snes_palette.cc
   ${SNESHACKING_PATH}/compressions/alttpcompression.c
   ${SNESHACKING_PATH}/compressions/stdnintendo.c
@@ -32,7 +31,7 @@ add_executable(
 target_include_directories(
   yaze_test PUBLIC
   ../src/Library/
-  ../src/application/
+  ../src/
   ${SNESHACKING_PATH}
 )
 

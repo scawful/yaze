@@ -40,7 +40,7 @@ add_executable(
     app/core/constants.cc
     app/core/controller.cc
     app/gfx/bitmap.cc
-    app/gfx/tile.cc
+    app/gfx/tile16.cc
     app/gfx/snes_palette.cc
     app/zelda3/overworld.cc
     app/zelda3/overworld_map.cc

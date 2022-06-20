@@ -22,7 +22,6 @@ Overworld::~Overworld() {
     free(allmapsTilesSP);
 
     delete[] overworldMapPointer;
-    delete[] owactualMapPointer;
   }
 }
 
@@ -55,17 +54,17 @@ void Overworld::Load(app::rom::ROM& rom) {
   DecompressAllMapTiles();
 
   // Map Initialization :
-  for (int i = 0; i < 160; i++) {
-    allmaps.push_back(OverworldMap(rom_, tiles16, (uchar)i));
-  }
-  FetchLargeMaps();
-  LoadOverworldMap();
+  // for (int i = 0; i < 160; i++) {
+  //   allmaps.push_back(OverworldMap(rom_, tiles16, (uchar)i));
+  // }
+  // FetchLargeMaps();
+  // LoadOverworldMap();
 
-  auto size = tiles16.size();
-  for (int i = 0; i < 160; i++) {
-    allmaps[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
-                        allmapsTilesDW, allmapsTilesSP);
-  }
+  // auto size = tiles16.size();
+  // for (int i = 0; i < 160; i++) {
+  //   allmaps[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
+  //                       allmapsTilesDW, allmapsTilesSP);
+  // }
 
   isLoaded = true;
 }
@@ -298,10 +297,8 @@ void Overworld::FetchLargeMaps() {
 }
 
 void Overworld::LoadOverworldMap() {
-  overworldMapBitmap = new Bitmap(128, 128, overworldMapPointer);
-  owactualMapBitmap = new Bitmap(512, 512, owactualMapPointer);
+  overworldMapBitmap = new Bitmap(128, 128, 8, overworldMapPointer);
 
-  // Mode 7
   char* ptr = overworldMapPointer;
 
   int pos = 0;
@@ -317,30 +314,7 @@ void Overworld::LoadOverworldMap() {
     }
   }
 
-  // ColorPalette cp = overworldMapBitmap.Palette;
-  // for (int i = 0; i < 256; i += 2)
-  // {
-  //     //55B27 = US LW
-  //     //55C27 = US DW
-  //     cp.Entries[i / 2] = getColor((short)((ROM.DATA[0x55B27 + i + 1] << 8) +
-  //     ROM.DATA[0x55B27 + i]));
-
-  //     int k = 0;
-  //     int j = 0;
-  //     for (int y = 10; y < 14; y++)
-  //     {
-  //         for (int x = 0; x < 15; x++)
-  //         {
-  //             cp.Entries[145 + k] = Palettes.globalSprite_Palettes[0][j];
-  //             k++;
-  //             j++;
-  //         }
-  //         k++;
-  //     }
-  // }
-
-  // overworldMapBitmap.Palette = cp;
-  // owactualMapBitmap.Palette = cp;
+  overworld_map_texture = overworldMapBitmap->CreateTexture(rom_.Renderer());
 }
 
 }  // namespace zelda3

@@ -90,6 +90,7 @@ Editor::~Editor() {
   for (auto &each : imagesCache) {
     SDL_DestroyTexture(each.second);
   }
+  rom_.Close();
 }
 
 void Editor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
@@ -122,6 +123,10 @@ void Editor::UpdateScreen() {
   END_TAB_BAR()
 
   ImGui::End();
+}
+
+void Editor::Shutdown() {
+
 }
 
 void Editor::DrawYazeMenu() {
@@ -278,7 +283,7 @@ void Editor::DrawHelpMenu() const {
   }
 }
 
-void Editor::DrawgfxSheet(int offset) {
+void Editor::DrawGraphicsSheet(int offset) {
   SDL_Surface *surface =
       SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
   std::cout << "Drawing surface" << std::endl;
@@ -345,7 +350,7 @@ void Editor::DrawProjectEditor() {
       ImGui::InputInt("Tilesheet Offset", &tilesheet_offset);
       BASIC_BUTTON("Retrieve gfx") {
         if (rom_.isLoaded()) {
-          DrawgfxSheet(tilesheet_offset);
+          DrawGraphicsSheet(tilesheet_offset);
           loaded_image = true;
         }
       }

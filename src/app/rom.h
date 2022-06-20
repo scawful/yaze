@@ -24,22 +24,17 @@ int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
 
 class ROM {
  public:
-  ~ROM();
+  void Close();
 
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
   std::vector<tile8> ExtractTiles(gfx::TilePreset& preset);
-  gfx::SNESPalette ExtractPalette(gfx::TilePreset& preset);
+  gfx::SNESPalette ExtractPalette(uint addr, int bpp);
   uint32_t GetRomPosition(int direct_addr, uint snes_addr) const;
   char* Decompress(int pos, int size = 0x800, bool reversed = false);
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
-  SDL_Texture* DrawgfxSheet(int offset);
+  SDL_Texture* DrawGraphicsSheet(int offset);
 
-  inline uchar* GetRawData() { return current_rom_; }
-  const uchar* getTitle() const { return title; }
-  long int getSize() const { return size_; }
-  char getVersion() const { return version_; }
-  bool isLoaded() const { return loaded; }
 
   unsigned int SnesToPc(unsigned int addr) {
     if (addr >= 0x808000) {
@@ -48,6 +43,12 @@ class ROM {
     unsigned int temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
     return (temp + 0x0);
   }
+  inline uchar* GetRawData() { return current_rom_; }
+  inline auto Renderer() { return sdl_renderer_; }
+  const uchar* getTitle() const { return title; }
+  long int getSize() const { return size_; }
+  char getVersion() const { return version_; }
+  bool isLoaded() const { return loaded; }
 
  private:
   bool loaded = false;
