@@ -3,9 +3,9 @@
 #include <cstddef>
 #include <memory>
 
-#include "gfx/bitmap.h"
-#include "gfx/tile.h"
-#include "rom.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/tile.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -37,12 +37,12 @@ class OverworldMap {
   ushort** tilesUsed;
 
   bool needRefresh = false;
-  ROM rom_;
+  app::rom::ROM rom_;
 
   uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
   std::vector<gfx::Tile16> tiles16_;
 
-  OverworldMap(ROM& rom, const std::vector<gfx::Tile16> tiles16, uchar index);
+  OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> tiles16, uchar index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 ushort** allmapsTilesLW, ushort** allmapsTilesDW,
                 ushort** allmapsTilesSP);

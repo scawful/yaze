@@ -14,12 +14,16 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/core/constants.h"
-#include "app/gfx/palette.h"
+#include "app/gfx/snes_palette.h"
 
 namespace yaze {
 namespace app {
 namespace gfx {
+
+using ushort = unsigned short;
+using uchar = unsigned char;
+using ulong = unsigned long;
+using uint = unsigned int;
 
 // vhopppcc cccccccc
 // [0, 1]

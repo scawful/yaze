@@ -1,7 +1,17 @@
-#include "palette.h"
+#include "snes_palette.h"
 
+#include <SDL2/SDL.h>
+#include <imgui/imgui.h>
+#include <palette.h>
+#include <tile.h>
+
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <memory>
+#include <vector>
+
 
 namespace yaze {
 namespace app {
@@ -57,7 +67,7 @@ SNESPalette::SNESPalette(const unsigned char* snes_pal) {
   size_ = sizeof(snes_pal) / 2;
   for (unsigned i = 0; i < sizeof(snes_pal); i += 2) {
     SNESColor col;
-    col.snes = snes_pal[i + 1] << (uint16_t) 8;
+    col.snes = snes_pal[i + 1] << (uint16_t)8;
     col.snes = col.snes | snes_pal[i];
     m_color mColor = convertcolor_snes_to_rgb(col.snes);
     col.rgb = ImVec4(mColor.red, mColor.green, mColor.blue, 1.f);

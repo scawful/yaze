@@ -2,8 +2,10 @@
 #define YAZE_APP_UTILS_BITMAP_H
 
 #include <SDL2/SDL.h>
+#include <rommapping.h>
 
-#include "Core/constants.h"
+#include "app/core/constants.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {

@@ -19,7 +19,7 @@ add_executable(
   ../src/app/rom.cc
   ../src/app/gfx/tile.cc
   ../src/app/gfx/tile.cc
-  ../src/app/gfx/palette.cc
+  ../src/app/gfx/snes_palette.cc
   ${SNESHACKING_PATH}/compressions/alttpcompression.c
   ${SNESHACKING_PATH}/compressions/stdnintendo.c
   ${SNESHACKING_PATH}/tile.c

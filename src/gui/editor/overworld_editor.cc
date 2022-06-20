@@ -4,10 +4,11 @@
 
 #include <cmath>
 
-#include "gfx/bitmap.h"
-#include "gfx/tile.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/tile.h"
+#include "app/zelda3/overworld.h"
 #include "gui/icons.h"
-
 
 // first step would be to decompress all gfx data from the game
 // (in alttp that's easy they're all located in the same location all the
@@ -31,7 +32,7 @@ namespace yaze {
 namespace gui {
 namespace editor {
 
-void OverworldEditor::SetupROM(app::ROM &rom) { rom_ = rom; }
+void OverworldEditor::SetupROM(app::rom::ROM &rom) { rom_ = rom; }
 
 void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
@@ -377,6 +378,6 @@ void OverworldEditor::Loadgfx() {
   }
 }
 
-}  // namespace Editor
-}  // namespace app
+}  // namespace editor
+}  // namespace gui
 }  // namespace yaze

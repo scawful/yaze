@@ -7,6 +7,8 @@
 #include <tile.h>
 
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <vector>

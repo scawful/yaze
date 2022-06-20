@@ -7,12 +7,12 @@
 #include <imgui/imgui_memory_editor.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
-#include "core/constants.h"
-#include "gfx/tile.h"
+#include "app/core/constants.h"
+#include "app/gfx/tile.h"
+#include "app/rom.h"
 #include "gui/editor/overworld_editor.h"
 #include "gui/icons.h"
 #include "gui/input.h"
-#include "rom.h"
 
 namespace yaze {
 namespace gui {
@@ -45,7 +45,7 @@ class Editor {
   void *rom_data_;
   bool is_loaded_ = true;
 
-  app::ROM rom_;
+  app::rom::ROM rom_;
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language_65816_;
   OverworldEditor overworld_editor_;
@@ -66,7 +66,7 @@ class Editor {
 };
 
 }  // namespace editor
-}  // namespace app
+}  // namespace gui
 }  // namespace yaze
 
 #endif  // YAZE_APP_VIEW_EDITOR_H

@@ -1,7 +1,11 @@
 #include "overworld_map.h"
 
-#include "gfx/tile.h"
-#include "rom.h"
+#include <cstddef>
+#include <memory>
+
+#include "app/gfx/bitmap.h"
+#include "app/gfx/tile.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -10,7 +14,7 @@ namespace zelda3 {
 using namespace core;
 using namespace gfx;
 
-OverworldMap::OverworldMap(ROM& rom, const std::vector<gfx::Tile16> tiles16,
+OverworldMap::OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> tiles16,
                            uchar index)
     : rom_(rom), index(index), tiles16_(tiles16), parent(index) {
   if (index != 0x80) {
