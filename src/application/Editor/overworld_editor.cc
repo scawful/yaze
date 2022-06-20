@@ -29,11 +29,15 @@
 namespace yaze {
 namespace application {
 namespace Editor {
+
+void OverworldEditor::SetupROM(Data::ROM &rom) { rom_ = rom; }
+
 void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
-    if (!doneLoaded) {
-      // overworld.Load(rom_);
-      doneLoaded = true;
+    if (!all_graphics_loaded_) {
+      LoadGraphics();
+      overworld_.Load(rom_);
+      all_graphics_loaded_ = true;
     }
   }
 
@@ -44,7 +48,9 @@ void OverworldEditor::Update() {
   DrawToolset();
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#overworldCanvas", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x);
+    ImGui::TableSetupColumn("#overworldCanvas",
+                            ImGuiTableColumnFlags_WidthStretch,
+                            ImGui::GetContentRegionAvail().x);
     ImGui::TableSetupColumn("#tileSelector");
     ImGui::TableNextColumn();
     DrawOverworldCanvas();
@@ -263,9 +269,23 @@ void OverworldEditor::DrawOverworldCanvas() {
 
   draw_list->PopClipRect();
 }
+
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile8")) {
+      ImGuiStyle &style = ImGui::GetStyle();
+      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
+      bool child_is_visible = ImGui::BeginChild(
+          child_id, ImGui::GetContentRegionAvail(), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+      if (child_is_visible)  // Avoid calling SetScrollHereY when running with
+                             // culled items
+      {
+        DrawTile8Selector();
+      }
+      float scroll_x = ImGui::GetScrollX();
+      float scroll_max_x = ImGui::GetScrollMaxX();
+
+      ImGui::EndChild();
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile16")) {
@@ -276,6 +296,70 @@ void OverworldEditor::DrawTileSelector() {
   }
 }
 
+void OverworldEditor::DrawTile8Selector() {
+  static ImVec2 scrolling(0.0f, 0.0f);
+  ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
+  ImVec2 canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64);
+  ImVec2 canvas_p1 =
+      ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+
+  // Draw border and background color
+  const ImGuiIO &io = ImGui::GetIO();
+  ImDrawList *draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(32, 32, 32, 255));
+  draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
+
+  // This will catch our interactions
+  ImGui::InvisibleButton(
+      "Tile8SelectorCanvas", canvas_sz,
+      ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
+  const bool is_active = ImGui::IsItemActive();    // Held
+  const ImVec2 origin(canvas_p0.x + scrolling.x,
+                      canvas_p0.y + scrolling.y);  // Lock scrolled origin
+  const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
+                                   io.MousePos.y - origin.y);
+
+  // Context menu (under default mouse threshold)
+  ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+  if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
+    ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+  if (ImGui::BeginPopup("context")) {
+    ImGui::EndPopup();
+  }
+
+  if (all_graphics_loaded_) {
+    for (const auto &[key, value] : all_texture_sheet_) {
+      int offset = 64 * (key + 1);
+      int top_left_y = canvas_p0.y + 2;
+      if (key >= 1) {
+        top_left_y = canvas_p0.y + 64 * key;
+      }
+      draw_list->AddImage((void *)(SDL_Texture *)value,
+                          ImVec2(canvas_p0.x + 2, top_left_y),
+                          ImVec2(canvas_p0.x + 256, canvas_p0.y + offset));
+    }
+  }
+
+  // Draw grid + all lines in the canvas
+  draw_list->PushClipRect(canvas_p0, canvas_p1, true);
+  if (opt_enable_grid) {
+    const float GRID_STEP = 16.0f;
+    for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x;
+         x += GRID_STEP)
+      draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y),
+                         ImVec2(canvas_p0.x + x, canvas_p1.y),
+                         IM_COL32(200, 200, 200, 40));
+    for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y;
+         y += GRID_STEP)
+      draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
+                         ImVec2(canvas_p1.x, canvas_p0.y + y),
+                         IM_COL32(200, 200, 200, 40));
+  }
+
+  draw_list->PopClipRect();
+}
+
 void OverworldEditor::DrawChangelist() {
   if (!ImGui::Begin("Changelist")) {
     ImGui::End();
@@ -283,6 +367,12 @@ void OverworldEditor::DrawChangelist() {
 
   ImGui::Text("Test");
   ImGui::End();
+}
+
+void OverworldEditor::LoadGraphics() {
+  for (int i = 0; i < kNumSheetsToLoad; i++) {
+    all_texture_sheet_[i] = rom_.DrawGraphicsSheet(i);
+  }
 }
 
 }  // namespace Editor

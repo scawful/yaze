@@ -96,6 +96,7 @@ Editor::~Editor() {
 
 void Editor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
+  rom_.SetupRenderer(renderer);
 }
 
 void Editor::UpdateScreen() {
@@ -139,6 +140,7 @@ void Editor::DrawYazeMenu() {
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom_.LoadFromFile(filePathName);
       rom_data_ = (void *)rom_.GetRawData();
+      overworld_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
   }
@@ -295,9 +297,9 @@ void Editor::DrawGraphicsSheet(int offset) {
   unsigned int snesAddr = 0;
   unsigned int pcAddr = 0;
   snesAddr = (unsigned int)((
-      ((unsigned char)(rom_.GetRawData()[0x4F80 + offset]) << 16) |
-      ((unsigned char)(rom_.GetRawData()[0x505F + offset]) << 8) |
-      ((unsigned char)(rom_.GetRawData()[0x513E + offset]))));
+      ((uchar)(rom_.GetRawData()[0x4F80 + offset]) << 16) |
+      ((uchar)(rom_.GetRawData()[0x505F + offset]) << 8) |
+      ((uchar)(rom_.GetRawData()[0x513E + offset]))));
   pcAddr = rom_.SnesToPc(snesAddr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = rom_.Decompress(pcAddr);
@@ -306,6 +308,7 @@ void Editor::DrawGraphicsSheet(int offset) {
   std::cout << "Assigning pixel data..." << std::endl;
   surface->pixels = sheet_buffer;
   std::cout << "Creating texture from surface..." << std::endl;
+  SDL_Texture *sheet_texture = nullptr;
   sheet_texture = SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
   imagesCache[offset] = sheet_texture;
   if (sheet_texture == nullptr) {

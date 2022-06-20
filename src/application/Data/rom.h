@@ -26,21 +26,20 @@ class ROM {
  public:
   ~ROM();
 
+  void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
   std::vector<tile8> ExtractTiles(Graphics::TilePreset& preset);
   Graphics::SNESPalette ExtractPalette(Graphics::TilePreset& preset);
-
   uint32_t GetRomPosition(int direct_addr, uint snes_addr) const;
+  char* Decompress(int pos, int size = 0x800, bool reversed = false);
+  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
+  SDL_Texture* DrawGraphicsSheet(int offset);
+
   inline uchar* GetRawData() { return current_rom_; }
   const uchar* getTitle() const { return title; }
   long int getSize() const { return size_; }
   char getVersion() const { return version_; }
   bool isLoaded() const { return loaded; }
-
-
-  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
-  char* Decompress(int pos, bool reversed = false);
-  SDL_Surface* GetGraphicsSheet(int num_sheets = 1);
 
   unsigned int SnesToPc(unsigned int addr) {
     if (addr >= 0x808000) {
@@ -63,7 +62,10 @@ class ROM {
   enum rom_type type_ = LoROM;
 
   std::shared_ptr<uchar> rom_ptr_;
+  std::vector<char*> decompressed_graphic_sheets_;
+  std::vector<uchar*> converted_graphic_sheets_;
   std::vector<SDL_Surface> surfaces_;
+  std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };
 
 }  // namespace Data

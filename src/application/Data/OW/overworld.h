@@ -21,7 +21,7 @@ class Overworld {
   Overworld() = default;
   ~Overworld();
 
-  void Load(Data::ROM rom);
+  void Load(Data::ROM & rom);
 
   char* overworldMapPointer = new char[0x40000];
   Graphics::Bitmap* overworldMapBitmap;

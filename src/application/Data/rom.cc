@@ -11,7 +11,17 @@ namespace Data {
 ROM::~ROM() {
   if (loaded) {
     delete[] current_rom_;
+    for (auto &each : decompressed_graphic_sheets_) {
+      free(each);
+    }
+    for (auto &each : converted_graphic_sheets_) {
+      free(each);
+    }
   }
+}
+
+void ROM::SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
+  sdl_renderer_ = renderer;
 }
 
 // TODO: check if the rom has a header on load
@@ -115,62 +125,10 @@ uint32_t ROM::GetRomPosition(int direct_addr, uint snes_addr) const {
   return filePos;
 }
 
-uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id)  // 128x32
-{
-  // 8bpp sheet out
-  const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-  uchar *sheet_buffer_out = (unsigned char *)malloc(0x1000);
-  int xx = 0;  // positions where we are at on the sheet
-  int yy = 0;
-  int pos = 0;
-  int ypos = 0;
-
-  if (sheet_id != 0) {
-    yy = sheet_id;
-  }
-
-  for (int i = 0; i < 64; i++)  // for each tiles //16 per lines
-  {
-    for (int y = 0; y < 8; y++)  // for each lines
-    {
-      //[0] + [1] + [16]
-      for (int x = 0; x < 8; x++) {
-        unsigned char b1 = (unsigned char)((
-            buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
-        unsigned char b2 =
-            (unsigned char)(buffer_in[((y * 2) + (24 * pos)) + 1] &
-                            (bitmask[x]));
-        unsigned char b3 =
-            (unsigned char)(buffer_in[(16 + y) + (24 * pos)] &
-                            (bitmask[x]));
-        unsigned char b = 0;
-        if (b1 != 0) {
-          b |= 1;
-        };
-        if (b2 != 0) {
-          b |= 2;
-        };
-        if (b3 != 0) {
-          b |= 4;
-        };
-        sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
-      }
-    }
-    pos++;
-    ypos++;
-    xx += 8;
-    if (ypos >= 16) {
-      yy++;
-      xx = 0;
-      ypos = 0;
-    }
-  }
-  return sheet_buffer_out;
-}
-
-char *ROM::Decompress(int pos, bool reversed) {
-  char *buffer = new char[0x800];
-  for (int i = 0; i < 0x800; i++) {
+char *ROM::Decompress(int pos, int size, bool reversed) {
+  char *buffer = new char[size];
+  decompressed_graphic_sheets_.push_back(buffer);
+  for (int i = 0; i < size; i++) {
     buffer[i] = 0;
   }
   unsigned int bufferPos = 0;
@@ -243,37 +201,90 @@ char *ROM::Decompress(int pos, bool reversed) {
   return buffer;
 }
 
-SDL_Surface* ROM::GetGraphicsSheet(int num_sheets) {
-  int height = 32 * num_sheets;
+uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in,
+                                int sheet_id)  // 128x32
+{
+  // 8bpp sheet out
+  const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+  uchar *sheet_buffer_out = (uchar *)malloc(0x1000);
+  converted_graphic_sheets_.push_back(sheet_buffer_out);
+  int xx = 0;  // positions where we are at on the sheet
+  int yy = 0;
+  int pos = 0;
+  int ypos = 0;
+
+  if (sheet_id != 0) {
+    yy = sheet_id;
+  }
+
+  for (int i = 0; i < 64; i++)  // for each tiles //16 per lines
+  {
+    for (int y = 0; y < 8; y++)  // for each lines
+    {
+      //[0] + [1] + [16]
+      for (int x = 0; x < 8; x++) {
+        unsigned char b1 =
+            (unsigned char)((buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
+        unsigned char b2 =
+            (unsigned char)(buffer_in[((y * 2) + (24 * pos)) + 1] &
+                            (bitmask[x]));
+        unsigned char b3 =
+            (unsigned char)(buffer_in[(16 + y) + (24 * pos)] & (bitmask[x]));
+        unsigned char b = 0;
+        if (b1 != 0) {
+          b |= 1;
+        };
+        if (b2 != 0) {
+          b |= 2;
+        };
+        if (b3 != 0) {
+          b |= 4;
+        };
+        sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
+      }
+    }
+    pos++;
+    ypos++;
+    xx += 8;
+    if (ypos >= 16) {
+      yy++;
+      xx = 0;
+      ypos = 0;
+    }
+  }
+  return sheet_buffer_out;
+}
+
+SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   SDL_Surface *surface =
-      SDL_CreateRGBSurfaceWithFormat(0, 128, height, 8, SDL_PIXELFORMAT_INDEX8);
-  std::cout << "Drawing surface" << std::endl;
+      SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
+  std::cout << "Drawing surface #" << offset << std::endl;
   uchar *sheet_buffer = nullptr;
   for (int i = 0; i < 8; i++) {
-    surface->format->palette->colors[i].r = (unsigned char)(i * 31);
-    surface->format->palette->colors[i].g = (unsigned char)(i * 31);
-    surface->format->palette->colors[i].b = (unsigned char)(i * 31);
+    surface->format->palette->colors[i].r = i * 31;
+    surface->format->palette->colors[i].g = i * 31;
+    surface->format->palette->colors[i].b = i * 31;
   }
 
   unsigned int snesAddr = 0;
   unsigned int pcAddr = 0;
-  for (int i = 0; i < num_sheets; i++) {
-    snesAddr =
-        (unsigned int)((((unsigned char)(current_rom_[0x4F80 + i]) <<
-        16) |
-                        ((unsigned char)(current_rom_[0x505F + i]) << 8)
-                        |
-                        ((unsigned char)(current_rom_[0x513E + i]))));
-    pcAddr = SnesToPc(snesAddr);
-    std::cout << "Decompressing..." << std::endl;
-    char *decomp = Decompress(pcAddr);
-    std::cout << "Converting to 8bpp sheet..." << std::endl;
-    sheet_buffer = SNES3bppTo8bppSheet((uchar *)decomp, i);
-    std::cout << "Assigning pixel data..." << std::endl;
-  }
-
+  snesAddr = (unsigned int)((((uchar)(current_rom_[0x4F80 + offset]) << 16) |
+                             ((uchar)(current_rom_[0x505F + offset]) << 8) |
+                             ((uchar)(current_rom_[0x513E + offset]))));
+  pcAddr = SnesToPc(snesAddr);
+  std::cout << "Decompressing..." << std::endl;
+  char *decomp = Decompress(pcAddr);
+  std::cout << "Converting to 8bpp sheet..." << std::endl;
+  sheet_buffer = SNES3bppTo8bppSheet((uchar *)decomp);
+  std::cout << "Assigning pixel data..." << std::endl;
   surface->pixels = sheet_buffer;
-  return surface;
+  std::cout << "Creating texture from surface..." << std::endl;
+  SDL_Texture *sheet_texture = nullptr;
+  sheet_texture = SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
+  if (sheet_texture == nullptr) {
+    std::cout << "Error: " << SDL_GetError() << std::endl;
+  }
+  return sheet_texture;
 }
 
 int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {

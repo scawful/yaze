@@ -11,19 +11,18 @@ using namespace Graphics;
 
 Overworld::~Overworld() {
   if (isLoaded) {
-  for (int i = 0; i < (int) tiles32.size(); i++) {
-    free(allmapsTilesLW[i]);
-    free(allmapsTilesDW[i]);
-    free(allmapsTilesSP[i]);
-  }
-  free(allmapsTilesLW);
-  free(allmapsTilesDW);
-  free(allmapsTilesSP);
+    for (int i = 0; i < (int)tiles32.size(); i++) {
+      free(allmapsTilesLW[i]);
+      free(allmapsTilesDW[i]);
+      free(allmapsTilesSP[i]);
+    }
+    free(allmapsTilesLW);
+    free(allmapsTilesDW);
+    free(allmapsTilesSP);
 
-  delete[] overworldMapPointer;
-  delete[] owactualMapPointer;
+    delete[] overworldMapPointer;
+    delete[] owactualMapPointer;
   }
-
 }
 
 static TileInfo GetTilesInfo(ushort tile) {
@@ -41,14 +40,13 @@ static TileInfo GetTilesInfo(ushort tile) {
   return TileInfo(tid, p, v, h, o);
 }
 
-void Overworld::Load(Data::ROM rom) {
+void Overworld::Load(Data::ROM & rom) {
   rom_ = rom;
   for (int i = 0; i < 0x2B; i++) {
-    // tileLeftEntrance.push_back(
-    //     rom_.ReadShort(Constants::overworldEntranceAllowedTilesLeft + (i *
-    //     2)));
-    // tileRightEntrance.push_back(rom_.ReadShort(
-    //     Constants::overworldEntranceAllowedTilesRight + (i * 2)));
+    tileLeftEntrance.push_back(Constants::overworldEntranceAllowedTilesLeft +
+                               (i * 2));
+    tileRightEntrance.push_back(Constants::overworldEntranceAllowedTilesRight +
+                                (i * 2));
   }
 
   AssembleMap32Tiles();
