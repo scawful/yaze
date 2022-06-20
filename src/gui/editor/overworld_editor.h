@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_EDITOR_OVERWORLDEDITOR_H
-#define YAZE_APPLICATION_EDITOR_OVERWORLDEDITOR_H
+#ifndef YAZE_APP_EDITOR_OVERWORLDEDITOR_H
+#define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
 #include <imgui/imgui.h>
 
@@ -10,7 +10,7 @@
 
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Editor {
 
 static constexpr unsigned int k4BPP = 4;
@@ -73,7 +73,7 @@ class OverworldEditor {
                                   ImGuiTableFlags_SizingStretchSame;
 };
 }  // namespace Editor
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
 #endif

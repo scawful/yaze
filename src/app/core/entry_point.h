@@ -1,10 +1,10 @@
-#ifndef YAZE_APPLICATION_CONTROLLER_ENTRYPOINT_H
-#define YAZE_APPLICATION_CONTROLLER_ENTRYPOINT_H
+#ifndef YAZE_APP_CONTROLLER_ENTRYPOINT_H
+#define YAZE_APP_CONTROLLER_ENTRYPOINT_H
 
 #include "controller.h"
 
 int main(int argc, char** argv) {
-  yaze::application::core::Controller controller;
+  yaze::app::core::Controller controller;
   controller.onEntry();
   while (controller.isActive()) {
     controller.onInput();
@@ -15,4 +15,4 @@ int main(int argc, char** argv) {
   return EXIT_SUCCESS;
 }
 
-#endif  // YAZE_APPLICATION_CONTROLLER_ENTRYPOINT_H
+#endif  // YAZE_APP_CONTROLLER_ENTRYPOINT_H

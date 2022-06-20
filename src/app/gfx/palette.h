@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_gfx_PALETTE_H
-#define YAZE_APPLICATION_gfx_PALETTE_H
+#ifndef YAZE_APP_gfx_PALETTE_H
+#define YAZE_APP_gfx_PALETTE_H
 
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace gfx {
 
 struct SNESColor {
@@ -44,7 +44,7 @@ class SNESPalette {
 };
 
 }  // namespace gfx
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
-#endif  // YAZE_APPLICATION_gfx_PALETTE_H
+#endif  // YAZE_APP_gfx_PALETTE_H

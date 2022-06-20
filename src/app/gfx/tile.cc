@@ -9,7 +9,7 @@
 #include <regex>
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace gfx {
 
 TilesPattern::TilesPattern() {
@@ -109,5 +109,5 @@ std::vector<std::vector<tile8> > TilesPattern::transform(
 }
 
 }  // namespace gfx
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

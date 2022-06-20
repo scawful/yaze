@@ -11,7 +11,7 @@
 #include "gui/editor/editor.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace core {
 
 bool Controller::isActive() const { return active_; }
@@ -181,5 +181,5 @@ void Controller::CreateGuiContext() {
 }
 
 }  // namespace core
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

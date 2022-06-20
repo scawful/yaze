@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_CORE_CONSTANTS_H
-#define YAZE_APPLICATION_CORE_CONSTANTS_H
+#ifndef YAZE_APP_CORE_CONSTANTS_H
+#define YAZE_APP_CORE_CONSTANTS_H
 
 #include <array>
 #include <string>
@@ -21,7 +21,7 @@ using uint = unsigned int;
 using uchar = unsigned char;
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace core {
 namespace Constants {
 
@@ -1226,7 +1226,7 @@ static const std::string TileTypeNames[] = {
 
 }  // namespace Constants
 }  // namespace Core
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
 #endif

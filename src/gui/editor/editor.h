@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_VIEW_EDITOR_H
-#define YAZE_APPLICATION_VIEW_EDITOR_H
+#ifndef YAZE_APP_VIEW_EDITOR_H
+#define YAZE_APP_VIEW_EDITOR_H
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
@@ -15,7 +15,7 @@
 #include "rom.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Editor {
 
 class Editor {
@@ -68,7 +68,7 @@ class Editor {
 };
 
 }  // namespace Editor
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
-#endif  // YAZE_APPLICATION_VIEW_EDITOR_H
+#endif  // YAZE_APP_VIEW_EDITOR_H

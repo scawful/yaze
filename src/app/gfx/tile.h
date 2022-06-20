@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_DATA_TILE_H
-#define YAZE_APPLICATION_DATA_TILE_H
+#ifndef YAZE_APP_DATA_TILE_H
+#define YAZE_APP_DATA_TILE_H
 
 #include <tile.h>
 
@@ -12,7 +12,7 @@
 #include "gfx/palette.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace gfx {
 
 // vhopppcc cccccccc
@@ -97,7 +97,7 @@ class TilePreset {
 };
 
 }  // namespace gfx
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
 #endif

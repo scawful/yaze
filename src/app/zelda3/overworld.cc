@@ -4,7 +4,7 @@
 #include "rom.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Data {
 
 using namespace core;
@@ -344,5 +344,5 @@ void Overworld::LoadOverworldMap() {
 }
 
 }  // namespace Data
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

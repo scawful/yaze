@@ -4,7 +4,7 @@
 #include "gfx/tile.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Data {
 
 using namespace core;
@@ -355,5 +355,5 @@ void OverworldMap::BuildTileset(int gameState) {
 }
 
 }  // namespace Data
-}  // namespace application
+}  // namespace app
 }  // namespace yaze

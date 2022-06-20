@@ -1,5 +1,5 @@
-#ifndef YAZE_APPLICATION_DATA_OVERWORLD_H
-#define YAZE_APPLICATION_DATA_OVERWORLD_H
+#ifndef YAZE_APP_DATA_OVERWORLD_H
+#define YAZE_APP_DATA_OVERWORLD_H
 
 #include <rommapping.h>
 
@@ -13,7 +13,7 @@
 #include "rom.h"
 
 namespace yaze {
-namespace application {
+namespace app {
 namespace Data {
 
 class Overworld {
@@ -68,7 +68,7 @@ class Overworld {
 };
 
 }  // namespace Data
-}  // namespace application
+}  // namespace app
 }  // namespace yaze
 
 #endif
