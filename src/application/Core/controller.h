@@ -9,8 +9,8 @@
 #include <imgui/imgui_internal.h>
 
 #include "Editor/editor.h"
-#include "Graphics/icons.h"
-#include "Graphics/style.h"
+#include "gui/icons.h"
+#include "gui/style.h"
 
 int main(int argc, char **argv);
 

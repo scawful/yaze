@@ -7,7 +7,7 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "Core/constants.h"
-#include "Core/input.h"
+#include "gui/input.h"
 #include "Data/rom.h"
 #include "Editor/overworld_editor.h"
 #include "Graphics/icons.h"

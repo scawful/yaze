@@ -4,9 +4,7 @@
 #include "imgui/imgui_internal.h"
 
 namespace yaze {
-namespace application {
-namespace Core {
-namespace Style {
+namespace gui {
 
 void ColorsYaze() {
   ImGuiStyle *style = &ImGui::GetStyle();
@@ -107,7 +105,5 @@ void ColorsYaze() {
   colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
-}  // namespace Style
-}  // namespace Core
-}  // namespace application
+}  // namespace gui
 }  // namespace yaze

@@ -5,15 +5,11 @@
 #include <imgui/imgui_internal.h>
 
 namespace yaze {
-namespace application {
-namespace Core {
-namespace Style {
+namespace gui {
 
 void ColorsYaze();
 
-}  // namespace Style
-}  // namespace Core
-}  // namespace application
+}  // namespace gui
 }  // namespace yaze
 
 #endif
