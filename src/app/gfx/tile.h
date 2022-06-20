@@ -17,7 +17,6 @@
 
 #include "app/gfx/snes_palette.h"
 
-
 namespace yaze {
 namespace app {
 namespace gfx {
@@ -57,10 +56,6 @@ class Tile32 {
       : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {}
 };
 
-void BuildTiles16Gfx();
-void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
-                uchar* gfx16Pointer, uchar* gfx8Pointer);
-
 class Tile16 {
  public:
   TileInfo tile0_;
@@ -77,6 +72,16 @@ class Tile16 {
     tiles_info.push_back(tile3_);
   }
 };
+
+static bool isbpp3[core::constants::NumberOfSheets];
+
+int GetPCGfxAddress(char* romData, char id);
+char* CreateAllGfxDataRaw(char* romData);
+void CreateAllGfxData(char* romData, char* allgfx16Ptr);
+void BuildTiles16Gfx(uchar* mapblockset16, uchar* currentOWgfx16Ptr,
+                     std::vector<Tile16>& allTiles);
+void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
+                uchar* gfx16Pointer, uchar* gfx8Pointer);
 
 class TilePreset {
  public:
