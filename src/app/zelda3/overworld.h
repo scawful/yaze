@@ -21,7 +21,7 @@ class Overworld {
   Overworld() = default;
   ~Overworld();
 
-  void Load(Data::ROM& rom);
+  void Load(ROM& rom);
 
   char* overworldMapPointer = new char[0x40000];
   gfx::Bitmap* overworldMapBitmap;
@@ -30,7 +30,7 @@ class Overworld {
   gfx::Bitmap* owactualMapBitmap;
 
  private:
-  Data::ROM rom_;
+  ROM rom_;
   int gameState = 1;
   bool isLoaded = false;
   uchar mapParent[160];

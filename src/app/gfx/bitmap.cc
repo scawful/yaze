@@ -28,7 +28,7 @@ int GetPCGfxAddress(char *romData, char id) {
   char gfxGamePointer3 = romData[gfxPointer3 + id];
 
   return lorom_snes_to_pc(
-      Data::AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3),
+      AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3),
       info1);
 }
 

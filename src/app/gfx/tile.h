@@ -1,15 +1,21 @@
-#ifndef YAZE_APP_DATA_TILE_H
-#define YAZE_APP_DATA_TILE_H
+#ifndef YAZE_APP_GFX_TILE_H
+#define YAZE_APP_GFX_TILE_H
 
 #include <tile.h>
 
+#include <cassert>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <regex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "Core/constants.h"
-#include "gfx/palette.h"
+#include "app/core/constants.h"
+#include "app/gfx/palette.h"
 
 namespace yaze {
 namespace app {
@@ -100,4 +106,4 @@ class TilePreset {
 }  // namespace app
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_APP_GFX_TILE_H

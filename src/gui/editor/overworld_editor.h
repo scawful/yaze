@@ -3,21 +3,20 @@
 
 #include <imgui/imgui.h>
 
-#include "zelda3/overworld.h"
 #include "gfx/palette.h"
 #include "gfx/tile.h"
 #include "gui/icons.h"
-
+#include "zelda3/overworld.h"
 
 namespace yaze {
-namespace app {
-namespace Editor {
+namespace gui {
+namespace editor {
 
 static constexpr unsigned int k4BPP = 4;
 
 class OverworldEditor {
  public:
-  void SetupROM(Data::ROM &rom);
+  void SetupROM(app::ROM &rom);
   void Update();
 
  private:
@@ -30,11 +29,11 @@ class OverworldEditor {
 
   void Loadgfx();
 
-  Data::ROM rom_;
-  Data::Overworld overworld_;
-  gfx::Bitmap allgfxBitmap;
-  gfx::SNESPalette palette_;
-  gfx::TilePreset current_set_;
+  app::ROM rom_;
+  app::zelda3::Overworld overworld_;
+  app::gfx::Bitmap allgfxBitmap;
+  app::gfx::SNESPalette palette_;
+  app::gfx::TilePreset current_set_;
   std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
 
   SDL_Texture *gfx_texture = nullptr;
@@ -72,8 +71,8 @@ class OverworldEditor {
                                   ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_SizingStretchSame;
 };
-}  // namespace Editor
-}  // namespace app
+}  // namespace editor
+}  // namespace gui
 }  // namespace yaze
 
 #endif

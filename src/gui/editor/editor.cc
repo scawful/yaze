@@ -15,16 +15,14 @@
 #include "rom.h"
 
 namespace yaze {
-namespace app {
-namespace Editor {
-
-using namespace core;
+namespace gui {
+namespace editor {
 
 Editor::Editor() {
-  for (auto &k : core::constants::kKeywords)
+  for (auto &k : app::core::constants::kKeywords)
     language_65816_.mKeywords.emplace(k);
 
-  for (auto &k : core::constants::kIdentifiers) {
+  for (auto &k : app::core::constants::kIdentifiers) {
     TextEditor::Identifier id;
     id.mDeclaration = "Built-in function";
     language_65816_.mIdentifiers.insert(std::make_pair(std::string(k), id));
