@@ -82,7 +82,7 @@ constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfColors = 3143;
 
 // ===========================================================================================
-//  Graphics
+//  gfx
 // ===========================================================================================
 
 constexpr int tile_address = 0x1B52;           // JP = Same
@@ -934,7 +934,7 @@ static const std::string Type3RoomObjectNames[] = {
     "Bar bottles",
     "Arrow game hole (west)",
     "Arrow game hole (east)",
-    "Vitreous goo graphics",
+    "Vitreous goo gfx",
     "Fake pressure plate",
     "Medusa head",
     "4-way shooter block",

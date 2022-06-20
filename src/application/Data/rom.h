@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "Core/constants.h"
-#include "Graphics/tile.h"
+#include "gfx/tile.h"
 
 namespace yaze {
 namespace application {
@@ -28,12 +28,12 @@ class ROM {
 
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
-  std::vector<tile8> ExtractTiles(Graphics::TilePreset& preset);
-  Graphics::SNESPalette ExtractPalette(Graphics::TilePreset& preset);
+  std::vector<tile8> ExtractTiles(gfx::TilePreset& preset);
+  gfx::SNESPalette ExtractPalette(gfx::TilePreset& preset);
   uint32_t GetRomPosition(int direct_addr, uint snes_addr) const;
   char* Decompress(int pos, int size = 0x800, bool reversed = false);
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
-  SDL_Texture* DrawGraphicsSheet(int offset);
+  SDL_Texture* DrawgfxSheet(int offset);
 
   inline uchar* GetRawData() { return current_rom_; }
   const uchar* getTitle() const { return title; }

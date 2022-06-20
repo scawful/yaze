@@ -4,11 +4,12 @@
 
 #include <cmath>
 
-#include "Graphics/bitmap.h"
-#include "Graphics/icons.h"
-#include "Graphics/tile.h"
+#include "gfx/bitmap.h"
+#include "gfx/tile.h"
+#include "gui/icons.h"
 
-// first step would be to decompress all graphics data from the game
+
+// first step would be to decompress all gfx data from the game
 // (in alttp that's easy they're all located in the same location all the
 // same sheet size 128x32) have a code that convert PC address to SNES and
 // vice-versa
@@ -34,10 +35,10 @@ void OverworldEditor::SetupROM(Data::ROM &rom) { rom_ = rom; }
 
 void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
-    if (!all_graphics_loaded_) {
-      LoadGraphics();
-      //overworld_.Load(rom_);
-      all_graphics_loaded_ = true;
+    if (!all_gfx_loaded_) {
+      Loadgfx();
+      // overworld_.Load(rom_);
+      all_gfx_loaded_ = true;
     }
   }
 
@@ -275,8 +276,9 @@ void OverworldEditor::DrawTileSelector() {
     if (ImGui::BeginTabItem("Tile8")) {
       ImGuiStyle &style = ImGui::GetStyle();
       ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
-      bool child_is_visible = ImGui::BeginChild(
-          child_id, ImGui::GetContentRegionAvail(), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+      bool child_is_visible =
+          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar);
       if (child_is_visible)  // Avoid calling SetScrollHereY when running with
                              // culled items
       {
@@ -328,7 +330,7 @@ void OverworldEditor::DrawTile8Selector() {
     ImGui::EndPopup();
   }
 
-  if (all_graphics_loaded_) {
+  if (all_gfx_loaded_) {
     for (const auto &[key, value] : all_texture_sheet_) {
       int offset = 64 * (key + 1);
       int top_left_y = canvas_p0.y + 2;
@@ -369,9 +371,9 @@ void OverworldEditor::DrawChangelist() {
   ImGui::End();
 }
 
-void OverworldEditor::LoadGraphics() {
+void OverworldEditor::Loadgfx() {
   for (int i = 0; i < kNumSheetsToLoad; i++) {
-    all_texture_sheet_[i] = rom_.DrawGraphicsSheet(i);
+    all_texture_sheet_[i] = rom_.DrawgfxSheet(i);
   }
 }
 

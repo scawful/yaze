@@ -6,7 +6,7 @@
 
 namespace yaze {
 namespace application {
-namespace Graphics {
+namespace gfx {
 
 int GetPCGfxAddress(char *romData, char id) {
   char **info1 = new char *[255];
@@ -173,6 +173,6 @@ void CreateAllGfxData(char *romData, char *allgfx16Ptr) {
   }
 }
 
-}  // namespace Graphics
+}  // namespace gfx
 }  // namespace application
 }  // namespace yaze

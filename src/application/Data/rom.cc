@@ -44,7 +44,7 @@ void ROM::LoadFromFile(const std::string &path) {
   loaded = true;
 }
 
-std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
+std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
   std::cout << "Extracting tiles..." << std::endl;
   uint filePos = 0;
   uint size_out = 0;
@@ -55,7 +55,7 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
   std::cout << "ROM Position: " << filePos << " from "
             << preset.SNESTilesLocation << std::endl;
 
-  // decompress the graphics
+  // decompress the gfx
   auto data = (char *)malloc(sizeof(char) * size);
   memcpy(data, (current_rom_ + filePos), size);
   data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
@@ -82,7 +82,7 @@ std::vector<tile8> ROM::ExtractTiles(Graphics::TilePreset &preset) {
   return rawTiles;
 }
 
-Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
+gfx::SNESPalette ROM::ExtractPalette(gfx::TilePreset &preset) {
   uint filePos =
       GetRomPosition(preset.pc_palette_location_, preset.SNESPaletteLocation);
   std::cout << "Palette pos : " << filePos << std::endl;  // TODO: make this hex
@@ -100,9 +100,9 @@ Graphics::SNESPalette ROM::ExtractPalette(Graphics::TilePreset &preset) {
   std::cout << std::endl;
 
   const unsigned char *data = palette_data.get();
-  Graphics::SNESPalette pal(data);
+  gfx::SNESPalette pal(data);
   if (preset.no_zero_color_) {
-    Graphics::SNESColor col;
+    gfx::SNESColor col;
 
     col.setRgb(ImVec4(153, 153, 153, 255));
     pal.colors.push_back(col);
@@ -255,7 +255,7 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in,
   return sheet_buffer_out;
 }
 
-SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
+SDL_Texture *ROM::DrawgfxSheet(int offset) {
   SDL_Surface *surface =
       SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
   std::cout << "Drawing surface #" << offset << std::endl;

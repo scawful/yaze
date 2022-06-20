@@ -4,8 +4,8 @@
 #include <imgui/imgui.h>
 
 #include "Data/OW/overworld.h"
-#include "Graphics/palette.h"
-#include "Graphics/tile.h"
+#include "gfx/palette.h"
+#include "gfx/tile.h"
 #include "gui/icons.h"
 
 
@@ -28,13 +28,13 @@ class OverworldEditor {
   void DrawTile8Selector();
   void DrawChangelist();
 
-  void LoadGraphics();
+  void Loadgfx();
 
   Data::ROM rom_;
   Data::Overworld overworld_;
-  Graphics::Bitmap allgfxBitmap;
-  Graphics::SNESPalette palette_;
-  Graphics::TilePreset current_set_;
+  gfx::Bitmap allgfxBitmap;
+  gfx::SNESPalette palette_;
+  gfx::TilePreset current_set_;
   std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
 
   SDL_Texture *gfx_texture = nullptr;
@@ -58,7 +58,7 @@ class OverworldEditor {
   bool doneLoaded = false;
   bool opt_enable_grid = true;
   bool show_changelist_ = false;
-  bool all_graphics_loaded_ = false;
+  bool all_gfx_loaded_ = false;
 
   constexpr static int kByteSize = 3;
   constexpr static int kMessageIdSize = 5;

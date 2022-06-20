@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "Data/rom.h"
-#include "Graphics/bitmap.h"
-#include "Graphics/tile.h"
+#include "gfx/bitmap.h"
+#include "gfx/tile.h"
 
 namespace yaze {
 namespace application {
@@ -29,8 +29,8 @@ class OverworldMap {
 
   int* gfxPtr = new int[512 * 512];
   int* mapblockset16 = new int[1048576];
-  Graphics::Bitmap mapblockset16Bitmap;
-  Graphics::Bitmap gfxBitmap;
+  gfx::Bitmap mapblockset16Bitmap;
+  gfx::Bitmap gfxBitmap;
 
   uchar* staticgfx =
       new uchar[16];  // Need to be used to display map and not pre render it!
@@ -40,9 +40,9 @@ class OverworldMap {
   Data::ROM rom_;
 
   uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
-  std::vector<Graphics::Tile16> tiles16_;
+  std::vector<gfx::Tile16> tiles16_;
 
-  OverworldMap(Data::ROM & rom, const std::vector<Graphics::Tile16> tiles16,
+  OverworldMap(Data::ROM & rom, const std::vector<gfx::Tile16> tiles16,
                uchar index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 ushort** allmapsTilesLW, ushort** allmapsTilesDW,
@@ -57,10 +57,10 @@ class OverworldMap {
   // void ReloadPalettes() { LoadPalette(); }
 
   void CopyTile(int x, int y, int xx, int yy, int offset,
-                Graphics::TileInfo tile, uchar* gfx16Pointer,
+                gfx::TileInfo tile, uchar* gfx16Pointer,
                 uchar* gfx8Pointer);
   void CopyTileToMap(int x, int y, int xx, int yy, int offset,
-                     Graphics::TileInfo tile, uchar* gfx16Pointer,
+                     gfx::TileInfo tile, uchar* gfx16Pointer,
                      uchar* gfx8Pointer);
 
   void LoadPalette();

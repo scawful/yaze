@@ -1,13 +1,13 @@
 #include "overworld.h"
 
-#include "Graphics/tile.h"
+#include "gfx/tile.h"
 
 namespace yaze {
 namespace application {
 namespace Data {
 
 using namespace core;
-using namespace Graphics;
+using namespace gfx;
 
 Overworld::~Overworld() {
   if (isLoaded) {

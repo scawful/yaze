@@ -8,8 +8,8 @@
 
 #include "Core/constants.h"
 #include "Data/rom.h"
-#include "Graphics/bitmap.h"
-#include "Graphics/tile.h"
+#include "gfx/bitmap.h"
+#include "gfx/tile.h"
 #include "overworld_map.h"
 
 namespace yaze {
@@ -24,10 +24,10 @@ class Overworld {
   void Load(Data::ROM & rom);
 
   char* overworldMapPointer = new char[0x40000];
-  Graphics::Bitmap* overworldMapBitmap;
+  gfx::Bitmap* overworldMapBitmap;
 
   char* owactualMapPointer = new char[0x40000];
-  Graphics::Bitmap* owactualMapBitmap;
+  gfx::Bitmap* owactualMapBitmap;
 
  private:
   Data::ROM rom_;
@@ -39,9 +39,9 @@ class Overworld {
   ushort** allmapsTilesDW;  // 64 maps * (32*32 tiles)
   ushort** allmapsTilesSP;  // 32 maps * (32*32 tiles)
 
-  std::vector<Graphics::Tile16> tiles16;
-  std::vector<Graphics::Tile32> tiles32;
-  std::vector<Graphics::Tile32> map16tiles;
+  std::vector<gfx::Tile16> tiles16;
+  std::vector<gfx::Tile32> tiles32;
+  std::vector<gfx::Tile32> map16tiles;
 
   std::vector<OverworldMap> allmaps;
 

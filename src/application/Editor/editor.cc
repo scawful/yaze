@@ -9,8 +9,8 @@
 #include "Core/constants.h"
 #include "Data/rom.h"
 #include "Editor/overworld_editor.h"
-#include "Graphics/palette.h"
-#include "Graphics/tile.h"
+#include "gfx/palette.h"
+#include "gfx/tile.h"
 #include "gui/icons.h"
 #include "gui/input.h"
 
@@ -117,7 +117,7 @@ void Editor::UpdateScreen() {
   DrawProjectEditor();
   DrawOverworldEditor();
   DrawDungeonEditor();
-  DrawGraphicsEditor();
+  DrawgfxEditor();
   DrawSpriteEditor();
   DrawScreenEditor();
   DrawHUDEditor();
@@ -280,7 +280,7 @@ void Editor::DrawHelpMenu() const {
   }
 }
 
-void Editor::DrawGraphicsSheet(int offset) {
+void Editor::DrawgfxSheet(int offset) {
   SDL_Surface *surface =
       SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
   std::cout << "Drawing surface" << std::endl;
@@ -345,9 +345,9 @@ void Editor::DrawProjectEditor() {
       }
       ImGui::SetNextItemWidth(100.f);
       ImGui::InputInt("Tilesheet Offset", &tilesheet_offset);
-      BASIC_BUTTON("Retrieve Graphics") {
+      BASIC_BUTTON("Retrieve gfx") {
         if (rom_.isLoaded()) {
-          DrawGraphicsSheet(tilesheet_offset);
+          DrawgfxSheet(tilesheet_offset);
           loaded_image = true;
         }
       }
@@ -496,8 +496,8 @@ void Editor::DrawDungeonEditor() {
   }
 }
 
-void Editor::DrawGraphicsEditor() {
-  if (ImGui::BeginTabItem("Graphics")) {
+void Editor::DrawgfxEditor() {
+  if (ImGui::BeginTabItem("gfx")) {
     ImGui::EndTabItem();
   }
 }
