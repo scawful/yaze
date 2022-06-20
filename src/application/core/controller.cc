@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "Editor/editor.h"
+#include "gui/editor/editor.h"
 
 namespace yaze {
 namespace application {
@@ -157,7 +157,7 @@ void Controller::CreateGuiContext() {
 
   // Load available fonts
   const ImGuiIO &io = ImGui::GetIO();
-  io.Fonts->AddFontFromFileTTF("assets/Fonts/Karla-Regular.ttf", 14.0f);
+  io.Fonts->AddFontFromFileTTF("assets/font/Karla-Regular.ttf", 14.0f);
 
   // merge in icons from Google Material Design
   static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
@@ -168,9 +168,9 @@ void Controller::CreateGuiContext() {
   icons_config.PixelSnapH = true;
   io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, 18.0f, &icons_config,
                                icons_ranges);
-  io.Fonts->AddFontFromFileTTF("assets/Fonts/Roboto-Medium.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/Fonts/Cousine-Regular.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/Fonts/DroidSans.ttf", 16.0f);
+  io.Fonts->AddFontFromFileTTF("assets/font/Roboto-Medium.ttf", 14.0f);
+  io.Fonts->AddFontFromFileTTF("assets/font/Cousine-Regular.ttf", 14.0f);
+  io.Fonts->AddFontFromFileTTF("assets/font/DroidSans.ttf", 16.0f);
 
   // Set the default style
   gui::ColorsYaze();

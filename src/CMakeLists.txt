@@ -34,6 +34,8 @@ add_executable(
     yaze.cc
     gui/input.cc
     gui/style.cc
+    gui/editor/editor.cc
+    gui/editor/overworld_editor.cc
     application/rom.cc
     application/core/controller.cc
     application/zelda3/overworld.cc
@@ -41,8 +43,6 @@ add_executable(
     application/gfx/bitmap.cc
     application/gfx/tile.cc
     application/gfx/palette.cc
-    application/Editor/editor.cc
-    application/Editor/overworld_editor.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp
