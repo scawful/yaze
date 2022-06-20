@@ -10,6 +10,23 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+Bitmap::Bitmap(int width, int height, int depth, char *data)
+    : width_(width), height_(height), depth_(depth), pixel_data_(data) {
+  surface_ = SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
+                                            SDL_PIXELFORMAT_INDEX8);
+  // Default grayscale palette
+  for (int i = 0; i < 8; i++) {
+    surface_->format->palette->colors[i].r = i * 31;
+    surface_->format->palette->colors[i].g = i * 31;
+    surface_->format->palette->colors[i].b = i * 31;
+  }
+  surface_->pixels = data;
+}
+
+SDL_Texture *Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
+  texture_ = SDL_CreateTextureFromSurface(renderer.get(), surface_);
+}
+
 int GetPCGfxAddress(char *romData, char id) {
   char **info1 = new char *[255];
   int gfxPointer1 =
@@ -30,7 +47,8 @@ int GetPCGfxAddress(char *romData, char id) {
   char gfxGamePointer3 = romData[gfxPointer3 + id];
 
   return lorom_snes_to_pc(
-      yaze::app::rom::AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3),
+      yaze::app::rom::AddressFromBytes(gfxGamePointer1, gfxGamePointer2,
+                                       gfxGamePointer3),
       info1);
 }
 

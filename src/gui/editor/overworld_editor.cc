@@ -63,7 +63,7 @@ void OverworldEditor::Update() {
 }
 
 void OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("Toolset", 14, toolset_table_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("Toolset", 16, toolset_table_flags, ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#undoTool");
     ImGui::TableSetupColumn("#redoTool");
     ImGui::TableSetupColumn("#drawTool");
@@ -78,6 +78,8 @@ void OverworldEditor::DrawToolset() {
     ImGui::TableSetupColumn("#spriteTool");
     ImGui::TableSetupColumn("#transportTool");
     ImGui::TableSetupColumn("#musicTool");
+    ImGui::TableSetupColumn("#separator3");
+    ImGui::TableSetupColumn("#reloadTool");
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_UNDO);
@@ -125,6 +127,14 @@ void OverworldEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_MUSIC_NOTE);
+
+    ImGui::TableNextColumn();
+    ImGui::Text(ICON_MD_MORE_VERT);
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_UPDATE)) {
+      overworld_.Load(rom_);
+    }
 
     ImGui::EndTable();
   }
@@ -274,6 +284,10 @@ void OverworldEditor::DrawOverworldCanvas() {
 
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
+    if (ImGui::BeginTabItem("Tile16")) {
+      DrawTile16Selector();
+      ImGui::EndTabItem();
+    }
     if (ImGui::BeginTabItem("Tile8")) {
       ImGuiStyle &style = ImGui::GetStyle();
       ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
@@ -291,12 +305,60 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Tile16")) {
-      ImGui::EndTabItem();
-    }
 
     ImGui::EndTabBar();
   }
+}
+
+void OverworldEditor::DrawTile16Selector() {
+  static ImVec2 scrolling(0.0f, 0.0f);
+  ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
+  ImVec2 canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);
+  ImVec2 canvas_p1 =
+      ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+
+  // Draw border and background color
+  const ImGuiIO &io = ImGui::GetIO();
+  ImDrawList *draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(32, 32, 32, 255));
+  draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
+
+  // This will catch our interactions
+  ImGui::InvisibleButton(
+      "Tile16SelectorCanvas", canvas_sz,
+      ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
+  const bool is_active = ImGui::IsItemActive();    // Held
+  const ImVec2 origin(canvas_p0.x + scrolling.x,
+                      canvas_p0.y + scrolling.y);  // Lock scrolled origin
+  const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
+                                   io.MousePos.y - origin.y);
+
+  // Context menu (under default mouse threshold)
+  ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+  if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
+    ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+  if (ImGui::BeginPopup("context")) {
+    ImGui::EndPopup();
+  }
+
+  // Draw grid + all lines in the canvas
+  draw_list->PushClipRect(canvas_p0, canvas_p1, true);
+  if (opt_enable_grid) {
+    const float GRID_STEP = 32.0f;
+    for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x;
+         x += GRID_STEP)
+      draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y),
+                         ImVec2(canvas_p0.x + x, canvas_p1.y),
+                         IM_COL32(200, 200, 200, 40));
+    for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y;
+         y += GRID_STEP)
+      draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
+                         ImVec2(canvas_p1.x, canvas_p0.y + y),
+                         IM_COL32(200, 200, 200, 40));
+  }
+
+  draw_list->PopClipRect();
 }
 
 void OverworldEditor::DrawTile8Selector() {
@@ -374,7 +436,7 @@ void OverworldEditor::DrawChangelist() {
 
 void OverworldEditor::Loadgfx() {
   for (int i = 0; i < kNumSheetsToLoad; i++) {
-    all_texture_sheet_[i] = rom_.DrawgfxSheet(i);
+    all_texture_sheet_[i] = rom_.DrawGraphicsSheet(i);
   }
 }
 

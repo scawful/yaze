@@ -25,7 +25,9 @@ class OverworldEditor {
   void DrawOverworldMapSettings();
   void DrawOverworldCanvas();
   void DrawTileSelector();
+  void DrawTile16Selector();
   void DrawTile8Selector();
+
   void DrawChangelist();
 
   void Loadgfx();

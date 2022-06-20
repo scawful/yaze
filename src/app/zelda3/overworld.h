@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_DATA_OVERWORLD_H
 #define YAZE_APP_DATA_OVERWORLD_H
 
+#include <SDL2/SDL.h>
 #include <rommapping.h>
 
 #include <memory>
@@ -26,9 +27,6 @@ class Overworld {
   char* overworldMapPointer = new char[0x40000];
   gfx::Bitmap* overworldMapBitmap;
 
-  char* owactualMapPointer = new char[0x40000];
-  gfx::Bitmap* owactualMapBitmap;
-
  private:
   app::rom::ROM rom_;
   int gameState = 1;
@@ -47,6 +45,13 @@ class Overworld {
 
   std::vector<ushort> tileLeftEntrance;
   std::vector<ushort> tileRightEntrance;
+
+  std::shared_ptr<uchar> mapblockset16;
+  std::shared_ptr<uchar> currentOWgfx16Ptr;
+
+  gfx::Bitmap mapblockset16Bitmap;
+
+  SDL_Texture* overworld_map_texture;
 
   int map32address[4] = {
       core::constants::map32TilesTL, core::constants::map32TilesTR,

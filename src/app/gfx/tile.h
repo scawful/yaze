@@ -9,12 +9,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <regex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "app/gfx/snes_palette.h"
+
 
 namespace yaze {
 namespace app {
@@ -55,6 +57,10 @@ class Tile32 {
       : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {}
 };
 
+void BuildTiles16Gfx();
+void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
+                uchar* gfx16Pointer, uchar* gfx8Pointer);
+
 class Tile16 {
  public:
   TileInfo tile0_;
@@ -72,31 +78,9 @@ class Tile16 {
   }
 };
 
-class TilesPattern {
- public:
-  TilesPattern();
-  std::string name;
-  std::string description;
-  unsigned int tiles_per_row_;
-  unsigned int number_of_tiles_;
-
-  static TilesPattern pattern(std::string name);
-  static std::vector<std::vector<tile8>> transform(
-      const TilesPattern& pattern, const std::vector<tile8>& tiles);
-
- protected:
-  std::vector<std::vector<tile8>> transform(
-      const std::vector<tile8>& tiles) const;
-  std::vector<tile8> reverse(const std::vector<tile8>& tiles) const;
-
- private:
-  std::vector<std::vector<int>> transform_vector_;
-};
-
 class TilePreset {
  public:
   TilePreset() = default;
-  TilesPattern tilesPattern;
   bool no_zero_color_ = false;
   int pc_tiles_location_ = 0;
   int pc_palette_location_ = 0;

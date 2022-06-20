@@ -23,7 +23,7 @@ int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3) {
   return (addr1 << 16) | (addr2 << 8) | addr3;
 }
 
-ROM::~ROM() {
+void ROM::Close() {
   if (loaded) {
     delete[] current_rom_;
     for (auto &each : decompressed_graphic_sheets_) {
@@ -97,33 +97,14 @@ std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
   return rawTiles;
 }
 
-gfx::SNESPalette ROM::ExtractPalette(gfx::TilePreset &preset) {
-  uint filePos =
-      GetRomPosition(preset.pc_palette_location_, preset.SNESPaletteLocation);
-  std::cout << "Palette pos : " << filePos << std::endl;  // TODO: make this hex
-  uint palette_size = pow(2, preset.bits_per_pixel_);     // - 1;
-
-  auto palette_data = std::make_unique<unsigned char[]>(palette_size * 2);
-  memcpy(palette_data.get(), current_rom_ + filePos, palette_size * 2);
-
-  // char *ab = (char *)malloc(sizeof(char) * (palette_size * 2));
-  // memcpy(ab, current_rom_ + filePos, palette_size * 2);
-
-  for (int i = 0; i < palette_size; i++) {
-    std::cout << palette_data[i];
-  }
+gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
+  uint filePos = addr;
+  uint palette_size = pow(2, bpp);
+  char *palette_data = (char *)malloc(sizeof(char) * (palette_size * 2));
+  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
+  for (int i = 0; i < palette_size; i++) std::cout << palette_data[i];
   std::cout << std::endl;
-
-  const unsigned char *data = palette_data.get();
-  gfx::SNESPalette pal(data);
-  if (preset.no_zero_color_) {
-    gfx::SNESColor col;
-
-    col.setRgb(ImVec4(153, 153, 153, 255));
-    pal.colors.push_back(col);
-    pal.colors.erase(pal.colors.begin(),
-                     pal.colors.begin() + pal.colors.size() - 1);
-  }
+  gfx::SNESPalette pal(palette_data);
   return pal;
 }
 
@@ -270,7 +251,7 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in,
   return sheet_buffer_out;
 }
 
-SDL_Texture *ROM::DrawgfxSheet(int offset) {
+SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   SDL_Surface *surface =
       SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
   std::cout << "Drawing surface #" << offset << std::endl;
