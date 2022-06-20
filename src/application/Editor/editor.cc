@@ -7,24 +7,24 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "Core/constants.h"
-#include "gui/input.h"
 #include "Data/rom.h"
 #include "Editor/overworld_editor.h"
-#include "Graphics/icons.h"
 #include "Graphics/palette.h"
 #include "Graphics/tile.h"
+#include "gui/icons.h"
+#include "gui/input.h"
 
 namespace yaze {
 namespace application {
 namespace Editor {
 
-using namespace Core;
+using namespace core;
 
 Editor::Editor() {
-  for (auto &k : Core::Constants::kKeywords)
+  for (auto &k : core::Constants::kKeywords)
     language_65816_.mKeywords.emplace(k);
 
-  for (auto &k : Core::Constants::kIdentifiers) {
+  for (auto &k : core::Constants::kIdentifiers) {
     TextEditor::Identifier id;
     id.mDeclaration = "Built-in function";
     language_65816_.mIdentifiers.insert(std::make_pair(std::string(k), id));
@@ -296,10 +296,10 @@ void Editor::DrawGraphicsSheet(int offset) {
 
   unsigned int snesAddr = 0;
   unsigned int pcAddr = 0;
-  snesAddr = (unsigned int)((
-      ((uchar)(rom_.GetRawData()[0x4F80 + offset]) << 16) |
-      ((uchar)(rom_.GetRawData()[0x505F + offset]) << 8) |
-      ((uchar)(rom_.GetRawData()[0x513E + offset]))));
+  snesAddr =
+      (unsigned int)((((uchar)(rom_.GetRawData()[0x4F80 + offset]) << 16) |
+                      ((uchar)(rom_.GetRawData()[0x505F + offset]) << 8) |
+                      ((uchar)(rom_.GetRawData()[0x513E + offset]))));
   pcAddr = rom_.SnesToPc(snesAddr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = rom_.Decompress(pcAddr);

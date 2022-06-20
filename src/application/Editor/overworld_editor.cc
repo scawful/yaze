@@ -36,7 +36,7 @@ void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
     if (!all_graphics_loaded_) {
       LoadGraphics();
-      overworld_.Load(rom_);
+      //overworld_.Load(rom_);
       all_graphics_loaded_ = true;
     }
   }
