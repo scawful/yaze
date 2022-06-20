@@ -16,9 +16,11 @@ class Bitmap {
   Bitmap() = default;
   Bitmap(int width, int height, int depth, char *data);
 
+  void Create(int width, int height, int depth, uchar *data);
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
-  SDL_Texture *CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
+  void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
+  inline SDL_Texture *GetTexture() const { return texture_; }
 
  private:
   int width_;
@@ -28,12 +30,6 @@ class Bitmap {
   SDL_Surface *surface_;
   SDL_Texture *texture_;
 };
-
-static bool isbpp3[core::constants::NumberOfSheets];
-
-int GetPCGfxAddress(char *romData, char id);
-char *CreateAllGfxDataRaw(char *romData);
-void CreateAllGfxData(char *romData, char *allgfx16Ptr);
 
 }  // namespace gfx
 }  // namespace app

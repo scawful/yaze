@@ -37,7 +37,7 @@ void OverworldEditor::SetupROM(app::rom::ROM &rom) { rom_ = rom; }
 void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
     if (!all_gfx_loaded_) {
-      Loadgfx();
+      LoadGraphics();
       // overworld_.Load(rom_);
       all_gfx_loaded_ = true;
     }
@@ -134,6 +134,7 @@ void OverworldEditor::DrawToolset() {
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
       overworld_.Load(rom_);
+      LoadBlockset();
     }
 
     ImGui::EndTable();
@@ -285,7 +286,13 @@ void OverworldEditor::DrawOverworldCanvas() {
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
-      DrawTile16Selector();
+      ImGuiStyle &style = ImGui::GetStyle();
+      bool child_is_visible =
+          ImGui::BeginChild("#Tile16Child", ImGui::GetContentRegionAvail(),
+                            true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+      if (child_is_visible) DrawTile16Selector();
+
+      ImGui::EndChild();
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
@@ -294,9 +301,7 @@ void OverworldEditor::DrawTileSelector() {
       bool child_is_visible =
           ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar);
-      if (child_is_visible)  // Avoid calling SetScrollHereY when running with
-                             // culled items
-      {
+      if (child_is_visible) {
         DrawTile8Selector();
       }
       float scroll_x = ImGui::GetScrollX();
@@ -337,9 +342,17 @@ void OverworldEditor::DrawTile16Selector() {
   // Context menu (under default mouse threshold)
   ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
   if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
-    ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+    ImGui::OpenPopupOnItemClick("contextTile16",
+                                ImGuiPopupFlags_MouseButtonRight);
   if (ImGui::BeginPopup("context")) {
     ImGui::EndPopup();
+  }
+
+  if (map_blockset_loaded_) {
+    draw_list->AddImage((void *)(SDL_Texture *)mapblockset16Bitmap.GetTexture(),
+                        ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
+                        ImVec2(canvas_p0.x + (mapblockset16Bitmap.GetWidth() * 2),
+                               canvas_p0.y + (mapblockset16Bitmap.GetHeight() * 2)));
   }
 
   // Draw grid + all lines in the canvas
@@ -434,7 +447,16 @@ void OverworldEditor::DrawChangelist() {
   ImGui::End();
 }
 
-void OverworldEditor::Loadgfx() {
+void OverworldEditor::LoadBlockset() {
+  auto tiles = overworld_.GetTiles16();
+  app::gfx::BuildTiles16Gfx(overworld_.GetMapBlockset16Ptr(),
+                            overworld_.GetCurrentGfxSetPtr(), tiles);
+  mapblockset16Bitmap.Create(128, 8192, 128, overworld_.GetMapBlockset16Ptr());
+  mapblockset16Bitmap.CreateTexture(rom_.Renderer());
+  map_blockset_loaded_ = true;
+}
+
+void OverworldEditor::LoadGraphics() {
   for (int i = 0; i < kNumSheetsToLoad; i++) {
     all_texture_sheet_[i] = rom_.DrawGraphicsSheet(i);
   }

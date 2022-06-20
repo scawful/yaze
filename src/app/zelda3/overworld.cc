@@ -53,18 +53,19 @@ void Overworld::Load(app::rom::ROM& rom) {
   AssembleMap16Tiles();
   DecompressAllMapTiles();
 
-  // Map Initialization :
-  // for (int i = 0; i < 160; i++) {
-  //   allmaps.push_back(OverworldMap(rom_, tiles16, (uchar)i));
-  // }
-  // FetchLargeMaps();
-  // LoadOverworldMap();
+  // Map Initialization
+  for (int i = 0; i < 160; i++) {
+    overworld_maps_.push_back(OverworldMap(rom_, tiles16, (uchar)i));
+  }
+  FetchLargeMaps();
+  LoadOverworldMap();
 
-  // auto size = tiles16.size();
-  // for (int i = 0; i < 160; i++) {
-  //   allmaps[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
-  //                       allmapsTilesDW, allmapsTilesSP);
-  // }
+  auto size = tiles16.size();
+  for (int i = 0; i < 160; i++) {
+    overworld_maps_[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
+                                allmapsTilesDW, allmapsTilesSP,
+                                currentOWgfx16Ptr);
+  }
 
   isLoaded = true;
 }
@@ -250,7 +251,7 @@ void Overworld::FetchLargeMaps() {
   mapParent[137] = 129;
   mapParent[138] = 129;
   mapParent[136] = 136;
-  allmaps[136].largeMap = false;
+  overworld_maps_[136].largeMap = false;
 
   bool mapChecked[64];
   for (int i = 0; i < 64; i++) {
@@ -261,7 +262,7 @@ void Overworld::FetchLargeMaps() {
   while (true) {
     int i = xx + (yy * 8);
     if (mapChecked[i] == false) {
-      if (allmaps[i].largeMap == true) {
+      if (overworld_maps_[i].largeMap == true) {
         mapChecked[i] = true;
         mapParent[i] = (uchar)i;
         mapParent[i + 64] = (uchar)(i + 64);
@@ -314,7 +315,7 @@ void Overworld::LoadOverworldMap() {
     }
   }
 
-  overworld_map_texture = overworldMapBitmap->CreateTexture(rom_.Renderer());
+  // overworld_map_texture = overworldMapBitmap->CreateTexture(rom_.Renderer());
 }
 
 }  // namespace zelda3

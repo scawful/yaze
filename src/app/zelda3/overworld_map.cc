@@ -14,8 +14,8 @@ namespace zelda3 {
 using namespace core;
 using namespace gfx;
 
-OverworldMap::OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> tiles16,
-                           uchar index)
+OverworldMap::OverworldMap(app::rom::ROM& rom,
+                           const std::vector<gfx::Tile16> tiles16, uchar index)
     : rom_(rom), index(index), tiles16_(tiles16), parent(index) {
   if (index != 0x80) {
     if (index <= 150) {
@@ -111,8 +111,9 @@ OverworldMap::OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> ti
 
 void OverworldMap::BuildMap(uchar* mapParent, int count, int gameState,
                             ushort** allmapsTilesLW, ushort** allmapsTilesDW,
-                            ushort** allmapsTilesSP) {
+                            ushort** allmapsTilesSP, uchar* currentOWgfx16Ptr) {
   tilesUsed = new ushort*[32];
+  currentOWgfx16Ptr_ = currentOWgfx16Ptr;
   for (int i = 0; i < 32; i++) tilesUsed[i] = new ushort;
 
   if (largeMap) {
@@ -333,7 +334,7 @@ void OverworldMap::BuildTileset(int gameState) {
     staticgfx[7] = 91;
   }
 
-  uchar* currentmapgfx8Data = new uchar[(128 * 512) / 2];
+  uchar* currentmapgfx8Data = currentOWgfx16Ptr_;
   // (uchar*)GFX.currentOWgfx16Ptr.ToPointer();  // loaded gfx for the current
   //                                            // map (empty at this point)
   uchar* allgfxData = new uchar[(128 * 7136) / 2];

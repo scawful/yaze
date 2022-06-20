@@ -29,7 +29,7 @@ class OverworldMap {
 
   int* gfxPtr = new int[512 * 512];
   int* mapblockset16 = new int[1048576];
-  gfx::Bitmap mapblockset16Bitmap;
+  uchar* currentOWgfx16Ptr_ = nullptr;
   gfx::Bitmap gfxBitmap;
 
   uchar* staticgfx =
@@ -42,10 +42,11 @@ class OverworldMap {
   uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
   std::vector<gfx::Tile16> tiles16_;
 
-  OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> tiles16, uchar index);
+  OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> tiles16,
+               uchar index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 ushort** allmapsTilesLW, ushort** allmapsTilesDW,
-                ushort** allmapsTilesSP);
+                ushort** allmapsTilesSP, uchar* currentOWgfx16Ptr);
   void CopyTile8bpp16(int x, int y, int tile, int* destbmpPtr,
                       int* sourcebmpPtr);
   void CopyTile8bpp16From8(int xP, int yP, int tileID, int* destbmpPtr,

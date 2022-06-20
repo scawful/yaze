@@ -30,11 +30,14 @@ class OverworldEditor {
 
   void DrawChangelist();
 
-  void Loadgfx();
+  void LoadBlockset();
+  void LoadGraphics();
 
   app::rom::ROM rom_;
   app::zelda3::Overworld overworld_;
   app::gfx::Bitmap allgfxBitmap;
+  app::gfx::Bitmap mapblockset16Bitmap;
+
   app::gfx::SNESPalette palette_;
   app::gfx::TilePreset current_set_;
   std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
@@ -61,6 +64,7 @@ class OverworldEditor {
   bool opt_enable_grid = true;
   bool show_changelist_ = false;
   bool all_gfx_loaded_ = false;
+  bool map_blockset_loaded_ = false;
 
   constexpr static int kByteSize = 3;
   constexpr static int kMessageIdSize = 5;
