@@ -7,10 +7,10 @@
 #include <vector>
 
 #include "Core/constants.h"
-#include "Data/rom.h"
 #include "gfx/bitmap.h"
 #include "gfx/tile.h"
 #include "overworld_map.h"
+#include "rom.h"
 
 namespace yaze {
 namespace application {
@@ -21,7 +21,7 @@ class Overworld {
   Overworld() = default;
   ~Overworld();
 
-  void Load(Data::ROM & rom);
+  void Load(Data::ROM& rom);
 
   char* overworldMapPointer = new char[0x40000];
   gfx::Bitmap* overworldMapBitmap;

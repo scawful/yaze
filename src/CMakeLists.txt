@@ -34,10 +34,10 @@ add_executable(
     yaze.cc
     gui/input.cc
     gui/style.cc
-    application/Core/controller.cc
-    application/Data/rom.cc
-    application/Data/OW/overworld.cc
-    application/Data/OW/overworld_map.cc
+    application/rom.cc
+    application/core/controller.cc
+    application/zelda3/overworld.cc
+    application/zelda3/overworld_map.cc
     application/gfx/bitmap.cc
     application/gfx/tile.cc
     application/gfx/palette.cc

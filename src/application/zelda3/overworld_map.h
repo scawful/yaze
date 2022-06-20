@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <memory>
 
-#include "Data/rom.h"
+#include "rom.h"
 #include "gfx/bitmap.h"
 #include "gfx/tile.h"
 

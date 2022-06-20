@@ -7,12 +7,12 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "Core/constants.h"
-#include "Data/rom.h"
 #include "Editor/overworld_editor.h"
 #include "gfx/palette.h"
 #include "gfx/tile.h"
 #include "gui/icons.h"
 #include "gui/input.h"
+#include "rom.h"
 
 namespace yaze {
 namespace application {

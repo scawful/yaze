@@ -3,7 +3,7 @@
 
 #include <imgui/imgui.h>
 
-#include "Data/OW/overworld.h"
+#include "zelda3/overworld.h"
 #include "gfx/palette.h"
 #include "gfx/tile.h"
 #include "gui/icons.h"

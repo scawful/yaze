@@ -1,6 +1,6 @@
 #include "overworld_map.h"
 
-#include "Data/rom.h"
+#include "rom.h"
 #include "gfx/tile.h"
 
 namespace yaze {

@@ -2,7 +2,7 @@
 
 #include <rommapping.h>
 
-#include "Data/rom.h"
+#include "rom.h"
 
 namespace yaze {
 namespace application {
