@@ -67,11 +67,8 @@ class TilesPattern {
   TilesPattern();
   std::string name;
   std::string description;
-  bool custom;
   unsigned int tiles_per_row_;
   unsigned int number_of_tiles_;
-
-  void default_settings();
 
   static TilesPattern pattern(std::string name);
   static std::vector<std::vector<tile8>> transform(
