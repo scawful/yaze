@@ -442,6 +442,8 @@ void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
   for (int i = 0; i < 0x6F800; i++) {
     allgfx16Data[i] = newData[i];
   }
+
+  allgfx16Data = SNES3bppTo8bppSheet(allgfx16Data);
 }
 
 }  // namespace rom

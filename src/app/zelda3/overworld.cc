@@ -252,7 +252,7 @@ void Overworld::FetchLargeMaps() {
   mapParent[137] = 129;
   mapParent[138] = 129;
   mapParent[136] = 136;
-  overworld_maps_[136].largeMap = false;
+  overworld_maps_[136].large_map_ = false;
 
   bool mapChecked[64];
   for (int i = 0; i < 64; i++) {
@@ -263,7 +263,7 @@ void Overworld::FetchLargeMaps() {
   while (true) {
     int i = xx + (yy * 8);
     if (mapChecked[i] == false) {
-      if (overworld_maps_[i].largeMap == true) {
+      if (overworld_maps_[i].large_map_ == true) {
         mapChecked[i] = true;
         mapParent[i] = (uchar)i;
         mapParent[i + 64] = (uchar)(i + 64);

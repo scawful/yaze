@@ -49,10 +49,11 @@ void OverworldEditor::Update() {
   DrawToolset();
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#overworldCanvas",
-                            ImGuiTableColumnFlags_WidthStretch,
+    ImGui::TableSetupColumn(" Canvas", ImGuiTableColumnFlags_WidthStretch,
                             ImGui::GetContentRegionAvail().x);
-    ImGui::TableSetupColumn("#tileSelector");
+    ImGui::TableSetupColumn(" Tile Selector");
+    ImGui::TableHeadersRow();
+    ImGui::TableNextRow();
     ImGui::TableNextColumn();
     DrawOverworldCanvas();
     ImGui::TableNextColumn();
@@ -133,7 +134,6 @@ void OverworldEditor::DrawToolset() {
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
       overworld_.Load(rom_, allGfx16Ptr);
-
       LoadBlockset();
     }
 

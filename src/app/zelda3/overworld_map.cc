@@ -15,101 +15,110 @@ using namespace core;
 using namespace gfx;
 
 OverworldMap::OverworldMap(app::rom::ROM& rom,
-                           const std::vector<gfx::Tile16> tiles16, int index)
-    : rom_(rom), index(index), tiles16_(tiles16), parent(index) {
-  if (index != 0x80) {
-    if (index <= 150) {
-      if (rom_.GetRawData()[constants::overworldMapSize + (index & 0x3F)] !=
+                           const std::vector<gfx::Tile16> tiles16, int index_)
+    : rom_(rom), index_(index_), tiles16_(tiles16), parent_(index_) {
+  if (index_ != 0x80) {
+    if (index_ <= 150) {
+      if (rom_.GetRawData()[constants::overworldMapSize + (index_ & 0x3F)] !=
           0) {
-        largeMap = true;
+        large_map_ = true;
       }
     }
   }
 
-  if (index < 64) {
-    sprgfx[0] = rom_.GetRawData()[constants::overworldSpriteset + parent];
-    sprgfx[1] = rom_.GetRawData()[constants::overworldSpriteset + parent + 64];
-    sprgfx[2] = rom_.GetRawData()[constants::overworldSpriteset + parent + 128];
-    gfx = rom_.GetRawData()[constants::mapGfx + parent];
-    palette = rom_.GetRawData()[constants::overworldMapPalette + parent];
-    sprpalette[0] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent];
-    sprpalette[1] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 64];
-    sprpalette[2] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 128];
-    musics[0] = rom_.GetRawData()[constants::overworldMusicBegining + parent];
-    musics[1] = rom_.GetRawData()[constants::overworldMusicZelda + parent];
+  if (index_ < 64) {
+    sprite_graphics_[0] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_];
+    sprite_graphics_[1] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 64];
+    sprite_graphics_[2] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 128];
+    gfx_ = rom_.GetRawData()[constants::mapGfx + parent_];
+    palette_ = rom_.GetRawData()[constants::overworldMapPalette + parent_];
+    sprite_palette_[0] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_];
+    sprite_palette_[1] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 64];
+    sprite_palette_[2] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 128];
+    musics[0] = rom_.GetRawData()[constants::overworldMusicBegining + parent_];
+    musics[1] = rom_.GetRawData()[constants::overworldMusicZelda + parent_];
     musics[2] =
-        rom_.GetRawData()[constants::overworldMusicMasterSword + parent];
-    musics[3] = rom_.GetRawData()[constants::overworldMusicAgahim + parent];
-  } else if (index < 128) {
-    sprgfx[0] = rom_.GetRawData()[constants::overworldSpriteset + parent + 128];
-    sprgfx[1] = rom_.GetRawData()[constants::overworldSpriteset + parent + 128];
-    sprgfx[2] = rom_.GetRawData()[constants::overworldSpriteset + parent + 128];
-    gfx = rom_.GetRawData()[constants::mapGfx + parent];
-    palette = rom_.GetRawData()[constants::overworldMapPalette + parent];
-    sprpalette[0] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 128];
-    sprpalette[1] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 128];
-    sprpalette[2] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 128];
+        rom_.GetRawData()[constants::overworldMusicMasterSword + parent_];
+    musics[3] = rom_.GetRawData()[constants::overworldMusicAgahim + parent_];
+  } else if (index_ < 128) {
+    sprite_graphics_[0] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 128];
+    gfx_ = rom_.GetRawData()[constants::mapGfx + parent_];
+    palette_ = rom_.GetRawData()[constants::overworldMapPalette + parent_];
+    sprite_palette_[0] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[1] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[2] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 128];
 
-    musics[0] = rom_.GetRawData()[constants::overworldMusicDW + (parent - 64)];
+    musics[0] = rom_.GetRawData()[constants::overworldMusicDW + (parent_ - 64)];
   } else {
-    if (index == 0x94) {
-      parent = 128;
-    } else if (index == 0x95) {
-      parent = 03;
-    } else if (index == 0x96)  // pyramid bg use 0x5B map
+    if (index_ == 0x94) {
+      parent_ = 128;
+    } else if (index_ == 0x95) {
+      parent_ = 03;
+    } else if (index_ == 0x96)  // pyramid bg use 0x5B map
     {
-      parent = 0x5B;
-    } else if (index == 0x97)  // pyramid bg use 0x5B map
+      parent_ = 0x5B;
+    } else if (index_ == 0x97)  // pyramid bg use 0x5B map
     {
-      parent = 0x00;
-    } else if (index == 156) {
-      parent = 67;
-    } else if (index == 157) {
-      parent = 0;
-    } else if (index == 158) {
-      parent = 0;
-    } else if (index == 159) {
-      parent = 44;
-    } else if (index == 136) {
-      parent = 136;
+      parent_ = 0x00;
+    } else if (index_ == 156) {
+      parent_ = 67;
+    } else if (index_ == 157) {
+      parent_ = 0;
+    } else if (index_ == 158) {
+      parent_ = 0;
+    } else if (index_ == 159) {
+      parent_ = 44;
+    } else if (index_ == 136) {
+      parent_ = 136;
     }
 
-    messageID = rom_.GetRawData()[constants::overworldMessages + parent];
+    message_id_ = rom_.GetRawData()[constants::overworldMessages + parent_];
 
-    sprgfx[0] = rom_.GetRawData()[constants::overworldSpriteset + parent + 128];
-    sprgfx[1] = rom_.GetRawData()[constants::overworldSpriteset + parent + 128];
-    sprgfx[2] = rom_.GetRawData()[constants::overworldSpriteset + parent + 128];
-    sprpalette[0] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 128];
-    sprpalette[1] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 128];
-    sprpalette[2] =
-        rom_.GetRawData()[constants::overworldSpritePalette + parent + 128];
+    sprite_graphics_[0] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] =
+        rom_.GetRawData()[constants::overworldSpriteset + parent_ + 128];
+    sprite_palette_[0] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[1] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[2] =
+        rom_.GetRawData()[constants::overworldSpritePalette + parent_ + 128];
 
-    palette =
-        rom_.GetRawData()[constants::overworldSpecialPALGroup + parent - 128];
-    if (index >= 0x80 && index <= 0x8A && index != 0x88) {
-      gfx = rom_.GetRawData()[constants::overworldSpecialGFXGroup +
-                              (parent - 128)];
-      palette = rom_.GetRawData()[constants::overworldSpecialPALGroup + 1];
-    } else if (index == 0x88) {
-      gfx = 81;
-      palette = 0;
+    palette_ =
+        rom_.GetRawData()[constants::overworldSpecialPALGroup + parent_ - 128];
+    if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
+      gfx_ = rom_.GetRawData()[constants::overworldSpecialGFXGroup +
+                               (parent_ - 128)];
+      palette_ = rom_.GetRawData()[constants::overworldSpecialPALGroup + 1];
+    } else if (index_ == 0x88) {
+      gfx_ = 81;
+      palette_ = 0;
     } else  // pyramid bg use 0x5B map
     {
-      gfx = rom_.GetRawData()[constants::mapGfx + parent];
-      palette = rom_.GetRawData()[constants::overworldMapPalette + parent];
+      gfx_ = rom_.GetRawData()[constants::mapGfx + parent_];
+      palette_ = rom_.GetRawData()[constants::overworldMapPalette + parent_];
     }
   }
 }
 
-void OverworldMap::BuildMap(uchar* mapParent, int count, int gameState,
+void OverworldMap::BuildMap(uchar* mapparent_, int count, int gameState,
                             ushort** allmapsTilesLW, ushort** allmapsTilesDW,
                             ushort** allmapsTilesSP, uchar* currentOWgfx16Ptr,
                             uchar* allGfxPtr, uchar* mapblockset16) {
@@ -119,26 +128,26 @@ void OverworldMap::BuildMap(uchar* mapParent, int count, int gameState,
   mapblockset16_ = mapblockset16;
   for (int i = 0; i < 32; i++) tilesUsed[i] = new ushort;
 
-  if (largeMap) {
-    this->parent = mapParent[index];
+  if (large_map_) {
+    this->parent_ = mapparent_[index_];
 
-    if (parent != index) {
-      if (!firstLoad) {
-        if (index >= 0x80 && index <= 0x8A && index != 0x88) {
-          gfx = rom_.GetRawData()[core::constants::overworldSpecialGFXGroup +
-                                  (parent - 128)];
-          palette =
+    if (parent_ != index_) {
+      if (!initialized_) {
+        if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
+          gfx_ = rom_.GetRawData()[core::constants::overworldSpecialGFXGroup +
+                                   (parent_ - 128)];
+          palette_ =
               rom_.GetRawData()[core::constants::overworldSpecialPALGroup + 1];
-        } else if (index == 0x88) {
-          gfx = 81;
-          palette = 0;
+        } else if (index_ == 0x88) {
+          gfx_ = 81;
+          palette_ = 0;
         } else {
-          gfx = rom_.GetRawData()[core::constants::mapGfx + parent];
-          palette =
-              rom_.GetRawData()[core::constants::overworldMapPalette + parent];
+          gfx_ = rom_.GetRawData()[core::constants::mapGfx + parent_];
+          palette_ =
+              rom_.GetRawData()[core::constants::overworldMapPalette + parent_];
         }
 
-        firstLoad = true;
+        initialized_ = true;
       }
     }
   }
@@ -148,9 +157,9 @@ void OverworldMap::BuildMap(uchar* mapParent, int count, int gameState,
 
   int world = 0;
 
-  if (index < 64) {
+  if (index_ < 64) {
     tilesUsed = allmapsTilesLW;
-  } else if (index < 128 && index >= 64) {
+  } else if (index_ < 128 && index_ >= 64) {
     tilesUsed = allmapsTilesDW;
     world = 1;
   } else {
@@ -158,8 +167,8 @@ void OverworldMap::BuildMap(uchar* mapParent, int count, int gameState,
     world = 2;
   }
 
-  int superY = ((index - (world * 64)) / 8);
-  int superX = index - (world * 64) - (superY * 8);
+  int superY = ((index_ - (world * 64)) / 8);
+  int superX = index_ - (world * 64) - (superY * 8);
 
   for (int y = 0; y < 32; y++) {
     for (int x = 0; x < 32; x++) {
@@ -261,11 +270,12 @@ void OverworldMap::CopyTile(int x, int y, int xx, int yy, int offset,
   }
 
   int tx = ((tile.id_ / 16) * 512) + ((tile.id_ - ((tile.id_ / 16) * 16)) * 4);
-  auto index = xx + yy + offset + (mx * 2) + (my * 128);
+  auto index_ = xx + yy + offset + (mx * 2) + (my * 128);
   auto pixel = gfx8Pointer[tx + (y * 64) + x];
 
-  gfx16Pointer[index + r ^ 1] = (uchar)((pixel & 0x0F) + tile.palette_ * 16);
-  gfx16Pointer[index + r] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
+  gfx16Pointer[index_ + r ^ 1] = (uchar)((pixel & 0x0F) + tile.palette_ * 16);
+  gfx16Pointer[index_ + r] =
+      (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
 void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
@@ -295,11 +305,11 @@ void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
 
 void OverworldMap::BuildTileset(int gameState) {
   int indexWorld = 0x20;
-  if (parent < 0x40) {
+  if (parent_ < 0x40) {
     indexWorld = 0x20;
-  } else if (parent >= 0x40 && parent < 0x80) {
+  } else if (parent_ >= 0x40 && parent_ < 0x80) {
     indexWorld = 0x21;
-  } else if (parent == 0x88) {
+  } else if (parent_ == 0x88) {
     indexWorld = 36;
   }
 
@@ -311,7 +321,7 @@ void OverworldMap::BuildTileset(int gameState) {
   for (int i = 0; i < 4; i++) {
     staticgfx[12 + i] =
         (uchar)(rom_.GetRawData()[constants::sprite_blockset_pointer +
-                                  (sprgfx[gameState] * 4) + i] +
+                                  (sprite_graphics_[gameState] * 4) + i] +
                 115);
   }
 
@@ -321,28 +331,29 @@ void OverworldMap::BuildTileset(int gameState) {
                                      (indexWorld * 8) + i];
   }
 
-  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4)] != 0) {
-    staticgfx[3] = rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4)];
+  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4)] != 0) {
+    staticgfx[3] =
+        rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4)];
   }
-  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4) + 1] != 0) {
+  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4) + 1] != 0) {
     staticgfx[4] =
-        rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4) + 1];
+        rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4) + 1];
   }
-  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4) + 2] != 0) {
+  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4) + 2] != 0) {
     staticgfx[5] =
-        rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4) + 2];
+        rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4) + 2];
   }
-  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4) + 3] != 0) {
+  if (rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4) + 3] != 0) {
     staticgfx[6] =
-        rom_.GetRawData()[constants::overworldgfxGroups + (gfx * 4) + 3];
+        rom_.GetRawData()[constants::overworldgfxGroups + (gfx_ * 4) + 3];
   }
 
   // Hardcoded overworld GFX Values, for death mountain
-  if ((parent >= 0x03 && parent <= 0x07) ||
-      (parent >= 0x0B && parent <= 0x0E)) {
+  if ((parent_ >= 0x03 && parent_ <= 0x07) ||
+      (parent_ >= 0x0B && parent_ <= 0x0E)) {
     staticgfx[7] = 89;
-  } else if ((parent >= 0x43 && parent <= 0x47) ||
-             (parent >= 0x4B && parent <= 0x4E)) {
+  } else if ((parent_ >= 0x43 && parent_ <= 0x47) ||
+             (parent_ >= 0x4B && parent_ <= 0x4E)) {
     staticgfx[7] = 89;
   } else {
     staticgfx[7] = 91;
