@@ -449,20 +449,41 @@ void OverworldEditor::DrawChangelist() {
 }
 
 void OverworldEditor::LoadBlockset() {
+  rom_.CreateAllGraphicsData(allGfx16Ptr);
 
+  for (int i = 0; i < 16; i++) {
+    staticgfx[i] = i;
+  }
+
+  // Update gfx to be on selected map
+  auto currentmapgfx8Data = current_gfx_ptr_;
+  auto allgfxData = allGfx16Ptr;
+  for (int i = 0; i < 16; i++) {
+    for (int j = 0; j < 2048; j++) {
+      auto mapByte = allgfxData[j + (staticgfx[i] * 2048)];
+      switch (i) {
+        case 0:
+        case 3:
+        case 4:
+        case 5:
+          mapByte += 0x88;
+          break;
+      }
+
+      currentmapgfx8Data[(i * 2048) + j] = mapByte;  // Upload used gfx data
+    }
+  }
+
+  auto tiles = overworld_.GetTiles16();
+  app::gfx::BuildTiles16Gfx(tile16_blockset_ptr_, current_gfx_ptr_, tiles);
   current_gfx_bmp_.Create(128, 512, 64, current_gfx_ptr_);
   current_gfx_bmp_.CreateTexture(rom_.Renderer());
-
   tile16_blockset_bmp_.Create(128, 8192, 8, tile16_blockset_ptr_);
   tile16_blockset_bmp_.CreateTexture(rom_.Renderer());
-
-  rom_.CreateAllGraphicsData(allGfx16Ptr);
-  auto tiles = overworld_.GetTiles16();
-  app::gfx::BuildTiles16Gfx(overworld_.GetMapBlockset16Ptr(),
-                            overworld_.GetCurrentGfxSetPtr(), tiles);
-  mapblockset16Bitmap.Create(128, 8192, 8, overworld_.GetMapBlockset16Ptr());
-  mapblockset16Bitmap.CreateTexture(rom_.Renderer());
   map_blockset_loaded_ = true;
+
+  // mapblockset16Bitmap.Create(128, 8192, 8, overworld_.GetMapBlockset16Ptr());
+  // mapblockset16Bitmap.CreateTexture(rom_.Renderer());
 }
 
 void OverworldEditor::LoadGraphics() {

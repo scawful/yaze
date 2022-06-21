@@ -57,22 +57,16 @@ void ROM::LoadFromFile(const std::string &path) {
 }
 
 std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
-  std::cout << "Extracting tiles..." << std::endl;
   uint filePos = 0;
   uint size_out = 0;
   uint size = preset.length_;
   int tilePos = preset.pc_tiles_location_;
   std::vector<tile8> rawTiles;
-  filePos = GetRomPosition(tilePos, preset.SNESTilesLocation);
-  std::cout << "ROM Position: " << filePos << " from "
-            << preset.SNESTilesLocation << std::endl;
 
   // decompress the gfx
   auto data = (char *)malloc(sizeof(char) * size);
-  memcpy(data, (current_rom_ + filePos), size);
+  memcpy(data, (current_rom_ + tilePos), size);
   data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
-  std::cout << "size: " << size << std::endl;
-  std::cout << "lastCompressedSize: " << compressed_size_ << std::endl;
   if (data == nullptr) {
     std::cout << alttp_decompression_error << std::endl;
     return rawTiles;
@@ -80,7 +74,6 @@ std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
 
   // unpack the tiles based on their depth
   unsigned tileCpt = 0;
-  std::cout << "Unpacking tiles..." << std::endl;
   for (unsigned int tilePos = 0; tilePos < size;
        tilePos += preset.bits_per_pixel_ * 8) {
     tile8 newTile = unpack_bpp_tile(data, tilePos, preset.bits_per_pixel_);
@@ -88,9 +81,7 @@ std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
     rawTiles.push_back(newTile);
     tileCpt++;
   }
-  std::cout << "Done unpacking tiles" << std::endl;
   free(data);
-  std::cout << "Done extracting tiles." << std::endl;
   return rawTiles;
 }
 
@@ -103,19 +94,6 @@ gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
   std::cout << std::endl;
   gfx::SNESPalette pal(palette_data);
   return pal;
-}
-
-uint32_t ROM::GetRomPosition(int direct_addr, uint snes_addr) const {
-  unsigned int filePos = -1;
-  std::cout << "directAddr:" << direct_addr << std::endl;
-  if (direct_addr == -1) {
-    filePos = rommapping_snes_to_pc(snes_addr, type_, has_header_);
-  } else {
-    filePos = direct_addr;
-    if (has_header_) filePos += 0x200;
-  }
-  std::cout << "filePos:" << filePos << std::endl;
-  return filePos;
 }
 
 char *ROM::Decompress(int pos, int size, bool reversed) {
@@ -194,12 +172,12 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
   return buffer;
 }
 
-uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in,
-                                int sheet_id)  // 128x32
+uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id,
+                                int size)  // 128x32
 {
   // 8bpp sheet out
   const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-  uchar *sheet_buffer_out = (uchar *)malloc(0x1000);
+  uchar *sheet_buffer_out = (uchar *)malloc(size);
   converted_graphic_sheets_.push_back(sheet_buffer_out);
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
@@ -347,20 +325,20 @@ char *ROM::CreateAllGfxDataRaw() {
 }
 
 void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
+  int sheetPosition = 0;
   char *data = CreateAllGfxDataRaw();
   char *newData = new char[0x6F800];
   uchar *mask = new uchar[]{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-  int sheetPosition = 0;
 
   // 8x8 tile
-  for (int s = 0; s < core::constants::NumberOfSheets; s++)  // Per Sheet
-  {
-    for (int j = 0; j < 4; j++)  // Per Tile Line Y
-    {
-      for (int i = 0; i < 16; i++)  // Per Tile Line X
-      {
-        for (int y = 0; y < 8; y++)  // Per Pixel Line
-        {
+  // Per Sheet
+  for (int s = 0; s < core::constants::NumberOfSheets; s++) {
+    // Per Tile Line Y
+    for (int j = 0; j < 4; j++) {
+      // Per Tile Line X
+      for (int i = 0; i < 16; i++) {
+        // Per Pixel Line
+        for (int y = 0; y < 8; y++) {
           if (isbpp3[s]) {
             uchar lineBits0 =
                 data[(y * 2) + (i * 24) + (j * 384) + sheetPosition];
@@ -369,8 +347,8 @@ void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
             uchar lineBits2 =
                 data[(y) + (i * 24) + (j * 384) + 16 + sheetPosition];
 
-            for (int x = 0; x < 4; x++)  // Per Pixel X
-            {
+            // Per Pixel X
+            for (int x = 0; x < 4; x++) {
               uchar pixdata = 0;
               uchar pixdata2 = 0;
 
@@ -403,8 +381,8 @@ void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
             uchar lineBits1 =
                 data[(y * 2) + (i * 16) + (j * 256) + 1 + sheetPosition];
 
-            for (int x = 0; x < 4; x++)  // Per Pixel X
-            {
+            // Per Pixel X
+            for (int x = 0; x < 4; x++) {
               uchar pixdata = 0;
               uchar pixdata2 = 0;
 
@@ -438,13 +416,13 @@ void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
   }
 
   uchar *allgfx16Data = (uchar *)allGfx16Ptr;
-
   for (int i = 0; i < 0x6F800; i++) {
     allgfx16Data[i] = newData[i];
   }
-
   allgfx16Data = SNES3bppTo8bppSheet(allgfx16Data);
 }
+
+void ROM::LoadBlocksetGraphics(int graphics_id) {}
 
 }  // namespace rom
 }  // namespace app

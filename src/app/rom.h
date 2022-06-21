@@ -29,9 +29,8 @@ class ROM {
   void LoadFromFile(const std::string& path);
   std::vector<tile8> ExtractTiles(gfx::TilePreset& preset);
   gfx::SNESPalette ExtractPalette(uint addr, int bpp);
-  uint32_t GetRomPosition(int direct_addr, uint snes_addr) const;
   char* Decompress(int pos, int size = 0x800, bool reversed = false);
-  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
+  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0, int size = 0x1000);
   SDL_Texture* DrawGraphicsSheet(int offset);
 
   int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
@@ -39,6 +38,8 @@ class ROM {
   int GetPCGfxAddress(uint8_t id);
   char* CreateAllGfxDataRaw();
   void CreateAllGraphicsData(uchar* allGfx16Ptr);
+
+  void LoadBlocksetGraphics(int graphics_id);
 
   unsigned int SnesToPc(unsigned int addr) {
     if (addr >= 0x808000) {
