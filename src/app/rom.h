@@ -20,7 +20,6 @@
 namespace yaze {
 namespace app {
 namespace rom {
-int AddressFromBytes(uchar addr1, uchar addr2, uchar addr3);
 
 class ROM {
  public:
@@ -35,6 +34,11 @@ class ROM {
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0);
   SDL_Texture* DrawGraphicsSheet(int offset);
 
+  int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
+
+  int GetPCGfxAddress(uint8_t id);
+  char* CreateAllGfxDataRaw();
+  void CreateAllGraphicsData(uchar* allGfx16Ptr);
 
   unsigned int SnesToPc(unsigned int addr) {
     if (addr >= 0x808000) {
@@ -61,6 +65,7 @@ class ROM {
   uchar version_;
   uchar title[21] = "ROM Not Loaded";
   enum rom_type type_ = LoROM;
+  bool isbpp3[core::constants::NumberOfSheets];
 
   std::shared_ptr<uchar> rom_ptr_;
   std::vector<char*> decompressed_graphic_sheets_;

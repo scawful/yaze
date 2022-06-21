@@ -2,10 +2,9 @@
 #define YAZE_APP_UTILS_BITMAP_H
 
 #include <SDL2/SDL.h>
-#include <rommapping.h>
 
 #include "app/core/constants.h"
-#include "app/rom.h"
+#include "app/gfx/snes_palette.h"
 
 namespace yaze {
 namespace app {
@@ -14,7 +13,7 @@ namespace gfx {
 class Bitmap {
  public:
   Bitmap() = default;
-  Bitmap(int width, int height, int depth, char *data);
+  Bitmap(int width, int height, int depth, uchar *data);
 
   void Create(int width, int height, int depth, uchar *data);
   int GetWidth() const { return width_; }
@@ -26,9 +25,10 @@ class Bitmap {
   int width_;
   int height_;
   int depth_;
-  char *pixel_data_;
+  uchar *pixel_data_;
   SDL_Surface *surface_;
   SDL_Texture *texture_;
+  SNESPalette palette_;
 };
 
 }  // namespace gfx

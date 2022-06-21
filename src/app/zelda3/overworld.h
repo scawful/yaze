@@ -22,13 +22,13 @@ class Overworld {
   Overworld() = default;
   ~Overworld();
 
-  void Load(app::rom::ROM& rom);
+  void Load(app::rom::ROM& rom, uchar* allGfxPtr);
   inline auto GetTiles16() const { return tiles16; }
   inline auto GetCurrentGfxSetPtr() { return currentOWgfx16Ptr; }
   inline auto GetMapBlockset16Ptr() { return mapblockset16; }
 
-  char* overworldMapPointer = new char[0x40000];
-  gfx::Bitmap* overworldMapBitmap;
+  uchar* overworldMapPointer = new uchar[0x40000];
+  gfx::Bitmap overworldMapBitmap;
 
  private:
   ushort GenerateTile32(int i, int k, int dimension);
@@ -50,6 +50,7 @@ class Overworld {
   std::vector<ushort> tileLeftEntrance;
   std::vector<ushort> tileRightEntrance;
 
+  uchar* allGfx16Ptr = nullptr;
   uchar* mapblockset16 = new uchar[1048576];
   uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
   SDL_Texture* overworld_map_texture;

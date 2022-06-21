@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_GFX_TILE_H
 #define YAZE_APP_GFX_TILE_H
 
+#include <rommapping.h>
 #include <tile.h>
 
 #include <cassert>
@@ -73,11 +74,6 @@ class Tile16 {
   }
 };
 
-static bool isbpp3[core::constants::NumberOfSheets];
-
-int GetPCGfxAddress(char* romData, char id);
-char* CreateAllGfxDataRaw(char* romData);
-void CreateAllGfxData(char* romData, char* allgfx16Ptr);
 void BuildTiles16Gfx(uchar* mapblockset16, uchar* currentOWgfx16Ptr,
                      std::vector<Tile16>& allTiles);
 void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
