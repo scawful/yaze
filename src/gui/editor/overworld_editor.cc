@@ -38,7 +38,6 @@ void OverworldEditor::Update() {
   if (rom_.isLoaded()) {
     if (!all_gfx_loaded_) {
       LoadGraphics();
-      // overworld_.Load(rom_);
       all_gfx_loaded_ = true;
     }
   }
@@ -133,7 +132,8 @@ void OverworldEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
-      overworld_.Load(rom_);
+      overworld_.Load(rom_, allGfx16Ptr);
+
       LoadBlockset();
     }
 
@@ -349,10 +349,11 @@ void OverworldEditor::DrawTile16Selector() {
   }
 
   if (map_blockset_loaded_) {
-    draw_list->AddImage((void *)(SDL_Texture *)mapblockset16Bitmap.GetTexture(),
-                        ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
-                        ImVec2(canvas_p0.x + (mapblockset16Bitmap.GetWidth() * 2),
-                               canvas_p0.y + (mapblockset16Bitmap.GetHeight() * 2)));
+    draw_list->AddImage(
+        (void *)(SDL_Texture *)mapblockset16Bitmap.GetTexture(),
+        ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
+        ImVec2(canvas_p0.x + (mapblockset16Bitmap.GetWidth() * 2),
+               canvas_p0.y + (mapblockset16Bitmap.GetHeight() * 2)));
   }
 
   // Draw grid + all lines in the canvas
@@ -448,10 +449,11 @@ void OverworldEditor::DrawChangelist() {
 }
 
 void OverworldEditor::LoadBlockset() {
+  rom_.CreateAllGraphicsData(allGfx16Ptr);
   auto tiles = overworld_.GetTiles16();
   app::gfx::BuildTiles16Gfx(overworld_.GetMapBlockset16Ptr(),
                             overworld_.GetCurrentGfxSetPtr(), tiles);
-  mapblockset16Bitmap.Create(128, 8192, 128, overworld_.GetMapBlockset16Ptr());
+  mapblockset16Bitmap.Create(128, 8192, 8, overworld_.GetMapBlockset16Ptr());
   mapblockset16Bitmap.CreateTexture(rom_.Renderer());
   map_blockset_loaded_ = true;
 }

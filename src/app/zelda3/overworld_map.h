@@ -16,41 +16,40 @@ using ushort = unsigned short;
 class OverworldMap {
  public:
   uchar parent = 0;
-  uchar index = 0;
+  int index = 0;
   uchar gfx = 0;
   uchar palette = 0;
   bool firstLoad = false;
   short messageID = 0;
   bool largeMap = false;
+  bool needRefresh = false;
 
   uchar sprgfx[3];
   uchar sprpalette[3];
   uchar musics[4];
+  app::rom::ROM rom_;
 
-  int* gfxPtr = new int[512 * 512];
-  int* mapblockset16 = new int[1048576];
+  uchar* gfxPtr = new uchar[512 * 512];
+  uchar* mapblockset16_ = nullptr;
   uchar* currentOWgfx16Ptr_ = nullptr;
+  uchar* allGfx16Ptr_ = nullptr;
   gfx::Bitmap gfxBitmap;
+  std::vector<gfx::Tile16> tiles16_;
 
   uchar* staticgfx =
       new uchar[16];  // Need to be used to display map and not pre render it!
   ushort** tilesUsed;
 
-  bool needRefresh = false;
-  app::rom::ROM rom_;
-
-  uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
-  std::vector<gfx::Tile16> tiles16_;
-
   OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> tiles16,
-               uchar index);
+               int index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 ushort** allmapsTilesLW, ushort** allmapsTilesDW,
-                ushort** allmapsTilesSP, uchar* currentOWgfx16Ptr);
-  void CopyTile8bpp16(int x, int y, int tile, int* destbmpPtr,
-                      int* sourcebmpPtr);
-  void CopyTile8bpp16From8(int xP, int yP, int tileID, int* destbmpPtr,
-                           int* sourcebmpPtr);
+                ushort** allmapsTilesSP, uchar* currentOWgfx16Ptr,
+                uchar* allGfxPtr, uchar* mapblockset16);
+  void CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
+                      uchar* sourcebmpPtr);
+  void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr,
+                           uchar* sourcebmpPtr);
 
  private:
   void BuildTiles16Gfx(int count);

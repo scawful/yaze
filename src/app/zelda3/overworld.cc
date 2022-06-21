@@ -40,8 +40,9 @@ static TileInfo GetTilesInfo(ushort tile) {
   return TileInfo(tid, p, v, h, o);
 }
 
-void Overworld::Load(app::rom::ROM& rom) {
+void Overworld::Load(app::rom::ROM& rom, uchar* allGfxPtr) {
   rom_ = rom;
+  allGfx16Ptr = allGfxPtr;
   for (int i = 0; i < 0x2B; i++) {
     tileLeftEntrance.push_back(constants::overworldEntranceAllowedTilesLeft +
                                (i * 2));
@@ -54,8 +55,8 @@ void Overworld::Load(app::rom::ROM& rom) {
   DecompressAllMapTiles();
 
   // Map Initialization
-  for (int i = 0; i < 160; i++) {
-    overworld_maps_.push_back(OverworldMap(rom_, tiles16, (uchar)i));
+  for (int i = 0; i < constants::NumberOfOWMaps; i++) {
+    overworld_maps_.push_back(OverworldMap(rom_, tiles16, i));
   }
   FetchLargeMaps();
   LoadOverworldMap();
@@ -64,7 +65,7 @@ void Overworld::Load(app::rom::ROM& rom) {
   for (int i = 0; i < 160; i++) {
     overworld_maps_[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
                                 allmapsTilesDW, allmapsTilesSP,
-                                currentOWgfx16Ptr);
+                                currentOWgfx16Ptr, allGfx16Ptr, mapblockset16);
   }
 
   isLoaded = true;
@@ -298,9 +299,9 @@ void Overworld::FetchLargeMaps() {
 }
 
 void Overworld::LoadOverworldMap() {
-  overworldMapBitmap = new Bitmap(128, 128, 8, overworldMapPointer);
+  overworldMapBitmap.Create(128, 128, 8, overworldMapPointer);
 
-  char* ptr = overworldMapPointer;
+  auto ptr = overworldMapPointer;
 
   int pos = 0;
   for (int sy = 0; sy < 16; sy++) {
@@ -315,7 +316,8 @@ void Overworld::LoadOverworldMap() {
     }
   }
 
-  // overworld_map_texture = overworldMapBitmap->CreateTexture(rom_.Renderer());
+  auto renderer = rom_.Renderer();
+  overworldMapBitmap.CreateTexture(renderer);
 }
 
 }  // namespace zelda3

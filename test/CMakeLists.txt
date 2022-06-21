@@ -10,6 +10,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 find_package(PNG REQUIRED)
+find_package(SDL2 REQUIRED)
 
 set(SNESHACKING_PATH "../src/Library/sneshacking/src")
 
@@ -33,6 +34,7 @@ target_include_directories(
   ../src/Library/
   ../src/
   ${SNESHACKING_PATH}
+  ${SDL_INCLUDE_DIRS}
 )
 
 target_link_libraries(

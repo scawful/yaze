@@ -1,16 +1,15 @@
 #include "bitmap.h"
 
 #include <SDL2/SDL.h>
-#include <rommapping.h>
 
 #include "app/core/constants.h"
-#include "app/rom.h"
+#include "app/gfx/snes_palette.h"
 
 namespace yaze {
 namespace app {
 namespace gfx {
 
-Bitmap::Bitmap(int width, int height, int depth, char *data)
+Bitmap::Bitmap(int width, int height, int depth, uchar *data)
     : width_(width), height_(height), depth_(depth), pixel_data_(data) {
   surface_ = SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
                                             SDL_PIXELFORMAT_INDEX8);
@@ -27,7 +26,7 @@ void Bitmap::Create(int width, int height, int depth, uchar *data) {
   width_ = width;
   height_ = height;
   depth_ = depth;
-  pixel_data_ = (char *)data;
+  pixel_data_ = data;
   surface_ = SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
                                             SDL_PIXELFORMAT_INDEX8);
   // Default grayscale palette
