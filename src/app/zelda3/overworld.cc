@@ -107,15 +107,16 @@ void Overworld::AssembleMap32Tiles() {
 
 void Overworld::AssembleMap16Tiles() {
   int tpos = core::constants::map16Tiles;
+  auto rom_data = rom_.GetRawData();
   for (int i = 0; i < 4096; i += 1)  // 3760
   {
-    TileInfo t0 = GetTilesInfo((uintptr_t)rom_.GetRawData() + tpos);
+    TileInfo t0 = GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
-    TileInfo t1 = GetTilesInfo((uintptr_t)rom_.GetRawData() + tpos);
+    TileInfo t1 = GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
-    TileInfo t2 = GetTilesInfo((uintptr_t)rom_.GetRawData() + tpos);
+    TileInfo t2 = GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
-    TileInfo t3 = GetTilesInfo((uintptr_t)rom_.GetRawData() + tpos);
+    TileInfo t3 = GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
     tiles16.push_back(Tile16(t0, t1, t2, t3));
   }

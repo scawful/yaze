@@ -449,6 +449,13 @@ void OverworldEditor::DrawChangelist() {
 }
 
 void OverworldEditor::LoadBlockset() {
+
+  current_gfx_bmp_.Create(128, 512, 64, current_gfx_ptr_);
+  current_gfx_bmp_.CreateTexture(rom_.Renderer());
+
+  tile16_blockset_bmp_.Create(128, 8192, 8, tile16_blockset_ptr_);
+  tile16_blockset_bmp_.CreateTexture(rom_.Renderer());
+
   rom_.CreateAllGraphicsData(allGfx16Ptr);
   auto tiles = overworld_.GetTiles16();
   app::gfx::BuildTiles16Gfx(overworld_.GetMapBlockset16Ptr(),
