@@ -15,29 +15,26 @@ using ushort = unsigned short;
 
 class OverworldMap {
  public:
-  uchar parent = 0;
-  int index = 0;
-  uchar gfx = 0;
-  uchar palette = 0;
-  bool firstLoad = false;
-  short messageID = 0;
-  bool largeMap = false;
-  bool needRefresh = false;
-
-  uchar sprgfx[3];
-  uchar sprpalette[3];
+  int parent_ = 0;
+  int index_ = 0;
+  int message_id_ = 0;
+  int gfx_ = 0;
+  int palette_ = 0;
+  bool initialized_ = false;
+  bool large_map_ = false;
+  uchar sprite_graphics_[3];
+  uchar sprite_palette_[3];
   uchar musics[4];
-  app::rom::ROM rom_;
-
   uchar* gfxPtr = new uchar[512 * 512];
   uchar* mapblockset16_ = nullptr;
   uchar* currentOWgfx16Ptr_ = nullptr;
   uchar* allGfx16Ptr_ = nullptr;
+
+  app::rom::ROM rom_;
   gfx::Bitmap gfxBitmap;
   std::vector<gfx::Tile16> tiles16_;
 
-  uchar* staticgfx =
-      new uchar[16];  // Need to be used to display map and not pre render it!
+  uchar* staticgfx = new uchar[16];
   ushort** tilesUsed;
 
   OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16> tiles16,
