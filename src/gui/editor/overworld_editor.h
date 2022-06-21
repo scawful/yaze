@@ -46,11 +46,11 @@ class OverworldEditor {
   uchar *current_gfx_ptr_ = new uchar[(128 * 512) / 2];
 
   app::gfx::Bitmap allgfxBitmap;
+  uchar *allGfx16Ptr = new uchar[(128 * 7136) / 2];
+
   app::gfx::Bitmap mapblockset16Bitmap;
 
   std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
-
-  uchar *allGfx16Ptr = new uchar[(128 * 7136) / 2];
 
   int current_world_ = 0;
   char map_gfx_[3] = "";
@@ -58,6 +58,7 @@ class OverworldEditor {
   char spr_gfx_[3] = "";
   char spr_palette_[3] = "";
   char message_id_[5] = "";
+  char staticgfx[16];
   bool isLoaded = false;
   bool doneLoaded = false;
   bool opt_enable_grid = true;
