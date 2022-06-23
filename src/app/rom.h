@@ -33,7 +33,7 @@ class ROM {
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0, int size = 0x1000);
   SDL_Texture* DrawGraphicsSheet(int offset);
 
-  int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
+  int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) const;
 
   int GetPCGfxAddress(uint8_t id);
   char* CreateAllGfxDataRaw();
@@ -41,14 +41,15 @@ class ROM {
 
   void LoadBlocksetGraphics(int graphics_id);
 
-  unsigned int SnesToPc(unsigned int addr) {
+  unsigned int SnesToPc(unsigned int addr) const {
     if (addr >= 0x808000) {
       addr -= 0x808000;
     }
     unsigned int temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
     return (temp + 0x0);
   }
-  inline uchar* GetRawData() { return current_rom_; }
+  
+  inline uchar* data() { return current_rom_; }
   inline auto Renderer() { return sdl_renderer_; }
   const uchar* getTitle() const { return title; }
   long int getSize() const { return size_; }
@@ -59,9 +60,7 @@ class ROM {
   bool loaded = false;
   bool has_header_ = false;
   long int size_;
-  uint uncompressed_size_;
   uint compressed_size_;
-  uint compress_size_;
   uchar* current_rom_;
   uchar version_;
   uchar title[21] = "ROM Not Loaded";
