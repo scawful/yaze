@@ -10,28 +10,13 @@ namespace zelda3 {
 using namespace core;
 using namespace gfx;
 
-Overworld::~Overworld() {
-  if (isLoaded) {
-    for (int i = 0; i < (int)tiles32.size(); i++) {
-      free(allmapsTilesLW[i]);
-      free(allmapsTilesDW[i]);
-      free(allmapsTilesSP[i]);
-    }
-    free(allmapsTilesLW);
-    free(allmapsTilesDW);
-    free(allmapsTilesSP);
-
-    delete[] overworldMapPointer;
-  }
-}
-
 static TileInfo GetTilesInfo(ushort tile) {
   // vhopppcc cccccccc
   ushort o = 0;
   ushort v = 0;
   ushort h = 0;
-  ushort tid = (ushort)(tile & 0x3FF);
-  uchar p = (uchar)((tile >> 10) & 0x07);
+  auto tid = (ushort)(tile & 0x3FF);
+  auto p = (uchar)((tile >> 10) & 0x07);
 
   o = (ushort)((tile & 0x2000) >> 13);
   h = (ushort)((tile & 0x4000) >> 14);
@@ -43,12 +28,6 @@ static TileInfo GetTilesInfo(ushort tile) {
 void Overworld::Load(app::rom::ROM& rom, uchar* allGfxPtr) {
   rom_ = rom;
   allGfx16Ptr = allGfxPtr;
-  for (int i = 0; i < 0x2B; i++) {
-    tileLeftEntrance.push_back(constants::overworldEntranceAllowedTilesLeft +
-                               (i * 2));
-    tileRightEntrance.push_back(constants::overworldEntranceAllowedTilesRight +
-                                (i * 2));
-  }
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
@@ -56,7 +35,7 @@ void Overworld::Load(app::rom::ROM& rom, uchar* allGfxPtr) {
 
   // Map Initialization
   for (int i = 0; i < constants::NumberOfOWMaps; i++) {
-    overworld_maps_.push_back(OverworldMap(rom_, tiles16, i));
+    overworld_maps_.emplace_back(rom_, tiles16, i);
   }
   FetchLargeMaps();
   LoadOverworldMap();
@@ -65,16 +44,17 @@ void Overworld::Load(app::rom::ROM& rom, uchar* allGfxPtr) {
   for (int i = 0; i < 160; i++) {
     overworld_maps_[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
                                 allmapsTilesDW, allmapsTilesSP,
-                                currentOWgfx16Ptr, allGfx16Ptr, mapblockset16);
+                                currentOWgfx16Ptr.get(), allGfx16Ptr,
+                                mapblockset16.get());
   }
 
   isLoaded = true;
 }
 
 ushort Overworld::GenerateTile32(int i, int k, int dimension) {
-  return (ushort)(rom_.GetRawData()[map32address[dimension] + k + (i)] +
-                  (((rom_.GetRawData()[map32address[dimension] + (i) +
-                                       (k <= 1 ? 4 : 5)] >>
+  return (ushort)(rom_.data()[map32address[dimension] + k + (i)] +
+                  (((rom_.data()[map32address[dimension] + (i) +
+                                 (k <= 1 ? 4 : 5)] >>
                      (k % 2 == 0 ? 4 : 0)) &
                     0x0F) *
                    256));
@@ -92,22 +72,19 @@ void Overworld::AssembleMap32Tiles() {
     }
   }
 
-  allmapsTilesLW = (ushort**)malloc(tiles32.size() * sizeof(ushort*));
-  for (int i = 0; i < tiles32.size(); i++)
-    allmapsTilesLW[i] = (ushort*)malloc(tiles32.size() * sizeof(ushort));
-
-  allmapsTilesDW = (ushort**)malloc(tiles32.size() * sizeof(ushort*));
-  for (int i = 0; i < tiles32.size(); i++)
-    allmapsTilesDW[i] = (ushort*)malloc(tiles32.size() * sizeof(ushort));
-
-  allmapsTilesSP = (ushort**)malloc(tiles32.size() * sizeof(ushort*));
-  for (int i = 0; i < tiles32.size(); i++)
-    allmapsTilesSP[i] = (ushort*)malloc(tiles32.size() * sizeof(ushort));
+  allmapsTilesLW.resize(tiles32.size());
+  allmapsTilesDW.resize(tiles32.size());
+  allmapsTilesSP.resize(tiles32.size());
+  for (int i = 0; i < tiles32.size(); i++) {
+    allmapsTilesLW[i].resize(tiles32.size());
+    allmapsTilesDW[i].resize(tiles32.size());
+    allmapsTilesSP[i].resize(tiles32.size());
+  }
 }
 
 void Overworld::AssembleMap16Tiles() {
   int tpos = core::constants::map16Tiles;
-  auto rom_data = rom_.GetRawData();
+  auto rom_data = rom_.data();
   for (int i = 0; i < 4096; i += 1)  // 3760
   {
     TileInfo t0 = GetTilesInfo((uintptr_t)(rom_data + tpos));
@@ -118,7 +95,7 @@ void Overworld::AssembleMap16Tiles() {
     tpos += 2;
     TileInfo t3 = GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
-    tiles16.push_back(Tile16(t0, t1, t2, t3));
+    tiles16.emplace_back(t0, t1, t2, t3);
   }
 }
 
@@ -129,26 +106,22 @@ void Overworld::DecompressAllMapTiles() {
   int sy = 0;
   int c = 0;
   for (int i = 0; i < 160; i++) {
-    int p1 = (rom_.GetRawData()[(constants::compressedAllMap32PointersHigh) +
-                                2 + (int)(3 * i)]
-              << 16) +
-             (rom_.GetRawData()[(constants::compressedAllMap32PointersHigh) +
-                                1 + (int)(3 * i)]
-              << 8) +
-             (rom_.GetRawData()[(constants::compressedAllMap32PointersHigh +
-                                 (int)(3 * i))]);
+    int p1 =
+        (rom_.data()[(constants::compressedAllMap32PointersHigh) + 2 + (3 * i)]
+         << 16) +
+        (rom_.data()[(constants::compressedAllMap32PointersHigh) + 1 + (3 * i)]
+         << 8) +
+        (rom_.data()[(constants::compressedAllMap32PointersHigh + (3 * i))]);
 
-    char* tmp = new char[256];
+    auto* tmp = new char[256];
     p1 = lorom_snes_to_pc(p1, &tmp);
     std::cout << tmp << std::endl;
-    int p2 = (rom_.GetRawData()[(constants::compressedAllMap32PointersLow) + 2 +
-                                (int)(3 * i)]
-              << 16) +
-             (rom_.GetRawData()[(constants::compressedAllMap32PointersLow) + 1 +
-                                (int)(3 * i)]
-              << 8) +
-             (rom_.GetRawData()[(constants::compressedAllMap32PointersLow +
-                                 (int)(3 * i))]);
+    int p2 =
+        (rom_.data()[(constants::compressedAllMap32PointersLow) + 2 + (3 * i)]
+         << 16) +
+        (rom_.data()[(constants::compressedAllMap32PointersLow) + 1 + (3 * i)]
+         << 8) +
+        (rom_.data()[(constants::compressedAllMap32PointersLow + (3 * i))]);
     p2 = lorom_snes_to_pc(p2, &tmp);
     std::cout << tmp << std::endl;
     delete[] tmp;
@@ -166,23 +139,17 @@ void Overworld::DecompressAllMapTiles() {
       highest = p2;
     }
 
-    if (p1 <= lowest) {
-      if (p1 > 0x0F8000) {
-        lowest = p1;
-      }
+    if (p1 <= lowest && p1 > 0x0F8000) {
+      lowest = p1;
     }
-    if (p2 <= lowest) {
-      if (p2 > 0x0F8000) {
-        lowest = p2;
-      }
+    if (p2 <= lowest && p2 > 0x0F8000) {
+      lowest = p2;
     }
 
-    auto bytes =
-        alttp_decompress_overworld((char*)rom_.GetRawData(), p2, 1000,
-                                   &compressedSize1, &compressedLength1);
-    auto bytes2 =
-        alttp_decompress_overworld((char*)rom_.GetRawData(), p1, 1000,
-                                   &compressedSize2, &compressedLength2);
+    auto bytes = alttp_decompress_overworld(
+        (char*)rom_.data(), p2, 1000, &compressedSize1, &compressedLength1);
+    auto bytes2 = alttp_decompress_overworld(
+        (char*)rom_.data(), p1, 1000, &compressedSize2, &compressedLength2);
 
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
@@ -256,8 +223,8 @@ void Overworld::FetchLargeMaps() {
   overworld_maps_[136].large_map_ = false;
 
   bool mapChecked[64];
-  for (int i = 0; i < 64; i++) {
-    mapChecked[i] = false;
+  for (auto& each : mapChecked) {
+    each = false;
   }
   int xx = 0;
   int yy = 0;
@@ -300,7 +267,7 @@ void Overworld::FetchLargeMaps() {
 }
 
 void Overworld::LoadOverworldMap() {
-  overworldMapBitmap.Create(128, 128, 8, overworldMapPointer);
+  overworldMapBitmap.Create(128, 128, 8, overworldMapPointer.get());
 
   auto ptr = overworldMapPointer;
 
@@ -310,7 +277,7 @@ void Overworld::LoadOverworldMap() {
       for (int y = 0; y < 8; y++) {
         for (int x = 0; x < 8; x++) {
           ptr[x + (sx * 8) + (y * 128) + (sy * 1024)] =
-              rom_.GetRawData()[0x0C4000 + pos];
+              rom_.data()[0x0C4000 + pos];
           pos++;
         }
       }
