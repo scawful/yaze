@@ -57,15 +57,14 @@ void ROM::LoadFromFile(const std::string &path) {
 }
 
 std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
-  uint filePos = 0;
   uint size_out = 0;
   uint size = preset.length_;
-  int tilePos = preset.pc_tiles_location_;
+  int tile_pos = preset.pc_tiles_location_;
   std::vector<tile8> rawTiles;
 
   // decompress the gfx
   auto data = (char *)malloc(sizeof(char) * size);
-  memcpy(data, (current_rom_ + tilePos), size);
+  memcpy(data, (current_rom_ + tile_pos), size);
   data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
   if (data == nullptr) {
     std::cout << alttp_decompression_error << std::endl;
@@ -74,9 +73,8 @@ std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
 
   // unpack the tiles based on their depth
   unsigned tileCpt = 0;
-  for (unsigned int tilePos = 0; tilePos < size;
-       tilePos += preset.bits_per_pixel_ * 8) {
-    tile8 newTile = unpack_bpp_tile(data, tilePos, preset.bits_per_pixel_);
+  for (tile_pos = 0; tile_pos < size; tile_pos += preset.bits_per_pixel_ * 8) {
+    tile8 newTile = unpack_bpp_tile(data, tile_pos, preset.bits_per_pixel_);
     newTile.id = tileCpt;
     rawTiles.push_back(newTile);
     tileCpt++;
@@ -194,23 +192,19 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id,
     {
       //[0] + [1] + [16]
       for (int x = 0; x < 8; x++) {
-        unsigned char b1 =
-            (unsigned char)((buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
-        unsigned char b2 =
-            (unsigned char)(buffer_in[((y * 2) + (24 * pos)) + 1] &
-                            (bitmask[x]));
-        unsigned char b3 =
-            (unsigned char)(buffer_in[(16 + y) + (24 * pos)] & (bitmask[x]));
+        auto b1 = (uchar)((buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
+        auto b2 = (uchar)(buffer_in[((y * 2) + (24 * pos)) + 1] & (bitmask[x]));
+        auto b3 = (uchar)(buffer_in[(16 + y) + (24 * pos)] & (bitmask[x]));
         unsigned char b = 0;
         if (b1 != 0) {
           b |= 1;
-        };
+        }
         if (b2 != 0) {
           b |= 2;
-        };
+        }
         if (b3 != 0) {
           b |= 4;
-        };
+        }
         sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
       }
     }
@@ -237,11 +231,11 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
     surface->format->palette->colors[i].b = i * 31;
   }
 
-  unsigned int snesAddr = 0;
-  unsigned int pcAddr = 0;
-  snesAddr = (unsigned int)((((uchar)(current_rom_[0x4F80 + offset]) << 16) |
-                             ((uchar)(current_rom_[0x505F + offset]) << 8) |
-                             ((uchar)(current_rom_[0x513E + offset]))));
+  uint snesAddr = 0;
+  uint pcAddr = 0;
+  snesAddr = (uint)((((current_rom_[0x4F80 + offset]) << 16) |
+                     ((current_rom_[0x505F + offset]) << 8) |
+                     ((current_rom_[0x513E + offset]))));
   pcAddr = SnesToPc(snesAddr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = Decompress(pcAddr);
@@ -258,24 +252,24 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   return sheet_texture;
 }
 
-int ROM::AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) {
+int ROM::AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) const {
   return (addr1 << 16) | (addr2 << 8) | addr3;
 }
 
 int ROM::GetPCGfxAddress(uint8_t id) {
-  int gfxPointer1 =
+  int gfxPtr1 =
       SnesToPc((current_rom_[core::constants::gfx_1_pointer + 1] << 8) +
                (current_rom_[core::constants::gfx_1_pointer]));
-  int gfxPointer2 =
+  int gfxPtr2 =
       SnesToPc((current_rom_[core::constants::gfx_2_pointer + 1] << 8) +
                (current_rom_[core::constants::gfx_2_pointer]));
-  int gfxPointer3 =
+  int gfxPtr3 =
       SnesToPc((current_rom_[core::constants::gfx_3_pointer + 1] << 8) +
                (current_rom_[core::constants::gfx_3_pointer]));
 
-  uint8_t gfxGamePointer1 = current_rom_[gfxPointer1 + id];
-  uint8_t gfxGamePointer2 = current_rom_[gfxPointer2 + id];
-  uint8_t gfxGamePointer3 = current_rom_[gfxPointer3 + id];
+  uint8_t gfxGamePointer1 = current_rom_[gfxPtr1 + id];
+  uint8_t gfxGamePointer2 = current_rom_[gfxPtr2 + id];
+  uint8_t gfxGamePointer3 = current_rom_[gfxPtr3 + id];
 
   return SnesToPc(
       AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3));
@@ -288,8 +282,8 @@ char *ROM::CreateAllGfxDataRaw() {
   // 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
   // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 
-  char *buffer = new char[346624];
-  char *data = new char[2048];
+  auto *buffer = new char[346624];
+  auto *data = new char[2048];
   int bufferPos = 0;
   unsigned int uncompressedSize = 0;
   unsigned int compressedSize = 0;
@@ -326,19 +320,17 @@ char *ROM::CreateAllGfxDataRaw() {
 
 void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
   int sheetPosition = 0;
-  char *data = CreateAllGfxDataRaw();
-  char *newData = new char[0x6F800];
-  uchar *mask = new uchar[]{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+  char const *data = CreateAllGfxDataRaw();
+  auto *newData = new char[0x6F800];
+  uchar const *mask =
+      new uchar[]{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 
   // 8x8 tile
   // Per Sheet
   for (int s = 0; s < core::constants::NumberOfSheets; s++) {
-    // Per Tile Line Y
-    for (int j = 0; j < 4; j++) {
-      // Per Tile Line X
-      for (int i = 0; i < 16; i++) {
-        // Per Pixel Line
-        for (int y = 0; y < 8; y++) {
+    for (int j = 0; j < 4; j++) {       // Per Tile Line Y
+      for (int i = 0; i < 16; i++) {    // Per Tile Line X
+        for (int y = 0; y < 8; y++) {   // Per Pixel Line
           if (isbpp3[s]) {
             uchar lineBits0 =
                 data[(y * 2) + (i * 24) + (j * 384) + sheetPosition];
@@ -415,7 +407,7 @@ void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
     }
   }
 
-  uchar *allgfx16Data = (uchar *)allGfx16Ptr;
+  auto *allgfx16Data = allGfx16Ptr;
   for (int i = 0; i < 0x6F800; i++) {
     allgfx16Data[i] = newData[i];
   }
