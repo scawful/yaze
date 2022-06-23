@@ -99,14 +99,14 @@ void Controller::onInput() {
 
 void Controller::onLoad() { editor_.UpdateScreen(); }
 
-void Controller::doRender() {
+void Controller::doRender() const {
   SDL_RenderClear(sdl_renderer_.get());
   ImGui::Render();
   ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
   SDL_RenderPresent(sdl_renderer_.get());
 }
 
-void Controller::onExit() {
+void Controller::onExit() const {
   ImGui_ImplSDLRenderer_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -148,7 +148,7 @@ void Controller::CreateRenderer() {
   }
 }
 
-void Controller::CreateGuiContext() {
+void Controller::CreateGuiContext() const {
   // Create the ImGui and ImPlot contexts
   ImGui::CreateContext();
 

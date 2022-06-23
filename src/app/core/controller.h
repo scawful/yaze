@@ -26,13 +26,13 @@ class Controller {
   void onEntry();
   void onInput();
   void onLoad();
-  void doRender();
-  void onExit();
+  void doRender() const;
+  void onExit() const;
 
  private:
   void CreateWindow();
   void CreateRenderer();
-  void CreateGuiContext();
+  void CreateGuiContext() const;
   inline void quit() { active_ = false; }
   friend int ::main(int argc, char **argv);
 
