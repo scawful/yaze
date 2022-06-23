@@ -113,9 +113,9 @@ void Overworld::DecompressAllMapTiles() {
          << 8) +
         (rom_.data()[(constants::compressedAllMap32PointersHigh + (3 * i))]);
 
-    auto* tmp = new char[256];
+    auto tmp2 = std::make_unique<char[]>(256);
+    auto tmp = tmp2.get();
     p1 = lorom_snes_to_pc(p1, &tmp);
-    std::cout << tmp << std::endl;
     int p2 =
         (rom_.data()[(constants::compressedAllMap32PointersLow) + 2 + (3 * i)]
          << 16) +
@@ -123,8 +123,6 @@ void Overworld::DecompressAllMapTiles() {
          << 8) +
         (rom_.data()[(constants::compressedAllMap32PointersLow + (3 * i))]);
     p2 = lorom_snes_to_pc(p2, &tmp);
-    std::cout << tmp << std::endl;
-    delete[] tmp;
 
     int ttpos = 0;
     unsigned int compressedSize1 = 0;
@@ -153,7 +151,7 @@ void Overworld::DecompressAllMapTiles() {
 
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
-        ushort tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
+        auto tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
 
         int tpos = tidD;
         if (tpos < tiles32.size()) {
