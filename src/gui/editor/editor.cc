@@ -87,7 +87,7 @@ Editor::Editor() {
 }
 
 Editor::~Editor() {
-  for (auto &each : imagesCache) {
+  for (auto &each : image_cache_) {
     SDL_DestroyTexture(each.second);
   }
   rom_.Close();
@@ -125,9 +125,7 @@ void Editor::UpdateScreen() {
   ImGui::End();
 }
 
-void Editor::Shutdown() {
-
-}
+void Editor::Shutdown() {}
 
 void Editor::DrawYazeMenu() {
   MENU_BAR()
@@ -142,7 +140,7 @@ void Editor::DrawYazeMenu() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom_.LoadFromFile(filePathName);
-      rom_data_ = (void *)rom_.GetRawData();
+      rom_data_ = (void *)rom_.data();
       overworld_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
@@ -299,10 +297,9 @@ void Editor::DrawGraphicsSheet(int offset) {
 
   unsigned int snesAddr = 0;
   unsigned int pcAddr = 0;
-  snesAddr =
-      (unsigned int)((((uchar)(rom_.GetRawData()[0x4F80 + offset]) << 16) |
-                      ((uchar)(rom_.GetRawData()[0x505F + offset]) << 8) |
-                      ((uchar)(rom_.GetRawData()[0x513E + offset]))));
+  snesAddr = (unsigned int)((((uchar)(rom_.data()[0x4F80 + offset]) << 16) |
+                             ((uchar)(rom_.data()[0x505F + offset]) << 8) |
+                             ((uchar)(rom_.data()[0x513E + offset]))));
   pcAddr = rom_.SnesToPc(snesAddr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = rom_.Decompress(pcAddr);
@@ -313,7 +310,7 @@ void Editor::DrawGraphicsSheet(int offset) {
   std::cout << "Creating texture from surface..." << std::endl;
   SDL_Texture *sheet_texture = nullptr;
   sheet_texture = SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
-  imagesCache[offset] = sheet_texture;
+  image_cache_[offset] = sheet_texture;
   if (sheet_texture == nullptr) {
     std::cout << "Error: " << SDL_GetError() << std::endl;
   }
@@ -412,13 +409,13 @@ void Editor::DrawProjectEditor() {
 
       // Draw the tilesheets loaded from the ROM
       if (loaded_image) {
-        for (const auto &[key, value] : imagesCache) {
+        for (const auto &[key, value] : image_cache_) {
           int offset = 128 * (key + 1);
           int top_left_y = canvas_p0.y + 2;
           if (key >= 1) {
             top_left_y = canvas_p0.y + 128 * key;
           }
-          draw_list->AddImage((void *)(SDL_Texture *)value,
+          draw_list->AddImage((void *)value,
                               ImVec2(canvas_p0.x + 2, top_left_y),
                               ImVec2(canvas_p0.x + 512, canvas_p0.y + offset));
         }

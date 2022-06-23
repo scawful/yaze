@@ -35,11 +35,9 @@ namespace editor {
 void OverworldEditor::SetupROM(app::rom::ROM &rom) { rom_ = rom; }
 
 void OverworldEditor::Update() {
-  if (rom_.isLoaded()) {
-    if (!all_gfx_loaded_) {
-      LoadGraphics();
-      all_gfx_loaded_ = true;
-    }
+  if (rom_.isLoaded() && !all_gfx_loaded_) {
+    LoadGraphics();
+    all_gfx_loaded_ = true;
   }
 
   if (show_changelist_) {
@@ -142,8 +140,7 @@ void OverworldEditor::DrawToolset() {
 }
 
 void OverworldEditor::DrawOverworldMapSettings() {
-  if (ImGui::BeginTable("#mapSettings", 7, ow_map_settings_flags, ImVec2(0, 0),
-                        -1)) {
+  if (ImGui::BeginTable("#mapSettings", 7, ow_map_flags, ImVec2(0, 0), -1)) {
     ImGui::TableSetupColumn("##1stCol");
     ImGui::TableSetupColumn("##gfxCol");
     ImGui::TableSetupColumn("##palCol");
@@ -202,8 +199,7 @@ void OverworldEditor::DrawOverworldCanvas() {
   static bool adding_line = false;
   ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
   ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
-  ImVec2 canvas_p1 =
-      ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+  auto canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
   // Draw border and background color
   const ImGuiIO &io = ImGui::GetIO();
@@ -249,10 +245,10 @@ void OverworldEditor::DrawOverworldCanvas() {
   if (ImGui::BeginPopup("context")) {
     if (adding_line) points.resize(points.size() - 2);
     adding_line = false;
-    if (ImGui::MenuItem("Remove one", NULL, false, points.Size > 0)) {
+    if (ImGui::MenuItem("Remove one", nullptr, false, points.Size > 0)) {
       points.resize(points.size() - 2);
     }
-    if (ImGui::MenuItem("Remove all", NULL, false, points.Size > 0)) {
+    if (ImGui::MenuItem("Remove all", nullptr, false, points.Size > 0)) {
       points.clear();
     }
     ImGui::EndPopup();
@@ -286,7 +282,6 @@ void OverworldEditor::DrawOverworldCanvas() {
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
-      ImGuiStyle &style = ImGui::GetStyle();
       bool child_is_visible =
           ImGui::BeginChild("#Tile16Child", ImGui::GetContentRegionAvail(),
                             true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -296,7 +291,6 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
-      ImGuiStyle &style = ImGui::GetStyle();
       ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
       bool child_is_visible =
           ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -304,9 +298,6 @@ void OverworldEditor::DrawTileSelector() {
       if (child_is_visible) {
         DrawTile8Selector();
       }
-      float scroll_x = ImGui::GetScrollX();
-      float scroll_max_x = ImGui::GetScrollMaxX();
-
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
@@ -318,9 +309,8 @@ void OverworldEditor::DrawTileSelector() {
 void OverworldEditor::DrawTile16Selector() {
   static ImVec2 scrolling(0.0f, 0.0f);
   ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-  ImVec2 canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);
-  ImVec2 canvas_p1 =
-      ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+  auto canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);
+  auto canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
   // Draw border and background color
   const ImGuiIO &io = ImGui::GetIO();
@@ -332,8 +322,6 @@ void OverworldEditor::DrawTile16Selector() {
   ImGui::InvisibleButton(
       "Tile16SelectorCanvas", canvas_sz,
       ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
-  const bool is_active = ImGui::IsItemActive();    // Held
   const ImVec2 origin(canvas_p0.x + scrolling.x,
                       canvas_p0.y + scrolling.y);  // Lock scrolled origin
   const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
@@ -350,7 +338,7 @@ void OverworldEditor::DrawTile16Selector() {
 
   if (map_blockset_loaded_) {
     draw_list->AddImage(
-        (void *)(SDL_Texture *)mapblockset16Bitmap.GetTexture(),
+        (void *)mapblockset16Bitmap.GetTexture(),
         ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
         ImVec2(canvas_p0.x + (mapblockset16Bitmap.GetWidth() * 2),
                canvas_p0.y + (mapblockset16Bitmap.GetHeight() * 2)));
@@ -378,9 +366,8 @@ void OverworldEditor::DrawTile16Selector() {
 void OverworldEditor::DrawTile8Selector() {
   static ImVec2 scrolling(0.0f, 0.0f);
   ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-  ImVec2 canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);
-  ImVec2 canvas_p1 =
-      ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+  auto canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);
+  auto canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
   // Draw border and background color
   const ImGuiIO &io = ImGui::GetIO();
@@ -392,8 +379,6 @@ void OverworldEditor::DrawTile8Selector() {
   ImGui::InvisibleButton(
       "Tile8SelectorCanvas", canvas_sz,
       ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
-  const bool is_active = ImGui::IsItemActive();    // Held
   const ImVec2 origin(canvas_p0.x + scrolling.x,
                       canvas_p0.y + scrolling.y);  // Lock scrolled origin
   const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
@@ -414,7 +399,7 @@ void OverworldEditor::DrawTile8Selector() {
       if (key >= 1) {
         top_left_y = canvas_p0.y + 64 * key;
       }
-      draw_list->AddImage((void *)(SDL_Texture *)value,
+      draw_list->AddImage((void *)value,
                           ImVec2(canvas_p0.x + 2, top_left_y),
                           ImVec2(canvas_p0.x + 256, canvas_p0.y + offset));
     }
@@ -481,9 +466,6 @@ void OverworldEditor::LoadBlockset() {
   tile16_blockset_bmp_.Create(128, 8192, 8, tile16_blockset_ptr_);
   tile16_blockset_bmp_.CreateTexture(rom_.Renderer());
   map_blockset_loaded_ = true;
-
-  // mapblockset16Bitmap.Create(128, 8192, 8, overworld_.GetMapBlockset16Ptr());
-  // mapblockset16Bitmap.CreateTexture(rom_.Renderer());
 }
 
 void OverworldEditor::LoadGraphics() {

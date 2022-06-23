@@ -73,7 +73,7 @@ class OverworldEditor {
   constexpr static float kInputFieldSize = 30.f;
 
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
-  ImGuiTableFlags ow_map_settings_flags = ImGuiTableFlags_Borders;
+  ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
   ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
                                   ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_SizingStretchSame;

@@ -52,7 +52,7 @@ class Editor {
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language_65816_;
   OverworldEditor overworld_editor_;
-  std::unordered_map<uint, SDL_Texture *> imagesCache;
+  std::unordered_map<uint, SDL_Texture *> image_cache_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
   ImVec4 current_palette_[8];
