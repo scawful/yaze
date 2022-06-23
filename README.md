@@ -1,14 +1,17 @@
 # Yet Another Zelda3 Editor
 
-    Platform: Windows, macOS, GNU/Linux
-    Dependencies: SDL2, ImGui
+- Platform: Windows, macOS, GNU/Linux
+- Dependencies: SDL2, ImGui
 
 ## Description
+
 General purpose editor for The Legend of Zelda: A Link to the Past for the Super Nintendo.
+
+Takes heavy inspiration from ALTTP community efforts such as [Hyrule Magic](https://www.romhacking.net/utilities/200/) and [ZScream](https://github.com/Zarby89/ZScreamDungeon)
 
 Building and installation
 -------------------------
-[CMake](http://www.cmake.org "CMake") is required to build Premia 
+[CMake](http://www.cmake.org "CMake") is required to build yaze 
 
 1. Clone the repository
 
@@ -22,7 +25,7 @@ Building and installation
 
         cmake -G "<MinGW Makefiles/Unix Makefiles>" ../
 
-5. Build and run.
+4. Build and run.
 
         make yaze
         cmake --build <yaze_root/build> --config Debug --target yaze
