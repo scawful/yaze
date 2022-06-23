@@ -95,7 +95,7 @@ gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
 }
 
 char *ROM::Decompress(int pos, int size, bool reversed) {
-  char *buffer = new char[size];
+  auto *buffer = new char[size];
   decompressed_graphic_sheets_.push_back(buffer);
   for (int i = 0; i < size; i++) {
     buffer[i] = 0;
@@ -106,59 +106,58 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
 
   uchar databyte = current_rom_[pos];
   while (true) {
-    databyte = (unsigned char)current_rom_[pos];
-    if (databyte == 0xFF)  // End of decompression
-    {
+    databyte = current_rom_[pos];
+    // End of decompression
+    if (databyte == 0xFF) {
       break;
     }
 
-    if ((databyte & 0xE0) == 0xE0)  // Expanded Command
-    {
-      cmd = (unsigned char)((databyte >> 2) & 0x07);
+    // Expanded Command
+    if ((databyte & 0xE0) == 0xE0) {
+      cmd = (uchar)((databyte >> 2) & 0x07);
       length =
-          (unsigned short)(((current_rom_[pos] << 8) | current_rom_[pos + 1]) &
-                           0x3FF);
+          (ushort)(((current_rom_[pos] << 8) | current_rom_[pos + 1]) & 0x3FF);
       pos += 2;  // Advance 2 bytes in ROM
     } else       // Normal Command
     {
-      cmd = (unsigned char)((databyte >> 5) & 0x07);
-      length = (unsigned char)(databyte & 0x1F);
+      cmd = (uchar)((databyte >> 5) & 0x07);
+      length = (uchar)(databyte & 0x1F);
       pos += 1;  // Advance 1 byte in ROM
     }
     length += 1;  // Every commands are at least 1 size even if 00
     switch (cmd) {
       case 00:  // Direct Copy (Could be replaced with a MEMCPY)
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos++] = (unsigned char)current_rom_[pos++];
+          buffer[bufferPos++] = (uchar)current_rom_[pos++];
         }
         // Do not advance in the ROM
         break;
       case 01:  // Byte Fill
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos++] = (unsigned char)current_rom_[pos];
+          buffer[bufferPos++] = (uchar)current_rom_[pos];
         }
         pos += 1;  // Advance 1 byte in the ROM
         break;
       case 02:  // Word Fill
         for (int i = 0; i < length; i += 2) {
-          buffer[bufferPos++] = (unsigned char)current_rom_[pos];
-          buffer[bufferPos++] = (unsigned char)current_rom_[pos + 1];
+          buffer[bufferPos++] = (uchar)current_rom_[pos];
+          buffer[bufferPos++] = (uchar)current_rom_[pos + 1];
         }
         pos += 2;  // Advance 2 byte in the ROM
         break;
       case 03:  // Increasing Fill
       {
-        unsigned char incByte = (unsigned char)current_rom_[pos];
-        for (int i = 0; i < (unsigned int)length; i++) {
-          buffer[bufferPos++] = (unsigned char)incByte++;
+        uchar incByte = (uchar)current_rom_[pos];
+        for (int i = 0; i < (uint)length; i++) {
+          buffer[bufferPos++] = (uchar)incByte++;
         }
         pos += 1;  // Advance 1 byte in the ROM
       } break;
       case 04:  // Repeat (Reversed byte order for maps)
       {
-        unsigned short s1 = ((current_rom_[pos + 1] & 0xFF) << 8);
-        unsigned short s2 = ((current_rom_[pos] & 0xFF));
-        unsigned short Addr = (unsigned short)(s1 | s2);
+        ushort s1 = ((current_rom_[pos + 1] & 0xFF) << 8);
+        ushort s2 = ((current_rom_[pos] & 0xFF));
+        ushort Addr = (unsigned short)(s1 | s2);
         for (int i = 0; i < length; i++) {
           buffer[bufferPos] = (unsigned char)buffer[Addr + i];
           bufferPos++;
@@ -175,7 +174,7 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id,
 {
   // 8bpp sheet out
   const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-  uchar *sheet_buffer_out = (uchar *)malloc(size);
+  auto *sheet_buffer_out = (uchar *)malloc(size);
   converted_graphic_sheets_.push_back(sheet_buffer_out);
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
@@ -328,9 +327,9 @@ void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
   // 8x8 tile
   // Per Sheet
   for (int s = 0; s < core::constants::NumberOfSheets; s++) {
-    for (int j = 0; j < 4; j++) {       // Per Tile Line Y
-      for (int i = 0; i < 16; i++) {    // Per Tile Line X
-        for (int y = 0; y < 8; y++) {   // Per Pixel Line
+    for (int j = 0; j < 4; j++) {      // Per Tile Line Y
+      for (int i = 0; i < 16; i++) {   // Per Tile Line X
+        for (int y = 0; y < 8; y++) {  // Per Pixel Line
           if (isbpp3[s]) {
             uchar lineBits0 =
                 data[(y * 2) + (i * 24) + (j * 384) + sheetPosition];
