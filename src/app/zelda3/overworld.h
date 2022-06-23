@@ -19,15 +19,12 @@ namespace zelda3 {
 
 class Overworld {
  public:
-  Overworld() = default;
-  ~Overworld();
-
   void Load(app::rom::ROM& rom, uchar* allGfxPtr);
   inline auto GetTiles16() const { return tiles16; }
   inline auto GetCurrentGfxSetPtr() { return currentOWgfx16Ptr; }
   inline auto GetMapBlockset16Ptr() { return mapblockset16; }
 
-  uchar* overworldMapPointer = new uchar[0x40000];
+  std::shared_ptr<uchar[]> overworldMapPointer = std::make_shared<uchar>(0x40000);
   gfx::Bitmap overworldMapBitmap;
 
  private:
@@ -43,17 +40,14 @@ class Overworld {
   bool isLoaded = false;
   uchar mapParent[160];
 
-  ushort** allmapsTilesLW;  // 64 maps * (32*32 tiles)
-  ushort** allmapsTilesDW;  // 64 maps * (32*32 tiles)
-  ushort** allmapsTilesSP;  // 32 maps * (32*32 tiles)
-
-  std::vector<ushort> tileLeftEntrance;
-  std::vector<ushort> tileRightEntrance;
+  std::vector<std::vector<ushort>> allmapsTilesLW;  // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> allmapsTilesDW;  // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
 
   uchar* allGfx16Ptr = nullptr;
-  uchar* mapblockset16 = new uchar[1048576];
-  uchar* currentOWgfx16Ptr = new uchar[(128 * 512) / 2];
-  SDL_Texture* overworld_map_texture;
+  std::shared_ptr<uchar[]> mapblockset16 = std::make_shared<uchar>(1048576);
+  std::shared_ptr<uchar[]> currentOWgfx16Ptr =
+      std::make_shared<uchar>((128 * 512) / 2);
 
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
