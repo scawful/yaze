@@ -3,7 +3,6 @@
 
 #include <compressions/alttpcompression.h>
 #include <rommapping.h>
-#include <tile.h>
 
 #include <cstddef>
 #include <cstring>
@@ -27,9 +26,9 @@ class ROM {
 
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
+  char* Decompress(int pos, int size = 0x800, bool reversed = false);
   std::vector<tile8> ExtractTiles(gfx::TilePreset& preset);
   gfx::SNESPalette ExtractPalette(uint addr, int bpp);
-  char* Decompress(int pos, int size = 0x800, bool reversed = false);
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0, int size = 0x1000);
   SDL_Texture* DrawGraphicsSheet(int offset);
 

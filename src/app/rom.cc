@@ -2,7 +2,6 @@
 
 #include <compressions/alttpcompression.h>
 #include <rommapping.h>
-#include <tile.h>
 
 #include <cstddef>
 #include <cstring>
@@ -56,44 +55,6 @@ void ROM::LoadFromFile(const std::string &path) {
   loaded = true;
 }
 
-std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
-  uint size_out = 0;
-  uint size = preset.length_;
-  int tile_pos = preset.pc_tiles_location_;
-  std::vector<tile8> rawTiles;
-
-  // decompress the gfx
-  auto data = (char *)malloc(sizeof(char) * size);
-  memcpy(data, (current_rom_ + tile_pos), size);
-  data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
-  if (data == nullptr) {
-    std::cout << alttp_decompression_error << std::endl;
-    return rawTiles;
-  }
-
-  // unpack the tiles based on their depth
-  unsigned tileCpt = 0;
-  for (tile_pos = 0; tile_pos < size; tile_pos += preset.bits_per_pixel_ * 8) {
-    tile8 newTile = unpack_bpp_tile(data, tile_pos, preset.bits_per_pixel_);
-    newTile.id = tileCpt;
-    rawTiles.push_back(newTile);
-    tileCpt++;
-  }
-  free(data);
-  return rawTiles;
-}
-
-gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
-  uint filePos = addr;
-  uint palette_size = pow(2, bpp);
-  char *palette_data = (char *)malloc(sizeof(char) * (palette_size * 2));
-  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
-  for (int i = 0; i < palette_size; i++) std::cout << palette_data[i];
-  std::cout << std::endl;
-  gfx::SNESPalette pal(palette_data);
-  return pal;
-}
-
 char *ROM::Decompress(int pos, int size, bool reversed) {
   auto *buffer = new char[size];
   decompressed_graphic_sheets_.push_back(buffer);
@@ -128,28 +89,28 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
     switch (cmd) {
       case 00:  // Direct Copy (Could be replaced with a MEMCPY)
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos++] = (uchar)current_rom_[pos++];
+          buffer[bufferPos++] = current_rom_[pos++];
         }
         // Do not advance in the ROM
         break;
       case 01:  // Byte Fill
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos++] = (uchar)current_rom_[pos];
+          buffer[bufferPos++] = current_rom_[pos];
         }
         pos += 1;  // Advance 1 byte in the ROM
         break;
       case 02:  // Word Fill
         for (int i = 0; i < length; i += 2) {
-          buffer[bufferPos++] = (uchar)current_rom_[pos];
-          buffer[bufferPos++] = (uchar)current_rom_[pos + 1];
+          buffer[bufferPos++] = current_rom_[pos];
+          buffer[bufferPos++] = current_rom_[pos + 1];
         }
         pos += 2;  // Advance 2 byte in the ROM
         break;
       case 03:  // Increasing Fill
       {
-        uchar incByte = (uchar)current_rom_[pos];
-        for (int i = 0; i < (uint)length; i++) {
-          buffer[bufferPos++] = (uchar)incByte++;
+        uchar incByte = current_rom_[pos];
+        for (int i = 0; i < length; i++) {
+          buffer[bufferPos++] = incByte++;
         }
         pos += 1;  // Advance 1 byte in the ROM
       } break;
@@ -157,7 +118,7 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
       {
         ushort s1 = ((current_rom_[pos + 1] & 0xFF) << 8);
         ushort s2 = ((current_rom_[pos] & 0xFF));
-        ushort Addr = (unsigned short)(s1 | s2);
+        auto Addr = (ushort)(s1 | s2);
         for (int i = 0; i < length; i++) {
           buffer[bufferPos] = (unsigned char)buffer[Addr + i];
           bufferPos++;
@@ -169,9 +130,46 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
   return buffer;
 }
 
-uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id,
-                                int size)  // 128x32
-{
+std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
+  uint size_out = 0;
+  uint size = preset.length_;
+  int tile_pos = preset.pc_tiles_location_;
+  std::vector<tile8> rawTiles;
+
+  // decompress the gfx
+  auto data = (char *)malloc(sizeof(char) * size);
+  memcpy(data, (current_rom_ + tile_pos), size);
+  data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
+  if (data == nullptr) {
+    std::cout << alttp_decompression_error << std::endl;
+    return rawTiles;
+  }
+
+  // unpack the tiles based on their depth
+  unsigned tileCpt = 0;
+  for (tile_pos = 0; tile_pos < size; tile_pos += preset.bits_per_pixel_ * 8) {
+    tile8 newTile = unpack_bpp_tile(data, tile_pos, preset.bits_per_pixel_);
+    newTile.id = tileCpt;
+    rawTiles.push_back(newTile);
+    tileCpt++;
+  }
+  free(data);
+  return rawTiles;
+}
+
+gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
+  uint filePos = addr;
+  uint palette_size = pow(2, bpp);
+  auto *palette_data = (char *)malloc(sizeof(char) * (palette_size * 2));
+  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
+  for (int i = 0; i < palette_size; i++) std::cout << palette_data[i];
+  std::cout << std::endl;
+  gfx::SNESPalette pal(palette_data);
+  return pal;
+}
+
+// 128x32
+uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
   // 8bpp sheet out
   const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
   auto *sheet_buffer_out = (uchar *)malloc(size);
@@ -185,10 +183,11 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id,
     yy = sheet_id;
   }
 
-  for (int i = 0; i < 64; i++)  // for each tiles //16 per lines
-  {
-    for (int y = 0; y < 8; y++)  // for each lines
-    {
+  // for each tiles
+  // 16 per line
+  for (int i = 0; i < 64; i++) {
+    // for each line
+    for (int y = 0; y < 8; y++) {
       //[0] + [1] + [16]
       for (int x = 0; x < 8; x++) {
         auto b1 = (uchar)((buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
