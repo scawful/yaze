@@ -1,3 +1,6 @@
+include_directories(Library/cmake)
+include_directories(/usr/local/Cellar/libpng/1.6.37/include/libpng16/)
+
 # find libraries --------------------------------------------------------------------------------------------------
 find_package(SDL2 REQUIRED)
 find_package(PNG REQUIRED)
@@ -27,6 +30,7 @@ target_compile_definitions(ImGuiColorTextEdit PUBLIC IMGUI_IMPL_OPENGL_LOADER_CU
 set(SNESHACKING_PATH "Library/sneshacking/src")
 file(GLOB SNESHACKING_SOURCES ${SNESHACKING_PATH}/*.c)
 add_library("NintendoCompression" STATIC ${SNESHACKING_SOURCES})
+target_include_directories(NintendoCompression PUBLIC "/usr/local/Cellar/libpng/1.6.37/include/libpng16")
 
 # Executable Linkage --------------------------------------------------------------------------------------
 add_executable(
@@ -34,8 +38,8 @@ add_executable(
     yaze.cc
     gui/input.cc
     gui/style.cc
-    gui/editor/editor.cc
-    gui/editor/overworld_editor.cc
+    app/editor/editor.cc
+    app/editor/overworld_editor.cc
     app/rom.cc
     app/core/constants.cc
     app/core/controller.cc
@@ -65,7 +69,7 @@ add_executable(
 
 target_include_directories(
   yaze PUBLIC
-  /
+  ${CMAKE_SOURCE_DIR}/src/
   Library/
   app/
   "C:/msys64/mingw64/include/libpng16"
@@ -79,7 +83,6 @@ target_include_directories(
 
 target_link_libraries(
   yaze
-  libstdc++ 
   SDL2main
   ${PNG_LIBRARIES}
   ${SDL2_LIBRARIES} 

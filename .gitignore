@@ -4,3 +4,12 @@ build/
 src/Library/SDL2
 src/Library/cmake
 src/Library/GL
+src/Library/libGLEW.2.2.0.dylib
+src/Library/libGLEW.2.2.dylib
+src/Library/libGLEW.a
+src/Library/libGLEW.dylib
+src/Library/libSDL2_test.a
+src/Library/libSDL2-2.0.0.dylib
+src/Library/libSDL2.a
+src/Library/libSDL2.dylib
+src/Library/libSDL2main.a
