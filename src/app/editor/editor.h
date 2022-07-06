@@ -8,9 +8,9 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "app/core/constants.h"
+#include "app/editor/overworld_editor.h"
 #include "app/gfx/tile.h"
 #include "app/rom.h"
-#include "gui/editor/overworld_editor.h"
 #include "gui/icons.h"
 #include "gui/input.h"
 
