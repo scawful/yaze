@@ -40,7 +40,6 @@ target_include_directories(
 target_link_libraries(
   yaze_test
   ${PNG_LIBRARIES}
-  ${BOOST_LIBRARIES}
   ${SDL2_LIBRARIES}
   ${OPENGL_LIBRARIES}
   NintendoCompression
