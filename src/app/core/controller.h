@@ -8,7 +8,9 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#include "gui/editor/editor.h"
+#include <memory>
+
+#include "app/editor/editor.h"
 #include "gui/icons.h"
 #include "gui/style.h"
 

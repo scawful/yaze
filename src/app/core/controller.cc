@@ -8,7 +8,9 @@
 
 #include <memory>
 
-#include "gui/editor/editor.h"
+#include "app/editor/editor.h"
+#include "gui/icons.h"
+#include "gui/style.h"
 
 namespace yaze {
 namespace app {
