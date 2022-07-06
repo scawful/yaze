@@ -24,7 +24,7 @@ class Overworld {
   inline auto GetCurrentGfxSetPtr() { return currentOWgfx16Ptr; }
   inline auto GetMapBlockset16Ptr() { return mapblockset16; }
 
-  std::shared_ptr<uchar[]> overworldMapPointer = std::make_shared<uchar>(0x40000);
+  std::shared_ptr<uchar[]> overworldMapPointer;
   gfx::Bitmap overworldMapBitmap;
 
  private:
@@ -45,9 +45,8 @@ class Overworld {
   std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
 
   uchar* allGfx16Ptr = nullptr;
-  std::shared_ptr<uchar[]> mapblockset16 = std::make_shared<uchar>(1048576);
-  std::shared_ptr<uchar[]> currentOWgfx16Ptr =
-      std::make_shared<uchar>((128 * 512) / 2);
+  std::shared_ptr<uchar[]> mapblockset16;
+  std::shared_ptr<uchar[]> currentOWgfx16Ptr;
 
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
