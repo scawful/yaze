@@ -33,22 +33,22 @@ class OverworldEditor {
   void LoadBlockset();
   void LoadGraphics();
 
-  app::zelda3::Overworld overworld_;
-  app::gfx::SNESPalette palette_;
-  app::gfx::TilePreset current_set_;
+  zelda3::Overworld overworld_;
+  gfx::SNESPalette palette_;
+  gfx::TilePreset current_set_;
 
-  app::rom::ROM rom_;
+  rom::ROM rom_;
 
-  app::gfx::Bitmap tile16_blockset_bmp_;
+  gfx::Bitmap tile16_blockset_bmp_;
   uchar *tile16_blockset_ptr_ = new uchar[1048576];
 
-  app::gfx::Bitmap current_gfx_bmp_;
+  gfx::Bitmap current_gfx_bmp_;
   uchar *current_gfx_ptr_ = new uchar[(128 * 512) / 2];
 
-  app::gfx::Bitmap allgfxBitmap;
+  gfx::Bitmap allgfxBitmap;
   uchar *allGfx16Ptr = new uchar[(128 * 7136) / 2];
 
-  app::gfx::Bitmap mapblockset16Bitmap;
+  gfx::Bitmap mapblockset16Bitmap;
 
   std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
 

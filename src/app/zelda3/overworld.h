@@ -20,9 +20,9 @@ namespace zelda3 {
 class Overworld {
  public:
   void Load(app::rom::ROM& rom, uchar* allGfxPtr);
-  inline auto GetTiles16() const { return tiles16; }
-  inline auto GetCurrentGfxSetPtr() { return currentOWgfx16Ptr; }
-  inline auto GetMapBlockset16Ptr() { return mapblockset16; }
+  auto GetTiles16() const { return tiles16; }
+  auto GetCurrentGfxSetPtr() { return currentOWgfx16Ptr; }
+  auto GetMapBlockset16Ptr() { return mapblockset16; }
 
   std::shared_ptr<uchar[]> overworldMapPointer;
   gfx::Bitmap overworldMapBitmap;
