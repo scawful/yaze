@@ -28,6 +28,7 @@ namespace constants {
 //===========================================================================================
 // 65816 LanguageDefinition
 //===========================================================================================
+
 static const char *const kKeywords[] = {
     "ADC", "AND", "ASL", "BCC", "BCS", "BEQ",   "BIT",   "BMI",       "BNE",
     "BPL", "BRA", "BRL", "BVC", "BVS", "CLC",   "CLD",   "CLI",       "CLV",

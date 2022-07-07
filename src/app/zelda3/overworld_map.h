@@ -15,13 +15,13 @@ using ushort = unsigned short;
 
 class OverworldMap {
  public:
-  int parent_ = 0;
-  int index_ = 0;
-  int message_id_ = 0;
-  int gfx_ = 0;
-  int palette_ = 0;
-  bool initialized_ = false;
-  bool large_map_ = false;
+  int parent_        = 0;
+  int index_         = 0;
+  int message_id_    = 0;
+  int gfx_           = 0;
+  int palette_       = 0;
+  bool initialized_  = false;
+  bool large_map_    = false;
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];
   uchar musics[4];

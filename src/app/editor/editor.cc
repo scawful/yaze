@@ -15,7 +15,7 @@
 #include "gui/input.h"
 
 namespace yaze {
-namespace gui {
+namespace app {
 namespace editor {
 
 Editor::Editor() {
@@ -124,8 +124,6 @@ void Editor::UpdateScreen() {
 
   ImGui::End();
 }
-
-void Editor::Shutdown() {}
 
 void Editor::DrawYazeMenu() {
   MENU_BAR()
@@ -276,6 +274,7 @@ void Editor::DrawViewMenu() {
 void Editor::DrawHelpMenu() const {
   if (ImGui::BeginMenu("Help")) {
     if (ImGui::MenuItem("About")) {
+      // insert the about window here
     }
     ImGui::EndMenu();
   }
@@ -297,10 +296,10 @@ void Editor::DrawGraphicsSheet(int offset) {
 
   unsigned int snesAddr = 0;
   unsigned int pcAddr = 0;
-  snesAddr = (unsigned int)((((uchar)(rom_.data()[0x4F80 + offset]) << 16) |
-                             ((uchar)(rom_.data()[0x505F + offset]) << 8) |
-                             ((uchar)(rom_.data()[0x513E + offset]))));
-  pcAddr = rom_.SnesToPc(snesAddr);
+  snesAddr = (unsigned int)((((rom_.data()[0x4F80 + offset]) << 16) |
+                             ((rom_.data()[0x505F + offset]) << 8) |
+                             ((rom_.data()[0x513E + offset]))));
+  pcAddr = core::SnesToPc(snesAddr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = rom_.Decompress(pcAddr);
   std::cout << "Converting to 8bpp sheet..." << std::endl;
@@ -338,7 +337,7 @@ void Editor::DrawProjectEditor() {
       for (int i = 0; i < 8; i++) {
         std::string id = "##PaletteColor" + std::to_string(i);
         ImGui::SameLine();
-        ImGui::ColorEdit4(id.c_str(), (float *)&current_palette_[i].x,
+        ImGui::ColorEdit4(id.c_str(), &current_palette_[i].x,
                           ImGuiColorEditFlags_NoInputs |
                               ImGuiColorEditFlags_DisplayRGB |
                               ImGuiColorEditFlags_DisplayHex);
@@ -521,5 +520,5 @@ void Editor::DrawHUDEditor() {
 }
 
 }  // namespace editor
-}  // namespace gui
+}  // namespace app
 }  // namespace yaze

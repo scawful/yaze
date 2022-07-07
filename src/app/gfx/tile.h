@@ -2,7 +2,6 @@
 #define YAZE_APP_GFX_TILE_H
 
 #include <rommapping.h>
-#include <tile.h>
 
 #include <cassert>
 #include <cstdint>
@@ -21,6 +20,12 @@
 namespace yaze {
 namespace app {
 namespace gfx {
+
+typedef struct {
+  unsigned int id;
+  char data[64];
+  unsigned int palette_id;
+} tile8;
 
 using ushort = unsigned short;
 using uchar = unsigned char;

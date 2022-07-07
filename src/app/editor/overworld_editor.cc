@@ -29,7 +29,7 @@
 // have an overworld map viewer, in less than few hours if are able to
 // understand the data quickly
 namespace yaze {
-namespace gui {
+namespace app {
 namespace editor {
 
 void OverworldEditor::SetupROM(app::rom::ROM &rom) { rom_ = rom; }
