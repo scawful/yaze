@@ -29,9 +29,9 @@ void Overworld::Load(app::rom::ROM& rom, uchar* allGfxPtr) {
   rom_ = rom;
   allGfx16Ptr = allGfxPtr;
 
-  overworldMapPointer = std::make_shared<uchar[]>(0x40000);
-  mapblockset16 = std::make_shared<uchar[]>(1048576);
-  currentOWgfx16Ptr = std::make_shared<uchar[]>((128 * 512) / 2);
+  overworldMapPointer = std::make_shared<uchar>(0x40000);
+  mapblockset16 = std::make_shared<uchar>(1048576);
+  currentOWgfx16Ptr = std::make_shared<uchar>((128 * 512) / 2);
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();

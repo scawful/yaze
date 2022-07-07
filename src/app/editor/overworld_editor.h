@@ -10,7 +10,7 @@
 #include "gui/icons.h"
 
 namespace yaze {
-namespace gui {
+namespace app {
 namespace editor {
 
 static constexpr unsigned int k4BPP = 4;

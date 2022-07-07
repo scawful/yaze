@@ -71,7 +71,6 @@ void Controller::onInput() {
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_CLOSE:
-            editor_.Shutdown();
             quit();
             break;
           case SDL_WINDOWEVENT_SIZE_CHANGED:

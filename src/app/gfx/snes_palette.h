@@ -34,7 +34,7 @@ class SNESPalette {
   explicit SNESPalette(uint8_t mSize);
   explicit SNESPalette(char* snesPal);
   explicit SNESPalette(const unsigned char* snes_pal);
-  explicit SNESPalette(std::vector<ImVec4>);
+  explicit SNESPalette(const std::vector<ImVec4>&);
 
   char* encode();
   SDL_Palette* GetSDL_Palette();
@@ -43,6 +43,7 @@ class SNESPalette {
   std::vector<SNESColor> colors;
   std::vector<std::shared_ptr<SDL_Palette>> sdl_palettes_;
   std::vector<SDL_Color*> colors_arrays_;
+  std::vector<std::vector<SDL_Color>> colors_;
 };
 
 }  // namespace gfx

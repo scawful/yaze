@@ -12,7 +12,6 @@
 #include <memory>
 #include <vector>
 
-
 namespace yaze {
 namespace app {
 namespace gfx {
@@ -49,9 +48,8 @@ SNESPalette::SNESPalette(uint8_t mSize) : size_(mSize) {
   }
 }
 
-SNESPalette::SNESPalette(char* data) {
+SNESPalette::SNESPalette(char* data) : size_(sizeof(data) / 2) {
   assert((sizeof(data) % 4 == 0) && (sizeof(data) <= 32));
-  size_ = sizeof(data) / 2;
   for (unsigned i = 0; i < sizeof(data); i += 2) {
     SNESColor col;
     col.snes = static_cast<uchar>(data[i + 1]) << 8;
@@ -62,9 +60,8 @@ SNESPalette::SNESPalette(char* data) {
   }
 }
 
-SNESPalette::SNESPalette(const unsigned char* snes_pal) {
+SNESPalette::SNESPalette(const unsigned char* snes_pal) : size_(sizeof(snes_pal) / 2) {
   assert((sizeof(snes_pal) % 4 == 0) && (sizeof(snes_pal) <= 32));
-  size_ = sizeof(snes_pal) / 2;
   for (unsigned i = 0; i < sizeof(snes_pal); i += 2) {
     SNESColor col;
     col.snes = snes_pal[i + 1] << (uint16_t)8;
@@ -75,7 +72,7 @@ SNESPalette::SNESPalette(const unsigned char* snes_pal) {
   }
 }
 
-SNESPalette::SNESPalette(std::vector<ImVec4> cols) {
+SNESPalette::SNESPalette(const std::vector<ImVec4> & cols) {
   for (const auto& each : cols) {
     SNESColor scol;
     scol.setRgb(each);
@@ -85,10 +82,9 @@ SNESPalette::SNESPalette(std::vector<ImVec4> cols) {
 }
 
 char* SNESPalette::encode() {
-  // char* data(size * 2, 0);
   char* data = new char[size_ * 2];
   for (unsigned int i = 0; i < size_; i++) {
-    // std::cout << QString::number(colors[i].snes, 16);
+    std::cout << colors[i].snes << std::endl;
     data[i * 2] = (char)(colors[i].snes & 0xFF);
     data[i * 2 + 1] = (char)(colors[i].snes >> 8);
   }
@@ -100,20 +96,20 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
   auto sdl_palette = std::make_shared<SDL_Palette>();
   sdl_palette->ncolors = size_;
 
-  auto* sdl_colors = new SDL_Color[size_];
+  auto color = std::vector<SDL_Color>(size_);
   for (int i = 0; i < size_; i++) {
-    sdl_colors[i].r = (uint8_t)colors[i].rgb.x * 100;
-    sdl_colors[i].g = (uint8_t)colors[i].rgb.y * 100;
-    sdl_colors[i].b = (uint8_t)colors[i].rgb.z * 100;
-    std::cout << "Color " << i << " added (R:" << sdl_colors[i].r
-              << " G:" << sdl_colors[i].g << " B:" << sdl_colors[i].b << ")"
+    color[i].r = (uint8_t)colors[i].rgb.x * 100;
+    color[i].g = (uint8_t)colors[i].rgb.y * 100;
+    color[i].b = (uint8_t)colors[i].rgb.z * 100;
+    std::cout << "Color " << i << " added (R:" << color[i].r
+              << " G:" << color[i].g << " B:" << color[i].b << ")"
               << std::endl;
   }
-  sdl_palette->colors = sdl_colors;
+  sdl_palette->colors = color.data();
 
   // store the pointers to free them later
   sdl_palettes_.push_back(sdl_palette);
-  colors_arrays_.push_back(sdl_colors);
+  colors_.push_back(color);
 
   return sdl_palette.get();
 }

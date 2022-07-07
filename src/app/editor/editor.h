@@ -15,7 +15,7 @@
 #include "gui/input.h"
 
 namespace yaze {
-namespace gui {
+namespace app {
 namespace editor {
 
 class Editor {
@@ -24,7 +24,6 @@ class Editor {
   ~Editor();
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
-  void Shutdown();
 
  private:
   void DrawYazeMenu();
