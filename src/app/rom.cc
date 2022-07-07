@@ -79,8 +79,8 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
       length =
           (ushort)(((current_rom_[pos] << 8) | current_rom_[pos + 1]) & 0x3FF);
       pos += 2;  // Advance 2 bytes in ROM
-    } else       // Normal Command
-    {
+    
+    } else {     // Normal Command
       cmd = (uchar)((databyte >> 5) & 0x07);
       length = (uchar)(databyte & 0x1F);
       pos += 1;  // Advance 1 byte in ROM
@@ -128,33 +128,6 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
     }
   }
   return buffer;
-}
-
-std::vector<tile8> ROM::ExtractTiles(gfx::TilePreset &preset) {
-  uint size_out = 0;
-  uint size = preset.length_;
-  int tile_pos = preset.pc_tiles_location_;
-  std::vector<tile8> rawTiles;
-
-  // decompress the gfx
-  auto data = (char *)malloc(sizeof(char) * size);
-  memcpy(data, (current_rom_ + tile_pos), size);
-  data = alttp_decompress_gfx(data, 0, size, &size_out, &compressed_size_);
-  if (data == nullptr) {
-    std::cout << alttp_decompression_error << std::endl;
-    return rawTiles;
-  }
-
-  // unpack the tiles based on their depth
-  unsigned tileCpt = 0;
-  for (tile_pos = 0; tile_pos < size; tile_pos += preset.bits_per_pixel_ * 8) {
-    tile8 newTile = unpack_bpp_tile(data, tile_pos, preset.bits_per_pixel_);
-    newTile.id = tileCpt;
-    rawTiles.push_back(newTile);
-    tileCpt++;
-  }
-  free(data);
-  return rawTiles;
 }
 
 gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
@@ -234,7 +207,7 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   snesAddr = (uint)((((current_rom_[0x4F80 + offset]) << 16) |
                      ((current_rom_[0x505F + offset]) << 8) |
                      ((current_rom_[0x513E + offset]))));
-  pcAddr = SnesToPc(snesAddr);
+  pcAddr = core::SnesToPc(snesAddr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = Decompress(pcAddr);
   std::cout << "Converting to 8bpp sheet..." << std::endl;
@@ -250,36 +223,31 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   return sheet_texture;
 }
 
-int ROM::AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) const {
-  return (addr1 << 16) | (addr2 << 8) | addr3;
-}
-
 int ROM::GetPCGfxAddress(uint8_t id) {
   int gfxPtr1 =
-      SnesToPc((current_rom_[core::constants::gfx_1_pointer + 1] << 8) +
-               (current_rom_[core::constants::gfx_1_pointer]));
+      core::SnesToPc((current_rom_[core::constants::gfx_1_pointer + 1] << 8) +
+                     (current_rom_[core::constants::gfx_1_pointer]));
   int gfxPtr2 =
-      SnesToPc((current_rom_[core::constants::gfx_2_pointer + 1] << 8) +
-               (current_rom_[core::constants::gfx_2_pointer]));
+      core::SnesToPc((current_rom_[core::constants::gfx_2_pointer + 1] << 8) +
+                     (current_rom_[core::constants::gfx_2_pointer]));
   int gfxPtr3 =
-      SnesToPc((current_rom_[core::constants::gfx_3_pointer + 1] << 8) +
-               (current_rom_[core::constants::gfx_3_pointer]));
+      core::SnesToPc((current_rom_[core::constants::gfx_3_pointer + 1] << 8) +
+                     (current_rom_[core::constants::gfx_3_pointer]));
 
   uint8_t gfxGamePointer1 = current_rom_[gfxPtr1 + id];
   uint8_t gfxGamePointer2 = current_rom_[gfxPtr2 + id];
   uint8_t gfxGamePointer3 = current_rom_[gfxPtr3 + id];
 
-  return SnesToPc(
-      AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3));
+  return core::SnesToPc(
+      core::AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3));
 }
 
+// 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
+// 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
+// 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
+// 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
+// 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 char *ROM::CreateAllGfxDataRaw() {
-  // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
-  // 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
-  // 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
-  // 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
-  // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
-
   auto *buffer = new char[346624];
   auto *data = new char[2048];
   int bufferPos = 0;
@@ -411,8 +379,6 @@ void ROM::CreateAllGraphicsData(uchar *allGfx16Ptr) {
   }
   allgfx16Data = SNES3bppTo8bppSheet(allgfx16Data);
 }
-
-void ROM::LoadBlocksetGraphics(int graphics_id) {}
 
 }  // namespace rom
 }  // namespace app
