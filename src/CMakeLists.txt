@@ -41,6 +41,7 @@ add_executable(
     app/editor/editor.cc
     app/editor/overworld_editor.cc
     app/rom.cc
+    app/core/common.cc
     app/core/constants.cc
     app/core/controller.cc
     app/gfx/bitmap.cc
