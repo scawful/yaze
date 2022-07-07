@@ -35,7 +35,7 @@ class Controller {
   void CreateWindow();
   void CreateRenderer();
   void CreateGuiContext() const;
-  inline void quit() { active_ = false; }
+  void quit() { active_ = false; }
   friend int ::main(int argc, char **argv);
 
   struct sdl_deleter {
