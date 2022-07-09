@@ -38,6 +38,7 @@ add_executable(
     yaze.cc
     gui/input.cc
     gui/style.cc
+    gui/widgets.cc
     app/editor/editor.cc
     app/editor/overworld_editor.cc
     app/rom.cc
