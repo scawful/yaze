@@ -35,10 +35,6 @@ void OverworldEditor::Update() {
     all_gfx_loaded_ = true;
   }
 
-  if (show_changelist_) {
-    DrawChangelist();
-  }
-
   DrawToolset();
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
@@ -81,14 +77,6 @@ void OverworldEditor::DrawToolset() {
     ImGui::Button(ICON_MD_REDO);
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_MANAGE_HISTORY)) {
-      if (!show_changelist_)
-        show_changelist_ = true;
-      else
-        show_changelist_ = false;
-    }
-
-    ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
 
     ImGui::TableNextColumn();
@@ -128,6 +116,9 @@ void OverworldEditor::DrawToolset() {
     if (ImGui::Button(ICON_MD_UPDATE)) {
       overworld_.Load(rom_, allGfx16Ptr);
     }
+
+    ImGui::TableNextColumn();
+    ImGui::Text(ICON_MD_MORE_VERT);
 
     ImGui::TableNextColumn();
     ImGui::Text("Palette:");
@@ -426,15 +417,6 @@ void OverworldEditor::DrawTile8Selector() {
   }
 
   draw_list->PopClipRect();
-}
-
-void OverworldEditor::DrawChangelist() {
-  if (!ImGui::Begin("Changelist")) {
-    ImGui::End();
-  }
-
-  ImGui::Text("Test");
-  ImGui::End();
 }
 
 void OverworldEditor::LoadGraphics() {
