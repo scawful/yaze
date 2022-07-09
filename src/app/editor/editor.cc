@@ -23,13 +23,6 @@ Editor::Editor() {
   asm_editor_.SetLanguageDefinition(gui::widgets::GetAssemblyLanguageDef());
   asm_editor_.SetPalette(TextEditor::GetDarkPalette());
 
-  current_set_.bits_per_pixel_ = 4;
-  current_set_.pc_tiles_location_ = 0x80000;
-  current_set_.SNESTilesLocation = 0x0000;
-  current_set_.length_ = 28672;
-  current_set_.pc_palette_location_ = 906022;
-  current_set_.SNESPaletteLocation = 0;
-
   for (int i = 0; i < 8; i++) {
     current_palette_[i].x = (i * 0.21f);
     current_palette_[i].y = (i * 0.21f);
@@ -68,10 +61,8 @@ void Editor::UpdateScreen() {
   DrawProjectEditor();
   DrawOverworldEditor();
   DrawDungeonEditor();
-  DrawgfxEditor();
+  DrawGraphicsEditor();
   DrawSpriteEditor();
-  DrawScreenEditor();
-  DrawHUDEditor();
   END_TAB_BAR()
 
   ImGui::End();
@@ -134,7 +125,7 @@ void Editor::DrawEditMenu() const {
     if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
       // TODO: Implement this
     }
-    if (ImGui::MenuItem("Undo", "Ctrl+Y")) {
+    if (ImGui::MenuItem("Redo", "Ctrl+Y")) {
       // TODO: Implement this
     }
     ImGui::Separator();
@@ -176,7 +167,6 @@ void Editor::DrawViewMenu() {
   }
 
   if (show_asm_editor) {
-    assembly_editor_.ChangeActiveFile("assets/bunnyhood.asm");
     assembly_editor_.Update();
   }
 
@@ -288,7 +278,6 @@ void Editor::DrawProjectEditor() {
       static ImVector<ImVec2> points;
       static ImVec2 scrolling(0.0f, 0.0f);
       static bool opt_enable_context_menu = true;
-      static bool opt_enable_grid = true;
       ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
       auto canvas_sz = ImVec2(
           512 + 1, ImGui::GetContentRegionAvail().y + (tilesheet_offset * 256));
@@ -346,21 +335,6 @@ void Editor::DrawProjectEditor() {
                               ImVec2(canvas_p0.x + 2, top_left_y),
                               ImVec2(canvas_p0.x + 512, canvas_p0.y + offset));
         }
-      }
-
-      // Draw the tile grid
-      if (opt_enable_grid) {
-        const float GRID_STEP = 32.0f;
-        for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x;
-             x += GRID_STEP)
-          draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y),
-                             ImVec2(canvas_p0.x + x, canvas_p1.y),
-                             IM_COL32(200, 200, 200, 40));
-        for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y;
-             y += GRID_STEP)
-          draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
-                             ImVec2(canvas_p1.x, canvas_p0.y + y),
-                             IM_COL32(200, 200, 200, 40));
       }
 
       draw_list->PopClipRect();
@@ -423,7 +397,7 @@ void Editor::DrawDungeonEditor() {
   }
 }
 
-void Editor::DrawgfxEditor() {
+void Editor::DrawGraphicsEditor() {
   if (ImGui::BeginTabItem("Graphics")) {
     ImGui::EndTabItem();
   }
@@ -431,18 +405,6 @@ void Editor::DrawgfxEditor() {
 
 void Editor::DrawSpriteEditor() {
   if (ImGui::BeginTabItem("Sprites")) {
-    ImGui::EndTabItem();
-  }
-}
-
-void Editor::DrawScreenEditor() {
-  if (ImGui::BeginTabItem("Screens")) {
-    ImGui::EndTabItem();
-  }
-}
-
-void Editor::DrawHUDEditor() {
-  if (ImGui::BeginTabItem("HUD")) {
     ImGui::EndTabItem();
   }
 }
