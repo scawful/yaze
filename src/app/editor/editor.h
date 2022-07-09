@@ -50,8 +50,8 @@ class Editor {
   TextEditor asm_editor_;
   TextEditor::LanguageDefinition language_65816_;
   OverworldEditor overworld_editor_;
-  std::unordered_map<uint, SDL_Texture *> image_cache_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
+  std::unordered_map<uint, SDL_Texture *> image_cache_;
 
   ImVec4 current_palette_[8];
 
@@ -63,7 +63,7 @@ class Editor {
 };
 
 }  // namespace editor
-}  // namespace gui
+}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_VIEW_EDITOR_H
