@@ -84,18 +84,6 @@ void BuildTiles16Gfx(uchar* mapblockset16, uchar* currentOWgfx16Ptr,
 void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
                 uchar* gfx16Pointer, uchar* gfx8Pointer);
 
-class TilePreset {
- public:
-  TilePreset() = default;
-  bool no_zero_color_ = false;
-  int pc_tiles_location_ = 0;
-  int pc_palette_location_ = 0;
-  int bits_per_pixel_ = 0;
-  int length_ = 0;
-  int SNESTilesLocation = 0;
-  int SNESPaletteLocation = 0;
-};
-
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
