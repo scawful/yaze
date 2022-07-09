@@ -40,6 +40,7 @@ add_executable(
     gui/style.cc
     gui/widgets.cc
     app/editor/editor.cc
+    app/editor/assembly_editor.cc
     app/editor/overworld_editor.cc
     app/rom.cc
     app/core/common.cc
