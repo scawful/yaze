@@ -28,8 +28,6 @@ class OverworldEditor {
   void DrawTile16Selector();
   void DrawTile8Selector();
 
-  void DrawChangelist();
-
   void LoadBlockset();
   void LoadGraphics();
 
@@ -61,7 +59,6 @@ class OverworldEditor {
   bool isLoaded = false;
   bool doneLoaded = false;
   bool opt_enable_grid = true;
-  bool show_changelist_ = false;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
 

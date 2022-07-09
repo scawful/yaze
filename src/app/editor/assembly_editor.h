@@ -24,8 +24,9 @@ class AssemblyEditor {
   void DrawEditMenu();
   void SetEditorText();
 
-  std::string current_file_;
   bool file_is_loaded_ = false;
+
+  std::string current_file_;
   TextEditor text_editor_;
 };
 
