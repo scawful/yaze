@@ -10,11 +10,6 @@
 #include "app/zelda3/overworld.h"
 #include "gui/icons.h"
 
-// first step would be to decompress all gfx data from the game
-// (in alttp that's easy they're all located in the same location all the
-// same sheet size 128x32) have a code that convert PC address to SNES and
-// vice-versa
-
 // 1) find the gfx pointers (you could use ZS constant file)
 // 2) decompress all the gfx with your lz2 decompressor
 // 3) convert the 3bpp snes data into PC 4bpp (probably the hardest part)
@@ -132,7 +127,6 @@ void OverworldEditor::DrawToolset() {
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
       overworld_.Load(rom_, allGfx16Ptr);
-      LoadBlockset();
     }
 
     ImGui::EndTable();
@@ -280,6 +274,16 @@ void OverworldEditor::DrawOverworldCanvas() {
 }
 
 void OverworldEditor::DrawTileSelector() {
+  ImGui::Text("Palette:");
+  for (int i = 0; i < 8; i++) {
+    std::string id = "##PaletteColor" + std::to_string(i);
+    ImGui::SameLine();
+    ImGui::ColorEdit4(id.c_str(), &current_palette_[i].x,
+                      ImGuiColorEditFlags_NoInputs |
+                          ImGuiColorEditFlags_DisplayRGB |
+                          ImGuiColorEditFlags_DisplayHex);
+  }
+
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
       bool child_is_visible =
@@ -399,8 +403,7 @@ void OverworldEditor::DrawTile8Selector() {
       if (key >= 1) {
         top_left_y = canvas_p0.y + 64 * key;
       }
-      draw_list->AddImage((void *)value,
-                          ImVec2(canvas_p0.x + 2, top_left_y),
+      draw_list->AddImage((void *)value, ImVec2(canvas_p0.x + 2, top_left_y),
                           ImVec2(canvas_p0.x + 256, canvas_p0.y + offset));
     }
   }
@@ -433,41 +436,6 @@ void OverworldEditor::DrawChangelist() {
   ImGui::End();
 }
 
-void OverworldEditor::LoadBlockset() {
-  rom_.CreateAllGraphicsData(allGfx16Ptr);
-
-  for (int i = 0; i < 16; i++) {
-    staticgfx[i] = i;
-  }
-
-  // Update gfx to be on selected map
-  auto currentmapgfx8Data = current_gfx_ptr_;
-  auto allgfxData = allGfx16Ptr;
-  for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 2048; j++) {
-      auto mapByte = allgfxData[j + (staticgfx[i] * 2048)];
-      switch (i) {
-        case 0:
-        case 3:
-        case 4:
-        case 5:
-          mapByte += 0x88;
-          break;
-      }
-
-      currentmapgfx8Data[(i * 2048) + j] = mapByte;  // Upload used gfx data
-    }
-  }
-
-  auto tiles = overworld_.GetTiles16();
-  app::gfx::BuildTiles16Gfx(tile16_blockset_ptr_, current_gfx_ptr_, tiles);
-  current_gfx_bmp_.Create(128, 512, 64, current_gfx_ptr_);
-  current_gfx_bmp_.CreateTexture(rom_.Renderer());
-  tile16_blockset_bmp_.Create(128, 8192, 8, tile16_blockset_ptr_);
-  tile16_blockset_bmp_.CreateTexture(rom_.Renderer());
-  map_blockset_loaded_ = true;
-}
-
 void OverworldEditor::LoadGraphics() {
   for (int i = 0; i < kNumSheetsToLoad; i++) {
     all_texture_sheet_[i] = rom_.DrawGraphicsSheet(i);
@@ -475,5 +443,5 @@ void OverworldEditor::LoadGraphics() {
 }
 
 }  // namespace editor
-}  // namespace gui
+}  // namespace app
 }  // namespace yaze

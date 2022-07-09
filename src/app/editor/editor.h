@@ -42,7 +42,6 @@ class Editor {
   void DrawScreenEditor();
   void DrawHUDEditor();
 
-  void *rom_data_;
   bool is_loaded_ = true;
 
   app::rom::ROM rom_;
