@@ -12,7 +12,7 @@ enable_testing()
 find_package(PNG REQUIRED)
 find_package(SDL2 REQUIRED)
 
-set(SNESHACKING_PATH "../src/Library/sneshacking/src")
+set(SNESHACKING_PATH "../src/lib/sneshacking/src")
 
 add_executable(
   yaze_test
@@ -31,7 +31,7 @@ add_executable(
 
 target_include_directories(
   yaze_test PUBLIC
-  ../src/Library/
+  ../src/lib/
   ../src/
   ${SNESHACKING_PATH}
   ${SDL_INCLUDE_DIRS}

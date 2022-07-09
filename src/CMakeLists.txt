@@ -8,26 +8,26 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
 # gui libraries ---------------------------------------------------------------------------------------------------
-set(IMGUI_PATH  "Library/imgui")
+set(IMGUI_PATH  "lib/imgui")
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
 add_library("ImGui" STATIC ${IMGUI_SOURCES})
 target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
 target_include_directories(ImGui PUBLIC ${SDL2_INCLUDE_DIR})
 target_compile_definitions(ImGui PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
-set(IMGUI_FILE_DLG_PATH "Library/ImGuiFileDialog")
+set(IMGUI_FILE_DLG_PATH "lib/ImGuiFileDialog")
 file(GLOB IMGUI_FILE_DLG_SOURCES ${IMGUI_FILE_DLG_PATH}/*.cpp)
 add_library("ImGuiFileDialog" STATIC ${IMGUI_FILE_DLG_SOURCES})
 target_include_directories(ImGuiFileDialog PUBLIC ${IMGUI_PATH})
 target_compile_definitions(ImGuiFileDialog PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
-set(IMGUI_COLOR_TEXT_EDIT_PATH "Library/ImGuiColorTextEdit")
+set(IMGUI_COLOR_TEXT_EDIT_PATH "lib/ImGuiColorTextEdit")
 file(GLOB IMGUI_COLOR_TEXT_EDIT_SOURCES ${IMGUI_COLOR_TEXT_EDIT_PATH}/*.cpp)
 add_library("ImGuiColorTextEdit" STATIC ${IMGUI_COLOR_TEXT_EDIT_SOURCES})
 target_include_directories(ImGuiColorTextEdit PUBLIC ${IMGUI_PATH})
 target_compile_definitions(ImGuiColorTextEdit PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
-set(SNESHACKING_PATH "Library/sneshacking/src")
+set(SNESHACKING_PATH "lib/sneshacking/src")
 file(GLOB SNESHACKING_SOURCES ${SNESHACKING_PATH}/*.c)
 add_library("NintendoCompression" STATIC ${SNESHACKING_SOURCES})
 target_include_directories(NintendoCompression PUBLIC "/usr/local/Cellar/libpng/1.6.37/include/libpng16")
@@ -72,7 +72,7 @@ add_executable(
 target_include_directories(
   yaze PUBLIC
   ${CMAKE_SOURCE_DIR}/src/
-  Library/
+  lib/
   app/
   "C:/msys64/mingw64/include/libpng16"
   "C:/msys64/mingw64/include/SDL2"
