@@ -66,6 +66,8 @@ class OverworldEditor {
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
 
+  ImVec4 current_palette_[8];
+
   constexpr static int kByteSize = 3;
   constexpr static int kMessageIdSize = 5;
   constexpr static int kNumSheetsToLoad = 100;

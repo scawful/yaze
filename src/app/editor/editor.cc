@@ -138,7 +138,6 @@ void Editor::DrawYazeMenu() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom_.LoadFromFile(filePathName);
-      rom_data_ = (void *)rom_.data();
       overworld_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
@@ -217,7 +216,7 @@ void Editor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", rom_data_, rom_.getSize());
+    mem_edit.DrawWindow("Memory Editor", (void *)rom_.data(), rom_.getSize());
   }
 
   if (show_imgui_demo) {
@@ -294,14 +293,14 @@ void Editor::DrawGraphicsSheet(int offset) {
     surface->format->palette->colors[i].b = current_palette_[i].z * 255;
   }
 
-  unsigned int snesAddr = 0;
-  unsigned int pcAddr = 0;
-  snesAddr = (unsigned int)((((rom_.data()[0x4F80 + offset]) << 16) |
+  unsigned int snes_addr = 0;
+  unsigned int pc_addr = 0;
+  snes_addr = (unsigned int)((((rom_.data()[0x4F80 + offset]) << 16) |
                              ((rom_.data()[0x505F + offset]) << 8) |
                              ((rom_.data()[0x513E + offset]))));
-  pcAddr = core::SnesToPc(snesAddr);
+  pc_addr = core::SnesToPc(snes_addr);
   std::cout << "Decompressing..." << std::endl;
-  char *decomp = rom_.Decompress(pcAddr);
+  char *decomp = rom_.Decompress(pc_addr);
   std::cout << "Converting to 8bpp sheet..." << std::endl;
   sheet_buffer = rom_.SNES3bppTo8bppSheet((uchar *)decomp);
   std::cout << "Assigning pixel data..." << std::endl;
@@ -360,10 +359,9 @@ void Editor::DrawProjectEditor() {
       static bool opt_enable_context_menu = true;
       static bool opt_enable_grid = true;
       ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-      // ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
-      ImVec2 canvas_sz = ImVec2(
+      auto canvas_sz = ImVec2(
           512 + 1, ImGui::GetContentRegionAvail().y + (tilesheet_offset * 256));
-      ImVec2 canvas_p1 =
+      auto canvas_p1 =
           ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
       // Draw border and background color
@@ -376,7 +374,6 @@ void Editor::DrawProjectEditor() {
       ImGui::InvisibleButton(
           "canvas", canvas_sz,
           ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-      const bool is_hovered = ImGui::IsItemHovered();  // Hovered
       const bool is_active = ImGui::IsItemActive();    // Held
       const ImVec2 origin(canvas_p0.x + scrolling.x,
                           canvas_p0.y + scrolling.y);  // Lock scrolled origin

@@ -20,11 +20,8 @@ namespace app {
 namespace rom {
 
 void ROM::Close() {
-  if (loaded) {
+  if (is_loaded_) {
     delete[] current_rom_;
-    for (auto &each : decompressed_graphic_sheets_) {
-      free(each);
-    }
     for (auto &each : converted_graphic_sheets_) {
       free(each);
     }
@@ -52,7 +49,7 @@ void ROM::LoadFromFile(const std::string &path) {
   file.close();
   memcpy(title, current_rom_ + 32704, 21);
   version_ = current_rom_[27];
-  loaded = true;
+  is_loaded_ = true;
 }
 
 char *ROM::Decompress(int pos, int size, bool reversed) {
@@ -224,13 +221,13 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
 }
 
 int ROM::GetPCGfxAddress(uint8_t id) {
-  int gfxPtr1 =
+  auto gfxPtr1 =
       core::SnesToPc((current_rom_[core::constants::gfx_1_pointer + 1] << 8) +
                      (current_rom_[core::constants::gfx_1_pointer]));
-  int gfxPtr2 =
+  auto gfxPtr2 =
       core::SnesToPc((current_rom_[core::constants::gfx_2_pointer + 1] << 8) +
                      (current_rom_[core::constants::gfx_2_pointer]));
-  int gfxPtr3 =
+  auto gfxPtr3 =
       core::SnesToPc((current_rom_[core::constants::gfx_3_pointer + 1] << 8) +
                      (current_rom_[core::constants::gfx_3_pointer]));
 

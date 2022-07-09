@@ -16,15 +16,17 @@ class Bitmap {
   Bitmap(int width, int height, int depth, uchar *data);
 
   void Create(int width, int height, int depth, uchar *data);
+  void Create(int width, int height, int depth, int data_size);
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
-  inline SDL_Texture *GetTexture() const { return texture_; }
+  SDL_Texture *GetTexture() const { return texture_; }
 
  private:
   int width_;
   int height_;
   int depth_;
+  int data_size_;
   uchar *pixel_data_;
   SDL_Surface *surface_;
   SDL_Texture *texture_;

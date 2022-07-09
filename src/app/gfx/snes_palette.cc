@@ -82,13 +82,13 @@ SNESPalette::SNESPalette(const std::vector<ImVec4> & cols) {
 }
 
 char* SNESPalette::encode() {
-  auto data = std::make_shared<char>(size_ * 2);
+  auto data = new char[size_ * 2];
   for (unsigned int i = 0; i < size_; i++) {
     std::cout << colors[i].snes << std::endl;
     data[i * 2] = (char)(colors[i].snes & 0xFF);
     data[i * 2 + 1] = (char)(colors[i].snes >> 8);
   }
-  return data.get();
+  return data;
 }
 
 SDL_Palette* SNESPalette::GetSDL_Palette() {

@@ -41,10 +41,10 @@ class ROM {
   const uchar* getTitle() const { return title; }
   long getSize() const { return size_; }
   char getVersion() const { return version_; }
-  bool isLoaded() const { return loaded; }
+  bool isLoaded() const { return is_loaded_; }
 
  private:
-  bool loaded = false;
+  bool is_loaded_ = false;
   bool has_header_ = false;
   long size_;
   uint compressed_size_;
