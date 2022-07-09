@@ -10,6 +10,7 @@
 #include "app/core/constants.h"
 #include "app/editor/overworld_editor.h"
 #include "app/gfx/tile.h"
+#include "app/editor/assembly_editor.h"
 #include "app/rom.h"
 #include "gui/icons.h"
 #include "gui/input.h"
@@ -43,12 +44,13 @@ class Editor {
   void DrawHUDEditor();
 
   bool is_loaded_ = true;
+  bool asm_is_loaded = false;
 
-  app::rom::ROM rom_;
-  app::gfx::TilePreset current_set_;
+  rom::ROM rom_;
+  gfx::TilePreset current_set_;
 
   TextEditor asm_editor_;
-  TextEditor::LanguageDefinition language_65816_;
+  AssemblyEditor assembly_editor_;
   OverworldEditor overworld_editor_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
   std::unordered_map<uint, SDL_Texture *> image_cache_;

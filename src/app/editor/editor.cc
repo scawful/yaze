@@ -176,28 +176,8 @@ void Editor::DrawViewMenu() {
   }
 
   if (show_asm_editor) {
-    static bool asm_is_loaded = false;
-    auto cpos = asm_editor_.GetCursorPosition();
-    static const char *fileToEdit = "assets/bunnyhood.asm";
-    if (!asm_is_loaded) {
-      std::ifstream t(fileToEdit);
-      if (t.good()) {
-        std::string str((std::istreambuf_iterator<char>(t)),
-                        std::istreambuf_iterator<char>());
-        asm_editor_.SetText(str);
-      }
-      asm_is_loaded = true;
-    }
-
-    ImGui::Begin("ASM Editor", &show_asm_editor);
-    ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
-                cpos.mColumn + 1, asm_editor_.GetTotalLines(),
-                asm_editor_.IsOverwrite() ? "Ovr" : "Ins",
-                asm_editor_.CanUndo() ? "*" : " ",
-                asm_editor_.GetLanguageDefinition().mName.c_str(), fileToEdit);
-
-    asm_editor_.Render(fileToEdit);
-    ImGui::End();
+    assembly_editor_.ChangeActiveFile("assets/bunnyhood.asm");
+    assembly_editor_.Update();
   }
 
   if (show_imgui_style_editor) {
@@ -248,8 +228,8 @@ void Editor::DrawGraphicsSheet(int offset) {
   unsigned int snes_addr = 0;
   unsigned int pc_addr = 0;
   snes_addr = (unsigned int)((((rom_.data()[0x4F80 + offset]) << 16) |
-                             ((rom_.data()[0x505F + offset]) << 8) |
-                             ((rom_.data()[0x513E + offset]))));
+                              ((rom_.data()[0x505F + offset]) << 8) |
+                              ((rom_.data()[0x513E + offset]))));
   pc_addr = core::SnesToPc(snes_addr);
   std::cout << "Decompressing..." << std::endl;
   char *decomp = rom_.Decompress(pc_addr);
@@ -325,7 +305,7 @@ void Editor::DrawProjectEditor() {
       ImGui::InvisibleButton(
           "canvas", canvas_sz,
           ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-      const bool is_active = ImGui::IsItemActive();    // Held
+      const bool is_active = ImGui::IsItemActive();  // Held
       const ImVec2 origin(canvas_p0.x + scrolling.x,
                           canvas_p0.y + scrolling.y);  // Lock scrolled origin
       const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
