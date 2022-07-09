@@ -35,7 +35,6 @@ class OverworldEditor {
 
   zelda3::Overworld overworld_;
   gfx::SNESPalette palette_;
-  gfx::TilePreset current_set_;
 
   rom::ROM rom_;
 

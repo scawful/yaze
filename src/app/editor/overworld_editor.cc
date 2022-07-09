@@ -56,7 +56,7 @@ void OverworldEditor::Update() {
 }
 
 void OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("Toolset", 16, toolset_table_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("Toolset", 17, toolset_table_flags, ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#undoTool");
     ImGui::TableSetupColumn("#redoTool");
     ImGui::TableSetupColumn("#drawTool");
@@ -127,6 +127,17 @@ void OverworldEditor::DrawToolset() {
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
       overworld_.Load(rom_, allGfx16Ptr);
+    }
+
+    ImGui::TableNextColumn();
+    ImGui::Text("Palette:");
+    for (int i = 0; i < 8; i++) {
+      std::string id = "##PaletteColor" + std::to_string(i);
+      ImGui::SameLine();
+      ImGui::ColorEdit4(id.c_str(), &current_palette_[i].x,
+                        ImGuiColorEditFlags_NoInputs |
+                            ImGuiColorEditFlags_DisplayRGB |
+                            ImGuiColorEditFlags_DisplayHex);
     }
 
     ImGui::EndTable();
@@ -274,16 +285,6 @@ void OverworldEditor::DrawOverworldCanvas() {
 }
 
 void OverworldEditor::DrawTileSelector() {
-  ImGui::Text("Palette:");
-  for (int i = 0; i < 8; i++) {
-    std::string id = "##PaletteColor" + std::to_string(i);
-    ImGui::SameLine();
-    ImGui::ColorEdit4(id.c_str(), &current_palette_[i].x,
-                      ImGuiColorEditFlags_NoInputs |
-                          ImGuiColorEditFlags_DisplayRGB |
-                          ImGuiColorEditFlags_DisplayHex);
-  }
-
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
       bool child_is_visible =
