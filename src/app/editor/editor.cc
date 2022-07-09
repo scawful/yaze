@@ -13,62 +13,14 @@
 #include "app/rom.h"
 #include "gui/icons.h"
 #include "gui/input.h"
+#include "gui/widgets.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
 
 Editor::Editor() {
-  for (auto &k : app::core::constants::kKeywords)
-    language_65816_.mKeywords.emplace(k);
-
-  for (auto &k : app::core::constants::kIdentifiers) {
-    TextEditor::Identifier id;
-    id.mDeclaration = "Built-in function";
-    language_65816_.mIdentifiers.insert(std::make_pair(std::string(k), id));
-  }
-
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "[ \\t]*#[ \\t]*[a-zA-Z_]+", TextEditor::PaletteIndex::Preprocessor));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "L?\\\"(\\\\.|[^\\\"])*\\\"", TextEditor::PaletteIndex::String));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "\\'\\\\?[^\\']\\'", TextEditor::PaletteIndex::CharLiteral));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?[fF]?",
-          TextEditor::PaletteIndex::Number));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "[+-]?[0-9]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "0[0-7]+[Uu]?[lL]?[lL]?", TextEditor::PaletteIndex::Number));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "0[xX][0-9a-fA-F]+[uU]?[lL]?[lL]?",
-          TextEditor::PaletteIndex::Number));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "[a-zA-Z_][a-zA-Z0-9_]*", TextEditor::PaletteIndex::Identifier));
-  language_65816_.mTokenRegexStrings.push_back(
-      std::make_pair<std::string, TextEditor::PaletteIndex>(
-          "[\\[\\]\\{\\}\\!\\%\\^\\&\\*\\(\\)\\-\\+\\=\\~\\|\\<\\>\\?\\/"
-          "\\;\\,\\.]",
-          TextEditor::PaletteIndex::Punctuation));
-
-  language_65816_.mCommentStart = "/*";
-  language_65816_.mCommentEnd = "*/";
-  language_65816_.mSingleLineComment = ";";
-
-  language_65816_.mCaseSensitive = false;
-  language_65816_.mAutoIndentation = true;
-
-  language_65816_.mName = "65816";
-  asm_editor_.SetLanguageDefinition(language_65816_);
+  asm_editor_.SetLanguageDefinition(gui::widgets::GetAssemblyLanguageDef());
   asm_editor_.SetPalette(TextEditor::GetDarkPalette());
 
   current_set_.bits_per_pixel_ = 4;
@@ -324,7 +276,6 @@ void Editor::DrawProjectEditor() {
 
       ImGui::TableNextColumn();
       ImGui::Text("Title: %s", rom_.getTitle());
-      ImGui::Text("Version: %d", rom_.getVersion());
       ImGui::Text("ROM Size: %ld", rom_.getSize());
       ImGui::Separator();
 
