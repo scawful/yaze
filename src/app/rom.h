@@ -34,13 +34,11 @@ class ROM {
 
   int GetPCGfxAddress(uint8_t id);
   char* CreateAllGfxDataRaw();
-  void CreateAllGraphicsData(uchar* allGfx16Ptr);
 
   uchar* data() { return current_rom_; }
   auto Renderer() { return sdl_renderer_; }
   const uchar* getTitle() const { return title; }
   long getSize() const { return size_; }
-  char getVersion() const { return version_; }
   bool isLoaded() const { return is_loaded_; }
 
  private:
