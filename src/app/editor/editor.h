@@ -38,17 +38,13 @@ class Editor {
   void DrawProjectEditor();
   void DrawOverworldEditor();
   void DrawDungeonEditor();
-  void DrawgfxEditor();
+  void DrawGraphicsEditor();
   void DrawSpriteEditor();
-  void DrawScreenEditor();
-  void DrawHUDEditor();
-
+  
   bool is_loaded_ = true;
   bool asm_is_loaded = false;
 
   rom::ROM rom_;
-  gfx::TilePreset current_set_;
-
   TextEditor asm_editor_;
   AssemblyEditor assembly_editor_;
   OverworldEditor overworld_editor_;

@@ -20,6 +20,8 @@ class AssemblyEditor {
   void ChangeActiveFile(const std::string &);
 
  private:
+  void DrawFileMenu();
+  void DrawEditMenu();
   void SetEditorText();
 
   std::string current_file_;
