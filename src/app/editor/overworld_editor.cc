@@ -29,7 +29,7 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-void OverworldEditor::SetupROM(rom::ROM &rom) { rom_ = rom; }
+void OverworldEditor::SetupROM(ROM &rom) { rom_ = rom; }
 
 void OverworldEditor::Update() {
   if (rom_.isLoaded() && !all_gfx_loaded_) {

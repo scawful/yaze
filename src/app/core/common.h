@@ -12,6 +12,6 @@ int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
 
 }  // namespace core
 }  // namespace app
-}  // namespace premia
+}  // namespace yaze
 
 #endif

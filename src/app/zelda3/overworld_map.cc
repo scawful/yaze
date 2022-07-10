@@ -14,8 +14,8 @@ namespace zelda3 {
 using namespace core;
 using namespace gfx;
 
-OverworldMap::OverworldMap(app::rom::ROM& rom,
-                           const std::vector<gfx::Tile16>& tiles16, int index_)
+OverworldMap::OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16,
+                           int index_)
     : parent_(index_), index_(index_), rom_(rom), tiles16_(tiles16) {
   if (index_ != 0x80 && index_ <= 150 &&
       rom_.data()[constants::overworldMapSize + (index_ & 0x3F)] != 0) {

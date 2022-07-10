@@ -17,7 +17,7 @@ static constexpr unsigned int k4BPP = 4;
 
 class OverworldEditor {
  public:
-  void SetupROM(app::rom::ROM &rom);
+  void SetupROM(ROM &rom);
   void Update();
 
  private:
@@ -31,7 +31,7 @@ class OverworldEditor {
   void LoadBlockset();
   void LoadGraphics();
 
-  rom::ROM rom_;
+  ROM rom_;
 
   zelda3::Overworld overworld_;
   gfx::SNESPalette palette_;
