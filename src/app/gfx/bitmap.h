@@ -17,9 +17,12 @@ class Bitmap {
 
   void Create(int width, int height, int depth, uchar *data);
   void Create(int width, int height, int depth, int data_size);
+  void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
+  
+  void ApplyPalette(const SNESPalette& palette);
+  
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
-  void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   uchar *GetData() const { return pixel_data_; }
   SDL_Texture *GetTexture() const { return texture_; }
 
