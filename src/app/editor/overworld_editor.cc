@@ -10,24 +10,26 @@
 #include "app/zelda3/overworld.h"
 #include "gui/icons.h"
 
-// 1) find the gfx pointers (you could use ZS constant file)
-// 2) decompress all the gfx with your lz2 decompressor
-// 3) convert the 3bpp snes data into PC 4bpp (probably the hardest part)
-// 4) get the tiles32 data
-// 5) get the tiles16 data
-// 6) get the map32 data (they must be decompressed as well with a lz2
-// variant not the same as gfx compression but pretty similar) 7) get the
-// gfx data of the map yeah i forgot that one and load 4bpp in a pseudo vram
-// and use that to render tiles on screen 8) try to render the tiles on the
-// bitmap in black & white to start 9) get the palettes data and try to find
-// how they're loaded in the game that's a big puzzle to solve then 9 you'll
-// have an overworld map viewer, in less than few hours if are able to
-// understand the data quickly
+/**
+ * Drawing the Overworld
+ * Tips by Zarby
+ *
+ * 1) Find the graphics pointers (constants.h)
+ * 2) Convert the 3bpp SNES data into PC 4bpp (Hard)
+ * 3) Get the tiles32 data
+ * 4) Get the tiles16 data
+ * 5) Get the map32 data using lz2 variant decompression
+ * 6) Get the graphics data of the map
+ * 7) Load 4bpp into Pseudo VRAM for rendering tiles to screen
+ * 8) Render the tiles to a bitmap with a B&W palette to start
+ * 9) Get the palette data and find how it's loaded in game
+ *
+ */
 namespace yaze {
 namespace app {
 namespace editor {
 
-void OverworldEditor::SetupROM(app::rom::ROM &rom) { rom_ = rom; }
+void OverworldEditor::SetupROM(rom::ROM &rom) { rom_ = rom; }
 
 void OverworldEditor::Update() {
   if (rom_.isLoaded() && !all_gfx_loaded_) {
@@ -114,7 +116,7 @@ void OverworldEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
-      overworld_.Load(rom_, allGfx16Ptr);
+      overworld_.Load(rom_, allgfxBitmap.GetData());
     }
 
     ImGui::TableNextColumn();
@@ -302,7 +304,7 @@ void OverworldEditor::DrawTileSelector() {
   }
 }
 
-void OverworldEditor::DrawTile16Selector() {
+void OverworldEditor::DrawTile16Selector() const {
   static ImVec2 scrolling(0.0f, 0.0f);
   ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
   auto canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);
@@ -359,7 +361,7 @@ void OverworldEditor::DrawTile16Selector() {
   draw_list->PopClipRect();
 }
 
-void OverworldEditor::DrawTile8Selector() {
+void OverworldEditor::DrawTile8Selector() const {
   static ImVec2 scrolling(0.0f, 0.0f);
   ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
   auto canvas_sz = ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1);

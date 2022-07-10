@@ -39,8 +39,10 @@ add_executable(
     gui/input.cc
     gui/style.cc
     gui/widgets.cc
+    gui/canvas.cc
     app/editor/editor.cc
     app/editor/assembly_editor.cc
+    app/editor/dungeon_editor.cc
     app/editor/overworld_editor.cc
     app/rom.cc
     app/core/common.cc
