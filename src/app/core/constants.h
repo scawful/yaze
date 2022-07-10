@@ -11,6 +11,11 @@
   ImGui::EndTabBar(); \
   }
 
+#define TAB_ITEM(w) if (ImGui::BeginTabItem(w)) {
+#define END_TAB_ITEM() \
+  ImGui::EndTabItem(); \
+  }
+
 #define MENU_BAR() if (ImGui::BeginMenuBar()) {
 #define END_MENU_BAR() \
   ImGui::EndMenuBar(); \
