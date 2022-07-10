@@ -47,7 +47,7 @@ class Editor {
   bool is_loaded_ = true;
   bool asm_is_loaded = false;
 
-  rom::ROM rom_;
+  ROM rom_;
   gui::Canvas canvas_;
   AssemblyEditor assembly_editor_;
   OverworldEditor overworld_editor_;

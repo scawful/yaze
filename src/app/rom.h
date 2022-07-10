@@ -19,7 +19,6 @@
 
 namespace yaze {
 namespace app {
-namespace rom {
 
 class ROM {
  public:
@@ -29,7 +28,8 @@ class ROM {
   void LoadFromFile(const std::string& path);
   char* Decompress(int pos, int size = 0x800, bool reversed = false);
   gfx::SNESPalette ExtractPalette(uint addr, int bpp);
-  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0, int size = 0x1000);
+  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
+                             int size = 0x1000);
   SDL_Texture* DrawGraphicsSheet(int offset);
 
   int GetPCGfxAddress(uint8_t id);
@@ -59,7 +59,6 @@ class ROM {
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };
 
-}  // namespace rom
 }  // namespace app
 }  // namespace yaze
 

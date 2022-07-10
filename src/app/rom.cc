@@ -17,7 +17,6 @@
 
 namespace yaze {
 namespace app {
-namespace rom {
 
 void ROM::Close() {
   if (is_loaded_) {
@@ -76,8 +75,8 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
       length =
           (ushort)(((current_rom_[pos] << 8) | current_rom_[pos + 1]) & 0x3FF);
       pos += 2;  // Advance 2 bytes in ROM
-    
-    } else {     // Normal Command
+
+    } else {  // Normal Command
       cmd = (uchar)((databyte >> 5) & 0x07);
       length = (uchar)(databyte & 0x1F);
       pos += 1;  // Advance 1 byte in ROM
@@ -235,8 +234,8 @@ int ROM::GetPCGfxAddress(uint8_t id) {
   uint8_t gfxGamePointer2 = current_rom_[gfxPtr2 + id];
   uint8_t gfxGamePointer3 = current_rom_[gfxPtr3 + id];
 
-  return core::SnesToPc(
-      core::AddressFromBytes(gfxGamePointer1, gfxGamePointer2, gfxGamePointer3));
+  return core::SnesToPc(core::AddressFromBytes(gfxGamePointer1, gfxGamePointer2,
+                                               gfxGamePointer3));
 }
 
 // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
@@ -281,6 +280,5 @@ char *ROM::CreateAllGfxDataRaw() {
   return buffer;
 }
 
-}  // namespace rom
 }  // namespace app
 }  // namespace yaze

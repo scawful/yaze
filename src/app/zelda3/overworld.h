@@ -19,7 +19,7 @@ namespace zelda3 {
 
 class Overworld {
  public:
-  void Load(app::rom::ROM& rom, uchar* allGfxPtr);
+  void Load(ROM& rom, uchar* allGfxPtr);
   auto GetTiles16() const { return tiles16; }
   auto GetCurrentGfxSetPtr() { return currentOWgfx16Ptr; }
   auto GetMapBlockset16Ptr() { return mapblockset16; }
@@ -35,7 +35,7 @@ class Overworld {
   void FetchLargeMaps();
   void LoadOverworldMap();
 
-  app::rom::ROM rom_;
+  ROM rom_;
   int gameState = 1;
   bool isLoaded = false;
   uchar mapParent[160];

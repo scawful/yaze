@@ -25,7 +25,7 @@ static TileInfo GetTilesInfo(ushort tile) {
   return TileInfo(tid, p, v, h, o);
 }
 
-void Overworld::Load(app::rom::ROM& rom, uchar* allGfxPtr) {
+void Overworld::Load(ROM& rom, uchar* allGfxPtr) {
   rom_ = rom;
   allGfx16Ptr = allGfxPtr;
 

@@ -30,14 +30,14 @@ class OverworldMap {
   uchar* currentOWgfx16Ptr_ = nullptr;
   uchar* allGfx16Ptr_ = nullptr;
 
-  app::rom::ROM rom_;
+  ROM rom_;
   gfx::Bitmap gfxBitmap;
   std::vector<gfx::Tile16> tiles16_;
 
   uchar* staticgfx = new uchar[16];
   std::vector<std::vector<ushort>> tiles_used_;
 
-  OverworldMap(app::rom::ROM& rom, const std::vector<gfx::Tile16>& tiles16,
+  OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16,
                int index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 std::vector<std::vector<ushort>>& allmapsTilesLW,
