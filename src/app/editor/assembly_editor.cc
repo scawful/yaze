@@ -1,10 +1,16 @@
 #include "assembly_editor.h"
 
 #include "core/constants.h"
+#include "gui/widgets.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
+AssemblyEditor::AssemblyEditor() {
+  text_editor_.SetLanguageDefinition(gui::widgets::GetAssemblyLanguageDef());
+  text_editor_.SetPalette(TextEditor::GetDarkPalette());
+}
 
 void AssemblyEditor::Update() {
   auto cpos = text_editor_.GetCursorPosition();

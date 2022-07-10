@@ -14,7 +14,7 @@ namespace editor {
 
 class AssemblyEditor {
  public:
-  AssemblyEditor() = default;
+  AssemblyEditor();
 
   void Update();
   void ChangeActiveFile(const std::string &);
