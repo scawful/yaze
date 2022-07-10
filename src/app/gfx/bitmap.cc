@@ -57,6 +57,10 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
   texture_ = SDL_CreateTextureFromSurface(renderer.get(), surface_);
 }
 
+void Bitmap::ApplyPalette(const SNESPalette& palette) {
+  palette_ = palette;
+}
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
