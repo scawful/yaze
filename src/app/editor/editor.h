@@ -8,10 +8,13 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "app/core/constants.h"
-#include "app/editor/overworld_editor.h"
-#include "app/gfx/tile.h"
 #include "app/editor/assembly_editor.h"
+#include "app/editor/dungeon_editor.h"
+#include "app/editor/overworld_editor.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/tile.h"
 #include "app/rom.h"
+#include "gui/canvas.h"
 #include "gui/icons.h"
 #include "gui/input.h"
 
@@ -40,14 +43,15 @@ class Editor {
   void DrawDungeonEditor();
   void DrawGraphicsEditor();
   void DrawSpriteEditor();
-  
+
   bool is_loaded_ = true;
   bool asm_is_loaded = false;
 
   rom::ROM rom_;
-  TextEditor asm_editor_;
+  gui::Canvas canvas_;
   AssemblyEditor assembly_editor_;
   OverworldEditor overworld_editor_;
+  DungeonEditor dungeon_editor_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
   std::unordered_map<uint, SDL_Texture *> image_cache_;
 

@@ -7,10 +7,13 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "app/core/constants.h"
+#include "app/editor/assembly_editor.h"
+#include "app/editor/dungeon_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tile.h"
 #include "app/rom.h"
+#include "gui/canvas.h"
 #include "gui/icons.h"
 #include "gui/input.h"
 #include "gui/widgets.h"
@@ -20,9 +23,6 @@ namespace app {
 namespace editor {
 
 Editor::Editor() {
-  asm_editor_.SetLanguageDefinition(gui::widgets::GetAssemblyLanguageDef());
-  asm_editor_.SetPalette(TextEditor::GetDarkPalette());
-
   for (int i = 0; i < 8; i++) {
     current_palette_[i].x = (i * 0.21f);
     current_palette_[i].y = (i * 0.21f);
@@ -346,67 +346,25 @@ void Editor::DrawProjectEditor() {
 }
 
 void Editor::DrawOverworldEditor() {
-  if (ImGui::BeginTabItem("Overworld")) {
-    overworld_editor_.Update();
-    ImGui::EndTabItem();
-  }
+  TAB_ITEM("Overworld")
+  overworld_editor_.Update();
+  END_TAB_ITEM()
 }
 
 void Editor::DrawDungeonEditor() {
-  if (ImGui::BeginTabItem("Dungeon")) {
-    if (ImGui::BeginTable("DWToolset", 9, toolset_table_flags_, ImVec2(0, 0))) {
-      ImGui::TableSetupColumn("#undoTool");
-      ImGui::TableSetupColumn("#redoTool");
-      ImGui::TableSetupColumn("#history");
-      ImGui::TableSetupColumn("#separator");
-      ImGui::TableSetupColumn("#bg1Tool");
-      ImGui::TableSetupColumn("#bg2Tool");
-      ImGui::TableSetupColumn("#bg3Tool");
-      ImGui::TableSetupColumn("#itemTool");
-      ImGui::TableSetupColumn("#spriteTool");
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_UNDO);
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_REDO);
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_MANAGE_HISTORY);
-
-      ImGui::TableNextColumn();
-      ImGui::Text(ICON_MD_MORE_VERT);
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_FILTER_1);
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_FILTER_2);
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_FILTER_3);
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_GRASS);
-
-      ImGui::TableNextColumn();
-      ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
-      ImGui::EndTable();
-    }
-    ImGui::EndTabItem();
-  }
+  TAB_ITEM("Dungeon")
+  dungeon_editor_.Update();
+  END_TAB_ITEM()
 }
 
 void Editor::DrawGraphicsEditor() {
-  if (ImGui::BeginTabItem("Graphics")) {
-    ImGui::EndTabItem();
-  }
+  TAB_ITEM("Graphics")
+  END_TAB_ITEM()
 }
 
 void Editor::DrawSpriteEditor() {
-  if (ImGui::BeginTabItem("Sprites")) {
-    ImGui::EndTabItem();
-  }
+  TAB_ITEM("Sprites")
+  END_TAB_ITEM()
 }
 
 }  // namespace editor

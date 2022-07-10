@@ -20,6 +20,7 @@ class Bitmap {
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
+  uchar *GetData() const { return pixel_data_; }
   SDL_Texture *GetTexture() const { return texture_; }
 
  private:

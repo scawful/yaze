@@ -25,25 +25,25 @@ class OverworldEditor {
   void DrawOverworldMapSettings();
   void DrawOverworldCanvas();
   void DrawTileSelector();
-  void DrawTile16Selector();
-  void DrawTile8Selector();
+  void DrawTile16Selector() const;
+  void DrawTile8Selector() const;
 
   void LoadBlockset();
   void LoadGraphics();
 
+  rom::ROM rom_;
+
   zelda3::Overworld overworld_;
   gfx::SNESPalette palette_;
 
-  rom::ROM rom_;
-
+  // pointer size 1048576
   gfx::Bitmap tile16_blockset_bmp_;
-  uchar *tile16_blockset_ptr_ = new uchar[1048576];
 
+  // pointer size 32768 
   gfx::Bitmap current_gfx_bmp_;
-  uchar *current_gfx_ptr_ = new uchar[(128 * 512) / 2];
 
+  // pointer size 456704
   gfx::Bitmap allgfxBitmap;
-  uchar *allGfx16Ptr = new uchar[(128 * 7136) / 2];
 
   gfx::Bitmap mapblockset16Bitmap;
 
@@ -62,13 +62,13 @@ class OverworldEditor {
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
 
-  ImVec4 current_palette_[8];
-
   constexpr static int kByteSize = 3;
   constexpr static int kMessageIdSize = 5;
   constexpr static int kNumSheetsToLoad = 100;
   constexpr static int kTile8DisplayHeight = 64;
   constexpr static float kInputFieldSize = 30.f;
+
+  ImVec4 current_palette_[8];
 
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
   ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
