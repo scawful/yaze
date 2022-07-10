@@ -57,8 +57,8 @@ void Canvas::Update() {
   if (ImGui::BeginPopup("context")) {
     if (dragging_select_) points_.resize(points_.size() - 2);
     dragging_select_ = false;
-    if (ImGui::MenuItem("Remove one", nullptr, false, points_.Size > 0)) {
-      points_.resize(points_.size() - 2);
+    if (ImGui::MenuItem("Remove all", nullptr, false, points_.Size > 0)) {
+      points_.clear();
     }
     ImGui::EndPopup();
   }
