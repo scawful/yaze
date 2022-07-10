@@ -20,7 +20,7 @@ namespace app {
 
 void ROM::Close() {
   if (is_loaded_) {
-    // delete[] current_rom_;
+    delete[] current_rom_;
     for (auto &each : converted_graphic_sheets_) {
       free(each);
     }
