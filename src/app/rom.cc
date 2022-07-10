@@ -20,7 +20,7 @@ namespace app {
 
 void ROM::Close() {
   if (is_loaded_) {
-    delete[] current_rom_;
+    // delete[] current_rom_;
     for (auto &each : converted_graphic_sheets_) {
       free(each);
     }
@@ -39,15 +39,14 @@ void ROM::LoadFromFile(const std::string &path) {
     std::cout << "Error: Could not open ROM file " << path << std::endl;
     return;
   }
-  current_rom_ = new unsigned char[size_];
-  for (unsigned int i = 0; i < size_; i++) {
+  current_rom_ = new uchar[size_];
+  for (uint i = 0; i < size_; i++) {
     char byte_read_ = ' ';
     file.read(&byte_read_, sizeof(char));
     current_rom_[i] = byte_read_;
   }
   file.close();
-  memcpy(title, current_rom_ + 32704, 21);
-  version_ = current_rom_[27];
+  memcpy(title, current_rom_ + 32704, 20);
   is_loaded_ = true;
 }
 
@@ -57,9 +56,9 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
   for (int i = 0; i < size; i++) {
     buffer[i] = 0;
   }
-  unsigned int bufferPos = 0;
-  unsigned char cmd = 0;
-  unsigned int length = 0;
+  uint bufferPos = 0;
+  uchar cmd = 0;
+  uint length = 0;
 
   uchar databyte = current_rom_[pos];
   while (true) {
@@ -116,7 +115,7 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
         ushort s2 = ((current_rom_[pos] & 0xFF));
         auto Addr = (ushort)(s1 | s2);
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos] = (unsigned char)buffer[Addr + i];
+          buffer[bufferPos] = (uchar)buffer[Addr + i];
           bufferPos++;
         }
         pos += 2;  // Advance 2 bytes in the ROM
@@ -126,23 +125,10 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
   return buffer;
 }
 
-gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
-  uint filePos = addr;
-  uint palette_size = pow(2, bpp);
-  auto *palette_data = (char *)malloc(sizeof(char) * (palette_size * 2));
-  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
-  for (int i = 0; i < palette_size; i++) std::cout << palette_data[i];
-  std::cout << std::endl;
-  gfx::SNESPalette pal(palette_data);
-  return pal;
-}
-
 // 128x32
 uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
   // 8bpp sheet out
-  const uchar bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
   auto *sheet_buffer_out = (uchar *)malloc(size);
-  converted_graphic_sheets_.push_back(sheet_buffer_out);
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -159,9 +145,12 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
     for (int y = 0; y < 8; y++) {
       //[0] + [1] + [16]
       for (int x = 0; x < 8; x++) {
-        auto b1 = (uchar)((buffer_in[(y * 2) + (24 * pos)] & (bitmask[x])));
-        auto b2 = (uchar)(buffer_in[((y * 2) + (24 * pos)) + 1] & (bitmask[x]));
-        auto b3 = (uchar)(buffer_in[(16 + y) + (24 * pos)] & (bitmask[x]));
+        auto b1 =
+            (uchar)((buffer_in[(y * 2) + (24 * pos)] & (kGraphicsBitmap[x])));
+        auto b2 = (uchar)(buffer_in[((y * 2) + (24 * pos)) + 1] &
+                          (kGraphicsBitmap[x]));
+        auto b3 =
+            (uchar)(buffer_in[(16 + y) + (24 * pos)] & (kGraphicsBitmap[x]));
         unsigned char b = 0;
         if (b1 != 0) {
           b |= 1;
@@ -187,6 +176,16 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
   return sheet_buffer_out;
 }
 
+uint ROM::GetGraphicsAddress(uint8_t offset) const {
+  uint snes_address = 0;
+  uint pc_address = 0;
+  snes_address = (uint)((((current_rom_[0x4F80 + offset]) << 16) |
+                         ((current_rom_[0x505F + offset]) << 8) |
+                         ((current_rom_[0x513E + offset]))));
+  pc_address = core::SnesToPc(snes_address);
+  return pc_address;
+}
+
 SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   SDL_Surface *surface =
       SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
@@ -198,14 +197,9 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
     surface->format->palette->colors[i].b = i * 31;
   }
 
-  uint snesAddr = 0;
-  uint pcAddr = 0;
-  snesAddr = (uint)((((current_rom_[0x4F80 + offset]) << 16) |
-                     ((current_rom_[0x505F + offset]) << 8) |
-                     ((current_rom_[0x513E + offset]))));
-  pcAddr = core::SnesToPc(snesAddr);
+  uint graphics_address = GetGraphicsAddress(offset);
   std::cout << "Decompressing..." << std::endl;
-  char *decomp = Decompress(pcAddr);
+  char *decomp = Decompress(graphics_address);
   std::cout << "Converting to 8bpp sheet..." << std::endl;
   sheet_buffer = SNES3bppTo8bppSheet((uchar *)decomp);
   std::cout << "Assigning pixel data..." << std::endl;
@@ -219,23 +213,12 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   return sheet_texture;
 }
 
-int ROM::GetPCGfxAddress(uint8_t id) {
-  auto gfxPtr1 =
-      core::SnesToPc((current_rom_[core::constants::gfx_1_pointer + 1] << 8) +
-                     (current_rom_[core::constants::gfx_1_pointer]));
-  auto gfxPtr2 =
-      core::SnesToPc((current_rom_[core::constants::gfx_2_pointer + 1] << 8) +
-                     (current_rom_[core::constants::gfx_2_pointer]));
-  auto gfxPtr3 =
-      core::SnesToPc((current_rom_[core::constants::gfx_3_pointer + 1] << 8) +
-                     (current_rom_[core::constants::gfx_3_pointer]));
-
-  uint8_t gfxGamePointer1 = current_rom_[gfxPtr1 + id];
-  uint8_t gfxGamePointer2 = current_rom_[gfxPtr2 + id];
-  uint8_t gfxGamePointer3 = current_rom_[gfxPtr3 + id];
-
-  return core::SnesToPc(core::AddressFromBytes(gfxGamePointer1, gfxGamePointer2,
-                                               gfxGamePointer3));
+gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
+  uint filePos = addr;
+  uint palette_size = pow(2, bpp);
+  auto *palette_data = (char *)malloc(sizeof(char) * (palette_size * 2));
+  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
+  return gfx::SNESPalette(palette_data);
 }
 
 // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
@@ -259,15 +242,15 @@ char *ROM::CreateAllGfxDataRaw() {
     // uncompressed sheets
     if (i >= 115 && i <= 126) {
       data = new char[core::constants::Uncompressed3BPPSize];
-      int startAddress = GetPCGfxAddress(i);
+      int startAddress = GetGraphicsAddress(i);
       for (int j = 0; j < core::constants::Uncompressed3BPPSize; j++) {
         data[j] = current_rom_[j + startAddress];
       }
     } else {
-      data =
-          alttp_decompress_gfx((char *)current_rom_, GetPCGfxAddress((char)i),
-                               core::constants::UncompressedSheetSize,
-                               &uncompressedSize, &compressedSize);
+      data = alttp_decompress_gfx((char *)current_rom_,
+                                  GetGraphicsAddress((char)i),
+                                  core::constants::UncompressedSheetSize,
+                                  &uncompressedSize, &compressedSize);
     }
 
     for (int j = 0; j < sizeof(data); j++) {
