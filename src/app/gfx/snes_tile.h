@@ -1,20 +1,10 @@
-#ifndef YAZE_APP_GFX_TILE_H
-#define YAZE_APP_GFX_TILE_H
+#ifndef YAZE_APP_GFX_SNES_TILE_H
+#define YAZE_APP_GFX_SNES_TILE_H
 
-#include <rommapping.h>
-
-#include <cassert>
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <memory>
-#include <regex>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
+#include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {
@@ -89,4 +79,4 @@ void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
 }  // namespace app
 }  // namespace yaze
 
-#endif  // YAZE_APP_GFX_TILE_H
+#endif  // YAZE_APP_GFX_SNES_TILE_H

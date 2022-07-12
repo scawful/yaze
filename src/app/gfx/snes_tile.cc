@@ -1,11 +1,10 @@
-#include <compressions/alttpcompression.h>
-#include <rommapping.h>
+#include "snes_tile.h"
 
-#include <memory>
+#include <cstdint>
 #include <vector>
 
 #include "app/core/constants.h"
-#include "snes_tile.h"
+#include "app/gfx/snes_palette.h"
 
 namespace yaze {
 namespace app {
