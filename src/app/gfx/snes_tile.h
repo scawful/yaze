@@ -79,6 +79,7 @@ class Tile16 {
   }
 };
 
+TileInfo GetTilesInfo(ushort tile);
 void BuildTiles16Gfx(uchar* mapblockset16, uchar* currentOWgfx16Ptr,
                      std::vector<Tile16>& allTiles);
 void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,

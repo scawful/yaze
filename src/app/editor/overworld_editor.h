@@ -5,7 +5,7 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/tile.h"
+#include "app/gfx/snes_tile.h"
 #include "app/zelda3/overworld.h"
 #include "gui/icons.h"
 

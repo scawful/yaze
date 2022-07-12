@@ -11,7 +11,7 @@
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/tile.h"
+#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "gui/canvas.h"
 #include "gui/icons.h"

@@ -1,6 +1,6 @@
 #include "overworld.h"
 
-#include "app/gfx/tile.h"
+#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -10,28 +10,15 @@ namespace zelda3 {
 using namespace core;
 using namespace gfx;
 
-static TileInfo GetTilesInfo(ushort tile) {
-  // vhopppcc cccccccc
-  ushort o = 0;
-  ushort v = 0;
-  ushort h = 0;
-  auto tid = (ushort)(tile & 0x3FF);
-  auto p = (uchar)((tile >> 10) & 0x07);
 
-  o = (ushort)((tile & 0x2000) >> 13);
-  h = (ushort)((tile & 0x4000) >> 14);
-  v = (ushort)((tile & 0x8000) >> 15);
-
-  return TileInfo(tid, p, v, h, o);
-}
 
 void Overworld::Load(ROM& rom, uchar* allGfxPtr) {
   rom_ = rom;
   allGfx16Ptr = allGfxPtr;
 
-  overworldMapPointer = std::make_shared<uchar>(0x40000);
-  mapblockset16 = std::make_shared<uchar>(1048576);
-  currentOWgfx16Ptr = std::make_shared<uchar>((128 * 512) / 2);
+  overworldMapPointer = std::make_shared<uchar[]>(0x40000);
+  mapblockset16 = std::make_shared<uchar[]>(1048576);
+  currentOWgfx16Ptr = std::make_shared<uchar[]>((128 * 512) / 2);
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();

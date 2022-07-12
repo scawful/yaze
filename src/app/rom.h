@@ -15,7 +15,7 @@
 
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/gfx/tile.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
