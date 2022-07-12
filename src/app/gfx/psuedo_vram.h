@@ -26,7 +26,7 @@ class psuedo_vram {
   void ChangeGraphicsSet(const std::vector<Bitmap>& graphics_set);
   void ChangeGraphicsPalette(const SNESPalette& graphics_pal);
   void ChangeSpriteSet(const std::vector<Bitmap>& sprite_set);
-  void ChangeSpritePalette(const SNSPalette& sprite_pal);
+  void ChangeSpritePalette(const SNESPalette& sprite_pal);
 
  private:
   std::unordered_map<uint32_t, Bitmap> m_vram;
