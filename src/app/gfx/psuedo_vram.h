@@ -5,42 +5,29 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
 #include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
 namespace gfx {
 
-// Picture Processor Unit: 15-Bit
-
-// Video RAM: 64 KB of VRAM for screen maps (for 'background' layers) and tile
-// sets (for backgrounds and objects); 512 + 32 bytes of 'OAM' (Object Attribute
-// Memory) for objects; 512 bytes of 'CGRAM' for palette data.
-
+// VRAM: 64 KB of VRAM for screen maps and tile sets (backgrounds and objects)
+// OAM: 512 + 32 bytes for objects (Object Attribute Memory)
+// CGRAM: 512 bytes for palette data
 // Palette: 256 entries; 15-Bit color (BGR555) for a total of 32,768 colors.
-// Maximum colors per layer per scanline: 256. Maximum colors on-screen: 32,768
-// (using color arithmetic for transparency effects).
+// Resolution: between 256x224 and 512x448.
 
-// Resolution: between 256x224 and 512x448. Most games used 256x224 pixels since
-// higher resolutions caused slowdown, flicker, and/or had increased limitations
-// on layers and colors (due to memory bandwidth constraints); the higher
-// resolutions were used for less processor-intensive games, in-game menus,
-// text, and high resolution images.
-
-// Maximum onscreen objects (sprites): 128 (32 per line, up to 34 8x8 tiles per
-// line).
-
-// Maximum number of sprite pixels on one scanline: 256. The renderer was
-// designed such that it would drop the frontmost sprites instead of the
-// rearmost sprites if a scanline exceeded the limit, allowing for creative
-// clipping effects.
-
-// Most common display modes: Pixel-to-pixel text mode 1 (16 colors per tile; 3
-// scrolling layers) and affine mapped text mode 7 (256 colors per tile; one
-// rotating/scaling layer).
 class psuedo_vram {
  public:
+  void ChangeGraphicsSet(const std::vector<Bitmap>& graphics_set);
+  void ChangeGraphicsPalette(const SNESPalette& graphics_pal);
+  void ChangeSpriteSet(const std::vector<Bitmap>& sprite_set);
+  void ChangeSpritePalette(const SNSPalette& sprite_pal);
+
  private:
   std::unordered_map<uint32_t, Bitmap> m_vram;
   static const uint32_t REAL_VRAM_SIZE = 0x8000;
