@@ -222,9 +222,9 @@ void Editor::DrawGraphicsSheet(int offset) {
                               ((rom_.data()[0x513E + offset]))));
   pc_addr = core::SnesToPc(snes_addr);
   std::cout << "Decompressing..." << std::endl;
-  char *decomp = rom_.Decompress(pc_addr);
+  auto decomp = rom_.Decompress(pc_addr);
   std::cout << "Converting to 8bpp sheet..." << std::endl;
-  sheet_buffer = rom_.SNES3bppTo8bppSheet((uchar *)decomp);
+  sheet_buffer = rom_.SNES3bppTo8bppSheet(decomp);
   std::cout << "Assigning pixel data..." << std::endl;
   surface->pixels = sheet_buffer;
   std::cout << "Creating texture from surface..." << std::endl;

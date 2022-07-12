@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 
+#include <memory>
+
 #include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
 
@@ -18,9 +20,9 @@ class Bitmap {
   void Create(int width, int height, int depth, uchar *data);
   void Create(int width, int height, int depth, int data_size);
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
-  
-  void ApplyPalette(const SNESPalette& palette);
-  
+
+  void ApplyPalette(const SNESPalette &palette);
+
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
   uchar *GetData() const { return pixel_data_; }

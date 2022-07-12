@@ -12,10 +12,8 @@ using namespace gfx;
 
 void Overworld::Load(ROM& rom) {
   rom_ = rom;
-
-  overworldMapPointer = std::make_shared<uchar[]>(0x40000);
-  mapblockset16 = std::make_shared<uchar[]>(1048576);
-  currentOWgfx16Ptr = std::make_shared<uchar[]>((128 * 512) / 2);
+  mapblockset16.Create(128, 8192, 8, 1048576);
+  currentOWgfx16.Create(128, 512, 4, (128 * 512) / 2);
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
@@ -30,9 +28,9 @@ void Overworld::Load(ROM& rom) {
 
   auto size = tiles16.size();
   for (int i = 0; i < 160; i++) {
-    overworld_maps_[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
-                                allmapsTilesDW, allmapsTilesSP,
-                                currentOWgfx16Ptr.get(), mapblockset16.get());
+    overworld_maps_[i].BuildMap(
+        mapParent, size, gameState, allmapsTilesLW, allmapsTilesDW,
+        allmapsTilesSP, currentOWgfx16.GetData(), mapblockset16.GetData());
   }
 
   isLoaded = true;
@@ -252,9 +250,8 @@ void Overworld::FetchLargeMaps() {
 }
 
 void Overworld::LoadOverworldMap() {
-  overworldMapBitmap.Create(128, 128, 8, overworldMapPointer.get());
-
-  auto ptr = overworldMapPointer;
+  overworldMapBitmap.Create(128, 128, 8, 0x40000);
+  auto ptr = overworldMapBitmap.GetData();
 
   int pos = 0;
   for (int sy = 0; sy < 16; sy++) {
