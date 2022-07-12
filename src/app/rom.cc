@@ -67,13 +67,12 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
       length =
           (ushort)(((current_rom_[pos] << 8) | current_rom_[pos + 1]) & 0x3FF);
       pos += 2;  // Advance 2 bytes in ROM
-
     } else {  // Normal Command
       cmd = (uchar)((databyte >> 5) & 0x07);
       length = (uchar)(databyte & 0x1F);
       pos += 1;  // Advance 1 byte in ROM
     }
-    length += 1;  // Every commands are at least 1 size even if 00
+    length += 1;  // each commands is at least of size 1 even if index 00
 
     switch (cmd) {
       case 00:  // Direct Copy (Could be replaced with a MEMCPY)
@@ -108,6 +107,9 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
         ushort s1 = ((current_rom_[pos + 1] & 0xFF) << 8);
         ushort s2 = ((current_rom_[pos] & 0xFF));
         auto Addr = (ushort)(s1 | s2);
+        if (reversed) { 
+          Addr = (ushort)(s2 | s1);
+        }
         for (int i = 0; i < length; i++) {
           buffer[buffer_pos] = buffer[Addr + i];
           buffer_pos++;
@@ -210,12 +212,30 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   return sheet_texture;
 }
 
-gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
-  uint filePos = addr;
-  uint palette_size = pow(2, bpp);
-  auto palette_data = (char *)SDL_malloc(sizeof(char) * (palette_size * 2));
-  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
-  return gfx::SNESPalette(palette_data);
+void ROM::DrawAllGraphicsData() {
+  auto buffer = (uchar*) SDL_malloc(346624);
+  auto data = (uchar *)SDL_malloc(2048);
+  int buffer_pos = 0;
+  
+  for (int i = 0; i < core::constants::NumberOfSheets; i++) {
+    // uncompressed sheets
+    if (i >= 115 && i <= 126) {
+      data = new char[core::constants::Uncompressed3BPPSize];
+      int startAddress = GetGraphicsAddress(i);
+      for (int j = 0; j < core::constants::Uncompressed3BPPSize; j++) {
+        data[j] = current_rom_[j + startAddress];
+      }
+    } else {
+      auto gfx_addr = GetGraphicsAddress(i);
+      data = Decompress(gfx_addr, core::constants::UncompressedSheetSize);
+    }
+
+    for (int j = 0; j < sizeof(data); j++) {
+      buffer[j + buffer_pos] = data[j];
+    }
+
+    buffer_pos += sizeof(data);
+  }
 }
 
 // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
@@ -258,6 +278,14 @@ char *ROM::CreateAllGfxDataRaw() {
   }
 
   return buffer;
+}
+
+gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
+  uint filePos = addr;
+  uint palette_size = pow(2, bpp);
+  auto palette_data = (char *)SDL_malloc(sizeof(char) * (palette_size * 2));
+  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
+  return gfx::SNESPalette(palette_data);
 }
 
 }  // namespace app
