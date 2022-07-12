@@ -9,6 +9,7 @@ namespace core {
 
 unsigned int SnesToPc(unsigned int addr);
 int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
+int HexToDec(char *input, int length);
 
 }  // namespace core
 }  // namespace app
