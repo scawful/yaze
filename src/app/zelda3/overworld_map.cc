@@ -1,10 +1,13 @@
 #include "overworld_map.h"
 
+#include <imgui/imgui.h>
+
 #include <cstddef>
 #include <memory>
 
+#include "app/core/common.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/tile.h"
+#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {

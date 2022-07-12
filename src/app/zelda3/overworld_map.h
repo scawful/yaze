@@ -3,8 +3,9 @@
 #include <cstddef>
 #include <memory>
 
+#include "app/core/common.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/tile.h"
+#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -15,13 +16,13 @@ using ushort = unsigned short;
 
 class OverworldMap {
  public:
-  int parent_        = 0;
-  int index_         = 0;
-  int message_id_    = 0;
-  int gfx_           = 0;
-  int palette_       = 0;
-  bool initialized_  = false;
-  bool large_map_    = false;
+  int parent_ = 0;
+  int index_ = 0;
+  int message_id_ = 0;
+  int gfx_ = 0;
+  int palette_ = 0;
+  bool initialized_ = false;
+  bool large_map_ = false;
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];
   uchar musics[4];
@@ -37,8 +38,7 @@ class OverworldMap {
   uchar* staticgfx = new uchar[16];
   std::vector<std::vector<ushort>> tiles_used_;
 
-  OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16,
-               int index);
+  OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16, int index);
   void BuildMap(uchar* mapParent, int count, int gameState,
                 std::vector<std::vector<ushort>>& allmapsTilesLW,
                 std::vector<std::vector<ushort>>& allmapsTilesDW,

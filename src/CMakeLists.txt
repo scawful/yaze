@@ -1,4 +1,4 @@
-include_directories(Library/cmake)
+include_directories(lib/cmake)
 include_directories(/usr/local/Cellar/libpng/1.6.37/include/libpng16/)
 
 # find libraries --------------------------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ add_executable(
     app/core/constants.cc
     app/core/controller.cc
     app/gfx/bitmap.cc
-    app/gfx/tile16.cc
+    app/gfx/snes_tile.cc
     app/gfx/snes_palette.cc
     app/zelda3/overworld.cc
     app/zelda3/overworld_map.cc
