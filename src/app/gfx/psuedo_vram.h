@@ -33,6 +33,11 @@ class psuedo_vram {
   static const uint32_t REAL_VRAM_SIZE = 0x8000;
 };
 
+std::vector<Bitmap> CreateGraphicsSet(
+    int id, const std::unordered_map<uint32_t, Bitmap>& all_graphics);
+std::vector<Bitmap> CreateSpriteSet(
+    int id, const std::unordered_map<uint32_t, Bitmap>& all_graphics);
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
