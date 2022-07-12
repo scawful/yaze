@@ -20,9 +20,10 @@ namespace app {
 
 void ROM::Close() {
   if (is_loaded_) {
-    delete[] current_rom_;
-    for (auto &each : converted_graphic_sheets_) {
-      free(each);
+    SDL_free(current_rom_);
+    for (auto i = 0; i < num_sheets_; i++) {
+      SDL_free(decompressed_graphic_sheets_[i]);
+      SDL_free(converted_graphic_sheets_[i]);
     }
   }
 }
@@ -39,34 +40,26 @@ void ROM::LoadFromFile(const std::string &path) {
     std::cout << "Error: Could not open ROM file " << path << std::endl;
     return;
   }
-  current_rom_ = new uchar[size_];
+  current_rom_ = (uchar *)SDL_malloc(size_);
   for (uint i = 0; i < size_; i++) {
     char byte_read_ = ' ';
     file.read(&byte_read_, sizeof(char));
     current_rom_[i] = byte_read_;
   }
   file.close();
-  memcpy(title, current_rom_ + 32704, 20);
+  SDL_memcpy(title, current_rom_ + 32704, 20);
   is_loaded_ = true;
 }
 
-char *ROM::Decompress(int pos, int size, bool reversed) {
-  auto *buffer = new char[size];
-  decompressed_graphic_sheets_.push_back(buffer);
-  for (int i = 0; i < size; i++) {
-    buffer[i] = 0;
-  }
-  uint bufferPos = 0;
-  uchar cmd = 0;
+uchar *ROM::Decompress(int pos, int size, bool reversed) {
+  auto buffer = (uchar *)SDL_malloc(size);
   uint length = 0;
+  uint buffer_pos = 0;
+  uchar cmd = 0;
 
   uchar databyte = current_rom_[pos];
-  while (true) {
+  while (databyte != 0xFF) {  // End of decompression
     databyte = current_rom_[pos];
-    // End of decompression
-    if (databyte == 0xFF) {
-      break;
-    }
 
     // Expanded Command
     if ((databyte & 0xE0) == 0xE0) {
@@ -81,23 +74,24 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
       pos += 1;  // Advance 1 byte in ROM
     }
     length += 1;  // Every commands are at least 1 size even if 00
+
     switch (cmd) {
       case 00:  // Direct Copy (Could be replaced with a MEMCPY)
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos++] = current_rom_[pos++];
+          buffer[buffer_pos++] = current_rom_[pos++];
         }
         // Do not advance in the ROM
         break;
       case 01:  // Byte Fill
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos++] = current_rom_[pos];
+          buffer[buffer_pos++] = current_rom_[pos];
         }
         pos += 1;  // Advance 1 byte in the ROM
         break;
       case 02:  // Word Fill
         for (int i = 0; i < length; i += 2) {
-          buffer[bufferPos++] = current_rom_[pos];
-          buffer[bufferPos++] = current_rom_[pos + 1];
+          buffer[buffer_pos++] = current_rom_[pos];
+          buffer[buffer_pos++] = current_rom_[pos + 1];
         }
         pos += 2;  // Advance 2 byte in the ROM
         break;
@@ -105,7 +99,7 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
       {
         uchar incByte = current_rom_[pos];
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos++] = incByte++;
+          buffer[buffer_pos++] = incByte++;
         }
         pos += 1;  // Advance 1 byte in the ROM
       } break;
@@ -115,20 +109,22 @@ char *ROM::Decompress(int pos, int size, bool reversed) {
         ushort s2 = ((current_rom_[pos] & 0xFF));
         auto Addr = (ushort)(s1 | s2);
         for (int i = 0; i < length; i++) {
-          buffer[bufferPos] = (uchar)buffer[Addr + i];
-          bufferPos++;
+          buffer[buffer_pos] = buffer[Addr + i];
+          buffer_pos++;
         }
         pos += 2;  // Advance 2 bytes in the ROM
       } break;
     }
   }
+  num_sheets_++;
+  decompressed_graphic_sheets_.push_back(buffer);
   return buffer;
 }
 
 // 128x32
 uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
   // 8bpp sheet out
-  auto *sheet_buffer_out = (uchar *)malloc(size);
+  auto sheet_buffer_out = (uchar *)SDL_malloc(size);
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -173,6 +169,7 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
       ypos = 0;
     }
   }
+  converted_graphic_sheets_.push_back(sheet_buffer_out);
   return sheet_buffer_out;
 }
 
@@ -199,9 +196,9 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
 
   uint graphics_address = GetGraphicsAddress(offset);
   std::cout << "Decompressing..." << std::endl;
-  char *decomp = Decompress(graphics_address);
+  auto decomp = Decompress(graphics_address);
   std::cout << "Converting to 8bpp sheet..." << std::endl;
-  sheet_buffer = SNES3bppTo8bppSheet((uchar *)decomp);
+  sheet_buffer = SNES3bppTo8bppSheet(decomp);
   std::cout << "Assigning pixel data..." << std::endl;
   surface->pixels = sheet_buffer;
   std::cout << "Creating texture from surface..." << std::endl;
@@ -216,7 +213,7 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
 gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
   uint filePos = addr;
   uint palette_size = pow(2, bpp);
-  auto *palette_data = (char *)malloc(sizeof(char) * (palette_size * 2));
+  auto palette_data = (char *)SDL_malloc(sizeof(char) * (palette_size * 2));
   memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
   return gfx::SNESPalette(palette_data);
 }
@@ -227,8 +224,8 @@ gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
 // 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
 // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 char *ROM::CreateAllGfxDataRaw() {
-  auto *buffer = new char[346624];
-  auto *data = new char[2048];
+  auto buffer = (char *)SDL_malloc(346624);
+  auto data = (char *)SDL_malloc(2048);
   int bufferPos = 0;
   unsigned int uncompressedSize = 0;
   unsigned int compressedSize = 0;
