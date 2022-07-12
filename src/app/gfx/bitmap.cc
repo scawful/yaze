@@ -2,6 +2,8 @@
 
 #include <SDL2/SDL.h>
 
+#include <memory>
+
 #include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
 
@@ -50,6 +52,8 @@ void Bitmap::Create(int width, int height, int depth, int size) {
     surface_->format->palette->colors[i].g = i * 31;
     surface_->format->palette->colors[i].b = i * 31;
   }
+
+  pixel_data_ = (uchar *)SDL_malloc(size);
   surface_->pixels = pixel_data_;
 }
 
@@ -57,9 +61,7 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
   texture_ = SDL_CreateTextureFromSurface(renderer.get(), surface_);
 }
 
-void Bitmap::ApplyPalette(const SNESPalette& palette) {
-  palette_ = palette;
-}
+void Bitmap::ApplyPalette(const SNESPalette &palette) { palette_ = palette; }
 
 }  // namespace gfx
 }  // namespace app
