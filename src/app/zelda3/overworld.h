@@ -19,13 +19,10 @@ namespace zelda3 {
 
 class Overworld {
  public:
-  void Load(ROM& rom, uchar* allGfxPtr);
+  void Load(ROM& rom);
   auto GetTiles16() const { return tiles16; }
   auto GetCurrentGfxSetPtr() { return currentOWgfx16Ptr; }
   auto GetMapBlockset16Ptr() { return mapblockset16; }
-
-  std::shared_ptr<uchar[]> overworldMapPointer;
-  gfx::Bitmap overworldMapBitmap;
 
  private:
   ushort GenerateTile32(int i, int k, int dimension);
@@ -44,7 +41,6 @@ class Overworld {
   std::vector<std::vector<ushort>> allmapsTilesDW;  // 64 maps * (32*32 tiles)
   std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
 
-  uchar* allGfx16Ptr = nullptr;
   std::shared_ptr<uchar[]> mapblockset16;
   std::shared_ptr<uchar[]> currentOWgfx16Ptr;
 
@@ -52,6 +48,9 @@ class Overworld {
   std::vector<gfx::Tile32> tiles32;
   std::vector<gfx::Tile32> map16tiles;
   std::vector<OverworldMap> overworld_maps_;
+
+  gfx::Bitmap overworldMapBitmap;
+  std::shared_ptr<uchar[]> overworldMapPointer;
 
   const int map32address[4] = {
       core::constants::map32TilesTL, core::constants::map32TilesTR,

@@ -1,8 +1,9 @@
 #include "overworld_editor.h"
 
-#include <imgui.h>
+#include <imgui/imgui.h>
 
 #include <cmath>
+#include <unordered_map>
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -116,7 +117,7 @@ void OverworldEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
-      overworld_.Load(rom_, allgfxBitmap.GetData());
+      overworld_.Load(rom_);
     }
 
     ImGui::TableNextColumn();

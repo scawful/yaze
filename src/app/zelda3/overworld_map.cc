@@ -117,10 +117,8 @@ void OverworldMap::BuildMap(uchar* mapparent_, int count, int gameState,
                             std::vector<std::vector<ushort>>& allmapsTilesLW,
                             std::vector<std::vector<ushort>>& allmapsTilesDW,
                             std::vector<std::vector<ushort>>& allmapsTilesSP,
-                            uchar* currentOWgfx16Ptr, uchar* allGfxPtr,
-                            uchar* mapblockset16) {
+                            uchar* currentOWgfx16Ptr, uchar* mapblockset16) {
   currentOWgfx16Ptr_ = currentOWgfx16Ptr;
-  allGfx16Ptr_ = allGfxPtr;
   mapblockset16_ = mapblockset16;
 
   if (large_map_) {
@@ -190,6 +188,7 @@ void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
 void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
                                        uchar* destbmpPtr, uchar* sourcebmpPtr) {
   auto gfx16Data = destbmpPtr;
+  // TODO: PSUEDO VRAM
   auto gfx8Data = currentOWgfx16Ptr_;
 
   int offsets[] = {0, 8, 4096, 4104};
@@ -343,7 +342,9 @@ void OverworldMap::BuildTileset(int gameState) {
     staticgfx[7] = 91;
   }
 
+  // TODO: PSUEDO VRAM DATA HERE
   uchar* currentmapgfx8Data = currentOWgfx16Ptr_;
+  // TODO: PUT GRAPHICS DATA HERE
   uchar const* allgfxData = allGfx16Ptr_;
 
   for (int i = 0; i < 16; i++) {

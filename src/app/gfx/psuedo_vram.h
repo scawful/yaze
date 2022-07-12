@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "app/core/gfx/bitmap.h"
+#include "app/gfx/bitmap.h"
 
 namespace yaze {
 namespace app {
