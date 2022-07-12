@@ -10,11 +10,8 @@ namespace zelda3 {
 using namespace core;
 using namespace gfx;
 
-
-
-void Overworld::Load(ROM& rom, uchar* allGfxPtr) {
+void Overworld::Load(ROM& rom) {
   rom_ = rom;
-  allGfx16Ptr = allGfxPtr;
 
   overworldMapPointer = std::make_shared<uchar[]>(0x40000);
   mapblockset16 = std::make_shared<uchar[]>(1048576);
@@ -35,8 +32,7 @@ void Overworld::Load(ROM& rom, uchar* allGfxPtr) {
   for (int i = 0; i < 160; i++) {
     overworld_maps_[i].BuildMap(mapParent, size, gameState, allmapsTilesLW,
                                 allmapsTilesDW, allmapsTilesSP,
-                                currentOWgfx16Ptr.get(), allGfx16Ptr,
-                                mapblockset16.get());
+                                currentOWgfx16Ptr.get(), mapblockset16.get());
   }
 
   isLoaded = true;

@@ -1,7 +1,10 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
-#include <imgui.h>
+#include <imgui/imgui.h>
+
+#include <cmath>
+#include <unordered_map>
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -39,7 +42,7 @@ class OverworldEditor {
   // pointer size 1048576
   gfx::Bitmap tile16_blockset_bmp_;
 
-  // pointer size 32768 
+  // pointer size 32768
   gfx::Bitmap current_gfx_bmp_;
 
   // pointer size 456704
@@ -77,7 +80,7 @@ class OverworldEditor {
                                   ImGuiTableFlags_SizingStretchSame;
 };
 }  // namespace editor
-}  // namespace gui
+}  // namespace app
 }  // namespace yaze
 
 #endif
