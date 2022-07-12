@@ -40,10 +40,12 @@ void Bitmap::Create(int width, int height, int depth, uchar *data) {
   surface_->pixels = pixel_data_;
 }
 
+// Reserve data and draw to surface via pointer
 void Bitmap::Create(int width, int height, int depth, int size) {
   width_ = width;
   height_ = height;
   depth_ = depth;
+  data_size_ = size;
   surface_ = SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
                                             SDL_PIXELFORMAT_INDEX8);
   // Default grayscale palette
@@ -54,6 +56,17 @@ void Bitmap::Create(int width, int height, int depth, int size) {
   }
 
   pixel_data_ = (uchar *)SDL_malloc(size);
+  surface_->pixels = pixel_data_;
+}
+
+void Bitmap::Create(int width, int height, int depth, uchar *data, int size, const SNESPalette &palette) {
+  width_ = width;
+  height_ = height;
+  depth_ = depth;
+  pixel_data_ = data;
+  surface_ = SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
+                                            SDL_PIXELFORMAT_INDEX8);
+  surface_->format->palette = palette.GetSDL_Palette();
   surface_->pixels = pixel_data_;
 }
 
