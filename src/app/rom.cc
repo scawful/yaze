@@ -52,6 +52,8 @@ void ROM::LoadFromFile(const std::string &path) {
   is_loaded_ = true;
 }
 
+void ROM::LoadFromPointer(uchar *data) { current_rom_ = data; }
+
 uchar *ROM::DecompressGraphics(int pos, int size) {
   return Decompress(pos, size, false);
 }
@@ -152,12 +154,10 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
     for (int y = 0; y < 8; y++) {
       //[0] + [1] + [16]
       for (int x = 0; x < 8; x++) {
-        auto b1 =
-            (uchar)((buffer_in[(y * 2) + (24 * pos)] & (kGraphicsBitmap[x])));
-        auto b2 = (uchar)(buffer_in[((y * 2) + (24 * pos)) + 1] &
-                          (kGraphicsBitmap[x]));
-        auto b3 =
-            (uchar)(buffer_in[(16 + y) + (24 * pos)] & (kGraphicsBitmap[x]));
+        auto b1 = ((buffer_in[(y * 2) + (24 * pos)] & (kGraphicsBitmap[x])));
+        auto b2 =
+            (buffer_in[((y * 2) + (24 * pos)) + 1] & (kGraphicsBitmap[x]));
+        auto b3 = (buffer_in[(16 + y) + (24 * pos)] & (kGraphicsBitmap[x]));
         unsigned char b = 0;
         if (b1 != 0) {
           b |= 1;

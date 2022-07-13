@@ -28,10 +28,12 @@ class ROM {
   void Close();
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
+  void LoadFromPointer(uchar *data);
 
   uchar* DecompressGraphics(int pos, int size);
   uchar* DecompressOverworld(int pos, int size);
   uchar* Decompress(int pos, int size = 0x800, bool reversed = false);
+
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
                              int size = 0x1000);
   uint GetGraphicsAddress(uint8_t id) const;
@@ -48,10 +50,8 @@ class ROM {
 
  private:
   bool is_loaded_ = false;
-  bool has_header_ = false;
-  long size_ = 0;
   int num_sheets_ = 0;
-  uint compressed_size_;
+  long size_ = 0;
   uchar* current_rom_;
   uchar title[21] = "ROM Not Loaded";
   enum rom_type type_ = LoROM;
