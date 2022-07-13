@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_tile.h"
 
@@ -20,10 +21,10 @@ namespace app {
 
 void ROM::Close() {
   if (is_loaded_) {
-    SDL_free(current_rom_);
+    delete[] current_rom_;
     for (auto i = 0; i < num_sheets_; i++) {
-      SDL_free(decompressed_graphic_sheets_[i]);
-      SDL_free(converted_graphic_sheets_[i]);
+      delete[] decompressed_graphic_sheets_[i];
+      delete[] converted_graphic_sheets_[i];
     }
   }
 }
@@ -34,13 +35,13 @@ void ROM::SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
 
 // TODO: check if the rom has a header on load
 void ROM::LoadFromFile(const std::string &path) {
-  size_ = std::filesystem::file_size(path.c_str());
   std::ifstream file(path.c_str(), std::ios::binary);
   if (!file.is_open()) {
     std::cout << "Error: Could not open ROM file " << path << std::endl;
     return;
   }
-  current_rom_ = (uchar *)SDL_malloc(size_);
+  size_ = std::filesystem::file_size(path.c_str());
+  current_rom_ = new uchar[size_];
   for (uint i = 0; i < size_; i++) {
     char byte_read_ = ' ';
     file.read(&byte_read_, sizeof(char));
@@ -51,8 +52,16 @@ void ROM::LoadFromFile(const std::string &path) {
   is_loaded_ = true;
 }
 
+uchar *ROM::DecompressGraphics(int pos, int size) {
+  return Decompress(pos, size, false);
+}
+
+uchar *ROM::DecompressOverworld(int pos, int size) {
+  return Decompress(pos, size, true);
+}
+
 uchar *ROM::Decompress(int pos, int size, bool reversed) {
-  auto buffer = (uchar *)SDL_malloc(size);
+  auto buffer = new uchar[size];
   uint length = 0;
   uint buffer_pos = 0;
   uchar cmd = 0;
@@ -67,7 +76,7 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
       length =
           (ushort)(((current_rom_[pos] << 8) | current_rom_[pos + 1]) & 0x3FF);
       pos += 2;  // Advance 2 bytes in ROM
-    } else {  // Normal Command
+    } else {     // Normal Command
       cmd = (uchar)((databyte >> 5) & 0x07);
       length = (uchar)(databyte & 0x1F);
       pos += 1;  // Advance 1 byte in ROM
@@ -96,9 +105,9 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
         break;
       case 03:  // Increasing Fill
       {
-        uchar incByte = current_rom_[pos];
+        uchar inc_byte = current_rom_[pos];
         for (int i = 0; i < length; i++) {
-          buffer[buffer_pos++] = incByte++;
+          buffer[buffer_pos++] = inc_byte++;
         }
         pos += 1;  // Advance 1 byte in the ROM
       } break;
@@ -106,12 +115,12 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
       {
         ushort s1 = ((current_rom_[pos + 1] & 0xFF) << 8);
         ushort s2 = ((current_rom_[pos] & 0xFF));
-        auto Addr = (ushort)(s1 | s2);
-        if (reversed) { 
-          Addr = (ushort)(s2 | s1);
+        auto addr = (ushort)(s1 | s2);
+        if (reversed) {
+          addr = (ushort)(s2 | s1);
         }
         for (int i = 0; i < length; i++) {
-          buffer[buffer_pos] = buffer[Addr + i];
+          buffer[buffer_pos] = buffer[addr + i];
           buffer_pos++;
         }
         pos += 2;  // Advance 2 bytes in the ROM
@@ -126,7 +135,7 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
 // 128x32
 uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
   // 8bpp sheet out
-  auto sheet_buffer_out = (uchar *)SDL_malloc(size);
+  auto sheet_buffer_out = new uchar[size];
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -213,14 +222,14 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
 }
 
 void ROM::DrawAllGraphicsData() {
-  auto buffer = (uchar*) SDL_malloc(346624);
-  auto data = (uchar *)SDL_malloc(2048);
+  auto buffer = new uchar[346624];
+  auto data = new uchar[2048];
   int buffer_pos = 0;
-  
+
   for (int i = 0; i < core::constants::NumberOfSheets; i++) {
     // uncompressed sheets
     if (i >= 115 && i <= 126) {
-      data = new char[core::constants::Uncompressed3BPPSize];
+      data = new uchar[core::constants::Uncompressed3BPPSize];
       int startAddress = GetGraphicsAddress(i);
       for (int j = 0; j < core::constants::Uncompressed3BPPSize; j++) {
         data[j] = current_rom_[j + startAddress];
