@@ -59,7 +59,8 @@ void Bitmap::Create(int width, int height, int depth, int size) {
   surface_->pixels = pixel_data_;
 }
 
-void Bitmap::Create(int width, int height, int depth, uchar *data, int size, const SNESPalette &palette) {
+void Bitmap::Create(int width, int height, int depth, uchar *data, int size,
+                    SNESPalette &palette) {
   width_ = width;
   height_ = height;
   depth_ = depth;
