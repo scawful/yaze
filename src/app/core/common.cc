@@ -18,42 +18,36 @@ int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) {
   return (addr1 << 16) | (addr2 << 8) | addr3;
 }
 
-//hextodec has been imported from SNESDisasm to parse hex numbers
-int HexToDec(char *input, int length)
-{
-    int result = 0;
-    int value;
-    int ceiling = length - 1;
-    int power16 = 16;
+// hextodec has been imported from SNESDisasm to parse hex numbers
+int HexToDec(char *input, int length) {
+  int result = 0;
+  int value;
+  int ceiling = length - 1;
+  int power16 = 16;
 
-    int j = ceiling;
+  int j = ceiling;
 
-    for( ;  j >= 0; j--)
-    {
-        if(input[j] >= 'A' && input[j] <= 'F')
-        {
-            value = input[j] - 'F';
-            value += 15;
-        }
-        else
-        {
-            value = input[j] - '9';
-            value += 9;
-        }
-
-        if(j == ceiling)
-        {
-            result += value;
-            continue;
-        }
-
-        result += (value * power16);
-        power16 *= 16;
+  for (; j >= 0; j--) {
+    if (input[j] >= 'A' && input[j] <= 'F') {
+      value = input[j] - 'F';
+      value += 15;
+    } else {
+      value = input[j] - '9';
+      value += 9;
     }
-    
-    return result;
+
+    if (j == ceiling) {
+      result += value;
+      continue;
+    }
+
+    result += (value * power16);
+    power16 *= 16;
+  }
+
+  return result;
 }
 
 }  // namespace core
 }  // namespace app
-}  // namespace premia
+}  // namespace yaze
