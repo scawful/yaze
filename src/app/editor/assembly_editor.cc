@@ -13,13 +13,13 @@ AssemblyEditor::AssemblyEditor() {
 }
 
 void AssemblyEditor::Update() {
-  auto cpos = text_editor_.GetCursorPosition();
-  ImGui::Begin("ASM Editor", &file_is_loaded_, ImGuiWindowFlags_MenuBar);
+  ImGui::Begin("Assembly Editor", &file_is_loaded_);
   MENU_BAR()
   DrawFileMenu();
   DrawEditMenu();
   END_MENU_BAR()
 
+  auto cpos = text_editor_.GetCursorPosition();
   SetEditorText();
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
               cpos.mColumn + 1, text_editor_.GetTotalLines(),
@@ -28,7 +28,7 @@ void AssemblyEditor::Update() {
               text_editor_.GetLanguageDefinition().mName.c_str(),
               current_file_.c_str());
 
-  text_editor_.Render(current_file_.c_str());
+  text_editor_.Render("##asm_editor");
   ImGui::End();
 }
 
