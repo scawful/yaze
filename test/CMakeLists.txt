@@ -17,6 +17,7 @@ set(SNESHACKING_PATH "../src/lib/sneshacking/src")
 add_executable(
   yaze_test
   yaze_test.cc
+  rom_test.cc
   ../src/app/rom.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
