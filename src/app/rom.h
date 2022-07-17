@@ -15,6 +15,7 @@
 
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/gfx/pseudo_vram.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
@@ -28,7 +29,7 @@ class ROM {
   void Close();
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
-  void LoadFromPointer(uchar *data);
+  void LoadFromPointer(uchar* data);
 
   uchar* DecompressGraphics(int pos, int size);
   uchar* DecompressOverworld(int pos, int size);
@@ -43,25 +44,27 @@ class ROM {
   gfx::SNESPalette ExtractPalette(uint addr, int bpp);
 
   uchar* data() { return current_rom_; }
-  auto Renderer() { return sdl_renderer_; }
   const uchar* getTitle() const { return title; }
   long getSize() const { return size_; }
   bool isLoaded() const { return is_loaded_; }
+  auto Renderer() { return sdl_renderer_; }
+  auto GetGraphicsBin() const { return graphics_bin_; }
+  auto GetVRAM() const { return pseudo_vram_; }
 
  private:
-  bool is_loaded_ = false;
   int num_sheets_ = 0;
   long size_ = 0;
   uchar* current_rom_;
   uchar title[21] = "ROM Not Loaded";
-  enum rom_type type_ = LoROM;
+  bool is_loaded_ = false;
   bool isbpp3[core::constants::NumberOfSheets];
+  enum rom_type type_ = LoROM;
 
-  std::shared_ptr<uchar> rom_ptr_;
+  gfx::pseudo_vram pseudo_vram_;
   std::vector<uchar*> decompressed_graphic_sheets_;
   std::vector<uchar*> converted_graphic_sheets_;
-  std::vector<SDL_Surface> surfaces_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
+  std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
 };
 
 }  // namespace app

@@ -10,6 +10,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/zelda3/overworld.h"
+#include "gui/canvas.h"
 #include "gui/icons.h"
 
 namespace yaze {
@@ -30,6 +31,7 @@ class OverworldEditor {
   void DrawTileSelector();
   void DrawTile16Selector() const;
   void DrawTile8Selector() const;
+  void DrawPseudoVRAM();
 
   void LoadBlockset();
   void LoadGraphics();
@@ -38,6 +40,8 @@ class OverworldEditor {
 
   zelda3::Overworld overworld_;
   gfx::SNESPalette palette_;
+  gui::Canvas overworld_map_canvas_;
+  gui::Canvas pseudo_vram_canvas_;
 
   // pointer size 1048576
   gfx::Bitmap tile16_blockset_bmp_;
@@ -51,6 +55,7 @@ class OverworldEditor {
   gfx::Bitmap mapblockset16Bitmap;
 
   std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
+  std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
 
   int current_world_ = 0;
   char map_gfx_[3] = "";
@@ -64,10 +69,11 @@ class OverworldEditor {
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
+  bool vram_loaded_ = false;
 
   constexpr static int kByteSize = 3;
   constexpr static int kMessageIdSize = 5;
-  constexpr static int kNumSheetsToLoad = 100;
+  constexpr static int kNumSheetsToLoad = 223;
   constexpr static int kTile8DisplayHeight = 64;
   constexpr static float kInputFieldSize = 30.f;
 

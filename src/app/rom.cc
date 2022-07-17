@@ -239,6 +239,10 @@ void ROM::DrawAllGraphicsData() {
       data = Decompress(gfx_addr, core::constants::UncompressedSheetSize);
     }
 
+    gfx::Bitmap tilesheet_bmp(128, 32, 8, SNES3bppTo8bppSheet(data));
+    tilesheet_bmp.CreateTexture(sdl_renderer_);
+    graphics_bin_[i] = tilesheet_bmp;
+
     for (int j = 0; j < sizeof(data); j++) {
       buffer[j + buffer_pos] = data[j];
     }

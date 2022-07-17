@@ -192,90 +192,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
 void OverworldEditor::DrawOverworldCanvas() {
   DrawOverworldMapSettings();
   ImGui::Separator();
-  static ImVector<ImVec2> points;
-  static ImVec2 scrolling(0.0f, 0.0f);
-  static bool opt_enable_context_menu = true;
-  static bool adding_line = false;
-  ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-  ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
-  auto canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
-
-  // Draw border and background color
-  const ImGuiIO &io = ImGui::GetIO();
-  ImDrawList *draw_list = ImGui::GetWindowDrawList();
-  draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(32, 32, 32, 255));
-  draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
-
-  // This will catch our interactions
-  ImGui::InvisibleButton(
-      "canvas", canvas_sz,
-      ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
-  const bool is_active = ImGui::IsItemActive();    // Held
-  const ImVec2 origin(canvas_p0.x + scrolling.x,
-                      canvas_p0.y + scrolling.y);  // Lock scrolled origin
-  const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
-                                   io.MousePos.y - origin.y);
-
-  // Add first and second point
-  if (is_hovered && !adding_line &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    points.push_back(mouse_pos_in_canvas);
-    points.push_back(mouse_pos_in_canvas);
-    adding_line = true;
-  }
-  if (adding_line) {
-    points.back() = mouse_pos_in_canvas;
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) adding_line = false;
-  }
-
-  // Pan (we use a zero mouse threshold when there's no context menu)
-  const float mouse_threshold_for_pan = opt_enable_context_menu ? -1.0f : 0.0f;
-  if (is_active &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan)) {
-    scrolling.x += io.MouseDelta.x;
-    scrolling.y += io.MouseDelta.y;
-  }
-
-  // Context menu (under default mouse threshold)
-  ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-  if (opt_enable_context_menu && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
-    ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
-  if (ImGui::BeginPopup("context")) {
-    if (adding_line) points.resize(points.size() - 2);
-    adding_line = false;
-    if (ImGui::MenuItem("Remove one", nullptr, false, points.Size > 0)) {
-      points.resize(points.size() - 2);
-    }
-    if (ImGui::MenuItem("Remove all", nullptr, false, points.Size > 0)) {
-      points.clear();
-    }
-    ImGui::EndPopup();
-  }
-
-  // Draw grid + all lines in the canvas
-  draw_list->PushClipRect(canvas_p0, canvas_p1, true);
-  if (opt_enable_grid) {
-    const float GRID_STEP = 64.0f;
-    for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x;
-         x += GRID_STEP)
-      draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y),
-                         ImVec2(canvas_p0.x + x, canvas_p1.y),
-                         IM_COL32(200, 200, 200, 40));
-    for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y;
-         y += GRID_STEP)
-      draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
-                         ImVec2(canvas_p1.x, canvas_p0.y + y),
-                         IM_COL32(200, 200, 200, 40));
-  }
-
-  for (int n = 0; n < points.Size; n += 2)
-    draw_list->AddLine(
-        ImVec2(origin.x + points[n].x, origin.y + points[n].y),
-        ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y),
-        IM_COL32(255, 255, 0, 255), 2.0f);
-
-  draw_list->PopClipRect();
+  overworld_map_canvas_.Update();
 }
 
 void OverworldEditor::DrawTileSelector() {
@@ -300,7 +217,10 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
-
+    if (ImGui::BeginTabItem("VRAM")) {
+      DrawPseudoVRAM();
+      ImGui::EndTabItem();
+    }
     ImGui::EndTabBar();
   }
 }
@@ -392,13 +312,14 @@ void OverworldEditor::DrawTile8Selector() const {
   }
 
   if (all_gfx_loaded_) {
-    for (const auto &[key, value] : all_texture_sheet_) {
+    for (const auto &[key, value] : graphics_bin_) {
       int offset = 64 * (key + 1);
       int top_left_y = canvas_p0.y + 2;
       if (key >= 1) {
         top_left_y = canvas_p0.y + 64 * key;
       }
-      draw_list->AddImage((void *)value, ImVec2(canvas_p0.x + 2, top_left_y),
+      draw_list->AddImage((void *)value.GetTexture(),
+                          ImVec2(canvas_p0.x + 2, top_left_y),
                           ImVec2(canvas_p0.x + 256, canvas_p0.y + offset));
     }
   }
@@ -422,10 +343,18 @@ void OverworldEditor::DrawTile8Selector() const {
   draw_list->PopClipRect();
 }
 
-void OverworldEditor::LoadGraphics() {
-  for (int i = 0; i < kNumSheetsToLoad; i++) {
-    all_texture_sheet_[i] = rom_.DrawGraphicsSheet(i);
+void OverworldEditor::DrawPseudoVRAM() {
+  if (!vram_loaded_ && rom_.isLoaded()) {
+    for (int tileset_index = 0; tileset_index < 16; tileset_index++) {
+      rom_.GetVRAM().GetTileset(tileset_index);
+    }
+    pseudo_vram_canvas_.Update();
   }
+}
+
+void OverworldEditor::LoadGraphics() {
+  rom_.DrawAllGraphicsData();
+  graphics_bin_ = rom_.GetGraphicsBin();
 }
 
 }  // namespace editor

@@ -1,4 +1,4 @@
-#include "psuedo_vram.h"
+#include "pseudo_vram.h"
 
 namespace yaze {
 namespace app {
