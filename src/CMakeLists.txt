@@ -49,7 +49,7 @@ add_executable(
     app/core/constants.cc
     app/core/controller.cc
     app/gfx/bitmap.cc
-    app/gfx/psuedo_vram.cc
+    app/gfx/pseudo_vram.cc
     app/gfx/snes_tile.cc
     app/gfx/snes_palette.cc
     app/zelda3/overworld.cc

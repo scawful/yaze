@@ -188,7 +188,7 @@ void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
 void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
                                        uchar* destbmpPtr, uchar* sourcebmpPtr) {
   auto gfx16Data = destbmpPtr;
-  // TODO: PSUEDO VRAM
+  // TODO: PSEUDO VRAM
   auto gfx8Data = currentOWgfx16Ptr_;
 
   int offsets[] = {0, 8, 4096, 4104};
@@ -342,7 +342,7 @@ void OverworldMap::BuildTileset(int gameState) {
     staticgfx[7] = 91;
   }
 
-  // TODO: PSUEDO VRAM DATA HERE
+  // TODO: PSEUDO VRAM DATA HERE
   uchar* currentmapgfx8Data = currentOWgfx16Ptr_;
   // TODO: PUT GRAPHICS DATA HERE
   uchar const* allgfxData = allGfx16Ptr_;

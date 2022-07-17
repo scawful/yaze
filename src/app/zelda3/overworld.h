@@ -9,7 +9,7 @@
 
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/psuedo_vram.h"
+#include "app/gfx/pseudo_vram.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld_map.h"

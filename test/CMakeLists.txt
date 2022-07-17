@@ -19,6 +19,7 @@ add_executable(
   yaze_test.cc
   rom_test.cc
   ../src/app/rom.cc
+  ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
