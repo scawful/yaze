@@ -27,10 +27,8 @@ void Overworld::Load(ROM& rom) {
   LoadOverworldMap();
 
   auto size = tiles16.size();
-  for (int i = 0; i < 160; i++) {
-    overworld_maps_[i].BuildMap(
-        mapParent, size, gameState, allmapsTilesLW, allmapsTilesDW,
-        allmapsTilesSP, currentOWgfx16.GetData(), mapblockset16.GetData());
+  for (int i = 0; i < constants::NumberOfOWMaps; i++) {
+    overworld_maps_[i].BuildMap(mapParent, size, gameState, map_tiles_);
   }
 
   isLoaded = true;
@@ -57,13 +55,13 @@ void Overworld::AssembleMap32Tiles() {
     }
   }
 
-  allmapsTilesLW.resize(tiles32.size());
-  allmapsTilesDW.resize(tiles32.size());
-  allmapsTilesSP.resize(tiles32.size());
+  map_tiles_.light_world.resize(tiles32.size());
+  map_tiles_.dark_world.resize(tiles32.size());
+  map_tiles_.special_world.resize(tiles32.size());
   for (int i = 0; i < tiles32.size(); i++) {
-    allmapsTilesLW[i].resize(tiles32.size());
-    allmapsTilesDW[i].resize(tiles32.size());
-    allmapsTilesSP[i].resize(tiles32.size());
+    map_tiles_.light_world[i].resize(tiles32.size());
+    map_tiles_.dark_world[i].resize(tiles32.size());
+    map_tiles_.special_world[i].resize(tiles32.size());
   }
 }
 
@@ -98,22 +96,17 @@ void Overworld::DecompressAllMapTiles() {
          << 8) +
         (rom_.data()[(constants::compressedAllMap32PointersHigh + (3 * i))]);
 
-    auto tmp2 = std::make_unique<char[]>(256);
-    auto tmp = tmp2.get();
-    p1 = lorom_snes_to_pc(p1, &tmp);
+    p1 = SnesToPc(p1);
     int p2 =
         (rom_.data()[(constants::compressedAllMap32PointersLow) + 2 + (3 * i)]
          << 16) +
         (rom_.data()[(constants::compressedAllMap32PointersLow) + 1 + (3 * i)]
          << 8) +
         (rom_.data()[(constants::compressedAllMap32PointersLow + (3 * i))]);
-    p2 = lorom_snes_to_pc(p2, &tmp);
+
+    p2 = SnesToPc(p2);
 
     int ttpos = 0;
-    unsigned int compressedSize1 = 0;
-    unsigned int compressedSize2 = 0;
-    unsigned int compressedLength1 = 0;
-    unsigned int compressedLength2 = 0;
 
     if (p1 >= highest) {
       highest = p1;
@@ -129,10 +122,8 @@ void Overworld::DecompressAllMapTiles() {
       lowest = p2;
     }
 
-    auto bytes = alttp_decompress_overworld(
-        (char*)rom_.data(), p2, 1000, &compressedSize1, &compressedLength1);
-    auto bytes2 = alttp_decompress_overworld(
-        (char*)rom_.data(), p1, 1000, &compressedSize2, &compressedLength2);
+    auto bytes = rom_.DecompressOverworld(p2, 1000);
+    auto bytes2 = rom_.DecompressOverworld(p1, 1000);
 
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
@@ -141,31 +132,40 @@ void Overworld::DecompressAllMapTiles() {
         int tpos = tidD;
         if (tpos < tiles32.size()) {
           if (i < 64) {
-            allmapsTilesLW[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
+            map_tiles_.light_world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
                 tiles32[tpos].tile0_;
-            allmapsTilesLW[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
+            map_tiles_
+                .light_world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
                 tiles32[tpos].tile1_;
-            allmapsTilesLW[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+            map_tiles_
+                .light_world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
                 tiles32[tpos].tile2_;
-            allmapsTilesLW[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+            map_tiles_
+                .light_world[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
                 tiles32[tpos].tile3_;
           } else if (i < 128 && i >= 64) {
-            allmapsTilesDW[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
+            map_tiles_.dark_world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
                 tiles32[tpos].tile0_;
-            allmapsTilesDW[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
+            map_tiles_
+                .dark_world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
                 tiles32[tpos].tile1_;
-            allmapsTilesDW[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+            map_tiles_
+                .dark_world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
                 tiles32[tpos].tile2_;
-            allmapsTilesDW[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+            map_tiles_
+                .dark_world[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
                 tiles32[tpos].tile3_;
           } else {
-            allmapsTilesSP[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
+            map_tiles_.special_world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
                 tiles32[tpos].tile0_;
-            allmapsTilesSP[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
+            map_tiles_
+                .special_world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
                 tiles32[tpos].tile1_;
-            allmapsTilesSP[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+            map_tiles_
+                .special_world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
                 tiles32[tpos].tile2_;
-            allmapsTilesSP[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+            map_tiles_.special_world[(x * 2) + 1 + (sx * 32)]
+                                    [(y * 2) + 1 + (sy * 32)] =
                 tiles32[tpos].tile3_;
           }
         }

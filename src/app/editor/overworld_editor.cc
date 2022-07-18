@@ -361,7 +361,7 @@ void OverworldEditor::DrawPseudoVRAM() {
 }
 
 void OverworldEditor::LoadGraphics() {
-  rom_.DrawAllGraphicsData();
+  rom_.LoadAllGraphicsData();
   graphics_bin_ = rom_.GetGraphicsBin();
 }
 

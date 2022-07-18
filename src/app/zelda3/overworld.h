@@ -18,6 +18,12 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
+struct OWMapTiles {
+  std::vector<std::vector<ushort>> light_world;    // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> dark_world;     // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> special_world;  // 32 maps * (32*32 tiles)
+}
+
 class Overworld {
  public:
   void Load(ROM& rom);
@@ -41,6 +47,8 @@ class Overworld {
   std::vector<std::vector<ushort>> allmapsTilesLW;  // 64 maps * (32*32 tiles)
   std::vector<std::vector<ushort>> allmapsTilesDW;  // 64 maps * (32*32 tiles)
   std::vector<std::vector<ushort>> allmapsTilesSP;  // 32 maps * (32*32 tiles)
+
+  OWMapTiles map_tiles_;
 
   gfx::Bitmap mapblockset16;
   gfx::Bitmap currentOWgfx16;
