@@ -44,6 +44,7 @@ class OverworldMap {
                 std::vector<std::vector<ushort>>& allmapsTilesDW,
                 std::vector<std::vector<ushort>>& allmapsTilesSP,
                 uchar* currentOWgfx16Ptr, uchar* mapblockset16);
+  void BuildMap(uchar* mapParent, int count, int gameState, OWMapTiles& map_tiles);
   void CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
                       uchar* sourcebmpPtr);
   void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr,
