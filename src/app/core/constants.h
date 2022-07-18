@@ -105,6 +105,10 @@ constexpr int gfx_3_pointer = 0x679A;  // D13E ; 00513E
 constexpr int hud_palettes = 0xDD660;
 constexpr int maxGfx = 0xC3FB5;
 
+constexpr int kTilesheetWidth = 128;
+constexpr int kTilesheetHeight = 32;
+constexpr int kTilesheetDepth = 8;
+
 // ===========================================================================================
 //  Overworld Related Variables
 // ===========================================================================================
