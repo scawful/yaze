@@ -221,6 +221,11 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   return sheet_texture;
 }
 
+// 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
+// 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
+// 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
+// 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
+// 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 void ROM::DrawAllGraphicsData() {
   auto buffer = new uchar[346624];
   auto data = new uchar[2048];
@@ -249,48 +254,6 @@ void ROM::DrawAllGraphicsData() {
 
     buffer_pos += sizeof(data);
   }
-}
-
-// 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
-// 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
-// 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
-// 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
-// 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
-char *ROM::CreateAllGfxDataRaw() {
-  auto buffer = (char *)SDL_malloc(346624);
-  auto data = (char *)SDL_malloc(2048);
-  int bufferPos = 0;
-  unsigned int uncompressedSize = 0;
-  unsigned int compressedSize = 0;
-
-  for (int i = 0; i < core::constants::NumberOfSheets; i++) {
-    isbpp3[i] = ((i >= 0 && i <= 112) ||    // Compressed 3bpp bg
-                 (i >= 115 && i <= 126) ||  // Uncompressed 3bpp sprites
-                 (i >= 127 && i <= 217)     // Compressed 3bpp sprites
-    );
-
-    // uncompressed sheets
-    if (i >= 115 && i <= 126) {
-      data = new char[core::constants::Uncompressed3BPPSize];
-      int startAddress = GetGraphicsAddress(i);
-      for (int j = 0; j < core::constants::Uncompressed3BPPSize; j++) {
-        data[j] = current_rom_[j + startAddress];
-      }
-    } else {
-      data = alttp_decompress_gfx((char *)current_rom_,
-                                  GetGraphicsAddress((char)i),
-                                  core::constants::UncompressedSheetSize,
-                                  &uncompressedSize, &compressedSize);
-    }
-
-    for (int j = 0; j < sizeof(data); j++) {
-      buffer[j + bufferPos] = data[j];
-    }
-
-    bufferPos += sizeof(data);
-  }
-
-  return buffer;
 }
 
 gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {

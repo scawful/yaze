@@ -40,7 +40,6 @@ class ROM {
   uint GetGraphicsAddress(uint8_t id) const;
   SDL_Texture* DrawGraphicsSheet(int offset);
   void DrawAllGraphicsData();
-  char* CreateAllGfxDataRaw();
   gfx::SNESPalette ExtractPalette(uint addr, int bpp);
 
   uchar* data() { return current_rom_; }
