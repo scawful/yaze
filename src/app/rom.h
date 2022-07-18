@@ -30,6 +30,7 @@ class ROM {
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
   void LoadFromPointer(uchar* data);
+  void LoadAllGraphicsData();
 
   uchar* DecompressGraphics(int pos, int size);
   uchar* DecompressOverworld(int pos, int size);
@@ -39,7 +40,7 @@ class ROM {
                              int size = 0x1000);
   uint GetGraphicsAddress(uint8_t id) const;
   SDL_Texture* DrawGraphicsSheet(int offset);
-  void DrawAllGraphicsData();
+
   gfx::SNESPalette ExtractPalette(uint addr, int bpp);
 
   uchar* data() { return current_rom_; }
