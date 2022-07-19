@@ -17,7 +17,7 @@ void Overworld::Load(ROM &rom) {
 
   // Map Initialization
   for (int i = 0; i < core::NumberOfOWMaps; i++) {
-    overworld_maps_.emplace_back(rom_, tiles16, i);
+    overworld_maps_.emplace_back(i, rom_, tiles16);
   }
   FetchLargeMaps();
   LoadOverworldMap();
