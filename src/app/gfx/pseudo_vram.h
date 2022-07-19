@@ -32,9 +32,9 @@ class pseudo_vram {
   auto GetGraphicsData() const { return gfx_data_; }
 
  private:
+  static const uint32_t REAL_VRAM_SIZE = 0x8000;
   uchar* gfx_data_ = new uchar[(128 * 512) / 2];
   std::unordered_map<int, Bitmap> m_vram;
-  static const uint32_t REAL_VRAM_SIZE = 0x8000;
 };
 
 std::vector<Bitmap> CreateGraphicsSet(
@@ -46,4 +46,4 @@ std::vector<Bitmap> CreateSpriteSet(
 }  // namespace app
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_APP_GFX_PSEUDO_VRAM_H
