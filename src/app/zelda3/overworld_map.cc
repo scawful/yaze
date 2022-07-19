@@ -144,8 +144,7 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
   for (int y = 0; y < 32; y++) {
     for (int x = 0; x < 32; x++) {
       CopyTile8bpp16((x * 16), (y * 16),
-                     tiles_used_[x + (superX * 32)][y + (superY * 32)], gfxPtr,
-                     mapblockset16_);
+                     tiles_used_[x + (superX * 32)][y + (superY * 32)], gfxPtr);
     }
   }
 }
@@ -206,9 +205,7 @@ void OverworldMap::BuildTileset(int gameState) {
     static_graphics_[7] = 91;
   }
 
-  // TODO: PSEUDO VRAM DATA HERE
-  uchar* currentmapgfx8Data = rom_.GetVRAM().GetGraphicsData();
-  // TODO: PUT GRAPHICS DATA HERE
+  uchar* current_map_gfx_tile8_data = rom_.GetVRAM().GetGraphicsData();
   uchar const* all_gfx_data = rom_.GetMasterGraphicsBin();
 
   for (int i = 0; i < 16; i++) {
@@ -222,15 +219,15 @@ void OverworldMap::BuildTileset(int gameState) {
           mapByte += 0x88;
           break;
       }
-
-      currentmapgfx8Data[(i * 2048) + j] = mapByte;  // Upload used gfx data
+      // Upload used gfx data
+      current_map_gfx_tile8_data[(i * 2048) + j] = mapByte;
     }
   }
 }
 
 void OverworldMap::BuildTiles16Gfx(int count) {
-  auto gfx16Data = mapblockset16_;
-  auto gfx8Data = rom_.GetVRAM().GetGraphicsData();
+  auto gfx_tile16_data = tile16_blockset_bmp_.GetData();
+  auto gfx_tile8_data = rom_.GetVRAM().GetGraphicsData();
 
   int offsets[] = {0, 8, 1024, 1032};
   auto yy = 0;
@@ -248,7 +245,7 @@ void OverworldMap::BuildTiles16Gfx(int count) {
 
       for (auto y = 0; y < 8; y++) {
         for (auto x = 0; x < 4; x++) {
-          CopyTile(x, y, xx, yy, offset, info, gfx16Data, gfx8Data);
+          CopyTile(x, y, xx, yy, offset, info, gfx_tile16_data, gfx_tile8_data);
         }
       }
     }
@@ -311,28 +308,26 @@ void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
   gfx16Pointer[index + r] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
-void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
-                                  uchar* sourcebmpPtr) {
+void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr) {
   int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) +
                        ((tile / 8) * 2048);  // (sourceX * 16) + (sourceY * 128)
-  auto source_ptr = sourcebmpPtr;
+  auto source_ptr = tile16_blockset_bmp_.GetData();
 
-  int destPtrPos = (x + (y * 512));
-  auto destPtr = destbmpPtr;
+  int dest_ptr_pos = (x + (y * 512));
+  auto dest_ptr = destbmpPtr;
 
   for (int ystrip = 0; ystrip < 16; ystrip++) {
     for (int xstrip = 0; xstrip < 16; xstrip++) {
-      destPtr[destPtrPos + xstrip + (ystrip * 512)] =
+      dest_ptr[dest_ptr_pos + xstrip + (ystrip * 512)] =
           source_ptr[source_ptr_pos + xstrip + (ystrip * 128)];
     }
   }
 }
 
 void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
-                                       uchar* destbmpPtr, uchar* sourcebmpPtr) {
-  auto gfx16Data = destbmpPtr;
-  // TODO: PSEUDO VRAM
-  auto gfx8Data = rom_.GetVRAM().GetGraphicsData();
+                                       uchar* destbmpPtr) {
+  auto gfx_tile16_data = destbmpPtr;
+  auto gfx_tile8_data = rom_.GetVRAM().GetGraphicsData();
 
   int offsets[] = {0, 8, 4096, 4104};
 
@@ -344,7 +339,8 @@ void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
 
     for (auto y = 0; y < 8; y++) {
       for (auto x = 0; x < 4; x++) {
-        CopyTileToMap(x, y, xP, yP, offset, info, gfx16Data, gfx8Data);
+        CopyTileToMap(x, y, xP, yP, offset, info, gfx_tile16_data,
+                      gfx_tile8_data);
       }
     }
   }

@@ -218,8 +218,8 @@ void Overworld::FetchLargeMaps() {
 }
 
 void Overworld::LoadOverworldMap() {
-  overworldMapBitmap.Create(128, 128, 8, 0x40000);
-  auto ptr = overworldMapBitmap.GetData();
+  overworld_map_bmp_.Create(128, 128, 8, 0x40000);
+  auto ptr = overworld_map_bmp_.GetData();
 
   int pos = 0;
   for (int sy = 0; sy < 16; sy++) {
@@ -235,7 +235,7 @@ void Overworld::LoadOverworldMap() {
   }
 
   auto renderer = rom_.Renderer();
-  overworldMapBitmap.CreateTexture(renderer);
+  overworld_map_bmp_.CreateTexture(renderer);
 }
 
 }  // namespace zelda3

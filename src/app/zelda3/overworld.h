@@ -51,9 +51,9 @@ class Overworld {
   ROM rom_;
   OWMapTiles map_tiles_;
 
-  gfx::Bitmap mapblockset16;
-  gfx::Bitmap currentOWgfx16;
-  gfx::Bitmap overworldMapBitmap;
+  gfx::Bitmap tile16_blockset_bmp_;
+  gfx::Bitmap current_gfx_bmp_;
+  gfx::Bitmap overworld_map_bmp_;
 
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
