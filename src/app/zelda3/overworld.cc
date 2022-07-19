@@ -80,6 +80,17 @@ void Overworld::AssembleMap16Tiles() {
   }
 }
 
+void Overworld::AssignWorldTiles(std::vector<std::vector>>& world, int x, int y, int sx, int sy, int tpos) {
+  world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
+                tiles32[tpos].tile0_;
+  world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
+                tiles32[tpos].tile1_;
+  world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+                tiles32[tpos].tile2_;
+  world[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
+                tiles32[tpos].tile3_;
+}
+
 void Overworld::DecompressAllMapTiles() {
   int lowest = 0x0FFFFF;
   int highest = 0x0F8000;
