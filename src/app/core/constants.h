@@ -28,7 +28,6 @@ using uchar = unsigned char;
 namespace yaze {
 namespace app {
 namespace core {
-namespace constants {
 
 //===========================================================================================
 // 65816 LanguageDefinition
@@ -1232,7 +1231,6 @@ static const std::string TileTypeNames[] = {
     "$FE Door X top? (unused?)",
     "$FF Door X top? (unused?)"};
 
-}  // namespace constants
 }  // namespace core
 }  // namespace app
 }  // namespace yaze

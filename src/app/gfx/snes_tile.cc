@@ -34,7 +34,7 @@ void BuildTiles16Gfx(uchar *mapblockset16, uchar *currentOWgfx16Ptr,
   auto xx = 0;
 
   // Number of tiles16 3748? // its 3752
-  for (auto i = 0; i < core::constants::NumberOfMap16; i++) {
+  for (auto i = 0; i < core::NumberOfMap16; i++) {
     // 8x8 tile draw
     // gfx8 = 4bpp so everyting is /2
     auto tiles = allTiles[i];

@@ -52,8 +52,8 @@ private:
   std::vector<OverworldMap> overworld_maps_;
 
   const int map32address[4] = {
-      core::constants::map32TilesTL, core::constants::map32TilesTR,
-      core::constants::map32TilesBL, core::constants::map32TilesBR};
+      core::map32TilesTL, core::map32TilesTR,
+      core::map32TilesBL, core::map32TilesBR};
 
   enum Dimension {
     map32TilesTL = 0,
