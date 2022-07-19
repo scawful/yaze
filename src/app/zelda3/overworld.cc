@@ -24,10 +24,10 @@ void Overworld::Load(ROM &rom) {
 
   auto size = tiles16.size();
   for (int i = 0; i < core::NumberOfOWMaps; i++) {
-    overworld_maps_[i].BuildMap(size, gameState, mapParent, map_tiles_);
+    overworld_maps_[i].BuildMap(size, game_state_, map_parent_, map_tiles_);
   }
 
-  isLoaded = true;
+  is_loaded_ = true;
 }
 
 ushort Overworld::GenerateTile32(int i, int k, int dimension) {
@@ -162,15 +162,15 @@ void Overworld::DecompressAllMapTiles() {
 
 void Overworld::FetchLargeMaps() {
   for (int i = 128; i < 145; i++) {
-    mapParent[i] = 0;
+    map_parent_[i] = 0;
   }
 
-  mapParent[128] = 128;
-  mapParent[129] = 129;
-  mapParent[130] = 129;
-  mapParent[137] = 129;
-  mapParent[138] = 129;
-  mapParent[136] = 136;
+  map_parent_[128] = 128;
+  map_parent_[129] = 129;
+  map_parent_[130] = 129;
+  map_parent_[137] = 129;
+  map_parent_[138] = 129;
+  map_parent_[136] = 136;
   overworld_maps_[136].SetLargeMap(false);
 
   bool mapChecked[64];
@@ -184,24 +184,24 @@ void Overworld::FetchLargeMaps() {
     if (mapChecked[i] == false) {
       if (overworld_maps_[i].IsLargeMap() == true) {
         mapChecked[i] = true;
-        mapParent[i] = (uchar)i;
-        mapParent[i + 64] = (uchar)(i + 64);
+        map_parent_[i] = (uchar)i;
+        map_parent_[i + 64] = (uchar)(i + 64);
 
         mapChecked[i + 1] = true;
-        mapParent[i + 1] = (uchar)i;
-        mapParent[i + 65] = (uchar)(i + 64);
+        map_parent_[i + 1] = (uchar)i;
+        map_parent_[i + 65] = (uchar)(i + 64);
 
         mapChecked[i + 8] = true;
-        mapParent[i + 8] = (uchar)i;
-        mapParent[i + 72] = (uchar)(i + 64);
+        map_parent_[i + 8] = (uchar)i;
+        map_parent_[i + 72] = (uchar)(i + 64);
 
         mapChecked[i + 9] = true;
-        mapParent[i + 9] = (uchar)i;
-        mapParent[i + 73] = (uchar)(i + 64);
+        map_parent_[i + 9] = (uchar)i;
+        map_parent_[i + 73] = (uchar)(i + 64);
         xx++;
       } else {
-        mapParent[i] = (uchar)i;
-        mapParent[i + 64] = (uchar)(i + 64);
+        map_parent_[i] = (uchar)i;
+        map_parent_[i + 64] = (uchar)(i + 64);
         mapChecked[i] = true;
       }
     }

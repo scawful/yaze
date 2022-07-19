@@ -44,9 +44,9 @@ class Overworld {
   void FetchLargeMaps();
   void LoadOverworldMap();
 
-  int gameState = 1;
-  bool isLoaded = false;
-  uchar mapParent[160];
+  int game_state_ = 1;
+  uchar map_parent_[160];
+  bool is_loaded_ = false;
 
   ROM rom_;
   OWMapTiles map_tiles_;
