@@ -67,7 +67,7 @@ class ROM {
   uchar* master_gfx_bin_;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
-  bool isbpp3[core::constants::NumberOfSheets];
+  bool isbpp3[core::NumberOfSheets];
   enum rom_type type_ = LoROM;
 
   gfx::pseudo_vram pseudo_vram_;
