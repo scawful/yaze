@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_UTILS_ROM_H
-#define YAZE_APP_UTILS_ROM_H
+#ifndef YAZE_APP_ROM_H
+#define YAZE_APP_ROM_H
 
 #include <compressions/alttpcompression.h>
 #include <rommapping.h>
@@ -50,8 +50,6 @@ class ROM {
                              int size = 0x1000);
   uint GetGraphicsAddress(uint8_t id) const;
   SDL_Texture* DrawGraphicsSheet(int offset);
-
-  gfx::SNESPalette ExtractPalette(uint addr, int bpp);
 
   uchar* data() { return current_rom_; }
   const uchar* getTitle() const { return title; }
