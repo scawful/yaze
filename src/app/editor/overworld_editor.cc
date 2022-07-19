@@ -257,10 +257,10 @@ void OverworldEditor::DrawTile16Selector() const {
 
   if (map_blockset_loaded_) {
     draw_list->AddImage(
-        (void *)mapblockset16Bitmap.GetTexture(),
+        (void *)tile16_blockset_bmp_.GetTexture(),
         ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
-        ImVec2(canvas_p0.x + (mapblockset16Bitmap.GetWidth() * 2),
-               canvas_p0.y + (mapblockset16Bitmap.GetHeight() * 2)));
+        ImVec2(canvas_p0.x + (tile16_blockset_bmp_.GetWidth() * 2),
+               canvas_p0.y + (tile16_blockset_bmp_.GetHeight() * 2)));
   }
 
   // Draw grid + all lines in the canvas
