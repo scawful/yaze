@@ -89,6 +89,8 @@ void ROM::LoadAllGraphicsData() {
 
     buffer_pos += sizeof(data);
   }
+
+  master_gfx_bin_ = buffer;
 }
 
 uchar *ROM::DecompressGraphics(int pos, int size) {
@@ -123,46 +125,57 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
     length += 1;  // each commands is at least of size 1 even if index 00
 
     switch (cmd) {
-      case 00:  // Direct Copy (Could be replaced with a MEMCPY)
+      case kCommandDirectCopy:
         for (int i = 0; i < length; i++) {
           buffer[buffer_pos++] = current_rom_[pos++];
         }
         // Do not advance in the ROM
         break;
-      case 01:  // Byte Fill
+      case kCommandByteFill:
         for (int i = 0; i < length; i++) {
           buffer[buffer_pos++] = current_rom_[pos];
         }
         pos += 1;  // Advance 1 byte in the ROM
         break;
-      case 02:  // Word Fill
+      case kCommandWordFill:
         for (int i = 0; i < length; i += 2) {
           buffer[buffer_pos++] = current_rom_[pos];
           buffer[buffer_pos++] = current_rom_[pos + 1];
         }
         pos += 2;  // Advance 2 byte in the ROM
         break;
-      case 03:  // Increasing Fill
-      {
+      case kCommandIncreasingFill: {
         uchar inc_byte = current_rom_[pos];
         for (int i = 0; i < length; i++) {
           buffer[buffer_pos++] = inc_byte++;
         }
         pos += 1;  // Advance 1 byte in the ROM
       } break;
-      case 04:  // Repeat (Reversed byte order for maps)
-      {
+      case kCommandRepeatingBytes: {
         ushort s1 = ((current_rom_[pos + 1] & 0xFF) << 8);
         ushort s2 = ((current_rom_[pos] & 0xFF));
-        auto addr = (ushort)(s1 | s2);
+        // Reversed byte order for overworld maps
         if (reversed) {
-          addr = (ushort)(s2 | s1);
+          auto addr = (current_rom_[pos + 2]) | ((current_rom_[pos + 1]) << 8);
+          if (addr > buffer_pos) {
+            std::cout << "size error" << std::endl;
+          }
+
+          if (buffer_pos + length >= size) {
+            size *= 2;
+            buffer = new uchar[size];
+            std::cout << "Reallocate buffer" << std::endl;
+          }
+          memcpy(buffer + buffer_pos, current_rom_ + pos, length);
+          pos += 2;
+        } else {
+          auto addr = (ushort)(s1 | s2);
+          for (int i = 0; i < length; i++) {
+            buffer[buffer_pos] = buffer[addr + i];
+            buffer_pos++;
+          }
+          pos += 2;  // Advance 2 bytes in the ROM
         }
-        for (int i = 0; i < length; i++) {
-          buffer[buffer_pos] = buffer[addr + i];
-          buffer_pos++;
-        }
-        pos += 2;  // Advance 2 bytes in the ROM
       } break;
     }
   }
