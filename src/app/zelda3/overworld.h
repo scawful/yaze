@@ -19,17 +19,18 @@ namespace app {
 namespace zelda3 {
 
 class Overworld {
- public:
-  void Load(ROM& rom);
+public:
+  void Load(ROM &rom);
   auto GetTiles16() const { return tiles16; }
   auto GetCurrentGfxSetPtr() { return currentOWgfx16.GetData(); }
   auto GetMapBlockset16Ptr() { return mapblockset16.GetData(); }
 
- private:
+private:
   ushort GenerateTile32(int i, int k, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
-  void AssignWorldTiles(std::vector<std::vector>>& world, int x, int y, int sx, int sy, int tpos);
+  void AssignWorldTiles(std::vector<std::vector<ushort>> &world, int x,
+                        int y, int sx, int sy, int tpos);
   void DecompressAllMapTiles();
   void FetchLargeMaps();
   void LoadOverworldMap();
@@ -62,8 +63,8 @@ class Overworld {
   };
 };
 
-}  // namespace zelda3
-}  // namespace app
-}  // namespace yaze
+} // namespace zelda3
+} // namespace app
+} // namespace yaze
 
 #endif
