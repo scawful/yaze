@@ -14,6 +14,8 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
+static constexpr int kTileOffsets = {0, 8, 4096, 4104};
+
 class OverworldMap {
  public:
   OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16);

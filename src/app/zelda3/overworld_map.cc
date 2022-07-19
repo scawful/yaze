@@ -309,8 +309,8 @@ void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
 }
 
 void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr) {
-  int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) +
-                       ((tile / 8) * 2048);  // (sourceX * 16) + (sourceY * 128)
+  // (sourceX * 16) + (sourceY * 128)
+  int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) + ((tile / 8) * 2048);
   auto source_ptr = tile16_blockset_bmp_.GetData();
 
   int dest_ptr_pos = (x + (y * 512));
@@ -329,13 +329,11 @@ void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
   auto gfx_tile16_data = destbmpPtr;
   auto gfx_tile8_data = rom_.GetVRAM().GetGraphicsData();
 
-  int offsets[] = {0, 8, 4096, 4104};
-
   auto tiles = tiles16_[tileID];
 
   for (auto tile = 0; tile < 4; tile++) {
     gfx::TileInfo info = tiles.tiles_info[tile];
-    int offset = offsets[tile];
+    int offset = kTileOffsets[tile];
 
     for (auto y = 0; y < 8; y++) {
       for (auto x = 0; x < 4; x++) {
