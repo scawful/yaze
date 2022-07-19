@@ -7,8 +7,6 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-using namespace core;
-
 void Overworld::Load(ROM &rom) {
   rom_ = rom;
   mapblockset16.Create(128, 8192, 8, 1048576);
@@ -173,7 +171,7 @@ void Overworld::FetchLargeMaps() {
   mapParent[137] = 129;
   mapParent[138] = 129;
   mapParent[136] = 136;
-  overworld_maps_[136].large_map_ = false;
+  overworld_maps_[136].SetLargeMap(false);
 
   bool mapChecked[64];
   for (auto &each : mapChecked) {
@@ -184,7 +182,7 @@ void Overworld::FetchLargeMaps() {
   while (true) {
     int i = xx + (yy * 8);
     if (mapChecked[i] == false) {
-      if (overworld_maps_[i].large_map_ == true) {
+      if (overworld_maps_[i].IsLargeMap() == true) {
         mapChecked[i] = true;
         mapParent[i] = (uchar)i;
         mapParent[i + 64] = (uchar)(i + 64);
