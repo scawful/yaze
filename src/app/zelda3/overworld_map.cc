@@ -26,14 +26,11 @@ OverworldMap::OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16,
 
   if (index_ < 64) {
     sprite_graphics_[0] = rom_.data()[core::overworldSpriteset + parent_];
-    sprite_graphics_[1] =
-        rom_.data()[core::overworldSpriteset + parent_ + 64];
-    sprite_graphics_[2] =
-        rom_.data()[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] = rom_.data()[core::overworldSpriteset + parent_ + 64];
+    sprite_graphics_[2] = rom_.data()[core::overworldSpriteset + parent_ + 128];
     gfx_ = rom_.data()[core::mapGfx + parent_];
     palette_ = rom_.data()[core::overworldMapPalette + parent_];
-    sprite_palette_[0] =
-        rom_.data()[core::overworldSpritePalette + parent_];
+    sprite_palette_[0] = rom_.data()[core::overworldSpritePalette + parent_];
     sprite_palette_[1] =
         rom_.data()[core::overworldSpritePalette + parent_ + 64];
     sprite_palette_[2] =
@@ -43,12 +40,9 @@ OverworldMap::OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16,
     musics[2] = rom_.data()[core::overworldMusicMasterSword + parent_];
     musics[3] = rom_.data()[core::overworldMusicAgahim + parent_];
   } else if (index_ < 128) {
-    sprite_graphics_[0] =
-        rom_.data()[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[1] =
-        rom_.data()[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[2] =
-        rom_.data()[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[0] = rom_.data()[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] = rom_.data()[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] = rom_.data()[core::overworldSpriteset + parent_ + 128];
     gfx_ = rom_.data()[core::mapGfx + parent_];
     palette_ = rom_.data()[core::overworldMapPalette + parent_];
     sprite_palette_[0] =
@@ -84,12 +78,9 @@ OverworldMap::OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16,
 
     message_id_ = rom_.data()[core::overworldMessages + parent_];
 
-    sprite_graphics_[0] =
-        rom_.data()[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[1] =
-        rom_.data()[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[2] =
-        rom_.data()[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[0] = rom_.data()[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] = rom_.data()[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] = rom_.data()[core::overworldSpriteset + parent_ + 128];
     sprite_palette_[0] =
         rom_.data()[core::overworldSpritePalette + parent_ + 128];
     sprite_palette_[1] =
@@ -119,8 +110,7 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
 
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        gfx_ = rom_.data()[core::overworldSpecialGFXGroup +
-                           (parent_ - 128)];
+        gfx_ = rom_.data()[core::overworldSpecialGFXGroup + (parent_ - 128)];
         palette_ = rom_.data()[core::overworldSpecialPALGroup + 1];
       } else if (index_ == 0x88) {
         gfx_ = 81;

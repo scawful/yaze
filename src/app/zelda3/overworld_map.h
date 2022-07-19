@@ -48,20 +48,11 @@ class OverworldMap {
 
  private:
   void BuildTiles16Gfx(int count);
-  // void ReloadPalettes() { LoadPalette(); }
-
   void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
                 uchar* gfx16Pointer, uchar* gfx8Pointer);
   void CopyTileToMap(int x, int y, int xx, int yy, int offset,
                      gfx::TileInfo tile, uchar* gfx16Pointer,
                      uchar* gfx8Pointer);
-
-  void LoadPalette();
-
-  void SetColorsPalette(int index, ImVec4 main, ImVec4 animated, ImVec4 aux1,
-                        ImVec4 aux2, ImVec4 hud, ImVec4 bgrcolor, ImVec4 spr,
-                        ImVec4 spr2);
-
   void BuildTileset(int gameState);
 };
 
