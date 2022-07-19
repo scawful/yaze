@@ -13,7 +13,7 @@ class Canvas {
  public:
   Canvas() = default;
   Canvas(ImVec2 canvas_size)
-      : canvas_sz_(canvas_size), custom_canvas_size_(true) {}
+      : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
 
   void Update();
 
@@ -21,6 +21,8 @@ class Canvas {
   void UpdateContext();
   void DrawGrid();
   void DrawOverlay();  // last
+
+  auto GetZeroPoint() const { return canvas_p0_; }
 
  private:
   bool enable_grid_ = true;
