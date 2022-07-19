@@ -345,8 +345,8 @@ void OverworldEditor::DrawTile8Selector() const {
 
 void OverworldEditor::DrawPseudoVRAM() {
   if (!vram_loaded_ && rom_.isLoaded()) {
-    rom_.GetVRAM().ChangeGraphicsTileset(
-        gfx::CreateGraphicsSet(0, rom_.GetGraphicsBin()));
+    // rom_.GetVRAM().ChangeGraphicsTileset(
+    //     gfx::CreateGraphicsSet(0, rom_.GetGraphicsBin()));
     // for (int tileset_index = 0; tileset_index < 16; tileset_index++) {
     //   rom_.GetVRAM().GetTileset(tileset_index);
     // }
@@ -354,9 +354,9 @@ void OverworldEditor::DrawPseudoVRAM() {
   pseudo_vram_canvas_.DrawBackground();
   pseudo_vram_canvas_.UpdateContext();
   pseudo_vram_canvas_.DrawGrid();
-  draw_list->AddImage((void *)rom_.GetVRAM().GetTileset(0).GetTexture(),
-                      ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
-                      ImVec2(canvas_p0.x + 256, canvas_p0.y + 64));
+  // draw_list->AddImage((void *)rom_.GetVRAM().GetTileset(0).GetTexture(),
+  //                     ImVec2(canvas_p0.x + 2, canvas_p0.y + 2),
+  //                     ImVec2(canvas_p0.x + 256, canvas_p0.y + 64));
   pseudo_vram_canvas_.DrawOverlay();
 }
 
