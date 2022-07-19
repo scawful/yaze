@@ -21,9 +21,19 @@
 namespace yaze {
 namespace app {
 
+struct OWMapTiles {
+  std::vector<std::vector<ushort>> light_world;    // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> dark_world;     // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> special_world;  // 32 maps * (32*32 tiles)
+} typedef OWMapTiles;
+
+constexpr int kCommandDirectCopy = 0;
+constexpr int kCommandByteFill = 1;
+constexpr int kCommandWordFill = 2;
+constexpr int kCommandIncreasingFill = 3;
+constexpr int kCommandRepeatingBytes = 4;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
-
 class ROM {
  public:
   void Close();
@@ -49,12 +59,14 @@ class ROM {
   bool isLoaded() const { return is_loaded_; }
   auto Renderer() { return sdl_renderer_; }
   auto GetGraphicsBin() const { return graphics_bin_; }
+  auto GetMasterGraphicsBin() const { return master_gfx_bin_; }
   auto GetVRAM() const { return pseudo_vram_; }
 
  private:
   int num_sheets_ = 0;
   long size_ = 0;
   uchar* current_rom_;
+  uchar* master_gfx_bin_;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
   bool isbpp3[core::constants::NumberOfSheets];
