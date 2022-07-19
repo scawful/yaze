@@ -8,12 +8,10 @@ namespace app {
 namespace zelda3 {
 
 using namespace core;
-using namespace gfx;
 
 void Overworld::Load(ROM& rom) {
   rom_ = rom;
   mapblockset16.Create(128, 8192, 8, 1048576);
-  currentOWgfx16.Create(128, 512, 4, (128 * 512) / 2);
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
@@ -28,7 +26,7 @@ void Overworld::Load(ROM& rom) {
 
   auto size = tiles16.size();
   for (int i = 0; i < constants::NumberOfOWMaps; i++) {
-    overworld_maps_[i].BuildMap(mapParent, size, gameState, map_tiles_);
+    overworld_maps_[i].BuildMap(size, gameState, mapParent, map_tiles_);
   }
 
   isLoaded = true;
@@ -51,7 +49,7 @@ void Overworld::AssembleMap32Tiles() {
       tr = GenerateTile32(i, k, (int)Dimension::map32TilesTR);
       bl = GenerateTile32(i, k, (int)Dimension::map32TilesBL);
       br = GenerateTile32(i, k, (int)Dimension::map32TilesBR);
-      tiles32.push_back(Tile32(tl, tr, bl, br));
+      tiles32.push_back(gfx::Tile32(tl, tr, bl, br));
     }
   }
 
@@ -70,13 +68,13 @@ void Overworld::AssembleMap16Tiles() {
   auto rom_data = rom_.data();
   for (int i = 0; i < 4096; i += 1)  // 3760
   {
-    TileInfo t0 = GetTilesInfo((uintptr_t)(rom_data + tpos));
+    gfx::TileInfo t0 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
-    TileInfo t1 = GetTilesInfo((uintptr_t)(rom_data + tpos));
+    gfx::TileInfo t1 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
-    TileInfo t2 = GetTilesInfo((uintptr_t)(rom_data + tpos));
+    gfx::TileInfo t2 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
-    TileInfo t3 = GetTilesInfo((uintptr_t)(rom_data + tpos));
+    gfx::TileInfo t3 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
     tiles16.emplace_back(t0, t1, t2, t3);
   }
@@ -89,21 +87,16 @@ void Overworld::DecompressAllMapTiles() {
   int sy = 0;
   int c = 0;
   for (int i = 0; i < 160; i++) {
-    int p1 =
-        (rom_.data()[(constants::compressedAllMap32PointersHigh) + 2 + (3 * i)]
-         << 16) +
-        (rom_.data()[(constants::compressedAllMap32PointersHigh) + 1 + (3 * i)]
-         << 8) +
-        (rom_.data()[(constants::compressedAllMap32PointersHigh + (3 * i))]);
-
+    int map_high_ptr = constants::compressedAllMap32PointersHigh;
+    int p1 = (rom_.data()[(map_high_ptr) + 2 + (3 * i)] << 16) +
+             (rom_.data()[(map_high_ptr) + 1 + (3 * i)] << 8) +
+             (rom_.data()[(map_high_ptr + (3 * i))]);
     p1 = SnesToPc(p1);
-    int p2 =
-        (rom_.data()[(constants::compressedAllMap32PointersLow) + 2 + (3 * i)]
-         << 16) +
-        (rom_.data()[(constants::compressedAllMap32PointersLow) + 1 + (3 * i)]
-         << 8) +
-        (rom_.data()[(constants::compressedAllMap32PointersLow + (3 * i))]);
 
+    int map_low_ptr = constants::compressedAllMap32PointersLow;
+    int p2 = (rom_.data()[(map_low_ptr) + 2 + (3 * i)] << 16) +
+             (rom_.data()[(map_low_ptr) + 1 + (3 * i)] << 8) +
+             (rom_.data()[(map_low_ptr + (3 * i))]);
     p2 = SnesToPc(p2);
 
     int ttpos = 0;
@@ -258,8 +251,8 @@ void Overworld::LoadOverworldMap() {
     for (int sx = 0; sx < 16; sx++) {
       for (int y = 0; y < 8; y++) {
         for (int x = 0; x < 8; x++) {
-          ptr[x + (sx * 8) + (y * 128) + (sy * 1024)] =
-              rom_.data()[0x0C4000 + pos];
+          auto position = x + (sx * 8) + (y * 128) + (sy * 1024);
+          ptr[position] = rom_.data()[0x0C4000 + pos];
           pos++;
         }
       }

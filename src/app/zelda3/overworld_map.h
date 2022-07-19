@@ -1,7 +1,9 @@
 #include <imgui/imgui.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <vector>
 
 #include "app/core/common.h"
 #include "app/gfx/bitmap.h"
@@ -11,8 +13,6 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
-
-using ushort = unsigned short;
 
 class OverworldMap {
  public:
@@ -39,12 +39,8 @@ class OverworldMap {
   std::vector<std::vector<ushort>> tiles_used_;
 
   OverworldMap(ROM& rom, const std::vector<gfx::Tile16>& tiles16, int index);
-  void BuildMap(uchar* mapParent, int count, int gameState,
-                std::vector<std::vector<ushort>>& allmapsTilesLW,
-                std::vector<std::vector<ushort>>& allmapsTilesDW,
-                std::vector<std::vector<ushort>>& allmapsTilesSP,
-                uchar* currentOWgfx16Ptr, uchar* mapblockset16);
-  void BuildMap(uchar* mapParent, int count, int gameState, OWMapTiles& map_tiles);
+  void BuildMap(int count, int game_state, uchar* map_parent,
+                OWMapTiles& map_tiles);
   void CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
                       uchar* sourcebmpPtr);
   void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr,
