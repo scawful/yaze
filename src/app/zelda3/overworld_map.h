@@ -32,8 +32,7 @@ class OverworldMap {
   void CopyTileToMap(int x, int y, int xx, int yy, int offset,
                      gfx::TileInfo tile, uchar* gfx16Pointer,
                      uchar* gfx8Pointer);
-  void CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
-                      uchar* sourcebmpPtr);
+  void CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr);
   void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr,
                            uchar* sourcebmpPtr);
 
@@ -47,16 +46,16 @@ class OverworldMap {
   uchar sprite_palette_[3];
   uchar area_music_[4];
   uchar static_graphics_[16];
-
   uchar* gfxPtr = new uchar[512 * 512];
-  uchar* mapblockset16_ = nullptr;
 
   bool initialized_ = false;
   bool large_map_ = false;
 
-  ROM rom_;
   std::vector<gfx::Tile16> tiles16_;
   std::vector<std::vector<ushort>> tiles_used_;
+
+  ROM rom_;
+  gfx::Bitmap tile16_blockset_bmp_;  // psuedo vram?
 };
 
 }  // namespace zelda3
