@@ -83,7 +83,7 @@ void Overworld::LoadAreaInfo() {
     sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_ + 128];
     sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 128];
     sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
-    
+
     sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_ + 128];
     sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
     sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
@@ -106,7 +106,7 @@ void Overworld::LoadAreaInfo() {
 void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
                             OWMapTiles& map_tiles) {
   if (large_map_) {
-    this->parent_ = map_parent[index_];
+    parent_ = map_parent[index_];
 
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
@@ -151,22 +151,22 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
 }
 
 void OverworldMap::BuildTileset(int gameState) {
-  int indexWorld = 0x20;
+  int index_world = 0x20;
   if (parent_ < 0x40) {
-    indexWorld = 0x20;
+    index_world = 0x20;
   } else if (parent_ >= 0x40 && parent_ < 0x80) {
-    indexWorld = 0x21;
+    index_world = 0x21;
   } else if (parent_ == 0x88) {
-    indexWorld = 36;
+    index_world = 36;
   }
 
   // Sprites Blocksets
-  staticgfx[8] = 115 + 0;
-  staticgfx[9] = 115 + 1;
-  staticgfx[10] = 115 + 6;
-  staticgfx[11] = 115 + 7;
+  static_graphics_[8] = 115 + 0;
+  static_graphics_[9] = 115 + 1;
+  static_graphics_[10] = 115 + 6;
+  static_graphics_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    staticgfx[12 + i] =
+    static_graphics_[12 + i] =
         (uchar)(rom_.data()[core::sprite_blockset_pointer +
                             (sprite_graphics_[gameState] * 4) + i] +
                 115);
@@ -174,45 +174,46 @@ void OverworldMap::BuildTileset(int gameState) {
 
   // Main Blocksets
   for (int i = 0; i < 8; i++) {
-    staticgfx[i] =
-        rom_.data()[core::overworldgfxGroups2 + (indexWorld * 8) + i];
+    static_graphics_[i] =
+        rom_.data()[core::overworldgfxGroups2 + (index_world * 8) + i];
   }
 
   if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4)] != 0) {
-    staticgfx[3] = rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4)];
+    static_graphics_[3] =
+        rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4)];
   }
   if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 1] != 0) {
-    staticgfx[4] =
+    static_graphics_[4] =
         rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 1];
   }
   if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 2] != 0) {
-    staticgfx[5] =
+    static_graphics_[5] =
         rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 2];
   }
   if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 3] != 0) {
-    staticgfx[6] =
+    static_graphics_[6] =
         rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 3];
   }
 
   // Hardcoded overworld GFX Values, for death mountain
   if ((parent_ >= 0x03 && parent_ <= 0x07) ||
       (parent_ >= 0x0B && parent_ <= 0x0E)) {
-    staticgfx[7] = 89;
+    static_graphics_[7] = 89;
   } else if ((parent_ >= 0x43 && parent_ <= 0x47) ||
              (parent_ >= 0x4B && parent_ <= 0x4E)) {
-    staticgfx[7] = 89;
+    static_graphics_[7] = 89;
   } else {
-    staticgfx[7] = 91;
+    static_graphics_[7] = 91;
   }
 
   // TODO: PSEUDO VRAM DATA HERE
   uchar* currentmapgfx8Data = rom_.GetVRAM().GetGraphicsData();
   // TODO: PUT GRAPHICS DATA HERE
-  uchar const* allgfxData = rom_.GetMasterGraphicsBin();
+  uchar const* all_gfx_data = rom_.GetMasterGraphicsBin();
 
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {
-      uchar mapByte = allgfxData[j + (staticgfx[i] * 2048)];
+      uchar mapByte = all_gfx_data[j + (static_graphics_[i] * 2048)];
       switch (i) {
         case 0:
         case 3:
@@ -235,8 +236,8 @@ void OverworldMap::BuildTiles16Gfx(int count) {
   auto yy = 0;
   auto xx = 0;
 
-  for (auto i = 0; i < count; i++)  // number of tiles16 3748?
-  {
+  // number of tiles16 3748?
+  for (auto i = 0; i < count; i++) {
     // 8x8 tile draw
     // gfx8 = 4bpp so everyting is /2F
     auto tiles = tiles16_[i];
@@ -259,6 +260,7 @@ void OverworldMap::BuildTiles16Gfx(int count) {
     }
   }
 }
+
 // map,current
 void OverworldMap::CopyTile(int x, int y, int xx, int yy, int offset,
                             gfx::TileInfo tile, uchar* gfx16Pointer,
@@ -311,9 +313,9 @@ void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
 
 void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
                                   uchar* sourcebmpPtr) {
-  int sourcePtrPos = ((tile - ((tile / 8) * 8)) * 16) +
-                     ((tile / 8) * 2048);  // (sourceX * 16) + (sourceY * 128)
-  auto sourcePtr = sourcebmpPtr;
+  int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) +
+                       ((tile / 8) * 2048);  // (sourceX * 16) + (sourceY * 128)
+  auto source_ptr = sourcebmpPtr;
 
   int destPtrPos = (x + (y * 512));
   auto destPtr = destbmpPtr;
@@ -321,7 +323,7 @@ void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr,
   for (int ystrip = 0; ystrip < 16; ystrip++) {
     for (int xstrip = 0; xstrip < 16; xstrip++) {
       destPtr[destPtrPos + xstrip + (ystrip * 512)] =
-          sourcePtr[sourcePtrPos + xstrip + (ystrip * 128)];
+          source_ptr[source_ptr_pos + xstrip + (ystrip * 128)];
     }
   }
 }
