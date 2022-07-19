@@ -18,6 +18,11 @@ namespace app {
 namespace editor {
 
 static constexpr unsigned int k4BPP = 4;
+static constexpr unsigned int kByteSize = 3;
+static constexpr unsigned int kMessageIdSize = 5;
+static constexpr unsigned int kNumSheetsToLoad = 223;
+static constexpr unsigned int kTile8DisplayHeight = 64;
+static constexpr float kInputFieldSize = 30.f;
 
 class OverworldEditor {
  public:
@@ -36,27 +41,6 @@ class OverworldEditor {
   void LoadBlockset();
   void LoadGraphics();
 
-  ROM rom_;
-
-  zelda3::Overworld overworld_;
-  gfx::SNESPalette palette_;
-  gui::Canvas overworld_map_canvas_;
-  gui::Canvas pseudo_vram_canvas_;
-
-  // pointer size 1048576
-  gfx::Bitmap tile16_blockset_bmp_;
-
-  // pointer size 32768
-  gfx::Bitmap current_gfx_bmp_;
-
-  // pointer size 456704
-  gfx::Bitmap allgfxBitmap;
-
-  gfx::Bitmap mapblockset16Bitmap;
-
-  std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
-  std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
-
   int current_world_ = 0;
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
@@ -71,11 +55,19 @@ class OverworldEditor {
   bool map_blockset_loaded_ = false;
   bool vram_loaded_ = false;
 
-  constexpr static int kByteSize = 3;
-  constexpr static int kMessageIdSize = 5;
-  constexpr static int kNumSheetsToLoad = 223;
-  constexpr static int kTile8DisplayHeight = 64;
-  constexpr static float kInputFieldSize = 30.f;
+  std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
+  std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
+
+  ROM rom_;
+  zelda3::Overworld overworld_;
+
+  gfx::SNESPalette palette_;
+  gfx::Bitmap tile16_blockset_bmp_;  // pointer size 1048576
+  gfx::Bitmap current_gfx_bmp_;      // pointer size 32768
+  gfx::Bitmap all_gfx_bmp;           // pointer size 456704
+
+  gui::Canvas overworld_map_canvas_;
+  gui::Canvas pseudo_vram_canvas_;
 
   ImVec4 current_palette_[8];
 
