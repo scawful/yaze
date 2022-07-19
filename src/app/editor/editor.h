@@ -11,6 +11,7 @@
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/overworld_editor.h"
+#include "app/editor/screen_editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -41,6 +42,7 @@ class Editor {
   void DrawProjectEditor();
   void DrawOverworldEditor();
   void DrawDungeonEditor();
+  void DrawScreenEditor();
   void DrawGraphicsEditor();
   void DrawSpriteEditor();
 
@@ -52,6 +54,7 @@ class Editor {
   AssemblyEditor assembly_editor_;
   OverworldEditor overworld_editor_;
   DungeonEditor dungeon_editor_;
+  ScreenEditor screen_editor_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
   std::unordered_map<uint, SDL_Texture *> image_cache_;
 

@@ -9,6 +9,8 @@ namespace editor {
 
 class ScreenEditor {
  public:
+  void Update();
+
  private:
   int sword_x_ = 0;
   int mx_click_ = 0;
@@ -66,8 +68,8 @@ class ScreenEditor {
   gfx::Bitmap tiles8Bitmap;            // 0x20000
   gfx::Bitmap floor_selector;
 
-//   DungeonMap dungeon_maps_[14];
-//   MapIcon selectedMapIcon;
+  //   DungeonMap dungeon_maps_[14];
+  //   MapIcon selectedMapIcon;
 };
 
 }  // namespace editor

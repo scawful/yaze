@@ -357,6 +357,12 @@ void Editor::DrawDungeonEditor() {
   END_TAB_ITEM()
 }
 
+void Editor::DrawScreenEditor() {
+  TAB_ITEM("Screens")
+  screen_editor_.Update();
+  END_TAB_ITEM()
+}
+
 void Editor::DrawGraphicsEditor() {
   TAB_ITEM("Graphics")
   END_TAB_ITEM()
