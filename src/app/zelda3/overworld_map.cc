@@ -30,14 +30,6 @@ void Overworld::LoadAreaInfo() {
   auto z3data = rom_.data();
 
   if (index_ < 64) {
-    sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_];
-    sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 64];
-    sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
-
-    sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_];
-    sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 64];
-    sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
-
     area_graphics_ = z3data[core::mapGfx + parent_];
     area_palette_ = z3data[core::overworldMapPalette + parent_];
 
@@ -45,7 +37,19 @@ void Overworld::LoadAreaInfo() {
     area_music_[1] = z3data[core::overworldMusicZelda + parent_];
     area_music_[2] = z3data[core::overworldMusicMasterSword + parent_];
     area_music_[3] = z3data[core::overworldMusicAgahim + parent_];
+
+    sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_];
+    sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 64];
+    sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
+
+    sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_];
+    sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 64];
+    sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
   } else if (index_ < 128) {
+    area_graphics_ = z3data[core::mapGfx + parent_];
+    area_palette_ = z3data[core::overworldMapPalette + parent_];
+    area_music_[0] = z3data[core::overworldMusicDW + (parent_ - 64)];
+
     sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_ + 128];
     sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 128];
     sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
@@ -53,10 +57,6 @@ void Overworld::LoadAreaInfo() {
     sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_ + 128];
     sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
     sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
-
-    area_graphics_ = z3data[core::mapGfx + parent_];
-    area_palette_ = z3data[core::overworldMapPalette + parent_];
-    area_music_[0] = z3data[core::overworldMusicDW + (parent_ - 64)];
   } else {
     if (index_ == 0x94) {
       parent_ = 128;
@@ -78,16 +78,6 @@ void Overworld::LoadAreaInfo() {
       parent_ = 136;
     }
 
-    message_id_ = z3data[core::overworldMessages + parent_];
-
-    sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
-
-    sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
-
     area_palette_ = z3data[core::overworldSpecialPALGroup + parent_ - 128];
     if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
       area_graphics_ = z3data[core::overworldSpecialGFXGroup + (parent_ - 128)];
@@ -100,6 +90,16 @@ void Overworld::LoadAreaInfo() {
       area_graphics_ = z3data[core::mapGfx + parent_];
       area_palette_ = z3data[core::overworldMapPalette + parent_];
     }
+
+    message_id_ = z3data[core::overworldMessages + parent_];
+
+    sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
+
+    sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
   }
 }
 
@@ -107,7 +107,6 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
                             OWMapTiles& map_tiles) {
   if (large_map_) {
     parent_ = map_parent[index_];
-
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
         area_graphics_ =
