@@ -45,7 +45,7 @@ class Controller {
   };
 
   bool active_;
-  app::editor::Editor editor_;
+  editor::Editor editor_;
   std::shared_ptr<SDL_Window> sdl_window_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };
