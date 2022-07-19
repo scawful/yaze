@@ -271,13 +271,5 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   return sheet_texture;
 }
 
-gfx::SNESPalette ROM::ExtractPalette(uint addr, int bpp) {
-  uint filePos = addr;
-  uint palette_size = pow(2, bpp);
-  auto palette_data = (char *)SDL_malloc(sizeof(char) * (palette_size * 2));
-  memcpy(palette_data, current_rom_ + filePos, palette_size * 2);
-  return gfx::SNESPalette(palette_data);
-}
-
 }  // namespace app
 }  // namespace yaze
