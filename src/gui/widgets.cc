@@ -8,10 +8,10 @@ namespace widgets {
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
-  for (auto &k : app::core::constants::kKeywords)
+  for (auto &k : app::core::kKeywords)
     language_65816.mKeywords.emplace(k);
 
-  for (auto &k : app::core::constants::kIdentifiers) {
+  for (auto &k : app::core::kIdentifiers) {
     TextEditor::Identifier id;
     id.mDeclaration = "Built-in function";
     language_65816.mIdentifiers.insert(std::make_pair(std::string(k), id));

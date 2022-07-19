@@ -18,14 +18,14 @@ void Overworld::Load(ROM &rom) {
   DecompressAllMapTiles();
 
   // Map Initialization
-  for (int i = 0; i < constants::NumberOfOWMaps; i++) {
+  for (int i = 0; i < core::NumberOfOWMaps; i++) {
     overworld_maps_.emplace_back(rom_, tiles16, i);
   }
   FetchLargeMaps();
   LoadOverworldMap();
 
   auto size = tiles16.size();
-  for (int i = 0; i < constants::NumberOfOWMaps; i++) {
+  for (int i = 0; i < core::NumberOfOWMaps; i++) {
     overworld_maps_[i].BuildMap(size, gameState, mapParent, map_tiles_);
   }
 
@@ -64,9 +64,9 @@ void Overworld::AssembleMap32Tiles() {
 }
 
 void Overworld::AssembleMap16Tiles() {
-  int tpos = core::constants::map16Tiles;
+  int tpos = core::map16Tiles;
   auto rom_data = rom_.data();
-  for (int i = 0; i < 4096; i += 1) // 3760
+  for (int i = 0; i < 4096; i += 1)  // 3760
   {
     gfx::TileInfo t0 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
@@ -96,13 +96,13 @@ void Overworld::DecompressAllMapTiles() {
   int sy = 0;
   int c = 0;
   for (int i = 0; i < 160; i++) {
-    int map_high_ptr = constants::compressedAllMap32PointersHigh;
+    int map_high_ptr = core::compressedAllMap32PointersHigh;
     int p1 = (rom_.data()[(map_high_ptr) + 2 + (3 * i)] << 16) +
              (rom_.data()[(map_high_ptr) + 1 + (3 * i)] << 8) +
              (rom_.data()[(map_high_ptr + (3 * i))]);
     p1 = SnesToPc(p1);
 
-    int map_low_ptr = constants::compressedAllMap32PointersLow;
+    int map_low_ptr = core::compressedAllMap32PointersLow;
     int p2 = (rom_.data()[(map_low_ptr) + 2 + (3 * i)] << 16) +
              (rom_.data()[(map_low_ptr) + 1 + (3 * i)] << 8) +
              (rom_.data()[(map_low_ptr + (3 * i))]);
@@ -130,48 +130,16 @@ void Overworld::DecompressAllMapTiles() {
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
         auto tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
-
         int tpos = tidD;
         if (tpos < tiles32.size()) {
           if (i < 64) {
-            map_tiles_.light_world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile0_;
-            map_tiles_
-                .light_world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile1_;
-            map_tiles_
-                .light_world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile2_;
-            map_tiles_
-                .light_world[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile3_;
+            AssignWorldTiles(map_tiles_.light_world, x, y, sx, sy, tpos);
           } else if (i < 128 && i >= 64) {
-            map_tiles_.dark_world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile0_;
-            map_tiles_
-                .dark_world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile1_;
-            map_tiles_
-                .dark_world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile2_;
-            map_tiles_
-                .dark_world[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile3_;
+            AssignWorldTiles(map_tiles_.dark_world, x, y, sx, sy, tpos);
           } else {
-            map_tiles_.special_world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile0_;
-            map_tiles_
-                .special_world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile1_;
-            map_tiles_
-                .special_world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile2_;
-            map_tiles_.special_world[(x * 2) + 1 + (sx * 32)]
-                                    [(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile3_;
+            AssignWorldTiles(map_tiles_.special_world, x, y, sx, sy, tpos);
           }
         }
-
         ttpos += 1;
       }
     }
@@ -272,6 +240,6 @@ void Overworld::LoadOverworldMap() {
   overworldMapBitmap.CreateTexture(renderer);
 }
 
-} // namespace zelda3
-} // namespace app
-} // namespace yaze
+}  // namespace zelda3
+}  // namespace app
+}  // namespace yaze

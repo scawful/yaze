@@ -64,22 +64,22 @@ void ROM::LoadAllGraphicsData() {
   auto data = new uchar[2048];
   int buffer_pos = 0;
 
-  for (int i = 0; i < core::constants::NumberOfSheets; i++) {
+  for (int i = 0; i < core::NumberOfSheets; i++) {
     // uncompressed sheets
     if (i >= 115 && i <= 126) {
-      data = new uchar[core::constants::Uncompressed3BPPSize];
+      data = new uchar[core::Uncompressed3BPPSize];
       int startAddress = GetGraphicsAddress(i);
-      for (int j = 0; j < core::constants::Uncompressed3BPPSize; j++) {
+      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
         data[j] = current_rom_[j + startAddress];
       }
     } else {
       auto gfx_addr = GetGraphicsAddress(i);
-      data = Decompress(gfx_addr, core::constants::UncompressedSheetSize);
+      data = Decompress(gfx_addr, core::UncompressedSheetSize);
     }
 
     gfx::Bitmap tilesheet_bmp(
-        core::constants::kTilesheetWidth, core::constants::kTilesheetHeight,
-        core::constants::kTilesheetDepth, SNES3bppTo8bppSheet(data));
+        core::kTilesheetWidth, core::kTilesheetHeight,
+        core::kTilesheetDepth, SNES3bppTo8bppSheet(data));
     tilesheet_bmp.CreateTexture(sdl_renderer_);
     graphics_bin_[i] = tilesheet_bmp;
 
