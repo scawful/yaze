@@ -64,7 +64,28 @@ class Tile16 {
   }
 };
 
-TileInfo GetTilesInfo(ushort tile);
+class OAMTile {
+ public:
+  int x, y, mx, my, pal;
+  ushort tile;
+  OAMTile(int x, int y, ushort tile, byte pal, bool upper = false, int mx = 0,
+          int my = 0) {
+    x = x;
+    y = y;
+    if (upper) {
+      tile = (ushort)(tile + 512);
+    } else {
+      tile = (ushort)(tile + 256 + 512);
+    }
+
+    pal = pal;
+    mx = mx;
+    my = my;
+  }
+};
+
+TileInfo
+GetTilesInfo(ushort tile);
 void BuildTiles16Gfx(uchar* mapblockset16, uchar* currentOWgfx16Ptr,
                      std::vector<Tile16>& allTiles);
 void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
