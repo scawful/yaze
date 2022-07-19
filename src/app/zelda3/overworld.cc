@@ -9,7 +9,7 @@ namespace zelda3 {
 
 using namespace core;
 
-void Overworld::Load(ROM& rom) {
+void Overworld::Load(ROM &rom) {
   rom_ = rom;
   mapblockset16.Create(128, 8192, 8, 1048576);
 
@@ -66,7 +66,7 @@ void Overworld::AssembleMap32Tiles() {
 void Overworld::AssembleMap16Tiles() {
   int tpos = core::constants::map16Tiles;
   auto rom_data = rom_.data();
-  for (int i = 0; i < 4096; i += 1)  // 3760
+  for (int i = 0; i < 4096; i += 1) // 3760
   {
     gfx::TileInfo t0 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
     tpos += 2;
@@ -80,15 +80,13 @@ void Overworld::AssembleMap16Tiles() {
   }
 }
 
-void Overworld::AssignWorldTiles(std::vector<std::vector>>& world, int x, int y, int sx, int sy, int tpos) {
-  world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile0_;
-  world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] =
-                tiles32[tpos].tile1_;
-  world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile2_;
+void Overworld::AssignWorldTiles(std::vector<std::vector<ushort>> &world, int x,
+                                 int y, int sx, int sy, int tpos) {
+  world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] = tiles32[tpos].tile0_;
+  world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] = tiles32[tpos].tile1_;
+  world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] = tiles32[tpos].tile2_;
   world[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-                tiles32[tpos].tile3_;
+      tiles32[tpos].tile3_;
 }
 
 void Overworld::DecompressAllMapTiles() {
@@ -210,7 +208,7 @@ void Overworld::FetchLargeMaps() {
   overworld_maps_[136].large_map_ = false;
 
   bool mapChecked[64];
-  for (auto& each : mapChecked) {
+  for (auto &each : mapChecked) {
     each = false;
   }
   int xx = 0;
@@ -274,6 +272,6 @@ void Overworld::LoadOverworldMap() {
   overworldMapBitmap.CreateTexture(renderer);
 }
 
-}  // namespace zelda3
-}  // namespace app
-}  // namespace yaze
+} // namespace zelda3
+} // namespace app
+} // namespace yaze
