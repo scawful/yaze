@@ -17,11 +17,6 @@ typedef struct {
   unsigned int palette_id;
 } tile8;
 
-using ushort = unsigned short;
-using uchar = unsigned char;
-using ulong = unsigned long;
-using uint = unsigned int;
-
 // vhopppcc cccccccc
 // [0, 1]
 // [2, 3]

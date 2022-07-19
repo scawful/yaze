@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_UTILS_BITMAP_H
-#define YAZE_APP_UTILS_BITMAP_H
+#ifndef YAZE_APP_GFX_BITMAP_H
+#define YAZE_APP_GFX_BITMAP_H
 
 #include <SDL2/SDL.h>
 
@@ -31,10 +31,10 @@ class Bitmap {
   SDL_Texture *GetTexture() const { return texture_; }
 
  private:
-  int width_;
-  int height_;
-  int depth_;
-  int data_size_;
+  int width_ = 0;
+  int height_ = 0;
+  int depth_ = 0;
+  int data_size_ = 0;
   uchar *pixel_data_;
   SDL_Surface *surface_;
   SDL_Texture *texture_;
@@ -45,4 +45,4 @@ class Bitmap {
 }  // namespace app
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_APP_GFX_BITMAP_H

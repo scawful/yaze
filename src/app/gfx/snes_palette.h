@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_gfx_PALETTE_H
-#define YAZE_APP_gfx_PALETTE_H
+#ifndef YAZE_APP_GFX_PALETTE_H
+#define YAZE_APP_GFX_PALETTE_H
 
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
@@ -50,4 +50,4 @@ class SNESPalette {
 }  // namespace app
 }  // namespace yaze
 
-#endif  // YAZE_APP_gfx_PALETTE_H
+#endif  // YAZE_APP_GFX_PALETTE_H
