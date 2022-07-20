@@ -70,6 +70,8 @@ class ROM {
   bool isbpp3[core::NumberOfSheets];
   enum rom_type type_ = LoROM;
 
+  ImVec4 display_palette_[8];
+
   gfx::pseudo_vram pseudo_vram_;
   std::vector<uchar*> decompressed_graphic_sheets_;
   std::vector<uchar*> converted_graphic_sheets_;
