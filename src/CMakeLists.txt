@@ -40,7 +40,7 @@ add_executable(
     gui/style.cc
     gui/widgets.cc
     gui/canvas.cc
-    app/editor/editor.cc
+    app/editor/master_editor.cc
     app/editor/assembly_editor.cc
     app/editor/dungeon_editor.cc
     app/editor/overworld_editor.cc

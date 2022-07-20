@@ -1,4 +1,4 @@
-#include "editor.h"
+#include "master_editor.h"
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
@@ -22,7 +22,7 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-Editor::Editor() {
+MasterEditor::MasterEditor() {
   for (int i = 0; i < 8; i++) {
     current_palette_[i].x = (i * 0.21f);
     current_palette_[i].y = (i * 0.21f);
@@ -31,19 +31,14 @@ Editor::Editor() {
   }
 }
 
-Editor::~Editor() {
-  for (auto &each : image_cache_) {
-    SDL_DestroyTexture(each.second);
-  }
-  rom_.Close();
-}
+MasterEditor::~MasterEditor() { rom_.Close(); }
 
-void Editor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
+void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
   rom_.SetupRenderer(renderer);
 }
 
-void Editor::UpdateScreen() {
+void MasterEditor::UpdateScreen() {
   const ImGuiIO &io = ImGui::GetIO();
   ImGui::NewFrame();
   ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -67,7 +62,7 @@ void Editor::UpdateScreen() {
   ImGui::End();
 }
 
-void Editor::DrawYazeMenu() {
+void MasterEditor::DrawYazeMenu() {
   MENU_BAR()
   DrawFileMenu();
   DrawEditMenu();
@@ -86,7 +81,7 @@ void Editor::DrawYazeMenu() {
   }
 }
 
-void Editor::DrawFileMenu() const {
+void MasterEditor::DrawFileMenu() const {
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
@@ -119,7 +114,7 @@ void Editor::DrawFileMenu() const {
   }
 }
 
-void Editor::DrawEditMenu() const {
+void MasterEditor::DrawEditMenu() const {
   if (ImGui::BeginMenu("Edit")) {
     if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
       // TODO: Implement this
@@ -145,7 +140,7 @@ void Editor::DrawEditMenu() const {
   }
 }
 
-void Editor::DrawViewMenu() {
+void MasterEditor::DrawViewMenu() {
   static bool show_imgui_metrics = false;
   static bool show_imgui_style_editor = false;
   static bool show_memory_editor = false;
@@ -191,7 +186,7 @@ void Editor::DrawViewMenu() {
   }
 }
 
-void Editor::DrawHelpMenu() const {
+void MasterEditor::DrawHelpMenu() const {
   if (ImGui::BeginMenu("Help")) {
     if (ImGui::MenuItem("About")) {
       // insert the about window here
@@ -202,25 +197,25 @@ void Editor::DrawHelpMenu() const {
   }
 }
 
-void Editor::DrawOverworldEditor() {
+void MasterEditor::DrawOverworldEditor() {
   TAB_ITEM("Overworld")
   overworld_editor_.Update();
   END_TAB_ITEM()
 }
 
-void Editor::DrawDungeonEditor() {
+void MasterEditor::DrawDungeonEditor() {
   TAB_ITEM("Dungeon")
   dungeon_editor_.Update();
   END_TAB_ITEM()
 }
 
-void Editor::DrawScreenEditor() {
+void MasterEditor::DrawScreenEditor() {
   TAB_ITEM("Screens")
   screen_editor_.Update();
   END_TAB_ITEM()
 }
 
-void Editor::DrawSpriteEditor() {
+void MasterEditor::DrawSpriteEditor() {
   TAB_ITEM("Sprites")
   END_TAB_ITEM()
 }

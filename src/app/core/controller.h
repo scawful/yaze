@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "app/editor/editor.h"
+#include "app/editor/master_editor.h"
 #include "gui/icons.h"
 #include "gui/style.h"
 
@@ -45,7 +45,7 @@ class Controller {
   };
 
   bool active_;
-  editor::Editor editor_;
+  editor::MasterEditor master_editor_;
   std::shared_ptr<SDL_Window> sdl_window_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };

@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "app/editor/editor.h"
+#include "app/editor/master_editor.h"
 #include "gui/icons.h"
 #include "gui/style.h"
 
@@ -22,7 +22,7 @@ void Controller::onEntry() {
   CreateWindow();
   CreateRenderer();
   CreateGuiContext();
-  editor_.SetupScreen(sdl_renderer_);
+  master_editor_.SetupScreen(sdl_renderer_);
   ImGuiIO &io = ImGui::GetIO();
   io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
@@ -98,7 +98,7 @@ void Controller::onInput() {
   io.MouseWheel = static_cast<float>(wheel);
 }
 
-void Controller::onLoad() { editor_.UpdateScreen(); }
+void Controller::onLoad() { master_editor_.UpdateScreen(); }
 
 void Controller::doRender() const {
   SDL_RenderClear(sdl_renderer_.get());
