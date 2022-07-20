@@ -68,7 +68,8 @@ class OAMTile {
  public:
   int x, y, mx, my, pal;
   ushort tile;
-  OAMTile(int x, int y, ushort tile, byte pal, bool upper = false, int mx = 0,
+  OAMTile() {}
+  OAMTile(int x, int y, ushort tile, int pal, bool upper = false, int mx = 0,
           int my = 0) {
     x = x;
     y = y;
