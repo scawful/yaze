@@ -44,6 +44,7 @@ add_executable(
     app/editor/assembly_editor.cc
     app/editor/dungeon_editor.cc
     app/editor/overworld_editor.cc
+    app/editor/screen_editor.cc
     app/rom.cc
     app/core/common.cc
     app/core/constants.cc
@@ -54,6 +55,7 @@ add_executable(
     app/gfx/snes_palette.cc
     app/zelda3/overworld.cc
     app/zelda3/overworld_map.cc
+    app/zelda3/screen.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp
