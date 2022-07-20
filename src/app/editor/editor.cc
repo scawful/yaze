@@ -58,11 +58,10 @@ void Editor::UpdateScreen() {
   DrawYazeMenu();
 
   TAB_BAR("##TabBar")
-  DrawProjectEditor();
   DrawOverworldEditor();
   DrawDungeonEditor();
-  DrawGraphicsEditor();
   DrawSpriteEditor();
+  DrawScreenEditor();
   END_TAB_BAR()
 
   ImGui::End();
@@ -197,151 +196,9 @@ void Editor::DrawHelpMenu() const {
     if (ImGui::MenuItem("About")) {
       // insert the about window here
     }
+    ImGui::Text("Title: %s", rom_.getTitle());
+    ImGui::Text("ROM Size: %ld", rom_.getSize());
     ImGui::EndMenu();
-  }
-}
-
-void Editor::DrawGraphicsSheet(int offset) {
-  SDL_Surface *surface =
-      SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
-  std::cout << "Drawing surface" << std::endl;
-  uchar *sheet_buffer = nullptr;
-  for (int i = 0; i < 8; i++) {
-    std::cout << "Red value: " << current_palette_[i].x << std::endl;
-    std::cout << "Green value: " << current_palette_[i].y << std::endl;
-    std::cout << "Blue value: " << current_palette_[i].z << std::endl;
-    surface->format->palette->colors[i].r = current_palette_[i].x * 255;
-    surface->format->palette->colors[i].g = current_palette_[i].y * 255;
-    surface->format->palette->colors[i].b = current_palette_[i].z * 255;
-  }
-
-  unsigned int snes_addr = 0;
-  unsigned int pc_addr = 0;
-  snes_addr = (unsigned int)((((rom_.data()[0x4F80 + offset]) << 16) |
-                              ((rom_.data()[0x505F + offset]) << 8) |
-                              ((rom_.data()[0x513E + offset]))));
-  pc_addr = core::SnesToPc(snes_addr);
-  std::cout << "Decompressing..." << std::endl;
-  auto decomp = rom_.Decompress(pc_addr);
-  std::cout << "Converting to 8bpp sheet..." << std::endl;
-  sheet_buffer = rom_.SNES3bppTo8bppSheet(decomp);
-  std::cout << "Assigning pixel data..." << std::endl;
-  surface->pixels = sheet_buffer;
-  std::cout << "Creating texture from surface..." << std::endl;
-  SDL_Texture *sheet_texture = nullptr;
-  sheet_texture = SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
-  image_cache_[offset] = sheet_texture;
-  if (sheet_texture == nullptr) {
-    std::cout << "Error: " << SDL_GetError() << std::endl;
-  }
-}
-
-void Editor::DrawProjectEditor() {
-  if (ImGui::BeginTabItem("Project")) {
-    if (ImGui::BeginTable(
-            "##projectTable", 2,
-            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable)) {
-      ImGui::TableSetupColumn("##inputs", ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("##outputs");
-
-      ImGui::TableNextColumn();
-      ImGui::Text("Title: %s", rom_.getTitle());
-      ImGui::Text("ROM Size: %ld", rom_.getSize());
-      ImGui::Separator();
-
-      // ----------------------------------------------------------------------
-
-      static bool loaded_image = false;
-      static int tilesheet_offset = 0;
-      ImGui::Text("Palette:");
-      for (int i = 0; i < 8; i++) {
-        std::string id = "##PaletteColor" + std::to_string(i);
-        ImGui::SameLine();
-        ImGui::ColorEdit4(id.c_str(), &current_palette_[i].x,
-                          ImGuiColorEditFlags_NoInputs |
-                              ImGuiColorEditFlags_DisplayRGB |
-                              ImGuiColorEditFlags_DisplayHex);
-      }
-      ImGui::SetNextItemWidth(100.f);
-      ImGui::InputInt("Tilesheet Offset", &tilesheet_offset);
-      BASIC_BUTTON("Retrieve gfx") {
-        if (rom_.isLoaded()) {
-          DrawGraphicsSheet(tilesheet_offset);
-          loaded_image = true;
-        }
-      }
-
-      // ----------------------------------------------------------------------
-
-      ImGui::TableNextColumn();
-
-      static ImVector<ImVec2> points;
-      static ImVec2 scrolling(0.0f, 0.0f);
-      static bool opt_enable_context_menu = true;
-      ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-      auto canvas_sz = ImVec2(
-          512 + 1, ImGui::GetContentRegionAvail().y + (tilesheet_offset * 256));
-      auto canvas_p1 =
-          ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
-
-      // Draw border and background color
-      const ImGuiIO &io = ImGui::GetIO();
-      ImDrawList *draw_list = ImGui::GetWindowDrawList();
-      draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(32, 32, 32, 255));
-      draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
-
-      // This will catch our interactions
-      ImGui::InvisibleButton(
-          "canvas", canvas_sz,
-          ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-      const bool is_active = ImGui::IsItemActive();  // Held
-      const ImVec2 origin(canvas_p0.x + scrolling.x,
-                          canvas_p0.y + scrolling.y);  // Lock scrolled origin
-      const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
-                                       io.MousePos.y - origin.y);
-
-      // Pan (we use a zero mouse threshold when there's no context menu)
-      const float mouse_threshold_for_pan =
-          opt_enable_context_menu ? -1.0f : 0.0f;
-      if (is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right,
-                                              mouse_threshold_for_pan)) {
-        scrolling.x += io.MouseDelta.x;
-        scrolling.y += io.MouseDelta.y;
-      }
-
-      // Context menu (under default mouse threshold)
-      ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-      if (opt_enable_context_menu && drag_delta.x == 0.0f &&
-          drag_delta.y == 0.0f)
-        ImGui::OpenPopupOnItemClick("context",
-                                    ImGuiPopupFlags_MouseButtonRight);
-      if (ImGui::BeginPopup("context")) {
-        ImGui::MenuItem("Placeholder");
-        ImGui::EndPopup();
-      }
-
-      // Draw grid around the canvas
-      draw_list->PushClipRect(canvas_p0, canvas_p1, true);
-
-      // Draw the tilesheets loaded from the ROM
-      if (loaded_image) {
-        for (const auto &[key, value] : image_cache_) {
-          int offset = 128 * (key + 1);
-          int top_left_y = canvas_p0.y + 2;
-          if (key >= 1) {
-            top_left_y = canvas_p0.y + 128 * key;
-          }
-          draw_list->AddImage((void *)value,
-                              ImVec2(canvas_p0.x + 2, top_left_y),
-                              ImVec2(canvas_p0.x + 512, canvas_p0.y + offset));
-        }
-      }
-
-      draw_list->PopClipRect();
-
-      ImGui::EndTable();
-    }
-    ImGui::EndTabItem();
   }
 }
 
@@ -360,11 +217,6 @@ void Editor::DrawDungeonEditor() {
 void Editor::DrawScreenEditor() {
   TAB_ITEM("Screens")
   screen_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void Editor::DrawGraphicsEditor() {
-  TAB_ITEM("Graphics")
   END_TAB_ITEM()
 }
 

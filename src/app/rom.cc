@@ -77,9 +77,8 @@ void ROM::LoadAllGraphicsData() {
       data = Decompress(gfx_addr, core::UncompressedSheetSize);
     }
 
-    gfx::Bitmap tilesheet_bmp(
-        core::kTilesheetWidth, core::kTilesheetHeight,
-        core::kTilesheetDepth, SNES3bppTo8bppSheet(data));
+    gfx::Bitmap tilesheet_bmp(core::kTilesheetWidth, core::kTilesheetHeight,
+                              core::kTilesheetDepth, SNES3bppTo8bppSheet(data));
     tilesheet_bmp.CreateTexture(sdl_renderer_);
     graphics_bin_[i] = tilesheet_bmp;
 
@@ -157,10 +156,6 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
         // Reversed byte order for overworld maps
         if (reversed) {
           auto addr = (current_rom_[pos + 2]) | ((current_rom_[pos + 1]) << 8);
-          if (addr > buffer_pos) {
-            std::cout << "size error" << std::endl;
-          }
-
           if (buffer_pos + length >= size) {
             size *= 2;
             buffer = new uchar[size];

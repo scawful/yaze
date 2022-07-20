@@ -91,9 +91,10 @@ void Canvas::Update() {
   draw_list->PopClipRect();
 }
 
-void Canvas::DrawBackground() {
+void Canvas::DrawBackground(ImVec2 canvas_size) {
   canvas_p0_ = ImGui::GetCursorScreenPos();
   if (!custom_canvas_size_) canvas_sz_ = ImGui::GetContentRegionAvail();
+  if (canvas_size.x != 0) canvas_sz_ = canvas_size;
 
   canvas_p1_ = ImVec2(canvas_p0_.x + canvas_sz_.x, canvas_p0_.y + canvas_sz_.y);
 
@@ -150,18 +151,17 @@ void Canvas::UpdateContext() {
   }
 }
 
-void Canvas::DrawGrid() {
+void Canvas::DrawGrid(float grid_step) {
   // Draw grid + all lines in the canvas
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
   if (enable_grid_) {
-    const float GRID_STEP = 64.0f;
-    for (float x = fmodf(scrolling_.x, GRID_STEP); x < canvas_sz_.x;
-         x += GRID_STEP)
+    for (float x = fmodf(scrolling_.x, grid_step); x < canvas_sz_.x;
+         x += grid_step)
       draw_list_->AddLine(ImVec2(canvas_p0_.x + x, canvas_p0_.y),
                           ImVec2(canvas_p0_.x + x, canvas_p1_.y),
                           IM_COL32(200, 200, 200, 40));
-    for (float y = fmodf(scrolling_.y, GRID_STEP); y < canvas_sz_.y;
-         y += GRID_STEP)
+    for (float y = fmodf(scrolling_.y, grid_step); y < canvas_sz_.y;
+         y += grid_step)
       draw_list_->AddLine(ImVec2(canvas_p0_.x, canvas_p0_.y + y),
                           ImVec2(canvas_p1_.x, canvas_p0_.y + y),
                           IM_COL32(200, 200, 200, 40));

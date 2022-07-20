@@ -35,7 +35,7 @@ class OverworldEditor {
   void DrawOverworldCanvas();
   void DrawTileSelector();
   void DrawTile16Selector() const;
-  void DrawTile8Selector() const;
+  void DrawTile8Selector();
   void DrawPseudoVRAM();
 
   void LoadBlockset();
@@ -68,6 +68,7 @@ class OverworldEditor {
 
   gui::Canvas overworld_map_canvas_;
   gui::Canvas pseudo_vram_canvas_;
+  gui::Canvas graphics_bin_canvas_;
 
   ImVec4 current_palette_[8];
 
