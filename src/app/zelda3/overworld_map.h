@@ -14,7 +14,7 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-static constexpr int kTileOffsets = {0, 8, 4096, 4104};
+static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
 class OverworldMap {
  public:
@@ -35,8 +35,7 @@ class OverworldMap {
                      gfx::TileInfo tile, uchar* gfx16Pointer,
                      uchar* gfx8Pointer);
   void CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr);
-  void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr,
-                           uchar* sourcebmpPtr);
+  void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr);
 
   int parent_ = 0;
   int index_ = 0;
