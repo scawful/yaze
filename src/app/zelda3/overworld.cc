@@ -9,7 +9,7 @@ namespace zelda3 {
 
 void Overworld::Load(ROM &rom) {
   rom_ = rom;
-  mapblockset16.Create(128, 8192, 8, 1048576);
+  //mapblockset16.Create(128, 8192, 8, 1048576);
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
@@ -98,13 +98,13 @@ void Overworld::DecompressAllMapTiles() {
     int p1 = (rom_.data()[(map_high_ptr) + 2 + (3 * i)] << 16) +
              (rom_.data()[(map_high_ptr) + 1 + (3 * i)] << 8) +
              (rom_.data()[(map_high_ptr + (3 * i))]);
-    p1 = SnesToPc(p1);
+    p1 = core::SnesToPc(p1);
 
     int map_low_ptr = core::compressedAllMap32PointersLow;
     int p2 = (rom_.data()[(map_low_ptr) + 2 + (3 * i)] << 16) +
              (rom_.data()[(map_low_ptr) + 1 + (3 * i)] << 8) +
              (rom_.data()[(map_low_ptr + (3 * i))]);
-    p2 = SnesToPc(p2);
+    p2 = core::SnesToPc(p2);
 
     int ttpos = 0;
 

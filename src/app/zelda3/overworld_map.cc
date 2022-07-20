@@ -18,7 +18,7 @@ namespace zelda3 {
 
 OverworldMap::OverworldMap(int index, ROM& rom,
                            const std::vector<gfx::Tile16>& tiles16)
-    : parent_(index_), index(index_), rom_(rom), tiles16_(tiles16) {
+    : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
   if (index_ != 0x80 && index_ <= 150 &&
       rom_.data()[core::overworldMapSize + (index_ & 0x3F)] != 0) {
     large_map_ = true;
@@ -26,7 +26,7 @@ OverworldMap::OverworldMap(int index, ROM& rom,
   LoadAreaInfo();
 }
 
-void Overworld::LoadAreaInfo() {
+void OverworldMap::LoadAreaInfo() {
   auto z3data = rom_.data();
 
   if (index_ < 64) {

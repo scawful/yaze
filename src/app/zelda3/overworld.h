@@ -22,8 +22,6 @@ class Overworld {
  public:
   void Load(ROM &rom);
   auto GetTiles16() const { return tiles16; }
-  auto GetCurrentGfxSetPtr() { return currentOWgfx16.GetData(); }
-  auto GetMapBlockset16Ptr() { return mapblockset16.GetData(); }
 
  private:
   const int map32address[4] = {core::map32TilesTL, core::map32TilesTR,
