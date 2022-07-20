@@ -37,13 +37,9 @@ class Editor {
   void DrawViewMenu();
   void DrawHelpMenu() const;
 
-  void DrawGraphicsSheet(int offset = 0);
-
-  void DrawProjectEditor();
   void DrawOverworldEditor();
   void DrawDungeonEditor();
   void DrawScreenEditor();
-  void DrawGraphicsEditor();
   void DrawSpriteEditor();
 
   bool is_loaded_ = true;
