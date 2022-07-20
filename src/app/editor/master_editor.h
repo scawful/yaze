@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_VIEW_EDITOR_H
-#define YAZE_APP_VIEW_EDITOR_H
+#ifndef YAZE_APP_EDITOR_MASTER_EDITOR_H
+#define YAZE_APP_EDITOR_MASTER_EDITOR_H
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
@@ -23,10 +23,10 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class Editor {
+class MasterEditor {
  public:
-  Editor();
-  ~Editor();
+  MasterEditor();
+  ~MasterEditor();
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
 
@@ -42,17 +42,11 @@ class Editor {
   void DrawScreenEditor();
   void DrawSpriteEditor();
 
-  bool is_loaded_ = true;
-  bool asm_is_loaded = false;
-
   ROM rom_;
-  gui::Canvas canvas_;
   AssemblyEditor assembly_editor_;
   OverworldEditor overworld_editor_;
   DungeonEditor dungeon_editor_;
   ScreenEditor screen_editor_;
-  std::shared_ptr<SDL_Renderer> sdl_renderer_;
-  std::unordered_map<uint, SDL_Texture *> image_cache_;
 
   ImVec4 current_palette_[8];
 
@@ -61,10 +55,12 @@ class Editor {
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
       ImGuiWindowFlags_NoTitleBar;
   ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
+
+  std::shared_ptr<SDL_Renderer> sdl_renderer_;
 };
 
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze
 
-#endif  // YAZE_APP_VIEW_EDITOR_H
+#endif  // YAZE_APP_EDITOR_MASTER_EDITOR_H
