@@ -1,9 +1,6 @@
 #ifndef YAZE_APP_ROM_H
 #define YAZE_APP_ROM_H
 
-#include <compressions/alttpcompression.h>
-#include <rommapping.h>
-
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
@@ -42,18 +39,19 @@ class ROM {
   void LoadFromPointer(uchar* data);
   void LoadAllGraphicsData();
 
+  uint GetGraphicsAddress(uint8_t id) const;
+
   uchar* DecompressGraphics(int pos, int size);
   uchar* DecompressOverworld(int pos, int size);
   uchar* Decompress(int pos, int size = 0x800, bool reversed = false);
-
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
                              int size = 0x1000);
-  uint GetGraphicsAddress(uint8_t id) const;
+
   SDL_Texture* DrawGraphicsSheet(int offset);
 
+  long getSize() const { return size_; }
   uchar* data() { return current_rom_; }
   const uchar* getTitle() const { return title; }
-  long getSize() const { return size_; }
   bool isLoaded() const { return is_loaded_; }
   auto Renderer() { return sdl_renderer_; }
   auto GetGraphicsBin() const { return graphics_bin_; }
@@ -67,8 +65,6 @@ class ROM {
   uchar* master_gfx_bin_;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
-  bool isbpp3[core::NumberOfSheets];
-  enum rom_type type_ = LoROM;
 
   ImVec4 display_palette_[8];
 
