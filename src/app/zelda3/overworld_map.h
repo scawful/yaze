@@ -20,21 +20,25 @@ class OverworldMap {
  public:
   OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16);
   void BuildMap(int count, int game_state, uchar* map_parent,
-                OWMapTiles& map_tiles);
+                uchar* ow_blockset, uchar* current_gfx, OWMapTiles& map_tiles);
 
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
   auto IsLargeMap() { return large_map_; }
+  auto GetBitmap() { return bitmap_; }
 
  private:
   void LoadAreaInfo();
-  void BuildTileset(int gameState);
-  void BuildTiles16Gfx(int count);
+  void BuildTileset(int game_state, uchar* current_gfx);
+  void BuildTiles16Gfx(int count, uchar* ow_blockset);
+  
   void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
                 uchar* gfx16Pointer, uchar* gfx8Pointer);
+
+  void CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset);
+
   void CopyTileToMap(int x, int y, int xx, int yy, int offset,
                      gfx::TileInfo tile, uchar* gfx16Pointer,
                      uchar* gfx8Pointer);
-  void CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr);
   void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr);
 
   int parent_ = 0;
@@ -47,6 +51,7 @@ class OverworldMap {
   uchar sprite_palette_[3];
   uchar area_music_[4];
   uchar static_graphics_[16];
+  gfx::Bitmap bitmap_;
   uchar* gfxPtr = new uchar[512 * 512];
 
   bool initialized_ = false;
@@ -56,7 +61,6 @@ class OverworldMap {
   std::vector<std::vector<ushort>> tiles_used_;
 
   ROM rom_;
-  gfx::Bitmap tile16_blockset_bmp_;  // psuedo vram?
 };
 
 }  // namespace zelda3

@@ -252,7 +252,7 @@ constexpr int blocks_pointer4 = 0x15B0F;
 constexpr int torch_data = 0x2736A;  // JP 0x2704A
 constexpr int torches_length_pointer = 0x88C1;
 
-constexpr int sprite_blockset_pointer = 0x5B57;
+constexpr int kSpriteBlocksetPointer = 0x5B57;
 constexpr int sprites_data =
     0x4D8B0;  // It use the unused pointers to have more space //Save purpose
 constexpr int sprites_data_empty_room = 0x4D8AE;

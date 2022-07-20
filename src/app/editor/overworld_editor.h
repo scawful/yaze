@@ -34,9 +34,9 @@ class OverworldEditor {
   void DrawOverworldMapSettings();
   void DrawOverworldCanvas();
   void DrawTileSelector();
-  void DrawTile16Selector() const;
+  void DrawTile16Selector();
   void DrawTile8Selector();
-  void DrawPseudoVRAM();
+  void DrawAreaGraphics();
 
   void LoadBlockset();
   void LoadGraphics();
@@ -53,7 +53,6 @@ class OverworldEditor {
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
-  bool vram_loaded_ = false;
 
   std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
   std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
@@ -67,7 +66,8 @@ class OverworldEditor {
   gfx::Bitmap all_gfx_bmp;           // pointer size 456704
 
   gui::Canvas overworld_map_canvas_;
-  gui::Canvas pseudo_vram_canvas_;
+  gui::Canvas current_gfx_canvas_;
+  gui::Canvas blockset_canvas_;
   gui::Canvas graphics_bin_canvas_;
 
   ImVec4 current_palette_[8];

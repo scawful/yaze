@@ -19,16 +19,16 @@ namespace zelda3 {
 OverworldMap::OverworldMap(int index, ROM& rom,
                            const std::vector<gfx::Tile16>& tiles16)
     : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
-  if (index_ != 0x80 && index_ <= 150 &&
-      rom_.data()[core::overworldMapSize + (index_ & 0x3F)] != 0) {
-    large_map_ = true;
-  }
   LoadAreaInfo();
+  bitmap_.Create(512, 512, 8, 512 * 512);
 }
 
 void OverworldMap::LoadAreaInfo() {
   auto z3data = rom_.data();
-
+  if (index_ != 0x80 && index_ <= 150 &&
+      rom_.data()[core::overworldMapSize + (index_ & 0x3F)] != 0) {
+    large_map_ = true;
+  }
   if (index_ < 64) {
     area_graphics_ = z3data[core::mapGfx + parent_];
     area_palette_ = z3data[core::overworldMapPalette + parent_];
@@ -85,8 +85,8 @@ void OverworldMap::LoadAreaInfo() {
     } else if (index_ == 0x88) {
       area_graphics_ = 81;
       area_palette_ = 0;
-    } else  // pyramid bg use 0x5B map
-    {
+    } else {
+      // pyramid bg use 0x5B map
       area_graphics_ = z3data[core::mapGfx + parent_];
       area_palette_ = z3data[core::overworldMapPalette + parent_];
     }
@@ -101,9 +101,12 @@ void OverworldMap::LoadAreaInfo() {
     sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
     sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
   }
+
+  std::cout << "Loading header for overworld area #" << index_ << std::endl;
 }
 
 void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
+                            uchar* ow_blockset, uchar* current_gfx,
                             OWMapTiles& map_tiles) {
   if (large_map_) {
     parent_ = map_parent[index_];
@@ -124,8 +127,8 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
     }
   }
 
-  BuildTileset(game_state);
-  BuildTiles16Gfx(count);  // build on GFX.mapgfx16Ptr
+  BuildTileset(game_state, current_gfx);
+  BuildTiles16Gfx(count, ow_blockset);  // build on GFX.mapgfx16Ptr
 
   int world = 0;
   if (index_ < 64) {
@@ -142,13 +145,16 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
   int superX = index_ - (world * 64) - (superY * 8);
   for (int y = 0; y < 32; y++) {
     for (int x = 0; x < 32; x++) {
-      CopyTile8bpp16((x * 16), (y * 16),
-                     tiles_used_[x + (superX * 32)][y + (superY * 32)], gfxPtr);
+      auto xt = x + (superX * 32);
+      auto yt = y + (superY * 32);
+      CopyTile8bpp16((x * 16), (y * 16), tiles_used_[xt][yt], ow_blockset);
     }
   }
+
+  std::cout << "Finished building overworld map #" << index_ << std::endl;
 }
 
-void OverworldMap::BuildTileset(int gameState) {
+void OverworldMap::BuildTileset(int game_state, uchar* current_gfx) {
   int index_world = 0x20;
   if (parent_ < 0x40) {
     index_world = 0x20;
@@ -165,9 +171,9 @@ void OverworldMap::BuildTileset(int gameState) {
   static_graphics_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
     static_graphics_[12 + i] =
-        (uchar)(rom_.data()[core::sprite_blockset_pointer +
-                            (sprite_graphics_[gameState] * 4) + i] +
-                115);
+        (rom_.data()[core::kSpriteBlocksetPointer +
+                     (sprite_graphics_[game_state] * 4) + i] +
+         115);
   }
 
   // Main Blocksets
@@ -204,7 +210,7 @@ void OverworldMap::BuildTileset(int gameState) {
     static_graphics_[7] = 91;
   }
 
-  uchar* current_map_gfx_tile8_data = rom_.GetVRAM().GetGraphicsData();
+  uchar* current_map_gfx_tile8_data = current_gfx;
   uchar const* all_gfx_data = rom_.GetMasterGraphicsBin();
 
   for (int i = 0; i < 16; i++) {
@@ -224,9 +230,9 @@ void OverworldMap::BuildTileset(int gameState) {
   }
 }
 
-void OverworldMap::BuildTiles16Gfx(int count) {
-  auto gfx_tile16_data = tile16_blockset_bmp_.GetData();
-  auto gfx_tile8_data = rom_.GetVRAM().GetGraphicsData();
+void OverworldMap::BuildTiles16Gfx(int count, uchar* ow_blockset) {
+  auto gfx_tile16_data = ow_blockset;
+  auto gfx_tile8_data = rom_.GetMasterGraphicsBin();
 
   int offsets[] = {0, 8, 1024, 1032};
   auto yy = 0;
@@ -282,6 +288,24 @@ void OverworldMap::CopyTile(int x, int y, int xx, int yy, int offset,
   gfx16Pointer[index + r] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
+void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset) {
+  // (sourceX * 16) + (sourceY * 128)
+  int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) + ((tile / 8) * 2048);
+  auto source_ptr = ow_blockset;
+
+  int dest_ptr_pos = (x + (y * 512));
+  auto dest_ptr = bitmap_.GetData();
+
+  for (int ystrip = 0; ystrip < 16; ystrip++) {
+    for (int xstrip = 0; xstrip < 16; xstrip++) {
+      dest_ptr[dest_ptr_pos + xstrip + (ystrip * 512)] =
+          source_ptr[source_ptr_pos + xstrip + (ystrip * 128)];
+    }
+  }
+}
+
+// EXPERIMENTAL ----------------------------------------------------------------
+
 // map,current
 void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
                                  gfx::TileInfo tile, uchar* gfx16Pointer,
@@ -307,26 +331,10 @@ void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
   gfx16Pointer[index + r] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
-void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* destbmpPtr) {
-  // (sourceX * 16) + (sourceY * 128)
-  int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) + ((tile / 8) * 2048);
-  auto source_ptr = tile16_blockset_bmp_.GetData();
-
-  int dest_ptr_pos = (x + (y * 512));
-  auto dest_ptr = destbmpPtr;
-
-  for (int ystrip = 0; ystrip < 16; ystrip++) {
-    for (int xstrip = 0; xstrip < 16; xstrip++) {
-      dest_ptr[dest_ptr_pos + xstrip + (ystrip * 512)] =
-          source_ptr[source_ptr_pos + xstrip + (ystrip * 128)];
-    }
-  }
-}
-
 void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
-                                       uchar* destbmpPtr) {
-  auto gfx_tile16_data = destbmpPtr;
-  auto gfx_tile8_data = rom_.GetVRAM().GetGraphicsData();
+                                       uchar* current_gfx) {
+  auto gfx_tile16_data = rom_.GetMasterGraphicsBin();
+  auto gfx_tile8_data = current_gfx;
 
   auto tiles = tiles16_[tileID];
 
