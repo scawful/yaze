@@ -1,8 +1,5 @@
 #include "rom.h"
 
-#include <compressions/alttpcompression.h>
-#include <rommapping.h>
-
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
@@ -14,6 +11,7 @@
 
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/gfx/pseudo_vram.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
@@ -90,6 +88,16 @@ void ROM::LoadAllGraphicsData() {
   }
 
   master_gfx_bin_ = buffer;
+}
+
+uint ROM::GetGraphicsAddress(uint8_t offset) const {
+  uint snes_address = 0;
+  uint pc_address = 0;
+  snes_address = (uint)((((current_rom_[0x4F80 + offset]) << 16) |
+                         ((current_rom_[0x505F + offset]) << 8) |
+                         ((current_rom_[0x513E + offset]))));
+  pc_address = core::SnesToPc(snes_address);
+  return pc_address;
 }
 
 uchar *ROM::DecompressGraphics(int pos, int size) {
@@ -227,16 +235,6 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
   }
   converted_graphic_sheets_.push_back(sheet_buffer_out);
   return sheet_buffer_out;
-}
-
-uint ROM::GetGraphicsAddress(uint8_t offset) const {
-  uint snes_address = 0;
-  uint pc_address = 0;
-  snes_address = (uint)((((current_rom_[0x4F80 + offset]) << 16) |
-                         ((current_rom_[0x505F + offset]) << 8) |
-                         ((current_rom_[0x513E + offset]))));
-  pc_address = core::SnesToPc(snes_address);
-  return pc_address;
 }
 
 SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
