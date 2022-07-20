@@ -7,9 +7,8 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-void Overworld::Load(ROM &rom) {
+void Overworld::Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx) {
   rom_ = rom;
-  //mapblockset16.Create(128, 8192, 8, 1048576);
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
@@ -24,7 +23,8 @@ void Overworld::Load(ROM &rom) {
 
   auto size = tiles16.size();
   for (int i = 0; i < core::NumberOfOWMaps; i++) {
-    overworld_maps_[i].BuildMap(size, game_state_, map_parent_, map_tiles_);
+    overworld_maps_[i].BuildMap(size, game_state_, map_parent_, ow_blockset,
+                                current_gfx, map_tiles_);
   }
 
   is_loaded_ = true;

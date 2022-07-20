@@ -20,7 +20,7 @@ namespace zelda3 {
 
 class Overworld {
  public:
-  void Load(ROM &rom);
+  void Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx);
   auto GetTiles16() const { return tiles16; }
 
  private:
@@ -49,7 +49,6 @@ class Overworld {
   ROM rom_;
   OWMapTiles map_tiles_;
 
-  gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap overworld_map_bmp_;
 
