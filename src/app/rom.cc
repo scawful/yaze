@@ -58,8 +58,7 @@ void ROM::LoadFromPointer(uchar *data) { current_rom_ = data; }
 // 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
 // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 void ROM::LoadAllGraphicsData() {
-  int buffer_size = 346624;
-  auto buffer = new uchar[buffer_size];
+  auto buffer = new uchar[346624];
   auto data = new uchar[2048];
   int buffer_pos = 0;
 

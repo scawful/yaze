@@ -198,17 +198,25 @@ void OverworldEditor::DrawOverworldCanvas() {
   overworld_map_canvas_.DrawBackground();
   overworld_map_canvas_.UpdateContext();
   overworld_map_canvas_.DrawGrid(64.f);
-  if (overworld_.isLoaded()) {
-    // overworld_map_canvas_.GetDrawList()->AddImage(
-    //     (void *)overworld_.GetOverworldMap(0).GetBitmap().GetTexture(),
-    //     ImVec2(overworld_map_canvas_.GetZeroPoint().x + 2,
-    //            overworld_map_canvas_.GetZeroPoint().y + 2),
-    //     ImVec2(
-    //         overworld_map_canvas_.GetZeroPoint().x +
-    //             (overworld_.GetOverworldMap(0).GetBitmap().GetWidth() * 2),
-    //         overworld_map_canvas_.GetZeroPoint().y +
-    //             (overworld_.GetOverworldMap(0).GetBitmap().GetHeight() *
-    //             2)));
+  if (all_gfx_loaded_) {
+    static bool tiles_made = false;
+    static std::vector<gfx::Bitmap> tiles;
+    if (!tiles_made) {
+      tiles = graphics_bin_.at(0).CreateTiles();
+      auto renderer = rom_.Renderer();
+      for (auto &tile : tiles) {
+        tile.CreateTexture(renderer);
+      }
+    }
+
+    overworld_map_canvas_.GetDrawList()->AddImage(
+        (void *)tiles[0].GetTexture(),
+        ImVec2(overworld_map_canvas_.GetZeroPoint().x + 2,
+               overworld_map_canvas_.GetZeroPoint().y + 2),
+        ImVec2(
+            overworld_map_canvas_.GetZeroPoint().x + (tiles[0].GetWidth() * 2),
+            overworld_map_canvas_.GetZeroPoint().y +
+                (tiles[0].GetHeight() * 2)));
   }
   overworld_map_canvas_.DrawOverlay();
 }
