@@ -233,7 +233,11 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Current Graphics")) {
-      DrawAreaGraphics();
+      if (ImGui::BeginChild("#Tile16Child", ImGui::GetContentRegionAvail(),
+                            true, ImGuiWindowFlags_NoScrollbar)) {
+        DrawAreaGraphics();
+      }
+      ImGui::EndChild();
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();

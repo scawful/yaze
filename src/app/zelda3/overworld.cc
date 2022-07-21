@@ -14,16 +14,14 @@ void Overworld::Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx) {
   AssembleMap16Tiles();
   DecompressAllMapTiles();
 
-  // Map Initialization
   for (int i = 0; i < core::NumberOfOWMaps; i++) {
     overworld_maps_.emplace_back(i, rom_, tiles16);
   }
   FetchLargeMaps();
 
-  auto size = tiles16.size();
   for (int i = 0; i < core::NumberOfOWMaps; i++) {
-    overworld_maps_[i].BuildMap(size, game_state_, map_parent_, ow_blockset,
-                                current_gfx, map_tiles_);
+    overworld_maps_[i].BuildMap(tiles16.size(), game_state_, map_parent_,
+                                ow_blockset, current_gfx, map_tiles_);
   }
 
   is_loaded_ = true;
