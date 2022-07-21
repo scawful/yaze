@@ -58,7 +58,8 @@ void ROM::LoadFromPointer(uchar *data) { current_rom_ = data; }
 // 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
 // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 void ROM::LoadAllGraphicsData() {
-  auto buffer = new uchar[346624];
+  int buffer_size = 346624;
+  auto buffer = new uchar[buffer_size];
   auto data = new uchar[2048];
   int buffer_pos = 0;
 
@@ -75,16 +76,17 @@ void ROM::LoadAllGraphicsData() {
       data = Decompress(gfx_addr, core::UncompressedSheetSize);
     }
 
+    auto converted_sheet = SNES3bppTo8bppSheet(data);
     gfx::Bitmap tilesheet_bmp(core::kTilesheetWidth, core::kTilesheetHeight,
-                              core::kTilesheetDepth, SNES3bppTo8bppSheet(data));
+                              core::kTilesheetDepth, converted_sheet);
     tilesheet_bmp.CreateTexture(sdl_renderer_);
     graphics_bin_[i] = tilesheet_bmp;
 
-    for (int j = 0; j < sizeof(data); j++) {
-      buffer[j + buffer_pos] = data[j];
+    for (int j = 0; j < sizeof(converted_sheet); j++) {
+      buffer[j + buffer_pos] = converted_sheet[j];
     }
 
-    buffer_pos += sizeof(data);
+    buffer_pos += sizeof(converted_sheet);
   }
 
   master_gfx_bin_ = buffer;
