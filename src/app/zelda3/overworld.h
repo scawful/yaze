@@ -22,6 +22,8 @@ class Overworld {
  public:
   void Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx);
   auto GetTiles16() const { return tiles16; }
+  auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
+  auto isLoaded() const { return is_loaded_; }
 
  private:
   const int map32address[4] = {core::map32TilesTL, core::map32TilesTR,
@@ -40,7 +42,6 @@ class Overworld {
                         int sx, int sy, int tpos);
   void DecompressAllMapTiles();
   void FetchLargeMaps();
-  void LoadOverworldMap();
 
   int game_state_ = 1;
   uchar map_parent_[160];
@@ -48,9 +49,6 @@ class Overworld {
 
   ROM rom_;
   OWMapTiles map_tiles_;
-
-  gfx::Bitmap current_gfx_bmp_;
-  gfx::Bitmap overworld_map_bmp_;
 
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;

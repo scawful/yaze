@@ -101,8 +101,6 @@ void OverworldMap::LoadAreaInfo() {
     sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
     sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
   }
-
-  std::cout << "Loading header for overworld area #" << index_ << std::endl;
 }
 
 void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
@@ -150,8 +148,6 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
       CopyTile8bpp16((x * 16), (y * 16), tiles_used_[xt][yt], ow_blockset);
     }
   }
-
-  std::cout << "Finished building overworld map #" << index_ << std::endl;
 }
 
 void OverworldMap::BuildTileset(int game_state, uchar* current_gfx) {
@@ -210,8 +206,7 @@ void OverworldMap::BuildTileset(int game_state, uchar* current_gfx) {
     static_graphics_[7] = 91;
   }
 
-  uchar* current_map_gfx_tile8_data = current_gfx;
-  uchar const* all_gfx_data = rom_.GetMasterGraphicsBin();
+  auto all_gfx_data = rom_.GetMasterGraphicsBin();
 
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {
@@ -224,8 +219,9 @@ void OverworldMap::BuildTileset(int game_state, uchar* current_gfx) {
           mapByte += 0x88;
           break;
       }
+
       // Upload used gfx data
-      current_map_gfx_tile8_data[(i * 2048) + j] = mapByte;
+      current_gfx[(i * 2048) + j] = mapByte;
     }
   }
 }
