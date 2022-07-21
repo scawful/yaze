@@ -16,6 +16,7 @@ class Bitmap {
  public:
   Bitmap() = default;
   Bitmap(int width, int height, int depth, uchar *data);
+  Bitmap(int width, int height, int depth, int data_size);
 
   void Create(int width, int height, int depth, uchar *data);
   void Create(int width, int height, int depth, int data_size);
@@ -25,10 +26,13 @@ class Bitmap {
 
   void ApplyPalette(const SNESPalette &palette);
 
+  std::vector<Bitmap> CreateTiles();
+
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
-  uchar *GetData() const { return pixel_data_; }
-  SDL_Texture *GetTexture() const { return texture_; }
+  auto GetData() const { return pixel_data_; }
+  auto GetTexture() const { return texture_; }
+  auto GetSurface() const { return surface_; }
 
  private:
   int width_ = 0;
