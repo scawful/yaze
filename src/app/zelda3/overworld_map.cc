@@ -207,7 +207,6 @@ void OverworldMap::BuildTileset(int game_state, uchar* current_gfx) {
   }
 
   auto all_gfx_data = rom_.GetMasterGraphicsBin();
-
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {
       uchar mapByte = all_gfx_data[j + (static_graphics_[i] * 2048)];

@@ -54,7 +54,14 @@ class OverworldEditor {
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
 
-  std::unordered_map<unsigned int, SDL_Texture *> all_texture_sheet_;
+  ImVec4 current_palette_[8];
+
+  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
+  ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
+  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
+                                  ImGuiTableFlags_Resizable |
+                                  ImGuiTableFlags_SizingStretchSame;
+
   std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
 
   ROM rom_;
@@ -69,14 +76,6 @@ class OverworldEditor {
   gui::Canvas current_gfx_canvas_;
   gui::Canvas blockset_canvas_;
   gui::Canvas graphics_bin_canvas_;
-
-  ImVec4 current_palette_[8];
-
-  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
-  ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
-  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
-                                  ImGuiTableFlags_Resizable |
-                                  ImGuiTableFlags_SizingStretchSame;
 };
 }  // namespace editor
 }  // namespace app
