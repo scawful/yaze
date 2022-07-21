@@ -19,7 +19,6 @@ void Overworld::Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx) {
     overworld_maps_.emplace_back(i, rom_, tiles16);
   }
   FetchLargeMaps();
-  LoadOverworldMap();
 
   auto size = tiles16.size();
   for (int i = 0; i < core::NumberOfOWMaps; i++) {
@@ -215,27 +214,6 @@ void Overworld::FetchLargeMaps() {
       }
     }
   }
-}
-
-void Overworld::LoadOverworldMap() {
-  overworld_map_bmp_.Create(128, 128, 8, 0x40000);
-  auto ptr = overworld_map_bmp_.GetData();
-
-  int pos = 0;
-  for (int sy = 0; sy < 16; sy++) {
-    for (int sx = 0; sx < 16; sx++) {
-      for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-          auto position = x + (sx * 8) + (y * 128) + (sy * 1024);
-          ptr[position] = rom_.data()[0x0C4000 + pos];
-          pos++;
-        }
-      }
-    }
-  }
-
-  auto renderer = rom_.Renderer();
-  overworld_map_bmp_.CreateTexture(renderer);
 }
 
 }  // namespace zelda3

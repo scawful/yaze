@@ -22,15 +22,15 @@ class OverworldMap {
   void BuildMap(int count, int game_state, uchar* map_parent,
                 uchar* ow_blockset, uchar* current_gfx, OWMapTiles& map_tiles);
 
+  auto GetBitmap() { return bitmap_; }
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
   auto IsLargeMap() { return large_map_; }
-  auto GetBitmap() { return bitmap_; }
 
  private:
   void LoadAreaInfo();
   void BuildTileset(int game_state, uchar* current_gfx);
   void BuildTiles16Gfx(int count, uchar* ow_blockset);
-  
+
   void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
                 uchar* gfx16Pointer, uchar* gfx8Pointer);
 
@@ -51,11 +51,11 @@ class OverworldMap {
   uchar sprite_palette_[3];
   uchar area_music_[4];
   uchar static_graphics_[16];
-  gfx::Bitmap bitmap_;
-  uchar* gfxPtr = new uchar[512 * 512];
 
   bool initialized_ = false;
   bool large_map_ = false;
+
+  gfx::Bitmap bitmap_;
 
   std::vector<gfx::Tile16> tiles16_;
   std::vector<std::vector<ushort>> tiles_used_;
