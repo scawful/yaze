@@ -36,26 +36,25 @@ target_include_directories(NintendoCompression PUBLIC "/usr/local/Cellar/libpng/
 add_executable(
     yaze
     yaze.cc
+    app/core/common.cc
+    app/core/controller.cc
+    app/editor/assembly_editor.cc
+    app/editor/dungeon_editor.cc
+    app/editor/master_editor.cc
+    app/editor/overworld_editor.cc
+    app/editor/screen_editor.cc
+    app/gfx/bitmap.cc
+    app/gfx/pseudo_vram.cc
+    app/gfx/snes_palette.cc
+    app/gfx/snes_tile.cc
+    app/zelda3/overworld_map.cc
+    app/zelda3/overworld.cc
+    app/zelda3/screen.cc
+    app/rom.cc
+    gui/canvas.cc
     gui/input.cc
     gui/style.cc
     gui/widgets.cc
-    gui/canvas.cc
-    app/editor/master_editor.cc
-    app/editor/assembly_editor.cc
-    app/editor/dungeon_editor.cc
-    app/editor/overworld_editor.cc
-    app/editor/screen_editor.cc
-    app/rom.cc
-    app/core/common.cc
-    app/core/constants.cc
-    app/core/controller.cc
-    app/gfx/bitmap.cc
-    app/gfx/pseudo_vram.cc
-    app/gfx/snes_tile.cc
-    app/gfx/snes_palette.cc
-    app/zelda3/overworld.cc
-    app/zelda3/overworld_map.cc
-    app/zelda3/screen.cc
     # GUI libraries 
     ${IMGUI_PATH}/imgui.cpp 
     ${IMGUI_PATH}/imgui_demo.cpp
@@ -80,9 +79,6 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/src/
   lib/
   app/
-  "C:/msys64/mingw64/include/libpng16"
-  "C:/msys64/mingw64/include/SDL2"
-  "C:/msys64/mingw64/include"
   ${SNESHACKING_PATH}
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
@@ -91,6 +87,10 @@ target_include_directories(
 
 target_link_libraries(
   yaze
+  absl::strings
+  absl::flags
+  absl::status
+  absl::statusor
   SDL2main
   ${PNG_LIBRARIES}
   ${SDL2_LIBRARIES} 

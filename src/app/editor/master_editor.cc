@@ -6,6 +6,7 @@
 #include <imgui/imgui_memory_editor.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
+#include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
@@ -21,15 +22,6 @@
 namespace yaze {
 namespace app {
 namespace editor {
-
-MasterEditor::MasterEditor() {
-  for (int i = 0; i < 8; i++) {
-    current_palette_[i].x = (i * 0.21f);
-    current_palette_[i].y = (i * 0.21f);
-    current_palette_[i].z = (i * 0.21f);
-    current_palette_[i].w = 1.f;
-  }
-}
 
 MasterEditor::~MasterEditor() { rom_.Close(); }
 
@@ -59,6 +51,10 @@ void MasterEditor::UpdateScreen() {
   DrawScreenEditor();
   END_TAB_BAR()
 
+  if (!status_.ok()) {
+    gui::widgets::DisplayStatus(status_);
+  }
+
   ImGui::End();
 }
 
@@ -75,6 +71,7 @@ void MasterEditor::DrawYazeMenu() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       rom_.LoadFromFile(filePathName);
+      status_ = rom_.OpenFromFile(filePathName);
       overworld_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();

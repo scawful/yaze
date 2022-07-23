@@ -3,13 +3,18 @@
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 
+#include "absl/status/status.h"
+#include "app/core/constants.h"
+
 namespace yaze {
 namespace gui {
 namespace widgets {
 
+void DisplayStatus(const absl::Status& status);
+
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
 
-}
+}  // namespace widgets
 }  // namespace gui
 }  // namespace yaze
 

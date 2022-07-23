@@ -10,6 +10,11 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/pseudo_vram.h"
@@ -18,12 +23,6 @@
 namespace yaze {
 namespace app {
 
-struct OWMapTiles {
-  std::vector<std::vector<ushort>> light_world;    // 64 maps * (32*32 tiles)
-  std::vector<std::vector<ushort>> dark_world;     // 64 maps * (32*32 tiles)
-  std::vector<std::vector<ushort>> special_world;  // 32 maps * (32*32 tiles)
-} typedef OWMapTiles;
-
 constexpr int kCommandDirectCopy = 0;
 constexpr int kCommandByteFill = 1;
 constexpr int kCommandWordFill = 2;
@@ -31,8 +30,17 @@ constexpr int kCommandIncreasingFill = 3;
 constexpr int kCommandRepeatingBytes = 4;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
+
+struct OWMapTiles {
+  std::vector<std::vector<ushort>> light_world;    // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> dark_world;     // 64 maps * (32*32 tiles)
+  std::vector<std::vector<ushort>> special_world;  // 32 maps * (32*32 tiles)
+} typedef OWMapTiles;
+
 class ROM {
  public:
+  absl::Status OpenFromFile(const absl::string_view& filename);
+
   void Close();
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
@@ -44,6 +52,11 @@ class ROM {
   uchar* DecompressGraphics(int pos, int size);
   uchar* DecompressOverworld(int pos, int size);
   uchar* Decompress(int pos, int size = 0x800, bool reversed = false);
+
+  absl::StatusOr<Bytes> DecompressV2(int offset, int size = 0x800,
+                                     bool reversed = false);
+  absl::StatusOr<Bytes> Convert3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
+
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
                              int size = 0x1000);
 
@@ -69,6 +82,8 @@ class ROM {
   ImVec4 display_palette_[8];
 
   gfx::pseudo_vram pseudo_vram_;
+  std::vector<uchar> rom_data_;
+
   std::vector<uchar*> decompressed_graphic_sheets_;
   std::vector<uchar*> converted_graphic_sheets_;
   std::shared_ptr<SDL_Renderer> sdl_renderer_;

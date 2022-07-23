@@ -7,6 +7,7 @@
 #include <imgui/imgui_memory_editor.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
+#include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
@@ -25,7 +26,6 @@ namespace editor {
 
 class MasterEditor {
  public:
-  MasterEditor();
   ~MasterEditor();
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
@@ -47,6 +47,8 @@ class MasterEditor {
   OverworldEditor overworld_editor_;
   DungeonEditor dungeon_editor_;
   ScreenEditor screen_editor_;
+
+  absl::Status status_;
 
   ImVec4 current_palette_[8];
 

@@ -9,6 +9,11 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/pseudo_vram.h"
@@ -16,6 +21,24 @@
 
 namespace yaze {
 namespace app {
+
+absl::Status ROM::OpenFromFile(const absl::string_view &filename) {
+  std::ifstream file(filename.data(), std::ios::binary);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrCat("Could not open ROM file ", filename));
+  }
+  size_ = std::filesystem::file_size(filename);
+  rom_data_.resize(size_);
+  for (auto i = 0; i < size_; ++i) {
+    char byte_to_read = ' ';
+    file.read(&byte_to_read, sizeof(char));
+    rom_data_[i] = byte_to_read;
+  }
+  file.close();
+  is_loaded_ = true;
+  return absl::OkStatus();
+}
 
 void ROM::Close() {
   if (is_loaded_) {
@@ -185,6 +208,137 @@ uchar *ROM::Decompress(int pos, int size, bool reversed) {
   num_sheets_++;
   decompressed_graphic_sheets_.push_back(buffer);
   return buffer;
+}
+
+absl::StatusOr<Bytes> ROM::DecompressV2(int offset, int size, bool reversed) {
+  Bytes buffer(size);
+  uint length = 0;
+  uint buffer_pos = 0;
+  uchar cmd = 0;
+
+  uchar databyte = rom_data_[offset];
+  while (databyte != 0xFF) {  // End of decompression
+    databyte = rom_data_[offset];
+
+    // Expanded Command
+    if ((databyte & 0xE0) == 0xE0) {
+      cmd = ((databyte >> 2) & 0x07);
+      length = (((rom_data_[offset] << 8) | rom_data_[offset + 1]) & 0x3FF);
+      offset += 2;  // Advance 2 bytes in ROM
+    } else {        // Normal Command
+      cmd = ((databyte >> 5) & 0x07);
+      length = (databyte & 0x1F);
+      offset += 1;  // Advance 1 byte in ROM
+    }
+    length += 1;  // each commands is at least of size 1 even if index 00
+
+    switch (cmd) {
+      case kCommandDirectCopy:
+        for (int i = 0; i < length; i++) {
+          buffer[buffer_pos++] = rom_data_[offset++];
+        }
+        // Do not advance in the ROM
+        break;
+      case kCommandByteFill:
+        for (int i = 0; i < length; i++) {
+          buffer[buffer_pos++] = rom_data_[offset];
+        }
+        offset += 1;  // Advance 1 byte in the ROM
+        break;
+      case kCommandWordFill:
+        for (int i = 0; i < length; i += 2) {
+          buffer[buffer_pos++] = rom_data_[offset];
+          buffer[buffer_pos++] = rom_data_[offset + 1];
+        }
+        offset += 2;  // Advance 2 byte in the ROM
+        break;
+      case kCommandIncreasingFill: {
+        uchar inc_byte = rom_data_[offset];
+        for (int i = 0; i < length; i++) {
+          buffer[buffer_pos++] = inc_byte++;
+        }
+        offset += 1;  // Advance 1 byte in the ROM
+      } break;
+      case kCommandRepeatingBytes: {
+        ushort s1 = ((rom_data_[offset + 1] & 0xFF) << 8);
+        ushort s2 = ((rom_data_[offset] & 0xFF));
+        // Reversed byte order for overworld maps
+        if (reversed) {
+          auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
+
+          if (addr > buffer_pos) {
+            return absl::InternalError(
+                absl::StrFormat("DecompressOverworldV2: Offset for command "
+                                "copy existing is larger than the current "
+                                "position (Offset : %#04x | Pos %#06x\n",
+                                addr, buffer_pos));
+          }
+
+          if (buffer_pos + length >= size) {
+            size *= 2;
+            buffer.resize(size);
+            std::cout << "DecompressOverworldV2: Reallocating buffer";
+          }
+          memcpy(buffer.data() + buffer_pos, rom_data_.data() + offset, length);
+          offset += 2;
+        } else {
+          auto addr = (ushort)(s1 | s2);
+          for (int i = 0; i < length; i++) {
+            buffer[buffer_pos] = buffer[addr + i];
+            buffer_pos++;
+          }
+          offset += 2;  // Advance 2 bytes in the ROM
+        }
+      } break;
+      default: {
+        return absl::InternalError(
+            "DecompressV2: Invalid command in the header for decompression");
+      }
+    }
+  }
+
+  return buffer;
+}
+
+absl::StatusOr<Bytes> ROM::Convert3bppTo8bppSheet(Bytes sheet, int size) {
+  Bytes sheet_buffer_out(size);
+  int xx = 0;  // positions where we are at on the sheet
+  int yy = 0;
+  int pos = 0;
+  int ypos = 0;
+
+  // for each tiles, 16 per line
+  for (int i = 0; i < 64; i++) {
+    // for each line
+    for (int y = 0; y < 8; y++) {
+      //[0] + [1] + [16]
+      for (int x = 0; x < 8; x++) {
+        auto b1 = ((sheet[(y * 2) + (24 * pos)] & (kGraphicsBitmap[x])));
+        auto b2 = (sheet[((y * 2) + (24 * pos)) + 1] & (kGraphicsBitmap[x]));
+        auto b3 = (sheet[(16 + y) + (24 * pos)] & (kGraphicsBitmap[x]));
+        unsigned char b = 0;
+        if (b1 != 0) {
+          b |= 1;
+        }
+        if (b2 != 0) {
+          b |= 2;
+        }
+        if (b3 != 0) {
+          b |= 4;
+        }
+        sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
+      }
+    }
+    pos++;
+    ypos++;
+    xx += 8;
+    if (ypos >= 16) {
+      yy++;
+      xx = 0;
+      ypos = 0;
+    }
+  }
+  return sheet_buffer_out;
 }
 
 // 128x32

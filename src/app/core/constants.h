@@ -1,8 +1,9 @@
 #ifndef YAZE_APP_CORE_CONSTANTS_H
 #define YAZE_APP_CORE_CONSTANTS_H
 
-#include <array>
-#include <string>
+#include <vector>
+
+#include "absl/strings/string_view.h"
 
 #define BASIC_BUTTON(w) if (ImGui::Button(w))
 
@@ -24,6 +25,7 @@
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
+using Bytes = std::vector<uchar>;
 
 namespace yaze {
 namespace app {
@@ -433,86 +435,86 @@ constexpr int crystalVertices = 0x04FF98;
 //===========================================================================================
 // Names
 //===========================================================================================
-static const std::string RoomEffect[] = {"Nothing",
-                                         "Nothing",
-                                         "Moving Floor",
-                                         "Moving Water",
-                                         "Trinexx Shell",
-                                         "Red Flashes",
-                                         "Light Torch to See Floor",
-                                         "Ganon's Darkness"};
+static const absl::string_view RoomEffect[] = {"Nothing",
+                                               "Nothing",
+                                               "Moving Floor",
+                                               "Moving Water",
+                                               "Trinexx Shell",
+                                               "Red Flashes",
+                                               "Light Torch to See Floor",
+                                               "Ganon's Darkness"};
 
-static const std::string RoomTag[] = {"Nothing",
+static const absl::string_view RoomTag[] = {"Nothing",
 
-                                      "NW Kill Enemy to Open",
-                                      "NE Kill Enemy to Open",
-                                      "SW Kill Enemy to Open",
-                                      "SE Kill Enemy to Open",
-                                      "W Kill Enemy to Open",
-                                      "E Kill Enemy to Open",
-                                      "N Kill Enemy to Open",
-                                      "S Kill Enemy to Open",
-                                      "Clear Quadrant to Open",
-                                      "Clear Full Tile to Open",
+                                            "NW Kill Enemy to Open",
+                                            "NE Kill Enemy to Open",
+                                            "SW Kill Enemy to Open",
+                                            "SE Kill Enemy to Open",
+                                            "W Kill Enemy to Open",
+                                            "E Kill Enemy to Open",
+                                            "N Kill Enemy to Open",
+                                            "S Kill Enemy to Open",
+                                            "Clear Quadrant to Open",
+                                            "Clear Full Tile to Open",
 
-                                      "NW Push Block to Open",
-                                      "NE Push Block to Open",
-                                      "SW Push Block to Open",
-                                      "SE Push Block to Open",
-                                      "W Push Block to Open",
-                                      "E Push Block to Open",
-                                      "N Push Block to Open",
-                                      "S Push Block to Open",
-                                      "Push Block to Open",
-                                      "Pull Lever to Open",
-                                      "Collect Prize to Open",
+                                            "NW Push Block to Open",
+                                            "NE Push Block to Open",
+                                            "SW Push Block to Open",
+                                            "SE Push Block to Open",
+                                            "W Push Block to Open",
+                                            "E Push Block to Open",
+                                            "N Push Block to Open",
+                                            "S Push Block to Open",
+                                            "Push Block to Open",
+                                            "Pull Lever to Open",
+                                            "Collect Prize to Open",
 
-                                      "Hold Switch Open Door",
-                                      "Toggle Switch to Open Door",
-                                      "Turn off Water",
-                                      "Turn on Water",
-                                      "Water Gate",
-                                      "Water Twin",
-                                      "Moving Wall Right",
-                                      "Moving Wall Left",
-                                      "Crash",
-                                      "Crash",
-                                      "Push Switch Exploding Wall",
-                                      "Holes 0",
-                                      "Open Chest (Holes 0)",
-                                      "Holes 1",
-                                      "Holes 2",
-                                      "Defeat Boss for Dungeon Prize",
+                                            "Hold Switch Open Door",
+                                            "Toggle Switch to Open Door",
+                                            "Turn off Water",
+                                            "Turn on Water",
+                                            "Water Gate",
+                                            "Water Twin",
+                                            "Moving Wall Right",
+                                            "Moving Wall Left",
+                                            "Crash",
+                                            "Crash",
+                                            "Push Switch Exploding Wall",
+                                            "Holes 0",
+                                            "Open Chest (Holes 0)",
+                                            "Holes 1",
+                                            "Holes 2",
+                                            "Defeat Boss for Dungeon Prize",
 
-                                      "SE Kill Enemy to Push Block",
-                                      "Trigger Switch Chest",
-                                      "Pull Lever Exploding Wall",
-                                      "NW Kill Enemy for Chest",
-                                      "NE Kill Enemy for Chest",
-                                      "SW Kill Enemy for Chest",
-                                      "SE Kill Enemy for Chest",
-                                      "W Kill Enemy for Chest",
-                                      "E Kill Enemy for Chest",
-                                      "N Kill Enemy for Chest",
-                                      "S Kill Enemy for Chest",
-                                      "Clear Quadrant for Chest",
-                                      "Clear Full Tile for Chest",
+                                            "SE Kill Enemy to Push Block",
+                                            "Trigger Switch Chest",
+                                            "Pull Lever Exploding Wall",
+                                            "NW Kill Enemy for Chest",
+                                            "NE Kill Enemy for Chest",
+                                            "SW Kill Enemy for Chest",
+                                            "SE Kill Enemy for Chest",
+                                            "W Kill Enemy for Chest",
+                                            "E Kill Enemy for Chest",
+                                            "N Kill Enemy for Chest",
+                                            "S Kill Enemy for Chest",
+                                            "Clear Quadrant for Chest",
+                                            "Clear Full Tile for Chest",
 
-                                      "Light Torches to Open",
-                                      "Holes 3",
-                                      "Holes 4",
-                                      "Holes 5",
-                                      "Holes 6",
-                                      "Agahnim Room",
-                                      "Holes 7",
-                                      "Holes 8",
-                                      "Open Chest for Holes 8",
-                                      "Push Block for Chest",
-                                      "Clear Room for Triforce Door",
-                                      "Light Torches for Chest",
-                                      "Kill Boss Again"};
+                                            "Light Torches to Open",
+                                            "Holes 3",
+                                            "Holes 4",
+                                            "Holes 5",
+                                            "Holes 6",
+                                            "Agahnim Room",
+                                            "Holes 7",
+                                            "Holes 8",
+                                            "Open Chest for Holes 8",
+                                            "Push Block for Chest",
+                                            "Clear Room for Triforce Door",
+                                            "Light Torches for Chest",
+                                            "Kill Boss Again"};
 
-static const std::string SecretItemNames[] = {
+static const absl::string_view SecretItemNames[] = {
     "Nothing",    "Green Rupee", "Rock hoarder",  "Bee",       "Health pack",
     "Bomb",       "Heart ",      "Blue Rupee",
 
@@ -524,7 +526,7 @@ static const std::string SecretItemNames[] = {
 
     "Hole",       "Warp",        "Staircase",     "Bombable",  "Switch"};
 
-static const std::string Type1RoomObjectNames[] = {
+static const absl::string_view Type1RoomObjectNames[] = {
     "Ceiling ↔",
     "Wall (top, north) ↔",
     "Wall (top, south) ↔",
@@ -775,7 +777,7 @@ static const std::string Type1RoomObjectNames[] = {
     "Nothing",
 };
 
-static const std::string Type2RoomObjectNames[] = {
+static const absl::string_view Type2RoomObjectNames[] = {
     "Corner (top, concave) ▛",
     "Corner (top, concave) ▙",
     "Corner (top, concave) ▜",
@@ -842,7 +844,7 @@ static const std::string Type2RoomObjectNames[] = {
     "Magic bat altar",
 };
 
-static const std::string Type3RoomObjectNames[] = {
+static const absl::string_view Type3RoomObjectNames[] = {
     "Waterfall face (empty)",
     "Waterfall face (short)",
     "Waterfall face (long)",
@@ -973,7 +975,7 @@ static const std::string Type3RoomObjectNames[] = {
     "Nothing",
 };
 
-static const std::string TileTypeNames[] = {
+static const absl::string_view TileTypeNames[] = {
     "$00 Nothing (standard floor)",
     "$01 Collision",
     "$02 Collision",
