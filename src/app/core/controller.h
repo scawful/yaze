@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
 #include "app/editor/master_editor.h"
 #include "gui/icons.h"
 #include "gui/style.h"
@@ -22,8 +23,6 @@ namespace core {
 
 class Controller {
  public:
-  Controller() = default;
-
   bool isActive() const;
   void onEntry();
   void onInput();
@@ -32,22 +31,27 @@ class Controller {
   void onExit() const;
 
  private:
-  void CreateWindow();
-  void CreateRenderer();
-  void CreateGuiContext() const;
-  void quit() { active_ = false; }
-  friend int ::main(int argc, char **argv);
-
   struct sdl_deleter {
     void operator()(SDL_Window *p) const { SDL_DestroyWindow(p); }
     void operator()(SDL_Renderer *p) const { SDL_DestroyRenderer(p); }
     void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
   };
 
+  void CreateWindow();
+  void CreateRenderer();
+  void CreateGuiContext() const;
+  void CloseWindow() { active_ = false; }
+
+  absl::Status CreateWindowV2();
+  absl::Status CreateRendererV2();
+  absl::Status CreateGuiContextV2();
+
+  friend int ::main(int argc, char **argv);
+
   bool active_;
   editor::MasterEditor master_editor_;
-  std::shared_ptr<SDL_Window> sdl_window_;
-  std::shared_ptr<SDL_Renderer> sdl_renderer_;
+  std::shared_ptr<SDL_Window> window_;
+  std::shared_ptr<SDL_Renderer> renderer_;
 };
 
 }  // namespace core
