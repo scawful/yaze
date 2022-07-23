@@ -18,7 +18,7 @@ namespace zelda3 {
 
 OverworldMap::OverworldMap(int index, ROM& rom,
                            const std::vector<gfx::Tile16>& tiles16)
-    : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
+    : parent_(index), index_(index), tiles16_(tiles16), rom_(rom) {
   LoadAreaInfo();
   bitmap_.Create(512, 512, 8, 512 * 512);
 }

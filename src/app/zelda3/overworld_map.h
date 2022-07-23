@@ -1,3 +1,6 @@
+#ifndef YAZE_APP_ZELDA3_OVERWORLD_MAP_H
+#define YAZE_APP_ZELDA3_OVERWORLD_MAP_H
+
 #include <imgui/imgui.h>
 
 #include <cstddef>
@@ -66,3 +69,5 @@ class OverworldMap {
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
+
+#endif
