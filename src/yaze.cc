@@ -1,4 +1,4 @@
-#include "yaze.h"
+#include "app/core/controller.h"
 
 int main(int argc, char** argv) {
   yaze::app::core::Controller controller;
