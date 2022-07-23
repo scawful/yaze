@@ -96,14 +96,12 @@ std::vector<Bitmap> Bitmap::CreateTiles() {
   std::vector<Bitmap> tiles;
   for (int i = 0; i < 16; ++i) {
     for (int j = 0; j < 4; ++j) {
-      tiles.emplace_back(8, 8, 8, 32);
-      auto surface = tiles[i + j].GetSurface();
-      SDL_Rect src_rect;
-      src_rect.x = i;
-      src_rect.y = j;
-      src_rect.w = 8;
-      src_rect.h = 8;
-      SDL_BlitSurface(surface_, &src_rect, surface, NULL);
+      Bitmap bmp;
+      bmp.Create(8, 8, 8, 32);
+      auto surface = bmp.GetSurface();
+      SDL_Rect src_rect = {i, j, 8, 8};
+      SDL_BlitSurface(surface_, &src_rect, surface, nullptr);
+      tiles.push_back(bmp);
     }
   }
   return tiles;
