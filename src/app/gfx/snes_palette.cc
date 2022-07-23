@@ -3,7 +3,6 @@
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
 #include <palette.h>
-#include <tile.h>
 
 #include <cstdint>
 #include <cstdlib>
@@ -60,7 +59,8 @@ SNESPalette::SNESPalette(char* data) : size_(sizeof(data) / 2) {
   }
 }
 
-SNESPalette::SNESPalette(const unsigned char* snes_pal) : size_(sizeof(snes_pal) / 2) {
+SNESPalette::SNESPalette(const unsigned char* snes_pal)
+    : size_(sizeof(snes_pal) / 2) {
   assert((sizeof(snes_pal) % 4 == 0) && (sizeof(snes_pal) <= 32));
   for (unsigned i = 0; i < sizeof(snes_pal); i += 2) {
     SNESColor col;
@@ -72,7 +72,7 @@ SNESPalette::SNESPalette(const unsigned char* snes_pal) : size_(sizeof(snes_pal)
   }
 }
 
-SNESPalette::SNESPalette(const std::vector<ImVec4> & cols) {
+SNESPalette::SNESPalette(const std::vector<ImVec4>& cols) {
   for (const auto& each : cols) {
     SNESColor scol;
     scol.setRgb(each);
@@ -102,8 +102,7 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
     color[i].g = (uint8_t)colors[i].rgb.y * 100;
     color[i].b = (uint8_t)colors[i].rgb.z * 100;
     std::cout << "Color " << i << " added (R:" << color[i].r
-              << " G:" << color[i].g << " B:" << color[i].b << ")"
-              << std::endl;
+              << " G:" << color[i].g << " B:" << color[i].b << ")" << std::endl;
   }
   sdl_palette->colors = color.data();
 

@@ -4,7 +4,6 @@
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
 #include <palette.h>
-#include <tile.h>
 
 #include <cstdint>
 #include <cstdlib>

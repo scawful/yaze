@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "app/core/constants.h"
-#include "app/gfx/snes_palette.h"
 
 namespace yaze {
 namespace app {
