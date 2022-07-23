@@ -29,11 +29,9 @@ class pseudo_vram {
   void ChangeSpritePalette(const SNESPalette& sprite_pal);
 
   auto GetTileset(int index) const { return m_vram.at(index); }
-  auto GetGraphicsData() const { return gfx_data_; }
 
  private:
   static const uint32_t REAL_VRAM_SIZE = 0x8000;
-  uchar* gfx_data_ = new uchar[(128 * 512) / 2];
   std::unordered_map<int, Bitmap> m_vram;
 };
 
