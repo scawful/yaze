@@ -6,11 +6,13 @@
 #include <unordered_map>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/zelda3/overworld.h"
+#include "gui/canvas.h"
 #include "gui/icons.h"
 
 /**
@@ -34,18 +36,20 @@ namespace editor {
 
 void OverworldEditor::SetupROM(ROM &rom) { rom_ = rom; }
 
-void OverworldEditor::Update() {
+absl::Status OverworldEditor::Update() {
   if (rom_.isLoaded() && !all_gfx_loaded_) {
     LoadGraphics();
     all_gfx_loaded_ = true;
   }
 
-  DrawToolset();
+  auto toolset_status = DrawToolset();
+  if (!toolset_status.ok()) return toolset_status;
+
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn(" Canvas", ImGuiTableColumnFlags_WidthStretch,
+    ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                             ImGui::GetContentRegionAvail().x);
-    ImGui::TableSetupColumn(" Tile Selector");
+    ImGui::TableSetupColumn("Tile Selector");
     ImGui::TableHeadersRow();
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
@@ -54,72 +58,56 @@ void OverworldEditor::Update() {
     DrawTileSelector();
     ImGui::EndTable();
   }
+
+  return absl::OkStatus();
 }
 
-void OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("Toolset", 17, toolset_table_flags, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#undoTool");
-    ImGui::TableSetupColumn("#redoTool");
-    ImGui::TableSetupColumn("#drawTool");
-    ImGui::TableSetupColumn("#separator2");
-    ImGui::TableSetupColumn("#zoomOutTool");
-    ImGui::TableSetupColumn("#zoomInTool");
-    ImGui::TableSetupColumn("#separator");
-    ImGui::TableSetupColumn("#history");
-    ImGui::TableSetupColumn("#entranceTool");
-    ImGui::TableSetupColumn("#exitTool");
-    ImGui::TableSetupColumn("#itemTool");
-    ImGui::TableSetupColumn("#spriteTool");
-    ImGui::TableSetupColumn("#transportTool");
-    ImGui::TableSetupColumn("#musicTool");
-    ImGui::TableSetupColumn("#separator3");
-    ImGui::TableSetupColumn("#reloadTool");
+absl::Status OverworldEditor::DrawToolset() {
+  if (ImGui::BeginTable("OWToolset", 17, toolset_table_flags, ImVec2(0, 0))) {
+    for (const auto &name : kToolsetColumnNames)
+      ImGui::TableSetupColumn(name.data());
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_UNDO);
-
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_REDO);
-
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_ZOOM_OUT);
-
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_ZOOM_IN);
-
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_DRAW);
-
+    // Entrances
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_DOOR_FRONT);
-
+    // Exits
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_DOOR_BACK);
-
+    // Items
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_GRASS);
-
+    // Sprites
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
-
+    // Transports
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_ADD_LOCATION);
-
+    // Music
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_MUSIC_NOTE);
-
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
-
+    // Load Overworld
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
-      overworld_.Load(rom_, tile16_blockset_bmp_.GetData());
+      auto ow_status = overworld_.Load(rom_, tile16_blockset_bmp_.GetData());
+      if (!ow_status.ok()) return ow_status;
     }
 
     ImGui::TableNextColumn();
@@ -138,6 +126,7 @@ void OverworldEditor::DrawToolset() {
 
     ImGui::EndTable();
   }
+  return absl::OkStatus();
 }
 
 void OverworldEditor::DrawOverworldMapSettings() {

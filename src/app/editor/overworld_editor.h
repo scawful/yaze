@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -26,13 +27,19 @@ static constexpr unsigned int kNumSheetsToLoad = 223;
 static constexpr unsigned int kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
+static constexpr absl::string_view kToolsetColumnNames[] = {
+    "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
+    "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
+    "#transportTool", "#musicTool",  "#separator3", "#reloadTool"};
+
 class OverworldEditor {
  public:
   void SetupROM(ROM &rom);
-  void Update();
+  absl::Status Update();
 
  private:
-  void DrawToolset();
+  absl::Status DrawToolset();
   void DrawOverworldMapSettings();
   void DrawOverworldCanvas();
   void DrawTileSelector();
