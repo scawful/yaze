@@ -22,12 +22,13 @@ static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
 class OverworldMap {
  public:
-  OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16);
+  OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16,
+               const OWMapTiles& map_tiles);
 
   void BuildMap(int count, int game_state, uchar* map_parent,
                 uchar* ow_blockset, OWMapTiles& map_tiles);
 
-  void BuildMapV2(int count, int game_state, uchar* map_parent);
+  absl::Status BuildMapV2(int count, int game_state, uchar* map_parent);
 
   auto GetBitmap() { return bitmap_; }
   auto GetCurrentGraphicsSet() { return current_graphics_sheet_set; }
@@ -53,6 +54,7 @@ class OverworldMap {
 
   int parent_ = 0;
   int index_ = 0;
+  int world_ = 0;
   int message_id_ = 0;
   int area_graphics_ = 0;
   int area_palette_ = 0;
@@ -65,14 +67,13 @@ class OverworldMap {
   bool initialized_ = false;
   bool large_map_ = false;
 
+  ROM rom_;
+  OWMapTiles map_tiles_;
+
   gfx::Bitmap bitmap_;
 
   std::vector<gfx::Tile16> tiles16_;
-  std::vector<std::vector<ushort>> tiles_used_;
-
   absl::flat_hash_map<int, gfx::Bitmap> current_graphics_sheet_set;
-
-  ROM rom_;
 };
 
 }  // namespace zelda3

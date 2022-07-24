@@ -189,10 +189,6 @@ void MasterEditor::DrawViewMenu() {
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
-    if (ImGui::MenuItem("Invalid Argument Popup")) {
-      status_ = absl::InvalidArgumentError("Invalid Argument Status");
-    }
-
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
       ImGui::MenuItem("Metrics (ImGui)", nullptr, &show_imgui_metrics);
@@ -217,7 +213,7 @@ void MasterEditor::DrawHelpMenu() const {
 
 void MasterEditor::DrawOverworldEditor() {
   TAB_ITEM("Overworld")
-  overworld_editor_.Update();
+  status_ = overworld_editor_.Update();
   END_TAB_ITEM()
 }
 

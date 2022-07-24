@@ -4,6 +4,9 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
 
@@ -80,8 +83,8 @@ absl::StatusOr<std::vector<Bitmap>> Bitmap::CreateTiles() {
       auto surface = bmp.GetSurface();
       SDL_Rect src_rect = {i, j, 8, 8};
       if (SDL_BlitSurface(surface_.get(), &src_rect, surface, nullptr) != 0)
-        return absl::InvalidArgumentError(
-            "Failed to blit surface for Bitmap Tilesheet");
+        return absl::InternalError(
+            absl::StrCat("Failed to blit surface: ", SDL_GetError()));
       tiles.push_back(bmp);
     }
   }
@@ -90,15 +93,17 @@ absl::StatusOr<std::vector<Bitmap>> Bitmap::CreateTiles() {
 
 // Converts a vector of 8x8 tiles into a tilesheet.
 absl::Status Bitmap::CreateFromTiles(const std::vector<Bitmap> &tiles) {
-  if (tiles.empty()) return absl::InvalidArgumentError("Empty tiles");
+  if (tiles.empty())
+    return absl::InvalidArgumentError(
+        "Failed to create bitmap: `tiles` is empty.");
 
   SDL_Rect tile_rect = {0, 0, 8, 8};
   SDL_Rect dest_rect = {0, 0, 8, 8};
   for (const auto &tile : tiles) {
     auto src = tile.GetSurface();
     if (SDL_BlitSurface(src, &tile_rect, surface_.get(), &dest_rect) != 0)
-      return absl::InvalidArgumentError(
-          "Failed to blit surface for Bitmap Tilesheet");
+      return absl::InternalError(
+          absl::StrCat("Failed to blit surface: ", SDL_GetError()));
 
     dest_rect.x++;
     if (dest_rect.x == 15) {
