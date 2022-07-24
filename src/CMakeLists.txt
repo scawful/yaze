@@ -98,6 +98,7 @@ target_link_libraries(
   absl::core_headers
   absl::raw_logging_internal
   absl::failure_signal_handler
+  absl::flat_hash_map
   SDL2main
   ${PNG_LIBRARIES}
   ${SDL2_LIBRARIES} 
@@ -112,7 +113,7 @@ set_target_properties(yaze
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-    LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/gui/yaze.res"
+    LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/yaze.res"
 )
 
 set (source "${CMAKE_SOURCE_DIR}/assets")

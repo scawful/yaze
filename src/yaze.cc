@@ -16,5 +16,6 @@ int main(int argc, char** argv) {
     controller.doRender();
   }
   controller.onExit();
+
   return EXIT_SUCCESS;
 }
