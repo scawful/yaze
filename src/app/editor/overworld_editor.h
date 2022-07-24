@@ -72,6 +72,7 @@ class OverworldEditor {
 
   std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
   absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_v2_;
+  absl::flat_hash_map<int, gfx::Bitmap> current_graphics_set_;
 
   ROM rom_;
   zelda3::Overworld overworld_;
