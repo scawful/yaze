@@ -92,7 +92,7 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
 
 void Bitmap::ApplyPalette(const SNESPalette &palette) { palette_ = palette; }
 
-std::vector<Bitmap> Bitmap::CreateTiles() {
+absl::StatusOr<std::vector<Bitmap>> Bitmap::CreateTiles() {
   std::vector<Bitmap> tiles;
   for (int i = 0; i < 16; ++i) {
     for (int j = 0; j < 4; ++j) {
@@ -100,7 +100,10 @@ std::vector<Bitmap> Bitmap::CreateTiles() {
       bmp.Create(8, 8, 8, 32);
       auto surface = bmp.GetSurface();
       SDL_Rect src_rect = {i, j, 8, 8};
-      SDL_BlitSurface(surface_, &src_rect, surface, nullptr);
+      if (SDL_BlitSurface(surface_, &src_rect, surface, nullptr) != 0) {
+        return absl::InvalidArgumentError(
+            "Failed to blit surface for Bitmap Tilesheet");
+      }
       tiles.push_back(bmp);
     }
   }

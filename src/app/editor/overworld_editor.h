@@ -6,6 +6,7 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "absl/status/statusor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -38,7 +39,6 @@ class OverworldEditor {
   void DrawTile8Selector();
   void DrawAreaGraphics();
 
-  void LoadBlockset();
   void LoadGraphics();
 
   int current_world_ = 0;
