@@ -168,7 +168,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void *)rom_.data(), rom_.getSize());
+    mem_edit.DrawWindow("Memory Editor", (void *)rom_.data(), rom_.GetSize());
   }
 
   if (show_imgui_demo) {
@@ -209,8 +209,8 @@ void MasterEditor::DrawHelpMenu() const {
     if (ImGui::MenuItem("About")) {
       // insert the about window here
     }
-    ImGui::Text("Title: %s", rom_.getTitle());
-    ImGui::Text("ROM Size: %ld", rom_.getSize());
+    ImGui::Text("Title: %s", rom_.GetTitle());
+    ImGui::Text("ROM Size: %ld", rom_.GetSize());
     ImGui::EndMenu();
   }
 }
