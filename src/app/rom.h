@@ -41,6 +41,10 @@ struct OWMapTiles {
 class ROM {
  public:
   absl::Status OpenFromFile(const absl::string_view& filename);
+  absl::StatusOr<Bytes> DecompressV2(int offset, int size = 0x800,
+                                     bool reversed = false);
+  absl::StatusOr<Bytes> Convert3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
+  absl::Status LoadAllGraphicsDataV2();
 
   // absl::Status SaveOverworld();
   // absl::Status SaveDungeons();
@@ -56,11 +60,6 @@ class ROM {
   uchar* DecompressGraphics(int pos, int size);
   uchar* DecompressOverworld(int pos, int size);
   uchar* Decompress(int pos, int size = 0x800, bool reversed = false);
-
-  absl::StatusOr<Bytes> DecompressV2(int offset, int size = 0x800,
-                                     bool reversed = false);
-  absl::StatusOr<Bytes> Convert3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
-  absl::Status LoadAllGraphicsDataV2();
 
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
                              int size = 0x1000);
