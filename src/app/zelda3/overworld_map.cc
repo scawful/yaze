@@ -17,46 +17,50 @@ namespace app {
 namespace zelda3 {
 
 OverworldMap::OverworldMap(int index, ROM& rom,
-                           const std::vector<gfx::Tile16>& tiles16)
-    : parent_(index), index_(index), tiles16_(tiles16), rom_(rom) {
+                           const std::vector<gfx::Tile16>& tiles16,
+                           const OWMapTiles& map_tiles)
+    : parent_(index),
+      index_(index),
+      rom_(rom),
+      tiles16_(tiles16),
+      map_tiles_(map_tiles) {
   LoadAreaInfo();
   bitmap_.Create(512, 512, 8, 512 * 512);
 }
 
 void OverworldMap::LoadAreaInfo() {
-  auto z3data = rom_.data();
   if (index_ != 0x80 && index_ <= 150 &&
-      rom_.data()[core::overworldMapSize + (index_ & 0x3F)] != 0) {
+      rom_[core::overworldMapSize + (index_ & 0x3F)] != 0) {
     large_map_ = true;
   }
   if (index_ < 64) {
-    area_graphics_ = z3data[core::mapGfx + parent_];
-    area_palette_ = z3data[core::overworldMapPalette + parent_];
+    area_graphics_ = rom_[core::mapGfx + parent_];
+    area_palette_ = rom_[core::overworldMapPalette + parent_];
 
-    area_music_[0] = z3data[core::overworldMusicBegining + parent_];
-    area_music_[1] = z3data[core::overworldMusicZelda + parent_];
-    area_music_[2] = z3data[core::overworldMusicMasterSword + parent_];
-    area_music_[3] = z3data[core::overworldMusicAgahim + parent_];
+    area_music_[0] = rom_[core::overworldMusicBegining + parent_];
+    area_music_[1] = rom_[core::overworldMusicZelda + parent_];
+    area_music_[2] = rom_[core::overworldMusicMasterSword + parent_];
+    area_music_[3] = rom_[core::overworldMusicAgahim + parent_];
 
-    sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_];
-    sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 64];
-    sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_];
+    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 64];
+    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 128];
 
-    sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_];
-    sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 64];
-    sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_];
+    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 64];
+    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 128];
   } else if (index_ < 128) {
-    area_graphics_ = z3data[core::mapGfx + parent_];
-    area_palette_ = z3data[core::overworldMapPalette + parent_];
-    area_music_[0] = z3data[core::overworldMusicDW + (parent_ - 64)];
+    area_graphics_ = rom_[core::mapGfx + parent_];
+    area_palette_ = rom_[core::overworldMapPalette + parent_];
+    area_music_[0] = rom_[core::overworldMusicDW + (parent_ - 64)];
 
-    sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 128];
 
-    sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 128];
   } else {
     if (index_ == 0x94) {
       parent_ = 128;
@@ -78,28 +82,28 @@ void OverworldMap::LoadAreaInfo() {
       parent_ = 136;
     }
 
-    area_palette_ = z3data[core::overworldSpecialPALGroup + parent_ - 128];
+    area_palette_ = rom_[core::overworldSpecialPALGroup + parent_ - 128];
     if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-      area_graphics_ = z3data[core::overworldSpecialGFXGroup + (parent_ - 128)];
-      area_palette_ = z3data[core::overworldSpecialPALGroup + 1];
+      area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 128)];
+      area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
     } else if (index_ == 0x88) {
       area_graphics_ = 81;
       area_palette_ = 0;
     } else {
       // pyramid bg use 0x5B map
-      area_graphics_ = z3data[core::mapGfx + parent_];
-      area_palette_ = z3data[core::overworldMapPalette + parent_];
+      area_graphics_ = rom_[core::mapGfx + parent_];
+      area_palette_ = rom_[core::overworldMapPalette + parent_];
     }
 
-    message_id_ = z3data[core::overworldMessages + parent_];
+    message_id_ = rom_[core::overworldMessages + parent_];
 
-    sprite_graphics_[0] = z3data[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[1] = z3data[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[2] = z3data[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 128];
 
-    sprite_palette_[0] = z3data[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[1] = z3data[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[2] = z3data[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 128];
   }
 }
 
@@ -127,49 +131,62 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
   BuildTileset(game_state);
   BuildTiles16Gfx(count, ow_blockset);  // build on GFX.mapgfx16Ptr
 
-  int world = 0;
-  if (index_ < 64) {
-    tiles_used_ = map_tiles.light_world;
-  } else if (index_ < 128 && index_ >= 64) {
-    tiles_used_ = map_tiles.dark_world;
-    world = 1;
-  } else {
-    tiles_used_ = map_tiles.special_world;
-    world = 2;
-  }
+  // int world = 0;
+  // if (index_ < 64) {
+  //   map_tiles_ = map_tiles.light_world;
+  // } else if (index_ < 128 && index_ >= 64) {
+  //   map_tiles_ = map_tiles.dark_world;
+  //   world = 1;
+  // } else {
+  //   map_tiles_ = map_tiles.special_world;
+  //   world = 2;
+  // }
 
-  int superY = ((index_ - (world * 64)) / 8);
-  int superX = index_ - (world * 64) - (superY * 8);
-  for (int y = 0; y < 32; y++) {
-    for (int x = 0; x < 32; x++) {
-      auto xt = x + (superX * 32);
-      auto yt = y + (superY * 32);
-      CopyTile8bpp16((x * 16), (y * 16), tiles_used_[xt][yt], ow_blockset);
-    }
-  }
+  // int superY = ((index_ - (world * 64)) / 8);
+  // int superX = index_ - (world * 64) - (superY * 8);
+  // for (int y = 0; y < 32; y++) {
+  //   for (int x = 0; x < 32; x++) {
+  //     auto xt = x + (superX * 32);
+  //     auto yt = y + (superY * 32);
+  //     CopyTile8bpp16((x * 16), (y * 16), map_tiles_[xt][yt], ow_blockset);
+  //   }
+  // }
 }
 
-void OverworldMap::BuildMapV2(int count, int game_state, uchar* map_parent) {
+absl::Status OverworldMap::BuildMapV2(int count, int game_state,
+                                      uchar* map_parent) {
   if (large_map_) {
     parent_ = map_parent[index_];
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        area_graphics_ =
-            rom_.data()[core::overworldSpecialGFXGroup + (parent_ - 128)];
-        area_palette_ = rom_.data()[core::overworldSpecialPALGroup + 1];
+        area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 128)];
+        area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
       } else if (index_ == 0x88) {
         area_graphics_ = 81;
         area_palette_ = 0;
       } else {
-        area_graphics_ = rom_.data()[core::mapGfx + parent_];
-        area_palette_ = rom_.data()[core::overworldMapPalette + parent_];
+        area_graphics_ = rom_[core::mapGfx + parent_];
+        area_palette_ = rom_[core::overworldMapPalette + parent_];
       }
 
       initialized_ = true;
     }
   }
 
-  BuildTileset(game_state);
+  auto tileset_status = BuildTileset(game_state);
+  if (!tileset_status.ok()) {
+    return tileset_status;
+  }
+
+  // if (index_ < 64) {
+  //   world_ = 0;
+  // } else if (index_ < 128 && index_ >= 64) {
+  //   world_ = 1;
+  // } else {
+  //   world_ = 2;
+  // }
+
+  return absl::OkStatus();
 }
 
 absl::Status OverworldMap::BuildTileset(int game_state) {
@@ -277,7 +294,7 @@ absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
 
   // number of tiles16 3748?
   for (auto i = 0; i < count; i++) {
-    // 8x8 tile draw, gfx8 = 4bpp so everyting is /2F 
+    // 8x8 tile draw, gfx8 = 4bpp so everyting is /2F
     auto tiles = tiles16_[i];
 
     for (auto tile = 0; tile < 4; tile++) {

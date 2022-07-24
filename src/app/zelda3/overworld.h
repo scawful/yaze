@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/pseudo_vram.h"
@@ -20,7 +21,7 @@ namespace zelda3 {
 
 class Overworld {
  public:
-  void Load(ROM &rom, uchar *ow_blockset);
+  absl::Status Load(ROM &rom, uchar *ow_blockset);
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto isLoaded() const { return is_loaded_; }
