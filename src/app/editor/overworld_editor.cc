@@ -5,6 +5,7 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -275,7 +276,7 @@ void OverworldEditor::DrawTile8Selector() {
       ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1));
   graphics_bin_canvas_.UpdateContext();
   if (all_gfx_loaded_) {
-    for (const auto &[key, value] : graphics_bin_) {
+    for (const auto &[key, value] : graphics_bin_v2_) {
       int offset = 64 * (key + 1);
       int top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 2;
       if (key >= 1) {
@@ -319,12 +320,18 @@ void OverworldEditor::LoadGraphics() {
 
   rom_.LoadAllGraphicsData();
   graphics_bin_ = rom_.GetGraphicsBin();
-  for (auto &[key, value] : graphics_bin_) {
-    auto tilesheet = value.CreateTiles();
-    if (!tilesheet.ok()) {
-      std::cout << "Error loading" << std::endl;
-    }
+
+  absl::Status graphics_data_status = rom_.LoadAllGraphicsDataV2();
+  if (!graphics_data_status.ok()) {
+    std::cout << "Error " << graphics_data_status.ToString() << std::endl;
   }
+  graphics_bin_v2_ = rom_.GetGraphicsBinV2();
+  // for (auto &[key, value] : graphics_bin_) {
+  //   auto tilesheet = value.CreateTiles();
+  //   if (!tilesheet.ok()) {
+  //     std::cout << "Error loading" << std::endl;
+  //   }
+  // }
   tile16_blockset_bmp_.Create(128 * 2, 8192 * 2, 8, 1048576);
   current_gfx_bmp_.Create(128 * 2, 512 * 2, 8, 32768);
 }

@@ -51,7 +51,7 @@ void ROM::Close() {
 }
 
 void ROM::SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
-  sdl_renderer_ = renderer;
+  renderer_ = renderer;
 }
 
 // TODO: check if the rom has a header on load
@@ -100,7 +100,7 @@ void ROM::LoadAllGraphicsData() {
 
     gfx::Bitmap tilesheet_bmp(core::kTilesheetWidth, core::kTilesheetHeight,
                               core::kTilesheetDepth, SNES3bppTo8bppSheet(data));
-    tilesheet_bmp.CreateTexture(sdl_renderer_);
+    tilesheet_bmp.CreateTexture(renderer_);
     graphics_bin_[i] = tilesheet_bmp;
 
     for (int j = 0; j < sizeof(data); j++) {
@@ -111,6 +111,42 @@ void ROM::LoadAllGraphicsData() {
   }
 
   master_gfx_bin_ = buffer;
+}
+
+absl::Status ROM::LoadAllGraphicsDataV2() {
+  Bytes sheet;
+  int buffer_pos = 0;
+
+  for (int i = 0; i < core::NumberOfSheets; i++) {
+    if (i >= 115 && i <= 126) {  // uncompressed sheets
+      sheet.resize(core::Uncompressed3BPPSize);
+      auto offset = GetGraphicsAddress(i);
+      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
+        sheet[j] = rom_data_[j + offset];
+      }
+    } else {
+      auto offset = GetGraphicsAddress(i);
+      absl::StatusOr<Bytes> new_sheet =
+          DecompressV2(offset, core::UncompressedSheetSize);
+      if (!new_sheet.ok()) {
+        return new_sheet.status();
+      } else {
+        sheet = std::move(*new_sheet);
+      }
+    }
+
+    absl::StatusOr<Bytes> converted_sheet = Convert3bppTo8bppSheet(sheet);
+    if (!converted_sheet.ok()) {
+      return converted_sheet.status();
+    } else {
+      Bytes result = std::move(*converted_sheet);
+      gfx::Bitmap tilesheet_bmp(core::kTilesheetWidth, core::kTilesheetHeight,
+                                core::kTilesheetDepth, result.data());
+      tilesheet_bmp.CreateTexture(renderer_);
+      graphics_bin_v2_[i] = tilesheet_bmp;
+    }
+  }
+  return absl::OkStatus();
 }
 
 uint ROM::GetGraphicsAddress(uint8_t offset) const {
@@ -234,15 +270,13 @@ absl::StatusOr<Bytes> ROM::DecompressV2(int offset, int size, bool reversed) {
 
     switch (cmd) {
       case kCommandDirectCopy:
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++)
           buffer[buffer_pos++] = rom_data_[offset++];
-        }
         // Do not advance in the ROM
         break;
       case kCommandByteFill:
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++)
           buffer[buffer_pos++] = rom_data_[offset];
-        }
         offset += 1;  // Advance 1 byte in the ROM
         break;
       case kCommandWordFill:
@@ -254,9 +288,7 @@ absl::StatusOr<Bytes> ROM::DecompressV2(int offset, int size, bool reversed) {
         break;
       case kCommandIncreasingFill: {
         uchar inc_byte = rom_data_[offset];
-        for (int i = 0; i < length; i++) {
-          buffer[buffer_pos++] = inc_byte++;
-        }
+        for (int i = 0; i < length; i++) buffer[buffer_pos++] = inc_byte++;
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
@@ -265,7 +297,6 @@ absl::StatusOr<Bytes> ROM::DecompressV2(int offset, int size, bool reversed) {
         // Reversed byte order for overworld maps
         if (reversed) {
           auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
-
           if (addr > buffer_pos) {
             return absl::InternalError(
                 absl::StrFormat("DecompressOverworldV2: Offset for command "
@@ -290,10 +321,6 @@ absl::StatusOr<Bytes> ROM::DecompressV2(int offset, int size, bool reversed) {
           offset += 2;  // Advance 2 bytes in the ROM
         }
       } break;
-      default: {
-        return absl::InternalError(
-            "DecompressV2: Invalid command in the header for decompression");
-      }
     }
   }
 
@@ -411,7 +438,7 @@ SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
   surface->pixels = sheet_buffer;
   std::cout << "Creating texture from surface..." << std::endl;
   SDL_Texture *sheet_texture = nullptr;
-  sheet_texture = SDL_CreateTextureFromSurface(sdl_renderer_.get(), surface);
+  sheet_texture = SDL_CreateTextureFromSurface(renderer_.get(), surface);
   if (sheet_texture == nullptr) {
     std::cout << "Error: " << SDL_GetError() << std::endl;
   }
