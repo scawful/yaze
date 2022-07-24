@@ -26,7 +26,6 @@ namespace editor {
 
 class MasterEditor {
  public:
-  ~MasterEditor();
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
 

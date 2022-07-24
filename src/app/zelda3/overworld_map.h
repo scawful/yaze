@@ -22,8 +22,7 @@ static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
 class OverworldMap {
  public:
-  OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16,
-               const OWMapTiles& map_tiles);
+  OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16);
 
   void BuildMap(int count, int game_state, uchar* map_parent,
                 uchar* ow_blockset, OWMapTiles& map_tiles);

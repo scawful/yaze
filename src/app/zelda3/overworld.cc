@@ -12,17 +12,21 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
-  DecompressAllMapTiles();
+  auto decompression_status = DecompressAllMapTiles();
+  if (!decompression_status.ok()) {
+    std::cout << decompression_status.ToString() << std::endl;
+    return decompression_status;
+  }
 
   for (int map_index = 0; map_index < core::NumberOfOWMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, tiles16, map_tiles_);
+    overworld_maps_.emplace_back(map_index, rom_, tiles16);
 
   FetchLargeMaps();
 
   auto size = tiles16.size();
   for (int i = 0; i < core::NumberOfOWMaps; ++i) {
-    auto map_status = overworld_maps_[i].BuildMapV2(size, game_state_,
-                                                    map_parent_);
+    auto map_status =
+        overworld_maps_[i].BuildMapV2(size, game_state_, map_parent_);
     if (!map_status.ok()) {
       return map_status;
     }
@@ -33,9 +37,8 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
 }
 
 ushort Overworld::GenerateTile32(int i, int k, int dimension) {
-  return (ushort)(rom_.data()[map32address[dimension] + k + (i)] +
-                  (((rom_.data()[map32address[dimension] + (i) +
-                                 (k <= 1 ? 4 : 5)] >>
+  return (ushort)(rom_[map32address[dimension] + k + (i)] +
+                  (((rom_[map32address[dimension] + (i) + (k <= 1 ? 4 : 5)] >>
                      (k % 2 == 0 ? 4 : 0)) &
                     0x0F) *
                    256));
@@ -89,7 +92,7 @@ void Overworld::AssignWorldTiles(std::vector<std::vector<ushort>> &world, int x,
       tiles32[tpos].tile3_;
 }
 
-void Overworld::DecompressAllMapTiles() {
+absl::Status Overworld::DecompressAllMapTiles() {
   int lowest = 0x0FFFFF;
   int highest = 0x0F8000;
   int sx = 0;
@@ -97,15 +100,15 @@ void Overworld::DecompressAllMapTiles() {
   int c = 0;
   for (int i = 0; i < 160; i++) {
     int map_high_ptr = core::compressedAllMap32PointersHigh;
-    int p1 = (rom_.data()[(map_high_ptr) + 2 + (3 * i)] << 16) +
-             (rom_.data()[(map_high_ptr) + 1 + (3 * i)] << 8) +
-             (rom_.data()[(map_high_ptr + (3 * i))]);
+    int p1 = (rom_[(map_high_ptr) + 2 + (3 * i)] << 16) +
+             (rom_[(map_high_ptr) + 1 + (3 * i)] << 8) +
+             (rom_[(map_high_ptr + (3 * i))]);
     p1 = core::SnesToPc(p1);
 
     int map_low_ptr = core::compressedAllMap32PointersLow;
-    int p2 = (rom_.data()[(map_low_ptr) + 2 + (3 * i)] << 16) +
-             (rom_.data()[(map_low_ptr) + 1 + (3 * i)] << 8) +
-             (rom_.data()[(map_low_ptr + (3 * i))]);
+    int p2 = (rom_[(map_low_ptr) + 2 + (3 * i)] << 16) +
+             (rom_[(map_low_ptr) + 1 + (3 * i)] << 8) +
+             (rom_[(map_low_ptr + (3 * i))]);
     p2 = core::SnesToPc(p2);
 
     int ttpos = 0;
@@ -124,8 +127,17 @@ void Overworld::DecompressAllMapTiles() {
       lowest = p2;
     }
 
-    auto bytes = rom_.DecompressOverworld(p2, 1000);
-    auto bytes2 = rom_.DecompressOverworld(p1, 1000);
+    auto status_bytes = rom_.DecompressOverworld(p2, 1000);
+    if (!status_bytes.ok()) {
+      return status_bytes.status();
+    }
+    auto bytes = std::move(*status_bytes);
+
+    auto status_bytes2 = rom_.DecompressOverworld(p1, 1000);
+    if (!status_bytes2.ok()) {
+      return status_bytes2.status();
+    }
+    auto bytes2 = std::move(*status_bytes2);
 
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
@@ -160,6 +172,7 @@ void Overworld::DecompressAllMapTiles() {
 
   std::cout << "MapPointers(lowest) : " << lowest << std::endl;
   std::cout << "MapPointers(highest) : " << highest << std::endl;
+  return absl::OkStatus();
 }
 
 void Overworld::FetchLargeMaps() {
