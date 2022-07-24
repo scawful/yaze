@@ -66,15 +66,16 @@ class ROM {
 
   SDL_Texture* DrawGraphicsSheet(int offset);
 
-  long getSize() const { return size_; }
-  uchar* data() { return current_rom_; }
-  const uchar* getTitle() const { return title; }
-  bool isLoaded() const { return is_loaded_; }
+  auto data() { return rom_data_.data(); }
+  auto isLoaded() const { return is_loaded_; }
+  auto GetSize() const { return size_; }
+  auto GetTitle() const { return title; }
   auto Renderer() { return renderer_; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBinV2() const { return graphics_bin_v2_; }
   auto GetMasterGraphicsBin() const { return master_gfx_bin_; }
   auto GetVRAM() const { return pseudo_vram_; }
+  auto GetBytes() const { return rom_data_; }
 
  private:
   int num_sheets_ = 0;
@@ -87,7 +88,7 @@ class ROM {
   ImVec4 display_palette_[8];
 
   gfx::pseudo_vram pseudo_vram_;
-  std::vector<uchar> rom_data_;
+  Bytes rom_data_;
 
   std::vector<uchar*> decompressed_graphic_sheets_;
   std::vector<uchar*> converted_graphic_sheets_;
