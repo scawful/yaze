@@ -104,8 +104,7 @@ void OverworldMap::LoadAreaInfo() {
 }
 
 void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
-                            uchar* ow_blockset, uchar* current_gfx,
-                            OWMapTiles& map_tiles) {
+                            uchar* ow_blockset, OWMapTiles& map_tiles) {
   if (large_map_) {
     parent_ = map_parent[index_];
     if (parent_ != index_ && !initialized_) {
@@ -125,7 +124,7 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
     }
   }
 
-  BuildTileset(game_state, current_gfx);
+  BuildTileset(game_state);
   BuildTiles16Gfx(count, ow_blockset);  // build on GFX.mapgfx16Ptr
 
   int world = 0;
@@ -150,7 +149,30 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
   }
 }
 
-void OverworldMap::BuildTileset(int game_state, uchar* current_gfx) {
+void OverworldMap::BuildMapV2(int count, int game_state, uchar* map_parent) {
+  if (large_map_) {
+    parent_ = map_parent[index_];
+    if (parent_ != index_ && !initialized_) {
+      if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
+        area_graphics_ =
+            rom_.data()[core::overworldSpecialGFXGroup + (parent_ - 128)];
+        area_palette_ = rom_.data()[core::overworldSpecialPALGroup + 1];
+      } else if (index_ == 0x88) {
+        area_graphics_ = 81;
+        area_palette_ = 0;
+      } else {
+        area_graphics_ = rom_.data()[core::mapGfx + parent_];
+        area_palette_ = rom_.data()[core::overworldMapPalette + parent_];
+      }
+
+      initialized_ = true;
+    }
+  }
+
+  BuildTileset(game_state);
+}
+
+absl::Status OverworldMap::BuildTileset(int game_state) {
   int index_world = 0x20;
   if (parent_ < 0x40) {
     index_world = 0x20;
@@ -206,23 +228,11 @@ void OverworldMap::BuildTileset(int game_state, uchar* current_gfx) {
     static_graphics_[7] = 91;
   }
 
-  auto all_gfx_data = rom_.GetMasterGraphicsBin();
+  auto all_gfx_data = rom_.GetGraphicsBinV2();
   for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 2048; j++) {
-      uchar mapByte = all_gfx_data[j + (static_graphics_[i] * 2048)];
-      switch (i) {
-        case 0:
-        case 3:
-        case 4:
-        case 5:
-          mapByte += 0x88;
-          break;
-      }
-
-      // Upload used gfx data
-      current_gfx[(i * 2048) + j] = mapByte;
-    }
+    current_graphics_sheet_set[i] = all_gfx_data[static_graphics_[i]];
   }
+  return absl::OkStatus();
 }
 
 void OverworldMap::BuildTiles16Gfx(int count, uchar* ow_blockset) {
@@ -256,6 +266,40 @@ void OverworldMap::BuildTiles16Gfx(int count, uchar* ow_blockset) {
       xx = 0;
     }
   }
+}
+
+absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
+  auto gfx_tile8_data = rom_.GetMasterGraphicsBin();
+
+  int offsets[] = {0, 8, 1024, 1032};
+  auto yy = 0;
+  auto xx = 0;
+
+  // number of tiles16 3748?
+  for (auto i = 0; i < count; i++) {
+    // 8x8 tile draw, gfx8 = 4bpp so everyting is /2F 
+    auto tiles = tiles16_[i];
+
+    for (auto tile = 0; tile < 4; tile++) {
+      gfx::TileInfo info = tiles16_[i].tiles_info[tile];
+      int offset = offsets[tile];
+
+      // for (auto y = 0; y < 8; y++) {
+      //   for (auto x = 0; x < 4; x++) {
+      //     CopyTile(x, y, xx, yy, offset, info, gfx_tile16_data,
+      //     gfx_tile8_data);
+      //   }
+      // }
+    }
+
+    xx += 16;
+    if (xx >= 128) {
+      yy += 2048;
+      xx = 0;
+    }
+  }
+
+  return absl::OkStatus();
 }
 
 // map,current
