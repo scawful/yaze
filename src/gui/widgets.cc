@@ -9,7 +9,7 @@ namespace yaze {
 namespace gui {
 namespace widgets {
 
-bool BeginCentered(const char *name) {
+static bool BeginCentered(const char *name) {
   ImGuiIO &io = ImGui::GetIO();
   ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -19,29 +19,20 @@ bool BeginCentered(const char *name) {
   return ImGui::Begin(name, nullptr, flags);
 }
 
-void DisplayStatus(const absl::Status &status) {
-  static bool display_open = true;
-  if (display_open) {
-    auto title = absl::StrCat("StatusWindow_", status.ToString()).data();
-    if (BeginCentered(title)) {
-      ImGui::Text(status.ToString().data());
-
-      ImGui::Spacing();
-      ImGui::NextColumn();
-
-      ImGui::Columns(1);
-      ImGui::Separator();
-
-      ImGui::NewLine();
-
-      ImGui::SameLine(270);
-      // click ok when finished adjusting
-      if (ImGui::Button("OK", ImVec2(200, 0))) {
-        display_open = false;
-      }
-
-      ImGui::End();
+void DisplayStatus(absl::Status &status) {
+  auto title = absl::StrCat("StatusWindow_", status.ToString()).data();
+  if (BeginCentered(title)) {
+    ImGui::Text(status.ToString().data());
+    ImGui::Spacing();
+    ImGui::NextColumn();
+    ImGui::Columns(1);
+    ImGui::Separator();
+    ImGui::NewLine();
+    ImGui::SameLine(270);
+    if (ImGui::Button("OK", ImVec2(200, 0))) {
+      status = absl::OkStatus();
     }
+    ImGui::End();
   }
 }
 

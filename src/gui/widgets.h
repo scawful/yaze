@@ -10,7 +10,7 @@ namespace yaze {
 namespace gui {
 namespace widgets {
 
-void DisplayStatus(const absl::Status& status);
+void DisplayStatus(absl::Status& status);
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
 

@@ -23,6 +23,28 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+namespace {
+
+constexpr ImGuiWindowFlags kMainEditorFlags =
+    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
+    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
+
+void NewMasterFrame() {
+  const ImGuiIO &io = ImGui::GetIO();
+  ImGui::NewFrame();
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
+  ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
+
+  if (!ImGui::Begin("##YazeMain", nullptr, kMainEditorFlags)) {
+    ImGui::End();
+    return;
+  }
+}
+
+}  // namespace
+
 MasterEditor::~MasterEditor() { rom_.Close(); }
 
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
@@ -31,18 +53,11 @@ void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
 }
 
 void MasterEditor::UpdateScreen() {
-  const ImGuiIO &io = ImGui::GetIO();
-  ImGui::NewFrame();
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
-  ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
-
-  if (!ImGui::Begin("##YazeMain", nullptr, main_editor_flags_)) {
-    ImGui::End();
-    return;
-  }
+  NewMasterFrame();
 
   DrawYazeMenu();
+  DrawFileDialog();
+  DrawStatusPopup();
 
   TAB_BAR("##TabBar")
   DrawOverworldEditor();
@@ -51,11 +66,25 @@ void MasterEditor::UpdateScreen() {
   DrawScreenEditor();
   END_TAB_BAR()
 
+  ImGui::End();
+}
+
+void MasterEditor::DrawFileDialog() {
+  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      rom_.LoadFromFile(filePathName);
+      status_ = rom_.OpenFromFile(filePathName);
+      overworld_editor_.SetupROM(rom_);
+    }
+    ImGuiFileDialog::Instance()->Close();
+  }
+}
+
+void MasterEditor::DrawStatusPopup() {
   if (!status_.ok()) {
     gui::widgets::DisplayStatus(status_);
   }
-
-  ImGui::End();
 }
 
 void MasterEditor::DrawYazeMenu() {
@@ -65,17 +94,6 @@ void MasterEditor::DrawYazeMenu() {
   DrawViewMenu();
   DrawHelpMenu();
   END_MENU_BAR()
-
-  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-      rom_.LoadFromFile(filePathName);
-      status_ = rom_.OpenFromFile(filePathName);
-      overworld_editor_.SetupROM(rom_);
-    }
-    ImGuiFileDialog::Instance()->Close();
-  }
 }
 
 void MasterEditor::DrawFileMenu() const {
@@ -171,6 +189,9 @@ void MasterEditor::DrawViewMenu() {
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
+    if (ImGui::MenuItem("Invalid Argument Popup")) {
+      status_ = absl::InvalidArgumentError("Invalid Argument Status");
+    }
 
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
