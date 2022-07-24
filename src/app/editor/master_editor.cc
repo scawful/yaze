@@ -43,9 +43,33 @@ void NewMasterFrame() {
   }
 }
 
-}  // namespace
+bool BeginCentered(const char *name) {
+  ImGuiIO &io = ImGui::GetIO();
+  ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
+  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  ImGuiWindowFlags flags =
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration |
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
+  return ImGui::Begin(name, nullptr, flags);
+}
 
-MasterEditor::~MasterEditor() { rom_.Close(); }
+void DisplayStatus(absl::Status &status) {
+  if (BeginCentered("StatusWindow")) {
+    ImGui::Text(status.ToString().data());
+    ImGui::Spacing();
+    ImGui::NextColumn();
+    ImGui::Columns(1);
+    ImGui::Separator();
+    ImGui::NewLine();
+    ImGui::SameLine(270);
+    if (ImGui::Button("OK", ImVec2(200, 0))) {
+      status = absl::OkStatus();
+    }
+    ImGui::End();
+  }
+}
+
+}  // namespace
 
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
@@ -65,7 +89,6 @@ void MasterEditor::UpdateScreen() {
   DrawSpriteEditor();
   DrawScreenEditor();
   END_TAB_BAR()
-
   ImGui::End();
 }
 
@@ -73,8 +96,7 @@ void MasterEditor::DrawFileDialog() {
   if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      rom_.LoadFromFile(filePathName);
-      status_ = rom_.OpenFromFile(filePathName);
+      status_ = rom_.LoadFromFile(filePathName);
       overworld_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
@@ -83,7 +105,7 @@ void MasterEditor::DrawFileDialog() {
 
 void MasterEditor::DrawStatusPopup() {
   if (!status_.ok()) {
-    gui::widgets::DisplayStatus(status_);
+    DisplayStatus(status_);
   }
 }
 

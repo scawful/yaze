@@ -24,6 +24,7 @@ class Overworld {
   absl::Status Load(ROM &rom, uchar *ow_blockset);
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
+  auto GetOverworldMaps() const { return overworld_maps_; }
   auto isLoaded() const { return is_loaded_; }
 
  private:
@@ -41,7 +42,7 @@ class Overworld {
   void AssembleMap16Tiles();
   void AssignWorldTiles(std::vector<std::vector<ushort>> &world, int x, int y,
                         int sx, int sy, int tpos);
-  void DecompressAllMapTiles();
+  absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
 
   int game_state_ = 1;

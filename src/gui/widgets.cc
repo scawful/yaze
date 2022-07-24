@@ -9,33 +9,6 @@ namespace yaze {
 namespace gui {
 namespace widgets {
 
-static bool BeginCentered(const char *name) {
-  ImGuiIO &io = ImGui::GetIO();
-  ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-  ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove |
-                           ImGuiWindowFlags_NoDecoration |
-                           ImGuiWindowFlags_AlwaysAutoResize;
-  return ImGui::Begin(name, nullptr, flags);
-}
-
-void DisplayStatus(absl::Status &status) {
-  auto title = absl::StrCat("StatusWindow_", status.ToString()).data();
-  if (BeginCentered(title)) {
-    ImGui::Text(status.ToString().data());
-    ImGui::Spacing();
-    ImGui::NextColumn();
-    ImGui::Columns(1);
-    ImGui::Separator();
-    ImGui::NewLine();
-    ImGui::SameLine(270);
-    if (ImGui::Button("OK", ImVec2(200, 0))) {
-      status = absl::OkStatus();
-    }
-    ImGui::End();
-  }
-}
-
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
   for (auto &k : app::core::kKeywords) language_65816.mKeywords.emplace(k);

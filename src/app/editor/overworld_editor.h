@@ -4,7 +4,6 @@
 #include <imgui/imgui.h>
 
 #include <cmath>
-#include <unordered_map>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
@@ -70,8 +69,7 @@ class OverworldEditor {
                                   ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_SizingStretchSame;
 
-  std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
-  absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_v2_;
+  absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_;
   absl::flat_hash_map<int, gfx::Bitmap> current_graphics_set_;
 
   ROM rom_;

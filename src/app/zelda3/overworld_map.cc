@@ -17,13 +17,8 @@ namespace app {
 namespace zelda3 {
 
 OverworldMap::OverworldMap(int index, ROM& rom,
-                           const std::vector<gfx::Tile16>& tiles16,
-                           const OWMapTiles& map_tiles)
-    : parent_(index),
-      index_(index),
-      rom_(rom),
-      tiles16_(tiles16),
-      map_tiles_(map_tiles) {
+                           const std::vector<gfx::Tile16>& tiles16)
+    : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
   LoadAreaInfo();
   bitmap_.Create(512, 512, 8, 512 * 512);
 }
@@ -245,7 +240,7 @@ absl::Status OverworldMap::BuildTileset(int game_state) {
     static_graphics_[7] = 91;
   }
 
-  auto all_gfx_data = rom_.GetGraphicsBinV2();
+  auto all_gfx_data = rom_.GetGraphicsBin();
   for (int i = 0; i < 16; i++) {
     current_graphics_sheet_set[i] = all_gfx_data[static_graphics_[i]];
   }
