@@ -64,8 +64,6 @@ class ROM {
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
                              int size = 0x1000);
 
-  SDL_Texture* DrawGraphicsSheet(int offset);
-
   auto data() { return rom_data_.data(); }
   auto isLoaded() const { return is_loaded_; }
   auto GetSize() const { return size_; }
@@ -76,6 +74,14 @@ class ROM {
   auto GetMasterGraphicsBin() const { return master_gfx_bin_; }
   auto GetVRAM() const { return pseudo_vram_; }
   auto GetBytes() const { return rom_data_; }
+
+  uchar& operator[](int i) {
+    if (i > size_) {
+      std::cout << "Index out of bounds" << std::endl;
+      return rom_data_[0];
+    }
+    return rom_data_[i];
+  }
 
  private:
   int num_sheets_ = 0;
