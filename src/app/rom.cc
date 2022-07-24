@@ -42,7 +42,6 @@ absl::Status ROM::OpenFromFile(const absl::string_view &filename) {
 
 absl::Status ROM::LoadAllGraphicsDataV2() {
   Bytes sheet;
-  int buffer_pos = 0;
 
   for (int i = 0; i < core::NumberOfSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
@@ -67,10 +66,10 @@ absl::Status ROM::LoadAllGraphicsDataV2() {
       return converted_sheet.status();
     } else {
       Bytes result = std::move(*converted_sheet);
-      gfx::Bitmap tilesheet_bmp(core::kTilesheetWidth, core::kTilesheetHeight,
-                                core::kTilesheetDepth, result.data());
-      tilesheet_bmp.CreateTexture(renderer_);
-      graphics_bin_v2_[i] = tilesheet_bmp;
+      graphics_bin_v2_[i] =
+          gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
+                      core::kTilesheetDepth, result.data());
+      graphics_bin_v2_.at(i).CreateTexture(renderer_);
     }
   }
   return absl::OkStatus();
