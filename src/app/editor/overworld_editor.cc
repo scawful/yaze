@@ -5,6 +5,7 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "absl/status/statusor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -318,6 +319,12 @@ void OverworldEditor::LoadGraphics() {
 
   rom_.LoadAllGraphicsData();
   graphics_bin_ = rom_.GetGraphicsBin();
+  for (auto &[key, value] : graphics_bin_) {
+    auto tilesheet = value.CreateTiles();
+    if (!tilesheet.ok()) {
+      std::cout << "Error loading" << std::endl;
+    }
+  }
   tile16_blockset_bmp_.Create(128 * 2, 8192 * 2, 8, 1048576);
   current_gfx_bmp_.Create(128 * 2, 512 * 2, 8, 32768);
 }

@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "absl/status/statusor.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
 
@@ -26,7 +27,7 @@ class Bitmap {
 
   void ApplyPalette(const SNESPalette &palette);
 
-  std::vector<Bitmap> CreateTiles();
+  absl::StatusOr<std::vector<Bitmap>> CreateTiles();
 
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
