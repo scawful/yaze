@@ -40,41 +40,34 @@ struct OWMapTiles {
 
 class ROM {
  public:
-  absl::Status OpenFromFile(const absl::string_view& filename);
-  absl::StatusOr<Bytes> DecompressV2(int offset, int size = 0x800,
-                                     bool reversed = false);
-  absl::StatusOr<Bytes> Convert3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
-  absl::Status LoadAllGraphicsDataV2();
+  absl::Status LoadFromFile(const absl::string_view& filename);
+  absl::Status LoadFromPointer(uchar* data, size_t length);
+  absl::Status LoadAllGraphicsData();
 
   // absl::Status SaveOverworld();
-  // absl::Status SaveDungeons();
 
-  void Close();
-  void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
-  void LoadFromFile(const std::string& path);
-  void LoadFromPointer(uchar* data);
-  void LoadAllGraphicsData();
+  absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
+  absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
+  absl::StatusOr<Bytes> Decompress(int offset, int size = 0x800,
+                                   bool reversed = false);
+
+  absl::StatusOr<Bytes> Convert3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
 
   uint GetGraphicsAddress(uint8_t id) const;
-
-  uchar* DecompressGraphics(int pos, int size);
-  uchar* DecompressOverworld(int pos, int size);
-  uchar* Decompress(int pos, int size = 0x800, bool reversed = false);
-
-  uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
-                             int size = 0x1000);
-
-  auto data() { return rom_data_.data(); }
-  auto isLoaded() const { return is_loaded_; }
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
-  auto Renderer() { return renderer_; }
   auto GetGraphicsBin() const { return graphics_bin_; }
-  auto GetGraphicsBinV2() const { return graphics_bin_v2_; }
   auto GetMasterGraphicsBin() const { return master_gfx_bin_; }
   auto GetVRAM() const { return pseudo_vram_; }
   auto GetBytes() const { return rom_data_; }
 
+  auto data() { return rom_data_.data(); }
+  auto isLoaded() const { return is_loaded_; }
+
+  auto Renderer() { return renderer_; }
+  void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
+    renderer_ = renderer;
+  }
   uchar& operator[](int i) {
     if (i > size_) {
       std::cout << "Index out of bounds" << std::endl;
@@ -96,11 +89,8 @@ class ROM {
   gfx::pseudo_vram pseudo_vram_;
   Bytes rom_data_;
 
-  std::vector<uchar*> decompressed_graphic_sheets_;
-  std::vector<uchar*> converted_graphic_sheets_;
   std::shared_ptr<SDL_Renderer> renderer_;
-  std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
-  absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_v2_;
+  absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_;
 };
 
 }  // namespace app
