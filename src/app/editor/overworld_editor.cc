@@ -281,11 +281,16 @@ void OverworldEditor::DrawTile8Selector() {
 
 void OverworldEditor::DrawAreaGraphics() {
   if (overworld_.isLoaded()) {
+    static bool set_loaded = false;
+    if (!set_loaded) {
+      current_graphics_set_ =
+          overworld_.GetOverworldMap(0).GetCurrentGraphicsSet();
+      set_loaded = true;
+    }
     current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
     current_gfx_canvas_.UpdateContext();
     current_gfx_canvas_.DrawGrid();
-    for (const auto &[key, value] :
-         overworld_.GetOverworldMap(0).GetCurrentGraphicsSet()) {
+    for (const auto &[key, value] : current_graphics_set_) {
       int offset = 64 * (key + 1);
       int top_left_y = current_gfx_canvas_.GetZeroPoint().y + 2;
       if (key >= 1) {
