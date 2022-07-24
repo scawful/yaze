@@ -21,11 +21,10 @@ class Bitmap {
 
   void Create(int width, int height, int depth, uchar *data);
   void Create(int width, int height, int depth, int data_size);
-  void Create(int width, int height, int depth, uchar *data, int size,
-              SNESPalette &palette);
+
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
-  void ApplyPalette(const SNESPalette &palette);
+  void ApplyPalette(SNESPalette &palette);
 
   absl::StatusOr<std::vector<Bitmap>> CreateTiles();
   absl::Status CreateFromTiles(const std::vector<Bitmap> &tiles);
@@ -49,7 +48,6 @@ class Bitmap {
   uchar *pixel_data_;
   std::shared_ptr<SDL_Texture> texture_;
   std::shared_ptr<SDL_Surface> surface_;
-  SNESPalette palette_;
 };
 
 }  // namespace gfx
