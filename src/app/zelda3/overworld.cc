@@ -7,7 +7,7 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-void Overworld::Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx) {
+void Overworld::Load(ROM &rom, uchar *ow_blockset) {
   rom_ = rom;
 
   AssembleMap32Tiles();
@@ -20,8 +20,9 @@ void Overworld::Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx) {
   FetchLargeMaps();
 
   for (int i = 0; i < core::NumberOfOWMaps; i++) {
-    overworld_maps_[i].BuildMap(tiles16.size(), game_state_, map_parent_,
-                                ow_blockset, current_gfx, map_tiles_);
+    // overworld_maps_[i].BuildMap(tiles16.size(), game_state_, map_parent_,
+    //                             ow_blockset, map_tiles_);
+    overworld_maps_[i].BuildMapV2(tiles16.size(), game_state_, map_parent_);
   }
 
   is_loaded_ = true;

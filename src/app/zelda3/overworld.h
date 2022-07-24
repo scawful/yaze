@@ -20,7 +20,7 @@ namespace zelda3 {
 
 class Overworld {
  public:
-  void Load(ROM &rom, uchar *ow_blockset, uchar *current_gfx);
+  void Load(ROM &rom, uchar *ow_blockset);
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto isLoaded() const { return is_loaded_; }
