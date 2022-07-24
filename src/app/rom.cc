@@ -413,32 +413,5 @@ uchar *ROM::SNES3bppTo8bppSheet(uchar *buffer_in, int sheet_id, int size) {
   return sheet_buffer_out;
 }
 
-SDL_Texture *ROM::DrawGraphicsSheet(int offset) {
-  SDL_Surface *surface =
-      SDL_CreateRGBSurfaceWithFormat(0, 128, 32, 8, SDL_PIXELFORMAT_INDEX8);
-  std::cout << "Drawing surface #" << offset << std::endl;
-  uchar *sheet_buffer = nullptr;
-  for (int i = 0; i < 8; i++) {
-    surface->format->palette->colors[i].r = i * 31;
-    surface->format->palette->colors[i].g = i * 31;
-    surface->format->palette->colors[i].b = i * 31;
-  }
-
-  uint graphics_address = GetGraphicsAddress(offset);
-  std::cout << "Decompressing..." << std::endl;
-  auto decomp = Decompress(graphics_address);
-  std::cout << "Converting to 8bpp sheet..." << std::endl;
-  sheet_buffer = SNES3bppTo8bppSheet(decomp);
-  std::cout << "Assigning pixel data..." << std::endl;
-  surface->pixels = sheet_buffer;
-  std::cout << "Creating texture from surface..." << std::endl;
-  SDL_Texture *sheet_texture = nullptr;
-  sheet_texture = SDL_CreateTextureFromSurface(renderer_.get(), surface);
-  if (sheet_texture == nullptr) {
-    std::cout << "Error: " << SDL_GetError() << std::endl;
-  }
-  return sheet_texture;
-}
-
 }  // namespace app
 }  // namespace yaze
