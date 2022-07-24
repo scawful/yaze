@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -41,6 +42,9 @@ class ROM {
  public:
   absl::Status OpenFromFile(const absl::string_view& filename);
 
+  // absl::Status SaveOverworld();
+  // absl::Status SaveDungeons();
+
   void Close();
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer);
   void LoadFromFile(const std::string& path);
@@ -56,6 +60,7 @@ class ROM {
   absl::StatusOr<Bytes> DecompressV2(int offset, int size = 0x800,
                                      bool reversed = false);
   absl::StatusOr<Bytes> Convert3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
+  absl::Status LoadAllGraphicsDataV2();
 
   uchar* SNES3bppTo8bppSheet(uchar* buffer_in, int sheet_id = 0,
                              int size = 0x1000);
@@ -66,8 +71,9 @@ class ROM {
   uchar* data() { return current_rom_; }
   const uchar* getTitle() const { return title; }
   bool isLoaded() const { return is_loaded_; }
-  auto Renderer() { return sdl_renderer_; }
+  auto Renderer() { return renderer_; }
   auto GetGraphicsBin() const { return graphics_bin_; }
+  auto GetGraphicsBinV2() const { return graphics_bin_v2_; }
   auto GetMasterGraphicsBin() const { return master_gfx_bin_; }
   auto GetVRAM() const { return pseudo_vram_; }
 
@@ -86,8 +92,9 @@ class ROM {
 
   std::vector<uchar*> decompressed_graphic_sheets_;
   std::vector<uchar*> converted_graphic_sheets_;
-  std::shared_ptr<SDL_Renderer> sdl_renderer_;
+  std::shared_ptr<SDL_Renderer> renderer_;
   std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
+  absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_v2_;
 };
 
 }  // namespace app

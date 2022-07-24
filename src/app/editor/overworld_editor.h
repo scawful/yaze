@@ -6,6 +6,7 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -63,6 +64,7 @@ class OverworldEditor {
                                   ImGuiTableFlags_SizingStretchSame;
 
   std::unordered_map<unsigned int, gfx::Bitmap> graphics_bin_;
+  absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_v2_;
 
   ROM rom_;
   zelda3::Overworld overworld_;
