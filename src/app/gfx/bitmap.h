@@ -28,21 +28,27 @@ class Bitmap {
   void ApplyPalette(const SNESPalette &palette);
 
   absl::StatusOr<std::vector<Bitmap>> CreateTiles();
+  absl::Status CreateFromTiles(const std::vector<Bitmap> &tiles);
 
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
   auto GetData() const { return pixel_data_; }
-  auto GetTexture() const { return texture_; }
-  auto GetSurface() const { return surface_; }
+  auto GetTexture() const { return texture_.get(); }
+  auto GetSurface() const { return surface_.get(); }
 
  private:
+  struct sdl_deleter {
+    void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
+    void operator()(SDL_Surface *p) const { SDL_FreeSurface(p); }
+  };
+
   int width_ = 0;
   int height_ = 0;
   int depth_ = 0;
   int data_size_ = 0;
   uchar *pixel_data_;
-  SDL_Surface *surface_;
-  SDL_Texture *texture_;
+  std::shared_ptr<SDL_Texture> texture_;
+  std::shared_ptr<SDL_Surface> surface_;
   SNESPalette palette_;
 };
 
