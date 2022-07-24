@@ -105,9 +105,6 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
               << " G:" << color[i].g << " B:" << color[i].b << ")" << std::endl;
   }
   sdl_palette->colors = color.data();
-
-  // store the pointers to free them later
-  sdl_palettes_.push_back(sdl_palette);
   colors_.push_back(color);
 
   return sdl_palette.get();

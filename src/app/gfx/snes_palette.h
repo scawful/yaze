@@ -40,7 +40,6 @@ class SNESPalette {
 
   int size_ = 0;
   std::vector<SNESColor> colors;
-  std::vector<std::shared_ptr<SDL_Palette>> sdl_palettes_;
   std::vector<SDL_Color*> colors_arrays_;
   std::vector<std::vector<SDL_Color>> colors_;
 };
