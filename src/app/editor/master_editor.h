@@ -31,6 +31,9 @@ class MasterEditor {
   void UpdateScreen();
 
  private:
+  void DrawFileDialog();
+  void DrawStatusPopup();
+
   void DrawYazeMenu();
   void DrawFileMenu() const;
   void DrawEditMenu() const;
@@ -51,11 +54,6 @@ class MasterEditor {
   absl::Status status_;
 
   ImVec4 current_palette_[8];
-
-  ImGuiWindowFlags main_editor_flags_ =
-      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
-      ImGuiWindowFlags_NoTitleBar;
   ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
 
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
