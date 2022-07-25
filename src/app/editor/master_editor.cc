@@ -117,10 +117,13 @@ void MasterEditor::DrawAboutPopup() {
   if (about_) ImGui::OpenPopup("About");
   if (ImGui::BeginPopupModal("About", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Yet Another Zelda3 Editor: Version 0.4");
-    ImGui::Text("Written by: Justin Scofield (scawful)");
+    ImGui::Text("Yet Another Zelda3 Editor - v0.01");
+    ImGui::Text("Written by: scawful");
+    ImGui::Spacing();
+    ImGui::Text("Special Thanks: Zarby89");
+    ImGui::Separator();
 
-    if (ImGui::Button("Close", ImVec2(120, 0))) {
+    if (ImGui::Button("Close", ImVec2(200, 0))) {
       about_ = false;
       ImGui::CloseCurrentPopup();
     }
@@ -135,7 +138,7 @@ void MasterEditor::DrawInfoPopup() {
     ImGui::Text("Title: %s", rom_.GetTitle());
     ImGui::Text("ROM Size: %ld", rom_.GetSize());
 
-    if (ImGui::Button("Close", ImVec2(120, 0))) {
+    if (ImGui::Button("Close", ImVec2(200, 0))) {
       rom_info_ = false;
       ImGui::CloseCurrentPopup();
     }
@@ -159,8 +162,8 @@ void MasterEditor::DrawFileMenu() const {
                                               ".sfc,.smc", ".");
     }
 
-    MENU_ITEM2("Save", "Ctrl+S")
-    MENU_ITEM("Save As..")
+    MENU_ITEM2("Save", "Ctrl+S") {}
+    MENU_ITEM("Save As..") {}
 
     ImGui::Separator();
 
