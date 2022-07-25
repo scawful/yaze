@@ -22,6 +22,9 @@
   ImGui::EndMenuBar(); \
   }
 
+#define MENU_ITEM(w) if (ImGui::MenuItem(w))
+#define MENU_ITEM2(w, v) if (ImGui::MenuItem(w, v))
+
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
