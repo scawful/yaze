@@ -3,8 +3,8 @@
 
 #include <imgui/imgui.h>
 
-#include "gui/icons.h"
 #include "gui/canvas.h"
+#include "gui/icons.h"
 
 namespace yaze {
 namespace app {
