@@ -42,6 +42,7 @@ add_executable(
     app/editor/dungeon_editor.cc
     app/editor/master_editor.cc
     app/editor/overworld_editor.cc
+    app/editor/palette_editor.cc
     app/editor/screen_editor.cc
     app/gfx/bitmap.cc
     app/gfx/pseudo_vram.cc
