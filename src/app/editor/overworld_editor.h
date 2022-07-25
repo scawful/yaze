@@ -19,11 +19,11 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-static constexpr unsigned int k4BPP = 4;
-static constexpr unsigned int kByteSize = 3;
-static constexpr unsigned int kMessageIdSize = 5;
-static constexpr unsigned int kNumSheetsToLoad = 223;
-static constexpr unsigned int kTile8DisplayHeight = 64;
+static constexpr uint k4BPP = 4;
+static constexpr uint kByteSize = 3;
+static constexpr uint kMessageIdSize = 5;
+static constexpr uint kNumSheetsToLoad = 223;
+static constexpr uint kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
@@ -32,10 +32,16 @@ static constexpr absl::string_view kToolsetColumnNames[] = {
     "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
     "#transportTool", "#musicTool",  "#separator3", "#reloadTool"};
 
+static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
+    "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
+    "##sprpalCol", "##msgidCol", "##2ndCol"};
+
 class OverworldEditor {
  public:
   void SetupROM(ROM &rom);
   absl::Status Update();
+
+  absl::Status Undo() { return absl::UnimplementedError("Undo"); }
 
  private:
   absl::Status DrawToolset();
@@ -55,8 +61,7 @@ class OverworldEditor {
   char spr_palette_[3] = "";
   char message_id_[5] = "";
   char staticgfx[16];
-  bool isLoaded = false;
-  bool doneLoaded = false;
+
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;

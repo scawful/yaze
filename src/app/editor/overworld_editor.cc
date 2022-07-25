@@ -131,13 +131,8 @@ absl::Status OverworldEditor::DrawToolset() {
 
 void OverworldEditor::DrawOverworldMapSettings() {
   if (ImGui::BeginTable("#mapSettings", 7, ow_map_flags, ImVec2(0, 0), -1)) {
-    ImGui::TableSetupColumn("##1stCol");
-    ImGui::TableSetupColumn("##gfxCol");
-    ImGui::TableSetupColumn("##palCol");
-    ImGui::TableSetupColumn("##sprgfxCol");
-    ImGui::TableSetupColumn("##sprpalCol");
-    ImGui::TableSetupColumn("##msgidCol");
-    ImGui::TableSetupColumn("##2ndCol");
+    for (const auto &name : kOverworldSettingsColumnNames)
+      ImGui::TableSetupColumn(name.data());
 
     ImGui::TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
@@ -175,7 +170,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
     ImGui::InputText("##msgid", spr_palette_, kMessageIdSize);
 
     ImGui::TableNextColumn();
-    ImGui::Checkbox("Show grid", &opt_enable_grid);
+    ImGui::Checkbox("Show grid", &opt_enable_grid);  // TODO
     ImGui::EndTable();
   }
 }
