@@ -55,41 +55,41 @@ void Overworld::AssembleMap32Tiles() {
       tiles32.push_back(gfx::Tile32(tl, tr, bl, br));
     }
   }
-
-  map_tiles_.light_world.resize(tiles32.size());
-  map_tiles_.dark_world.resize(tiles32.size());
-  map_tiles_.special_world.resize(tiles32.size());
-  for (int i = 0; i < tiles32.size(); i++) {
-    map_tiles_.light_world[i].resize(tiles32.size());
-    map_tiles_.dark_world[i].resize(tiles32.size());
-    map_tiles_.special_world[i].resize(tiles32.size());
+  map_tiles_.light_world.resize(kTile32Num);
+  map_tiles_.dark_world.resize(kTile32Num);
+  map_tiles_.special_world.resize(kTile32Num);
+  for (int i = 0; i < kTile32Num; i++) {
+    map_tiles_.light_world[i].resize(kTile32Num);
+    map_tiles_.dark_world[i].resize(kTile32Num);
+    map_tiles_.special_world[i].resize(kTile32Num);
   }
 }
 
 void Overworld::AssembleMap16Tiles() {
   int tpos = core::map16Tiles;
-  auto rom_data = rom_.data();
-  for (int i = 0; i < 4096; i += 1)  // 3760
-  {
-    gfx::TileInfo t0 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
+  for (int i = 0; i < 4096; i += 1) {
+    auto t0 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
     tpos += 2;
-    gfx::TileInfo t1 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
+    auto t1 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
     tpos += 2;
-    gfx::TileInfo t2 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
+    auto t2 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
     tpos += 2;
-    gfx::TileInfo t3 = gfx::GetTilesInfo((uintptr_t)(rom_data + tpos));
+    auto t3 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
     tpos += 2;
     tiles16.emplace_back(t0, t1, t2, t3);
   }
 }
 
-void Overworld::AssignWorldTiles(std::vector<std::vector<ushort>> &world, int x,
-                                 int y, int sx, int sy, int tpos) {
-  world[(x * 2) + (sx * 32)][(y * 2) + (sy * 32)] = tiles32[tpos].tile0_;
-  world[(x * 2) + 1 + (sx * 32)][(y * 2) + (sy * 32)] = tiles32[tpos].tile1_;
-  world[(x * 2) + (sx * 32)][(y * 2) + 1 + (sy * 32)] = tiles32[tpos].tile2_;
-  world[(x * 2) + 1 + (sx * 32)][(y * 2) + 1 + (sy * 32)] =
-      tiles32[tpos].tile3_;
+void Overworld::AssignWorldTiles(OWBlockset &world, int x, int y, int sx,
+                                 int sy, int tpos) {
+  int position_x1 = (x * 2) + (sx * 32);
+  int position_y1 = (y * 2) + (sy * 32);
+  int position_x2 = (x * 2) + 1 + (sx * 32);
+  int position_y2 = (y * 2) + 1 + (sy * 32);
+  world[position_x1][position_y1] = tiles32[tpos].tile0_;
+  world[position_x2][position_y1] = tiles32[tpos].tile1_;
+  world[position_x1][position_y2] = tiles32[tpos].tile2_;
+  world[position_x2][position_y2] = tiles32[tpos].tile3_;
 }
 
 absl::Status Overworld::DecompressAllMapTiles() {

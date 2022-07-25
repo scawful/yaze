@@ -190,7 +190,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void *)rom_.data(), rom_.GetSize());
+    mem_edit.DrawWindow("Memory Editor", (void *)&rom_, rom_.GetSize());
   }
 
   if (show_imgui_demo) {

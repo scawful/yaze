@@ -48,7 +48,7 @@ void Screen::BuildTileset() {
   uchar* currentmapgfx8Data = tiles8Bitmap.GetData();
 
   // All gfx of the game pack of 2048 bytes (4bpp)
-  uchar* allgfxData = rom_.GetMasterGraphicsBin();
+  uchar* allgfxData = nullptr;  // rom_.GetMasterGraphicsBin();
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {
       uchar mapByte = allgfxData[j + (staticgfx[i] * 2048)];
@@ -67,8 +67,8 @@ void Screen::BuildTileset() {
 }
 
 void Screen::LoadTitleScreen() {
-  int pos = (rom_.data()[0x138C + 3] << 16) + (rom_.data()[0x1383 + 3] << 8) +
-            rom_.data()[0x137A + 3];
+  int pos =
+      (rom_[0x138C + 3] << 16) + (rom_[0x1383 + 3] << 8) + rom_[0x137A + 3];
 
   for (int i = 0; i < 1024; i++) {
     tilesBG1Buffer[i] = 492;
@@ -77,7 +77,7 @@ void Screen::LoadTitleScreen() {
 
   pos = core::SnesToPc(pos);
 
-  while ((rom_.data()[pos] & 0x80) != 0x80) {
+  while ((rom_[pos] & 0x80) != 0x80) {
     int dest_addr = pos;  // $03 and $04
     pos += 2;
     short length = pos;
