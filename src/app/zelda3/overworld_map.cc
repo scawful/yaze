@@ -108,15 +108,14 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
     parent_ = map_parent[index_];
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        area_graphics_ =
-            rom_.data()[core::overworldSpecialGFXGroup + (parent_ - 128)];
-        area_palette_ = rom_.data()[core::overworldSpecialPALGroup + 1];
+        area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 128)];
+        area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
       } else if (index_ == 0x88) {
         area_graphics_ = 81;
         area_palette_ = 0;
       } else {
-        area_graphics_ = rom_.data()[core::mapGfx + parent_];
-        area_palette_ = rom_.data()[core::overworldMapPalette + parent_];
+        area_graphics_ = rom_[core::mapGfx + parent_];
+        area_palette_ = rom_[core::overworldMapPalette + parent_];
       }
 
       initialized_ = true;
@@ -200,33 +199,31 @@ absl::Status OverworldMap::BuildTileset(int game_state) {
   static_graphics_[10] = 115 + 6;
   static_graphics_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    static_graphics_[12 + i] =
-        (rom_.data()[core::kSpriteBlocksetPointer +
-                     (sprite_graphics_[game_state] * 4) + i] +
-         115);
+    static_graphics_[12 + i] = (rom_[core::kSpriteBlocksetPointer +
+                                     (sprite_graphics_[game_state] * 4) + i] +
+                                115);
   }
 
   // Main Blocksets
   for (int i = 0; i < 8; i++) {
     static_graphics_[i] =
-        rom_.data()[core::overworldgfxGroups2 + (index_world * 8) + i];
+        rom_[core::overworldgfxGroups2 + (index_world * 8) + i];
   }
 
-  if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4)] != 0) {
-    static_graphics_[3] =
-        rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4)];
+  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4)] != 0) {
+    static_graphics_[3] = rom_[core::overworldgfxGroups + (area_graphics_ * 4)];
   }
-  if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 1] != 0) {
+  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 1] != 0) {
     static_graphics_[4] =
-        rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 1];
+        rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 1];
   }
-  if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 2] != 0) {
+  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 2] != 0) {
     static_graphics_[5] =
-        rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 2];
+        rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 2];
   }
-  if (rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 3] != 0) {
+  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 3] != 0) {
     static_graphics_[6] =
-        rom_.data()[core::overworldgfxGroups + (area_graphics_ * 4) + 3];
+        rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 3];
   }
 
   // Hardcoded overworld GFX Values, for death mountain
@@ -249,7 +246,7 @@ absl::Status OverworldMap::BuildTileset(int game_state) {
 
 void OverworldMap::BuildTiles16Gfx(int count, uchar* ow_blockset) {
   auto gfx_tile16_data = ow_blockset;
-  auto gfx_tile8_data = rom_.GetMasterGraphicsBin();
+  auto gfx_tile8_data = nullptr;  // rom_.GetMasterGraphicsBin();
 
   int offsets[] = {0, 8, 1024, 1032};
   auto yy = 0;
@@ -281,7 +278,7 @@ void OverworldMap::BuildTiles16Gfx(int count, uchar* ow_blockset) {
 }
 
 absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
-  auto gfx_tile8_data = rom_.GetMasterGraphicsBin();
+  auto gfx_tile8_data = nullptr;  // rom_.GetMasterGraphicsBin();
 
   int offsets[] = {0, 8, 1024, 1032};
   auto yy = 0;
@@ -380,26 +377,6 @@ void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
 
   gfx16Pointer[index + r ^ 1] = (uchar)((pixel & 0x0F) + tile.palette_ * 16);
   gfx16Pointer[index + r] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
-}
-
-void OverworldMap::CopyTile8bpp16From8(int xP, int yP, int tileID,
-                                       uchar* current_gfx) {
-  auto gfx_tile16_data = rom_.GetMasterGraphicsBin();
-  auto gfx_tile8_data = current_gfx;
-
-  auto tiles = tiles16_[tileID];
-
-  for (auto tile = 0; tile < 4; tile++) {
-    gfx::TileInfo info = tiles.tiles_info[tile];
-    int offset = kTileOffsets[tile];
-
-    for (auto y = 0; y < 8; y++) {
-      for (auto x = 0; x < 4; x++) {
-        CopyTileToMap(x, y, xP, yP, offset, info, gfx_tile16_data,
-                      gfx_tile8_data);
-      }
-    }
-  }
 }
 
 }  // namespace zelda3

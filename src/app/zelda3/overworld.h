@@ -40,8 +40,8 @@ class Overworld {
   ushort GenerateTile32(int i, int k, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
-  void AssignWorldTiles(std::vector<std::vector<ushort>> &world, int x, int y,
-                        int sx, int sy, int tpos);
+  void AssignWorldTiles(OWBlockset &world, int x, int y, int sx, int sy,
+                        int tpos);
   absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
 
