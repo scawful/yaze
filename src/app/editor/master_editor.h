@@ -12,6 +12,7 @@
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/overworld_editor.h"
+#include "app/editor/palette_editor.h"
 #include "app/editor/screen_editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -32,30 +33,33 @@ class MasterEditor {
  private:
   void DrawFileDialog();
   void DrawStatusPopup();
+  void DrawAboutPopup();
+  void DrawInfoPopup();
 
   void DrawYazeMenu();
   void DrawFileMenu() const;
-  void DrawEditMenu() const;
+  void DrawEditMenu();
   void DrawViewMenu();
-  void DrawHelpMenu() const;
+  void DrawHelpMenu();
 
   void DrawOverworldEditor();
   void DrawDungeonEditor();
+  void DrawPaletteEditor();
   void DrawScreenEditor();
   void DrawSpriteEditor();
 
-  ROM rom_;
-  AssemblyEditor assembly_editor_;
-  OverworldEditor overworld_editor_;
-  DungeonEditor dungeon_editor_;
-  ScreenEditor screen_editor_;
-
-  absl::Status status_;
-
-  ImVec4 current_palette_[8];
-  ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
+  bool about_ = false;
+  bool rom_info_ = false;
 
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
+  absl::Status status_;
+
+  AssemblyEditor assembly_editor_;
+  DungeonEditor dungeon_editor_;
+  OverworldEditor overworld_editor_;
+  PaletteEditor palette_editor_;
+  ScreenEditor screen_editor_;
+  ROM rom_;
 };
 
 }  // namespace editor

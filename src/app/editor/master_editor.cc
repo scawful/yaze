@@ -82,13 +82,17 @@ void MasterEditor::UpdateScreen() {
   DrawYazeMenu();
   DrawFileDialog();
   DrawStatusPopup();
+  DrawAboutPopup();
+  DrawInfoPopup();
 
   TAB_BAR("##TabBar")
   DrawOverworldEditor();
   DrawDungeonEditor();
+  DrawPaletteEditor();
   DrawSpriteEditor();
   DrawScreenEditor();
   END_TAB_BAR()
+
   ImGui::End();
 }
 
@@ -109,6 +113,36 @@ void MasterEditor::DrawStatusPopup() {
   }
 }
 
+void MasterEditor::DrawAboutPopup() {
+  if (about_) ImGui::OpenPopup("About");
+  if (ImGui::BeginPopupModal("About", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Yet Another Zelda3 Editor: Version 0.4");
+    ImGui::Text("Written by: Justin Scofield (scawful)");
+
+    if (ImGui::Button("Close", ImVec2(120, 0))) {
+      about_ = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+}
+
+void MasterEditor::DrawInfoPopup() {
+  if (rom_info_) ImGui::OpenPopup("ROM Information");
+  if (ImGui::BeginPopupModal("ROM Information", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Title: %s", rom_.GetTitle());
+    ImGui::Text("ROM Size: %ld", rom_.GetSize());
+
+    if (ImGui::Button("Close", ImVec2(120, 0))) {
+      rom_info_ = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+}
+
 void MasterEditor::DrawYazeMenu() {
   MENU_BAR()
   DrawFileMenu();
@@ -124,12 +158,9 @@ void MasterEditor::DrawFileMenu() const {
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
                                               ".sfc,.smc", ".");
     }
-    if (ImGui::MenuItem("Save", "Ctrl+S")) {
-      // TODO: Implement this
-    }
-    if (ImGui::MenuItem("Save As..")) {
-      // TODO: Implement this
-    }
+
+    MENU_ITEM2("Save", "Ctrl+S")
+    MENU_ITEM("Save As..")
 
     ImGui::Separator();
 
@@ -151,28 +182,18 @@ void MasterEditor::DrawFileMenu() const {
   }
 }
 
-void MasterEditor::DrawEditMenu() const {
+void MasterEditor::DrawEditMenu() {
   if (ImGui::BeginMenu("Edit")) {
-    if (ImGui::MenuItem("Undo", "Ctrl+Z")) {
-      // TODO: Implement this
-    }
-    if (ImGui::MenuItem("Redo", "Ctrl+Y")) {
-      // TODO: Implement this
-    }
+    MENU_ITEM2("Undo", "Ctrl+Z") {}
+    MENU_ITEM2("Redo", "Ctrl+Y") {}
     ImGui::Separator();
-    if (ImGui::MenuItem("Cut", "Ctrl+X")) {
-      // TODO: Implement this
-    }
-    if (ImGui::MenuItem("Copy", "Ctrl+C")) {
-      // TODO: Implement this
-    }
-    if (ImGui::MenuItem("Paste", "Ctrl+V")) {
-      // TODO: Implement this
-    }
+    MENU_ITEM2("Cut", "Ctrl+X") {}
+    MENU_ITEM2("Copy", "Ctrl+C") {}
+    MENU_ITEM2("Paste", "Ctrl+V") {}
     ImGui::Separator();
-    if (ImGui::MenuItem("Find", "Ctrl+F")) {
-      // TODO: Implement this
-    }
+    MENU_ITEM2("Find", "Ctrl+F") {}
+    ImGui::Separator();
+    MENU_ITEM("ROM Information") rom_info_ = true;
     ImGui::EndMenu();
   }
 }
@@ -222,13 +243,9 @@ void MasterEditor::DrawViewMenu() {
   }
 }
 
-void MasterEditor::DrawHelpMenu() const {
+void MasterEditor::DrawHelpMenu() {
   if (ImGui::BeginMenu("Help")) {
-    if (ImGui::MenuItem("About")) {
-      // insert the about window here
-    }
-    ImGui::Text("Title: %s", rom_.GetTitle());
-    ImGui::Text("ROM Size: %ld", rom_.GetSize());
+    if (ImGui::MenuItem("About")) about_ = true;
     ImGui::EndMenu();
   }
 }
@@ -242,6 +259,12 @@ void MasterEditor::DrawOverworldEditor() {
 void MasterEditor::DrawDungeonEditor() {
   TAB_ITEM("Dungeon")
   dungeon_editor_.Update();
+  END_TAB_ITEM()
+}
+
+void MasterEditor::DrawPaletteEditor() {
+  TAB_ITEM("Palettes")
+  palette_editor_.Update();
   END_TAB_ITEM()
 }
 
