@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_ROM_H
 #define YAZE_APP_ROM_H
 
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
@@ -32,10 +33,12 @@ constexpr int kCommandRepeatingBytes = 4;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
+static constexpr int kTile32Num = 4432;
+using OWBlockset = std::vector<std::vector<ushort>>;
 struct OWMapTiles {
-  std::vector<std::vector<ushort>> light_world;    // 64 maps * (32*32 tiles)
-  std::vector<std::vector<ushort>> dark_world;     // 64 maps * (32*32 tiles)
-  std::vector<std::vector<ushort>> special_world;  // 32 maps * (32*32 tiles)
+  OWBlockset light_world;    // 64 maps
+  OWBlockset dark_world;     // 64 maps
+  OWBlockset special_world;  // 32 maps
 } typedef OWMapTiles;
 
 class ROM {
@@ -57,11 +60,9 @@ class ROM {
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
-  auto GetMasterGraphicsBin() const { return master_gfx_bin_; }
   auto GetVRAM() const { return pseudo_vram_; }
   auto GetBytes() const { return rom_data_; }
 
-  auto data() { return rom_data_.data(); }
   auto isLoaded() const { return is_loaded_; }
 
   auto Renderer() { return renderer_; }
@@ -70,25 +71,28 @@ class ROM {
   }
   uchar& operator[](int i) {
     if (i > size_) {
-      std::cout << "Index out of bounds" << std::endl;
+      std::cout << "ROM: Index out of bounds" << std::endl;
       return rom_data_[0];
     }
     return rom_data_[i];
   }
+  uchar& operator+(int i) {
+    if (i > size_) {
+      std::cout << "ROM: Index out of bounds" << std::endl;
+      return rom_data_[0];
+    }
+    return rom_data_[i];
+  }
+  const uchar* operator&() { return rom_data_.data(); }
 
  private:
   int num_sheets_ = 0;
   long size_ = 0;
-  uchar* current_rom_;
-  uchar* master_gfx_bin_;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
 
-  ImVec4 display_palette_[8];
-
-  gfx::pseudo_vram pseudo_vram_;
   Bytes rom_data_;
-
+  gfx::pseudo_vram pseudo_vram_;
   std::shared_ptr<SDL_Renderer> renderer_;
   absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_;
 };

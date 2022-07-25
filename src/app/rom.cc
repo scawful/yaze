@@ -145,11 +145,11 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         ushort s2 = ((rom_data_[offset] & 0xFF));
         if (reversed) {  // Reversed byte order for overworld maps
           auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
-          if (addr > buffer_pos) {
+          if (addr > offset) {
             return absl::InternalError(absl::StrFormat(
                 "DecompressOverworldV2: Offset for command copy exceeds "
                 "current position (Offset : %#04x | Pos : %#06x)\n",
-                addr, buffer_pos));
+                addr, offset));
           }
           if (buffer_pos + length >= size) {
             size *= 2;
@@ -214,13 +214,10 @@ absl::StatusOr<Bytes> ROM::Convert3bppTo8bppSheet(Bytes sheet, int size) {
 }
 
 uint ROM::GetGraphicsAddress(uint8_t offset) const {
-  uint snes_address = 0;
-  uint pc_address = 0;
-  snes_address = (uint)((((rom_data_[0x4F80 + offset]) << 16) |
-                         ((rom_data_[0x505F + offset]) << 8) |
-                         ((rom_data_[0x513E + offset]))));
-  pc_address = core::SnesToPc(snes_address);
-  return pc_address;
+  auto snes_address = (uint)((((rom_data_[0x4F80 + offset]) << 16) |
+                              ((rom_data_[0x505F + offset]) << 8) |
+                              ((rom_data_[0x513E + offset]))));
+  return core::SnesToPc(snes_address);
 }
 
 }  // namespace app
