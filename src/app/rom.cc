@@ -1,5 +1,7 @@
 #include "rom.h"
 
+#include <SDL2/SDL.h>
+
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
@@ -16,8 +18,7 @@
 #include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/gfx/pseudo_vram.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/bitmap.h"
 
 namespace yaze {
 namespace app {

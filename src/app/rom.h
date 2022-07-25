@@ -1,7 +1,8 @@
 #ifndef YAZE_APP_ROM_H
 #define YAZE_APP_ROM_H
 
-#include <array>
+#include <SDL2/SDL.h>
+
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
@@ -16,11 +17,9 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/gfx/pseudo_vram.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/bitmap.h"
 
 namespace yaze {
 namespace app {
@@ -59,9 +58,8 @@ class ROM {
   uint GetGraphicsAddress(uint8_t id) const;
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
-  auto GetGraphicsBin() const { return graphics_bin_; }
-  auto GetVRAM() const { return pseudo_vram_; }
   auto GetBytes() const { return rom_data_; }
+  auto GetGraphicsBin() const { return graphics_bin_; }
 
   auto isLoaded() const { return is_loaded_; }
 
@@ -86,13 +84,11 @@ class ROM {
   const uchar* operator&() { return rom_data_.data(); }
 
  private:
-  int num_sheets_ = 0;
   long size_ = 0;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
 
   Bytes rom_data_;
-  gfx::pseudo_vram pseudo_vram_;
   std::shared_ptr<SDL_Renderer> renderer_;
   absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_;
 };
