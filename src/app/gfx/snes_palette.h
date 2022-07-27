@@ -3,7 +3,6 @@
 
 #include <SDL2/SDL.h>
 #include <imgui/imgui.h>
-#include <palette.h>
 
 #include <cstdint>
 #include <cstdlib>
@@ -16,6 +15,25 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+typedef struct {
+  uchar red;
+  uchar blue;
+  uchar green;
+} snes_color;
+
+typedef struct {
+  uint id;
+  uint size;
+  snes_color* colors;
+} snes_palette;
+
+ushort ConvertRGBtoSNES(const snes_color color);
+snes_color ConvertSNEStoRGB(const ushort snes_color);
+
+snes_palette* Extract(const char* data, const unsigned int offset,
+                      const unsigned int palette_size);
+char* Convert(const snes_palette pal);
+
 struct SNESColor {
   SNESColor();
   explicit SNESColor(ImVec4);
@@ -23,8 +41,6 @@ struct SNESColor {
   ImVec4 rgb;
   void setRgb(ImVec4);
   void setSNES(uint16_t);
-  uint8_t approxSNES();
-  ImVec4 approxRGB();
 };
 
 class SNESPalette {
