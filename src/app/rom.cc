@@ -47,7 +47,8 @@ absl::Status ROM::LoadFromPointer(uchar *data, size_t length) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty");
 
-  memcpy(rom_data_.data(), data, length);
+  for (int i = 0; i < length; ++i) rom_data_.push_back(data[i]);
+
   return absl::OkStatus();
 }
 
