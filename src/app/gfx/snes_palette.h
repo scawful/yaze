@@ -11,6 +11,8 @@
 #include <memory>
 #include <vector>
 
+#include "app/core/constants.h"
+
 namespace yaze {
 namespace app {
 namespace gfx {

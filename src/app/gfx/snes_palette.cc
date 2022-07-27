@@ -10,6 +10,8 @@
 #include <memory>
 #include <vector>
 
+#include "app/core/constants.h"
+
 namespace yaze {
 namespace app {
 namespace gfx {
@@ -36,7 +38,7 @@ snes_color ConvertSNEStoRGB(const ushort color) {
 
 snes_palette* Extract(const char* data, const unsigned int offset,
                       const unsigned int palette_size) {
-  snes_palette* toret = palette_create(palette_size, 0);
+  snes_palette* toret = nullptr;  // palette_create(palette_size, 0)
   unsigned colnum = 0;
   for (int i = 0; i < palette_size * 2; i += 2) {
     unsigned short snes_color;
@@ -76,7 +78,7 @@ void SNESColor::setRgb(ImVec4 val) {
   col.red = val.x;
   col.blue = val.y;
   col.green = val.z;
-  snes = convertcolor_rgb_to_snes(col);
+  snes = ConvertRGBtoSNES(col);
 }
 
 void SNESColor::setSNES(uint16_t val) {
@@ -113,7 +115,7 @@ SNESPalette::SNESPalette(const unsigned char* snes_pal)
     SNESColor col;
     col.snes = snes_pal[i + 1] << (uint16_t)8;
     col.snes = col.snes | snes_pal[i];
-    snes_color mColor = convertcolor_snes_to_rgb(col.snes);
+    snes_color mColor = ConvertSNEStoRGB(col.snes);
     col.rgb = ImVec4(mColor.red, mColor.green, mColor.blue, 1.f);
     colors.push_back(col);
   }
