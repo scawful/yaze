@@ -4,18 +4,29 @@
 
 #include "absl/status/statusor.h"
 
-#define BUILD_HEADER(command, lenght) (command << 5) + (lenght - 1)
+#define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
 namespace yaze_test {
 namespace rom_test {
+
+namespace {
+
+Bytes ExpectDataLoadedOk(yaze::app::ROM& rom, uchar* in, int in_size) {
+  auto load_status = rom.LoadFromPointer(in, in_size);
+  EXPECT_TRUE(load_status.ok());
+  auto decompression_status = rom.Decompress(0, in_size);
+  EXPECT_TRUE(decompression_status.ok());
+  auto data = std::move(*decompression_status);
+  return data;
+}
+
+}  // namespace
 
 TEST(DecompressionTest, ValidCommandDecompress) {
   yaze::app::ROM rom;
   uchar simple_copy_input[4] = {BUILD_HEADER(0, 2), 42, 69, 0xFF};
   uchar simple_copy_output[2] = {42, 69};
-  rom.LoadFromPointer(simple_copy_input, 4);
-  auto response = rom.Decompress(0, 4);
-  auto data = std::move(*response);
+  auto data = ExpectDataLoadedOk(rom, simple_copy_input, 4);
   for (int i = 0; i < 2; i++) ASSERT_EQ(simple_copy_output[i], data[i]);
 }
 
@@ -33,80 +44,93 @@ TEST(DecompressionTest, MixingCommand) {
                          22,
                          0xFF};
   uchar random1_o[9] = {42, 42, 42, 1, 2, 3, 4, 11, 22};
-  auto response = rom.LoadFromPointer(random1_i, 11);
-  auto data = rom.Decompress(0, 11);
-  // for (int i = 0; i < 11; i++) {
-  //   ASSERT_EQ(random1_o[i], data[i]) << '[' << i << ']';
-  // }
+  auto data = ExpectDataLoadedOk(rom, random1_i, 11);
+  for (int i = 0; i < 9; i++) {
+    ASSERT_EQ(random1_o[i], data[i]) << '[' << i << ']';
+  }
 }
 
 TEST(DecompressionTest, ExtendedHeaderDecompress) {
   yaze::app::ROM rom;
-  // Set 200 bytes to 42
   uchar extendedcmd_i[4] = {0b11100100, 0x8F, 42, 0xFF};
-  uchar extendedcmd_o[200];
-  for (int i = 0; i < 200; i++) {
+  uchar extendedcmd_o[50];
+  for (int i = 0; i < 50; ++i) {
     extendedcmd_o[i] = 42;
   }
-  auto response = rom.LoadFromPointer(extendedcmd_i, 4);
-  auto data = rom.Decompress(0, 4);
-  // for (int i = 0; i < 200; i++) {
-  //   ASSERT_EQ(extendedcmd_o[i], data[i]);
-  // }
 
-
-  // uchar extendedcmd2_i[] = {0b11100101, 0x8F, 42, 0xFF};
-  // uchar extendedcmd2_o[50];
-  // for (int i = 0; i < 50; i++) {
-  //   extendedcmd2_o[i] = 42;
-  // }
-  // rom.LoadFromPointer(extendedcmd2_i);
-  // auto data2 = rom.Decompress(0, 4);
-  // for (int i = 0; i < 50; i++) {
-  //   ASSERT_EQ(extendedcmd2_o[i], data2[i]);
-  // }
+  auto data = ExpectDataLoadedOk(rom, extendedcmd_i, 4);
+  for (int i = 0; i < 50; ++i) {
+    ASSERT_EQ(extendedcmd_o[i], data[i]);
+  }
 }
 
-TEST(DecompressionTest, CompressionSingle) {
+TEST(DecompressionTest, ExtendedHeaderDecompress2) {
+  yaze::app::ROM rom;
+  uchar extendedcmd_i[4] = {0b11100101, 0x8F, 42, 0xFF};
+  uchar extendedcmd_o[50];
+  for (int i = 0; i < 50; i++) {
+    extendedcmd_o[i] = 42;
+  }
+
+  auto data = ExpectDataLoadedOk(rom, extendedcmd_i, 4);
+  for (int i = 0; i < 50; i++) {
+    ASSERT_EQ(extendedcmd_o[i], data[i]);
+  }
+}
+
+TEST(DecompressionTest, CompressionSingleSet) {
   yaze::app::ROM rom;
   uchar single_set[5] = {42, 42, 42, 42, 42};
   uchar single_set_expected[3] = {BUILD_HEADER(1, 5), 42, 0xFF};
 
-  auto response = rom.LoadFromPointer(single_set, 5);
-  // auto data = rom.Decompress(0, 5);
-  // for (int i = 0; i < 3; i++) {
-  //   ASSERT_EQ(single_set_expected[i], data[i]);
-  // }
+  auto data = ExpectDataLoadedOk(rom, single_set, 5);
+  for (int i = 0; i < 3; ++i) {
+    ASSERT_EQ(single_set_expected[i], data[i]);
+  }
+}
 
-  // char single_word[6] = {42, 1, 42, 1, 42, 1};
-  // char single_word_expected[4] = {BUILD_HEADER(2, 6), 42, 1, 0xFF};
-  // CuAssertDataEquals_Msg(tc, "Single compression, alternating byte",
-  //                        single_word_expected, 4,
-  //                        alttp_compress_gfx(single_word, 0, 6,
-  //                        &compress_size));
+TEST(DecompressionTest, CompressionSingleWord) {
+  yaze::app::ROM rom;
+  uchar single_word[6] = {42, 1, 42, 1, 42, 1};
+  uchar single_word_expected[4] = {BUILD_HEADER(2, 6), 42, 1, 0xFF};
 
-  // char single_inc[3] = {1, 2, 3};
-  // char single_inc_expected[3] = {BUILD_HEADER(3, 3), 1, 0xFF};
-  // CuAssertDataEquals_Msg(tc, "Single compression, increasing byte",
-  //                        single_inc_expected, 3,
-  //                        alttp_compress_gfx(single_inc, 0, 3,
-  //                        &compress_size));
+  auto data = ExpectDataLoadedOk(rom, single_word, 6);
+  for (int i = 0; i < 4; i++) {
+    ASSERT_EQ(single_word_expected[i], data[i]);
+  }
+}
 
-  // char single_copy[4] = {3, 10, 7, 20};
-  // char single_copy_expected[6] = {BUILD_HEADER(0, 4), 3, 10, 7, 20, 0xFF};
+TEST(DecompressionTest, CompressionSingleIncrement) {
+  yaze::app::ROM rom;
+  uchar single_inc[3] = {1, 2, 3};
+  uchar single_inc_expected[3] = {BUILD_HEADER(3, 3), 1, 0xFF};
+  auto data = ExpectDataLoadedOk(rom, single_inc, 3);
+  for (int i = 0; i < 3; ++i) {
+    ASSERT_EQ(single_inc_expected[i], data[i]);
+  }
+}
+
+TEST(DecompressionTest, CompressionSingleCopy) {
+  uchar single_copy[4] = {3, 10, 7, 20};
+  uchar single_copy_expected[6] = {BUILD_HEADER(0, 4), 3, 10, 7, 20, 0xFF};
   // CuAssertDataEquals_Msg(tc, "Single compression, direct copy",
   //                        single_copy_expected, 6,
   //                        alttp_compress_gfx(single_copy, 0, 4,
   //                        &compress_size));
+}
 
-  // char single_copy_repeat[8] = {3, 10, 7, 20, 3, 10, 7, 20};
-  // char single_copy_repeat_expected[9] = {BUILD_HEADER(0, 4), 3, 10, 7,   20,
-  //                                        BUILD_HEADER(4, 4), 0, 0,  0xFF};
+TEST(DecompressionTest, CompressionSingleCopyRepeat) {
+  uchar single_copy_repeat[8] = {3, 10, 7, 20, 3, 10, 7, 20};
+  uchar single_copy_repeat_expected[9] = {BUILD_HEADER(0, 4), 3, 10, 7,   20,
+                                          BUILD_HEADER(4, 4), 0, 0,  0xFF};
   // CuAssertDataEquals_Msg(
   //     tc, "Single compression, direct copy", single_copy_repeat_expected, 9,
   //     alttp_compress_gfx(single_copy_repeat, 0, 8, &compress_size));
-  // char overflow_inc[4] = {0xFE, 0xFF, 0, 1};
-  // char overflow_inc_expected[3] = {BUILD_HEADER(3, 4), 0xFE, 0xFF};
+}
+
+TEST(DecompressionTest, CompressionSingleOverflowIncrement) {
+  uchar overflow_inc[4] = {0xFE, 0xFF, 0, 1};
+  uchar overflow_inc_expected[3] = {BUILD_HEADER(3, 4), 0xFE, 0xFF};
   // CuAssertDataEquals_Msg(
   //     tc, "Inc overflowying", overflow_inc_expected, 3,
   //     alttp_compress_gfx(overflow_inc, 0, 4, &compress_size));
