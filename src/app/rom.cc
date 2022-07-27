@@ -130,11 +130,6 @@ compression_piece* new_compression_piece(const char command,
   return toret;
 }
 
-void free_compression_piece(compression_piece* piece) {
-  free(piece->argument);
-  free(piece);
-}
-
 void free_compression_chain(compression_piece* piece) {
   while (piece != NULL) {
     compression_piece* p = piece->next;
@@ -263,8 +258,6 @@ absl::StatusOr<Bytes> CompressOverworld(const uint pos, const uint length) {
 // TODO TEST compressed data border for each cmd
 absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
                                     char mode) {
-  // we will realloc later
-  // char* compressed_data = (char*)malloc(length + 10);
   Bytes compressed_data(length + 10);
   // Worse case should be a copy of the string with extended header
   compression_piece* compressed_chain = new_compression_piece(1, 1, "aaa", 2);
@@ -273,12 +266,12 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
   unsigned int u_data_pos = start;
   unsigned int last_pos = start + length - 1;
   printf("max pos :%d\n", last_pos);
-  // unsigned int previous_start = start;
+  
   unsigned int data_size_taken[5] = {0, 0, 0, 0, 0};
   unsigned int cmd_size[5] = {0, 1, 2, 1, 2};
   char cmd_args[5][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};
-  unsigned int bytes_since_last_compression =
-      0;  // Used when skipping using copy
+  // Used when skipping using copy
+  unsigned int bytes_since_last_compression = 0;  
 
   while (1) {
     memset(data_size_taken, 0, sizeof(data_size_taken));
@@ -360,6 +353,7 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
         }
       }
     }
+     
     printf("Finding the best gain\n");
     // We check if a command managed to pick up 2 or more bytes
     // We don't want to be even with copy, since it's possible to merge copy
@@ -378,16 +372,17 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
         max_win = cmd_size_taken;
       }
     }
-    if (cmd_with_max == kCommandDirectCopy)  // This is the worse case
-    {
+    
+    // This is the worse case
+    if (cmd_with_max == kCommandDirectCopy) {
       printf("- Best command is copy\n");
       // We just move through the next byte and don't 'compress' yet, maybe
       // something is better after.
       u_data_pos++;
       bytes_since_last_compression++;
-      if (bytes_since_last_compression == 32 ||
-          u_data_pos > last_pos)  // Arbitraty choice to do a 32 bytes grouping
-      {
+      
+      // Arbitrary choice to do a 32 bytes grouping
+      if (bytes_since_last_compression == 32 || u_data_pos > last_pos) {
         char buffer[32];
         memcpy(buffer, u_data + u_data_pos - bytes_since_last_compression,
                bytes_since_last_compression);
@@ -402,13 +397,15 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
       printf("- Ok we get a gain from %d\n", cmd_with_max);
       char buffer[2];
       buffer[0] = cmd_args[cmd_with_max][0];
-      if (cmd_size[cmd_with_max] == 2) buffer[1] = cmd_args[cmd_with_max][1];
+      
+      if (cmd_size[cmd_with_max] == 2) 
+        buffer[1] = cmd_args[cmd_with_max][1];
+      
       compression_piece* new_comp_piece = new_compression_piece(
           cmd_with_max, max_win, buffer, cmd_size[cmd_with_max]);
-      if (bytes_since_last_compression !=
-          0)  // If we let non compressed stuff, we need to add a copy chuck
-              // before
-      {
+ 
+      // If we let non compressed stuff, we need to add a copy chuck before
+      if (bytes_since_last_compression != 0) {
         char* copy_buff = (char*)malloc(bytes_since_last_compression);
         memcpy(copy_buff, u_data + u_data_pos - bytes_since_last_compression,
                bytes_since_last_compression);
@@ -418,11 +415,13 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
         compressed_chain->next = copy_chuck;
         compressed_chain = copy_chuck;
       }
+      
       compressed_chain->next = new_comp_piece;
       compressed_chain = new_comp_piece;
       u_data_pos += max_win;
       bytes_since_last_compression = 0;
     }
+    
     if (u_data_pos > last_pos) break;
 
     // Validate compression result
