@@ -12,8 +12,6 @@ enable_testing()
 
 find_package(SDL2 REQUIRED)
 
-set(SNESHACKING_PATH "../src/lib/sneshacking/src")
-
 add_executable(
   yaze_test
   yaze_test.cc
@@ -23,19 +21,12 @@ add_executable(
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
-  ${SNESHACKING_PATH}/compressions/alttpcompression.c
-  ${SNESHACKING_PATH}/compressions/stdnintendo.c
-  ${SNESHACKING_PATH}/tile.c
-  ${SNESHACKING_PATH}/palette.c
-  ${SNESHACKING_PATH}/rommapping.c
-  ${SNESHACKING_PATH}/mapping_lorom.c
 )
 
 target_include_directories(
   yaze_test PUBLIC
   ../src/lib/
   ../src/
-  ${SNESHACKING_PATH}
   ${SDL_INCLUDE_DIRS}
 )
 
@@ -47,7 +38,6 @@ target_link_libraries(
   absl::statusor
   ${SDL2_LIBRARIES}
   ${OPENGL_LIBRARIES}
-  NintendoCompression
   gtest_main
   gtest
 )
