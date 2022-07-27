@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/core/constants.h"
-
 namespace yaze {
 namespace app {
 namespace gfx {
@@ -15,6 +13,8 @@ typedef struct {
   char data[64];
   unsigned int palette_id;
 } tile8;
+
+TileInfo GetTilesInfo(ushort tile);
 
 // vhopppcc cccccccc
 // [0, 1]
@@ -83,12 +83,6 @@ class OAMTile {
     my = my;
   }
 };
-
-TileInfo GetTilesInfo(ushort tile);
-void BuildTiles16Gfx(uchar* mapblockset16, uchar* currentOWgfx16Ptr,
-                     std::vector<Tile16>& allTiles);
-void CopyTile16(int x, int y, int xx, int yy, int offset, TileInfo tile,
-                uchar* gfx16Pointer, uchar* gfx8Pointer);
 
 }  // namespace gfx
 }  // namespace app
