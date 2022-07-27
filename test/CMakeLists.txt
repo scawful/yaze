@@ -36,6 +36,13 @@ target_link_libraries(
   absl::flags
   absl::status
   absl::statusor
+  absl::failure_signal_handler
+  absl::examine_stack
+  absl::stacktrace
+  absl::base
+  absl::config
+  absl::core_headers
+  absl::raw_logging_internal
   ${SDL2_LIBRARIES}
   ${OPENGL_LIBRARIES}
   gtest_main
