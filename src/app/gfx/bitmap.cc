@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 
+#include <cstdint>
 #include <memory>
 
 #include "absl/status/status.h"
