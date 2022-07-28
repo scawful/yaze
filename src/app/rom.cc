@@ -86,7 +86,6 @@ CompressionPiece* MergeCopy(CompressionPiece* start) {
         piece->argument_length = piece->length;
         memcpy(piece->argument + previous_length, piece->next->argument,
                piece->next->argument_length);
-        printf("-Merged copy created\n");
         PrintCompressionPiece(piece);
         CompressionPiece* p_next_next = piece->next->next;
         FreeCompressionPiece(piece->next);
@@ -193,13 +192,10 @@ uint CreateCompressionString(CompressionPiece* start, uchar* output, int mode) {
   return pos + 1;
 }
 
+// Test every command to see the gain with current position
 void TestAllCommands(const uchar* rom_data, uint& u_data_pos, uint& last_pos,
                      uint start, uint* data_size_taken, char cmd_args[5][2]) {
-  printf("Testing every command\n");
-
-  /* We test every command to see the gain with current position */
   {  // BYTE REPEAT
-    printf("Testing byte repeat\n");
     uint pos = u_data_pos;
     char byte_to_repeat = rom_data[pos];
     while (pos <= last_pos && rom_data[pos] == byte_to_repeat) {
@@ -209,7 +205,6 @@ void TestAllCommands(const uchar* rom_data, uint& u_data_pos, uint& last_pos,
     cmd_args[kCommandByteFill][0] = byte_to_repeat;
   }
   {  // WORD REPEAT
-    printf("Testing word repeat\n");
     if (u_data_pos + 2 <= last_pos &&
         rom_data[u_data_pos] != rom_data[u_data_pos + 1]) {
       uint pos = u_data_pos;
@@ -229,7 +224,6 @@ void TestAllCommands(const uchar* rom_data, uint& u_data_pos, uint& last_pos,
     }
   }
   {  // INC BYTE
-    printf("Testing byte inc\n");
     uint pos = u_data_pos;
     char byte = rom_data[pos];
     pos++;
@@ -241,7 +235,6 @@ void TestAllCommands(const uchar* rom_data, uint& u_data_pos, uint& last_pos,
     cmd_args[kCommandIncreasingFill][0] = rom_data[u_data_pos];
   }
   {  // INTRA CPY
-    printf("Testing intra copy\n");
     if (u_data_pos != start) {
       uint searching_pos = start;
       uint current_pos_u = u_data_pos;
@@ -278,7 +271,6 @@ void TestAllCommands(const uchar* rom_data, uint& u_data_pos, uint& last_pos,
 // Avoids being even with copy command, since it's possible to merge copy
 void ValidateForByteGain(uint& max_win, uint& cmd_with_max,
                          uint* data_size_taken, uint* cmd_size) {
-  printf("Finding the best gain\n");
   for (uint cmd_i = 1; cmd_i < 5; cmd_i++) {
     uint cmd_size_taken = data_size_taken[cmd_i];
     // FIXME: Should probably be a table that say what is even with copy
@@ -297,7 +289,6 @@ void ValidateForByteGain(uint& max_win, uint& cmd_with_max,
 void CompressionDirectCopy(const uchar* rom_data,
                            CompressionPiece* compressed_chain, uint& u_data_pos,
                            uint& bytes_since_last_compression, uint& last_pos) {
-  printf("- Best command is copy\n");
   // We just move through the next byte and don't 'compress' yet, maybe
   // something is better after.
   u_data_pos++;
@@ -324,7 +315,7 @@ void CompressionCommandAlternative(const uchar* rom_data,
                                    uint& bytes_since_last_compression,
                                    uint& cmd_with_max, uint& max_win,
                                    uint* cmd_size, char cmd_args[5][2]) {
-  printf("- Ok we get a gain from %d\n", cmd_with_max);
+  // printf("- Ok we get a gain from %d\n", cmd_with_max);
   char buffer[2];
   buffer[0] = cmd_args[cmd_with_max][0];
 
@@ -467,6 +458,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
     }
 
     if (u_data_pos > last_pos) break;
+
     // Validate compression result
     if (compressed_chain_start->next != nullptr) {
       // We don't call merge copy so we need more space
@@ -474,9 +466,8 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
       auto compressed_size =
           CreateCompressionString(compressed_chain_start->next, tmp, mode);
       uint p;
-      uint k;
 
-      auto response = Decompress(0, 0);
+      auto response = Decompress(0);
       if (!response.ok()) {
         return response.status();
       }
