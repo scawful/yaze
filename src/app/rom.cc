@@ -105,19 +105,17 @@ static char* hexString(const char* str, const unsigned int size) {
   return toret;
 }
 
-static void print_compression_piece(compression_piece* piece) {
+static void print_CompressionPiece(CompressionPiece* piece) {
   printf("Command : %d\n", piece->command);
   printf("length  : %d\n", piece->length);
   printf("Argument length : %d\n", piece->argument_length);
   printf("Argument :%s\n", hexString(piece->argument, piece->argument_length));
 }
 
-compression_piece* new_compression_piece(const char command,
-                                         const unsigned int length,
-                                         const char* args,
-                                         const unsigned int argument_length) {
-  compression_piece* toret =
-      (compression_piece*)malloc(sizeof(compression_piece));
+CompressionPiece* NewCompressionPiece(const char command, const int length,
+                                      const char* args,
+                                      const int argument_length) {
+  CompressionPiece* toret = (CompressionPiece*)malloc(sizeof(CompressionPiece));
   toret->command = command;
   toret->length = length;
   if (args != NULL) {
@@ -130,17 +128,22 @@ compression_piece* new_compression_piece(const char command,
   return toret;
 }
 
-void free_compression_chain(compression_piece* piece) {
+void FreeCompressionPiece(CompressionPiece* piece) {
+  free(piece->argument);
+  free(piece);
+}
+
+void FreeCompressionChain(CompressionPiece* piece) {
   while (piece != NULL) {
-    compression_piece* p = piece->next;
-    free_compression_piece(piece);
+    CompressionPiece* p = piece->next;
+    FreeCompressionPiece(piece);
     piece = p;
   }
 }
 
 // Merge consecutive copy if possible
-compression_piece* merge_copy(compression_piece* start) {
-  compression_piece* piece = start;
+CompressionPiece* MergeCopy(CompressionPiece* start) {
+  CompressionPiece* piece = start;
 
   while (piece != NULL) {
     if (piece->command == kCommandDirectCopy && piece->next != NULL &&
@@ -153,9 +156,9 @@ compression_piece* merge_copy(compression_piece* start) {
         memcpy(piece->argument + previous_length, piece->next->argument,
                piece->next->argument_length);
         printf("-Merged copy created\n");
-        print_compression_piece(piece);
-        compression_piece* p_next_next = piece->next->next;
-        free_compression_piece(piece->next);
+        print_CompressionPiece(piece);
+        CompressionPiece* p_next_next = piece->next->next;
+        FreeCompressionPiece(piece->next);
         piece->next = p_next_next;
         continue;  // Next could be another copy
       }
@@ -165,10 +168,10 @@ compression_piece* merge_copy(compression_piece* start) {
   return start;
 }
 
-unsigned int create_compression_string(compression_piece* start, uchar* output,
-                                       char mode) {
+unsigned int CreateCompressionString(CompressionPiece* start, uchar* output,
+                                     int mode) {
   unsigned int pos = 0;
-  compression_piece* piece = start;
+  CompressionPiece* piece = start;
 
   while (piece != NULL) {
     // Normal header
@@ -184,33 +187,35 @@ unsigned int create_compression_string(compression_piece* start, uchar* output,
       } else {  // We need to split the command
         unsigned int length_left = piece->length - kMaxLengthCompression;
         piece->length = kMaxLengthCompression;
-        compression_piece* new_piece = NULL;
+        CompressionPiece* new_piece = NULL;
         if (piece->command == kCommandByteFill ||
             piece->command == kCommandWordFill) {
           new_piece =
-              new_compression_piece(piece->command, length_left,
-                                    piece->argument, piece->argument_length);
+              NewCompressionPiece(piece->command, length_left, piece->argument,
+                                  piece->argument_length);
         }
         if (piece->command == kCommandIncreasingFill) {
           new_piece =
-              new_compression_piece(piece->command, length_left,
-                                    piece->argument, piece->argument_length);
+              NewCompressionPiece(piece->command, length_left, piece->argument,
+                                  piece->argument_length);
           new_piece->argument[0] =
               (char)(piece->argument[0] + kMaxLengthCompression);
         }
         if (piece->command == kCommandDirectCopy) {
           piece->argument_length = kMaxLengthCompression;
-          new_piece = new_compression_piece(piece->command, length_left, NULL,
-                                            length_left);
-          memcpy(new_piece->argument, piece->argument + kMaxLengthCompression,
-                 length_left);
+          new_piece = NewCompressionPiece(piece->command, length_left, NULL,
+                                          length_left);
+          // MEMCPY
+          for (int i = 0; i < length_left; ++i) {
+            new_piece->argument[i] = piece->argument[i + kMaxLengthCompression];
+          }
         }
         if (piece->command == kCommandRepeatingBytes) {
           piece->argument_length = kMaxLengthCompression;
           unsigned int offset = piece->argument[0] + (piece->argument[1] << 8);
           new_piece =
-              new_compression_piece(piece->command, length_left,
-                                    piece->argument, piece->argument_length);
+              NewCompressionPiece(piece->command, length_left, piece->argument,
+                                  piece->argument_length);
           if (mode == kNintendoMode2) {
             new_piece->argument[0] = (offset + kMaxLengthCompression) & 0xFF;
             new_piece->argument[1] = (offset + kMaxLengthCompression) >> 8;
@@ -221,7 +226,7 @@ unsigned int create_compression_string(compression_piece* start, uchar* output,
           }
         }
         printf("New added piece\n");
-        print_compression_piece(new_piece);
+        print_CompressionPiece(new_piece);
         new_piece->next = piece->next;
         piece->next = new_piece;
         continue;
@@ -237,9 +242,15 @@ unsigned int create_compression_string(compression_piece* start, uchar* output,
         tmp[0] = piece->argument[1];
         tmp[1] = piece->argument[0];
       }
-      memcpy(output + pos, tmp, 2);
+      // memcpy(output + pos, tmp, 2);
+      for (int i = 0; i < 2; ++i) {
+        output[pos + i] = tmp[i];
+      }
     } else {
-      memcpy(output + pos, piece->argument, piece->argument_length);
+      // memcpy(output + pos, piece->argument, piece->argument_length);
+      for (int i = 0; i < piece->argument_length; ++i) {
+        output[pos + i] = piece->argument[i];
+      }
     }
     pos += piece->argument_length;
     piece = piece->next;
@@ -248,30 +259,30 @@ unsigned int create_compression_string(compression_piece* start, uchar* output,
   return pos + 1;
 }
 
-absl::StatusOr<Bytes> CompressGraphics(const uint pos, const uint length) {
+absl::StatusOr<Bytes> ROM::CompressGraphics(const int pos, const int length) {
   return Compress(pos, length, kNintendoMode2);
 }
-absl::StatusOr<Bytes> CompressOverworld(const uint pos, const uint length) {
+absl::StatusOr<Bytes> ROM::CompressOverworld(const int pos, const int length) {
   return Compress(pos, length, kNintendoMode1);
 }
 
 // TODO TEST compressed data border for each cmd
-absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
-                                    char mode) {
+absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
+                                    int mode) {
   Bytes compressed_data(length + 10);
   // Worse case should be a copy of the string with extended header
-  compression_piece* compressed_chain = new_compression_piece(1, 1, "aaa", 2);
-  compression_piece* compressed_chain_start = compressed_chain;
+  CompressionPiece* compressed_chain = NewCompressionPiece(1, 1, "aaa", 2);
+  CompressionPiece* compressed_chain_start = compressed_chain;
 
   unsigned int u_data_pos = start;
   unsigned int last_pos = start + length - 1;
   printf("max pos :%d\n", last_pos);
-  
+
   unsigned int data_size_taken[5] = {0, 0, 0, 0, 0};
   unsigned int cmd_size[5] = {0, 1, 2, 1, 2};
   char cmd_args[5][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};
   // Used when skipping using copy
-  unsigned int bytes_since_last_compression = 0;  
+  unsigned int bytes_since_last_compression = 0;
 
   while (1) {
     memset(data_size_taken, 0, sizeof(data_size_taken));
@@ -353,7 +364,7 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
         }
       }
     }
-     
+
     printf("Finding the best gain\n");
     // We check if a command managed to pick up 2 or more bytes
     // We don't want to be even with copy, since it's possible to merge copy
@@ -372,7 +383,7 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
         max_win = cmd_size_taken;
       }
     }
-    
+
     // This is the worse case
     if (cmd_with_max == kCommandDirectCopy) {
       printf("- Best command is copy\n");
@@ -380,13 +391,14 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
       // something is better after.
       u_data_pos++;
       bytes_since_last_compression++;
-      
+
       // Arbitrary choice to do a 32 bytes grouping
       if (bytes_since_last_compression == 32 || u_data_pos > last_pos) {
         char buffer[32];
-        memcpy(buffer, u_data + u_data_pos - bytes_since_last_compression,
-               bytes_since_last_compression);
-        compression_piece* new_comp_piece = new_compression_piece(
+        for (int i = 0; i < bytes_since_last_compression; ++i) {
+          buffer[i] = rom_data_[i + u_data_pos - bytes_since_last_compression];
+        }
+        CompressionPiece* new_comp_piece = NewCompressionPiece(
             kCommandDirectCopy, bytes_since_last_compression, buffer,
             bytes_since_last_compression);
         compressed_chain->next = new_comp_piece;
@@ -397,39 +409,37 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
       printf("- Ok we get a gain from %d\n", cmd_with_max);
       char buffer[2];
       buffer[0] = cmd_args[cmd_with_max][0];
-      
-      if (cmd_size[cmd_with_max] == 2) 
-        buffer[1] = cmd_args[cmd_with_max][1];
-      
-      compression_piece* new_comp_piece = new_compression_piece(
+
+      if (cmd_size[cmd_with_max] == 2) buffer[1] = cmd_args[cmd_with_max][1];
+
+      CompressionPiece* new_comp_piece = NewCompressionPiece(
           cmd_with_max, max_win, buffer, cmd_size[cmd_with_max]);
- 
       // If we let non compressed stuff, we need to add a copy chuck before
       if (bytes_since_last_compression != 0) {
         char* copy_buff = (char*)malloc(bytes_since_last_compression);
-        memcpy(copy_buff, u_data + u_data_pos - bytes_since_last_compression,
-               bytes_since_last_compression);
-        compression_piece* copy_chuck = new_compression_piece(
+        for (int i = 0; i < bytes_since_last_compression; ++i) {
+          copy_buff[i] =
+              rom_data_[i + u_data_pos - bytes_since_last_compression];
+        }
+        CompressionPiece* copy_chuck = NewCompressionPiece(
             kCommandDirectCopy, bytes_since_last_compression, copy_buff,
             bytes_since_last_compression);
         compressed_chain->next = copy_chuck;
         compressed_chain = copy_chuck;
       }
-      
       compressed_chain->next = new_comp_piece;
       compressed_chain = new_comp_piece;
       u_data_pos += max_win;
       bytes_since_last_compression = 0;
     }
-    
-    if (u_data_pos > last_pos) break;
 
+    if (u_data_pos > last_pos) break;
     // Validate compression result
     if (compressed_chain_start->next != NULL) {
       // We don't call merge copy so we need more space
       auto tmp = (uchar*)malloc(length * 2);
       auto compressed_size =
-          create_compression_string(compressed_chain_start->next, tmp, mode);
+          CreateCompressionString(compressed_chain_start->next, tmp, mode);
       unsigned int p;
       unsigned int k;
 
@@ -439,8 +449,8 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
       }
       auto uncomp = std::move(*response);
       free(tmp);
-      if (memcmp(uncomp.data(), u_data + start, p) != 0) {
-        free_compression_chain(compressed_chain_start);
+      if (memcmp(uncomp.data(), rom_data_.data() + start, p) != 0) {
+        FreeCompressionChain(compressed_chain_start);
         return absl::InternalError(absl::StrFormat(
             "Compressed data does not match uncompressed data at %d\n",
             (unsigned int)(u_data_pos - start)));
@@ -448,10 +458,17 @@ absl::StatusOr<Bytes> ROM::Compress(const uint start, const uint length,
     }
   }
   // First is a dumb place holder
-  merge_copy(compressed_chain_start->next);
-  auto compressed_size = create_compression_string(
-      compressed_chain_start->next, compressed_data.data(), mode);
-  free_compression_chain(compressed_chain_start);
+  MergeCopy(compressed_chain_start->next);
+  uchar temporary_string[length + 10];
+  auto compressed_size = CreateCompressionString(compressed_chain_start->next,
+                                                 temporary_string, mode);
+  for (int i = 0; i < compressed_size; ++i) {
+    compressed_data[i] = temporary_string[i];
+  }
+  FreeCompressionChain(compressed_chain_start);
+  for (int i = 0; i < compressed_size; ++i) {
+    printf("%02x ", compressed_data[i]);
+  }
   return compressed_data;
 }
 

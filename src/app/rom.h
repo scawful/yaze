@@ -35,10 +35,10 @@ constexpr int kMaxLengthNormalHeader = 32;
 constexpr int kMaxLengthCompression = 1024;
 constexpr int kNintendoMode1 = 0;
 constexpr int kNintendoMode2 = 1;
+constexpr int kTile32Num = 4432;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
-static constexpr int kTile32Num = 4432;
 using OWBlockset = std::vector<std::vector<ushort>>;
 struct OWMapTiles {
   OWBlockset light_world;    // 64 maps
@@ -46,21 +46,13 @@ struct OWMapTiles {
   OWBlockset special_world;  // 32 maps
 } typedef OWMapTiles;
 
-typedef struct s_compression_piece compression_piece;
-
-struct s_compression_piece {
+typedef struct sCompressionPiece CompressionPiece;
+struct sCompressionPiece {
   char command;
-  unsigned int length;
+  int length;
   char* argument;
-  unsigned int argument_length;
-  compression_piece* next;
-};
-
-struct CompressionPiece {
-  uchar command;
-  uint length;
-  uchar* argument;
-  uint argument_length;
+  int argument_length;
+  CompressionPiece* next;
 };
 
 class ROM {
@@ -69,12 +61,10 @@ class ROM {
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadAllGraphicsData();
 
-  // absl::Status SaveOverworld();
-
-  absl::StatusOr<Bytes> CompressGraphics(const uint pos, const uint length);
-  absl::StatusOr<Bytes> CompressOverworld(const uint pos, const uint length);
-  absl::StatusOr<Bytes> Compress(const uint start, const uint length,
-                                 char mode);
+  absl::StatusOr<Bytes> CompressGraphics(const int pos, const int length);
+  absl::StatusOr<Bytes> CompressOverworld(const int pos, const int length);
+  absl::StatusOr<Bytes> Compress(const int start, const int length,
+                                 int mode = 0);
 
   absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
