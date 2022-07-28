@@ -46,13 +46,25 @@ struct OWMapTiles {
   OWBlockset special_world;  // 32 maps
 } typedef OWMapTiles;
 
+using CommandArgumentArray = std::array<std::array<char, 2>, 5>;
+using CommandSizeArray = std::array<uint, 5>;
+using DataSizeArray = std::array<uint, 5>;
 struct CompressionPiece {
   char command;
   int length;
-  char* argument;
+  // char* argument;
   int argument_length;
-  CompressionPiece* next;
-  std::unique_ptr<CompressionPiece> next_;
+  // CompressionPiece* next;
+
+  std::string argument;
+  std::shared_ptr<CompressionPiece> next;
+  CompressionPiece() {}
+  CompressionPiece(int cmd, int len, std::string args, int arg_len)
+      : command(cmd),
+        length(len),
+        argument(args),
+        argument_length(arg_len),
+        next(nullptr) {}
 } typedef CompressionPiece;
 
 class ROM {

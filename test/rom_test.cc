@@ -9,6 +9,7 @@
 namespace yaze_test {
 namespace rom_test {
 
+using yaze::app::CompressionPiece;
 using yaze::app::ROM;
 
 namespace {
@@ -30,7 +31,38 @@ Bytes ExpectDecompressDataLoadedOk(ROM& rom, uchar* in, int in_size) {
   return std::move(*decompression_status);
 }
 
+std::shared_ptr<CompressionPiece> ExpectNewCompressionPieceOk(
+    const char command, const int length, const std::string args,
+    const int argument_length) {
+  auto new_piece = std::make_shared<CompressionPiece>(command, length, args,
+                                                      argument_length);
+  EXPECT_TRUE(new_piece != nullptr);
+  return std::move(new_piece);
+}
+
 }  // namespace
+
+TEST(ROMTest, NewDecompressionPieceOk) {
+  char command = 1;
+  int length = 1;
+  char args[] = "aaa";
+  int argument_length = 2;
+  CompressionPiece old_piece;
+  old_piece.command = command;
+  old_piece.length = length;
+  old_piece.argument = args;
+  old_piece.argument_length = argument_length;
+  old_piece.next = nullptr;
+
+  auto new_piece = ExpectNewCompressionPieceOk(1, 1, "aaa", 2);
+
+  EXPECT_EQ(old_piece.command, new_piece->command);
+  EXPECT_EQ(old_piece.length, new_piece->length);
+  ASSERT_EQ(old_piece.argument_length, new_piece->argument_length);
+  for (int i = 0; i < old_piece.argument_length; ++i) {
+    EXPECT_EQ(old_piece.argument[i], new_piece->argument[i]);
+  }
+}
 
 TEST(ROMTest, DecompressionValidCommand) {
   ROM rom;
@@ -97,7 +129,7 @@ TEST(ROMTest, CompressionSingleCopy) {
   uchar single_copy[4] = {3, 10, 7, 20};
   uchar single_copy_expected[6] = {BUILD_HEADER(0, 4), 3, 10, 7, 20, 0xFF};
   auto data = ExpectCompressDataLoadedOk(rom, single_copy, 4);
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; ++i) {
     ASSERT_EQ(single_copy_expected[i], data[i]);
   }
 }
@@ -108,7 +140,7 @@ TEST(ROMTest, CompressionSingleCopyRepeat) {
   uchar single_copy_repeat_expected[9] = {BUILD_HEADER(0, 4), 3, 10, 7,   20,
                                           BUILD_HEADER(4, 4), 0, 0,  0xFF};
   auto data = ExpectCompressDataLoadedOk(rom, single_copy_repeat, 8);
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 8; ++i) {
     ASSERT_EQ(single_copy_repeat_expected[i], data[i]);
   }
 }
@@ -124,6 +156,7 @@ TEST(ROMTest, CompressionSingleOverflowIncrement) {
     EXPECT_EQ(overflow_inc_expected[i], data[i]);
   }
 }
+
 
 TEST(ROMTest, SimpleMixCompression) {
   ROM rom;
