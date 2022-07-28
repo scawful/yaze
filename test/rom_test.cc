@@ -113,6 +113,7 @@ TEST(ROMTest, CompressionSingleCopyRepeat) {
   }
 }
 
+/*
 TEST(ROMTest, CompressionSingleOverflowIncrement) {
   ROM rom;
   uchar overflow_inc[4] = {0xFE, 0xFF, 0, 1};
@@ -174,7 +175,6 @@ TEST(ROMTest, SimpleMixCompression) {
   //     alttp_compress_gfx(to_compress_string, 0, 28, &compress_size));
 }
 
-/*
 TEST(ROMTest, LengthBorderCompression) {
   char buffer[3000];
   unsigned int compress_size;
