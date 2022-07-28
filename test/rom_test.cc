@@ -1,6 +1,9 @@
 #include "app/rom.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <array>
 
 #include "absl/status/statusor.h"
 
@@ -11,6 +14,9 @@ namespace rom_test {
 
 using yaze::app::CompressionPiece;
 using yaze::app::ROM;
+
+using ::testing::ElementsAreArray;
+using ::testing::TypedEq;
 
 namespace {
 
@@ -66,10 +72,12 @@ TEST(ROMTest, NewDecompressionPieceOk) {
 
 TEST(ROMTest, DecompressionValidCommand) {
   ROM rom;
-  uchar simple_copy_input[4] = {BUILD_HEADER(0, 2), 42, 69, 0xFF};
+  std::array<uchar, 4> simple_copy_input = {BUILD_HEADER(0, 2), 42, 69, 0xFF};
   uchar simple_copy_output[2] = {42, 69};
-  auto data = ExpectDecompressDataLoadedOk(rom, simple_copy_input, 4);
-  for (int i = 0; i < 2; i++) ASSERT_EQ(simple_copy_output[i], data[i]);
+  auto decompressed_result =
+      ExpectDecompressDataLoadedOk(rom, simple_copy_input.data(), 4);
+  ASSERT_THAT(simple_copy_output,
+              ElementsAreArray(decompressed_result.data(), 2));
 }
 
 TEST(ROMTest, DecompressionMixingCommand) {
