@@ -46,39 +46,36 @@ struct OWMapTiles {
   OWBlockset special_world;  // 32 maps
 } typedef OWMapTiles;
 
-typedef struct sCompressionPiece CompressionPiece;
-struct sCompressionPiece {
+struct CompressionPiece {
   char command;
   int length;
   char* argument;
   int argument_length;
   CompressionPiece* next;
-};
+  std::unique_ptr<CompressionPiece> next_;
+} typedef CompressionPiece;
 
 class ROM {
  public:
-  absl::Status LoadFromFile(const absl::string_view& filename);
-  absl::Status LoadFromPointer(uchar* data, size_t length);
-  absl::Status LoadAllGraphicsData();
-
-  absl::StatusOr<Bytes> CompressGraphics(const int pos, const int length);
-  absl::StatusOr<Bytes> CompressOverworld(const int pos, const int length);
   absl::StatusOr<Bytes> Compress(const int start, const int length,
                                  int mode = 0);
+  absl::StatusOr<Bytes> CompressGraphics(const int pos, const int length);
+  absl::StatusOr<Bytes> CompressOverworld(const int pos, const int length);
 
-  absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
-  absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
   absl::StatusOr<Bytes> Decompress(int offset, int size = 0x800,
                                    bool reversed = false);
+  absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
+  absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 
-  absl::StatusOr<Bytes> Convert3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
+  absl::StatusOr<Bytes> SNES3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
 
-  uint GetGraphicsAddress(uint8_t id) const;
+  absl::Status LoadAllGraphicsData();
+  absl::Status LoadFromFile(const absl::string_view& filename);
+  absl::Status LoadFromPointer(uchar* data, size_t length);
+
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
-  auto GetBytes() const { return rom_data_; }
   auto GetGraphicsBin() const { return graphics_bin_; }
-
   auto isLoaded() const { return is_loaded_; }
 
   auto Renderer() { return renderer_; }
