@@ -20,7 +20,7 @@ using ::testing::TypedEq;
 
 namespace {
 
-Bytes ExpectCompressDataLoadedOk(ROM& rom, uchar* in, int in_size) {
+Bytes ExpectCompressOk(ROM& rom, uchar* in, int in_size) {
   Bytes result;
   auto load_status = rom.LoadFromPointer(in, in_size);
   EXPECT_TRUE(load_status.ok());
@@ -29,7 +29,7 @@ Bytes ExpectCompressDataLoadedOk(ROM& rom, uchar* in, int in_size) {
   return std::move(*compression_status);
 }
 
-Bytes ExpectDecompressDataLoadedOk(ROM& rom, uchar* in, int in_size) {
+Bytes ExpectDecompressOk(ROM& rom, uchar* in, int in_size) {
   auto load_status = rom.LoadFromPointer(in, in_size);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = rom.Decompress(0, in_size);
@@ -74,10 +74,8 @@ TEST(ROMTest, DecompressionValidCommand) {
   ROM rom;
   std::array<uchar, 4> simple_copy_input = {BUILD_HEADER(0, 2), 42, 69, 0xFF};
   uchar simple_copy_output[2] = {42, 69};
-  auto decompressed_result =
-      ExpectDecompressDataLoadedOk(rom, simple_copy_input.data(), 4);
-  ASSERT_THAT(simple_copy_output,
-              ElementsAreArray(decompressed_result.data(), 2));
+  auto decomp_result = ExpectDecompressOk(rom, simple_copy_input.data(), 4);
+  ASSERT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
 }
 
 TEST(ROMTest, DecompressionMixingCommand) {
@@ -94,10 +92,8 @@ TEST(ROMTest, DecompressionMixingCommand) {
                          22,
                          0xFF};
   uchar random1_o[9] = {42, 42, 42, 1, 2, 3, 4, 11, 22};
-  auto data = ExpectDecompressDataLoadedOk(rom, random1_i, 11);
-  for (int i = 0; i < 9; i++) {
-    ASSERT_EQ(random1_o[i], data[i]) << '[' << i << ']';
-  }
+  auto decomp_result = ExpectDecompressOk(rom, random1_i, 11);
+  ASSERT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
 
 TEST(ROMTest, CompressionSingleSet) {
@@ -105,10 +101,8 @@ TEST(ROMTest, CompressionSingleSet) {
   uchar single_set[5] = {42, 42, 42, 42, 42};
   uchar single_set_expected[3] = {BUILD_HEADER(1, 5), 42, 0xFF};
 
-  auto data = ExpectCompressDataLoadedOk(rom, single_set, 5);
-  for (int i = 0; i < 3; ++i) {
-    ASSERT_EQ(single_set_expected[i], data[i]);
-  }
+  auto decomp_result = ExpectCompressOk(rom, single_set, 5);
+  ASSERT_THAT(single_set_expected, ElementsAreArray(decomp_result.data(), 3));
 }
 
 TEST(ROMTest, CompressionSingleWord) {
@@ -116,30 +110,24 @@ TEST(ROMTest, CompressionSingleWord) {
   uchar single_word[6] = {42, 1, 42, 1, 42, 1};
   uchar single_word_expected[4] = {BUILD_HEADER(2, 6), 42, 1, 0xFF};
 
-  auto data = ExpectCompressDataLoadedOk(rom, single_word, 6);
-  for (int i = 0; i < 4; i++) {
-    ASSERT_EQ(single_word_expected[i], data[i]);
-  }
+  auto decomp_result = ExpectCompressOk(rom, single_word, 6);
+  ASSERT_THAT(single_word_expected, ElementsAreArray(decomp_result.data(), 4));
 }
 
 TEST(ROMTest, CompressionSingleIncrement) {
   ROM rom;
   uchar single_inc[3] = {1, 2, 3};
   uchar single_inc_expected[3] = {BUILD_HEADER(3, 3), 1, 0xFF};
-  auto data = ExpectCompressDataLoadedOk(rom, single_inc, 3);
-  for (int i = 0; i < 3; ++i) {
-    ASSERT_EQ(single_inc_expected[i], data[i]);
-  }
+  auto decomp_result = ExpectCompressOk(rom, single_inc, 3);
+  ASSERT_THAT(single_inc_expected, ElementsAreArray(decomp_result.data(), 3));
 }
 
 TEST(ROMTest, CompressionSingleCopy) {
   ROM rom;
   uchar single_copy[4] = {3, 10, 7, 20};
   uchar single_copy_expected[6] = {BUILD_HEADER(0, 4), 3, 10, 7, 20, 0xFF};
-  auto data = ExpectCompressDataLoadedOk(rom, single_copy, 4);
-  for (int i = 0; i < 4; ++i) {
-    ASSERT_EQ(single_copy_expected[i], data[i]);
-  }
+  auto decomp_result = ExpectCompressOk(rom, single_copy, 4);
+  ASSERT_THAT(single_copy_expected, ElementsAreArray(decomp_result.data(), 6));
 }
 
 TEST(ROMTest, CompressionSingleCopyRepeat) {
@@ -147,7 +135,7 @@ TEST(ROMTest, CompressionSingleCopyRepeat) {
   uchar single_copy_repeat[8] = {3, 10, 7, 20, 3, 10, 7, 20};
   uchar single_copy_repeat_expected[9] = {BUILD_HEADER(0, 4), 3, 10, 7,   20,
                                           BUILD_HEADER(4, 4), 0, 0,  0xFF};
-  auto data = ExpectCompressDataLoadedOk(rom, single_copy_repeat, 8);
+  auto data = ExpectCompressOk(rom, single_copy_repeat, 8);
   for (int i = 0; i < 8; ++i) {
     ASSERT_EQ(single_copy_repeat_expected[i], data[i]);
   }
@@ -159,7 +147,7 @@ TEST(ROMTest, CompressionSingleOverflowIncrement) {
   uchar overflow_inc[4] = {0xFE, 0xFF, 0, 1};
   uchar overflow_inc_expected[3] = {BUILD_HEADER(3, 4), 0xFE, 0xFF};
 
-  auto data = ExpectCompressDataLoadedOk(rom, overflow_inc, 4);
+  auto data = ExpectCompressOk(rom, overflow_inc, 4);
   for (int i = 0; i < 3; ++i) {
     EXPECT_EQ(overflow_inc_expected[i], data[i]);
   }
@@ -178,7 +166,7 @@ TEST(ROMTest, SimpleMixCompression) {
                                           5,
                                           0xFF};
   // Mixing, repeat, inc, trailing copy
-  auto data = ExpectCompressDataLoadedOk(rom, to_compress_string, 7);
+  auto data = ExpectCompressOk(rom, to_compress_string, 7);
   for (int i = 0; i < 7; ++i) {
     EXPECT_EQ(repeat_and_inc_copy_expected[i], data[i]);
   }
@@ -278,7 +266,7 @@ TEST(ROMTest, ExtendedHeaderDecompress) {
     extendedcmd_o[i] = 42;
   }
 
-  auto data = ExpectDecompressDataLoadedOk(rom, extendedcmd_i, 4);
+  auto data = ExpectDecompressOk(rom, extendedcmd_i, 4);
   for (int i = 0; i < 50; ++i) {
     ASSERT_EQ(extendedcmd_o[i], data[i]);
   }
@@ -292,7 +280,7 @@ TEST(ROMTest, ExtendedHeaderDecompress2) {
     extendedcmd_o[i] = 42;
   }
 
-  auto data = ExpectDecompressDataLoadedOk(rom, extendedcmd_i, 4);
+  auto data = ExpectDecompressOk(rom, extendedcmd_i, 4);
   for (int i = 0; i < 50; i++) {
     ASSERT_EQ(extendedcmd_o[i], data[i]);
   }
