@@ -25,11 +25,11 @@ namespace app {
 
 namespace {
 
-uint GetGraphicsAddress(const uchar* data, uint8_t offset) {
+int GetGraphicsAddress(const uchar* data, uint8_t offset) {
   auto part_one = data[0x4F80 + offset] << 16;
   auto part_two = data[0x505F + offset] << 8;
   auto part_three = data[0x513E + offset];
-  auto snes_addr = uint{(part_one | part_two | part_three)};
+  auto snes_addr = (part_one | part_two | part_three);
   return core::SnesToPc(snes_addr);
 }
 
@@ -44,7 +44,7 @@ char* HexString(const char* str, const uint size) {
   return toret;
 }
 
-void PrintCompressionPiece(CompressionPiece* piece) {
+void PrintCompressionPiece(const std::shared_ptr<CompressionPiece>& piece) {
   printf("Command : %d\n", piece->command);
   printf("length  : %d\n", piece->length);
   printf("Argument length : %d\n", piece->argument_length);
@@ -77,7 +77,7 @@ std::shared_ptr<CompressionPiece> MergeCopy(
         }
         piece->argument_length = piece->length;
 
-        PrintCompressionPiece(piece.get());
+        PrintCompressionPiece(piece);
 
         auto p_next_next = piece->next->next;
         piece->next = p_next_next;
@@ -153,7 +153,7 @@ uint CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
         // We need to split the command
         auto new_piece = SplitCompressionPiece(piece, mode);
         printf("New added piece\n");
-        PrintCompressionPiece(new_piece.get());
+        PrintCompressionPiece(new_piece);
         new_piece->next = piece->next;
         piece->next = new_piece;
         continue;
@@ -183,6 +183,64 @@ uint CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
   }
   output[pos] = 0xFF;
   return pos + 1;
+}
+
+Bytes CreateCompressionStringV2(std::shared_ptr<CompressionPiece>& start,
+                                int mode) {
+  uint pos = 0;
+  auto piece = start;
+  Bytes output;
+
+  while (piece != nullptr) {
+    // Normal header
+    if (piece->length <= kMaxLengthNormalHeader) {
+      output.push_back(BUILD_HEADER(piece->command, piece->length));
+      pos++;
+    } else {
+      if (piece->length <= kMaxLengthCompression) {
+        output.push_back((7 << 5) | ((uchar)piece->command << 2) |
+                         (((piece->length - 1) & 0xFF00) >> 8));
+        pos++;
+        printf("Building extended header : cmd: %d, length: %d -  %02X\n",
+               piece->command, piece->length, output[pos - 1]);
+        output.push_back(((piece->length - 1) & 0x00FF));  // (char)
+        pos++;
+      } else {
+        // We need to split the command
+        auto new_piece = SplitCompressionPiece(piece, mode);
+        printf("New added piece\n");
+        PrintCompressionPiece(new_piece);
+        new_piece->next = piece->next;
+        piece->next = new_piece;
+        continue;
+      }
+    }
+
+    if (piece->command == kCommandRepeatingBytes) {
+      char tmp[2];
+      if (mode == kNintendoMode2) {
+        tmp[0] = piece->argument[0];
+        tmp[1] = piece->argument[1];
+      }
+      if (mode == kNintendoMode1) {
+        tmp[0] = piece->argument[1];
+        tmp[1] = piece->argument[0];
+      }
+      for (int i = 0; i < 2; ++i) {
+        output.push_back(tmp[i]);
+        pos++;
+      }
+    } else {
+      for (int i = 0; i < piece->argument_length; ++i) {
+        output.push_back(piece->argument[i]);
+        pos++;
+      }
+    }
+    pos += piece->argument_length;
+    piece = piece->next;
+  }
+  output.push_back(0xFF);
+  return output;
 }
 
 // Test every command to see the gain with current position
@@ -310,14 +368,18 @@ void CompressionCommandAlternative(
     const CommandSizeArray& cmd_size, const CommandArgumentArray& cmd_args,
     uint& u_data_pos, uint& bytes_since_last_compression, uint& cmd_with_max,
     uint& max_win) {
-  // printf("- Ok we get a gain from %d\n", cmd_with_max);
+  printf("- Ok we get a gain from %d\n", cmd_with_max);
   char buffer[2];
   buffer[0] = cmd_args[cmd_with_max][0];
 
-  if (cmd_size[cmd_with_max] == 2) buffer[1] = cmd_args[cmd_with_max][1];
+  if (cmd_size[cmd_with_max] == 2) {
+    buffer[1] = cmd_args[cmd_with_max][1];
+  }
 
   auto new_comp_piece = NewCompressionPiece(cmd_with_max, max_win, buffer,
                                             cmd_size[cmd_with_max]);
+  printf("Here");
+  PrintCompressionPiece(new_comp_piece);
   // If we let non compressed stuff, we need to add a copy chuck before
   if (bytes_since_last_compression != 0) {
     std::string copy_buff;
@@ -367,6 +429,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
     ValidateForByteGain(data_size_taken, cmd_size, max_win, cmd_with_max);
 
     if (cmd_with_max == kCommandDirectCopy) {
+      printf("- Best command is copy\n");
       // This is the worse case
       CompressionDirectCopy(rom_data_.data(), compressed_chain, u_data_pos,
                             bytes_since_last_compression, last_pos);
@@ -384,7 +447,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
       // We don't call merge copy so we need more space
       auto tmp = (uchar*)malloc(length * 2);
       auto compressed_size =
-          CreateCompressionString(compressed_chain_start->next, tmp, mode);
+          CreateCompressionStringV2(compressed_chain_start->next, tmp, mode);
       uint p;
 
       auto response = Decompress(0);
@@ -403,6 +466,14 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
   }
 
   MergeCopy(compressed_chain_start->next);  // First is a dumb place holder
+
+  compressed_chain = compressed_chain_start->next;
+  while (compressed_chain != NULL) {
+    printf("--Piece--\n");
+    PrintCompressionPiece(compressed_chain);
+    compressed_chain = compressed_chain->next;
+  }
+
   uchar temporary_string[length + 10];
   auto compressed_size = CreateCompressionString(compressed_chain_start->next,
                                                  temporary_string, mode);
