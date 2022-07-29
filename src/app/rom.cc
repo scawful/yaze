@@ -369,21 +369,22 @@ void CompressionCommandAlternative(
   auto new_comp_piece = NewCompressionPiece(cmd_with_max, max_win, buffer,
                                             cmd_size[cmd_with_max]);
   PrintCompressionPiece(new_comp_piece);
-  // If we let non compressed stuff, we need to add a copy chuck before
+  // If we let non compressed stuff, we need to add a copy chunk before
   if (bytes_since_last_compression != 0) {
     std::string copy_buff;
     copy_buff.resize(bytes_since_last_compression);
     for (int i = 0; i < bytes_since_last_compression; ++i) {
       copy_buff[i] = rom_data[i + u_data_pos - bytes_since_last_compression];
     }
-    auto copy_chuck =
+    auto copy_chunk =
         NewCompressionPiece(kCommandDirectCopy, bytes_since_last_compression,
                             copy_buff, bytes_since_last_compression);
-    compressed_chain->next = copy_chuck;
-    compressed_chain = copy_chuck;
+    compressed_chain->next = copy_chunk;
+    compressed_chain = copy_chunk;
+  } else {
+    compressed_chain->next = new_comp_piece;
+    compressed_chain = new_comp_piece;
   }
-  compressed_chain->next = new_comp_piece;
-  compressed_chain = new_comp_piece;
   u_data_pos += max_win;
   bytes_since_last_compression = 0;
 }
@@ -445,6 +446,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
       if (!decomp_response.ok()) {
         return decomp_response.status();
       }
+
       auto decomp_data = std::move(*decomp_response);
       if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                       temp_rom.begin())) {
@@ -475,7 +477,7 @@ absl::StatusOr<Bytes> ROM::CompressOverworld(const int pos, const int length) {
 }
 
 absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
-  Bytes buffer(size);
+  Bytes buffer(size, 0);
   uint length = 0;
   uint buffer_pos = 0;
   uchar cmd = 0;
@@ -485,7 +487,7 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
 
     if ((databyte & 0xE0) == 0xE0) {  // Expanded Command
       cmd = ((databyte >> 2) & 0x07);
-      length = (((rom_data_[offset] << 8) | rom_data_[offset + 1]) & 0x3FF);
+      length = (((databyte << 8) | rom_data_[offset + 1]) & 0x3FF);
       offset += 2;  // Advance 2 bytes in ROM
     } else {        // Normal Command
       cmd = ((databyte >> 5) & 0x07);
