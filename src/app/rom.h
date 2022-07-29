@@ -67,7 +67,7 @@ struct OWMapTiles {
 class ROM {
  public:
   absl::StatusOr<Bytes> Compress(const int start, const int length,
-                                 int mode = 0);
+                                 int mode = 1);
   absl::StatusOr<Bytes> CompressGraphics(const int pos, const int length);
   absl::StatusOr<Bytes> CompressOverworld(const int pos, const int length);
 
