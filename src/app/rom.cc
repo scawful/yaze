@@ -124,59 +124,7 @@ std::shared_ptr<CompressionPiece> SplitCompressionPiece(
   return new_piece;
 }
 
-uint CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
-                             uchar* output, int mode) {
-  uint pos = 0;
-  auto piece = start;
-
-  while (piece != nullptr) {
-    // Normal header
-    if (piece->length <= kMaxLengthNormalHeader) {
-      output[pos++] = BUILD_HEADER(piece->command, piece->length);
-    } else {
-      if (piece->length <= kMaxLengthCompression) {
-        output[pos++] = (7 << 5) | ((uchar)piece->command << 2) |
-                        (((piece->length - 1) & 0xFF00) >> 8);
-        printf("Building extended header : cmd: %d, length: %d -  %02X\n",
-               piece->command, piece->length, (uchar)output[pos - 1]);
-        output[pos++] = (char)((piece->length - 1) & 0x00FF);
-      } else {
-        // We need to split the command
-        auto new_piece = SplitCompressionPiece(piece, mode);
-        printf("New added piece\n");
-        PrintCompressionPiece(new_piece);
-        new_piece->next = piece->next;
-        piece->next = new_piece;
-        continue;
-      }
-    }
-
-    if (piece->command == kCommandRepeatingBytes) {
-      char tmp[2];
-      if (mode == kNintendoMode2) {
-        tmp[0] = piece->argument[0];
-        tmp[1] = piece->argument[1];
-      }
-      if (mode == kNintendoMode1) {
-        tmp[0] = piece->argument[1];
-        tmp[1] = piece->argument[0];
-      }
-      for (int i = 0; i < 2; ++i) {
-        output[pos + i] = tmp[i];
-      }
-    } else {
-      for (int i = 0; i < piece->argument_length; ++i) {
-        output[pos + i] = piece->argument[i];
-      }
-    }
-    pos += piece->argument_length;
-    piece = piece->next;
-  }
-  output[pos] = 0xFF;
-  return pos + 1;
-}
-
-Bytes CreateCompressionStringV2(std::shared_ptr<CompressionPiece>& start,
+Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
                                 int mode) {
   uint pos = 0;
   auto piece = start;
@@ -438,7 +386,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
     if (compressed_chain_start->next != nullptr) {
       ROM temp_rom;
       auto rom_response = temp_rom.LoadFromBytes(
-          CreateCompressionStringV2(compressed_chain_start->next, mode));
+          CreateCompressionString(compressed_chain_start->next, mode));
       if (!rom_response.ok()) {
         return rom_response;
       }
@@ -466,7 +414,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
     compressed_chain = compressed_chain->next;
   }
 
-  return CreateCompressionStringV2(compressed_chain_start->next, mode);
+  return CreateCompressionString(compressed_chain_start->next, mode);
 }
 
 absl::StatusOr<Bytes> ROM::CompressGraphics(const int pos, const int length) {
