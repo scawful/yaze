@@ -45,6 +45,8 @@ target_link_libraries(
   absl::raw_logging_internal
   ${SDL2_LIBRARIES}
   ${OPENGL_LIBRARIES}
+  gmock_main
+  gmock
   gtest_main
   gtest
 )
