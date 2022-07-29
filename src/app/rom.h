@@ -39,23 +39,13 @@ constexpr int kTile32Num = 4432;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
-using OWBlockset = std::vector<std::vector<ushort>>;
-struct OWMapTiles {
-  OWBlockset light_world;    // 64 maps
-  OWBlockset dark_world;     // 64 maps
-  OWBlockset special_world;  // 32 maps
-} typedef OWMapTiles;
-
 using CommandArgumentArray = std::array<std::array<char, 2>, 5>;
 using CommandSizeArray = std::array<uint, 5>;
 using DataSizeArray = std::array<uint, 5>;
 struct CompressionPiece {
   char command;
   int length;
-  // char* argument;
   int argument_length;
-  // CompressionPiece* next;
-
   std::string argument;
   std::shared_ptr<CompressionPiece> next;
   CompressionPiece() {}
@@ -66,6 +56,13 @@ struct CompressionPiece {
         argument_length(arg_len),
         next(nullptr) {}
 } typedef CompressionPiece;
+
+using OWBlockset = std::vector<std::vector<ushort>>;
+struct OWMapTiles {
+  OWBlockset light_world;    // 64 maps
+  OWBlockset dark_world;     // 64 maps
+  OWBlockset special_world;  // 32 maps
+} typedef OWMapTiles;
 
 class ROM {
  public:
@@ -84,16 +81,18 @@ class ROM {
   absl::Status LoadAllGraphicsData();
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
+  absl::Status LoadFromBytes(Bytes data);
 
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
-  auto isLoaded() const { return is_loaded_; }
-
-  auto Renderer() { return renderer_; }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
+  auto isLoaded() const { return is_loaded_; }
+  auto begin() { return rom_data_.begin(); }
+  auto end() { return rom_data_.end(); }
+
   uchar& operator[](int i) {
     if (i > size_) {
       std::cout << "ROM: Index out of bounds" << std::endl;
