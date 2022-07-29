@@ -75,7 +75,7 @@ TEST(ROMTest, DecompressionValidCommand) {
   std::array<uchar, 4> simple_copy_input = {BUILD_HEADER(0, 2), 42, 69, 0xFF};
   uchar simple_copy_output[2] = {42, 69};
   auto decomp_result = ExpectDecompressOk(rom, simple_copy_input.data(), 4);
-  ASSERT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
+  EXPECT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
 }
 
 TEST(ROMTest, DecompressionMixingCommand) {
@@ -93,16 +93,44 @@ TEST(ROMTest, DecompressionMixingCommand) {
                          0xFF};
   uchar random1_o[9] = {42, 42, 42, 1, 2, 3, 4, 11, 22};
   auto decomp_result = ExpectDecompressOk(rom, random1_i, 11);
-  ASSERT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
+  EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
+
+/* Extended Header Command is currently unimplemented
+TEST(ROMTest, ExtendedHeaderDecompress) {
+  ROM rom;
+  uchar extendedcmd_i[4] = {0b11100100, 0x8F, 42, 0xFF};
+  uchar extendedcmd_o[50];
+  for (int i = 0; i < 50; ++i) {
+    extendedcmd_o[i] = 42;
+  }
+
+  auto decomp_result = ExpectDecompressOk(rom, extendedcmd_i, 4);
+  ASSERT_THAT(extendedcmd_o, ElementsAreArray(decomp_result.data(), 50));
+}
+
+TEST(ROMTest, ExtendedHeaderDecompress2) {
+  ROM rom;
+  uchar extendedcmd_i[4] = {0b11100101, 0x8F, 42, 0xFF};
+  uchar extendedcmd_o[50];
+  for (int i = 0; i < 50; i++) {
+    extendedcmd_o[i] = 42;
+  }
+
+  auto data = ExpectDecompressOk(rom, extendedcmd_i, 4);
+  for (int i = 0; i < 50; i++) {
+    ASSERT_EQ(extendedcmd_o[i], data[i]);
+  }
+}
+*/
 
 TEST(ROMTest, CompressionSingleSet) {
   ROM rom;
   uchar single_set[5] = {42, 42, 42, 42, 42};
   uchar single_set_expected[3] = {BUILD_HEADER(1, 5), 42, 0xFF};
 
-  auto decomp_result = ExpectCompressOk(rom, single_set, 5);
-  ASSERT_THAT(single_set_expected, ElementsAreArray(decomp_result.data(), 3));
+  auto comp_result = ExpectCompressOk(rom, single_set, 5);
+  EXPECT_THAT(single_set_expected, ElementsAreArray(comp_result.data(), 3));
 }
 
 TEST(ROMTest, CompressionSingleWord) {
@@ -110,24 +138,24 @@ TEST(ROMTest, CompressionSingleWord) {
   uchar single_word[6] = {42, 1, 42, 1, 42, 1};
   uchar single_word_expected[4] = {BUILD_HEADER(2, 6), 42, 1, 0xFF};
 
-  auto decomp_result = ExpectCompressOk(rom, single_word, 6);
-  ASSERT_THAT(single_word_expected, ElementsAreArray(decomp_result.data(), 4));
+  auto comp_result = ExpectCompressOk(rom, single_word, 6);
+  EXPECT_THAT(single_word_expected, ElementsAreArray(comp_result.data(), 4));
 }
 
 TEST(ROMTest, CompressionSingleIncrement) {
   ROM rom;
   uchar single_inc[3] = {1, 2, 3};
   uchar single_inc_expected[3] = {BUILD_HEADER(3, 3), 1, 0xFF};
-  auto decomp_result = ExpectCompressOk(rom, single_inc, 3);
-  ASSERT_THAT(single_inc_expected, ElementsAreArray(decomp_result.data(), 3));
+  auto comp_result = ExpectCompressOk(rom, single_inc, 3);
+  EXPECT_THAT(single_inc_expected, ElementsAreArray(comp_result.data(), 3));
 }
 
 TEST(ROMTest, CompressionSingleCopy) {
   ROM rom;
   uchar single_copy[4] = {3, 10, 7, 20};
   uchar single_copy_expected[6] = {BUILD_HEADER(0, 4), 3, 10, 7, 20, 0xFF};
-  auto decomp_result = ExpectCompressOk(rom, single_copy, 4);
-  ASSERT_THAT(single_copy_expected, ElementsAreArray(decomp_result.data(), 6));
+  auto comp_result = ExpectCompressOk(rom, single_copy, 4);
+  EXPECT_THAT(single_copy_expected, ElementsAreArray(comp_result.data(), 6));
 }
 
 TEST(ROMTest, CompressionSingleCopyRepeat) {
@@ -135,22 +163,37 @@ TEST(ROMTest, CompressionSingleCopyRepeat) {
   uchar single_copy_repeat[8] = {3, 10, 7, 20, 3, 10, 7, 20};
   uchar single_copy_repeat_expected[9] = {BUILD_HEADER(0, 4), 3, 10, 7,   20,
                                           BUILD_HEADER(4, 4), 0, 0,  0xFF};
-  auto data = ExpectCompressOk(rom, single_copy_repeat, 8);
-  for (int i = 0; i < 8; ++i) {
-    ASSERT_EQ(single_copy_repeat_expected[i], data[i]);
-  }
+  auto comp_result = ExpectCompressOk(rom, single_copy_repeat, 8);
+  EXPECT_THAT(single_copy_repeat_expected,
+              ElementsAreArray(comp_result.data(), 8));
 }
 
-/*
+
 TEST(ROMTest, CompressionSingleOverflowIncrement) {
   ROM rom;
   uchar overflow_inc[4] = {0xFE, 0xFF, 0, 1};
   uchar overflow_inc_expected[3] = {BUILD_HEADER(3, 4), 0xFE, 0xFF};
 
-  auto data = ExpectCompressOk(rom, overflow_inc, 4);
-  for (int i = 0; i < 3; ++i) {
-    EXPECT_EQ(overflow_inc_expected[i], data[i]);
-  }
+  auto comp_result = ExpectCompressOk(rom, overflow_inc, 4);
+  EXPECT_THAT(overflow_inc_expected, ElementsAreArray(comp_result.data(), 3));
+}
+
+/*
+TEST(ROMTest, CompressionMixedRepeatIncrement) {
+  ROM rom;
+  uchar to_compress_string[28] = {5, 5, 5,  5,  6, 7, 8, 9, 10, 11, 5, 2,  5, 2,
+                                5, 2, 10, 11, 5, 2, 5, 2, 5,  2,  8, 10, 0, 5};
+  uchar repeat_and_inc_copy_expected[7] = {BUILD_HEADER(1, 4),
+                                          5,
+                                          BUILD_HEADER(3, 6),
+                                          6,
+                                          BUILD_HEADER(0, 1),
+                                          5,
+                                          0xFF};
+  // Mixing, repeat, inc, trailing copy
+  auto comp_result = ExpectCompressOk(rom, to_compress_string, 28);
+  EXPECT_THAT(repeat_and_inc_copy_expected,
+              ElementsAreArray(comp_result.data(), 7));
 }
 
 
@@ -257,34 +300,6 @@ TEST(ROMTest, CompressDecompress) {
       alttp_decompress_gfx(comdata, 0, 0, &compress_size, &c_size));
 }
 
-
-TEST(ROMTest, ExtendedHeaderDecompress) {
-  ROM rom;
-  uchar extendedcmd_i[4] = {0b11100100, 0x8F, 42, 0xFF};
-  uchar extendedcmd_o[50];
-  for (int i = 0; i < 50; ++i) {
-    extendedcmd_o[i] = 42;
-  }
-
-  auto data = ExpectDecompressOk(rom, extendedcmd_i, 4);
-  for (int i = 0; i < 50; ++i) {
-    ASSERT_EQ(extendedcmd_o[i], data[i]);
-  }
-}
-
-TEST(ROMTest, ExtendedHeaderDecompress2) {
-  ROM rom;
-  uchar extendedcmd_i[4] = {0b11100101, 0x8F, 42, 0xFF};
-  uchar extendedcmd_o[50];
-  for (int i = 0; i < 50; i++) {
-    extendedcmd_o[i] = 42;
-  }
-
-  auto data = ExpectDecompressOk(rom, extendedcmd_i, 4);
-  for (int i = 0; i < 50; i++) {
-    ASSERT_EQ(extendedcmd_o[i], data[i]);
-  }
-}
 */
 
 }  // namespace rom_test
