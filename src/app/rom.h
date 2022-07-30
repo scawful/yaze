@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_ROM_H
 #define YAZE_APP_ROM_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <cstddef>
 #include <cstring>
