@@ -1,6 +1,6 @@
 #include "rom.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <cstddef>
 #include <cstring>
