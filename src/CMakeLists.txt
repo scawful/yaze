@@ -1,11 +1,5 @@
 include_directories(lib/cmake)
 
-# find libraries --------------------------------------------------------------------------------------------------
-find_package(SDL2 REQUIRED)
-find_package(PNG REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-
 # gui libraries ---------------------------------------------------------------------------------------------------
 set(IMGUI_PATH  "lib/imgui")
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
@@ -72,8 +66,8 @@ target_include_directories(
   ${GLEW_INCLUDE_DIRS}
 )
 
-target_link_libraries(
-  yaze
+set(
+  ABSL_TARGETS   
   absl::strings
   absl::flags
   absl::status
@@ -86,9 +80,20 @@ target_link_libraries(
   absl::raw_logging_internal
   absl::failure_signal_handler
   absl::flat_hash_map
-  SDL2main
+)
+
+set(SDL_TARGETS SDL2::SDL2)
+
+if(WIN32 OR MINGW)
+    list(PREPEND SDL_TARGETS SDL2::SDL2main)
+    add_definitions(-DSDL_MAIN_HANDLED)
+endif()
+
+target_link_libraries(
+  yaze
+  ${ABSL_TARGETS}
+  ${SDL_TARGETS}
   ${PNG_LIBRARIES}
-  ${SDL2_LIBRARIES} 
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
   ImGui

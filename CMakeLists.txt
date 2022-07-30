@@ -23,8 +23,13 @@ set(ABSL_CXX_STANDARD 17)
 set(ABSL_USE_GOOGLETEST_HEAD ON)
 set(ABSL_ENABLE_INSTALL ON)
 
-add_subdirectory(src/lib/abseil-cpp)
+# Video Libraries -------------------------------------------------------------
+find_package(PNG REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
 
 # Project Files
+add_subdirectory(src/lib/abseil-cpp)
+add_subdirectory(src/lib/SDL)
 add_subdirectory(src)
 add_subdirectory(test)

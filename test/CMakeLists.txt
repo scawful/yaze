@@ -10,8 +10,6 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
-find_package(SDL2 REQUIRED)
-
 add_executable(
   yaze_test
   yaze_test.cc
@@ -43,7 +41,7 @@ target_link_libraries(
   absl::config
   absl::core_headers
   absl::raw_logging_internal
-  ${SDL2_LIBRARIES}
+  SDL2::SDL2
   ${OPENGL_LIBRARIES}
   gmock_main
   gmock
