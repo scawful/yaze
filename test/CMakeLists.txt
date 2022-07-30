@@ -10,8 +10,6 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
-find_package(SDL2 REQUIRED)
-
 add_executable(
   yaze_test
   yaze_test.cc

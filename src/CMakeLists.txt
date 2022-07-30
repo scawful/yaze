@@ -1,11 +1,3 @@
-include_directories(lib/cmake)
-
-# find libraries --------------------------------------------------------------------------------------------------
-find_package(SDL2 REQUIRED)
-find_package(PNG REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-
 # gui libraries ---------------------------------------------------------------------------------------------------
 set(IMGUI_PATH  "lib/imgui")
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
