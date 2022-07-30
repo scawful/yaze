@@ -16,3 +16,9 @@
 [submodule "src/lib/abseil-cpp"]
 	path = src/lib/abseil-cpp
 	url = https://github.com/abseil/abseil-cpp.git
+[submodule "src/lib/--force"]
+	path = src/lib/--force
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "src/lib/SDL"]
+	path = src/lib/SDL
+	url = https://github.com/libsdl-org/SDL.git

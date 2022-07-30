@@ -1,10 +1,5 @@
 include_directories(lib/cmake)
 
-# find libraries --------------------------------------------------------------------------------------------------
-find_package(SDL2 REQUIRED)
-find_package(PNG REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
 
 # gui libraries ---------------------------------------------------------------------------------------------------
 set(IMGUI_PATH  "lib/imgui")
@@ -86,9 +81,9 @@ target_link_libraries(
   absl::raw_logging_internal
   absl::failure_signal_handler
   absl::flat_hash_map
-  SDL2main
+  SDL2::SDL2main
+  SDL2::SDL2
   ${PNG_LIBRARIES}
-  ${SDL2_LIBRARIES} 
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
   ImGui

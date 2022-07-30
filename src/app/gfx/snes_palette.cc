@@ -1,6 +1,6 @@
 #include "snes_palette.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <imgui/imgui.h>
 
 #include <cstdint>

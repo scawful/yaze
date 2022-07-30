@@ -2,7 +2,7 @@
 #define YAZE_APP_CORE_CONTROLLER_H
 #define SDL_MAIN_HANDLED
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_sdlrenderer.h>
 #include <imgui/imgui.h>
