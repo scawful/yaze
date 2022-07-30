@@ -20,15 +20,27 @@
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 
+#define OVERWORLD_GRAPHICS_POS_1 0x4F80
+#define OVERWORLD_GRAPHICS_POS_2 0x505F
+#define OVERWORLD_GRAPHICS_POS_3 0x513E
+#define COMPRESSION_STRING_MOD   7 << 5
+
+#define SNES_BYTE_MAX 0xFF
+
+#define CMD_MOD 0x07
+#define CMD_EXPANDED_MOD 0xE0
+#define CMD_EXPANDED_LENGTH_MOD 0x3FF
+#define CMD_NORMAL_LENGTH_MOD 0x1F
+
 namespace yaze {
 namespace app {
 
 namespace {
 
 int GetGraphicsAddress(const uchar* data, uint8_t offset) {
-  auto part_one = data[0x4F80 + offset] << 16;
-  auto part_two = data[0x505F + offset] << 8;
-  auto part_three = data[0x513E + offset];
+  auto part_one = data[OVERWORLD_GRAPHICS_POS_1 + offset] << 16;
+  auto part_two = data[OVERWORLD_GRAPHICS_POS_2 + offset] << 8;
+  auto part_three = data[OVERWORLD_GRAPHICS_POS_3 + offset];
   auto snes_addr = (part_one | part_two | part_three);
   return core::SnesToPc(snes_addr);
 }
@@ -37,7 +49,8 @@ void PrintCompressionPiece(const std::shared_ptr<CompressionPiece>& piece) {
   printf("Command : %d\n", piece->command);
   printf("length  : %d\n", piece->length);
   printf("Argument :");
-  for (int i = 0; i < piece->argument.size(); ++i) {
+  auto arg_size = piece->argument.size();
+  for (int i = 0; i < arg_size; ++i) {
     printf("%02X ", piece->argument.at(i));
   }
   printf("\nArgument length : %d\n", piece->argument_length);
@@ -112,11 +125,11 @@ std::shared_ptr<CompressionPiece> SplitCompressionPiece(
       new_piece = NewCompressionPiece(piece->command, length_left,
                                       piece->argument, piece->argument_length);
       if (mode == kNintendoMode2) {
-        new_piece->argument[0] = (offset + kMaxLengthCompression) & 0xFF;
+        new_piece->argument[0] = (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
         new_piece->argument[1] = (offset + kMaxLengthCompression) >> 8;
       }
       if (mode == kNintendoMode1) {
-        new_piece->argument[1] = (offset + kMaxLengthCompression) & 0xFF;
+        new_piece->argument[1] = (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
         new_piece->argument[0] = (offset + kMaxLengthCompression) >> 8;
       }
     } break;
@@ -131,13 +144,12 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
   Bytes output;
 
   while (piece != nullptr) {
-    // Normal header
-    if (piece->length <= kMaxLengthNormalHeader) {
+    if (piece->length <= kMaxLengthNormalHeader) { // Normal header
       output.push_back(BUILD_HEADER(piece->command, piece->length));
       pos++;
     } else {
       if (piece->length <= kMaxLengthCompression) {
-        output.push_back((7 << 5) | ((uchar)piece->command << 2) |
+        output.push_back((COMPRESSION_STRING_MOD) | ((uchar)piece->command << 2) |
                          (((piece->length - 1) & 0xFF00) >> 8));
         pos++;
         printf("Building extended header : cmd: %d, length: %d -  %02X\n",
@@ -178,7 +190,7 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
     pos += piece->argument_length;
     piece = piece->next;
   }
-  output.push_back(0xFF);
+  output.push_back(SNES_BYTE_MAX);
   return output;
 }
 
@@ -248,7 +260,7 @@ void TestAllCommands(const uchar* rom_data, DataSizeArray& data_size_taken,
           search_start -= start;
           printf("-Found repeat of %d at %d\n", copied_size, search_start);
           data_size_taken[kCommandRepeatingBytes] = copied_size;
-          cmd_args[kCommandRepeatingBytes][0] = search_start & 0xFF;
+          cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
           cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
         }
         current_pos_u = u_data_pos;
@@ -430,16 +442,16 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
   uint buffer_pos = 0;
   uchar cmd = 0;
   uchar databyte = rom_data_[offset];
-  while (databyte != 0xFF) {  // End of decompression
+  while (databyte != SNES_BYTE_MAX) {  // End of decompression
     databyte = rom_data_[offset];
 
-    if ((databyte & 0xE0) == 0xE0) {  // Expanded Command
-      cmd = ((databyte >> 2) & 0x07);
-      length = (((databyte << 8) | rom_data_[offset + 1]) & 0x3FF);
+    if ((databyte & CMD_EXPANDED_MOD) == CMD_EXPANDED_MOD) {  // Expanded Command
+      cmd = ((databyte >> 2) & CMD_MOD);
+      length = (((databyte << 8) | rom_data_[offset + 1]) & CMD_EXPANDED_LENGTH_MOD);
       offset += 2;  // Advance 2 bytes in ROM
     } else {        // Normal Command
-      cmd = ((databyte >> 5) & 0x07);
-      length = (databyte & 0x1F);
+      cmd = ((databyte >> 5) & CMD_MOD);
+      length = (databyte & CMD_NORMAL_LENGTH_MOD);
       offset += 1;  // Advance 1 byte in ROM
     }
     length += 1;  // each commands is at least of size 1 even if index 00
@@ -467,8 +479,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
-        ushort s1 = ((rom_data_[offset + 1] & 0xFF) << 8);
-        ushort s2 = ((rom_data_[offset] & 0xFF));
+        ushort s1 = ((rom_data_[offset + 1] & SNES_BYTE_MAX) << 8);
+        ushort s2 = ((rom_data_[offset] & SNES_BYTE_MAX));
         if (reversed) {  // Reversed byte order for overworld maps
           auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
           if (addr > offset) {
@@ -567,7 +579,7 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
 }
 
 absl::Status ROM::LoadFromPointer(uchar* data, size_t length) {
-  if (data == nullptr)
+  if (!data)
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
 
