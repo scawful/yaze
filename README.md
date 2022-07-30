@@ -34,3 +34,8 @@ Screenshots
 --------
 ![image](https://user-images.githubusercontent.com/47263509/175393817-39ba86c1-d940-4426-b4db-e2c0f6bd857f.png)
 
+License
+--------
+YAZE is distributed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt) license.
+
+SDL2, ImGUI and Abseil are subject to respective licenses.
