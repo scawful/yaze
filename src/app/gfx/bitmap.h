@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_BITMAP_H
 #define YAZE_APP_GFX_BITMAP_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <cstdint>
 #include <memory>

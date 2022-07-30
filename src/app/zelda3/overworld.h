@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_DATA_OVERWORLD_H
 #define YAZE_APP_DATA_OVERWORLD_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <memory>
 #include <vector>

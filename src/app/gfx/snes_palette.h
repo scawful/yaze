@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_PALETTE_H
 #define YAZE_APP_GFX_PALETTE_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <imgui/imgui.h>
 
 #include <cstdint>

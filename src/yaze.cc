@@ -1,3 +1,5 @@
+#include "yaze.h"
+
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "app/core/controller.h"
