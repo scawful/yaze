@@ -72,6 +72,7 @@ target_link_libraries(
   yaze
   SDL2::SDL2main
 )
+add_definitions(-DSDL_MAIN_HANDLED)
 endif()
 
 target_link_libraries(
