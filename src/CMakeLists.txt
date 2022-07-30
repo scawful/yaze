@@ -67,6 +67,13 @@ target_include_directories(
   ${GLEW_INCLUDE_DIRS}
 )
 
+if (WIN32)
+target_link_libraries(
+  yaze
+  SDL2::SDL2main
+)
+endif()
+
 target_link_libraries(
   yaze
   absl::strings
@@ -81,7 +88,6 @@ target_link_libraries(
   absl::raw_logging_internal
   absl::failure_signal_handler
   absl::flat_hash_map
-  SDL2::SDL2main
   SDL2::SDL2
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
