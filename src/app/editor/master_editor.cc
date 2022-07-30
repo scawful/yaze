@@ -3,8 +3,8 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui/imgui.h>
-#include <imgui/imgui_memory_editor.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
+#include <imgui_memory_editor.h>
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
