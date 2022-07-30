@@ -1,5 +1,4 @@
 include_directories(lib/cmake)
-include_directories(/usr/local/Cellar/libpng/1.6.37/include/libpng16/)
 
 # find libraries --------------------------------------------------------------------------------------------------
 find_package(SDL2 REQUIRED)
@@ -26,11 +25,6 @@ file(GLOB IMGUI_COLOR_TEXT_EDIT_SOURCES ${IMGUI_COLOR_TEXT_EDIT_PATH}/*.cpp)
 add_library("ImGuiColorTextEdit" STATIC ${IMGUI_COLOR_TEXT_EDIT_SOURCES})
 target_include_directories(ImGuiColorTextEdit PUBLIC ${IMGUI_PATH})
 target_compile_definitions(ImGuiColorTextEdit PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
-
-set(SNESHACKING_PATH "lib/sneshacking/src")
-file(GLOB SNESHACKING_SOURCES ${SNESHACKING_PATH}/*.c)
-add_library("NintendoCompression" STATIC ${SNESHACKING_SOURCES})
-target_include_directories(NintendoCompression PUBLIC "/usr/local/Cellar/libpng/1.6.37/include/libpng16")
 
 # Executable Linkage --------------------------------------------------------------------------------------
 add_executable(
@@ -66,21 +60,13 @@ add_executable(
     ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
     ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
     ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
-    ${SNESHACKING_PATH}/compressions/alttpcompression.c
-    ${SNESHACKING_PATH}/compressions/stdnintendo.c
-    ${SNESHACKING_PATH}/tile.c
-    ${SNESHACKING_PATH}/tilepng.c
-    ${SNESHACKING_PATH}/palette.c
-    ${SNESHACKING_PATH}/rommapping.c
-    ${SNESHACKING_PATH}/mapping_lorom.c
 )
 
 target_include_directories(
   yaze PUBLIC
-  ${CMAKE_SOURCE_DIR}/src/
   lib/
   app/
-  ${SNESHACKING_PATH}
+  ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
@@ -106,7 +92,6 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
   ImGui
-  NintendoCompression
 )
 
 set_target_properties(yaze
