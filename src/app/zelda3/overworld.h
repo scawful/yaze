@@ -2,7 +2,6 @@
 #define YAZE_APP_DATA_OVERWORLD_H
 
 #include <SDL2/SDL.h>
-#include <rommapping.h>
 
 #include <memory>
 #include <vector>
