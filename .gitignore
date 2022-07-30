@@ -2,7 +2,6 @@ build/
 .cache/
 .vscode/
 src/lib/SDL2
-src/lib/cmake
 src/lib/GL
 src/lib/libGLEW.2.2.0.dylib
 src/lib/libGLEW.2.2.dylib
