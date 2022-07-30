@@ -49,7 +49,7 @@ void PrintCompressionPiece(const std::shared_ptr<CompressionPiece>& piece) {
   printf("Command : %d\n", piece->command);
   printf("length  : %d\n", piece->length);
   printf("Argument :");
-  auto arg_size = piece->arguments.size();
+  auto arg_size = piece->argument.size();
   for (int i = 0; i < arg_size; ++i) {
     printf("%02X ", piece->argument.at(i));
   }
@@ -144,8 +144,7 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
   Bytes output;
 
   while (piece != nullptr) {
-    // Normal header
-    if (piece->length <= kMaxLengthNormalHeader) {
+    if (piece->length <= kMaxLengthNormalHeader) { // Normal header
       output.push_back(BUILD_HEADER(piece->command, piece->length));
       pos++;
     } else {
