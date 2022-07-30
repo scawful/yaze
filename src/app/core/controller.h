@@ -1,6 +1,5 @@
 #ifndef YAZE_APP_CORE_CONTROLLER_H
 #define YAZE_APP_CORE_CONTROLLER_H
-#define SDL_MAIN_HANDLED
 
 #include <SDL.h>
 #include <imgui/backends/imgui_impl_sdl.h>
