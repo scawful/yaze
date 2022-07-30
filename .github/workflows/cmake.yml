@@ -19,7 +19,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-
+      with:
+        submodules: recursive
+    
     - name: Install Video Libs
       run: sudo apt install libsdl2-dev && sudo apt install libglew-dev
 
