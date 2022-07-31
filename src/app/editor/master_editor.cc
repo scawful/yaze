@@ -267,7 +267,7 @@ void MasterEditor::DrawDungeonEditor() {
 
 void MasterEditor::DrawPaletteEditor() {
   TAB_ITEM("Palettes")
-  palette_editor_.Update();
+  status_ = palette_editor_.Update();
   END_TAB_ITEM()
 }
 
