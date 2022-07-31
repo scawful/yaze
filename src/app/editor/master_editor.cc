@@ -55,7 +55,7 @@ bool BeginCentered(const char *name) {
 
 void DisplayStatus(absl::Status &status) {
   if (BeginCentered("StatusWindow")) {
-    ImGui::Text(status.ToString().data());
+    ImGui::Text("%s", status.ToString().c_str());
     ImGui::Spacing();
     ImGui::NextColumn();
     ImGui::Columns(1);
