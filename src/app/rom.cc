@@ -20,36 +20,40 @@
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 
+#define OVERWORLD_GRAPHICS_POS_1 0x4F80
+#define OVERWORLD_GRAPHICS_POS_2 0x505F
+#define OVERWORLD_GRAPHICS_POS_3 0x513E
+#define COMPRESSION_STRING_MOD   7 << 5
+
+#define SNES_BYTE_MAX 0xFF
+
+#define CMD_MOD 0x07
+#define CMD_EXPANDED_MOD 0xE0
+#define CMD_EXPANDED_LENGTH_MOD 0x3FF
+#define CMD_NORMAL_LENGTH_MOD 0x1F
+
 namespace yaze {
 namespace app {
 
 namespace {
 
-uint GetGraphicsAddress(const uchar* data, uint8_t offset) {
-  auto part_one = data[0x4F80 + offset] << 16;
-  auto part_two = data[0x505F + offset] << 8;
-  auto part_three = data[0x513E + offset];
-  auto snes_addr = uint{(part_one | part_two | part_three)};
+int GetGraphicsAddress(const uchar* data, uint8_t offset) {
+  auto part_one = data[OVERWORLD_GRAPHICS_POS_1 + offset] << 16;
+  auto part_two = data[OVERWORLD_GRAPHICS_POS_2 + offset] << 8;
+  auto part_three = data[OVERWORLD_GRAPHICS_POS_3 + offset];
+  auto snes_addr = (part_one | part_two | part_three);
   return core::SnesToPc(snes_addr);
 }
 
-char* HexString(const char* str, const uint size) {
-  char* toret = (char*)malloc(size * 3 + 1);
-
-  uint i;
-  for (i = 0; i < size; i++) {
-    sprintf(toret + i * 3, "%02X ", (unsigned char)str[i]);
-  }
-  toret[size * 3] = 0;
-  return toret;
-}
-
-void PrintCompressionPiece(CompressionPiece* piece) {
+void PrintCompressionPiece(const std::shared_ptr<CompressionPiece>& piece) {
   printf("Command : %d\n", piece->command);
   printf("length  : %d\n", piece->length);
-  printf("Argument length : %d\n", piece->argument_length);
-  printf("Argument :%s\n",
-         HexString(piece->argument.data(), piece->argument_length));
+  printf("Argument :");
+  auto arg_size = piece->argument.size();
+  for (int i = 0; i < arg_size; ++i) {
+    printf("%02X ", piece->argument.at(i));
+  }
+  printf("\nArgument length : %d\n", piece->argument_length);
 }
 
 std::shared_ptr<CompressionPiece> NewCompressionPiece(
@@ -77,7 +81,7 @@ std::shared_ptr<CompressionPiece> MergeCopy(
         }
         piece->argument_length = piece->length;
 
-        PrintCompressionPiece(piece.get());
+        PrintCompressionPiece(piece);
 
         auto p_next_next = piece->next->next;
         piece->next = p_next_next;
@@ -121,11 +125,11 @@ std::shared_ptr<CompressionPiece> SplitCompressionPiece(
       new_piece = NewCompressionPiece(piece->command, length_left,
                                       piece->argument, piece->argument_length);
       if (mode == kNintendoMode2) {
-        new_piece->argument[0] = (offset + kMaxLengthCompression) & 0xFF;
+        new_piece->argument[0] = (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
         new_piece->argument[1] = (offset + kMaxLengthCompression) >> 8;
       }
       if (mode == kNintendoMode1) {
-        new_piece->argument[1] = (offset + kMaxLengthCompression) & 0xFF;
+        new_piece->argument[1] = (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
         new_piece->argument[0] = (offset + kMaxLengthCompression) >> 8;
       }
     } break;
@@ -133,27 +137,30 @@ std::shared_ptr<CompressionPiece> SplitCompressionPiece(
   return new_piece;
 }
 
-uint CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
-                             uchar* output, int mode) {
+Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
+                                int mode) {
   uint pos = 0;
   auto piece = start;
+  Bytes output;
 
   while (piece != nullptr) {
-    // Normal header
-    if (piece->length <= kMaxLengthNormalHeader) {
-      output[pos++] = BUILD_HEADER(piece->command, piece->length);
+    if (piece->length <= kMaxLengthNormalHeader) { // Normal header
+      output.push_back(BUILD_HEADER(piece->command, piece->length));
+      pos++;
     } else {
       if (piece->length <= kMaxLengthCompression) {
-        output[pos++] = (7 << 5) | ((uchar)piece->command << 2) |
-                        (((piece->length - 1) & 0xFF00) >> 8);
+        output.push_back((COMPRESSION_STRING_MOD) | ((uchar)piece->command << 2) |
+                         (((piece->length - 1) & 0xFF00) >> 8));
+        pos++;
         printf("Building extended header : cmd: %d, length: %d -  %02X\n",
-               piece->command, piece->length, (uchar)output[pos - 1]);
-        output[pos++] = (char)((piece->length - 1) & 0x00FF);
+               piece->command, piece->length, output[pos - 1]);
+        output.push_back(((piece->length - 1) & 0x00FF));  // (char)
+        pos++;
       } else {
         // We need to split the command
         auto new_piece = SplitCompressionPiece(piece, mode);
         printf("New added piece\n");
-        PrintCompressionPiece(new_piece.get());
+        PrintCompressionPiece(new_piece);
         new_piece->next = piece->next;
         piece->next = new_piece;
         continue;
@@ -171,18 +178,20 @@ uint CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
         tmp[1] = piece->argument[0];
       }
       for (int i = 0; i < 2; ++i) {
-        output[pos + i] = tmp[i];
+        output.push_back(tmp[i]);
+        pos++;
       }
     } else {
       for (int i = 0; i < piece->argument_length; ++i) {
-        output[pos + i] = piece->argument[i];
+        output.push_back(piece->argument[i]);
+        pos++;
       }
     }
     pos += piece->argument_length;
     piece = piece->next;
   }
-  output[pos] = 0xFF;
-  return pos + 1;
+  output.push_back(SNES_BYTE_MAX);
+  return output;
 }
 
 // Test every command to see the gain with current position
@@ -251,7 +260,7 @@ void TestAllCommands(const uchar* rom_data, DataSizeArray& data_size_taken,
           search_start -= start;
           printf("-Found repeat of %d at %d\n", copied_size, search_start);
           data_size_taken[kCommandRepeatingBytes] = copied_size;
-          cmd_args[kCommandRepeatingBytes][0] = search_start & 0xFF;
+          cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
           cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
         }
         current_pos_u = u_data_pos;
@@ -292,9 +301,9 @@ void CompressionDirectCopy(const uchar* rom_data,
 
   // Arbitrary choice to do a 32 bytes grouping
   if (bytes_since_last_compression == 32 || u_data_pos > last_pos) {
-    char buffer[32];
+    std::string buffer;
     for (int i = 0; i < bytes_since_last_compression; ++i) {
-      buffer[i] = rom_data[i + u_data_pos - bytes_since_last_compression];
+      buffer.push_back(rom_data[i + u_data_pos - bytes_since_last_compression]);
     }
     auto new_comp_piece =
         NewCompressionPiece(kCommandDirectCopy, bytes_since_last_compression,
@@ -310,29 +319,32 @@ void CompressionCommandAlternative(
     const CommandSizeArray& cmd_size, const CommandArgumentArray& cmd_args,
     uint& u_data_pos, uint& bytes_since_last_compression, uint& cmd_with_max,
     uint& max_win) {
-  // printf("- Ok we get a gain from %d\n", cmd_with_max);
-  char buffer[2];
-  buffer[0] = cmd_args[cmd_with_max][0];
-
-  if (cmd_size[cmd_with_max] == 2) buffer[1] = cmd_args[cmd_with_max][1];
+  printf("- Ok we get a gain from %d\n", cmd_with_max);
+  std::string buffer;
+  buffer.push_back(cmd_args[cmd_with_max][0]);
+  if (cmd_size[cmd_with_max] == 2) {
+    buffer.push_back(cmd_args[cmd_with_max][1]);
+  }
 
   auto new_comp_piece = NewCompressionPiece(cmd_with_max, max_win, buffer,
                                             cmd_size[cmd_with_max]);
-  // If we let non compressed stuff, we need to add a copy chuck before
+  PrintCompressionPiece(new_comp_piece);
+  // If we let non compressed stuff, we need to add a copy chunk before
   if (bytes_since_last_compression != 0) {
     std::string copy_buff;
     copy_buff.resize(bytes_since_last_compression);
     for (int i = 0; i < bytes_since_last_compression; ++i) {
       copy_buff[i] = rom_data[i + u_data_pos - bytes_since_last_compression];
     }
-    auto copy_chuck =
+    auto copy_chunk =
         NewCompressionPiece(kCommandDirectCopy, bytes_since_last_compression,
                             copy_buff, bytes_since_last_compression);
-    compressed_chain->next = copy_chuck;
-    compressed_chain = copy_chuck;
+    compressed_chain->next = copy_chunk;
+    compressed_chain = copy_chunk;
+  } else {
+    compressed_chain->next = new_comp_piece;
+    compressed_chain = new_comp_piece;
   }
-  compressed_chain->next = new_comp_piece;
-  compressed_chain = new_comp_piece;
   u_data_pos += max_win;
   bytes_since_last_compression = 0;
 }
@@ -342,7 +354,6 @@ void CompressionCommandAlternative(
 // TODO TEST compressed data border for each cmd
 absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
                                     int mode) {
-  Bytes compressed_data(length + 10);
   // Worse case should be a copy of the string with extended header
   auto compressed_chain = NewCompressionPiece(1, 1, "aaa", 2);
   auto compressed_chain_start = compressed_chain;
@@ -367,6 +378,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
     ValidateForByteGain(data_size_taken, cmd_size, max_win, cmd_with_max);
 
     if (cmd_with_max == kCommandDirectCopy) {
+      printf("- Best command is copy\n");
       // This is the worse case
       CompressionDirectCopy(rom_data_.data(), compressed_chain, u_data_pos,
                             bytes_since_last_compression, last_pos);
@@ -377,24 +389,27 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
           bytes_since_last_compression, cmd_with_max, max_win);
     }
 
-    if (u_data_pos > last_pos) break;
+    if (u_data_pos > last_pos) {
+      printf("Breaking compression loop\n");
+      break;
+    }
 
     // Validate compression result
     if (compressed_chain_start->next != nullptr) {
-      // We don't call merge copy so we need more space
-      auto tmp = (uchar*)malloc(length * 2);
-      auto compressed_size =
-          CreateCompressionString(compressed_chain_start->next, tmp, mode);
-      uint p;
-
-      auto response = Decompress(0);
-      if (!response.ok()) {
-        return response.status();
+      ROM temp_rom;
+      auto rom_response = temp_rom.LoadFromBytes(
+          CreateCompressionString(compressed_chain_start->next, mode));
+      if (!rom_response.ok()) {
+        return rom_response;
       }
-      auto uncomp = std::move(*response);
-      free(tmp);
-      if (memcmp(uncomp.data(), rom_data_.data() + start, p) != 0) {
-        // FreeCompressionChain(compressed_chain_start);
+      auto decomp_response = temp_rom.Decompress(0, temp_rom.GetSize());
+      if (!decomp_response.ok()) {
+        return decomp_response.status();
+      }
+
+      auto decomp_data = std::move(*decomp_response);
+      if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
+                      temp_rom.begin())) {
         return absl::InternalError(absl::StrFormat(
             "Compressed data does not match uncompressed data at %d\n",
             (uint)(u_data_pos - start)));
@@ -402,15 +417,16 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length,
     }
   }
 
-  MergeCopy(compressed_chain_start->next);  // First is a dumb place holder
-  uchar temporary_string[length + 10];
-  auto compressed_size = CreateCompressionString(compressed_chain_start->next,
-                                                 temporary_string, mode);
-  for (int i = 0; i < compressed_size; ++i) {
-    compressed_data[i] = temporary_string[i];
+  MergeCopy(compressed_chain_start->next);  // Skipping compression chain header
+
+  compressed_chain = compressed_chain_start->next;
+  while (compressed_chain != NULL) {
+    printf("--Piece--\n");
+    PrintCompressionPiece(compressed_chain);
+    compressed_chain = compressed_chain->next;
   }
 
-  return compressed_data;
+  return CreateCompressionString(compressed_chain_start->next, mode);
 }
 
 absl::StatusOr<Bytes> ROM::CompressGraphics(const int pos, const int length) {
@@ -421,21 +437,21 @@ absl::StatusOr<Bytes> ROM::CompressOverworld(const int pos, const int length) {
 }
 
 absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
-  Bytes buffer(size);
+  Bytes buffer(size, 0);
   uint length = 0;
   uint buffer_pos = 0;
   uchar cmd = 0;
   uchar databyte = rom_data_[offset];
-  while (databyte != 0xFF) {  // End of decompression
+  while (databyte != SNES_BYTE_MAX) {  // End of decompression
     databyte = rom_data_[offset];
 
-    if ((databyte & 0xE0) == 0xE0) {  // Expanded Command
-      cmd = ((databyte >> 2) & 0x07);
-      length = (((rom_data_[offset] << 8) | rom_data_[offset + 1]) & 0x3FF);
+    if ((databyte & CMD_EXPANDED_MOD) == CMD_EXPANDED_MOD) {  // Expanded Command
+      cmd = ((databyte >> 2) & CMD_MOD);
+      length = (((databyte << 8) | rom_data_[offset + 1]) & CMD_EXPANDED_LENGTH_MOD);
       offset += 2;  // Advance 2 bytes in ROM
     } else {        // Normal Command
-      cmd = ((databyte >> 5) & 0x07);
-      length = (databyte & 0x1F);
+      cmd = ((databyte >> 5) & CMD_MOD);
+      length = (databyte & CMD_NORMAL_LENGTH_MOD);
       offset += 1;  // Advance 1 byte in ROM
     }
     length += 1;  // each commands is at least of size 1 even if index 00
@@ -463,8 +479,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
-        ushort s1 = ((rom_data_[offset + 1] & 0xFF) << 8);
-        ushort s2 = ((rom_data_[offset] & 0xFF));
+        ushort s1 = ((rom_data_[offset + 1] & SNES_BYTE_MAX) << 8);
+        ushort s2 = ((rom_data_[offset] & SNES_BYTE_MAX));
         if (reversed) {  // Reversed byte order for overworld maps
           auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
           if (addr > offset) {
@@ -563,12 +579,21 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
 }
 
 absl::Status ROM::LoadFromPointer(uchar* data, size_t length) {
-  if (data == nullptr)
+  if (!data)
     return absl::InvalidArgumentError(
-        "Could not load ROM: parameter `data` is empty");
+        "Could not load ROM: parameter `data` is empty.");
 
   for (int i = 0; i < length; ++i) rom_data_.push_back(data[i]);
 
+  return absl::OkStatus();
+}
+
+absl::Status ROM::LoadFromBytes(Bytes data) {
+  if (data.empty()) {
+    return absl::InvalidArgumentError(
+        "Could not load ROM: parameter `data` is empty.");
+  }
+  rom_data_ = data;
   return absl::OkStatus();
 }
 
