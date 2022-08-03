@@ -55,7 +55,7 @@ bool BeginCentered(const char *name) {
 
 void DisplayStatus(absl::Status &status) {
   if (BeginCentered("StatusWindow")) {
-    ImGui::Text(status.ToString().data());
+    ImGui::Text("%s", status.ToString().c_str());
     ImGui::Spacing();
     ImGui::NextColumn();
     ImGui::Columns(1);
@@ -267,7 +267,7 @@ void MasterEditor::DrawDungeonEditor() {
 
 void MasterEditor::DrawPaletteEditor() {
   TAB_ITEM("Palettes")
-  palette_editor_.Update();
+  status_ = palette_editor_.Update();
   END_TAB_ITEM()
 }
 

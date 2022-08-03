@@ -122,7 +122,9 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
     }
   }
 
-  BuildTileset(game_state);
+  if (!BuildTileset(game_state).ok()) {
+    std::cout << "BuildTileset failed" << std::endl;
+  }
   BuildTiles16Gfx(count, ow_blockset);  // build on GFX.mapgfx16Ptr
 
   // int world = 0;
