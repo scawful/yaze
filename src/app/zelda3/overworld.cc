@@ -18,13 +18,13 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
     return decompression_status;
   }
 
-  for (int map_index = 0; map_index < core::NumberOfOWMaps; ++map_index)
+  for (int map_index = 0; map_index < core::kNumOverworldMaps; ++map_index)
     overworld_maps_.emplace_back(map_index, rom_, tiles16);
 
   FetchLargeMaps();
 
   auto size = tiles16.size();
-  for (int i = 0; i < core::NumberOfOWMaps; ++i) {
+  for (int i = 0; i < core::kNumOverworldMaps; ++i) {
     auto map_status =
         overworld_maps_[i].BuildMapV2(size, game_state_, map_parent_);
     if (!map_status.ok()) {
