@@ -25,6 +25,11 @@
 #define MENU_ITEM(w) if (ImGui::MenuItem(w))
 #define MENU_ITEM2(w, v) if (ImGui::MenuItem(w, v))
 
+#define CHECK_STATUS(w) \
+  if (!w.ok()) {            \
+    return w;               \
+  }
+
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
