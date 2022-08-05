@@ -3,6 +3,7 @@
 
 #include <imgui/imgui.h>
 
+#include "app/asm/script.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/zelda3/screen.h"
@@ -13,7 +14,6 @@ namespace app {
 namespace editor {
 
 using MosaicArray = std::array<int, core::kNumOverworldMaps>;
-constexpr char kDefaultMosaicHook[] = "$02AADB";
 
 class ScreenEditor {
  public:
@@ -32,7 +32,7 @@ class ScreenEditor {
   void DrawCanvas();
   void DrawToolset();
 
-  MosaicArray mosaic_tiles_;
+  snes_asm::MosaicArray mosaic_tiles_;
 
   zelda3::Screen current_screen_;
   gui::Canvas screen_canvas_;
