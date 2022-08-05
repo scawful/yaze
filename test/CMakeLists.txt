@@ -15,6 +15,7 @@ add_executable(
   yaze_test.cc
   rom_test.cc
   ../src/app/rom.cc
+  ../src/app/asm/script.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
@@ -43,6 +44,7 @@ target_link_libraries(
   absl::raw_logging_internal
   SDL2::SDL2
   ${OPENGL_LIBRARIES}
+  asar-static
   gmock_main
   gmock
   gtest_main
