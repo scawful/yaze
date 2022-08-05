@@ -79,13 +79,14 @@ void HandleMouseMovement(int &wheel) {
 
 bool Controller::isActive() const { return active_; }
 
-void Controller::onEntry() {
-  CreateWindow();
-  CreateRenderer();
-  CreateGuiContext();
+absl::Status Controller::onEntry() {
+  CHECK_STATUS(CreateWindow())
+  CHECK_STATUS(CreateRenderer())
+  CHECK_STATUS(CreateGuiContext())
   InitializeKeymap();
   master_editor_.SetupScreen(renderer_);
   active_ = true;
+  return absl::OkStatus();
 }
 
 void Controller::onInput() {
@@ -144,77 +145,7 @@ void Controller::onExit() const {
   SDL_Quit();
 }
 
-void Controller::CreateWindow() {
-  if (SDL_Init(SDL_INIT_EVERYTHING)) {
-    SDL_Log("SDL_Init: %s\n", SDL_GetError());
-  } else {
-    window_ = std::unique_ptr<SDL_Window, sdl_deleter>(
-        SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
-                         SDL_WINDOWPOS_UNDEFINED,      // initial x position
-                         SDL_WINDOWPOS_UNDEFINED,      // initial y position
-                         1200,                         // width, in pixels
-                         800,                          // height, in pixels
-                         SDL_WINDOW_RESIZABLE),
-        sdl_deleter());
-  }
-}
-
-void Controller::CreateRenderer() {
-  if (window_ == nullptr) {
-    SDL_Log("SDL_CreateWindow: %s\n", SDL_GetError());
-    SDL_Quit();
-  } else {
-    renderer_ = std::unique_ptr<SDL_Renderer, sdl_deleter>(
-        SDL_CreateRenderer(
-            window_.get(), -1,
-            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
-        sdl_deleter());
-    if (renderer_ == nullptr) {
-      SDL_Log("SDL_CreateRenderer: %s\n", SDL_GetError());
-      SDL_Quit();
-    } else {
-      SDL_SetRenderDrawBlendMode(renderer_.get(), SDL_BLENDMODE_BLEND);
-      SDL_SetRenderDrawColor(renderer_.get(), 0x00, 0x00, 0x00, 0x00);
-    }
-  }
-}
-
-void Controller::CreateGuiContext() const {
-  // Create the ImGui and ImPlot contexts
-  ImGui::CreateContext();
-
-  // Initialize ImGui for SDL
-  ImGui_ImplSDL2_InitForSDLRenderer(window_.get(), renderer_.get());
-  ImGui_ImplSDLRenderer_Init(renderer_.get());
-
-  // Load available fonts
-  const ImGuiIO &io = ImGui::GetIO();
-  io.Fonts->AddFontFromFileTTF("assets/font/Karla-Regular.ttf", 14.0f);
-
-  // merge in icons from Google Material Design
-  static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
-  ImFontConfig icons_config;
-  icons_config.MergeMode = true;
-  icons_config.GlyphOffset.y = 5.0f;
-  icons_config.GlyphMinAdvanceX = 13.0f;
-  icons_config.PixelSnapH = true;
-  io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, 18.0f, &icons_config,
-                               icons_ranges);
-  io.Fonts->AddFontFromFileTTF("assets/font/Roboto-Medium.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/font/Cousine-Regular.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/font/DroidSans.ttf", 16.0f);
-
-  // Set the default style
-  gui::ColorsYaze();
-
-  // Build a new ImGui frame
-  ImGui_ImplSDLRenderer_NewFrame();
-  ImGui_ImplSDL2_NewFrame(window_.get());
-}
-
-// V2 functions ---------------------------------------------------------------
-
-absl::Status Controller::CreateWindowV2() {
+absl::Status Controller::CreateWindow() {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));
@@ -235,7 +166,7 @@ absl::Status Controller::CreateWindowV2() {
   return absl::OkStatus();
 }
 
-absl::Status Controller::CreateRendererV2() {
+absl::Status Controller::CreateRenderer() {
   renderer_ = std::unique_ptr<SDL_Renderer, sdl_deleter>(
       SDL_CreateRenderer(window_.get(), -1,
                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
@@ -250,7 +181,7 @@ absl::Status Controller::CreateRendererV2() {
   return absl::OkStatus();
 }
 
-absl::Status Controller::CreateGuiContextV2() {
+absl::Status Controller::CreateGuiContext() {
   ImGui::CreateContext();
 
   // Initialize ImGui for SDL

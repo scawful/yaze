@@ -23,7 +23,7 @@ namespace core {
 class Controller {
  public:
   bool isActive() const;
-  void onEntry();
+  absl::Status onEntry();
   void onInput();
   void onLoad();
   void doRender() const;
@@ -36,14 +36,10 @@ class Controller {
     void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
   };
 
-  void CreateWindow();
-  void CreateRenderer();
-  void CreateGuiContext() const;
+  absl::Status CreateWindow();
+  absl::Status CreateRenderer();
+  absl::Status CreateGuiContext();
   void CloseWindow() { active_ = false; }
-
-  absl::Status CreateWindowV2();
-  absl::Status CreateRendererV2();
-  absl::Status CreateGuiContextV2();
 
   friend int ::main(int argc, char **argv);
 
