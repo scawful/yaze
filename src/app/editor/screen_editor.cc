@@ -2,6 +2,14 @@
 
 #include <imgui/imgui.h>
 
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+#include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -12,10 +20,32 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+namespace {
+
+absl::StatusOr<absl::string_view> GenerateMosaicChangeAssembly(
+    MosaicArray mosaic_tiles) {
+  std::fstream file("assets/asm/mosaic_change.asm",
+                    std::ios::out | std::ios::in);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(
+        "Couldn't open mosaic change template file");
+  }
+  std::stringstream assembly;
+
+  assembly << absl::StrCat("org ", kDefaultMosaicHook);
+  assembly << file.rdbuf();
+
+  file.close();
+  return assembly.str();
+}
+
+}  // namespace
+
 ScreenEditor::ScreenEditor() { screen_canvas_.SetCanvasSize(ImVec2(512, 512)); }
 
 void ScreenEditor::Update() {
   TAB_BAR("##TabBar")
+  DrawMosaicEditor();
   DrawTitleScreenEditor();
   DrawNamingScreenEditor();
   DrawOverworldMapEditor();
@@ -23,6 +53,20 @@ void ScreenEditor::Update() {
   DrawGameMenuEditor();
   DrawHUDEditor();
   END_TAB_BAR()
+}
+
+void ScreenEditor::DrawMosaicEditor() {
+  TAB_ITEM("Mosaic Transitions")
+  if (ImGui::Button("GenerateMosaicChangeAssembly")) {
+    auto mosaic = GenerateMosaicChangeAssembly(mosaic_tiles_);
+    if (!mosaic.ok()) {
+      std::cout << "Failed to generate mosaic change assembly";
+    } else {
+      std::cout << "Successfully generated mosaic change assembly";
+      std::cout << mosaic.value();
+    }
+  }
+  END_TAB_ITEM()
 }
 
 void ScreenEditor::DrawTitleScreenEditor() {

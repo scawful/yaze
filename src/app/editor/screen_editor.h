@@ -12,12 +12,16 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using MosaicArray = std::array<int, core::kNumOverworldMaps>;
+constexpr char kDefaultMosaicHook[] = "$02AADB";
+
 class ScreenEditor {
  public:
   ScreenEditor();
   void Update();
 
  private:
+  void DrawMosaicEditor();
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -27,6 +31,8 @@ class ScreenEditor {
 
   void DrawCanvas();
   void DrawToolset();
+
+  MosaicArray mosaic_tiles_;
 
   zelda3::Screen current_screen_;
   gui::Canvas screen_canvas_;
