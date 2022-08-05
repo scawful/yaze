@@ -1,44 +1,72 @@
 include_directories(lib/cmake)
 
-# gui libraries ---------------------------------------------------------------------------------------------------
+# gui libraries ---------------------------------------------------------------
 set(IMGUI_PATH  "lib/imgui")
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
 add_library("ImGui" STATIC ${IMGUI_SOURCES})
 target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
 target_include_directories(ImGui PUBLIC ${SDL2_INCLUDE_DIR})
-target_compile_definitions(ImGui PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
+target_compile_definitions(ImGui PUBLIC 
+  IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
 set(IMGUI_FILE_DLG_PATH "lib/ImGuiFileDialog")
 file(GLOB IMGUI_FILE_DLG_SOURCES ${IMGUI_FILE_DLG_PATH}/*.cpp)
 add_library("ImGuiFileDialog" STATIC ${IMGUI_FILE_DLG_SOURCES})
 target_include_directories(ImGuiFileDialog PUBLIC ${IMGUI_PATH})
-target_compile_definitions(ImGuiFileDialog PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
+target_compile_definitions(ImGuiFileDialog PUBLIC 
+  IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
 set(IMGUI_COLOR_TEXT_EDIT_PATH "lib/ImGuiColorTextEdit")
 file(GLOB IMGUI_COLOR_TEXT_EDIT_SOURCES ${IMGUI_COLOR_TEXT_EDIT_PATH}/*.cpp)
 add_library("ImGuiColorTextEdit" STATIC ${IMGUI_COLOR_TEXT_EDIT_SOURCES})
 target_include_directories(ImGuiColorTextEdit PUBLIC ${IMGUI_PATH})
-target_compile_definitions(ImGuiColorTextEdit PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
+target_compile_definitions(ImGuiColorTextEdit PUBLIC 
+  IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
-# Executable Linkage --------------------------------------------------------------------------------------
+# asar assembly ---------------------------------------------------------------
+get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
+include_directories(${ASAR_INCLUDE_DIR})
+
+# executable linkage ----------------------------------------------------------
+
+set(
+  YAZE_APP_CORE_SRC
+  app/core/common.cc
+  app/core/controller.cc
+)
+
+set(
+  YAZE_APP_EDITOR_SRC
+  app/editor/assembly_editor.cc
+  app/editor/dungeon_editor.cc
+  app/editor/master_editor.cc
+  app/editor/overworld_editor.cc
+  app/editor/palette_editor.cc
+  app/editor/screen_editor.cc
+)
+
+set(
+  YAZE_APP_GFX_SRC
+  app/gfx/bitmap.cc
+  app/gfx/pseudo_vram.cc
+  app/gfx/snes_palette.cc
+  app/gfx/snes_tile.cc
+)
+
+set(
+  YAZE_APP_ZELDA3_SRC
+  app/zelda3/overworld_map.cc
+  app/zelda3/overworld.cc
+  app/zelda3/screen.cc
+)
+
 add_executable(
     yaze
     yaze.cc
-    app/core/common.cc
-    app/core/controller.cc
-    app/editor/assembly_editor.cc
-    app/editor/dungeon_editor.cc
-    app/editor/master_editor.cc
-    app/editor/overworld_editor.cc
-    app/editor/palette_editor.cc
-    app/editor/screen_editor.cc
-    app/gfx/bitmap.cc
-    app/gfx/pseudo_vram.cc
-    app/gfx/snes_palette.cc
-    app/gfx/snes_tile.cc
-    app/zelda3/overworld_map.cc
-    app/zelda3/overworld.cc
-    app/zelda3/screen.cc
+    ${YAZE_APP_CORE_SRC}
+    ${YAZE_APP_EDITOR_SRC}
+    ${YAZE_APP_GFX_SRC}
+    ${YAZE_APP_ZELDA3_SRC}
     app/rom.cc
     gui/canvas.cc
     gui/input.cc
@@ -96,6 +124,7 @@ target_link_libraries(
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
+  asar-static
   ImGui
 )
 

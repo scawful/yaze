@@ -19,3 +19,6 @@
 [submodule "src/lib/SDL"]
 	path = src/lib/SDL
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "src/lib/asar"]
+	path = src/lib/asar
+	url = https://github.com/RPGHacker/asar.git
