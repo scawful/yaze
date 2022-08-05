@@ -11,7 +11,13 @@ int main(int argc, char** argv) {
   absl::InstallFailureSignalHandler(options);
 
   yaze::app::core::Controller controller;
-  controller.onEntry();
+
+  auto entry_status = controller.onEntry();
+  if (!entry_status.ok()) {
+    // TODO(@scawful): log the specific error
+    return EXIT_FAILURE;
+  }
+
   while (controller.isActive()) {
     controller.onInput();
     controller.onLoad();
