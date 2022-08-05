@@ -10,6 +10,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "app/asm/script.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -19,27 +20,6 @@
 namespace yaze {
 namespace app {
 namespace editor {
-
-namespace {
-
-absl::StatusOr<absl::string_view> GenerateMosaicChangeAssembly(
-    MosaicArray mosaic_tiles) {
-  std::fstream file("assets/asm/mosaic_change.asm",
-                    std::ios::out | std::ios::in);
-  if (!file.is_open()) {
-    return absl::InvalidArgumentError(
-        "Couldn't open mosaic change template file");
-  }
-  std::stringstream assembly;
-
-  assembly << absl::StrCat("org ", kDefaultMosaicHook);
-  assembly << file.rdbuf();
-
-  file.close();
-  return assembly.str();
-}
-
-}  // namespace
 
 ScreenEditor::ScreenEditor() { screen_canvas_.SetCanvasSize(ImVec2(512, 512)); }
 
@@ -58,7 +38,7 @@ void ScreenEditor::Update() {
 void ScreenEditor::DrawMosaicEditor() {
   TAB_ITEM("Mosaic Transitions")
   if (ImGui::Button("GenerateMosaicChangeAssembly")) {
-    auto mosaic = GenerateMosaicChangeAssembly(mosaic_tiles_);
+    auto mosaic = snes_asm::GenerateMosaicChangeAssembly(mosaic_tiles_);
     if (!mosaic.ok()) {
       std::cout << "Failed to generate mosaic change assembly";
     } else {
