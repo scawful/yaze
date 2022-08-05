@@ -1,5 +1,3 @@
-include_directories(lib/cmake)
-
 # gui libraries ---------------------------------------------------------------
 set(IMGUI_PATH  "lib/imgui")
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
@@ -23,11 +21,18 @@ target_include_directories(ImGuiColorTextEdit PUBLIC ${IMGUI_PATH})
 target_compile_definitions(ImGuiColorTextEdit PUBLIC 
   IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
-# asar assembly ---------------------------------------------------------------
-get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
-include_directories(${ASAR_INCLUDE_DIR})
-
-# executable linkage ----------------------------------------------------------
+set(
+  IMGUI_SRC
+  ${IMGUI_PATH}/imgui.cpp 
+  ${IMGUI_PATH}/imgui_demo.cpp
+  ${IMGUI_PATH}/imgui_draw.cpp 
+  ${IMGUI_PATH}/imgui_widgets.cpp
+  ${IMGUI_PATH}/backends/imgui_impl_sdl.cpp
+  ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer.cpp 
+  ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
+  ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
+  ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
+)
 
 set(
   YAZE_APP_CORE_SRC
@@ -60,34 +65,37 @@ set(
   app/zelda3/screen.cc
 )
 
+set(
+  YAZE_APP_ASM_SRC
+  app/asm/script.h
+)
+
+set(
+  YAZE_GUI_SRC
+  gui/canvas.cc
+  gui/input.cc
+  gui/style.cc
+  gui/widgets.cc
+)
+
 add_executable(
     yaze
     yaze.cc
+    app/rom.cc
+    ${YAZE_APP_ASM_SRC}
     ${YAZE_APP_CORE_SRC}
     ${YAZE_APP_EDITOR_SRC}
     ${YAZE_APP_GFX_SRC}
     ${YAZE_APP_ZELDA3_SRC}
-    app/rom.cc
-    gui/canvas.cc
-    gui/input.cc
-    gui/style.cc
-    gui/widgets.cc
-    # GUI libraries 
-    ${IMGUI_PATH}/imgui.cpp 
-    ${IMGUI_PATH}/imgui_demo.cpp
-    ${IMGUI_PATH}/imgui_draw.cpp 
-    ${IMGUI_PATH}/imgui_widgets.cpp
-    ${IMGUI_PATH}/backends/imgui_impl_sdl.cpp
-    ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer.cpp 
-    ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
-    ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
-    ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
+    ${YAZE_GUI_SRC}
+    ${IMGUI_SRC}
 )
 
 target_include_directories(
   yaze PUBLIC
   lib/
   app/
+  ${ASAR_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
