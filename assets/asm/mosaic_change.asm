@@ -1,4 +1,4 @@
-org <HOOK>
+
     JML AreaCheck
 
 AreaCheck:
