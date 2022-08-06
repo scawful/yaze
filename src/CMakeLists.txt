@@ -39,6 +39,8 @@ add_subdirectory(lib/asar/src)
 get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
 add_definitions(-Dstricmp=strcasecmp)
 
+# executable linkage ----------------------------------------------------------
+
 set(
   YAZE_APP_CORE_SRC
   app/core/common.cc
@@ -94,7 +96,6 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
-)
 
 target_include_directories(
   yaze PUBLIC
