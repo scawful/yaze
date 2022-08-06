@@ -89,10 +89,10 @@ constexpr int NumberOfSheets = 223;
 constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfRooms = 296;
 
-constexpr int NumberOfOWMaps = 160;
+constexpr int kNumOverworldMaps = 160;
 constexpr int Map32PerScreen = 256;
 constexpr int NumberOfMap16 = 3752;  // 4096
-constexpr int NumberOfMap32 = Map32PerScreen * NumberOfOWMaps;
+constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfColors = 3143;
 
