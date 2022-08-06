@@ -36,12 +36,6 @@ set(
 
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(lib/asar/src)
-get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
-include_directories(${ASAR_INCLUDE_DIR})
-set(ASAR_GEN_EXE_TEST OFF)
-set(ASAR_GEN_DLL_TEST OFF)
-set(ASAR_GEN_EXE OFF)
-add_definitions(-Dstricmp=strcasecmp)
 
 # yaze source files -----------------------------------------------------------
 set(
@@ -99,6 +93,7 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
+  lib/asar/src/asar-dll-bindings/c/asardll.c
 )
 
 target_include_directories(
@@ -110,6 +105,7 @@ target_include_directories(
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
+  lib/asar/src/asar-dll-bindings/c
 )
 
 set(
@@ -142,7 +138,6 @@ target_link_libraries(
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES} 
-  asar-static
   ImGui
 )
 

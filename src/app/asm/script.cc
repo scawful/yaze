@@ -1,6 +1,6 @@
 #include "script.h"
 
-#include <interface-lib.h>
+#include <asardll.h>
 
 #include <array>
 #include <cstdint>
