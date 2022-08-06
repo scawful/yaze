@@ -31,5 +31,6 @@ find_package(GLEW REQUIRED)
 # Project Files
 add_subdirectory(src/lib/abseil-cpp)
 add_subdirectory(src/lib/SDL)
+add_subdirectory(src/lib/asar/src)
 add_subdirectory(src)
 add_subdirectory(test)
