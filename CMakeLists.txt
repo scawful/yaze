@@ -28,12 +28,6 @@ find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
-# Asar Assembly ---------------------------------------------------------------
-add_subdirectory(src/lib/asar/src)
-get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
-include_directories(${ASAR_INCLUDE_DIR})
-add_definitions(-Dstricmp=strcasecmp)
-
 # Project Files
 add_subdirectory(src/lib/abseil-cpp)
 add_subdirectory(src/lib/SDL)

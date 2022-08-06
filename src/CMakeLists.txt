@@ -34,6 +34,11 @@ set(
   ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
 )
 
+# Asar Assembly ---------------------------------------------------------------
+add_subdirectory(lib/asar/src)
+get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
+add_definitions(-Dstricmp=strcasecmp)
+
 set(
   YAZE_APP_CORE_SRC
   app/core/common.cc
@@ -67,7 +72,7 @@ set(
 
 set(
   YAZE_APP_ASM_SRC
-  app/asm/script.h
+  app/asm/script.cc
 )
 
 set(
@@ -79,16 +84,16 @@ set(
 )
 
 add_executable(
-    yaze
-    yaze.cc
-    app/rom.cc
-    ${YAZE_APP_ASM_SRC}
-    ${YAZE_APP_CORE_SRC}
-    ${YAZE_APP_EDITOR_SRC}
-    ${YAZE_APP_GFX_SRC}
-    ${YAZE_APP_ZELDA3_SRC}
-    ${YAZE_GUI_SRC}
-    ${IMGUI_SRC}
+  yaze
+  yaze.cc
+  app/rom.cc
+  ${YAZE_APP_ASM_SRC}
+  ${YAZE_APP_CORE_SRC}
+  ${YAZE_APP_EDITOR_SRC}
+  ${YAZE_APP_GFX_SRC}
+  ${YAZE_APP_ZELDA3_SRC}
+  ${YAZE_GUI_SRC}
+  ${IMGUI_SRC}
 )
 
 target_include_directories(
