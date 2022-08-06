@@ -14,8 +14,8 @@ namespace yaze {
 namespace app {
 namespace snes_asm {
 
-absl::StatusOr<absl::string_view> GenerateMosaicChangeAssembly(
-    MosaicArray mosaic_tiles) {
+absl::StatusOr<absl::string_view> Script::GenerateMosaicChangeAssembly(
+    std::array<int, core::kNumOverworldMaps> mosaic_tiles) {
   std::fstream file("assets/asm/mosaic_change.asm",
                     std::ios::out | std::ios::in);
   if (!file.is_open()) {

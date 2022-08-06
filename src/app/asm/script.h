@@ -15,11 +15,13 @@ namespace yaze {
 namespace app {
 namespace snes_asm {
 
-using MosaicArray = std::array<int, core::kNumOverworldMaps>;
 constexpr char kDefaultMosaicHook[] = "$02AADB";
 
-absl::StatusOr<absl::string_view> GenerateMosaicChangeAssembly(
-    MosaicArray mosaic_tiles);
+class Script {
+ public:
+  absl::StatusOr<absl::string_view> GenerateMosaicChangeAssembly(
+      std::array<int, core::kNumOverworldMaps> mosaic_tiles);
+};
 
 }  // namespace snes_asm
 }  // namespace app

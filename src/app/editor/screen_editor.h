@@ -3,7 +3,10 @@
 
 #include <imgui/imgui.h>
 
+#include <array>
+
 #include "app/asm/script.h"
+#include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/zelda3/screen.h"
@@ -32,8 +35,8 @@ class ScreenEditor {
   void DrawCanvas();
   void DrawToolset();
 
-  snes_asm::MosaicArray mosaic_tiles_;
-
+  std::array<int, core::kNumOverworldMaps> mosaic_tiles_;
+  snes_asm::Script mosaic_script_;
   zelda3::Screen current_screen_;
   gui::Canvas screen_canvas_;
 };

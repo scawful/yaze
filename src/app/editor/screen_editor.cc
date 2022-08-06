@@ -38,7 +38,7 @@ void ScreenEditor::Update() {
 void ScreenEditor::DrawMosaicEditor() {
   TAB_ITEM("Mosaic Transitions")
   if (ImGui::Button("GenerateMosaicChangeAssembly")) {
-    auto mosaic = snes_asm::GenerateMosaicChangeAssembly(mosaic_tiles_);
+    auto mosaic = mosaic_script_.GenerateMosaicChangeAssembly(mosaic_tiles_);
     if (!mosaic.ok()) {
       std::cout << "Failed to generate mosaic change assembly";
     } else {
