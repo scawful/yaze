@@ -4,8 +4,10 @@
 #include <interface-lib.h>
 
 #include <array>
+#include <cstdint>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"

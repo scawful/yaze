@@ -3,8 +3,10 @@
 #include <interface-lib.h>
 
 #include <array>
+#include <cstdint>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -17,7 +19,9 @@ namespace app {
 namespace snes_asm {
 
 absl::Status Script::ApplyPatchToROM(ROM& rom) {
-  if (!asar_patch(patch_filename_, rom_.data(), patch_size_, rom_.size())) {
+  char* data = (char*) rom.data();
+  int size = 0;
+  if (!asar_patch(patch_filename_.c_str(), data, patch_size_, &size)) {
     return absl::InternalError("Unable to apply patch");
   }
   return absl::OkStatus();

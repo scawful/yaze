@@ -37,10 +37,13 @@ set(
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(lib/asar/src)
 get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
+include_directories(${ASAR_INCLUDE_DIR})
+set(ASAR_GEN_EXE_TEST OFF)
+set(ASAR_GEN_DLL_TEST OFF)
+set(ASAR_GEN_EXE OFF)
 add_definitions(-Dstricmp=strcasecmp)
 
-# executable linkage ----------------------------------------------------------
-
+# yaze source files -----------------------------------------------------------
 set(
   YAZE_APP_CORE_SRC
   app/core/common.cc
@@ -96,6 +99,7 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
+)
 
 target_include_directories(
   yaze PUBLIC
@@ -132,7 +136,7 @@ if(WIN32 OR MINGW)
 endif()
 
 target_link_libraries(
-  yaze
+  yaze PUBLIC
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
