@@ -31,6 +31,7 @@ find_package(GLEW REQUIRED)
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(src/lib/asar/src)
 get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
+include_directories(${ASAR_INCLUDE_DIR})
 add_definitions(-Dstricmp=strcasecmp)
 
 # Project Files
