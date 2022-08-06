@@ -2,6 +2,15 @@
 
 #include <imgui/imgui.h>
 
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+#include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
+#include "app/asm/script.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -16,6 +25,7 @@ ScreenEditor::ScreenEditor() { screen_canvas_.SetCanvasSize(ImVec2(512, 512)); }
 
 void ScreenEditor::Update() {
   TAB_BAR("##TabBar")
+  DrawMosaicEditor();
   DrawTitleScreenEditor();
   DrawNamingScreenEditor();
   DrawOverworldMapEditor();
@@ -23,6 +33,20 @@ void ScreenEditor::Update() {
   DrawGameMenuEditor();
   DrawHUDEditor();
   END_TAB_BAR()
+}
+
+void ScreenEditor::DrawMosaicEditor() {
+  TAB_ITEM("Mosaic Transitions")
+  if (ImGui::Button("GenerateMosaicChangeAssembly")) {
+    auto mosaic = mosaic_script_.GenerateMosaicChangeAssembly(mosaic_tiles_);
+    if (!mosaic.ok()) {
+      std::cout << "Failed to generate mosaic change assembly";
+    } else {
+      std::cout << "Successfully generated mosaic change assembly";
+      std::cout << mosaic.value();
+    }
+  }
+  END_TAB_ITEM()
 }
 
 void ScreenEditor::DrawTitleScreenEditor() {
