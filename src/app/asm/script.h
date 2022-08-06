@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_ASM_SCRIPT_H
 #define YAZE_APP_ASM_SCRIPT_H
 
-#include <interface-lib.h>
+#include <asardll.h>
 
 #include <array>
 #include <cstdint>
@@ -23,7 +23,7 @@ constexpr char kDefaultMosaicHook[] = "$02AADB";
 
 class Script {
  public:
-  Script() = default;
+  Script() { asar_init_with_dll_path("C:/Users/starw/Code/yaze/assets/asar.dll"); }
 
   absl::Status ApplyPatchToROM(ROM& rom);
 
