@@ -92,6 +92,7 @@ class ROM {
   auto isLoaded() const { return is_loaded_; }
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
+  auto data() { return rom_data_.data(); }
 
   uchar& operator[](int i) {
     if (i > size_) {
