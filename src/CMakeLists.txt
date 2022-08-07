@@ -36,6 +36,11 @@ set(
 
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(lib/asar/src)
+set(ASAR_GEN_EXE  OFF)
+set(ASAR_GEN_DLL  ON)
+set(ASAR_GEN_LIB OFF)
+set(ASAR_GEN_EXE_TEST OFF)
+set(ASAR_GEN_DLL_TEST OFF)
 
 # yaze source files -----------------------------------------------------------
 set(
