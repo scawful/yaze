@@ -9,6 +9,7 @@
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
+#include "app/rom.h"
 #include "app/zelda3/screen.h"
 #include "gui/canvas.h"
 
@@ -17,9 +18,12 @@ namespace app {
 namespace editor {
 
 using MosaicArray = std::array<int, core::kNumOverworldMaps>;
+static int overworldCustomMosaicASM = 0x1301D0;
+static int overworldCustomMosaicArray = 0x1301F0;
 
 class ScreenEditor {
  public:
+  void SetupROM(ROM &rom) { rom_ = rom; }
   ScreenEditor();
   void Update();
 
@@ -34,8 +38,11 @@ class ScreenEditor {
 
   void DrawCanvas();
   void DrawToolset();
+  void DrawWorldGrid(int world, int h = 8, int w = 8);
 
-  std::array<int, core::kNumOverworldMaps> mosaic_tiles_;
+  char mosaic_tiles_[core::kNumOverworldMaps];
+
+  ROM rom_;
   snes_asm::Script mosaic_script_;
   zelda3::Screen current_screen_;
   gui::Canvas screen_canvas_;
