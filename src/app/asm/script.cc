@@ -64,6 +64,10 @@ std::string GenerateBytePool(char mosaic_tiles[core::kNumOverworldMaps]) {
 }
 
 absl::Status Script::ApplyPatchToROM(ROM &rom) {
+  if (patch_contents_.empty() || patch_filename_.empty()) {
+    return absl::InvalidArgumentError("No patch loaded!");
+  }
+
   char *data = (char *)rom.data();
   int size = rom.GetSize();
   int count = 0;
