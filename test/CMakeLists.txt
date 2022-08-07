@@ -25,29 +25,18 @@ add_executable(
 
 target_include_directories(
   yaze_test PUBLIC
-  ../src/lib/
   ../src/
-  ${SDL_INCLUDE_DIRS}
+  ../src/lib/
   ../src/lib/asar/src/asar-dll-bindings/c
+  ${SDL_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   yaze_test
-  absl::strings
-  absl::flags
-  absl::status
-  absl::statusor
-  absl::failure_signal_handler
-  absl::examine_stack
-  absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
-  absl::raw_logging_internal
   SDL2::SDL2
+  ${ABSL_TARGETS}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  asar-static
   gmock_main
   gmock
   gtest_main

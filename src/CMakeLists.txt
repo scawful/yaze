@@ -113,22 +113,6 @@ target_include_directories(
   lib/asar/src/asar-dll-bindings/c
 )
 
-set(
-  ABSL_TARGETS   
-  absl::strings
-  absl::flags
-  absl::status
-  absl::statusor
-  absl::examine_stack
-  absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
-  absl::raw_logging_internal
-  absl::failure_signal_handler
-  absl::flat_hash_map
-)
-
 set(SDL_TARGETS SDL2::SDL2)
 
 if(WIN32 OR MINGW)
