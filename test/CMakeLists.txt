@@ -20,6 +20,7 @@ add_executable(
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
+  ../src/lib/asar/src/asar-dll-bindings/c/asardll.c
 )
 
 target_include_directories(
@@ -27,6 +28,7 @@ target_include_directories(
   ../src/lib/
   ../src/
   ${SDL_INCLUDE_DIRS}
+  ../src/lib/asar/src/asar-dll-bindings/c
 )
 
 target_link_libraries(
