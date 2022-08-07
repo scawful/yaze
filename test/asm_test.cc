@@ -24,13 +24,33 @@ using yaze::app::snes_asm::Script;
 
 using ::testing::_;
 using ::testing::ElementsAreArray;
+using ::testing::Eq;
 using ::testing::Return;
-using ::testing::TypedEq;
 
 class MockScript : public Script {
  public:
   MOCK_METHOD(absl::Status, ApplyPatchToROM, (ROM & rom));
+  MOCK_METHOD(absl::Status, GenerateMosaicChangeAssembly,
+              (ROM & rom, char mosaic_tiles[yaze::app::core::kNumOverworldMaps],
+               int routine_offset, int hook_offset));
 };
+
+TEST(ASMTest, ApplyMosaicChangePatchOk) {
+  ROM rom;
+  MockScript script;
+  char mosaic_tiles[yaze::app::core::kNumOverworldMaps];
+
+  EXPECT_CALL(script, GenerateMosaicChangeAssembly(_, Eq(mosaic_tiles),
+                                                   Eq(0x1301D0 + 0x138000), 0))
+      .WillOnce(Return(absl::OkStatus()));
+
+  EXPECT_CALL(script, ApplyPatchToROM(_)).WillOnce(Return(absl::OkStatus()));
+
+  EXPECT_THAT(script.GenerateMosaicChangeAssembly(rom, mosaic_tiles,
+                                                  0x1301D0 + 0x138000, 0),
+              absl::OkStatus());
+  EXPECT_THAT(script.ApplyPatchToROM(rom), absl::OkStatus());
+}
 
 TEST(ASMTest, NoPatchLoadedError) {
   ROM rom;
@@ -41,8 +61,6 @@ TEST(ASMTest, NoPatchLoadedError) {
   EXPECT_THAT(script.ApplyPatchToROM(rom),
               absl::InvalidArgumentError("No patch loaded!"));
 }
-
-TEST(ASMTest, ApplyPatchOk) {}
 
 }  // namespace asm_test
 }  // namespace yaze_test
