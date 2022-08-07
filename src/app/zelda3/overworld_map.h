@@ -24,10 +24,7 @@ class OverworldMap {
  public:
   OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16);
 
-  void BuildMap(int count, int game_state, uchar* map_parent,
-                uchar* ow_blockset, OWMapTiles& map_tiles);
-
-  absl::Status BuildMapV2(int count, int game_state, uchar* map_parent);
+  absl::Status BuildMap(int count, int game_state, uchar* map_parent);
 
   auto GetBitmap() { return bitmap_; }
   auto GetCurrentGraphicsSet() { return current_graphics_sheet_set; }
@@ -36,20 +33,14 @@ class OverworldMap {
 
  private:
   void LoadAreaInfo();
-  void BuildTiles16Gfx(int count, uchar* ow_blockset);
 
   absl::Status BuildTileset(int game_state);
-  absl::Status BuildTiles16GfxV2(int count);
+  absl::Status BuildTiles16Gfx(int count);
 
+  // TODO: Find the SDL_Surface way to do this.
   void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
                 uchar* gfx16Pointer, uchar* gfx8Pointer);
-
   void CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset);
-
-  void CopyTileToMap(int x, int y, int xx, int yy, int offset,
-                     gfx::TileInfo tile, uchar* gfx16Pointer,
-                     uchar* gfx8Pointer);
-  void CopyTile8bpp16From8(int xP, int yP, int tileID, uchar* destbmpPtr);
 
   int parent_ = 0;
   int index_ = 0;
