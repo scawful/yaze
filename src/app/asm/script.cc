@@ -117,6 +117,7 @@ absl::Status Script::GenerateMosaicChangeAssembly(
   }
 
   assembly_string += GenerateBytePool(mosaic_tiles);
+  patch_contents_ = assembly_string;
   patch_filename_ = "assets/asm/mosaic_change_generated.asm";
   std::ofstream new_file(patch_filename_, std::ios::out);
   if (new_file.is_open()) {
