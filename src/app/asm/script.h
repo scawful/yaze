@@ -26,6 +26,9 @@ constexpr int kSNESToPCOffset = 0x138000;
 class ScriptTemplate {
  public:
   virtual absl::Status ApplyPatchToROM(ROM& rom) = 0;
+  virtual absl::Status GenerateMosaicChangeAssembly(
+      ROM& rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
+      int hook_offset = 0) = 0;
 };
 
 class Script : public ScriptTemplate {
@@ -35,7 +38,7 @@ class Script : public ScriptTemplate {
   absl::Status ApplyPatchToROM(ROM& rom) override;
   absl::Status GenerateMosaicChangeAssembly(
       ROM& rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
-      int hook_offset = 0);
+      int hook_offset = 0) override;
 
  private:
   int64_t patch_size_;
