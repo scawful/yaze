@@ -83,6 +83,8 @@ class ROM {
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(Bytes data);
 
+  absl::Status SaveToFile();
+
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
@@ -112,6 +114,7 @@ class ROM {
 
  private:
   long size_ = 0;
+  std::string filename_;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
 
