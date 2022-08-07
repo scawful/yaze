@@ -28,7 +28,8 @@ class Script {
   Script() { asar_init_with_dll_path("assets/libasar.dll"); }
 
   absl::Status GenerateMosaicChangeAssembly(
-      ROM& rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset);
+      ROM& rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
+      int hook_offset = 0);
 
  private:
   absl::Status ApplyPatchToROM(ROM& rom);

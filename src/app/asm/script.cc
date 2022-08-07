@@ -76,7 +76,8 @@ absl::Status Script::ApplyPatchToROM(ROM &rom) {
 }
 
 absl::Status Script::GenerateMosaicChangeAssembly(
-    ROM &rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset) {
+    ROM &rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
+    int hook_offset) {
   std::fstream file("assets/asm/mosaic_change.asm",
                     std::ios::out | std::ios::in);
   if (!file.is_open()) {
@@ -89,9 +90,19 @@ absl::Status Script::GenerateMosaicChangeAssembly(
   file.close();
 
   auto assembly_string = assembly.str();
-  if (!string_replace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
-    return absl::InternalError(
-        "Mosaic template did not have proper `<HOOK>` to replace.");
+
+  if (!hook_offset) {
+    // TODO: TESTME
+    if (!string_replace(assembly_string, "<HOOK>",
+                        absl::StrFormat("$%06x", hook_offset))) {
+      return absl::InternalError(
+          "Mosaic template did not have proper `<HOOK>` to replace.");
+    }
+  } else {
+    if (!string_replace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
+      return absl::InternalError(
+          "Mosaic template did not have proper `<HOOK>` to replace.");
+    }
   }
 
   if (!string_replace(
