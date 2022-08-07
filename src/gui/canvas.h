@@ -15,8 +15,6 @@ class Canvas {
   Canvas(ImVec2 canvas_size)
       : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
 
-  void Update();
-
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
   void UpdateContext();
   void DrawGrid(float grid_step = 64.0f);
