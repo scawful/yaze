@@ -14,7 +14,6 @@ namespace editor {
 absl::Status PaletteEditor::Update() {
   for (const auto &name : kPaletteCategoryNames) {
     if (ImGui::TreeNode(name.data())) {
-
       ImGui::SameLine();
       if (ImGui::SmallButton("button")) {
       }
