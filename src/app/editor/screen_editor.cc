@@ -9,6 +9,7 @@
 #include <string>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/asm/script.h"
 #include "app/core/common.h"
@@ -16,6 +17,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "gui/canvas.h"
+#include "gui/input.h"
 
 namespace yaze {
 namespace app {
@@ -35,17 +37,60 @@ void ScreenEditor::Update() {
   END_TAB_BAR()
 }
 
+void ScreenEditor::DrawWorldGrid(int world, int h, int w) {
+  const float time = (float)ImGui::GetTime();
+
+  int i = 0;
+  if (world == 1) {
+    i = 64;
+  } else if (world == 2) {
+    i = 128;
+  }
+  for (int y = 0; y < h; y++)
+    for (int x = 0; x < w; x++) {
+      if (x > 0) ImGui::SameLine();
+      ImGui::PushID(y * 4 + x);
+      std::string label = absl::StrCat(" #", absl::StrFormat("%x", i));
+      if (ImGui::Selectable(label.c_str(), mosaic_tiles_[i] != 0, 0,
+                            ImVec2(35, 25))) {
+        mosaic_tiles_[i] ^= 1;
+      }
+      ImGui::PopID();
+      i++;
+    }
+}
+
 void ScreenEditor::DrawMosaicEditor() {
   TAB_ITEM("Mosaic Transitions")
-  if (ImGui::Button("GenerateMosaicChangeAssembly")) {
-    auto mosaic = mosaic_script_.GenerateMosaicChangeAssembly(mosaic_tiles_);
+
+  if (ImGui::BeginTable("Worlds", 3, ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn("Light World");
+    ImGui::TableSetupColumn("Dark World");
+    ImGui::TableSetupColumn("Special World");
+    ImGui::TableHeadersRow();
+
+    ImGui::TableNextColumn();
+    DrawWorldGrid(0);
+
+    ImGui::TableNextColumn();
+    DrawWorldGrid(1);
+
+    ImGui::TableNextColumn();
+    DrawWorldGrid(2, 4);
+
+    ImGui::EndTable();
+  }
+
+  gui::InputHex("Routine Location", &overworldCustomMosaicASM);
+
+  if (ImGui::Button("Generate Mosaic Assembly")) {
+    auto mosaic = mosaic_script_.GenerateMosaicChangeAssembly(
+        rom_, mosaic_tiles_, overworldCustomMosaicASM);
     if (!mosaic.ok()) {
-      std::cout << "Failed to generate mosaic change assembly";
-    } else {
-      std::cout << "Successfully generated mosaic change assembly";
-      std::cout << mosaic.value();
+      std::cout << mosaic;
     }
   }
+
   END_TAB_ITEM()
 }
 

@@ -102,6 +102,7 @@ void MasterEditor::DrawFileDialog() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       status_ = rom_.LoadFromFile(filePathName);
       overworld_editor_.SetupROM(rom_);
+      screen_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
   }
