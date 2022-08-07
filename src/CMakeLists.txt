@@ -142,7 +142,8 @@ target_link_libraries(
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
-  ${OPENGL_LIBRARIES} 
+  ${OPENGL_LIBRARIES}
+  ${CMAKE_DL_LIBS}
   ImGui
 )
 
