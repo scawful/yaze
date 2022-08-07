@@ -570,6 +570,7 @@ absl::StatusOr<Bytes> ROM::SNES3bppTo8bppSheet(Bytes sheet, int size) {
 }
 
 absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
+  filename_ = filename;
   std::ifstream file(filename.data(), std::ios::binary);
   if (!file.is_open()) {
     return absl::InternalError(
@@ -604,6 +605,18 @@ absl::Status ROM::LoadFromBytes(Bytes data) {
         "Could not load ROM: parameter `data` is empty.");
   }
   rom_data_ = data;
+  return absl::OkStatus();
+}
+
+absl::Status ROM::SaveToFile() {
+  std::fstream file(filename_.data(), std::ios::binary | std::ios::out);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrCat("Could not open ROM file: ", filename_));
+  }
+  for (auto i = 0; i < size_; ++i) {
+    file << rom_data_[i];
+  }
   return absl::OkStatus();
 }
 
