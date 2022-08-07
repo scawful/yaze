@@ -14,18 +14,21 @@ add_executable(
   yaze_test
   yaze_test.cc
   rom_test.cc
+  asm_test.cc
   ../src/app/rom.cc
   ../src/app/asm/script.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
+  ../src/lib/asar/src/asar-dll-bindings/c/asardll.c
 )
 
 target_include_directories(
   yaze_test PUBLIC
-  ../src/lib/
   ../src/
+  ../src/lib/
+  ../src/lib/asar/src/asar-dll-bindings/c
   ${SDL_INCLUDE_DIRS}
 )
 
