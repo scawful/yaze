@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <cstdint>
+#include <string>
 
 namespace yaze {
 namespace app {
@@ -19,7 +20,7 @@ int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) {
 }
 
 // hextodec has been imported from SNESDisasm to parse hex numbers
-int HexToDec(char* input, int length) {
+int HexToDec(char *input, int length) {
   int result = 0;
   int value;
   int ceiling = length - 1;
@@ -46,6 +47,15 @@ int HexToDec(char* input, int length) {
   }
 
   return result;
+}
+
+bool StringReplace(std::string &str, const std::string &from,
+                   const std::string &to) {
+  size_t start = str.find(from);
+  if (start == std::string::npos) return false;
+
+  str.replace(start, from.length(), to);
+  return true;
 }
 
 }  // namespace core

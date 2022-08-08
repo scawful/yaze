@@ -114,9 +114,9 @@ class ROM {
 
  private:
   long size_ = 0;
-  std::string filename_;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
+  std::string filename_;
 
   Bytes rom_data_;
   std::shared_ptr<SDL_Renderer> renderer_;

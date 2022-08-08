@@ -156,7 +156,7 @@ absl::Status Controller::CreateWindow() {
                          SDL_WINDOWPOS_UNDEFINED,      // initial y position
                          1200,                         // width, in pixels
                          800,                          // height, in pixels
-                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL),
+                         SDL_WINDOW_RESIZABLE),
         sdl_deleter());
     if (window_ == nullptr) {
       return absl::InternalError(
