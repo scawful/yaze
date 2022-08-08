@@ -154,8 +154,8 @@ absl::Status Controller::CreateWindow() {
         SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
                          SDL_WINDOWPOS_UNDEFINED,      // initial x position
                          SDL_WINDOWPOS_UNDEFINED,      // initial y position
-                         1200,                         // width, in pixels
-                         800,                          // height, in pixels
+                         kScreenWidth,                 // width, in pixels
+                         kScreenHeight,                // height, in pixels
                          SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL),
         sdl_deleter());
     if (window_ == nullptr) {
