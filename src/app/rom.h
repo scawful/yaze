@@ -36,6 +36,8 @@ constexpr int kMaxLengthCompression = 1024;
 constexpr int kNintendoMode1 = 0;
 constexpr int kNintendoMode2 = 1;
 constexpr int kTile32Num = 4432;
+constexpr int kTitleStringOffset = 0x7FC0;
+constexpr int kTitleStringLength = 20;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
