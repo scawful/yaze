@@ -39,51 +39,51 @@ void OverworldMap::LoadAreaInfo() {
 
     sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_];
     sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 64];
-    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 0x80];
 
     sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_];
     sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 64];
-    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 128];
-  } else if (index_ < 128) {
+    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+  } else if (index_ < 0x80) {
     area_graphics_ = rom_[core::mapGfx + parent_];
     area_palette_ = rom_[core::overworldMapPalette + parent_];
     area_music_[0] = rom_[core::overworldMusicDW + (parent_ - 64)];
 
-    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 0x80];
   } else {
     if (index_ == 0x94) {
-      parent_ = 128;
+      parent_ = 0x80;
     } else if (index_ == 0x95) {
-      parent_ = 03;
+      parent_ = 0x03;
     } else if (index_ == 0x96) {
       parent_ = 0x5B;  // pyramid bg use 0x5B map
     } else if (index_ == 0x97) {
       parent_ = 0x00;  // pyramid bg use 0x5B map
-    } else if (index_ == 156) {
-      parent_ = 67;
-    } else if (index_ == 157) {
-      parent_ = 0;
-    } else if (index_ == 158) {
-      parent_ = 0;
-    } else if (index_ == 159) {
-      parent_ = 44;
-    } else if (index_ == 136) {
-      parent_ = 136;
+    } else if (index_ == 0x9C) {
+      parent_ = 0x43;
+    } else if (index_ == 0x9D) {
+      parent_ = 0x00;
+    } else if (index_ == 0x9E) {
+      parent_ = 0x00;
+    } else if (index_ == 0x9F) {
+      parent_ = 0x2C;
+    } else if (index_ == 0x88) {
+      parent_ = 0x88;
     }
 
-    area_palette_ = rom_[core::overworldSpecialPALGroup + parent_ - 128];
+    area_palette_ = rom_[core::overworldSpecialPALGroup + parent_ - 0x80];
     if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-      area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 128)];
+      area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 0x80)];
       area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
     } else if (index_ == 0x88) {
-      area_graphics_ = 81;
-      area_palette_ = 0;
+      area_graphics_ = 0x51;
+      area_palette_ = 0x00;
     } else {
       // pyramid bg use 0x5B map
       area_graphics_ = rom_[core::mapGfx + parent_];
@@ -92,13 +92,13 @@ void OverworldMap::LoadAreaInfo() {
 
     message_id_ = rom_[core::overworldMessages + parent_];
 
-    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 128];
-    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 128];
+    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 128];
-    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 128];
+    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 0x80];
   }
 }
 
@@ -108,7 +108,8 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
     parent_ = map_parent[index_];
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 128)];
+        area_graphics_ =
+            rom_[core::overworldSpecialGFXGroup + (parent_ - 0x80)];
         area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
       } else if (index_ == 0x88) {
         area_graphics_ = 81;
@@ -130,7 +131,7 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
   // int world = 0;
   // if (index_ < 64) {
   //   map_tiles_ = map_tiles.light_world;
-  // } else if (index_ < 128 && index_ >= 64) {
+  // } else if (index_ < 0x80 && index_ >= 64) {
   //   map_tiles_ = map_tiles.dark_world;
   //   world = 1;
   // } else {
@@ -155,7 +156,8 @@ absl::Status OverworldMap::BuildMapV2(int count, int game_state,
     parent_ = map_parent[index_];
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 128)];
+        area_graphics_ =
+            rom_[core::overworldSpecialGFXGroup + (parent_ - 0x80)];
         area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
       } else if (index_ == 0x88) {
         area_graphics_ = 81;
@@ -176,7 +178,7 @@ absl::Status OverworldMap::BuildMapV2(int count, int game_state,
 
   // if (index_ < 64) {
   //   world_ = 0;
-  // } else if (index_ < 128 && index_ >= 64) {
+  // } else if (index_ < 0x80 && index_ >= 64) {
   //   world_ = 1;
   // } else {
   //   world_ = 2;
@@ -272,7 +274,7 @@ void OverworldMap::BuildTiles16Gfx(int count, uchar* ow_blockset) {
     }
 
     xx += 16;
-    if (xx >= 128) {
+    if (xx >= 0x80) {
       yy += 2048;
       xx = 0;
     }
@@ -304,7 +306,7 @@ absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
     }
 
     xx += 16;
-    if (xx >= 128) {
+    if (xx >= 0x80) {
       yy += 2048;
       xx = 0;
     }
@@ -331,7 +333,7 @@ void OverworldMap::CopyTile(int x, int y, int xx, int yy, int offset,
   }
 
   int tx = ((tile.id_ / 16) * 512) + ((tile.id_ - ((tile.id_ / 16) * 16)) * 4);
-  auto index = xx + yy + offset + (mx * 2) + (my * 128);
+  auto index = xx + yy + offset + (mx * 2) + (my * 0x80);
   auto pixel = gfx8Pointer[tx + (y * 64) + x];
 
   gfx16Pointer[index + r ^ 1] = (uchar)((pixel & 0x0F) + tile.palette_ * 16);
@@ -339,7 +341,7 @@ void OverworldMap::CopyTile(int x, int y, int xx, int yy, int offset,
 }
 
 void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset) {
-  // (sourceX * 16) + (sourceY * 128)
+  // (sourceX * 16) + (sourceY * 0x80)
   int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) + ((tile / 8) * 2048);
   auto source_ptr = ow_blockset;
 
@@ -349,7 +351,7 @@ void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset) {
   for (int ystrip = 0; ystrip < 16; ystrip++) {
     for (int xstrip = 0; xstrip < 16; xstrip++) {
       dest_ptr[dest_ptr_pos + xstrip + (ystrip * 512)] =
-          source_ptr[source_ptr_pos + xstrip + (ystrip * 128)];
+          source_ptr[source_ptr_pos + xstrip + (ystrip * 0x80)];
     }
   }
 }
