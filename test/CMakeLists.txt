@@ -14,37 +14,30 @@ add_executable(
   yaze_test
   yaze_test.cc
   rom_test.cc
+  asm_test.cc
   ../src/app/rom.cc
   ../src/app/asm/script.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
+  ../src/lib/asar/src/asar-dll-bindings/c/asardll.c
 )
 
 target_include_directories(
   yaze_test PUBLIC
-  ../src/lib/
   ../src/
+  ../src/lib/
+  ../src/lib/asar/src/asar-dll-bindings/c
   ${SDL_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   yaze_test
-  absl::strings
-  absl::flags
-  absl::status
-  absl::statusor
-  absl::failure_signal_handler
-  absl::examine_stack
-  absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
-  absl::raw_logging_internal
   SDL2::SDL2
+  ${ABSL_TARGETS}
   ${OPENGL_LIBRARIES}
-  asar-static
+  ${CMAKE_DL_LIBS}
   gmock_main
   gmock
   gtest_main
