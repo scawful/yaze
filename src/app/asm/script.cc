@@ -56,6 +56,10 @@ std::string GenerateBytePool(char mosaic_tiles[core::kNumOverworldMaps]) {
 }
 
 absl::Status Script::ApplyPatchToROM(ROM &rom) {
+  if (patch_contents_.empty() || patch_filename_.empty()) {
+    return absl::InvalidArgumentError("No patch loaded!");
+  }
+
   char *data = (char *)rom.data();
   int size = rom.GetSize();
   int count = 0;
@@ -68,7 +72,8 @@ absl::Status Script::ApplyPatchToROM(ROM &rom) {
 }
 
 absl::Status Script::GenerateMosaicChangeAssembly(
-    ROM &rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset) {
+    ROM &rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
+    int hook_offset) {
   std::fstream file("assets/asm/mosaic_change.asm",
                     std::ios::out | std::ios::in);
   if (!file.is_open()) {
@@ -81,6 +86,7 @@ absl::Status Script::GenerateMosaicChangeAssembly(
   file.close();
 
   auto assembly_string = assembly.str();
+
   if (!core::StringReplace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
     return absl::InternalError(
         "Mosaic template did not have proper `<HOOK>` to replace.");
@@ -94,6 +100,7 @@ absl::Status Script::GenerateMosaicChangeAssembly(
   }
 
   assembly_string += GenerateBytePool(mosaic_tiles);
+  patch_contents_ = assembly_string;
   patch_filename_ = "assets/asm/mosaic_change_generated.asm";
   std::ofstream new_file(patch_filename_, std::ios::out);
   if (new_file.is_open()) {
