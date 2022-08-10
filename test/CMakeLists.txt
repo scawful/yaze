@@ -34,20 +34,10 @@ target_include_directories(
 
 target_link_libraries(
   yaze_test
-  absl::strings
-  absl::flags
-  absl::status
-  absl::statusor
-  absl::failure_signal_handler
-  absl::examine_stack
-  absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
-  absl::raw_logging_internal
   SDL2::SDL2
+  ${ABSL_TARGETS}
   ${OPENGL_LIBRARIES}
-  asar-static
+  ${CMAKE_DL_LIBS}
   gmock_main
   gmock
   gtest_main

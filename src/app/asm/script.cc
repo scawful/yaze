@@ -12,21 +12,13 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace app {
 namespace snes_asm {
-
-static auto string_replace(std::string &str, const std::string &from,
-                           const std::string &to) -> bool {
-  size_t start = str.find(from);
-  if (start == std::string::npos) return false;
-
-  str.replace(start, from.length(), to);
-  return true;
-}
 
 std::string GenerateBytePool(char mosaic_tiles[core::kNumOverworldMaps]) {
   std::string to_return = "";
@@ -95,21 +87,12 @@ absl::Status Script::GenerateMosaicChangeAssembly(
 
   auto assembly_string = assembly.str();
 
-  if (!hook_offset) {
-    // TODO: TESTME
-    if (!string_replace(assembly_string, "<HOOK>",
-                        absl::StrFormat("$%06x", hook_offset))) {
-      return absl::InternalError(
-          "Mosaic template did not have proper `<HOOK>` to replace.");
-    }
-  } else {
-    if (!string_replace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
-      return absl::InternalError(
-          "Mosaic template did not have proper `<HOOK>` to replace.");
-    }
+  if (!core::StringReplace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
+    return absl::InternalError(
+        "Mosaic template did not have proper `<HOOK>` to replace.");
   }
 
-  if (!string_replace(
+  if (!core::StringReplace(
           assembly_string, "<EXPANDED_SPACE>",
           absl::StrFormat("$%x", routine_offset + kSNESToPCOffset))) {
     return absl::InternalError(
