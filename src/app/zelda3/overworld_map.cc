@@ -102,55 +102,8 @@ void OverworldMap::LoadAreaInfo() {
   }
 }
 
-void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
-                            uchar* ow_blockset, OWMapTiles& map_tiles) {
-  if (large_map_) {
-    parent_ = map_parent[index_];
-    if (parent_ != index_ && !initialized_) {
-      if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 128)];
-        area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
-      } else if (index_ == 0x88) {
-        area_graphics_ = 81;
-        area_palette_ = 0;
-      } else {
-        area_graphics_ = rom_[core::mapGfx + parent_];
-        area_palette_ = rom_[core::overworldMapPalette + parent_];
-      }
-
-      initialized_ = true;
-    }
-  }
-
-  if (!BuildTileset(game_state).ok()) {
-    std::cout << "BuildTileset failed" << std::endl;
-  }
-  BuildTiles16Gfx(count, ow_blockset);  // build on GFX.mapgfx16Ptr
-
-  // int world = 0;
-  // if (index_ < 64) {
-  //   map_tiles_ = map_tiles.light_world;
-  // } else if (index_ < 128 && index_ >= 64) {
-  //   map_tiles_ = map_tiles.dark_world;
-  //   world = 1;
-  // } else {
-  //   map_tiles_ = map_tiles.special_world;
-  //   world = 2;
-  // }
-
-  // int superY = ((index_ - (world * 64)) / 8);
-  // int superX = index_ - (world * 64) - (superY * 8);
-  // for (int y = 0; y < 32; y++) {
-  //   for (int x = 0; x < 32; x++) {
-  //     auto xt = x + (superX * 32);
-  //     auto yt = y + (superY * 32);
-  //     CopyTile8bpp16((x * 16), (y * 16), map_tiles_[xt][yt], ow_blockset);
-  //   }
-  // }
-}
-
-absl::Status OverworldMap::BuildMapV2(int count, int game_state,
-                                      uchar* map_parent) {
+absl::Status OverworldMap::BuildMap(int count, int game_state,
+                                    uchar* map_parent) {
   if (large_map_) {
     parent_ = map_parent[index_];
     if (parent_ != index_ && !initialized_) {
@@ -174,12 +127,25 @@ absl::Status OverworldMap::BuildMapV2(int count, int game_state,
     return tileset_status;
   }
 
+  // int world = 0;
   // if (index_ < 64) {
-  //   world_ = 0;
+  //   map_tiles_ = map_tiles.light_world;
   // } else if (index_ < 128 && index_ >= 64) {
-  //   world_ = 1;
+  //   map_tiles_ = map_tiles.dark_world;
+  //   world = 1;
   // } else {
-  //   world_ = 2;
+  //   map_tiles_ = map_tiles.special_world;
+  //   world = 2;
+  // }
+
+  // int superY = ((index_ - (world * 64)) / 8);
+  // int superX = index_ - (world * 64) - (superY * 8);
+  // for (int y = 0; y < 32; y++) {
+  //   for (int x = 0; x < 32; x++) {
+  //     auto xt = x + (superX * 32);
+  //     auto yt = y + (superY * 32);
+  //     CopyTile8bpp16((x * 16), (y * 16), map_tiles_[xt][yt], ow_blockset);
+  //   }
   // }
 
   return absl::OkStatus();
@@ -246,40 +212,7 @@ absl::Status OverworldMap::BuildTileset(int game_state) {
   return absl::OkStatus();
 }
 
-void OverworldMap::BuildTiles16Gfx(int count, uchar* ow_blockset) {
-  auto gfx_tile16_data = ow_blockset;
-  auto gfx_tile8_data = nullptr;  // rom_.GetMasterGraphicsBin();
-
-  int offsets[] = {0, 8, 1024, 1032};
-  auto yy = 0;
-  auto xx = 0;
-
-  // number of tiles16 3748?
-  for (auto i = 0; i < count; i++) {
-    // 8x8 tile draw
-    // gfx8 = 4bpp so everyting is /2F
-    auto tiles = tiles16_[i];
-
-    for (auto tile = 0; tile < 4; tile++) {
-      gfx::TileInfo info = tiles16_[i].tiles_info[tile];
-      int offset = offsets[tile];
-
-      for (auto y = 0; y < 8; y++) {
-        for (auto x = 0; x < 4; x++) {
-          CopyTile(x, y, xx, yy, offset, info, gfx_tile16_data, gfx_tile8_data);
-        }
-      }
-    }
-
-    xx += 16;
-    if (xx >= 128) {
-      yy += 2048;
-      xx = 0;
-    }
-  }
-}
-
-absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
+absl::Status OverworldMap::BuildTiles16Gfx(int count) {
   auto gfx_tile8_data = nullptr;  // rom_.GetMasterGraphicsBin();
 
   int offsets[] = {0, 8, 1024, 1032};
@@ -352,33 +285,6 @@ void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset) {
           source_ptr[source_ptr_pos + xstrip + (ystrip * 128)];
     }
   }
-}
-
-// EXPERIMENTAL ----------------------------------------------------------------
-
-// map,current
-void OverworldMap::CopyTileToMap(int x, int y, int xx, int yy, int offset,
-                                 gfx::TileInfo tile, uchar* gfx16Pointer,
-                                 uchar* gfx8Pointer) {
-  int mx = x;
-  int my = y;
-  uchar r = 0;
-
-  if (tile.horizontal_mirror_ != 0) {
-    mx = 3 - x;
-    r = 1;
-  }
-
-  if (tile.vertical_mirror_ != 0) {
-    my = 7 - y;
-  }
-
-  int tx = ((tile.id_ / 16) * 512) + ((tile.id_ - ((tile.id_ / 16) * 16)) * 4);
-  auto index = xx + (yy * 512) + offset + (mx * 2) + (my * 512);
-  auto pixel = gfx8Pointer[tx + (y * 64) + x];
-
-  gfx16Pointer[index + r ^ 1] = (uchar)((pixel & 0x0F) + tile.palette_ * 16);
-  gfx16Pointer[index + r] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
 }  // namespace zelda3

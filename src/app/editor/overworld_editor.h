@@ -41,8 +41,11 @@ class OverworldEditor {
  public:
   void SetupROM(ROM &rom);
   absl::Status Update();
-
   absl::Status Undo() { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() { return absl::UnimplementedError("Redo"); }
+  absl::Status Cut() { return absl::UnimplementedError("Cut"); }
+  absl::Status Copy() { return absl::UnimplementedError("Copy"); }
+  absl::Status Paste() { return absl::UnimplementedError("Paste"); }
 
  private:
   absl::Status DrawToolset();
