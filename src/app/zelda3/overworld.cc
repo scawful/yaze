@@ -26,7 +26,7 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
   auto size = tiles16.size();
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
     auto map_status =
-        overworld_maps_[i].BuildMapV2(size, game_state_, map_parent_);
+        overworld_maps_[i].BuildMap(size, game_state_, map_parent_);
     if (!map_status.ok()) {
       return map_status;
     }

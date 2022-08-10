@@ -12,21 +12,13 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace app {
 namespace snes_asm {
-
-static auto string_replace(std::string &str, const std::string &from,
-                           const std::string &to) -> bool {
-  size_t start = str.find(from);
-  if (start == std::string::npos) return false;
-
-  str.replace(start, from.length(), to);
-  return true;
-}
 
 std::string GenerateBytePool(char mosaic_tiles[core::kNumOverworldMaps]) {
   std::string to_return = "";
@@ -64,6 +56,10 @@ std::string GenerateBytePool(char mosaic_tiles[core::kNumOverworldMaps]) {
 }
 
 absl::Status Script::ApplyPatchToROM(ROM &rom) {
+  if (patch_contents_.empty() || patch_filename_.empty()) {
+    return absl::InvalidArgumentError("No patch loaded!");
+  }
+
   char *data = (char *)rom.data();
   int size = rom.GetSize();
   int count = 0;
@@ -76,7 +72,8 @@ absl::Status Script::ApplyPatchToROM(ROM &rom) {
 }
 
 absl::Status Script::GenerateMosaicChangeAssembly(
-    ROM &rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset) {
+    ROM &rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
+    int hook_offset) {
   std::fstream file("assets/asm/mosaic_change.asm",
                     std::ios::out | std::ios::in);
   if (!file.is_open()) {
@@ -89,12 +86,13 @@ absl::Status Script::GenerateMosaicChangeAssembly(
   file.close();
 
   auto assembly_string = assembly.str();
-  if (!string_replace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
+
+  if (!core::StringReplace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
     return absl::InternalError(
         "Mosaic template did not have proper `<HOOK>` to replace.");
   }
 
-  if (!string_replace(
+  if (!core::StringReplace(
           assembly_string, "<EXPANDED_SPACE>",
           absl::StrFormat("$%x", routine_offset + kSNESToPCOffset))) {
     return absl::InternalError(
@@ -102,6 +100,7 @@ absl::Status Script::GenerateMosaicChangeAssembly(
   }
 
   assembly_string += GenerateBytePool(mosaic_tiles);
+  patch_contents_ = assembly_string;
   patch_filename_ = "assets/asm/mosaic_change_generated.asm";
   std::ofstream new_file(patch_filename_, std::ios::out);
   if (new_file.is_open()) {
