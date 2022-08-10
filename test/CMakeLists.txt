@@ -14,6 +14,7 @@ add_executable(
   yaze_test
   yaze_test.cc
   rom_test.cc
+  asm_test.cc
   ../src/app/rom.cc
   ../src/app/asm/script.cc
   ../src/app/gfx/bitmap.cc
