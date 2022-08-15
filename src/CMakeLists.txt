@@ -89,7 +89,7 @@ set(
 
 add_executable(
   yaze
-  yaze.cc
+  app/yaze.cc
   app/rom.cc
   ${YAZE_APP_ASM_SRC}
   ${YAZE_APP_CORE_SRC}
