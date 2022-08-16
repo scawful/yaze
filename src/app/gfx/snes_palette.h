@@ -17,21 +17,22 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
-typedef struct {
+struct snes_color {
   uchar red;
   uchar blue;
   uchar green;
-} snes_color;
+};
+using snes_color = struct snes_color;
 
-typedef struct {
+struct snes_palette {
   uint id;
   uint size;
   snes_color* colors;
-} snes_palette;
+};
+using snes_palette = struct snes_palette;
 
 ushort ConvertRGBtoSNES(const snes_color color);
 snes_color ConvertSNEStoRGB(const ushort snes_color);
-
 snes_palette* Extract(const char* data, const unsigned int offset,
                       const unsigned int palette_size);
 char* Convert(const snes_palette pal);

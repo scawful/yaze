@@ -50,22 +50,20 @@ struct CompressionPiece {
   int length;
   int argument_length;
   std::string argument;
-  std::shared_ptr<CompressionPiece> next;
-  CompressionPiece() {}
+  std::shared_ptr<CompressionPiece> next = nullptr;
+  CompressionPiece() = default;
   CompressionPiece(int cmd, int len, std::string args, int arg_len)
-      : command(cmd),
-        length(len),
-        argument(args),
-        argument_length(arg_len),
-        next(nullptr) {}
-} typedef CompressionPiece;
+      : command(cmd), length(len), argument_length(arg_len), argument(args) {}
+};
+using CompressionPiece = struct CompressionPiece;
 
 using OWBlockset = std::vector<std::vector<ushort>>;
 struct OWMapTiles {
   OWBlockset light_world;    // 64 maps
   OWBlockset dark_world;     // 64 maps
   OWBlockset special_world;  // 32 maps
-} typedef OWMapTiles;
+};
+using OWMapTiles = struct OWMapTiles;
 
 class ROM {
  public:
@@ -84,7 +82,7 @@ class ROM {
   absl::Status LoadAllGraphicsData();
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
-  absl::Status LoadFromBytes(const Bytes & data);
+  absl::Status LoadFromBytes(const Bytes& data);
 
   absl::Status SaveToFile();
 

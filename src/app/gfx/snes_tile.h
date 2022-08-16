@@ -10,11 +10,12 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
-typedef struct {
+struct tile8 {
   unsigned int id;
   char data[64];
   unsigned int palette_id;
-} tile8;
+};
+using tile8 = struct tile8;
 
 // vhopppcc cccccccc
 // [0, 1]
@@ -67,22 +68,21 @@ class Tile16 {
 
 class OAMTile {
  public:
-  int x, y, mx, my, pal;
-  ushort tile;
-  OAMTile() {}
+  int x_;
+  int y_;
+  int mx_;
+  int my_;
+  int pal_;
+  ushort tile_;
+  OAMTile() = default;
   OAMTile(int x, int y, ushort tile, int pal, bool upper = false, int mx = 0,
-          int my = 0) {
-    x = x;
-    y = y;
+          int my = 0)
+      : x_(x), y_(y), mx_(mx), my_(my), pal_(pal) {
     if (upper) {
-      tile = (ushort)(tile + 512);
+      tile_ = (ushort)(tile + 512);
     } else {
-      tile = (ushort)(tile + 256 + 512);
+      tile_ = (ushort)(tile + 256 + 512);
     }
-
-    pal = pal;
-    mx = mx;
-    my = my;
   }
 };
 
