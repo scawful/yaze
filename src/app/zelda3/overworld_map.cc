@@ -131,7 +131,7 @@ void OverworldMap::BuildMap(int count, int game_state, uchar* map_parent,
   // int world = 0;
   // if (index_ < 64) {
   //   map_tiles_ = map_tiles.light_world;
-  // } else if (index_ < 0x80 && index_ >= 64) {
+  // } else if (index_ < 0x80 && index_ >= 0x40) {
   //   map_tiles_ = map_tiles.dark_world;
   //   world = 1;
   // } else {
@@ -178,7 +178,7 @@ absl::Status OverworldMap::BuildMapV2(int count, int game_state,
 
   // if (index_ < 64) {
   //   world_ = 0;
-  // } else if (index_ < 0x80 && index_ >= 64) {
+  // } else if (index_ < 0x80 && index_ >= 0x40) {
   //   world_ = 1;
   // } else {
   //   world_ = 2;
