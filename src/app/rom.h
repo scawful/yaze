@@ -31,6 +31,7 @@ constexpr int kCommandByteFill = 1;
 constexpr int kCommandWordFill = 2;
 constexpr int kCommandIncreasingFill = 3;
 constexpr int kCommandRepeatingBytes = 4;
+constexpr int kCommandLongLength = 7;
 constexpr int kMaxLengthNormalHeader = 32;
 constexpr int kMaxLengthCompression = 1024;
 constexpr int kNintendoMode1 = 0;
@@ -83,7 +84,7 @@ class ROM {
   absl::Status LoadAllGraphicsData();
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
-  absl::Status LoadFromBytes(Bytes data);
+  absl::Status LoadFromBytes(const Bytes & data);
 
   absl::Status SaveToFile();
 

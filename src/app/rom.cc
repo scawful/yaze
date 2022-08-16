@@ -46,32 +46,24 @@ int GetGraphicsAddress(const uchar* data, uint8_t offset) {
 }
 
 void PrintCompressionPiece(const std::shared_ptr<CompressionPiece>& piece) {
-  printf("Command : %d\n", piece->command);
-  printf("length  : %d\n", piece->length);
-  printf("Argument :");
+  printf("Command: %d\n", piece->command);
+  printf("Command kength: %d\n", piece->length);
+  printf("Argument:");
   auto arg_size = piece->argument.size();
   for (int i = 0; i < arg_size; ++i) {
     printf("%02X ", piece->argument.at(i));
   }
-  printf("\nArgument length : %d\n", piece->argument_length);
+  printf("\nArgument length: %d\n", piece->argument_length);
 }
 
 void PrintCompressionChain(
     const std::shared_ptr<CompressionPiece>& compressed_chain_start) {
   auto compressed_chain = compressed_chain_start->next;
-  while (compressed_chain != NULL) {
-    printf("--Piece--\n");
+  while (compressed_chain != nullptr) {
+    printf("- Compression Piece -\n");
     PrintCompressionPiece(compressed_chain);
     compressed_chain = compressed_chain->next;
   }
-}
-
-std::shared_ptr<CompressionPiece> NewCompressionPiece(
-    const char command, const int length, const std::string args,
-    const int argument_length) {
-  auto new_piece = std::make_shared<CompressionPiece>(command, length, args,
-                                                      argument_length);
-  return std::move(new_piece);
 }
 
 // Merge consecutive copy if possible
@@ -81,49 +73,48 @@ std::shared_ptr<CompressionPiece> MergeCopy(
 
   while (piece != nullptr) {
     if (piece->command == kCommandDirectCopy && piece->next != nullptr &&
-        piece->next->command == kCommandDirectCopy) {
-      if (piece->length + piece->next->length <= kMaxLengthCompression) {
-        uint previous_length = piece->length;
-        piece->length = piece->length + piece->next->length;
+        piece->next->command == kCommandDirectCopy &&
+        piece->length + piece->next->length <= kMaxLengthCompression) {
+      uint previous_length = piece->length;
+      piece->length = piece->length + piece->next->length;
 
-        for (int i = 0; i < piece->next->argument_length; ++i) {
-          piece->argument[i + previous_length] = piece->next->argument[i];
-        }
-        piece->argument_length = piece->length;
-
-        PrintCompressionPiece(piece);
-
-        auto p_next_next = piece->next->next;
-        piece->next = p_next_next;
-        continue;  // Next could be another copy
+      for (int i = 0; i < piece->next->argument_length; ++i) {
+        piece->argument[i + previous_length] = piece->next->argument[i];
       }
+      piece->argument_length = piece->length;
+      PrintCompressionPiece(piece);
+
+      auto p_next_next = piece->next->next;
+      piece->next = p_next_next;
+      continue;  // Next could be another copy
     }
     piece = piece->next;
   }
   return start;
 }
 
-std::shared_ptr<CompressionPiece> SplitCompressionPiece(
+absl::StatusOr<std::shared_ptr<CompressionPiece>> SplitCompressionPiece(
     std::shared_ptr<CompressionPiece>& piece, int mode) {
   std::shared_ptr<CompressionPiece> new_piece;
   uint length_left = piece->length - kMaxLengthCompression;
   piece->length = kMaxLengthCompression;
+
   switch (piece->command) {
     case kCommandByteFill:
     case kCommandWordFill:
-      new_piece = NewCompressionPiece(piece->command, length_left,
-                                      piece->argument, piece->argument_length);
+      new_piece = std::make_shared<CompressionPiece>(
+          piece->command, length_left, piece->argument, piece->argument_length);
       break;
     case kCommandIncreasingFill:
-      new_piece = NewCompressionPiece(piece->command, length_left,
-                                      piece->argument, piece->argument_length);
+      new_piece = std::make_shared<CompressionPiece>(
+          piece->command, length_left, piece->argument, piece->argument_length);
       new_piece->argument[0] =
           (char)(piece->argument[0] + kMaxLengthCompression);
       break;
     case kCommandDirectCopy:
       piece->argument_length = kMaxLengthCompression;
-      new_piece = NewCompressionPiece(piece->command, length_left, nullptr,
-                                      length_left);
+      new_piece = std::make_shared<CompressionPiece>(
+          piece->command, length_left, nullptr, length_left);
       // MEMCPY
       for (int i = 0; i < length_left; ++i) {
         new_piece->argument[i] = piece->argument[i + kMaxLengthCompression];
@@ -132,8 +123,8 @@ std::shared_ptr<CompressionPiece> SplitCompressionPiece(
     case kCommandRepeatingBytes: {
       piece->argument_length = kMaxLengthCompression;
       uint offset = piece->argument[0] + (piece->argument[1] << 8);
-      new_piece = NewCompressionPiece(piece->command, length_left,
-                                      piece->argument, piece->argument_length);
+      new_piece = std::make_shared<CompressionPiece>(
+          piece->command, length_left, piece->argument, piece->argument_length);
       if (mode == kNintendoMode2) {
         new_piece->argument[0] =
             (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
@@ -144,6 +135,10 @@ std::shared_ptr<CompressionPiece> SplitCompressionPiece(
             (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
         new_piece->argument[0] = (offset + kMaxLengthCompression) >> 8;
       }
+    } break;
+    default: {
+      return absl::InvalidArgumentError(
+          "SplitCompressionCommand: Invalid Command");
     } break;
   }
   return new_piece;
@@ -172,26 +167,28 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
       } else {
         // We need to split the command
         auto new_piece = SplitCompressionPiece(piece, mode);
+        if (!new_piece.ok()) {
+          std::cout << new_piece.status().ToString() << std::endl;
+        }
         printf("New added piece\n");
-        PrintCompressionPiece(new_piece);
-        new_piece->next = piece->next;
-        piece->next = new_piece;
+        auto piece_data = new_piece.value();
+        PrintCompressionPiece(piece_data);
+        piece_data->next = piece->next;
+        piece->next = piece_data;
         continue;
       }
     }
 
     if (piece->command == kCommandRepeatingBytes) {
       char tmp[2];
-      if (mode == kNintendoMode2) {
-        tmp[0] = piece->argument[0];
-        tmp[1] = piece->argument[1];
-      }
+      tmp[0] = piece->argument[0];
+      tmp[1] = piece->argument[1];
       if (mode == kNintendoMode1) {
         tmp[0] = piece->argument[1];
         tmp[1] = piece->argument[0];
       }
-      for (int i = 0; i < 2; ++i) {
-        output.push_back(tmp[i]);
+      for (const auto& each : tmp) {
+        output.push_back(each);
         pos++;
       }
     } else {
@@ -244,8 +241,10 @@ void TestAllCommands(const uchar* rom_data, DataSizeArray& data_size_taken,
     char byte = rom_data[pos];
     pos++;
     data_size_taken[kCommandIncreasingFill] = 1;
-    while (pos <= last_pos && ++byte == rom_data[pos]) {
+    byte++;
+    while (pos <= last_pos && byte == rom_data[pos]) {
       data_size_taken[kCommandIncreasingFill]++;
+      byte++;
       pos++;
     }
     cmd_args[kCommandIncreasingFill][0] = rom_data[src_data_pos];
@@ -271,7 +270,7 @@ void TestAllCommands(const uchar* rom_data, DataSizeArray& data_size_taken,
         }
         if (copied_size > data_size_taken[kCommandRepeatingBytes]) {
           search_start -= start;
-          printf("-Found repeat of %d at %d\n", copied_size, search_start);
+          printf("- Found repeat of %d at %d\n", copied_size, search_start);
           data_size_taken[kCommandRepeatingBytes] = copied_size;
           cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
           cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
@@ -290,13 +289,13 @@ void ValidateForByteGain(const DataSizeArray& data_size_taken,
                          uint& cmd_with_max) {
   for (uint cmd_i = 1; cmd_i < 5; cmd_i++) {
     uint cmd_size_taken = data_size_taken[cmd_i];
-    // FIXME: Should probably be a table that say what is even with copy
-    // but all other cmd are 2
+    // TODO(@scawful): Replace conditional with table of command sizes
+    // "Table that is even with copy but all other cmd are 2"
     auto table_check =
         !(cmd_i == kCommandRepeatingBytes && cmd_size_taken == 3);
     if (cmd_size_taken > max_win && cmd_size_taken > cmd_size[cmd_i] &&
         table_check) {
-      printf("--C:%d / S:%d\n", cmd_i, cmd_size_taken);
+      printf("==> C:%d / S:%d\n", cmd_i, cmd_size_taken);
       cmd_with_max = cmd_i;
       max_win = cmd_size_taken;
     }
@@ -341,8 +340,8 @@ void CompressionCommandAlternative(
     buffer.push_back(cmd_args[cmd_with_max][1]);
   }
 
-  auto new_comp_piece = NewCompressionPiece(cmd_with_max, max_win, buffer,
-                                            cmd_size[cmd_with_max]);
+  auto new_comp_piece = std::make_shared<CompressionPiece>(
+      cmd_with_max, max_win, buffer, cmd_size[cmd_with_max]);
   PrintCompressionPiece(new_comp_piece);
   // If we let non compressed stuff, we need to add a copy chunk before
   if (comp_accumulator != 0) {
@@ -351,8 +350,8 @@ void CompressionCommandAlternative(
     for (int i = 0; i < comp_accumulator; ++i) {
       copy_buff[i] = rom_data[i + src_data_pos - comp_accumulator];
     }
-    auto copy_chunk = NewCompressionPiece(kCommandDirectCopy, comp_accumulator,
-                                          copy_buff, comp_accumulator);
+    auto copy_chunk = std::make_shared<CompressionPiece>(
+        kCommandDirectCopy, comp_accumulator, copy_buff, comp_accumulator);
     compressed_chain->next = copy_chunk;
     compressed_chain = copy_chunk;
   } else {
@@ -369,7 +368,7 @@ void CompressionCommandAlternative(
 absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
                                     bool check) {
   // Worse case should be a copy of the string with extended header
-  auto compressed_chain = NewCompressionPiece(1, 1, "aaa", 2);
+  auto compressed_chain = std::make_shared<CompressionPiece>(1, 1, "aaa", 2);
   auto compressed_chain_start = compressed_chain;
 
   CommandArgumentArray cmd_args = {{}};
@@ -380,7 +379,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
   uint last_pos = start + length - 1;
   uint comp_accumulator = 0;  // Used when skipping using copy
 
-  while (1) {
+  while (true) {
     data_size_taken.fill({});
     cmd_args.fill({{}});
 
@@ -391,31 +390,30 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
     uint cmd_with_max = kCommandDirectCopy;
     ValidateForByteGain(data_size_taken, cmd_size, max_win, cmd_with_max);
 
-    switch (cmd_with_max) {
-      case kCommandDirectCopy:  // This is the worst case scenario
-        // Progress through the next byte, in case there's a different
-        // compression command we can implement before we hit 32 bytes.
-        src_data_pos++;
-        comp_accumulator++;
+    if (cmd_with_max == kCommandDirectCopy) {
+      // This is the worst case scenario
+      // Progress through the next byte, in case there's a different
+      // compression command we can implement before we hit 32 bytes.
+      src_data_pos++;
+      comp_accumulator++;
 
-        // Arbitrary choice to do a 32 bytes grouping for copy.
-        if (comp_accumulator == 32 || src_data_pos > last_pos) {
-          std::string buffer;
-          for (int i = 0; i < comp_accumulator; ++i) {
-            buffer.push_back(rom_data_[i + src_data_pos - comp_accumulator]);
-          }
-          auto new_comp_piece = NewCompressionPiece(
-              kCommandDirectCopy, comp_accumulator, buffer, comp_accumulator);
-          compressed_chain->next = new_comp_piece;
-          compressed_chain = new_comp_piece;
-          comp_accumulator = 0;
+      // Arbitrary choice to do a 32 bytes grouping for copy.
+      if (comp_accumulator == 32 || src_data_pos > last_pos) {
+        std::string buffer;
+        for (int i = 0; i < comp_accumulator; ++i) {
+          buffer.push_back(rom_data_[i + src_data_pos - comp_accumulator]);
         }
-        break;
-      default:  // Anything is better than directly copying bytes...
-        CompressionCommandAlternative(rom_data_.data(), compressed_chain,
-                                      cmd_size, cmd_args, src_data_pos,
-                                      comp_accumulator, cmd_with_max, max_win);
-        break;
+        auto new_comp_piece = std::make_shared<CompressionPiece>(
+            kCommandDirectCopy, comp_accumulator, buffer, comp_accumulator);
+        compressed_chain->next = new_comp_piece;
+        compressed_chain = new_comp_piece;
+        comp_accumulator = 0;
+      }
+    } else {
+      // Anything is better than directly copying bytes...
+      CompressionCommandAlternative(rom_data_.data(), compressed_chain,
+                                    cmd_size, cmd_args, src_data_pos,
+                                    comp_accumulator, cmd_with_max, max_win);
     }
 
     if (src_data_pos > last_pos) {
@@ -468,24 +466,30 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
 
     switch (cmd) {
       case kCommandDirectCopy:  // Does not advance in the ROM
-        for (int i = 0; i < length; i++)
-          buffer[buffer_pos++] = rom_data_[offset++];
+        memcpy(buffer.data() + buffer_pos, rom_data_.data() + offset, length);
+        buffer_pos += length;
+        offset += length;
         break;
       case kCommandByteFill:  // Advances 1 byte in the ROM
-        for (int i = 0; i < length; i++)
-          buffer[buffer_pos++] = rom_data_[offset];
+        std::fill(buffer.begin() + buffer_pos, buffer.begin() + length, rom_data_[offset]);
+        buffer_pos += length;
         offset += 1;
         break;
       case kCommandWordFill:  // Advance 2 byte in the ROM
         for (int i = 0; i < length; i += 2) {
-          buffer[buffer_pos++] = rom_data_[offset];
-          buffer[buffer_pos++] = rom_data_[offset + 1];
+          buffer[buffer_pos] = rom_data_[offset];
+          buffer_pos++;
+          buffer[buffer_pos] = rom_data_[offset + 1];
+          buffer_pos++;
         }
         offset += 2;
         break;
       case kCommandIncreasingFill: {
         uchar inc_byte = rom_data_[offset];
-        for (int i = 0; i < length; i++) buffer[buffer_pos++] = inc_byte++;
+        for (int i = 0; i < length; i++) {
+          buffer[buffer_pos] = inc_byte++;
+          buffer_pos++;
+        }
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
@@ -513,6 +517,9 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
           }
           offset += 2;  // Advance 2 bytes in the ROM
         }
+      } break;
+      default: {
+        std::cout << "Command #" << cmd << " at offset " << offset << std::endl;
       } break;
     }
   }
@@ -603,7 +610,7 @@ absl::Status ROM::LoadFromPointer(uchar* data, size_t length) {
   return absl::OkStatus();
 }
 
-absl::Status ROM::LoadFromBytes(Bytes data) {
+absl::Status ROM::LoadFromBytes(const Bytes& data) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
@@ -637,6 +644,12 @@ absl::Status ROM::LoadAllGraphicsData() {
       sheet.resize(core::Uncompressed3BPPSize);
       auto offset = GetGraphicsAddress(rom_data_.data(), i);
       for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
+        sheet[j] = rom_data_[j + offset];
+      }
+    } else if (i == 113 || i == 114) {
+      sheet.resize(0x800);
+      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      for (int j = 0; j < 0x800; j++) {
         sheet[j] = rom_data_[j + offset];
       }
     } else {
