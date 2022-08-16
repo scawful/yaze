@@ -188,12 +188,12 @@ void MasterEditor::DrawFileMenu() const {
 
 void MasterEditor::DrawEditMenu() {
   if (ImGui::BeginMenu("Edit")) {
-    MENU_ITEM2("Undo", "Ctrl+Z") {}
-    MENU_ITEM2("Redo", "Ctrl+Y") {}
+    MENU_ITEM2("Undo", "Ctrl+Z") { status_ = overworld_editor_.Undo(); }
+    MENU_ITEM2("Redo", "Ctrl+Y") { status_ = overworld_editor_.Redo(); }
     ImGui::Separator();
-    MENU_ITEM2("Cut", "Ctrl+X") {}
-    MENU_ITEM2("Copy", "Ctrl+C") {}
-    MENU_ITEM2("Paste", "Ctrl+V") {}
+    MENU_ITEM2("Cut", "Ctrl+X") { status_ = overworld_editor_.Cut(); }
+    MENU_ITEM2("Copy", "Ctrl+C") { status_ = overworld_editor_.Copy(); }
+    MENU_ITEM2("Paste", "Ctrl+V") { status_ = overworld_editor_.Paste(); }
     ImGui::Separator();
     MENU_ITEM2("Find", "Ctrl+F") {}
     ImGui::Separator();

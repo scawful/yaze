@@ -1,4 +1,6 @@
-#include "yaze.h"
+#if defined(_WIN32)
+#define main SDL_main
+#endif
 
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
