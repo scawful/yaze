@@ -23,8 +23,8 @@ static int overworldCustomMosaicArray = 0x1301F0;
 
 class ScreenEditor {
  public:
-  void SetupROM(ROM &rom) { rom_ = rom; }
   ScreenEditor();
+  void SetupROM(ROM &rom) { rom_ = rom; }
   void Update();
 
  private:

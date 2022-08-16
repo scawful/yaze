@@ -576,6 +576,7 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
     return absl::InternalError(
         absl::StrCat("Could not open ROM file: ", filename));
   }
+
   size_ = std::filesystem::file_size(filename);
   rom_data_.resize(size_);
   for (auto i = 0; i < size_; ++i) {
@@ -583,9 +584,12 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
     file.read(&byte_to_read, sizeof(char));
     rom_data_[i] = byte_to_read;
   }
+
+  // copy ROM title
+  memcpy(title, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
+
   file.close();
   is_loaded_ = true;
-  memcpy(title, rom_data_.data() + 32704, 20);  // copy ROM title
   return absl::OkStatus();
 }
 

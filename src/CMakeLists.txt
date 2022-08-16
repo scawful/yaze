@@ -36,6 +36,11 @@ set(
 
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(lib/asar/src)
+set(ASAR_GEN_EXE  OFF)
+set(ASAR_GEN_DLL  ON)
+set(ASAR_GEN_LIB OFF)
+set(ASAR_GEN_EXE_TEST OFF)
+set(ASAR_GEN_DLL_TEST OFF)
 
 # yaze source files -----------------------------------------------------------
 set(
@@ -84,7 +89,7 @@ set(
 
 add_executable(
   yaze
-  yaze.cc
+  app/yaze.cc
   app/rom.cc
   ${YAZE_APP_ASM_SRC}
   ${YAZE_APP_CORE_SRC}
@@ -108,22 +113,6 @@ target_include_directories(
   lib/asar/src/asar-dll-bindings/c
 )
 
-set(
-  ABSL_TARGETS   
-  absl::strings
-  absl::flags
-  absl::status
-  absl::statusor
-  absl::examine_stack
-  absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
-  absl::raw_logging_internal
-  absl::failure_signal_handler
-  absl::flat_hash_map
-)
-
 set(SDL_TARGETS SDL2::SDL2)
 
 if(WIN32 OR MINGW)
@@ -137,7 +126,8 @@ target_link_libraries(
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
-  ${OPENGL_LIBRARIES} 
+  ${OPENGL_LIBRARIES}
+  ${CMAKE_DL_LIBS}
   ImGui
 )
 

@@ -21,5 +21,5 @@ bool InputHexShort(const char* label, int* data) {
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
-}  // namespace Gui
+}  // namespace gui
 }  // namespace yaze
