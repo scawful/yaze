@@ -40,14 +40,15 @@ class Bitmap {
 
  private:
   struct sdl_deleter {
-    void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
-    void operator()(SDL_Surface *p) const { SDL_FreeSurface(p); }
+    void operator()(SDL_Texture *p) const { if (p) { SDL_DestroyTexture(p); p = nullptr; } }
+    void operator()(SDL_Surface *p) const { if (p) { SDL_FreeSurface(p); p = nullptr;} }
   };
 
   int width_ = 0;
   int height_ = 0;
   int depth_ = 0;
   int data_size_ = 0;
+  bool freed_ = false;
   uchar *pixel_data_;
   std::shared_ptr<SDL_Texture> texture_;
   std::shared_ptr<SDL_Surface> surface_;
