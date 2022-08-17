@@ -573,7 +573,10 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         }
       } break;
       default: {
-        std::cout << "Command #" << cmd << " at offset " << offset << std::endl;
+        std::cout << absl::StrFormat(
+            "DecompressOverworld: Invalid command in header for "
+            "decompression (Offset : %#06x, Command: %#04x)\n",
+            offset, cmd);
       } break;
     }
   }
@@ -596,6 +599,7 @@ absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
 // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 absl::Status ROM::LoadAllGraphicsData() {
   Bytes sheet;
+  bool convert = false;
 
   for (int i = 0; i < core::NumberOfSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
@@ -604,28 +608,27 @@ absl::Status ROM::LoadAllGraphicsData() {
       for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
         sheet[j] = rom_data_[j + offset];
       }
-    } else if (i == 113 || i == 114) {
-      sheet.resize(0x800);
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      for (int j = 0; j < 0x800; j++) {
-        sheet[j] = rom_data_[j + offset];
-      }
+      convert = true;
+    } else if (i == 113 || i == 114 || i >= 218) {
+      convert = false;
     } else {
       auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      absl::StatusOr<Bytes> new_sheet =
-          Decompress(offset, core::UncompressedSheetSize);
+      absl::StatusOr<Bytes> new_sheet = Decompress(offset);
       if (!new_sheet.ok()) {
         return new_sheet.status();
       } else {
         sheet = std::move(*new_sheet);
       }
+      convert = true;
     }
 
-    auto converted_sheet = SNES3bppTo8bppSheet(sheet);
-    graphics_bin_[i] =
-        gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                    core::kTilesheetDepth, converted_sheet.data());
-    graphics_bin_.at(i).CreateTexture(renderer_);
+    if (convert) {
+      auto converted_sheet = SNES3bppTo8bppSheet(sheet);
+      graphics_bin_[i] =
+          gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
+                      core::kTilesheetDepth, converted_sheet.data());
+      graphics_bin_.at(i).CreateTexture(renderer_);
+    }
   }
   return absl::OkStatus();
 }
