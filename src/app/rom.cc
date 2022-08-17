@@ -502,8 +502,6 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
   uchar cmd = 0;
   uchar databyte = rom_data_[offset];
   while (databyte != SNES_BYTE_MAX) {  // End of decompression
-    databyte = rom_data_[offset];
-
     if ((databyte & CMD_EXPANDED_MOD) == CMD_EXPANDED_MOD) {
       // Expanded Command
       cmd = ((databyte >> 2) & CMD_MOD);
@@ -579,6 +577,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
             offset, cmd);
       } break;
     }
+    // check next byte 
+    databyte = rom_data_[offset];
   }
 
   return buffer;
