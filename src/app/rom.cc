@@ -45,6 +45,47 @@ int GetGraphicsAddress(const uchar* data, uint8_t offset) {
   return core::SnesToPc(snes_addr);
 }
 
+Bytes SNES3bppTo8bppSheet(Bytes sheet) {
+  Bytes sheet_buffer_out(0x1000);
+  int xx = 0;  // positions where we are at on the sheet
+  int yy = 0;
+  int pos = 0;
+  int ypos = 0;
+
+  // for each tiles, 16 per line
+  for (int i = 0; i < 64; i++) {
+    // for each line
+    for (int y = 0; y < 8; y++) {
+      //[0] + [1] + [16]
+      for (int x = 0; x < 8; x++) {
+        auto b1 = ((sheet[(y * 2) + (24 * pos)] & (kGraphicsBitmap[x])));
+        auto b2 = (sheet[((y * 2) + (24 * pos)) + 1] & (kGraphicsBitmap[x]));
+        auto b3 = (sheet[(16 + y) + (24 * pos)] & (kGraphicsBitmap[x]));
+        unsigned char b = 0;
+        if (b1 != 0) {
+          b |= 1;
+        }
+        if (b2 != 0) {
+          b |= 2;
+        }
+        if (b3 != 0) {
+          b |= 4;
+        }
+        sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
+      }
+    }
+    pos++;
+    ypos++;
+    xx += 8;
+    if (ypos >= 16) {
+      yy++;
+      xx = 0;
+      ypos = 0;
+    }
+  }
+  return sheet_buffer_out;
+}
+
 void PrintCompressionPiece(const std::shared_ptr<CompressionPiece>& piece) {
   printf("Command: %d\n", piece->command);
   printf("Command kength: %d\n", piece->length);
@@ -451,13 +492,14 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
   while (databyte != SNES_BYTE_MAX) {  // End of decompression
     databyte = rom_data_[offset];
 
-    if ((databyte & CMD_EXPANDED_MOD) ==
-        CMD_EXPANDED_MOD) {  // Expanded Command
+    if ((databyte & CMD_EXPANDED_MOD) == CMD_EXPANDED_MOD) {
+      // Expanded Command
       cmd = ((databyte >> 2) & CMD_MOD);
       length =
           (((databyte << 8) | rom_data_[offset + 1]) & CMD_EXPANDED_LENGTH_MOD);
       offset += 2;  // Advance 2 bytes in ROM
-    } else {        // Normal Command
+    } else {
+      // Normal Command
       cmd = ((databyte >> 5) & CMD_MOD);
       length = (databyte & CMD_NORMAL_LENGTH_MOD);
       offset += 1;  // Advance 1 byte in ROM
@@ -471,8 +513,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         offset += length;
         break;
       case kCommandByteFill:  // Advances 1 byte in the ROM
-        std::fill(buffer.begin() + buffer_pos, buffer.begin() + length, rom_data_[offset]);
-        buffer_pos += length;
+        for (int i = 0; i < length; i++)
+          buffer[buffer_pos++] = rom_data_[offset];
         offset += 1;
         break;
       case kCommandWordFill:  // Advance 2 byte in the ROM
@@ -535,45 +577,45 @@ absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
   return Decompress(pos, size, true);
 }
 
-absl::StatusOr<Bytes> ROM::SNES3bppTo8bppSheet(Bytes sheet, int size) {
-  Bytes sheet_buffer_out(size);
-  int xx = 0;  // positions where we are at on the sheet
-  int yy = 0;
-  int pos = 0;
-  int ypos = 0;
+// 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
+// 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
+// 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
+// 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
+// 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
+absl::Status ROM::LoadAllGraphicsData() {
+  Bytes sheet;
 
-  // for each tiles, 16 per line
-  for (int i = 0; i < 64; i++) {
-    // for each line
-    for (int y = 0; y < 8; y++) {
-      //[0] + [1] + [16]
-      for (int x = 0; x < 8; x++) {
-        auto b1 = ((sheet[(y * 2) + (24 * pos)] & (kGraphicsBitmap[x])));
-        auto b2 = (sheet[((y * 2) + (24 * pos)) + 1] & (kGraphicsBitmap[x]));
-        auto b3 = (sheet[(16 + y) + (24 * pos)] & (kGraphicsBitmap[x]));
-        unsigned char b = 0;
-        if (b1 != 0) {
-          b |= 1;
-        }
-        if (b2 != 0) {
-          b |= 2;
-        }
-        if (b3 != 0) {
-          b |= 4;
-        }
-        sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
+  for (int i = 0; i < core::NumberOfSheets; i++) {
+    if (i >= 115 && i <= 126) {  // uncompressed sheets
+      sheet.resize(core::Uncompressed3BPPSize);
+      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
+        sheet[j] = rom_data_[j + offset];
+      }
+    } else if (i == 113 || i == 114) {
+      sheet.resize(0x800);
+      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      for (int j = 0; j < 0x800; j++) {
+        sheet[j] = rom_data_[j + offset];
+      }
+    } else {
+      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      absl::StatusOr<Bytes> new_sheet =
+          Decompress(offset, core::UncompressedSheetSize);
+      if (!new_sheet.ok()) {
+        return new_sheet.status();
+      } else {
+        sheet = std::move(*new_sheet);
       }
     }
-    pos++;
-    ypos++;
-    xx += 8;
-    if (ypos >= 16) {
-      yy++;
-      xx = 0;
-      ypos = 0;
-    }
+
+    auto converted_sheet = SNES3bppTo8bppSheet(sheet);
+    graphics_bin_[i] =
+        gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
+                    core::kTilesheetDepth, converted_sheet.data());
+    graphics_bin_.at(i).CreateTexture(renderer_);
   }
-  return sheet_buffer_out;
+  return absl::OkStatus();
 }
 
 absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
@@ -627,52 +669,6 @@ absl::Status ROM::SaveToFile() {
   }
   for (auto i = 0; i < size_; ++i) {
     file << rom_data_[i];
-  }
-  return absl::OkStatus();
-}
-
-// 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
-// 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
-// 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
-// 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
-// 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
-absl::Status ROM::LoadAllGraphicsData() {
-  Bytes sheet;
-
-  for (int i = 0; i < core::NumberOfSheets; i++) {
-    if (i >= 115 && i <= 126) {  // uncompressed sheets
-      sheet.resize(core::Uncompressed3BPPSize);
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
-        sheet[j] = rom_data_[j + offset];
-      }
-    } else if (i == 113 || i == 114) {
-      sheet.resize(0x800);
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      for (int j = 0; j < 0x800; j++) {
-        sheet[j] = rom_data_[j + offset];
-      }
-    } else {
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      absl::StatusOr<Bytes> new_sheet =
-          Decompress(offset, core::UncompressedSheetSize);
-      if (!new_sheet.ok()) {
-        return new_sheet.status();
-      } else {
-        sheet = std::move(*new_sheet);
-      }
-    }
-
-    absl::StatusOr<Bytes> converted_sheet = SNES3bppTo8bppSheet(sheet);
-    if (!converted_sheet.ok()) {
-      return converted_sheet.status();
-    } else {
-      Bytes result = std::move(*converted_sheet);
-      graphics_bin_[i] =
-          gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                      core::kTilesheetDepth, result.data());
-      graphics_bin_.at(i).CreateTexture(renderer_);
-    }
   }
   return absl::OkStatus();
 }
