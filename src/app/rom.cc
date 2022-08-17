@@ -245,80 +245,86 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
   return output;
 }
 
-// Test every command to see the gain with current position
-void TestAllCommands(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckByteRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
                      CommandArgumentArray& cmd_args, uint& src_data_pos,
-                     const uint last_pos, uint start) {
-  {  // BYTE REPEAT
-    uint pos = src_data_pos;
-    char byte_to_repeat = rom_data[pos];
-    while (pos <= last_pos && rom_data[pos] == byte_to_repeat) {
-      data_size_taken[kCommandByteFill]++;
-      pos++;
-    }
-    cmd_args[kCommandByteFill][0] = byte_to_repeat;
-  }
-  {  // WORD REPEAT
-    if (src_data_pos + 2 <= last_pos &&
-        rom_data[src_data_pos] != rom_data[src_data_pos + 1]) {
-      uint pos = src_data_pos;
-      char byte1 = rom_data[pos];
-      char byte2 = rom_data[pos + 1];
-      pos += 2;
-      data_size_taken[kCommandWordFill] = 2;
-      while (pos + 1 <= last_pos) {
-        if (rom_data[pos] == byte1 && rom_data[pos + 1] == byte2)
-          data_size_taken[kCommandWordFill] += 2;
-        else
-          break;
-        pos += 2;
-      }
-      cmd_args[kCommandWordFill][0] = byte1;
-      cmd_args[kCommandWordFill][1] = byte2;
-    }
-  }
-  {  // INC BYTE
-    uint pos = src_data_pos;
-    char byte = rom_data[pos];
+                     const uint last_pos) {
+  uint pos = src_data_pos;
+  char byte_to_repeat = rom_data[pos];
+  while (pos <= last_pos && rom_data[pos] == byte_to_repeat) {
+    data_size_taken[kCommandByteFill]++;
     pos++;
-    data_size_taken[kCommandIncreasingFill] = 1;
-    byte++;
-    while (pos <= last_pos && byte == rom_data[pos]) {
-      data_size_taken[kCommandIncreasingFill]++;
-      byte++;
-      pos++;
-    }
-    cmd_args[kCommandIncreasingFill][0] = rom_data[src_data_pos];
   }
-  {  // INTRA CPY
-    if (src_data_pos != start) {
-      uint searching_pos = start;
-      uint current_pos_u = src_data_pos;
-      uint copied_size = 0;
-      uint search_start = start;
+  cmd_args[kCommandByteFill][0] = byte_to_repeat;
+}
 
-      while (searching_pos < src_data_pos && current_pos_u <= last_pos) {
-        while (rom_data[current_pos_u] != rom_data[searching_pos] &&
-               searching_pos < src_data_pos)
-          searching_pos++;
-        search_start = searching_pos;
-        while (current_pos_u <= last_pos &&
-               rom_data[current_pos_u] == rom_data[searching_pos] &&
-               searching_pos < src_data_pos) {
-          copied_size++;
-          current_pos_u++;
-          searching_pos++;
-        }
-        if (copied_size > data_size_taken[kCommandRepeatingBytes]) {
-          search_start -= start;
-          printf("- Found repeat of %d at %d\n", copied_size, search_start);
-          data_size_taken[kCommandRepeatingBytes] = copied_size;
-          cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
-          cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
-        }
-        current_pos_u = src_data_pos;
-        copied_size = 0;
+void CheckWordRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
+                     CommandArgumentArray& cmd_args, uint& src_data_pos,
+                     const uint last_pos) {
+  if (src_data_pos + 2 <= last_pos &&
+      rom_data[src_data_pos] != rom_data[src_data_pos + 1]) {
+    uint pos = src_data_pos;
+    char byte1 = rom_data[pos];
+    char byte2 = rom_data[pos + 1];
+    pos += 2;
+    data_size_taken[kCommandWordFill] = 2;
+    while (pos + 1 <= last_pos) {
+      if (rom_data[pos] == byte1 && rom_data[pos + 1] == byte2)
+        data_size_taken[kCommandWordFill] += 2;
+      else
+        break;
+      pos += 2;
+    }
+    cmd_args[kCommandWordFill][0] = byte1;
+    cmd_args[kCommandWordFill][1] = byte2;
+  }
+}
+
+void CheckIncByte(const uchar* rom_data, DataSizeArray& data_size_taken,
+                  CommandArgumentArray& cmd_args, uint& src_data_pos,
+                  const uint last_pos) {
+  uint pos = src_data_pos;
+  char byte = rom_data[pos];
+  pos++;
+  data_size_taken[kCommandIncreasingFill] = 1;
+  byte++;
+  while (pos <= last_pos && byte == rom_data[pos]) {
+    data_size_taken[kCommandIncreasingFill]++;
+    byte++;
+    pos++;
+  }
+  cmd_args[kCommandIncreasingFill][0] = rom_data[src_data_pos];
+}
+
+void CheckIntraCopy(const uchar* rom_data, DataSizeArray& data_size_taken,
+                    CommandArgumentArray& cmd_args, uint& src_data_pos,
+                    const uint last_pos, uint start) {
+  if (src_data_pos != start) {
+    uint searching_pos = start;
+    uint current_pos_u = src_data_pos;
+    uint copied_size = 0;
+    uint search_start = start;
+
+    while (searching_pos < src_data_pos && current_pos_u <= last_pos) {
+      while (rom_data[current_pos_u] != rom_data[searching_pos] &&
+             searching_pos < src_data_pos)
+        searching_pos++;
+      search_start = searching_pos;
+      while (current_pos_u <= last_pos &&
+             rom_data[current_pos_u] == rom_data[searching_pos] &&
+             searching_pos < src_data_pos) {
+        copied_size++;
+        current_pos_u++;
+        searching_pos++;
       }
+      if (copied_size > data_size_taken[kCommandRepeatingBytes]) {
+        search_start -= start;
+        printf("- Found repeat of %d at %d\n", copied_size, search_start);
+        data_size_taken[kCommandRepeatingBytes] = copied_size;
+        cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
+        cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
+      }
+      current_pos_u = src_data_pos;
+      copied_size = 0;
     }
   }
 }
@@ -424,8 +430,14 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
     data_size_taken.fill({});
     cmd_args.fill({{}});
 
-    TestAllCommands(rom_data_.data(), data_size_taken, cmd_args, src_data_pos,
-                    last_pos, start);
+    CheckByteRepeat(rom_data_.data(), data_size_taken, cmd_args, src_data_pos,
+                    last_pos);
+    CheckWordRepeat(rom_data_.data(), data_size_taken, cmd_args, src_data_pos,
+                    last_pos);
+    CheckIncByte(rom_data_.data(), data_size_taken, cmd_args, src_data_pos,
+                 last_pos);
+    CheckIntraCopy(rom_data_.data(), data_size_taken, cmd_args, src_data_pos,
+                   last_pos, start);
 
     uint max_win = 2;
     uint cmd_with_max = kCommandDirectCopy;
@@ -512,19 +524,19 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         buffer_pos += length;
         offset += length;
         break;
-      case kCommandByteFill:  // Advances 1 byte in the ROM
+      case kCommandByteFill:
         for (int i = 0; i < length; i++)
           buffer[buffer_pos++] = rom_data_[offset];
-        offset += 1;
+        offset += 1;  // Advances 1 byte in the ROM
         break;
-      case kCommandWordFill:  // Advance 2 byte in the ROM
+      case kCommandWordFill:
         for (int i = 0; i < length; i += 2) {
           buffer[buffer_pos] = rom_data_[offset];
           buffer_pos++;
           buffer[buffer_pos] = rom_data_[offset + 1];
           buffer_pos++;
         }
-        offset += 2;
+        offset += 2;  // Advance 2 byte in the ROM
         break;
       case kCommandIncreasingFill: {
         uchar inc_byte = rom_data_[offset];
@@ -541,7 +553,7 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
           auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
           if (addr > offset) {
             return absl::InternalError(absl::StrFormat(
-                "DecompressOverworldV2: Offset for command copy exceeds "
+                "DecompressOverworld: Offset for command copy exceeds "
                 "current position (Offset : %#04x | Pos : %#06x)\n",
                 addr, offset));
           }
