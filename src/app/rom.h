@@ -77,8 +77,6 @@ class ROM {
   absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 
-  absl::StatusOr<Bytes> SNES3bppTo8bppSheet(Bytes sheet, int size = 0x1000);
-
   absl::Status LoadAllGraphicsData();
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
