@@ -531,8 +531,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         offset += 1;  // Advances 1 byte in the ROM
         break;
       case kCommandWordFill: {
-        auto a = rom_data_[offset + 1];
-        auto b = rom_data_[offset + 2];
+        auto a = rom_data_[offset];
+        auto b = rom_data_[offset + 1];
         for (int i = 0; i < length; i = i + 2) {
           buffer[buffer_pos + i] = a;
           if ((i + 1) < length) buffer[buffer_pos + i + 1] = b;
