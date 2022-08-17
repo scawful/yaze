@@ -107,31 +107,142 @@ void PrintCompressionChain(
   }
 }
 
-// Merge consecutive copy if possible
-std::shared_ptr<CompressionPiece> MergeCopy(
-    std::shared_ptr<CompressionPiece>& start) {
-  std::shared_ptr<CompressionPiece> piece = start;
-
-  while (piece != nullptr) {
-    if (piece->command == kCommandDirectCopy && piece->next != nullptr &&
-        piece->next->command == kCommandDirectCopy &&
-        piece->length + piece->next->length <= kMaxLengthCompression) {
-      uint previous_length = piece->length;
-      piece->length = piece->length + piece->next->length;
-
-      for (int i = 0; i < piece->next->argument_length; ++i) {
-        piece->argument[i + previous_length] = piece->next->argument[i];
-      }
-      piece->argument_length = piece->length;
-      PrintCompressionPiece(piece);
-
-      auto p_next_next = piece->next->next;
-      piece->next = p_next_next;
-      continue;  // Next could be another copy
-    }
-    piece = piece->next;
+void CheckByteRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
+                     CommandArgumentArray& cmd_args, uint& src_data_pos,
+                     const uint last_pos) {
+  uint pos = src_data_pos;
+  char byte_to_repeat = rom_data[pos];
+  while (pos <= last_pos && rom_data[pos] == byte_to_repeat) {
+    data_size_taken[kCommandByteFill]++;
+    pos++;
   }
-  return start;
+  cmd_args[kCommandByteFill][0] = byte_to_repeat;
+}
+
+void CheckWordRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
+                     CommandArgumentArray& cmd_args, uint& src_data_pos,
+                     const uint last_pos) {
+  if (src_data_pos + 2 <= last_pos &&
+      rom_data[src_data_pos] != rom_data[src_data_pos + 1]) {
+    uint pos = src_data_pos;
+    char byte1 = rom_data[pos];
+    char byte2 = rom_data[pos + 1];
+    pos += 2;
+    data_size_taken[kCommandWordFill] = 2;
+    while (pos + 1 <= last_pos) {
+      if (rom_data[pos] == byte1 && rom_data[pos + 1] == byte2)
+        data_size_taken[kCommandWordFill] += 2;
+      else
+        break;
+      pos += 2;
+    }
+    cmd_args[kCommandWordFill][0] = byte1;
+    cmd_args[kCommandWordFill][1] = byte2;
+  }
+}
+
+void CheckIncByte(const uchar* rom_data, DataSizeArray& data_size_taken,
+                  CommandArgumentArray& cmd_args, uint& src_data_pos,
+                  const uint last_pos) {
+  uint pos = src_data_pos;
+  char byte = rom_data[pos];
+  pos++;
+  data_size_taken[kCommandIncreasingFill] = 1;
+  byte++;
+  while (pos <= last_pos && byte == rom_data[pos]) {
+    data_size_taken[kCommandIncreasingFill]++;
+    byte++;
+    pos++;
+  }
+  cmd_args[kCommandIncreasingFill][0] = rom_data[src_data_pos];
+}
+
+void CheckIntraCopy(const uchar* rom_data, DataSizeArray& data_size_taken,
+                    CommandArgumentArray& cmd_args, uint& src_data_pos,
+                    const uint last_pos, uint start) {
+  if (src_data_pos != start) {
+    uint searching_pos = start;
+    uint current_pos_u = src_data_pos;
+    uint copied_size = 0;
+    uint search_start = start;
+
+    while (searching_pos < src_data_pos && current_pos_u <= last_pos) {
+      while (rom_data[current_pos_u] != rom_data[searching_pos] &&
+             searching_pos < src_data_pos)
+        searching_pos++;
+      search_start = searching_pos;
+      while (current_pos_u <= last_pos &&
+             rom_data[current_pos_u] == rom_data[searching_pos] &&
+             searching_pos < src_data_pos) {
+        copied_size++;
+        current_pos_u++;
+        searching_pos++;
+      }
+      if (copied_size > data_size_taken[kCommandRepeatingBytes]) {
+        search_start -= start;
+        printf("- Found repeat of %d at %d\n", copied_size, search_start);
+        data_size_taken[kCommandRepeatingBytes] = copied_size;
+        cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
+        cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
+      }
+      current_pos_u = src_data_pos;
+      copied_size = 0;
+    }
+  }
+}
+
+// Check if a command managed to pick up `max_win` or more bytes
+// Avoids being even with copy command, since it's possible to merge copy
+void ValidateForByteGain(const DataSizeArray& data_size_taken,
+                         const CommandSizeArray& cmd_size, uint& max_win,
+                         uint& cmd_with_max) {
+  for (uint cmd_i = 1; cmd_i < 5; cmd_i++) {
+    uint cmd_size_taken = data_size_taken[cmd_i];
+    // TODO(@scawful): Replace conditional with table of command sizes
+    // "Table that is even with copy but all other cmd are 2"
+    auto table_check =
+        !(cmd_i == kCommandRepeatingBytes && cmd_size_taken == 3);
+    if (cmd_size_taken > max_win && cmd_size_taken > cmd_size[cmd_i] &&
+        table_check) {
+      printf("==> C:%d / S:%d\n", cmd_i, cmd_size_taken);
+      cmd_with_max = cmd_i;
+      max_win = cmd_size_taken;
+    }
+  }
+}
+
+void CompressionCommandAlternative(
+    const uchar* rom_data, std::shared_ptr<CompressionPiece>& compressed_chain,
+    const CommandSizeArray& cmd_size, const CommandArgumentArray& cmd_args,
+    uint& src_data_pos, uint& comp_accumulator, uint& cmd_with_max,
+    uint& max_win) {
+  printf("- Ok we get a gain from %d\n", cmd_with_max);
+  std::string buffer;
+  buffer.push_back(cmd_args[cmd_with_max][0]);
+  if (cmd_size[cmd_with_max] == 2) {
+    buffer.push_back(cmd_args[cmd_with_max][1]);
+  }
+
+  auto new_comp_piece = std::make_shared<CompressionPiece>(
+      cmd_with_max, max_win, buffer, cmd_size[cmd_with_max]);
+  PrintCompressionPiece(new_comp_piece);
+  // If we let non compressed stuff, we need to add a copy chunk before
+  if (comp_accumulator != 0) {
+    std::string copy_buff;
+    copy_buff.resize(comp_accumulator);
+    for (int i = 0; i < comp_accumulator; ++i) {
+      copy_buff[i] = rom_data[i + src_data_pos - comp_accumulator];
+    }
+    auto copy_chunk = std::make_shared<CompressionPiece>(
+        kCommandDirectCopy, comp_accumulator, copy_buff, comp_accumulator);
+    compressed_chain->next = copy_chunk;
+    compressed_chain = copy_chunk;
+  } else {
+    compressed_chain->next = new_comp_piece;
+    compressed_chain = new_comp_piece;
+  }
+  src_data_pos += max_win;
+  comp_accumulator = 0;
 }
 
 absl::StatusOr<std::shared_ptr<CompressionPiece>> SplitCompressionPiece(
@@ -245,110 +356,6 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
   return output;
 }
 
-void CheckByteRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
-                     CommandArgumentArray& cmd_args, uint& src_data_pos,
-                     const uint last_pos) {
-  uint pos = src_data_pos;
-  char byte_to_repeat = rom_data[pos];
-  while (pos <= last_pos && rom_data[pos] == byte_to_repeat) {
-    data_size_taken[kCommandByteFill]++;
-    pos++;
-  }
-  cmd_args[kCommandByteFill][0] = byte_to_repeat;
-}
-
-void CheckWordRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
-                     CommandArgumentArray& cmd_args, uint& src_data_pos,
-                     const uint last_pos) {
-  if (src_data_pos + 2 <= last_pos &&
-      rom_data[src_data_pos] != rom_data[src_data_pos + 1]) {
-    uint pos = src_data_pos;
-    char byte1 = rom_data[pos];
-    char byte2 = rom_data[pos + 1];
-    pos += 2;
-    data_size_taken[kCommandWordFill] = 2;
-    while (pos + 1 <= last_pos) {
-      if (rom_data[pos] == byte1 && rom_data[pos + 1] == byte2)
-        data_size_taken[kCommandWordFill] += 2;
-      else
-        break;
-      pos += 2;
-    }
-    cmd_args[kCommandWordFill][0] = byte1;
-    cmd_args[kCommandWordFill][1] = byte2;
-  }
-}
-
-void CheckIncByte(const uchar* rom_data, DataSizeArray& data_size_taken,
-                  CommandArgumentArray& cmd_args, uint& src_data_pos,
-                  const uint last_pos) {
-  uint pos = src_data_pos;
-  char byte = rom_data[pos];
-  pos++;
-  data_size_taken[kCommandIncreasingFill] = 1;
-  byte++;
-  while (pos <= last_pos && byte == rom_data[pos]) {
-    data_size_taken[kCommandIncreasingFill]++;
-    byte++;
-    pos++;
-  }
-  cmd_args[kCommandIncreasingFill][0] = rom_data[src_data_pos];
-}
-
-void CheckIntraCopy(const uchar* rom_data, DataSizeArray& data_size_taken,
-                    CommandArgumentArray& cmd_args, uint& src_data_pos,
-                    const uint last_pos, uint start) {
-  if (src_data_pos != start) {
-    uint searching_pos = start;
-    uint current_pos_u = src_data_pos;
-    uint copied_size = 0;
-    uint search_start = start;
-
-    while (searching_pos < src_data_pos && current_pos_u <= last_pos) {
-      while (rom_data[current_pos_u] != rom_data[searching_pos] &&
-             searching_pos < src_data_pos)
-        searching_pos++;
-      search_start = searching_pos;
-      while (current_pos_u <= last_pos &&
-             rom_data[current_pos_u] == rom_data[searching_pos] &&
-             searching_pos < src_data_pos) {
-        copied_size++;
-        current_pos_u++;
-        searching_pos++;
-      }
-      if (copied_size > data_size_taken[kCommandRepeatingBytes]) {
-        search_start -= start;
-        printf("- Found repeat of %d at %d\n", copied_size, search_start);
-        data_size_taken[kCommandRepeatingBytes] = copied_size;
-        cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
-        cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
-      }
-      current_pos_u = src_data_pos;
-      copied_size = 0;
-    }
-  }
-}
-
-// Check if a command managed to pick up `max_win` or more bytes
-// Avoids being even with copy command, since it's possible to merge copy
-void ValidateForByteGain(const DataSizeArray& data_size_taken,
-                         const CommandSizeArray& cmd_size, uint& max_win,
-                         uint& cmd_with_max) {
-  for (uint cmd_i = 1; cmd_i < 5; cmd_i++) {
-    uint cmd_size_taken = data_size_taken[cmd_i];
-    // TODO(@scawful): Replace conditional with table of command sizes
-    // "Table that is even with copy but all other cmd are 2"
-    auto table_check =
-        !(cmd_i == kCommandRepeatingBytes && cmd_size_taken == 3);
-    if (cmd_size_taken > max_win && cmd_size_taken > cmd_size[cmd_i] &&
-        table_check) {
-      printf("==> C:%d / S:%d\n", cmd_i, cmd_size_taken);
-      cmd_with_max = cmd_i;
-      max_win = cmd_size_taken;
-    }
-  }
-}
-
 absl::Status ValidateCompressionResult(
     std::shared_ptr<CompressionPiece>& compressed_chain_start, int mode,
     int start, int src_data_pos) {
@@ -375,38 +382,31 @@ absl::Status ValidateCompressionResult(
   return absl::OkStatus();
 }
 
-void CompressionCommandAlternative(
-    const uchar* rom_data, std::shared_ptr<CompressionPiece>& compressed_chain,
-    const CommandSizeArray& cmd_size, const CommandArgumentArray& cmd_args,
-    uint& src_data_pos, uint& comp_accumulator, uint& cmd_with_max,
-    uint& max_win) {
-  printf("- Ok we get a gain from %d\n", cmd_with_max);
-  std::string buffer;
-  buffer.push_back(cmd_args[cmd_with_max][0]);
-  if (cmd_size[cmd_with_max] == 2) {
-    buffer.push_back(cmd_args[cmd_with_max][1]);
-  }
+// Merge consecutive copy if possible
+std::shared_ptr<CompressionPiece> MergeCopy(
+    std::shared_ptr<CompressionPiece>& start) {
+  std::shared_ptr<CompressionPiece> piece = start;
 
-  auto new_comp_piece = std::make_shared<CompressionPiece>(
-      cmd_with_max, max_win, buffer, cmd_size[cmd_with_max]);
-  PrintCompressionPiece(new_comp_piece);
-  // If we let non compressed stuff, we need to add a copy chunk before
-  if (comp_accumulator != 0) {
-    std::string copy_buff;
-    copy_buff.resize(comp_accumulator);
-    for (int i = 0; i < comp_accumulator; ++i) {
-      copy_buff[i] = rom_data[i + src_data_pos - comp_accumulator];
+  while (piece != nullptr) {
+    if (piece->command == kCommandDirectCopy && piece->next != nullptr &&
+        piece->next->command == kCommandDirectCopy &&
+        piece->length + piece->next->length <= kMaxLengthCompression) {
+      uint previous_length = piece->length;
+      piece->length = piece->length + piece->next->length;
+
+      for (int i = 0; i < piece->next->argument_length; ++i) {
+        piece->argument[i + previous_length] = piece->next->argument[i];
+      }
+      piece->argument_length = piece->length;
+      PrintCompressionPiece(piece);
+
+      auto p_next_next = piece->next->next;
+      piece->next = p_next_next;
+      continue;  // Next could be another copy
     }
-    auto copy_chunk = std::make_shared<CompressionPiece>(
-        kCommandDirectCopy, comp_accumulator, copy_buff, comp_accumulator);
-    compressed_chain->next = copy_chunk;
-    compressed_chain = copy_chunk;
-  } else {
-    compressed_chain->next = new_comp_piece;
-    compressed_chain = new_comp_piece;
+    piece = piece->next;
   }
-  src_data_pos += max_win;
-  comp_accumulator = 0;
+  return start;
 }
 
 }  // namespace
