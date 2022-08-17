@@ -26,7 +26,8 @@ Bytes ExpectCompressOk(ROM& rom, uchar* in, int in_size) {
   EXPECT_TRUE(load_status.ok());
   auto compression_status = rom.Compress(0, in_size);
   EXPECT_TRUE(compression_status.ok());
-  return std::move(*compression_status);
+  auto compressed_bytes = std::move(*compression_status);
+  return compressed_bytes;
 }
 
 Bytes ExpectDecompressOk(ROM& rom, uchar* in, int in_size) {
@@ -34,7 +35,8 @@ Bytes ExpectDecompressOk(ROM& rom, uchar* in, int in_size) {
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = rom.Decompress(0, in_size);
   EXPECT_TRUE(decompression_status.ok());
-  return std::move(*decompression_status);
+  auto decompressed_bytes = std::move(*decompression_status);
+  return decompressed_bytes;
 }
 
 std::shared_ptr<CompressionPiece> ExpectNewCompressionPieceOk(
@@ -43,7 +45,7 @@ std::shared_ptr<CompressionPiece> ExpectNewCompressionPieceOk(
   auto new_piece = std::make_shared<CompressionPiece>(command, length, args,
                                                       argument_length);
   EXPECT_TRUE(new_piece != nullptr);
-  return std::move(new_piece);
+  return new_piece;
 }
 
 }  // namespace
@@ -97,7 +99,7 @@ TEST(ROMTest, DecompressionMixingCommand) {
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
 
-/* Extended Header Command is currently unimplemented
+// Extended Header Command is currently unimplemented
 TEST(ROMTest, ExtendedHeaderDecompress) {
   ROM rom;
   uchar extendedcmd_i[4] = {0b11100100, 0x8F, 0x2A, 0xFF};
@@ -123,7 +125,7 @@ TEST(ROMTest, ExtendedHeaderDecompress2) {
     ASSERT_EQ(extendedcmd_o[i], data[i]);
   }
 }
-*/
+
 
 TEST(ROMTest, CompressionSingleSet) {
   ROM rom;
