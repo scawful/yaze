@@ -499,43 +499,47 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
   Bytes buffer(size, 0);
   uint length = 0;
   uint buffer_pos = 0;
-  uchar cmd = 0;
-  uchar databyte = rom_data_[offset];
-  while (databyte != SNES_BYTE_MAX) {  // End of decompression
-    if ((databyte & CMD_EXPANDED_MOD) == CMD_EXPANDED_MOD) {
+  uchar command = 0;
+  uchar header = rom_data_[offset];
+
+  while (header != SNES_BYTE_MAX) {
+    if ((header & CMD_EXPANDED_MOD) == CMD_EXPANDED_MOD) {
       // Expanded Command
-      cmd = ((databyte >> 2) & CMD_MOD);
+      command = ((header >> 2) & CMD_MOD);
       length =
-          (((databyte << 8) | rom_data_[offset + 1]) & CMD_EXPANDED_LENGTH_MOD);
+          (((header << 8) | rom_data_[offset + 1]) & CMD_EXPANDED_LENGTH_MOD);
       offset += 2;  // Advance 2 bytes in ROM
     } else {
       // Normal Command
-      cmd = ((databyte >> 5) & CMD_MOD);
-      length = (databyte & CMD_NORMAL_LENGTH_MOD);
+      command = ((header >> 5) & CMD_MOD);
+      length = (header & CMD_NORMAL_LENGTH_MOD);
       offset += 1;  // Advance 1 byte in ROM
     }
     length += 1;  // each commands is at least of size 1 even if index 00
 
-    switch (cmd) {
+    switch (command) {
       case kCommandDirectCopy:  // Does not advance in the ROM
         memcpy(buffer.data() + buffer_pos, rom_data_.data() + offset, length);
         buffer_pos += length;
         offset += length;
         break;
       case kCommandByteFill:
-        for (int i = 0; i < length; i++)
-          buffer[buffer_pos++] = rom_data_[offset];
-        offset += 1;  // Advances 1 byte in the ROM
-        break;
-      case kCommandWordFill:
-        for (int i = 0; i < length; i += 2) {
+        for (int i = 0; i < length; i++) {
           buffer[buffer_pos] = rom_data_[offset];
           buffer_pos++;
-          buffer[buffer_pos] = rom_data_[offset + 1];
-          buffer_pos++;
         }
-        offset += 2;  // Advance 2 byte in the ROM
+        offset += 1;  // Advances 1 byte in the ROM
         break;
+      case kCommandWordFill: {
+        auto a = rom_data_[offset + 1];
+        auto b = rom_data_[offset + 2];
+        for (int i = 0; i < length; i = i + 2) {
+          buffer[buffer_pos + i] = a;
+          if ((i + 1) < length) buffer[buffer_pos + i + 1] = b;
+        }
+        buffer_pos += length;
+        offset += 2;  // Advance 2 byte in the ROM
+      } break;
       case kCommandIncreasingFill: {
         uchar inc_byte = rom_data_[offset];
         for (int i = 0; i < length; i++) {
@@ -574,11 +578,11 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         std::cout << absl::StrFormat(
             "DecompressOverworld: Invalid command in header for "
             "decompression (Offset : %#06x, Command: %#04x)\n",
-            offset, cmd);
+            offset, command);
       } break;
     }
-    // check next byte 
-    databyte = rom_data_[offset];
+    // check next byte
+    header = rom_data_[offset];
   }
 
   return buffer;
