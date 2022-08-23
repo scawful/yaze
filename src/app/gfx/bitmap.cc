@@ -116,6 +116,14 @@ absl::Status Bitmap::CreateFromTiles(const std::vector<Bitmap> &tiles) {
   return absl::OkStatus();
 }
 
+absl::Status Bitmap::WritePixel(int pos, uchar pixel) {
+  if (!surface_) {
+    return absl::InternalError("Surface not loaded");
+  } 
+  surface_->pixels[pos] = pixel;
+  return absl::OkStatus();
+} 
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
