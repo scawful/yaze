@@ -57,14 +57,6 @@ struct CompressionPiece {
 };
 using CompressionPiece = struct CompressionPiece;
 
-using OWBlockset = std::vector<std::vector<ushort>>;
-struct OWMapTiles {
-  OWBlockset light_world;    // 64 maps
-  OWBlockset dark_world;     // 64 maps
-  OWBlockset special_world;  // 32 maps
-};
-using OWMapTiles = struct OWMapTiles;
-
 class ROM {
  public:
   absl::StatusOr<Bytes> Compress(const int start, const int length,
@@ -118,6 +110,7 @@ class ROM {
   std::string filename_;
 
   Bytes rom_data_;
+  Bytes master_graphics_bin_;
   std::shared_ptr<SDL_Renderer> renderer_;
   absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_;
 };

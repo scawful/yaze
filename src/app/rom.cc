@@ -541,7 +541,7 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         offset += 2;  // Advance 2 byte in the ROM
       } break;
       case kCommandIncreasingFill: {
-        uchar inc_byte = rom_data_[offset];
+        auto inc_byte = rom_data_[offset];
         for (int i = 0; i < length; i++) {
           buffer[buffer_pos] = inc_byte++;
           buffer_pos++;
@@ -576,8 +576,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
       } break;
       default: {
         std::cout << absl::StrFormat(
-            "DecompressOverworld: Invalid command in header for "
-            "decompression (Offset : %#06x, Command: %#04x)\n",
+            "DecompressGraphics: Invalid command in header (Offset : %#06x, "
+            "Command: %#04x)\n",
             offset, command);
       } break;
     }
