@@ -20,17 +20,7 @@
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 
-#define OVERWORLD_GRAPHICS_POS_1 0x4F80
-#define OVERWORLD_GRAPHICS_POS_2 0x505F
-#define OVERWORLD_GRAPHICS_POS_3 0x513E
 #define COMPRESSION_STRING_MOD 7 << 5
-
-#define SNES_BYTE_MAX 0xFF
-
-#define CMD_MOD 0x07
-#define CMD_EXPANDED_MOD 0xE0
-#define CMD_EXPANDED_LENGTH_MOD 0x3FF
-#define CMD_NORMAL_LENGTH_MOD 0x1F
 
 namespace yaze {
 namespace app {
@@ -38,9 +28,9 @@ namespace app {
 namespace {
 
 int GetGraphicsAddress(const uchar* data, uint8_t offset) {
-  auto part_one = data[OVERWORLD_GRAPHICS_POS_1 + offset] << 16;
-  auto part_two = data[OVERWORLD_GRAPHICS_POS_2 + offset] << 8;
-  auto part_three = data[OVERWORLD_GRAPHICS_POS_3 + offset];
+  auto part_one = data[kOverworldGraphicsPos1 + offset] << 16;
+  auto part_two = data[kOverworldGraphicsPos2 + offset] << 8;
+  auto part_three = data[kOverworldGraphicsPos3 + offset];
   auto snes_addr = (part_one | part_two | part_three);
   return core::SnesToPc(snes_addr);
 }
@@ -182,7 +172,7 @@ void CheckIntraCopy(const uchar* rom_data, DataSizeArray& data_size_taken,
         search_start -= start;
         printf("- Found repeat of %d at %d\n", copied_size, search_start);
         data_size_taken[kCommandRepeatingBytes] = copied_size;
-        cmd_args[kCommandRepeatingBytes][0] = search_start & SNES_BYTE_MAX;
+        cmd_args[kCommandRepeatingBytes][0] = search_start & kSnesByteMax;
         cmd_args[kCommandRepeatingBytes][1] = search_start >> 8;
       }
       current_pos_u = src_data_pos;
@@ -279,12 +269,12 @@ absl::StatusOr<std::shared_ptr<CompressionPiece>> SplitCompressionPiece(
           piece->command, length_left, piece->argument, piece->argument_length);
       if (mode == kNintendoMode2) {
         new_piece->argument[0] =
-            (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
+            (offset + kMaxLengthCompression) & kSnesByteMax;
         new_piece->argument[1] = (offset + kMaxLengthCompression) >> 8;
       }
       if (mode == kNintendoMode1) {
         new_piece->argument[1] =
-            (offset + kMaxLengthCompression) & SNES_BYTE_MAX;
+            (offset + kMaxLengthCompression) & kSnesByteMax;
         new_piece->argument[0] = (offset + kMaxLengthCompression) >> 8;
       }
     } break;
@@ -352,7 +342,7 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
     pos += piece->argument_length;
     piece = piece->next;
   }
-  output.push_back(SNES_BYTE_MAX);
+  output.push_back(kSnesByteMax);
   return output;
 }
 
@@ -502,17 +492,16 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
   uchar command = 0;
   uchar header = rom_data_[offset];
 
-  while (header != SNES_BYTE_MAX) {
-    if ((header & CMD_EXPANDED_MOD) == CMD_EXPANDED_MOD) {
+  while (header != kSnesByteMax) {
+    if ((header & kExpandedMod) == kExpandedMod) {
       // Expanded Command
-      command = ((header >> 2) & CMD_MOD);
-      length =
-          (((header << 8) | rom_data_[offset + 1]) & CMD_EXPANDED_LENGTH_MOD);
+      command = ((header >> 2) & kCommandMod);
+      length = (((header << 8) | rom_data_[offset + 1]) & kExpandedLengthMod);
       offset += 2;  // Advance 2 bytes in ROM
     } else {
       // Normal Command
-      command = ((header >> 5) & CMD_MOD);
-      length = (header & CMD_NORMAL_LENGTH_MOD);
+      command = ((header >> 5) & kCommandMod);
+      length = (header & kNormalLengthMod);
       offset += 1;  // Advance 1 byte in ROM
     }
     length += 1;  // each commands is at least of size 1 even if index 00
@@ -549,8 +538,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
-        ushort s1 = ((rom_data_[offset + 1] & SNES_BYTE_MAX) << 8);
-        ushort s2 = ((rom_data_[offset] & SNES_BYTE_MAX));
+        ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
+        ushort s2 = ((rom_data_[offset] & kSnesByteMax));
         if (reversed) {  // Reversed byte order for overworld maps
           auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
           if (addr > offset) {
