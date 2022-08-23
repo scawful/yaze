@@ -351,17 +351,9 @@ absl::Status ValidateCompressionResult(
     int start, int src_data_pos) {
   if (compressed_chain_start->next != nullptr) {
     ROM temp_rom;
-    auto rom_response = temp_rom.LoadFromBytes(
-        CreateCompressionString(compressed_chain_start->next, mode));
-    if (!rom_response.ok()) {
-      return rom_response;
-    }
-    auto decomp_response = temp_rom.Decompress(0, temp_rom.GetSize());
-    if (!decomp_response.ok()) {
-      return decomp_response.status();
-    }
-
-    auto decomp_data = std::move(*decomp_response);
+    RETURN_IF_ERROR(temp_rom.LoadFromBytes(
+        CreateCompressionString(compressed_chain_start->next, mode)))
+    ASSIGN_OR_RETURN(auto decomp_data, temp_rom.Decompress(0, temp_rom.GetSize()))
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -465,11 +457,8 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
     }
 
     if (check) {
-      auto response = ValidateCompressionResult(compressed_chain_start, mode,
-                                                start, src_data_pos);
-      if (!response.ok()) {
-        return response;
-      }
+      RETURN_IF_ERROR(ValidateCompressionResult(compressed_chain_start, mode,
+                                                start, src_data_pos))
     }
   }
 
@@ -485,7 +474,7 @@ absl::StatusOr<Bytes> ROM::CompressOverworld(const int pos, const int length) {
   return Compress(pos, length, kNintendoMode1);
 }
 
-absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
+absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
   Bytes buffer(size, 0);
   uint length = 0;
   uint buffer_pos = 0;
@@ -538,9 +527,7 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
-        ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
-        ushort s2 = ((rom_data_[offset] & kSnesByteMax));
-        if (reversed) {  // Reversed byte order for overworld maps
+        if (mode == kNintendoMode1) {  // Reversed byte order for overworld maps
           auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
           if (addr > offset) {
             return absl::InternalError(absl::StrFormat(
@@ -548,20 +535,25 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
                 "current position (Offset : %#04x | Pos : %#06x)\n",
                 addr, offset));
           }
+
           if (buffer_pos + length >= size) {
             size *= 2;
             buffer.resize(size);
           }
-          memcpy(buffer.data() + buffer_pos, rom_data_.data() + offset, length);
+
+          memcpy(buffer.data() + buffer_pos, rom_data_.data() + addr, length);
           offset += 2;
         } else {
-          auto addr = (ushort)(s1 | s2);
+          ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
+          ushort s2 = ((rom_data_[offset] & kSnesByteMax));
+          auto addr = (s1 | s2);
           for (int i = 0; i < length; i++) {
             buffer[buffer_pos] = buffer[addr + i];
             buffer_pos++;
           }
           offset += 2;  // Advance 2 bytes in the ROM
         }
+
       } break;
       default: {
         std::cout << absl::StrFormat(
@@ -578,11 +570,11 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, bool reversed) {
 }
 
 absl::StatusOr<Bytes> ROM::DecompressGraphics(int pos, int size) {
-  return Decompress(pos, size, false);
+  return Decompress(pos, size, kNintendoMode2);
 }
 
 absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
-  return Decompress(pos, size, true);
+  return Decompress(pos, size, kNintendoMode1);
 }
 
 // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
@@ -606,12 +598,7 @@ absl::Status ROM::LoadAllGraphicsData() {
       convert = false;
     } else {
       auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      absl::StatusOr<Bytes> new_sheet = Decompress(offset);
-      if (!new_sheet.ok()) {
-        return new_sheet.status();
-      } else {
-        sheet = std::move(*new_sheet);
-      }
+      ASSIGN_OR_RETURN(sheet, Decompress(offset))
       convert = true;
     }
 

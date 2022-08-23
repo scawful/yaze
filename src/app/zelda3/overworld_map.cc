@@ -56,15 +56,8 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
   }
 
   LoadAreaGraphics(game_state, world_index);
-  auto tileset_status = BuildTileset();
-  if (!tileset_status.ok()) {
-    return tileset_status;
-  }
-  
-  auto map_status = BuildTiles16Gfx(count);
-  if (!map_status.ok()) {
-    return map_status;
-  }
+  RETURN_IF_ERROR(BuildTileset())
+  RETURN_IF_ERROR(BuildTiles16Gfx(count))
 
   // int superY = ((index_ - (world * 64)) / 8);
   // int superX = index_ - (world * 64) - (superY * 8);
