@@ -39,8 +39,10 @@ class Overworld {
   ushort GenerateTile32(int i, int k, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
-  void AssignWorldTiles(OWBlockset &world, int x, int y, int sx, int sy,
-                        int tpos);
+  void AssignWorldTiles(int x, int y, int sx, int sy,
+                        int tpos, OWBlockset &world);
+  void OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, OWBlockset &world, int i,
+                        int sx, int sy, int &ttpos);
   absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
 
