@@ -44,7 +44,7 @@ absl::Status OverworldEditor::Update() {
   }
 
   auto toolset_status = DrawToolset();
-  if (!toolset_status.ok()) return toolset_status;
+  RETURN_IF_ERROR(toolset_status);
 
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
@@ -107,8 +107,7 @@ absl::Status OverworldEditor::DrawToolset() {
     // Load Overworld
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UPDATE)) {
-      auto ow_status = overworld_.Load(rom_, tile16_blockset_bmp_.GetData());
-      if (!ow_status.ok()) return ow_status;
+      RETURN_IF_ERROR(overworld_.Load(rom_, tile16_blockset_bmp_.GetData()))
     }
 
     ImGui::TableNextColumn();

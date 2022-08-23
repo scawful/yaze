@@ -73,8 +73,7 @@ class ROM {
   absl::StatusOr<Bytes> CompressGraphics(const int pos, const int length);
   absl::StatusOr<Bytes> CompressOverworld(const int pos, const int length);
 
-  absl::StatusOr<Bytes> Decompress(int offset, int size = 0x800,
-                                   bool reversed = false);
+  absl::StatusOr<Bytes> Decompress(int offset, int size = 0x800, int mode = 1);
   absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 

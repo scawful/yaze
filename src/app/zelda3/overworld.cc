@@ -32,11 +32,7 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
-  auto decompression_status = DecompressAllMapTiles();
-  if (!decompression_status.ok()) {
-    std::cout << decompression_status.ToString() << std::endl;
-    return decompression_status;
-  }
+  RETURN_IF_ERROR(DecompressAllMapTiles())
 
   for (int map_index = 0; map_index < core::kNumOverworldMaps; ++map_index)
     overworld_maps_.emplace_back(map_index, rom_, tiles16);
