@@ -7,6 +7,26 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
+namespace {
+
+uint GetOwMapGfxHighPtr(const uchar *rom, int index) {
+  int map_high_ptr = core::compressedAllMap32PointersHigh;
+  int p1 = (rom[(map_high_ptr) + 2 + (3 * index)] << 16) +
+           (rom[(map_high_ptr) + 1 + (3 * index)] << 8) +
+           (rom[(map_high_ptr + (3 * index))]);
+  return core::SnesToPc(p1);
+}
+
+uint GetOwMapGfxLowPtr(const uchar *rom, int index) {
+  int map_low_ptr = core::compressedAllMap32PointersLow;
+  int p2 = (rom[(map_low_ptr) + 2 + (3 * index)] << 16) +
+           (rom[(map_low_ptr) + 1 + (3 * index)] << 8) +
+           (rom[(map_low_ptr + (3 * index))]);
+  return core::SnesToPc(p2);
+}
+
+}  // namespace
+
 absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
   rom_ = rom;
 
@@ -25,11 +45,22 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
 
   auto size = tiles16.size();
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
-    auto map_status =
-        overworld_maps_[i].BuildMap(size, game_state_, map_parent_);
-    if (!map_status.ok()) {
-      return map_status;
+    if (i < 64) {
+      CHECK_STATUS(overworld_maps_[i].BuildMap(
+          size, game_state_, 0, map_parent_, map_tiles_.light_world))
+    } else if (i < 0x80 && i >= 0x40) {
+      CHECK_STATUS(overworld_maps_[i].BuildMap(
+          size, game_state_, 1, map_parent_, map_tiles_.dark_world))
+    } else {
+      CHECK_STATUS(overworld_maps_[i].BuildMap(
+          size, game_state_, 2, map_parent_, map_tiles_.special_world))
     }
+
+    // auto map_status =
+    //     overworld_maps_[i].BuildMap(size, game_state_, world, map_parent_);
+    // if (!map_status.ok()) {
+    //   return map_status;
+    // }
   }
 
   is_loaded_ = true;
@@ -46,7 +77,10 @@ ushort Overworld::GenerateTile32(int i, int k, int dimension) {
 
 void Overworld::AssembleMap32Tiles() {
   for (int i = 0; i < 0x33F0; i += 6) {
-    ushort tl, tr, bl, br;
+    ushort tl;
+    ushort tr;
+    ushort bl;
+    ushort br;
     for (int k = 0; k < 4; k++) {
       tl = GenerateTile32(i, k, (int)Dimension::map32TilesTL);
       tr = GenerateTile32(i, k, (int)Dimension::map32TilesTR);
@@ -99,18 +133,8 @@ absl::Status Overworld::DecompressAllMapTiles() {
   int sy = 0;
   int c = 0;
   for (int i = 0; i < 160; i++) {
-    int map_high_ptr = core::compressedAllMap32PointersHigh;
-    int p1 = (rom_[(map_high_ptr) + 2 + (3 * i)] << 16) +
-             (rom_[(map_high_ptr) + 1 + (3 * i)] << 8) +
-             (rom_[(map_high_ptr + (3 * i))]);
-    p1 = core::SnesToPc(p1);
-
-    int map_low_ptr = core::compressedAllMap32PointersLow;
-    int p2 = (rom_[(map_low_ptr) + 2 + (3 * i)] << 16) +
-             (rom_[(map_low_ptr) + 1 + (3 * i)] << 8) +
-             (rom_[(map_low_ptr + (3 * i))]);
-    p2 = core::SnesToPc(p2);
-
+    auto p1 = GetOwMapGfxHighPtr(rom_.data(), i);
+    auto p2 = GetOwMapGfxLowPtr(rom_.data(), i);
     int ttpos = 0;
 
     if (p1 >= highest) {
