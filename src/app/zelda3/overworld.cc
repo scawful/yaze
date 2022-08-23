@@ -55,12 +55,6 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
       RETURN_IF_ERROR(overworld_maps_[i].BuildMap(
           size, game_state_, 2, map_parent_, map_tiles_.special_world))
     }
-
-    // auto map_status =
-    //     overworld_maps_[i].BuildMap(size, game_state_, world, map_parent_);
-    // if (!map_status.ok()) {
-    //   return map_status;
-    // }
   }
 
   is_loaded_ = true;
