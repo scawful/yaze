@@ -182,16 +182,19 @@ void OverworldEditor::DrawOverworldCanvas() {
   overworld_map_canvas_.DrawBackground();
   overworld_map_canvas_.UpdateContext();
   overworld_map_canvas_.DrawGrid(64.f);
-  // for (auto &map : overworld_.GetOverworldMaps()) {
-  //   overworld_map_canvas_.GetDrawList()->AddImage(
-  //       (void *)map.GetBitmap().GetTexture(),
-  //       ImVec2(overworld_map_canvas_.GetZeroPoint().x + 2,
-  //              overworld_map_canvas_.GetZeroPoint().y + 2),
-  //       ImVec2(overworld_map_canvas_.GetZeroPoint().x +
-  //                  (map.GetBitmap().GetWidth() * 2),
-  //              overworld_map_canvas_.GetZeroPoint().y +
-  //                  (map.GetBitmap().GetHeight() * 2)));
-  // }
+  if (overworld_.isLoaded()) {
+    auto map = overworld_.GetOverworldMap(0);
+    if (map.IsInitialized() && map.IsBuilt()) {
+      overworld_map_canvas_.GetDrawList()->AddImage(
+          (void *)map.GetBitmap().GetTexture(),
+          ImVec2(overworld_map_canvas_.GetZeroPoint().x + 2,
+                 overworld_map_canvas_.GetZeroPoint().y + 2),
+          ImVec2(overworld_map_canvas_.GetZeroPoint().x +
+                     (map.GetBitmap().GetWidth() * 2),
+                 overworld_map_canvas_.GetZeroPoint().y +
+                     (map.GetBitmap().GetHeight() * 2)));
+    }
+  }
   overworld_map_canvas_.DrawOverlay();
 }
 
