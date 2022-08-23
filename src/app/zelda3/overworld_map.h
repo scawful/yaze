@@ -24,22 +24,24 @@ class OverworldMap {
  public:
   OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16);
 
-  absl::Status BuildMap(int count, int game_state, uchar* map_parent);
+  absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
+                        const OWBlockset & world_blockset);
 
-  auto GetBitmap() { return bitmap_; }
-  auto GetCurrentGraphicsSet() { return current_graphics_sheet_set; }
+  auto GetBitmap() const { return bitmap_; }
+  auto GetCurrentGraphicsSet() const { return current_graphics_sheet_set; }
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
-  auto IsLargeMap() { return large_map_; }
+  auto IsLargeMap() const { return large_map_; }
+  auto IsInitialized() const { return initialized_; }
+  auto IsBuilt() const { return built_; }
 
  private:
   void LoadAreaInfo();
+  void LoadAreaGraphics(int game_state, int world_index);
 
-  absl::Status BuildTileset(int game_state);
+  absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
 
-  // TODO: Find the SDL_Surface way to do this.
-  void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
-                uchar* gfx16Pointer, uchar* gfx8Pointer);
+  void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile);
   void CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset);
 
   int parent_ = 0;
@@ -55,12 +57,13 @@ class OverworldMap {
   uchar static_graphics_[16];
 
   bool initialized_ = false;
+  bool built_ = false;
   bool large_map_ = false;
 
   ROM rom_;
-  OWMapTiles map_tiles_;
-
+  Bytes current_gfx_;
   gfx::Bitmap bitmap_;
+  OWMapTiles map_tiles_;
 
   std::vector<gfx::Tile16> tiles16_;
   absl::flat_hash_map<int, gfx::Bitmap> current_graphics_sheet_set;

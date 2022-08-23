@@ -52,6 +52,7 @@ class Bitmap {
   int data_size_ = 0;
   bool freed_ = false;
   uchar *pixel_data_;
+  Bytes data_;
   std::shared_ptr<SDL_Texture> texture_;
   std::shared_ptr<SDL_Surface> surface_;
 };
