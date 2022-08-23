@@ -25,15 +25,42 @@
 #define MENU_ITEM(w) if (ImGui::MenuItem(w))
 #define MENU_ITEM2(w, v) if (ImGui::MenuItem(w, v))
 
-#define CHECK_STATUS(w) \
-  if (!w.ok()) {        \
-    return w;           \
+#define RETURN_IF_ERROR(expression) \
+  {                                 \
+    auto error = expression;        \
+    if (!error.ok()) {              \
+      return error;                 \
+    }                               \
   }
+
+#define ASSIGN_OR_RETURN(type_variable_name, expression)         \
+  ASSIGN_OR_RETURN_IMPL(APPEND_NUMBER(error_or_value, __LINE__), \
+                        type_variable_name, expression)
+
+#define ASSIGN_OR_RETURN_IMPL(error_or_value, type_variable_name, expression) \
+  auto error_or_value = expression;                                           \
+  if (!error_or_value.ok()) {                                                 \
+    return error_or_value.status();                                           \
+  }                                                                           \
+  type_variable_name = std::move(*error_or_value);
+
+#define APPEND_NUMBER(expression, number) \
+  APPEND_NUMBER_INNER(expression, number)
+
+#define APPEND_NUMBER_INNER(expression, number) expression##number
 
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
 using Bytes = std::vector<uchar>;
+
+using OWBlockset = std::vector<std::vector<ushort>>;
+struct OWMapTiles {
+  OWBlockset light_world;    // 64 maps
+  OWBlockset dark_world;     // 64 maps
+  OWBlockset special_world;  // 32 maps
+};
+using OWMapTiles = struct OWMapTiles;
 
 namespace yaze {
 namespace app {

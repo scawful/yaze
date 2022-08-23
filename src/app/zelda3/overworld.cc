@@ -46,13 +46,13 @@ absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
   auto size = tiles16.size();
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
     if (i < 64) {
-      CHECK_STATUS(overworld_maps_[i].BuildMap(
+      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(
           size, game_state_, 0, map_parent_, map_tiles_.light_world))
     } else if (i < 0x80 && i >= 0x40) {
-      CHECK_STATUS(overworld_maps_[i].BuildMap(
+      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(
           size, game_state_, 1, map_parent_, map_tiles_.dark_world))
     } else {
-      CHECK_STATUS(overworld_maps_[i].BuildMap(
+      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(
           size, game_state_, 2, map_parent_, map_tiles_.special_world))
     }
 
@@ -114,8 +114,8 @@ void Overworld::AssembleMap16Tiles() {
   }
 }
 
-void Overworld::AssignWorldTiles(OWBlockset &world, int x, int y, int sx,
-                                 int sy, int tpos) {
+void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
+                                 OWBlockset &world) {
   int position_x1 = (x * 2) + (sx * 32);
   int position_y1 = (y * 2) + (sy * 32);
   int position_x2 = (x * 2) + 1 + (sx * 32);
@@ -124,6 +124,26 @@ void Overworld::AssignWorldTiles(OWBlockset &world, int x, int y, int sx,
   world[position_x2][position_y1] = tiles32[tpos].tile1_;
   world[position_x1][position_y2] = tiles32[tpos].tile2_;
   world[position_x2][position_y2] = tiles32[tpos].tile3_;
+}
+
+void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, OWBlockset &world,
+                                 int i, int sx, int sy, int &ttpos) {
+  for (int y = 0; y < 16; y++) {
+    for (int x = 0; x < 16; x++) {
+      auto tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
+      int tpos = tidD;
+      if (tpos < tiles32.size()) {
+        if (i < 64) {
+          AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.light_world);
+        } else if (i < 128 && i >= 64) {
+          AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.dark_world);
+        } else {
+          AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.special_world);
+        }
+      }
+      ttpos += 1;
+    }
+  }
 }
 
 absl::Status Overworld::DecompressAllMapTiles() {
@@ -151,34 +171,9 @@ absl::Status Overworld::DecompressAllMapTiles() {
       lowest = p2;
     }
 
-    auto status_bytes = rom_.DecompressOverworld(p2, 1000);
-    if (!status_bytes.ok()) {
-      return status_bytes.status();
-    }
-    auto bytes = std::move(*status_bytes);
-
-    auto status_bytes2 = rom_.DecompressOverworld(p1, 1000);
-    if (!status_bytes2.ok()) {
-      return status_bytes2.status();
-    }
-    auto bytes2 = std::move(*status_bytes2);
-
-    for (int y = 0; y < 16; y++) {
-      for (int x = 0; x < 16; x++) {
-        auto tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
-        int tpos = tidD;
-        if (tpos < tiles32.size()) {
-          if (i < 64) {
-            AssignWorldTiles(map_tiles_.light_world, x, y, sx, sy, tpos);
-          } else if (i < 128 && i >= 64) {
-            AssignWorldTiles(map_tiles_.dark_world, x, y, sx, sy, tpos);
-          } else {
-            AssignWorldTiles(map_tiles_.special_world, x, y, sx, sy, tpos);
-          }
-        }
-        ttpos += 1;
-      }
-    }
+    ASSIGN_OR_RETURN(auto bytes, rom_.DecompressOverworld(p2, 1000))
+    ASSIGN_OR_RETURN(auto bytes2, rom_.DecompressOverworld(p1, 1000))
+    OrganizeMapTiles(bytes, bytes2, map_tiles_.light_world, i, sx, sy, ttpos);
 
     sx++;
     if (sx >= 8) {

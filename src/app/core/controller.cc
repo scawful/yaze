@@ -80,9 +80,9 @@ void HandleMouseMovement(int &wheel) {
 bool Controller::isActive() const { return active_; }
 
 absl::Status Controller::onEntry() {
-  CHECK_STATUS(CreateWindow())
-  CHECK_STATUS(CreateRenderer())
-  CHECK_STATUS(CreateGuiContext())
+  RETURN_IF_ERROR(CreateWindow())
+  RETURN_IF_ERROR(CreateRenderer())
+  RETURN_IF_ERROR(CreateGuiContext())
   InitializeKeymap();
   master_editor_.SetupScreen(renderer_);
   active_ = true;
