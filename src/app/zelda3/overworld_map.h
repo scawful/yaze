@@ -22,10 +22,10 @@ static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
 class OverworldMap {
  public:
-  OverworldMap(int index, ROM& rom, const std::vector<gfx::Tile16>& tiles16);
+  OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16> & tiles16);
 
   absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
-                        const OWBlockset & world_blockset);
+                        OWBlockset & world_blockset);
 
   auto GetBitmap() const { return bitmap_; }
   auto GetCurrentGraphicsSet() const { return current_graphics_sheet_set; }
@@ -42,7 +42,7 @@ class OverworldMap {
   absl::Status BuildTiles16Gfx(int count);
 
   void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile);
-  void CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset);
+  void CopyTile8bpp16(int x, int y, int tile);
 
   int parent_ = 0;
   int index_ = 0;
@@ -62,6 +62,7 @@ class OverworldMap {
 
   ROM rom_;
   Bytes current_gfx_;
+  Bytes current_overworld_map_;
   gfx::Bitmap bitmap_;
   OWMapTiles map_tiles_;
 
