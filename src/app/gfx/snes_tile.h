@@ -57,6 +57,7 @@ class Tile16 {
   TileInfo tile3_;
   std::vector<TileInfo> tiles_info;
 
+  Tile16() = default;
   Tile16(TileInfo t0, TileInfo t1, TileInfo t2, TileInfo t3)
       : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {
     tiles_info.push_back(tile0_);
