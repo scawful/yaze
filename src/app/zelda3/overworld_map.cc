@@ -17,15 +17,15 @@ namespace app {
 namespace zelda3 {
 
 OverworldMap::OverworldMap(int index, ROM& rom,
-                           const std::vector<gfx::Tile16>& tiles16)
+                           std::vector<gfx::Tile16>& tiles16)
     : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
   LoadAreaInfo();
-  bitmap_.Create(512, 512, 8, 512 * 512);
+  current_overworld_map_.resize(512 * 512);
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
                                     uchar* map_parent,
-                                    const OWBlockset & world_blockset) {
+                                    OWBlockset& world_blockset) {
   world_ = world;
   if (large_map_) {
     parent_ = map_parent[index_];
@@ -59,15 +59,18 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
   RETURN_IF_ERROR(BuildTileset())
   RETURN_IF_ERROR(BuildTiles16Gfx(count))
 
-  // int superY = ((index_ - (world * 64)) / 8);
-  // int superX = index_ - (world * 64) - (superY * 8);
-  // for (int y = 0; y < 32; y++) {
-  //   for (int x = 0; x < 32; x++) {
-  //     auto xt = x + (superX * 32);
-  //     auto yt = y + (superY * 32);
-  //     CopyTile8bpp16((x * 16), (y * 16), map_tiles_[xt][yt], ow_blockset);
-  //   }
-  // }
+  int superY = ((index_ - (world * 64)) / 8);
+  int superX = index_ - (world * 64) - (superY * 8);
+  for (int y = 0; y < 32; y++) {
+    for (int x = 0; x < 32; x++) {
+      auto xt = x + (superX * 32);
+      auto yt = y + (superY * 32);
+      CopyTile8bpp16((x * 16), (y * 16), world_blockset[xt][yt]);
+    }
+  }
+
+  bitmap_.Create(512, 512, 8, current_overworld_map_.data());
+  bitmap_.CreateTexture(rom_.GetRenderer());
   built_ = true;
   return absl::OkStatus();
 }
@@ -197,35 +200,15 @@ void OverworldMap::LoadAreaGraphics(int game_state, int world_index) {
   }
 }
 
-
 absl::Status OverworldMap::BuildTileset() {
   auto all_gfx_data = rom_.GetGraphicsBin();
-  uint size = 0;
   for (int i = 0; i < 16; i++) {
     current_graphics_sheet_set[i] = all_gfx_data[static_graphics_[i]];
-    size += current_graphics_sheet_set.size();
   }
-  current_gfx_.resize(size);
-
-  // all gfx of the game pack of 2048 bytes (4bpp)
-  char* allgfxData = nullptr;
-  for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 2048; j++) {
-      auto mapByte = allgfxData[j + (static_graphics_[i] * 2048)];
-      switch (i) {
-        case 0:
-        case 3:
-        case 4:
-        case 5:
-          mapByte += 0x88;
-          break;
-        default:
-          break;
-      }
-
-      auto pos = (i * 2048) + j;
-      auto it = current_gfx_.begin() + pos;
-      current_gfx_.emplace(it, mapByte);
+  current_gfx_.reserve(16 * 2048);
+  for (int i = 0; i < 16; ++i) {
+    for (int j = 0; j < 2048; ++j) {
+      current_gfx_.emplace_back(current_graphics_sheet_set[i].GetByte(j));
     }
   }
   return absl::OkStatus();
@@ -239,10 +222,22 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
   // number of tiles16 3748?
   for (auto i = 0; i < count; i++) {
     // 8x8 tile draw, gfx8 = 4bpp so everyting is /2F
-    auto tiles = tiles16_[i];
-
     for (auto tile = 0; tile < 4; tile++) {
-      gfx::TileInfo info = tiles16_[i].tiles_info[tile];
+      gfx::TileInfo info;
+      switch (tile) {
+        case 0:
+          info = tiles16_[i].tile0_;
+          break;
+        case 1:
+          info = tiles16_[i].tile1_;
+          break;
+        case 2:
+          info = tiles16_[i].tile2_;
+          break;
+        case 3:
+          info = tiles16_[i].tile3_;
+          break;
+      }
       int offset = offsets[tile];
 
       for (auto y = 0; y < 8; y++) {
@@ -265,7 +260,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 // map,current
 void OverworldMap::CopyTile(int x, int y, int xx, int yy, int offset,
                             gfx::TileInfo tile) {
-  char* all_gfx_data = nullptr;
+  auto map_gfx_data = current_overworld_map_.data();
   auto current_gfx_data = current_gfx_.data();
   int mx = x;
   int my = y;
@@ -285,18 +280,18 @@ void OverworldMap::CopyTile(int x, int y, int xx, int yy, int offset,
   auto pixel = current_gfx_data[tx + (y * 64) + x];
 
   auto p1 = index + r ^ 1;
-  all_gfx_data[p1] = (uchar)((pixel & 0x0F) + tile.palette_ * 16);
+  map_gfx_data[p1] = (uchar)((pixel & 0x0F) + tile.palette_ * 16);
   auto p2 = index + r;
-  all_gfx_data[p2] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
+  map_gfx_data[p2] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
-void OverworldMap::CopyTile8bpp16(int x, int y, int tile, uchar* ow_blockset) {
+void OverworldMap::CopyTile8bpp16(int x, int y, int tile) {
   // (sourceX * 16) + (sourceY * 0x80)
   int source_ptr_pos = ((tile - ((tile / 8) * 8)) * 16) + ((tile / 8) * 2048);
-  auto source_ptr = ow_blockset;
+  auto source_ptr = current_gfx_.data();
 
   int dest_ptr_pos = (x + (y * 512));
-  auto dest_ptr = bitmap_.GetData();
+  auto dest_ptr = current_overworld_map_.data();
 
   for (int ystrip = 0; ystrip < 16; ystrip++) {
     for (int xstrip = 0; xstrip < 16; xstrip++) {
