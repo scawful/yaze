@@ -180,7 +180,6 @@ void OverworldEditor::DrawOverworldCanvas() {
   ImGui::Separator();
   overworld_map_canvas_.DrawBackground();
   overworld_map_canvas_.UpdateContext();
-  overworld_map_canvas_.DrawGrid(64.f);
   if (overworld_.isLoaded()) {
     auto map = overworld_.GetOverworldMap(0);
     if (map.IsInitialized() && map.IsBuilt()) {
@@ -194,6 +193,7 @@ void OverworldEditor::DrawOverworldCanvas() {
                      (map.GetBitmap().GetHeight() * 2)));
     }
   }
+  overworld_map_canvas_.DrawGrid(64.f);
   overworld_map_canvas_.DrawOverlay();
 }
 
