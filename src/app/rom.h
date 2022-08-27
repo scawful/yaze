@@ -87,6 +87,7 @@ class ROM {
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
+  auto GetRenderer() const { return renderer_; }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
@@ -118,7 +119,6 @@ class ROM {
   std::string filename_;
 
   Bytes rom_data_;
-  Bytes master_graphics_bin_;
   std::shared_ptr<SDL_Renderer> renderer_;
   absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_;
 };
