@@ -20,10 +20,16 @@ namespace zelda3 {
 
 class Overworld {
  public:
-  absl::Status Load(ROM &rom, uchar *ow_blockset);
+  absl::Status Load(ROM &rom);
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto GetOverworldMaps() const { return overworld_maps_; }
+  auto GetCurrentBlockset() const {
+    return overworld_maps_[current_map_].GetCurrentBlockset();
+  }
+  auto GetCurrentGraphics() const {
+    return overworld_maps_[current_map_].GetCurrentGraphics();
+  }
   auto isLoaded() const { return is_loaded_; }
 
  private:
@@ -39,14 +45,15 @@ class Overworld {
   ushort GenerateTile32(int i, int k, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
-  void AssignWorldTiles(int x, int y, int sx, int sy,
-                        int tpos, OWBlockset &world);
-  void OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, OWBlockset &world, int i,
-                        int sx, int sy, int &ttpos);
+  void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
+                        OWBlockset &world);
+  void OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx, int sy,
+                        int &ttpos);
   absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
 
   int game_state_ = 1;
+  int current_map_ = 0;
   uchar map_parent_[160];
   bool is_loaded_ = false;
 
@@ -55,7 +62,6 @@ class Overworld {
 
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
-  std::vector<gfx::Tile32> map16tiles;
   std::vector<OverworldMap> overworld_maps_;
 };
 
