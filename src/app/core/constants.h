@@ -25,6 +25,14 @@
 #define MENU_ITEM(w) if (ImGui::MenuItem(w))
 #define MENU_ITEM2(w, v) if (ImGui::MenuItem(w, v))
 
+#define PRINT_IF_ERROR(expression)                \
+  {                                               \
+    auto error = expression;                      \
+    if (!error.ok()) {                            \
+      std::cout << error.ToString() << std::endl; \
+    }                                             \
+  }
+
 #define RETURN_IF_ERROR(expression) \
   {                                 \
     auto error = expression;        \
