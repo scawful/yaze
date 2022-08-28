@@ -21,9 +21,11 @@ class Bitmap {
   Bitmap() = default;
   Bitmap(int width, int height, int depth, uchar *data);
   Bitmap(int width, int height, int depth, int data_size);
+  Bitmap(int width, int height, int depth, uchar *data, int data_size);
 
   void Create(int width, int height, int depth, uchar *data);
   void Create(int width, int height, int depth, int data_size);
+  void Create(int width, int height, int depth, uchar *data, int data_size);
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
@@ -31,19 +33,31 @@ class Bitmap {
 
   absl::StatusOr<std::vector<Bitmap>> CreateTiles();
   absl::Status CreateFromTiles(const std::vector<Bitmap> &tiles);
-  
+
   absl::Status WritePixel(int pos, uchar pixel);
 
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
+  auto GetSize() const { return data_size_; }
   auto GetData() const { return pixel_data_; }
+  auto GetByte(int i) const { return pixel_data_[i]; }
   auto GetTexture() const { return texture_.get(); }
   auto GetSurface() const { return surface_.get(); }
 
  private:
   struct sdl_deleter {
-    void operator()(SDL_Texture *p) const { if (p) { SDL_DestroyTexture(p); p = nullptr; } }
-    void operator()(SDL_Surface *p) const { if (p) { SDL_FreeSurface(p); p = nullptr;} }
+    void operator()(SDL_Texture *p) const {
+      // if (p) {
+      //   SDL_DestroyTexture(p);
+      //   p = nullptr;
+      // }
+    }
+    void operator()(SDL_Surface *p) const {
+      // if (p) {
+      //   SDL_FreeSurface(p);
+      //   p = nullptr;
+      // }
+    }
   };
 
   int width_ = 0;
