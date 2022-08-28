@@ -27,7 +27,7 @@ uint GetOwMapGfxLowPtr(const uchar *rom, int index) {
 
 }  // namespace
 
-absl::Status Overworld::Load(ROM &rom, uchar *ow_blockset) {
+absl::Status Overworld::Load(ROM &rom) {
   rom_ = rom;
 
   AssembleMap32Tiles();
@@ -67,16 +67,12 @@ ushort Overworld::GenerateTile32(int i, int k, int dimension) {
 
 void Overworld::AssembleMap32Tiles() {
   for (int i = 0; i < 0x33F0; i += 6) {
-    ushort tl;
-    ushort tr;
-    ushort bl;
-    ushort br;
     for (int k = 0; k < 4; k++) {
-      tl = GenerateTile32(i, k, (int)Dimension::map32TilesTL);
-      tr = GenerateTile32(i, k, (int)Dimension::map32TilesTR);
-      bl = GenerateTile32(i, k, (int)Dimension::map32TilesBL);
-      br = GenerateTile32(i, k, (int)Dimension::map32TilesBR);
-      tiles32.push_back(gfx::Tile32(tl, tr, bl, br));
+      tiles32.push_back(gfx::Tile32(
+          /*top-left=*/GenerateTile32(i, k, (int)Dimension::map32TilesTL),
+          /*top-right=*/GenerateTile32(i, k, (int)Dimension::map32TilesTR),
+          /*bottom-left=*/GenerateTile32(i, k, (int)Dimension::map32TilesBL),
+          /*bottom-right=*/GenerateTile32(i, k, (int)Dimension::map32TilesBR)));
     }
   }
   map_tiles_.light_world.resize(kTile32Num);
@@ -116,8 +112,8 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   world[position_x2][position_y2] = tiles32[tpos].tile3_;
 }
 
-void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, OWBlockset &world,
-                                 int i, int sx, int sy, int &ttpos) {
+void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
+                                 int sy, int &ttpos) {
   for (int y = 0; y < 16; y++) {
     for (int x = 0; x < 16; x++) {
       auto tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
@@ -163,7 +159,7 @@ absl::Status Overworld::DecompressAllMapTiles() {
 
     ASSIGN_OR_RETURN(auto bytes, rom_.DecompressOverworld(p2, 1000))
     ASSIGN_OR_RETURN(auto bytes2, rom_.DecompressOverworld(p1, 1000))
-    OrganizeMapTiles(bytes, bytes2, map_tiles_.light_world, i, sx, sy, ttpos);
+    OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
 
     sx++;
     if (sx >= 8) {
