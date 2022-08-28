@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -22,13 +23,15 @@ static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
 class OverworldMap {
  public:
-  OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16> & tiles16);
+  OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16>& tiles16);
 
   absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
-                        OWBlockset & world_blockset);
+                        OWBlockset& world_blockset);
 
   auto GetBitmap() const { return bitmap_; }
   auto GetCurrentGraphicsSet() const { return current_graphics_sheet_set; }
+  auto GetCurrentBlockset() const { return current_blockset_.data(); }
+  auto GetCurrentGraphics() const { return current_gfx_; }
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
   auto IsLargeMap() const { return large_map_; }
   auto IsInitialized() const { return initialized_; }
@@ -40,9 +43,7 @@ class OverworldMap {
 
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
-
-  void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile);
-  void CopyTile8bpp16(int x, int y, int tile);
+  absl::Status BuildBitmap(OWBlockset& world_blockset);
 
   int parent_ = 0;
   int index_ = 0;
@@ -61,13 +62,13 @@ class OverworldMap {
   bool large_map_ = false;
 
   ROM rom_;
+  Bytes current_blockset_;
   Bytes current_gfx_;
-  Bytes current_overworld_map_;
   gfx::Bitmap bitmap_;
   OWMapTiles map_tiles_;
 
   std::vector<gfx::Tile16> tiles16_;
-  absl::flat_hash_map<int, gfx::Bitmap> current_graphics_sheet_set;
+  std::unordered_map<int, gfx::Bitmap> current_graphics_sheet_set;
 };
 
 }  // namespace zelda3
