@@ -47,16 +47,10 @@ class Bitmap {
  private:
   struct sdl_deleter {
     void operator()(SDL_Texture *p) const {
-      // if (p) {
-      //   SDL_DestroyTexture(p);
-      //   p = nullptr;
-      // }
+      SDL_DestroyTexture(p);
     }
     void operator()(SDL_Surface *p) const {
-      // if (p) {
-      //   SDL_FreeSurface(p);
-      //   p = nullptr;
-      // }
+      SDL_FreeSurface(p);
     }
   };
 
