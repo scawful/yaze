@@ -121,7 +121,7 @@ void ScreenEditor::DrawHUDEditor() {
 
 void ScreenEditor::DrawCanvas() {
   screen_canvas_.DrawBackground();
-  screen_canvas_.UpdateContext();
+  screen_canvas_.DrawContextMenu();
 
   screen_canvas_.DrawGrid();
   screen_canvas_.DrawOverlay();

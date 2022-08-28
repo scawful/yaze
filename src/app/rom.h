@@ -10,9 +10,9 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -87,7 +87,8 @@ class ROM {
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
-  auto GetRenderer() const { return renderer_; }
+  auto GetGraphicsBuffer() const { return graphics_buffer_; }
+  void RenderBitmap(gfx::Bitmap& bitmap) { bitmap.CreateTexture(renderer_); }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
@@ -119,8 +120,9 @@ class ROM {
   std::string filename_;
 
   Bytes rom_data_;
+  Bytes graphics_buffer_;
   std::shared_ptr<SDL_Renderer> renderer_;
-  absl::flat_hash_map<int, gfx::Bitmap> graphics_bin_;
+  std::unordered_map<int, gfx::Bitmap> graphics_bin_;
 };
 
 }  // namespace app
