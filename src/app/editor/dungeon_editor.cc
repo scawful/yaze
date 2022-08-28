@@ -9,7 +9,7 @@ namespace editor {
 void DungeonEditor::Update() {
   DrawToolset();
   canvas_.DrawBackground();
-  canvas_.UpdateContext();
+  canvas_.DrawContextMenu();
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
 }

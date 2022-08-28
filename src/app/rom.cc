@@ -353,7 +353,8 @@ absl::Status ValidateCompressionResult(
     ROM temp_rom;
     RETURN_IF_ERROR(temp_rom.LoadFromBytes(
         CreateCompressionString(compressed_chain_start->next, mode)))
-    ASSIGN_OR_RETURN(auto decomp_data, temp_rom.Decompress(0, temp_rom.GetSize()))
+    ASSIGN_OR_RETURN(auto decomp_data,
+                     temp_rom.Decompress(0, temp_rom.GetSize()))
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -606,8 +607,16 @@ absl::Status ROM::LoadAllGraphicsData() {
       auto converted_sheet = SNES3bppTo8bppSheet(sheet);
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                      core::kTilesheetDepth, converted_sheet.data());
+                      core::kTilesheetDepth, converted_sheet.data(), 0x1000);
       graphics_bin_.at(i).CreateTexture(renderer_);
+
+      for (int j = 0; j < graphics_bin_.at(i).GetSize(); ++j) {
+        graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
+      }
+    } else {
+      for (int j = 0; j < 0x1000; ++j) {
+        graphics_buffer_.push_back(0xFF);
+      }
     }
   }
   return absl::OkStatus();
