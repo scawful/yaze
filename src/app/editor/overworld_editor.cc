@@ -110,9 +110,9 @@ absl::Status OverworldEditor::DrawToolset() {
       RETURN_IF_ERROR(overworld_.Load(rom_))
       current_gfx_bmp_.Create(128, 512, 8,
                               overworld_.GetCurrentGraphics().data(), 32768);
-      tile16_blockset_bmp_.Create(128 * 2, 8192 * 2, 8,
-                                  (uchar *)overworld_.GetCurrentBlockset(),
-                                  1048576);
+      tile16_blockset_bmp_.Create(
+          512, 8192 * 2, 8, (uchar *)overworld_.GetCurrentBlockset().data(),
+          1048576);
       rom_.RenderBitmap(current_gfx_bmp_);
       rom_.RenderBitmap(tile16_blockset_bmp_);
     }

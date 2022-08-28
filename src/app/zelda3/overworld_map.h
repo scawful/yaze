@@ -30,7 +30,7 @@ class OverworldMap {
 
   auto GetBitmap() const { return bitmap_; }
   auto GetCurrentGraphicsSet() const { return current_graphics_sheet_set; }
-  auto GetCurrentBlockset() const { return current_blockset_.data(); }
+  auto GetCurrentBlockset() const { return current_blockset_; }
   auto GetCurrentGraphics() const { return current_gfx_; }
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
   auto IsLargeMap() const { return large_map_; }
