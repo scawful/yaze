@@ -6,8 +6,12 @@
 #include <cmath>
 #include <string>
 
+#include "app/gfx/bitmap.h"
+
 namespace yaze {
 namespace gui {
+
+using app::gfx::Bitmap;
 
 class Canvas {
  public:
@@ -16,16 +20,17 @@ class Canvas {
       : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
 
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
-  void UpdateContext();
+  void DrawContextMenu();
+  void DrawBitmap(const Bitmap& bitmap, int border_offset = 0);
   void DrawGrid(float grid_step = 64.0f);
   void DrawOverlay();  // last
 
+  auto GetDrawList() const { return draw_list_; }
+  auto GetZeroPoint() const { return canvas_p0_; }
   void SetCanvasSize(ImVec2 canvas_size) {
     canvas_sz_ = canvas_size;
     custom_canvas_size_ = true;
   }
-  auto GetDrawList() const { return draw_list_; }
-  auto GetZeroPoint() const { return canvas_p0_; }
 
  private:
   bool enable_grid_ = true;
