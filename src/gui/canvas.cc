@@ -5,6 +5,8 @@
 #include <cmath>
 #include <string>
 
+#include "app/gfx/bitmap.h"
+
 namespace yaze {
 namespace gui {
 
@@ -21,7 +23,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   draw_list_->AddRect(canvas_p0_, canvas_p1_, IM_COL32(255, 255, 255, 255));
 }
 
-void Canvas::UpdateContext() {
+void Canvas::DrawContextMenu() {
   // This will catch our interactions
   const ImGuiIO &io = ImGui::GetIO();
   ImGui::InvisibleButton(
@@ -66,6 +68,14 @@ void Canvas::UpdateContext() {
     }
     ImGui::EndPopup();
   }
+}
+
+void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset) {
+  draw_list_->AddImage(
+      (void *)bitmap.GetTexture(),
+      ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
+      ImVec2(canvas_p0_.x + (bitmap.GetWidth() * 2),
+             canvas_p0_.y + (bitmap.GetHeight() * 2)));
 }
 
 void Canvas::DrawGrid(float grid_step) {
