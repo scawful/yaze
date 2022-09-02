@@ -25,6 +25,7 @@ constexpr int kSNESToPCOffset = 0x138000;
 
 class ScriptTemplate {
  public:
+  virtual ~ScriptTemplate() = default;
   virtual absl::Status ApplyPatchToROM(ROM& rom) = 0;
   virtual absl::Status GenerateMosaicChangeAssembly(
       ROM& rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
