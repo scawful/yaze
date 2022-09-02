@@ -83,12 +83,12 @@ class ROM {
   absl::Status LoadFromBytes(const Bytes& data);
 
   absl::Status SaveToFile();
+  void RenderBitmap(gfx::Bitmap* bitmap) const;
 
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
-  void RenderBitmap(gfx::Bitmap& bitmap) { bitmap.CreateTexture(renderer_); }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
