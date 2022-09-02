@@ -44,7 +44,7 @@ void NewMasterFrame() {
 }
 
 bool BeginCentered(const char *name) {
-  ImGuiIO &io = ImGui::GetIO();
+  ImGuiIO const &io = ImGui::GetIO();
   ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGuiWindowFlags flags =
@@ -236,6 +236,9 @@ void MasterEditor::DrawViewMenu() {
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
+    if (ImGui::MenuItem("Overworld Debug")) {
+      overworld_editor_.OverworldDebugMenu();
+    }
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
       ImGui::MenuItem("Metrics (ImGui)", nullptr, &show_imgui_metrics);

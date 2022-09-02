@@ -20,7 +20,7 @@ namespace zelda3 {
 namespace {
 
 void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
-              uchar* ow_blockset, uchar* current_gfx) {
+              Bytes& ow_blockset, Bytes& current_gfx) {
   int mx = x;
   int my = y;
   uchar r = 0;
@@ -44,7 +44,7 @@ void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
   ow_blockset[p2] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
-void CopyTile8bpp16(int x, int y, int tile, uchar* dest, uchar* src) {
+void CopyTile8bpp16(int x, int y, int tile, Bytes& dest, Bytes& src) {
   int src_pos = ((tile - ((tile / 8) * 8)) * 16) + ((tile / 8) * 2048);
   int dest_pos = (x + (y * 512));
   for (int yy = 0; yy < 16; yy++) {
@@ -233,11 +233,15 @@ absl::Status OverworldMap::BuildTileset() {
     current_graphics_sheet_set[i] = sheet;
   }
 
-  auto allgfxData = rom_.GetGraphicsBuffer().data();
+  all_gfx_ = rom_.GetGraphicsBuffer();
   current_gfx_.reserve(32768);
+  for (int i = 0; i < 32768; i++) {
+    current_gfx_.push_back(0x00);
+  }
+
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {
-      auto mapByte = allgfxData[j + (static_graphics_[i] * 2048)];
+      auto mapByte = all_gfx_[j + (static_graphics_[i] * 2048)];
       switch (i) {
         case 0:
         case 3:
@@ -256,6 +260,9 @@ absl::Status OverworldMap::BuildTileset() {
 
 absl::Status OverworldMap::BuildTiles16Gfx(int count) {
   current_blockset_.reserve(1048576);
+  for (int i = 0; i < 1048576; i++) {
+    current_blockset_.push_back(0x00);
+  }
   int offsets[] = {0, 8, 1024, 1032};
   auto yy = 0;
   auto xx = 0;
@@ -278,13 +285,14 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
         case 3:
           info = tiles16_[i].tile3_;
           break;
+        default:
+          return absl::InternalError("Invalid Tile");
       }
       int offset = offsets[tile];
 
       for (auto y = 0; y < 8; y++) {
         for (auto x = 0; x < 4; x++) {
-          CopyTile(x, y, xx, yy, offset, info, current_blockset_.data(),
-                   current_gfx_.data());
+          CopyTile(x, y, xx, yy, offset, info, current_blockset_, current_gfx_);
         }
       }
     }
@@ -300,8 +308,11 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 }
 
 absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
-  bitmap_.Create(512, 512, 8, 1048576);
-  auto bitmap_ptr_ = bitmap_.GetData();
+  bitmap_data_.reserve(262144);
+  for (int i = 0; i < 262144; i++) {
+    bitmap_data_.push_back(0x00);
+  }
+
   int superY = ((index_ - (world_ * 64)) / 8);
   int superX = index_ - (world_ * 64) - (superY * 8);
 
@@ -309,11 +320,10 @@ absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
     for (int x = 0; x < 32; x++) {
       auto xt = x + (superX * 32);
       auto yt = y + (superY * 32);
-      CopyTile8bpp16((x * 16), (y * 16), world_blockset[xt][yt], bitmap_ptr_,
-                     current_blockset_.data());
+      CopyTile8bpp16((x * 16), (y * 16), world_blockset[xt][yt], bitmap_data_,
+                     current_blockset_);
     }
   }
-  rom_.RenderBitmap(bitmap_);
   return absl::OkStatus();
 }
 
