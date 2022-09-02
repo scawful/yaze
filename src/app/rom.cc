@@ -677,5 +677,9 @@ absl::Status ROM::SaveToFile() {
   return absl::OkStatus();
 }
 
+void ROM::RenderBitmap(gfx::Bitmap* bitmap) const {
+  bitmap->CreateTexture(renderer_);
+}
+
 }  // namespace app
 }  // namespace yaze
