@@ -30,6 +30,9 @@ class Overworld {
   auto GetCurrentGraphics() const {
     return overworld_maps_[current_map_].GetCurrentGraphics();
   }
+  auto GetCurrentBitmapData() const {
+    return overworld_maps_[current_map_].GetBitmapData();
+  }
   auto isLoaded() const { return is_loaded_; }
 
  private:

@@ -28,10 +28,11 @@ class OverworldMap {
   absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
                         OWBlockset& world_blockset);
 
-  auto GetBitmap() const { return bitmap_; }
+  gfx::Bitmap& GetBitmap() { return bitmap_; }
   auto GetCurrentGraphicsSet() const { return current_graphics_sheet_set; }
   auto GetCurrentBlockset() const { return current_blockset_; }
   auto GetCurrentGraphics() const { return current_gfx_; }
+  auto GetBitmapData() const { return bitmap_data_; }
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
   auto IsLargeMap() const { return large_map_; }
   auto IsInitialized() const { return initialized_; }
@@ -62,8 +63,10 @@ class OverworldMap {
   bool large_map_ = false;
 
   ROM rom_;
+  Bytes all_gfx_;
   Bytes current_blockset_;
   Bytes current_gfx_;
+  Bytes bitmap_data_;
   gfx::Bitmap bitmap_;
   OWMapTiles map_tiles_;
 
