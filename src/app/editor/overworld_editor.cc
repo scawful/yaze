@@ -178,20 +178,18 @@ void OverworldEditor::DrawOverworldCanvas() {
   overworld_map_canvas_.DrawContextMenu();
   if (overworld_.isLoaded()) {
     auto map = overworld_.GetOverworldMap(0);
-    if (map.IsInitialized() && map.IsBuilt()) {
-      if (map.IsLargeMap()) {
-          //g.FillRectangle(new SolidBrush(Palettes.overworld_GrassPalettes[0]), new RectangleF(x * 512, y * 512, 1024, 1024));
-          // g.DrawImage(ow.allmaps[ow.allmaps[selectedMap].parent].gfxBitmap, new PointF(x * 512, y * 512));
-          // g.DrawImage(ow.allmaps[ow.allmaps[selectedMap].parent + 1].gfxBitmap, new PointF((x + 1) * 512, y * 512));
-          // g.DrawImage(ow.allmaps[ow.allmaps[selectedMap].parent + 8].gfxBitmap, new PointF((x) * 512, (y+1) * 512));
-          // g.DrawImage(ow.allmaps[ow.allmaps[selectedMap].parent + 9].gfxBitmap, new PointF((x + 1) * 512, (y+1) * 512));
-
-          overworld_map_canvas_.DrawBitmap(map.GetBitmap(), 2);
+    if (map.IsBuilt()) {
+      if (map.IsLargeMap() && map.IsInitialized()) {
+        // FillRectangle with Palettes.overworld_GrassPalettes[0] in RectangleF(x * 512, y * 512, 1024, 1024)
+        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent].gfxBitmap at PointF(x * 512, y * 512)
+        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent + 1].gfxBitmap at PointF((x + 1) * 512, y * 512)
+        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent + 8].gfxBitmap at PointF((x) * 512, (y+1) * 512)
+        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent + 9].gfxBitmap at PointF((x + 1) * 512, (y+1) * 512)
+        overworld_map_canvas_.DrawBitmap(overworld_map_bmp_, 2);
       } else {
-          // g.FillRectangle(new SolidBrush(Palettes.overworld_GrassPalettes[0]), new RectangleF(x * 512, y * 512, 512, 512));
-        //g.DrawImage(ow.allmaps[ow.allmaps[selectedMap].parent].gfxBitmap, new PointF(x * 512, y * 512));
-
-          overworld_map_canvas_.DrawBitmap(map.GetBitmap(), 2);
+        // FillRectangle with SolidBrush(Palettes.overworld_GrassPalettes[0]) in RectangleF(x * 512, y * 512, 512, 512)
+        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent].gfxBitmap at PointF(x * 512, y * 512)
+        overworld_map_canvas_.DrawBitmap(overworld_map_bmp_, 2);
       }
     }
 
@@ -212,7 +210,8 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile16")) {
-      if (ImGui::BeginChild("#Tile16Child", ImGui::GetContentRegionAvail(),
+      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)2);
+      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(),
                             true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawTile16Selector();
       }
@@ -220,7 +219,8 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Area Graphics")) {
-      if (ImGui::BeginChild("#Tile16Child", ImGui::GetContentRegionAvail(),
+      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
+      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(),
                             true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawAreaGraphics();
       }
@@ -232,7 +232,7 @@ void OverworldEditor::DrawTileSelector() {
 }
 
 void OverworldEditor::DrawTile16Selector() {
-  blockset_canvas_.DrawBackground(ImVec2(256 + 1, kNumSheetsToLoad * 64 + 1));
+  blockset_canvas_.DrawBackground(ImVec2(256 + 1, (8192*2) + 1));
   blockset_canvas_.DrawContextMenu();
   if (map_blockset_loaded_) {
     blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2);
@@ -302,7 +302,8 @@ absl::Status OverworldEditor::DrawOverworldDebugMenu() {
     tile16_blockset_bmp_.Create(128, 8192, 128,
                                 overworld_.GetCurrentBlockset().data());
     rom_.RenderBitmap(&tile16_blockset_bmp_);
-    overworld_map_bmp_.Create(512, 512, 8,
+    map_blockset_loaded_ = true;
+    overworld_map_bmp_.Create(512, 512, 512,
                               overworld_.GetCurrentBitmapData().data());
     rom_.RenderBitmap(&overworld_map_bmp_);
   }
