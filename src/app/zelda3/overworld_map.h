@@ -28,7 +28,6 @@ class OverworldMap {
   absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
                         OWBlockset& world_blockset);
 
-  gfx::Bitmap& GetBitmap() { return bitmap_; }
   auto GetCurrentGraphicsSet() const { return current_graphics_sheet_set; }
   auto GetCurrentBlockset() const { return current_blockset_; }
   auto GetCurrentGraphics() const { return current_gfx_; }
@@ -67,7 +66,6 @@ class OverworldMap {
   Bytes current_blockset_;
   Bytes current_gfx_;
   Bytes bitmap_data_;
-  gfx::Bitmap bitmap_;
   OWMapTiles map_tiles_;
 
   std::vector<gfx::Tile16> tiles16_;
