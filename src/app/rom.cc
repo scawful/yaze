@@ -281,7 +281,7 @@ absl::StatusOr<std::shared_ptr<CompressionPiece>> SplitCompressionPiece(
     default: {
       return absl::InvalidArgumentError(
           "SplitCompressionCommand: Invalid Command");
-    } break;
+    }
   }
   return new_piece;
 }
@@ -578,6 +578,166 @@ absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
   return Decompress(pos, size, kNintendoMode1);
 }
 
+absl::StatusOr<Bytes> ROM::CreateAllGfxDataRaw() {
+  // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 bytes
+  // 113-114 -> compressed 2bpp -> (decompressed each) 0x800 bytes
+  // 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 bytes
+  // 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 bytes
+  // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 bytes
+  Bytes buffer(0x54A00);
+  for (int i = 0; i < 0x54A00; ++i) {
+    buffer.push_back(0x00);
+  }
+  int bufferPos = 0;
+  Bytes data(0x600);
+  for (int i = 0; i < 0x600; ++i) {
+    buffer.push_back(0x00);
+  }
+
+  for (int i = 0; i < 223; i++) {
+    bool c = true;
+    if (i >= 0 && i <= 112)  // compressed 3bpp bgr
+    {
+      isbpp3[i] = true;
+    } else if (i >= 113 && i <= 114)  // compressed 2bpp
+    {
+      isbpp3[i] = false;
+    } else if (i >= 115 && i <= 126)  // uncompressed 3bpp sprites
+    {
+      isbpp3[i] = true;
+      c = false;
+    } else if (i >= 127 && i <= 217)  // compressed 3bpp sprites
+    {
+      isbpp3[i] = true;
+    } else if (i >= 218 && i <= 222)  // compressed 2bpp
+    {
+      isbpp3[i] = false;
+    }
+
+    if (c)  // if data is compressed decompress it
+    {
+      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      ASSIGN_OR_RETURN(data, Decompress(offset))
+    } else {
+      data.resize(core::Uncompressed3BPPSize);
+      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
+        data[j] = rom_data_[j + offset];
+      }
+    }
+
+    for (int j = 0; j < data.size(); j++) {
+      buffer[j + bufferPos] = data[j];
+    }
+
+    bufferPos += data.size();
+  }
+
+  return buffer;
+}
+
+absl::Status ROM::CreateAllGraphicsData() {
+  ASSIGN_OR_RETURN(Bytes data, CreateAllGfxDataRaw())
+  Bytes newData(0x6F800);
+  for (int i = 0; i < 0x6F800; i++) {
+    newData.push_back(0x00);
+  }
+  Bytes mask{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+  int sheetPosition = 0;
+
+  // 8x8 tile
+  // Per Sheet
+  for (int s = 0; s < 223; s++) {
+    // Per Tile Line Y
+    for (int j = 0; j < 4; j++) {
+      // Per Tile Line X
+      for (int i = 0; i < 16; i++) {
+        // Per Pixel Line
+        for (int y = 0; y < 8; y++) {
+          if (isbpp3[s]) {
+            auto lineBits0 =
+                data[(y * 2) + (i * 24) + (j * 384) + sheetPosition];
+            auto lineBits1 =
+                data[(y * 2) + (i * 24) + (j * 384) + 1 + sheetPosition];
+            auto lineBits2 =
+                data[(y) + (i * 24) + (j * 384) + 16 + sheetPosition];
+
+            // Per Pixel X
+            for (int x = 0; x < 4; x++) {
+              auto pixdata = 0;
+              auto pixdata2 = 0;
+
+              if ((lineBits0 & mask[(x * 2)]) == mask[(x * 2)]) {
+                pixdata += 1;
+              }
+              if ((lineBits1 & mask[(x * 2)]) == mask[(x * 2)]) {
+                pixdata += 2;
+              }
+              if ((lineBits2 & mask[(x * 2)]) == mask[(x * 2)]) {
+                pixdata += 4;
+              }
+
+              if ((lineBits0 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
+                pixdata2 += 1;
+              }
+              if ((lineBits1 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
+                pixdata2 += 2;
+              }
+              if ((lineBits2 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
+                pixdata2 += 4;
+              }
+
+              newData[(y * 64) + (x) + (i * 4) + (j * 512) + (s * 2048)] =
+                  ((pixdata << 4) | pixdata2);
+            }
+          } else {
+            auto lineBits0 =
+                data[(y * 2) + (i * 16) + (j * 256) + sheetPosition];
+            auto lineBits1 =
+                data[(y * 2) + (i * 16) + (j * 256) + 1 + sheetPosition];
+
+            // Per Pixel X
+            for (int x = 0; x < 4; x++) {
+              auto pixdata = 0;
+              auto pixdata2 = 0;
+
+              if ((lineBits0 & mask[(x * 2)]) == mask[(x * 2)]) {
+                pixdata += 1;
+              }
+              if ((lineBits1 & mask[(x * 2)]) == mask[(x * 2)]) {
+                pixdata += 2;
+              }
+
+              if ((lineBits0 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
+                pixdata2 += 1;
+              }
+              if ((lineBits1 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
+                pixdata2 += 2;
+              }
+
+              newData[(y * 64) + (x) + (i * 4) + (j * 512) + (s * 2048)] =
+                  ((pixdata << 4) | pixdata2);
+            }
+          }
+        }
+      }
+    }
+
+    if (isbpp3[s]) {
+      sheetPosition += 0x600;
+    } else {
+      sheetPosition += 0x800;
+    }
+  }
+
+  graphics_buffer_.reserve(0x6F800);
+  for (int i = 0; i < 0x6F800; i++) {
+    graphics_buffer_.push_back(newData[i]);
+  }
+
+  return absl::OkStatus();
+}
+
 // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
 // 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
 // 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
@@ -611,11 +771,11 @@ absl::Status ROM::LoadAllGraphicsData() {
       graphics_bin_.at(i).CreateTexture(renderer_);
 
       for (int j = 0; j < graphics_bin_.at(i).GetSize(); ++j) {
-        graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
+        graphics_8bpp_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
       }
     } else {
       for (int j = 0; j < 0x1000; ++j) {
-        graphics_buffer_.push_back(0xFF);
+        graphics_8bpp_buffer_.push_back(0xFF);
       }
     }
   }

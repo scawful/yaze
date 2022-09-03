@@ -47,7 +47,6 @@ constexpr int kCommandMod = 0x07;
 constexpr int kExpandedMod = 0xE0;
 constexpr int kExpandedLengthMod = 0x3FF;
 constexpr int kNormalLengthMod = 0x1F;
-
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
@@ -78,6 +77,10 @@ class ROM {
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 
   absl::Status LoadAllGraphicsData();
+  
+  absl::StatusOr<Bytes> CreateAllGfxDataRaw();
+  absl::Status CreateAllGraphicsData();
+
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
@@ -89,6 +92,7 @@ class ROM {
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
+  auto GetGraphics8BPP() const { return graphics_8bpp_buffer_; }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
@@ -117,10 +121,12 @@ class ROM {
   long size_ = 0;
   uchar title[21] = "ROM Not Loaded";
   bool is_loaded_ = false;
+  bool isbpp3[223];
   std::string filename_;
 
   Bytes rom_data_;
   Bytes graphics_buffer_;
+  Bytes graphics_8bpp_buffer_;
   std::shared_ptr<SDL_Renderer> renderer_;
   std::unordered_map<int, gfx::Bitmap> graphics_bin_;
 };
