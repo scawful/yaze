@@ -54,6 +54,7 @@ class Overworld {
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
+  void LoadOverworldMap();
 
   int game_state_ = 1;
   int current_map_ = 0;

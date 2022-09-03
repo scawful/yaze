@@ -233,26 +233,16 @@ absl::Status OverworldMap::BuildTileset() {
     current_graphics_sheet_set[i] = sheet;
   }
 
-  all_gfx_ = rom_.GetGraphicsBuffer();
+  all_gfx_ = rom_.GetGraphics8BPP();
+
   current_gfx_.reserve(32768);
   for (int i = 0; i < 32768; i++) {
     current_gfx_.push_back(0x00);
   }
 
-  for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 2048; j++) {
-      auto mapByte = all_gfx_[j + (static_graphics_[i] * 2048)];
-      switch (i) {
-        case 0:
-        case 3:
-        case 4:
-        case 5:
-          mapByte += 0x88;
-          break;
-        default:
-          break;
-      }
-      current_gfx_[(i * 2048) + j] = mapByte;
+  for (int i = 0; i < 32; i++) {
+    for (int j = 0; j < 4096; j++) {
+      current_gfx_[(i * 4096) + j] = all_gfx_[j + (static_graphics_[i] * 4096)];
     }
   }
   return absl::OkStatus();
@@ -271,23 +261,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
   for (auto i = 0; i < count; i++) {
     // 8x8 tile draw, gfx8 = 4bpp so everyting is /2F
     for (auto tile = 0; tile < 4; tile++) {
-      gfx::TileInfo info;
-      switch (tile) {
-        case 0:
-          info = tiles16_[i].tile0_;
-          break;
-        case 1:
-          info = tiles16_[i].tile1_;
-          break;
-        case 2:
-          info = tiles16_[i].tile2_;
-          break;
-        case 3:
-          info = tiles16_[i].tile3_;
-          break;
-        default:
-          return absl::InternalError("Invalid Tile");
-      }
+      gfx::TileInfo info = tiles16_[i].tiles_info[tile];
       int offset = offsets[tile];
 
       for (auto y = 0; y < 8; y++) {
