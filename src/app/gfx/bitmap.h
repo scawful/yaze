@@ -46,8 +46,14 @@ class Bitmap {
 
  private:
   struct sdl_deleter {
-    void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
-    void operator()(SDL_Surface *p) const { SDL_FreeSurface(p); }
+    void operator()(SDL_Texture *p) const {
+      SDL_DestroyTexture(p);
+      p = nullptr;
+    }
+    void operator()(SDL_Surface *p) const {
+      SDL_FreeSurface(p);
+      p = nullptr;
+    }
   };
 
   int width_ = 0;
@@ -57,8 +63,8 @@ class Bitmap {
   bool freed_ = false;
   uchar *pixel_data_;
   Bytes data_;
-  std::shared_ptr<SDL_Texture> texture_;
-  std::shared_ptr<SDL_Surface> surface_;
+  std::shared_ptr<SDL_Texture> texture_ = nullptr;
+  std::shared_ptr<SDL_Surface> surface_ = nullptr;
 };
 
 }  // namespace gfx
