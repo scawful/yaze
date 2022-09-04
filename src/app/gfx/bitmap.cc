@@ -43,10 +43,10 @@ void Bitmap::Create(int width, int height, int depth, uchar *data) {
   height_ = height;
   depth_ = depth;
   pixel_data_ = data;
-  surface_ = std::unique_ptr<SDL_Surface, sdl_deleter>(
+  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
                                      SDL_PIXELFORMAT_INDEX8),
-      sdl_deleter());
+      SDL_Surface_Deleter());
   GrayscalePalette(surface_->format->palette);
   surface_->pixels = pixel_data_;
 }
@@ -57,10 +57,10 @@ void Bitmap::Create(int width, int height, int depth, int size) {
   height_ = height;
   depth_ = depth;
   data_size_ = size;
-  surface_ = std::unique_ptr<SDL_Surface, sdl_deleter>(
+  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
                                      SDL_PIXELFORMAT_INDEX8),
-      sdl_deleter());
+      SDL_Surface_Deleter());
   GrayscalePalette(surface_->format->palette);
   pixel_data_ = (uchar *)SDL_malloc(size);
   surface_->pixels = pixel_data_;
@@ -73,19 +73,33 @@ void Bitmap::Create(int width, int height, int depth, uchar *data, int size) {
   depth_ = depth;
   pixel_data_ = data;
   data_size_ = size;
-  surface_ = std::unique_ptr<SDL_Surface, sdl_deleter>(
+  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
                                      SDL_PIXELFORMAT_INDEX8),
-      sdl_deleter());
-  GrayscalePalette(surface_->format->palette);
+      SDL_Surface_Deleter());
   surface_->pixels = pixel_data_;
+  GrayscalePalette(surface_->format->palette);
+}
+
+void Bitmap::Create(int width, int height, int depth, Bytes data) {
+  width_ = width;
+  height_ = height;
+  depth_ = depth;
+  data_ = data;
+  pixel_data_ = data_.data();
+  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
+                                     SDL_PIXELFORMAT_INDEX8),
+      SDL_Surface_Deleter());
+  surface_->pixels = pixel_data_;
+  GrayscalePalette(surface_->format->palette);
 }
 
 // Creates the texture that will be displayed to the screen.
 void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
-  texture_ = std::unique_ptr<SDL_Texture, sdl_deleter>(
+  texture_ = std::shared_ptr<SDL_Texture>{
       SDL_CreateTextureFromSurface(renderer.get(), surface_.get()),
-      sdl_deleter());
+      SDL_Texture_Deleter{}};
 }
 
 // Convert SNESPalette to SDL_Palette for surface.

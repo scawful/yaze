@@ -26,6 +26,7 @@ class Bitmap {
   void Create(int width, int height, int depth, uchar *data);
   void Create(int width, int height, int depth, int data_size);
   void Create(int width, int height, int depth, uchar *data, int data_size);
+  void Create(int width, int height, int depth, Bytes data);
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
@@ -45,14 +46,21 @@ class Bitmap {
   auto GetSurface() const { return surface_.get(); }
 
  private:
-  struct sdl_deleter {
+  struct SDL_Texture_Deleter {
     void operator()(SDL_Texture *p) const {
-      SDL_DestroyTexture(p);
-      p = nullptr;
+      if (p != nullptr) {
+        SDL_DestroyTexture(p);
+        p = nullptr;
+      }
     }
+  };
+
+  struct SDL_Surface_Deleter {
     void operator()(SDL_Surface *p) const {
-      SDL_FreeSurface(p);
-      p = nullptr;
+      if (p != nullptr) {
+        SDL_FreeSurface(p);
+        p = nullptr;
+      }
     }
   };
 
