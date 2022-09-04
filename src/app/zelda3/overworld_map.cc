@@ -50,18 +50,17 @@ void CopyTile8bpp8(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
   int my = y;
 
   if (tile.horizontal_mirror_ != 0) {
-    mx = 3 - x;
+    mx = 7 - x;
   }
 
   if (tile.vertical_mirror_ != 0) {
     my = 7 - y;
   }
 
-  int tx = ((tile.id_ / 16) * 512) + ((tile.id_ - ((tile.id_ / 16) * 16)) * 4);
-  auto index = xx + yy + offset + (mx * 2) + (my * 0x80);
-  auto pixel = current_gfx[tx + (y * 128) + x];
-
-  ow_blockset[index] = (pixel + (tile.palette_ * 16));
+  int tx = ((tile.id_ / 32) * 1024) + ((tile.id_ - ((tile.id_ / 32) * 32)) * 8);
+  auto pixel = current_gfx[tx + x + (y * 0x80)];
+  auto index = xx + yy + offset + mx + (my * 0x80);
+  ow_blockset[index] = (uchar)(pixel + (tile.palette_ * 16));
 }
 
 void CopyTile8bpp16(int x, int y, int tile, Bytes& dest, Bytes& src) {
@@ -269,8 +268,8 @@ absl::Status OverworldMap::BuildTileset() {
 }
 
 absl::Status OverworldMap::BuildTiles16Gfx(int count) {
-  current_blockset_.reserve(1048576);
-  for (int i = 0; i < 1048576; i++) {
+  current_blockset_.reserve(1048576 * 2);
+  for (int i = 0; i < 1048576 * 2; i++) {
     current_blockset_.push_back(0x00);
   }
   int offsets[] = {0, 8, 1024, 1032};
@@ -283,7 +282,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
       int offset = offsets[tile];
 
       for (auto y = 0; y < 8; y++) {
-        for (auto x = 0; x < 4; x++) {
+        for (auto x = 0; x < 8; x++) {
           CopyTile8bpp8(x, y, xx, yy, offset, info, current_blockset_,
                         current_gfx_);
         }
