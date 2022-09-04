@@ -44,6 +44,26 @@ void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
   ow_blockset[p2] = (uchar)(((pixel >> 4) & 0x0F) + tile.palette_ * 16);
 }
 
+void CopyTile8bpp8(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
+                   Bytes& ow_blockset, Bytes& current_gfx) {
+  int mx = x;
+  int my = y;
+
+  if (tile.horizontal_mirror_ != 0) {
+    mx = 3 - x;
+  }
+
+  if (tile.vertical_mirror_ != 0) {
+    my = 7 - y;
+  }
+
+  int tx = ((tile.id_ / 16) * 512) + ((tile.id_ - ((tile.id_ / 16) * 16)) * 4);
+  auto index = xx + yy + offset + (mx * 2) + (my * 0x80);
+  auto pixel = current_gfx[tx + (y * 128) + x];
+
+  ow_blockset[index] = (pixel + (tile.palette_ * 16));
+}
+
 void CopyTile8bpp16(int x, int y, int tile, Bytes& dest, Bytes& src) {
   int src_pos = ((tile - ((tile / 8) * 8)) * 16) + ((tile / 8) * 2048);
   int dest_pos = (x + (y * 512));
@@ -235,12 +255,12 @@ absl::Status OverworldMap::BuildTileset() {
 
   all_gfx_ = rom_.GetGraphics8BPP();
 
-  current_gfx_.reserve(32768);
-  for (int i = 0; i < 32768; i++) {
+  current_gfx_.reserve(65536);
+  for (int i = 0; i < 65536; i++) {
     current_gfx_.push_back(0x00);
   }
 
-  for (int i = 0; i < 32; i++) {
+  for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 4096; j++) {
       current_gfx_[(i * 4096) + j] = all_gfx_[j + (static_graphics_[i] * 4096)];
     }
@@ -257,22 +277,21 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
   auto yy = 0;
   auto xx = 0;
 
-  // number of tiles16 3748?
   for (auto i = 0; i < count; i++) {
-    // 8x8 tile draw, gfx8 = 4bpp so everyting is /2F
     for (auto tile = 0; tile < 4; tile++) {
       gfx::TileInfo info = tiles16_[i].tiles_info[tile];
       int offset = offsets[tile];
 
       for (auto y = 0; y < 8; y++) {
         for (auto x = 0; x < 4; x++) {
-          CopyTile(x, y, xx, yy, offset, info, current_blockset_, current_gfx_);
+          CopyTile8bpp8(x, y, xx, yy, offset, info, current_blockset_,
+                        current_gfx_);
         }
       }
     }
 
     xx += 16;
-    if (xx >= 0x80) {
+    if (xx >= 128) {
       yy += 2048;
       xx = 0;
     }
