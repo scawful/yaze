@@ -180,19 +180,11 @@ void OverworldEditor::DrawOverworldCanvas() {
     auto map = overworld_.GetOverworldMap(0);
     if (map.IsBuilt()) {
       if (map.IsLargeMap() && map.IsInitialized()) {
-        // FillRectangle with Palettes.overworld_GrassPalettes[0] in RectangleF(x * 512, y * 512, 1024, 1024)
-        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent].gfxBitmap at PointF(x * 512, y * 512)
-        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent + 1].gfxBitmap at PointF((x + 1) * 512, y * 512)
-        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent + 8].gfxBitmap at PointF((x) * 512, (y+1) * 512)
-        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent + 9].gfxBitmap at PointF((x + 1) * 512, (y+1) * 512)
         overworld_map_canvas_.DrawBitmap(overworld_map_bmp_, 2);
       } else {
-        // FillRectangle with SolidBrush(Palettes.overworld_GrassPalettes[0]) in RectangleF(x * 512, y * 512, 512, 512)
-        // DrawImage of ow.allmaps[ow.allmaps[selectedMap].parent].gfxBitmap at PointF(x * 512, y * 512)
         overworld_map_canvas_.DrawBitmap(overworld_map_bmp_, 2);
       }
     }
-
   }
   overworld_map_canvas_.DrawGrid(64.f);
   overworld_map_canvas_.DrawOverlay();
@@ -211,8 +203,8 @@ void OverworldEditor::DrawTileSelector() {
     }
     if (ImGui::BeginTabItem("Tile16")) {
       ImGuiID child_id = ImGui::GetID((void *)(intptr_t)2);
-      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(),
-                            true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawTile16Selector();
       }
       ImGui::EndChild();
@@ -220,8 +212,8 @@ void OverworldEditor::DrawTileSelector() {
     }
     if (ImGui::BeginTabItem("Area Graphics")) {
       ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
-      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(),
-                            true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawAreaGraphics();
       }
       ImGui::EndChild();
@@ -232,7 +224,7 @@ void OverworldEditor::DrawTileSelector() {
 }
 
 void OverworldEditor::DrawTile16Selector() {
-  blockset_canvas_.DrawBackground(ImVec2(256 + 1, (8192*2) + 1));
+  blockset_canvas_.DrawBackground(ImVec2(256 + 1, (8192 * 2) + 1));
   blockset_canvas_.DrawContextMenu();
   if (map_blockset_loaded_) {
     blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2);
@@ -296,15 +288,13 @@ absl::Status OverworldEditor::DrawOverworldDebugMenu() {
 
   if (ImGui::Button("Load Overworld")) {
     RETURN_IF_ERROR(overworld_.Load(rom_))
-    current_gfx_bmp_.Create(128, 512, 64,
-                            overworld_.GetCurrentGraphics().data());
+    current_gfx_bmp_.Create(128, 512, 64, overworld_.GetCurrentGraphics());
     rom_.RenderBitmap(&current_gfx_bmp_);
     tile16_blockset_bmp_.Create(128, 8192, 128,
-                                overworld_.GetCurrentBlockset().data());
+                                overworld_.GetCurrentBlockset());
     rom_.RenderBitmap(&tile16_blockset_bmp_);
     map_blockset_loaded_ = true;
-    overworld_map_bmp_.Create(512, 512, 512,
-                              overworld_.GetCurrentBitmapData().data());
+    overworld_map_bmp_.Create(512, 512, 512, overworld_.GetCurrentBitmapData());
     rom_.RenderBitmap(&overworld_map_bmp_);
   }
 
