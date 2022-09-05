@@ -11,15 +11,15 @@ namespace gfx {
 
 TileInfo GetTilesInfo(ushort tile) {
   // vhopppcc cccccccc
-  ushort o = 0;
-  ushort v = 0;
-  ushort h = 0;
-  auto tid = (ushort)(tile & 0x3FF);
+  bool o = false;
+  bool v = false;
+  bool h = false;
+  auto tid = (ushort)(tile & core::TileNameMask);
   auto p = (uchar)((tile >> 10) & 0x07);
 
-  o = (ushort)((tile & 0x2000) >> 13);
-  h = (ushort)((tile & 0x4000) >> 14);
-  v = (ushort)((tile & 0x8000) >> 15);
+  o = ((tile & core::TilePriorityBit) == core::TilePriorityBit);
+  h = ((tile & core::TileHFlipBit) == core::TileHFlipBit);
+  v = ((tile & core::TileVFlipBit) == core::TileVFlipBit);
 
   return TileInfo(tid, p, v, h, o);
 }
