@@ -275,29 +275,30 @@ absl::Status OverworldMap::BuildTileset() {
 }
 
 absl::Status OverworldMap::BuildTiles16Gfx(int count) {
-  current_blockset_.reserve(1048576);
-  for (int i = 0; i < 1048576; i++) {
+  current_blockset_.reserve(0x100000);
+  for (int i = 0; i < 0x100000; i++) {
     current_blockset_.push_back(0x00);
   }
-  int offsets[] = {0, 8, 1024, 1032};
+
+  int offsets[] = {0x00, 0x08, 0x400, 0x408};
   auto yy = 0;
   auto xx = 0;
 
   for (auto i = 0; i < count; i++) {
-    for (auto tile = 0; tile < 4; tile++) {
+    for (auto tile = 0; tile < 0x04; tile++) {
       gfx::TileInfo info = tiles16_[i].tiles_info[tile];
       int offset = offsets[tile];
-      for (auto y = 0; y < 8; y++) {
-        for (auto x = 0; x < 8; x++) {
+      for (auto y = 0; y < 0x08; y++) {
+        for (auto x = 0; x < 0x08; x++) {
           CopyTile8bpp8(x, y, xx, yy, offset, info, current_blockset_,
                         current_gfx_);
         }
       }
     }
 
-    xx += 16;
-    if (xx >= 128) {
-      yy += 2048;
+    xx += 0x10;
+    if (xx >= 0x80) {
+      yy += 0x800;
       xx = 0;
     }
   }
