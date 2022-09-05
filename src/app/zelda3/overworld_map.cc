@@ -49,7 +49,7 @@ void CopyTile8bpp8(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
                    Bytes& ow_blockset, Bytes& current_gfx) {
   int mx = x;
   int my = y;
-  uchar r = 0x00;
+  uchar r = 0;
 
   if (tile.horizontal_mirror_ != 0) {
     mx = 0x07 - x;
@@ -60,12 +60,13 @@ void CopyTile8bpp8(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
     my = 0x07 - y;
   }
 
-  int tx = ((tile.id_ / 0x20) * 0x800) +
-           ((tile.id_ - ((tile.id_ / 0x20) * 0x20)) * 0x08);
+  // TILE ID ONLY
+  int tx = ((tile.id_ - ((tile.id_ / 0x20) * 0x20)) * 0x08) +
+           ((tile.id_ / 0x20) * 0x800);
   auto pixel = current_gfx[tx + x + (y * 0x80)];
   auto index = xx + yy + offset + mx + (my * 0x80);
 
-  ow_blockset[index] = (uchar)(pixel + (tile.palette_ * 0x10));
+  ow_blockset[index + r] = (uchar)(pixel + (tile.palette_ * 0x10));
 }
 
 void CopyTile8bpp16(int x, int y, int tile, Bytes& bitmap, Bytes& blockset) {
@@ -307,20 +308,20 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 }
 
 absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
-  bitmap_data_.reserve(262144);
-  for (int i = 0; i < 262144; i++) {
+  bitmap_data_.reserve(0x40000);
+  for (int i = 0; i < 0x40000; i++) {
     bitmap_data_.push_back(0x00);
   }
 
-  int superY = ((index_ - (world_ * 64)) / 8);
-  int superX = index_ - (world_ * 64) - (superY * 8);
+  int superY = ((index_ - (world_ * 0x40)) / 0x08);
+  int superX = index_ - (world_ * 0x40) - (superY * 0x08);
 
-  for (int y = 0; y < 32; y++) {
-    for (int x = 0; x < 32; x++) {
-      auto xt = x + (superX * 32);
-      auto yt = y + (superY * 32);
-      CopyTile8bpp16((x * 16), (y * 16), world_blockset[xt][yt], bitmap_data_,
-                     current_blockset_);
+  for (int y = 0; y < 0x20; y++) {
+    for (int x = 0; x < 0x20; x++) {
+      auto xt = x + (superX * 0x20);
+      auto yt = y + (superY * 0x20);
+      CopyTile8bpp16((x * 0x10), (y * 0x10), world_blockset[xt][yt],
+                     bitmap_data_, current_blockset_);
     }
   }
   return absl::OkStatus();
