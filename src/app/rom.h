@@ -77,7 +77,7 @@ class ROM {
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 
   absl::Status LoadAllGraphicsData();
-  
+
   absl::StatusOr<Bytes> CreateAllGfxDataRaw();
   absl::Status CreateAllGraphicsData();
 
@@ -116,6 +116,10 @@ class ROM {
     return rom_data_[i];
   }
   const uchar* operator&() { return rom_data_.data(); }
+
+  ushort toint16(int offset) {
+    return (ushort)((rom_data_[offset + 1]) << 8) | rom_data_[offset];
+  }
 
  private:
   long size_ = 0;
