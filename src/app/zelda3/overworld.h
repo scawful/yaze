@@ -34,6 +34,7 @@ class Overworld {
     return overworld_maps_[current_map_].GetBitmapData();
   }
   auto isLoaded() const { return is_loaded_; }
+  void SetCurrentMap(int i) { current_map_ = i; }
 
  private:
   const int map32address[4] = {core::map32TilesTL, core::map32TilesTR,
