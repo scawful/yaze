@@ -43,6 +43,7 @@ class OverworldMap {
 
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
+  absl::Status BuildTiles16GfxV2(int count);
   absl::Status BuildBitmap(OWBlockset& world_blockset);
 
   int parent_ = 0;
