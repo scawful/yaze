@@ -321,7 +321,7 @@ absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
   auto yy = 0;
   auto xx = 0;
 
-  for (auto i = 0; i < 1; i++) {
+  for (auto i = 0; i < count; i++) {
     for (auto tile = 0; tile < 0x04; tile++) {
       gfx::TileInfo info = tiles16_[i].tiles_info[tile];
       int offset = offsets[tile];
