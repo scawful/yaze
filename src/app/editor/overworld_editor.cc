@@ -41,6 +41,15 @@ absl::Status OverworldEditor::Update() {
   if (rom_.isLoaded() && !all_gfx_loaded_) {
     LoadGraphics();
     all_gfx_loaded_ = true;
+    RETURN_IF_ERROR(overworld_.Load(rom_))
+    current_gfx_bmp_.Create(128, 512, 64, overworld_.GetCurrentGraphics());
+    rom_.RenderBitmap(&current_gfx_bmp_);
+    tile16_blockset_bmp_.Create(128, 8192, 128,
+                                overworld_.GetCurrentBlockset());
+    rom_.RenderBitmap(&tile16_blockset_bmp_);
+    map_blockset_loaded_ = true;
+    overworld_map_bmp_.Create(512, 512, 512, overworld_.GetCurrentBitmapData());
+    rom_.RenderBitmap(&overworld_map_bmp_);
   }
 
   if (overworld_debug_menu_) {
