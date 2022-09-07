@@ -45,28 +45,36 @@ void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
   ow_blockset[p2] = (uchar)(((pixel >> 0x04) & 0x0F) + tile.palette_ * 0x10);
 }
 
-void CopyTile8bpp8(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
+void CopyTile8bpp8(int x, int y, int xx, int yy, int tid, gfx::TileInfo tile,
                    Bytes& ow_blockset, Bytes& current_gfx) {
+  const int offsets[] = {0x00, 0x08, 0x400, 0x408};
+  int offset = offsets[tid];
   int mx = x;
   int my = y;
-  uchar r = 0;
 
   if (tile.horizontal_mirror_ != 0) {
     mx = 0x07 - x;
-    r = 0x01;
   }
 
   if (tile.vertical_mirror_ != 0) {
     my = 0x07 - y;
   }
 
-  // TILE ID ONLY
-  int tx = ((tile.id_ - ((tile.id_ / 0x20) * 0x20)) * 0x08) +
-           ((tile.id_ / 0x20) * 0x800);
-  auto pixel = current_gfx[tx + x + (y * 0x80)];
-  auto index = xx + yy + offset + mx + (my * 0x80);
+  // int tx = ((tile.id_ - ((tile.id_ / 0x20) * 0x20)) * 0x10) +
+  //          ((tile.id_ / 0x20) * 0x800);
+  // auto gfx_src_pos = tx + (y * 0x200) + x;
+  // auto pixel = current_gfx[gfx_src_pos];
 
-  ow_blockset[index + r] = (uchar)(pixel + (tile.palette_ * 0x10));
+  // auto index = xx + yy + offset + mx + (my * 0x100);
+  // auto to_assign = (pixel + (tile.palette_ * 0x10));
+  // ow_blockset[index] = to_assign;
+  // TILE ID ONLY
+  // int tx = ((tile.id_ - ((tile.id_ / 0x20) * 0x20)) * 0x10) +
+  //          ((tile.id_ / 0x20) * 0x800);
+
+  auto index = xx + yy + offset + mx + (my * 0x80);
+  int tx = (tile.id_ * 0x40);
+  ow_blockset[index] = current_gfx[tx + (y * 0x80) + x];
 }
 
 void CopyTile8bpp16(int x, int y, int tile, Bytes& bitmap, Bytes& blockset) {
@@ -123,7 +131,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 
   LoadAreaGraphics(game_state, world_index);
   RETURN_IF_ERROR(BuildTileset())
-  RETURN_IF_ERROR(BuildTiles16Gfx(count))
+  RETURN_IF_ERROR(BuildTiles16GfxV2(count))
   RETURN_IF_ERROR(BuildBitmap(world_blockset))
   built_ = true;
   return absl::OkStatus();
@@ -280,19 +288,61 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
   for (int i = 0; i < 0x100000; i++) {
     current_blockset_.push_back(0x00);
   }
-
-  int offsets[] = {0x00, 0x08, 0x400, 0x408};
   auto yy = 0;
   auto xx = 0;
 
   for (auto i = 0; i < count; i++) {
     for (auto tile = 0; tile < 0x04; tile++) {
       gfx::TileInfo info = tiles16_[i].tiles_info[tile];
-      int offset = offsets[tile];
-      for (auto y = 0; y < 0x08; y++) {
-        for (auto x = 0; x < 0x08; x++) {
-          CopyTile8bpp8(x, y, xx, yy, offset, info, current_blockset_,
+      for (auto y = 0; y < 0x08; ++y) {
+        for (auto x = 0; x < 0x08; ++x) {
+          CopyTile8bpp8(x, y, xx, yy, tile, info, current_blockset_,
                         current_gfx_);
+        }
+      }
+    }
+
+    xx += 0x10;
+    if (xx >= 0x80) {
+      yy += 0x800;
+      xx = 0;
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
+  current_blockset_.reserve(0x100000);
+  for (int i = 0; i < 0x100000; i++) {
+    current_blockset_.push_back(0x00);
+  }
+  const int offsets[] = {0x00, 0x08, 0x400, 0x408};
+  auto yy = 0;
+  auto xx = 0;
+
+  for (auto i = 0; i < 1; i++) {
+    for (auto tile = 0; tile < 0x04; tile++) {
+      gfx::TileInfo info = tiles16_[i].tiles_info[tile];
+      int offset = offsets[tile];
+      for (auto y = 0; y < 0x08; ++y) {
+        for (auto x = 0; x < 0x08; ++x) {
+          int mx = x;
+          int my = y;
+
+          if (info.horizontal_mirror_ != 0) {
+            mx = 0x07 - x;
+          }
+
+          if (info.vertical_mirror_ != 0) {
+            my = 0x07 - y;
+          }
+
+          int tile_pos = (info.id_ * 0x40);
+          auto source = tile_pos + (x + (y * 0x80));
+
+          auto destination = xx + yy + offset + (mx + (my * 0x80));
+          current_blockset_[destination] = current_gfx_[source];
         }
       }
     }
