@@ -64,6 +64,7 @@ class OverworldEditor {
   void LoadGraphics();
 
   int current_world_ = 0;
+  int current_map_ = 0;
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
   char spr_gfx_[3] = "";
@@ -86,6 +87,7 @@ class OverworldEditor {
 
   std::unordered_map<int, gfx::Bitmap> graphics_bin_;
   std::unordered_map<int, gfx::Bitmap> current_graphics_set_;
+  std::unordered_map<int, gfx::Bitmap> maps_bmp_;
 
   ROM rom_;
   zelda3::Overworld overworld_;
@@ -94,7 +96,6 @@ class OverworldEditor {
   gfx::Bitmap tile16_blockset_bmp_;  // pointer size 1048576
   gfx::Bitmap current_gfx_bmp_;      // pointer size 32768
   gfx::Bitmap all_gfx_bmp;           // pointer size 456704
-  gfx::Bitmap overworld_map_bmp_;
 
   gui::Canvas overworld_map_canvas_;
   gui::Canvas current_gfx_canvas_;
