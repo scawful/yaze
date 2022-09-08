@@ -338,8 +338,9 @@ absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
             my = 0x07 - y;
           }
 
-          int tile_pos = (info.id_ * 0x40);
-          auto source = tile_pos + (x + (y * 0x80));
+          int xpos = ((info.id_ % 16) * 8);
+          int ypos = (((info.id_ / 16)) * 0x400);
+          int source = ypos + xpos + (x + (y * 0x80));
 
           auto destination = xx + yy + offset + (mx + (my * 0x80));
           current_blockset_[destination] = current_gfx_[source];
