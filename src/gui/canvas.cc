@@ -78,6 +78,13 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset) {
              canvas_p0_.y + (bitmap.GetHeight() * 2)));
 }
 
+void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
+  draw_list_->AddImage((void *)bitmap.GetTexture(),
+                       ImVec2(canvas_p0_.x + x_offset, canvas_p0_.y + y_offset),
+                       ImVec2(canvas_p0_.x + x_offset + (bitmap.GetWidth()),
+                              canvas_p0_.y + y_offset + (bitmap.GetHeight())));
+}
+
 void Canvas::DrawGrid(float grid_step) {
   // Draw grid + all lines in the canvas
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);

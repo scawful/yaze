@@ -22,6 +22,8 @@ class Canvas {
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
   void DrawContextMenu();
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0);
+  void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
+  // void DrawLargeBitmap(const Bitmap& tl, const Bitmap& tr, const Bitmap& bl, const Bitmap& br);
   void DrawGrid(float grid_step = 64.0f);
   void DrawOverlay();  // last
 
