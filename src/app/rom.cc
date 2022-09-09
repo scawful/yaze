@@ -528,32 +528,31 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
+        ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
+        ushort s2 = ((rom_data_[offset] & kSnesByteMax));
+        int addr = (s1 | s2);
+
         if (mode == kNintendoMode1) {  // Reversed byte order for overworld maps
-          auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
-          if (addr > offset) {
-            return absl::InternalError(absl::StrFormat(
-                "DecompressOverworld: Offset for command copy exceeds "
-                "current position (Offset : %#04x | Pos : %#06x)\n",
-                addr, offset));
-          }
-
-          if (buffer_pos + length >= size) {
-            size *= 2;
-            buffer.resize(size);
-          }
-
-          memcpy(buffer.data() + buffer_pos, rom_data_.data() + addr, length);
-          offset += 2;
-        } else {
-          ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
-          ushort s2 = ((rom_data_[offset] & kSnesByteMax));
-          auto addr = (s1 | s2);
-          for (int i = 0; i < length; i++) {
-            buffer[buffer_pos] = buffer[addr + i];
-            buffer_pos++;
-          }
-          offset += 2;  // Advance 2 bytes in the ROM
+          addr = (s2 | s1);
         }
+
+        if (addr > offset) {
+          return absl::InternalError(absl::StrFormat(
+              "DecompressOverworld: Offset for command copy exceeds "
+              "current position (Offset : %#04x | Pos : %#06x)\n",
+              addr, offset));
+        }
+
+        if (buffer_pos + length >= size) {
+          size *= 2;
+          buffer.resize(size);
+        }
+
+        for (int i = 0; i < length; i++) {
+          buffer[buffer_pos] = buffer[addr + i];
+          buffer_pos++;
+        }
+        offset += 2;  // Advance 2 bytes in the ROM
 
       } break;
       default: {
