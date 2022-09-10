@@ -236,9 +236,6 @@ void MasterEditor::DrawViewMenu() {
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
-    if (ImGui::MenuItem("Overworld Debug")) {
-      overworld_editor_.OverworldDebugMenu();
-    }
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
       ImGui::MenuItem("Metrics (ImGui)", nullptr, &show_imgui_metrics);

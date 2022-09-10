@@ -48,8 +48,6 @@ class OverworldEditor {
   absl::Status Copy() { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() { return absl::UnimplementedError("Paste"); }
 
-  void OverworldDebugMenu() { overworld_debug_menu_ = true; }
-
  private:
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
@@ -58,9 +56,6 @@ class OverworldEditor {
   void DrawTile16Selector();
   void DrawTile8Selector();
   void DrawAreaGraphics();
-
-  absl::Status DrawOverworldDebugMenu();
-
   void LoadGraphics();
 
   int current_world_ = 0;
@@ -75,7 +70,6 @@ class OverworldEditor {
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
-  bool overworld_debug_menu_ = false;
 
   ImVec4 current_palette_[8];
 
