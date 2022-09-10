@@ -43,6 +43,7 @@ struct SNESColor {
   uint16_t snes = 0;
   ImVec4 rgb;
   void setRgb(ImVec4);
+  void setRgb(snes_color);
   void setSNES(uint16_t);
 };
 
@@ -53,14 +54,13 @@ class SNESPalette {
   explicit SNESPalette(char* snesPal);
   explicit SNESPalette(const unsigned char* snes_pal);
   explicit SNESPalette(const std::vector<ImVec4>&);
+  explicit SNESPalette(const std::vector<snes_color>&);
 
   char* encode();
   SDL_Palette* GetSDL_Palette();
 
   int size_ = 0;
   std::vector<SNESColor> colors;
-  std::vector<SDL_Color*> colors_arrays_;
-  std::vector<std::vector<SDL_Color>> colors_;
 };
 
 }  // namespace gfx
