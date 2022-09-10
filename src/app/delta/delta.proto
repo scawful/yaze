@@ -1,0 +1,40 @@
+syntax = "proto3";
+option cc_enable_arenas = true;
+
+service YazeDelta {
+  rpc Init(InitRequest) returns (InitResponse) {}
+
+  rpc Push(PushRequest) returns (PushResponse) {}
+  rpc Pull(PullRequest) returns (PullResponse) {}
+
+  rpc CreateBranch(CreateBranchRequest) returns (CreateBranchResponse) {}
+  rpc DeleteBranch(DeleteBranchRequest) returns (DeleteBranchResponse) {}
+
+  rpc Merge(MergeRequest) returns (MergeResponse) {}
+  rpc UndoMerge(UndoMergeRequest) returns (UndoMergeResponse) {}
+}
+
+message InitRequest {
+  string project_name = 1;
+  repeated uint16_t bytes = 2;
+}
+
+message PushRequest {
+  string username = 1;
+}
+message PushResponse {}
+
+message PullRequest {}
+message PullResponse {}
+
+message CreateBranchRequest {}
+message CreateBranchResponse {}
+
+message DeleteBranchRequest {}
+message DeleteBranchResponse {}
+
+message MergeRequest {}
+message MergeResponse {}
+
+message UndoMergeRequest {}
+message UndoMergeResponse {}

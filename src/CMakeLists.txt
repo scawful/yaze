@@ -139,6 +139,46 @@ set_target_properties(yaze
     LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/yaze.res"
 )
 
+# 
+
+add_executable(
+  yaze_delta
+  app/delta/delta.cc
+  app/delta/viewer.cc
+  app/rom.cc
+  ${YAZE_APP_ASM_SRC}
+  ${YAZE_APP_CORE_SRC}
+  ${YAZE_APP_EDITOR_SRC}
+  ${YAZE_APP_GFX_SRC}
+  ${YAZE_APP_ZELDA3_SRC}
+  ${YAZE_GUI_SRC}
+  ${IMGUI_SRC}
+  lib/asar/src/asar-dll-bindings/c/asardll.c
+)
+
+target_include_directories(
+  yaze_delta PUBLIC
+  lib/
+  app/
+  ${ASAR_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/src/
+  ${PNG_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIRS}
+  lib/asar/src/asar-dll-bindings/c
+)
+
+target_link_libraries(
+  yaze_delta PUBLIC
+  ${ABSL_TARGETS}
+  ${SDL_TARGETS}
+  ${PNG_LIBRARIES}
+  ${GLEW_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ImGui
+)
+
 set (source "${CMAKE_SOURCE_DIR}/assets")
 set (destination "${CMAKE_CURRENT_BINARY_DIR}/assets")
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
