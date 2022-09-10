@@ -33,6 +33,9 @@ class Overworld {
   auto GetCurrentBitmapData() const {
     return overworld_maps_[current_map_].GetBitmapData();
   }
+  auto GetCurrentPalette() const {
+    return overworld_maps_[current_map_].GetCurrentPalette();
+  }
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 

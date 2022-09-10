@@ -19,64 +19,6 @@ namespace zelda3 {
 
 namespace {
 
-void CopyTile(int x, int y, int xx, int yy, int offset, gfx::TileInfo tile,
-              Bytes& ow_blockset, Bytes& current_gfx) {
-  int mx = x;
-  int my = y;
-  uchar r = 0x00;
-
-  if (tile.horizontal_mirror_ != 0) {
-    mx = 0x03 - x;
-    r = 0x01;
-  }
-
-  if (tile.vertical_mirror_ != 0) {
-    my = 0x07 - y;
-  }
-
-  int tx = ((tile.id_ / 0x10) * 0x200) +
-           ((tile.id_ - ((tile.id_ / 0x10) * 0x10)) * 0x04);
-  auto index = xx + yy + offset + (mx * 0x02) + (my * 0x80);
-  auto pixel = current_gfx[tx + (y * 0x40) + x];
-
-  auto p1 = index + r ^ 1;
-  ow_blockset[p1] = (uchar)((pixel & 0x0F) + tile.palette_ * 0x10);
-  auto p2 = index + r;
-  ow_blockset[p2] = (uchar)(((pixel >> 0x04) & 0x0F) + tile.palette_ * 0x10);
-}
-
-void CopyTile8bpp8(int x, int y, int xx, int yy, int tid, gfx::TileInfo tile,
-                   Bytes& ow_blockset, Bytes& current_gfx) {
-  const int offsets[] = {0x00, 0x08, 0x400, 0x408};
-  int offset = offsets[tid];
-  int mx = x;
-  int my = y;
-
-  if (tile.horizontal_mirror_ != 0) {
-    mx = 0x07 - x;
-  }
-
-  if (tile.vertical_mirror_ != 0) {
-    my = 0x07 - y;
-  }
-
-  // int tx = ((tile.id_ - ((tile.id_ / 0x20) * 0x20)) * 0x10) +
-  //          ((tile.id_ / 0x20) * 0x800);
-  // auto gfx_src_pos = tx + (y * 0x200) + x;
-  // auto pixel = current_gfx[gfx_src_pos];
-
-  // auto index = xx + yy + offset + mx + (my * 0x100);
-  // auto to_assign = (pixel + (tile.palette_ * 0x10));
-  // ow_blockset[index] = to_assign;
-  // TILE ID ONLY
-  // int tx = ((tile.id_ - ((tile.id_ / 0x20) * 0x20)) * 0x10) +
-  //          ((tile.id_ / 0x20) * 0x800);
-
-  auto index = xx + yy + offset + mx + (my * 0x80);
-  int tx = (tile.id_ * 0x40);
-  ow_blockset[index] = current_gfx[tx + (y * 0x80) + x];
-}
-
 void CopyTile8bpp16(int x, int y, int tile, Bytes& bitmap, Bytes& blockset) {
   int src_pos =
       ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
@@ -87,6 +29,120 @@ void CopyTile8bpp16(int x, int y, int tile, Bytes& bitmap, Bytes& blockset) {
           blockset[src_pos + xx + (yy * 0x80)];
     }
   }
+}
+
+void SetColorsPalette(int index, gfx::SNESPalette& current, gfx::SNESPalette main,
+                      gfx::SNESPalette animated, gfx::SNESPalette aux1,
+                      gfx::SNESPalette aux2, gfx::SNESPalette hud,
+                      gfx::SNESColor bgrcolor, gfx::SNESPalette spr,
+                      gfx::SNESPalette spr2) {
+  // Palettes infos, color 0 of a palette is always transparent (the arrays
+  // contains 7 colors width wide) There is 16 color per line so 16*Y
+
+  // Left side of the palette - Main, Animated
+  std::vector<gfx::SNESColor> new_palette(256);
+
+  // Main Palette, Location 0,2 : 35 colors [7x5]
+  int k = 0;
+  for (int y = 2; y < 7; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = main[k++];
+    }
+  }
+
+  // Animated Palette, Location 0,7 : 7colors
+  for (int x = 1; x < 8; x++) {
+    new_palette[(16 * 7) + (x)] = animated[(x - 1)];
+  }
+
+  // Right side of the palette - Aux1, Aux2
+
+  // Aux1 Palette, Location 8,2 : 21 colors [7x3]
+  k = 0;
+  for (int y = 2; y < 5; y++) {
+    for (int x = 9; x < 16; x++) {
+      new_palette[x + (16 * y)] = aux1[k++];
+    }
+  }
+
+  // Aux2 Palette, Location 8,5 : 21 colors [7x3]
+  k = 0;
+  for (int y = 5; y < 8; y++) {
+    for (int x = 9; x < 16; x++) {
+      new_palette[x + (16 * y)] = aux2[k++];
+    }
+  }
+
+  // Hud Palette, Location 0,0 : 32 colors [16x2]
+  for (int i = 0; i < 32; i++) {
+    new_palette[i] = hud[i];
+  }
+
+  // Hardcoded grass color (that might change to become invisible instead)
+  for (int i = 0; i < 8; i++) {
+    new_palette[(i * 16)] = bgrcolor;
+    new_palette[(i * 16) + 8] = bgrcolor;
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 8; y < 9; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = spritesAux1_Palettes[1][k++];
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 8; y < 9; y++) {
+    for (int x = 9; x < 16; x++) {
+      new_palette[x + (16 * y)] = spritesAux3_Palettes[0][k++];
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 9; y < 13; y++) {
+    for (int x = 1; x < 16; x++) {
+      new_palette[x + (16 * y)] = globalSprite_Palettes[0][k++];
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 13; y < 14; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = spr[k++];
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 14; y < 15; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = spr2[k++];
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 15; y < 16; y++) {
+    for (int x = 1; x < 16; x++) {
+      new_palette[x + (16 * y)] = armors_Palettes[0][k++];
+    }
+  }
+
+  current.Create(new_palette);
+  // ColorPalette pal = GFX.editort16Bitmap.Palette;
+  // for (int i = 0; i < 256; i++) {
+  //   pal.Entries[i] = new_palette[i];
+  //   pal.Entries[(i / 16) * 16] = Color.Transparent;
+  // }
+
+  // GFX.mapgfx16Bitmap.Palette = pal;
+  // GFX.mapblockset16Bitmap.Palette = pal;
+
+  // gfxBitmap.Palette = pal;
 }
 
 }  // namespace
@@ -109,8 +165,8 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
             rom_[core::overworldSpecialGFXGroup + (parent_ - 0x80)];
         area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
       } else if (index_ == 0x88) {
-        area_graphics_ = 81;
-        area_palette_ = 0;
+        area_graphics_ = 0x51;
+        area_palette_ = 0x00;
       } else {
         area_graphics_ = rom_[core::mapGfx + parent_];
         area_palette_ = rom_[core::overworldMapPalette + parent_];
@@ -126,12 +182,13 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
   } else if (parent_ >= 0x40 && parent_ < 0x80) {
     world_index = 0x21;
   } else if (parent_ == 0x88) {
-    world_index = 36;
+    world_index = 0x24;
   }
 
   LoadAreaGraphics(game_state, world_index);
   RETURN_IF_ERROR(BuildTileset())
-  RETURN_IF_ERROR(BuildTiles16GfxV2(count))
+  RETURN_IF_ERROR(BuildTiles16Gfx(count))
+  LoadPalette();
   RETURN_IF_ERROR(BuildBitmap(world_blockset))
   built_ = true;
   return absl::OkStatus();
@@ -152,11 +209,11 @@ void OverworldMap::LoadAreaInfo() {
     area_music_[3] = rom_[core::overworldMusicAgahim + parent_];
 
     sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_];
-    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 64];
+    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 0x40];
     sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 0x80];
 
     sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_];
-    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 64];
+    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 0x40];
     sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 0x80];
   } else if (index_ < 0x80) {
     area_graphics_ = rom_[core::mapGfx + parent_];
@@ -218,14 +275,14 @@ void OverworldMap::LoadAreaInfo() {
 
 void OverworldMap::LoadAreaGraphics(int game_state, int world_index) {
   // Sprites Blocksets
-  static_graphics_[8] = 115 + 0;
-  static_graphics_[9] = 115 + 1;
-  static_graphics_[10] = 115 + 6;
-  static_graphics_[11] = 115 + 7;
+  static_graphics_[8] = 0x73 + 0x00;
+  static_graphics_[9] = 0x73 + 0x01;
+  static_graphics_[10] = 0x73 + 0x06;
+  static_graphics_[11] = 0x73 + 0x07;
   for (int i = 0; i < 4; i++) {
     static_graphics_[12 + i] = (rom_[core::kSpriteBlocksetPointer +
                                      (sprite_graphics_[game_state] * 4) + i] +
-                                115);
+                                0x73);
   }
 
   // Main Blocksets
@@ -253,66 +310,171 @@ void OverworldMap::LoadAreaGraphics(int game_state, int world_index) {
   // Hardcoded overworld GFX Values, for death mountain
   if ((parent_ >= 0x03 && parent_ <= 0x07) ||
       (parent_ >= 0x0B && parent_ <= 0x0E)) {
-    static_graphics_[7] = 89;
+    static_graphics_[7] = 0x59;
   } else if ((parent_ >= 0x43 && parent_ <= 0x47) ||
              (parent_ >= 0x4B && parent_ <= 0x4E)) {
-    static_graphics_[7] = 89;
+    static_graphics_[7] = 0x59;
   } else {
-    static_graphics_[7] = 91;
+    static_graphics_[7] = 0x5B;
   }
 }
 
-absl::Status OverworldMap::BuildTileset() {
-  for (int i = 0; i < 16; i++) {
-    auto sheet = rom_.GetGraphicsBin().at(static_graphics_[i]);
-    current_graphics_sheet_set[i] = sheet;
+void OverworldMap::LoadPalette() {
+  int previousPalId = 0;
+  int previousSprPalId = 0;
+  if (index_ > 0) {
+    previousPalId = rom_[core::overworldMapPalette + parent_ - 1];
+    previousSprPalId = rom_[core::overworldSpritePalette + parent_ - 1];
   }
 
-  all_gfx_ = rom_.GetGraphics8BPP();
+  if (area_palette_ >= 0xA3) {
+    area_palette_ = 0xA3;
+  }
 
-  current_gfx_.reserve(65536);
-  for (int i = 0; i < 65536; i++) {
+  uchar pal0 = 0;
+
+  uchar pal1 =
+      rom_[core::overworldMapPaletteGroup + (area_palette_ * 4)];  // aux1
+  uchar pal2 =
+      rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) + 1];  // aux2
+  uchar pal3 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) +
+                    2];  // animated
+
+  uchar pal4 = rom_[core::overworldSpritePaletteGroup +
+                    (sprite_palette_[game_state_] * 2)];  // spr3
+  uchar pal5 = rom_[core::overworldSpritePaletteGroup +
+                    (sprite_palette_[game_state_] * 2) + 1];  // spr4
+
+  gfx::SNESPalette aux1, aux2, main, animated, hud, spr, spr2;
+  gfx::SNESColor bgr = overworld_GrassPalettes[0];
+
+  if (pal1 == 255) {
+    pal1 = rom_[core::overworldMapPaletteGroup + (previousPalId * 4)];
+  }
+  if (pal1 != 255) {
+    if (pal1 >= 20) {
+      pal1 = 19;
+    }
+
+    aux1 = overworld_AuxPalettes[pal1];
+  } else {
+    aux1 = overworld_AuxPalettes[0];
+  }
+
+  if (pal2 == 255) {
+    pal2 = rom_[core::overworldMapPaletteGroup + (previousPalId * 4) + 1];
+  }
+  if (pal2 != 255) {
+    if (pal2 >= 20) {
+      pal2 = 19;
+    }
+
+    aux2 = overworld_AuxPalettes[pal2];
+  } else {
+    aux2 = overworld_AuxPalettes[0];
+  }
+
+  if (pal3 == 255) {
+    pal3 = rom_[core::overworldMapPaletteGroup + (previousPalId * 4) + 2];
+  }
+
+  if (parent_ < 0x40) {
+    // Default LW Palette
+    pal0 = 0;
+
+    // TODO CHECK ME FOR NECESSITY
+    // if (OverworldEditor.UseAreaSpecificBgColor) {
+    //   bgr = overworld_BackgroundPalette[parent_];
+    // } else {
+    //   bgr = overworld_GrassPalettes[0];
+    // }
+
+    if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07) {
+      pal0 = 2;
+    }
+  } else if (parent_ >= 0x40 && parent_ < 0x80) {
+    // Default DW Palette
+    pal0 = 1;
+    // if (OverworldEditor.UseAreaSpecificBgColor) {
+    //   bgr = Palettes.overworld_BackgroundPalette[parent_];
+    // } else {
+    //   bgr = Palettes.overworld_GrassPalettes[1];
+    // }
+
+    if (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47) {
+      pal0 = 3;
+    }
+  } else if (parent_ >= 128 && parent_ < core::kNumOverworldMaps) {
+    // Default SP Palette
+    pal0 = 0;
+
+    // if (OverworldEditor.UseAreaSpecificBgColor) {
+    //   bgr = overworld_BackgroundPalette[parent_];
+    // } else {
+    //   bgr = overworld_GrassPalettes[2];
+    // }
+  }
+
+  if (parent_ == 0x88) {
+    pal0 = 4;
+  }
+
+  if (pal0 != 255) {
+    main = overworld_MainPalettes[pal0];
+  } else {
+    main = overworld_MainPalettes[0];
+  }
+
+  if (pal3 >= 14) {
+    pal3 = 13;
+  }
+  animated = overworld_AnimatedPalettes[(pal3)];
+
+  hud = HudPalettes[0];
+  if (pal4 == 255) {
+    pal4 = rom_[core::overworldSpritePaletteGroup +
+                (previousSprPalId * 2)];  // spr3
+  }
+  if (pal4 == 255) {
+    pal4 = 0;
+  }
+  if (pal4 >= 24) {
+    pal4 = 23;
+  }
+  spr = spritesAux3_Palettes[pal4];
+
+  if (pal5 == 255) {
+    pal5 = rom_[core::overworldSpritePaletteGroup + (previousSprPalId * 2) +
+                1];  // spr3
+  }
+  if (pal5 == 255) {
+    pal5 = 0;
+  }
+  if (pal5 >= 24) {
+    pal5 = 23;
+  }
+  spr2 = spritesAux3_Palettes[pal5];
+
+  SetColorsPalette(parent_, current_palette_, main, animated, aux1, aux2, hud, bgr, spr, spr2);
+}
+
+absl::Status OverworldMap::BuildTileset() {
+  all_gfx_ = rom_.GetGraphicsBuffer();
+  current_gfx_.reserve(0x10000);
+  for (int i = 0; i < 0x10000; i++) {
     current_gfx_.push_back(0x00);
   }
 
-  for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 4096; j++) {
-      current_gfx_[(i * 4096) + j] = all_gfx_[j + (static_graphics_[i] * 4096)];
+  for (int i = 0; i < 0x10; i++) {
+    for (int j = 0; j < 0x1000; j++) {
+      current_gfx_[(i * 0x1000) + j] =
+          all_gfx_[j + (static_graphics_[i] * 0x1000)];
     }
   }
   return absl::OkStatus();
 }
 
 absl::Status OverworldMap::BuildTiles16Gfx(int count) {
-  current_blockset_.reserve(0x100000);
-  for (int i = 0; i < 0x100000; i++) {
-    current_blockset_.push_back(0x00);
-  }
-  auto yy = 0;
-  auto xx = 0;
-
-  for (auto i = 0; i < count; i++) {
-    for (auto tile = 0; tile < 0x04; tile++) {
-      gfx::TileInfo info = tiles16_[i].tiles_info[tile];
-      for (auto y = 0; y < 0x08; ++y) {
-        for (auto x = 0; x < 0x08; ++x) {
-          CopyTile8bpp8(x, y, xx, yy, tile, info, current_blockset_,
-                        current_gfx_);
-        }
-      }
-    }
-
-    xx += 0x10;
-    if (xx >= 0x80) {
-      yy += 0x800;
-      xx = 0;
-    }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
   current_blockset_.reserve(0x100000);
   for (int i = 0; i < 0x100000; i++) {
     current_blockset_.push_back(0x00);
@@ -338,8 +500,8 @@ absl::Status OverworldMap::BuildTiles16GfxV2(int count) {
             my = 0x07 - y;
           }
 
-          int xpos = ((info.id_ % 16) * 8);
-          int ypos = (((info.id_ / 16)) * 0x400);
+          int xpos = ((info.id_ % 0x10) * 0x08);
+          int ypos = (((info.id_ / 0x10)) * 0x400);
           int source = ypos + xpos + (x + (y * 0x80));
 
           auto destination = xx + yy + offset + (mx + (my * 0x80));

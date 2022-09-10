@@ -20,6 +20,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
+#include "app/zelda3/palettes.h"
 
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
@@ -80,10 +81,11 @@ class ROM {
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
+  void LoadAllPalettes();
 
   absl::Status SaveToFile();
 
-  gfx::snes_color ReadColor(int offset);
+  gfx::SNESColor ReadColor(int offset);
   gfx::SNESPalette ReadPalette(int offset, int num_colors);
 
   void RenderBitmap(gfx::Bitmap* bitmap) const;

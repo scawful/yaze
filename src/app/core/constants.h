@@ -466,6 +466,14 @@ constexpr int dungeonMapBgPalettes = 0xDE544;  // 16*6
 constexpr int hardcodedGrassLW = 0x5FEA9;
 constexpr int hardcodedGrassDW = 0x05FEB3;  // 0x7564F
 constexpr int hardcodedGrassSpecial = 0x75640;
+constexpr int overworldMiniMapPalettes = 0x55B27;
+constexpr int triforcePalette = 0x64425;
+constexpr int crystalPalette = 0xF4CD3;
+constexpr int customAreaSpecificBGPalette =
+    0x140000;  // 2 bytes for each overworld area (320)
+constexpr int customAreaSpecificBGASM = 0x140150;
+constexpr int customAreaSpecificBGEnabled =
+    0x140140;  // 1 byte, not 0 if enabled
 
 // ============================================================================
 // Dungeon Map Related Variables

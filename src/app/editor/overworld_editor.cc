@@ -53,7 +53,9 @@ absl::Status OverworldEditor::Update() {
   
     for (int i = 0; i < core::kNumOverworldMaps; ++i) {
       overworld_.SetCurrentMap(i);
+      auto palette = overworld_.GetCurrentPalette();
       maps_bmp_[i].Create(512, 512, 512, overworld_.GetCurrentBitmapData());
+      maps_bmp_[i].ApplyPalette(palette);
       rom_.RenderBitmap(&(maps_bmp_[i]));
     }
   }
