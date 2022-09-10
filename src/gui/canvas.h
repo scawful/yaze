@@ -23,7 +23,6 @@ class Canvas {
   void DrawContextMenu();
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0);
   void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
-  // void DrawLargeBitmap(const Bitmap& tl, const Bitmap& tr, const Bitmap& bl, const Bitmap& br);
   void DrawOutline(int x, int y, int w, int h);
   void DrawGrid(float grid_step = 64.0f);
   void DrawOverlay();  // last
@@ -38,7 +37,6 @@ class Canvas {
  private:
   bool enable_grid_ = true;
   bool enable_context_menu_ = true;
-  bool dragging_select_ = false;
   bool custom_canvas_size_ = false;
 
   ImDrawList* draw_list_;

@@ -64,7 +64,11 @@ char* Convert(const snes_palette pal) {
 
 SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}
 
-SNESColor::SNESColor(snes_color val) { snes = ConvertRGBtoSNES(val); }
+SNESColor::SNESColor(snes_color val) {
+  rgb.x = val.red;
+  rgb.y = val.blue;
+  rgb.z = val.green;
+}
 
 SNESColor::SNESColor(ImVec4 val) : rgb(val) {
   snes_color col;
@@ -83,7 +87,9 @@ void SNESColor::setRgb(ImVec4 val) {
   snes = ConvertRGBtoSNES(col);
 }
 
-void SNESColor::setRgb(snes_color val) { snes = ConvertRGBtoSNES(val); }
+void SNESColor::setSNES(snes_color val) {
+  rgb = ImVec4(val.red, val.green, val.blue, 1.f);
+}
 
 void SNESColor::setSNES(uint16_t val) {
   snes = val;
@@ -137,7 +143,7 @@ SNESPalette::SNESPalette(const std::vector<ImVec4>& cols) {
 SNESPalette::SNESPalette(const std::vector<snes_color>& cols) {
   for (const auto& each : cols) {
     SNESColor scol;
-    scol.setRgb(each);
+    scol.setSNES(each);
     colors.push_back(scol);
   }
   size_ = cols.size();
@@ -151,7 +157,7 @@ SNESPalette::SNESPalette(const std::vector<SNESColor>& cols) {
 }
 
 void SNESPalette::Create(const std::vector<SNESColor>& cols) {
-  for (const auto& each : cols) {
+  for (const auto each : cols) {
     colors.push_back(each);
   }
   size_ = cols.size();
@@ -176,6 +182,7 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
     color[i].r = (uint8_t)colors[i].rgb.x * 100;
     color[i].g = (uint8_t)colors[i].rgb.y * 100;
     color[i].b = (uint8_t)colors[i].rgb.z * 100;
+    color[i].a = 0;
     std::cout << "Color " << i << " added (R:" << color[i].r
               << " G:" << color[i].g << " B:" << color[i].b << ")" << std::endl;
   }
@@ -183,10 +190,7 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
   return sdl_palette.get();
 }
 
-PaletteGroup::PaletteGroup(uint8_t mSize) {
-  size = mSize;
-  palettes.reserve(size);
-}
+PaletteGroup::PaletteGroup(uint8_t mSize) : size(mSize) {}
 
 }  // namespace gfx
 }  // namespace app

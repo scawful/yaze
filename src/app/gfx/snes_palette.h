@@ -41,11 +41,13 @@ struct SNESColor {
   SNESColor();
   explicit SNESColor(ImVec4);
   explicit SNESColor(snes_color);
+
+  void setRgb(ImVec4);
+  void setSNES(snes_color);
+  void setSNES(uint16_t);
+
   uint16_t snes = 0;
   ImVec4 rgb;
-  void setRgb(ImVec4);
-  void setRgb(snes_color);
-  void setSNES(uint16_t);
 };
 
 class SNESPalette {
@@ -59,7 +61,7 @@ class SNESPalette {
   explicit SNESPalette(const std::vector<SNESColor>&);
 
   void Create(const std::vector<SNESColor>&);
-
+  void AddColor(SNESColor color) { colors.push_back(color); }
   auto GetColor(int i) const { return colors[i]; }
 
   SNESColor operator[](int i) {
@@ -80,6 +82,17 @@ class SNESPalette {
 struct PaletteGroup {
   PaletteGroup() = default;
   explicit PaletteGroup(uint8_t mSize);
+  void AddPalette(SNESPalette pal) {
+    palettes.emplace_back(pal);
+    size = palettes.size();
+  }
+  void AddColor(SNESColor color) {
+    if (size == 0) {
+      SNESPalette empty_pal;
+      palettes.emplace_back(empty_pal);
+    }
+    palettes[0].AddColor(color);
+  }
   SNESPalette operator[](int i) {
     if (i > size) {
       std::cout << "PaletteGroup: Index out of bounds" << std::endl;

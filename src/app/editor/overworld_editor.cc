@@ -16,24 +16,25 @@
 #include "gui/canvas.h"
 #include "gui/icons.h"
 
-/**
- * Drawing the Overworld
- * Tips by Zarby
- *
- * 1) Find the graphics pointers (constants.h)
- * 2) Convert the 3bpp SNES data into PC 4bpp (Hard)
- * 3) Get the tiles32 data
- * 4) Get the tiles16 data
- * 5) Get the map32 data using lz2 variant decompression
- * 6) Get the graphics data of the map
- * 7) Load 4bpp into Pseudo VRAM for rendering tiles to screen
- * 8) Render the tiles to a bitmap with a B&W palette to start
- * 9) Get the palette data and find how it's loaded in game
- *
- */
 namespace yaze {
 namespace app {
 namespace editor {
+
+namespace {
+void UpdateSelectedTile16(int selected, gfx::Bitmap &tile16_blockset,
+                          gfx::Bitmap &selected_tile) {
+  auto blockset = tile16_blockset.GetData();
+  auto bitmap = selected_tile.GetData();
+
+  int src_pos = ((selected - ((selected / 0x08) * 0x08)) * 0x10) +
+                ((selected / 0x08) * 2048);
+  for (int yy = 0; yy < 0x10; yy++) {
+    for (int xx = 0; xx < 0x10; xx++) {
+      bitmap[xx + (yy * 0x10)] = blockset[src_pos + xx + (yy * 0x80)];
+    }
+  }
+}
+}  // namespace
 
 void OverworldEditor::SetupROM(ROM &rom) { rom_ = rom; }
 
@@ -46,18 +47,38 @@ absl::Status OverworldEditor::Update() {
     current_gfx_bmp_.Create(128, 512, 64, overworld_.GetCurrentGraphics());
     rom_.RenderBitmap(&current_gfx_bmp_);
 
+    auto tile16_palette = overworld_.GetCurrentPalette();
     tile16_blockset_bmp_.Create(128, 8192, 128,
                                 overworld_.GetCurrentBlockset());
+    for (int j = 0; j < tile16_palette.colors.size(); j++) {
+      tile16_blockset_bmp_.SetPaletteColor(j, tile16_palette.GetColor(j));
+    }
     rom_.RenderBitmap(&tile16_blockset_bmp_);
     map_blockset_loaded_ = true;
-  
+
     for (int i = 0; i < core::kNumOverworldMaps; ++i) {
       overworld_.SetCurrentMap(i);
       auto palette = overworld_.GetCurrentPalette();
       maps_bmp_[i].Create(512, 512, 512, overworld_.GetCurrentBitmapData());
-      maps_bmp_[i].ApplyPalette(palette);
+      for (int j = 0; j < palette.colors.size(); j++) {
+        maps_bmp_[i].SetPaletteColor(j, palette.GetColor(j));
+      }
       rom_.RenderBitmap(&(maps_bmp_[i]));
     }
+  }
+
+  if (update_selected_tile_ && all_gfx_loaded_) {
+    if (!selected_tile_loaded_) {
+      selected_tile_bmp_.Create(16, 16, 64, 256);
+    }
+    UpdateSelectedTile16(selected_tile_, tile16_blockset_bmp_,
+                         selected_tile_bmp_);
+    auto palette = overworld_.GetCurrentPalette();
+    for (int j = 0; j < palette.colors.size(); j++) {
+      selected_tile_bmp_.SetPaletteColor(j, palette.GetColor(j));
+    }
+    rom_.RenderBitmap(&selected_tile_bmp_);
+    update_selected_tile_ = false;
   }
 
   auto toolset_status = DrawToolset();
@@ -81,7 +102,7 @@ absl::Status OverworldEditor::Update() {
 }
 
 absl::Status OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("OWToolset", 17, toolset_table_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("OWToolset", 15, toolset_table_flags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -119,19 +140,6 @@ absl::Status OverworldEditor::DrawToolset() {
     // Music
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_MUSIC_NOTE);
-    ImGui::TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
-
-    ImGui::TableNextColumn();
-    ImGui::Text("Palette:");
-    for (int i = 0; i < 8; i++) {
-      std::string id = "##PaletteColor" + std::to_string(i);
-      ImGui::SameLine();
-      ImGui::ColorEdit4(id.c_str(), &current_palette_[i].x,
-                        ImGuiColorEditFlags_NoInputs |
-                            ImGuiColorEditFlags_DisplayRGB |
-                            ImGuiColorEditFlags_DisplayHex);
-    }
 
     ImGui::EndTable();
   }
