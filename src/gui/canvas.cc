@@ -60,6 +60,7 @@ void Canvas::DrawContextMenu() {
   ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
   if (enable_context_menu_ && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
     ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+
   if (ImGui::BeginPopup("context")) {
     if (dragging_select_) points_.resize(points_.size() - 2);
     dragging_select_ = false;
@@ -79,10 +80,18 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset) {
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
-  draw_list_->AddImage((void *)bitmap.GetTexture(),
-                       ImVec2(canvas_p0_.x + x_offset, canvas_p0_.y + y_offset),
-                       ImVec2(canvas_p0_.x + x_offset + (bitmap.GetWidth()),
-                              canvas_p0_.y + y_offset + (bitmap.GetHeight())));
+  draw_list_->AddImage(
+      (void *)bitmap.GetTexture(),
+      ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
+             canvas_p0_.y + y_offset + scrolling_.y),
+      ImVec2(canvas_p0_.x + x_offset + scrolling_.x + (bitmap.GetWidth()),
+             canvas_p0_.y + y_offset + scrolling_.y + (bitmap.GetHeight())));
+}
+
+void Canvas::DrawOutline(int x, int y, int w, int h) {
+  ImVec2 origin(x, y);
+  ImVec2 size(x + w, y + h);
+  draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 255));
 }
 
 void Canvas::DrawGrid(float grid_step) {
