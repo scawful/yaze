@@ -81,6 +81,10 @@ void SNESColor::setRgb(ImVec4 val) {
   snes = ConvertRGBtoSNES(col);
 }
 
+void SNESColor::setRgb(snes_color val) {
+  snes = ConvertRGBtoSNES(val);
+}
+
 void SNESColor::setSNES(uint16_t val) {
   snes = val;
   snes_color col = ConvertSNEStoRGB(val);
@@ -130,6 +134,15 @@ SNESPalette::SNESPalette(const std::vector<ImVec4>& cols) {
   size_ = cols.size();
 }
 
+SNESPalette::SNESPalette(const std::vector<snes_color>& cols) {
+  for (const auto& each : cols) {
+    SNESColor scol;
+    scol.setRgb(each);
+    colors.push_back(scol);
+  }
+  size_ = cols.size();
+}
+
 char* SNESPalette::encode() {
   auto data = new char[size_ * 2];
   for (unsigned int i = 0; i < size_; i++) {
@@ -141,7 +154,6 @@ char* SNESPalette::encode() {
 }
 
 SDL_Palette* SNESPalette::GetSDL_Palette() {
-  std::cout << "Converting SNESPalette to SDL_Palette" << std::endl;
   auto sdl_palette = std::make_shared<SDL_Palette>();
   sdl_palette->ncolors = size_;
 
@@ -154,8 +166,6 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
               << " G:" << color[i].g << " B:" << color[i].b << ")" << std::endl;
   }
   sdl_palette->colors = color.data();
-  colors_.push_back(color);
-
   return sdl_palette.get();
 }
 
