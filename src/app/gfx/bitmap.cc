@@ -107,6 +107,12 @@ void Bitmap::ApplyPalette(SNESPalette &palette) {
   surface_->format->palette = palette.GetSDL_Palette();
 }
 
+void Bitmap::SetPaletteColor(int id, gfx::snes_color color) {
+  surface_->format->palette->colors[id].r = color.red;
+  surface_->format->palette->colors[id].b = color.blue;
+  surface_->format->palette->colors[id].g = color.green;
+}
+
 // Creates a vector of bitmaps which are individual 8x8 tiles.
 absl::StatusOr<std::vector<Bitmap>> Bitmap::CreateTiles() {
   std::vector<Bitmap> tiles;
