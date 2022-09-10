@@ -64,6 +64,8 @@ char* Convert(const snes_palette pal) {
 
 SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}
 
+SNESColor::SNESColor(snes_color val) { snes = ConvertRGBtoSNES(val); }
+
 SNESColor::SNESColor(ImVec4 val) : rgb(val) {
   snes_color col;
   col.red = (uchar)val.x;
@@ -81,9 +83,7 @@ void SNESColor::setRgb(ImVec4 val) {
   snes = ConvertRGBtoSNES(col);
 }
 
-void SNESColor::setRgb(snes_color val) {
-  snes = ConvertRGBtoSNES(val);
-}
+void SNESColor::setRgb(snes_color val) { snes = ConvertRGBtoSNES(val); }
 
 void SNESColor::setSNES(uint16_t val) {
   snes = val;
@@ -143,6 +143,20 @@ SNESPalette::SNESPalette(const std::vector<snes_color>& cols) {
   size_ = cols.size();
 }
 
+SNESPalette::SNESPalette(const std::vector<SNESColor>& cols) {
+  for (const auto& each : cols) {
+    colors.push_back(each);
+  }
+  size_ = cols.size();
+}
+
+void SNESPalette::Create(const std::vector<SNESColor>& cols) {
+  for (const auto& each : cols) {
+    colors.push_back(each);
+  }
+  size_ = cols.size();
+}
+
 char* SNESPalette::encode() {
   auto data = new char[size_ * 2];
   for (unsigned int i = 0; i < size_; i++) {
@@ -167,6 +181,11 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
   }
   sdl_palette->colors = color.data();
   return sdl_palette.get();
+}
+
+PaletteGroup::PaletteGroup(uint8_t mSize) {
+  size = mSize;
+  palettes.reserve(size);
 }
 
 }  // namespace gfx
