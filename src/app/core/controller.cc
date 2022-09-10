@@ -23,6 +23,7 @@ namespace {
 void InitializeKeymap() {
   ImGuiIO &io = ImGui::GetIO();
   io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
+  io.KeyMap[ImGuiKey_LeftShift] = SDL_GetScancodeFromKey(SDLK_LSHIFT);
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
   io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
   io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
@@ -37,6 +38,8 @@ void HandleKeyDown(SDL_Event &event) {
     case SDLK_DOWN:
     case SDLK_RETURN:
     case SDLK_BACKSPACE:
+    case SDLK_LSHIFT:
+    case SDLK_LCTRL:
     case SDLK_TAB:
       io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
       break;

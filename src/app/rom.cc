@@ -19,7 +19,6 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
-#include "app/zelda3/palettes.h"
 
 #define COMPRESSION_STRING_MOD 7 << 5
 
@@ -535,8 +534,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
 
         if (mode == kNintendoMode1) {  // Reversed byte order for overworld maps
           // addr = (s2 | s1);
-          addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
-          memcpy(buffer.data() + buffer_pos, rom_data_.data() + offset, length);
+          addr = (rom_data_[offset + 1]) | ((rom_data_[offset]) << 8);
+          memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
           buffer_pos += length;
           offset += 2;
           break;
@@ -699,7 +698,7 @@ gfx::SNESColor ROM::ReadColor(int offset) {
 
 gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
   int color_offset = 0;
-  std::vector<gfx::snes_color> colors(num_colors);
+  std::vector<gfx::SNESColor> colors(num_colors);
 
   while (color_offset < num_colors) {
     short color = (short)((rom_data_[offset + 1] << 8) + rom_data_[offset]);
@@ -707,7 +706,7 @@ gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
     new_color.red = (color & 0x1F) * 8;
     new_color.green = ((color >> 5) & 0x1F) * 8;
     new_color.blue = ((color >> 10) & 0x1F) * 8;
-    colors[color_offset] = new_color;
+    colors[color_offset].setSNES(new_color);
     color_offset++;
     offset += 2;
   }
@@ -719,66 +718,70 @@ gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
 void ROM::LoadAllPalettes() {
   // 35 colors each, 7x5 (0,2 on grid)
   for (int i = 0; i < 6; i++) {
-    zelda3::overworld_MainPalettes[i] =
-        ReadPalette(core::overworldPaletteMain + (i * (35 * 2)), 35);
+    palette_groups_["ow_main"].AddPalette(
+        ReadPalette(core::overworldPaletteMain + (i * (35 * 2)), 35));
   }
   // 21 colors each, 7x3 (8,2 and 8,5 on grid)
   for (int i = 0; i < 20; i++) {
-    zelda3::overworld_AuxPalettes[i] =
-        ReadPalette(core::overworldPaletteAuxialiary + (i * (21 * 2)), 21);
+    palette_groups_["ow_aux"].AddPalette(
+        ReadPalette(core::overworldPaletteAuxialiary + (i * (21 * 2)), 21));
   }
   // 7 colors each 7x1 (0,7 on grid)
   for (int i = 0; i < 14; i++) {
-    zelda3::overworld_AnimatedPalettes[i] =
-        ReadPalette(core::overworldPaletteAnimated + (i * (7 * 2)), 7);
+    palette_groups_["ow_animated"].AddPalette(
+        ReadPalette(core::overworldPaletteAnimated + (i * (7 * 2)), 7));
   }
   // 32 colors each 16x2 (0,0 on grid)
   for (int i = 0; i < 2; i++) {
-    zelda3::HudPalettes[i] = ReadPalette(core::hudPalettes + (i * 64), 32);
+    palette_groups_["hud"].AddPalette(
+        ReadPalette(core::hudPalettes + (i * 64), 32));
   }
 
-  zelda3::globalSprite_Palettes[0] =
-      ReadPalette(core::globalSpritePalettesLW, 60);
-  zelda3::globalSprite_Palettes[1] =
-      ReadPalette(core::globalSpritePalettesDW, 60);
+  palette_groups_["global_sprites"].AddPalette(
+      ReadPalette(core::globalSpritePalettesLW, 60));
+  palette_groups_["global_sprites"].AddPalette(
+      ReadPalette(core::globalSpritePalettesDW, 60));
+
   for (int i = 0; i < 5; i++) {
-    zelda3::armors_Palettes[i] =
-        ReadPalette(core::armorPalettes + (i * 30), 15);
+    palette_groups_["armors"].AddPalette(
+        ReadPalette(core::armorPalettes + (i * 30), 15));
   }
   for (int i = 0; i < 4; i++) {
-    zelda3::swords_Palettes[i] = ReadPalette(core::swordPalettes + (i * 6), 3);
+    palette_groups_["swords"].AddPalette(
+        ReadPalette(core::swordPalettes + (i * 6), 3));
   }
   for (int i = 0; i < 3; i++) {
-    zelda3::shields_Palettes[i] =
-        ReadPalette(core::shieldPalettes + (i * 8), 4);
+    palette_groups_["shields"].AddPalette(
+        ReadPalette(core::shieldPalettes + (i * 8), 4));
   }
   for (int i = 0; i < 12; i++) {
-    zelda3::spritesAux1_Palettes[i] =
-        ReadPalette(core::spritePalettesAux1 + (i * 14), 7);
+    palette_groups_["sprites_aux1"].AddPalette(
+        ReadPalette(core::spritePalettesAux1 + (i * 14), 7));
   }
   for (int i = 0; i < 11; i++) {
-    zelda3::spritesAux2_Palettes[i] =
-        ReadPalette(core::spritePalettesAux2 + (i * 14), 7);
+    palette_groups_["sprites_aux2"].AddPalette(
+        ReadPalette(core::spritePalettesAux2 + (i * 14), 7));
   }
   for (int i = 0; i < 24; i++) {
-    zelda3::spritesAux3_Palettes[i] =
-        ReadPalette(core::spritePalettesAux3 + (i * 14), 7);
+    palette_groups_["sprites_aux3"].AddPalette(
+        ReadPalette(core::spritePalettesAux3 + (i * 14), 7));
   }
   for (int i = 0; i < 20; i++) {
-    zelda3::dungeonsMain_Palettes[i] =
-        ReadPalette(core::dungeonMainPalettes + (i * 180), 90);
+    palette_groups_["dungeon_main"].AddPalette(
+        ReadPalette(core::dungeonMainPalettes + (i * 180), 90));
   }
 
-  zelda3::overworld_GrassPalettes[0] = ReadColor(core::hardcodedGrassLW);
-  zelda3::overworld_GrassPalettes[1] = ReadColor(core::hardcodedGrassDW);
-  zelda3::overworld_GrassPalettes[2] = ReadColor(core::hardcodedGrassSpecial);
+  palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassLW));
+  palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassDW));
+  palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassSpecial));
 
-  zelda3::object3D_Palettes[0] = ReadPalette(core::triforcePalette, 8);
-  zelda3::object3D_Palettes[1] = ReadPalette(core::crystalPalette, 8);
+  palette_groups_["3d_object"].AddPalette(
+      ReadPalette(core::triforcePalette, 8));
+  palette_groups_["3d_object"].AddPalette(ReadPalette(core::crystalPalette, 8));
 
   for (int i = 0; i < 2; i++) {
-    zelda3::overworld_Mini_Map_Palettes[i] =
-        ReadPalette(core::overworldMiniMapPalettes + (i * 256), 128);
+    palette_groups_["ow_mini_map"].AddPalette(
+        ReadPalette(core::overworldMiniMapPalettes + (i * 256), 128));
   }
 
   // TODO: check for the paletts in the empty bank space that kan will allocate

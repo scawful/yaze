@@ -20,7 +20,6 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
-#include "app/zelda3/palettes.h"
 
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
@@ -94,6 +93,7 @@ class ROM {
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
+  auto GetPaletteGroup(std::string group) { return palette_groups_[group]; }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
@@ -133,6 +133,7 @@ class ROM {
   Bytes graphics_buffer_;
   std::shared_ptr<SDL_Renderer> renderer_;
   std::unordered_map<int, gfx::Bitmap> graphics_bin_;
+  std::unordered_map<std::string, gfx::PaletteGroup> palette_groups_;
 };
 
 }  // namespace app
