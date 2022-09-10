@@ -77,22 +77,23 @@ class ROM {
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 
   absl::Status LoadAllGraphicsData();
-  
-  absl::StatusOr<Bytes> CreateAllGfxDataRaw();
-  absl::Status CreateAllGraphicsData();
-
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
+  void LoadAllPalettes();
 
   absl::Status SaveToFile();
+
+  gfx::SNESColor ReadColor(int offset);
+  gfx::SNESPalette ReadPalette(int offset, int num_colors);
+
   void RenderBitmap(gfx::Bitmap* bitmap) const;
 
   auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
-  auto GetGraphics8BPP() const { return graphics_8bpp_buffer_; }
+  auto GetPaletteGroup(std::string group) { return palette_groups_[group]; }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
@@ -117,6 +118,10 @@ class ROM {
   }
   const uchar* operator&() { return rom_data_.data(); }
 
+  ushort toint16(int offset) {
+    return (ushort)((rom_data_[offset + 1]) << 8) | rom_data_[offset];
+  }
+
  private:
   long size_ = 0;
   uchar title[21] = "ROM Not Loaded";
@@ -126,9 +131,9 @@ class ROM {
 
   Bytes rom_data_;
   Bytes graphics_buffer_;
-  Bytes graphics_8bpp_buffer_;
   std::shared_ptr<SDL_Renderer> renderer_;
   std::unordered_map<int, gfx::Bitmap> graphics_bin_;
+  std::unordered_map<std::string, gfx::PaletteGroup> palette_groups_;
 };
 
 }  // namespace app

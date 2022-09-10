@@ -40,10 +40,14 @@ char* Convert(const snes_palette pal);
 struct SNESColor {
   SNESColor();
   explicit SNESColor(ImVec4);
+  explicit SNESColor(snes_color);
+
+  void setRgb(ImVec4);
+  void setSNES(snes_color);
+  void setSNES(uint16_t);
+
   uint16_t snes = 0;
   ImVec4 rgb;
-  void setRgb(ImVec4);
-  void setSNES(uint16_t);
 };
 
 class SNESPalette {
@@ -53,14 +57,51 @@ class SNESPalette {
   explicit SNESPalette(char* snesPal);
   explicit SNESPalette(const unsigned char* snes_pal);
   explicit SNESPalette(const std::vector<ImVec4>&);
+  explicit SNESPalette(const std::vector<snes_color>&);
+  explicit SNESPalette(const std::vector<SNESColor>&);
+
+  void Create(const std::vector<SNESColor>&);
+  void AddColor(SNESColor color) { colors.push_back(color); }
+  auto GetColor(int i) const { return colors[i]; }
+
+  SNESColor operator[](int i) {
+    if (i > size_) {
+      std::cout << "SNESPalette: Index out of bounds" << std::endl;
+      return colors[0];
+    }
+    return colors[i];
+  }
 
   char* encode();
   SDL_Palette* GetSDL_Palette();
 
   int size_ = 0;
   std::vector<SNESColor> colors;
-  std::vector<SDL_Color*> colors_arrays_;
-  std::vector<std::vector<SDL_Color>> colors_;
+};
+
+struct PaletteGroup {
+  PaletteGroup() = default;
+  explicit PaletteGroup(uint8_t mSize);
+  void AddPalette(SNESPalette pal) {
+    palettes.emplace_back(pal);
+    size = palettes.size();
+  }
+  void AddColor(SNESColor color) {
+    if (size == 0) {
+      SNESPalette empty_pal;
+      palettes.emplace_back(empty_pal);
+    }
+    palettes[0].AddColor(color);
+  }
+  SNESPalette operator[](int i) {
+    if (i > size) {
+      std::cout << "PaletteGroup: Index out of bounds" << std::endl;
+      return palettes[0];
+    }
+    return palettes[i];
+  }
+  int size = 0;
+  std::vector<SNESPalette> palettes;
 };
 
 }  // namespace gfx

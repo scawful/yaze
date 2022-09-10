@@ -23,12 +23,12 @@ using tile8 = struct tile8;
 class TileInfo {
  public:
   ushort id_;
-  ushort over_;
-  ushort vertical_mirror_;
-  ushort horizontal_mirror_;
+  bool over_;
+  bool vertical_mirror_;
+  bool horizontal_mirror_;
   uchar palette_;
   TileInfo() = default;
-  TileInfo(ushort id, uchar palette, ushort v, ushort h, ushort o)
+  TileInfo(ushort id, uchar palette, bool v, bool h, bool o)
       : id_(id),
         over_(o),
         vertical_mirror_(v),

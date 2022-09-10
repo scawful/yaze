@@ -528,32 +528,36 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
+        ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
+        ushort s2 = ((rom_data_[offset] & kSnesByteMax));
+        int addr = (s1 | s2);
+
         if (mode == kNintendoMode1) {  // Reversed byte order for overworld maps
-          auto addr = (rom_data_[offset + 2]) | ((rom_data_[offset + 1]) << 8);
-          if (addr > offset) {
-            return absl::InternalError(absl::StrFormat(
-                "DecompressOverworld: Offset for command copy exceeds "
-                "current position (Offset : %#04x | Pos : %#06x)\n",
-                addr, offset));
-          }
-
-          if (buffer_pos + length >= size) {
-            size *= 2;
-            buffer.resize(size);
-          }
-
-          memcpy(buffer.data() + buffer_pos, rom_data_.data() + addr, length);
+          // addr = (s2 | s1);
+          addr = (rom_data_[offset + 1]) | ((rom_data_[offset]) << 8);
+          memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
+          buffer_pos += length;
           offset += 2;
-        } else {
-          ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
-          ushort s2 = ((rom_data_[offset] & kSnesByteMax));
-          auto addr = (s1 | s2);
-          for (int i = 0; i < length; i++) {
-            buffer[buffer_pos] = buffer[addr + i];
-            buffer_pos++;
-          }
-          offset += 2;  // Advance 2 bytes in the ROM
+          break;
         }
+
+        if (addr > offset) {
+          return absl::InternalError(absl::StrFormat(
+              "DecompressOverworld: Offset for command copy exceeds "
+              "current position (Offset : %#04x | Pos : %#06x)\n",
+              addr, offset));
+        }
+
+        if (buffer_pos + length >= size) {
+          size *= 2;
+          buffer.resize(size);
+        }
+
+        for (int i = 0; i < length; i++) {
+          buffer[buffer_pos] = buffer[addr + i];
+          buffer_pos++;
+        }
+        offset += 2;  // Advance 2 bytes in the ROM
 
       } break;
       default: {
@@ -576,166 +580,6 @@ absl::StatusOr<Bytes> ROM::DecompressGraphics(int pos, int size) {
 
 absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
   return Decompress(pos, size, kNintendoMode1);
-}
-
-absl::StatusOr<Bytes> ROM::CreateAllGfxDataRaw() {
-  // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 bytes
-  // 113-114 -> compressed 2bpp -> (decompressed each) 0x800 bytes
-  // 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 bytes
-  // 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 bytes
-  // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 bytes
-  Bytes buffer(0x54A00);
-  for (int i = 0; i < 0x54A00; ++i) {
-    buffer.push_back(0x00);
-  }
-  int bufferPos = 0;
-  Bytes data(0x600);
-  for (int i = 0; i < 0x600; ++i) {
-    buffer.push_back(0x00);
-  }
-
-  for (int i = 0; i < 223; i++) {
-    bool c = true;
-    if (i >= 0 && i <= 112)  // compressed 3bpp bgr
-    {
-      isbpp3[i] = true;
-    } else if (i >= 113 && i <= 114)  // compressed 2bpp
-    {
-      isbpp3[i] = false;
-    } else if (i >= 115 && i <= 126)  // uncompressed 3bpp sprites
-    {
-      isbpp3[i] = true;
-      c = false;
-    } else if (i >= 127 && i <= 217)  // compressed 3bpp sprites
-    {
-      isbpp3[i] = true;
-    } else if (i >= 218 && i <= 222)  // compressed 2bpp
-    {
-      isbpp3[i] = false;
-    }
-
-    if (c)  // if data is compressed decompress it
-    {
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      ASSIGN_OR_RETURN(data, Decompress(offset))
-    } else {
-      data.resize(core::Uncompressed3BPPSize);
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
-        data[j] = rom_data_[j + offset];
-      }
-    }
-
-    for (int j = 0; j < data.size(); j++) {
-      buffer[j + bufferPos] = data[j];
-    }
-
-    bufferPos += data.size();
-  }
-
-  return buffer;
-}
-
-absl::Status ROM::CreateAllGraphicsData() {
-  ASSIGN_OR_RETURN(Bytes data, CreateAllGfxDataRaw())
-  Bytes newData(0x6F800);
-  for (int i = 0; i < 0x6F800; i++) {
-    newData.push_back(0x00);
-  }
-  Bytes mask{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-  int sheetPosition = 0;
-
-  // 8x8 tile
-  // Per Sheet
-  for (int s = 0; s < 223; s++) {
-    // Per Tile Line Y
-    for (int j = 0; j < 4; j++) {
-      // Per Tile Line X
-      for (int i = 0; i < 16; i++) {
-        // Per Pixel Line
-        for (int y = 0; y < 8; y++) {
-          if (isbpp3[s]) {
-            auto lineBits0 =
-                data[(y * 2) + (i * 24) + (j * 384) + sheetPosition];
-            auto lineBits1 =
-                data[(y * 2) + (i * 24) + (j * 384) + 1 + sheetPosition];
-            auto lineBits2 =
-                data[(y) + (i * 24) + (j * 384) + 16 + sheetPosition];
-
-            // Per Pixel X
-            for (int x = 0; x < 4; x++) {
-              auto pixdata = 0;
-              auto pixdata2 = 0;
-
-              if ((lineBits0 & mask[(x * 2)]) == mask[(x * 2)]) {
-                pixdata += 1;
-              }
-              if ((lineBits1 & mask[(x * 2)]) == mask[(x * 2)]) {
-                pixdata += 2;
-              }
-              if ((lineBits2 & mask[(x * 2)]) == mask[(x * 2)]) {
-                pixdata += 4;
-              }
-
-              if ((lineBits0 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
-                pixdata2 += 1;
-              }
-              if ((lineBits1 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
-                pixdata2 += 2;
-              }
-              if ((lineBits2 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
-                pixdata2 += 4;
-              }
-
-              newData[(y * 64) + (x) + (i * 4) + (j * 512) + (s * 2048)] =
-                  ((pixdata << 4) | pixdata2);
-            }
-          } else {
-            auto lineBits0 =
-                data[(y * 2) + (i * 16) + (j * 256) + sheetPosition];
-            auto lineBits1 =
-                data[(y * 2) + (i * 16) + (j * 256) + 1 + sheetPosition];
-
-            // Per Pixel X
-            for (int x = 0; x < 4; x++) {
-              auto pixdata = 0;
-              auto pixdata2 = 0;
-
-              if ((lineBits0 & mask[(x * 2)]) == mask[(x * 2)]) {
-                pixdata += 1;
-              }
-              if ((lineBits1 & mask[(x * 2)]) == mask[(x * 2)]) {
-                pixdata += 2;
-              }
-
-              if ((lineBits0 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
-                pixdata2 += 1;
-              }
-              if ((lineBits1 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
-                pixdata2 += 2;
-              }
-
-              newData[(y * 64) + (x) + (i * 4) + (j * 512) + (s * 2048)] =
-                  ((pixdata << 4) | pixdata2);
-            }
-          }
-        }
-      }
-    }
-
-    if (isbpp3[s]) {
-      sheetPosition += 0x600;
-    } else {
-      sheetPosition += 0x800;
-    }
-  }
-
-  graphics_buffer_.reserve(0x6F800);
-  for (int i = 0; i < 0x6F800; i++) {
-    graphics_buffer_.push_back(newData[i]);
-  }
-
-  return absl::OkStatus();
 }
 
 // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
@@ -771,11 +615,11 @@ absl::Status ROM::LoadAllGraphicsData() {
       graphics_bin_.at(i).CreateTexture(renderer_);
 
       for (int j = 0; j < graphics_bin_.at(i).GetSize(); ++j) {
-        graphics_8bpp_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
+        graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
       }
     } else {
       for (int j = 0; j < 0x1000; ++j) {
-        graphics_8bpp_buffer_.push_back(0xFF);
+        graphics_buffer_.push_back(0xFF);
       }
     }
   }
@@ -802,6 +646,7 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
   memcpy(title, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
 
   file.close();
+  LoadAllPalettes();
   is_loaded_ = true;
   return absl::OkStatus();
 }
@@ -839,6 +684,130 @@ absl::Status ROM::SaveToFile() {
 
 void ROM::RenderBitmap(gfx::Bitmap* bitmap) const {
   bitmap->CreateTexture(renderer_);
+}
+
+gfx::SNESColor ROM::ReadColor(int offset) {
+  short color = (short)((rom_data_[offset + 1] << 8) + rom_data_[offset]);
+  gfx::snes_color new_color;
+  new_color.red = (color & 0x1F) * 8;
+  new_color.green = ((color >> 5) & 0x1F) * 8;
+  new_color.blue = ((color >> 10) & 0x1F) * 8;
+  gfx::SNESColor snes_color(new_color);
+  return snes_color;
+}
+
+gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
+  int color_offset = 0;
+  std::vector<gfx::SNESColor> colors(num_colors);
+
+  while (color_offset < num_colors) {
+    short color = (short)((rom_data_[offset + 1] << 8) + rom_data_[offset]);
+    gfx::snes_color new_color;
+    new_color.red = (color & 0x1F) * 8;
+    new_color.green = ((color >> 5) & 0x1F) * 8;
+    new_color.blue = ((color >> 10) & 0x1F) * 8;
+    colors[color_offset].setSNES(new_color);
+    color_offset++;
+    offset += 2;
+  }
+
+  gfx::SNESPalette palette(colors);
+  return palette;
+}
+
+void ROM::LoadAllPalettes() {
+  // 35 colors each, 7x5 (0,2 on grid)
+  for (int i = 0; i < 6; i++) {
+    palette_groups_["ow_main"].AddPalette(
+        ReadPalette(core::overworldPaletteMain + (i * (35 * 2)), 35));
+  }
+  // 21 colors each, 7x3 (8,2 and 8,5 on grid)
+  for (int i = 0; i < 20; i++) {
+    palette_groups_["ow_aux"].AddPalette(
+        ReadPalette(core::overworldPaletteAuxialiary + (i * (21 * 2)), 21));
+  }
+  // 7 colors each 7x1 (0,7 on grid)
+  for (int i = 0; i < 14; i++) {
+    palette_groups_["ow_animated"].AddPalette(
+        ReadPalette(core::overworldPaletteAnimated + (i * (7 * 2)), 7));
+  }
+  // 32 colors each 16x2 (0,0 on grid)
+  for (int i = 0; i < 2; i++) {
+    palette_groups_["hud"].AddPalette(
+        ReadPalette(core::hudPalettes + (i * 64), 32));
+  }
+
+  palette_groups_["global_sprites"].AddPalette(
+      ReadPalette(core::globalSpritePalettesLW, 60));
+  palette_groups_["global_sprites"].AddPalette(
+      ReadPalette(core::globalSpritePalettesDW, 60));
+
+  for (int i = 0; i < 5; i++) {
+    palette_groups_["armors"].AddPalette(
+        ReadPalette(core::armorPalettes + (i * 30), 15));
+  }
+  for (int i = 0; i < 4; i++) {
+    palette_groups_["swords"].AddPalette(
+        ReadPalette(core::swordPalettes + (i * 6), 3));
+  }
+  for (int i = 0; i < 3; i++) {
+    palette_groups_["shields"].AddPalette(
+        ReadPalette(core::shieldPalettes + (i * 8), 4));
+  }
+  for (int i = 0; i < 12; i++) {
+    palette_groups_["sprites_aux1"].AddPalette(
+        ReadPalette(core::spritePalettesAux1 + (i * 14), 7));
+  }
+  for (int i = 0; i < 11; i++) {
+    palette_groups_["sprites_aux2"].AddPalette(
+        ReadPalette(core::spritePalettesAux2 + (i * 14), 7));
+  }
+  for (int i = 0; i < 24; i++) {
+    palette_groups_["sprites_aux3"].AddPalette(
+        ReadPalette(core::spritePalettesAux3 + (i * 14), 7));
+  }
+  for (int i = 0; i < 20; i++) {
+    palette_groups_["dungeon_main"].AddPalette(
+        ReadPalette(core::dungeonMainPalettes + (i * 180), 90));
+  }
+
+  palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassLW));
+  palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassDW));
+  palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassSpecial));
+
+  palette_groups_["3d_object"].AddPalette(
+      ReadPalette(core::triforcePalette, 8));
+  palette_groups_["3d_object"].AddPalette(ReadPalette(core::crystalPalette, 8));
+
+  for (int i = 0; i < 2; i++) {
+    palette_groups_["ow_mini_map"].AddPalette(
+        ReadPalette(core::overworldMiniMapPalettes + (i * 256), 128));
+  }
+
+  // TODO: check for the paletts in the empty bank space that kan will allocate
+  // and read them in here
+  // TODO magic colors
+  // LW
+  // int j = 0;
+  // while (j < 64) {
+  //   zelda3::overworld_BackgroundPalette[j++] =
+  //       Color.FromArgb(0xFF, 0x48, 0x98, 0x48);
+  // }
+
+  // // DW
+  // while (j < 128) {
+  //   zelda3::overworld_BackgroundPalette[j++] =
+  //       Color.FromArgb(0xFF, 0x90, 0x88, 0x50);
+  // }
+
+  // // SP
+  // while (j < core::kNumOverworldMaps) {
+  //   zelda3::overworld_BackgroundPalette[j++] =
+  //       Color.FromArgb(0xFF, 0x48, 0x98, 0x48);
+  // }
+
+  // zelda3::overworld_BackgroundPalette =
+  //     ReadPalette(core::customAreaSpecificBGPalette, 160);
 }
 
 }  // namespace app

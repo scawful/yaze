@@ -88,13 +88,13 @@ void Overworld::AssembleMap32Tiles() {
 void Overworld::AssembleMap16Tiles() {
   int tpos = core::map16Tiles;
   for (int i = 0; i < 4096; i += 1) {
-    auto t0 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
+    auto t0 = gfx::GetTilesInfo((rom_.toint16(tpos)));
     tpos += 2;
-    auto t1 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
+    auto t1 = gfx::GetTilesInfo((rom_.toint16(tpos)));
     tpos += 2;
-    auto t2 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
+    auto t2 = gfx::GetTilesInfo((rom_.toint16(tpos)));
     tpos += 2;
-    auto t3 = gfx::GetTilesInfo((uintptr_t)(rom_ + tpos));
+    auto t3 = gfx::GetTilesInfo((rom_.toint16(tpos)));
     tpos += 2;
     tiles16.emplace_back(t0, t1, t2, t3);
   }

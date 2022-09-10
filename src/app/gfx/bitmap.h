@@ -30,7 +30,8 @@ class Bitmap {
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
-  void ApplyPalette(SNESPalette &palette);
+  void ApplyPalette(const SNESPalette &palette);
+  void SetPaletteColor(int id, gfx::SNESColor color);
 
   absl::StatusOr<std::vector<Bitmap>> CreateTiles();
   absl::Status CreateFromTiles(const std::vector<Bitmap> &tiles);
@@ -71,6 +72,7 @@ class Bitmap {
   bool freed_ = false;
   uchar *pixel_data_;
   Bytes data_;
+  gfx::SNESPalette palette_;
   std::shared_ptr<SDL_Texture> texture_ = nullptr;
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
 };
