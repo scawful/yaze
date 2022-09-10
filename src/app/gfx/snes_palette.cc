@@ -64,6 +64,12 @@ char* Convert(const snes_palette pal) {
 
 SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}
 
+SNESColor::SNESColor(snes_color val) {
+  rgb.x = val.red;
+  rgb.y = val.blue;
+  rgb.z = val.green;
+}
+
 SNESColor::SNESColor(ImVec4 val) : rgb(val) {
   snes_color col;
   col.red = (uchar)val.x;
@@ -79,6 +85,10 @@ void SNESColor::setRgb(ImVec4 val) {
   col.blue = val.y;
   col.green = val.z;
   snes = ConvertRGBtoSNES(col);
+}
+
+void SNESColor::setSNES(snes_color val) {
+  rgb = ImVec4(val.red, val.green, val.blue, 1.f);
 }
 
 void SNESColor::setSNES(uint16_t val) {
@@ -130,6 +140,29 @@ SNESPalette::SNESPalette(const std::vector<ImVec4>& cols) {
   size_ = cols.size();
 }
 
+SNESPalette::SNESPalette(const std::vector<snes_color>& cols) {
+  for (const auto& each : cols) {
+    SNESColor scol;
+    scol.setSNES(each);
+    colors.push_back(scol);
+  }
+  size_ = cols.size();
+}
+
+SNESPalette::SNESPalette(const std::vector<SNESColor>& cols) {
+  for (const auto& each : cols) {
+    colors.push_back(each);
+  }
+  size_ = cols.size();
+}
+
+void SNESPalette::Create(const std::vector<SNESColor>& cols) {
+  for (const auto each : cols) {
+    colors.push_back(each);
+  }
+  size_ = cols.size();
+}
+
 char* SNESPalette::encode() {
   auto data = new char[size_ * 2];
   for (unsigned int i = 0; i < size_; i++) {
@@ -141,7 +174,6 @@ char* SNESPalette::encode() {
 }
 
 SDL_Palette* SNESPalette::GetSDL_Palette() {
-  std::cout << "Converting SNESPalette to SDL_Palette" << std::endl;
   auto sdl_palette = std::make_shared<SDL_Palette>();
   sdl_palette->ncolors = size_;
 
@@ -150,14 +182,15 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
     color[i].r = (uint8_t)colors[i].rgb.x * 100;
     color[i].g = (uint8_t)colors[i].rgb.y * 100;
     color[i].b = (uint8_t)colors[i].rgb.z * 100;
+    color[i].a = 0;
     std::cout << "Color " << i << " added (R:" << color[i].r
               << " G:" << color[i].g << " B:" << color[i].b << ")" << std::endl;
   }
   sdl_palette->colors = color.data();
-  colors_.push_back(color);
-
   return sdl_palette.get();
 }
+
+PaletteGroup::PaletteGroup(uint8_t mSize) : size(mSize) {}
 
 }  // namespace gfx
 }  // namespace app

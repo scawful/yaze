@@ -37,15 +37,14 @@ void Canvas::DrawContextMenu() {
                                    io.MousePos.y - origin.y);
 
   // Add first and second point
-  if (is_hovered && !dragging_select_ &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    points_.push_back(mouse_pos_in_canvas);
-    points_.push_back(mouse_pos_in_canvas);
-    dragging_select_ = true;
-  }
-  if (dragging_select_) {
-    points_.back() = mouse_pos_in_canvas;
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) dragging_select_ = false;
+  if (is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    ImVec2 draw_tile_outline_pos;
+    draw_tile_outline_pos.x = std::round((double)mouse_pos_in_canvas.x / 32) * 32;
+    draw_tile_outline_pos.y = std::round((double)mouse_pos_in_canvas.y / 32) * 32;
+
+    points_.push_back(draw_tile_outline_pos);
+    points_.push_back(
+        ImVec2(draw_tile_outline_pos.x + 32, draw_tile_outline_pos.y + 32));
   }
 
   // Pan (we use a zero mouse threshold when there's no context menu)
@@ -60,9 +59,8 @@ void Canvas::DrawContextMenu() {
   ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
   if (enable_context_menu_ && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
     ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+
   if (ImGui::BeginPopup("context")) {
-    if (dragging_select_) points_.resize(points_.size() - 2);
-    dragging_select_ = false;
     if (ImGui::MenuItem("Remove all", nullptr, false, points_.Size > 0)) {
       points_.clear();
     }
@@ -76,6 +74,21 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset) {
       ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
       ImVec2(canvas_p0_.x + (bitmap.GetWidth() * 2),
              canvas_p0_.y + (bitmap.GetHeight() * 2)));
+}
+
+void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
+  draw_list_->AddImage(
+      (void *)bitmap.GetTexture(),
+      ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
+             canvas_p0_.y + y_offset + scrolling_.y),
+      ImVec2(canvas_p0_.x + x_offset + scrolling_.x + (bitmap.GetWidth()),
+             canvas_p0_.y + y_offset + scrolling_.y + (bitmap.GetHeight())));
+}
+
+void Canvas::DrawOutline(int x, int y, int w, int h) {
+  ImVec2 origin(x, y);
+  ImVec2 size(x + w, y + h);
+  draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 255));
 }
 
 void Canvas::DrawGrid(float grid_step) {

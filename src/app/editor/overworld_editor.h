@@ -32,7 +32,7 @@ static constexpr absl::string_view kToolsetColumnNames[] = {
     "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
     "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
     "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
-    "#transportTool", "#musicTool",  "#separator3", "#reloadTool"};
+    "#transportTool", "#musicTool" };
 
 static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
     "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
@@ -48,8 +48,6 @@ class OverworldEditor {
   absl::Status Copy() { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() { return absl::UnimplementedError("Paste"); }
 
-  void OverworldDebugMenu() { overworld_debug_menu_ = true; }
-
  private:
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
@@ -58,12 +56,11 @@ class OverworldEditor {
   void DrawTile16Selector();
   void DrawTile8Selector();
   void DrawAreaGraphics();
-
-  absl::Status DrawOverworldDebugMenu();
-
   void LoadGraphics();
 
   int current_world_ = 0;
+  int current_map_ = 0;
+  int selected_tile_ = 0;
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
   char spr_gfx_[3] = "";
@@ -74,7 +71,8 @@ class OverworldEditor {
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
-  bool overworld_debug_menu_ = false;
+  bool selected_tile_loaded_ = false;
+  bool update_selected_tile_ = true;
 
   ImVec4 current_palette_[8];
 
@@ -86,6 +84,7 @@ class OverworldEditor {
 
   std::unordered_map<int, gfx::Bitmap> graphics_bin_;
   std::unordered_map<int, gfx::Bitmap> current_graphics_set_;
+  std::unordered_map<int, gfx::Bitmap> maps_bmp_;
 
   ROM rom_;
   zelda3::Overworld overworld_;
@@ -94,7 +93,7 @@ class OverworldEditor {
   gfx::Bitmap tile16_blockset_bmp_;  // pointer size 1048576
   gfx::Bitmap current_gfx_bmp_;      // pointer size 32768
   gfx::Bitmap all_gfx_bmp;           // pointer size 456704
-  gfx::Bitmap overworld_map_bmp_;
+  gfx::Bitmap selected_tile_bmp_;
 
   gui::Canvas overworld_map_canvas_;
   gui::Canvas current_gfx_canvas_;

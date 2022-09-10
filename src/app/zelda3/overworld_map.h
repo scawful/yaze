@@ -28,9 +28,9 @@ class OverworldMap {
   absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
                         OWBlockset& world_blockset);
 
-  auto GetCurrentGraphicsSet() const { return current_graphics_sheet_set; }
   auto GetCurrentBlockset() const { return current_blockset_; }
   auto GetCurrentGraphics() const { return current_gfx_; }
+  auto GetCurrentPalette() const { return current_palette_; }
   auto GetBitmapData() const { return bitmap_data_; }
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
   auto IsLargeMap() const { return large_map_; }
@@ -40,6 +40,7 @@ class OverworldMap {
  private:
   void LoadAreaInfo();
   void LoadAreaGraphics(int game_state, int world_index);
+  void LoadPalette();
 
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
@@ -51,6 +52,9 @@ class OverworldMap {
   int message_id_ = 0;
   int area_graphics_ = 0;
   int area_palette_ = 0;
+
+  // TODO SET ME 
+  int game_state_ = 0;
 
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];
@@ -68,8 +72,9 @@ class OverworldMap {
   Bytes bitmap_data_;
   OWMapTiles map_tiles_;
 
+  gfx::SNESPalette current_palette_;
+
   std::vector<gfx::Tile16> tiles16_;
-  std::unordered_map<int, gfx::Bitmap> current_graphics_sheet_set;
 };
 
 }  // namespace zelda3

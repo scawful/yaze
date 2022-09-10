@@ -103,8 +103,17 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
 }
 
 // Convert SNESPalette to SDL_Palette for surface.
-void Bitmap::ApplyPalette(SNESPalette &palette) {
-  surface_->format->palette = palette.GetSDL_Palette();
+void Bitmap::ApplyPalette(const SNESPalette & palette) {
+  palette_ = palette;
+    SDL_SetPaletteColors(surface_->format->palette,
+                         palette_.GetSDL_Palette()->colors,
+                         0, 256);
+}
+
+void Bitmap::SetPaletteColor(int id, gfx::SNESColor color) {
+  surface_->format->palette->colors[id].r = color.rgb.x;
+  surface_->format->palette->colors[id].g = color.rgb.y;
+  surface_->format->palette->colors[id].b = color.rgb.z;
 }
 
 // Creates a vector of bitmaps which are individual 8x8 tiles.
