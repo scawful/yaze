@@ -62,7 +62,6 @@ set(
 set(
   YAZE_APP_GFX_SRC
   app/gfx/bitmap.cc
-  app/gfx/pseudo_vram.cc
   app/gfx/snes_palette.cc
   app/gfx/snes_tile.cc
 )
