@@ -139,12 +139,13 @@ set_target_properties(yaze
     LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/yaze.res"
 )
 
-# 
+add_subdirectory(app/delta)
 
 add_executable(
   yaze_delta
   app/delta/delta.cc
   app/delta/viewer.cc
+  app/delta/client.cc
   app/rom.cc
   ${YAZE_APP_ASM_SRC}
   ${YAZE_APP_CORE_SRC}
@@ -176,6 +177,7 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  delta-service
   ImGui
 )
 

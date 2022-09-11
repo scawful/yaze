@@ -18,7 +18,6 @@ int main(int argc, char** argv) {
 
   auto entry_status = controller.onEntry();
   if (!entry_status.ok()) {
-    // TODO(@scawful): log the specific error
     return EXIT_FAILURE;
   }
 
