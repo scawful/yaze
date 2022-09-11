@@ -103,11 +103,13 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
 }
 
 // Convert SNESPalette to SDL_Palette for surface.
-void Bitmap::ApplyPalette(const SNESPalette & palette) {
+void Bitmap::ApplyPalette(const SNESPalette &palette) {
   palette_ = palette;
-    SDL_SetPaletteColors(surface_->format->palette,
-                         palette_.GetSDL_Palette()->colors,
-                         0, 256);
+  for (int i = 0; i < palette.size_; ++i) {
+    surface_->format->palette->colors[i].r = palette.GetColor(i).rgb.x;
+    surface_->format->palette->colors[i].g = palette.GetColor(i).rgb.y;
+    surface_->format->palette->colors[i].b = palette.GetColor(i).rgb.z;
+  }
 }
 
 void Bitmap::SetPaletteColor(int id, gfx::SNESColor color) {

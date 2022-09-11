@@ -29,10 +29,10 @@ static constexpr uint kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
-    "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
-    "#transportTool", "#musicTool" };
+    "#undoTool",      "#redoTool",   "#drawTool",  "#separator2",
+    "#zoomOutTool",   "#zoomInTool", "#separator", "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",  "#spriteTool",
+    "#transportTool", "#musicTool"};
 
 static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
     "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
@@ -90,9 +90,9 @@ class OverworldEditor {
   zelda3::Overworld overworld_;
 
   gfx::SNESPalette palette_;
-  gfx::Bitmap tile16_blockset_bmp_;  // pointer size 1048576
-  gfx::Bitmap current_gfx_bmp_;      // pointer size 32768
-  gfx::Bitmap all_gfx_bmp;           // pointer size 456704
+  gfx::Bitmap tile16_blockset_bmp_;
+  gfx::Bitmap current_gfx_bmp_;
+  gfx::Bitmap all_gfx_bmp;
   gfx::Bitmap selected_tile_bmp_;
 
   gui::Canvas overworld_map_canvas_;
