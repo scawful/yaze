@@ -120,63 +120,6 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
   }
 }
 
-void Bitmap::SetPaletteColor(int id, gfx::SNESColor color) {
-  surface_->format->palette->colors[id].r = color.rgb.x;
-  surface_->format->palette->colors[id].g = color.rgb.y;
-  surface_->format->palette->colors[id].b = color.rgb.z;
-}
-
-// Creates a vector of bitmaps which are individual 8x8 tiles.
-absl::StatusOr<std::vector<Bitmap>> Bitmap::CreateTiles() {
-  std::vector<Bitmap> tiles;
-  for (int i = 0; i < 16; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      Bitmap bmp;
-      bmp.Create(8, 8, 8, 32);
-      auto surface = bmp.GetSurface();
-      SDL_Rect src_rect = {i, j, 8, 8};
-      if (SDL_BlitSurface(surface_.get(), &src_rect, surface, nullptr) != 0)
-        return absl::InternalError(
-            absl::StrCat("Failed to blit surface: ", SDL_GetError()));
-      tiles.push_back(bmp);
-    }
-  }
-  return tiles;
-}
-
-// Converts a vector of 8x8 tiles into a tilesheet.
-absl::Status Bitmap::CreateFromTiles(const std::vector<Bitmap> &tiles) {
-  if (tiles.empty())
-    return absl::InvalidArgumentError(
-        "Failed to create bitmap: `tiles` is empty.");
-
-  SDL_Rect tile_rect = {0, 0, 8, 8};
-  SDL_Rect dest_rect = {0, 0, 8, 8};
-  for (const auto &tile : tiles) {
-    auto src = tile.GetSurface();
-    if (SDL_BlitSurface(src, &tile_rect, surface_.get(), &dest_rect) != 0)
-      return absl::InternalError(
-          absl::StrCat("Failed to blit surface: ", SDL_GetError()));
-
-    dest_rect.x++;
-    if (dest_rect.x == 15) {
-      dest_rect.x = 0;
-      dest_rect.y++;
-    }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status Bitmap::WritePixel(int pos, uchar pixel) {
-  if (!surface_) {
-    return absl::InternalError("Surface not loaded");
-  }
-  auto pixels = (char *)surface_->pixels;
-  pixels[pos] = pixel;
-  return absl::OkStatus();
-}
-
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
