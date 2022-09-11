@@ -95,7 +95,7 @@ absl::Status OverworldEditor::Update() {
 }
 
 absl::Status OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("OWToolset", 15, toolset_table_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("OWToolset", 17, toolset_table_flags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -133,6 +133,13 @@ absl::Status OverworldEditor::DrawToolset() {
     // Music
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_MUSIC_NOTE);
+
+    // Separator
+    ImGui::TableNextColumn();
+    ImGui::Text(ICON_MD_MORE_VERT);
+    // Music
+    ImGui::TableNextColumn();
+    palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
 
     ImGui::EndTable();
   }

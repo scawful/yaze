@@ -107,12 +107,15 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
   palette_ = palette;
   for (int i = 0; i < palette.size_; ++i) {
     if (palette.GetColor(i).transparent) {
+      surface_->format->palette->colors[i].r = 0;
+      surface_->format->palette->colors[i].g = 0;
+      surface_->format->palette->colors[i].b = 0;
       surface_->format->palette->colors[i].a = 0;
     } else {
       surface_->format->palette->colors[i].r = palette.GetColor(i).rgb.x;
       surface_->format->palette->colors[i].g = palette.GetColor(i).rgb.y;
       surface_->format->palette->colors[i].b = palette.GetColor(i).rgb.z;
-      surface_->format->palette->colors[i].a = 255;
+      surface_->format->palette->colors[i].a = palette.GetColor(i).rgb.w;
     }
   }
 }

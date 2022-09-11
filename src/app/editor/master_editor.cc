@@ -103,6 +103,7 @@ void MasterEditor::DrawFileDialog() {
       status_ = rom_.LoadFromFile(filePathName);
       overworld_editor_.SetupROM(rom_);
       screen_editor_.SetupROM(rom_);
+      palette_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
   }

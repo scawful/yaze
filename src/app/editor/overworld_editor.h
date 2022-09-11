@@ -9,6 +9,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -88,6 +89,7 @@ class OverworldEditor {
 
   ROM rom_;
   zelda3::Overworld overworld_;
+  PaletteEditor palette_editor_;
 
   gfx::SNESPalette palette_;
   gfx::Bitmap tile16_blockset_bmp_;
