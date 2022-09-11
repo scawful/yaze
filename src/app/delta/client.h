@@ -13,7 +13,6 @@
 #include "src/app/delta/delta.grpc.pb.h"
 #include "src/app/delta/delta.pb.h"
 
-
 namespace yaze {
 namespace app {
 namespace delta {
@@ -28,6 +27,7 @@ using grpc::Status;
 
 class Client {
  public:
+  Client() = default;
   void CreateChannel();
   absl::Status InitRepo(std::string author_name, std::string project_name);
 
