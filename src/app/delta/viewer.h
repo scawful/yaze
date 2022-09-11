@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/delta/client.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -24,7 +25,18 @@ class Viewer {
   void Update();
 
  private:
+  void DrawFileDialog();
+
+  void DrawYazeMenu();
+  void DrawFileMenu() const;
+  void DrawViewMenu();
+
   void DrawBranchTree();
+
+  std::string client_address_;
+
+  ROM rom_;
+  Client client_;
 };
 }  // namespace delta
 }  // namespace app
