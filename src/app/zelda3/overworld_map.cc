@@ -176,16 +176,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
     }
   }
 
-  int world_index = 0x20;
-  if (parent_ < 0x40) {
-    world_index = 0x20;
-  } else if (parent_ >= 0x40 && parent_ < 0x80) {
-    world_index = 0x21;
-  } else if (parent_ == 0x88) {
-    world_index = 0x24;
-  }
-
-  LoadAreaGraphics(game_state, world_index);
+  LoadAreaGraphics();
   RETURN_IF_ERROR(BuildTileset())
   RETURN_IF_ERROR(BuildTiles16Gfx(count))
   LoadPalette();
@@ -273,7 +264,16 @@ void OverworldMap::LoadAreaInfo() {
   }
 }
 
-void OverworldMap::LoadAreaGraphics(int game_state, int world_index) {
+void OverworldMap::LoadAreaGraphics() {
+  int world_index = 0x20;
+  if (parent_ < 0x40) {
+    world_index = 0x20;
+  } else if (parent_ >= 0x40 && parent_ < 0x80) {
+    world_index = 0x21;
+  } else if (parent_ == 0x88) {
+    world_index = 0x24;
+  }
+
   // Sprites Blocksets
   static_graphics_[8] = 0x73 + 0x00;
   static_graphics_[9] = 0x73 + 0x01;
@@ -281,7 +281,7 @@ void OverworldMap::LoadAreaGraphics(int game_state, int world_index) {
   static_graphics_[11] = 0x73 + 0x07;
   for (int i = 0; i < 4; i++) {
     static_graphics_[12 + i] = (rom_[core::kSpriteBlocksetPointer +
-                                     (sprite_graphics_[game_state] * 4) + i] +
+                                     (sprite_graphics_[game_state_] * 4) + i] +
                                 0x73);
   }
 
@@ -386,7 +386,7 @@ void OverworldMap::LoadPalette() {
   if (parent_ < 0x40) {
     // Default LW Palette
     pal0 = 0;
-
+    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(0);
     if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07) {
       pal0 = 2;
     }
@@ -456,8 +456,16 @@ absl::Status OverworldMap::BuildTileset() {
 
   for (int i = 0; i < 0x10; i++) {
     for (int j = 0; j < 0x1000; j++) {
-      current_gfx_[(i * 0x1000) + j] =
-          all_gfx_[j + (static_graphics_[i] * 0x1000)];
+      auto byte = all_gfx_[j + (static_graphics_[i] * 0x1000)];
+      switch (i) {
+        case 0:
+        case 3:
+        case 4:
+        case 5:
+          byte += 0x88;
+          break;
+      }
+      current_gfx_[(i * 0x1000) + j] = byte;
     }
   }
   return absl::OkStatus();

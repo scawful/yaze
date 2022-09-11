@@ -38,7 +38,7 @@ class OverworldMap {
 
  private:
   void LoadAreaInfo();
-  void LoadAreaGraphics(int game_state, int world_index);
+  void LoadAreaGraphics();
   void LoadPalette();
 
   absl::Status BuildTileset();
