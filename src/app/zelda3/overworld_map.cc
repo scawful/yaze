@@ -46,7 +46,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   int k = 0;
   for (int y = 2; y < 7; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = main[k++];
+      new_palette[x + (16 * y)] = main[k];
+      k++;
     }
   }
 
@@ -61,7 +62,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 2; y < 5; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = aux1[k++];
+      new_palette[x + (16 * y)] = aux1[k];
+      k++;
     }
   }
 
@@ -69,7 +71,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 5; y < 8; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = aux2[k++];
+      new_palette[x + (16 * y)] = aux2[k];
+      k++;
     }
   }
 
@@ -88,7 +91,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux1")[1][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux1")[1][k];
+      k++;
     }
   }
 
@@ -96,7 +100,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux3")[0][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux3")[0][k];
+      k++;
     }
   }
 
@@ -104,7 +109,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("global_sprites")[0][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("global_sprites")[0][k];
+      k++;
     }
   }
 
@@ -112,7 +118,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 13; y < 14; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = spr[k++];
+      new_palette[x + (16 * y)] = spr[k];
+      k++;
     }
   }
 
@@ -120,7 +127,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 14; y < 15; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = spr2[k++];
+      new_palette[x + (16 * y)] = spr2[k];
+      k++;
     }
   }
 
@@ -128,20 +136,15 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("armors")[0][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("armors")[0][k];
+      k++;
     }
   }
 
   current.Create(new_palette);
-  // ColorPalette pal = GFX.editort16Bitmap.Palette;
   for (int i = 0; i < 256; i++) {
     current[(i / 16) * 16].setTransparent(true);
   }
-
-  // GFX.mapgfx16Bitmap.Palette = pal;
-  // GFX.mapblockset16Bitmap.Palette = pal;
-
-  // gfxBitmap.Palette = pal;
 }
 
 }  // namespace
