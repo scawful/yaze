@@ -194,9 +194,10 @@ void Overworld::FetchLargeMaps() {
   overworld_maps_[136].SetLargeMap(false);
 
   bool mapChecked[64];
-  for (auto &each : mapChecked) {
-    each = false;
-  }
+			for (int i = 0; i < 64; i++)
+			{
+				mapChecked[i] = false;
+			}
   int xx = 0;
   int yy = 0;
   while (true) {
