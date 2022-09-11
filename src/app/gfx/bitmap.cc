@@ -106,9 +106,14 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
 void Bitmap::ApplyPalette(const SNESPalette &palette) {
   palette_ = palette;
   for (int i = 0; i < palette.size_; ++i) {
-    surface_->format->palette->colors[i].r = palette.GetColor(i).rgb.x;
-    surface_->format->palette->colors[i].g = palette.GetColor(i).rgb.y;
-    surface_->format->palette->colors[i].b = palette.GetColor(i).rgb.z;
+    if (palette.GetColor(i).transparent) {
+      surface_->format->palette->colors[i].a = 0;
+    } else {
+      surface_->format->palette->colors[i].r = palette.GetColor(i).rgb.x;
+      surface_->format->palette->colors[i].g = palette.GetColor(i).rgb.y;
+      surface_->format->palette->colors[i].b = palette.GetColor(i).rgb.z;
+      surface_->format->palette->colors[i].a = 255;
+    }
   }
 }
 

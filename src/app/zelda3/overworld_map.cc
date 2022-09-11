@@ -134,10 +134,9 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
 
   current.Create(new_palette);
   // ColorPalette pal = GFX.editort16Bitmap.Palette;
-  // for (int i = 0; i < 256; i++) {
-  //   pal.Entries[i] = new_palette[i];
-  //   pal.Entries[(i / 16) * 16] = Color.Transparent;
-  // }
+  for (int i = 0; i < 256; i++) {
+    current[(i / 16) * 16].setTransparent(true);
+  }
 
   // GFX.mapgfx16Bitmap.Palette = pal;
   // GFX.mapblockset16Bitmap.Palette = pal;
@@ -334,8 +333,7 @@ void OverworldMap::LoadPalette() {
 
   uchar pal0 = 0;
 
-  uchar pal1 =
-      rom_[core::overworldMapPaletteGroup + (area_palette_ * 4)];  // aux1
+  uchar pal1 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4)];
   uchar pal2 =
       rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) + 1];  // aux2
   uchar pal3 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) +
