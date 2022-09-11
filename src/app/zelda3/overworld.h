@@ -24,18 +24,18 @@ class Overworld {
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto GetOverworldMaps() const { return overworld_maps_; }
-  auto GetCurrentBlockset() const {
-    return overworld_maps_[current_map_].GetCurrentBlockset();
+
+  auto AreaGraphics() const {
+    return overworld_maps_[current_map_].AreaGraphics();
   }
-  auto GetCurrentGraphics() const {
-    return overworld_maps_[current_map_].GetCurrentGraphics();
+  auto AreaPalette() const {
+    return overworld_maps_[current_map_].AreaPalette();
   }
-  auto GetCurrentBitmapData() const {
-    return overworld_maps_[current_map_].GetBitmapData();
+  auto BitmapData() const { return overworld_maps_[current_map_].BitmapData(); }
+  auto Tile16Blockset() const {
+    return overworld_maps_[current_map_].Tile16Blockset();
   }
-  auto GetCurrentPalette() const {
-    return overworld_maps_[current_map_].GetCurrentPalette();
-  }
+
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 

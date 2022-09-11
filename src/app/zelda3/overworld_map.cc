@@ -156,6 +156,7 @@ OverworldMap::OverworldMap(int index, ROM& rom,
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
                                     uchar* map_parent,
                                     OWBlockset& world_blockset) {
+  game_state_ = game_state;
   world_ = world;
   if (large_map_) {
     parent_ = map_parent[index_];
@@ -496,7 +497,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 
           auto destination = xx + yy + offset + (mx + (my * 0x80));
           current_blockset_[destination] =
-              current_gfx_[source] + (info.palette_ * 0x10);
+              (current_gfx_[source] & 0x0F) + (info.palette_ * 0x10);
         }
       }
     }
