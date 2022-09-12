@@ -7,6 +7,7 @@
 #include <string>
 
 #include "app/gfx/bitmap.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace gui {
@@ -21,6 +22,8 @@ class Canvas {
 
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
   void DrawContextMenu();
+  void DrawTilesFromUser(app::ROM& rom, Bytes& tile,
+                         app::gfx::SNESPalette& pal);
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0);
   void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
   void DrawOutline(int x, int y, int w, int h);
@@ -39,6 +42,7 @@ class Canvas {
   bool enable_grid_ = true;
   bool enable_context_menu_ = true;
   bool custom_canvas_size_ = false;
+  bool is_hovered_ = false;
 
   ImDrawList* draw_list_;
   ImVector<ImVec2> points_;
@@ -46,6 +50,9 @@ class Canvas {
   ImVec2 canvas_sz_;
   ImVec2 canvas_p0_;
   ImVec2 canvas_p1_;
+  ImVec2 mouse_pos_in_canvas_;
+
+  std::vector<app::gfx::Bitmap> changed_tiles_;
 
   std::string title_;
 };

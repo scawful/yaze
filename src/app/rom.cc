@@ -534,23 +534,24 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
 
         if (mode == kNintendoMode1) {  // Reversed byte order for overworld maps
           // addr = (s2 | s1);
-          addr = (rom_data_[offset + 1]) | ((rom_data_[offset]) << 8);
+          addr = (rom_data_[offset + 1] & kSnesByteMax) |
+                 ((rom_data_[offset] & kSnesByteMax) << 8);
+          if (addr > offset) {
+            return absl::InternalError(absl::StrFormat(
+                "DecompressOverworld: Offset for command copy exceeds "
+                "current position (Offset : %#04x | Pos : %#06x)\n",
+                addr, offset));
+          }
+
+          if (buffer_pos + length >= size) {
+            size *= 2;
+            buffer.resize(size);
+          }
+
           memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
           buffer_pos += length;
           offset += 2;
           break;
-        }
-
-        if (addr > offset) {
-          return absl::InternalError(absl::StrFormat(
-              "DecompressOverworld: Offset for command copy exceeds "
-              "current position (Offset : %#04x | Pos : %#06x)\n",
-              addr, offset));
-        }
-
-        if (buffer_pos + length >= size) {
-          size *= 2;
-          buffer.resize(size);
         }
 
         for (int i = 0; i < length; i++) {
@@ -687,7 +688,7 @@ void ROM::RenderBitmap(gfx::Bitmap* bitmap) const {
 }
 
 gfx::SNESColor ROM::ReadColor(int offset) {
-  short color = (short)((rom_data_[offset + 1] << 8) + rom_data_[offset]);
+  short color = toint16(offset);
   gfx::snes_color new_color;
   new_color.red = (color & 0x1F) * 8;
   new_color.green = ((color >> 5) & 0x1F) * 8;
@@ -701,7 +702,7 @@ gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
   std::vector<gfx::SNESColor> colors(num_colors);
 
   while (color_offset < num_colors) {
-    short color = (short)((rom_data_[offset + 1] << 8) + rom_data_[offset]);
+    short color = toint16(offset);
     gfx::snes_color new_color;
     new_color.red = (color & 0x1F) * 8;
     new_color.green = ((color >> 5) & 0x1F) * 8;
@@ -783,31 +784,6 @@ void ROM::LoadAllPalettes() {
     palette_groups_["ow_mini_map"].AddPalette(
         ReadPalette(core::overworldMiniMapPalettes + (i * 256), 128));
   }
-
-  // TODO: check for the paletts in the empty bank space that kan will allocate
-  // and read them in here
-  // TODO magic colors
-  // LW
-  // int j = 0;
-  // while (j < 64) {
-  //   zelda3::overworld_BackgroundPalette[j++] =
-  //       Color.FromArgb(0xFF, 0x48, 0x98, 0x48);
-  // }
-
-  // // DW
-  // while (j < 128) {
-  //   zelda3::overworld_BackgroundPalette[j++] =
-  //       Color.FromArgb(0xFF, 0x90, 0x88, 0x50);
-  // }
-
-  // // SP
-  // while (j < core::kNumOverworldMaps) {
-  //   zelda3::overworld_BackgroundPalette[j++] =
-  //       Color.FromArgb(0xFF, 0x48, 0x98, 0x48);
-  // }
-
-  // zelda3::overworld_BackgroundPalette =
-  //     ReadPalette(core::customAreaSpecificBGPalette, 160);
 }
 
 }  // namespace app

@@ -24,15 +24,15 @@ namespace editor {
 
 namespace {
 void UpdateSelectedTile16(int selected, gfx::Bitmap &tile16_blockset,
-                          gfx::Bitmap &selected_tile) {
+                          Bytes &selected_tile) {
+  selected_tile.reserve(256);
   auto blockset = tile16_blockset.GetData();
-  auto bitmap = selected_tile.GetData();
 
   int src_pos = ((selected - ((selected / 0x08) * 0x08)) * 0x10) +
                 ((selected / 0x08) * 2048);
   for (int yy = 0; yy < 0x10; yy++) {
     for (int xx = 0; xx < 0x10; xx++) {
-      bitmap[xx + (yy * 0x10)] = blockset[src_pos + xx + (yy * 0x80)];
+      selected_tile[xx + (yy * 0x10)] = blockset[src_pos + xx + (yy * 0x80)];
     }
   }
 }
@@ -70,7 +70,7 @@ absl::Status OverworldEditor::Update() {
       selected_tile_bmp_.Create(16, 16, 64, 256);
     }
     UpdateSelectedTile16(selected_tile_, tile16_blockset_bmp_,
-                         selected_tile_bmp_);
+                         selected_tile_data_);
     selected_tile_bmp_.ApplyPalette(palette_);
     rom_.RenderBitmap(&selected_tile_bmp_);
     update_selected_tile_ = false;
