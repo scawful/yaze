@@ -24,6 +24,7 @@ class Canvas {
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0);
   void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
   void DrawOutline(int x, int y, int w, int h);
+  void DrawText(std::string text, int x, int y);
   void DrawGrid(float grid_step = 64.0f);
   void DrawOverlay();  // last
 

@@ -39,8 +39,10 @@ void Canvas::DrawContextMenu() {
   // Add first and second point
   if (is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     ImVec2 draw_tile_outline_pos;
-    draw_tile_outline_pos.x = std::round((double)mouse_pos_in_canvas.x / 32) * 32;
-    draw_tile_outline_pos.y = std::round((double)mouse_pos_in_canvas.y / 32) * 32;
+    draw_tile_outline_pos.x =
+        std::round((double)mouse_pos_in_canvas.x / 32) * 32;
+    draw_tile_outline_pos.y =
+        std::round((double)mouse_pos_in_canvas.y / 32) * 32;
 
     points_.push_back(draw_tile_outline_pos);
     points_.push_back(
@@ -86,9 +88,17 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
 }
 
 void Canvas::DrawOutline(int x, int y, int w, int h) {
-  ImVec2 origin(x, y);
-  ImVec2 size(x + w, y + h);
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
   draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 255));
+}
+
+void Canvas::DrawText(std::string text, int x, int y) {
+  draw_list_->AddText(
+      ImVec2(canvas_p0_.x + scrolling_.x + x, canvas_p0_.y + scrolling_.y + y),
+      IM_COL32(255, 255, 255, 255), text.data());
 }
 
 void Canvas::DrawGrid(float grid_step) {

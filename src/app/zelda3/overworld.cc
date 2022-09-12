@@ -38,6 +38,7 @@ absl::Status Overworld::Load(ROM &rom) {
     overworld_maps_.emplace_back(map_index, rom_, tiles16);
 
   FetchLargeMaps();
+  LoadEntrances();
 
   auto size = tiles16.size();
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
@@ -194,10 +195,9 @@ void Overworld::FetchLargeMaps() {
   overworld_maps_[136].SetLargeMap(false);
 
   bool mapChecked[64];
-			for (int i = 0; i < 64; i++)
-			{
-				mapChecked[i] = false;
-			}
+  for (int i = 0; i < 64; i++) {
+    mapChecked[i] = false;
+  }
   int xx = 0;
   int yy = 0;
   while (true) {
@@ -235,6 +235,40 @@ void Overworld::FetchLargeMaps() {
         break;
       }
     }
+  }
+}
+
+void Overworld::LoadEntrances() {
+  for (int i = 0; i < 129; i++) {
+    short mapId = rom_.toint16(core::OWEntranceMap + (i * 2));
+    ushort mapPos = rom_.toint16(core::OWEntrancePos + (i * 2));
+    uchar entranceId = (rom_[core::OWEntranceEntranceId + i]);
+    int p = mapPos >> 1;
+    int x = (p % 64);
+    int y = (p >> 6);
+    bool deleted = false;
+    if (mapPos == 0xFFFF) {
+      deleted = true;
+    }
+    all_entrances_.emplace_back(
+        (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512),
+        (y * 16) + (((mapId % 64) / 8) * 512), entranceId, mapId, mapPos,
+        deleted);
+  }
+
+  for (int i = 0; i < 0x13; i++) {
+    short mapId = (short)((rom_[core::OWHoleArea + (i * 2) + 1] << 8) +
+                          (rom_[core::OWHoleArea + (i * 2)]));
+    short mapPos = (short)((rom_[core::OWHolePos + (i * 2) + 1] << 8) +
+                           (rom_[core::OWHolePos + (i * 2)]));
+    uchar entranceId = (rom_[core::OWHoleEntrance + i]);
+    int p = (mapPos + 0x400) >> 1;
+    int x = (p % 64);
+    int y = (p >> 6);
+    all_holes_.emplace_back(EntranceOWEditor(
+        (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512),
+        (y * 16) + (((mapId % 64) / 8) * 512), entranceId, mapId,
+        (ushort)(mapPos + 0x400), true));
   }
 }
 

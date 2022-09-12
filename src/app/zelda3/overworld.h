@@ -17,6 +17,60 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
+class EntranceOWEditor {
+ public:
+  int x_;
+  int y_;
+  ushort mapPos;
+  uchar entranceId_, AreaX, AreaY;
+  short mapId_;
+  bool isHole = false;
+  bool deleted = false;
+
+  EntranceOWEditor(int x, int y, uchar entranceId, short mapId, ushort mapPos,
+                   bool hole) {
+    x_ = x;
+    y_ = y;
+    entranceId_ = entranceId;
+    mapId_ = mapId;
+    mapPos = mapPos;
+
+    int mapX = (mapId_ - ((mapId / 8) * 8));
+    int mapY = (mapId_ / 8);
+
+    AreaX = (uchar)((std::abs(x - (mapX * 512)) / 16));
+    AreaY = (uchar)((std::abs(y - (mapY * 512)) / 16));
+
+    isHole = hole;
+  }
+
+  auto Copy() {
+    return new EntranceOWEditor(x_, y_, entranceId_, mapId_, mapPos, isHole);
+  }
+
+  void updateMapStuff(short mapId) {
+    mapId_ = mapId;
+
+    if (mapId_ >= 64) {
+      mapId_ -= 64;
+    }
+
+    int mapX = (mapId_ - ((mapId_ / 8) * 8));
+    int mapY = (mapId_ / 8);
+
+    AreaX = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
+    AreaY = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+
+    int mx = (mapId_ - ((mapId_ / 8) * 8));
+    int my = (mapId_ / 8);
+
+    uchar xx = (uchar)((x_ - (mx * 512)) / 16);
+    uchar yy = (uchar)((y_ - (my * 512)) / 16);
+
+    mapPos = (ushort)((((AreaY) << 6) | (AreaX & 0x3F)) << 1);
+  }
+};
+
 class Overworld {
  public:
   absl::Status Load(ROM &rom);
@@ -27,6 +81,7 @@ class Overworld {
   auto AreaGraphics() const {
     return overworld_maps_[current_map_].AreaGraphics();
   }
+  auto Entrances() const { return all_entrances_; }
   auto AreaPalette() const {
     return overworld_maps_[current_map_].AreaPalette();
   }
@@ -57,6 +112,8 @@ class Overworld {
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
+  void LoadEntrances();
+
   void LoadOverworldMap();
 
   int game_state_ = 1;
@@ -70,6 +127,8 @@ class Overworld {
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
   std::vector<OverworldMap> overworld_maps_;
+  std::vector<EntranceOWEditor> all_entrances_;
+  std::vector<EntranceOWEditor> all_holes_;
 };
 
 }  // namespace zelda3
