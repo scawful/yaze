@@ -97,6 +97,7 @@ class OverworldEditor {
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
   gfx::Bitmap selected_tile_bmp_;
+  Bytes selected_tile_data_;
 
   gui::Canvas overworld_map_canvas_;
   gui::Canvas current_gfx_canvas_;

@@ -6,6 +6,7 @@
 #include <string>
 
 #include "app/gfx/bitmap.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace gui {
@@ -63,10 +64,35 @@ void Canvas::DrawContextMenu() {
     ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
 
   if (ImGui::BeginPopup("context")) {
+    if (ImGui::MenuItem("Reset Position", nullptr, false)) {
+      scrolling_.x = 0;
+      scrolling_.y = 0;
+    }
     if (ImGui::MenuItem("Remove all", nullptr, false, points_.Size > 0)) {
       points_.clear();
     }
     ImGui::EndPopup();
+  }
+}
+
+void Canvas::DrawTilesFromUser(app::ROM &rom, Bytes &tile,
+                               app::gfx::SNESPalette &pal) {
+  ImVec2 draw_tile_outline_pos;
+
+  // Add rectangle
+  if (is_hovered_ && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    draw_tile_outline_pos.x =
+        std::round((double)mouse_pos_in_canvas_.x / 16) * 16;
+    draw_tile_outline_pos.y =
+        std::round((double)mouse_pos_in_canvas_.y / 16) * 16;
+
+    points_.push_back(draw_tile_outline_pos);
+    points_.push_back(
+        ImVec2(draw_tile_outline_pos.x + 16, draw_tile_outline_pos.y + 16));
+
+    changed_tiles_.emplace_back(app::gfx::Bitmap(16, 16, 64, tile.data()));
+    changed_tiles_.back().ApplyPalette(pal);
+    rom.RenderBitmap(&(changed_tiles_.back()));
   }
 }
 
