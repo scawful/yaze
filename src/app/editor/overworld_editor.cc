@@ -8,6 +8,8 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -216,6 +218,14 @@ void OverworldEditor::DrawOverworldCanvas() {
         if (xx >= 8) {
           yy++;
           xx = 0;
+        }
+      }
+      for (const auto &each : overworld_.Entrances()) {
+        if (each.mapId_ < 64 + (current_world_ * 0x40) &&
+            each.mapId_ >= (current_world_ * 0x40)) {
+          overworld_map_canvas_.DrawOutline(each.x_, each.y_, 16, 16);
+          std::string str = absl::StrFormat("%#x", each.entranceId_);
+          overworld_map_canvas_.DrawText(str, each.x_ - 2, each.y_ - 14);
         }
       }
     }
