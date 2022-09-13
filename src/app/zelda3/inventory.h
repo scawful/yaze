@@ -10,8 +10,8 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-constexpr int kMenuGfxStart = 0xE000;
-constexpr int kLampItemPos = 0x6F6F0;
+constexpr int kInventoryStart = 0x6564A;
+constexpr int kLampItemPos = 0x6F6F9;
 constexpr int kBowItemPos = 0x6F631;
 
 class Inventory {
@@ -23,8 +23,7 @@ class Inventory {
   void Create(Bytes& all_gfx);
 
  private:
-  void BuildTileset(Bytes& all_gfx);
-
+  absl::Status BuildTileset(Bytes& all_gfx);
 
   ROM rom_;
 

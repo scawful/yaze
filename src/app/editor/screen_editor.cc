@@ -86,7 +86,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
     tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, 192 * 2 + 2));
     tilesheet_canvas_.DrawContextMenu();
     tilesheet_canvas_.DrawBitmap(inventory_.Tilesheet(), 2, create);
-    tilesheet_canvas_.DrawGrid();
+    tilesheet_canvas_.DrawGrid(16.0f);
     tilesheet_canvas_.DrawOverlay();
 
     ImGui::EndTable();
