@@ -35,12 +35,18 @@ int GetGraphicsAddress(const uchar* data, uint8_t offset) {
   return core::SnesToPc(snes_addr);
 }
 
-Bytes SNES3bppTo8bppSheet(Bytes sheet) {
+Bytes SNES3bppTo8bppSheet(Bytes sheet, int bpp) {
   Bytes sheet_buffer_out(0x1000);
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
   int ypos = 0;
+
+  if (bpp == 2) {
+    bpp = 16;
+  } else if (bpp == 3) {
+    bpp = 24;
+  }
 
   // for each tiles, 16 per line
   for (int i = 0; i < 64; i++) {
@@ -48,9 +54,9 @@ Bytes SNES3bppTo8bppSheet(Bytes sheet) {
     for (int y = 0; y < 8; y++) {
       //[0] + [1] + [16]
       for (int x = 0; x < 8; x++) {
-        auto b1 = ((sheet[(y * 2) + (24 * pos)] & (kGraphicsBitmap[x])));
-        auto b2 = (sheet[((y * 2) + (24 * pos)) + 1] & (kGraphicsBitmap[x]));
-        auto b3 = (sheet[(16 + y) + (24 * pos)] & (kGraphicsBitmap[x]));
+        auto b1 = ((sheet[(y * 2) + (bpp * pos)] & (kGraphicsBitmap[x])));
+        auto b2 = (sheet[((y * 2) + (bpp * pos)) + 1] & (kGraphicsBitmap[x]));
+        auto b3 = (sheet[(16 + y) + (bpp * pos)] & (kGraphicsBitmap[x]));
         unsigned char b = 0;
         if (b1 != 0) {
           b |= 1;
@@ -58,7 +64,7 @@ Bytes SNES3bppTo8bppSheet(Bytes sheet) {
         if (b2 != 0) {
           b |= 2;
         }
-        if (b3 != 0) {
+        if (b3 != 0 && bpp != 16) {
           b |= 4;
         }
         sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
@@ -590,7 +596,7 @@ absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
 // 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 absl::Status ROM::LoadAllGraphicsData() {
   Bytes sheet;
-  bool convert = false;
+  bool bpp3 = false;
 
   for (int i = 0; i < core::NumberOfSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
@@ -599,17 +605,19 @@ absl::Status ROM::LoadAllGraphicsData() {
       for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
         sheet[j] = rom_data_[j + offset];
       }
-      convert = true;
+      bpp3 = true;
     } else if (i == 113 || i == 114 || i >= 218) {
-      convert = false;
+      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      ASSIGN_OR_RETURN(sheet, Decompress(offset, 0x800))
+      bpp3 = false;
     } else {
       auto offset = GetGraphicsAddress(rom_data_.data(), i);
       ASSIGN_OR_RETURN(sheet, Decompress(offset))
-      convert = true;
+      bpp3 = true;
     }
 
-    if (convert) {
-      auto converted_sheet = SNES3bppTo8bppSheet(sheet);
+    if (bpp3) {
+      auto converted_sheet = SNES3bppTo8bppSheet(sheet, 3);
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                       core::kTilesheetDepth, converted_sheet.data(), 0x1000);
@@ -619,8 +627,14 @@ absl::Status ROM::LoadAllGraphicsData() {
         graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
       }
     } else {
-      for (int j = 0; j < 0x1000; ++j) {
-        graphics_buffer_.push_back(0xFF);
+      auto converted_sheet = SNES3bppTo8bppSheet(sheet, 2);
+      graphics_bin_[i] =
+          gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
+                      core::kTilesheetDepth, converted_sheet.data(), 0x1000);
+      graphics_bin_.at(i).CreateTexture(renderer_);
+
+      for (int j = 0; j < graphics_bin_.at(i).GetSize(); ++j) {
+        graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
       }
     }
   }

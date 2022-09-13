@@ -53,6 +53,7 @@ class Bitmap {
   struct SDL_Surface_Deleter {
     void operator()(SDL_Surface *p) const {
       if (p != nullptr) {
+        p->pixels = nullptr;
         SDL_FreeSurface(p);
         p = nullptr;
       }

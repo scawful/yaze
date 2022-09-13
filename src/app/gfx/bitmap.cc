@@ -47,8 +47,8 @@ void Bitmap::Create(int width, int height, int depth, uchar *data) {
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
                                      SDL_PIXELFORMAT_INDEX8),
       SDL_Surface_Deleter());
-  GrayscalePalette(surface_->format->palette);
   surface_->pixels = pixel_data_;
+  GrayscalePalette(surface_->format->palette);
 }
 
 // Reserves data to later draw to surface via pointer
@@ -57,13 +57,14 @@ void Bitmap::Create(int width, int height, int depth, int size) {
   height_ = height;
   depth_ = depth;
   data_size_ = size;
+  data_.reserve(size);
+  pixel_data_ = data_.data();
   surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
                                      SDL_PIXELFORMAT_INDEX8),
       SDL_Surface_Deleter());
-  GrayscalePalette(surface_->format->palette);
-  pixel_data_ = (uchar *)SDL_malloc(size);
   surface_->pixels = pixel_data_;
+  GrayscalePalette(surface_->format->palette);
 }
 
 // Pass raw pixel data directly to the surface

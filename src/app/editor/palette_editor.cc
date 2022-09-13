@@ -41,8 +41,7 @@ absl::Status PaletteEditor::Update() {
   return absl::OkStatus();
 }
 
-absl::Status PaletteEditor::DisplayPalette(gfx::SNESPalette& palette,
-                                           bool loaded) {
+void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
@@ -122,7 +121,6 @@ absl::Status PaletteEditor::DisplayPalette(gfx::SNESPalette& palette,
     ImGui::EndGroup();
     ImGui::EndPopup();
   }
-  return absl::OkStatus();
 }
 
 }  // namespace editor

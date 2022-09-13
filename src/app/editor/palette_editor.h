@@ -26,7 +26,7 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
 class PaletteEditor {
  public:
   absl::Status Update();
-  absl::Status DisplayPalette(gfx::SNESPalette& palette, bool loaded);
+  void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
 
   auto SetupROM(ROM& rom) { rom_ = rom; }
 
