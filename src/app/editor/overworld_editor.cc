@@ -101,46 +101,21 @@ absl::Status OverworldEditor::DrawToolset() {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_UNDO);
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_REDO);
-    ImGui::TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_ZOOM_OUT);
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_ZOOM_IN);
-    ImGui::TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_DRAW);
-    // Entrances
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_DOOR_FRONT);
-    // Exits
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_DOOR_BACK);
-    // Items
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_GRASS);
-    // Sprites
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
-    // Transports
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_ADD_LOCATION);
-    // Music
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_MUSIC_NOTE);
-
-    // Separator
-    ImGui::TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
-    // Music
-    ImGui::TableNextColumn();
+    BUTTON_COLUMN(ICON_MD_UNDO)                 // Undo
+    BUTTON_COLUMN(ICON_MD_REDO)                 // Redo
+    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
+    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)             // Zoom Out
+    BUTTON_COLUMN(ICON_MD_ZOOM_IN)              // Zoom In
+    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
+    BUTTON_COLUMN(ICON_MD_DRAW);                // Draw Tile
+    BUTTON_COLUMN(ICON_MD_DOOR_FRONT)           // Entrances
+    BUTTON_COLUMN(ICON_MD_DOOR_BACK)            // Exits
+    BUTTON_COLUMN(ICON_MD_GRASS)                // Items
+    BUTTON_COLUMN(ICON_MD_PEST_CONTROL_RODENT)  // Sprites
+    BUTTON_COLUMN(ICON_MD_ADD_LOCATION)         // Transports
+    BUTTON_COLUMN(ICON_MD_MUSIC_NOTE)           // Music
+    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
+    ImGui::TableNextColumn();                   // Palette
     palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
 
     ImGui::EndTable();
@@ -223,9 +198,10 @@ void OverworldEditor::DrawOverworldCanvas() {
       for (const auto &each : overworld_.Entrances()) {
         if (each.mapId_ < 64 + (current_world_ * 0x40) &&
             each.mapId_ >= (current_world_ * 0x40)) {
-          overworld_map_canvas_.DrawOutline(each.x_, each.y_, 16, 16);
+          overworld_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
+                                         ImVec4(210, 24, 210, 150));
           std::string str = absl::StrFormat("%#x", each.entranceId_);
-          overworld_map_canvas_.DrawText(str, each.x_ - 2, each.y_ - 14);
+          overworld_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
         }
       }
     }
@@ -271,9 +247,7 @@ void OverworldEditor::DrawTileSelector() {
 void OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawBackground(ImVec2(0x100 + 1, (8192 * 2) + 1));
   blockset_canvas_.DrawContextMenu();
-  if (map_blockset_loaded_) {
-    blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2);
-  }
+  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2, map_blockset_loaded_);
   blockset_canvas_.DrawGrid(32.0f);
   blockset_canvas_.DrawOverlay();
 }
@@ -301,13 +275,11 @@ void OverworldEditor::DrawTile8Selector() {
 }
 
 void OverworldEditor::DrawAreaGraphics() {
-  if (overworld_.isLoaded()) {
-    current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
-    current_gfx_canvas_.DrawContextMenu();
-    current_gfx_canvas_.DrawBitmap(current_gfx_bmp_);
-    current_gfx_canvas_.DrawGrid(32.0f);
-    current_gfx_canvas_.DrawOverlay();
-  }
+  current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
+  current_gfx_canvas_.DrawContextMenu();
+  current_gfx_canvas_.DrawBitmap(current_gfx_bmp_, 2, overworld_.isLoaded());
+  current_gfx_canvas_.DrawGrid(32.0f);
+  current_gfx_canvas_.DrawOverlay();
 }
 
 void OverworldEditor::LoadGraphics() {

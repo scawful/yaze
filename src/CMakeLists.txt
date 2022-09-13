@@ -68,9 +68,11 @@ set(
 
 set(
   YAZE_APP_ZELDA3_SRC
+  app/zelda3/inventory.cc
   app/zelda3/overworld_map.cc
   app/zelda3/overworld.cc
-  app/zelda3/screen.cc
+  app/zelda3/title_screen.cc
+  app/zelda3/sprite.cc
 )
 
 set(

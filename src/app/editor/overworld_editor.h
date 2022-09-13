@@ -84,20 +84,21 @@ class OverworldEditor {
                                   ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_SizingStretchSame;
 
+  Bytes selected_tile_data_;
   std::unordered_map<int, gfx::Bitmap> graphics_bin_;
   std::unordered_map<int, gfx::Bitmap> current_graphics_set_;
   std::unordered_map<int, gfx::Bitmap> maps_bmp_;
+  std::unordered_map<int, gfx::Bitmap> sprite_previews_;
 
   ROM rom_;
-  zelda3::Overworld overworld_;
   PaletteEditor palette_editor_;
+  zelda3::Overworld overworld_;
 
   gfx::SNESPalette palette_;
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
   gfx::Bitmap selected_tile_bmp_;
-  Bytes selected_tile_data_;
 
   gui::Canvas overworld_map_canvas_;
   gui::Canvas current_gfx_canvas_;

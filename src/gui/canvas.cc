@@ -96,12 +96,14 @@ void Canvas::DrawTilesFromUser(app::ROM &rom, Bytes &tile,
   }
 }
 
-void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset) {
-  draw_list_->AddImage(
-      (void *)bitmap.GetTexture(),
-      ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
-      ImVec2(canvas_p0_.x + (bitmap.GetWidth() * 2),
-             canvas_p0_.y + (bitmap.GetHeight() * 2)));
+void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
+  if (ready) {
+    draw_list_->AddImage(
+        (void *)bitmap.GetTexture(),
+        ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
+        ImVec2(canvas_p0_.x + (bitmap.GetWidth() * 2),
+               canvas_p0_.y + (bitmap.GetHeight() * 2)));
+  }
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
@@ -119,6 +121,15 @@ void Canvas::DrawOutline(int x, int y, int w, int h) {
   ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
               canvas_p0_.y + scrolling_.y + y + h);
   draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 255));
+}
+
+void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
+  draw_list_->AddRectFilled(origin, size,
+                            IM_COL32(color.x, color.y, color.z, color.w));
 }
 
 void Canvas::DrawText(std::string text, int x, int y) {

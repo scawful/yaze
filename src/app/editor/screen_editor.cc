@@ -27,13 +27,12 @@ ScreenEditor::ScreenEditor() { screen_canvas_.SetCanvasSize(ImVec2(512, 512)); }
 
 void ScreenEditor::Update() {
   TAB_BAR("##TabBar")
-  DrawMosaicEditor();
+  DrawInventoryMenuEditor();
   DrawTitleScreenEditor();
   DrawNamingScreenEditor();
   DrawOverworldMapEditor();
   DrawDungeonMapsEditor();
-  DrawGameMenuEditor();
-  DrawHUDEditor();
+  DrawMosaicEditor();
   END_TAB_BAR()
 }
 
@@ -58,6 +57,61 @@ void ScreenEditor::DrawWorldGrid(int world, int h, int w) {
       ImGui::PopID();
       i++;
     }
+}
+
+void ScreenEditor::DrawInventoryMenuEditor() {
+  TAB_ITEM("Inventory Menu")
+
+  static bool create = false;
+  if (!create) {
+    PRINT_IF_ERROR(rom_.LoadAllGraphicsData())
+    all_gfx_ = rom_.GetGraphicsBuffer();
+    inventory_.Create(all_gfx_);
+    create = true;
+  }
+
+  if (ImGui::BeginTable("InventoryScreen", 2, ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn("Canvas");
+    ImGui::TableSetupColumn("Tiles");
+    ImGui::TableHeadersRow();
+
+    ImGui::TableNextColumn();
+    screen_canvas_.DrawBackground();
+    screen_canvas_.DrawContextMenu();
+    screen_canvas_.DrawBitmap(inventory_.Bitmap(), 2, create);
+    screen_canvas_.DrawGrid();
+    screen_canvas_.DrawOverlay();
+
+    ImGui::TableNextColumn();
+    tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, 192 * 2 + 2));
+    tilesheet_canvas_.DrawContextMenu();
+    tilesheet_canvas_.DrawBitmap(inventory_.Tilesheet(), 2, create);
+    tilesheet_canvas_.DrawGrid();
+    tilesheet_canvas_.DrawOverlay();
+
+    ImGui::EndTable();
+  }
+
+  ImGui::SameLine();
+
+  END_TAB_ITEM()
+}
+
+void ScreenEditor::DrawTitleScreenEditor() {
+  TAB_ITEM("Title Screen")
+  END_TAB_ITEM()
+}
+void ScreenEditor::DrawNamingScreenEditor() {
+  TAB_ITEM("Naming Screen")
+  END_TAB_ITEM()
+}
+void ScreenEditor::DrawOverworldMapEditor() {
+  TAB_ITEM("Overworld Map")
+  END_TAB_ITEM()
+}
+void ScreenEditor::DrawDungeonMapsEditor() {
+  TAB_ITEM("Dungeon Maps")
+  END_TAB_ITEM()
 }
 
 void ScreenEditor::DrawMosaicEditor() {
@@ -92,39 +146,6 @@ void ScreenEditor::DrawMosaicEditor() {
   }
 
   END_TAB_ITEM()
-}
-
-void ScreenEditor::DrawTitleScreenEditor() {
-  TAB_ITEM("Title Screen")
-  END_TAB_ITEM()
-}
-void ScreenEditor::DrawNamingScreenEditor() {
-  TAB_ITEM("Naming Screen")
-  END_TAB_ITEM()
-}
-void ScreenEditor::DrawOverworldMapEditor() {
-  TAB_ITEM("Overworld Map")
-  END_TAB_ITEM()
-}
-void ScreenEditor::DrawDungeonMapsEditor() {
-  TAB_ITEM("Dungeon Maps")
-  END_TAB_ITEM()
-}
-void ScreenEditor::DrawGameMenuEditor() {
-  TAB_ITEM("Game Menu")
-  END_TAB_ITEM()
-}
-void ScreenEditor::DrawHUDEditor() {
-  TAB_ITEM("Heads-up Display")
-  END_TAB_ITEM()
-}
-
-void ScreenEditor::DrawCanvas() {
-  screen_canvas_.DrawBackground();
-  screen_canvas_.DrawContextMenu();
-
-  screen_canvas_.DrawGrid();
-  screen_canvas_.DrawOverlay();
 }
 
 void ScreenEditor::DrawToolset() {

@@ -12,12 +12,13 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld_map.h"
+#include "app/zelda3/sprite.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
 
-class EntranceOWEditor {
+class OverworldEntrance {
  public:
   int x_;
   int y_;
@@ -27,8 +28,8 @@ class EntranceOWEditor {
   bool isHole = false;
   bool deleted = false;
 
-  EntranceOWEditor(int x, int y, uchar entranceId, short mapId, ushort mapPos,
-                   bool hole) {
+  OverworldEntrance(int x, int y, uchar entranceId, short mapId, ushort mapPos,
+                    bool hole) {
     x_ = x;
     y_ = y;
     entranceId_ = entranceId;
@@ -45,7 +46,7 @@ class EntranceOWEditor {
   }
 
   auto Copy() {
-    return new EntranceOWEditor(x_, y_, entranceId_, mapId_, mapPos, isHole);
+    return new OverworldEntrance(x_, y_, entranceId_, mapId_, mapPos, isHole);
   }
 
   void updateMapStuff(short mapId) {
@@ -77,7 +78,7 @@ class Overworld {
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto GetOverworldMaps() const { return overworld_maps_; }
-
+  auto Sprites() const { return all_sprites_[game_state_]; }
   auto AreaGraphics() const {
     return overworld_maps_[current_map_].AreaGraphics();
   }
@@ -89,7 +90,7 @@ class Overworld {
   auto Tile16Blockset() const {
     return overworld_maps_[current_map_].Tile16Blockset();
   }
-
+  auto GameState() const { return game_state_; }
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 
@@ -113,10 +114,11 @@ class Overworld {
   absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
   void LoadEntrances();
+  void LoadSprites();
 
   void LoadOverworldMap();
 
-  int game_state_ = 1;
+  int game_state_ = 0;
   int current_map_ = 0;
   uchar map_parent_[160];
   bool is_loaded_ = false;
@@ -127,8 +129,9 @@ class Overworld {
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
   std::vector<OverworldMap> overworld_maps_;
-  std::vector<EntranceOWEditor> all_entrances_;
-  std::vector<EntranceOWEditor> all_holes_;
+  std::vector<OverworldEntrance> all_entrances_;
+  std::vector<OverworldEntrance> all_holes_;
+  std::vector<std::vector<Sprite>> all_sprites_;
 };
 
 }  // namespace zelda3

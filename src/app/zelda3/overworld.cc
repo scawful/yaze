@@ -39,6 +39,7 @@ absl::Status Overworld::Load(ROM &rom) {
 
   FetchLargeMaps();
   LoadEntrances();
+  LoadSprites();
 
   auto size = tiles16.size();
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
@@ -265,10 +266,118 @@ void Overworld::LoadEntrances() {
     int p = (mapPos + 0x400) >> 1;
     int x = (p % 64);
     int y = (p >> 6);
-    all_holes_.emplace_back(EntranceOWEditor(
+    all_holes_.emplace_back(
         (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512),
         (y * 16) + (((mapId % 64) / 8) * 512), entranceId, mapId,
-        (ushort)(mapPos + 0x400), true));
+        (ushort)(mapPos + 0x400), true);
+  }
+}
+
+void Overworld::LoadSprites() {
+  // LW[0] = RainState 0 to 63 there's no data for DW
+  // LW[1] = ZeldaState 0 to 128 ; Contains LW and DW <128 or 144 wtf
+  // LW[2] = AgahState 0 to ?? ;Contains data for LW and DW
+
+  for (int i = 0; i < 3; i++) {
+    all_sprites_.emplace_back(std::vector<Sprite>());
+  }
+
+  // Console.WriteLine(((core::overworldSpritesBegining & 0xFFFF) + (09 <<
+  // 16)).ToString("X6"));
+  for (int i = 0; i < 64; i++) {
+    if (map_parent_[i] == i) {
+      // Beginning Sprites
+      int ptrPos = core::overworldSpritesBegining + (i * 2);
+      int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom_.toint16(ptrPos));
+      while (true) {
+        uchar b1 = rom_[spriteAddress];
+        uchar b2 = rom_[spriteAddress + 1];
+        uchar b3 = rom_[spriteAddress + 2];
+        if (b1 == 0xFF) {
+          break;
+        }
+
+        int mapY = (i / 8);
+        int mapX = (i % 8);
+
+        int realX = ((b2 & 0x3F) * 16) + mapX * 512;
+        int realY = ((b1 & 0x3F) * 16) + mapY * 512;
+
+        all_sprites_[0].emplace_back(overworld_maps_[i].AreaGraphics(),
+                                     (uchar)i, b3, (uchar)(b2 & 0x3F),
+                                     (uchar)(b1 & 0x3F), realX, realY);
+
+        spriteAddress += 3;
+      }
+    }
+  }
+
+  for (int i = 0; i < 144; i++) {
+    if (map_parent_[i] == i) {
+      // Zelda Saved Sprites
+      int ptrPos = core::overworldSpritesZelda + (i * 2);
+      int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom_.toint16(ptrPos));
+      while (true) {
+        uchar b1 = rom_[spriteAddress];
+        uchar b2 = rom_[spriteAddress + 1];
+        uchar b3 = rom_[spriteAddress + 2];
+        if (b1 == 0xFF) {
+          break;
+        }
+
+        int editorMapIndex = i;
+        if (editorMapIndex >= 128) {
+          editorMapIndex = i - 128;
+        } else if (editorMapIndex >= 64) {
+          editorMapIndex = i - 64;
+        }
+
+        int mapY = (editorMapIndex / 8);
+        int mapX = (editorMapIndex % 8);
+
+        int realX = ((b2 & 0x3F) * 16) + mapX * 512;
+        int realY = ((b1 & 0x3F) * 16) + mapY * 512;
+
+        all_sprites_[1].emplace_back(overworld_maps_[i].AreaGraphics(),
+                                     (uchar)i, b3, (uchar)(b2 & 0x3F),
+                                     (uchar)(b1 & 0x3F), realX, realY);
+
+        spriteAddress += 3;
+      }
+    }
+
+    // Agahnim Dead Sprites
+    if (map_parent_[i] == i) {
+      int ptrPos = core::overworldSpritesAgahnim + (i * 2);
+      int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom_.toint16(ptrPos));
+      while (true) {
+        uchar b1 = rom_[spriteAddress];
+        uchar b2 = rom_[spriteAddress + 1];
+        uchar b3 = rom_[spriteAddress + 2];
+        if (b1 == 0xFF) {
+          break;
+        }
+
+        int editorMapIndex = i;
+        if (editorMapIndex >= 128) {
+          editorMapIndex = i - 128;
+        } else if (editorMapIndex >= 64) {
+          editorMapIndex = i - 64;
+        }
+
+        int mapY = (editorMapIndex / 8);
+        int mapX = (editorMapIndex % 8);
+
+        int realX = ((b2 & 0x3F) * 16) + mapX * 512;
+        int realY = ((b1 & 0x3F) * 16) + mapY * 512;
+
+        all_sprites_[2].emplace_back(overworld_maps_[i].AreaGraphics(),
+                                     (uchar)i, b3, (uchar)(b2 & 0x3F),
+                                     (uchar)(b1 & 0x3F), realX, realY);
+
+        spriteAddress += 3;
+      }
+    }
   }
 }
 

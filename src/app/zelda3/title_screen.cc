@@ -1,4 +1,4 @@
-#include "screen.h"
+#include "title_screen.h"
 
 #include <cstdint>
 
@@ -11,7 +11,7 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-void Screen::Create() {
+void TitleScreen::Create() {
   tiles8Bitmap.Create(128, 512, 8, 0x20000);
   tilesBG1Bitmap.Create(256, 256, 8, 0x80000);
   tilesBG2Bitmap.Create(256, 256, 8, 0x80000);
@@ -20,12 +20,9 @@ void Screen::Create() {
   BuildTileset();
 
   LoadTitleScreen();
-  LoadOverworldMap();
-  LoadDungeonMaps();
-  LoadAllMapIcons();
 }
 
-void Screen::BuildTileset() {
+void TitleScreen::BuildTileset() {
   uchar staticgfx[16];
 
   // Main Blocksets
@@ -66,7 +63,7 @@ void Screen::BuildTileset() {
   }
 }
 
-void Screen::LoadTitleScreen() {
+void TitleScreen::LoadTitleScreen() {
   int pos =
       (rom_[0x138C + 3] << 16) + (rom_[0x1383 + 3] << 8) + rom_[0x137A + 3];
 
@@ -126,14 +123,6 @@ void Screen::LoadTitleScreen() {
 
   pal_selected_ = 2;
 }
-
-void Screen::LoadNamingScreen() {}
-
-void Screen::LoadOverworldMap() {}
-
-void Screen::LoadDungeonMaps() {}
-
-void Screen::LoadAllMapIcons() {}
 
 }  // namespace zelda3
 }  // namespace app
