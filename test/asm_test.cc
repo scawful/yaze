@@ -1,4 +1,5 @@
-#include <asardll.h>
+#include <asar/interface-lib.h>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
