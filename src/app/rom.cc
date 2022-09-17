@@ -302,7 +302,7 @@ absl::Status ValidateCompressionResult(
     RETURN_IF_ERROR(temp_rom.LoadFromBytes(
         CreateCompressionString(compressed_chain_start->next, mode)))
     ASSIGN_OR_RETURN(auto decomp_data,
-                     temp_rom.Decompress(0, temp_rom.GetSize()))
+                     temp_rom.Decompress(0, temp_rom.size()))
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -352,7 +352,7 @@ int GetGraphicsAddress(const uchar* data, uint8_t offset) {
   return core::SnesToPc(snes_addr);
 }
 
-Bytes SNES3bppTo8bppSheet(Bytes sheet, int bpp) {
+Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -368,12 +368,9 @@ Bytes SNES3bppTo8bppSheet(Bytes sheet, int bpp) {
   }
   Bytes sheet_buffer_out(buffer_size);
 
-  // for each tiles, 16 per line
-  for (int i = 0; i < num_tiles; i++) {
-    // for each line
-    for (int y = 0; y < 8; y++) {
-      //[0] + [1] + [16]
-      for (int x = 0; x < 8; x++) {
+  for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
+    for (int y = 0; y < 8; y++) {        // for each line
+      for (int x = 0; x < 8; x++) {      //[0] + [1] + [16]
         auto b1 = ((sheet[(y * 2) + (bpp * pos)] & (kGraphicsBitmap[x])));
         auto b2 = (sheet[((y * 2) + (bpp * pos)) + 1] & (kGraphicsBitmap[x]));
         auto b3 = (sheet[(16 + y) + (bpp * pos)] & (kGraphicsBitmap[x]));
@@ -457,7 +454,6 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
         comp_accumulator = 0;
       }
     } else {
-      // Anything is better than directly copying bytes...
       lc_lz2::CompressionCommandAlternative(
           rom_data_.data(), compressed_chain, cmd_size, cmd_args, src_data_pos,
           comp_accumulator, cmd_with_max, max_win);
@@ -474,8 +470,8 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
     }
   }
 
-  lc_lz2::MergeCopy(
-      compressed_chain_start->next);  // Skipping compression chain header
+  // Skipping compression chain header
+  lc_lz2::MergeCopy(compressed_chain_start->next);
   lc_lz2::PrintCompressionChain(compressed_chain_start);
   return lc_lz2::CreateCompressionString(compressed_chain_start->next, mode);
 }
@@ -515,10 +511,8 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
         offset += length;
         break;
       case kCommandByteFill:
-        for (int i = 0; i < length; i++) {
-          buffer[buffer_pos] = rom_data_[offset];
-          buffer_pos++;
-        }
+        memset(buffer.data() + buffer_pos, (int)(rom_data_[offset]), length);
+        buffer_pos += length;
         offset += 1;  // Advances 1 byte in the ROM
         break;
       case kCommandWordFill: {
@@ -543,35 +537,23 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
         ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
         ushort s2 = ((rom_data_[offset] & kSnesByteMax));
         int addr = (s1 | s2);
-
         if (mode == kNintendoMode1) {  // Reversed byte order for overworld maps
-          // addr = (s2 | s1);
           addr = (rom_data_[offset + 1] & kSnesByteMax) |
                  ((rom_data_[offset] & kSnesByteMax) << 8);
-          if (addr > offset) {
-            return absl::InternalError(absl::StrFormat(
-                "Decompress: Offset for command copy exceeds current position "
-                "(Offset : %#04x | Pos : %#06x)\n",
-                addr, offset));
-          }
-
-          if (buffer_pos + length >= size) {
-            size *= 2;
-            buffer.resize(size);
-          }
-
-          memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
-          buffer_pos += length;
-          offset += 2;
-          break;
         }
-
-        for (int i = 0; i < length; i++) {
-          buffer[buffer_pos] = buffer[addr + i];
-          buffer_pos++;
+        if (addr > offset) {
+          return absl::InternalError(absl::StrFormat(
+              "Decompress: Offset for command copy exceeds current position "
+              "(Offset : %#04x | Pos : %#06x)\n",
+              addr, offset));
         }
-        offset += 2;  // Advance 2 bytes in the ROM
-
+        if (buffer_pos + length >= size) {
+          size *= 2;
+          buffer.resize(size);
+        }
+        memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
+        buffer_pos += length;
+        offset += 2;
       } break;
       default: {
         std::cout << absl::StrFormat(
@@ -598,12 +580,12 @@ absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
   Bytes sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
-  for (int i = 0; i < 6; i++) {
-    auto offset = GetGraphicsAddress(rom_data_.data(), sheets[i]);
+  for (const auto& sheet_id : sheets) {
+    auto offset = GetGraphicsAddress(rom_data_.data(), sheet_id);
     ASSIGN_OR_RETURN(auto decomp_sheet, Decompress(offset))
-    auto converted_sheet = SNES3bppTo8bppSheet(decomp_sheet, 2);
-    for (int j = 0; j < converted_sheet.size(); ++j) {
-      sheet.push_back(converted_sheet.at(j));
+    auto converted_sheet = SnesTo8bppSheet(decomp_sheet, 2);
+    for (const auto& each_pixel : converted_sheet) {
+      sheet.push_back(each_pixel);
     }
   }
   return sheet;
@@ -627,8 +609,6 @@ absl::Status ROM::LoadAllGraphicsData() {
       }
       bpp3 = true;
     } else if (i == 113 || i == 114 || i >= 218) {
-      // auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      // ASSIGN_OR_RETURN(sheet, Decompress(offset))
       bpp3 = false;
     } else {
       auto offset = GetGraphicsAddress(rom_data_.data(), i);
@@ -637,7 +617,7 @@ absl::Status ROM::LoadAllGraphicsData() {
     }
 
     if (bpp3) {
-      auto converted_sheet = SNES3bppTo8bppSheet(sheet, 3);
+      auto converted_sheet = SnesTo8bppSheet(sheet, 3);
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                       core::kTilesheetDepth, converted_sheet.data(), 0x1000);
@@ -647,15 +627,8 @@ absl::Status ROM::LoadAllGraphicsData() {
         graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
       }
     } else {
-      // auto converted_sheet = SNES3bppTo8bppSheet(sheet, 2);
-      // graphics_bin_[i] =
-      //     gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-      //                 core::kTilesheetDepth, converted_sheet.data(), 0x1000);
-      // graphics_bin_.at(i).CreateTexture(renderer_);
-
       for (int j = 0; j < graphics_bin_.at(0).GetSize(); ++j) {
         graphics_buffer_.push_back(0xFF);
-        // graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
       }
     }
   }

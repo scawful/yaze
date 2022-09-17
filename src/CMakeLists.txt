@@ -36,11 +36,34 @@ set(
 
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(lib/asar/src)
-set(ASAR_GEN_EXE  OFF)
-set(ASAR_GEN_DLL  ON)
-set(ASAR_GEN_LIB OFF)
+get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
+target_include_directories(asar-static PRIVATE ${ASAR_INCLUDE_DIR})
+set(ASAR_GEN_EXE OFF)
+set(ASAR_GEN_DLL ON)
+set(ASAR_GEN_LIB ON)
 set(ASAR_GEN_EXE_TEST OFF)
 set(ASAR_GEN_DLL_TEST OFF)
+
+set(ASAR_STATIC_SRC
+  "lib/asar/src/asar/interface-lib.cpp"
+  "lib/asar/src/asar/addr2line.cpp"
+  "lib/asar/src/asar/arch-65816.cpp"
+  "lib/asar/src/asar/arch-spc700.cpp"
+  "lib/asar/src/asar/arch-superfx.cpp"
+  "lib/asar/src/asar/assembleblock.cpp"
+  "lib/asar/src/asar/crc32.cpp"
+  "lib/asar/src/asar/libcon.cpp"
+  "lib/asar/src/asar/libsmw.cpp"
+  "lib/asar/src/asar/libstr.cpp"
+  "lib/asar/src/asar/macro.cpp"
+  "lib/asar/src/asar/main.cpp"
+  "lib/asar/src/asar/asar_math.cpp"
+  "lib/asar/src/asar/virtualfile.cpp"
+  "lib/asar/src/asar/warnings.cpp"
+  "lib/asar/src/asar/errors.cpp"
+  "lib/asar/src/asar/platform/file-helpers.cpp"
+  "lib/asar/src/asar/platform/linux/file-helpers-linux.cpp"
+)
 
 # yaze source files -----------------------------------------------------------
 set(
@@ -86,6 +109,7 @@ set(
   gui/input.cc
   gui/style.cc
   gui/widgets.cc
+  gui/color.cc
 )
 
 add_executable(
@@ -99,7 +123,7 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
-  lib/asar/src/asar-dll-bindings/c/asardll.c
+  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
@@ -111,7 +135,7 @@ target_include_directories(
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
-  lib/asar/src/asar-dll-bindings/c
+  lib/asar/src/
 )
 
 set(SDL_TARGETS SDL2::SDL2)
@@ -130,7 +154,10 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ImGui
+  asar-static
 )
+target_compile_definitions(yaze PRIVATE "linux")
+target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
 
 set_target_properties(yaze
     PROPERTIES
@@ -155,7 +182,6 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
-  lib/asar/src/asar-dll-bindings/c/asardll.c
 )
 
 target_include_directories(
@@ -167,7 +193,7 @@ target_include_directories(
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
-  lib/asar/src/asar-dll-bindings/c
+  ${ASAR_STATIC_SRC}
 )
 
 target_link_libraries(
@@ -179,6 +205,7 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   delta-service
+  asar-static
   ImGui
 )
 

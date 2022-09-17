@@ -482,7 +482,7 @@ constexpr int customAreaSpecificBGPalette =
 constexpr int customAreaSpecificBGASM = 0x140150;
 constexpr int customAreaSpecificBGEnabled =
     0x140140;  // 1 byte, not 0 if enabled
-
+constexpr int overworldCustomMosaicArray = 0x1301F0;
 // ============================================================================
 // Dungeon Map Related Variables
 // ============================================================================

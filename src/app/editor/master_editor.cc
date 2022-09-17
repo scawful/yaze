@@ -138,7 +138,7 @@ void MasterEditor::DrawInfoPopup() {
   if (ImGui::BeginPopupModal("ROM Information", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Title: %s", rom_.GetTitle());
-    ImGui::Text("ROM Size: %ld", rom_.GetSize());
+    ImGui::Text("ROM Size: %ld", rom_.size());
 
     if (ImGui::Button("Close", ImVec2(200, 0))) {
       rom_info_ = false;
@@ -216,7 +216,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void *)&rom_, rom_.GetSize());
+    mem_edit.DrawWindow("Memory Editor", (void *)&rom_, rom_.size());
   }
 
   if (show_imgui_demo) {

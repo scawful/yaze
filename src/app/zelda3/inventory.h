@@ -3,6 +3,7 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 #include "gui/canvas.h"
 
@@ -11,7 +12,6 @@ namespace app {
 namespace zelda3 {
 
 constexpr int kInventoryStart = 0x6564A;
-constexpr int kLampItemPos = 0x6F6F9;
 constexpr int kBowItemPos = 0x6F631;
 
 class Inventory {
@@ -19,11 +19,12 @@ class Inventory {
   void SetupROM(ROM& rom) { rom_ = rom; }
   auto Bitmap() const { return bitmap_; }
   auto Tilesheet() const { return tilesheets_bmp_; }
+  auto Palette() const { return palette_; }
 
-  void Create(Bytes& all_gfx);
+  void Create();
 
  private:
-  absl::Status BuildTileset(Bytes& all_gfx);
+  absl::Status BuildTileset();
 
   ROM rom_;
 
@@ -31,7 +32,9 @@ class Inventory {
   gfx::Bitmap bitmap_;
 
   Bytes tilesheets_;
+  Bytes test_;
   gfx::Bitmap tilesheets_bmp_;
+  gfx::SNESPalette palette_;
 
   gui::Canvas canvas_;
   std::vector<gfx::TileInfo> tiles_;
