@@ -104,6 +104,9 @@ class ROM {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
+  auto char_data() {
+    return reinterpret_cast<char*>(rom_data_.data());
+  }
   auto size() const { return size_; }
 
   uchar& operator[](int i) {
