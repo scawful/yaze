@@ -9,6 +9,8 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -29,10 +31,10 @@ static constexpr uint kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
-    "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
-    "#transportTool", "#musicTool" };
+    "#undoTool",      "#redoTool",   "#drawTool",  "#separator2",
+    "#zoomOutTool",   "#zoomInTool", "#separator", "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",  "#spriteTool",
+    "#transportTool", "#musicTool"};
 
 static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
     "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
@@ -82,17 +84,20 @@ class OverworldEditor {
                                   ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_SizingStretchSame;
 
+  Bytes selected_tile_data_;
   std::unordered_map<int, gfx::Bitmap> graphics_bin_;
   std::unordered_map<int, gfx::Bitmap> current_graphics_set_;
   std::unordered_map<int, gfx::Bitmap> maps_bmp_;
+  std::unordered_map<int, gfx::Bitmap> sprite_previews_;
 
   ROM rom_;
+  PaletteEditor palette_editor_;
   zelda3::Overworld overworld_;
 
   gfx::SNESPalette palette_;
-  gfx::Bitmap tile16_blockset_bmp_;  // pointer size 1048576
-  gfx::Bitmap current_gfx_bmp_;      // pointer size 32768
-  gfx::Bitmap all_gfx_bmp;           // pointer size 456704
+  gfx::Bitmap tile16_blockset_bmp_;
+  gfx::Bitmap current_gfx_bmp_;
+  gfx::Bitmap all_gfx_bmp;
   gfx::Bitmap selected_tile_bmp_;
 
   gui::Canvas overworld_map_canvas_;

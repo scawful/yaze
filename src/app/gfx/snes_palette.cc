@@ -66,8 +66,8 @@ SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}
 
 SNESColor::SNESColor(snes_color val) {
   rgb.x = val.red;
-  rgb.y = val.blue;
-  rgb.z = val.green;
+  rgb.y = val.green;
+  rgb.z = val.blue;
 }
 
 SNESColor::SNESColor(ImVec4 val) : rgb(val) {
@@ -88,13 +88,13 @@ void SNESColor::setRgb(ImVec4 val) {
 }
 
 void SNESColor::setSNES(snes_color val) {
-  rgb = ImVec4(val.red, val.green, val.blue, 1.f);
+  rgb = ImVec4(val.red, val.green, val.blue, 255.f);
 }
 
 void SNESColor::setSNES(uint16_t val) {
   snes = val;
   snes_color col = ConvertSNEStoRGB(val);
-  rgb = ImVec4(col.red, col.green, col.blue, 1.f);
+  rgb = ImVec4(col.red, col.green, col.blue, 0.f);
 }
 
 // ============================================================================

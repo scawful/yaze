@@ -31,12 +31,6 @@ class Bitmap {
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
   void ApplyPalette(const SNESPalette &palette);
-  void SetPaletteColor(int id, gfx::SNESColor color);
-
-  absl::StatusOr<std::vector<Bitmap>> CreateTiles();
-  absl::Status CreateFromTiles(const std::vector<Bitmap> &tiles);
-
-  absl::Status WritePixel(int pos, uchar pixel);
 
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
@@ -59,6 +53,7 @@ class Bitmap {
   struct SDL_Surface_Deleter {
     void operator()(SDL_Surface *p) const {
       if (p != nullptr) {
+        p->pixels = nullptr;
         SDL_FreeSurface(p);
         p = nullptr;
       }

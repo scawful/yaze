@@ -9,14 +9,68 @@
 #include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/pseudo_vram.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld_map.h"
+#include "app/zelda3/sprite.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+
+class OverworldEntrance {
+ public:
+  int x_;
+  int y_;
+  ushort mapPos;
+  uchar entranceId_, AreaX, AreaY;
+  short mapId_;
+  bool isHole = false;
+  bool deleted = false;
+
+  OverworldEntrance(int x, int y, uchar entranceId, short mapId, ushort mapPos,
+                    bool hole) {
+    x_ = x;
+    y_ = y;
+    entranceId_ = entranceId;
+    mapId_ = mapId;
+    mapPos = mapPos;
+
+    int mapX = (mapId_ - ((mapId / 8) * 8));
+    int mapY = (mapId_ / 8);
+
+    AreaX = (uchar)((std::abs(x - (mapX * 512)) / 16));
+    AreaY = (uchar)((std::abs(y - (mapY * 512)) / 16));
+
+    isHole = hole;
+  }
+
+  auto Copy() {
+    return new OverworldEntrance(x_, y_, entranceId_, mapId_, mapPos, isHole);
+  }
+
+  void updateMapStuff(short mapId) {
+    mapId_ = mapId;
+
+    if (mapId_ >= 64) {
+      mapId_ -= 64;
+    }
+
+    int mapX = (mapId_ - ((mapId_ / 8) * 8));
+    int mapY = (mapId_ / 8);
+
+    AreaX = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
+    AreaY = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+
+    int mx = (mapId_ - ((mapId_ / 8) * 8));
+    int my = (mapId_ / 8);
+
+    uchar xx = (uchar)((x_ - (mx * 512)) / 16);
+    uchar yy = (uchar)((y_ - (my * 512)) / 16);
+
+    mapPos = (ushort)((((AreaY) << 6) | (AreaX & 0x3F)) << 1);
+  }
+};
 
 class Overworld {
  public:
@@ -24,18 +78,19 @@ class Overworld {
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto GetOverworldMaps() const { return overworld_maps_; }
-  auto GetCurrentBlockset() const {
-    return overworld_maps_[current_map_].GetCurrentBlockset();
+  auto Sprites() const { return all_sprites_[game_state_]; }
+  auto AreaGraphics() const {
+    return overworld_maps_[current_map_].AreaGraphics();
   }
-  auto GetCurrentGraphics() const {
-    return overworld_maps_[current_map_].GetCurrentGraphics();
+  auto Entrances() const { return all_entrances_; }
+  auto AreaPalette() const {
+    return overworld_maps_[current_map_].AreaPalette();
   }
-  auto GetCurrentBitmapData() const {
-    return overworld_maps_[current_map_].GetBitmapData();
+  auto BitmapData() const { return overworld_maps_[current_map_].BitmapData(); }
+  auto Tile16Blockset() const {
+    return overworld_maps_[current_map_].Tile16Blockset();
   }
-  auto GetCurrentPalette() const {
-    return overworld_maps_[current_map_].GetCurrentPalette();
-  }
+  auto GameState() const { return game_state_; }
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 
@@ -58,9 +113,12 @@ class Overworld {
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
   void FetchLargeMaps();
+  void LoadEntrances();
+  void LoadSprites();
+
   void LoadOverworldMap();
 
-  int game_state_ = 1;
+  int game_state_ = 0;
   int current_map_ = 0;
   uchar map_parent_[160];
   bool is_loaded_ = false;
@@ -71,6 +129,9 @@ class Overworld {
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
   std::vector<OverworldMap> overworld_maps_;
+  std::vector<OverworldEntrance> all_entrances_;
+  std::vector<OverworldEntrance> all_holes_;
+  std::vector<std::vector<Sprite>> all_sprites_;
 };
 
 }  // namespace zelda3

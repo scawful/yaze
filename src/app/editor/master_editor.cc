@@ -103,6 +103,7 @@ void MasterEditor::DrawFileDialog() {
       status_ = rom_.LoadFromFile(filePathName);
       overworld_editor_.SetupROM(rom_);
       screen_editor_.SetupROM(rom_);
+      palette_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
   }
@@ -118,10 +119,10 @@ void MasterEditor::DrawAboutPopup() {
   if (about_) ImGui::OpenPopup("About");
   if (ImGui::BeginPopupModal("About", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Yet Another Zelda3 Editor - v0.01");
+    ImGui::Text("Yet Another Zelda3 Editor - v0.02");
     ImGui::Text("Written by: scawful");
     ImGui::Spacing();
-    ImGui::Text("Special Thanks: Zarby89");
+    ImGui::Text("Special Thanks: Zarby89, JaredBrian");
     ImGui::Separator();
 
     if (ImGui::Button("Close", ImVec2(200, 0))) {
@@ -137,7 +138,7 @@ void MasterEditor::DrawInfoPopup() {
   if (ImGui::BeginPopupModal("ROM Information", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Title: %s", rom_.GetTitle());
-    ImGui::Text("ROM Size: %ld", rom_.GetSize());
+    ImGui::Text("ROM Size: %ld", rom_.size());
 
     if (ImGui::Button("Close", ImVec2(200, 0))) {
       rom_info_ = false;
@@ -215,7 +216,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void *)&rom_, rom_.GetSize());
+    mem_edit.DrawWindow("Memory Editor", (void *)&rom_, rom_.size());
   }
 
   if (show_imgui_demo) {

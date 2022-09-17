@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_ASM_SCRIPT_H
 #define YAZE_APP_ASM_SCRIPT_H
 
-#include <asardll.h>
+#include <asar/interface-lib.h>
 
 #include <array>
 #include <cstdint>
@@ -27,17 +27,15 @@ class ScriptTemplate {
  public:
   virtual ~ScriptTemplate() = default;
   virtual absl::Status ApplyPatchToROM(ROM& rom) = 0;
-  virtual absl::Status GenerateMosaicChangeAssembly(
+  virtual absl::Status PatchOverworldMosaic(
       ROM& rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
       int hook_offset = 0) = 0;
 };
 
 class Script : public ScriptTemplate {
  public:
-  Script() { asar_init_with_dll_path("assets/libasar.dll"); }
-
   absl::Status ApplyPatchToROM(ROM& rom) override;
-  absl::Status GenerateMosaicChangeAssembly(
+  absl::Status PatchOverworldMosaic(
       ROM& rom, char mosaic_tiles[core::kNumOverworldMaps], int routine_offset,
       int hook_offset = 0) override;
 

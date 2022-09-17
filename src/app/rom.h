@@ -17,6 +17,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -47,6 +48,7 @@ constexpr int kCommandMod = 0x07;
 constexpr int kExpandedMod = 0xE0;
 constexpr int kExpandedLengthMod = 0x3FF;
 constexpr int kNormalLengthMod = 0x1F;
+constexpr int kCompressionStringMod = 7 << 5;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
@@ -76,6 +78,8 @@ class ROM {
   absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 
+  absl::StatusOr<Bytes> Load2bppGraphics();
+
   absl::Status LoadAllGraphicsData();
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
@@ -89,7 +93,6 @@ class ROM {
 
   void RenderBitmap(gfx::Bitmap* bitmap) const;
 
-  auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
@@ -101,6 +104,7 @@ class ROM {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
+  auto size() const { return size_; }
 
   uchar& operator[](int i) {
     if (i > size_) {

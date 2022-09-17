@@ -45,7 +45,13 @@ struct SNESColor {
   void setRgb(ImVec4);
   void setSNES(snes_color);
   void setSNES(uint16_t);
+  void setTransparent(bool t) { transparent = t; }
 
+  auto RGB() {
+    return ImVec4(rgb.x / 255, rgb.y / 255, rgb.z / 255, rgb.w);
+  }
+
+  bool transparent = false;
   uint16_t snes = 0;
   ImVec4 rgb;
 };

@@ -12,17 +12,13 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-class Screen {
+class TitleScreen {
  public:
   void Create();
 
  private:
   void BuildTileset();
   void LoadTitleScreen();
-  void LoadNamingScreen();
-  void LoadOverworldMap();
-  void LoadDungeonMaps();
-  void LoadAllMapIcons();
 
   int sword_x_ = 0;
   int mx_click_ = 0;
