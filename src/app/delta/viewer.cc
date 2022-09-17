@@ -127,7 +127,7 @@ void Viewer::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void*)&rom_, rom_.GetSize());
+    mem_edit.DrawWindow("Memory Editor", (void*)&rom_, rom_.size());
   }
 
   if (show_imgui_demo) {

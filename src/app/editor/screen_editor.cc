@@ -17,6 +17,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "gui/canvas.h"
+#include "gui/icons.h"
 #include "gui/input.h"
 
 namespace yaze {
@@ -63,37 +64,40 @@ void ScreenEditor::DrawInventoryMenuEditor() {
   TAB_ITEM("Inventory Menu")
 
   static bool create = false;
-  if (!create) {
-    PRINT_IF_ERROR(rom_.LoadAllGraphicsData())
-    all_gfx_ = rom_.GetGraphicsBuffer();
-    inventory_.Create(all_gfx_);
+  if (!create && rom_.isLoaded()) {
+    inventory_.Create();
+    palette_ =inventory_.Palette();
     create = true;
   }
 
-  if (ImGui::BeginTable("InventoryScreen", 2, ImGuiTableFlags_Resizable)) {
+  DrawInventoryToolset();
+
+  if (ImGui::BeginTable("InventoryScreen", 3, ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("Canvas");
     ImGui::TableSetupColumn("Tiles");
+    ImGui::TableSetupColumn("Palette");
     ImGui::TableHeadersRow();
 
     ImGui::TableNextColumn();
     screen_canvas_.DrawBackground();
     screen_canvas_.DrawContextMenu();
     screen_canvas_.DrawBitmap(inventory_.Bitmap(), 2, create);
-    screen_canvas_.DrawGrid();
+    screen_canvas_.DrawGrid(32.0f);
     screen_canvas_.DrawOverlay();
 
     ImGui::TableNextColumn();
-    tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, 192 * 2 + 2));
+    tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
     tilesheet_canvas_.DrawContextMenu();
     tilesheet_canvas_.DrawBitmap(inventory_.Tilesheet(), 2, create);
     tilesheet_canvas_.DrawGrid(16.0f);
     tilesheet_canvas_.DrawOverlay();
 
+    ImGui::TableNextColumn();
+    gui::DisplayPalette(palette_, create);
+
     ImGui::EndTable();
   }
-
-  ImGui::SameLine();
-
+  ImGui::Separator();  
   END_TAB_ITEM()
 }
 
@@ -138,7 +142,7 @@ void ScreenEditor::DrawMosaicEditor() {
   gui::InputHex("Routine Location", &overworldCustomMosaicASM);
 
   if (ImGui::Button("Generate Mosaic Assembly")) {
-    auto mosaic = mosaic_script_.GenerateMosaicChangeAssembly(
+    auto mosaic = mosaic_script_.PatchOverworldMosaic(
         rom_, mosaic_tiles_, overworldCustomMosaicASM);
     if (!mosaic.ok()) {
       std::cout << mosaic;
@@ -166,6 +170,30 @@ void ScreenEditor::DrawToolset() {
   ImGui::Checkbox("Draw BG2", &drawing_bg2);
   ImGui::SameLine();
   ImGui::Checkbox("Draw BG3", &drawing_bg3);
+}
+
+void ScreenEditor::DrawInventoryToolset() {
+  if (ImGui::BeginTable("InventoryToolset", 8, ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0))) {
+    ImGui::TableSetupColumn("#drawTool");
+    ImGui::TableSetupColumn("#sep1");
+    ImGui::TableSetupColumn("#zoomOut");
+    ImGui::TableSetupColumn("#zoomIN");
+    ImGui::TableSetupColumn("#sep2");
+    ImGui::TableSetupColumn("#bg2Tool");
+    ImGui::TableSetupColumn("#bg3Tool");
+    ImGui::TableSetupColumn("#itemTool");
+
+    BUTTON_COLUMN(ICON_MD_UNDO)           
+    BUTTON_COLUMN(ICON_MD_REDO)  
+    TEXT_COLUMN(ICON_MD_MORE_VERT) 
+    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)         
+    BUTTON_COLUMN(ICON_MD_ZOOM_IN)
+    TEXT_COLUMN(ICON_MD_MORE_VERT)    
+    BUTTON_COLUMN(ICON_MD_DRAW)
+    BUTTON_COLUMN(ICON_MD_BUILD)   
+
+    ImGui::EndTable();
+  }
 }
 
 }  // namespace editor

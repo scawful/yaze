@@ -64,6 +64,7 @@ void Canvas::DrawContextMenu() {
     ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
 
   if (ImGui::BeginPopup("context")) {
+    ImGui::MenuItem("Show Grid", nullptr, &enable_grid_);
     if (ImGui::MenuItem("Reset Position", nullptr, false)) {
       scrolling_.x = 0;
       scrolling_.y = 0;

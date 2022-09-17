@@ -93,7 +93,6 @@ class ROM {
 
   void RenderBitmap(gfx::Bitmap* bitmap) const;
 
-  auto GetSize() const { return size_; }
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
@@ -105,6 +104,7 @@ class ROM {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
+  auto size() const { return size_; }
 
   uchar& operator[](int i) {
     if (i > size_) {

@@ -107,7 +107,7 @@ absl::Status OverworldEditor::DrawToolset() {
     BUTTON_COLUMN(ICON_MD_ZOOM_OUT)             // Zoom Out
     BUTTON_COLUMN(ICON_MD_ZOOM_IN)              // Zoom In
     TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
-    BUTTON_COLUMN(ICON_MD_DRAW);                // Draw Tile
+    BUTTON_COLUMN(ICON_MD_DRAW)                 // Draw Tile
     BUTTON_COLUMN(ICON_MD_DOOR_FRONT)           // Entrances
     BUTTON_COLUMN(ICON_MD_DOOR_BACK)            // Exits
     BUTTON_COLUMN(ICON_MD_GRASS)                // Items
