@@ -15,37 +15,28 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_LINKER_FLAGS \"-Wl,--no-undefined -Wl,--no-undefined\")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(BUILD_SHARED_LIBS ON)
 
 # Abseil Standard Specifications ----------------------------------------------
-set(ABSL_PROPAGATE_CXX_STD ON)
-set(ABSL_CXX_STANDARD 17)
-set(ABSL_USE_GOOGLETEST_HEAD ON)
-set(ABSL_ENABLE_INSTALL ON)
-set(
-  ABSL_TARGETS   
-  absl::strings
-  absl::flags
-  absl::status
-  absl::statusor
-  absl::examine_stack
-  absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
-  absl::raw_logging_internal
-  absl::failure_signal_handler
-  absl::flat_hash_map
-)
+include(cmake/absl.cmake)
+
+set(PROTOBUF_INCLUDE_PATH ${CMAKE_CURRENT_BINARY_DIR}
+    CACHE INTERNAL "Path to generated protobuf files.")
+include_directories(${PROTOBUF_INCLUDE_PATH})
 
 # Video Libraries -------------------------------------------------------------
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(gRPC REQUIRED)
-set(PROTOBUF_INCLUDE_PATH ${CMAKE_CURRENT_BINARY_DIR}
-    CACHE INTERNAL "Path to generated protobuf files.")
-include_directories(${PROTOBUF_INCLUDE_PATH})
+include(cmake/openssl.cmake)
+
+# Asar Assembly ---------------------------------------------------------------
+add_subdirectory(src/lib/asar/src)
+include(cmake/asar.cmake)
+
+include(cmake/imgui.cmake)
 
 # Project Files
 add_subdirectory(src/lib/abseil-cpp)

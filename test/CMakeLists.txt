@@ -21,14 +21,15 @@ add_executable(
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
-  ../src/lib/asar/src/asar-dll-bindings/c/asardll.c
+  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_test PUBLIC
   ../src/
   ../src/lib/
-  ../src/lib/asar/src/asar-dll-bindings/c
+  ../src/lib/asar/src/
+  ${ASAR_INCLUDE_DIR}
   ${SDL_INCLUDE_DIRS}
 )
 
@@ -38,11 +39,14 @@ target_link_libraries(
   ${ABSL_TARGETS}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  asar-static
   gmock_main
   gmock
   gtest_main
   gtest
 )
+target_compile_definitions(yaze_test PRIVATE "linux")
+target_compile_definitions(yaze_test PRIVATE "stricmp=strcasecmp")
 
 include(GoogleTest)
 gtest_discover_tests(yaze_test)
