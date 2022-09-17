@@ -106,6 +106,7 @@ add_executable(
   yaze_delta
   app/delta/delta.cc
   app/delta/viewer.cc
+  app/delta/service.cc
   app/delta/client.cc
   app/rom.cc
   ${YAZE_APP_ASM_SRC}
@@ -115,18 +116,19 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
+  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_delta PUBLIC
   lib/
   app/
+  lib/asar/src/
   ${ASAR_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
-  ${ASAR_STATIC_SRC}
 )
 
 target_link_libraries(
@@ -141,6 +143,8 @@ target_link_libraries(
   asar-static
   ImGui
 )
+target_compile_definitions(yaze_delta PRIVATE "linux")
+target_compile_definitions(yaze_delta PRIVATE "stricmp=strcasecmp")
 
 set (source "${CMAKE_SOURCE_DIR}/assets")
 set (destination "${CMAKE_CURRENT_BINARY_DIR}/assets")

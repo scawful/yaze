@@ -20,17 +20,19 @@ set(BUILD_SHARED_LIBS ON)
 
 # Abseil Standard Specifications ----------------------------------------------
 include(cmake/absl.cmake)
+include(cmake/openssl.cmake)
 
 set(PROTOBUF_INCLUDE_PATH ${CMAKE_CURRENT_BINARY_DIR}
     CACHE INTERNAL "Path to generated protobuf files.")
 include_directories(${PROTOBUF_INCLUDE_PATH})
 
 # Video Libraries -------------------------------------------------------------
+set(Protobuf_PROTOC_EXECUTABLE "/Users/scawful/code/protobuf/bin/protoc")
+set(Protobuf_INCLUDE_DIRS "/Users/scawful/code/protobuf/include/")
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(gRPC REQUIRED)
-include(cmake/openssl.cmake)
 
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(src/lib/asar/src)

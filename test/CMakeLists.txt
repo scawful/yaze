@@ -15,12 +15,15 @@ add_executable(
   yaze_test.cc
   rom_test.cc
   asm_test.cc
+  delta_test.cc
   ../src/app/rom.cc
   ../src/app/asm/script.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
+  ../src/app/delta/service.cc
+  ../src/app/delta/client.cc
   ${ASAR_STATIC_SRC}
 )
 
@@ -39,6 +42,7 @@ target_link_libraries(
   ${ABSL_TARGETS}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  delta-service
   asar-static
   gmock_main
   gmock

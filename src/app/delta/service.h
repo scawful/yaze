@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_DELTA_SERVICE_H
 #define YAZE_APP_DELTA_SERVICE_H
 
+#include <filesystem>
+
 #include <google/protobuf/message.h>
 #include <grpc/support/log.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
@@ -17,6 +19,8 @@ namespace yaze {
 namespace app {
 namespace delta {
 
+using grpc::Status;
+
 class DeltaService final : public ::YazeDelta::Service {
  public:
   Status Init(grpc::ServerContext* context, const InitRequest* request,
@@ -28,6 +32,11 @@ class DeltaService final : public ::YazeDelta::Service {
   Status Pull(grpc::ServerContext* context, const PullRequest* request,
               PullResponse* reply) override;
 
+  Status Clone(grpc::ServerContext* context, const CloneRequest* request,
+              CloneResponse* reply) override;
+
+  auto Repos() const { return repos_; }
+
  private:
   std::vector<Repository> repos_;
 };
@@ -35,3 +44,5 @@ class DeltaService final : public ::YazeDelta::Service {
 }  // namespace delta
 }  // namespace app
 }  // namespace yaze
+
+#endif
