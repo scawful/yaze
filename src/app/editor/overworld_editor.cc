@@ -8,6 +8,8 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -22,15 +24,15 @@ namespace editor {
 
 namespace {
 void UpdateSelectedTile16(int selected, gfx::Bitmap &tile16_blockset,
-                          gfx::Bitmap &selected_tile) {
+                          Bytes &selected_tile) {
+  selected_tile.reserve(256);
   auto blockset = tile16_blockset.GetData();
-  auto bitmap = selected_tile.GetData();
 
   int src_pos = ((selected - ((selected / 0x08) * 0x08)) * 0x10) +
                 ((selected / 0x08) * 2048);
   for (int yy = 0; yy < 0x10; yy++) {
     for (int xx = 0; xx < 0x10; xx++) {
-      bitmap[xx + (yy * 0x10)] = blockset[src_pos + xx + (yy * 0x80)];
+      selected_tile[xx + (yy * 0x10)] = blockset[src_pos + xx + (yy * 0x80)];
     }
   }
 }
@@ -44,25 +46,21 @@ absl::Status OverworldEditor::Update() {
     all_gfx_loaded_ = true;
 
     RETURN_IF_ERROR(overworld_.Load(rom_))
-    current_gfx_bmp_.Create(128, 512, 64, overworld_.GetCurrentGraphics());
+    palette_ = overworld_.AreaPalette();
+    current_gfx_bmp_.Create(128, 512, 64, overworld_.AreaGraphics());
+    current_gfx_bmp_.ApplyPalette(palette_);
     rom_.RenderBitmap(&current_gfx_bmp_);
 
-    auto tile16_palette = overworld_.GetCurrentPalette();
-    tile16_blockset_bmp_.Create(128, 8192, 128,
-                                overworld_.GetCurrentBlockset());
-    for (int j = 0; j < tile16_palette.colors.size(); j++) {
-      tile16_blockset_bmp_.SetPaletteColor(j, tile16_palette.GetColor(j));
-    }
+    tile16_blockset_bmp_.Create(128, 8192, 128, overworld_.Tile16Blockset());
+    tile16_blockset_bmp_.ApplyPalette(palette_);
     rom_.RenderBitmap(&tile16_blockset_bmp_);
     map_blockset_loaded_ = true;
 
     for (int i = 0; i < core::kNumOverworldMaps; ++i) {
       overworld_.SetCurrentMap(i);
-      auto palette = overworld_.GetCurrentPalette();
-      maps_bmp_[i].Create(512, 512, 512, overworld_.GetCurrentBitmapData());
-      for (int j = 0; j < palette.colors.size(); j++) {
-        maps_bmp_[i].SetPaletteColor(j, palette.GetColor(j));
-      }
+      auto palette = overworld_.AreaPalette();
+      maps_bmp_[i].Create(512, 512, 512, overworld_.BitmapData());
+      maps_bmp_[i].ApplyPalette(palette);
       rom_.RenderBitmap(&(maps_bmp_[i]));
     }
   }
@@ -72,11 +70,8 @@ absl::Status OverworldEditor::Update() {
       selected_tile_bmp_.Create(16, 16, 64, 256);
     }
     UpdateSelectedTile16(selected_tile_, tile16_blockset_bmp_,
-                         selected_tile_bmp_);
-    auto palette = overworld_.GetCurrentPalette();
-    for (int j = 0; j < palette.colors.size(); j++) {
-      selected_tile_bmp_.SetPaletteColor(j, palette.GetColor(j));
-    }
+                         selected_tile_data_);
+    selected_tile_bmp_.ApplyPalette(palette_);
     rom_.RenderBitmap(&selected_tile_bmp_);
     update_selected_tile_ = false;
   }
@@ -102,44 +97,26 @@ absl::Status OverworldEditor::Update() {
 }
 
 absl::Status OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("OWToolset", 15, toolset_table_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("OWToolset", 17, toolset_table_flags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_UNDO);
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_REDO);
-    ImGui::TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_ZOOM_OUT);
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_ZOOM_IN);
-    ImGui::TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_DRAW);
-    // Entrances
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_DOOR_FRONT);
-    // Exits
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_DOOR_BACK);
-    // Items
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_GRASS);
-    // Sprites
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
-    // Transports
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_ADD_LOCATION);
-    // Music
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_MUSIC_NOTE);
+    BUTTON_COLUMN(ICON_MD_UNDO)                 // Undo
+    BUTTON_COLUMN(ICON_MD_REDO)                 // Redo
+    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
+    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)             // Zoom Out
+    BUTTON_COLUMN(ICON_MD_ZOOM_IN)              // Zoom In
+    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
+    BUTTON_COLUMN(ICON_MD_DRAW)                 // Draw Tile
+    BUTTON_COLUMN(ICON_MD_DOOR_FRONT)           // Entrances
+    BUTTON_COLUMN(ICON_MD_DOOR_BACK)            // Exits
+    BUTTON_COLUMN(ICON_MD_GRASS)                // Items
+    BUTTON_COLUMN(ICON_MD_PEST_CONTROL_RODENT)  // Sprites
+    BUTTON_COLUMN(ICON_MD_ADD_LOCATION)         // Transports
+    BUTTON_COLUMN(ICON_MD_MUSIC_NOTE)           // Music
+    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
+    ImGui::TableNextColumn();                   // Palette
+    palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
 
     ImGui::EndTable();
   }
@@ -218,6 +195,15 @@ void OverworldEditor::DrawOverworldCanvas() {
           xx = 0;
         }
       }
+      for (const auto &each : overworld_.Entrances()) {
+        if (each.mapId_ < 64 + (current_world_ * 0x40) &&
+            each.mapId_ >= (current_world_ * 0x40)) {
+          overworld_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
+                                         ImVec4(210, 24, 210, 150));
+          std::string str = absl::StrFormat("%#x", each.entranceId_);
+          overworld_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+        }
+      }
     }
     overworld_map_canvas_.DrawGrid(64.f);
     overworld_map_canvas_.DrawOverlay();
@@ -261,9 +247,7 @@ void OverworldEditor::DrawTileSelector() {
 void OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawBackground(ImVec2(0x100 + 1, (8192 * 2) + 1));
   blockset_canvas_.DrawContextMenu();
-  if (map_blockset_loaded_) {
-    blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2);
-  }
+  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2, map_blockset_loaded_);
   blockset_canvas_.DrawGrid(32.0f);
   blockset_canvas_.DrawOverlay();
 }
@@ -291,13 +275,11 @@ void OverworldEditor::DrawTile8Selector() {
 }
 
 void OverworldEditor::DrawAreaGraphics() {
-  if (overworld_.isLoaded()) {
-    current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
-    current_gfx_canvas_.DrawContextMenu();
-    current_gfx_canvas_.DrawBitmap(current_gfx_bmp_);
-    current_gfx_canvas_.DrawGrid(32.0f);
-    current_gfx_canvas_.DrawOverlay();
-  }
+  current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
+  current_gfx_canvas_.DrawContextMenu();
+  current_gfx_canvas_.DrawBitmap(current_gfx_bmp_, 2, overworld_.isLoaded());
+  current_gfx_canvas_.DrawGrid(32.0f);
+  current_gfx_canvas_.DrawOverlay();
 }
 
 void OverworldEditor::LoadGraphics() {

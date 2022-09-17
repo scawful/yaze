@@ -46,7 +46,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   int k = 0;
   for (int y = 2; y < 7; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = main[k++];
+      new_palette[x + (16 * y)] = main[k];
+      k++;
     }
   }
 
@@ -61,7 +62,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 2; y < 5; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = aux1[k++];
+      new_palette[x + (16 * y)] = aux1[k];
+      k++;
     }
   }
 
@@ -69,7 +71,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 5; y < 8; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = aux2[k++];
+      new_palette[x + (16 * y)] = aux2[k];
+      k++;
     }
   }
 
@@ -88,7 +91,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux1")[1][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux1")[1][k];
+      k++;
     }
   }
 
@@ -96,7 +100,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux3")[0][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux3")[0][k];
+      k++;
     }
   }
 
@@ -104,7 +109,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("global_sprites")[0][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("global_sprites")[0][k];
+      k++;
     }
   }
 
@@ -112,7 +118,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 13; y < 14; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = spr[k++];
+      new_palette[x + (16 * y)] = spr[k];
+      k++;
     }
   }
 
@@ -120,7 +127,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 14; y < 15; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = spr2[k++];
+      new_palette[x + (16 * y)] = spr2[k];
+      k++;
     }
   }
 
@@ -128,21 +136,15 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("armors")[0][k++];
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("armors")[0][k];
+      k++;
     }
   }
 
   current.Create(new_palette);
-  // ColorPalette pal = GFX.editort16Bitmap.Palette;
-  // for (int i = 0; i < 256; i++) {
-  //   pal.Entries[i] = new_palette[i];
-  //   pal.Entries[(i / 16) * 16] = Color.Transparent;
-  // }
-
-  // GFX.mapgfx16Bitmap.Palette = pal;
-  // GFX.mapblockset16Bitmap.Palette = pal;
-
-  // gfxBitmap.Palette = pal;
+  for (int i = 0; i < 256; i++) {
+    current[(i / 16) * 16].setTransparent(true);
+  }
 }
 
 }  // namespace
@@ -156,6 +158,7 @@ OverworldMap::OverworldMap(int index, ROM& rom,
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
                                     uchar* map_parent,
                                     OWBlockset& world_blockset) {
+  game_state_ = game_state;
   world_ = world;
   if (large_map_) {
     parent_ = map_parent[index_];
@@ -176,16 +179,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
     }
   }
 
-  int world_index = 0x20;
-  if (parent_ < 0x40) {
-    world_index = 0x20;
-  } else if (parent_ >= 0x40 && parent_ < 0x80) {
-    world_index = 0x21;
-  } else if (parent_ == 0x88) {
-    world_index = 0x24;
-  }
-
-  LoadAreaGraphics(game_state, world_index);
+  LoadAreaGraphics();
   RETURN_IF_ERROR(BuildTileset())
   RETURN_IF_ERROR(BuildTiles16Gfx(count))
   LoadPalette();
@@ -273,7 +267,16 @@ void OverworldMap::LoadAreaInfo() {
   }
 }
 
-void OverworldMap::LoadAreaGraphics(int game_state, int world_index) {
+void OverworldMap::LoadAreaGraphics() {
+  int world_index = 0x20;
+  if (parent_ < 0x40) {
+    world_index = 0x20;
+  } else if (parent_ >= 0x40 && parent_ < 0x80) {
+    world_index = 0x21;
+  } else if (parent_ == 0x88) {
+    world_index = 0x24;
+  }
+
   // Sprites Blocksets
   static_graphics_[8] = 0x73 + 0x00;
   static_graphics_[9] = 0x73 + 0x01;
@@ -281,7 +284,7 @@ void OverworldMap::LoadAreaGraphics(int game_state, int world_index) {
   static_graphics_[11] = 0x73 + 0x07;
   for (int i = 0; i < 4; i++) {
     static_graphics_[12 + i] = (rom_[core::kSpriteBlocksetPointer +
-                                     (sprite_graphics_[game_state] * 4) + i] +
+                                     (sprite_graphics_[game_state_] * 4) + i] +
                                 0x73);
   }
 
@@ -333,8 +336,7 @@ void OverworldMap::LoadPalette() {
 
   uchar pal0 = 0;
 
-  uchar pal1 =
-      rom_[core::overworldMapPaletteGroup + (area_palette_ * 4)];  // aux1
+  uchar pal1 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4)];
   uchar pal2 =
       rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) + 1];  // aux2
   uchar pal3 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) +
@@ -387,7 +389,7 @@ void OverworldMap::LoadPalette() {
   if (parent_ < 0x40) {
     // Default LW Palette
     pal0 = 0;
-
+    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(0);
     if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07) {
       pal0 = 2;
     }
@@ -457,8 +459,16 @@ absl::Status OverworldMap::BuildTileset() {
 
   for (int i = 0; i < 0x10; i++) {
     for (int j = 0; j < 0x1000; j++) {
-      current_gfx_[(i * 0x1000) + j] =
-          all_gfx_[j + (static_graphics_[i] * 0x1000)];
+      auto byte = all_gfx_[j + (static_graphics_[i] * 0x1000)];
+      switch (i) {
+        case 0:
+        case 3:
+        case 4:
+        case 5:
+          byte += 0x88;
+          break;
+      }
+      current_gfx_[(i * 0x1000) + j] = byte;
     }
   }
   return absl::OkStatus();
@@ -496,7 +506,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 
           auto destination = xx + yy + offset + (mx + (my * 0x80));
           current_blockset_[destination] =
-              current_gfx_[source] + (info.palette_ * 0x10);
+              (current_gfx_[source] & 0x0F) + (info.palette_ * 0x10);
         }
       }
     }

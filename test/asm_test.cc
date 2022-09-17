@@ -30,7 +30,7 @@ using ::testing::Return;
 class MockScript : public Script {
  public:
   MOCK_METHOD(absl::Status, ApplyPatchToROM, (ROM & rom));
-  MOCK_METHOD(absl::Status, GenerateMosaicChangeAssembly,
+  MOCK_METHOD(absl::Status, PatchOverworldMosaic,
               (ROM & rom, char mosaic_tiles[yaze::app::core::kNumOverworldMaps],
                int routine_offset, int hook_offset));
 };
@@ -40,15 +40,15 @@ TEST(ASMTest, ApplyMosaicChangePatchOk) {
   MockScript script;
   char mosaic_tiles[yaze::app::core::kNumOverworldMaps];
 
-  EXPECT_CALL(script, GenerateMosaicChangeAssembly(_, Eq(mosaic_tiles),
-                                                   Eq(0x1301D0 + 0x138000), 0))
+  EXPECT_CALL(script, PatchOverworldMosaic(_, Eq(mosaic_tiles),
+                                           Eq(0x1301D0 + 0x138000), 0))
       .WillOnce(Return(absl::OkStatus()));
 
   EXPECT_CALL(script, ApplyPatchToROM(_)).WillOnce(Return(absl::OkStatus()));
 
-  EXPECT_THAT(script.GenerateMosaicChangeAssembly(rom, mosaic_tiles,
-                                                  0x1301D0 + 0x138000, 0),
-              absl::OkStatus());
+  EXPECT_THAT(
+      script.PatchOverworldMosaic(rom, mosaic_tiles, 0x1301D0 + 0x138000, 0),
+      absl::OkStatus());
   EXPECT_THAT(script.ApplyPatchToROM(rom), absl::OkStatus());
 }
 
