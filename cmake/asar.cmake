@@ -24,5 +24,10 @@ set(ASAR_STATIC_SRC
   "../src/lib/asar/src/asar/warnings.cpp"
   "../src/lib/asar/src/asar/errors.cpp"
   "../src/lib/asar/src/asar/platform/file-helpers.cpp"
-  "../src/lib/asar/src/asar/platform/linux/file-helpers-linux.cpp"
 )
+
+if(WIN32 OR MINGW)
+  list(APPEND ASAR_STATIC_SRC "../src/lib/asar/src/asar/platform/windows/file-helpers-win32.cpp")
+else()
+  list(APPEND ASAR_STATIC_SRC "../src/lib/asar/src/asar/platform/linux/file-helpers-linux.cpp")
+endif()
