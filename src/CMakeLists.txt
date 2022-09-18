@@ -89,8 +89,16 @@ target_link_libraries(
   ImGui
   asar-static
 )
-target_compile_definitions(yaze PRIVATE "linux")
-target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
+if (WIN32)
+  # target_compile_definitions(yaze PRIVATE "windows")
+  add_definitions(-DASAR_STATIC)
+endif()
+
+if (UNIX)
+  target_compile_definitions(yaze PRIVATE "linux")
+  target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
+endif()
+
 
 set_target_properties(yaze
     PROPERTIES
