@@ -1,8 +1,7 @@
 #include <asar/interface-lib.h>
-
 #include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <google/protobuf/repeated_field.h>
+#include <gtest/gtest.h>
 
 #include <array>
 #include <cstdint>
@@ -14,12 +13,12 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "app/core/constants.h"
 #include "app/delta/client.h"
 #include "app/delta/service.h"
-#include "app/core/constants.h"
+#include "app/rom.h"
 #include "src/app/delta/delta.grpc.pb.h"
 #include "src/app/delta/delta.pb.h"
-#include "app/rom.h"
 
 namespace yaze_test {
 namespace delta_test {
@@ -29,7 +28,7 @@ TEST(DeltaTest, InitRepoAndPushOk) {
   yaze::app::ROM rom;
   Bytes test_bytes;
   test_bytes.push_back(0x40);
-  rom.LoadFromBytes(test_bytes);
+  EXPECT_TRUE(rom.LoadFromBytes(test_bytes).ok());
   grpc::ServerContext* context;
   InitRequest init_request;
   auto repo = init_request.mutable_repo();
@@ -41,7 +40,6 @@ TEST(DeltaTest, InitRepoAndPushOk) {
   for (int i = 0; i < 5; ++i) {
     auto new_commit = new Commit();
     new_commit->set_commit_id(i);
-    new_commit->set_data(rom.char_data());
     new_mutable_commits->Add();
     new_mutable_commits->at(i) = *new_commit;
   }
@@ -72,7 +70,5 @@ TEST(DeltaTest, InitRepoAndPushOk) {
   std::cerr << result_branch.at(0).DebugString() << std::endl;
 }
 
-
-
-}  // namespace asm_test
+}  // namespace delta_test
 }  // namespace yaze_test
