@@ -18,13 +18,30 @@ service YazeDelta {
   rpc UndoMerge(UndoMergeRequest) returns (UndoMergeResponse) {}
 }
 
+enum ChangeType {
+  OVERWORLD_MAP = 0;
+  DUNGEON_MAP = 1;
+  MONOLOGUE = 2;
+  PALETTE = 3;
+  OBJECT = 4;
+  ASSEMBLY = 5;
+  MISC = 6;
+}
+
+message Delta {
+  int64 offset = 1;
+  int64 length = 2;
+  bytes data = 3;
+  ChangeType type = 4;
+}
+
 message Commit {
   int64 commit_id = 1;
   int64 parent_commit_id = 2;
   string author_name = 3;
   string message_header = 4;
   optional string message_body = 5;
-  bytes data = 6;
+  repeated Delta delta = 6;
   int64 signature = 7;
 }
 
@@ -63,7 +80,12 @@ message PushRequest {
 }
 message PushResponse {}
 
-message PullRequest {}
+message PullRequest {
+  string repository_name = 1;
+  string branch_name = 2;
+  repeated Commit commits = 3;
+}
+
 message PullResponse {}
 
 message SyncRequest {}

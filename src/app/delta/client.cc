@@ -33,6 +33,7 @@ absl::Status Client::InitRepo(std::string author_name,
   Repository new_repo;
   new_repo.set_author_name(author_name);
   new_repo.set_project_name(project_name);
+  new_repo.mutable_tree()->Add();
 
   InitRequest request;
   request.set_allocated_repo(&new_repo);

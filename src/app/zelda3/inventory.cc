@@ -14,7 +14,7 @@ void Inventory::Create() {
     data_.push_back(0xFF);
   }
   PRINT_IF_ERROR(BuildTileset())
-  for (int i = 0; i < 0x400; i += 0x08) {
+  for (int i = 0; i < 0x500; i += 0x08) {
     tiles_.push_back(gfx::GetTilesInfo(rom_.toint16(i + kBowItemPos)));
     tiles_.push_back(gfx::GetTilesInfo(rom_.toint16(i + kBowItemPos + 0x02)));
     tiles_.push_back(gfx::GetTilesInfo(rom_.toint16(i + kBowItemPos + 0x04)));

@@ -6,6 +6,8 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 
+#include <fstream>
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "src/app/delta/delta.grpc.pb.h"
@@ -46,6 +48,14 @@ Status DeltaService::Init(grpc::ServerContext* context,
                           const InitRequest* request, InitResponse* reply) {
   std::filesystem::create_directories("./.yaze");
   repos_.push_back(request->repo());
+  // std::ofstream commit_stream("./.yaze/commits");
+  // for (const auto& repo : repos_) {
+  //   for (const auto& branch : repo.tree()) {
+  //     for (const auto& commit : branch.commits()) {
+  //       commit_stream << commit.DebugString();
+  //     }
+  //   }
+  // }
   return Status::OK;
 }
 
