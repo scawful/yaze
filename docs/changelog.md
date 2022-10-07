@@ -1,6 +1,14 @@
+## September 2022
+
+- Drawing Overworld maps to the screen
+- Drawing entrance data on the overworld
+- Drawing 2bpp inventory graphics data 
+- Started the YazeDelta project for version control.
+
 ## August 2022
 
 - Added ValidateCompressionResults to ROM::Compress
+- Improved Overworld systems in preparation for drawing maps.
 
 ## July 2022
 
