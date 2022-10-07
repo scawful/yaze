@@ -33,6 +33,6 @@ SDL2, ImGUI and Abseil are subject to respective licenses.
 
 Screenshots
 --------
-![image](https://user-images.githubusercontent.com/47263509/181937830-efdcae4f-af92-4856-bc09-a4d60f5a4a40.png)
+![image](https://user-images.githubusercontent.com/47263509/194669806-2b0da68d-9d38-4f52-bcce-c60ee861092c.png)
 
 
