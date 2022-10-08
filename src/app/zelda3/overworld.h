@@ -22,53 +22,48 @@ class OverworldEntrance {
  public:
   int x_;
   int y_;
-  ushort mapPos;
-  uchar entranceId_, AreaX, AreaY;
-  short mapId_;
-  bool isHole = false;
+  ushort map_pos_;
+  uchar entrance_id_;
+  uchar area_x_;
+  uchar area_y_;
+  short map_id_;
+  bool is_hole_ = false;
   bool deleted = false;
 
   OverworldEntrance(int x, int y, uchar entranceId, short mapId, ushort mapPos,
-                    bool hole) {
-    x_ = x;
-    y_ = y;
-    entranceId_ = entranceId;
-    mapId_ = mapId;
-    mapPos = mapPos;
+                    bool hole)
+      : x_(x),
+        y_(y),
+        map_pos_(mapPos),
+        entrance_id_(entranceId),
+        map_id_(mapId),
+        is_hole_(hole) {
+    int mapX = (map_id_ - ((map_id_ / 8) * 8));
+    int mapY = (map_id_ / 8);
 
-    int mapX = (mapId_ - ((mapId / 8) * 8));
-    int mapY = (mapId_ / 8);
-
-    AreaX = (uchar)((std::abs(x - (mapX * 512)) / 16));
-    AreaY = (uchar)((std::abs(y - (mapY * 512)) / 16));
-
-    isHole = hole;
+    area_x_ = (uchar)((std::abs(x - (mapX * 512)) / 16));
+    area_y_ = (uchar)((std::abs(y - (mapY * 512)) / 16));
   }
 
   auto Copy() {
-    return new OverworldEntrance(x_, y_, entranceId_, mapId_, mapPos, isHole);
+    return new OverworldEntrance(x_, y_, entrance_id_, map_id_, map_pos_,
+                                 is_hole_);
   }
 
   void updateMapStuff(short mapId) {
-    mapId_ = mapId;
+    map_id_ = mapId;
 
-    if (mapId_ >= 64) {
-      mapId_ -= 64;
+    if (map_id_ >= 64) {
+      map_id_ -= 64;
     }
 
-    int mapX = (mapId_ - ((mapId_ / 8) * 8));
-    int mapY = (mapId_ / 8);
+    int mapX = (map_id_ - ((map_id_ / 8) * 8));
+    int mapY = (map_id_ / 8);
 
-    AreaX = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
-    AreaY = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
 
-    int mx = (mapId_ - ((mapId_ / 8) * 8));
-    int my = (mapId_ / 8);
-
-    uchar xx = (uchar)((x_ - (mx * 512)) / 16);
-    uchar yy = (uchar)((y_ - (my * 512)) / 16);
-
-    mapPos = (ushort)((((AreaY) << 6) | (AreaX & 0x3F)) << 1);
+    map_pos_ = (ushort)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
   }
 };
 

@@ -37,19 +37,6 @@ void Canvas::DrawContextMenu() {
   const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
                                    io.MousePos.y - origin.y);
 
-  // Add first and second point
-  if (is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    ImVec2 draw_tile_outline_pos;
-    draw_tile_outline_pos.x =
-        std::round((double)mouse_pos_in_canvas.x / 32) * 32;
-    draw_tile_outline_pos.y =
-        std::round((double)mouse_pos_in_canvas.y / 32) * 32;
-
-    points_.push_back(draw_tile_outline_pos);
-    points_.push_back(
-        ImVec2(draw_tile_outline_pos.x + 32, draw_tile_outline_pos.y + 32));
-  }
-
   // Pan (we use a zero mouse threshold when there's no context menu)
   const float mouse_threshold_for_pan = enable_context_menu_ ? -1.0f : 0.0f;
   if (is_active &&
@@ -76,24 +63,27 @@ void Canvas::DrawContextMenu() {
   }
 }
 
-void Canvas::DrawTilesFromUser(app::ROM &rom, Bytes &tile,
-                               app::gfx::SNESPalette &pal) {
-  ImVec2 draw_tile_outline_pos;
-
-  // Add rectangle
-  if (is_hovered_ && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+void Canvas::DrawTileSelector(int size) {
+  const ImGuiIO &io = ImGui::GetIO();
+  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
+  const ImVec2 origin(canvas_p0_.x + scrolling_.x,
+                      canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
+  const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
+                                   io.MousePos.y - origin.y);
+  // Add first and second point
+  if (is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (!points_.empty()) {
+      points_.clear();
+    }
+    ImVec2 draw_tile_outline_pos;
     draw_tile_outline_pos.x =
-        std::round((double)mouse_pos_in_canvas_.x / 16) * 16;
+        std::floor((double)mouse_pos_in_canvas.x / size) * size;
     draw_tile_outline_pos.y =
-        std::round((double)mouse_pos_in_canvas_.y / 16) * 16;
+        std::floor((double)mouse_pos_in_canvas.y / size) * size;
 
     points_.push_back(draw_tile_outline_pos);
     points_.push_back(
-        ImVec2(draw_tile_outline_pos.x + 16, draw_tile_outline_pos.y + 16));
-
-    changed_tiles_.emplace_back(app::gfx::Bitmap(16, 16, 64, tile.data()));
-    changed_tiles_.back().ApplyPalette(pal);
-    rom.RenderBitmap(&(changed_tiles_.back()));
+        ImVec2(draw_tile_outline_pos.x + size, draw_tile_outline_pos.y + size));
   }
 }
 

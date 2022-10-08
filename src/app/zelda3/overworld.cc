@@ -258,9 +258,9 @@ void Overworld::LoadEntrances() {
   }
 
   for (int i = 0; i < 0x13; i++) {
-    short mapId = (short)((rom_[core::OWHoleArea + (i * 2) + 1] << 8) +
+    auto mapId = (short)((rom_[core::OWHoleArea + (i * 2) + 1] << 8) +
                           (rom_[core::OWHoleArea + (i * 2)]));
-    short mapPos = (short)((rom_[core::OWHolePos + (i * 2) + 1] << 8) +
+    auto mapPos = (short)((rom_[core::OWHolePos + (i * 2) + 1] << 8) +
                            (rom_[core::OWHolePos + (i * 2)]));
     uchar entranceId = (rom_[core::OWHoleEntrance + i]);
     int p = (mapPos + 0x400) >> 1;
@@ -282,8 +282,6 @@ void Overworld::LoadSprites() {
     all_sprites_.emplace_back(std::vector<Sprite>());
   }
 
-  // Console.WriteLine(((core::overworldSpritesBegining & 0xFFFF) + (09 <<
-  // 16)).ToString("X6"));
   for (int i = 0; i < 64; i++) {
     if (map_parent_[i] == i) {
       // Beginning Sprites
