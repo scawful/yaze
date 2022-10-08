@@ -41,6 +41,7 @@ void UpdateSelectedTile16(int selected, gfx::Bitmap &tile16_blockset,
 void OverworldEditor::SetupROM(ROM &rom) { rom_ = rom; }
 
 absl::Status OverworldEditor::Update() {
+  // Initialize overworld graphics, maps, and palettes
   if (rom_.isLoaded() && !all_gfx_loaded_) {
     LoadGraphics();
     all_gfx_loaded_ = true;
@@ -196,11 +197,11 @@ void OverworldEditor::DrawOverworldCanvas() {
         }
       }
       for (const auto &each : overworld_.Entrances()) {
-        if (each.mapId_ < 64 + (current_world_ * 0x40) &&
-            each.mapId_ >= (current_world_ * 0x40)) {
+        if (each.map_id_ < 64 + (current_world_ * 0x40) &&
+            each.map_id_ >= (current_world_ * 0x40)) {
           overworld_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
                                          ImVec4(210, 24, 210, 150));
-          std::string str = absl::StrFormat("%#x", each.entranceId_);
+          std::string str = absl::StrFormat("%#x", each.entrance_id_);
           overworld_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
         }
       }
@@ -213,11 +214,11 @@ void OverworldEditor::DrawOverworldCanvas() {
 
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
-    if (ImGui::BeginTabItem("Tile8")) {
-      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
+    if (ImGui::BeginTabItem("Area Graphics")) {
+      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
       if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        DrawTile8Selector();
+        DrawAreaGraphics();
       }
       ImGui::EndChild();
       ImGui::EndTabItem();
@@ -231,16 +232,29 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Area Graphics")) {
-      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
+    if (ImGui::BeginTabItem("Tile8")) {
+      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
       if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        DrawAreaGraphics();
+        DrawTile8Selector();
       }
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();
+  }
+}
+
+void OverworldEditor::DrawAreaGraphics() {
+  current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
+  current_gfx_canvas_.DrawContextMenu();
+  current_gfx_canvas_.DrawTileSelector(32);
+  current_gfx_canvas_.DrawBitmap(current_gfx_bmp_, 2, overworld_.isLoaded());
+  current_gfx_canvas_.DrawGrid(32.0f);
+  current_gfx_canvas_.DrawOverlay();
+
+  if (!current_gfx_canvas_.Points().empty()) {
+    // TODO(scawful): update selected tile by getting position from canvas
   }
 }
 
@@ -272,14 +286,6 @@ void OverworldEditor::DrawTile8Selector() {
   }
   graphics_bin_canvas_.DrawGrid(16.0f);
   graphics_bin_canvas_.DrawOverlay();
-}
-
-void OverworldEditor::DrawAreaGraphics() {
-  current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
-  current_gfx_canvas_.DrawContextMenu();
-  current_gfx_canvas_.DrawBitmap(current_gfx_bmp_, 2, overworld_.isLoaded());
-  current_gfx_canvas_.DrawGrid(32.0f);
-  current_gfx_canvas_.DrawOverlay();
 }
 
 void OverworldEditor::LoadGraphics() {

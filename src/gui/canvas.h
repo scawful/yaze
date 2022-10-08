@@ -17,13 +17,12 @@ using app::gfx::Bitmap;
 class Canvas {
  public:
   Canvas() = default;
-  Canvas(ImVec2 canvas_size)
+  explicit Canvas(ImVec2 canvas_size)
       : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
 
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
   void DrawContextMenu();
-  void DrawTilesFromUser(app::ROM& rom, Bytes& tile,
-                         app::gfx::SNESPalette& pal);
+  void DrawTileSelector(int size);
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
   void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
@@ -33,6 +32,7 @@ class Canvas {
   void DrawGrid(float grid_step = 64.0f);
   void DrawOverlay();  // last
 
+  auto Points() const { return points_; }
   auto GetDrawList() const { return draw_list_; }
   auto GetZeroPoint() const { return canvas_p0_; }
   void SetCanvasSize(ImVec2 canvas_size) {
