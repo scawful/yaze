@@ -66,6 +66,7 @@ struct CompressionPiece {
       : command(cmd), length(len), argument_length(arg_len), argument(args) {}
 };
 using CompressionPiece = struct CompressionPiece;
+using CompressionPiecePointer = std::shared_ptr<CompressionPiece>;
 
 class ROM {
  public:

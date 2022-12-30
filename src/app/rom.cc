@@ -3,6 +3,7 @@
 #include <SDL.h>
 
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -295,14 +296,13 @@ Bytes CreateCompressionString(std::shared_ptr<CompressionPiece>& start,
 }
 
 absl::Status ValidateCompressionResult(
-    std::shared_ptr<CompressionPiece>& compressed_chain_start, int mode,
-    int start, int src_data_pos) {
+    CompressionPiecePointer& compressed_chain_start, int mode, int start,
+    int src_data_pos) {
   if (compressed_chain_start->next != nullptr) {
     ROM temp_rom;
     RETURN_IF_ERROR(temp_rom.LoadFromBytes(
         CreateCompressionString(compressed_chain_start->next, mode)))
-    ASSIGN_OR_RETURN(auto decomp_data,
-                     temp_rom.Decompress(0, temp_rom.size()))
+    ASSIGN_OR_RETURN(auto decomp_data, temp_rom.Decompress(0, temp_rom.size()))
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -314,9 +314,8 @@ absl::Status ValidateCompressionResult(
 }
 
 // Merge consecutive copy if possible
-std::shared_ptr<CompressionPiece> MergeCopy(
-    std::shared_ptr<CompressionPiece>& start) {
-  std::shared_ptr<CompressionPiece> piece = start;
+CompressionPiecePointer MergeCopy(CompressionPiecePointer& start) {
+  CompressionPiecePointer piece = start;
 
   while (piece != nullptr) {
     if (piece->command == kCommandDirectCopy && piece->next != nullptr &&
@@ -371,7 +370,7 @@ Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
   for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
     for (int y = 0; y < 8; y++) {        // for each line
       for (int x = 0; x < 8; x++) {      //[0] + [1] + [16]
-        auto b1 = ((sheet[(y * 2) + (bpp * pos)] & (kGraphicsBitmap[x])));
+        auto b1 = (sheet[(y * 2) + (bpp * pos)] & (kGraphicsBitmap[x]));
         auto b2 = (sheet[((y * 2) + (bpp * pos)) + 1] & (kGraphicsBitmap[x]));
         auto b3 = (sheet[(16 + y) + (bpp * pos)] & (kGraphicsBitmap[x]));
         unsigned char b = 0;
@@ -384,7 +383,7 @@ Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
         if (b3 != 0 && bpp != 16) {
           b |= 4;
         }
-        sheet_buffer_out[x + (xx) + (y * 128) + (yy * 1024)] = b;
+        sheet_buffer_out[x + xx + (y * 128) + (yy * 1024)] = b;
       }
     }
     pos++;
