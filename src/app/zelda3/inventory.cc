@@ -8,6 +8,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+  
 void Inventory::Create() {
   data_.reserve(256 * 256);
   for (int i = 0; i < 256 * 256; i++) {
