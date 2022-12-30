@@ -17,6 +17,7 @@ class AssemblyEditor {
   AssemblyEditor();
 
   void Update();
+  void InlineUpdate();
   void ChangeActiveFile(const std::string &);
 
  private:

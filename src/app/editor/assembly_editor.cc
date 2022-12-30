@@ -32,6 +32,22 @@ void AssemblyEditor::Update() {
   ImGui::End();
 }
 
+
+
+void AssemblyEditor::InlineUpdate() {
+  ChangeActiveFile("assets/asm/template_song.asm");
+  auto cpos = text_editor_.GetCursorPosition();
+  SetEditorText();
+  ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
+              cpos.mColumn + 1, text_editor_.GetTotalLines(),
+              text_editor_.IsOverwrite() ? "Ovr" : "Ins",
+              text_editor_.CanUndo() ? "*" : " ",
+              text_editor_.GetLanguageDefinition().mName.c_str(),
+              current_file_.c_str());
+
+  text_editor_.Render("##asm_editor", ImVec2(0, 300));
+}
+
 void AssemblyEditor::ChangeActiveFile(const std::string& filename) {
   current_file_ = filename;
 }
