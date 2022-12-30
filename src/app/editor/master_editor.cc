@@ -10,6 +10,7 @@
 #include "app/core/constants.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
+#include "app/editor/music_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -88,9 +89,10 @@ void MasterEditor::UpdateScreen() {
   TAB_BAR("##TabBar")
   DrawOverworldEditor();
   DrawDungeonEditor();
-  DrawPaletteEditor();
+  DrawMusicEditor();
   DrawSpriteEditor();
   DrawScreenEditor();
+  DrawPaletteEditor();
   END_TAB_BAR()
 
   ImGui::End();
@@ -209,6 +211,7 @@ void MasterEditor::DrawViewMenu() {
   static bool show_memory_editor = false;
   static bool show_asm_editor = false;
   static bool show_imgui_demo = false;
+  static bool show_memory_viewer = false;
 
   if (show_imgui_metrics) {
     ImGui::ShowMetricsWindow(&show_imgui_metrics);
@@ -233,9 +236,33 @@ void MasterEditor::DrawViewMenu() {
     ImGui::End();
   }
 
+  if (show_memory_viewer) {
+    ImGui::Begin("Memory Viewer (ImGui)", &show_memory_viewer);
+
+    const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
+    static ImGuiTableFlags flags =
+        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
+        ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg |
+        ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX;
+    if (auto outer_size = ImVec2(0.0f, TEXT_BASE_HEIGHT * 5.5f);
+        ImGui::BeginTable("table1", 3, flags, outer_size)) {
+      for (int row = 0; row < 10; row++) {
+        ImGui::TableNextRow();
+        for (int column = 0; column < 3; column++) {
+          ImGui::TableNextColumn();
+          ImGui::Text("Cell %d,%d", column, row);
+        }
+      }
+      ImGui::EndTable();
+    }
+
+    ImGui::End();
+  }
+
   if (ImGui::BeginMenu("View")) {
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
+    ImGui::MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
     ImGui::Separator();
     if (ImGui::BeginMenu("GUI Tools")) {
@@ -276,6 +303,12 @@ void MasterEditor::DrawPaletteEditor() {
 void MasterEditor::DrawScreenEditor() {
   TAB_ITEM("Screens")
   screen_editor_.Update();
+  END_TAB_ITEM()
+}
+
+void MasterEditor::DrawMusicEditor() {
+  TAB_ITEM("Music")
+  music_editor_.Update();
   END_TAB_ITEM()
 }
 

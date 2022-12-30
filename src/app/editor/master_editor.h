@@ -11,6 +11,7 @@
 #include "app/core/constants.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
+#include "app/editor/music_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/editor/palette_editor.h"
 #include "app/editor/screen_editor.h"
@@ -45,6 +46,7 @@ class MasterEditor {
   void DrawOverworldEditor();
   void DrawDungeonEditor();
   void DrawPaletteEditor();
+  void DrawMusicEditor();
   void DrawScreenEditor();
   void DrawSpriteEditor();
 
@@ -59,6 +61,7 @@ class MasterEditor {
   OverworldEditor overworld_editor_;
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
+  MusicEditor music_editor_;
   ROM rom_;
 };
 
