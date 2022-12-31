@@ -24,26 +24,22 @@ add_executable(
   ../src/app/core/common.cc
   ../src/app/delta/service.cc
   ../src/app/delta/client.cc
-  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_test PUBLIC
   ../src/
   ../src/lib/
-  ../src/lib/asar/src/
-  ${ASAR_INCLUDE_DIR}
   ${SDL_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   yaze_test
-  SDL2::SDL2
+  SDL2
   ${ABSL_TARGETS}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   delta-service
-  asar-static
   gmock_main
   gmock
   gtest_main

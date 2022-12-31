@@ -20,6 +20,8 @@ set(BUILD_SHARED_LIBS ON)
 
 # Abseil Standard Specifications ----------------------------------------------
 include(cmake/absl.cmake)
+add_subdirectory(src/lib/abseil-cpp)
+
 include(cmake/openssl.cmake)
 
 set(PROTOBUF_INCLUDE_PATH ${CMAKE_CURRENT_BINARY_DIR}
@@ -32,16 +34,14 @@ set(Protobuf_INCLUDE_DIRS "/Users/scawful/code/protobuf/include/")
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-# find_package(gRPC REQUIRED)
+find_package(SDL2)
 
 # Asar Assembly ---------------------------------------------------------------
-add_subdirectory(src/lib/asar/src)
-include(cmake/asar.cmake)
+# add_subdirectory(src/lib/asar/src)
+# include(cmake/asar.cmake)
 
 include(cmake/imgui.cmake)
 
 # Project Files
-add_subdirectory(src/lib/abseil-cpp)
-add_subdirectory(src/lib/SDL)
 add_subdirectory(src)
 add_subdirectory(test)

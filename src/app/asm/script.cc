@@ -1,6 +1,6 @@
 #include "script.h"
 
-#include <asar/interface-lib.h>
+// #include <asar/interface-lib.h>
 
 #include <array>
 #include <cstdint>
@@ -27,11 +27,11 @@ absl::Status Script::ApplyPatchToROM(ROM &rom) {
   int count = 0;
   auto data = (char *)rom.data();
   int size = rom.size();
-  if (!asar_patch(patch_filename_.c_str(), data, patch_size_, &size)) {
-    auto asar_error = asar_geterrors(&count);
-    auto full_error = asar_error->fullerrdata;
-    return absl::InternalError(absl::StrCat("ASAR Error: ", full_error));
-  }
+  // if (!asar_patch(patch_filename_.c_str(), data, patch_size_, &size)) {
+  //   auto asar_error = asar_geterrors(&count);
+  //   auto full_error = asar_error->fullerrdata;
+  //   return absl::InternalError(absl::StrCat("ASAR Error: ", full_error));
+  // }
   return absl::OkStatus();
 }
 
