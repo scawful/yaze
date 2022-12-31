@@ -7,6 +7,7 @@
 #include "app/editor/assembly_editor.h"
 #include "gui/canvas.h"
 #include "gui/icons.h"
+#include "gui/input.h"
 
 namespace yaze {
 namespace app {
