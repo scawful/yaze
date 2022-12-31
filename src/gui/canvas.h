@@ -22,6 +22,7 @@ class Canvas {
 
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
   void DrawContextMenu();
+  void DrawTilePainter(const Bitmap& bitmap, int size);
   void DrawTileSelector(int size);
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
@@ -55,6 +56,7 @@ class Canvas {
   ImVec2 mouse_pos_in_canvas_;
 
   std::vector<app::gfx::Bitmap> changed_tiles_;
+  app::gfx::Bitmap current_tile_;
 
   std::string title_;
 };

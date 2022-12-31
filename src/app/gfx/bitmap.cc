@@ -96,6 +96,11 @@ void Bitmap::Create(int width, int height, int depth, Bytes data) {
   GrayscalePalette(surface_->format->palette);
 }
 
+void Bitmap::Apply(Bytes data) {
+  pixel_data_ = data.data();
+  data_ = data;
+}
+
 // Creates the texture that will be displayed to the screen.
 void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
   texture_ = std::shared_ptr<SDL_Texture>{

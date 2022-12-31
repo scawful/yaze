@@ -53,11 +53,15 @@ class OverworldEditor {
  private:
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
+
+  void DrawOverworldEntrances();
+  void DrawOverworldMaps();
   void DrawOverworldCanvas();
-  void DrawTileSelector();
+
   void DrawTile16Selector();
   void DrawTile8Selector();
   void DrawAreaGraphics();
+  void DrawTileSelector();
   void LoadGraphics();
 
   int current_world_ = 0;

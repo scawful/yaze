@@ -24,15 +24,16 @@ namespace editor {
 
 namespace {
 void UpdateSelectedTile16(int selected, gfx::Bitmap &tile16_blockset,
-                          Bytes &selected_tile) {
-  selected_tile.reserve(256);
+                          gfx::Bitmap &selected_tile) {
   auto blockset = tile16_blockset.GetData();
 
   int src_pos = ((selected - ((selected / 0x08) * 0x08)) * 0x10) +
                 ((selected / 0x08) * 2048);
-  for (int yy = 0; yy < 0x10; yy++) {
-    for (int xx = 0; xx < 0x10; xx++) {
-      selected_tile[xx + (yy * 0x10)] = blockset[src_pos + xx + (yy * 0x80)];
+  for (int yy = 0; yy < 0x20; yy++) {
+    for (int xx = 0; xx < 0x20; xx++) {
+      int position = (xx + (yy * 0x20));
+      uchar value = blockset[src_pos + xx + (yy * 0x80)];
+      selected_tile.WriteToPixel(position, value);
     }
   }
 }
@@ -48,11 +49,11 @@ absl::Status OverworldEditor::Update() {
 
     RETURN_IF_ERROR(overworld_.Load(rom_))
     palette_ = overworld_.AreaPalette();
-    current_gfx_bmp_.Create(128, 512, 64, overworld_.AreaGraphics());
+    current_gfx_bmp_.Create(0x80, 0x200, 0x40, overworld_.AreaGraphics());
     current_gfx_bmp_.ApplyPalette(palette_);
     rom_.RenderBitmap(&current_gfx_bmp_);
 
-    tile16_blockset_bmp_.Create(128, 8192, 128, overworld_.Tile16Blockset());
+    tile16_blockset_bmp_.Create(0x80, 8192, 0x80, overworld_.Tile16Blockset());
     tile16_blockset_bmp_.ApplyPalette(palette_);
     rom_.RenderBitmap(&tile16_blockset_bmp_);
     map_blockset_loaded_ = true;
@@ -60,21 +61,10 @@ absl::Status OverworldEditor::Update() {
     for (int i = 0; i < core::kNumOverworldMaps; ++i) {
       overworld_.SetCurrentMap(i);
       auto palette = overworld_.AreaPalette();
-      maps_bmp_[i].Create(512, 512, 512, overworld_.BitmapData());
+      maps_bmp_[i].Create(0x200, 0x200, 0x200, overworld_.BitmapData());
       maps_bmp_[i].ApplyPalette(palette);
       rom_.RenderBitmap(&(maps_bmp_[i]));
     }
-  }
-
-  if (update_selected_tile_ && all_gfx_loaded_) {
-    if (!selected_tile_loaded_) {
-      selected_tile_bmp_.Create(16, 16, 64, 256);
-    }
-    UpdateSelectedTile16(selected_tile_, tile16_blockset_bmp_,
-                         selected_tile_data_);
-    selected_tile_bmp_.ApplyPalette(palette_);
-    rom_.RenderBitmap(&selected_tile_bmp_);
-    update_selected_tile_ = false;
   }
 
   auto toolset_status = DrawToolset();
@@ -96,6 +86,8 @@ absl::Status OverworldEditor::Update() {
 
   return absl::OkStatus();
 }
+
+// ----------------------------------------------------------------------------
 
 absl::Status OverworldEditor::DrawToolset() {
   if (ImGui::BeginTable("OWToolset", 17, toolset_table_flags, ImVec2(0, 0))) {
@@ -123,6 +115,8 @@ absl::Status OverworldEditor::DrawToolset() {
   }
   return absl::OkStatus();
 }
+
+// ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawOverworldMapSettings() {
   if (ImGui::BeginTable("#mapSettings", 8, ow_map_flags, ImVec2(0, 0), -1)) {
@@ -174,98 +168,91 @@ void OverworldEditor::DrawOverworldMapSettings() {
   }
 }
 
+// ----------------------------------------------------------------------------
+
+void OverworldEditor::DrawOverworldEntrances() {
+  for (const auto &each : overworld_.Entrances()) {
+    if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
+        each.map_id_ >= (current_world_ * 0x40)) {
+      overworld_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
+                                     ImVec4(210, 24, 210, 150));
+      std::string str = absl::StrFormat("%#x", each.entrance_id_);
+      overworld_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+
+void OverworldEditor::DrawOverworldMaps() {
+  int xx = 0;
+  int yy = 0;
+  for (int i = 0; i < 0x40; i++) {
+    int world_index = i + (current_world_ * 0x40);
+    int map_x = (xx * 0x200);
+    int map_y = (yy * 0x200);
+    overworld_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y);
+    xx++;
+    if (xx >= 8) {
+      yy++;
+      xx = 0;
+    }
+    DrawOverworldEntrances();
+  }
+}
+
+// ----------------------------------------------------------------------------
+
 void OverworldEditor::DrawOverworldCanvas() {
   DrawOverworldMapSettings();
   ImGui::Separator();
-  ImGuiID child_id = ImGui::GetID((void *)(intptr_t)7);
-  if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+  if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)7);
+      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar |
                             ImGuiWindowFlags_AlwaysHorizontalScrollbar)) {
     overworld_map_canvas_.DrawBackground(ImVec2(0x200 * 8, 0x200 * 8));
     overworld_map_canvas_.DrawContextMenu();
+    overworld_map_canvas_.DrawTilePainter(selected_tile_bmp_, 32);
     if (overworld_.isLoaded()) {
-      int xx = 0;
-      int yy = 0;
-      for (int i = 0; i < 0x40; i++) {
-        overworld_map_canvas_.DrawBitmap(maps_bmp_[i + (current_world_ * 0x40)],
-                                         (xx * 0x200), (yy * 0x200));
-
-        xx++;
-        if (xx >= 8) {
-          yy++;
-          xx = 0;
-        }
-      }
-      for (const auto &each : overworld_.Entrances()) {
-        if (each.map_id_ < 64 + (current_world_ * 0x40) &&
-            each.map_id_ >= (current_world_ * 0x40)) {
-          overworld_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
-                                         ImVec4(210, 24, 210, 150));
-          std::string str = absl::StrFormat("%#x", each.entrance_id_);
-          overworld_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
-        }
-      }
+      DrawOverworldMaps();
     }
-    overworld_map_canvas_.DrawGrid(64.f);
+    overworld_map_canvas_.DrawGrid(64.0f);
     overworld_map_canvas_.DrawOverlay();
+
+    if (!blockset_canvas_.Points().empty() && all_gfx_loaded_) {
+      // TODO(scawful): update selected tile by getting position from canvas
+      // if (!selected_tile_loaded_) {
+      //   selected_tile_loaded_ = true;
+      // }
+      
+      selected_tile_bmp_.Create(32, 32, 0x40, 1024);
+      UpdateSelectedTile16(selected_tile_, tile16_blockset_bmp_,
+                           selected_tile_bmp_);
+      selected_tile_bmp_.ApplyPalette(palette_);
+      rom_.RenderBitmap(&selected_tile_bmp_);
+      update_selected_tile_ = false;
+    }
   }
   ImGui::EndChild();
 }
 
-void OverworldEditor::DrawTileSelector() {
-  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
-    if (ImGui::BeginTabItem("Area Graphics")) {
-      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
-      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        DrawAreaGraphics();
-      }
-      ImGui::EndChild();
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Tile16")) {
-      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)2);
-      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        DrawTile16Selector();
-      }
-      ImGui::EndChild();
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Tile8")) {
-      ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
-      if (ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        DrawTile8Selector();
-      }
-      ImGui::EndChild();
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
-  }
-}
+// ----------------------------------------------------------------------------
 
-void OverworldEditor::DrawAreaGraphics() {
-  current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 16 * 64 + 1));
-  current_gfx_canvas_.DrawContextMenu();
-  current_gfx_canvas_.DrawTileSelector(32);
-  current_gfx_canvas_.DrawBitmap(current_gfx_bmp_, 2, overworld_.isLoaded());
-  current_gfx_canvas_.DrawGrid(32.0f);
-  current_gfx_canvas_.DrawOverlay();
-
-  if (!current_gfx_canvas_.Points().empty()) {
-    // TODO(scawful): update selected tile by getting position from canvas
-  }
-}
-
+// Tile 16 Selector
+// Displays all the tiles in the game.
 void OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawBackground(ImVec2(0x100 + 1, (8192 * 2) + 1));
   blockset_canvas_.DrawContextMenu();
   blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2, map_blockset_loaded_);
+  blockset_canvas_.DrawTileSelector(32);
   blockset_canvas_.DrawGrid(32.0f);
   blockset_canvas_.DrawOverlay();
 }
 
+// ----------------------------------------------------------------------------
+
+// Tile 8 Selector
+// Displays all the individual tiles that make up a tile16.
 void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawBackground(
       ImVec2(0x100 + 1, kNumSheetsToLoad * 0x40 + 1));
@@ -287,6 +274,54 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawGrid(16.0f);
   graphics_bin_canvas_.DrawOverlay();
 }
+
+// ----------------------------------------------------------------------------
+
+void OverworldEditor::DrawAreaGraphics() {
+  current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
+  current_gfx_canvas_.DrawContextMenu();
+  current_gfx_canvas_.DrawTileSelector(32);
+  current_gfx_canvas_.DrawBitmap(current_gfx_bmp_, 2, overworld_.isLoaded());
+  current_gfx_canvas_.DrawGrid(32.0f);
+  current_gfx_canvas_.DrawOverlay();
+}
+
+// ----------------------------------------------------------------------------
+
+void OverworldEditor::DrawTileSelector() {
+  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
+    if (ImGui::BeginTabItem("Tile16")) {
+      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)2);
+          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        DrawTile16Selector();
+      }
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Tile8")) {
+      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
+          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        DrawTile8Selector();
+      }
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Area Graphics")) {
+      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
+          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        DrawAreaGraphics();
+      }
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
+  }
+}
+
+// ----------------------------------------------------------------------------
 
 void OverworldEditor::LoadGraphics() {
   for (int i = 0; i < 8; i++) {
