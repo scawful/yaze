@@ -66,7 +66,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
   static bool create = false;
   if (!create && rom_.isLoaded()) {
     inventory_.Create();
-    palette_ =inventory_.Palette();
+    palette_ = inventory_.Palette();
     create = true;
   }
 
