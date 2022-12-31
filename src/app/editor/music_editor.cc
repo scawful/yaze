@@ -9,26 +9,34 @@ namespace app {
 namespace editor {
 
 void MusicEditor::Update() {
-  ImGui::Separator();
   if (ImGui::BeginTable("MusicEditorColumns", 2, music_editor_flags_,
                         ImVec2(0, 0))) {
     ImGui::TableSetupColumn("Assembly");
     ImGui::TableSetupColumn("Composition");
     ImGui::TableHeadersRow();
     ImGui::TableNextRow();
+
     ImGui::TableNextColumn();
     assembly_editor_.InlineUpdate();
 
     ImGui::TableNextColumn();
     DrawToolset();
-    if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
-        ImGui::BeginChild(child_id, ImVec2(0, 250), false)) {
-      DrawPianoStaff();
-    }
-    ImGui::EndChild();
+    DrawChannels();
     DrawPianoRoll();
 
     ImGui::EndTable();
+  }
+}
+
+void MusicEditor::DrawChannels() {
+  if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None)) {
+    for (int i = 1; i <= 8; ++i) {
+      if (ImGui::BeginTabItem(absl::StrFormat("%d", i).data())) {
+        DrawPianoStaff();
+        ImGui::EndTabItem();
+      }
+    }
+    ImGui::EndTabBar();
   }
 }
 
@@ -36,37 +44,41 @@ static const int NUM_KEYS = 25;
 static bool keys[NUM_KEYS];
 
 void MusicEditor::DrawPianoStaff() {
-  const int NUM_LINES = 5;
-  const int LINE_THICKNESS = 2;
-  const int LINE_SPACING = 50;
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
+      ImGui::BeginChild(child_id, ImVec2(0, 170), false)) {
+    const int NUM_LINES = 5;
+    const int LINE_THICKNESS = 2;
+    const int LINE_SPACING = 40;
 
-  // Get the draw list for the current window
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    // Get the draw list for the current window
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-  // Draw the staff lines
-  ImVec2 canvas_p0 =
-      ImVec2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);
-  ImVec2 canvas_p1 = ImVec2(canvas_p0.x + ImGui::GetContentRegionAvail().x,
-                            canvas_p0.y + ImGui::GetContentRegionAvail().y);
-  draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(32, 32, 32, 255));
-  for (int i = 0; i < NUM_LINES; i++) {
-    auto line_start = ImVec2(canvas_p0.x, canvas_p0.y + i * LINE_SPACING);
-    auto line_end = ImVec2(canvas_p1.x + ImGui::GetContentRegionAvail().x,
-                           canvas_p0.y + i * LINE_SPACING);
-    draw_list->AddLine(line_start, line_end, IM_COL32(200, 200, 200, 255),
-                       LINE_THICKNESS);
+    // Draw the staff lines
+    ImVec2 canvas_p0 =
+        ImVec2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);
+    ImVec2 canvas_p1 = ImVec2(canvas_p0.x + ImGui::GetContentRegionAvail().x,
+                              canvas_p0.y + ImGui::GetContentRegionAvail().y);
+    draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(32, 32, 32, 255));
+    for (int i = 0; i < NUM_LINES; i++) {
+      auto line_start = ImVec2(canvas_p0.x, canvas_p0.y + i * LINE_SPACING);
+      auto line_end = ImVec2(canvas_p1.x + ImGui::GetContentRegionAvail().x,
+                             canvas_p0.y + i * LINE_SPACING);
+      draw_list->AddLine(line_start, line_end, IM_COL32(200, 200, 200, 255),
+                         LINE_THICKNESS);
+    }
+
+    // Draw the ledger lines
+    const int NUM_LEDGER_LINES = 3;
+    for (int i = -NUM_LEDGER_LINES; i <= NUM_LINES + NUM_LEDGER_LINES; i++) {
+      if (i % 2 == 0) continue;  // skip every other line
+      auto line_start = ImVec2(canvas_p0.x, canvas_p0.y + i * LINE_SPACING / 2);
+      auto line_end = ImVec2(canvas_p1.x + ImGui::GetContentRegionAvail().x,
+                             canvas_p0.y + i * LINE_SPACING / 2);
+      draw_list->AddLine(line_start, line_end, IM_COL32(150, 150, 150, 255),
+                         LINE_THICKNESS);
+    }
   }
-
-  // Draw the ledger lines
-  const int NUM_LEDGER_LINES = 3;
-  for (int i = -NUM_LEDGER_LINES; i <= NUM_LINES + NUM_LEDGER_LINES; i++) {
-    if (i % 2 == 0) continue;  // skip every other line
-    auto line_start = ImVec2(canvas_p0.x, canvas_p0.y + i * LINE_SPACING / 2);
-    auto line_end = ImVec2(canvas_p1.x + ImGui::GetContentRegionAvail().x,
-                           canvas_p0.y + i * LINE_SPACING / 2);
-    draw_list->AddLine(line_start, line_end, IM_COL32(150, 150, 150, 255),
-                       LINE_THICKNESS);
-  }
+  ImGui::EndChild();
 }
 
 void MusicEditor::DrawPianoRoll() {
@@ -151,7 +163,9 @@ void MusicEditor::DrawToolset() {
   static int current_volume = 0;
   const int MAX_VOLUME = 100;
   gui::ItemLabel("Select a song to edit: ", gui::ItemLabelFlags::Left);
-  ImGui::Combo("#controls", &selected_option, kGameSongs, 30);
+  ImGui::Combo("#songs_in_game", &selected_option, kGameSongs, 30);
+
+  gui::ItemLabel("Controls: ", gui::ItemLabelFlags::Left);
   if (ImGui::BeginTable("SongToolset", 5, toolset_table_flags_, ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#play");
     ImGui::TableSetupColumn("#rewind");
@@ -176,28 +190,11 @@ void MusicEditor::DrawToolset() {
   static int current_time = 0;    // current time in the song in seconds
 
   // Display the current time in the song
-  ImGui::Text("Current Time: %d:%02d", current_time / 60, current_time % 60);
-
+  gui::ItemLabel("Current Time: ", gui::ItemLabelFlags::Left);
+  ImGui::Text("%d:%02d", current_time / 60, current_time % 60);
+  ImGui::SameLine();
   // Display the song duration/progress using a progress bar
   ImGui::ProgressBar((float)current_time / SONG_DURATION);
-
-  // Allow the user to seek to a specific time in the song using a slider
-  ImGui::SliderInt("Seek Time", &current_time, 0, SONG_DURATION);
-
-  if (ImGui::BeginTable("ChannelToolset", 9, toolset_table_flags_,
-                        ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#Channels");
-    for (int i = 0; i < 3; i++) {
-      ImGui::TableSetupColumn(absl::StrFormat("#%d", i).data());
-    }
-
-    for (int i = 0; i < 8; i++) {
-      ImGui::TableNextColumn();
-      ImGui::Button(absl::StrFormat("%d", i).data());
-    }
-
-    ImGui::EndTable();
-  }
 }
 
 }  // namespace editor

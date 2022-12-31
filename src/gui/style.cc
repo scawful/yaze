@@ -49,8 +49,7 @@ void ColorsYaze() {
 
   colors[ImGuiCol_Tab] = alttpDarkGreen;
   colors[ImGuiCol_TabHovered] = alttpMidGreen;
-  colors[ImGuiCol_TabActive] = ImLerp(colors[ImGuiCol_HeaderActive],
-                                      colors[ImGuiCol_TitleBgActive], 0.60f);
+  colors[ImGuiCol_TabActive] = ImVec4(0.347f, 0.466f, 0.347f, 1.000f);
 
   colors[ImGuiCol_Button] = alttpMidGreen;
   colors[ImGuiCol_ButtonHovered] = allttpLightestGreen;
