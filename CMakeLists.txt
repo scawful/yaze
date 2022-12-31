@@ -23,23 +23,22 @@ include(cmake/absl.cmake)
 add_subdirectory(src/lib/abseil-cpp)
 
 include(cmake/openssl.cmake)
-
+set(Protobuf_PROTOC_EXECUTABLE "/Users/scawful/code/protobuf/bin/protoc")
+set(Protobuf_INCLUDE_DIRS "/Users/scawful/code/protobuf/include/")
 set(PROTOBUF_INCLUDE_PATH ${CMAKE_CURRENT_BINARY_DIR}
     CACHE INTERNAL "Path to generated protobuf files.")
 include_directories(${PROTOBUF_INCLUDE_PATH})
 
 # Video Libraries -------------------------------------------------------------
-set(Protobuf_PROTOC_EXECUTABLE "/Users/scawful/code/protobuf/bin/protoc")
-set(Protobuf_INCLUDE_DIRS "/Users/scawful/code/protobuf/include/")
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+
+# SDL2 ------------------------------------------------------------------------
 find_package(SDL2)
+add_subdirectory(src/lib/SDL)
 
-# Asar Assembly ---------------------------------------------------------------
-# add_subdirectory(src/lib/asar/src)
-# include(cmake/asar.cmake)
-
+# ImGui -----------------------------------------------------------------------
 include(cmake/imgui.cmake)
 
 # Project Files
