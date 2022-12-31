@@ -63,6 +63,37 @@ void Canvas::DrawContextMenu() {
   }
 }
 
+void Canvas::DrawTilePainter(const Bitmap& bitmap, int size) {
+  const ImGuiIO &io = ImGui::GetIO();
+  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
+  const ImVec2 origin(canvas_p0_.x + scrolling_.x,
+                      canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
+  const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
+                                   io.MousePos.y - origin.y);
+
+  if (is_hovered) {
+    if (!points_.empty()) {
+      points_.clear();
+    }
+    ImVec2 draw_tile_outline_pos;
+    draw_tile_outline_pos.x =
+        std::floor((double)mouse_pos_in_canvas.x / size) * size;
+    draw_tile_outline_pos.y =
+        std::floor((double)mouse_pos_in_canvas.y / size) * size;
+
+    points_.push_back(draw_tile_outline_pos);
+    points_.push_back(
+        ImVec2(draw_tile_outline_pos.x + size, draw_tile_outline_pos.y + size));
+
+    draw_list_->AddImage((void *)bitmap.GetTexture(),
+                         ImVec2(draw_tile_outline_pos.x, draw_tile_outline_pos.y),
+                         ImVec2(draw_tile_outline_pos.x + (bitmap.GetWidth() * 2),
+                                draw_tile_outline_pos.y + (bitmap.GetHeight() * 2)));
+  } else {
+    points_.clear();
+  }
+}
+
 void Canvas::DrawTileSelector(int size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();  // Hovered
@@ -70,7 +101,7 @@ void Canvas::DrawTileSelector(int size) {
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
   const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
                                    io.MousePos.y - origin.y);
-  // Add first and second point
+
   if (is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     if (!points_.empty()) {
       points_.clear();
