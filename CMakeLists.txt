@@ -32,7 +32,7 @@ set(Protobuf_INCLUDE_DIRS "/Users/scawful/code/protobuf/include/")
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(gRPC REQUIRED)
+# find_package(gRPC REQUIRED)
 
 # Asar Assembly ---------------------------------------------------------------
 add_subdirectory(src/lib/asar/src)
