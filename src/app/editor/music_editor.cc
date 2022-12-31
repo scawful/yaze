@@ -1,6 +1,7 @@
 #include "music_editor.h"
 
 #include "gui/icons.h"
+#include "gui/input.h"
 #include "imgui.h"
 
 namespace yaze {
@@ -147,15 +148,16 @@ void MusicEditor::DrawSongToolset() {
 void MusicEditor::DrawToolset() {
   static bool is_playing = false;
   static int selected_option = 0;
+  static int current_volume = 0;
+  const int MAX_VOLUME = 100;
+  gui::ItemLabel("Select a song to edit: ", gui::ItemLabelFlags::Left);
+  ImGui::Combo("#controls", &selected_option, kGameSongs, 30);
   if (ImGui::BeginTable("SongToolset", 5, toolset_table_flags_, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#SelectSong");
     ImGui::TableSetupColumn("#play");
     ImGui::TableSetupColumn("#rewind");
     ImGui::TableSetupColumn("#fastforward");
     ImGui::TableSetupColumn("#volume");
-
-    ImGui::TableNextColumn();
-    ImGui::Combo("Controls: ", &selected_option, kGameSongs, 30);
+    ImGui::TableSetupColumn("#slider");
 
     ImGui::TableNextColumn();
     if (ImGui::Button(is_playing ? ICON_MD_STOP : ICON_MD_PLAY_ARROW)) {
@@ -165,8 +167,22 @@ void MusicEditor::DrawToolset() {
     BUTTON_COLUMN(ICON_MD_FAST_REWIND)
     BUTTON_COLUMN(ICON_MD_FAST_FORWARD)
     BUTTON_COLUMN(ICON_MD_VOLUME_UP)
+    ImGui::TableNextColumn();
+    ImGui::SliderInt("Volume", &current_volume, 0, 100);
     ImGui::EndTable();
   }
+
+  const int SONG_DURATION = 120;  // duration of the song in seconds
+  static int current_time = 0;    // current time in the song in seconds
+
+  // Display the current time in the song
+  ImGui::Text("Current Time: %d:%02d", current_time / 60, current_time % 60);
+
+  // Display the song duration/progress using a progress bar
+  ImGui::ProgressBar((float)current_time / SONG_DURATION);
+
+  // Allow the user to seek to a specific time in the song using a slider
+  ImGui::SliderInt("Seek Time", &current_time, 0, SONG_DURATION);
 
   if (ImGui::BeginTable("ChannelToolset", 9, toolset_table_flags_,
                         ImVec2(0, 0))) {
@@ -175,7 +191,6 @@ void MusicEditor::DrawToolset() {
       ImGui::TableSetupColumn(absl::StrFormat("#%d", i).data());
     }
 
-    ImGui::Text("Channels: ");
     for (int i = 0; i < 8; i++) {
       ImGui::TableNextColumn();
       ImGui::Button(absl::StrFormat("%d", i).data());
