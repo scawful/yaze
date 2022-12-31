@@ -45,7 +45,7 @@ void AssemblyEditor::InlineUpdate() {
               text_editor_.GetLanguageDefinition().mName.c_str(),
               current_file_.c_str());
 
-  text_editor_.Render("##asm_editor", ImVec2(0, 300));
+  text_editor_.Render("##asm_editor", ImVec2(0, 0));
 }
 
 void AssemblyEditor::ChangeActiveFile(const std::string& filename) {
