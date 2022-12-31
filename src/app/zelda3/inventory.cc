@@ -8,7 +8,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
-  
+
 void Inventory::Create() {
   data_.reserve(256 * 256);
   for (int i = 0; i < 256 * 256; i++) {
@@ -74,7 +74,7 @@ absl::Status Inventory::BuildTileset() {
   for (int i = 0; i < 0x4000; i++) {
     test_.push_back(tilesheets_[i]);
   }
-  for (int i = 0x8000; i < + 0x8000 + 0x2000; i++) {
+  for (int i = 0x8000; i < +0x8000 + 0x2000; i++) {
     test_.push_back(tilesheets_[i]);
   }
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
