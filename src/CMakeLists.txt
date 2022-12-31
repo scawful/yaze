@@ -59,7 +59,6 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
-  ${ASAR_STATIC_SRC}
 )
 
 # including libraries ---------------------------------------------------------
@@ -68,12 +67,10 @@ target_include_directories(
   yaze PUBLIC
   lib/
   app/
-  ${ASAR_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
-  lib/asar/src/
 )
 
 set(SDL_TARGETS SDL2::SDL2)
@@ -94,12 +91,7 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ImGui
-  asar-static
 )
-if (WIN32)
-  # target_compile_definitions(yaze PRIVATE "windows")
-  add_definitions(-DASAR_STATIC)
-endif()
 
 if (UNIX)
   target_compile_definitions(yaze PRIVATE "linux")

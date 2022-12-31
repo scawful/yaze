@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_ASM_SCRIPT_H
 #define YAZE_APP_ASM_SCRIPT_H
 
-#include <asar/interface-lib.h>
+// #include <asar/interface-lib.h>
 
 #include <array>
 #include <cstdint>
