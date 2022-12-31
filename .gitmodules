@@ -22,3 +22,6 @@
 [submodule "src/lib/asar"]
 	path = src/lib/asar
 	url = https://github.com/RPGHacker/asar.git
+[submodule "src/lib/snes-spc-arm"]
+	path = src/lib/snes-spc-arm
+	url = https://github.com/nathancassano/snes-spc-arm.git
