@@ -12,41 +12,41 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-static constexpr absl::string_view kGameSongs[] = {"Title",
-                                                   "Light World",
-                                                   "Beginning",
-                                                   "Rabbit",
-                                                   "Forest",
-                                                   "Intro",
-                                                   "Town",
-                                                   "Warp",
-                                                   "Dark world",
-                                                   "Master sword",
-                                                   "File select",
-                                                   "Soldier",
-                                                   "Mountain",
-                                                   "Shop",
-                                                   "Fanfare",
-                                                   "Castle",
-                                                   "Palace (Pendant)",
-                                                   "Cave (Same as Secret Way)",
-                                                   "Clear (Dungeon end)",
-                                                   "Church",
-                                                   "Boss",
-                                                   "Dungeon (Crystal)",
-                                                   "Psychic",
-                                                   "Secret Way (Same as Cave)",
-                                                   "Rescue",
-                                                   "Crystal",
-                                                   "Fountain",
-                                                   "Pyramid",
-                                                   "Kill Agahnim",
-                                                   "Ganon Room",
-                                                   "Last Boss"};
+static const char* kGameSongs[] = {"Title",
+                                   "Light World",
+                                   "Beginning",
+                                   "Rabbit",
+                                   "Forest",
+                                   "Intro",
+                                   "Town",
+                                   "Warp",
+                                   "Dark world",
+                                   "Master sword",
+                                   "File select",
+                                   "Soldier",
+                                   "Mountain",
+                                   "Shop",
+                                   "Fanfare",
+                                   "Castle",
+                                   "Palace (Pendant)",
+                                   "Cave (Same as Secret Way)",
+                                   "Clear (Dungeon end)",
+                                   "Church",
+                                   "Boss",
+                                   "Dungeon (Crystal)",
+                                   "Psychic",
+                                   "Secret Way (Same as Cave)",
+                                   "Rescue",
+                                   "Crystal",
+                                   "Fountain",
+                                   "Pyramid",
+                                   "Kill Agahnim",
+                                   "Ganon Room",
+                                   "Last Boss"};
 
 static constexpr absl::string_view kSongNotes[] = {
-    "C", "D", "E", "F", "G", "A", "B", "C", "D", "E", "F", "G", "A",
-    "B", "C", "D", "E", "F", "G", "A", "B", "C", "D", "E", "F"};
+    "C",  "C#", "D",  "D#", "E", "F",  "F#", "G",  "G#", "A",  "A#", "B", "C",
+    "C#", "D",  "D#", "E",  "F", "F#", "G",  "G#", "A",  "A#", "B",  "C"};
 class MusicEditor {
  public:
   void Update();
@@ -54,12 +54,14 @@ class MusicEditor {
  private:
   void DrawPianoStaff();
   void DrawPianoRoll();
-  void DrawSongList() const;
+  void DrawSongToolset();
   void DrawToolset();
 
   AssemblyEditor assembly_editor_;
-  ImGuiTableFlags toolset_table_flags_ =
-      ImGuiTableFlags_SizingFixedFit;
+  ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
+  ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
+                                        ImGuiTableFlags_Resizable |
+                                        ImGuiTableFlags_Reorderable;
 };
 
 }  // namespace editor
