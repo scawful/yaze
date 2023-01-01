@@ -53,6 +53,7 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${ASAR_STATIC_SRC}
+  ${SNES_SPC_SOURCES}
   ${IMGUI_SRC}
 )
 
@@ -67,6 +68,7 @@ target_include_directories(
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
   lib/asar/src/asar/
+  lib/snes_spc/snes_spc/
 )
 
 set(SDL_TARGETS SDL2::SDL2)
@@ -87,6 +89,7 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   asar-static
+  snes_spc
   ImGui
 )
 
