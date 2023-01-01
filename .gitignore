@@ -14,3 +14,6 @@ src/lib/libSDL2-2.0.0.dylib
 src/lib/libSDL2.a
 src/lib/libSDL2.dylib
 src/lib/libSDL2main.a
+checks.json
+assets/lib/libasar.dll
+cmake/yaze.plist.in

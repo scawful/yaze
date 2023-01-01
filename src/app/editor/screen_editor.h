@@ -5,16 +5,15 @@
 
 #include <array>
 
-#include "app/asm/script.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/inventory.h"
 #include "gui/canvas.h"
-#include "gui/icons.h"
 #include "gui/color.h"
+#include "gui/icons.h"
 
 namespace yaze {
 namespace app {
@@ -50,7 +49,6 @@ class ScreenEditor {
   Bytes all_gfx_;
   zelda3::Inventory inventory_;
   gfx::SNESPalette palette_;
-  snes_asm::Script mosaic_script_;
   gui::Canvas screen_canvas_;
   gui::Canvas tilesheet_canvas_;
 };

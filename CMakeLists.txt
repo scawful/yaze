@@ -41,6 +41,9 @@ else()
   find_package(SDL2)
 endif()
 
+# Asar ------------------------------------------------------------------------
+add_subdirectory(src/lib/asar/src)
+include(cmake/asar.cmake)
 
 # ImGui -----------------------------------------------------------------------
 include(cmake/imgui.cmake)
