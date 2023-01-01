@@ -66,6 +66,7 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
+  lib/SDL_mixer/include/
   ${GLEW_INCLUDE_DIRS}
   lib/asar/src/asar/
   lib/snes_spc/snes_spc/
@@ -84,6 +85,8 @@ target_link_libraries(
   yaze PUBLIC
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
+  ${SDLMIXER_LIBRARY}
+  SDL2_mixer
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}

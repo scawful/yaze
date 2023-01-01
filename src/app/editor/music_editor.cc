@@ -1,5 +1,6 @@
 #include "music_editor.h"
 
+#include <SDL_mixer.h>
 #include <imgui/imgui.h>
 
 #include "absl/strings/str_format.h"
@@ -16,6 +17,8 @@ namespace app {
 namespace editor {
 
 namespace {
+
+#define BUF_SIZE 2048
 
 void PlaySPC() {
   /* Create emulator and filter */
@@ -43,9 +46,8 @@ void PlaySPC() {
   /* Record 20 seconds to wave file */
   wave_open(spc_sample_rate, "out.wav");
   wave_enable_stereo();
-  while (wave_sample_count() < 20 * spc_sample_rate * 2) {
-/* Play into buffer */
-#define BUF_SIZE 2048
+  while (wave_sample_count() < 30 * spc_sample_rate * 2) {
+    /* Play into buffer */
     short buf[BUF_SIZE];
     error(spc_play(snes_spc, BUF_SIZE, buf));
 
@@ -216,11 +218,34 @@ void MusicEditor::DrawToolset() {
   static bool is_playing = false;
   static int selected_option = 0;
   static int current_volume = 0;
+  static bool has_loaded_song = false;
   const int MAX_VOLUME = 100;
 
-
   if (is_playing) {
-    PlaySPC();
+    if (!has_loaded_song) {
+      PlaySPC();
+      current_song_ = Mix_LoadMUS("out.wav");
+      Mix_PlayMusic(current_song_, -1);
+      has_loaded_song = true;
+    }
+
+    // // If there is no music playing
+    // if (Mix_PlayingMusic() == 0) {
+    //   Mix_PlayMusic(current_song_, -1);
+    // }
+    // // If music is being played
+    // else {
+    //   // If the music is paused
+    //   if (Mix_PausedMusic() == 1) {
+    //     // Resume the music
+    //     Mix_ResumeMusic();
+    //   }
+    //   // If the music is playing
+    //   else {
+    //     // Pause the music
+    //     Mix_PauseMusic();
+    //   }
+    // }
   }
 
   gui::ItemLabel("Select a song to edit: ", gui::ItemLabelFlags::Left);
@@ -236,6 +261,10 @@ void MusicEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button(is_playing ? ICON_MD_STOP : ICON_MD_PLAY_ARROW)) {
+      if (is_playing) {
+        Mix_HaltMusic();
+        has_loaded_song = false;
+      }
       is_playing = !is_playing;
     }
 
