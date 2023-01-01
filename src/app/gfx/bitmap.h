@@ -45,6 +45,7 @@ class Bitmap {
   auto GetByte(int i) const { return pixel_data_[i]; }
   auto GetTexture() const { return texture_.get(); }
   auto GetSurface() const { return surface_.get(); }
+  auto IsActive() const { return active_; }
 
  private:
   struct SDL_Texture_Deleter {
@@ -71,6 +72,7 @@ class Bitmap {
   int depth_ = 0;
   int data_size_ = 0;
   bool freed_ = false;
+  bool active_ = false;
   uchar *pixel_data_;
   Bytes data_;
   gfx::SNESPalette palette_;

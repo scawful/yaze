@@ -42,13 +42,13 @@ static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
 
 class OverworldEditor {
  public:
-  void SetupROM(ROM &rom);
   absl::Status Update();
-  absl::Status Undo() { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() { return absl::UnimplementedError("Redo"); }
-  absl::Status Cut() { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() { return absl::UnimplementedError("Paste"); }
+  absl::Status Undo() const { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() const { return absl::UnimplementedError("Redo"); }
+  absl::Status Cut() const { return absl::UnimplementedError("Cut"); }
+  absl::Status Copy() const { return absl::UnimplementedError("Copy"); }
+  absl::Status Paste() const { return absl::UnimplementedError("Paste"); }
+  void SetupROM(ROM &rom) { rom_ = rom; }
 
  private:
   absl::Status DrawToolset();
@@ -62,10 +62,11 @@ class OverworldEditor {
   void DrawTile8Selector();
   void DrawAreaGraphics();
   void DrawTileSelector();
-  void LoadGraphics();
+  absl::Status LoadGraphics();
 
   int current_world_ = 0;
   int current_map_ = 0;
+  int current_tile16_ = 0;
   int selected_tile_ = 0;
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
@@ -80,8 +81,6 @@ class OverworldEditor {
   bool selected_tile_loaded_ = false;
   bool update_selected_tile_ = true;
 
-  ImVec4 current_palette_[8];
-
   ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
   ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
   ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
@@ -94,17 +93,20 @@ class OverworldEditor {
   std::unordered_map<int, gfx::Bitmap> maps_bmp_;
   std::unordered_map<int, gfx::Bitmap> sprite_previews_;
 
+  std::vector<Bytes> tile16_individual_data_;
+  std::vector<gfx::Bitmap> tile16_individual_;
+
   ROM rom_;
   PaletteEditor palette_editor_;
   zelda3::Overworld overworld_;
 
   gfx::SNESPalette palette_;
+  gfx::Bitmap selected_tile_bmp_;
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
-  gfx::Bitmap selected_tile_bmp_;
 
-  gui::Canvas overworld_map_canvas_;
+  gui::Canvas ow_map_canvas_;
   gui::Canvas current_gfx_canvas_;
   gui::Canvas blockset_canvas_;
   gui::Canvas graphics_bin_canvas_;

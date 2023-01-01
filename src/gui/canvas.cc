@@ -63,7 +63,7 @@ void Canvas::DrawContextMenu() {
   }
 }
 
-void Canvas::DrawTilePainter(const Bitmap& bitmap, int size) {
+void Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();  // Hovered
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
@@ -85,10 +85,15 @@ void Canvas::DrawTilePainter(const Bitmap& bitmap, int size) {
     points_.push_back(
         ImVec2(draw_tile_outline_pos.x + size, draw_tile_outline_pos.y + size));
 
-    draw_list_->AddImage((void *)bitmap.GetTexture(),
-                         ImVec2(draw_tile_outline_pos.x, draw_tile_outline_pos.y),
-                         ImVec2(draw_tile_outline_pos.x + (bitmap.GetWidth() * 2),
-                                draw_tile_outline_pos.y + (bitmap.GetHeight() * 2)));
+    if (bitmap.IsActive()) {
+      draw_list_->AddImage(
+          (void *)bitmap.GetTexture(),
+          ImVec2(origin.x + draw_tile_outline_pos.x,
+                 origin.y + draw_tile_outline_pos.y),
+          ImVec2(origin.x + draw_tile_outline_pos.x + bitmap.GetWidth(),
+                 origin.y + draw_tile_outline_pos.y + bitmap.GetHeight()));
+    }
+
   } else {
     points_.clear();
   }
