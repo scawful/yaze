@@ -35,8 +35,12 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
 # SDL2 ------------------------------------------------------------------------
-find_package(SDL2)
-add_subdirectory(src/lib/SDL)
+if (UNIX)
+  add_subdirectory(src/lib/SDL)
+else()
+  find_package(SDL2)
+endif()
+
 
 # ImGui -----------------------------------------------------------------------
 include(cmake/imgui.cmake)
