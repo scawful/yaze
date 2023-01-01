@@ -8,6 +8,9 @@
 #include "gui/canvas.h"
 #include "gui/icons.h"
 #include "gui/input.h"
+#include "snes_spc/demo/demo_util.h"
+#include "snes_spc/demo/wave_writer.h"
+#include "snes_spc/snes_spc/spc.h"
 
 namespace yaze {
 namespace app {

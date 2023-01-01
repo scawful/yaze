@@ -22,6 +22,6 @@
 [submodule "src/lib/asar"]
 	path = src/lib/asar
 	url = https://github.com/RPGHacker/asar.git
-[submodule "src/lib/snes-spc-arm"]
-	path = src/lib/snes-spc-arm
-	url = https://github.com/nathancassano/snes-spc-arm.git
+[submodule "src/lib/snes_spc"]
+	path = src/lib/snes_spc
+	url = https://github.com/blarggs-audio-libraries/snes_spc.git

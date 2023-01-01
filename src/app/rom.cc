@@ -479,6 +479,7 @@ absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
 absl::StatusOr<Bytes> ROM::CompressGraphics(const int pos, const int length) {
   return Compress(pos, length, kNintendoMode2);
 }
+
 absl::StatusOr<Bytes> ROM::CompressOverworld(const int pos, const int length) {
   return Compress(pos, length, kNintendoMode1);
 }
