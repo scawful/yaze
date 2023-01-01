@@ -22,53 +22,17 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-namespace {
-void UpdateSelectedTile16(int selected, gfx::Bitmap &tile16_blockset,
-                          gfx::Bitmap &selected_tile) {
-  auto blockset = tile16_blockset.GetData();
-
-  int src_pos = ((selected - ((selected / 0x08) * 0x08)) * 0x10) +
-                ((selected / 0x08) * 2048);
-  for (int yy = 0; yy < 0x20; yy++) {
-    for (int xx = 0; xx < 0x20; xx++) {
-      int position = (xx + (yy * 0x20));
-      uchar value = blockset[src_pos + xx + (yy * 0x80)];
-      selected_tile.WriteToPixel(position, value);
-    }
-  }
-}
-}  // namespace
-
-void OverworldEditor::SetupROM(ROM &rom) { rom_ = rom; }
+// ----------------------------------------------------------------------------
 
 absl::Status OverworldEditor::Update() {
   // Initialize overworld graphics, maps, and palettes
   if (rom_.isLoaded() && !all_gfx_loaded_) {
-    LoadGraphics();
+    RETURN_IF_ERROR(LoadGraphics())
     all_gfx_loaded_ = true;
-
-    RETURN_IF_ERROR(overworld_.Load(rom_))
-    palette_ = overworld_.AreaPalette();
-    current_gfx_bmp_.Create(0x80, 0x200, 0x40, overworld_.AreaGraphics());
-    current_gfx_bmp_.ApplyPalette(palette_);
-    rom_.RenderBitmap(&current_gfx_bmp_);
-
-    tile16_blockset_bmp_.Create(0x80, 8192, 0x80, overworld_.Tile16Blockset());
-    tile16_blockset_bmp_.ApplyPalette(palette_);
-    rom_.RenderBitmap(&tile16_blockset_bmp_);
-    map_blockset_loaded_ = true;
-
-    for (int i = 0; i < core::kNumOverworldMaps; ++i) {
-      overworld_.SetCurrentMap(i);
-      auto palette = overworld_.AreaPalette();
-      maps_bmp_[i].Create(0x200, 0x200, 0x200, overworld_.BitmapData());
-      maps_bmp_[i].ApplyPalette(palette);
-      rom_.RenderBitmap(&(maps_bmp_[i]));
-    }
   }
 
-  auto toolset_status = DrawToolset();
-  RETURN_IF_ERROR(toolset_status)
+  // Draws the toolset for editing the Overworld.
+  RETURN_IF_ERROR(DrawToolset())
 
   ImGui::Separator();
   if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
@@ -174,10 +138,10 @@ void OverworldEditor::DrawOverworldEntrances() {
   for (const auto &each : overworld_.Entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40)) {
-      overworld_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
-                                     ImVec4(210, 24, 210, 150));
+      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
+                              ImVec4(210, 24, 210, 150));
       std::string str = absl::StrFormat("%#x", each.entrance_id_);
-      overworld_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+      ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
     }
   }
 }
@@ -191,7 +155,7 @@ void OverworldEditor::DrawOverworldMaps() {
     int world_index = i + (current_world_ * 0x40);
     int map_x = (xx * 0x200);
     int map_y = (yy * 0x200);
-    overworld_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y);
+    ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y);
     xx++;
     if (xx >= 8) {
       yy++;
@@ -203,6 +167,8 @@ void OverworldEditor::DrawOverworldMaps() {
 
 // ----------------------------------------------------------------------------
 
+// Overworld Editor canvas
+// Allows the user to make changes to the overworld map.
 void OverworldEditor::DrawOverworldCanvas() {
   DrawOverworldMapSettings();
   ImGui::Separator();
@@ -210,28 +176,22 @@ void OverworldEditor::DrawOverworldCanvas() {
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar |
                             ImGuiWindowFlags_AlwaysHorizontalScrollbar)) {
-    overworld_map_canvas_.DrawBackground(ImVec2(0x200 * 8, 0x200 * 8));
-    overworld_map_canvas_.DrawContextMenu();
-    overworld_map_canvas_.DrawTilePainter(selected_tile_bmp_, 32);
+    ow_map_canvas_.DrawBackground(ImVec2(0x200 * 8, 0x200 * 8));
+    ow_map_canvas_.DrawContextMenu();
     if (overworld_.isLoaded()) {
       DrawOverworldMaps();
+      // User has selected a tile they want to draw from the blockset.
+      if (!blockset_canvas_.Points().empty()) {
+        int x = blockset_canvas_.Points().front().x / 32;
+        int y = blockset_canvas_.Points().front().y / 32;
+        std::cout << x << " " << y << std::endl;
+        current_tile16_ = x + (y * 8);
+        std::cout << current_tile16_ << std::endl;
+        ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_], 16);
+      }
     }
-    overworld_map_canvas_.DrawGrid(64.0f);
-    overworld_map_canvas_.DrawOverlay();
-
-    if (!blockset_canvas_.Points().empty() && all_gfx_loaded_) {
-      // TODO(scawful): update selected tile by getting position from canvas
-      // if (!selected_tile_loaded_) {
-      //   selected_tile_loaded_ = true;
-      // }
-      
-      selected_tile_bmp_.Create(32, 32, 0x40, 1024);
-      UpdateSelectedTile16(selected_tile_, tile16_blockset_bmp_,
-                           selected_tile_bmp_);
-      selected_tile_bmp_.ApplyPalette(palette_);
-      rom_.RenderBitmap(&selected_tile_bmp_);
-      update_selected_tile_ = false;
-    }
+    ow_map_canvas_.DrawGrid(64.0f);
+    ow_map_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
 }
@@ -277,6 +237,8 @@ void OverworldEditor::DrawTile8Selector() {
 
 // ----------------------------------------------------------------------------
 
+// Displays the graphics tilesheets that are available on the current selected
+// overworld map.
 void OverworldEditor::DrawAreaGraphics() {
   current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
   current_gfx_canvas_.DrawContextMenu();
@@ -323,16 +285,66 @@ void OverworldEditor::DrawTileSelector() {
 
 // ----------------------------------------------------------------------------
 
-void OverworldEditor::LoadGraphics() {
-  for (int i = 0; i < 8; i++) {
-    current_palette_[i].x = (i * 0.21f);
-    current_palette_[i].y = (i * 0.21f);
-    current_palette_[i].z = (i * 0.21f);
-    current_palette_[i].w = 1.f;
-  }
-
+absl::Status OverworldEditor::LoadGraphics() {
+  // Load all of the graphics data from the game.
   PRINT_IF_ERROR(rom_.LoadAllGraphicsData())
   graphics_bin_ = rom_.GetGraphicsBin();
+
+  // Load the Link to the Past overworld.
+  RETURN_IF_ERROR(overworld_.Load(rom_))
+  palette_ = overworld_.AreaPalette();
+  current_gfx_bmp_.Create(0x80, 0x200, 0x40, overworld_.AreaGraphics());
+  current_gfx_bmp_.ApplyPalette(palette_);
+  rom_.RenderBitmap(&current_gfx_bmp_);
+
+  // Create the tile16 blockset image
+  tile16_blockset_bmp_.Create(0x80, 8192, 0x80, overworld_.Tile16Blockset());
+  tile16_blockset_bmp_.ApplyPalette(palette_);
+  rom_.RenderBitmap(&tile16_blockset_bmp_);
+  map_blockset_loaded_ = true;
+
+  // Copy the tile16 data into individual tiles.
+  auto tile16_data = overworld_.Tile16Blockset();
+
+  // Loop through the tiles and copy their pixel data into separate vectors
+  for (int i = 0; i < 4096; i++) {
+    // Create a new vector for the pixel data of the current tile
+    Bytes tile_data;
+    for (int j = 0; j < 32 * 32; j++) tile_data.push_back(0x00);
+
+    // Copy the pixel data for the current tile into the vector
+    for (int ty = 0; ty < 32; ty++) {
+      for (int tx = 0; tx < 32; tx++) {
+        int position = (tx + (ty * 0x20));
+        uchar value = tile16_data[i + tx + (ty * 0x80)];
+        tile_data[position] = value;
+      }
+    }
+
+    // Add the vector for the current tile to the vector of tile pixel data
+    tile16_individual_data_.push_back(tile_data);
+  }
+
+  // Render the bitmaps of each tile.
+  for (int id = 0; id < 4096; id++) {
+    gfx::Bitmap new_tile16;
+    tile16_individual_.emplace_back(new_tile16);
+    tile16_individual_[id].Create(0x10, 0x10, 0x80,
+                                  tile16_individual_data_[id]);
+    tile16_individual_[id].ApplyPalette(palette_);
+    rom_.RenderBitmap(&tile16_individual_[id]);
+  }
+
+  // Render the overworld maps loaded from the ROM.
+  for (int i = 0; i < core::kNumOverworldMaps; ++i) {
+    overworld_.SetCurrentMap(i);
+    auto palette = overworld_.AreaPalette();
+    maps_bmp_[i].Create(0x200, 0x200, 0x200, overworld_.BitmapData());
+    maps_bmp_[i].ApplyPalette(palette);
+    rom_.RenderBitmap(&(maps_bmp_[i]));
+  }
+
+  return absl::OkStatus();
 }
 
 }  // namespace editor

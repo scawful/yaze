@@ -39,6 +39,7 @@ Bitmap::Bitmap(int width, int height, int depth, uchar *data, int data_size) {
 
 // Pass raw pixel data directly to the surface
 void Bitmap::Create(int width, int height, int depth, uchar *data) {
+  active_ = true;
   width_ = width;
   height_ = height;
   depth_ = depth;
@@ -53,6 +54,7 @@ void Bitmap::Create(int width, int height, int depth, uchar *data) {
 
 // Reserves data to later draw to surface via pointer
 void Bitmap::Create(int width, int height, int depth, int size) {
+  active_ = true;
   width_ = width;
   height_ = height;
   depth_ = depth;
@@ -69,6 +71,7 @@ void Bitmap::Create(int width, int height, int depth, int size) {
 
 // Pass raw pixel data directly to the surface
 void Bitmap::Create(int width, int height, int depth, uchar *data, int size) {
+  active_ = true;
   width_ = width;
   height_ = height;
   depth_ = depth;
@@ -83,6 +86,7 @@ void Bitmap::Create(int width, int height, int depth, uchar *data, int size) {
 }
 
 void Bitmap::Create(int width, int height, int depth, Bytes data) {
+  active_ = true;
   width_ = width;
   height_ = height;
   depth_ = depth;
