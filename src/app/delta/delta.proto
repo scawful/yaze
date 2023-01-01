@@ -1,0 +1,105 @@
+syntax = "proto3";
+option cc_enable_arenas = true;
+
+service YazeDelta {
+  rpc Init(InitRequest) returns (InitResponse) {}
+
+  rpc Clone(CloneRequest) returns (CloneResponse) {}
+
+  rpc Push(PushRequest) returns (PushResponse) {}
+  rpc Pull(PullRequest) returns (PullResponse) {}
+
+  rpc Sync(stream SyncRequest) returns (stream SyncResponse) {}
+
+  rpc CreateBranch(CreateBranchRequest) returns (CreateBranchResponse) {}
+  rpc DeleteBranch(DeleteBranchRequest) returns (DeleteBranchResponse) {}
+
+  rpc Merge(MergeRequest) returns (MergeResponse) {}
+  rpc UndoMerge(UndoMergeRequest) returns (UndoMergeResponse) {}
+}
+
+enum ChangeType {
+  OVERWORLD_MAP = 0;
+  DUNGEON_MAP = 1;
+  MONOLOGUE = 2;
+  PALETTE = 3;
+  OBJECT = 4;
+  ASSEMBLY = 5;
+  MISC = 6;
+}
+
+message Delta {
+  int64 offset = 1;
+  int64 length = 2;
+  bytes data = 3;
+  ChangeType type = 4;
+}
+
+message Commit {
+  int64 commit_id = 1;
+  int64 parent_commit_id = 2;
+  string author_name = 3;
+  string message_header = 4;
+  optional string message_body = 5;
+  repeated Delta delta = 6;
+  int64 signature = 7;
+}
+
+message Branch {
+  string branch_name = 1;
+  optional string parent_name = 2;
+  repeated Commit commits = 3;
+}
+
+message Repository {
+  string project_name = 1;
+  string author_name = 2;
+  int64 signature = 3;
+  optional bool locked = 4;
+  optional string password = 5;
+  repeated Branch tree = 6;
+}
+
+message InitRequest {
+  Repository repo = 1;
+}
+
+message InitResponse {
+  int32 response = 1;
+}
+
+message CloneRequest {}
+
+message CloneResponse {}
+
+message PushRequest {
+  string author_name = 1;
+  string repository_name= 2;
+  string branch_name = 3;
+  repeated Commit commits = 4;
+}
+message PushResponse {}
+
+message PullRequest {
+  string repository_name = 1;
+  string branch_name = 2;
+  repeated Commit commits = 3;
+}
+
+message PullResponse {}
+
+message SyncRequest {}
+
+message SyncResponse {}
+
+message CreateBranchRequest {}
+message CreateBranchResponse {}
+
+message DeleteBranchRequest {}
+message DeleteBranchResponse {}
+
+message MergeRequest {}
+message MergeResponse {}
+
+message UndoMergeRequest {}
+message UndoMergeResponse {}

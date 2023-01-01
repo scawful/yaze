@@ -1,3 +1,30 @@
-[submodule "src/Library/imgui"]
-	path = src/Library/imgui
+[submodule "src/lib/imgui"]
+	path = src/lib/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "src/lib/ImGuiFileDialog"]
+	path = src/lib/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git
+[submodule "src/lib/ImGuiColorTextEdit"]
+	path = src/lib/ImGuiColorTextEdit
+	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+[submodule "src/lib/sneshacking"]
+	path = src/lib/sneshacking
+	url = https://github.com/Skarsnik/sneshacking.git
+[submodule "assets/asm/alttp-hacker-workspace"]
+	path = assets/asm/alttp-hacker-workspace
+	url = https://github.com/scawful/alttp-hacker-workspace.git
+[submodule "src/lib/abseil-cpp"]
+	path = src/lib/abseil-cpp
+	url = https://github.com/abseil/abseil-cpp.git
+[submodule "src/lib/SDL"]
+	path = src/lib/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "src/lib/asar"]
+	path = src/lib/asar
+	url = https://github.com/RPGHacker/asar.git
+[submodule "src/lib/snes_spc"]
+	path = src/lib/snes_spc
+	url = https://github.com/blarggs-audio-libraries/snes_spc.git
+[submodule "src/lib/SDL_mixer"]
+	path = src/lib/SDL_mixer
+	url = https://github.com/libsdl-org/SDL_mixer.git
