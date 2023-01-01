@@ -1,6 +1,7 @@
 #include "controller.h"
 
 #include <SDL.h>
+#include <SDL_mixer.h>
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_sdlrenderer.h>
 #include <imgui/imgui.h>
@@ -164,6 +165,11 @@ absl::Status Controller::CreateWindow() {
     if (window_ == nullptr) {
       return absl::InternalError(
           absl::StrFormat("SDL_CreateWindow: %s\n", SDL_GetError()));
+    }
+    // Initialize SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+      printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n",
+             Mix_GetError());
     }
   }
   return absl::OkStatus();

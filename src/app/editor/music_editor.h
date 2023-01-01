@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_MUSIC_EDITOR_H
 #define YAZE_APP_EDITOR_MUSIC_EDITOR_H
 
+#include <SDL_mixer.h>
 #include <imgui/imgui.h>
 
 #include "absl/strings/str_format.h"
@@ -61,6 +62,8 @@ class MusicEditor {
   void DrawPianoRoll();
   void DrawSongToolset();
   void DrawToolset();
+
+  Mix_Music* current_song_ = NULL;
 
   AssemblyEditor assembly_editor_;
   ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
