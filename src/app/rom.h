@@ -2,6 +2,7 @@
 #define YAZE_APP_ROM_H
 
 #include <SDL.h>
+#include <asar/src/asar/interface-lib.h>
 
 #include <cstddef>
 #include <cstring>
@@ -52,6 +53,9 @@ constexpr int kCompressionStringMod = 7 << 5;
 constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
+const std::string kMosaicChangeOffset = "$02AADB";
+constexpr int kSNESToPCOffset = 0x138000;
+
 using CommandArgumentArray = std::array<std::array<char, 2>, 5>;
 using CommandSizeArray = std::array<uint, 5>;
 using DataSizeArray = std::array<uint, 5>;
@@ -94,6 +98,11 @@ class ROM {
 
   void RenderBitmap(gfx::Bitmap* bitmap) const;
 
+  absl::Status ApplyAssembly(const absl::string_view& filename,
+                             size_t patch_size);
+  absl::Status PatchOverworldMosaic(char mosaic_tiles[core::kNumOverworldMaps],
+                                    int routine_offset);
+
   auto GetTitle() const { return title; }
   auto GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
@@ -105,9 +114,7 @@ class ROM {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
-  auto char_data() {
-    return reinterpret_cast<char*>(rom_data_.data());
-  }
+  auto char_data() { return reinterpret_cast<char*>(rom_data_.data()); }
   auto size() const { return size_; }
 
   uchar& operator[](int i) {

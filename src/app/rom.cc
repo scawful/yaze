@@ -1,6 +1,7 @@
 #include "rom.h"
 
 #include <SDL.h>
+#include <asar/src/asar/interface-lib.h>
 
 #include <cstddef>
 #include <cstdio>
@@ -791,6 +792,58 @@ void ROM::LoadAllPalettes() {
     palette_groups_["ow_mini_map"].AddPalette(
         ReadPalette(core::overworldMiniMapPalettes + (i * 256), 128));
   }
+}
+
+absl::Status ROM::ApplyAssembly(const absl::string_view& filename,
+                                size_t patch_size) {
+  int count = 0;
+  auto patch = filename.data();
+  auto data = (char*)rom_data_.data();
+  if (int size = size_; !asar_patch(patch, data, patch_size, &size)) {
+    auto asar_error = asar_geterrors(&count);
+    auto full_error = asar_error->fullerrdata;
+    return absl::InternalError(absl::StrCat("ASAR Error: ", full_error));
+  }
+  return absl::OkStatus();
+}
+
+// TODO(scawful): Test me!
+absl::Status ROM::PatchOverworldMosaic(
+    char mosaic_tiles[core::kNumOverworldMaps], int routine_offset) {
+  // Write the data for the mosaic tile array used by the assembly code.
+  for (int i = 0; i < core::kNumOverworldMaps; i++) {
+    if (mosaic_tiles[i]) {
+      rom_data_[core::overworldCustomMosaicArray + i] = 0x01;
+    } else {
+      rom_data_[core::overworldCustomMosaicArray + i] = 0x00;
+    }
+  }
+
+  std::string filename = "assets/asm/mosaic_change.asm";
+  std::fstream file(filename, std::ios::out | std::ios::in);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(
+        "Unable to open mosaic change assembly source");
+  }
+
+  std::stringstream assembly;
+  assembly << file.rdbuf();
+  file.close();
+  auto assembly_string = assembly.str();
+
+  if (!core::StringReplace(assembly_string, "<HOOK>", kMosaicChangeOffset)) {
+    return absl::InternalError(
+        "Mosaic template did not have proper `<HOOK>` to replace.");
+  }
+
+  if (!core::StringReplace(
+          assembly_string, "<EXPANDED_SPACE>",
+          absl::StrFormat("$%x", routine_offset + kSNESToPCOffset))) {
+    return absl::InternalError(
+        "Mosaic template did not have proper `<EXPANDED_SPACE>` to replace.");
+  }
+
+  return ApplyAssembly(filename, assembly_string.size());
 }
 
 }  // namespace app

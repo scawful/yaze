@@ -11,7 +11,6 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/asm/script.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -97,7 +96,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
 
     ImGui::EndTable();
   }
-  ImGui::Separator();  
+  ImGui::Separator();
   END_TAB_ITEM()
 }
 
@@ -142,8 +141,8 @@ void ScreenEditor::DrawMosaicEditor() {
   gui::InputHex("Routine Location", &overworldCustomMosaicASM);
 
   if (ImGui::Button("Generate Mosaic Assembly")) {
-    auto mosaic = mosaic_script_.PatchOverworldMosaic(
-        rom_, mosaic_tiles_, overworldCustomMosaicASM);
+    auto mosaic =
+        rom_.PatchOverworldMosaic(mosaic_tiles_, overworldCustomMosaicASM);
     if (!mosaic.ok()) {
       std::cout << mosaic;
     }
@@ -173,7 +172,8 @@ void ScreenEditor::DrawToolset() {
 }
 
 void ScreenEditor::DrawInventoryToolset() {
-  if (ImGui::BeginTable("InventoryToolset", 8, ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("InventoryToolset", 8, ImGuiTableFlags_SizingFixedFit,
+                        ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#drawTool");
     ImGui::TableSetupColumn("#sep1");
     ImGui::TableSetupColumn("#zoomOut");
@@ -183,14 +183,14 @@ void ScreenEditor::DrawInventoryToolset() {
     ImGui::TableSetupColumn("#bg3Tool");
     ImGui::TableSetupColumn("#itemTool");
 
-    BUTTON_COLUMN(ICON_MD_UNDO)           
-    BUTTON_COLUMN(ICON_MD_REDO)  
-    TEXT_COLUMN(ICON_MD_MORE_VERT) 
-    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)         
+    BUTTON_COLUMN(ICON_MD_UNDO)
+    BUTTON_COLUMN(ICON_MD_REDO)
+    TEXT_COLUMN(ICON_MD_MORE_VERT)
+    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)
     BUTTON_COLUMN(ICON_MD_ZOOM_IN)
-    TEXT_COLUMN(ICON_MD_MORE_VERT)    
+    TEXT_COLUMN(ICON_MD_MORE_VERT)
     BUTTON_COLUMN(ICON_MD_DRAW)
-    BUTTON_COLUMN(ICON_MD_BUILD)   
+    BUTTON_COLUMN(ICON_MD_BUILD)
 
     ImGui::EndTable();
   }

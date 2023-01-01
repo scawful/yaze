@@ -15,17 +15,18 @@ add_executable(
   yaze_test.cc
   rom_test.cc
   ../src/app/rom.cc
-  ../src/app/asm/script.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
+  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_test PUBLIC
   ../src/
   ../src/lib/
+  ../src/lib/asar/src/asar/
   ${SDL_INCLUDE_DIRS}
 )
 
@@ -35,6 +36,7 @@ target_link_libraries(
   ${ABSL_TARGETS}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  asar-static
   gmock_main
   gmock
   gtest_main
