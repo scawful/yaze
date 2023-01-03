@@ -252,11 +252,13 @@ void MusicEditor::DrawToolset() {
   ImGui::Combo("#songs_in_game", &selected_option, kGameSongs, 30);
 
   gui::ItemLabel("Controls: ", gui::ItemLabelFlags::Left);
-  if (ImGui::BeginTable("SongToolset", 5, toolset_table_flags_, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("SongToolset", 6, toolset_table_flags_, ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#play");
     ImGui::TableSetupColumn("#rewind");
     ImGui::TableSetupColumn("#fastforward");
     ImGui::TableSetupColumn("#volume");
+    ImGui::TableSetupColumn("#debug");
+
     ImGui::TableSetupColumn("#slider");
 
     ImGui::TableNextColumn();
@@ -271,6 +273,9 @@ void MusicEditor::DrawToolset() {
     BUTTON_COLUMN(ICON_MD_FAST_REWIND)
     BUTTON_COLUMN(ICON_MD_FAST_FORWARD)
     BUTTON_COLUMN(ICON_MD_VOLUME_UP)
+    if (ImGui::Button(ICON_MD_ACCESS_TIME)) {
+      music_tracker_.LoadSongs(rom_);
+    }
     ImGui::TableNextColumn();
     ImGui::SliderInt("Volume", &current_volume, 0, 100);
     ImGui::EndTable();

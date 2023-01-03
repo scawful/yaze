@@ -828,22 +828,32 @@ void Tracker::SaveSongs(ROM &rom) {
   int g;
   unsigned short bank_next[4];
   unsigned short bank_lwr[4];
-  short *c, *d;
-  unsigned char *rom_data, *b;
+  short *c;
+  short *d;
+  unsigned char *rom_data;
+  unsigned char *b;
 
   Song *s;
+
   SPCCommand *spc_command;
+
   SongPart *sp;
+
   SongSPCBlock *stbl;
   SongSPCBlock *sptbl;
   SongSPCBlock *trtbl;
   SongSPCBlock *pstbl;
+
   ZeldaWave *zelda_wave;
   ZeldaWave *zelda_wave2;
+
   ZeldaInstrument *zi;
+
   SampleEdit *sed;
 
-  short wtbl[128], x[16], y[18];
+  short wtbl[128];
+  short x[16];
+  short y[18];
   unsigned char z[64];
 
   ss_num = 0;
@@ -924,9 +934,9 @@ void Tracker::SaveSongs(ROM &rom) {
         q = 1;
 
         for (n = 0; n < 8; n++) {
-          stle16b_i(trtbl->buf, n, SaveSPCCommand(rom, sp->tbl[n], p, q));
+          core::stle16b_i(trtbl->buf, n, SaveSPCCommand(rom, sp->tbl[n], p, q));
 
-          if (ldle16b_i(trtbl->buf, n)) AddSPCReloc(trtbl, n << 1), q = 0;
+          if (core::ldle16b_i(trtbl->buf, n)) AddSPCReloc(trtbl, n << 1), q = 0;
         }
 
         sp->addr = trtbl->start;
@@ -1029,12 +1039,14 @@ void Tracker::SaveSongs(ROM &rom) {
           // Modifywaves(rom, i);
         }
       }
+
       k = (-zelda_wave->end) & 15;
       d = zelda_wave->buf;
       n = 0;
       wtbl[(i << 1) + 1] = ((zelda_wave->lopst + k) >> 4) * 9 + wtbl[i << 1];
       y[0] = y[1] = 0;
       u = 4;
+
       for (;;) {
         for (o = 0; o < 16; o++) {
           if (k)
@@ -1044,6 +1056,7 @@ void Tracker::SaveSongs(ROM &rom) {
         }
         p = 0x7fffffff;
         a = 0;
+
         for (t = 0; t < 4; t++) {
           r = 0;
           for (o = 0; o < 16; o++) {
@@ -1159,15 +1172,8 @@ void Tracker::SaveSongs(ROM &rom) {
         pstbl = 0;
       }
       if (j + stbl->len > 0x3c00 && j < 0xd000) {
-        text_buf_ty buf;
-
-        // SetCursor(normal_cursor);
-
         printf("Not enough space for music bank %d", k);
-        printf("Error");
-
         m_modf = 1;
-
         return;
       }
       if (pstbl && (pstbl->flag & 1) && (stbl->flag & 2)) j--, pstbl->len--;
@@ -1193,16 +1199,8 @@ void Tracker::SaveSongs(ROM &rom) {
         *(unsigned short *)(stbl->buf + stbl->relocs[j]) =
             sptbl->addr + k - sptbl->start;
       } else {
-        text_buf_ty buf;
-
-        // wsprintf(buf, "An address outside the bank was referenced",
-        // sptbl->bank,
-        //          stbl->bank);
-
-        printf("Error");
-
+        printf("An address outside the bank was referenced.\n");
         m_modf = 1;
-
         return;
       }
     }
@@ -1255,7 +1253,6 @@ void Tracker::SaveSongs(ROM &rom) {
     if (k == 1) m = l + 4;
   }
   free(ssblt);
-  // SetCursor(normal_cursor);
 }
 
 // =============================================================================
@@ -1321,7 +1318,7 @@ void Tracker::NewSR(ROM &rom, int bank) {
 
   sr = song_range_ + srnum;
   srnum++;
-  sr->first = AllocSPCCommand(rom);
+  sr->first = AllocSPCCommand();
   sr->bank = bank;
   sr->editor = 0;
   spc_command = current_spc_command_ + sr->first;
