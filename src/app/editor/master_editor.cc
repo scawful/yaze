@@ -106,6 +106,7 @@ void MasterEditor::DrawFileDialog() {
       overworld_editor_.SetupROM(rom_);
       screen_editor_.SetupROM(rom_);
       palette_editor_.SetupROM(rom_);
+      music_editor_.SetupROM(rom_);
     }
     ImGuiFileDialog::Instance()->Close();
   }

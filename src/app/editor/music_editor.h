@@ -6,6 +6,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/assembly_editor.h"
+#include "app/rom.h"
+#include "app/zelda3/tracker.h"
 #include "gui/canvas.h"
 #include "gui/icons.h"
 #include "gui/input.h"
@@ -55,6 +57,7 @@ static constexpr absl::string_view kSongNotes[] = {
 class MusicEditor {
  public:
   void Update();
+  void SetupROM(ROM& rom) { rom_ = rom; }
 
  private:
   void DrawChannels();
@@ -62,6 +65,9 @@ class MusicEditor {
   void DrawPianoRoll();
   void DrawSongToolset();
   void DrawToolset();
+
+  zelda3::Tracker music_tracker_;
+  ROM rom_;
 
   Mix_Music* current_song_ = NULL;
 
