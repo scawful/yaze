@@ -70,6 +70,10 @@ class OverworldEntrance {
 class Overworld {
  public:
   absl::Status Load(ROM &rom);
+  absl::Status SaveOverworldMaps();
+  void SaveMap16Tiles();
+  void SaveMap32Tiles();
+
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto GetOverworldMaps() const { return overworld_maps_; }
@@ -123,6 +127,7 @@ class Overworld {
 
   std::vector<gfx::Tile16> tiles16;
   std::vector<gfx::Tile32> tiles32;
+  std::vector<gfx::Tile32> tiles32_unique_;
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
   std::vector<OverworldEntrance> all_holes_;

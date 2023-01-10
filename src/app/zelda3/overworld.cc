@@ -59,6 +59,318 @@ absl::Status Overworld::Load(ROM &rom) {
   return absl::OkStatus();
 }
 
+// ----------------------------------------------------------------------------
+
+absl::Status Overworld::SaveOverworldMaps() {
+  for (int i = 0; i < 0x40; i++) {
+    int yPos = i / 8;
+    int xPos = i % 8;
+    int parentyPos = overworld_maps_[i].Parent() / 8;
+    int parentxPos = overworld_maps_[i].Parent() % 8;
+
+    // Always write the map parent since it should not matter
+    rom_.Write(core::overworldMapParentId + i, overworld_maps_[i].Parent());
+
+    // If it's large then save parent pos *
+    // 0x200 otherwise pos * 0x200
+    if (overworld_maps_[i].IsLargeMap()) {
+      // Check 1
+      rom_.Write(core::overworldMapSize + i, 0x20);
+      rom_.Write(core::overworldMapSize + i + 1, 0x20);
+      rom_.Write(core::overworldMapSize + i + 8, 0x20);
+      rom_.Write(core::overworldMapSize + i + 9, 0x20);
+
+      // Check 2
+      rom_.Write(core::overworldMapSizeHighByte + i, 0x03);
+      rom_.Write(core::overworldMapSizeHighByte + i + 1, 0x03);
+      rom_.Write(core::overworldMapSizeHighByte + i + 8, 0x03);
+      rom_.Write(core::overworldMapSizeHighByte + i + 9, 0x03);
+
+      // Check 3
+      rom_.Write(core::overworldScreenSize + i, 0x00);
+      rom_.Write(core::overworldScreenSize + i + 64, 0x00);
+
+      rom_.Write(core::overworldScreenSize + i + 1, 0x00);
+      rom_.Write(core::overworldScreenSize + i + 1 + 64, 0x00);
+
+      rom_.Write(core::overworldScreenSize + i + 8, 0x00);
+      rom_.Write(core::overworldScreenSize + i + 8 + 64, 0x00);
+
+      rom_.Write(core::overworldScreenSize + i + 9, 0x00);
+      rom_.Write(core::overworldScreenSize + i + 9 + 64, 0x00);
+
+      // Check 4
+      rom_.Write(core::OverworldScreenSizeForLoading + i, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 64, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 128, 0x04);
+
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 1, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 1 + 64, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 1 + 128, 0x04);
+
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 8, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 8 + 64, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 8 + 128, 0x04);
+
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 9, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 9 + 64, 0x04);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 9 + 128, 0x04);
+
+      // Check 5 and 6
+      rom_.WriteShort(
+          core::transition_target_north + (i * 2) + 2,
+          (short)((parentyPos * 0x200) -
+                  0xE0));  // (short) is placed to reduce the int to 2 bytes.
+      rom_.WriteShort(core::transition_target_west + (i * 2) + 2,
+                      (short)((parentxPos * 0x200) - 0x100));
+
+      rom_.WriteShort(
+          core::transition_target_north + (i * 2) + 16,
+          (short)((parentyPos * 0x200) -
+                  0xE0));  // (short) is placed to reduce the int to 2 bytes.
+      rom_.WriteShort(core::transition_target_west + (i * 2) + 16,
+                      (short)((parentxPos * 0x200) - 0x100));
+
+      rom_.WriteShort(
+          core::transition_target_north + (i * 2) + 18,
+          (short)((parentyPos * 0x200) -
+                  0xE0));  // (short) is placed to reduce the int to 2 bytes.
+      rom_.WriteShort(core::transition_target_west + (i * 2) + 18,
+                      (short)((parentxPos * 0x200) - 0x100));
+
+      // Check 7 and 8
+      rom_.WriteShort(core::overworldTransitionPositionX + (i * 2),
+                      (parentxPos * 0x200));
+      rom_.WriteShort(core::overworldTransitionPositionY + (i * 2),
+                      (parentyPos * 0x200));
+
+      rom_.WriteShort(core::overworldTransitionPositionX + (i * 2) + 2,
+                      (parentxPos * 0x200));
+      rom_.WriteShort(core::overworldTransitionPositionY + (i * 2) + 2,
+                      (parentyPos * 0x200));
+
+      rom_.WriteShort(core::overworldTransitionPositionX + (i * 2) + 16,
+                      (parentxPos * 0x200));
+      rom_.WriteShort(core::overworldTransitionPositionY + (i * 2) + 16,
+                      (parentyPos * 0x200));
+
+      rom_.WriteShort(core::overworldTransitionPositionX + (i * 2) + 18,
+                      (parentxPos * 0x200));
+      rom_.WriteShort(core::overworldTransitionPositionY + (i * 2) + 18,
+                      (parentyPos * 0x200));
+
+      // Check 9
+      rom_.WriteShort(core::OverworldScreenTileMapChangeByScreen + (i * 2),
+                      0x0060);  // Always 0x0060
+      rom_.WriteShort(core::OverworldScreenTileMapChangeByScreen + (i * 2) + 2,
+                      0x0060);  // Always 0x0060
+
+      // If parentX == 0 then lower submaps == 0x0060 too
+      if (parentxPos == 0) {
+        rom_.WriteShort(
+            core::OverworldScreenTileMapChangeByScreen + (i * 2) + 16, 0x0060);
+        rom_.WriteShort(
+            core::OverworldScreenTileMapChangeByScreen + (i * 2) + 18, 0x0060);
+      } else {
+        // Otherwise lower submaps == 0x1060
+        rom_.WriteShort(
+            core::OverworldScreenTileMapChangeByScreen + (i * 2) + 16, 0x1060);
+        rom_.WriteShort(
+            core::OverworldScreenTileMapChangeByScreen + (i * 2) + 18, 0x1060);
+      }
+
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 128,
+          0x0080);  // Always 0x0080
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 2 + 128,
+          0x0080);  // Always 0x0080
+                    // Lower are always 8010
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 16 + 128,
+          0x1080);  // Always 0x1080
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 18 + 128,
+          0x1080);  // Always 0x1080
+
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 256,
+          0x1800);  // Always 0x1800
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 16 + 256,
+          0x1800);  // Always 0x1800
+                    // Right side is always 1840
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 2 + 256,
+          0x1840);  // Always 0x1840
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 18 + 256,
+          0x1840);  // Always 0x1840
+
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 384,
+          0x2000);  // Always 0x2000
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 16 + 384,
+          0x2000);  // Always 0x2000
+                    // Right side is always 0x2040
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 2 + 384,
+          0x2040);  // Always 0x2000
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 18 + 384,
+          0x2040);  // Always 0x2000
+
+      // checkedMap.Add((uchar)i);
+      // checkedMap.Add((uchar)(i + 1));
+      // checkedMap.Add((uchar)(i + 8));
+      // checkedMap.Add((uchar)(i + 9));
+
+    } else {
+      rom_.Write(core::overworldMapSize + i, 0x00);
+      rom_.Write(core::overworldMapSizeHighByte + i, 0x01);
+
+      rom_.Write(core::overworldScreenSize + i, 0x01);
+      rom_.Write(core::overworldScreenSize + i + 64, 0x01);
+
+      rom_.Write(core::OverworldScreenSizeForLoading + i, 0x02);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 64, 0x02);
+      rom_.Write(core::OverworldScreenSizeForLoading + i + 128, 0x02);
+
+      rom_.WriteShort(core::OverworldScreenTileMapChangeByScreen + (i * 2),
+                      0x0060);
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 128, 0x0040);
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 256, 0x1800);
+      rom_.WriteShort(
+          core::OverworldScreenTileMapChangeByScreen + (i * 2) + 384, 0x1000);
+
+      rom_.WriteShort(core::transition_target_north + (i * 2),
+                      (short)((yPos * 0x200) - 0xE0));
+      rom_.WriteShort(core::transition_target_west + (i * 2),
+                      (short)((xPos * 0x200) - 0x100));
+
+      rom_.WriteShort(core::overworldTransitionPositionX + (i * 2),
+                      (xPos * 0x200));
+      rom_.WriteShort(core::overworldTransitionPositionY + (i * 2),
+                      (yPos * 0x200));
+
+      // checkedMap.Add((uchar)i);
+    }
+  }
+  return absl::OkStatus();
+}
+
+// ----------------------------------------------------------------------------
+
+/**
+void Overworld::SaveMap16Tiles() {
+  int tpos = core::map16Tiles;
+  // 3760
+  for (int i = 0; i < core::NumberOfMap16; i += 1) {
+    rom_.WriteShort(tpos, tiles16[i].tile0_);
+    tpos += 2;
+    rom_.WriteShort(tpos, tiles16[i].tile1_);
+    tpos += 2;
+    rom_.WriteShort(tpos, tiles16[i].tile2_);
+    tpos += 2;
+    rom_.WriteShort(tpos, tiles16[i].tile3_);
+    tpos += 2;
+  }
+}
+*/
+
+// ----------------------------------------------------------------------------
+
+/**
+void Overworld::SaveMap32Tiles() {
+  int index = 0;
+  int c = tiles32_unique_.size();
+  for (int i = 0; i < c; i += 6) {
+    if (index >= 0x4540)  // 3C87??
+    {
+      std::cout << "Too many unique tiles!" << std::endl;
+
+      break;
+    }
+
+    // Top Left
+    rom_.Write(core::map32TilesTL + (i),
+               (uchar)(tiles32_unique_[index].tile0 & 0xFF));
+    rom_.Write(core::map32TilesTL + (i + 1),
+               (uchar)(tiles32_unique_[index + 1].tile0 & 0xFF));
+    rom_.Write(core::map32TilesTL + (i + 2),
+               (uchar)(tiles32_unique_[index + 2].tile0 & 0xFF));
+    rom_.Write(core::map32TilesTL + (i + 3),
+               (uchar)(tiles32_unique_[index + 3].tile0 & 0xFF));
+
+    rom_.Write(core::map32TilesTL + (i + 4),
+               (uchar)(((tiles32_unique_[index].tile0 >> 4) & 0xF0) +
+                       ((tiles32_unique_[index + 1].tile0 >> 8) & 0x0F)));
+    rom_.Write(core::map32TilesTL + (i + 5),
+               (uchar)(((tiles32_unique_[index + 2].tile0 >> 4) & 0xF0) +
+                       ((tiles32_unique_[index + 3].tile0 >> 8) & 0x0F)));
+
+    // Top Right
+    rom_.Write(core::map32TilesTR + (i),
+               (uchar)(tiles32_unique_[index].tile1 & 0xFF));
+    rom_.Write(core::map32TilesTR + (i + 1),
+               (uchar)(tiles32_unique_[index + 1].tile1 & 0xFF));
+    rom_.Write(core::map32TilesTR + (i + 2),
+               (uchar)(tiles32_unique_[index + 2].tile1 & 0xFF));
+    rom_.Write(core::map32TilesTR + (i + 3),
+               (uchar)(tiles32_unique_[index + 3].tile1 & 0xFF));
+
+    rom_.Write(core::map32TilesTR + (i + 4),
+               (uchar)(((tiles32_unique_[index].tile1 >> 4) & 0xF0) |
+                       ((tiles32_unique_[index + 1].tile1 >> 8) & 0x0F)));
+    rom_.Write(core::map32TilesTR + (i + 5),
+               (uchar)(((tiles32_unique_[index + 2].tile1 >> 4) & 0xF0) |
+                       ((tiles32_unique_[index + 3].tile1 >> 8) & 0x0F)));
+
+    // Bottom Left
+    rom_.Write(core::map32TilesBL + (i),
+               (uchar)(tiles32_unique_[index].tile2 & 0xFF));
+    rom_.Write(core::map32TilesBL + (i + 1),
+               (uchar)(tiles32_unique_[index + 1].tile2 & 0xFF));
+    rom_.Write(core::map32TilesBL + (i + 2),
+               (uchar)(tiles32_unique_[index + 2].tile2 & 0xFF));
+    rom_.Write(core::map32TilesBL + (i + 3),
+               (uchar)(tiles32_unique_[index + 3].tile2 & 0xFF));
+
+    rom_.Write(core::map32TilesBL + (i + 4),
+               (uchar)(((tiles32_unique_[index].tile2 >> 4) & 0xF0) |
+                       ((tiles32_unique_[index + 1].tile2 >> 8) & 0x0F)));
+    rom_.Write(core::map32TilesBL + (i + 5),
+               (uchar)(((tiles32_unique_[index + 2].tile2 >> 4) & 0xF0) |
+                       ((tiles32_unique_[index + 3].tile2 >> 8) & 0x0F)));
+
+    // Bottom Right
+    rom_.Write(core::map32TilesBR + (i),
+               (uchar)(tiles32_unique_[index].tile3 & 0xFF));
+    rom_.Write(core::map32TilesBR + (i + 1),
+               (uchar)(tiles32_unique_[index + 1].tile3 & 0xFF));
+    rom_.Write(core::map32TilesBR + (i + 2),
+               (uchar)(tiles32_unique_[index + 2].tile3 & 0xFF));
+    rom_.Write(core::map32TilesBR + (i + 3),
+               (uchar)(tiles32_unique_[index + 3].tile3 & 0xFF));
+
+    rom_.Write(core::map32TilesBR + (i + 4),
+               (uchar)(((tiles32_unique_[index].tile3 >> 4) & 0xF0) |
+                       ((tiles32_unique_[index + 1].tile3 >> 8) & 0x0F)));
+    rom_.Write(core::map32TilesBR + (i + 5),
+               (uchar)(((tiles32_unique_[index + 2].tile3 >> 4) & 0xF0) |
+                       ((tiles32_unique_[index + 3].tile3 >> 8) & 0x0F)));
+
+    index += 4;
+    c += 2;
+  }
+}
+*/
+
+// ----------------------------------------------------------------------------
+
 ushort Overworld::GenerateTile32(int i, int k, int dimension) {
   return (ushort)(rom_[map32address[dimension] + k + (i)] +
                   (((rom_[map32address[dimension] + (i) + (k <= 1 ? 4 : 5)] >>
@@ -66,6 +378,8 @@ ushort Overworld::GenerateTile32(int i, int k, int dimension) {
                     0x0F) *
                    256));
 }
+
+// ----------------------------------------------------------------------------
 
 void Overworld::AssembleMap32Tiles() {
   for (int i = 0; i < 0x33F0; i += 6) {
@@ -87,6 +401,8 @@ void Overworld::AssembleMap32Tiles() {
   }
 }
 
+// ----------------------------------------------------------------------------
+
 void Overworld::AssembleMap16Tiles() {
   int tpos = core::map16Tiles;
   for (int i = 0; i < 4096; i += 1) {
@@ -102,6 +418,8 @@ void Overworld::AssembleMap16Tiles() {
   }
 }
 
+// ----------------------------------------------------------------------------
+
 void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                                  OWBlockset &world) {
   int position_x1 = (x * 2) + (sx * 32);
@@ -113,6 +431,8 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   world[position_x1][position_y2] = tiles32[tpos].tile2_;
   world[position_x2][position_y2] = tiles32[tpos].tile3_;
 }
+
+// ----------------------------------------------------------------------------
 
 void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
                                  int sy, int &ttpos) {
@@ -133,6 +453,8 @@ void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
     }
   }
 }
+
+// ----------------------------------------------------------------------------
 
 absl::Status Overworld::DecompressAllMapTiles() {
   int lowest = 0x0FFFFF;
@@ -182,6 +504,8 @@ absl::Status Overworld::DecompressAllMapTiles() {
   return absl::OkStatus();
 }
 
+// ----------------------------------------------------------------------------
+
 void Overworld::FetchLargeMaps() {
   for (int i = 128; i < 145; i++) {
     map_parent_[i] = 0;
@@ -195,15 +519,15 @@ void Overworld::FetchLargeMaps() {
   map_parent_[136] = 136;
   overworld_maps_[136].SetLargeMap(false);
 
-  bool mapChecked[64];
+  std::vector<bool> mapChecked;
+  mapChecked.reserve(0x40);
   for (int i = 0; i < 64; i++) {
     mapChecked[i] = false;
   }
   int xx = 0;
   int yy = 0;
   while (true) {
-    int i = xx + (yy * 8);
-    if (mapChecked[i] == false) {
+    if (int i = xx + (yy * 8); mapChecked[i] == false) {
       if (overworld_maps_[i].IsLargeMap() == true) {
         mapChecked[i] = true;
         map_parent_[i] = (uchar)i;
@@ -239,6 +563,8 @@ void Overworld::FetchLargeMaps() {
   }
 }
 
+// ----------------------------------------------------------------------------
+
 void Overworld::LoadEntrances() {
   for (int i = 0; i < 129; i++) {
     short mapId = rom_.toint16(core::OWEntranceMap + (i * 2));
@@ -259,9 +585,9 @@ void Overworld::LoadEntrances() {
 
   for (int i = 0; i < 0x13; i++) {
     auto mapId = (short)((rom_[core::OWHoleArea + (i * 2) + 1] << 8) +
-                          (rom_[core::OWHoleArea + (i * 2)]));
+                         (rom_[core::OWHoleArea + (i * 2)]));
     auto mapPos = (short)((rom_[core::OWHolePos + (i * 2) + 1] << 8) +
-                           (rom_[core::OWHolePos + (i * 2)]));
+                          (rom_[core::OWHolePos + (i * 2)]));
     uchar entranceId = (rom_[core::OWHoleEntrance + i]);
     int p = (mapPos + 0x400) >> 1;
     int x = (p % 64);
@@ -272,6 +598,8 @@ void Overworld::LoadEntrances() {
         (ushort)(mapPos + 0x400), true);
   }
 }
+
+// ----------------------------------------------------------------------------
 
 void Overworld::LoadSprites() {
   // LW[0] = RainState 0 to 63 there's no data for DW
