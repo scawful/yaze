@@ -167,6 +167,18 @@ void OverworldEditor::DrawOverworldMaps() {
 
 // ----------------------------------------------------------------------------
 
+void OverworldEditor::DrawOverworldEdits() {
+  auto mouse_position = ow_map_canvas_.GetCurrentDrawnTilePosition();
+  auto canvas_size = ow_map_canvas_.GetCanvasSize();
+  int x = mouse_position.x / canvas_size.x;
+  int y = mouse_position.y / canvas_size.y;
+  auto index = x + (y * 64);
+
+  std::cout << "==> " << index << std::endl;
+}
+
+// ----------------------------------------------------------------------------
+
 // Overworld Editor canvas
 // Allows the user to make changes to the overworld map.
 void OverworldEditor::DrawOverworldCanvas() {
@@ -184,10 +196,14 @@ void OverworldEditor::DrawOverworldCanvas() {
       if (!blockset_canvas_.Points().empty()) {
         int x = blockset_canvas_.Points().front().x / 32;
         int y = blockset_canvas_.Points().front().y / 32;
-        std::cout << x << " " << y << std::endl;
+        // std::cout << x << " " << y << std::endl;
         current_tile16_ = x + (y * 8);
-        std::cout << current_tile16_ << std::endl;
-        ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_], 16);
+        // std::cout << current_tile16_ << std::endl;
+        if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
+                                           16)) {
+          // Update the overworld map.
+          DrawOverworldEdits();
+        }
       }
     }
     ow_map_canvas_.DrawGrid(64.0f);
