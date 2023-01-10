@@ -15,11 +15,8 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   canvas_p0_ = ImGui::GetCursorScreenPos();
   if (!custom_canvas_size_) canvas_sz_ = ImGui::GetContentRegionAvail();
   if (canvas_size.x != 0) canvas_sz_ = canvas_size;
-
   canvas_p1_ = ImVec2(canvas_p0_.x + canvas_sz_.x, canvas_p0_.y + canvas_sz_.y);
-
-  // Draw border and background color
-  draw_list_ = ImGui::GetWindowDrawList();
+  draw_list_ = ImGui::GetWindowDrawList();  // Draw border and background color
   draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, IM_COL32(32, 32, 32, 255));
   draw_list_->AddRect(canvas_p0_, canvas_p1_, IM_COL32(255, 255, 255, 255));
 }
@@ -63,7 +60,7 @@ void Canvas::DrawContextMenu() {
   }
 }
 
-void Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
+bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();  // Hovered
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
@@ -75,15 +72,17 @@ void Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
     if (!points_.empty()) {
       points_.clear();
     }
+
     ImVec2 draw_tile_outline_pos;
     draw_tile_outline_pos.x =
         std::floor((double)mouse_pos_in_canvas.x / size) * size;
     draw_tile_outline_pos.y =
         std::floor((double)mouse_pos_in_canvas.y / size) * size;
 
+    auto draw_tile_outline_pos_end =
+        ImVec2(draw_tile_outline_pos.x + size, draw_tile_outline_pos.y + size);
     points_.push_back(draw_tile_outline_pos);
-    points_.push_back(
-        ImVec2(draw_tile_outline_pos.x + size, draw_tile_outline_pos.y + size));
+    points_.push_back(draw_tile_outline_pos_end);
 
     if (bitmap.IsActive()) {
       draw_list_->AddImage(
@@ -94,9 +93,18 @@ void Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
                  origin.y + draw_tile_outline_pos.y + bitmap.GetHeight()));
     }
 
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+      // Draw the currently selected tile on the overworld here
+      // Save the coordinates of the selected tile.
+      drawn_tile_pos_ = mouse_pos_in_canvas;
+      return true;
+    }
+
   } else {
     points_.clear();
   }
+
+  return false;
 }
 
 void Canvas::DrawTileSelector(int size) {

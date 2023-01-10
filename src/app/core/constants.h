@@ -230,10 +230,25 @@ constexpr int overworldMapSizeHighByte = 0x12884;
 // all Large map would be :
 // 0000, 0000, 0400, 0400, 0800, 0800, 0C00, 0C00
 
+constexpr int overworldMapParentId = 0x125EC;
+
 constexpr int overworldTransitionPositionY = 0x128C4;
+
 constexpr int overworldTransitionPositionX = 0x12944;
 
 constexpr int overworldScreenSize = 0x1788D;
+
+constexpr int OverworldScreenSizeForLoading = 0x4C635;
+
+constexpr int OverworldScreenTileMapChangeByScreen = 0x12634;
+
+constexpr int transition_target_north = 0x13ee2;
+
+constexpr int transition_target_west = 0x13f62;
+
+constexpr int overworldCustomMosaicASM = 0x1301D0;
+
+constexpr int overworldCustomMosaicArray = 0x1301F0;
 
 // ============================================================================
 // Overworld Exits/Entrances Variables
@@ -482,7 +497,7 @@ constexpr int customAreaSpecificBGPalette =
 constexpr int customAreaSpecificBGASM = 0x140150;
 constexpr int customAreaSpecificBGEnabled =
     0x140140;  // 1 byte, not 0 if enabled
-constexpr int overworldCustomMosaicArray = 0x1301F0;
+    
 // ============================================================================
 // Dungeon Map Related Variables
 // ============================================================================
