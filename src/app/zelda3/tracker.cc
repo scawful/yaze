@@ -398,8 +398,8 @@ void Tracker::LoadSongs(ROM &rom) {
   unsigned char *d;
   short *e;
 
-  Song *song;
-  Song *song2;
+  Song song;
+  Song song2;
   SongPart *sp;
   SPCCommand *spc_command;
   ZeldaWave *zelda_wave;
@@ -437,10 +437,16 @@ void Tracker::LoadSongs(ROM &rom) {
     spc_command[i].prev = i - 1;
   }
 
+  // Init blank songs.
+  for (i = 0; i < 128; i++) {
+    Song new_song;
+    songs.emplace_back(new_song);
+  }
+
   spc_command[1023].next = -1;
   for (i = 0; i < 3; i++) {
+    // Extract the song banks.
     b = GetSPCAddr(rom, 0xd000, i);
-
     for (j = 0;; j++) {
       if ((r = ((unsigned short *)b)[j]) >= 0xd000) {
         r = (r - 0xd000) >> 1;
@@ -452,40 +458,42 @@ void Tracker::LoadSongs(ROM &rom) {
     for (j = 0; j < r; j++) {
       k = ((unsigned short *)b)[j];
       if (!k)
-        songs[l] = 0;
+        songs[l].in_use = false;
       else {
         c = GetSPCAddr(rom, k, i);
 
+        // Init the bank index we are current loading.
         if (!spcbank)
           m = 0;
         else
           m = l - j;
 
         for (; m < l; m++)
-          if (songs[m] && songs[m]->addr == k) {
-            (songs[l] = songs[m])->inst++;
+          if (songs[m].in_use && songs[m].addr == k) {
+            (songs[l] = songs[m]).inst++;
 
             break;
           }
 
         if (m == l) {
-          songs[l] = song = (Song *)malloc(sizeof(Song));
-          song->inst = 1;
-          song->addr = k;
-          song->flag = !spcbank;
+          // create a new song (Song *)malloc(sizeof(Song));
+          songs[l] = song;
+          song.inst = 1;
+          song.addr = k;
+          song.flag = !spcbank;
 
           for (m = 0;; m++)
             if ((n = ((unsigned short *)c)[m]) < 256) break;
 
           if (n > 0) {
-            song->flag |= 2;
-            song->lopst = (((unsigned short *)c)[m + 1] - k) >> 1;
+            song.flag |= 2;
+            song.lopst = (((unsigned short *)c)[m + 1] - k) >> 1;
           }
 
-          song->numparts = m;
-          song->tbl = (SongPart **)malloc(4 * m);
+          song.numparts = m;
+          song.tbl = (SongPart **)malloc(4 * m);
 
-          for (m = 0; m < song->numparts; m++) {
+          for (m = 0; m < song.numparts; m++) {
             k = ((unsigned short *)c)[m];
             d = GetSPCAddr(rom, k, i);
             if (!spcbank)
@@ -495,21 +503,21 @@ void Tracker::LoadSongs(ROM &rom) {
 
             for (; n < l; n++) {
               song2 = songs[n];
-              if (song2)
-                for (o = 0; o < song2->numparts; o++)
-                  if (song2->tbl[o]->addr == k) {
-                    (song->tbl[m] = song2->tbl[o])->inst++;
+              if (song2.in_use)
+                for (o = 0; o < song2.numparts; o++)
+                  if (song2.tbl[o]->addr == k) {
+                    (song.tbl[m] = song2.tbl[o])->inst++;
                     goto foundpart;
                   }
             }
 
             for (o = 0; o < m; o++)
-              if (song->tbl[o]->addr == k) {
-                (song->tbl[m] = song->tbl[o])->inst++;
+              if (song.tbl[o]->addr == k) {
+                (song.tbl[m] = song.tbl[o])->inst++;
                 goto foundpart;
               }
 
-            sp = song->tbl[m] = (SongPart *)malloc(sizeof(SongPart));
+            sp = song.tbl[m] = (SongPart *)malloc(sizeof(SongPart));
             sp->flag = !spcbank;
             sp->inst = 1;
             sp->addr = k;
@@ -833,7 +841,7 @@ void Tracker::SaveSongs(ROM &rom) {
   unsigned char *rom_data;
   unsigned char *b;
 
-  Song *s;
+  Song song;
 
   SPCCommand *spc_command;
 
@@ -875,14 +883,14 @@ void Tracker::SaveSongs(ROM &rom) {
     k = numsong[i];
 
     for (j = 0; j < k; j++) {
-      s = songs[l++];
+      song = songs[l++];
 
-      if (!s) continue;
+      if (!song.in_use) continue;
 
-      s->flag &= -5;
+      song.flag &= -5;
 
-      for (m = 0; m < s->numparts; m++) {
-        sp = s->tbl[m];
+      for (m = 0; m < song.numparts; m++) {
+        sp = song.tbl[m];
         sp->flag &= -3;
       }
     }
@@ -903,21 +911,21 @@ void Tracker::SaveSongs(ROM &rom) {
     stbl = AllocSPCBlock(k << 1, i + 1);
 
     for (j = 0; j < k; j++) {
-      s = songs[l++];
+      song = songs[l++];
 
-      if (!s) {
+      if (!song.in_use) {
         ((short *)(stbl->buf))[j] = 0;
 
         continue;
       }
 
-      if (s->flag & 4) goto alreadysaved;
+      if (song.flag & 4) goto alreadysaved;
 
-      sptbl = AllocSPCBlock(((s->numparts + 1) << 1) + (s->flag & 2),
-                            (s->flag & 1) ? 0 : (i + 1));
+      sptbl = AllocSPCBlock(((song.numparts + 1) << 1) + (song.flag & 2),
+                            (song.flag & 1) ? 0 : (i + 1));
 
-      for (m = 0; m < s->numparts; m++) {
-        sp = s->tbl[m];
+      for (m = 0; m < song.numparts; m++) {
+        sp = song.tbl[m];
 
         if (sp->flag & 2) goto spsaved;
 
@@ -947,18 +955,18 @@ void Tracker::SaveSongs(ROM &rom) {
         AddSPCReloc(sptbl, m << 1);
       }
 
-      if (s->flag & 2) {
+      if (song.flag & 2) {
         ((short *)(sptbl->buf))[m++] = 255;
-        ((short *)(sptbl->buf))[m] = sptbl->start + (s->lopst << 1);
+        ((short *)(sptbl->buf))[m] = sptbl->start + (song.lopst << 1);
 
         AddSPCReloc(sptbl, m << 1);
       } else
         ((short *)(sptbl->buf))[m++] = 0;
 
-      s->addr = sptbl->start;
-      s->flag |= 4;
+      song.addr = sptbl->start;
+      song.flag |= 4;
     alreadysaved:
-      ((short *)(stbl->buf))[j] = s->addr;
+      ((short *)(stbl->buf))[j] = song.addr;
 
       AddSPCReloc(stbl, j << 1);
     }

@@ -84,6 +84,7 @@ using Song = struct {
   short numparts;
   short lopst;
   unsigned short addr;
+  bool in_use = true;
 };
 // =============================================================================
 
@@ -239,7 +240,8 @@ class Tracker {
 
   size_t t_number;
 
-  Song *songs[128];
+  // Song *songs[128];
+  std::vector<Song> songs;
   SongPart *sp_mark;
   SongRange *song_range_;
   SPCCommand *current_spc_command_;
