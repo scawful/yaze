@@ -56,6 +56,7 @@ class OverworldEditor {
 
   void DrawOverworldEntrances();
   void DrawOverworldMaps();
+  void DrawOverworldEdits();
   void DrawOverworldCanvas();
 
   void DrawTile16Selector();

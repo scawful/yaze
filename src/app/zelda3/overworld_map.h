@@ -35,6 +35,7 @@ class OverworldMap {
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
   auto IsLargeMap() const { return large_map_; }
   auto IsInitialized() const { return initialized_; }
+  auto Parent() const { return parent_; }
 
  private:
   void LoadAreaInfo();
