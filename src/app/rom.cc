@@ -725,6 +725,13 @@ gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
   return palette;
 }
 
+void ROM::Write(int addr, int value) { rom_data_[addr] = value; }
+
+void ROM::WriteShort(int addr, int value) {
+  rom_data_[addr] = (uchar)(value & 0xFF);
+  rom_data_[addr + 1] = (uchar)((value >> 8) & 0xFF);
+}
+
 void ROM::LoadAllPalettes() {
   // 35 colors each, 7x5 (0,2 on grid)
   for (int i = 0; i < 6; i++) {
