@@ -96,6 +96,9 @@ class ROM {
   gfx::SNESColor ReadColor(int offset);
   gfx::SNESPalette ReadPalette(int offset, int num_colors);
 
+  void Write(int addr, int value);
+  void WriteShort(int addr, int value);
+
   void RenderBitmap(gfx::Bitmap* bitmap) const;
 
   absl::Status ApplyAssembly(const absl::string_view& filename,
