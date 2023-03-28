@@ -20,6 +20,8 @@ void Room::LoadTorches() {}
 
 void Room::LoadSecrets() {}
 
+void Room::Resync() {} 
+
 void Room::LoadObjectsFromArray(int loc) {}
 
 void Room::LoadSpritesFromArray(int loc) {}
