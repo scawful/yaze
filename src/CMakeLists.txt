@@ -31,6 +31,7 @@ set(
   app/zelda3/title_screen.cc
   app/zelda3/sprite.cc
   app/zelda3/tracker.cc
+  app/zelda3/dungeon/room.cc
 )
 
 set(
