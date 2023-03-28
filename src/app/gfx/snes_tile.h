@@ -34,6 +34,8 @@ class TileInfo {
         vertical_mirror_(v),
         horizontal_mirror_(h),
         palette_(palette) {}
+  // TODO(scawful): This is not the actual value yet.
+  ushort ToShort() const { return id_; }
 };
 
 TileInfo GetTilesInfo(ushort tile);

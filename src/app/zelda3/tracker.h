@@ -240,7 +240,6 @@ class Tracker {
 
   size_t t_number;
 
-  // Song *songs[128];
   std::vector<Song> songs;
   SongPart *sp_mark;
   SongRange *song_range_;
@@ -251,8 +250,6 @@ class Tracker {
   ZeldaWave *waves;
   ZeldaInstrument *insts;
   ZeldaSfxInstrument *sndinsts;
-  // HWND mbanks[4];  // ???
-  // HWND t_wnd;
 };
 
 // =============================================================================

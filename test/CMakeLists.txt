@@ -1,4 +1,4 @@
-# GoogleTest ------------------------------------------------------------------------------------
+# GoogleTest ------------------------------------------------------------------
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -27,16 +27,20 @@ target_include_directories(
   ../src/
   ../src/lib/
   ../src/lib/asar/src/asar/
-  ${SDL_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
 )
 
 target_link_libraries(
   yaze_test
-  SDL2
   ${ABSL_TARGETS}
+  SDL2::SDL2
+  ${PNG_LIBRARIES}
+  ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   asar-static
+  snes_spc
+  ImGui
   gmock_main
   gmock
   gtest_main
