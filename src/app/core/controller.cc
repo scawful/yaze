@@ -2,7 +2,7 @@
 
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <imgui/backends/imgui_impl_sdl.h>
+#include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/backends/imgui_impl_sdlrenderer.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
