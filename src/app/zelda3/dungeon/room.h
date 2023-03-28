@@ -103,8 +103,7 @@ class Room {
   DungeonDestination Stair4;
 
   int RoomID = 0;
-  int MessageID = 0;
-  ushort MessageID;
+  ushort MessageID = 0;
   uchar BackgroundTileset;
   uchar SpriteTileset;
   uchar Layer2Behavior;

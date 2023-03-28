@@ -26,7 +26,6 @@ class Controller {
   absl::Status onEntry();
   void onInput();
   void onLoad();
-  void onLoadDelta();
   void doRender() const;
   void onExit() const;
 

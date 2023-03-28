@@ -11,6 +11,8 @@
 namespace yaze {
 namespace gui {
 
+// Background for the Canvas represents region without any content drawn to it,
+// but can be controlled by the user.
 void Canvas::DrawBackground(ImVec2 canvas_size) {
   canvas_p0_ = ImGui::GetCursorScreenPos();
   if (!custom_canvas_size_) canvas_sz_ = ImGui::GetContentRegionAvail();
@@ -21,38 +23,41 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   draw_list_->AddRect(canvas_p0_, canvas_p1_, IM_COL32(255, 255, 255, 255));
 }
 
+// Context Menu refers to what happens when the right mouse button is pressed
+// This routine also handles the scrolling for the canvas.
 void Canvas::DrawContextMenu() {
   // This will catch our interactions
   const ImGuiIO &io = ImGui::GetIO();
   ImGui::InvisibleButton(
       "canvas", canvas_sz_,
       ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-  const bool is_hovered = ImGui::IsItemHovered();  // Hovered
-  const bool is_active = ImGui::IsItemActive();    // Held
+  const bool is_active = ImGui::IsItemActive();  // Held
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
   const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x,
                                    io.MousePos.y - origin.y);
 
   // Pan (we use a zero mouse threshold when there's no context menu)
-  const float mouse_threshold_for_pan = enable_context_menu_ ? -1.0f : 0.0f;
-  if (is_active &&
+  if (const float mouse_threshold_for_pan = enable_context_menu_ ? -1.0f : 0.0f;
+      is_active &&
       ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan)) {
     scrolling_.x += io.MouseDelta.x;
     scrolling_.y += io.MouseDelta.y;
   }
 
   // Context menu (under default mouse threshold)
-  ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-  if (enable_context_menu_ && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
+  if (ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+      enable_context_menu_ && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
     ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
 
+  // Contents of the Context Menu
   if (ImGui::BeginPopup("context")) {
     ImGui::MenuItem("Show Grid", nullptr, &enable_grid_);
     if (ImGui::MenuItem("Reset Position", nullptr, false)) {
       scrolling_.x = 0;
       scrolling_.y = 0;
     }
+
     if (ImGui::MenuItem("Remove all", nullptr, false, points_.Size > 0)) {
       points_.clear();
     }
@@ -60,6 +65,9 @@ void Canvas::DrawContextMenu() {
   }
 }
 
+// Tile painter shows a preview of the currently selected tile
+// and allows the user to left click to paint the tile or right
+// click to select a new tile to paint with.
 bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();  // Hovered
@@ -69,10 +77,12 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
                                    io.MousePos.y - origin.y);
 
   if (is_hovered) {
+    // Reset the previous tile hover
     if (!points_.empty()) {
       points_.clear();
     }
 
+    // Calculate the coordinates of the mouse
     ImVec2 draw_tile_outline_pos;
     draw_tile_outline_pos.x =
         std::floor((double)mouse_pos_in_canvas.x / size) * size;
@@ -101,12 +111,14 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
     }
 
   } else {
+    // Erase the hover when the mouse is not in the canvas window.
     points_.clear();
   }
-
   return false;
 }
 
+// Dictates which tile is currently selected based on what the user clicks
+// in the canvas window. Represented and split apart into a grid of tiles.
 void Canvas::DrawTileSelector(int size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();  // Hovered
@@ -131,6 +143,7 @@ void Canvas::DrawTileSelector(int size) {
   }
 }
 
+// Draws the contents of the Bitmap image to the Canvas
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
   if (ready) {
     draw_list_->AddImage(
@@ -158,6 +171,7 @@ void Canvas::DrawOutline(int x, int y, int w, int h) {
   draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 255));
 }
 
+// Canvas Wrapper for a Rectangle
 void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
   ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
                 canvas_p0_.y + scrolling_.y + y);
@@ -167,6 +181,7 @@ void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
                             IM_COL32(color.x, color.y, color.z, color.w));
 }
 
+// Canvas Wrapper for Text
 void Canvas::DrawText(std::string text, int x, int y) {
   draw_list_->AddText(
       ImVec2(canvas_p0_.x + scrolling_.x + x, canvas_p0_.y + scrolling_.y + y),
