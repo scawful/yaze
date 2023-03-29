@@ -82,18 +82,7 @@ class OverworldEditor {
   bool selected_tile_loaded_ = false;
   bool update_selected_tile_ = true;
 
-  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
-  ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
-  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
-                                  ImGuiTableFlags_Resizable |
-                                  ImGuiTableFlags_SizingStretchSame;
-
   Bytes selected_tile_data_;
-  std::unordered_map<int, gfx::Bitmap> graphics_bin_;
-  std::unordered_map<int, gfx::Bitmap> current_graphics_set_;
-  std::unordered_map<int, gfx::Bitmap> maps_bmp_;
-  std::unordered_map<int, gfx::Bitmap> sprite_previews_;
-
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
@@ -101,16 +90,27 @@ class OverworldEditor {
   PaletteEditor palette_editor_;
   zelda3::Overworld overworld_;
 
+  gui::Canvas ow_map_canvas_;
+  gui::Canvas current_gfx_canvas_;
+  gui::Canvas blockset_canvas_;
+  gui::Canvas graphics_bin_canvas_;
+
   gfx::SNESPalette palette_;
   gfx::Bitmap selected_tile_bmp_;
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
 
-  gui::Canvas ow_map_canvas_;
-  gui::Canvas current_gfx_canvas_;
-  gui::Canvas blockset_canvas_;
-  gui::Canvas graphics_bin_canvas_;
+  gfx::BitmapTable maps_bmp_;
+  gfx::BitmapTable graphics_bin_;
+  gfx::BitmapTable current_graphics_set_;
+  gfx::BitmapTable sprite_previews_;
+
+  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
+  ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
+  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
+                                  ImGuiTableFlags_Resizable |
+                                  ImGuiTableFlags_SizingStretchSame;
 };
 }  // namespace editor
 }  // namespace app
