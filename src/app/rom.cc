@@ -484,6 +484,8 @@ absl::StatusOr<Bytes> ROM::CompressOverworld(const int pos, const int length) {
   return Compress(pos, length, kNintendoMode1);
 }
 
+// ============================================================================
+
 absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
   Bytes buffer(size, 0);
   uint length = 0;
@@ -577,6 +579,8 @@ absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
   return Decompress(pos, size, kNintendoMode1);
 }
 
+// ============================================================================
+
 absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
   Bytes sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
@@ -636,6 +640,8 @@ absl::Status ROM::LoadAllGraphicsData() {
   return absl::OkStatus();
 }
 
+// ============================================================================
+
 absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
   filename_ = filename;
   std::ifstream file(filename.data(), std::ios::binary);
@@ -661,6 +667,8 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
   return absl::OkStatus();
 }
 
+// ============================================================================
+
 absl::Status ROM::LoadFromPointer(uchar* data, size_t length) {
   if (!data)
     return absl::InvalidArgumentError(
@@ -671,6 +679,8 @@ absl::Status ROM::LoadFromPointer(uchar* data, size_t length) {
   return absl::OkStatus();
 }
 
+// ============================================================================
+
 absl::Status ROM::LoadFromBytes(const Bytes& data) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
@@ -679,6 +689,8 @@ absl::Status ROM::LoadFromBytes(const Bytes& data) {
   rom_data_ = data;
   return absl::OkStatus();
 }
+
+// ============================================================================
 
 absl::Status ROM::SaveToFile() {
   std::fstream file(filename_.data(), std::ios::binary | std::ios::out);
@@ -692,9 +704,7 @@ absl::Status ROM::SaveToFile() {
   return absl::OkStatus();
 }
 
-void ROM::RenderBitmap(gfx::Bitmap* bitmap) const {
-  bitmap->CreateTexture(renderer_);
-}
+// ============================================================================
 
 gfx::SNESColor ROM::ReadColor(int offset) {
   short color = toint16(offset);
@@ -705,6 +715,8 @@ gfx::SNESColor ROM::ReadColor(int offset) {
   gfx::SNESColor snes_color(new_color);
   return snes_color;
 }
+
+// ============================================================================
 
 gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
   int color_offset = 0;
@@ -731,6 +743,8 @@ void ROM::WriteShort(int addr, int value) {
   rom_data_[addr] = (uchar)(value & 0xFF);
   rom_data_[addr + 1] = (uchar)((value >> 8) & 0xFF);
 }
+
+// ============================================================================
 
 void ROM::LoadAllPalettes() {
   // 35 colors each, 7x5 (0,2 on grid)
@@ -802,6 +816,8 @@ void ROM::LoadAllPalettes() {
   }
 }
 
+// ============================================================================
+
 absl::Status ROM::ApplyAssembly(const absl::string_view& filename,
                                 size_t patch_size) {
   int count = 0;
@@ -814,6 +830,8 @@ absl::Status ROM::ApplyAssembly(const absl::string_view& filename,
   }
   return absl::OkStatus();
 }
+
+// ============================================================================
 
 // TODO(scawful): Test me!
 absl::Status ROM::PatchOverworldMosaic(
