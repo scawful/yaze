@@ -99,15 +99,13 @@ class ROM {
   void Write(int addr, int value);
   void WriteShort(int addr, int value);
 
-  void RenderBitmap(gfx::Bitmap* bitmap) const;
-
   absl::Status ApplyAssembly(const absl::string_view& filename,
                              size_t patch_size);
   absl::Status PatchOverworldMosaic(char mosaic_tiles[core::kNumOverworldMaps],
                                     int routine_offset);
 
   auto GetTitle() const { return title; }
-  auto GetGraphicsBin() const { return graphics_bin_; }
+  gfx::BitmapTable GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
   auto GetPaletteGroup(std::string group) { return palette_groups_[group]; }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
@@ -140,17 +138,23 @@ class ROM {
     return (ushort)((rom_data_[offset + 1]) << 8) | rom_data_[offset];
   }
 
+  void RenderBitmap(gfx::Bitmap* bitmap) const {
+    bitmap->CreateTexture(renderer_);
+  }
+
  private:
   long size_ = 0;
   uchar title[21] = "ROM Not Loaded";
-  bool is_loaded_ = false;
   bool isbpp3[223];
+  bool is_loaded_ = false;
   std::string filename_;
 
   Bytes rom_data_;
   Bytes graphics_buffer_;
+
+  gfx::BitmapTable graphics_bin_;
+
   std::shared_ptr<SDL_Renderer> renderer_;
-  std::unordered_map<int, gfx::Bitmap> graphics_bin_;
   std::unordered_map<std::string, gfx::PaletteGroup> palette_groups_;
 };
 
