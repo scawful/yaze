@@ -13,6 +13,9 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
+constexpr int entrance_gfx_group = 0x5D97;
+constexpr int gfx_animated_pointer = 0x10275;  // JP 0x10624 //long pointer
+
 class DungeonDestination {
  public:
   DungeonDestination(uint8_t i) : Index(i) {}
@@ -85,6 +88,8 @@ class Room {
   Room() = default;
 
  private:
+  void LoadGfxGroups();
+  bool SaveGroupsToROM();
   void LoadChests();
   void LoadBlocks();
   void LoadTorches();
@@ -94,6 +99,9 @@ class Room {
   void LoadObjectsFromArray(int loc);
   void LoadSpritesFromArray(int loc);
 
+  void LoadRoomGraphics(uchar entrance_blockset = 0xFF);
+  void LoadAnimatedGraphics();
+
   void LoadRoomFromROM();
 
   DungeonDestination Pits;
@@ -101,6 +109,8 @@ class Room {
   DungeonDestination Stair2;
   DungeonDestination Stair3;
   DungeonDestination Stair4;
+
+  int animated_frame = 0;
 
   int RoomID = 0;
   ushort MessageID = 0;
@@ -111,6 +121,12 @@ class Room {
   uchar Floor1Graphics;
   uchar Floor2Graphics;
   uchar Layer2Mode;
+  std::array<uchar, 16> blocks;
+
+  uint8_t mainGfx[37][8];
+  uint8_t roomGfx[82][4];
+  uint8_t spriteGfx[144][4];
+  uint8_t paletteGfx[72][4];
 
   // LayerMergeType LayerMerging;
   uchar Tag1;
@@ -118,6 +134,8 @@ class Room {
   bool IsDark;
 
   ROM rom_;
+
+  gfx::Bitmap current_graphics_;
 };
 
 }  // namespace dungeon

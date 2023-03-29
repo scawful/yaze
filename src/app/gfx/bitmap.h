@@ -80,6 +80,8 @@ class Bitmap {
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
 };
 
+using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze

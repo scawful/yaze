@@ -8,6 +8,24 @@ namespace editor {
 
 void DungeonEditor::Update() {
   DrawToolset();
+
+  ImGui::Separator();
+  if (ImGui::BeginTable("#DungeonEditTable", 2, toolset_table_flags_,
+                        ImVec2(0, 0))) {
+    ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
+                            ImGui::GetContentRegionAvail().x);
+    ImGui::TableSetupColumn("Object Selector");
+    ImGui::TableHeadersRow();
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    DrawDungeonCanvas();
+    ImGui::TableNextColumn();
+    DrawTileSelector();
+    ImGui::EndTable();
+  }
+}
+
+void DungeonEditor::DrawDungeonCanvas() {
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
   canvas_.DrawGrid();
@@ -53,6 +71,30 @@ void DungeonEditor::DrawToolset() {
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
     ImGui::EndTable();
+  }
+}
+
+void DungeonEditor::DrawRoomGraphics() {
+  room_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
+  room_gfx_canvas_.DrawContextMenu();
+  room_gfx_canvas_.DrawTileSelector(32);
+  room_gfx_canvas_.DrawBitmap(room_gfx_bmp_, 2, is_loaded_);
+  room_gfx_canvas_.DrawGrid(32.0f);
+  room_gfx_canvas_.DrawOverlay();
+}
+
+void DungeonEditor::DrawTileSelector() {
+  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
+    if (ImGui::BeginTabItem("Room Graphics")) {
+      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
+          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        DrawRoomGraphics();
+      }
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
   }
 }
 
