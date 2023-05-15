@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <vector>
+#include <future>
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
