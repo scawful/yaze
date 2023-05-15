@@ -160,14 +160,14 @@ void MasterEditor::DrawYazeMenu() {
   END_MENU_BAR()
 }
 
-void MasterEditor::DrawFileMenu() const {
+void MasterEditor::DrawFileMenu() {
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
                                               ".sfc,.smc", ".");
     }
 
-    MENU_ITEM2("Save", "Ctrl+S") {}
+    MENU_ITEM2("Save", "Ctrl+S") { status_ = rom_.SaveToFile(true); }
     MENU_ITEM("Save As..") {}
 
     ImGui::Separator();

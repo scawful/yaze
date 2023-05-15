@@ -38,7 +38,7 @@ class MasterEditor {
   void DrawInfoPopup();
 
   void DrawYazeMenu();
-  void DrawFileMenu() const;
+  void DrawFileMenu();
   void DrawEditMenu();
   void DrawViewMenu();
   void DrawHelpMenu();
