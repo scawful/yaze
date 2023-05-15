@@ -4,8 +4,11 @@
 #include <SDL.h>
 #include <asar/src/asar/interface-lib.h>
 
+#include <algorithm>
+#include <chrono>
 #include <cstddef>
 #include <cstring>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -126,20 +129,16 @@ class ROM {
   absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
   absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
 
+  // Load functions
   absl::StatusOr<Bytes> Load2bppGraphics();
-
   absl::Status LoadAllGraphicsData();
   absl::Status LoadFromFile(const absl::string_view& filename);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
   void LoadAllPalettes();
 
+  absl::Status SaveToFile(bool backup);
   void SaveAllPalettes();
-
-  uint32_t GetPaletteAddress(const std::string& groupName, size_t paletteIndex,
-                             size_t colorIndex) const;
-
-  absl::Status SaveToFile();
 
   gfx::SNESColor ReadColor(int offset);
   gfx::SNESPalette ReadPalette(int offset, int num_colors);
@@ -148,24 +147,29 @@ class ROM {
   void WriteShort(int addr, int value);
   void WriteColor(uint32_t address, const gfx::SNESColor& color);
 
+  uint32_t GetPaletteAddress(const std::string& groupName, size_t paletteIndex,
+                             size_t colorIndex) const;
+
   absl::Status ApplyAssembly(const absl::string_view& filename,
                              size_t patch_size);
   absl::Status PatchOverworldMosaic(char mosaic_tiles[core::kNumOverworldMaps],
                                     int routine_offset);
 
-  auto GetTitle() const { return title; }
   gfx::BitmapTable GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
-  auto GetPaletteGroup(std::string group) { return palette_groups_[group]; }
+  auto GetPaletteGroup(const std::string& group) {
+    return palette_groups_[group];
+  }
+  auto GetTitle() const { return title; }
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
   }
+  auto size() const { return size_; }
   auto isLoaded() const { return is_loaded_; }
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
   auto char_data() { return reinterpret_cast<char*>(rom_data_.data()); }
-  auto size() const { return size_; }
 
   uchar& operator[](int i) {
     if (i > size_) {

@@ -596,6 +596,8 @@ absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
   return sheet;
 }
 
+// ============================================================================
+
 // 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
 // 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
 // 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
@@ -692,60 +694,6 @@ absl::Status ROM::LoadFromBytes(const Bytes& data) {
 
 // ============================================================================
 
-absl::Status ROM::SaveToFile() {
-  std::fstream file(filename_.data(), std::ios::binary | std::ios::out);
-  if (!file.is_open()) {
-    return absl::InternalError(
-        absl::StrCat("Could not open ROM file: ", filename_));
-  }
-  for (auto i = 0; i < size_; ++i) {
-    file << rom_data_[i];
-  }
-  return absl::OkStatus();
-}
-
-// ============================================================================
-
-gfx::SNESColor ROM::ReadColor(int offset) {
-  short color = toint16(offset);
-  gfx::snes_color new_color;
-  new_color.red = (color & 0x1F) * 8;
-  new_color.green = ((color >> 5) & 0x1F) * 8;
-  new_color.blue = ((color >> 10) & 0x1F) * 8;
-  gfx::SNESColor snes_color(new_color);
-  return snes_color;
-}
-
-// ============================================================================
-
-gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
-  int color_offset = 0;
-  std::vector<gfx::SNESColor> colors(num_colors);
-
-  while (color_offset < num_colors) {
-    short color = toint16(offset);
-    gfx::snes_color new_color;
-    new_color.red = (color & 0x1F) * 8;
-    new_color.green = ((color >> 5) & 0x1F) * 8;
-    new_color.blue = ((color >> 10) & 0x1F) * 8;
-    colors[color_offset].setSNES(new_color);
-    color_offset++;
-    offset += 2;
-  }
-
-  gfx::SNESPalette palette(colors);
-  return palette;
-}
-
-void ROM::Write(int addr, int value) { rom_data_[addr] = value; }
-
-void ROM::WriteShort(int addr, int value) {
-  rom_data_[addr] = (uchar)(value & 0xFF);
-  rom_data_[addr + 1] = (uchar)((value >> 8) & 0xFF);
-}
-
-// ============================================================================
-
 void ROM::LoadAllPalettes() {
   // 35 colors each, 7x5 (0,2 on grid)
   for (int i = 0; i < 6; i++) {
@@ -816,12 +764,11 @@ void ROM::LoadAllPalettes() {
   }
 }
 
+// ============================================================================
+
 void ROM::SaveAllPalettes() {
   // Iterate through all palette_groups_
-  for (auto& group : palette_groups_) {
-    const std::string& groupName = group.first;
-    auto& palettes = group.second;
-
+  for (auto& [groupName, palettes] : palette_groups_) {
     // Iterate through all palettes in the group
     for (size_t i = 0; i < palettes.size(); ++i) {
       auto palette = palettes[i];
@@ -840,6 +787,97 @@ void ROM::SaveAllPalettes() {
   }
 }
 
+// ============================================================================
+
+absl::Status ROM::SaveToFile(bool backup) {
+  // Check if backup is enabled
+  if (backup) {
+    // Create a backup file with timestamp in its name
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    std::string backup_filename =
+        absl::StrCat(filename_, "_backup_", std::ctime(&now_c));
+
+    // Remove newline character from ctime()
+    backup_filename.erase(
+        std::remove(backup_filename.begin(), backup_filename.end(), '\n'),
+        backup_filename.end());
+
+    // Replace spaces with underscores
+    std::replace(backup_filename.begin(), backup_filename.end(), ' ', '_');
+
+    // Now, copy the original file to the backup file
+    std::filesystem::copy(filename_, backup_filename,
+                          std::filesystem::copy_options::overwrite_existing);
+  }
+
+  // Run the other save functions
+  SaveAllPalettes();
+
+  std::fstream file(filename_.data(), std::ios::binary | std::ios::out);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrCat("Could not open ROM file: ", filename_));
+  }
+
+  // Save the data to the file
+  for (auto i = 0; i < size_; ++i) {
+    file << rom_data_[i];
+  }
+
+  // Check for write errors
+  if (!file.good()) {
+    return absl::InternalError(
+        absl::StrCat("Error while writing to ROM file: ", filename_));
+  }
+
+  return absl::OkStatus();
+}
+
+// ============================================================================
+
+gfx::SNESColor ROM::ReadColor(int offset) {
+  short color = toint16(offset);
+  gfx::snes_color new_color;
+  new_color.red = (color & 0x1F) * 8;
+  new_color.green = ((color >> 5) & 0x1F) * 8;
+  new_color.blue = ((color >> 10) & 0x1F) * 8;
+  gfx::SNESColor snes_color(new_color);
+  return snes_color;
+}
+
+// ============================================================================
+
+gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
+  int color_offset = 0;
+  std::vector<gfx::SNESColor> colors(num_colors);
+
+  while (color_offset < num_colors) {
+    short color = toint16(offset);
+    gfx::snes_color new_color;
+    new_color.red = (color & 0x1F) * 8;
+    new_color.green = ((color >> 5) & 0x1F) * 8;
+    new_color.blue = ((color >> 10) & 0x1F) * 8;
+    colors[color_offset].setSNES(new_color);
+    color_offset++;
+    offset += 2;
+  }
+
+  gfx::SNESPalette palette(colors);
+  return palette;
+}
+
+// ============================================================================
+
+void ROM::Write(int addr, int value) { rom_data_[addr] = value; }
+
+void ROM::WriteShort(int addr, int value) {
+  rom_data_[addr] = (uchar)(value & 0xFF);
+  rom_data_[addr + 1] = (uchar)((value >> 8) & 0xFF);
+}
+
+// ============================================================================
+
 void ROM::WriteColor(uint32_t address, const gfx::SNESColor& color) {
   uint16_t bgr = ((color.snes >> 10) & 0x1F) | ((color.snes & 0x1F) << 10) |
                  (color.snes & 0x7C00);
@@ -848,6 +886,8 @@ void ROM::WriteColor(uint32_t address, const gfx::SNESColor& color) {
   rom_data_[address] = static_cast<uint8_t>(bgr & 0xFF);
   rom_data_[address + 1] = static_cast<uint8_t>((bgr >> 8) & 0xFF);
 }
+
+// ============================================================================
 
 uint32_t ROM::GetPaletteAddress(const std::string& groupName,
                                 size_t paletteIndex, size_t colorIndex) const {
