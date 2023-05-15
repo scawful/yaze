@@ -42,16 +42,27 @@ absl::Status Overworld::Load(ROM &rom) {
   LoadSprites();
 
   auto size = tiles16.size();
+  std::vector<std::future<absl::Status>> futures;
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
-    if (i < 64) {
-      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(
-          size, game_state_, 0, map_parent_, map_tiles_.light_world))
-    } else if (i < 0x80 && i >= 0x40) {
-      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(
-          size, game_state_, 1, map_parent_, map_tiles_.dark_world))
-    } else {
-      RETURN_IF_ERROR(overworld_maps_[i].BuildMap(
-          size, game_state_, 2, map_parent_, map_tiles_.special_world))
+    futures.push_back(std::async(std::launch::async, [this, i, size]() {
+      if (i < 64) {
+        return overworld_maps_[i].BuildMap(
+            size, game_state_, 0, map_parent_, map_tiles_.light_world);
+      } else if (i < 0x80 && i >= 0x40) {
+        return overworld_maps_[i].BuildMap(
+            size, game_state_, 1, map_parent_, map_tiles_.dark_world);
+      } else {
+        return overworld_maps_[i].BuildMap(
+            size, game_state_, 2, map_parent_, map_tiles_.special_world);
+      }
+    }));
+  }
+
+  // Wait for all tasks to complete and check their results
+  for (auto& future : futures) {
+    absl::Status status = future.get();
+    if (!status.ok()) {
+      return status;
     }
   }
 
