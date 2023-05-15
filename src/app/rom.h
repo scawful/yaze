@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -72,6 +73,48 @@ struct CompressionPiece {
 using CompressionPiece = struct CompressionPiece;
 using CompressionPiecePointer = std::shared_ptr<CompressionPiece>;
 
+const std::map<std::string, uint32_t> paletteGroupBaseAddresses = {
+    {"ow_main", core::overworldPaletteMain},
+    {"ow_aux", core::overworldPaletteAuxialiary},
+    {"ow_animated", core::overworldPaletteAnimated},
+    {"hud", core::hudPalettes},
+    {"global_sprites",
+     core::globalSpritePalettesLW},  // Assuming LW is the first palette
+    {"armors", core::armorPalettes},
+    {"swords", core::swordPalettes},
+    {"shields", core::shieldPalettes},
+    {"sprites_aux1", core::spritePalettesAux1},
+    {"sprites_aux2", core::spritePalettesAux2},
+    {"sprites_aux3", core::spritePalettesAux3},
+    {"dungeon_main", core::dungeonMainPalettes},
+    {"grass", core::hardcodedGrassLW},  // Assuming LW is the first color
+    {"3d_object",
+     core::triforcePalette},  // Assuming triforcePalette is the first palette
+    {"ow_mini_map", core::overworldMiniMapPalettes},
+};
+
+const std::map<std::string, size_t> paletteGroupColorCounts = {
+    {"ow_main", 35},
+    {"ow_aux", 21},
+    {"ow_animated", 7},
+    {"hud", 32},
+    {"global_sprites", 60},  // Assuming both LW and DW
+                             // palettes have the same
+                             // color count
+    {"armors", 15},
+    {"swords", 3},
+    {"shields", 4},
+    {"sprites_aux1", 7},
+    {"sprites_aux2", 7},
+    {"sprites_aux3", 7},
+    {"dungeon_main", 90},
+    {"grass", 1},      // Assuming grass palettes are
+                       // individual colors
+    {"3d_object", 8},  // Assuming both triforcePalette and crystalPalette have
+                       // the same color count
+    {"ow_mini_map", 128},
+};
+
 class ROM {
  public:
   absl::StatusOr<Bytes> Compress(const int start, const int length,
@@ -91,6 +134,11 @@ class ROM {
   absl::Status LoadFromBytes(const Bytes& data);
   void LoadAllPalettes();
 
+  void SaveAllPalettes();
+
+  uint32_t GetPaletteAddress(const std::string& groupName, size_t paletteIndex,
+                             size_t colorIndex) const;
+
   absl::Status SaveToFile();
 
   gfx::SNESColor ReadColor(int offset);
@@ -98,6 +146,7 @@ class ROM {
 
   void Write(int addr, int value);
   void WriteShort(int addr, int value);
+  void WriteColor(uint32_t address, const gfx::SNESColor& color);
 
   absl::Status ApplyAssembly(const absl::string_view& filename,
                              size_t patch_size);

@@ -190,7 +190,7 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
   return sdl_palette.get();
 }
 
-PaletteGroup::PaletteGroup(uint8_t mSize) : size(mSize) {}
+PaletteGroup::PaletteGroup(uint8_t mSize) : size_(mSize) {}
 
 }  // namespace gfx
 }  // namespace app

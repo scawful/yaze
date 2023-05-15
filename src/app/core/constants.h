@@ -65,6 +65,10 @@
 
 #define APPEND_NUMBER_INNER(expression, number) expression##number
 
+#define TEXT_WITH_SEPARATOR(text) \
+  ImGui::Text(text); \
+  ImGui::Separator();
+
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;

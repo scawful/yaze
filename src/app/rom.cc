@@ -816,6 +816,54 @@ void ROM::LoadAllPalettes() {
   }
 }
 
+void ROM::SaveAllPalettes() {
+  // Iterate through all palette_groups_
+  for (auto& group : palette_groups_) {
+    const std::string& groupName = group.first;
+    auto& palettes = group.second;
+
+    // Iterate through all palettes in the group
+    for (size_t i = 0; i < palettes.size(); ++i) {
+      auto palette = palettes[i];
+
+      // Iterate through all colors in the palette
+      for (size_t j = 0; j < palette.size(); ++j) {
+        gfx::SNESColor color = palette[j];
+
+        // If the color is modified, save the color to the ROM
+        if (color.modified) {
+          WriteColor(GetPaletteAddress(groupName, i, j), color);
+          color.modified = false;  // Reset the modified flag after saving
+        }
+      }
+    }
+  }
+}
+
+void ROM::WriteColor(uint32_t address, const gfx::SNESColor& color) {
+  uint16_t bgr = ((color.snes >> 10) & 0x1F) | ((color.snes & 0x1F) << 10) |
+                 (color.snes & 0x7C00);
+
+  // Write the 16-bit color value to the ROM at the specified address
+  rom_data_[address] = static_cast<uint8_t>(bgr & 0xFF);
+  rom_data_[address + 1] = static_cast<uint8_t>((bgr >> 8) & 0xFF);
+}
+
+uint32_t ROM::GetPaletteAddress(const std::string& groupName,
+                                size_t paletteIndex, size_t colorIndex) const {
+  // Retrieve the base address for the palette group
+  uint32_t baseAddress = paletteGroupBaseAddresses.at(groupName);
+
+  // Retrieve the number of colors for each palette in the group
+  size_t colorsPerPalette = paletteGroupColorCounts.at(groupName);
+
+  // Calculate the address for the specified color in the ROM
+  uint32_t address =
+      baseAddress + (paletteIndex * colorsPerPalette * 2) + (colorIndex * 2);
+
+  return address;
+}
+
 // ============================================================================
 
 absl::Status ROM::ApplyAssembly(const absl::string_view& filename,
