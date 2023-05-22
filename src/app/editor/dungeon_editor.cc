@@ -1,6 +1,6 @@
 #include "dungeon_editor.h"
 
-#include "gui/icons.h"
+#include "app/gui/icons.h"
 
 namespace yaze {
 namespace app {

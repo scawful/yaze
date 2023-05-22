@@ -46,20 +46,20 @@ absl::Status Overworld::Load(ROM &rom) {
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
     futures.push_back(std::async(std::launch::async, [this, i, size]() {
       if (i < 64) {
-        return overworld_maps_[i].BuildMap(
-            size, game_state_, 0, map_parent_, map_tiles_.light_world);
+        return overworld_maps_[i].BuildMap(size, game_state_, 0, map_parent_,
+                                           map_tiles_.light_world);
       } else if (i < 0x80 && i >= 0x40) {
-        return overworld_maps_[i].BuildMap(
-            size, game_state_, 1, map_parent_, map_tiles_.dark_world);
+        return overworld_maps_[i].BuildMap(size, game_state_, 1, map_parent_,
+                                           map_tiles_.dark_world);
       } else {
-        return overworld_maps_[i].BuildMap(
-            size, game_state_, 2, map_parent_, map_tiles_.special_world);
+        return overworld_maps_[i].BuildMap(size, game_state_, 2, map_parent_,
+                                           map_tiles_.special_world);
       }
     }));
   }
 
   // Wait for all tasks to complete and check their results
-  for (auto& future : futures) {
+  for (auto &future : futures) {
     absl::Status status = future.get();
     if (!status.ok()) {
       return status;
@@ -275,110 +275,52 @@ absl::Status Overworld::SaveOverworldMaps() {
 
 // ----------------------------------------------------------------------------
 
-/**
 void Overworld::SaveMap16Tiles() {
   int tpos = core::map16Tiles;
   // 3760
   for (int i = 0; i < core::NumberOfMap16; i += 1) {
-    rom_.WriteShort(tpos, tiles16[i].tile0_);
+    rom_.WriteShort(tpos, tiles16[i].tile0_.ToShort());
     tpos += 2;
-    rom_.WriteShort(tpos, tiles16[i].tile1_);
+    rom_.WriteShort(tpos, tiles16[i].tile1_.ToShort());
     tpos += 2;
-    rom_.WriteShort(tpos, tiles16[i].tile2_);
+    rom_.WriteShort(tpos, tiles16[i].tile2_.ToShort());
     tpos += 2;
-    rom_.WriteShort(tpos, tiles16[i].tile3_);
+    rom_.WriteShort(tpos, tiles16[i].tile3_.ToShort());
     tpos += 2;
   }
 }
-*/
 
 // ----------------------------------------------------------------------------
 
-/**
 void Overworld::SaveMap32Tiles() {
-  int index = 0;
-  int c = tiles32_unique_.size();
-  for (int i = 0; i < c; i += 6) {
-    if (index >= 0x4540)  // 3C87??
-    {
-      std::cout << "Too many unique tiles!" << std::endl;
+  const int max_tiles = 0x4540;
+  const int unique_size = tiles32_unique_.size();
 
-      break;
+  auto write_tiles = [&](int address, auto get_tile) {
+    for (int i = 0; i < unique_size && i < max_tiles; i += 4) {
+      for (int j = 0; j < 4; ++j) {
+        rom_.Write(address + i + j, (uchar)(get_tile(i + j) & 0xFF));
+      }
+      rom_.Write(address + i + 4, (uchar)(((get_tile(i) >> 4) & 0xF0) |
+                                          ((get_tile(i + 1) >> 8) & 0x0F)));
+      rom_.Write(address + i + 5, (uchar)(((get_tile(i + 2) >> 4) & 0xF0) |
+                                          ((get_tile(i + 3) >> 8) & 0x0F)));
     }
+  };
 
-    // Top Left
-    rom_.Write(core::map32TilesTL + (i),
-               (uchar)(tiles32_unique_[index].tile0 & 0xFF));
-    rom_.Write(core::map32TilesTL + (i + 1),
-               (uchar)(tiles32_unique_[index + 1].tile0 & 0xFF));
-    rom_.Write(core::map32TilesTL + (i + 2),
-               (uchar)(tiles32_unique_[index + 2].tile0 & 0xFF));
-    rom_.Write(core::map32TilesTL + (i + 3),
-               (uchar)(tiles32_unique_[index + 3].tile0 & 0xFF));
+  write_tiles(core::map32TilesTL,
+              [&](int i) { return tiles32_unique_[i].tile0_; });
+  write_tiles(core::map32TilesTR,
+              [&](int i) { return tiles32_unique_[i].tile1_; });
+  write_tiles(core::map32TilesBL,
+              [&](int i) { return tiles32_unique_[i].tile2_; });
+  write_tiles(core::map32TilesBR,
+              [&](int i) { return tiles32_unique_[i].tile3_; });
 
-    rom_.Write(core::map32TilesTL + (i + 4),
-               (uchar)(((tiles32_unique_[index].tile0 >> 4) & 0xF0) +
-                       ((tiles32_unique_[index + 1].tile0 >> 8) & 0x0F)));
-    rom_.Write(core::map32TilesTL + (i + 5),
-               (uchar)(((tiles32_unique_[index + 2].tile0 >> 4) & 0xF0) +
-                       ((tiles32_unique_[index + 3].tile0 >> 8) & 0x0F)));
-
-    // Top Right
-    rom_.Write(core::map32TilesTR + (i),
-               (uchar)(tiles32_unique_[index].tile1 & 0xFF));
-    rom_.Write(core::map32TilesTR + (i + 1),
-               (uchar)(tiles32_unique_[index + 1].tile1 & 0xFF));
-    rom_.Write(core::map32TilesTR + (i + 2),
-               (uchar)(tiles32_unique_[index + 2].tile1 & 0xFF));
-    rom_.Write(core::map32TilesTR + (i + 3),
-               (uchar)(tiles32_unique_[index + 3].tile1 & 0xFF));
-
-    rom_.Write(core::map32TilesTR + (i + 4),
-               (uchar)(((tiles32_unique_[index].tile1 >> 4) & 0xF0) |
-                       ((tiles32_unique_[index + 1].tile1 >> 8) & 0x0F)));
-    rom_.Write(core::map32TilesTR + (i + 5),
-               (uchar)(((tiles32_unique_[index + 2].tile1 >> 4) & 0xF0) |
-                       ((tiles32_unique_[index + 3].tile1 >> 8) & 0x0F)));
-
-    // Bottom Left
-    rom_.Write(core::map32TilesBL + (i),
-               (uchar)(tiles32_unique_[index].tile2 & 0xFF));
-    rom_.Write(core::map32TilesBL + (i + 1),
-               (uchar)(tiles32_unique_[index + 1].tile2 & 0xFF));
-    rom_.Write(core::map32TilesBL + (i + 2),
-               (uchar)(tiles32_unique_[index + 2].tile2 & 0xFF));
-    rom_.Write(core::map32TilesBL + (i + 3),
-               (uchar)(tiles32_unique_[index + 3].tile2 & 0xFF));
-
-    rom_.Write(core::map32TilesBL + (i + 4),
-               (uchar)(((tiles32_unique_[index].tile2 >> 4) & 0xF0) |
-                       ((tiles32_unique_[index + 1].tile2 >> 8) & 0x0F)));
-    rom_.Write(core::map32TilesBL + (i + 5),
-               (uchar)(((tiles32_unique_[index + 2].tile2 >> 4) & 0xF0) |
-                       ((tiles32_unique_[index + 3].tile2 >> 8) & 0x0F)));
-
-    // Bottom Right
-    rom_.Write(core::map32TilesBR + (i),
-               (uchar)(tiles32_unique_[index].tile3 & 0xFF));
-    rom_.Write(core::map32TilesBR + (i + 1),
-               (uchar)(tiles32_unique_[index + 1].tile3 & 0xFF));
-    rom_.Write(core::map32TilesBR + (i + 2),
-               (uchar)(tiles32_unique_[index + 2].tile3 & 0xFF));
-    rom_.Write(core::map32TilesBR + (i + 3),
-               (uchar)(tiles32_unique_[index + 3].tile3 & 0xFF));
-
-    rom_.Write(core::map32TilesBR + (i + 4),
-               (uchar)(((tiles32_unique_[index].tile3 >> 4) & 0xF0) |
-                       ((tiles32_unique_[index + 1].tile3 >> 8) & 0x0F)));
-    rom_.Write(core::map32TilesBR + (i + 5),
-               (uchar)(((tiles32_unique_[index + 2].tile3 >> 4) & 0xF0) |
-                       ((tiles32_unique_[index + 3].tile3 >> 8) & 0x0F)));
-
-    index += 4;
-    c += 2;
+  if (unique_size > max_tiles) {
+    std::cout << "Too many unique tiles!" << std::endl;
   }
 }
-*/
 
 // ----------------------------------------------------------------------------
 

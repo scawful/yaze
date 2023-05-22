@@ -16,7 +16,7 @@ class AssemblyEditor {
  public:
   AssemblyEditor();
 
-  void Update();
+  void Update(bool &is_loaded);
   void InlineUpdate();
   void ChangeActiveFile(const std::string &);
 

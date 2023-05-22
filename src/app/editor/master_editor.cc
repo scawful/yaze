@@ -15,10 +15,10 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
-#include "gui/input.h"
-#include "gui/widgets.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
+#include "app/gui/input.h"
+#include "app/gui/widgets.h"
 
 namespace yaze {
 namespace app {
@@ -213,6 +213,7 @@ void MasterEditor::DrawViewMenu() {
   static bool show_asm_editor = false;
   static bool show_imgui_demo = false;
   static bool show_memory_viewer = false;
+  static bool show_palette_editor = false;
 
   if (show_imgui_metrics) {
     ImGui::ShowMetricsWindow(&show_imgui_metrics);
@@ -228,7 +229,13 @@ void MasterEditor::DrawViewMenu() {
   }
 
   if (show_asm_editor) {
-    assembly_editor_.Update();
+    assembly_editor_.Update(show_asm_editor);
+  }
+
+  if (show_palette_editor) {
+    ImGui::Begin("Palette Editor", &show_palette_editor);
+    palette_editor_.Update();
+    ImGui::End();
   }
 
   if (show_imgui_style_editor) {
@@ -263,6 +270,7 @@ void MasterEditor::DrawViewMenu() {
   if (ImGui::BeginMenu("View")) {
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
+    ImGui::MenuItem("Palette Editor", nullptr, &show_palette_editor);
     ImGui::MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
     ImGui::Separator();

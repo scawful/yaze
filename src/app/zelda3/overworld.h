@@ -13,7 +13,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld_map.h"
-#include "app/zelda3/sprite.h"
+#include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {

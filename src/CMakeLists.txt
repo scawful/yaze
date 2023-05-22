@@ -25,22 +25,22 @@ set(
 
 set(
   YAZE_APP_ZELDA3_SRC
-  app/zelda3/inventory.cc
   app/zelda3/overworld_map.cc
   app/zelda3/overworld.cc
-  app/zelda3/title_screen.cc
-  app/zelda3/sprite.cc
-  app/zelda3/tracker.cc
+  app/zelda3/screen/inventory.cc
+  app/zelda3/screen/title_screen.cc
+  app/zelda3/sprite/sprite.cc
+  app/zelda3/music/tracker.cc
   app/zelda3/dungeon/room.cc
 )
 
 set(
   YAZE_GUI_SRC
-  gui/canvas.cc
-  gui/input.cc
-  gui/style.cc
-  gui/widgets.cc
-  gui/color.cc
+  app/gui/canvas.cc
+  app/gui/input.cc
+  app/gui/style.cc
+  app/gui/widgets.cc
+  app/gui/color.cc
 )
 
 # executable creation ---------------------------------------------------------

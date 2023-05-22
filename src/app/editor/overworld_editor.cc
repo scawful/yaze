@@ -15,8 +15,8 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
 
 namespace yaze {
 namespace app {
@@ -196,9 +196,8 @@ void OverworldEditor::DrawOverworldCanvas() {
       if (!blockset_canvas_.Points().empty()) {
         int x = blockset_canvas_.Points().front().x / 32;
         int y = blockset_canvas_.Points().front().y / 32;
-        // std::cout << x << " " << y << std::endl;
-        current_tile16_ = x + (y * 8);
-        // std::cout << current_tile16_ << std::endl;
+        current_tile16_ = x + (y * 0x10);
+
         if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
                                            16)) {
           // Update the overworld map.
@@ -326,12 +325,12 @@ absl::Status OverworldEditor::LoadGraphics() {
   for (int i = 0; i < 4096; i++) {
     // Create a new vector for the pixel data of the current tile
     Bytes tile_data;
-    for (int j = 0; j < 32 * 32; j++) tile_data.push_back(0x00);
+    for (int j = 0; j < 16 * 16; j++) tile_data.push_back(0x00);
 
     // Copy the pixel data for the current tile into the vector
-    for (int ty = 0; ty < 32; ty++) {
-      for (int tx = 0; tx < 32; tx++) {
-        int position = (tx + (ty * 0x20));
+    for (int ty = 0; ty < 16; ty++) {
+      for (int tx = 0; tx < 16; tx++) {
+        int position = (tx + (ty * 0x10));
         uchar value = tile16_data[i + tx + (ty * 0x80)];
         tile_data[position] = value;
       }
@@ -343,8 +342,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Render the bitmaps of each tile.
   for (int id = 0; id < 4096; id++) {
-    gfx::Bitmap new_tile16;
-    tile16_individual_.emplace_back(new_tile16);
+    tile16_individual_.emplace_back();
     tile16_individual_[id].Create(0x10, 0x10, 0x80,
                                   tile16_individual_data_[id]);
     tile16_individual_[id].ApplyPalette(palette_);

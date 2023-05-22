@@ -5,9 +5,9 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/assembly_editor.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
-#include "gui/input.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
+#include "app/gui/input.h"
 #include "snes_spc/demo/demo_util.h"
 #include "snes_spc/demo/wave_writer.h"
 #include "snes_spc/snes_spc/spc.h"

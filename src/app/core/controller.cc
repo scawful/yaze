@@ -12,8 +12,8 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/master_editor.h"
-#include "gui/icons.h"
-#include "gui/style.h"
+#include "app/gui/icons.h"
+#include "app/gui/style.h"
 
 namespace yaze {
 namespace app {

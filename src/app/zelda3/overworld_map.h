@@ -13,6 +13,7 @@
 #include "app/core/common.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -39,8 +40,20 @@ class OverworldMap {
 
  private:
   void LoadAreaInfo();
+
+  void LoadWorldIndex();
+  void LoadSpritesBlocksets();
+  void LoadMainBlocksets();
+  void LoadAreaGraphicsBlocksets();
+  void LoadDeathMountainGFX();
   void LoadAreaGraphics();
+
   void LoadPalette();
+
+
+
+  void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
+  gfx::SNESPalette GetPalette(const std::string& group, int index, int previousIndex, int limit);
 
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
@@ -53,6 +66,8 @@ class OverworldMap {
   int area_graphics_ = 0;
   int area_palette_ = 0;
   int game_state_ = 0;
+
+  int world_index_ = 0;
 
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];

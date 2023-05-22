@@ -11,8 +11,8 @@
 
 #include "absl/status/status.h"
 #include "app/editor/master_editor.h"
-#include "gui/icons.h"
-#include "gui/style.h"
+#include "app/gui/icons.h"
+#include "app/gui/style.h"
 
 int main(int argc, char **argv);
 

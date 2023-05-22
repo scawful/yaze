@@ -6,8 +6,8 @@
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
 
 namespace yaze {
 namespace app {

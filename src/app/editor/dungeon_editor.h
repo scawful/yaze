@@ -3,8 +3,8 @@
 
 #include <imgui/imgui.h>
 
-#include "gui/canvas.h"
-#include "gui/icons.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
 #include "rom.h"
 #include "zelda3/dungeon/room.h"
 

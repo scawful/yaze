@@ -1,7 +1,7 @@
 #include "assembly_editor.h"
 
 #include "core/constants.h"
-#include "gui/widgets.h"
+#include "app/gui/widgets.h"
 
 namespace yaze {
 namespace app {
@@ -12,8 +12,8 @@ AssemblyEditor::AssemblyEditor() {
   text_editor_.SetPalette(TextEditor::GetDarkPalette());
 }
 
-void AssemblyEditor::Update() {
-  ImGui::Begin("Assembly Editor", &file_is_loaded_);
+void AssemblyEditor::Update(bool &is_loaded) {
+  ImGui::Begin("Assembly Editor", &is_loaded);
   MENU_BAR()
   DrawFileMenu();
   DrawEditMenu();
