@@ -16,8 +16,8 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
 
 namespace yaze {
 namespace app {

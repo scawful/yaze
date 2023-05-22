@@ -34,8 +34,23 @@ class TileInfo {
         vertical_mirror_(v),
         horizontal_mirror_(h),
         palette_(palette) {}
-  // TODO(scawful): This is not the actual value yet.
-  ushort ToShort() const { return id_; }
+
+  ushort ToShort() const {
+    ushort result = 0;
+
+    // Copy the id_ value
+    result |= id_ & 0x3FF;  // ids are 10 bits
+
+    // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
+    result |= (vertical_mirror_ ? 1 : 0) << 10;
+    result |= (horizontal_mirror_ ? 1 : 0) << 11;
+    result |= (over_ ? 1 : 0) << 12;
+
+    // Set the palette_
+    result |= (palette_ & 0x07) << 13;  // palettes are 3 bits
+
+    return result;
+  }
 };
 
 TileInfo GetTilesInfo(ushort tile);

@@ -18,9 +18,9 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
-#include "gui/input.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
+#include "app/gui/input.h"
 
 namespace yaze {
 namespace app {

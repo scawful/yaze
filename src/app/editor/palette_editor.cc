@@ -4,8 +4,8 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
 
 static inline float ImSaturate(float f) {
   return (f < 0.0f) ? 0.0f : (f > 1.0f) ? 1.0f : f;
@@ -41,17 +41,9 @@ using namespace ImGui;
 }  // namespace
 
 void PaletteEditor::DrawPaletteGroup(int i) {
-  const int palettesPerRow = 4;
-  ImGui::BeginTable("palette_table", palettesPerRow,
-                    ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable);
-
   auto size = rom_.GetPaletteGroup(kPaletteGroupNames[i].data()).size();
   auto palettes = rom_.GetPaletteGroup(kPaletteGroupNames[i].data());
   for (int j = 0; j < size; j++) {
-    if (j % palettesPerRow == 0) {
-      ImGui::TableNextRow();
-    }
-    ImGui::TableSetColumnIndex(j % palettesPerRow);
     ImGui::Text("%d", j);
 
     auto palette = palettes[j];
@@ -106,8 +98,6 @@ void PaletteEditor::DrawPaletteGroup(int i) {
       ImGui::PopID();
     }
   }
-
-  ImGui::EndTable();
 }
 
 absl::Status PaletteEditor::Update() {
@@ -159,6 +149,10 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
     ImGui::SameLine();
     ImGui::Text("Previous");
 
+    if (ImGui::Button("Update Map Palette")) {
+      
+    }
+
     ImGui::ColorButton(
         "##current", color,
         ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
@@ -170,6 +164,8 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
             ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
             ImVec2(60, 40)))
       color = backup_color;
+
+    // List of Colors in Overworld Palette 
     ImGui::Separator();
     ImGui::Text("Palette");
     for (int n = 0; n < IM_ARRAYSIZE(saved_palette_); n++) {

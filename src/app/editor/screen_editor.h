@@ -9,11 +9,11 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gui/canvas.h"
+#include "app/gui/color.h"
+#include "app/gui/icons.h"
 #include "app/rom.h"
-#include "app/zelda3/inventory.h"
-#include "gui/canvas.h"
-#include "gui/color.h"
-#include "gui/icons.h"
+#include "app/zelda3/screen/inventory.h"
 
 namespace yaze {
 namespace app {

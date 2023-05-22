@@ -6,7 +6,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "gui/canvas.h"
+#include "app/gui/canvas.h"
 
 namespace yaze {
 namespace app {

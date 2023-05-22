@@ -35,23 +35,23 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
 # SDL2 ------------------------------------------------------------------------
-if (UNIX)
-  add_subdirectory(src/lib/SDL)
-else()
+# if (UNIX)
+#   add_subdirectory(src/lib/SDL)
+# else()
   find_package(SDL2)
-endif()
-set(SDL2MIXER_OPUS OFF)
-set(SDL2MIXER_FLAC OFF)
-set(SDL2MIXER_MOD OFF)
-set(SDL2MIXER_MIDI_FLUIDSYNTH OFF)
-find_library(SDL_MIXER_LIBRARY
-  NAMES SDL_mixer
-  HINTS
-    ENV SDLMIXERDIR
-    ENV SDLDIR
-  PATH_SUFFIXES lib ${VC_LIB_PATH_SUFFIX}
-  )
-add_subdirectory(src/lib/SDL_mixer)
+# endif()
+# set(SDL2MIXER_OPUS OFF)
+# set(SDL2MIXER_FLAC OFF)
+# set(SDL2MIXER_MOD OFF)
+# set(SDL2MIXER_MIDI_FLUIDSYNTH OFF)
+# find_library(SDL_MIXER_LIBRARY
+#   NAMES SDL_mixer
+#   HINTS
+#     ENV SDLMIXERDIR
+#     ENV SDLDIR
+#   PATH_SUFFIXES lib ${VC_LIB_PATH_SUFFIX}
+#   )
+# add_subdirectory(src/lib/SDL_mixer)
 
 # Asar ------------------------------------------------------------------------
 add_subdirectory(src/lib/asar/src)
@@ -71,7 +71,7 @@ set(SNES_SPC_SOURCES
   "../src/lib/snes_spc/demo/demo_util.c"
 )
 include_directories(src/lib/snes_spc/snes_spc)
-ADD_LIBRARY(snes_spc STATIC ${SNES_SPC_SOURCES} src/app/spc700/spc700.def)
+ADD_LIBRARY(snes_spc STATIC ${SNES_SPC_SOURCES} src/app/zelda3/music/spc700.def)
 
 # ImGui -----------------------------------------------------------------------
 include(cmake/imgui.cmake)
