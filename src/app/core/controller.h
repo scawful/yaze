@@ -38,7 +38,7 @@ class Controller {
 
   absl::Status CreateWindow();
   absl::Status CreateRenderer();
-  absl::Status CreateGuiContext();
+  absl::Status CreateGuiContext() const;
   void CloseWindow() { active_ = false; }
 
   friend int ::main(int argc, char **argv);

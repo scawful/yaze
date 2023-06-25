@@ -40,6 +40,16 @@ using namespace ImGui;
 
 }  // namespace
 
+absl::Status PaletteEditor::Update() {
+  for (int i = 0; i < kNumPalettes; ++i) {
+    if (ImGui::TreeNode(kPaletteCategoryNames[i].data())) {
+      DrawPaletteGroup(i);
+      ImGui::TreePop();
+    }
+  }
+  return absl::OkStatus();
+}
+
 void PaletteEditor::DrawPaletteGroup(int i) {
   auto size = rom_.GetPaletteGroup(kPaletteGroupNames[i].data()).size();
   auto palettes = rom_.GetPaletteGroup(kPaletteGroupNames[i].data());
@@ -61,7 +71,7 @@ void PaletteEditor::DrawPaletteGroup(int i) {
                               palette_button_flags))
           current_color_ =
               ImVec4(palette[n].rgb.x, palette[n].rgb.y, palette[n].rgb.z,
-                     palette[n].rgb.w);  // Preserve alpha!
+                     palette[n].rgb.w);  // Prese rve alpha!
       }
 
       if (ImGui::BeginPopupContextItem(popupId.c_str())) {
@@ -69,11 +79,8 @@ void PaletteEditor::DrawPaletteGroup(int i) {
         if (ImGui::ColorEdit4(
                 "Edit Color", col,
                 ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
-          // palette[n].rgb.x = current_color_rgba.x;
-          // palette[n].rgb.y = current_color_rgba.y;
-          // palette[n].rgb.z = current_color_rgba.z;
-          // rom_.UpdatePaletteColor(kPaletteGroupNames[groupIndex].data(), j,
-          // n, palette[n]);
+          rom_.UpdatePaletteColor(kPaletteGroupNames[i].data(), j, n,
+                                  palette[n]);
         }
         if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
         if (BeginPopup("Copy")) {
@@ -98,16 +105,6 @@ void PaletteEditor::DrawPaletteGroup(int i) {
       ImGui::PopID();
     }
   }
-}
-
-absl::Status PaletteEditor::Update() {
-  for (int i = 0; i < kNumPalettes; ++i) {
-    if (ImGui::TreeNode(kPaletteCategoryNames[i].data())) {
-      DrawPaletteGroup(i);
-      ImGui::TreePop();
-    }
-  }
-  return absl::OkStatus();
 }
 
 void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
@@ -150,7 +147,6 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
     ImGui::Text("Previous");
 
     if (ImGui::Button("Update Map Palette")) {
-      
     }
 
     ImGui::ColorButton(
@@ -165,7 +161,7 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
             ImVec2(60, 40)))
       color = backup_color;
 
-    // List of Colors in Overworld Palette 
+    // List of Colors in Overworld Palette
     ImGui::Separator();
     ImGui::Text("Palette");
     for (int n = 0; n < IM_ARRAYSIZE(saved_palette_); n++) {

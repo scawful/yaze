@@ -13,10 +13,10 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/rom.h"
-#include "app/zelda3/overworld.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/rom.h"
+#include "app/zelda3/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -88,8 +88,8 @@ void OverworldEditor::DrawOverworldMapSettings() {
       ImGui::TableSetupColumn(name.data());
 
     ImGui::TableNextColumn();
-    ImGui::SetNextItemWidth(50.f);
-    ImGui::InputInt("Current Map", &current_map_);
+    ImGui::SetNextItemWidth(100.f);
+    ImGui::Combo("##world", &game_state_, "Part 0\0Part 1\0Part 2\0");
 
     ImGui::TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
@@ -161,7 +161,25 @@ void OverworldEditor::DrawOverworldMaps() {
       yy++;
       xx = 0;
     }
-    DrawOverworldEntrances();
+  }
+}
+
+// ----------------------------------------------------------------------------
+
+void OverworldEditor::DrawOverworldSprites() {
+  for (const auto &sprite : overworld_.Sprites(game_state_)) {
+    // Get the sprite's bitmap and real X and Y positions
+    auto id = sprite.id();
+    const gfx::Bitmap &sprite_bitmap = sprite_previews_[id];
+    int realX = sprite.GetRealX();
+    int realY = sprite.GetRealY();
+
+    // Draw the sprite's bitmap onto the canvas at its real X and Y positions
+    ow_map_canvas_.DrawBitmap(sprite_bitmap, realX, realY);
+    ow_map_canvas_.DrawRect(realX, realY, sprite.Width(), sprite.Height(),
+                            ImVec4(255, 0, 0, 150));
+    std::string str = absl::StrFormat("%s", sprite.Name());
+    ow_map_canvas_.DrawText(str, realX - 4, realY - 2);
   }
 }
 
@@ -192,6 +210,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     ow_map_canvas_.DrawContextMenu();
     if (overworld_.isLoaded()) {
       DrawOverworldMaps();
+      DrawOverworldEntrances();
+      DrawOverworldSprites();
       // User has selected a tile they want to draw from the blockset.
       if (!blockset_canvas_.Points().empty()) {
         int x = blockset_canvas_.Points().front().x / 32;
@@ -357,6 +377,18 @@ absl::Status OverworldEditor::LoadGraphics() {
     maps_bmp_[i].ApplyPalette(palette);
     rom_.RenderBitmap(&(maps_bmp_[i]));
   }
+
+  // Render the sprites for each Overworld map
+  // for (int i = 0; i < 3; i++)
+  //   for (auto &sprite : overworld_.Sprites(i)) {
+  //     int width = sprite.Width();
+  //     int height = sprite.Height();
+  //     int depth = 0x40;
+  //     auto spr_gfx = sprite.PreviewGraphics().data();
+  //     sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
+  //     sprite_previews_[sprite.id()].ApplyPalette(palette_);
+  //     rom_.RenderBitmap(&(sprite_previews_[sprite.id()]));
+  //   }
 
   return absl::OkStatus();
 }

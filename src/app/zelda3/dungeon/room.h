@@ -2,11 +2,12 @@
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 
 #include "app/core/common.h"
+#include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/rom.h"
 #include "app/gui/canvas.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -122,6 +123,7 @@ class Room {
   uchar Floor2Graphics;
   uchar Layer2Mode;
   std::array<uchar, 16> blocks;
+  std::array<uchar, 16> ChestList;
 
   uint8_t mainGfx[37][8];
   uint8_t roomGfx[82][4];

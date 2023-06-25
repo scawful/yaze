@@ -39,7 +39,6 @@ absl::Status Overworld::Load(ROM &rom) {
 
   FetchLargeMaps();
   LoadEntrances();
-  LoadSprites();
 
   auto size = tiles16.size();
   std::vector<std::future<absl::Status>> futures;
@@ -65,6 +64,8 @@ absl::Status Overworld::Load(ROM &rom) {
       return status;
     }
   }
+
+  LoadSprites();
 
   is_loaded_ = true;
   return absl::OkStatus();
@@ -555,107 +556,60 @@ void Overworld::LoadEntrances() {
 // ----------------------------------------------------------------------------
 
 void Overworld::LoadSprites() {
-  // LW[0] = RainState 0 to 63 there's no data for DW
-  // LW[1] = ZeldaState 0 to 128 ; Contains LW and DW <128 or 144 wtf
-  // LW[2] = AgahState 0 to ?? ;Contains data for LW and DW
-
   for (int i = 0; i < 3; i++) {
-    all_sprites_.emplace_back(std::vector<Sprite>());
+    all_sprites_.emplace_back();
   }
 
   for (int i = 0; i < 64; i++) {
-    if (map_parent_[i] == i) {
-      // Beginning Sprites
-      int ptrPos = core::overworldSpritesBegining + (i * 2);
-      int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom_.toint16(ptrPos));
-      while (true) {
-        uchar b1 = rom_[spriteAddress];
-        uchar b2 = rom_[spriteAddress + 1];
-        uchar b3 = rom_[spriteAddress + 2];
-        if (b1 == 0xFF) {
-          break;
-        }
-
-        int mapY = (i / 8);
-        int mapX = (i % 8);
-
-        int realX = ((b2 & 0x3F) * 16) + mapX * 512;
-        int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-
-        all_sprites_[0].emplace_back(overworld_maps_[i].AreaGraphics(),
-                                     (uchar)i, b3, (uchar)(b2 & 0x3F),
-                                     (uchar)(b1 & 0x3F), realX, realY);
-
-        spriteAddress += 3;
-      }
-    }
+    all_sprites_[0].emplace_back();
   }
 
   for (int i = 0; i < 144; i++) {
-    if (map_parent_[i] == i) {
-      // Zelda Saved Sprites
-      int ptrPos = core::overworldSpritesZelda + (i * 2);
-      int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom_.toint16(ptrPos));
-      while (true) {
-        uchar b1 = rom_[spriteAddress];
-        uchar b2 = rom_[spriteAddress + 1];
-        uchar b3 = rom_[spriteAddress + 2];
-        if (b1 == 0xFF) {
-          break;
-        }
+    all_sprites_[1].emplace_back();
+  }
 
-        int editorMapIndex = i;
-        if (editorMapIndex >= 128) {
-          editorMapIndex = i - 128;
-        } else if (editorMapIndex >= 64) {
-          editorMapIndex = i - 64;
-        }
+  for (int i = 0; i < 144; i++) {
+    all_sprites_[2].emplace_back();
+  }
 
-        int mapY = (editorMapIndex / 8);
-        int mapX = (editorMapIndex % 8);
+  LoadSpritesFromMap(core::overworldSpritesBegining, 64, 0);
+  LoadSpritesFromMap(core::overworldSpritesZelda, 144, 1);
+  LoadSpritesFromMap(core::overworldSpritesAgahnim, 144, 2);
+}
 
-        int realX = ((b2 & 0x3F) * 16) + mapX * 512;
-        int realY = ((b1 & 0x3F) * 16) + mapY * 512;
+// ----------------------------------------------------------------------------
 
-        all_sprites_[1].emplace_back(overworld_maps_[i].AreaGraphics(),
-                                     (uchar)i, b3, (uchar)(b2 & 0x3F),
-                                     (uchar)(b1 & 0x3F), realX, realY);
+void Overworld::LoadSpritesFromMap(int spriteStart, int spriteCount,
+                                   int spriteIndex) {
+  for (int i = 0; i < spriteCount; i++) {
+    if (map_parent_[i] != i) continue;
 
-        spriteAddress += 3;
-      }
-    }
+    int ptrPos = spriteStart + (i * 2);
+    int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom_.toint16(ptrPos));
+    while (true) {
+      uchar b1 = rom_[spriteAddress];
+      uchar b2 = rom_[spriteAddress + 1];
+      uchar b3 = rom_[spriteAddress + 2];
+      if (b1 == 0xFF) break;
 
-    // Agahnim Dead Sprites
-    if (map_parent_[i] == i) {
-      int ptrPos = core::overworldSpritesAgahnim + (i * 2);
-      int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom_.toint16(ptrPos));
-      while (true) {
-        uchar b1 = rom_[spriteAddress];
-        uchar b2 = rom_[spriteAddress + 1];
-        uchar b3 = rom_[spriteAddress + 2];
-        if (b1 == 0xFF) {
-          break;
-        }
+      int editorMapIndex = i;
+      if (editorMapIndex >= 128)
+        editorMapIndex -= 128;
+      else if (editorMapIndex >= 64)
+        editorMapIndex -= 64;
 
-        int editorMapIndex = i;
-        if (editorMapIndex >= 128) {
-          editorMapIndex = i - 128;
-        } else if (editorMapIndex >= 64) {
-          editorMapIndex = i - 64;
-        }
+      int mapY = (editorMapIndex / 8);
+      int mapX = (editorMapIndex % 8);
 
-        int mapY = (editorMapIndex / 8);
-        int mapX = (editorMapIndex % 8);
+      int realX = ((b2 & 0x3F) * 16) + mapX * 512;
+      int realY = ((b1 & 0x3F) * 16) + mapY * 512;
+      auto graphics_bytes = overworld_maps_[i].AreaGraphics();
+      all_sprites_[spriteIndex][i].InitSprite(graphics_bytes, (uchar)i, b3,
+                                              (uchar)(b2 & 0x3F),
+                                              (uchar)(b1 & 0x3F), realX, realY);
+      all_sprites_[spriteIndex][i].Draw();
 
-        int realX = ((b2 & 0x3F) * 16) + mapX * 512;
-        int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-
-        all_sprites_[2].emplace_back(overworld_maps_[i].AreaGraphics(),
-                                     (uchar)i, b3, (uchar)(b2 & 0x3F),
-                                     (uchar)(b1 & 0x3F), realX, realY);
-
-        spriteAddress += 3;
-      }
+      spriteAddress += 3;
     }
   }
 }

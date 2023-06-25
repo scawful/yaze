@@ -109,8 +109,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] =
-      rom.GetPaletteGroup("global_sprites")[0][k]; k++;
+      new_palette[x + (16 * y)] = rom.GetPaletteGroup("global_sprites")[0][k];
+      k++;
     }
   }
 

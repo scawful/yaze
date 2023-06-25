@@ -3,9 +3,9 @@
 
 #include <SDL.h>
 
+#include <future>
 #include <memory>
 #include <vector>
-#include <future>
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
@@ -78,7 +78,7 @@ class Overworld {
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
   auto GetOverworldMaps() const { return overworld_maps_; }
-  auto Sprites() const { return all_sprites_[game_state_]; }
+  auto Sprites(int state) const { return all_sprites_[state]; }
   auto AreaGraphics() const {
     return overworld_maps_[current_map_].AreaGraphics();
   }
@@ -115,6 +115,7 @@ class Overworld {
   void FetchLargeMaps();
   void LoadEntrances();
   void LoadSprites();
+  void LoadSpritesFromMap(int spriteStart, int spriteCount, int spriteIndex);
 
   void LoadOverworldMap();
 

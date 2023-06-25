@@ -190,7 +190,7 @@ absl::Status Controller::CreateRenderer() {
   return absl::OkStatus();
 }
 
-absl::Status Controller::CreateGuiContext() {
+absl::Status Controller::CreateGuiContext() const {
   ImGui::CreateContext();
 
   // Initialize ImGui for SDL

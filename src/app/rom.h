@@ -26,6 +26,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
 
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
@@ -137,7 +138,10 @@ class ROM {
   absl::Status LoadFromBytes(const Bytes& data);
   void LoadAllPalettes();
 
+  // Save functions
   absl::Status SaveToFile(bool backup);
+  void UpdatePaletteColor(const std::string& groupName, size_t paletteIndex,
+                          size_t colorIndex, const gfx::SNESColor& newColor);
   void SaveAllPalettes();
 
   gfx::SNESColor ReadColor(int offset);
@@ -157,6 +161,7 @@ class ROM {
 
   gfx::BitmapTable GetGraphicsBin() const { return graphics_bin_; }
   auto GetGraphicsBuffer() const { return graphics_buffer_; }
+
   auto GetPaletteGroup(const std::string& group) {
     return palette_groups_[group];
   }

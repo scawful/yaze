@@ -538,7 +538,7 @@ absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
       } break;
       case kCommandRepeatingBytes: {
         ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
-        ushort s2 = ((rom_data_[offset] & kSnesByteMax));
+        ushort s2 = (rom_data_[offset] & kSnesByteMax);
         int addr = (s1 | s2);
         if (mode == kNintendoMode1) {  // Reversed byte order for overworld maps
           addr = (rom_data_[offset + 1] & kSnesByteMax) |
@@ -766,6 +766,35 @@ void ROM::LoadAllPalettes() {
 
 // ============================================================================
 
+void ROM::UpdatePaletteColor(const std::string& groupName, size_t paletteIndex,
+                             size_t colorIndex,
+                             const gfx::SNESColor& newColor) {
+  // Check if the groupName exists in the palette_groups_ map
+  if (palette_groups_.find(groupName) != palette_groups_.end()) {
+    // Check if the paletteIndex is within the range of available palettes in
+    // the group
+    if (paletteIndex < palette_groups_[groupName].size()) {
+      // Check if the colorIndex is within the range of available colors in the
+      // palette
+      if (colorIndex < palette_groups_[groupName][paletteIndex].size()) {
+        // Update the color value in the palette
+        palette_groups_[groupName][paletteIndex][colorIndex] = newColor;
+      } else {
+        std::cerr << "Error: Invalid color index in UpdatePaletteColor."
+                  << std::endl;
+      }
+    } else {
+      std::cerr << "Error: Invalid palette index in UpdatePaletteColor."
+                << std::endl;
+    }
+  } else {
+    std::cerr << "Error: Invalid group name in UpdatePaletteColor."
+              << std::endl;
+  }
+}
+
+// ============================================================================
+
 void ROM::SaveAllPalettes() {
   // Iterate through all palette_groups_
   for (auto& [groupName, palettes] : palette_groups_) {
@@ -776,7 +805,6 @@ void ROM::SaveAllPalettes() {
       // Iterate through all colors in the palette
       for (size_t j = 0; j < palette.size(); ++j) {
         gfx::SNESColor color = palette[j];
-
         // If the color is modified, save the color to the ROM
         if (color.modified) {
           WriteColor(GetPaletteAddress(groupName, i, j), color);
@@ -790,6 +818,10 @@ void ROM::SaveAllPalettes() {
 // ============================================================================
 
 absl::Status ROM::SaveToFile(bool backup) {
+  if (rom_data_.empty()) {
+    return absl::InternalError("ROM data is empty.");
+  }
+
   // Check if backup is enabled
   if (backup) {
     // Create a backup file with timestamp in its name
