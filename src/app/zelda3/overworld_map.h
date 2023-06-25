@@ -12,8 +12,8 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -50,10 +50,9 @@ class OverworldMap {
 
   void LoadPalette();
 
-
-
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
-  gfx::SNESPalette GetPalette(const std::string& group, int index, int previousIndex, int limit);
+  gfx::SNESPalette GetPalette(const std::string& group, int index,
+                              int previousIndex, int limit);
 
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
@@ -86,6 +85,7 @@ class OverworldMap {
   OWMapTiles map_tiles_;
 
   gfx::SNESPalette current_palette_;
+  // std::vector<zelda3::Sprite> sprite_graphics_;
 
   std::vector<gfx::Tile16> tiles16_;
 };

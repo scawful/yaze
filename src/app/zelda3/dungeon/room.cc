@@ -4,8 +4,8 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/rom.h"
 #include "app/gui/canvas.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -74,7 +74,22 @@ bool Room::SaveGroupsToROM() {
   return false;
 }
 
-void Room::LoadChests() {}
+void Room::LoadChests() {
+  // ChestList.Clear();
+
+  // int cpos = rom_.Read24(core::constants::chests_data_pointer1).SNEStoPC();
+  // int clength = rom_.Read16(core::constants::chests_length_pointer);
+
+  // for (int i = 0; i < clength; i += 3) {
+  //   ushort roomid = (ushort)(rom_.Read16(cpos) & 0x7FFF);
+  //   cpos += 2;
+  //   uchar item = rom_[cpos++];  // get now so cpos is incremented too
+
+  //   if (roomid == RoomID) {
+  //     ChestList.Add(new DungeonChestItem(ItemReceipt.GetTypeFromID(item)));
+  //   }
+  // }
+}
 
 void Room::LoadBlocks() {}
 

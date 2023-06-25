@@ -52,9 +52,12 @@ class MasterEditor {
 
   bool about_ = false;
   bool rom_info_ = false;
+  bool backup_rom_ = true;
+  bool show_status_ = false;
 
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
   absl::Status status_;
+  absl::Status prev_status_;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;

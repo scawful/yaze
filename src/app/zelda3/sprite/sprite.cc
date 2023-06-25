@@ -4,8 +4,15 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-Sprite::Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
-               int map_y) {
+Sprite::Sprite() {
+  preview_gfx_.reserve(64 * 64);
+  for (int i = 0; i < 64 * 64; i++) {
+    preview_gfx_.push_back(0xFF);
+  }
+}
+
+void Sprite::InitSprite(Bytes& src, uchar mapid, uchar id, uchar x, uchar y,
+                        int map_x, int map_y) {
   current_gfx_ = src;
   overworld_ = true;
   map_id_ = mapid;
@@ -17,10 +24,32 @@ Sprite::Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
   name_ = core::kSpriteDefaultNames[id];
   map_x_ = map_x;
   map_y_ = map_y;
+}
+
+Sprite::Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
+               int map_y)
+    : current_gfx_(src),
+      map_id_(mapid),
+      id_(id),
+      x_(x),
+      y_(y),
+      nx_(x),
+      ny_(y),
+      map_x_(map_x),
+      map_y_(map_y) {
+  current_gfx_ = src;
+  overworld_ = true;
+
+  name_ = core::kSpriteDefaultNames[id];
   preview_gfx_.reserve(64 * 64);
   for (int i = 0; i < 64 * 64; i++) {
     preview_gfx_.push_back(0xFF);
   }
+}
+
+void Sprite::updateCoordinates(int map_x, int map_y) {
+  map_x_ = map_x;
+  map_y_ = map_y;
 }
 
 void Sprite::updateBBox() {
@@ -30,10 +59,9 @@ void Sprite::updateBBox() {
   higherY_ = 15;
 }
 
-void Sprite::Draw(bool picker) {
+void Sprite::Draw() {
   uchar x = nx_;
   uchar y = ny_;
-  picker_ = picker;
 
   if (overlord_ == 0x07) {
     if (id_ == 0x1A) {
@@ -288,11 +316,11 @@ void Sprite::Draw(bool picker) {
     DrawSpriteTile((x * 16), (y * 16), 14, 22, 10);
   }
   /*
-else if (id_== 0x33) // Pull for rupees
-{
+  else if (id_== 0x33) // Pull for rupees
+  {
 
-}
-*/
+  }
+  */
   else if (id_ == 0x34)  // Npcs
   {
     DrawSpriteTile((x * 16), (y * 16), 14, 22, 10);
@@ -304,11 +332,11 @@ else if (id_== 0x33) // Pull for rupees
     DrawSpriteTile((x * 16), (y * 16), 14, 22, 10);
   }
   /*
-else if (id_== 0x37) // Waterfall
-{
-DrawSpriteTile((x*16), (y *16), 14, 6, 10);
-}
-*/
+  else if (id_== 0x37) // Waterfall
+  {
+  DrawSpriteTile((x*16), (y *16), 14, 6, 10);
+  }
+  */
   else if (id_ == 0x38)  // Arrowtarget
   {
     DrawSpriteTile((x * 16), (y * 16), 14, 22, 10);
@@ -602,9 +630,6 @@ DrawSpriteTile((x*16), (y *16), 14, 6, 10);
   } else if (id_ == 0x79)  // Bee
   {
     DrawSpriteTile((x * 16), (y * 16), 4, 14, 11, false, false, 1, 1);
-  } else if (id_ == 0x7A) {
-    DrawSpriteTile((x * 16), (y * 16) - 16, 2, 24, 12, false, false, 2, 4);
-    DrawSpriteTile((x * 16) + 16, (y * 16) - 16, 2, 24, 12, true, false, 2, 4);
   } else if (id_ == 0x7C)  // Skull head
   {
     DrawSpriteTile((x * 16), (y * 16), 0, 16, 10);
@@ -808,7 +833,7 @@ DrawSpriteTile((x*16), (y *16), 14, 6, 10);
     DrawSpriteTile((x * 16), (y * 16), 12, 10, 10);
   } else if (id_ == 0xBA) {
     DrawSpriteTile((x * 16), (y * 16), 14, 14, 6);
-  } else if (id_ == 0xC1) {
+  } else if (id_ == 0xC1 || id_ == 0x7A) {
     DrawSpriteTile((x * 16), (y * 16) - 16, 2, 24, 12, false, false, 2, 4);
     DrawSpriteTile((x * 16) + 16, (y * 16) - 16, 2, 24, 12, true, false, 2, 4);
   } else if (id_ == 0xC3) {
@@ -871,7 +896,6 @@ DrawSpriteTile((x*16), (y *16), 14, 6, 10);
   } else if (id_ == 0xF4) {
     DrawSpriteTile((x * 16), (y * 16), 12, 28, 5, false, false, 4, 4);
   } else {
-    // stringtodraw.Add(new SpriteName(x, (y *16), sprites_name.name[id]));
     DrawSpriteTile((x * 16), (y * 16), 4, 4, 5);
   }
 
@@ -882,8 +906,13 @@ DrawSpriteTile((x*16), (y *16), 14, 6, 10);
 }
 
 void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
-                            bool mirror_x, bool mirror_y, int sizex, int sizey,
-                            bool iskey) {
+                            bool mirror_x, bool mirror_y, int sizex,
+                            int sizey) {
+  if (current_gfx_.empty()) {
+    std::cout << "No gfx loaded" << std::endl;
+    return;
+  }
+
   x += 16;
   y += 16;
   int drawid_ = (srcx + (srcy * 16)) + 512;
@@ -896,7 +925,7 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
         mx = (((sizex * 8) / 2) - 1) - xl;
       }
       if (mirror_y) {
-        my = (((sizey * 8)) - 1) - yl;
+        my = ((sizey * 8) - 1) - yl;
       }
 
       // Formula information to get tile index position in the array

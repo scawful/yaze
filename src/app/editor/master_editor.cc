@@ -14,11 +14,11 @@
 #include "app/editor/overworld_editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/rom.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/widgets.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -52,22 +52,6 @@ bool BeginCentered(const char *name) {
       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration |
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
   return ImGui::Begin(name, nullptr, flags);
-}
-
-void DisplayStatus(absl::Status &status) {
-  if (BeginCentered("StatusWindow")) {
-    ImGui::Text("%s", status.ToString().c_str());
-    ImGui::Spacing();
-    ImGui::NextColumn();
-    ImGui::Columns(1);
-    ImGui::Separator();
-    ImGui::NewLine();
-    ImGui::SameLine(270);
-    if (ImGui::Button("OK", ImVec2(200, 0))) {
-      status = absl::OkStatus();
-    }
-    ImGui::End();
-  }
 }
 
 }  // namespace
@@ -114,7 +98,24 @@ void MasterEditor::DrawFileDialog() {
 
 void MasterEditor::DrawStatusPopup() {
   if (!status_.ok()) {
-    DisplayStatus(status_);
+    show_status_ = true;
+    prev_status_ = status_;
+  }
+
+  if (show_status_) {
+    if (BeginCentered("StatusWindow")) {
+      ImGui::Text("%s", prev_status_.ToString().c_str());
+      ImGui::Spacing();
+      ImGui::NextColumn();
+      ImGui::Columns(1);
+      ImGui::Separator();
+      ImGui::NewLine();
+      ImGui::SameLine(270);
+      if (ImGui::Button("OK", ImVec2(200, 0))) {
+        show_status_ = false;
+      }
+      ImGui::End();
+    }
   }
 }
 
@@ -167,23 +168,13 @@ void MasterEditor::DrawFileMenu() {
                                               ".sfc,.smc", ".");
     }
 
-    MENU_ITEM2("Save", "Ctrl+S") { status_ = rom_.SaveToFile(true); }
+    MENU_ITEM2("Save", "Ctrl+S") { status_ = rom_.SaveToFile(backup_rom_); }
     MENU_ITEM("Save As..") {}
 
     ImGui::Separator();
 
-    // TODO: Make these options matter
     if (ImGui::BeginMenu("Options")) {
-      static bool enabled = true;
-      ImGui::MenuItem("Enabled", "", &enabled);
-      ImGui::BeginChild("child", ImVec2(0, 60), true);
-      for (int i = 0; i < 10; i++) ImGui::Text("Scrolling Text %d", i);
-      ImGui::EndChild();
-      static float f = 0.5f;
-      static int n = 0;
-      ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
-      ImGui::InputFloat("Input", &f, 0.1f);
-      ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
+      ImGui::MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::EndMenu();
     }
     ImGui::EndMenu();

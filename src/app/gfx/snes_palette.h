@@ -49,7 +49,7 @@ struct SNESColor {
 
   auto RGB() { return ImVec4(rgb.x / 255, rgb.y / 255, rgb.z / 255, rgb.w); }
 
-  float* ToFloatArray() const {
+  float* ToFloatArray() {
     static std::vector<float> colorArray(4);
     colorArray[0] = rgb.x / 255.0f;
     colorArray[1] = rgb.y / 255.0f;
@@ -84,6 +84,26 @@ class SNESPalette {
       return colors[0];
     }
     return colors[i];
+  }
+
+  void operator()(int i, const SNESColor& color) {
+    if (i >= size_) {
+      std::cout << "SNESPalette: Index out of bounds" << std::endl;
+      return;
+    }
+    colors[i] = color;
+  }
+
+  void operator()(int i, const ImVec4& color) {
+    if (i >= size_) {
+      std::cout << "SNESPalette: Index out of bounds" << std::endl;
+      return;
+    }
+    colors[i].rgb.x = color.x;
+    colors[i].rgb.y = color.y;
+    colors[i].rgb.z = color.z;
+    colors[i].rgb.w = color.w;
+    colors[i].modified = true;
   }
 
   char* encode();

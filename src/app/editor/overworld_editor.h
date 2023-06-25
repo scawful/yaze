@@ -14,10 +14,11 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/rom.h"
-#include "app/zelda3/overworld.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/rom.h"
+#include "app/zelda3/overworld.h"
+
 
 namespace yaze {
 namespace app {
@@ -56,6 +57,7 @@ class OverworldEditor {
 
   void DrawOverworldEntrances();
   void DrawOverworldMaps();
+  void DrawOverworldSprites();
   void DrawOverworldEdits();
   void DrawOverworldCanvas();
 
@@ -69,6 +71,7 @@ class OverworldEditor {
   int current_map_ = 0;
   int current_tile16_ = 0;
   int selected_tile_ = 0;
+  int game_state_ = 0;
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
   char spr_gfx_[3] = "";
