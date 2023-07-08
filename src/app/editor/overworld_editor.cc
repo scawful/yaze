@@ -185,7 +185,7 @@ void OverworldEditor::DrawOverworldSprites() {
 
 // ----------------------------------------------------------------------------
 
-void OverworldEditor::DrawOverworldEdits() {
+void OverworldEditor::DrawOverworldEdits() const {
   auto mouse_position = ow_map_canvas_.GetCurrentDrawnTilePosition();
   auto canvas_size = ow_map_canvas_.GetCanvasSize();
   int x = mouse_position.x / canvas_size.x;
@@ -379,16 +379,16 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
 
   // Render the sprites for each Overworld map
-  // for (int i = 0; i < 3; i++)
-  //   for (auto &sprite : overworld_.Sprites(i)) {
-  //     int width = sprite.Width();
-  //     int height = sprite.Height();
-  //     int depth = 0x40;
-  //     auto spr_gfx = sprite.PreviewGraphics().data();
-  //     sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
-  //     sprite_previews_[sprite.id()].ApplyPalette(palette_);
-  //     rom_.RenderBitmap(&(sprite_previews_[sprite.id()]));
-  //   }
+  for (int i = 0; i < 3; i++)
+    for (auto &sprite : overworld_.Sprites(i)) {
+      int width = sprite.Width();
+      int height = sprite.Height();
+      int depth = 0x40;
+      auto spr_gfx = sprite.PreviewGraphics().data();
+      sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
+      sprite_previews_[sprite.id()].ApplyPalette(palette_);
+      rom_.RenderBitmap(&(sprite_previews_[sprite.id()]));
+    }
 
   return absl::OkStatus();
 }

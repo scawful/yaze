@@ -9,6 +9,7 @@ set(
   YAZE_APP_EDITOR_SRC
   app/editor/assembly_editor.cc
   app/editor/dungeon_editor.cc
+  app/editor/graphics_editor.cc
   app/editor/master_editor.cc
   app/editor/music_editor.cc
   app/editor/overworld_editor.cc
@@ -54,8 +55,8 @@ add_executable(
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
-  ${ASAR_STATIC_SRC}
-  ${SNES_SPC_SOURCES}
+  # ${ASAR_STATIC_SRC}
+  # ${SNES_SPC_SOURCES}
   ${IMGUI_SRC}
 )
 
@@ -70,8 +71,8 @@ target_include_directories(
   ${SDL2_INCLUDE_DIR}
   lib/SDL_mixer/include/
   ${GLEW_INCLUDE_DIRS}
-  lib/asar/src/asar/
-  lib/snes_spc/snes_spc/
+  # lib/asar/src/asar/
+  # lib/snes_spc/snes_spc/
 )
 
 set(SDL_TARGETS SDL2::SDL2)
@@ -93,8 +94,8 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  asar-static
-  snes_spc
+  # asar-static
+  # snes_spc
   ImGui
 )
 

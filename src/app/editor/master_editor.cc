@@ -73,6 +73,7 @@ void MasterEditor::UpdateScreen() {
   TAB_BAR("##TabBar")
   DrawOverworldEditor();
   DrawDungeonEditor();
+  DrawGraphicsEditor();
   DrawMusicEditor();
   DrawSpriteEditor();
   DrawScreenEditor();
@@ -88,6 +89,7 @@ void MasterEditor::DrawFileDialog() {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       status_ = rom_.LoadFromFile(filePathName);
       overworld_editor_.SetupROM(rom_);
+      graphics_editor_.SetupROM(rom_);
       screen_editor_.SetupROM(rom_);
       palette_editor_.SetupROM(rom_);
       music_editor_.SetupROM(rom_);
@@ -162,6 +164,8 @@ void MasterEditor::DrawYazeMenu() {
 }
 
 void MasterEditor::DrawFileMenu() {
+  static bool save_as_menu = false;
+
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
@@ -169,7 +173,7 @@ void MasterEditor::DrawFileMenu() {
     }
 
     MENU_ITEM2("Save", "Ctrl+S") { status_ = rom_.SaveToFile(backup_rom_); }
-    MENU_ITEM("Save As..") {}
+    MENU_ITEM("Save As..") { save_as_menu = true; }
 
     ImGui::Separator();
 
@@ -178,6 +182,19 @@ void MasterEditor::DrawFileMenu() {
       ImGui::EndMenu();
     }
     ImGui::EndMenu();
+  }
+
+  if (save_as_menu) {
+    static std::string save_as_filename = "";
+    ImGui::Begin("Save As..", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::InputText("Filename", &save_as_filename);
+    if (ImGui::Button("Save", ImVec2(200, 0))) {
+      status_ = rom_.SaveToFile(backup_rom_, save_as_filename);
+    }
+    if (ImGui::Button("Cancel", ImVec2(200, 0))) {
+      save_as_menu = false;
+    }
+    ImGui::End();
   }
 }
 
@@ -291,6 +308,12 @@ void MasterEditor::DrawOverworldEditor() {
 void MasterEditor::DrawDungeonEditor() {
   TAB_ITEM("Dungeon")
   dungeon_editor_.Update();
+  END_TAB_ITEM()
+}
+
+void MasterEditor::DrawGraphicsEditor() {
+  TAB_ITEM("Graphics")
+  graphics_editor_.Update();
   END_TAB_ITEM()
 }
 

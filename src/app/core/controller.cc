@@ -3,7 +3,7 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
-#include <imgui/backends/imgui_impl_sdlrenderer.h>
+#include <imgui/backends/imgui_impl_sdlrenderer2.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
@@ -138,12 +138,12 @@ void Controller::onLoad() { master_editor_.UpdateScreen(); }
 void Controller::doRender() const {
   SDL_RenderClear(renderer_.get());
   ImGui::Render();
-  ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
   SDL_RenderPresent(renderer_.get());
 }
 
 void Controller::onExit() const {
-  ImGui_ImplSDLRenderer_Shutdown();
+  ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
   SDL_Quit();
@@ -195,7 +195,7 @@ absl::Status Controller::CreateGuiContext() const {
 
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(), renderer_.get());
-  ImGui_ImplSDLRenderer_Init(renderer_.get());
+  ImGui_ImplSDLRenderer2_Init(renderer_.get());
 
   // Load available fonts
   const ImGuiIO &io = ImGui::GetIO();
@@ -218,7 +218,7 @@ absl::Status Controller::CreateGuiContext() const {
   gui::ColorsYaze();
 
   // Build a new ImGui frame
-  ImGui_ImplSDLRenderer_NewFrame();
+  ImGui_ImplSDLRenderer2_NewFrame();
   ImGui_ImplSDL2_NewFrame(window_.get());
 
   return absl::OkStatus();
