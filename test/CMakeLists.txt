@@ -19,14 +19,14 @@ add_executable(
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/core/common.cc
-  ${ASAR_STATIC_SRC}
+  # ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_test PUBLIC
   ../src/
   ../src/lib/
-  ../src/lib/asar/src/asar/
+  # ../src/lib/asar/src/asar/
   ${SDL2_INCLUDE_DIR}
 )
 
@@ -38,8 +38,8 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  asar-static
-  snes_spc
+  # asar-static
+  # snes_spc
   ImGui
   gmock_main
   gmock

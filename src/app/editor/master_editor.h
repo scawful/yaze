@@ -11,16 +11,17 @@
 #include "app/core/constants.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
+#include "app/editor/graphics_editor.h"
 #include "app/editor/music_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/editor/palette_editor.h"
 #include "app/editor/screen_editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
-#include "app/rom.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -45,6 +46,7 @@ class MasterEditor {
 
   void DrawOverworldEditor();
   void DrawDungeonEditor();
+  void DrawGraphicsEditor();
   void DrawPaletteEditor();
   void DrawMusicEditor();
   void DrawScreenEditor();
@@ -61,6 +63,7 @@ class MasterEditor {
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
+  GraphicsEditor graphics_editor_;
   OverworldEditor overworld_editor_;
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;

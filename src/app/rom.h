@@ -139,7 +139,7 @@ class ROM {
   void LoadAllPalettes();
 
   // Save functions
-  absl::Status SaveToFile(bool backup);
+  absl::Status SaveToFile(bool backup, absl::string_view filename = "");
   void UpdatePaletteColor(const std::string& groupName, size_t paletteIndex,
                           size_t colorIndex, const gfx::SNESColor& newColor);
   void SaveAllPalettes();

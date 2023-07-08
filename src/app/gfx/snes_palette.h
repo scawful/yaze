@@ -47,7 +47,9 @@ struct SNESColor {
   void setSNES(uint16_t);
   void setTransparent(bool t) { transparent = t; }
 
-  auto RGB() { return ImVec4(rgb.x / 255, rgb.y / 255, rgb.z / 255, rgb.w); }
+  auto RGB() const {
+    return ImVec4(rgb.x / 255, rgb.y / 255, rgb.z / 255, rgb.w);
+  }
 
   float* ToFloatArray() {
     static std::vector<float> colorArray(4);
@@ -123,8 +125,7 @@ struct PaletteGroup {
   }
   void AddColor(SNESColor color) {
     if (size_ == 0) {
-      SNESPalette empty_pal;
-      palettes.emplace_back(empty_pal);
+      palettes.emplace_back();
     }
     palettes[0].AddColor(color);
   }

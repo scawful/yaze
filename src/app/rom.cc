@@ -1,7 +1,7 @@
 #include "rom.h"
 
 #include <SDL.h>
-#include <asar/src/asar/interface-lib.h>
+// #include <asar/src/asar/interface-lib.h>
 
 #include <cstddef>
 #include <cstdio>
@@ -817,9 +817,15 @@ void ROM::SaveAllPalettes() {
 
 // ============================================================================
 
-absl::Status ROM::SaveToFile(bool backup) {
+absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
+  }
+
+  // Check if filename is empty
+  // If it is, use the filename_ member variable
+  if (filename == "") {
+    filename = filename_;
   }
 
   // Check if backup is enabled
@@ -828,7 +834,7 @@ absl::Status ROM::SaveToFile(bool backup) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     std::string backup_filename =
-        absl::StrCat(filename_, "_backup_", std::ctime(&now_c));
+        absl::StrCat(filename, "_backup_", std::ctime(&now_c));
 
     // Remove newline character from ctime()
     backup_filename.erase(
@@ -839,17 +845,18 @@ absl::Status ROM::SaveToFile(bool backup) {
     std::replace(backup_filename.begin(), backup_filename.end(), ' ', '_');
 
     // Now, copy the original file to the backup file
-    std::filesystem::copy(filename_, backup_filename,
+    std::filesystem::copy(filename, backup_filename,
                           std::filesystem::copy_options::overwrite_existing);
   }
 
   // Run the other save functions
   SaveAllPalettes();
 
-  std::fstream file(filename_.data(), std::ios::binary | std::ios::out);
+  // Open the file that we know exists for writing
+  std::fstream file(filename.data(), std::ios::binary | std::ios::out);
   if (!file.is_open()) {
     return absl::InternalError(
-        absl::StrCat("Could not open ROM file: ", filename_));
+        absl::StrCat("Could not open ROM file: ", filename));
   }
 
   // Save the data to the file
@@ -860,7 +867,7 @@ absl::Status ROM::SaveToFile(bool backup) {
   // Check for write errors
   if (!file.good()) {
     return absl::InternalError(
-        absl::StrCat("Error while writing to ROM file: ", filename_));
+        absl::StrCat("Error while writing to ROM file: ", filename));
   }
 
   return absl::OkStatus();
@@ -940,14 +947,14 @@ uint32_t ROM::GetPaletteAddress(const std::string& groupName,
 
 absl::Status ROM::ApplyAssembly(const absl::string_view& filename,
                                 size_t patch_size) {
-  int count = 0;
-  auto patch = filename.data();
-  auto data = (char*)rom_data_.data();
-  if (int size = size_; !asar_patch(patch, data, patch_size, &size)) {
-    auto asar_error = asar_geterrors(&count);
-    auto full_error = asar_error->fullerrdata;
-    return absl::InternalError(absl::StrCat("ASAR Error: ", full_error));
-  }
+  // int count = 0;
+  // auto patch = filename.data();
+  // auto data = (char*)rom_data_.data();
+  // if (int size = size_; !asar_patch(patch, data, patch_size, &size)) {
+  //   auto asar_error = asar_geterrors(&count);
+  //   auto full_error = asar_error->fullerrdata;
+  //   return absl::InternalError(absl::StrCat("ASAR Error: ", full_error));
+  // }
   return absl::OkStatus();
 }
 

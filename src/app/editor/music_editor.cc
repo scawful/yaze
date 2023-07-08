@@ -8,9 +8,9 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "snes_spc/demo/demo_util.h"
-#include "snes_spc/demo/wave_writer.h"
-#include "snes_spc/snes_spc/spc.h"
+// #include "snes_spc/demo/demo_util.h"
+// #include "snes_spc/demo/wave_writer.h"
+// #include "snes_spc/snes_spc/spc.h"
 
 namespace yaze {
 namespace app {
@@ -21,46 +21,46 @@ namespace {
 #define BUF_SIZE 2048
 
 void PlaySPC() {
-  /* Create emulator and filter */
-  SNES_SPC* snes_spc = spc_new();
-  SPC_Filter* filter = spc_filter_new();
-  if (!snes_spc || !filter) error("Out of memory");
+  // /* Create emulator and filter */
+  // SNES_SPC* snes_spc = spc_new();
+  // SPC_Filter* filter = spc_filter_new();
+  // if (!snes_spc || !filter) error("Out of memory");
 
-  /* Load SPC */
-  {
-    /* Load file into memory */
-    long spc_size;
-    void* spc = load_file("assets/music/hyrule_field.spc", &spc_size);
+  // /* Load SPC */
+  // {
+  //   /* Load file into memory */
+  //   long spc_size;
+  //   void* spc = load_file("assets/music/hyrule_field.spc", &spc_size);
 
-    /* Load SPC data into emulator */
-    error(spc_load_spc(snes_spc, spc, spc_size));
-    free(spc); /* emulator makes copy of data */
+  //   /* Load SPC data into emulator */
+  //   error(spc_load_spc(snes_spc, spc, spc_size));
+  //   free(spc); /* emulator makes copy of data */
 
-    /* Most SPC files have garbage data in the echo buffer, so clear that */
-    spc_clear_echo(snes_spc);
+  //   /* Most SPC files have garbage data in the echo buffer, so clear that */
+  //   spc_clear_echo(snes_spc);
 
-    /* Clear filter before playing */
-    spc_filter_clear(filter);
-  }
+  //   /* Clear filter before playing */
+  //   spc_filter_clear(filter);
+  // }
 
-  /* Record 20 seconds to wave file */
-  wave_open(spc_sample_rate, "out.wav");
-  wave_enable_stereo();
-  while (wave_sample_count() < 30 * spc_sample_rate * 2) {
-    /* Play into buffer */
-    short buf[BUF_SIZE];
-    error(spc_play(snes_spc, BUF_SIZE, buf));
+  // /* Record 20 seconds to wave file */
+  // wave_open(spc_sample_rate, "out.wav");
+  // wave_enable_stereo();
+  // while (wave_sample_count() < 30 * spc_sample_rate * 2) {
+  //   /* Play into buffer */
+  //   short buf[BUF_SIZE];
+  //   error(spc_play(snes_spc, BUF_SIZE, buf));
 
-    /* Filter samples */
-    spc_filter_run(filter, buf, BUF_SIZE);
+  //   /* Filter samples */
+  //   spc_filter_run(filter, buf, BUF_SIZE);
 
-    wave_write(buf, BUF_SIZE);
-  }
+  //   wave_write(buf, BUF_SIZE);
+  // }
 
-  /* Cleanup */
-  spc_filter_delete(filter);
-  spc_delete(snes_spc);
-  wave_close();
+  // /* Cleanup */
+  // spc_filter_delete(filter);
+  // spc_delete(snes_spc);
+  // wave_close();
 }
 
 }  // namespace
@@ -223,10 +223,10 @@ void MusicEditor::DrawToolset() {
 
   if (is_playing) {
     if (!has_loaded_song) {
-      PlaySPC();
-      current_song_ = Mix_LoadMUS("out.wav");
-      Mix_PlayMusic(current_song_, -1);
-      has_loaded_song = true;
+      // PlaySPC();
+      // current_song_ = Mix_LoadMUS("out.wav");
+      // Mix_PlayMusic(current_song_, -1);
+      // has_loaded_song = true;
     }
 
     // // If there is no music playing

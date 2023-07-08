@@ -11,9 +11,9 @@
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/music/tracker.h"
-#include "snes_spc/demo/demo_util.h"
-#include "snes_spc/demo/wave_writer.h"
-#include "snes_spc/snes_spc/spc.h"
+// #include "snes_spc/demo/demo_util.h"
+// #include "snes_spc/demo/wave_writer.h"
+// #include "snes_spc/snes_spc/spc.h"
 
 namespace yaze {
 namespace app {
@@ -69,7 +69,7 @@ class MusicEditor {
   zelda3::Tracker music_tracker_;
   ROM rom_;
 
-  Mix_Music* current_song_ = NULL;
+  // Mix_Music* current_song_ = NULL;
 
   AssemblyEditor assembly_editor_;
   ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
