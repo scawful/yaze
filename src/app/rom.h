@@ -55,8 +55,6 @@ constexpr int kExpandedMod = 0xE0;
 constexpr int kExpandedLengthMod = 0x3FF;
 constexpr int kNormalLengthMod = 0x1F;
 constexpr int kCompressionStringMod = 7 << 5;
-constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
-                                      0x08, 0x04, 0x02, 0x01};
 
 const std::string kMosaicChangeOffset = "$02AADB";
 constexpr int kSNESToPCOffset = 0x138000;

@@ -21,6 +21,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
@@ -352,53 +353,6 @@ int GetGraphicsAddress(const uchar* data, uint8_t offset) {
   return core::SnesToPc(snes_addr);
 }
 
-Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
-  int xx = 0;  // positions where we are at on the sheet
-  int yy = 0;
-  int pos = 0;
-  int ypos = 0;
-  int num_tiles = 64;
-  int buffer_size = 0x1000;
-  if (bpp == 2) {
-    bpp = 16;
-    num_tiles = 128;
-    buffer_size = 0x2000;
-  } else if (bpp == 3) {
-    bpp = 24;
-  }
-  Bytes sheet_buffer_out(buffer_size);
-
-  for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
-    for (int y = 0; y < 8; y++) {        // for each line
-      for (int x = 0; x < 8; x++) {      //[0] + [1] + [16]
-        auto b1 = (sheet[(y * 2) + (bpp * pos)] & (kGraphicsBitmap[x]));
-        auto b2 = (sheet[((y * 2) + (bpp * pos)) + 1] & (kGraphicsBitmap[x]));
-        auto b3 = (sheet[(16 + y) + (bpp * pos)] & (kGraphicsBitmap[x]));
-        unsigned char b = 0;
-        if (b1 != 0) {
-          b |= 1;
-        }
-        if (b2 != 0) {
-          b |= 2;
-        }
-        if (b3 != 0 && bpp != 16) {
-          b |= 4;
-        }
-        sheet_buffer_out[x + xx + (y * 128) + (yy * 1024)] = b;
-      }
-    }
-    pos++;
-    ypos++;
-    xx += 8;
-    if (ypos >= 16) {
-      yy++;
-      xx = 0;
-      ypos = 0;
-    }
-  }
-  return sheet_buffer_out;
-}
-
 }  // namespace
 
 // TODO TEST compressed data border for each cmd
@@ -588,7 +542,7 @@ absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
   for (const auto& sheet_id : sheets) {
     auto offset = GetGraphicsAddress(rom_data_.data(), sheet_id);
     ASSIGN_OR_RETURN(auto decomp_sheet, Decompress(offset))
-    auto converted_sheet = SnesTo8bppSheet(decomp_sheet, 2);
+    auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto& each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
     }
@@ -624,7 +578,7 @@ absl::Status ROM::LoadAllGraphicsData() {
     }
 
     if (bpp3) {
-      auto converted_sheet = SnesTo8bppSheet(sheet, 3);
+      auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                       core::kTilesheetDepth, converted_sheet.data(), 0x1000);
