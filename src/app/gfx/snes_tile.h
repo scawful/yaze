@@ -10,6 +10,11 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
+                                      0x08, 0x04, 0x02, 0x01};
+
+Bytes SnesTo8bppSheet(Bytes sheet, int bpp);
+
 struct tile8 {
   unsigned int id;
   char data[64];
