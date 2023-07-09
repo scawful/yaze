@@ -163,6 +163,20 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
              canvas_p0_.y + y_offset + scrolling_.y + (bitmap.GetHeight())));
 }
 
+// TODO: Add parameters for sizing and positioning
+void Canvas::DrawBitmapTable(const BitmapTable gfx_bin) {
+  for (const auto &[key, value] : gfx_bin) {
+    int offset = 0x40 * (key + 1);
+    int top_left_y = canvas_p0_.y + 2;
+    if (key >= 1) {
+      top_left_y = canvas_p0_.y + 0x40 * key;
+    }
+    draw_list_->AddImage((void *)value.GetTexture(),
+                         ImVec2(canvas_p0_.x + 2, top_left_y),
+                         ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
+  }
+}
+
 void Canvas::DrawOutline(int x, int y, int w, int h) {
   ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
                 canvas_p0_.y + scrolling_.y + y);
