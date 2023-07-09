@@ -13,6 +13,7 @@ namespace yaze {
 namespace gui {
 
 using app::gfx::Bitmap;
+using app::gfx::BitmapTable;
 
 class Canvas {
  public:
@@ -29,6 +30,7 @@ class Canvas {
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
   void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
+  void DrawBitmapTable(const BitmapTable gfx_bin);
   void DrawOutline(int x, int y, int w, int h);
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
   void DrawText(std::string text, int x, int y);
