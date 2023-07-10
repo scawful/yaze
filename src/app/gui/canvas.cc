@@ -164,7 +164,7 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
 }
 
 // TODO: Add parameters for sizing and positioning
-void Canvas::DrawBitmapTable(const BitmapTable gfx_bin) {
+void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
   for (const auto &[key, value] : gfx_bin) {
     int offset = 0x40 * (key + 1);
     int top_left_y = canvas_p0_.y + 2;

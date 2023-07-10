@@ -28,7 +28,7 @@ set(
   ${IMGUI_PATH}/imgui_draw.cpp 
   ${IMGUI_PATH}/imgui_widgets.cpp
   ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp
-  ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer.cpp 
+  ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer2.cpp 
   ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
   ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
   ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
