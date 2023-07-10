@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
@@ -70,6 +71,7 @@ absl::Status GraphicsEditor::DrawImport() {
 
   gui::InputHex("Offset", &current_offset_);
   gui::InputHex("Size ", &size);
+  gui::InputHex("Palette ", &current_palette_);
 
   if (ImGui::Button("Super Donkey")) {
     current_offset_ = 0x98219;
@@ -106,11 +108,16 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
   std::cout << "Size of import data" << import_data_.size() << std::endl;
 
   Bytes new_sheet;
+  bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
+                 import_data_.data(), 0x1000);
 
-  bitmap_.Create(core::kTilesheetWidth, core::kTilesheetHeight,
-                 core::kTilesheetDepth, import_data_);
+  if (rom_.isLoaded()) {
+    auto palette_group = rom_.GetPaletteGroup("ow_main");
+    palette_ = palette_group.palettes[current_palette_];
+    bitmap_.ApplyPalette(palette_);
+  }
+
   rom_.RenderBitmap(&bitmap_);
-
   gfx_loaded_ = true;
 
   return absl::OkStatus();

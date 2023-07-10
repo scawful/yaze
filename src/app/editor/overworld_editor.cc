@@ -333,7 +333,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   rom_.RenderBitmap(&current_gfx_bmp_);
 
   // Create the tile16 blockset image
-  tile16_blockset_bmp_.Create(0x80, 8192, 0x80, overworld_.Tile16Blockset());
+  tile16_blockset_bmp_.Create(0x80, 0x2000, 0x80, overworld_.Tile16Blockset());
   tile16_blockset_bmp_.ApplyPalette(palette_);
   rom_.RenderBitmap(&tile16_blockset_bmp_);
   map_blockset_loaded_ = true;

@@ -8,6 +8,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
@@ -50,15 +51,20 @@ class GraphicsEditor {
 
   int current_offset_ = 0;
   int current_size_ = 0;
+  int current_palette_ = 0;
   bool gfx_loaded_ = false;
 
   ROM rom_;
   ROM temp_rom_;
   Bytes import_data_;
+  Bytes graphics_buffer_;
 
   gfx::Bitmap bitmap_;
   gui::Canvas import_canvas_;
-  gfx::BitmapTable bitmap_table_;
+  gfx::BitmapTable graphics_bin_;
+
+  PaletteEditor palette_editor_;
+  gfx::SNESPalette palette_;
 
   ImGuiTableFlags gfx_edit_flags = ImGuiTableFlags_Reorderable |
                                    ImGuiTableFlags_Resizable |
