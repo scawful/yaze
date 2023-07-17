@@ -19,7 +19,6 @@
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
 
-
 namespace yaze {
 namespace app {
 namespace editor {
@@ -41,7 +40,7 @@ static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
     "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
     "##sprpalCol", "##msgidCol", "##2ndCol"};
 
-class OverworldEditor {
+class OverworldEditor : public SharedROM {
  public:
   absl::Status Update();
   absl::Status Undo() const { return absl::UnimplementedError("Undo"); }
@@ -49,7 +48,10 @@ class OverworldEditor {
   absl::Status Cut() const { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() const { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() const { return absl::UnimplementedError("Paste"); }
-  void SetupROM(ROM &rom) { rom_ = rom; }
+  void SetupROM(ROM &rom) { 
+    rom_ = rom; 
+    shared_rom_ = std::make_shared<ROM>(rom_);
+  }
 
  private:
   absl::Status DrawToolset();
