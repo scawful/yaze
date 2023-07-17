@@ -1,6 +1,7 @@
 #include "widgets.h"
 
 #include <ImGuiColorTextEdit/TextEditor.h>
+#include <imgui_memory_editor.h>
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"

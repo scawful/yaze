@@ -34,7 +34,7 @@ constexpr ImGuiWindowFlags kMainEditorFlags =
 void NewMasterFrame() {
   const ImGuiIO &io = ImGui::GetIO();
   ImGui::NewFrame();
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImGui::SetNextWindowPos(gui::kZeroPos);
   ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
   ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
 
@@ -104,20 +104,18 @@ void MasterEditor::DrawStatusPopup() {
     prev_status_ = status_;
   }
 
-  if (show_status_) {
-    if (BeginCentered("StatusWindow")) {
-      ImGui::Text("%s", prev_status_.ToString().c_str());
-      ImGui::Spacing();
-      ImGui::NextColumn();
-      ImGui::Columns(1);
-      ImGui::Separator();
-      ImGui::NewLine();
-      ImGui::SameLine(270);
-      if (ImGui::Button("OK", ImVec2(200, 0))) {
-        show_status_ = false;
-      }
-      ImGui::End();
+  if (show_status_ && (BeginCentered("StatusWindow"))) {
+    ImGui::Text("%s", prev_status_.ToString().c_str());
+    ImGui::Spacing();
+    ImGui::NextColumn();
+    ImGui::Columns(1);
+    ImGui::Separator();
+    ImGui::NewLine();
+    ImGui::SameLine(270);
+    if (ImGui::Button("OK", gui::kDefaultModalSize)) {
+      show_status_ = false;
     }
+    ImGui::End();
   }
 }
 
@@ -131,7 +129,7 @@ void MasterEditor::DrawAboutPopup() {
     ImGui::Text("Special Thanks: Zarby89, JaredBrian");
     ImGui::Separator();
 
-    if (ImGui::Button("Close", ImVec2(200, 0))) {
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       about_ = false;
       ImGui::CloseCurrentPopup();
     }
@@ -146,7 +144,7 @@ void MasterEditor::DrawInfoPopup() {
     ImGui::Text("Title: %s", rom_.GetTitle());
     ImGui::Text("ROM Size: %ld", rom_.size());
 
-    if (ImGui::Button("Close", ImVec2(200, 0))) {
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       rom_info_ = false;
       ImGui::CloseCurrentPopup();
     }
@@ -188,10 +186,10 @@ void MasterEditor::DrawFileMenu() {
     static std::string save_as_filename = "";
     ImGui::Begin("Save As..", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::InputText("Filename", &save_as_filename);
-    if (ImGui::Button("Save", ImVec2(200, 0))) {
+    if (ImGui::Button("Save", gui::kDefaultModalSize)) {
       status_ = rom_.SaveToFile(backup_rom_, save_as_filename);
     }
-    if (ImGui::Button("Cancel", ImVec2(200, 0))) {
+    if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
       save_as_menu = false;
     }
     ImGui::End();
@@ -242,7 +240,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_palette_editor) {
     ImGui::Begin("Palette Editor", &show_palette_editor);
-    palette_editor_.Update();
+    status_ = palette_editor_.Update();
     ImGui::End();
   }
 
@@ -313,7 +311,7 @@ void MasterEditor::DrawDungeonEditor() {
 
 void MasterEditor::DrawGraphicsEditor() {
   TAB_ITEM("Graphics")
-  graphics_editor_.Update();
+  status_ = graphics_editor_.Update();
   END_TAB_ITEM()
 }
 

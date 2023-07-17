@@ -3,6 +3,7 @@
 
 #include <imgui/imgui.h>
 
+#include "app/core/common.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "rom.h"
@@ -11,7 +12,7 @@
 namespace yaze {
 namespace app {
 namespace editor {
-class DungeonEditor {
+class DungeonEditor : public SharedROM {
  public:
   void Update();
 

@@ -89,9 +89,8 @@ const std::map<std::string, uint32_t> paletteGroupBaseAddresses = {
     {"sprites_aux2", core::spritePalettesAux2},
     {"sprites_aux3", core::spritePalettesAux3},
     {"dungeon_main", core::dungeonMainPalettes},
-    {"grass", core::hardcodedGrassLW},  // Assuming LW is the first color
-    {"3d_object",
-     core::triforcePalette},  // Assuming triforcePalette is the first palette
+    {"grass", core::hardcodedGrassLW},
+    {"3d_object", core::triforcePalette},
     {"ow_mini_map", core::overworldMiniMapPalettes},
 };
 
@@ -212,6 +211,15 @@ class ROM {
 
   std::shared_ptr<SDL_Renderer> renderer_;
   std::unordered_map<std::string, gfx::PaletteGroup> palette_groups_;
+};
+
+class SharedROM {
+ public:
+  SharedROM() = default;
+  virtual ~SharedROM() = default;
+
+ protected:
+  std::shared_ptr<ROM> shared_rom_;
 };
 
 }  // namespace app

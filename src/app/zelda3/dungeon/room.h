@@ -32,8 +32,6 @@ class DungeonDestination {
 
   // int RealY() { return AssociatedObject ? AssociatedObject->RealY : 0; }
 
-  // void Reset() { AssociatedObject = nullptr; }
-
   std::string ToString() {
     return std::to_string(Index) + ": To " + std::to_string(Target);
   }

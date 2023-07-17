@@ -12,6 +12,9 @@
 namespace yaze {
 namespace gui {
 
+constexpr ImVec2 kDefaultModalSize = ImVec2(200, 0);
+constexpr ImVec2 kZeroPos = ImVec2(0, 0);
+
 IMGUI_API bool InputHex(const char* label, int* data);
 IMGUI_API bool InputHexShort(const char* label, int* data);
 
