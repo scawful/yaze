@@ -643,6 +643,8 @@ absl::Status ROM::LoadFromBytes(const Bytes& data) {
         "Could not load ROM: parameter `data` is empty.");
   }
   rom_data_ = data;
+  size_ = data.size();
+  is_loaded_ = true;
   return absl::OkStatus();
 }
 

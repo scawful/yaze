@@ -66,6 +66,10 @@ struct SNESColor {
   ImVec4 rgb;
 };
 
+SNESColor GetCgxColor(short color);
+
+std::vector<SNESColor> GetColFileData(uchar* data);
+
 class SNESPalette {
  public:
   SNESPalette() = default;
