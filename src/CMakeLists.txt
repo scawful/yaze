@@ -44,6 +44,11 @@ set(
   app/gui/color.cc
 )
 
+set(
+  YAZE_VIEWER_SRC
+  app/viewer/cgx_viewer.cc
+)
+
 # executable creation ---------------------------------------------------------
 
 add_executable(
@@ -55,6 +60,7 @@ add_executable(
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
+  ${YAZE_VIEWER_SRC}
   # ${ASAR_STATIC_SRC}
   # ${SNES_SPC_SOURCES}
   ${IMGUI_SRC}

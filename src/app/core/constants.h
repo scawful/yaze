@@ -33,6 +33,19 @@
   ImGui::TableNextColumn(); \
   ImGui::Text(w);
 
+#define BEGIN_TABLE(l, n, f) if (ImGui::BeginTable(l, n, f, ImVec2(0, 0))) {
+#define SETUP_COLUMN(l) ImGui::TableSetupColumn(l);
+
+#define TABLE_HEADERS()     \
+  ImGui::TableHeadersRow(); \
+  ImGui::TableNextRow();
+
+#define NEXT_COLUMN() ImGui::TableNextColumn();
+
+#define END_TABLE()  \
+  ImGui::EndTable(); \
+  }
+
 #define PRINT_IF_ERROR(expression)                \
   {                                               \
     auto error = expression;                      \
@@ -66,7 +79,7 @@
 #define APPEND_NUMBER_INNER(expression, number) expression##number
 
 #define TEXT_WITH_SEPARATOR(text) \
-  ImGui::Text(text); \
+  ImGui::Text(text);              \
   ImGui::Separator();
 
 using ushort = unsigned short;
@@ -501,7 +514,7 @@ constexpr int customAreaSpecificBGPalette =
 constexpr int customAreaSpecificBGASM = 0x140150;
 constexpr int customAreaSpecificBGEnabled =
     0x140140;  // 1 byte, not 0 if enabled
-    
+
 // ============================================================================
 // Dungeon Map Related Variables
 // ============================================================================

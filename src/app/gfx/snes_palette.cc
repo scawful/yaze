@@ -60,6 +60,26 @@ char* Convert(const snes_palette pal) {
   return toret;
 }
 
+SNESColor GetCgxColor(short color) {
+  ImVec4 rgb;
+  rgb.x = (color & 0x1F) * 8;
+  rgb.y = ((color & 0x3E0) >> 5) * 8;
+  rgb.z = ((color & 0x7C00) >> 10) * 8;
+  SNESColor toret;
+  toret.setRgb(rgb);
+  return toret;
+}
+
+std::vector<SNESColor> GetColFileData(uchar* data) {
+  std::vector<SNESColor> colors;
+
+  for (int i = 0; i < 512; i += 2) {
+    colors[i / 2] = GetCgxColor((short)((data[i + 1] << 8) + data[i]));
+  }
+
+  return colors;
+}
+
 // ============================================================================
 
 SNESColor::SNESColor() : rgb(ImVec4(0.f, 0.f, 0.f, 0.f)) {}

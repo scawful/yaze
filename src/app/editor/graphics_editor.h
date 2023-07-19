@@ -46,13 +46,20 @@ class GraphicsEditor {
   void SetupROM(ROM &rom) { rom_ = rom; }
 
  private:
-  absl::Status DrawImport();
+  absl::Status DrawFileImport();
+  absl::Status DrawClipboardImport();
+  absl::Status DrawMemoryEditor();
+  absl::Status DrawDecompressedData();
+
   absl::Status DecompressImportData(int size);
+  
 
   int current_offset_ = 0;
   int current_size_ = 0;
   int current_palette_ = 0;
   bool gfx_loaded_ = false;
+  bool is_open_ = false;
+  char file_path_[256];
 
   ROM rom_;
   ROM temp_rom_;
@@ -65,6 +72,7 @@ class GraphicsEditor {
 
   PaletteEditor palette_editor_;
   gfx::SNESPalette palette_;
+  MemoryEditor memory_editor_;
 
   ImGuiTableFlags gfx_edit_flags = ImGuiTableFlags_Reorderable |
                                    ImGuiTableFlags_Resizable |
