@@ -141,7 +141,7 @@ void MasterEditor::DrawInfoPopup() {
   if (rom_info_) ImGui::OpenPopup("ROM Information");
   if (ImGui::BeginPopupModal("ROM Information", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Title: %s", rom_.GetTitle());
+    ImGui::Text("Title: %s", rom_.title());
     ImGui::Text("ROM Size: %ld", rom_.size());
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
@@ -335,6 +335,7 @@ void MasterEditor::DrawMusicEditor() {
 
 void MasterEditor::DrawSpriteEditor() {
   TAB_ITEM("Sprites")
+  status_ = sprite_editor_.Update();
   END_TAB_ITEM()
 }
 

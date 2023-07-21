@@ -52,13 +52,15 @@ class GraphicsEditor {
   absl::Status DrawDecompressedData();
 
   absl::Status DecompressImportData(int size);
-  
+
+  absl::Status DecompressSuperDonkey();
 
   int current_offset_ = 0;
   int current_size_ = 0;
   int current_palette_ = 0;
   bool gfx_loaded_ = false;
   bool is_open_ = false;
+  bool super_donkey_ = false;
   char file_path_[256];
 
   ROM rom_;
@@ -71,8 +73,9 @@ class GraphicsEditor {
   gfx::BitmapTable graphics_bin_;
 
   PaletteEditor palette_editor_;
-  gfx::SNESPalette palette_;
   MemoryEditor memory_editor_;
+
+  gfx::SNESPalette palette_;
 
   ImGuiTableFlags gfx_edit_flags = ImGuiTableFlags_Reorderable |
                                    ImGuiTableFlags_Resizable |

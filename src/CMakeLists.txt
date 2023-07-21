@@ -15,11 +15,13 @@ set(
   app/editor/overworld_editor.cc
   app/editor/palette_editor.cc
   app/editor/screen_editor.cc
+  app/editor/sprite_editor.cc
 )
 
 set(
   YAZE_APP_GFX_SRC
   app/gfx/bitmap.cc
+  app/gfx/compression.cc
   app/gfx/snes_palette.cc
   app/gfx/snes_tile.cc
 )
