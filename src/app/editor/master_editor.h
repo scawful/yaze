@@ -16,6 +16,7 @@
 #include "app/editor/overworld_editor.h"
 #include "app/editor/palette_editor.h"
 #include "app/editor/screen_editor.h"
+#include "app/editor/sprite_editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
@@ -57,17 +58,20 @@ class MasterEditor {
   bool backup_rom_ = true;
   bool show_status_ = false;
 
-  std::shared_ptr<SDL_Renderer> sdl_renderer_;
   absl::Status status_;
   absl::Status prev_status_;
+
+  std::shared_ptr<SDL_Renderer> sdl_renderer_;
+  std::shared_ptr<core::Editor> current_editor_;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
+  MusicEditor music_editor_;
   OverworldEditor overworld_editor_;
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
-  MusicEditor music_editor_;
+  SpriteEditor sprite_editor_;
   ROM rom_;
 };
 

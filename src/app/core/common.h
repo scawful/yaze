@@ -30,8 +30,6 @@ class Editor {
   virtual void Replace() = 0;
 
   virtual void Goto() = 0;
-
-  virtual void Indent() = 0;
 };
 
 unsigned int SnesToPc(unsigned int addr);

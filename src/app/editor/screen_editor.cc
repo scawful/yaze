@@ -140,14 +140,6 @@ void ScreenEditor::DrawMosaicEditor() {
 
   gui::InputHex("Routine Location", &overworldCustomMosaicASM);
 
-  if (ImGui::Button("Generate Mosaic Assembly")) {
-    auto mosaic =
-        rom_.PatchOverworldMosaic(mosaic_tiles_, overworldCustomMosaicASM);
-    if (!mosaic.ok()) {
-      std::cout << mosaic;
-    }
-  }
-
   END_TAB_ITEM()
 }
 

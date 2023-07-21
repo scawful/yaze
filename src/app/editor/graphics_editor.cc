@@ -20,8 +20,8 @@ namespace editor {
 
 absl::Status GraphicsEditor::Update() {
   BEGIN_TABLE("#gfxEditTable", 2, gfx_edit_flags)
-  SETUP_COLUMN("Bin Importer")
   SETUP_COLUMN("Graphics Manager")
+  SETUP_COLUMN("Memory Editor")
   TABLE_HEADERS()
   NEXT_COLUMN()
 
@@ -33,6 +33,7 @@ absl::Status GraphicsEditor::Update() {
   RETURN_IF_ERROR(DrawClipboardImport())
   END_TAB_ITEM()
   END_TAB_BAR()
+  ImGui::Separator();
   ImGui::Text("Graphics");
   ImGui::Separator();
   RETURN_IF_ERROR(DrawDecompressedData())
@@ -47,7 +48,6 @@ absl::Status GraphicsEditor::Update() {
 absl::Status GraphicsEditor::DrawFileImport() {
   static int size = 0;
 
-  ImGui::SetNextItemWidth(350.f);
   ImGui::InputText("File", file_path_, sizeof(file_path_));
   ImGui::SameLine();
   // Open the file dialog when the user clicks the "Browse" button
@@ -98,6 +98,8 @@ absl::Status GraphicsEditor::DrawFileImport() {
 absl::Status GraphicsEditor::DrawClipboardImport() {
   static Bytes clipboard_data;
 
+  ImGui::Button("Paste");
+
   if (!is_open_) {
     clipboard_data.resize(0x1000);
     for (int i = 0; i < 0x1000; i++) clipboard_data.push_back(0x00);
@@ -112,13 +114,14 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
   std::string title = "Memory Editor";
   if (is_open_) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow(title.data(), (void *)&temp_rom_, temp_rom_.size());
+    // mem_edit.DrawWindow(title.data(), (void *)&temp_rom_, temp_rom_.size());
+    mem_edit.DrawContents(temp_rom_.data(), temp_rom_.size());
   }
   return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::DrawDecompressedData() {
-  if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)2);
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)2);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     import_canvas_.DrawBackground(ImVec2(0x100 + 1, (8192 * 2) + 1));
@@ -149,6 +152,24 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
   rom_.RenderBitmap(&bitmap_);
   gfx_loaded_ = true;
 
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::DecompressSuperDonkey() {
+  for (const auto& offset : kSuperDonkeyTiles) {
+    int offset_value =
+        std::stoi(offset, nullptr, 16);  // convert hex string to int
+    ASSIGN_OR_RETURN(auto decompressed_data,
+                     temp_rom_.Decompress(offset_value, 0x1000))
+    
+  }
+
+  for (const auto& offset : kSuperDonkeySprites) {
+    int offset_value =
+        std::stoi(offset, nullptr, 16);  // convert hex string to int
+    ASSIGN_OR_RETURN(auto decompressed_data,
+                     temp_rom_.Decompress(offset_value, 0x1000))
+  }
   return absl::OkStatus();
 }
 

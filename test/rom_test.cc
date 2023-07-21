@@ -6,14 +6,15 @@
 #include <array>
 
 #include "absl/status/statusor.h"
+#include "app/gfx/compression.h"
 
 #define BUILD_HEADER(command, length) (command << 5) + (length - 1)
 
 namespace yaze_test {
 namespace rom_test {
 
-using yaze::app::CompressionPiece;
 using yaze::app::ROM;
+using yaze::app::gfx::lc_lz2::CompressionPiece;
 
 using ::testing::ElementsAreArray;
 using ::testing::TypedEq;
@@ -311,5 +312,50 @@ TEST(ROMTest, ExtendedHeaderDecompress2) {
   }
 }
 */
+
+TEST(ROMTest, CompressionDecompressionEmptyData) {
+  ROM rom;
+  uchar empty_input[0] = {};
+  auto comp_result = ExpectCompressOk(rom, empty_input, 0);
+  EXPECT_EQ(0, comp_result.size());
+
+  auto decomp_result = ExpectDecompressOk(rom, empty_input, 0);
+  EXPECT_EQ(0, decomp_result.size());
+}
+
+TEST(ROMTest, CompressionDecompressionSingleByte) {
+  ROM rom;
+  uchar single_byte[1] = {0x2A};
+  uchar single_byte_expected[3] = {BUILD_HEADER(0x00, 0x01), 0x2A, 0xFF};
+
+  auto comp_result = ExpectCompressOk(rom, single_byte, 1);
+  EXPECT_THAT(single_byte_expected, ElementsAreArray(comp_result.data(), 3));
+
+  auto decomp_result = ExpectDecompressOk(rom, single_byte, 1);
+  EXPECT_THAT(single_byte, ElementsAreArray(decomp_result.data(), 1));
+}
+
+TEST(ROMTest, CompressionDecompressionAllBitsSet) {
+  ROM rom;
+  uchar all_bits_set[5] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  uchar all_bits_set_expected[3] = {BUILD_HEADER(0x01, 0x05), 0xFF, 0xFF};
+
+  auto comp_result = ExpectCompressOk(rom, all_bits_set, 5);
+  EXPECT_THAT(all_bits_set_expected, ElementsAreArray(comp_result.data(), 3));
+
+  auto decomp_result = ExpectDecompressOk(rom, all_bits_set, 5);
+  EXPECT_THAT(all_bits_set, ElementsAreArray(decomp_result.data(), 5));
+}
+
+TEST(ROMTest, DecompressionInvalidData) {
+  ROM rom;
+  Bytes invalid_input = {0xFF, 0xFF};  // Invalid command
+
+  auto load_status = rom.LoadFromBytes(invalid_input);
+  EXPECT_TRUE(load_status.ok());
+  auto decompression_status = rom.Decompress(0, invalid_input.size());
+  EXPECT_FALSE(decompression_status.ok());  // Expect failure
+}
+
 }  // namespace rom_test
 }  // namespace yaze_test
