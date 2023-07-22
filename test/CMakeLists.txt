@@ -13,6 +13,7 @@ enable_testing()
 add_executable(
   yaze_test
   yaze_test.cc
+  compression_test.cc
   rom_test.cc
   ../src/app/rom.cc
   ../src/app/gfx/bitmap.cc
