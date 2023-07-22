@@ -9,6 +9,7 @@
 #include "absl/status/statusor.h"
 #include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
@@ -19,9 +20,10 @@ namespace app {
 namespace editor {
 
 absl::Status GraphicsEditor::Update() {
-  BEGIN_TABLE("#gfxEditTable", 2, gfx_edit_flags)
+  BEGIN_TABLE("#gfxEditTable", 3, gfx_edit_flags)
   SETUP_COLUMN("Graphics Manager")
   SETUP_COLUMN("Memory Editor")
+  SETUP_COLUMN("Preview")
   TABLE_HEADERS()
   NEXT_COLUMN()
 
@@ -33,13 +35,14 @@ absl::Status GraphicsEditor::Update() {
   RETURN_IF_ERROR(DrawClipboardImport())
   END_TAB_ITEM()
   END_TAB_BAR()
-  ImGui::Separator();
-  ImGui::Text("Graphics");
-  ImGui::Separator();
-  RETURN_IF_ERROR(DrawDecompressedData())
+  RETURN_IF_ERROR(DrawPaletteControls())
 
   NEXT_COLUMN()
   RETURN_IF_ERROR(DrawMemoryEditor())
+
+  NEXT_COLUMN()
+  RETURN_IF_ERROR(DrawDecompressedData())
+
   END_TABLE()
 
   return absl::OkStatus();
@@ -95,6 +98,45 @@ absl::Status GraphicsEditor::DrawFileImport() {
   return absl::OkStatus();
 }
 
+absl::Status GraphicsEditor::DrawPaletteControls() {
+  ImGui::Separator();
+  ImGui::Text("Palette");
+  ImGui::Separator();
+
+  ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
+               IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
+
+  ImGui::InputText("COL File", col_file_path_, sizeof(col_file_path_));
+  ImGui::SameLine();
+  // Open the file dialog when the user clicks the "Browse" button
+  if (ImGui::Button("Browse")) {
+    ImGuiFileDialog::Instance()->OpenDialog("ImportColKey", "Choose File",
+                                            ".col\0", ".");
+  }
+
+  if (ImGuiFileDialog::Instance()->Display("ImportColKey")) {
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      strncpy(col_file_path_,
+              ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+              sizeof(col_file_path_));
+      RETURN_IF_ERROR(temp_rom_.LoadFromFile(col_file_path_, /*z3_load=*/false))
+      auto col_data_ = gfx::GetColFileData(temp_rom_.data());
+      col_file_palette_ = gfx::SNESPalette(col_data_);
+      col_file_ = true;
+      is_open_ = true;
+    }
+
+    // Close the modal
+    ImGuiFileDialog::Instance()->Close();
+  }
+
+  if (col_file_palette_.size() != 0) {
+    palette_editor_.DrawPortablePalette(col_file_palette_);
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status GraphicsEditor::DrawClipboardImport() {
   static Bytes clipboard_data;
 
@@ -114,7 +156,6 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
   std::string title = "Memory Editor";
   if (is_open_) {
     static MemoryEditor mem_edit;
-    // mem_edit.DrawWindow(title.data(), (void *)&temp_rom_, temp_rom_.size());
     mem_edit.DrawContents(temp_rom_.data(), temp_rom_.size());
   }
   return absl::OkStatus();
@@ -136,17 +177,22 @@ absl::Status GraphicsEditor::DrawDecompressedData() {
 }
 
 absl::Status GraphicsEditor::DecompressImportData(int size) {
-  ASSIGN_OR_RETURN(import_data_, temp_rom_.Decompress(current_offset_, size))
+  ASSIGN_OR_RETURN(import_data_, gfx::lc_lz2::DecompressV2(
+                                     temp_rom_.data(), current_offset_, size))
   std::cout << "Size of import data " << import_data_.size() << std::endl;
 
-  Bytes new_sheet;
+  auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
   bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
-                 import_data_.data(), size);
+                 converted_sheet.data(), size);
 
   if (rom_.isLoaded()) {
     auto palette_group = rom_.GetPaletteGroup("ow_main");
     palette_ = palette_group.palettes[current_palette_];
-    bitmap_.ApplyPalette(palette_);
+    if (col_file_) {
+      bitmap_.ApplyPalette(col_file_palette_);
+    } else {
+      bitmap_.ApplyPalette(palette_);
+    }
   }
 
   rom_.RenderBitmap(&bitmap_);
@@ -161,7 +207,6 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         std::stoi(offset, nullptr, 16);  // convert hex string to int
     ASSIGN_OR_RETURN(auto decompressed_data,
                      temp_rom_.Decompress(offset_value, 0x1000))
-    
   }
 
   for (const auto& offset : kSuperDonkeySprites) {

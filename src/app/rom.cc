@@ -239,8 +239,9 @@ absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
   for (const auto& sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(rom_data_.data(), sheet_id);
-    ASSIGN_OR_RETURN(auto decomp_sheet, Decompress(offset))
+    auto offset = GetGraphicsAddress(data(), sheet_id);
+    ASSIGN_OR_RETURN(auto decomp_sheet,
+                     gfx::lc_lz2::DecompressV2(data(), offset))
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto& each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
@@ -263,7 +264,7 @@ absl::Status ROM::LoadAllGraphicsData() {
   for (int i = 0; i < core::NumberOfSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(core::Uncompressed3BPPSize);
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
+      auto offset = GetGraphicsAddress(data(), i);
       for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
         sheet[j] = rom_data_[j + offset];
       }
@@ -271,8 +272,8 @@ absl::Status ROM::LoadAllGraphicsData() {
     } else if (i == 113 || i == 114 || i >= 218) {
       bpp3 = false;
     } else {
-      auto offset = GetGraphicsAddress(rom_data_.data(), i);
-      ASSIGN_OR_RETURN(sheet, Decompress(offset))
+      auto offset = GetGraphicsAddress(data(), i);
+      ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(data(), offset))
       bpp3 = true;
     }
 
@@ -297,7 +298,8 @@ absl::Status ROM::LoadAllGraphicsData() {
 
 // ============================================================================
 
-absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
+absl::Status ROM::LoadFromFile(const absl::string_view& filename,
+                               bool z3_load) {
   filename_ = filename;
   std::ifstream file(filename.data(), std::ios::binary);
   if (!file.is_open()) {
@@ -317,7 +319,9 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename) {
   memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
 
   file.close();
-  LoadAllPalettes();
+  if (z3_load) {
+    LoadAllPalettes();
+  }
   is_loaded_ = true;
   return absl::OkStatus();
 }
