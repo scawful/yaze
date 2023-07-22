@@ -190,6 +190,49 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
   }
 }
 
+void PaletteEditor::DrawPortablePalette(gfx::SNESPalette& palette) {
+  static bool init = false;
+  if (!init) {
+    for (int n = 0; n < palette.size_; n++) {
+      saved_palette_[n].x = palette.GetColor(n).rgb.x / 255;
+      saved_palette_[n].y = palette.GetColor(n).rgb.y / 255;
+      saved_palette_[n].z = palette.GetColor(n).rgb.z / 255;
+      saved_palette_[n].w = 255;  // Alpha
+    }
+    init = true;
+  }
+
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
+      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    ImGui::BeginGroup();  // Lock X position
+    ImGui::Text("Palette");
+    for (int n = 0; n < IM_ARRAYSIZE(saved_palette_); n++) {
+      ImGui::PushID(n);
+      if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+
+      if (ImGui::ColorButton("##palette", saved_palette_[n],
+                             palette_button_flags_2, ImVec2(20, 20)))
+        ImVec4(saved_palette_[n].x, saved_palette_[n].y, saved_palette_[n].z,
+               1.0f);  // Preserve alpha!
+
+      if (ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload =
+                ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
+          memcpy((float*)&saved_palette_[n], payload->Data, sizeof(float) * 3);
+        if (const ImGuiPayload* payload =
+                ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
+          memcpy((float*)&saved_palette_[n], payload->Data, sizeof(float) * 4);
+        ImGui::EndDragDropTarget();
+      }
+
+      ImGui::PopID();
+    }
+    ImGui::EndGroup();
+  }
+  ImGui::EndChild();
+}
+
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze

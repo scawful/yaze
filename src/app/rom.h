@@ -85,7 +85,8 @@ class ROM {
   // Load functions
   absl::StatusOr<Bytes> Load2bppGraphics();
   absl::Status LoadAllGraphicsData();
-  absl::Status LoadFromFile(const absl::string_view& filename);
+  absl::Status LoadFromFile(const absl::string_view& filename,
+                            bool z3_load = true);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
   void LoadAllPalettes();

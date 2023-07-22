@@ -31,6 +31,8 @@ class PaletteEditor {
   absl::Status Update();
   void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
 
+  void DrawPortablePalette(gfx::SNESPalette& palette);
+
   auto SetupROM(ROM& rom) { rom_ = rom; }
 
  private:

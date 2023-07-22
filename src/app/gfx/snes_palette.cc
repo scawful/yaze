@@ -72,6 +72,8 @@ SNESColor GetCgxColor(short color) {
 
 std::vector<SNESColor> GetColFileData(uchar* data) {
   std::vector<SNESColor> colors;
+  colors.reserve(256);
+  colors.resize(256);
 
   for (int i = 0; i < 512; i += 2) {
     colors[i / 2] = GetCgxColor((short)((data[i + 1] << 8) + data[i]));

@@ -40,13 +40,21 @@ const std::string kSuperDonkeySprites[] = {
     "BE115", "BE5C2", "BEB63", "BF0CB", "BF607", "BFA55", "BFD71", "C017D",
     "C0567", "C0981", "C0BA7", "C116D", "C166A", "C1FE0", "C24CE", "C2B19"};
 
+constexpr char* kPaletteGroupAddressesKeys[] = {
+    "ow_main",        "ow_aux",       "ow_animated",  "hud",
+    "global_sprites", "armors",       "swords",       "shields",
+    "sprites_aux1",   "sprites_aux2", "sprites_aux3", "dungeon_main",
+    "grass",          "3d_object",    "ow_mini_map",
+};
+
 class GraphicsEditor {
  public:
   absl::Status Update();
-  void SetupROM(ROM &rom) { rom_ = rom; }
+  void SetupROM(ROM& rom) { rom_ = rom; }
 
  private:
   absl::Status DrawFileImport();
+  absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
   absl::Status DrawMemoryEditor();
   absl::Status DrawDecompressedData();
@@ -61,7 +69,9 @@ class GraphicsEditor {
   bool gfx_loaded_ = false;
   bool is_open_ = false;
   bool super_donkey_ = false;
+  bool col_file_ = false;
   char file_path_[256];
+  char col_file_path_[256];
 
   ROM rom_;
   ROM temp_rom_;
@@ -76,6 +86,7 @@ class GraphicsEditor {
   MemoryEditor memory_editor_;
 
   gfx::SNESPalette palette_;
+  gfx::SNESPalette col_file_palette_;
 
   ImGuiTableFlags gfx_edit_flags = ImGuiTableFlags_Reorderable |
                                    ImGuiTableFlags_Resizable |
