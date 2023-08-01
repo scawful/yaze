@@ -10,6 +10,7 @@
 
 namespace yaze {
 namespace gui {
+
 void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
@@ -47,7 +48,7 @@ void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
     color = backup_color;
   ImGui::Separator();
 
-ImGui::BeginGroup();  // Lock X position
+  ImGui::BeginGroup();  // Lock X position
   ImGui::Text("Palette");
   for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
     ImGui::PushID(n);
@@ -80,5 +81,6 @@ ImGui::BeginGroup();  // Lock X position
                       misc_flags | ImGuiColorEditFlags_NoSidePreview |
                           ImGuiColorEditFlags_NoSmallPreview);
 }
+
 }  // namespace gui
 }  // namespace yaze
