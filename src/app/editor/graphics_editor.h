@@ -47,6 +47,10 @@ constexpr char* kPaletteGroupAddressesKeys[] = {
     "grass",          "3d_object",    "ow_mini_map",
 };
 
+constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
+                                          ImGuiTableFlags_Resizable |
+                                          ImGuiTableFlags_SizingStretchSame;
+
 class GraphicsEditor {
  public:
   absl::Status Update();
@@ -61,36 +65,40 @@ class GraphicsEditor {
 
   absl::Status DecompressImportData(int size);
 
+  absl::Status DrawGraphicsBin();
+
   absl::Status DecompressSuperDonkey();
 
   int current_offset_ = 0;
   int current_size_ = 0;
   int current_palette_ = 0;
+  int current_palette_index_ = 0;
+  int num_sheets_to_load_ = 1;
   bool gfx_loaded_ = false;
   bool is_open_ = false;
   bool super_donkey_ = false;
   bool col_file_ = false;
-  char file_path_[256];
-  char col_file_path_[256];
+  char file_path_[256] = "";
+  char col_file_path_[256] = "";
 
   ROM rom_;
   ROM temp_rom_;
   Bytes import_data_;
   Bytes graphics_buffer_;
 
+  MemoryEditor memory_editor_;
+  PaletteEditor palette_editor_;
+
   gfx::Bitmap bitmap_;
   gui::Canvas import_canvas_;
-  gfx::BitmapTable graphics_bin_;
 
-  PaletteEditor palette_editor_;
-  MemoryEditor memory_editor_;
+  gui::Canvas super_donkey_canvas_;
+  gfx::BitmapTable graphics_bin_;
 
   gfx::SNESPalette palette_;
   gfx::SNESPalette col_file_palette_;
 
-  ImGuiTableFlags gfx_edit_flags = ImGuiTableFlags_Reorderable |
-                                   ImGuiTableFlags_Resizable |
-                                   ImGuiTableFlags_SizingStretchSame;
+  absl::Status status_;
 };
 
 }  // namespace editor

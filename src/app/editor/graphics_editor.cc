@@ -13,6 +13,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
+#include "app/gui/style.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -20,36 +21,35 @@ namespace app {
 namespace editor {
 
 absl::Status GraphicsEditor::Update() {
-  BEGIN_TABLE("#gfxEditTable", 3, gfx_edit_flags)
+  BEGIN_TABLE("#gfxEditTable", 3, kGfxEditFlags)
   SETUP_COLUMN("Graphics Manager")
   SETUP_COLUMN("Memory Editor")
   SETUP_COLUMN("Preview")
   TABLE_HEADERS()
   NEXT_COLUMN()
 
-  TAB_BAR("##GfxTabBar")
-  TAB_ITEM("File Import")
-  RETURN_IF_ERROR(DrawFileImport())
-  END_TAB_ITEM()
-  TAB_ITEM("Clipboard Import")
-  RETURN_IF_ERROR(DrawClipboardImport())
-  END_TAB_ITEM()
-  END_TAB_BAR()
-  RETURN_IF_ERROR(DrawPaletteControls())
+  status_ = DrawFileImport();
+  status_ = DrawPaletteControls();
 
   NEXT_COLUMN()
   RETURN_IF_ERROR(DrawMemoryEditor())
 
   NEXT_COLUMN()
-  RETURN_IF_ERROR(DrawDecompressedData())
-
+  if (super_donkey_) {
+    status_ = DrawGraphicsBin();
+  } else {
+    status_ = DrawDecompressedData();
+  }
   END_TABLE()
 
+  CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::DrawFileImport() {
   static int size = 0;
+
+  gui::TextWithSeparators("File Import");
 
   ImGui::InputText("File", file_path_, sizeof(file_path_));
   ImGui::SameLine();
@@ -76,32 +76,34 @@ absl::Status GraphicsEditor::DrawFileImport() {
 
   gui::InputHex("Offset", &current_offset_);
   gui::InputHex("Size ", &size);
-  gui::InputHex("Palette ", &current_palette_);
-
-  if (ImGui::Button("Super Donkey Offsets")) {
-    current_offset_ = 0x98219;
-    size = 0x30000;
-  }
-
-  ImGui::SameLine();
 
   if (ImGui::Button("Import")) {
     if (strlen(file_path_) > 0) {
-      // Add your importing code here, using file_path_ and offset as parameters
       RETURN_IF_ERROR(DecompressImportData(size))
     } else {
-      // Show an error message if no file has been selected
-      ImGui::Text("Please select a file before importing.");
+      return absl::InvalidArgumentError(
+          "Please select a file before importing.");
     }
   }
+
+  if (ImGui::Button("Import Super Donkey Full")) {
+    if (strlen(file_path_) > 0) {
+      RETURN_IF_ERROR(DecompressSuperDonkey())
+    } else {
+      return absl::InvalidArgumentError(
+          "Please select `super_donkey_1.bin` before importing.");
+    }
+  }
+
+  gui::TextWithSeparators("Clipboard Import");
+  RETURN_IF_ERROR(DrawClipboardImport())
 
   return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::DrawPaletteControls() {
-  ImGui::Separator();
-  ImGui::Text("Palette");
-  ImGui::Separator();
+  gui::TextWithSeparators("Palette");
+  gui::InputHex("Palette Index", &current_palette_index_);
 
   ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
                IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
@@ -125,8 +127,6 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
       col_file_ = true;
       is_open_ = true;
     }
-
-    // Close the modal
     ImGuiFileDialog::Instance()->Close();
   }
 
@@ -140,13 +140,14 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
 absl::Status GraphicsEditor::DrawClipboardImport() {
   static Bytes clipboard_data;
 
-  ImGui::Button("Paste");
-
-  if (!is_open_) {
-    clipboard_data.resize(0x1000);
-    for (int i = 0; i < 0x1000; i++) clipboard_data.push_back(0x00);
-    RETURN_IF_ERROR(temp_rom_.LoadFromBytes(clipboard_data))
-    is_open_ = true;
+  if (ImGui::Button("Paste from Clipboard")) {
+    const char* text = ImGui::GetClipboardText();
+    if (text) {
+      clipboard_data = Bytes(text, text + strlen(text));
+      ImGui::MemFree((void*)text);
+      RETURN_IF_ERROR(temp_rom_.LoadFromBytes(clipboard_data))
+      is_open_ = true;
+    }
   }
 
   return absl::OkStatus();
@@ -201,20 +202,76 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
   return absl::OkStatus();
 }
 
+absl::Status GraphicsEditor::DrawGraphicsBin() {
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
+      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    super_donkey_canvas_.DrawBackground(
+        ImVec2(0x100 + 1, num_sheets_to_load_ * 0x40 + 1));
+    super_donkey_canvas_.DrawContextMenu();
+    if (super_donkey_) {
+      for (const auto& [key, value] : graphics_bin_) {
+        int offset = 0x40 * (key + 1);
+        int top_left_y = super_donkey_canvas_.GetZeroPoint().y + 2;
+        if (key >= 1) {
+          top_left_y = super_donkey_canvas_.GetZeroPoint().y + 0x40 * key;
+        }
+        super_donkey_canvas_.GetDrawList()->AddImage(
+            (void*)value.GetTexture(),
+            ImVec2(super_donkey_canvas_.GetZeroPoint().x + 2, top_left_y),
+            ImVec2(super_donkey_canvas_.GetZeroPoint().x + 0x100,
+                   super_donkey_canvas_.GetZeroPoint().y + offset));
+      }
+    }
+    super_donkey_canvas_.DrawGrid(16.0f);
+    super_donkey_canvas_.DrawOverlay();
+  }
+  ImGui::EndChild();
+  return absl::OkStatus();
+}
+
 absl::Status GraphicsEditor::DecompressSuperDonkey() {
+  if (rom_.isLoaded()) {
+    auto palette_group =
+        rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
+    palette_ = palette_group.palettes[current_palette_index_];
+  }
+
+  int i = 0;
   for (const auto& offset : kSuperDonkeyTiles) {
     int offset_value =
         std::stoi(offset, nullptr, 16);  // convert hex string to int
-    ASSIGN_OR_RETURN(auto decompressed_data,
-                     temp_rom_.Decompress(offset_value, 0x1000))
+    ASSIGN_OR_RETURN(
+        auto decompressed_data,
+        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
+    auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
+    graphics_bin_[i] =
+        gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
+                    core::kTilesheetDepth, converted_sheet.data(), 0x1000);
+    graphics_bin_[i].ApplyPalette(palette_);
+
+    rom_.RenderBitmap(&graphics_bin_[i]);
+    i++;
   }
 
   for (const auto& offset : kSuperDonkeySprites) {
     int offset_value =
         std::stoi(offset, nullptr, 16);  // convert hex string to int
-    ASSIGN_OR_RETURN(auto decompressed_data,
-                     temp_rom_.Decompress(offset_value, 0x1000))
+    ASSIGN_OR_RETURN(
+        auto decompressed_data,
+        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000))
+    auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
+    graphics_bin_[i] =
+        gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
+                    core::kTilesheetDepth, converted_sheet.data(), 0x1000);
+    graphics_bin_[i].ApplyPalette(palette_);
+
+    rom_.RenderBitmap(&graphics_bin_[i]);
+    i++;
   }
+  super_donkey_ = true;
+  num_sheets_to_load_ = i;
+
   return absl::OkStatus();
 }
 
