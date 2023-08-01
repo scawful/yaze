@@ -1,7 +1,7 @@
 #include "assembly_editor.h"
 
-#include "core/constants.h"
 #include "app/gui/widgets.h"
+#include "core/constants.h"
 
 namespace yaze {
 namespace app {
@@ -12,7 +12,7 @@ AssemblyEditor::AssemblyEditor() {
   text_editor_.SetPalette(TextEditor::GetDarkPalette());
 }
 
-void AssemblyEditor::Update(bool &is_loaded) {
+void AssemblyEditor::Update(bool& is_loaded) {
   ImGui::Begin("Assembly Editor", &is_loaded);
   MENU_BAR()
   DrawFileMenu();
@@ -32,8 +32,6 @@ void AssemblyEditor::Update(bool &is_loaded) {
   ImGui::End();
 }
 
-
-
 void AssemblyEditor::InlineUpdate() {
   ChangeActiveFile("assets/asm/template_song.asm");
   auto cpos = text_editor_.GetCursorPosition();
@@ -48,7 +46,7 @@ void AssemblyEditor::InlineUpdate() {
   text_editor_.Render("##asm_editor", ImVec2(0, 0));
 }
 
-void AssemblyEditor::ChangeActiveFile(const std::string& filename) {
+void AssemblyEditor::ChangeActiveFile(const std::string_view& filename) {
   current_file_ = filename;
 }
 
