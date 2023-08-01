@@ -14,18 +14,18 @@ int main(int argc, char** argv) {
 
   yaze::app::core::Controller controller;
 
-  auto entry_status = controller.onEntry();
+  auto entry_status = controller.OnEntry();
   if (!entry_status.ok()) {
     // TODO(@scawful): log the specific error
     return EXIT_FAILURE;
   }
 
-  while (controller.isActive()) {
-    controller.onInput();
-    controller.onLoad();
-    controller.doRender();
+  while (controller.IsActive()) {
+    controller.OnInput();
+    controller.OnLoad();
+    controller.DoRender();
   }
-  controller.onExit();
+  controller.OnExit();
 
   return EXIT_SUCCESS;
 }

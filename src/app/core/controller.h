@@ -22,12 +22,12 @@ namespace core {
 
 class Controller {
  public:
-  bool isActive() const;
-  absl::Status onEntry();
-  void onInput();
-  void onLoad();
-  void doRender() const;
-  void onExit() const;
+  bool IsActive() const;
+  absl::Status OnEntry();
+  void OnInput();
+  void OnLoad();
+  void DoRender() const;
+  void OnExit() const;
 
  private:
   struct sdl_deleter {

@@ -32,6 +32,21 @@ void InitializeKeymap() {
   io.KeyMap[ImGuiKey_LeftCtrl] = SDL_GetScancodeFromKey(SDLK_LCTRL);
 }
 
+void ImGui_ImplSDL2_SetClipboardText(void *user_data, const char *text) {
+  SDL_SetClipboardText(text);
+}
+
+const char *ImGui_ImplSDL2_GetClipboardText(void *user_data) {
+  return SDL_GetClipboardText();
+}
+
+void InitializeClipboard() {
+  ImGuiIO &io = ImGui::GetIO();
+  io.SetClipboardTextFn = ImGui_ImplSDL2_SetClipboardText;
+  io.GetClipboardTextFn = ImGui_ImplSDL2_GetClipboardText;
+  io.ClipboardUserData = nullptr;
+}
+
 void HandleKeyDown(SDL_Event &event) {
   ImGuiIO &io = ImGui::GetIO();
   switch (event.key.keysym.sym) {
@@ -81,9 +96,9 @@ void HandleMouseMovement(int &wheel) {
 
 }  // namespace
 
-bool Controller::isActive() const { return active_; }
+bool Controller::IsActive() const { return active_; }
 
-absl::Status Controller::onEntry() {
+absl::Status Controller::OnEntry() {
   RETURN_IF_ERROR(CreateWindow())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
@@ -93,7 +108,7 @@ absl::Status Controller::onEntry() {
   return absl::OkStatus();
 }
 
-void Controller::onInput() {
+void Controller::OnInput() {
   int wheel = 0;
   SDL_Event event;
   ImGuiIO &io = ImGui::GetIO();
@@ -133,16 +148,16 @@ void Controller::onInput() {
   HandleMouseMovement(wheel);
 }
 
-void Controller::onLoad() { master_editor_.UpdateScreen(); }
+void Controller::OnLoad() { master_editor_.UpdateScreen(); }
 
-void Controller::doRender() const {
+void Controller::DoRender() const {
   SDL_RenderClear(renderer_.get());
   ImGui::Render();
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
   SDL_RenderPresent(renderer_.get());
 }
 
-void Controller::onExit() const {
+void Controller::OnExit() const {
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();

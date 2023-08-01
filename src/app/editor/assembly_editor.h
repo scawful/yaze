@@ -18,7 +18,7 @@ class AssemblyEditor {
 
   void Update(bool &is_loaded);
   void InlineUpdate();
-  void ChangeActiveFile(const std::string &);
+  void ChangeActiveFile(const std::string_view &);
 
  private:
   void DrawFileMenu();
