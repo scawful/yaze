@@ -6,6 +6,12 @@
 namespace yaze {
 namespace gui {
 
+void TextWithSeparators(const absl::string_view &text) {
+  ImGui::Separator();
+  ImGui::Text("%s", text.data());
+  ImGui::Separator();
+}
+
 void ColorsYaze() {
   ImGuiStyle *style = &ImGui::GetStyle();
   ImVec4 *colors = style->Colors;
