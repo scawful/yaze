@@ -82,6 +82,13 @@
   ImGui::Text(text);              \
   ImGui::Separator();
 
+#define CLEAR_AND_RETURN_STATUS(status) \
+  if (!status.ok()) {                   \
+    auto temp = status;                 \
+    status = absl::OkStatus();          \
+    return temp;                        \
+  }
+
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
