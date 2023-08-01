@@ -40,6 +40,18 @@ static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
     "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
     "##sprpalCol", "##msgidCol", "##2ndCol"};
 
+constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
+constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
+constexpr ImGuiTableFlags kOWEditFlags = ImGuiTableFlags_Reorderable |
+                                         ImGuiTableFlags_Resizable |
+                                         ImGuiTableFlags_SizingStretchSame;
+
+constexpr absl::string_view kWorldList = "Light World\0Dark World\0Extra World";
+
+constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
+constexpr absl::string_view kOWEditTable = "##OWEditTable";
+constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
+
 class OverworldEditor : public SharedROM {
  public:
   absl::Status Update();
@@ -48,8 +60,8 @@ class OverworldEditor : public SharedROM {
   absl::Status Cut() const { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() const { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() const { return absl::UnimplementedError("Paste"); }
-  void SetupROM(ROM &rom) { 
-    rom_ = rom; 
+  void SetupROM(ROM &rom) {
+    rom_ = rom;
     shared_rom_ = std::make_shared<ROM>(rom_);
   }
 
@@ -68,6 +80,7 @@ class OverworldEditor : public SharedROM {
   void DrawAreaGraphics();
   void DrawTileSelector();
   absl::Status LoadGraphics();
+  absl::Status LoadSpriteGraphics();
 
   int current_world_ = 0;
   int current_map_ = 0;
@@ -111,8 +124,6 @@ class OverworldEditor : public SharedROM {
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
 
-  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
-  ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
   ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
                                   ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_SizingStretchSame;
