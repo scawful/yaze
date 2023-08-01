@@ -35,7 +35,7 @@ absl::Status OverworldEditor::Update() {
   RETURN_IF_ERROR(DrawToolset())
 
   ImGui::Separator();
-  if (ImGui::BeginTable("#owEditTable", 2, ow_edit_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
     ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                             ImGui::GetContentRegionAvail().x);
     ImGui::TableSetupColumn("Tile Selector");
@@ -54,7 +54,7 @@ absl::Status OverworldEditor::Update() {
 // ----------------------------------------------------------------------------
 
 absl::Status OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("OWToolset", 17, toolset_table_flags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("OWToolset", 17, kToolsetTableFlags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -83,18 +83,13 @@ absl::Status OverworldEditor::DrawToolset() {
 // ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawOverworldMapSettings() {
-  if (ImGui::BeginTable("#mapSettings", 8, ow_map_flags, ImVec2(0, 0), -1)) {
+  if (ImGui::BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
     for (const auto &name : kOverworldSettingsColumnNames)
       ImGui::TableSetupColumn(name.data());
 
     ImGui::TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
-    ImGui::Combo("##world", &game_state_, "Part 0\0Part 1\0Part 2\0");
-
-    ImGui::TableNextColumn();
-    ImGui::SetNextItemWidth(100.f);
-    ImGui::Combo("##world", &current_world_,
-                 "Light World\0Dark World\0Extra World\0");
+    ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
 
     ImGui::TableNextColumn();
     ImGui::Text("GFX");
@@ -125,6 +120,10 @@ void OverworldEditor::DrawOverworldMapSettings() {
     ImGui::SameLine();
     ImGui::SetNextItemWidth(50.f);
     ImGui::InputText("##msgid", spr_palette_, kMessageIdSize);
+
+    ImGui::TableNextColumn();
+    ImGui::SetNextItemWidth(100.f);
+    ImGui::Combo("##world", &game_state_, "Part 0\0Part 1\0Part 2\0", 3);
 
     ImGui::TableNextColumn();
     ImGui::Checkbox("Show grid", &opt_enable_grid);  // TODO
@@ -286,7 +285,8 @@ void OverworldEditor::DrawAreaGraphics() {
 // ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawTileSelector() {
-  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
+  if (ImGui::BeginTabBar(kTileSelectorTab.data(),
+                         ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
       if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)2);
           ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -378,6 +378,10 @@ absl::Status OverworldEditor::LoadGraphics() {
     rom_.RenderBitmap(&(maps_bmp_[i]));
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::LoadSpriteGraphics() {
   // Render the sprites for each Overworld map
   for (int i = 0; i < 3; i++)
     for (auto &sprite : overworld_.Sprites(i)) {
@@ -389,7 +393,6 @@ absl::Status OverworldEditor::LoadGraphics() {
       sprite_previews_[sprite.id()].ApplyPalette(palette_);
       rom_.RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
-
   return absl::OkStatus();
 }
 
