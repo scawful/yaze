@@ -122,8 +122,18 @@ class ROM {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
+  auto vector() const { return rom_data_; }
   auto isLoaded() const { return is_loaded_; }
   auto char_data() { return reinterpret_cast<char*>(rom_data_.data()); }
+
+  void malloc(int n_bytes) {
+    rom_data_.clear();
+    rom_data_.reserve(n_bytes);
+    rom_data_.resize(n_bytes);
+    for (int i = 0; i < n_bytes; i++) {
+      rom_data_[i] = 0x00;
+    }
+  }
 
   uchar& operator[](int i) {
     if (i > size_) {
