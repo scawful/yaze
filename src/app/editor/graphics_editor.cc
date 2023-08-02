@@ -122,8 +122,6 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 }
 
 absl::Status GraphicsEditor::DrawFileImport() {
-  static int size = 0;
-
   gui::TextWithSeparators("BIN Import");
 
   ImGui::InputText("##ROMFile", file_path_, sizeof(file_path_));
@@ -142,11 +140,11 @@ absl::Status GraphicsEditor::DrawFileImport() {
                    [&]() -> auto { ImGui::SetClipboardText(file_path_); });
 
   gui::InputHex("BIN Offset", &current_offset_);
-  gui::InputHex("BIN Size", &size);
+  gui::InputHex("BIN Size", &bin_size_);
 
   if (ImGui::Button("Decompress BIN")) {
     if (strlen(file_path_) > 0) {
-      RETURN_IF_ERROR(DecompressImportData(size))
+      RETURN_IF_ERROR(DecompressImportData(bin_size_))
     } else {
       return absl::InvalidArgumentError(
           "Please select a file before importing.");

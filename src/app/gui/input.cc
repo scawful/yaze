@@ -11,13 +11,13 @@ namespace gui {
 const int kStepOneHex = 0x01;
 const int kStepFastHex = 0x0F;
 
-bool InputHex(const char* label, int* data) {
+bool InputHex(const char* label, uint64_t* data) {
   return ImGui::InputScalar(label, ImGuiDataType_U64, data, &kStepOneHex,
                             &kStepFastHex, "%06X",
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
-bool InputHexShort(const char* label, int* data) {
+bool InputHexShort(const char* label, uint32_t* data) {
   return ImGui::InputScalar(label, ImGuiDataType_U32, data, &kStepOneHex,
                             &kStepFastHex, "%06X",
                             ImGuiInputTextFlags_CharsHexadecimal);
