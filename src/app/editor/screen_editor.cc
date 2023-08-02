@@ -138,8 +138,6 @@ void ScreenEditor::DrawMosaicEditor() {
     ImGui::EndTable();
   }
 
-  gui::InputHex("Routine Location", &overworldCustomMosaicASM);
-
   END_TAB_ITEM()
 }
 

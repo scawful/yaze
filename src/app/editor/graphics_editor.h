@@ -80,15 +80,17 @@ class GraphicsEditor {
 
   absl::Status DecompressSuperDonkey();
 
-  int current_offset_ = 0;
-  int current_size_ = 0;
+  uint64_t current_offset_ = 0;
+  uint64_t current_size_ = 0;
   int current_palette_ = 0;
-  int current_palette_index_ = 0;
-  
-  int num_sheets_to_load_ = 1;
+  uint64_t current_palette_index_ = 0;
 
-  int clipboard_offset_ = 0;
-  int clipboard_size_ = 0;
+  uint64_t num_sheets_to_load_ = 1;
+
+  uint64_t bin_size_ = 0;
+
+  uint64_t clipboard_offset_ = 0;
+  uint64_t clipboard_size_ = 0;
 
   bool open_memory_editor_ = false;
   bool gfx_loaded_ = false;
