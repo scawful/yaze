@@ -153,6 +153,23 @@ Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
   return buffer;
 }
 
+ushort TileInfoToShort(TileInfo tile_info) {
+  ushort result = 0;
+
+  // Copy the id_ value
+  result |= tile_info.id_ & 0x3FF;  // ids are 10 bits
+
+  // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
+  result |= (tile_info.vertical_mirror_ ? 1 : 0) << 10;
+  result |= (tile_info.horizontal_mirror_ ? 1 : 0) << 11;
+  result |= (tile_info.over_ ? 1 : 0) << 12;
+
+  // Set the palette_
+  result |= (tile_info.palette_ & 0x07) << 13;  // palettes are 3 bits
+
+  return result;
+}
+
 TileInfo GetTilesInfo(ushort tile) {
   // vhopppcc cccccccc
   bool o = false;

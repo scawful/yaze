@@ -138,14 +138,16 @@ class ROM {
 
   uchar& operator[](int i) {
     if (i > size_) {
-      std::cout << "ROM: Index out of bounds" << std::endl;
+      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
+                << std::endl;
       return rom_data_[0];
     }
     return rom_data_[i];
   }
   uchar& operator+(int i) {
     if (i > size_) {
-      std::cout << "ROM: Index out of bounds" << std::endl;
+      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
+                << std::endl;
       return rom_data_[0];
     }
     return rom_data_[i];

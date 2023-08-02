@@ -96,11 +96,11 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
 
     if (bitmap.IsActive()) {
       draw_list_->AddImage(
-          (void *)bitmap.GetTexture(),
+          (void *)bitmap.texture(),
           ImVec2(origin.x + draw_tile_outline_pos.x,
                  origin.y + draw_tile_outline_pos.y),
-          ImVec2(origin.x + draw_tile_outline_pos.x + bitmap.GetWidth(),
-                 origin.y + draw_tile_outline_pos.y + bitmap.GetHeight()));
+          ImVec2(origin.x + draw_tile_outline_pos.x + bitmap.width(),
+                 origin.y + draw_tile_outline_pos.y + bitmap.height()));
     }
 
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -147,20 +147,20 @@ void Canvas::DrawTileSelector(int size) {
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
   if (ready) {
     draw_list_->AddImage(
-        (void *)bitmap.GetTexture(),
+        (void *)bitmap.texture(),
         ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
-        ImVec2(canvas_p0_.x + (bitmap.GetWidth() * 2),
-               canvas_p0_.y + (bitmap.GetHeight() * 2)));
+        ImVec2(canvas_p0_.x + (bitmap.width() * 2),
+               canvas_p0_.y + (bitmap.height() * 2)));
   }
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
   draw_list_->AddImage(
-      (void *)bitmap.GetTexture(),
+      (void *)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
              canvas_p0_.y + y_offset + scrolling_.y),
-      ImVec2(canvas_p0_.x + x_offset + scrolling_.x + (bitmap.GetWidth()),
-             canvas_p0_.y + y_offset + scrolling_.y + (bitmap.GetHeight())));
+      ImVec2(canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width()),
+             canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height())));
 }
 
 // TODO: Add parameters for sizing and positioning
@@ -171,7 +171,7 @@ void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
     if (key >= 1) {
       top_left_y = canvas_p0_.y + 0x40 * key;
     }
-    draw_list_->AddImage((void *)value.GetTexture(),
+    draw_list_->AddImage((void *)value.texture(),
                          ImVec2(canvas_p0_.x + 2, top_left_y),
                          ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
   }

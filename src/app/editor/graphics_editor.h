@@ -8,6 +8,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/pipeline.h"
 #include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
@@ -70,8 +71,6 @@ class GraphicsEditor {
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
   absl::Status DrawMemoryEditor();
-  absl::Status DrawCgxViewer();
-  absl::Status DrawDecompressedData();
   absl::Status DrawGraphicsBin();
 
   absl::Status DecompressImportData(int size);
@@ -89,6 +88,7 @@ class GraphicsEditor {
   bool super_donkey_ = false;
   bool col_file_ = false;
   bool cgx_loaded_ = false;
+  bool scr_loaded_ = false;
 
   char file_path_[256] = "";
   char col_file_path_[256] = "";

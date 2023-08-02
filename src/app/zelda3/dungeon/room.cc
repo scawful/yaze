@@ -129,7 +129,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
 
   auto newPdata = rom_.GetGraphicsBuffer();
 
-  uchar* sheetsData = current_graphics_.GetData();
+  uchar* sheetsData = current_graphics_.data();
   // Into "room gfx16" 16 of them
 
   int sheetPos = 0;
@@ -159,7 +159,7 @@ void Room::LoadAnimatedGraphics() {
 
   auto newPdata = rom_.GetGraphicsBuffer();
 
-  uchar* sheetsData = current_graphics_.GetData();
+  uchar* sheetsData = current_graphics_.data();
   int data = 0;
   while (data < 512) {
     uchar mapByte = newPdata[data + (92 * 2048) + (512 * animated_frame)];

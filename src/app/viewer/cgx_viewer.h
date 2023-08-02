@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 
+#include "app/core/pipeline.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -15,9 +16,12 @@ namespace viewer {
 
 class CgxViewer {
  public:
-  void Update();
-  auto GetCgxData() const { return all_tiles_data_; }
   void LoadCgx(ROM&);
+  auto GetCgxData() const { return all_tiles_data_; }
+
+  void DrawBG1(int p, int bpp);
+  void DrawBG2();
+  void DrawOAM(int bpp, int drawmode, gfx::OAMTile data, int frame);
 
  private:
   void LoadGfx(int comboBpp);
@@ -25,10 +29,16 @@ class CgxViewer {
 
   void RefreshPalettes();
 
+  gfx::Bitmap screen_bitmap_;
+  gfx::Bitmap room_bg1_bitmap_;
+  gfx::Bitmap room_bg2_bitmap_;
+  gfx::Bitmap indexed_bitmap_;
+
   std::string label1_text;
 
   int bpp_;
   int current_selection_;
+
   ROM all_tiles_data_;
   ROM raw_data_;
 };

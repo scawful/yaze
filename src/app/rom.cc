@@ -284,11 +284,11 @@ absl::Status ROM::LoadAllGraphicsData() {
                       core::kTilesheetDepth, converted_sheet.data(), 0x1000);
       graphics_bin_.at(i).CreateTexture(renderer_);
 
-      for (int j = 0; j < graphics_bin_.at(i).GetSize(); ++j) {
-        graphics_buffer_.push_back(graphics_bin_.at(i).GetByte(j));
+      for (int j = 0; j < graphics_bin_.at(i).size(); ++j) {
+        graphics_buffer_.push_back(graphics_bin_.at(i).at(j));
       }
     } else {
-      for (int j = 0; j < graphics_bin_.at(0).GetSize(); ++j) {
+      for (int j = 0; j < graphics_bin_.at(0).size(); ++j) {
         graphics_buffer_.push_back(0xFF);
       }
     }
@@ -315,11 +315,10 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
     rom_data_[i] = byte_to_read;
   }
 
-  // copy ROM title
-  memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
-
   file.close();
   if (z3_load) {
+    // copy ROM title
+    memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
     LoadAllPalettes();
   }
   is_loaded_ = true;

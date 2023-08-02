@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 
+#include "app/core/pipeline.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -12,14 +13,8 @@ namespace yaze {
 namespace app {
 namespace viewer {
 
-void CgxViewer::Update() {
-  static int current_bpp = 1;
-  // ImGui::Combo("BPP", current_bpp, "0\0 1\0 2\0 3\0", 4, 4);
-  LoadGfx(current_bpp);
-  LoadScr();
-}
-
-void CgxViewer::LoadCgx(ROM& cgx_rom) {
+void CgxViewer::LoadCgx(ROM &cgx_rom) {
+  std::cout << "Loading CGX" << std::endl;
   raw_data_.malloc(0x40000);
   all_tiles_data_.malloc(0x40000);
 
@@ -49,6 +44,43 @@ void CgxViewer::LoadCgx(ROM& cgx_rom) {
                              absl::StrFormat("%X4", matching_position));
   LoadGfx(current_selection_);
 }
+
+void CgxViewer::DrawBG1(int p, int bpp) {
+  auto *ptr = (uchar *)screen_bitmap_.data();
+  // for each tile on the tile buffer
+  for (int i = 0; i < 0x400; i++) {
+    if (room_bg1_bitmap_.data()[i + p] != 0xFFFF) {
+      gfx::TileInfo t = gfx::GetTilesInfo(room_bg1_bitmap_.data()[i + p]);
+
+      for (uint16_t yl = 0; yl < 8; yl++) {
+        for (uint16_t xl = 0; xl < 8; xl++) {
+          int mx = xl * (1 - t.horizontal_mirror_) +
+                   (7 - xl) * (t.horizontal_mirror_);
+          int my =
+              yl * (1 - t.vertical_mirror_) + (7 - yl) * (t.vertical_mirror_);
+
+          int ty = (t.id_ / 16) * 1024;
+          int tx = (t.id_ % 16) * 8;
+          uchar pixel = all_tiles_data_[(tx + ty) + (yl * 128) + xl];
+
+          int index =
+              (((i % 32) * 8) + ((i / 32) * 2048) + ((mx) + (my * 256)));
+
+          if (bpp != 8) {
+            ptr[index] = (uchar)((((pixel)&0xFF) + t.palette_ * 16));
+          } else {
+            ptr[index] = (uchar)((((pixel)&0xFF)));
+          }
+        }
+      }
+    }
+  }
+
+  // Apply data to Bitmap
+}
+void CgxViewer::DrawBG2() {}
+
+void CgxViewer::DrawOAM(int bpp, int drawmode, gfx::OAMTile data, int frame) {}
 
 void CgxViewer::LoadGfx(int combo_bpp) {
   if (combo_bpp == 0) {

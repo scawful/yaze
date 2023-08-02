@@ -30,9 +30,10 @@ absl::Status GraphicsEditor::Update() {
     ImGui::End();
   }
 
-  BEGIN_TABLE("#gfxEditTable", 3, kGfxEditFlags)
+  BEGIN_TABLE("#gfxEditTable", 4, kGfxEditFlags)
   SETUP_COLUMN("Graphics (BIN, CGX, SCR)")
   SETUP_COLUMN("Palette (COL)")
+  SETUP_COLUMN("Maps and Animations (SCR, PNL)")
   SETUP_COLUMN("Preview")
   TABLE_HEADERS()
   NEXT_COLUMN()
@@ -45,12 +46,15 @@ absl::Status GraphicsEditor::Update() {
   status_ = DrawPaletteControls();
 
   NEXT_COLUMN()
+  core::BitmapCanvasPipeline(0x200, 0x200, 0x20, 6, scr_loaded_, cgx_bitmap_);
+
+  NEXT_COLUMN()
   if (super_donkey_) {
     status_ = DrawGraphicsBin();
   } else if (cgx_loaded_ && col_file_) {
-    status_ = DrawCgxViewer();
+    core::BitmapCanvasPipeline(0x100, 16384, 0x20, 5, cgx_loaded_, cgx_bitmap_);
   } else {
-    status_ = DrawDecompressedData();
+    core::BitmapCanvasPipeline(0x100, 16384, 0x20, 2, gfx_loaded_, bitmap_);
   }
   END_TABLE()
 
@@ -66,7 +70,11 @@ absl::Status GraphicsEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_MEMORY)) {
-      open_memory_editor_ = true;
+      if (!open_memory_editor_) {
+        open_memory_editor_ = true;
+      } else {
+        open_memory_editor_ = false;
+      }
     }
 
     TEXT_COLUMN("Open Memory Editor")  // Separator
@@ -81,21 +89,31 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 
   ImGui::InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
   ImGui::SameLine();
-  core::FileDialogPipeline("ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [&]() {
-    strncpy(cgx_file_path_,
-            ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-            sizeof(cgx_file_path_));
-    strncpy(cgx_file_name_,
-            ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-            sizeof(cgx_file_name_));
-    RETURN_IF_ERROR(temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false))
-    cgx_viewer_.LoadCgx(temp_rom_);
-    auto all_tiles_data = cgx_viewer_.GetCgxData();
-    cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
-                       all_tiles_data.data(), all_tiles_data.size());
-    is_open_ = true;
-    cgx_loaded_ = true;
-  });
+
+  core::FileDialogPipeline(
+      "ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [&]() -> auto {
+        strncpy(cgx_file_path_,
+                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+                sizeof(cgx_file_path_));
+        strncpy(cgx_file_name_,
+                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+                sizeof(cgx_file_name_));
+        status_ = temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false);
+        cgx_viewer_.LoadCgx(temp_rom_);
+        auto all_tiles_data = cgx_viewer_.GetCgxData();
+        cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
+                           all_tiles_data.data(), all_tiles_data.size());
+        if (col_file_) {
+          cgx_bitmap_.ApplyPalette(col_file_palette_);
+          rom_.RenderBitmap(&cgx_bitmap_);
+        }
+        is_open_ = true;
+        cgx_loaded_ = true;
+      });
+  core::ButtonPipe("Copy File Path",
+                   [&]() -> auto { ImGui::SetClipboardText(cgx_file_path_); });
+
+  CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
 }
 
@@ -109,26 +127,18 @@ absl::Status GraphicsEditor::DrawFileImport() {
 
   ImGui::InputText("##ROMFile", file_path_, sizeof(file_path_));
   ImGui::SameLine();
-  // Open the file dialog when the user clicks the "Browse" button
-  if (ImGui::Button("Open BIN")) {
-    ImGuiFileDialog::Instance()->OpenDialog("ImportDlgKey", "Choose File",
-                                            ".bin,.hex\0", ".");
-  }
 
-  // Draw the file dialog
-  if (ImGuiFileDialog::Instance()->Display("ImportDlgKey")) {
-    // If the user made a selection, copy the filename to the file_path_ buffer
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      strncpy(file_path_,
-              ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-              sizeof(file_path_));
-      RETURN_IF_ERROR(temp_rom_.LoadFromFile(file_path_))
-      is_open_ = true;
-    }
+  core::FileDialogPipeline(
+      "ImportDlgKey", ".bin,.hex\0", "Open BIN", [&]() -> auto {
+        strncpy(file_path_,
+                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+                sizeof(file_path_));
+        status_ = temp_rom_.LoadFromFile(file_path_);
+        is_open_ = true;
+      });
 
-    // Close the modal
-    ImGuiFileDialog::Instance()->Close();
-  }
+  core::ButtonPipe("Copy File Path",
+                   [&]() -> auto { ImGui::SetClipboardText(file_path_); });
 
   gui::InputHex("Offset", &current_offset_);
   gui::InputHex("Size ", &size);
@@ -150,32 +160,23 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   ImGui::InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
   ImGui::SameLine();
 
-  if (ImGui::Button("Open COL")) {
-    ImGuiFileDialog::Instance()->OpenDialog("ImportColKey", "Choose File",
-                                            ".COL,.col", ".");
-  }
+  core::FileDialogPipeline(
+      "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [&]() -> auto {
+        strncpy(col_file_path_,
+                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+                sizeof(col_file_path_));
+        strncpy(col_file_name_,
+                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+                sizeof(col_file_name_));
+        status_ = temp_rom_.LoadFromFile(col_file_path_, /*z3_load=*/false);
+        auto col_data_ = gfx::GetColFileData(temp_rom_.data());
+        col_file_palette_ = gfx::SNESPalette(col_data_);
+        col_file_ = true;
+        is_open_ = true;
+      });
 
-  if (ImGuiFileDialog::Instance()->Display("ImportColKey")) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      strncpy(col_file_path_,
-              ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-              sizeof(col_file_path_));
-      strncpy(col_file_name_,
-              ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-              sizeof(col_file_name_));
-      RETURN_IF_ERROR(temp_rom_.LoadFromFile(col_file_path_, /*z3_load=*/false))
-      auto col_data_ = gfx::GetColFileData(temp_rom_.data());
-      col_file_palette_ = gfx::SNESPalette(col_data_);
-      col_file_ = true;
-      is_open_ = true;
-
-      if (cgx_loaded_) {
-        cgx_bitmap_.ApplyPalette(col_file_palette_);
-        rom_.RenderBitmap(&cgx_bitmap_);
-      }
-    }
-    ImGuiFileDialog::Instance()->Close();
-  }
+  core::ButtonPipe("Copy File Path",
+                   [&]() -> auto { ImGui::SetClipboardText(col_file_path_); });
 
   if (rom_.isLoaded()) {
     gui::TextWithSeparators("ROM Palette");
@@ -185,7 +186,6 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   }
 
   if (col_file_palette_.size() != 0) {
-    ImGuiFileDialog::Instance()->prDrawFileListView(ImVec2(0, 200));
     palette_editor_.DrawPortablePalette(col_file_palette_);
   }
 
@@ -231,36 +231,6 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
   return absl::OkStatus();
 }
 
-absl::Status GraphicsEditor::DrawCgxViewer() {
-  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)5);
-      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    import_canvas_.DrawBackground(ImVec2(0x100 + 1, (8192 * 2) + 1));
-    import_canvas_.DrawContextMenu();
-    import_canvas_.DrawBitmap(cgx_bitmap_, 2, cgx_loaded_);
-    import_canvas_.DrawTileSelector(32);
-    import_canvas_.DrawGrid(32.0f);
-    import_canvas_.DrawOverlay();
-  }
-  ImGui::EndChild();
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::DrawDecompressedData() {
-  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)2);
-      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    import_canvas_.DrawBackground(ImVec2(0x100 + 1, (8192 * 2) + 1));
-    import_canvas_.DrawContextMenu();
-    import_canvas_.DrawBitmap(bitmap_, 2, gfx_loaded_);
-    import_canvas_.DrawTileSelector(32);
-    import_canvas_.DrawGrid(32.0f);
-    import_canvas_.DrawOverlay();
-  }
-  ImGui::EndChild();
-  return absl::OkStatus();
-}
-
 absl::Status GraphicsEditor::DrawGraphicsBin() {
   if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -276,7 +246,7 @@ absl::Status GraphicsEditor::DrawGraphicsBin() {
           top_left_y = super_donkey_canvas_.GetZeroPoint().y + 0x40 * key;
         }
         super_donkey_canvas_.GetDrawList()->AddImage(
-            (void*)value.GetTexture(),
+            (void*)value.texture(),
             ImVec2(super_donkey_canvas_.GetZeroPoint().x + 2, top_left_y),
             ImVec2(super_donkey_canvas_.GetZeroPoint().x + 0x100,
                    super_donkey_canvas_.GetZeroPoint().y + offset));
