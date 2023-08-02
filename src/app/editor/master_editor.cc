@@ -8,6 +8,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/core/pipeline.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/music_editor.h"
@@ -84,18 +85,17 @@ void MasterEditor::UpdateScreen() {
 }
 
 void MasterEditor::DrawFileDialog() {
-  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      status_ = rom_.LoadFromFile(filePathName);
-      overworld_editor_.SetupROM(rom_);
-      graphics_editor_.SetupROM(rom_);
-      screen_editor_.SetupROM(rom_);
-      palette_editor_.SetupROM(rom_);
-      music_editor_.SetupROM(rom_);
-    }
-    ImGuiFileDialog::Instance()->Close();
-  }
+  core::FileDialogPipeline("ChooseFileDlgKey", ".sfc,.smc", std::nullopt,
+                           [&]() {
+                             std::string filePathName =
+                                 ImGuiFileDialog::Instance()->GetFilePathName();
+                             status_ = rom_.LoadFromFile(filePathName);
+                             overworld_editor_.SetupROM(rom_);
+                             graphics_editor_.SetupROM(rom_);
+                             screen_editor_.SetupROM(rom_);
+                             palette_editor_.SetupROM(rom_);
+                             music_editor_.SetupROM(rom_);
+                           });
 }
 
 void MasterEditor::DrawStatusPopup() {

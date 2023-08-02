@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/pipeline.h"
 #include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
@@ -80,32 +81,21 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 
   ImGui::InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
   ImGui::SameLine();
-  // Open the file dialog when the user clicks the "Browse" button
-  if (ImGui::Button("Open CGX")) {
-    ImGuiFileDialog::Instance()->OpenDialog("ImportCgxKey", "Choose File",
-                                            ".CGX,.cgx\0", ".");
-  }
-
-  if (ImGuiFileDialog::Instance()->Display("ImportCgxKey")) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      strncpy(cgx_file_path_,
-              ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-              sizeof(cgx_file_path_));
-      strncpy(cgx_file_name_,
-              ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-              sizeof(cgx_file_name_));
-      RETURN_IF_ERROR(temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false))
-      cgx_viewer_.LoadCgx(temp_rom_);
-      auto all_tiles_data = cgx_viewer_.GetCgxData();
-      cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
-                         all_tiles_data.data(), all_tiles_data.size());
-      rom_.RenderBitmap(&cgx_bitmap_);
-      is_open_ = true;
-      cgx_loaded_ = true;
-    }
-    ImGuiFileDialog::Instance()->Close();
-  }
-
+  core::FileDialogPipeline("ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [&]() {
+    strncpy(cgx_file_path_,
+            ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+            sizeof(cgx_file_path_));
+    strncpy(cgx_file_name_,
+            ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+            sizeof(cgx_file_name_));
+    RETURN_IF_ERROR(temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false))
+    cgx_viewer_.LoadCgx(temp_rom_);
+    auto all_tiles_data = cgx_viewer_.GetCgxData();
+    cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
+                       all_tiles_data.data(), all_tiles_data.size());
+    is_open_ = true;
+    cgx_loaded_ = true;
+  });
   return absl::OkStatus();
 }
 
