@@ -14,6 +14,7 @@ constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
 Bytes SnesTo8bppSheet(Bytes sheet, int bpp);
+Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp = 0);
 
 struct tile8 {
   unsigned int id;
