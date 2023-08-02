@@ -15,44 +15,32 @@ namespace viewer {
 void CgxViewer::Update() {
   static int current_bpp = 1;
   // ImGui::Combo("BPP", current_bpp, "0\0 1\0 2\0 3\0", 4, 4);
-  LoadColFile();
   LoadGfx(current_bpp);
   LoadScr();
 }
 
-void CgxViewer::LoadColFile() {
-  uchar data[512];
-
-  std::vector<gfx::SNESColor> colors;
-  for (int i = 0; i < 512; i += 2) {
-    colors[i / 2] = gfx::GetCgxColor((short)((data[i + 1] << 8) + data[i]));
-  }
-}
-
 void CgxViewer::LoadCgx(std::string pathfile) {
-  unsigned char* ptr = rawData.data();
-
-  for (int i = 0; i < 0x40000; i++) {
-    ptr[i] = 0;
-    rawData[i] = 0;
-  }
+  raw_data_.malloc(0x40000);
+  all_tiles_data_.malloc(0x40000);
 
   std::ifstream fs(pathfile, std::ios::binary);
   std::vector<unsigned char> data((std::istreambuf_iterator<char>(fs)),
                                   std::istreambuf_iterator<char>());
   fs.close();
 
-  int matchingPos = -1;
+  std::vector<unsigned char> matched_bytes;
+  int matching_position = -1;
   bool matched = false;
   for (int i = 0; i < data.size(); i++) {
     if (matched) {
       break;
     }
-    rawData[i] = data[i];
-    for (int j = 0; j < matchBytes.size(); j++) {
-      if (data[i + j] == matchBytes[j]) {
-        if (j == matchBytes.size() - 1) {
-          matchingPos = i;
+
+    raw_data_[i] = data[i];
+    for (int j = 0; j < matched_bytes.size(); j++) {
+      if (data[i + j] == matched_bytes[j]) {
+        if (j == matched_bytes.size() - 1) {
+          matching_position = i;
           matched = true;
           break;
         }
@@ -62,46 +50,34 @@ void CgxViewer::LoadCgx(std::string pathfile) {
     }
   }
 
-  char buffer[10];
-  sprintf(buffer, "%X4", matchingPos);
-  label1_text = "CGX In Folder L : " + std::string(buffer);
+  label1_text = absl::StrCat("CGX In Folder L : ",
+                             absl::StrFormat("%X4", matching_position));
   LoadGfx(current_selection_);
 }
 
-struct GFX_Class {
-  unsigned char* indexedPointer;
-} GFX;
-struct PictureBox_Class {
-  void (*Refresh)();
-} pictureBox1;
-
-void CgxViewer::LoadGfx(int comboBpp) {
-  if (comboBpp == 0) {
+void CgxViewer::LoadGfx(int combo_bpp) {
+  if (combo_bpp == 0) {
     bpp_ = 4;
-  } else if (comboBpp == 1) {
+  } else if (combo_bpp == 1) {
     bpp_ = 2;
-  } else if (comboBpp == 2) {
+  } else if (combo_bpp == 2) {
     bpp_ = 8;
-  } else if (comboBpp == 3) {
+  } else if (combo_bpp == 3) {
     bpp_ = 40;
-    unsigned char* ptr = GFX.indexedPointer;
-    for (int i = 0; i < rawData.size(); i++) {
-      ptr[i] = rawData[i];
+    for (int i = 0; i < raw_data_.size(); i++) {
+      all_tiles_data_[i] = raw_data_[i];
     }
+    // Refresh palettes and "picture box" aka canvas
     RefreshPalettes();
-    pictureBox1.Refresh();
     return;
   }
 
-  unsigned char* ptr = GFX.indexedPointer;
-  Bytes rawBytes;  // rawData.data()
-  std::vector<unsigned char> dd = gfx::SnesTo8bppSheet(rawBytes, bpp_);
-  for (int i = 0; i < dd.size(); i++) {
-    ptr[i] = dd[i];
+  Bytes decomp_sheet = gfx::SnesTo8bppSheet(raw_data_.vector(), bpp_);
+  for (int i = 0; i < decomp_sheet.size(); i++) {
+    all_tiles_data_[i] = decomp_sheet[i];
   }
 
   RefreshPalettes();
-  pictureBox1.Refresh();
 }
 
 void CgxViewer::LoadScr() {}

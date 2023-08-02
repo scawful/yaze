@@ -18,20 +18,18 @@ class CgxViewer {
   void Update();
 
  private:
-  void LoadColFile();
-
   void LoadCgx(std::string pathfile);
   void LoadGfx(int comboBpp);
   void LoadScr();
 
   void RefreshPalettes();
 
-  std::vector<unsigned char> matchBytes;  // Assuming it's a vector of bytes.
   std::string label1_text;
 
   int bpp_;
   int current_selection_;
-  ROM rawData;
+  ROM all_tiles_data_;
+  ROM raw_data_;
 };
 
 }  // namespace viewer

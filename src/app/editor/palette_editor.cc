@@ -202,7 +202,7 @@ void PaletteEditor::DrawPortablePalette(gfx::SNESPalette& palette) {
     init = true;
   }
 
-  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)100);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     ImGui::BeginGroup();  // Lock X position

@@ -14,6 +14,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "app/viewer/cgx_viewer.h"
 
 namespace yaze {
 namespace app {
@@ -60,12 +61,12 @@ class GraphicsEditor {
   absl::Status DrawFileImport();
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
+  absl::Status DrawExperimentalFeatures();
   absl::Status DrawMemoryEditor();
   absl::Status DrawDecompressedData();
+  absl::Status DrawGraphicsBin();
 
   absl::Status DecompressImportData(int size);
-
-  absl::Status DrawGraphicsBin();
 
   absl::Status DecompressSuperDonkey();
 
@@ -80,6 +81,7 @@ class GraphicsEditor {
   bool col_file_ = false;
   char file_path_[256] = "";
   char col_file_path_[256] = "";
+  char col_file_name_[256] = "";
 
   ROM rom_;
   ROM temp_rom_;
@@ -97,6 +99,8 @@ class GraphicsEditor {
 
   gfx::SNESPalette palette_;
   gfx::SNESPalette col_file_palette_;
+
+  viewer::CgxViewer cgx_viewer_;
 
   absl::Status status_;
 };
