@@ -48,6 +48,11 @@ constexpr char* kPaletteGroupAddressesKeys[] = {
     "grass",          "3d_object",    "ow_mini_map",
 };
 
+static constexpr absl::string_view kGfxToolsetColumnNames[] = {
+    "#memoryEditor",
+    "##separator_gfx1",
+};
+
 constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
                                           ImGuiTableFlags_Resizable |
                                           ImGuiTableFlags_SizingStretchSame;
@@ -58,11 +63,14 @@ class GraphicsEditor {
   void SetupROM(ROM& rom) { rom_ = rom; }
 
  private:
+  absl::Status DrawToolset();
+  absl::Status DrawCgxImport();
   absl::Status DrawFileImport();
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
   absl::Status DrawMemoryEditor();
+  absl::Status DrawCgxViewer();
   absl::Status DrawDecompressedData();
   absl::Status DrawGraphicsBin();
 
@@ -75,13 +83,19 @@ class GraphicsEditor {
   int current_palette_ = 0;
   int current_palette_index_ = 0;
   int num_sheets_to_load_ = 1;
+  bool open_memory_editor_ = false;
   bool gfx_loaded_ = false;
   bool is_open_ = false;
   bool super_donkey_ = false;
   bool col_file_ = false;
+  bool cgx_loaded_ = false;
+
   char file_path_[256] = "";
   char col_file_path_[256] = "";
   char col_file_name_[256] = "";
+
+  char cgx_file_path_[256] = "";
+  char cgx_file_name_[256] = "";
 
   ROM rom_;
   ROM temp_rom_;
@@ -90,6 +104,8 @@ class GraphicsEditor {
 
   MemoryEditor memory_editor_;
   PaletteEditor palette_editor_;
+
+  gfx::Bitmap cgx_bitmap_;
 
   gfx::Bitmap bitmap_;
   gui::Canvas import_canvas_;

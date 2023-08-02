@@ -16,9 +16,10 @@ namespace viewer {
 class CgxViewer {
  public:
   void Update();
+  auto GetCgxData() const { return all_tiles_data_; }
+  void LoadCgx(ROM&);
 
  private:
-  void LoadCgx(std::string pathfile);
   void LoadGfx(int comboBpp);
   void LoadScr();
 
