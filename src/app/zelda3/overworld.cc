@@ -65,7 +65,7 @@ absl::Status Overworld::Load(ROM &rom) {
     }
   }
 
-  LoadSprites();
+  // LoadSprites();
 
   is_loaded_ = true;
   return absl::OkStatus();
@@ -280,13 +280,13 @@ void Overworld::SaveMap16Tiles() {
   int tpos = core::map16Tiles;
   // 3760
   for (int i = 0; i < core::NumberOfMap16; i += 1) {
-    rom_.WriteShort(tpos, tiles16[i].tile0_.ToShort());
+    rom_.WriteShort(tpos, TileInfoToShort(tiles16[i].tile0_));
     tpos += 2;
-    rom_.WriteShort(tpos, tiles16[i].tile1_.ToShort());
+    rom_.WriteShort(tpos, TileInfoToShort(tiles16[i].tile1_));
     tpos += 2;
-    rom_.WriteShort(tpos, tiles16[i].tile2_.ToShort());
+    rom_.WriteShort(tpos, TileInfoToShort(tiles16[i].tile2_));
     tpos += 2;
-    rom_.WriteShort(tpos, tiles16[i].tile3_.ToShort());
+    rom_.WriteShort(tpos, TileInfoToShort(tiles16[i].tile3_));
     tpos += 2;
   }
 }

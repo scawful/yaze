@@ -13,12 +13,13 @@ namespace yaze {
 namespace app {
 namespace viewer {
 
+constexpr int kMatchedBytes[] = {0x4E, 0x41, 0x4B, 0x31, 0x39, 0x38, 0x39};
+
 void CgxViewer::LoadCgx(ROM &cgx_rom) {
   std::cout << "Loading CGX" << std::endl;
   raw_data_.malloc(0x40000);
   all_tiles_data_.malloc(0x40000);
 
-  std::vector<unsigned char> matched_bytes;
   int matching_position = -1;
   bool matched = false;
   for (int i = 0; i < cgx_rom.size(); i++) {
@@ -27,9 +28,9 @@ void CgxViewer::LoadCgx(ROM &cgx_rom) {
     }
 
     raw_data_[i] = cgx_rom[i];
-    for (int j = 0; j < matched_bytes.size(); j++) {
-      if (cgx_rom[i + j] == matched_bytes[j]) {
-        if (j == matched_bytes.size() - 1) {
+    for (int j = 0; j < 7; j++) {
+      if (cgx_rom[i + j] == kMatchedBytes[j]) {
+        if (j == 7 - 1) {
           matching_position = i;
           matched = true;
           break;
