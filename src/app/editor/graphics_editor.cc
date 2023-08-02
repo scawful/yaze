@@ -170,6 +170,18 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         status_ = temp_rom_.LoadFromFile(col_file_path_,
                                          /*z3_load=*/false);
         auto col_data_ = gfx::GetColFileData(temp_rom_.data());
+        if (col_file_palette_group_.size() != 0) {
+          col_file_palette_group_.Clear();
+        }
+        for (int i = 0; i < col_data_.size(); i += 8) {
+          // Extract 8 colors from the col_data_ and make them into a palette
+          gfx::SNESPalette palette;
+          for (int j = 0; j < 8; j++) {
+            palette.AddColor(col_data_[i + j]);
+          }
+          // color.AddColor()
+          col_file_palette_group_.AddPalette(palette);
+        }
         col_file_palette_ = gfx::SNESPalette(col_data_);
         col_file_ = true;
         is_open_ = true;
@@ -282,12 +294,6 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
 }
 
 absl::Status GraphicsEditor::DecompressSuperDonkey() {
-  if (rom_.isLoaded()) {
-    auto palette_group =
-        rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
-    palette_ = palette_group.palettes[current_palette_index_];
-  }
-
   int i = 0;
   for (const auto& offset : kSuperDonkeyTiles) {
     int offset_value =
@@ -300,9 +306,13 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                     core::kTilesheetDepth, converted_sheet.data(), 0x1000);
     if (col_file_) {
-      graphics_bin_[i].ApplyPalette(col_file_palette_);
+      graphics_bin_[i].ApplyPalette(
+          col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
+      auto palette_group =
+          rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
+      palette_ = palette_group.palettes[current_palette_index_];
       graphics_bin_[i].ApplyPalette(palette_);
     }
 
@@ -321,9 +331,13 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                     core::kTilesheetDepth, converted_sheet.data(), 0x1000);
     if (col_file_) {
-      graphics_bin_[i].ApplyPalette(col_file_palette_);
+      graphics_bin_[i].ApplyPalette(
+          col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
+      auto palette_group =
+          rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
+      palette_ = palette_group.palettes[current_palette_index_];
       graphics_bin_[i].ApplyPalette(palette_);
     }
 

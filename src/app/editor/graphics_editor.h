@@ -126,6 +126,8 @@ class GraphicsEditor {
 
   gfx::BitmapTable clipboard_graphics_bin_;
 
+  gfx::PaletteGroup col_file_palette_group_;
+
   gfx::SNESPalette palette_;
   gfx::SNESPalette col_file_palette_;
 

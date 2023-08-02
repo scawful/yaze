@@ -81,8 +81,15 @@ class SNESPalette {
   explicit SNESPalette(const std::vector<SNESColor>&);
 
   void Create(const std::vector<SNESColor>&);
-  void AddColor(SNESColor color) { colors.push_back(color); }
+  void AddColor(SNESColor color) {
+    colors.push_back(color);
+    size_++;
+  }
   auto GetColor(int i) const { return colors[i]; }
+  void Clear() {
+    colors.clear();
+    size_ = 0;
+  }
 
   SNESColor operator[](int i) {
     if (i > size_) {
@@ -132,6 +139,10 @@ struct PaletteGroup {
       palettes.emplace_back();
     }
     palettes[0].AddColor(color);
+  }
+  void Clear() {
+    palettes.clear();
+    size_ = 0;
   }
   SNESPalette operator[](int i) {
     if (i > size_) {
