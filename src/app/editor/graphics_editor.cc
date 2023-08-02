@@ -39,6 +39,7 @@ absl::Status GraphicsEditor::Update() {
   NEXT_COLUMN()
 
   status_ = DrawCgxImport();
+  status_ = DrawClipboardImport();
   status_ = DrawFileImport();
   status_ = DrawExperimentalFeatures();
 
@@ -99,19 +100,22 @@ absl::Status GraphicsEditor::DrawCgxImport() {
                 ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
                 sizeof(cgx_file_name_));
         status_ = temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false);
-        cgx_viewer_.LoadCgx(temp_rom_);
-        auto all_tiles_data = cgx_viewer_.GetCgxData();
-        cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
-                           all_tiles_data.data(), all_tiles_data.size());
-        if (col_file_) {
-          cgx_bitmap_.ApplyPalette(col_file_palette_);
-          rom_.RenderBitmap(&cgx_bitmap_);
-        }
         is_open_ = true;
         cgx_loaded_ = true;
       });
   core::ButtonPipe("Copy File Path",
                    [&]() -> auto { ImGui::SetClipboardText(cgx_file_path_); });
+
+  core::ButtonPipe("Decompress CGX Data", [&]() -> auto {
+    cgx_viewer_.LoadCgx(temp_rom_);
+    auto all_tiles_data = cgx_viewer_.GetCgxData();
+    cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
+                       all_tiles_data.data(), all_tiles_data.size());
+    if (col_file_) {
+      cgx_bitmap_.ApplyPalette(col_file_palette_);
+      rom_.RenderBitmap(&cgx_bitmap_);
+    }
+  });
 
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
@@ -119,9 +123,6 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 
 absl::Status GraphicsEditor::DrawFileImport() {
   static int size = 0;
-
-  gui::TextWithSeparators("Clipboard Import");
-  RETURN_IF_ERROR(DrawClipboardImport())
 
   gui::TextWithSeparators("BIN Import");
 
@@ -140,10 +141,10 @@ absl::Status GraphicsEditor::DrawFileImport() {
   core::ButtonPipe("Copy File Path",
                    [&]() -> auto { ImGui::SetClipboardText(file_path_); });
 
-  gui::InputHex("Offset", &current_offset_);
-  gui::InputHex("Size ", &size);
+  gui::InputHex("BIN Offset", &current_offset_);
+  gui::InputHex("BIN Size", &size);
 
-  if (ImGui::Button("BIN Import")) {
+  if (ImGui::Button("Decompress BIN")) {
     if (strlen(file_path_) > 0) {
       RETURN_IF_ERROR(DecompressImportData(size))
     } else {
@@ -168,7 +169,8 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         strncpy(col_file_name_,
                 ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
                 sizeof(col_file_name_));
-        status_ = temp_rom_.LoadFromFile(col_file_path_, /*z3_load=*/false);
+        status_ = temp_rom_.LoadFromFile(col_file_path_,
+                                         /*z3_load=*/false);
         auto col_data_ = gfx::GetColFileData(temp_rom_.data());
         col_file_palette_ = gfx::SNESPalette(col_data_);
         col_file_ = true;
@@ -193,32 +195,52 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
 }
 
 absl::Status GraphicsEditor::DrawClipboardImport() {
-  static Bytes clipboard_data;
-
-  if (ImGui::Button("Paste from Clipboard")) {
+  gui::TextWithSeparators("Clipboard Import");
+  core::ButtonPipe("Paste from Clipboard", [&]() -> auto {
     const char* text = ImGui::GetClipboardText();
     if (text) {
-      clipboard_data = Bytes(text, text + strlen(text));
+      const auto clipboard_data = Bytes(text, text + strlen(text));
       ImGui::MemFree((void*)text);
-      RETURN_IF_ERROR(temp_rom_.LoadFromBytes(clipboard_data))
+      status_ = temp_rom_.LoadFromBytes(clipboard_data);
       is_open_ = true;
       open_memory_editor_ = true;
     }
-  }
+  });
+  gui::InputHex("Offset", &clipboard_offset_);
+  gui::InputHex("Size", &clipboard_size_);
+  gui::InputHex("Num Sheets", &num_sheets_to_load_);
+
+  core::ButtonPipe("Decompress Clipboard Data", [&]() -> auto {
+    if (temp_rom_.isLoaded()) {
+      status_ = DecompressImportData(0x40000);
+    } else {
+      status_ = absl::InvalidArgumentError(
+          "Please paste data into the clipboard before "
+          "decompressing.");
+    }
+  });
+
+  int import_size = 0;
+  int num_sheets = 0;
 
   return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::DrawExperimentalFeatures() {
   gui::TextWithSeparators("Experimental");
-  if (ImGui::Button("Import Super Donkey Full")) {
+  if (ImGui::Button("Decompress Super Donkey Full")) {
     if (strlen(file_path_) > 0) {
       RETURN_IF_ERROR(DecompressSuperDonkey())
     } else {
       return absl::InvalidArgumentError(
-          "Please select `super_donkey_1.bin` before importing.");
+          "Please select `super_donkey_1.bin` before "
+          "importing.");
     }
   }
+  ImGui::SetItemTooltip(
+      "Requires `super_donkey_1.bin` to be imported under the "
+      "BIN import "
+      "section.");
   return absl::OkStatus();
 }
 
@@ -301,7 +323,12 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     graphics_bin_[i] =
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                     core::kTilesheetDepth, converted_sheet.data(), 0x1000);
-    graphics_bin_[i].ApplyPalette(palette_);
+    if (col_file_) {
+      graphics_bin_[i].ApplyPalette(col_file_palette_);
+    } else {
+      // ROM palette
+      graphics_bin_[i].ApplyPalette(palette_);
+    }
 
     rom_.RenderBitmap(&graphics_bin_[i]);
     i++;
@@ -317,7 +344,12 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     graphics_bin_[i] =
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                     core::kTilesheetDepth, converted_sheet.data(), 0x1000);
-    graphics_bin_[i].ApplyPalette(palette_);
+    if (col_file_) {
+      graphics_bin_[i].ApplyPalette(col_file_palette_);
+    } else {
+      // ROM palette
+      graphics_bin_[i].ApplyPalette(palette_);
+    }
 
     rom_.RenderBitmap(&graphics_bin_[i]);
     i++;

@@ -291,9 +291,24 @@ void MasterEditor::DrawViewMenu() {
 }
 
 void MasterEditor::DrawHelpMenu() {
+  static bool open_rom_help = false;
   if (ImGui::BeginMenu("Help")) {
+    if (ImGui::MenuItem("How to open a ROM")) open_rom_help = true;
     if (ImGui::MenuItem("About")) about_ = true;
     ImGui::EndMenu();
+  }
+
+  if (open_rom_help) ImGui::OpenPopup("Open a ROM");
+  if (ImGui::BeginPopupModal("Open a ROM", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("The Legend of Zelda: A Link to the Past");
+    ImGui::Text("US Version 1.0");
+
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
+      open_rom_help = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
   }
 }
 

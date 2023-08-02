@@ -307,11 +307,16 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
         absl::StrCat("Could not open ROM file: ", filename));
   }
 
+  bool has_header = false;
+  int header_count = 0x200;
   size_ = std::filesystem::file_size(filename);
   rom_data_.resize(size_);
   for (auto i = 0; i < size_; ++i) {
     char byte_to_read = ' ';
     file.read(&byte_to_read, sizeof(char));
+    if (byte_to_read == 0x00) {
+      has_header = true;
+    }
     rom_data_[i] = byte_to_read;
   }
 

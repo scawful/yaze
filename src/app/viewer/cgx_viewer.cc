@@ -14,6 +14,7 @@ namespace app {
 namespace viewer {
 
 constexpr int kMatchedBytes[] = {0x4E, 0x41, 0x4B, 0x31, 0x39, 0x38, 0x39};
+constexpr int kOffsetFromMatchedBytesEnd = 0x1D;
 
 void CgxViewer::LoadCgx(ROM &cgx_rom) {
   std::cout << "Loading CGX" << std::endl;
@@ -22,27 +23,32 @@ void CgxViewer::LoadCgx(ROM &cgx_rom) {
 
   int matching_position = -1;
   bool matched = false;
-  for (int i = 0; i < cgx_rom.size(); i++) {
-    if (matched) {
-      break;
-    }
-
+  for (int i = 0;
+       i < cgx_rom.size() - sizeof(kMatchedBytes) - kOffsetFromMatchedBytesEnd;
+       i++) {
     raw_data_[i] = cgx_rom[i];
-    for (int j = 0; j < 7; j++) {
-      if (cgx_rom[i + j] == kMatchedBytes[j]) {
-        if (j == 7 - 1) {
-          matching_position = i;
-          matched = true;
-          break;
-        }
-      } else {
-        break;
-      }
+    bool is_match = std::equal(std::begin(kMatchedBytes),
+                               std::end(kMatchedBytes), &cgx_rom[i]);
+    if (is_match) {
+      matching_position = i;
+      matched = true;
+      break;
     }
   }
 
-  label1_text = absl::StrCat("CGX In Folder L : ",
-                             absl::StrFormat("%X4", matching_position));
+  if (matched) {
+    int bpp_marker_position =
+        matching_position + sizeof(kMatchedBytes) + kOffsetFromMatchedBytesEnd;
+    int bpp_marker = cgx_rom[bpp_marker_position];
+    std::string bpp_type = (bpp_marker == 0x31) ? "8bpp" : "4bpp";
+    int current_selection_ = (bpp_type == "8bpp") ? 8 : 4;
+    label1_text = absl::StrCat(
+        "CGX In Folder L : ", absl::StrFormat("%X4", matching_position),
+        " BPP Type : ", bpp_type);
+  } else {
+    label1_text = "No match found in CGX";
+  }
+
   LoadGfx(current_selection_);
 }
 
