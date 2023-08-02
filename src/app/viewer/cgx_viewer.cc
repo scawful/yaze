@@ -19,26 +19,21 @@ void CgxViewer::Update() {
   LoadScr();
 }
 
-void CgxViewer::LoadCgx(std::string pathfile) {
+void CgxViewer::LoadCgx(ROM& cgx_rom) {
   raw_data_.malloc(0x40000);
   all_tiles_data_.malloc(0x40000);
-
-  std::ifstream fs(pathfile, std::ios::binary);
-  std::vector<unsigned char> data((std::istreambuf_iterator<char>(fs)),
-                                  std::istreambuf_iterator<char>());
-  fs.close();
 
   std::vector<unsigned char> matched_bytes;
   int matching_position = -1;
   bool matched = false;
-  for (int i = 0; i < data.size(); i++) {
+  for (int i = 0; i < cgx_rom.size(); i++) {
     if (matched) {
       break;
     }
 
-    raw_data_[i] = data[i];
+    raw_data_[i] = cgx_rom[i];
     for (int j = 0; j < matched_bytes.size(); j++) {
-      if (data[i + j] == matched_bytes[j]) {
+      if (cgx_rom[i + j] == matched_bytes[j]) {
         if (j == matched_bytes.size() - 1) {
           matching_position = i;
           matched = true;

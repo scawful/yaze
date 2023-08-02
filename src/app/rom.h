@@ -131,8 +131,9 @@ class ROM {
     rom_data_.reserve(n_bytes);
     rom_data_.resize(n_bytes);
     for (int i = 0; i < n_bytes; i++) {
-      rom_data_[i] = 0x00;
+      rom_data_.push_back(0x00);
     }
+    size_ = n_bytes;
   }
 
   uchar& operator[](int i) {
