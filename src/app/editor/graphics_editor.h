@@ -20,14 +20,17 @@
 namespace yaze {
 namespace app {
 namespace editor {
+  // "99973","A3D80",
+
+  // 
 
 const std::string kSuperDonkeyTiles[] = {
-    "97C05", "98219", "9871E", "98C00", "99084", "995AF", "99973",
+    "97C05", "98219", "9871E", "98C00", "99084", "995AF", 
     "99DE0", "9A27E", "9A741", "9AC31", "9B07E", "9B55C", "9B963",
     "9BB99", "9C009", "9C4B4", "9C92B", "9CDD6", "9D2C2", "9E037",
     "9E527", "9EA56", "9EF65", "9FCD1", "A0193", "A059E", "A0B17",
     "A0FB6", "A14A5", "A1988", "A1E66", "A232B", "A27F0", "A2B6E",
-    "A302C", "A3453", "A38CA", "A3D80", "A42BB", "A470C", "A4BA9",
+    "A302C", "A3453", "A38CA",  "A42BB", "A470C", "A4BA9",
     "A5089", "A5385", "A5742", "A5BCC", "A6017", "A6361", "A66F8"};
 
 const std::string kSuperDonkeySprites[] = {
@@ -81,7 +84,12 @@ class GraphicsEditor {
   int current_size_ = 0;
   int current_palette_ = 0;
   int current_palette_index_ = 0;
+  
   int num_sheets_to_load_ = 1;
+
+  int clipboard_offset_ = 0;
+  int clipboard_size_ = 0;
+
   bool open_memory_editor_ = false;
   bool gfx_loaded_ = false;
   bool is_open_ = false;
@@ -102,7 +110,9 @@ class GraphicsEditor {
   Bytes import_data_;
   Bytes graphics_buffer_;
 
-  MemoryEditor memory_editor_;
+  MemoryEditor cgx_memory_editor_;
+  MemoryEditor col_memory_editor_;
+
   PaletteEditor palette_editor_;
 
   gfx::Bitmap cgx_bitmap_;

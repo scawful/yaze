@@ -37,7 +37,7 @@ class CgxViewer {
   std::string label1_text;
 
   int bpp_;
-  int current_selection_;
+  int current_selection_ = 2;
 
   ROM all_tiles_data_;
   ROM raw_data_;
