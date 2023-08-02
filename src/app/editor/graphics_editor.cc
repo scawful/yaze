@@ -252,30 +252,8 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
 }
 
 absl::Status GraphicsEditor::DrawGraphicsBin() {
-  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
-      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    super_donkey_canvas_.DrawBackground(
-        ImVec2(0x100 + 1, num_sheets_to_load_ * 0x40 + 1));
-    super_donkey_canvas_.DrawContextMenu();
-    if (super_donkey_) {
-      for (const auto& [key, value] : graphics_bin_) {
-        int offset = 0x40 * (key + 1);
-        int top_left_y = super_donkey_canvas_.GetZeroPoint().y + 2;
-        if (key >= 1) {
-          top_left_y = super_donkey_canvas_.GetZeroPoint().y + 0x40 * key;
-        }
-        super_donkey_canvas_.GetDrawList()->AddImage(
-            (void*)value.texture(),
-            ImVec2(super_donkey_canvas_.GetZeroPoint().x + 2, top_left_y),
-            ImVec2(super_donkey_canvas_.GetZeroPoint().x + 0x100,
-                   super_donkey_canvas_.GetZeroPoint().y + offset));
-      }
-    }
-    super_donkey_canvas_.DrawGrid(16.0f);
-    super_donkey_canvas_.DrawOverlay();
-  }
-  ImGui::EndChild();
+  core::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
+                                  super_donkey_, graphics_bin_);
   return absl::OkStatus();
 }
 

@@ -19,6 +19,10 @@ namespace yaze {
 namespace app {
 namespace core {
 
+void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
+                               int num_sheets_to_load, int canvas_id,
+                               bool is_loaded, gfx::BitmapTable& graphics_bin);
+
 void ButtonPipe(absl::string_view button_text, std::function<void()> callback);
 
 void BitmapCanvasPipeline(int width, int height, int tile_size, int canvas_id,
