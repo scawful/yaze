@@ -38,13 +38,12 @@ class Bitmap {
     this->pixel_data_[position] = value;
   }
 
-  int GetWidth() const { return width_; }
-  int GetHeight() const { return height_; }
-  auto GetSize() const { return data_size_; }
-  auto GetData() const { return pixel_data_; }
-  auto GetByte(int i) const { return pixel_data_[i]; }
-  auto GetTexture() const { return texture_.get(); }
-  auto GetSurface() const { return surface_.get(); }
+  int width() const { return width_; }
+  int height() const { return height_; }
+  auto size() const { return data_size_; }
+  auto data() const { return pixel_data_; }
+  auto at(int i) const { return pixel_data_[i]; }
+  auto texture() const { return texture_.get(); }
   auto IsActive() const { return active_; }
 
  private:

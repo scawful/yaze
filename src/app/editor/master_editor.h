@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/core/pipeline.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"

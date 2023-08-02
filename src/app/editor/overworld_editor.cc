@@ -9,6 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/core/pipeline.h"
 #include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -210,7 +211,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (overworld_.isLoaded()) {
       DrawOverworldMaps();
       DrawOverworldEntrances();
-      DrawOverworldSprites();
+      // DrawOverworldSprites();
       // User has selected a tile they want to draw from the blockset.
       if (!blockset_canvas_.Points().empty()) {
         int x = blockset_canvas_.Points().front().x / 32;
@@ -232,19 +233,6 @@ void OverworldEditor::DrawOverworldCanvas() {
 
 // ----------------------------------------------------------------------------
 
-// Tile 16 Selector
-// Displays all the tiles in the game.
-void OverworldEditor::DrawTile16Selector() {
-  blockset_canvas_.DrawBackground(ImVec2(0x100 + 1, (8192 * 2) + 1));
-  blockset_canvas_.DrawContextMenu();
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 2, map_blockset_loaded_);
-  blockset_canvas_.DrawTileSelector(32);
-  blockset_canvas_.DrawGrid(32.0f);
-  blockset_canvas_.DrawOverlay();
-}
-
-// ----------------------------------------------------------------------------
-
 // Tile 8 Selector
 // Displays all the individual tiles that make up a tile16.
 void OverworldEditor::DrawTile8Selector() {
@@ -259,7 +247,7 @@ void OverworldEditor::DrawTile8Selector() {
         top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 0x40 * key;
       }
       graphics_bin_canvas_.GetDrawList()->AddImage(
-          (void *)value.GetTexture(),
+          (void *)value.texture(),
           ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2, top_left_y),
           ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 0x100,
                  graphics_bin_canvas_.GetZeroPoint().y + offset));
@@ -271,29 +259,12 @@ void OverworldEditor::DrawTile8Selector() {
 
 // ----------------------------------------------------------------------------
 
-// Displays the graphics tilesheets that are available on the current selected
-// overworld map.
-void OverworldEditor::DrawAreaGraphics() {
-  current_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
-  current_gfx_canvas_.DrawContextMenu();
-  current_gfx_canvas_.DrawTileSelector(32);
-  current_gfx_canvas_.DrawBitmap(current_gfx_bmp_, 2, overworld_.isLoaded());
-  current_gfx_canvas_.DrawGrid(32.0f);
-  current_gfx_canvas_.DrawOverlay();
-}
-
-// ----------------------------------------------------------------------------
-
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar(kTileSelectorTab.data(),
                          ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
-      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)2);
-          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        DrawTile16Selector();
-      }
-      ImGui::EndChild();
+      core::BitmapCanvasPipeline(0x100, (8192 * 2), 0x20, 1,
+                                 map_blockset_loaded_, tile16_blockset_bmp_);
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
@@ -306,12 +277,8 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Area Graphics")) {
-      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
-          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        DrawAreaGraphics();
-      }
-      ImGui::EndChild();
+      core::BitmapCanvasPipeline(256, 0x10 * 0x40, 0x20, 3,
+                                 overworld_.isLoaded(), current_gfx_bmp_);
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();
@@ -328,14 +295,16 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Load the Link to the Past overworld.
   RETURN_IF_ERROR(overworld_.Load(rom_))
   palette_ = overworld_.AreaPalette();
-  current_gfx_bmp_.Create(0x80, 0x200, 0x40, overworld_.AreaGraphics());
-  current_gfx_bmp_.ApplyPalette(palette_);
-  rom_.RenderBitmap(&current_gfx_bmp_);
+
+  // Create the area graphics image
+  core::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
+                                     overworld_.AreaGraphics(), rom_,
+                                     current_gfx_bmp_, palette_);
 
   // Create the tile16 blockset image
-  tile16_blockset_bmp_.Create(0x80, 0x2000, 0x80, overworld_.Tile16Blockset());
-  tile16_blockset_bmp_.ApplyPalette(palette_);
-  rom_.RenderBitmap(&tile16_blockset_bmp_);
+  core::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
+                                     overworld_.Tile16Blockset(), rom_,
+                                     tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
@@ -363,19 +332,18 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Render the bitmaps of each tile.
   for (int id = 0; id < 4096; id++) {
     tile16_individual_.emplace_back();
-    tile16_individual_[id].Create(0x10, 0x10, 0x80,
-                                  tile16_individual_data_[id]);
-    tile16_individual_[id].ApplyPalette(palette_);
-    rom_.RenderBitmap(&tile16_individual_[id]);
+    core::BuildAndRenderBitmapPipeline(0x10, 0x10, 0x80,
+                                       tile16_individual_data_[id], rom_,
+                                       tile16_individual_[id], palette_);
   }
 
   // Render the overworld maps loaded from the ROM.
   for (int i = 0; i < core::kNumOverworldMaps; ++i) {
     overworld_.SetCurrentMap(i);
     auto palette = overworld_.AreaPalette();
-    maps_bmp_[i].Create(0x200, 0x200, 0x200, overworld_.BitmapData());
-    maps_bmp_[i].ApplyPalette(palette);
-    rom_.RenderBitmap(&(maps_bmp_[i]));
+    core::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,
+                                       overworld_.BitmapData(), rom_,
+                                       maps_bmp_[i], palette);
   }
 
   return absl::OkStatus();
