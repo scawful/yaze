@@ -67,7 +67,7 @@ void CgxViewer::LoadGfx(int combo_bpp) {
     return;
   }
 
-  Bytes decomp_sheet = gfx::SnesTo8bppSheet(raw_data_.vector(), bpp_);
+  Bytes decomp_sheet = gfx::BPP8SNESToIndexed(raw_data_.vector(), bpp_);
   for (int i = 0; i < decomp_sheet.size(); i++) {
     all_tiles_data_[i] = decomp_sheet[i];
   }
