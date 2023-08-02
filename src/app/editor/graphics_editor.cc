@@ -29,6 +29,7 @@ absl::Status GraphicsEditor::Update() {
   NEXT_COLUMN()
 
   status_ = DrawFileImport();
+  status_ = DrawExperimentalFeatures();
   status_ = DrawPaletteControls();
 
   NEXT_COLUMN()
@@ -51,10 +52,10 @@ absl::Status GraphicsEditor::DrawFileImport() {
 
   gui::TextWithSeparators("File Import");
 
-  ImGui::InputText("File", file_path_, sizeof(file_path_));
+  ImGui::InputText("##ROMFile", file_path_, sizeof(file_path_));
   ImGui::SameLine();
   // Open the file dialog when the user clicks the "Browse" button
-  if (ImGui::Button("Browse")) {
+  if (ImGui::Button("Open BIN")) {
     ImGuiFileDialog::Instance()->OpenDialog("ImportDlgKey", "Choose File",
                                             ".bin\0.hex\0", ".");
   }
@@ -86,15 +87,6 @@ absl::Status GraphicsEditor::DrawFileImport() {
     }
   }
 
-  if (ImGui::Button("Import Super Donkey Full")) {
-    if (strlen(file_path_) > 0) {
-      RETURN_IF_ERROR(DecompressSuperDonkey())
-    } else {
-      return absl::InvalidArgumentError(
-          "Please select `super_donkey_1.bin` before importing.");
-    }
-  }
-
   gui::TextWithSeparators("Clipboard Import");
   RETURN_IF_ERROR(DrawClipboardImport())
 
@@ -108,12 +100,12 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
                IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
 
-  ImGui::InputText("COL File", col_file_path_, sizeof(col_file_path_));
+  ImGui::InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
   ImGui::SameLine();
-  // Open the file dialog when the user clicks the "Browse" button
-  if (ImGui::Button("Browse")) {
+
+  if (ImGui::Button("Open COL")) {
     ImGuiFileDialog::Instance()->OpenDialog("ImportColKey", "Choose File",
-                                            ".col\0", ".");
+                                            ".col", ".");
   }
 
   if (ImGuiFileDialog::Instance()->Display("ImportColKey")) {
@@ -121,6 +113,9 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
       strncpy(col_file_path_,
               ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
               sizeof(col_file_path_));
+      strncpy(col_file_name_,
+              ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+              sizeof(col_file_name_));
       RETURN_IF_ERROR(temp_rom_.LoadFromFile(col_file_path_, /*z3_load=*/false))
       auto col_data_ = gfx::GetColFileData(temp_rom_.data());
       col_file_palette_ = gfx::SNESPalette(col_data_);
@@ -131,6 +126,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   }
 
   if (col_file_palette_.size() != 0) {
+    ImGuiFileDialog::Instance()->prDrawFileListView(ImVec2(0, 200));
     palette_editor_.DrawPortablePalette(col_file_palette_);
   }
 
@@ -153,11 +149,24 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   return absl::OkStatus();
 }
 
+absl::Status GraphicsEditor::DrawExperimentalFeatures() {
+  gui::TextWithSeparators("Experimental");
+  if (ImGui::Button("Import Super Donkey Full")) {
+    if (strlen(file_path_) > 0) {
+      RETURN_IF_ERROR(DecompressSuperDonkey())
+    } else {
+      return absl::InvalidArgumentError(
+          "Please select `super_donkey_1.bin` before importing.");
+    }
+  }
+  return absl::OkStatus();
+}
+
 absl::Status GraphicsEditor::DrawMemoryEditor() {
   std::string title = "Memory Editor";
   if (is_open_) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawContents(temp_rom_.data(), temp_rom_.size());
+    mem_edit.DrawWindow(title.c_str(), temp_rom_.data(), temp_rom_.size());
   }
   return absl::OkStatus();
 }
@@ -174,31 +183,6 @@ absl::Status GraphicsEditor::DrawDecompressedData() {
     import_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::DecompressImportData(int size) {
-  ASSIGN_OR_RETURN(import_data_, gfx::lc_lz2::DecompressV2(
-                                     temp_rom_.data(), current_offset_, size))
-  std::cout << "Size of import data " << import_data_.size() << std::endl;
-
-  auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
-  bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
-                 converted_sheet.data(), size);
-
-  if (rom_.isLoaded()) {
-    auto palette_group = rom_.GetPaletteGroup("ow_main");
-    palette_ = palette_group.palettes[current_palette_];
-    if (col_file_) {
-      bitmap_.ApplyPalette(col_file_palette_);
-    } else {
-      bitmap_.ApplyPalette(palette_);
-    }
-  }
-
-  rom_.RenderBitmap(&bitmap_);
-  gfx_loaded_ = true;
-
   return absl::OkStatus();
 }
 
@@ -227,6 +211,30 @@ absl::Status GraphicsEditor::DrawGraphicsBin() {
     super_donkey_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::DecompressImportData(int size) {
+  ASSIGN_OR_RETURN(import_data_, gfx::lc_lz2::DecompressV2(
+                                     temp_rom_.data(), current_offset_, size))
+
+  auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
+  bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
+                 converted_sheet.data(), size);
+
+  if (rom_.isLoaded()) {
+    auto palette_group = rom_.GetPaletteGroup("ow_main");
+    palette_ = palette_group.palettes[current_palette_];
+    if (col_file_) {
+      bitmap_.ApplyPalette(col_file_palette_);
+    } else {
+      bitmap_.ApplyPalette(palette_);
+    }
+  }
+
+  rom_.RenderBitmap(&bitmap_);
+  gfx_loaded_ = true;
+
   return absl::OkStatus();
 }
 
