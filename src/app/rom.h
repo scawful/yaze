@@ -126,6 +126,8 @@ class ROM {
   auto isLoaded() const { return is_loaded_; }
   auto char_data() { return reinterpret_cast<char*>(rom_data_.data()); }
 
+  auto push_back(uchar byte) { rom_data_.push_back(byte); }
+
   void malloc(int n_bytes) {
     rom_data_.clear();
     rom_data_.reserve(n_bytes);
