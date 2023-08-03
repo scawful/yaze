@@ -91,22 +91,21 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   ImGui::InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
   ImGui::SameLine();
 
-  core::FileDialogPipeline(
-      "ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [&]() -> auto {
-        strncpy(cgx_file_path_,
-                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-                sizeof(cgx_file_path_));
-        strncpy(cgx_file_name_,
-                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-                sizeof(cgx_file_name_));
-        status_ = temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false);
-        is_open_ = true;
-        cgx_loaded_ = true;
-      });
-  core::ButtonPipe("Copy File Path",
-                   [&]() -> auto { ImGui::SetClipboardText(cgx_file_path_); });
+  core::FileDialogPipeline("ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [this]() {
+    strncpy(cgx_file_path_,
+            ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+            sizeof(cgx_file_path_));
+    strncpy(cgx_file_name_,
+            ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+            sizeof(cgx_file_name_));
+    status_ = temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false);
+    is_open_ = true;
+    cgx_loaded_ = true;
+  });
+  core::ButtonPipe("Copy CGX Path",
+                   [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
-  core::ButtonPipe("Decompress CGX Data", [&]() -> auto {
+  core::ButtonPipe("Decompress CGX Data", [this]() {
     cgx_viewer_.LoadCgx(temp_rom_);
     auto all_tiles_data = cgx_viewer_.GetCgxData();
     cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
@@ -127,17 +126,15 @@ absl::Status GraphicsEditor::DrawFileImport() {
   ImGui::InputText("##ROMFile", file_path_, sizeof(file_path_));
   ImGui::SameLine();
 
-  core::FileDialogPipeline(
-      "ImportDlgKey", ".bin,.hex\0", "Open BIN", [&]() -> auto {
-        strncpy(file_path_,
-                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-                sizeof(file_path_));
-        status_ = temp_rom_.LoadFromFile(file_path_);
-        is_open_ = true;
-      });
+  core::FileDialogPipeline("ImportDlgKey", ".bin,.hex\0", "Open BIN", [this]() {
+    strncpy(file_path_, ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+            sizeof(file_path_));
+    status_ = temp_rom_.LoadFromFile(file_path_);
+    is_open_ = true;
+  });
 
   core::ButtonPipe("Copy File Path",
-                   [&]() -> auto { ImGui::SetClipboardText(file_path_); });
+                   [this]() { ImGui::SetClipboardText(file_path_); });
 
   gui::InputHex("BIN Offset", &current_offset_);
   gui::InputHex("BIN Size", &bin_size_);
@@ -160,7 +157,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   ImGui::SameLine();
 
   core::FileDialogPipeline(
-      "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [&]() -> auto {
+      "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [this]() {
         strncpy(col_file_path_,
                 ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
                 sizeof(col_file_path_));
@@ -187,8 +184,8 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         is_open_ = true;
       });
 
-  core::ButtonPipe("Copy File Path",
-                   [&]() -> auto { ImGui::SetClipboardText(col_file_path_); });
+  core::ButtonPipe("Copy COL Path",
+                   [this]() { ImGui::SetClipboardText(col_file_path_); });
 
   if (rom_.isLoaded()) {
     gui::TextWithSeparators("ROM Palette");
@@ -206,7 +203,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
 
 absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::TextWithSeparators("Clipboard Import");
-  core::ButtonPipe("Paste from Clipboard", [&]() -> auto {
+  core::ButtonPipe("Paste from Clipboard", [this]() {
     const char* text = ImGui::GetClipboardText();
     if (text) {
       const auto clipboard_data = Bytes(text, text + strlen(text));
@@ -220,7 +217,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::InputHex("Size", &clipboard_size_);
   gui::InputHex("Num Sheets", &num_sheets_to_load_);
 
-  core::ButtonPipe("Decompress Clipboard Data", [&]() -> auto {
+  core::ButtonPipe("Decompress Clipboard Data", [this]() {
     if (temp_rom_.isLoaded()) {
       status_ = DecompressImportData(0x40000);
     } else {
@@ -229,9 +226,6 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
           "decompressing.");
     }
   });
-
-  int import_size = 0;
-  int num_sheets = 0;
 
   return absl::OkStatus();
 }

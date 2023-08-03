@@ -20,7 +20,6 @@ namespace app {
 namespace editor {
 
 using MosaicArray = std::array<int, core::kNumOverworldMaps>;
-static int overworldCustomMosaicASM = 0x1301D0;
 
 class ScreenEditor {
  public:

@@ -89,7 +89,7 @@ Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
       for (int x = 0; x < 8; x++) {
         const uint16_t bitmask[] = {0x80, 0x40, 0x20, 0x10,
                                     0x08, 0x04, 0x02, 0x01};
-        auto b1 = ((data[(y * 2) + ((bpp * 8) * pos)] & (bitmask[x])));
+        auto b1 = (data[(y * 2) + ((bpp * 8) * pos)] & (bitmask[x]));
         auto b2 = (data[((y * 2) + ((bpp * 8) * pos)) + 1] & (bitmask[x]));
         auto b3 = (data[(y * 2) + ((bpp * 8) * pos) + 16] & (bitmask[x]));
         auto b4 = (data[(y * 2) + ((bpp * 8) * pos) + 17] & (bitmask[x]));

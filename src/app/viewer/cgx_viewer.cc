@@ -17,16 +17,12 @@ constexpr int kMatchedBytes[] = {0x4E, 0x41, 0x4B, 0x31, 0x39, 0x38, 0x39};
 constexpr int kOffsetFromMatchedBytesEnd = 0x1D;
 
 void CgxViewer::LoadCgx(ROM &cgx_rom) {
-  std::cout << "Loading CGX" << std::endl;
-  raw_data_.malloc(0x40000);
-  all_tiles_data_.malloc(0x40000);
-
   int matching_position = -1;
   bool matched = false;
   for (int i = 0;
        i < cgx_rom.size() - sizeof(kMatchedBytes) - kOffsetFromMatchedBytesEnd;
        i++) {
-    raw_data_[i] = cgx_rom[i];
+    raw_data_.push_back(cgx_rom[i]);
     bool is_match = std::equal(std::begin(kMatchedBytes),
                                std::end(kMatchedBytes), &cgx_rom[i]);
     if (is_match) {
@@ -41,7 +37,7 @@ void CgxViewer::LoadCgx(ROM &cgx_rom) {
         matching_position + sizeof(kMatchedBytes) + kOffsetFromMatchedBytesEnd;
     int bpp_marker = cgx_rom[bpp_marker_position];
     std::string bpp_type = (bpp_marker == 0x31) ? "8bpp" : "4bpp";
-    int current_selection_ = (bpp_type == "8bpp") ? 8 : 4;
+    current_selection_ = (bpp_type == "8bpp") ? 0 : 2;
     label1_text = absl::StrCat(
         "CGX In Folder L : ", absl::StrFormat("%X4", matching_position),
         " BPP Type : ", bpp_type);
@@ -108,7 +104,7 @@ void CgxViewer::LoadGfx(int combo_bpp) {
 
   Bytes decomp_sheet = gfx::BPP8SNESToIndexed(raw_data_.vector(), bpp_);
   for (int i = 0; i < decomp_sheet.size(); i++) {
-    all_tiles_data_[i] = decomp_sheet[i];
+    all_tiles_data_.push_back(decomp_sheet[i]);
   }
 
   RefreshPalettes();
