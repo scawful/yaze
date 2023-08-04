@@ -110,8 +110,8 @@ namespace core {
 // Window Variables
 // ============================================================================
 
-constexpr int kScreenWidth = 1200;
-constexpr int kScreenHeight = 800;
+constexpr int kScreenWidth = 1440;
+constexpr int kScreenHeight = 900;
 
 // ============================================================================
 // 65816 LanguageDefinition
