@@ -19,6 +19,33 @@ namespace yaze {
 namespace app {
 namespace core {
 
+void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
+                               gfx::SNESPalette& palette) {
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)100);
+      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    ImGui::BeginGroup();  // Lock X position
+    ImGui::Text("Palette");
+    for (int n = 0; n < palette.size(); n++) {
+      ImGui::PushID(n);
+      if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+
+      if (ImGui::ColorButton("##palette", palette[n].RGB(),
+                             ImGuiColorEditFlags_NoAlpha |
+                                 ImGuiColorEditFlags_NoPicker |
+                                 ImGuiColorEditFlags_NoTooltip,
+                             ImVec2(20, 20))) {
+        palette_id = n / 8;
+        refresh_graphics = true;
+      }
+
+      ImGui::PopID();
+    }
+    ImGui::EndGroup();
+  }
+  ImGui::EndChild();
+}
+
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
                                int num_sheets_to_load, int canvas_id,
                                bool is_loaded, gfx::BitmapTable& graphics_bin) {
@@ -56,21 +83,29 @@ void ButtonPipe(absl::string_view button_text, std::function<void()> callback) {
   }
 }
 
-void BitmapCanvasPipeline(int width, int height, int tile_size, int canvas_id,
-                          bool is_loaded, gfx::Bitmap& bitmap) {
+void BitmapCanvasPipeline(int width, int height, int tile_size, bool is_loaded,
+                          gfx::Bitmap& bitmap, bool scrollbar, int canvas_id) {
   gui::Canvas canvas;
 
-  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)canvas_id);
-      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+  auto draw_canvas = [&]() {
     canvas.DrawBackground(ImVec2(width + 1, height + 1));
     canvas.DrawContextMenu();
     canvas.DrawBitmap(bitmap, 2, is_loaded);
     canvas.DrawTileSelector(tile_size);
     canvas.DrawGrid(tile_size);
     canvas.DrawOverlay();
+  };
+
+  if (scrollbar) {
+    if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)canvas_id);
+        ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      draw_canvas();
+    }
+    ImGui::EndChild();
+  } else {
+    draw_canvas();
   }
-  ImGui::EndChild();
 }
 
 void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,

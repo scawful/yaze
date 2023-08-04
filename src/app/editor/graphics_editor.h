@@ -73,7 +73,6 @@ class GraphicsEditor {
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
   absl::Status DrawMemoryEditor();
-  absl::Status DrawGraphicsBin();
 
   absl::Status DecompressImportData(int size);
 
@@ -91,6 +90,7 @@ class GraphicsEditor {
   uint64_t clipboard_offset_ = 0;
   uint64_t clipboard_size_ = 0;
 
+  bool refresh_graphics_ = false;
   bool open_memory_editor_ = false;
   bool gfx_loaded_ = false;
   bool is_open_ = false;

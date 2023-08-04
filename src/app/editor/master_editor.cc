@@ -301,8 +301,14 @@ void MasterEditor::DrawHelpMenu() {
   if (open_rom_help) ImGui::OpenPopup("Open a ROM");
   if (ImGui::BeginPopupModal("Open a ROM", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("File -> Open");
+    ImGui::Text("Select a ROM file to open");
+    ImGui::Text("Supported ROMs:");
     ImGui::Text("The Legend of Zelda: A Link to the Past");
     ImGui::Text("US Version 1.0");
+    ImGui::Separator();
+    ImGui::Text("Must remove header before opening");
+    ImGui::Text("Header is 0x200 bytes of data at the beginning of the ROM");
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       open_rom_help = false;
