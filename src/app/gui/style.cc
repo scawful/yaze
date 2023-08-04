@@ -17,7 +17,7 @@ void ColorsYaze() {
   ImVec4 *colors = style->Colors;
 
   style->WindowPadding = ImVec2(10.f, 10.f);
-  style->FramePadding = ImVec2(10.f, 3.f);
+  style->FramePadding = ImVec2(10.f, 2.f);
   style->CellPadding = ImVec2(4.f, 5.f);
   style->ItemSpacing = ImVec2(10.f, 5.f);
   style->ItemInnerSpacing = ImVec2(5.f, 5.f);

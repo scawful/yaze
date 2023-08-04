@@ -33,7 +33,8 @@ absl::Status GraphicsEditor::Update() {
   BEGIN_TABLE("#gfxEditTable", 4, kGfxEditFlags)
   SETUP_COLUMN("Graphics (BIN, CGX, SCR)")
   SETUP_COLUMN("Palette (COL)")
-  SETUP_COLUMN("Maps and Animations (SCR, PNL)")
+  ImGui::TableSetupColumn("Maps and Animations (SCR, PNL)",
+                          ImGuiTableColumnFlags_WidthFixed);
   SETUP_COLUMN("Preview")
   TABLE_HEADERS()
   NEXT_COLUMN()
@@ -47,15 +48,30 @@ absl::Status GraphicsEditor::Update() {
   status_ = DrawPaletteControls();
 
   NEXT_COLUMN()
-  core::BitmapCanvasPipeline(0x200, 0x200, 0x20, 6, scr_loaded_, cgx_bitmap_);
+  core::BitmapCanvasPipeline(0x200, 0x200, 0x20, scr_loaded_, cgx_bitmap_,
+                             false, 0);
 
   NEXT_COLUMN()
   if (super_donkey_) {
-    status_ = DrawGraphicsBin();
+    if (refresh_graphics_) {
+      for (int i = 0; i < graphics_bin_.size(); i++) {
+        graphics_bin_[i].ApplyPalette(
+            col_file_palette_group_[current_palette_index_]);
+        rom_.UpdateBitmap(&graphics_bin_[i]);
+      }
+      refresh_graphics_ = false;
+    }
+    // Load the full graphics space from `super_donkey_1.bin`
+    core::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
+                                    super_donkey_, graphics_bin_);
   } else if (cgx_loaded_ && col_file_) {
-    core::BitmapCanvasPipeline(0x100, 16384, 0x20, 5, cgx_loaded_, cgx_bitmap_);
+    // Load the CGX graphics
+    core::BitmapCanvasPipeline(0x100, 16384, 0x20, cgx_loaded_, cgx_bitmap_,
+                               true, 5);
   } else {
-    core::BitmapCanvasPipeline(0x100, 16384, 0x20, 2, gfx_loaded_, bitmap_);
+    // Load the BIN/Clipboard Graphics
+    core::BitmapCanvasPipeline(0x100, 16384, 0x20, gfx_loaded_, bitmap_, true,
+                               2);
   }
   END_TABLE()
 
@@ -170,15 +186,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         if (col_file_palette_group_.size() != 0) {
           col_file_palette_group_.Clear();
         }
-        for (int i = 0; i < col_data_.size(); i += 8) {
-          // Extract 8 colors from the col_data_ and make them into a palette
-          gfx::SNESPalette palette;
-          for (int j = 0; j < 8; j++) {
-            palette.AddColor(col_data_[i + j]);
-          }
-          // color.AddColor()
-          col_file_palette_group_.AddPalette(palette);
-        }
+        col_file_palette_group_ = gfx::CreatePaletteGroupFromColFile(col_data_);
         col_file_palette_ = gfx::SNESPalette(col_data_);
         col_file_ = true;
         is_open_ = true;
@@ -195,7 +203,8 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   }
 
   if (col_file_palette_.size() != 0) {
-    palette_editor_.DrawPortablePalette(col_file_palette_);
+    core::SelectablePalettePipeline(current_palette_index_, refresh_graphics_,
+                                    col_file_palette_);
   }
 
   return absl::OkStatus();
@@ -257,12 +266,6 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
   return absl::OkStatus();
 }
 
-absl::Status GraphicsEditor::DrawGraphicsBin() {
-  core::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
-                                  super_donkey_, graphics_bin_);
-  return absl::OkStatus();
-}
-
 absl::Status GraphicsEditor::DecompressImportData(int size) {
   ASSIGN_OR_RETURN(import_data_, gfx::lc_lz2::DecompressV2(
                                      temp_rom_.data(), current_offset_, size))
@@ -298,7 +301,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
     graphics_bin_[i] =
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                    core::kTilesheetDepth, converted_sheet.data(), 0x1000);
+                    core::kTilesheetDepth, converted_sheet);
     if (col_file_) {
       graphics_bin_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);
@@ -323,7 +326,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
     graphics_bin_[i] =
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                    core::kTilesheetDepth, converted_sheet.data(), 0x1000);
+                    core::kTilesheetDepth, converted_sheet);
     if (col_file_) {
       graphics_bin_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);

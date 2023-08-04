@@ -37,6 +37,10 @@ Bitmap::Bitmap(int width, int height, int depth, uchar *data, int data_size) {
   Create(width, height, depth, data, data_size);
 }
 
+Bitmap::Bitmap(int width, int height, int depth, Bytes data) {
+  Create(width, height, depth, data);
+}
+
 // Pass raw pixel data directly to the surface
 void Bitmap::Create(int width, int height, int depth, uchar *data) {
   active_ = true;
@@ -112,9 +116,18 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
       SDL_Texture_Deleter{}};
 }
 
+void Bitmap::UpdateTexture(std::shared_ptr<SDL_Renderer> renderer) {
+  SDL_DestroyTexture(texture_.get());
+  texture_ = nullptr;
+  texture_ = std::shared_ptr<SDL_Texture>{
+      SDL_CreateTextureFromSurface(renderer.get(), surface_.get()),
+      SDL_Texture_Deleter{}};
+}
+
 // Convert SNESPalette to SDL_Palette for surface.
 void Bitmap::ApplyPalette(const SNESPalette &palette) {
   palette_ = palette;
+  SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette.size_; ++i) {
     if (palette.GetColor(i).transparent) {
       surface_->format->palette->colors[i].r = 0;
@@ -128,6 +141,7 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
       surface_->format->palette->colors[i].a = palette.GetColor(i).rgb.w;
     }
   }
+  SDL_LockSurface(surface_.get());
 }
 
 }  // namespace gfx

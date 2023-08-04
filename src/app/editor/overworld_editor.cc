@@ -263,8 +263,8 @@ void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar(kTileSelectorTab.data(),
                          ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
-      core::BitmapCanvasPipeline(0x100, (8192 * 2), 0x20, 1,
-                                 map_blockset_loaded_, tile16_blockset_bmp_);
+      core::BitmapCanvasPipeline(0x100, (8192 * 2), 0x20, map_blockset_loaded_,
+                                 tile16_blockset_bmp_, true, 1);
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
@@ -277,8 +277,8 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Area Graphics")) {
-      core::BitmapCanvasPipeline(256, 0x10 * 0x40, 0x20, 3,
-                                 overworld_.isLoaded(), current_gfx_bmp_);
+      core::BitmapCanvasPipeline(256, 0x10 * 0x40, 0x20, overworld_.isLoaded(),
+                                 current_gfx_bmp_, true, 3);
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();

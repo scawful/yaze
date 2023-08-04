@@ -214,6 +214,20 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
 
 PaletteGroup::PaletteGroup(uint8_t mSize) : size_(mSize) {}
 
+PaletteGroup CreatePaletteGroupFromColFile(
+    std::vector<SNESColor>& palette_rows) {
+  PaletteGroup toret;
+
+  for (int i = 0; i < palette_rows.size(); i += 8) {
+    SNESPalette palette;
+    for (int j = 0; j < 8; j++) {
+      palette.AddColor(palette_rows[i + j]);
+    }
+    toret.AddPalette(palette);
+  }
+  return toret;
+}
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
