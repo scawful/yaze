@@ -168,6 +168,10 @@ class ROM {
     bitmap->CreateTexture(renderer_);
   }
 
+  void UpdateBitmap(gfx::Bitmap* bitmap) const {
+    bitmap->UpdateTexture(renderer_);
+  }
+
  private:
   long size_ = 0;
   bool is_loaded_ = false;
