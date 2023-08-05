@@ -69,9 +69,6 @@ const absl::flat_hash_map<std::string, uint32_t> paletteGroupColorCounts = {
 
 class ROM {
  public:
-  // Assembly functions
-  absl::Status ApplyAssembly(const absl::string_view& filename, uint32_t size);
-
   // Compression function
   absl::StatusOr<Bytes> Compress(const int start, const int length,
                                  int mode = 1, bool check = false);

@@ -59,7 +59,7 @@ std::shared_ptr<CompressionPiece> ExpectNewCompressionPieceOk(
 
 }  // namespace
 
-TEST(GFXTest, NewDecompressionPieceOk) {
+TEST(LC_LZ2_CompressionTest, NewDecompressionPieceOk) {
   char command = 1;
   int length = 1;
   char args[] = "aaa";
@@ -81,7 +81,7 @@ TEST(GFXTest, NewDecompressionPieceOk) {
   }
 }
 
-TEST(GFXTest, DecompressionValidCommand) {
+TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
   ROM rom;
   Bytes simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A, 0x45, 0xFF};
   uchar simple_copy_output[2] = {0x2A, 0x45};
@@ -89,7 +89,7 @@ TEST(GFXTest, DecompressionValidCommand) {
   EXPECT_THAT(simple_copy_output, ElementsAreArray(decomp_result.data(), 2));
 }
 
-TEST(GFXTest, DecompressionMixingCommand) {
+TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
   ROM rom;
   uchar random1_i[11] = {BUILD_HEADER(0x01, 0x03),
                          0x2A,
@@ -107,7 +107,7 @@ TEST(GFXTest, DecompressionMixingCommand) {
   EXPECT_THAT(random1_o, ElementsAreArray(decomp_result.data(), 9));
 }
 
-TEST(GFXTest, CompressionSingleSet) {
+TEST(LC_LZ2_CompressionTest, CompressionSingleSet) {
   ROM rom;
   uchar single_set[5] = {0x2A, 0x2A, 0x2A, 0x2A, 0x2A};
   uchar single_set_expected[3] = {BUILD_HEADER(1, 5), 0x2A, 0xFF};
@@ -116,7 +116,7 @@ TEST(GFXTest, CompressionSingleSet) {
   EXPECT_THAT(single_set_expected, ElementsAreArray(comp_result.data(), 3));
 }
 
-TEST(GFXTest, CompressionSingleWord) {
+TEST(LC_LZ2_CompressionTest, CompressionSingleWord) {
   ROM rom;
   uchar single_word[6] = {0x2A, 0x01, 0x2A, 0x01, 0x2A, 0x01};
   uchar single_word_expected[4] = {BUILD_HEADER(0x02, 0x06), 0x2A, 0x01, 0xFF};
@@ -125,7 +125,7 @@ TEST(GFXTest, CompressionSingleWord) {
   EXPECT_THAT(single_word_expected, ElementsAreArray(comp_result.data(), 4));
 }
 
-TEST(GFXTest, CompressionSingleIncrement) {
+TEST(LC_LZ2_CompressionTest, CompressionSingleIncrement) {
   ROM rom;
   uchar single_inc[3] = {0x01, 0x02, 0x03};
   uchar single_inc_expected[3] = {BUILD_HEADER(0x03, 0x03), 0x01, 0xFF};
@@ -133,7 +133,7 @@ TEST(GFXTest, CompressionSingleIncrement) {
   EXPECT_THAT(single_inc_expected, ElementsAreArray(comp_result.data(), 3));
 }
 
-TEST(GFXTest, CompressionSingleCopy) {
+TEST(LC_LZ2_CompressionTest, CompressionSingleCopy) {
   ROM rom;
   uchar single_copy[4] = {0x03, 0x0A, 0x07, 0x14};
   uchar single_copy_expected[6] = {
@@ -143,7 +143,7 @@ TEST(GFXTest, CompressionSingleCopy) {
 }
 
 /* Hiding tests until I figure out a better PR to address the bug
-TEST(GFXTest, CompressionSingleCopyRepeat) {
+TEST(LC_LZ2_CompressionTest, CompressionSingleCopyRepeat) {
   ROM rom;
   uchar single_copy_repeat[8] = {0x03, 0x0A, 0x07, 0x14, 0x03, 10, 0x07, 0x14};
   uchar single_copy_repeat_expected[9] = {
@@ -154,7 +154,7 @@ TEST(GFXTest, CompressionSingleCopyRepeat) {
               ElementsAreArray(comp_result.data(), 9));
 }
 
-TEST(GFXTest, CompressionSingleOverflowIncrement) {
+TEST(LC_LZ2_CompressionTest, CompressionSingleOverflowIncrement) {
   ROM rom;
   uchar overflow_inc[4] = {0xFE, 0xFF, 0x00, 0x01};
   uchar overflow_inc_expected[3] = {BUILD_HEADER(0x03, 0x04), 0xFE, 0xFF};
@@ -163,7 +163,7 @@ TEST(GFXTest, CompressionSingleOverflowIncrement) {
   EXPECT_THAT(overflow_inc_expected, ElementsAreArray(comp_result.data(), 3));
 }
 
-TEST(GFXTest, CompressionMixedRepeatIncrement) {
+TEST(LC_LZ2_CompressionTest, CompressionMixedRepeatIncrement) {
   ROM rom;
   uchar to_compress_string[28] = {0x05, 0x05, 0x05, 0x05, 0x06, 0x07, 0x08,
                                   0x09, 0x0A, 0x0B, 0x05, 0x02, 0x05, 0x02,
@@ -183,7 +183,7 @@ TEST(GFXTest, CompressionMixedRepeatIncrement) {
 }
  */
 
-TEST(GFXTest, CompressionMixedIncrementIntraCopyOffset) {
+TEST(LC_LZ2_CompressionTest, CompressionMixedIncrementIntraCopyOffset) {
   ROM rom;
   uchar to_compress_string[] = {0x05, 0x05, 0x05, 0x05, 0x06, 0x07, 0x08,
                                 0x09, 0x0A, 0x0B, 0x05, 0x02, 0x05, 0x02,
@@ -207,7 +207,7 @@ TEST(GFXTest, CompressionMixedIncrementIntraCopyOffset) {
               ElementsAreArray(comp_result.data(), 9));
 }
 
-TEST(GFXTest, CompressionMixedIncrementIntraCopySource) {
+TEST(LC_LZ2_CompressionTest, CompressionMixedIncrementIntraCopySource) {
   ROM rom;
   uchar to_compress_string[] = {0x05, 0x05, 0x05, 0x05, 0x06, 0x07, 0x08,
                                 0x09, 0x0A, 0x0B, 0x05, 0x02, 0x05, 0x02,
@@ -236,7 +236,7 @@ TEST(GFXTest, CompressionMixedIncrementIntraCopySource) {
   EXPECT_THAT(all_expected, ElementsAreArray(comp_result.data(), 16));
 }
 
-TEST(GFXTest, LengthBorderCompression) {
+TEST(LC_LZ2_CompressionTest, LengthBorderCompression) {
   ROM rom;
   uchar buffer[3000];
 
@@ -270,7 +270,7 @@ TEST(GFXTest, LengthBorderCompression) {
               ElementsAreArray(comp_result.data(), 9));
 }
 
-TEST(GFXTest, CompressionExtendedWordCopy) {
+TEST(LC_LZ2_CompressionTest, CompressionExtendedWordCopy) {
   ROM rom;
   uchar buffer[3000];
   for (unsigned int i = 0; i < 3000; i += 2) {
@@ -286,7 +286,7 @@ TEST(GFXTest, CompressionExtendedWordCopy) {
 }
 
 /* Extended Header Command is currently unimplemented
-TEST(GFXTest, ExtendedHeaderDecompress) {
+TEST(LC_LZ2_CompressionTest, ExtendedHeaderDecompress) {
   ROM rom;
   Bytes extendedcmd_i = {0b11100100, 0x8F, 0x2A, 0xFF};
   uchar extendedcmd_o[50];
@@ -298,7 +298,7 @@ TEST(GFXTest, ExtendedHeaderDecompress) {
   ASSERT_THAT(extendedcmd_o, ElementsAreArray(decomp_result.data(), 50));
 }
 
-TEST(GFXTest, ExtendedHeaderDecompress2) {
+TEST(LC_LZ2_CompressionTest, ExtendedHeaderDecompress2) {
   ROM rom;
   Bytes extendedcmd_i = {0b11100101, 0x8F, 0x2A, 0xFF};
   uchar extendedcmd_o[50];
@@ -313,7 +313,7 @@ TEST(GFXTest, ExtendedHeaderDecompress2) {
 }
 */
 
-TEST(GFXTest, CompressionDecompressionEmptyData) {
+TEST(LC_LZ2_CompressionTest, CompressionDecompressionEmptyData) {
   ROM rom;
   uchar empty_input[0] = {};
   auto comp_result = ExpectCompressOk(rom, empty_input, 0);
@@ -323,7 +323,7 @@ TEST(GFXTest, CompressionDecompressionEmptyData) {
   EXPECT_EQ(0, decomp_result.size());
 }
 
-// TEST(GFXTest, CompressionDecompressionSingleByte) {
+// TEST(LC_LZ2_CompressionTest, CompressionDecompressionSingleByte) {
 //   ROM rom;
 //   uchar single_byte[1] = {0x2A};
 //   uchar single_byte_expected[3] = {BUILD_HEADER(0x00, 0x01), 0x2A, 0xFF};
@@ -335,7 +335,7 @@ TEST(GFXTest, CompressionDecompressionEmptyData) {
 //   EXPECT_THAT(single_byte, ElementsAreArray(decomp_result.data(), 1));
 // }
 
-// TEST(GFXTest, CompressionDecompressionAllBitsSet) {
+// TEST(LC_LZ2_CompressionTest, CompressionDecompressionAllBitsSet) {
 //   ROM rom;
 //   uchar all_bits_set[5] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 //   uchar all_bits_set_expected[3] = {BUILD_HEADER(0x01, 0x05), 0xFF, 0xFF};
@@ -348,7 +348,7 @@ TEST(GFXTest, CompressionDecompressionEmptyData) {
 //   EXPECT_THAT(all_bits_set, ElementsAreArray(decomp_result.data(), 5));
 // }
 
-// TEST(GFXTest, DecompressionInvalidData) {
+// TEST(LC_LZ2_CompressionTest, DecompressionInvalidData) {
 //   ROM rom;
 //   Bytes invalid_input = {0xFF, 0xFF};  // Invalid command
 

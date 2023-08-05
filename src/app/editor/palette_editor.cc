@@ -33,13 +33,6 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-namespace {
-void DrawPaletteTooltips(gfx::SNESPalette& palette, int size) {}
-
-using namespace ImGui;
-
-}  // namespace
-
 absl::Status PaletteEditor::Update() {
   for (int i = 0; i < kNumPalettes; ++i) {
     if (ImGui::TreeNode(kPaletteCategoryNames[i].data())) {
@@ -57,7 +50,7 @@ void PaletteEditor::DrawPaletteGroup(int i) {
     ImGui::Text("%d", j);
 
     auto palette = palettes[j];
-    auto pal_size = palette.size_;
+    auto pal_size = palette.size();
 
     for (int n = 0; n < pal_size; n++) {
       ImGui::PushID(n);
@@ -65,38 +58,39 @@ void PaletteEditor::DrawPaletteGroup(int i) {
 
       std::string popupId = kPaletteCategoryNames[i].data() +
                             std::to_string(j) + "_" + std::to_string(n);
-      if (ImGui::ColorButton(popupId.c_str(), palette[n].RGB(),
+      if (ImGui::ColorButton(popupId.c_str(), palette[n].GetRGB(),
                              palette_button_flags)) {
-        if (ImGui::ColorEdit4(popupId.c_str(), palette[n].ToFloatArray(),
+        static auto float_array = gfx::ToFloatArray(palette[n]);
+        if (ImGui::ColorEdit4(popupId.c_str(), float_array.data(),
                               palette_button_flags))
-          current_color_ =
-              ImVec4(palette[n].rgb.x, palette[n].rgb.y, palette[n].rgb.z,
-                     palette[n].rgb.w);  // Prese rve alpha!
+          current_color_ = ImVec4(palette[n].GetRGB().x, palette[n].GetRGB().y,
+                                  palette[n].GetRGB().z,
+                                  palette[n].GetRGB().w);  // Prese rve alpha!
       }
 
       if (ImGui::BeginPopupContextItem(popupId.c_str())) {
-        auto col = palette[n].ToFloatArray();
+        auto col = gfx::ToFloatArray(palette[n]);
         if (ImGui::ColorEdit4(
-                "Edit Color", col,
+                "Edit Color", col.data(),
                 ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
           rom_.UpdatePaletteColor(kPaletteGroupNames[i].data(), j, n,
                                   palette[n]);
         }
-        if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
-        if (BeginPopup("Copy")) {
+        if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");
+        if (ImGui::BeginPopup("Copy")) {
           int cr = IM_F32_TO_INT8_SAT(col[0]);
           int cg = IM_F32_TO_INT8_SAT(col[1]);
           int cb = IM_F32_TO_INT8_SAT(col[2]);
           char buf[64];
           CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)",
                              col[0], col[1], col[2]);
-          if (Selectable(buf)) SetClipboardText(buf);
+          if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
           CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d)", cr, cg, cb);
-          if (Selectable(buf)) SetClipboardText(buf);
+          if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
           CustomFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg,
                              cb);
-          if (Selectable(buf)) SetClipboardText(buf);
-          EndPopup();
+          if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
+          ImGui::EndPopup();
         }
 
         ImGui::EndPopup();
@@ -116,10 +110,10 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
   // Generate a default palette. The palette will persist and can be edited.
   static bool init = false;
   if (loaded && !init) {
-    for (int n = 0; n < palette.size_; n++) {
-      saved_palette_[n].x = palette.GetColor(n).rgb.x / 255;
-      saved_palette_[n].y = palette.GetColor(n).rgb.y / 255;
-      saved_palette_[n].z = palette.GetColor(n).rgb.z / 255;
+    for (int n = 0; n < palette.size(); n++) {
+      saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
+      saved_palette_[n].y = palette.GetColor(n).GetRGB().y / 255;
+      saved_palette_[n].z = palette.GetColor(n).GetRGB().z / 255;
       saved_palette_[n].w = 255;  // Alpha
     }
     init = true;
@@ -193,10 +187,10 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
 void PaletteEditor::DrawPortablePalette(gfx::SNESPalette& palette) {
   static bool init = false;
   if (!init) {
-    for (int n = 0; n < palette.size_; n++) {
-      saved_palette_[n].x = palette.GetColor(n).rgb.x / 255;
-      saved_palette_[n].y = palette.GetColor(n).rgb.y / 255;
-      saved_palette_[n].z = palette.GetColor(n).rgb.z / 255;
+    for (int n = 0; n < palette.size(); n++) {
+      saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
+      saved_palette_[n].y = palette.GetColor(n).GetRGB().y / 255;
+      saved_palette_[n].z = palette.GetColor(n).GetRGB().z / 255;
       saved_palette_[n].w = 255;  // Alpha
     }
     init = true;

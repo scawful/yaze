@@ -276,7 +276,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
 
   if (rom_.isLoaded()) {
     auto palette_group = rom_.GetPaletteGroup("ow_main");
-    palette_ = palette_group.palettes[current_palette_];
+    palette_ = palette_group[current_palette_];
     if (col_file_) {
       bitmap_.ApplyPalette(col_file_palette_);
     } else {
@@ -309,7 +309,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       // ROM palette
       auto palette_group =
           rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
-      palette_ = palette_group.palettes[current_palette_index_];
+      palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(palette_);
     }
 
@@ -334,7 +334,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       // ROM palette
       auto palette_group =
           rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
-      palette_ = palette_group.palettes[current_palette_index_];
+      palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(palette_);
     }
 
