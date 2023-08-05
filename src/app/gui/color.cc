@@ -21,10 +21,10 @@ void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
   static bool init = false;
   static ImVec4 saved_palette[32] = {};
   if (loaded && !init) {
-    for (int n = 0; n < palette.size_; n++) {
-      saved_palette[n].x = palette.GetColor(n).rgb.x / 255;
-      saved_palette[n].y = palette.GetColor(n).rgb.y / 255;
-      saved_palette[n].z = palette.GetColor(n).rgb.z / 255;
+    for (int n = 0; n < palette.size(); n++) {
+      saved_palette[n].x = palette.GetColor(n).GetRGB().x / 255;
+      saved_palette[n].y = palette.GetColor(n).GetRGB().y / 255;
+      saved_palette[n].z = palette.GetColor(n).GetRGB().z / 255;
       saved_palette[n].w = 255;  // Alpha
     }
     init = true;

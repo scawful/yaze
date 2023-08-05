@@ -10,16 +10,13 @@ int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
   absl::FailureSignalHandlerOptions options;
+  options.symbolize_stacktrace = true;
+  options.alarm_on_failure_secs = true;
   absl::InstallFailureSignalHandler(options);
 
   yaze::app::core::Controller controller;
 
-  auto entry_status = controller.OnEntry();
-  if (!entry_status.ok()) {
-    // TODO(@scawful): log the specific error
-    return EXIT_FAILURE;
-  }
-
+  EXIT_IF_ERROR(controller.OnEntry())
   while (controller.IsActive()) {
     controller.OnInput();
     controller.OnLoad();

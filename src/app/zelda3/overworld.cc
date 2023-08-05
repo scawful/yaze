@@ -11,17 +11,17 @@ namespace {
 
 uint GetOwMapGfxHighPtr(const uchar *rom, int index) {
   int map_high_ptr = core::compressedAllMap32PointersHigh;
-  int p1 = (rom[(map_high_ptr) + 2 + (3 * index)] << 16) +
-           (rom[(map_high_ptr) + 1 + (3 * index)] << 8) +
-           (rom[(map_high_ptr + (3 * index))]);
+  int p1 = (rom[map_high_ptr + 2 + (3 * index)] << 16) +
+           (rom[map_high_ptr + 1 + (3 * index)] << 8) +
+           (rom[map_high_ptr + (3 * index)]);
   return core::SnesToPc(p1);
 }
 
 uint GetOwMapGfxLowPtr(const uchar *rom, int index) {
   int map_low_ptr = core::compressedAllMap32PointersLow;
-  int p2 = (rom[(map_low_ptr) + 2 + (3 * index)] << 16) +
-           (rom[(map_low_ptr) + 1 + (3 * index)] << 8) +
-           (rom[(map_low_ptr + (3 * index))]);
+  int p2 = (rom[map_low_ptr + 2 + (3 * index)] << 16) +
+           (rom[map_low_ptr + 1 + (3 * index)] << 8) +
+           (rom[map_low_ptr + (3 * index)]);
   return core::SnesToPc(p2);
 }
 
@@ -360,13 +360,13 @@ void Overworld::AssembleMap32Tiles() {
 void Overworld::AssembleMap16Tiles() {
   int tpos = core::map16Tiles;
   for (int i = 0; i < 4096; i += 1) {
-    auto t0 = gfx::GetTilesInfo((rom_.toint16(tpos)));
+    auto t0 = gfx::GetTilesInfo(rom_.toint16(tpos));
     tpos += 2;
-    auto t1 = gfx::GetTilesInfo((rom_.toint16(tpos)));
+    auto t1 = gfx::GetTilesInfo(rom_.toint16(tpos));
     tpos += 2;
-    auto t2 = gfx::GetTilesInfo((rom_.toint16(tpos)));
+    auto t2 = gfx::GetTilesInfo(rom_.toint16(tpos));
     tpos += 2;
-    auto t3 = gfx::GetTilesInfo((rom_.toint16(tpos)));
+    auto t3 = gfx::GetTilesInfo(rom_.toint16(tpos));
     tpos += 2;
     tiles16.emplace_back(t0, t1, t2, t3);
   }
@@ -393,8 +393,7 @@ void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
   for (int y = 0; y < 16; y++) {
     for (int x = 0; x < 16; x++) {
       auto tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
-      int tpos = tidD;
-      if (tpos < tiles32.size()) {
+      if (int tpos = tidD; tpos < tiles32.size()) {
         if (i < 64) {
           AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.light_world);
         } else if (i < 128 && i >= 64) {

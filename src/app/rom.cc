@@ -470,9 +470,9 @@ void ROM::SaveAllPalettes() {
       for (size_t j = 0; j < palette.size(); ++j) {
         gfx::SNESColor color = palette[j];
         // If the color is modified, save the color to the ROM
-        if (color.modified) {
+        if (color.isModified()) {
           WriteColor(GetPaletteAddress(groupName, i, j), color);
-          color.modified = false;  // Reset the modified flag after saving
+          color.setModified(false);  // Reset the modified flag after saving
         }
       }
     }
@@ -561,7 +561,7 @@ gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
     new_color.red = (color & 0x1F) * 8;
     new_color.green = ((color >> 5) & 0x1F) * 8;
     new_color.blue = ((color >> 10) & 0x1F) * 8;
-    colors[color_offset].setSNES(new_color);
+    colors[color_offset].SetSNES(gfx::ConvertRGBtoSNES(new_color));
     color_offset++;
     offset += 2;
   }
@@ -582,8 +582,8 @@ void ROM::WriteShort(int addr, int value) {
 // ============================================================================
 
 void ROM::WriteColor(uint32_t address, const gfx::SNESColor& color) {
-  uint16_t bgr = ((color.snes >> 10) & 0x1F) | ((color.snes & 0x1F) << 10) |
-                 (color.snes & 0x7C00);
+  uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
+                 ((color.GetSNES() & 0x1F) << 10) | (color.GetSNES() & 0x7C00);
 
   // Write the 16-bit color value to the ROM at the specified address
   rom_data_[address] = static_cast<uint8_t>(bgr & 0xFF);
@@ -605,21 +605,6 @@ uint32_t ROM::GetPaletteAddress(const std::string& groupName,
                      (color_index * 2);
 
   return address;
-}
-
-// ============================================================================
-
-absl::Status ROM::ApplyAssembly(const absl::string_view& filename,
-                                uint32_t size) {
-  // int count = 0;
-  // auto patch = filename.data();
-  // auto data = (char*)rom_data_.data();
-  // if (int size = size_; !asar_patch(patch, data, patch_size, &size)) {
-  //   auto asar_error = asar_geterrors(&count);
-  //   auto full_error = asar_error->fullerrdata;
-  //   return absl::InternalError(absl::StrCat("ASAR Error: ", full_error));
-  // }
-  return absl::OkStatus();
 }
 
 }  // namespace app

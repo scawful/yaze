@@ -128,17 +128,17 @@ void Bitmap::UpdateTexture(std::shared_ptr<SDL_Renderer> renderer) {
 void Bitmap::ApplyPalette(const SNESPalette &palette) {
   palette_ = palette;
   SDL_UnlockSurface(surface_.get());
-  for (int i = 0; i < palette.size_; ++i) {
-    if (palette.GetColor(i).transparent) {
+  for (int i = 0; i < palette.size(); ++i) {
+    if (palette.GetColor(i).isTransparent()) {
       surface_->format->palette->colors[i].r = 0;
       surface_->format->palette->colors[i].g = 0;
       surface_->format->palette->colors[i].b = 0;
       surface_->format->palette->colors[i].a = 0;
     } else {
-      surface_->format->palette->colors[i].r = palette.GetColor(i).rgb.x;
-      surface_->format->palette->colors[i].g = palette.GetColor(i).rgb.y;
-      surface_->format->palette->colors[i].b = palette.GetColor(i).rgb.z;
-      surface_->format->palette->colors[i].a = palette.GetColor(i).rgb.w;
+      surface_->format->palette->colors[i].r = palette.GetColor(i).GetRGB().x;
+      surface_->format->palette->colors[i].g = palette.GetColor(i).GetRGB().y;
+      surface_->format->palette->colors[i].b = palette.GetColor(i).GetRGB().z;
+      surface_->format->palette->colors[i].a = palette.GetColor(i).GetRGB().w;
     }
   }
   SDL_LockSurface(surface_.get());

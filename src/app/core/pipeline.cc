@@ -30,7 +30,7 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
       ImGui::PushID(n);
       if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
-      if (ImGui::ColorButton("##palette", palette[n].RGB(),
+      if (ImGui::ColorButton("##palette", palette[n].GetRGB(),
                              ImGuiColorEditFlags_NoAlpha |
                                  ImGuiColorEditFlags_NoPicker |
                                  ImGuiColorEditFlags_NoTooltip,

@@ -54,6 +54,15 @@
     }                                             \
   }
 
+#define EXIT_IF_ERROR(expression)                 \
+  {                                               \
+    auto error = expression;                      \
+    if (!error.ok()) {                            \
+      std::cout << error.ToString() << std::endl; \
+      return EXIT_FAILURE;                        \
+    }                                             \
+  }
+
 #define RETURN_IF_ERROR(expression) \
   {                                 \
     auto error = expression;        \
