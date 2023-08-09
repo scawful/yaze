@@ -36,7 +36,7 @@ class PaletteEditor {
   auto SetupROM(ROM& rom) { rom_ = rom; }
 
  private:
-  void DrawPaletteGroup(int i);
+  absl::Status DrawPaletteGroup(int i);
 
   ImVec4 saved_palette_[256] = {};
   ImVec4 current_color_;

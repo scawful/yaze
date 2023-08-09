@@ -111,6 +111,13 @@ class GraphicsEditor {
   Bytes import_data_;
   Bytes graphics_buffer_;
 
+  std::vector<uint8_t> decoded_cgx_;
+  std::vector<uint8_t> cgx_data_;
+  std::vector<uint8_t> extra_cgx_data_;
+  std::vector<SDL_Color> decoded_col_;
+
+  SDL_Surface* cgx_surface_;
+
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
 

@@ -11,6 +11,8 @@
 #include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
+#include "app/gfx/scad_format.h"
+#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
@@ -114,7 +116,10 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     strncpy(cgx_file_name_,
             ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
             sizeof(cgx_file_name_));
-    status_ = temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false);
+    // status_ = temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false);
+    status_ = gfx::DecodeCgxFile(cgx_file_path_, cgx_data_, extra_cgx_data_,
+                                 decoded_cgx_);
+    auto cgx_header = gfx::ExtractCgxHeader(extra_cgx_data_);
     is_open_ = true;
     cgx_loaded_ = true;
   });
@@ -122,17 +127,69 @@ absl::Status GraphicsEditor::DrawCgxImport() {
                    [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
   core::ButtonPipe("Decompress CGX Data", [this]() {
+    /*
     cgx_viewer_.LoadCgx(temp_rom_);
     auto all_tiles_data = cgx_viewer_.GetCgxData();
-    cgx_bitmap_.Create(core::kTilesheetWidth, 8192, core::kTilesheetDepth,
-                       all_tiles_data.data(), all_tiles_data.size());
+    */
+    // cgx_surface_ = gfx::CreateCgxPreviewImage(current_palette_index_,
+    // cgx_data_,
+    //                                           extra_cgx_data_, decoded_col_);
+    // cgx_bitmap_.CreateFromSurface(cgx_surface_);
+
+    cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
-      cgx_bitmap_.ApplyPalette(col_file_palette_);
+      // cgx_bitmap_.ApplyPalette(col_file_palette_);
+      cgx_bitmap_.ApplyPalette(decoded_col_);
       rom_.RenderBitmap(&cgx_bitmap_);
     }
   });
 
-  CLEAR_AND_RETURN_STATUS(status_)
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::DrawPaletteControls() {
+  gui::TextWithSeparators("COL Import");
+  ImGui::InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
+  ImGui::SameLine();
+
+  core::FileDialogPipeline(
+      "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [this]() {
+        strncpy(col_file_path_,
+                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+                sizeof(col_file_path_));
+        strncpy(col_file_name_,
+                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+                sizeof(col_file_name_));
+        status_ = temp_rom_.LoadFromFile(col_file_path_,
+                                         /*z3_load=*/false);
+        auto col_data_ = gfx::GetColFileData(temp_rom_.data());
+        if (col_file_palette_group_.size() != 0) {
+          col_file_palette_group_.Clear();
+        }
+        col_file_palette_group_ = gfx::CreatePaletteGroupFromColFile(col_data_);
+        col_file_palette_ = gfx::SNESPalette(col_data_);
+
+        // gigaleak dev format based code
+        decoded_col_ = gfx::DecodeColFile(col_file_path_);
+        col_file_ = true;
+        is_open_ = true;
+      });
+
+  core::ButtonPipe("Copy COL Path",
+                   [this]() { ImGui::SetClipboardText(col_file_path_); });
+
+  if (rom_.isLoaded()) {
+    gui::TextWithSeparators("ROM Palette");
+    gui::InputHex("Palette Index", &current_palette_index_);
+    ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
+                 IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
+  }
+
+  if (col_file_palette_.size() != 0) {
+    core::SelectablePalettePipeline(current_palette_index_, refresh_graphics_,
+                                    col_file_palette_);
+  }
+
   return absl::OkStatus();
 }
 
@@ -162,49 +219,6 @@ absl::Status GraphicsEditor::DrawFileImport() {
       return absl::InvalidArgumentError(
           "Please select a file before importing.");
     }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::DrawPaletteControls() {
-  gui::TextWithSeparators("COL Import");
-  ImGui::InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
-  ImGui::SameLine();
-
-  core::FileDialogPipeline(
-      "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [this]() {
-        strncpy(col_file_path_,
-                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-                sizeof(col_file_path_));
-        strncpy(col_file_name_,
-                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-                sizeof(col_file_name_));
-        status_ = temp_rom_.LoadFromFile(col_file_path_,
-                                         /*z3_load=*/false);
-        auto col_data_ = gfx::GetColFileData(temp_rom_.data());
-        if (col_file_palette_group_.size() != 0) {
-          col_file_palette_group_.Clear();
-        }
-        col_file_palette_group_ = gfx::CreatePaletteGroupFromColFile(col_data_);
-        col_file_palette_ = gfx::SNESPalette(col_data_);
-        col_file_ = true;
-        is_open_ = true;
-      });
-
-  core::ButtonPipe("Copy COL Path",
-                   [this]() { ImGui::SetClipboardText(col_file_path_); });
-
-  if (rom_.isLoaded()) {
-    gui::TextWithSeparators("ROM Palette");
-    gui::InputHex("Palette Index", &current_palette_index_);
-    ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
-                 IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
-  }
-
-  if (col_file_palette_.size() != 0) {
-    core::SelectablePalettePipeline(current_palette_index_, refresh_graphics_,
-                                    col_file_palette_);
   }
 
   return absl::OkStatus();

@@ -2,6 +2,7 @@
 #define YAZE_APP_VIEWER_CGX_VIEWER_H
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "app/core/pipeline.h"
@@ -13,6 +14,7 @@
 namespace yaze {
 namespace app {
 namespace viewer {
+
 
 class CgxViewer {
  public:
