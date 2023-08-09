@@ -71,7 +71,7 @@ Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
 
   // 16 tiles = 1024 bytes
   auto buffer = Bytes(data.size());
-  auto bitmap_data = Bytes(128 * 128 + 2048);
+  auto bitmap_data = Bytes(0x80 * 0x800);
   int yy = 0;
   int xx = 0;
   int pos = 0;
@@ -101,31 +101,31 @@ Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
         auto b = 0;
         if (b1 != 0) {
           b |= 1;
-        };
+        }
         if (b2 != 0) {
           b |= 2;
-        };
+        }
         if (bpp >= 4) {
           if (b3 != 0) {
             b |= 4;
-          };
+          }
           if (b4 != 0) {
             b |= 8;
-          };
+          }
         }
         if (bpp >= 8) {
           if (b5 != 0) {
             b |= 0x10;
-          };
+          }
           if (b6 != 0) {
             b |= 0x20;
-          };
+          }
           if (b7 != 0) {
             b |= 0x40;
-          };
+          }
           if (b8 != 0) {
             b |= 0x80;
-          };
+          }
         }
         bitmap_data[((x + xx) * sheet_width) + y + (yy * 8)] = b;
       }

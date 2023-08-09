@@ -36,14 +36,14 @@ namespace editor {
 absl::Status PaletteEditor::Update() {
   for (int i = 0; i < kNumPalettes; ++i) {
     if (ImGui::TreeNode(kPaletteCategoryNames[i].data())) {
-      DrawPaletteGroup(i);
+      RETURN_IF_ERROR(DrawPaletteGroup(i))
       ImGui::TreePop();
     }
   }
   return absl::OkStatus();
 }
 
-void PaletteEditor::DrawPaletteGroup(int i) {
+absl::Status PaletteEditor::DrawPaletteGroup(int i) {
   auto size = rom_.GetPaletteGroup(kPaletteGroupNames[i].data()).size();
   auto palettes = rom_.GetPaletteGroup(kPaletteGroupNames[i].data());
   for (int j = 0; j < size; j++) {
@@ -73,8 +73,8 @@ void PaletteEditor::DrawPaletteGroup(int i) {
         if (ImGui::ColorEdit4(
                 "Edit Color", col.data(),
                 ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
-          rom_.UpdatePaletteColor(kPaletteGroupNames[i].data(), j, n,
-                                  palette[n]);
+          RETURN_IF_ERROR(rom_.UpdatePaletteColor(kPaletteGroupNames[i].data(),
+                                                  j, n, palette[n]))
         }
         if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");
         if (ImGui::BeginPopup("Copy")) {
@@ -99,6 +99,7 @@ void PaletteEditor::DrawPaletteGroup(int i) {
       ImGui::PopID();
     }
   }
+  return absl::OkStatus();
 }
 
 void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {

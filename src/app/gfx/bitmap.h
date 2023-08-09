@@ -28,13 +28,18 @@ class Bitmap {
   void Create(int width, int height, int depth, int data_size);
   void Create(int width, int height, int depth, uchar *data, int data_size);
   void Create(int width, int height, int depth, Bytes data);
+  
+  void CreateFromSurface(SDL_Surface *surface);
 
   void Apply(Bytes data);
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
+  void SetSurface(SDL_Surface *surface);
+
   void ApplyPalette(const SNESPalette &palette);
+  void ApplyPalette(const std::vector<SDL_Color> &palette);
 
   void WriteToPixel(int position, uchar value) {
     this->pixel_data_[position] = value;

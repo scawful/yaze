@@ -1,5 +1,6 @@
 #include "cgx_viewer.h"
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -13,12 +14,13 @@ namespace yaze {
 namespace app {
 namespace viewer {
 
-constexpr int kMatchedBytes[] = {0x4E, 0x41, 0x4B, 0x31, 0x39, 0x38, 0x39};
-constexpr int kOffsetFromMatchedBytesEnd = 0x1D;
+constexpr uint16_t kMatchedBytes[] = {0x4E, 0x41, 0x4B, 0x31, 0x39, 0x38, 0x39};
+constexpr uint16_t kOffsetFromMatchedBytesEnd = 0x1D;
 
-void CgxViewer::LoadCgx(ROM &cgx_rom) {
+void CgxViewer::LoadCgx(ROM& cgx_rom) {
   int matching_position = -1;
   bool matched = false;
+
   for (int i = 0;
        i < cgx_rom.size() - sizeof(kMatchedBytes) - kOffsetFromMatchedBytesEnd;
        i++) {
@@ -48,8 +50,33 @@ void CgxViewer::LoadCgx(ROM &cgx_rom) {
   LoadGfx(current_selection_);
 }
 
+void CgxViewer::LoadGfx(int combo_bpp) {
+  if (combo_bpp == 0) {
+    bpp_ = 4;
+  } else if (combo_bpp == 1) {
+    bpp_ = 2;
+  } else if (combo_bpp == 2) {
+    bpp_ = 8;
+  } else if (combo_bpp == 3) {
+    bpp_ = 40;
+    for (int i = 0; i < raw_data_.size(); i++) {
+      all_tiles_data_[i] = raw_data_[i];
+    }
+    // Refresh palettes and "picture box" aka canvas
+    RefreshPalettes();
+    return;
+  }
+
+  Bytes decomp_sheet = gfx::BPP8SNESToIndexed(raw_data_.vector(), bpp_);
+  for (int i = 0; i < decomp_sheet.size(); i++) {
+    all_tiles_data_.push_back(decomp_sheet[i]);
+  }
+
+  RefreshPalettes();
+}
+
 void CgxViewer::DrawBG1(int p, int bpp) {
-  auto *ptr = (uchar *)screen_bitmap_.data();
+  auto* ptr = (uchar*)screen_bitmap_.data();
   // for each tile on the tile buffer
   for (int i = 0; i < 0x400; i++) {
     if (room_bg1_bitmap_.data()[i + p] != 0xFFFF) {
@@ -84,31 +111,6 @@ void CgxViewer::DrawBG1(int p, int bpp) {
 void CgxViewer::DrawBG2() {}
 
 void CgxViewer::DrawOAM(int bpp, int drawmode, gfx::OAMTile data, int frame) {}
-
-void CgxViewer::LoadGfx(int combo_bpp) {
-  if (combo_bpp == 0) {
-    bpp_ = 4;
-  } else if (combo_bpp == 1) {
-    bpp_ = 2;
-  } else if (combo_bpp == 2) {
-    bpp_ = 8;
-  } else if (combo_bpp == 3) {
-    bpp_ = 40;
-    for (int i = 0; i < raw_data_.size(); i++) {
-      all_tiles_data_[i] = raw_data_[i];
-    }
-    // Refresh palettes and "picture box" aka canvas
-    RefreshPalettes();
-    return;
-  }
-
-  Bytes decomp_sheet = gfx::BPP8SNESToIndexed(raw_data_.vector(), bpp_);
-  for (int i = 0; i < decomp_sheet.size(); i++) {
-    all_tiles_data_.push_back(decomp_sheet[i]);
-  }
-
-  RefreshPalettes();
-}
 
 void CgxViewer::LoadScr() {}
 
