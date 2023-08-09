@@ -1,7 +1,19 @@
 #include "overworld.h"
 
+#include <SDL.h>
+
+#include <future>
+#include <memory>
+#include <vector>
+
+#include "absl/status/status.h"
+#include "app/core/constants.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/zelda3/overworld_map.h"
+#include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
@@ -434,8 +446,10 @@ absl::Status Overworld::DecompressAllMapTiles() {
       lowest = p2;
     }
 
-    ASSIGN_OR_RETURN(auto bytes, rom_.DecompressOverworld(p2, 1000))
-    ASSIGN_OR_RETURN(auto bytes2, rom_.DecompressOverworld(p1, 1000))
+    ASSIGN_OR_RETURN(auto bytes,
+                     gfx::lc_lz2::DecompressOverworld(rom_.data(), p2, 1000))
+    ASSIGN_OR_RETURN(auto bytes2,
+                     gfx::lc_lz2::DecompressOverworld(rom_.data(), p1, 1000))
     OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
 
     sx++;

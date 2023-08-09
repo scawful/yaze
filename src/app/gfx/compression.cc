@@ -470,7 +470,8 @@ absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
     ROM temp_rom;
     RETURN_IF_ERROR(
         temp_rom.LoadFromBytes(CreateCompressionString(chain_head->next, mode)))
-    ASSIGN_OR_RETURN(auto decomp_data, temp_rom.Decompress(0, temp_rom.size()))
+    ASSIGN_OR_RETURN(auto decomp_data,
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size()))
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -538,7 +539,9 @@ absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
 
     uint max_win = 2;
     uint cmd_with_max = kCommandDirectCopy;
-    ValidateForByteGainV2(current_cmd, max_win, cmd_with_max);
+    ValidateForByteGain(current_cmd.data_size, current_cmd.cmd_size, max_win,
+                        cmd_with_max);
+    // ValidateForByteGainV2(current_cmd, max_win, cmd_with_max);
 
     if (cmd_with_max == kCommandDirectCopy) {
       // This is the worst case scenario
@@ -553,7 +556,6 @@ absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
         auto new_comp_piece = std::make_shared<CompressionPiece>(
             kCommandDirectCopy, comp_accumulator, buffer, comp_accumulator);
         compressed_chain->next = new_comp_piece;
-        compressed_chain = new_comp_piece;
         comp_accumulator = 0;
       }
     } else {

@@ -94,8 +94,10 @@ void CompressionCommandAlternativeV2(const uchar* data,
 absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
                                  const int length, int mode = 1,
                                  bool check = false);
-absl::StatusOr<Bytes> CompressGraphics(const int pos, const int length);
-absl::StatusOr<Bytes> CompressOverworld(const int pos, const int length);
+absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
+                                       const int length);
+absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
+                                        const int length);
 
 std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator);
 void memfill(const uchar* data, Bytes& buffer, int buffer_pos, int offset,

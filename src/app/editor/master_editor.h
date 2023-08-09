@@ -63,7 +63,6 @@ class MasterEditor {
   absl::Status prev_status_;
 
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
-  std::shared_ptr<core::Editor> current_editor_;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
