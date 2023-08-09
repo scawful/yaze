@@ -123,31 +123,50 @@ constexpr int kScreenWidth = 1440;
 constexpr int kScreenHeight = 900;
 
 // ============================================================================
-// 65816 LanguageDefinition
+// Z3 Version Constants
 // ============================================================================
 
-static const char *const kKeywords[] = {
-    "ADC", "AND", "ASL", "BCC", "BCS", "BEQ",   "BIT",   "BMI",       "BNE",
-    "BPL", "BRA", "BRL", "BVC", "BVS", "CLC",   "CLD",   "CLI",       "CLV",
-    "CMP", "CPX", "CPY", "DEC", "DEX", "DEY",   "EOR",   "INC",       "INX",
-    "INY", "JMP", "JSR", "JSL", "LDA", "LDX",   "LDY",   "LSR",       "MVN",
-    "NOP", "ORA", "PEA", "PER", "PHA", "PHB",   "PHD",   "PHP",       "PHX",
-    "PHY", "PLA", "PLB", "PLD", "PLP", "PLX",   "PLY",   "REP",       "ROL",
-    "ROR", "RTI", "RTL", "RTS", "SBC", "SEC",   "SEI",   "SEP",       "STA",
-    "STP", "STX", "STY", "STZ", "TAX", "TAY",   "TCD",   "TCS",       "TDC",
-    "TRB", "TSB", "TSC", "TSX", "TXA", "TXS",   "TXY",   "TYA",       "TYX",
-    "WAI", "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB"};
+enum class Z3_Version {
+  US = 1,
+  JP = 2,
+  SD = 3,
+};
 
-static const char *const kIdentifiers[] = {
-    "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
-    "atof",    "atoi",    "atol",    "ceil",     "clock",   "cosh",
-    "ctime",   "div",     "exit",    "fabs",     "floor",   "fmod",
-    "getchar", "getenv",  "isalnum", "isalpha",  "isdigit", "isgraph",
-    "ispunct", "isspace", "isupper", "kbhit",    "log10",   "log2",
-    "log",     "memcmp",  "modf",    "pow",      "putchar", "putenv",
-    "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
-    "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
-    "toupper"};
+template <Z3_Version version>
+class VersionConstants;
+
+template <>
+class VersionConstants<Z3_Version::US> {
+ public:
+  static constexpr uint32_t kGgxAnimatedPointer = 0x10275;
+  static constexpr uint32_t kOverworldGfxGroups1 = 0x5D97;
+  static constexpr uint32_t kOverworldGfxGroups2 = 0x6073;
+
+  static constexpr uint32_t compressedAllMap32PointersHigh = 0x1794D;
+  static constexpr uint32_t compressedAllMap32PointersLow = 0x17B2D;
+};
+
+template <>
+class VersionConstants<Z3_Version::JP> {
+ public:
+  static constexpr uint32_t kGgxAnimatedPointer = 0x10624;
+  static constexpr uint32_t kOverworldGfxGroups1 = 0x5DD7;
+  static constexpr uint32_t kOverworldGfxGroups2 = 0x60B3;
+
+  // LONGPointers all tiles of maps[High] (mapid* 3)
+  static constexpr uint32_t compressedAllMap32PointersHigh = 0x176B1;
+
+  // LONGPointers all tiles of maps[Low] (mapid* 3)
+  static constexpr uint32_t compressedAllMap32PointersLow = 0x17891;
+
+  static constexpr uint32_t overworldMapPalette = 0x7D1C;  // JP
+  static constexpr uint32_t overworldMapPaletteGroup = 0x67E74;
+  static constexpr uint32_t overworldMapSize = 0x1273B;  // JP
+  static constexpr uint32_t overlayPointers = 0x3FAF4;
+  static constexpr uint32_t overlayPointersBank = 0x07;
+  static constexpr uint32_t overworldTilesType = 0x7FD94;
+};
+
 
 // ============================================================================
 // Magic numbers

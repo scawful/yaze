@@ -10,11 +10,38 @@ namespace yaze {
 namespace gui {
 namespace widgets {
 
+// ============================================================================
+// 65816 LanguageDefinition
+// ============================================================================
+
+static const char *const kKeywords[] = {
+    "ADC", "AND", "ASL", "BCC", "BCS", "BEQ",   "BIT",   "BMI",       "BNE",
+    "BPL", "BRA", "BRL", "BVC", "BVS", "CLC",   "CLD",   "CLI",       "CLV",
+    "CMP", "CPX", "CPY", "DEC", "DEX", "DEY",   "EOR",   "INC",       "INX",
+    "INY", "JMP", "JSR", "JSL", "LDA", "LDX",   "LDY",   "LSR",       "MVN",
+    "NOP", "ORA", "PEA", "PER", "PHA", "PHB",   "PHD",   "PHP",       "PHX",
+    "PHY", "PLA", "PLB", "PLD", "PLP", "PLX",   "PLY",   "REP",       "ROL",
+    "ROR", "RTI", "RTL", "RTS", "SBC", "SEC",   "SEI",   "SEP",       "STA",
+    "STP", "STX", "STY", "STZ", "TAX", "TAY",   "TCD",   "TCS",       "TDC",
+    "TRB", "TSB", "TSC", "TSX", "TXA", "TXS",   "TXY",   "TYA",       "TYX",
+    "WAI", "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB"};
+
+static const char *const kIdentifiers[] = {
+    "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
+    "atof",    "atoi",    "atol",    "ceil",     "clock",   "cosh",
+    "ctime",   "div",     "exit",    "fabs",     "floor",   "fmod",
+    "getchar", "getenv",  "isalnum", "isalpha",  "isdigit", "isgraph",
+    "ispunct", "isspace", "isupper", "kbhit",    "log10",   "log2",
+    "log",     "memcmp",  "modf",    "pow",      "putchar", "putenv",
+    "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
+    "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
+    "toupper"};
+
 TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   TextEditor::LanguageDefinition language_65816;
-  for (auto &k : app::core::kKeywords) language_65816.mKeywords.emplace(k);
+  for (auto &k : kKeywords) language_65816.mKeywords.emplace(k);
 
-  for (auto &k : app::core::kIdentifiers) {
+  for (auto &k : kIdentifiers) {
     TextEditor::Identifier id;
     id.mDeclaration = "Built-in function";
     language_65816.mIdentifiers.insert(std::make_pair(std::string(k), id));

@@ -10,6 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/core/editor.h"
 #include "app/core/pipeline.h"
 #include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
@@ -53,14 +54,15 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
-class OverworldEditor : public SharedROM {
+class OverworldEditor : public Editor, public SharedROM {
  public:
-  absl::Status Update();
-  absl::Status Undo() const { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() const { return absl::UnimplementedError("Redo"); }
-  absl::Status Cut() const { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() const { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() const { return absl::UnimplementedError("Paste"); }
+  absl::Status Update() final;
+  absl::Status Undo() { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() { return absl::UnimplementedError("Redo"); }
+  absl::Status Cut() { return absl::UnimplementedError("Cut"); }
+  absl::Status Copy() { return absl::UnimplementedError("Copy"); }
+  absl::Status Paste() { return absl::UnimplementedError("Paste"); }
+
   void SetupROM(ROM &rom) {
     rom_ = rom;
     shared_rom_ = std::make_shared<ROM>(rom_);

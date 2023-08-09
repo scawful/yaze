@@ -69,16 +69,6 @@ const absl::flat_hash_map<std::string, uint32_t> paletteGroupColorCounts = {
 
 class ROM {
  public:
-  // Compression function
-  absl::StatusOr<Bytes> Compress(const int start, const int length,
-                                 int mode = 1, bool check = false);
-  absl::StatusOr<Bytes> CompressGraphics(const int pos, const int length);
-  absl::StatusOr<Bytes> CompressOverworld(const int pos, const int length);
-
-  absl::StatusOr<Bytes> Decompress(int offset, int size = 0x800, int mode = 1);
-  absl::StatusOr<Bytes> DecompressGraphics(int pos, int size);
-  absl::StatusOr<Bytes> DecompressOverworld(int pos, int size);
-
   // Load functions
   absl::StatusOr<Bytes> Load2bppGraphics();
   absl::Status LoadAllGraphicsData();
@@ -124,6 +114,8 @@ class ROM {
   auto char_data() { return reinterpret_cast<char*>(rom_data_.data()); }
 
   auto push_back(uchar byte) { rom_data_.push_back(byte); }
+
+  auto version() const { return version_; }
 
   void malloc(int n_bytes) {
     rom_data_.clear();
@@ -178,6 +170,7 @@ class ROM {
   Bytes rom_data_;
   Bytes graphics_buffer_;
 
+  core::Z3_Version version_;
   gfx::BitmapTable graphics_bin_;
 
   std::shared_ptr<SDL_Renderer> renderer_;

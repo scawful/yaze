@@ -44,196 +44,6 @@ int GetGraphicsAddress(const uchar* data, uint8_t offset) {
 
 }  // namespace
 
-// TODO TEST compressed data border for each cmd
-absl::StatusOr<Bytes> ROM::Compress(const int start, const int length, int mode,
-                                    bool check) {
-  if (length == 0) {
-    return Bytes();
-  }
-  // Worse case should be a copy of the string with extended header
-  auto compressed_chain = std::make_shared<CompressionPiece>(1, 1, "aaa", 2);
-  auto compressed_chain_start = compressed_chain;
-
-  gfx::lc_lz2::CommandArgumentArray cmd_args = {{}};
-  gfx::lc_lz2::DataSizeArray data_size_taken = {0, 0, 0, 0, 0};
-  gfx::lc_lz2::CommandSizeArray cmd_size = {0, 1, 2, 1, 2};
-
-  uint src_data_pos = start;
-  uint last_pos = start + length - 1;
-  uint comp_accumulator = 0;  // Used when skipping using copy
-
-  while (true) {
-    data_size_taken.fill({});
-    cmd_args.fill({{}});
-
-    gfx::lc_lz2::CheckByteRepeat(rom_data_.data(), data_size_taken, cmd_args,
-                                 src_data_pos, last_pos);
-    gfx::lc_lz2::CheckWordRepeat(rom_data_.data(), data_size_taken, cmd_args,
-                                 src_data_pos, last_pos);
-    gfx::lc_lz2::CheckIncByte(rom_data_.data(), data_size_taken, cmd_args,
-                              src_data_pos, last_pos);
-    gfx::lc_lz2::CheckIntraCopy(rom_data_.data(), data_size_taken, cmd_args,
-                                src_data_pos, last_pos, start);
-
-    uint max_win = 2;
-    uint cmd_with_max = kCommandDirectCopy;
-    gfx::lc_lz2::ValidateForByteGain(data_size_taken, cmd_size, max_win,
-                                     cmd_with_max);
-
-    if (cmd_with_max == kCommandDirectCopy) {
-      // This is the worst case scenario
-      // Progress through the next byte, in case there's a different
-      // compression command we can implement before we hit 32 bytes.
-      src_data_pos++;
-      comp_accumulator++;
-
-      // Arbitrary choice to do a 32 bytes grouping for copy.
-      if (comp_accumulator == 32 || src_data_pos > last_pos) {
-        std::string buffer;
-        for (int i = 0; i < comp_accumulator; ++i) {
-          buffer.push_back(rom_data_[i + src_data_pos - comp_accumulator]);
-        }
-        auto new_comp_piece = std::make_shared<CompressionPiece>(
-            kCommandDirectCopy, comp_accumulator, buffer, comp_accumulator);
-        compressed_chain->next = new_comp_piece;
-        compressed_chain = new_comp_piece;
-        comp_accumulator = 0;
-      }
-    } else {
-      gfx::lc_lz2::CompressionCommandAlternative(
-          rom_data_.data(), compressed_chain, cmd_size, cmd_args, src_data_pos,
-          comp_accumulator, cmd_with_max, max_win);
-    }
-
-    if (src_data_pos > last_pos) {
-      printf("Breaking compression loop\n");
-      break;
-    }
-
-    if (check) {
-      RETURN_IF_ERROR(gfx::lc_lz2::ValidateCompressionResult(
-          compressed_chain_start, mode, start, src_data_pos))
-    }
-  }
-
-  // Skipping compression chain header
-  gfx::lc_lz2::MergeCopy(compressed_chain_start->next);
-  gfx::lc_lz2::PrintCompressionChain(compressed_chain_start);
-  return gfx::lc_lz2::CreateCompressionString(compressed_chain_start->next,
-                                              mode);
-}
-
-absl::StatusOr<Bytes> ROM::CompressGraphics(const int pos, const int length) {
-  return Compress(pos, length, gfx::lc_lz2::kNintendoMode2);
-}
-
-absl::StatusOr<Bytes> ROM::CompressOverworld(const int pos, const int length) {
-  return Compress(pos, length, gfx::lc_lz2::kNintendoMode1);
-}
-
-// ============================================================================
-
-absl::StatusOr<Bytes> ROM::Decompress(int offset, int size, int mode) {
-  if (size == 0) {
-    return Bytes();
-  }
-
-  Bytes buffer(size, 0);
-  uint length = 0;
-  uint buffer_pos = 0;
-  uchar command = 0;
-  uchar header = rom_data_[offset];
-
-  while (header != kSnesByteMax) {
-    if ((header & gfx::lc_lz2::kExpandedMod) == gfx::lc_lz2::kExpandedMod) {
-      // Expanded Command
-      command = ((header >> 2) & kCommandMod);
-      length = (((header << 8) | rom_data_[offset + 1]) &
-                gfx::lc_lz2::kExpandedLengthMod);
-      offset += 2;  // Advance 2 bytes in ROM
-    } else {
-      // Normal Command
-      command = ((header >> 5) & kCommandMod);
-      length = (header & gfx::lc_lz2::kNormalLengthMod);
-      offset += 1;  // Advance 1 byte in ROM
-    }
-    length += 1;  // each commands is at least of size 1 even if index 00
-
-    switch (command) {
-      case gfx::lc_lz2::kCommandDirectCopy:  // Does not advance in the ROM
-        memcpy(buffer.data() + buffer_pos, rom_data_.data() + offset, length);
-        buffer_pos += length;
-        offset += length;
-        break;
-      case gfx::lc_lz2::kCommandByteFill:
-        memset(buffer.data() + buffer_pos, (int)(rom_data_[offset]), length);
-        buffer_pos += length;
-        offset += 1;  // Advances 1 byte in the ROM
-        break;
-      case gfx::lc_lz2::kCommandWordFill: {
-        auto a = rom_data_[offset];
-        auto b = rom_data_[offset + 1];
-        for (int i = 0; i < length; i = i + 2) {
-          buffer[buffer_pos + i] = a;
-          if ((i + 1) < length) buffer[buffer_pos + i + 1] = b;
-        }
-        buffer_pos += length;
-        offset += 2;  // Advance 2 byte in the ROM
-      } break;
-      case gfx::lc_lz2::kCommandIncreasingFill: {
-        auto inc_byte = rom_data_[offset];
-        for (int i = 0; i < length; i++) {
-          buffer[buffer_pos] = inc_byte++;
-          buffer_pos++;
-        }
-        offset += 1;  // Advance 1 byte in the ROM
-      } break;
-      case gfx::lc_lz2::kCommandRepeatingBytes: {
-        ushort s1 = ((rom_data_[offset + 1] & kSnesByteMax) << 8);
-        ushort s2 = (rom_data_[offset] & kSnesByteMax);
-        int addr = (s1 | s2);
-        if (mode == gfx::lc_lz2::kNintendoMode1) {  // Reversed byte order for
-                                                    // overworld maps
-          addr = (rom_data_[offset + 1] & kSnesByteMax) |
-                 ((rom_data_[offset] & kSnesByteMax) << 8);
-        }
-        if (addr > offset) {
-          return absl::InternalError(absl::StrFormat(
-              "Decompress: Offset for command copy exceeds current position "
-              "(Offset : %#04x | Pos : %#06x)\n",
-              addr, offset));
-        }
-        if (buffer_pos + length >= size) {
-          size *= 2;
-          buffer.resize(size);
-        }
-        memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
-        buffer_pos += length;
-        offset += 2;
-      } break;
-      default: {
-        std::cout << absl::StrFormat(
-            "Decompress: Invalid header (Offset : %#06x, Command: %#04x)\n",
-            offset, command);
-      } break;
-    }
-    // check next byte
-    header = rom_data_[offset];
-  }
-
-  return buffer;
-}
-
-absl::StatusOr<Bytes> ROM::DecompressGraphics(int pos, int size) {
-  return Decompress(pos, size, gfx::lc_lz2::kNintendoMode2);
-}
-
-absl::StatusOr<Bytes> ROM::DecompressOverworld(int pos, int size) {
-  return Decompress(pos, size, gfx::lc_lz2::kNintendoMode1);
-}
-
-// ============================================================================
-
 absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
   Bytes sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
@@ -307,16 +117,11 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
         absl::StrCat("Could not open ROM file: ", filename));
   }
 
-  bool has_header = false;
-  int header_count = 0x200;
   size_ = std::filesystem::file_size(filename);
   rom_data_.resize(size_);
   for (auto i = 0; i < size_; ++i) {
     char byte_to_read = ' ';
     file.read(&byte_to_read, sizeof(char));
-    if (byte_to_read == 0x00) {
-      has_header = true;
-    }
     rom_data_[i] = byte_to_read;
   }
 
@@ -442,6 +247,7 @@ absl::Status ROM::UpdatePaletteColor(const std::string& groupName,
       if (colorIndex < palette_groups_[groupName][paletteIndex].size()) {
         // Update the color value in the palette
         palette_groups_[groupName][paletteIndex][colorIndex] = newColor;
+        palette_groups_[groupName][paletteIndex][colorIndex].setModified(true);
       } else {
         return absl::AbortedError(
             "Error: Invalid color index in UpdatePaletteColor.");

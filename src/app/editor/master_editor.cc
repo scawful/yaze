@@ -60,6 +60,11 @@ bool BeginCentered(const char *name) {
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
   rom_.SetupRenderer(renderer);
+  overworld_editor_.SetupROM(rom_);
+  graphics_editor_.SetupROM(rom_);
+  screen_editor_.SetupROM(rom_);
+  palette_editor_.SetupROM(rom_);
+  music_editor_.SetupROM(rom_);
 }
 
 void MasterEditor::UpdateScreen() {
@@ -90,11 +95,6 @@ void MasterEditor::DrawFileDialog() {
                              std::string filePathName =
                                  ImGuiFileDialog::Instance()->GetFilePathName();
                              status_ = rom_.LoadFromFile(filePathName);
-                             overworld_editor_.SetupROM(rom_);
-                             graphics_editor_.SetupROM(rom_);
-                             screen_editor_.SetupROM(rom_);
-                             palette_editor_.SetupROM(rom_);
-                             music_editor_.SetupROM(rom_);
                            });
 }
 
