@@ -1,4 +1,3 @@
-# yaze source files -----------------------------------------------------------
 set(
   YAZE_APP_CORE_SRC
   app/core/common.cc
@@ -48,43 +47,6 @@ set(
   app/gui/color.cc
 )
 
-set(
-  YAZE_VIEWER_SRC
-  app/viewer/cgx_viewer.cc
-)
-
-# executable creation ---------------------------------------------------------
-
-add_executable(
-  yaze
-  app/yaze.cc
-  app/rom.cc
-  ${YAZE_APP_CORE_SRC}
-  ${YAZE_APP_EDITOR_SRC}
-  ${YAZE_APP_GFX_SRC}
-  ${YAZE_APP_ZELDA3_SRC}
-  ${YAZE_GUI_SRC}
-  ${YAZE_VIEWER_SRC}
-  # ${ASAR_STATIC_SRC}
-  # ${SNES_SPC_SOURCES}
-  ${IMGUI_SRC}
-)
-
-# including libraries ---------------------------------------------------------
-
-target_include_directories(
-  yaze PUBLIC
-  lib/
-  app/
-  ${CMAKE_SOURCE_DIR}/src/
-  ${PNG_INCLUDE_DIRS}
-  ${SDL2_INCLUDE_DIR}
-  lib/SDL_mixer/include/
-  ${GLEW_INCLUDE_DIRS}
-  # lib/asar/src/asar/
-  # lib/snes_spc/snes_spc/
-)
-
 set(SDL_TARGETS SDL2::SDL2)
 
 if(WIN32 OR MINGW)
@@ -92,22 +54,8 @@ if(WIN32 OR MINGW)
     add_definitions(-DSDL_MAIN_HANDLED)
 endif()
 
-# linking libraries -----------------------------------------------------------
-
-target_link_libraries(
-  yaze PUBLIC
-  ${ABSL_TARGETS}
-  ${SDL_TARGETS}
-  ${SDLMIXER_LIBRARY}
-  SDL2_mixer
-  ${PNG_LIBRARIES}
-  ${GLEW_LIBRARIES}
-  ${OPENGL_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  # asar-static
-  # snes_spc
-  ImGui
-)
+include(app/CMakeLists.txt)
+include(cli/CMakeLists.txt)
 
 if (UNIX)
   target_compile_definitions(yaze PRIVATE "linux")
