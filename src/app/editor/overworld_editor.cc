@@ -27,7 +27,7 @@ namespace editor {
 
 absl::Status OverworldEditor::Update() {
   // Initialize overworld graphics, maps, and palettes
-  if (rom_.isLoaded() && !all_gfx_loaded_) {
+  if (rom()->isLoaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(LoadGraphics())
     all_gfx_loaded_ = true;
   }
@@ -289,21 +289,21 @@ void OverworldEditor::DrawTileSelector() {
 
 absl::Status OverworldEditor::LoadGraphics() {
   // Load all of the graphics data from the game.
-  PRINT_IF_ERROR(rom_.LoadAllGraphicsData())
-  graphics_bin_ = rom_.GetGraphicsBin();
+  PRINT_IF_ERROR(rom()->LoadAllGraphicsData())
+  graphics_bin_ = rom()->GetGraphicsBin();
 
   // Load the Link to the Past overworld.
-  RETURN_IF_ERROR(overworld_.Load(rom_))
+  RETURN_IF_ERROR(overworld_.Load(*rom()))
   palette_ = overworld_.AreaPalette();
 
   // Create the area graphics image
   core::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
-                                     overworld_.AreaGraphics(), rom_,
+                                     overworld_.AreaGraphics(), *rom(),
                                      current_gfx_bmp_, palette_);
 
   // Create the tile16 blockset image
   core::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
-                                     overworld_.Tile16Blockset(), rom_,
+                                     overworld_.Tile16Blockset(), *rom(),
                                      tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
 
@@ -333,7 +333,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   for (int id = 0; id < 4096; id++) {
     tile16_individual_.emplace_back();
     core::BuildAndRenderBitmapPipeline(0x10, 0x10, 0x80,
-                                       tile16_individual_data_[id], rom_,
+                                       tile16_individual_data_[id], *rom(),
                                        tile16_individual_[id], palette_);
   }
 
@@ -342,7 +342,7 @@ absl::Status OverworldEditor::LoadGraphics() {
     overworld_.SetCurrentMap(i);
     auto palette = overworld_.AreaPalette();
     core::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,
-                                       overworld_.BitmapData(), rom_,
+                                       overworld_.BitmapData(), *rom(),
                                        maps_bmp_[i], palette);
   }
 
@@ -359,7 +359,7 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       auto spr_gfx = sprite.PreviewGraphics();
       sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
       sprite_previews_[sprite.id()].ApplyPalette(palette_);
-      rom_.RenderBitmap(&(sprite_previews_[sprite.id()]));
+      rom()->RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
   return absl::OkStatus();
 }

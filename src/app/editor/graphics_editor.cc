@@ -60,7 +60,7 @@ absl::Status GraphicsEditor::Update() {
       for (int i = 0; i < graphics_bin_.size(); i++) {
         graphics_bin_[i].ApplyPalette(
             col_file_palette_group_[current_palette_index_]);
-        rom_.UpdateBitmap(&graphics_bin_[i]);
+        rom()->UpdateBitmap(&graphics_bin_[i]);
       }
       refresh_graphics_ = false;
     }
@@ -130,7 +130,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
       cgx_bitmap_.ApplyPalette(decoded_col_);
-      rom_.RenderBitmap(&cgx_bitmap_);
+      rom()->RenderBitmap(&cgx_bitmap_);
     }
   });
 
@@ -140,16 +140,17 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 absl::Status GraphicsEditor::DrawScrImport() {
   ImGui::InputText("##ScrFile", scr_file_name_, sizeof(scr_file_name_));
 
-  core::FileDialogPipeline("ImportScrKey", ".SCR,.scr\0", "Open SCR", [this]() {
-    strncpy(scr_file_path_,
-            ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
-            sizeof(scr_file_path_));
-    strncpy(scr_file_name_,
-            ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
-            sizeof(scr_file_name_));
-    is_open_ = true;
-    scr_loaded_ = true;
-  });
+  core::FileDialogPipeline(
+      "ImportScrKey", ".SCR,.scr,.BAK\0", "Open SCR", [this]() {
+        strncpy(scr_file_path_,
+                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+                sizeof(scr_file_path_));
+        strncpy(scr_file_name_,
+                ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+                sizeof(scr_file_name_));
+        is_open_ = true;
+        scr_loaded_ = true;
+      });
 
   ImGui::InputInt("SCR Mod", &scr_mod_value_);
 
@@ -163,7 +164,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
     scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
       scr_bitmap_.ApplyPalette(decoded_col_);
-      rom_.RenderBitmap(&scr_bitmap_);
+      rom()->RenderBitmap(&scr_bitmap_);
     }
   });
 
@@ -201,7 +202,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   core::ButtonPipe("Copy COL Path",
                    [this]() { ImGui::SetClipboardText(col_file_path_); });
 
-  if (rom_.isLoaded()) {
+  if (rom()->isLoaded()) {
     gui::TextWithSeparators("ROM Palette");
     gui::InputHex("Palette Index", &current_palette_index_);
     ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
@@ -311,8 +312,8 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
   bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
                  converted_sheet.data(), size);
 
-  if (rom_.isLoaded()) {
-    auto palette_group = rom_.GetPaletteGroup("ow_main");
+  if (rom()->isLoaded()) {
+    auto palette_group = rom()->GetPaletteGroup("ow_main");
     palette_ = palette_group[current_palette_];
     if (col_file_) {
       bitmap_.ApplyPalette(col_file_palette_);
@@ -321,7 +322,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     }
   }
 
-  rom_.RenderBitmap(&bitmap_);
+  rom()->RenderBitmap(&bitmap_);
   gfx_loaded_ = true;
 
   return absl::OkStatus();
@@ -345,12 +346,12 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     } else {
       // ROM palette
       auto palette_group =
-          rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
+          rom()->GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
       palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(palette_);
     }
 
-    rom_.RenderBitmap(&graphics_bin_[i]);
+    rom()->RenderBitmap(&graphics_bin_[i]);
     i++;
   }
 
@@ -370,12 +371,12 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     } else {
       // ROM palette
       auto palette_group =
-          rom_.GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
+          rom()->GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
       palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(palette_);
     }
 
-    rom_.RenderBitmap(&graphics_bin_[i]);
+    rom()->RenderBitmap(&graphics_bin_[i]);
     i++;
   }
   super_donkey_ = true;

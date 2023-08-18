@@ -5,9 +5,10 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
-#include "app/rom.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/rom.h"
+
 
 namespace yaze {
 namespace app {
@@ -25,22 +26,18 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
     "ow_aux",      "global_sprites", "dungeon_main", "ow_mini_map",
     "ow_mini_map", "3d_object",      "3d_object"};
 
-
-class PaletteEditor {
+class PaletteEditor : public SharedROM {
  public:
   absl::Status Update();
   void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
 
   void DrawPortablePalette(gfx::SNESPalette& palette);
 
-  auto SetupROM(ROM& rom) { rom_ = rom; }
-
  private:
   absl::Status DrawPaletteGroup(int i);
 
   ImVec4 saved_palette_[256] = {};
   ImVec4 current_color_;
-  ROM rom_;
 
   ImGuiColorEditFlags palette_button_flags =
       ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoTooltip;

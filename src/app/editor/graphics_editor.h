@@ -59,10 +59,9 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
                                           ImGuiTableFlags_Resizable |
                                           ImGuiTableFlags_SizingStretchSame;
 
-class GraphicsEditor {
+class GraphicsEditor : public SharedROM {
  public:
   absl::Status Update();
-  void SetupROM(ROM& rom) { rom_ = rom; }
 
  private:
   absl::Status DrawToolset();
@@ -113,7 +112,6 @@ class GraphicsEditor {
   char scr_file_path_[256] = "";
   char scr_file_name_[256] = "";
 
-  ROM rom_;
   ROM temp_rom_;
   Bytes import_data_;
   Bytes graphics_buffer_;

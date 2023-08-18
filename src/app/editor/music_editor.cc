@@ -274,7 +274,7 @@ void MusicEditor::DrawToolset() {
     BUTTON_COLUMN(ICON_MD_FAST_FORWARD)
     BUTTON_COLUMN(ICON_MD_VOLUME_UP)
     if (ImGui::Button(ICON_MD_ACCESS_TIME)) {
-      music_tracker_.LoadSongs(rom_);
+      music_tracker_.LoadSongs(*rom());
     }
     ImGui::TableNextColumn();
     ImGui::SliderInt("Volume", &current_volume, 0, 100);

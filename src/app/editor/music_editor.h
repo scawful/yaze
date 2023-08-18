@@ -54,10 +54,9 @@ static const char* kGameSongs[] = {"Title",
 static constexpr absl::string_view kSongNotes[] = {
     "C",  "C#", "D",  "D#", "E", "F",  "F#", "G",  "G#", "A",  "A#", "B", "C",
     "C#", "D",  "D#", "E",  "F", "F#", "G",  "G#", "A",  "A#", "B",  "C"};
-class MusicEditor {
+class MusicEditor : public SharedROM {
  public:
   void Update();
-  void SetupROM(ROM& rom) { rom_ = rom; }
 
  private:
   void DrawChannels();
@@ -67,7 +66,6 @@ class MusicEditor {
   void DrawToolset();
 
   zelda3::Tracker music_tracker_;
-  ROM rom_;
 
   // Mix_Music* current_song_ = NULL;
 

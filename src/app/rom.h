@@ -127,6 +127,7 @@ class ROM {
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
   auto vector() const { return rom_data_; }
+  auto filename() const { return filename_; }
   auto isLoaded() const { return is_loaded_; }
   auto char_data() { return reinterpret_cast<char*>(rom_data_.data()); }
 
@@ -199,8 +200,23 @@ class SharedROM {
   SharedROM() = default;
   virtual ~SharedROM() = default;
 
- protected:
-  std::shared_ptr<ROM> shared_rom_;
+  std::shared_ptr<ROM> shared_rom() {
+    if (!shared_rom_) {
+      shared_rom_ = std::make_shared<ROM>();
+    }
+    return shared_rom_;
+  }
+
+  auto rom() {
+    if (!shared_rom_) {
+      shared_rom_ = std::make_shared<ROM>();
+    }
+    ROM *rom = shared_rom_.get();
+    return rom;
+  }
+
+ private:
+  static std::shared_ptr<ROM> shared_rom_;
 };
 
 }  // namespace app

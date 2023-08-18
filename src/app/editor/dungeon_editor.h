@@ -6,12 +6,13 @@
 #include "app/core/common.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
-#include "rom.h"
+#include "app/rom.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
 class DungeonEditor : public SharedROM {
  public:
   void Update();
@@ -31,8 +32,11 @@ class DungeonEditor : public SharedROM {
 
   gui::Canvas canvas_;
   gui::Canvas room_gfx_canvas_;
-  ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit;
+  ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit |
+                                         ImGuiTableFlags_Reorderable |
+                                         ImGuiTableFlags_Resizable;
 };
+
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze

@@ -63,11 +63,6 @@ class OverworldEditor : public Editor, public SharedROM {
   absl::Status Copy() { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() { return absl::UnimplementedError("Paste"); }
 
-  void SetupROM(ROM &rom) {
-    rom_ = rom;
-    shared_rom_ = std::make_shared<ROM>(rom_);
-  }
-
  private:
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
@@ -105,7 +100,6 @@ class OverworldEditor : public Editor, public SharedROM {
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
-  ROM rom_;
   PaletteEditor palette_editor_;
   zelda3::Overworld overworld_;
 

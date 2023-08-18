@@ -1,6 +1,13 @@
 #include "dungeon_editor.h"
 
+#include <imgui/imgui.h>
+
+#include "app/core/common.h"
+#include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/rom.h"
+#include "app/zelda3/dungeon/room_names.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace app {
@@ -10,13 +17,27 @@ void DungeonEditor::Update() {
   DrawToolset();
 
   ImGui::Separator();
-  if (ImGui::BeginTable("#DungeonEditTable", 2, toolset_table_flags_,
+  if (ImGui::BeginTable("#DungeonEditTable", 3, toolset_table_flags_,
                         ImVec2(0, 0))) {
+    ImGui::TableSetupColumn("Room Selector");
+
     ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                             ImGui::GetContentRegionAvail().x);
     ImGui::TableSetupColumn("Object Selector");
     ImGui::TableHeadersRow();
     ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (rom()->isLoaded()) {
+      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)9);
+          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
+          ImGui::Button(each_room_name.data());
+        }
+      }
+      ImGui::EndChild();
+    }
+
     ImGui::TableNextColumn();
     DrawDungeonCanvas();
     ImGui::TableNextColumn();
