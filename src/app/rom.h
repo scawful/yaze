@@ -41,6 +41,13 @@ constexpr int kTitleStringOffset = 0x7FC0;
 constexpr int kTitleStringLength = 20;
 constexpr int kSNESToPCOffset = 0x138000;
 
+constexpr uint32_t kNumGfxSheets = 223;
+constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
+constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
+constexpr uint32_t kPtrTableStart = 0x4F80;
+constexpr uint32_t kLinkSpriteLocation = 0x80000;
+constexpr uint32_t kFontSpriteLocation = 0x70000;
+
 const absl::flat_hash_map<std::string, uint32_t> paletteGroupAddresses = {
     {"ow_main", core::overworldPaletteMain},
     {"ow_aux", core::overworldPaletteAuxialiary},
@@ -90,19 +97,29 @@ class ROM {
   gfx::SNESPalette ReadPalette(int offset, int num_colors);
 
   // Write functions
-  void Write(int addr, int value);
-  void WriteShort(int addr, int value);
-  void WriteColor(uint32_t address, const gfx::SNESColor& color);
+  void Write(int addr, int value) { rom_data_[addr] = value; }
 
-  Bytes GetGraphicsBuffer() const { return graphics_buffer_; }
-  gfx::BitmapTable GetGraphicsBin() const { return graphics_bin_; }
+  void WriteShort(int addr, int value) {
+    rom_data_[addr] = (uint16_t)(value & 0xFF);
+    rom_data_[addr + 1] = (uint16_t)((value >> 8) & 0xFF);
+  }
+
+  void WriteColor(uint32_t address, const gfx::SNESColor& color) {
+    uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
+                   ((color.GetSNES() & 0x1F) << 10) |
+                   (color.GetSNES() & 0x7C00);
+
+    // Write the 16-bit color value to the ROM at the specified address
+    WriteShort(address, bgr);
+  }
 
   uint32_t GetPaletteAddress(const std::string& groupName, size_t paletteIndex,
                              size_t colorIndex) const;
-
   gfx::PaletteGroup GetPaletteGroup(const std::string& group) {
     return palette_groups_[group];
   }
+  Bytes GetGraphicsBuffer() const { return graphics_buffer_; }
+  gfx::BitmapTable GetGraphicsBin() const { return graphics_bin_; }
 
   auto title() const { return title_; }
   auto size() const { return size_; }

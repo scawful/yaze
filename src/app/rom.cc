@@ -27,11 +27,6 @@
 namespace yaze {
 namespace app {
 
-using gfx::lc_lz2::CompressionPiece;
-using gfx::lc_lz2::kCommandDirectCopy;
-using gfx::lc_lz2::kCommandMod;
-using gfx::lc_lz2::kSnesByteMax;
-
 namespace {
 
 int GetGraphicsAddress(const uchar* data, uint8_t offset) {
@@ -374,26 +369,6 @@ gfx::SNESPalette ROM::ReadPalette(int offset, int num_colors) {
 
   gfx::SNESPalette palette(colors);
   return palette;
-}
-
-// ============================================================================
-
-void ROM::Write(int addr, int value) { rom_data_[addr] = value; }
-
-void ROM::WriteShort(int addr, int value) {
-  rom_data_[addr] = (uchar)(value & 0xFF);
-  rom_data_[addr + 1] = (uchar)((value >> 8) & 0xFF);
-}
-
-// ============================================================================
-
-void ROM::WriteColor(uint32_t address, const gfx::SNESColor& color) {
-  uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
-                 ((color.GetSNES() & 0x1F) << 10) | (color.GetSNES() & 0x7C00);
-
-  // Write the 16-bit color value to the ROM at the specified address
-  rom_data_[address] = static_cast<uint8_t>(bgr & 0xFF);
-  rom_data_[address + 1] = static_cast<uint8_t>((bgr >> 8) & 0xFF);
 }
 
 // ============================================================================
