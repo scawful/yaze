@@ -137,6 +137,10 @@ void Bitmap::UpdateTexture(std::shared_ptr<SDL_Renderer> renderer) {
       SDL_Texture_Deleter{}};
 }
 
+void Bitmap::SaveSurfaceToFile(std::string_view filename) {
+  SDL_SaveBMP(surface_.get(), filename.data());
+}
+
 void Bitmap::SetSurface(SDL_Surface *surface) {
   surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       surface, SDL_Surface_Deleter());

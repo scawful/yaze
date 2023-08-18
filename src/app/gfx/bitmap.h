@@ -28,7 +28,7 @@ class Bitmap {
   void Create(int width, int height, int depth, int data_size);
   void Create(int width, int height, int depth, uchar *data, int data_size);
   void Create(int width, int height, int depth, Bytes data);
-  
+
   void CreateFromSurface(SDL_Surface *surface);
 
   void Apply(Bytes data);
@@ -36,6 +36,7 @@ class Bitmap {
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
 
+  void SaveSurfaceToFile(std::string_view filename);
   void SetSurface(SDL_Surface *surface);
 
   void ApplyPalette(const SNESPalette &palette);
