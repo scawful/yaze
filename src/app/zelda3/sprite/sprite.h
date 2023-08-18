@@ -39,6 +39,13 @@ class Sprite {
   auto GetRealX() const { return bounding_box_.x; }
   auto GetRealY() const { return bounding_box_.y; }
   auto id() const { return id_; }
+  auto x() const { return x_; }
+  auto y() const { return y_; }
+  auto nx() const { return nx_; }
+  auto ny() const { return ny_; }
+  auto layer() const { return layer_; }
+  auto subtype() const { return subtype_; }
+  auto& keyDrop() const { return key_drop_; }
 
   auto Width() const { return bounding_box_.w; }
   auto Height() const { return bounding_box_.h; }
@@ -47,6 +54,7 @@ class Sprite {
  private:
   Bytes current_gfx_;
   bool overworld_;
+
   uchar map_id_;
   uchar id_;
   uchar x_;
@@ -55,6 +63,10 @@ class Sprite {
   uchar ny_;
   uchar overlord_ = 0;
   std::string name_;
+
+  int subtype_;
+  int layer_;
+
   int map_x_;
   int map_y_;
   Bytes preview_gfx_;
@@ -67,6 +79,7 @@ class Sprite {
   int width_ = 16;
   int height_ = 16;
 
+  int key_drop_;
 };
 
 }  // namespace zelda3

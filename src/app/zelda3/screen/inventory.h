@@ -14,9 +14,8 @@ namespace zelda3 {
 constexpr int kInventoryStart = 0x6564A;
 constexpr int kBowItemPos = 0x6F631;
 
-class Inventory {
+class Inventory : public SharedROM {
  public:
-  void SetupROM(ROM& rom) { rom_ = rom; }
   auto Bitmap() const { return bitmap_; }
   auto Tilesheet() const { return tilesheets_bmp_; }
   auto Palette() const { return palette_; }
@@ -25,8 +24,6 @@ class Inventory {
 
  private:
   absl::Status BuildTileset();
-
-  ROM rom_;
 
   Bytes data_;
   gfx::Bitmap bitmap_;
