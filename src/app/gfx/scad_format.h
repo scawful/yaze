@@ -22,16 +22,18 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
-// Address       Description
-// 00000 - 00003 File type "SCH"
-// 00004 - 00008 Bit mode "?BIT"
-// 00009 - 00013 Version number "Ver-????\n"
-// 00014 - 00017 Header size
-// 00018 - 0001B Hardware name "SFC" or "CGB" or "GB"
-// 0001C - 0001C BG/OBJ flag (for AGB)
-// 0001D - 0001D Color Pallette Number
-// 0001D - 000FF Reserved
-// 00100 - 001FF Color Path
+// キャラクタ（．ＳＣＨ）ファイル
+// ヘッダー情報
+// アドレス 	       説明
+// 00000 - 00003 	ﾌｧｲﾙﾀｲﾌﾟ  "SCH"
+// 00004 - 00008 	ﾋﾞｯﾄﾓｰﾄﾞ  "?BIT"
+// 00009 - 00013 	ﾊﾞｰｼﾞｮﾝﾅﾝﾊﾞｰ "Ver-????\n"
+// 00014 - 00017 	ﾍｯﾀﾞｰｻｲｽﾞ
+// 00018 - 0001B 	ﾊｰﾄﾞ名  "SFC" or "CGB" or "GB"
+// 0001C - 0001C 	BG/OBJﾌﾗｸﾞ(AGBの時)
+// 0001D - 0001D 	Color Pallette Number
+// 0001D - 000FF 	予約
+// 00100 - 001FF 	Color Path
 struct CgxHeader {
   char file_type[4];
   char bit_mode[5];
@@ -46,10 +48,17 @@ struct CgxHeader {
 
 CgxHeader ExtractCgxHeader(std::vector<uint8_t>& cgx_header);
 
-absl::Status DecodeCgxFile(std::string_view filename,
-                           std::vector<uint8_t>& cgx_data,
-                           std::vector<uint8_t>& extra_cgx_data,
-                           std::vector<uint8_t>& decoded_cgx);
+absl::Status LoadScr(std::string_view filename, uint8_t input_value,
+                     std::vector<uint8_t>& map_data);
+
+absl::Status LoadCgx(uint8_t bpp, std::string_view filename,
+                     std::vector<uint8_t>& cgx_data,
+                     std::vector<uint8_t>& cgx_loaded,
+                     std::vector<uint8_t>& cgx_header);
+
+absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_bitmap_data,
+                            std::vector<uint8_t>& map_data,
+                            std::vector<uint8_t>& cgx_loaded);
 
 std::vector<SDL_Color> DecodeColFile(const std::string& filename);
 
@@ -58,11 +67,6 @@ absl::Status DecodeObjFile(
     std::vector<uint8_t> actual_obj_data,
     std::unordered_map<std::string, std::vector<uint8_t>> decoded_obj,
     std::vector<uint8_t>& decoded_extra_obj, int& obj_loaded);
-
-SDL_Surface* CreateCgxPreviewImage(int default_cgram,
-                                   const std::vector<uint8_t>& cgx_data,
-                                   const std::vector<uint8_t>& extra_cgx_data,
-                                   std::vector<SDL_Color> decoded_col);
 
 }  // namespace gfx
 }  // namespace app

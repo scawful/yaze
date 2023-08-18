@@ -68,6 +68,7 @@ class GraphicsEditor {
  private:
   absl::Status DrawToolset();
   absl::Status DrawCgxImport();
+  absl::Status DrawScrImport();
   absl::Status DrawFileImport();
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
@@ -82,6 +83,10 @@ class GraphicsEditor {
   uint64_t current_size_ = 0;
   int current_palette_ = 0;
   uint64_t current_palette_index_ = 0;
+
+  int current_bpp_ = 0;
+
+  int scr_mod_value_ = 0;
 
   uint64_t num_sheets_to_load_ = 1;
 
@@ -106,6 +111,9 @@ class GraphicsEditor {
   char cgx_file_path_[256] = "";
   char cgx_file_name_[256] = "";
 
+  char scr_file_path_[256] = "";
+  char scr_file_name_[256] = "";
+
   ROM rom_;
   ROM temp_rom_;
   Bytes import_data_;
@@ -116,7 +124,8 @@ class GraphicsEditor {
   std::vector<uint8_t> extra_cgx_data_;
   std::vector<SDL_Color> decoded_col_;
 
-  SDL_Surface* cgx_surface_;
+  std::vector<uint8_t> scr_data_;
+  std::vector<uint8_t> decoded_scr_data_;
 
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
@@ -124,6 +133,7 @@ class GraphicsEditor {
   PaletteEditor palette_editor_;
 
   gfx::Bitmap cgx_bitmap_;
+  gfx::Bitmap scr_bitmap_;
 
   gfx::Bitmap bitmap_;
   gui::Canvas import_canvas_;

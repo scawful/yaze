@@ -50,8 +50,9 @@ absl::Status GraphicsEditor::Update() {
   status_ = DrawPaletteControls();
 
   NEXT_COLUMN()
-  core::BitmapCanvasPipeline(0x200, 0x200, 0x20, scr_loaded_, cgx_bitmap_,
+  core::BitmapCanvasPipeline(0x200, 0x200, 0x20, scr_loaded_, scr_bitmap_,
                              false, 0);
+  status_ = DrawScrImport();
 
   NEXT_COLUMN()
   if (super_donkey_) {
@@ -105,6 +106,7 @@ absl::Status GraphicsEditor::DrawToolset() {
 
 absl::Status GraphicsEditor::DrawCgxImport() {
   gui::TextWithSeparators("Cgx Import");
+  ImGui::InputInt("BPP", &current_bpp_);
 
   ImGui::InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
   ImGui::SameLine();
@@ -116,10 +118,6 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     strncpy(cgx_file_name_,
             ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
             sizeof(cgx_file_name_));
-    // status_ = temp_rom_.LoadFromFile(cgx_file_path_, /*z3_load=*/false);
-    status_ = gfx::DecodeCgxFile(cgx_file_path_, cgx_data_, extra_cgx_data_,
-                                 decoded_cgx_);
-    auto cgx_header = gfx::ExtractCgxHeader(extra_cgx_data_);
     is_open_ = true;
     cgx_loaded_ = true;
   });
@@ -127,20 +125,45 @@ absl::Status GraphicsEditor::DrawCgxImport() {
                    [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
   core::ButtonPipe("Decompress CGX Data", [this]() {
-    /*
-    cgx_viewer_.LoadCgx(temp_rom_);
-    auto all_tiles_data = cgx_viewer_.GetCgxData();
-    */
-    // cgx_surface_ = gfx::CreateCgxPreviewImage(current_palette_index_,
-    // cgx_data_,
-    //                                           extra_cgx_data_, decoded_col_);
-    // cgx_bitmap_.CreateFromSurface(cgx_surface_);
-
+    status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
+                           decoded_cgx_, extra_cgx_data_);
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
-      // cgx_bitmap_.ApplyPalette(col_file_palette_);
       cgx_bitmap_.ApplyPalette(decoded_col_);
       rom_.RenderBitmap(&cgx_bitmap_);
+    }
+  });
+
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::DrawScrImport() {
+  ImGui::InputText("##ScrFile", scr_file_name_, sizeof(scr_file_name_));
+
+  core::FileDialogPipeline("ImportScrKey", ".SCR,.scr\0", "Open SCR", [this]() {
+    strncpy(scr_file_path_,
+            ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+            sizeof(scr_file_path_));
+    strncpy(scr_file_name_,
+            ImGuiFileDialog::Instance()->GetCurrentFileName().c_str(),
+            sizeof(scr_file_name_));
+    is_open_ = true;
+    scr_loaded_ = true;
+  });
+
+  ImGui::InputInt("SCR Mod", &scr_mod_value_);
+
+  core::ButtonPipe("Load Scr Data", [this]() {
+    status_ = gfx::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
+
+    decoded_scr_data_.resize(0x100 * 0x100);
+    status_ = gfx::DrawScrWithCgx(current_bpp_, scr_data_, decoded_scr_data_,
+                                  decoded_cgx_);
+
+    scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
+    if (scr_loaded_) {
+      scr_bitmap_.ApplyPalette(decoded_col_);
+      rom_.RenderBitmap(&scr_bitmap_);
     }
   });
 
