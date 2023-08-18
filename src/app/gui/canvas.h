@@ -21,15 +21,29 @@ class Canvas {
   explicit Canvas(ImVec2 canvas_size)
       : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
 
+  // Background for the Canvas represents region without any content drawn to
+  // it, but can be controlled by the user.
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
+
+  // Context Menu refers to what happens when the right mouse button is pressed
+  // This routine also handles the scrolling for the canvas.
   void DrawContextMenu();
 
+  // Tile painter shows a preview of the currently selected tile
+  // and allows the user to left click to paint the tile or right
+  // click to select a new tile to paint with.
   bool DrawTilePainter(const Bitmap& bitmap, int size);
+
+  // Dictates which tile is currently selected based on what the user clicks
+  // in the canvas window. Represented and split apart into a grid of tiles.
   void DrawTileSelector(int size);
+
+  // Draws the contents of the Bitmap image to the Canvas
 
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
   void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
+
   void DrawBitmapTable(const BitmapTable& gfx_bin);
   void DrawOutline(int x, int y, int w, int h);
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
