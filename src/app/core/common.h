@@ -9,7 +9,9 @@ namespace yaze {
 namespace app {
 namespace core {
 
-unsigned int SnesToPc(unsigned int addr);
+uint32_t SnesToPc(uint32_t addr);
+uint32_t PcToSnes(uint32_t addr);
+
 int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
 int HexToDec(char *input, int length);
 bool StringReplace(std::string &str, const std::string &from,

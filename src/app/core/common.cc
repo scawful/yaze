@@ -7,12 +7,18 @@ namespace yaze {
 namespace app {
 namespace core {
 
-unsigned int SnesToPc(unsigned int addr) {
+uint32_t SnesToPc(uint32_t addr) {
   if (addr >= 0x808000) {
     addr -= 0x808000;
   }
-  unsigned int temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
+  uint32_t temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
   return (temp + 0x0);
+}
+
+uint32_t PcToSnes(uint32_t addr) {
+  if (addr >= 0x400000) return -1;
+  addr = ((addr << 1) & 0x7F0000) | (addr & 0x7FFF) | 0x8000;
+  return addr;
 }
 
 int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) {
