@@ -15,6 +15,31 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+void FindMetastamp() {
+  int matching_position = -1;
+  bool matched = false;
+  Bytes cgx_rom;
+  Bytes raw_data_;
+  for (int i = 0;
+       i < cgx_rom.size() - sizeof(kMatchedBytes) - kOffsetFromMatchedBytesEnd;
+       i++) {
+    raw_data_.push_back(cgx_rom[i]);
+    bool is_match = std::equal(std::begin(kMatchedBytes),
+                               std::end(kMatchedBytes), &cgx_rom[i]);
+    if (is_match) {
+      matching_position = i;
+      matched = true;
+      break;
+    }
+  }
+  if (matched) {
+    int bpp_marker_position =
+        matching_position + sizeof(kMatchedBytes) + kOffsetFromMatchedBytesEnd;
+    int bpp_marker = cgx_rom[bpp_marker_position];
+    std::string bpp_type = (bpp_marker == 0x31) ? "8bpp" : "4bpp";
+  }
+}
+
 absl::Status LoadCgx(uint8_t bpp, std::string_view filename,
                      std::vector<uint8_t>& cgx_data,
                      std::vector<uint8_t>& cgx_loaded,

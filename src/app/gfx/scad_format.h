@@ -46,6 +46,11 @@ struct CgxHeader {
   uint8_t color_path[0x100];
 };
 
+constexpr uint16_t kMatchedBytes[] = {0x4E, 0x41, 0x4B, 0x31, 0x39, 0x38, 0x39};
+constexpr uint16_t kOffsetFromMatchedBytesEnd = 0x1D;
+
+void FindMetastamp();
+
 absl::Status LoadScr(std::string_view filename, uint8_t input_value,
                      std::vector<uint8_t>& map_data);
 

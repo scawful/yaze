@@ -36,6 +36,7 @@ set(
   app/zelda3/sprite/sprite.cc
   app/zelda3/music/tracker.cc
   app/zelda3/dungeon/room.cc
+  app/zelda3/dungeon/room_object.cc
 )
 
 set(
