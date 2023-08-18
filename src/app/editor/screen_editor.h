@@ -21,13 +21,9 @@ namespace editor {
 
 using MosaicArray = std::array<int, core::kNumOverworldMaps>;
 
-class ScreenEditor {
+class ScreenEditor : public SharedROM {
  public:
   ScreenEditor();
-  void SetupROM(ROM &rom) {
-    rom_ = rom;
-    inventory_.SetupROM(rom_);
-  }
   void Update();
 
  private:
@@ -44,7 +40,6 @@ class ScreenEditor {
 
   char mosaic_tiles_[core::kNumOverworldMaps];
 
-  ROM rom_;
   Bytes all_gfx_;
   zelda3::Inventory inventory_;
   gfx::SNESPalette palette_;

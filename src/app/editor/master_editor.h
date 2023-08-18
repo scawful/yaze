@@ -29,7 +29,7 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class MasterEditor {
+class MasterEditor : public SharedROM {
  public:
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
@@ -72,7 +72,6 @@ class MasterEditor {
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
-  ROM rom_;
 };
 
 }  // namespace editor

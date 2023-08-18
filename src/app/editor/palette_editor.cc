@@ -44,8 +44,8 @@ absl::Status PaletteEditor::Update() {
 }
 
 absl::Status PaletteEditor::DrawPaletteGroup(int i) {
-  auto size = rom_.GetPaletteGroup(kPaletteGroupNames[i].data()).size();
-  auto palettes = rom_.GetPaletteGroup(kPaletteGroupNames[i].data());
+  auto size = rom()->GetPaletteGroup(kPaletteGroupNames[i].data()).size();
+  auto palettes = rom()->GetPaletteGroup(kPaletteGroupNames[i].data());
   for (int j = 0; j < size; j++) {
     ImGui::Text("%d", j);
 
@@ -73,8 +73,8 @@ absl::Status PaletteEditor::DrawPaletteGroup(int i) {
         if (ImGui::ColorEdit4(
                 "Edit Color", col.data(),
                 ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
-          RETURN_IF_ERROR(rom_.UpdatePaletteColor(kPaletteGroupNames[i].data(),
-                                                  j, n, palette[n]))
+          RETURN_IF_ERROR(rom()->UpdatePaletteColor(
+              kPaletteGroupNames[i].data(), j, n, palette[n]))
         }
         if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");
         if (ImGui::BeginPopup("Copy")) {

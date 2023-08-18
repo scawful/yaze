@@ -59,12 +59,7 @@ bool BeginCentered(const char *name) {
 
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
-  rom_.SetupRenderer(renderer);
-  overworld_editor_.SetupROM(rom_);
-  graphics_editor_.SetupROM(rom_);
-  screen_editor_.SetupROM(rom_);
-  palette_editor_.SetupROM(rom_);
-  music_editor_.SetupROM(rom_);
+  rom()->SetupRenderer(renderer);
 }
 
 void MasterEditor::UpdateScreen() {
@@ -94,7 +89,7 @@ void MasterEditor::DrawFileDialog() {
                            [&]() {
                              std::string filePathName =
                                  ImGuiFileDialog::Instance()->GetFilePathName();
-                             status_ = rom_.LoadFromFile(filePathName);
+                             status_ = rom()->LoadFromFile(filePathName);
                            });
 }
 
@@ -141,8 +136,8 @@ void MasterEditor::DrawInfoPopup() {
   if (rom_info_) ImGui::OpenPopup("ROM Information");
   if (ImGui::BeginPopupModal("ROM Information", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Title: %s", rom_.title());
-    ImGui::Text("ROM Size: %ld", rom_.size());
+    ImGui::Text("Title: %s", rom()->title());
+    ImGui::Text("ROM Size: %ld", rom()->size());
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       rom_info_ = false;
@@ -170,7 +165,7 @@ void MasterEditor::DrawFileMenu() {
                                               ".sfc,.smc", ".");
     }
 
-    MENU_ITEM2("Save", "Ctrl+S") { status_ = rom_.SaveToFile(backup_rom_); }
+    MENU_ITEM2("Save", "Ctrl+S") { status_ = rom()->SaveToFile(backup_rom_); }
     MENU_ITEM("Save As..") { save_as_menu = true; }
 
     ImGui::Separator();
@@ -187,7 +182,7 @@ void MasterEditor::DrawFileMenu() {
     ImGui::Begin("Save As..", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::InputText("Filename", &save_as_filename);
     if (ImGui::Button("Save", gui::kDefaultModalSize)) {
-      status_ = rom_.SaveToFile(backup_rom_, save_as_filename);
+      status_ = rom()->SaveToFile(backup_rom_, save_as_filename);
     }
     if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
       save_as_menu = false;
@@ -227,7 +222,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void *)&rom_, rom_.size());
+    mem_edit.DrawWindow("Memory Editor", (void *)&(*rom()), rom()->size());
   }
 
   if (show_imgui_demo) {

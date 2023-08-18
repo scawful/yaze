@@ -388,5 +388,7 @@ uint32_t ROM::GetPaletteAddress(const std::string& groupName,
   return address;
 }
 
+std::shared_ptr<ROM> SharedROM::shared_rom_ = nullptr;
+
 }  // namespace app
 }  // namespace yaze
