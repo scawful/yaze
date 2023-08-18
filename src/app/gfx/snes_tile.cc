@@ -180,20 +180,22 @@ Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
 
 Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
   // 3BPP
-  //[r0, bp1], [r0, bp2], [r1, bp1], [r1, bp2], [r2, bp1], [r2, bp2], [r3, bp1],
-  //[r3, bp2] [r4, bp1], [r4, bp2], [r5, bp1], [r5, bp2], [r6, bp1], [r6, bp2],
-  //[r7, bp1], [r7, bp2] [r0, bp3], [r0, bp4], [r1, bp3], [r1, bp4], [r2, bp3],
-  //[r2, bp4], [r3, bp3], [r3, bp4] [r4, bp3], [r4, bp4], [r5, bp3], [r5, bp4],
-  //[r6, bp3], [r6, bp4], [r7, bp3], [r7, bp4] [r0, bp5], [r0, bp6], [r1, bp5],
-  //[r1, bp6], [r2, bp5], [r2, bp6], [r3, bp5], [r3, bp6] [r4, bp5], [r4, bp6],
-  //[r5, bp5], [r5, bp6], [r6, bp5], [r6, bp6], [r7, bp5], [r7, bp6] [r0, bp7],
-  //[r0, bp8], [r1, bp7], [r1, bp8], [r2, bp7], [r2, bp8], [r3, bp7], [r3, bp8]
-  //[r4, bp7], [r4, bp8], [r5, bp7], [r5, bp8], [r6, bp7], [r6, bp8], [r7, bp7],
-  //[r7, bp8]
+  // [r0,bp1],[r0,bp2],[r1,bp1],[r1,bp2],[r2,bp1],[r2,bp2],[r3,bp1],[r3,bp2]
+  // [r4,bp1],[r4,bp2],[r5,bp1],[r5,bp2],[r6,bp1],[r6,bp2],[r7,bp1],[r7,bp2]
+  // [r0,bp3],[r0,bp4],[r1,bp3],[r1,bp4],[r2,bp3],[r2,bp4],[r3,bp3],[r3,bp4]
+  // [r4,bp3],[r4,bp4],[r5,bp3],[r5,bp4],[r6,bp3],[r6,bp4],[r7,bp3],[r7,bp4]
+  // [r0,bp5],[r0,bp6],[r1,bp5],[r1,bp6],[r2,bp5],[r2,bp6],[r3,bp5],[r3,bp6]
+  // [r4,bp5],[r4,bp6],[r5,bp5],[r5,bp6],[r6,bp5],[r6,bp6],[r7,bp5],[r7,bp6]
+  // [r0,bp7],[r0,bp8],[r1,bp7],[r1,bp8],[r2,bp7],[r2,bp8],[r3,bp7],[r3,bp8]
+  // [r4,bp7],[r4,bp8],[r5,bp7],[r5,bp8],[r6,bp7],[r6,bp8],[r7,bp7],[r7,bp8]
 
   // 16 tiles = 1024 bytes
   auto buffer = Bytes(data.size());
-  auto bitmap_data = Bytes(0x80 * 0x800);
+  std::vector<std::vector<uint8_t>> bitmap_data;
+  bitmap_data.resize(0x80);
+  for (auto& each : bitmap_data) {
+    each.reserve(0x800);
+  }
   int yy = 0;
   int xx = 0;
   int pos = 0;
@@ -249,7 +251,8 @@ Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
             b |= 0x80;
           }
         }
-        bitmap_data[((x + xx) * sheet_width) + y + (yy * 8)] = b;
+        // bitmap_data[((x + xx) * sheet_width) + y + (yy * 8)] = b;
+        bitmap_data[x + xx][y + (yy * 8)] = b;
       }
     }
     pos++;
@@ -267,7 +270,8 @@ Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
   for (int y = 0; y < (data.size() / 64); y++) {
     for (int x = 0; x < sheet_width; x++) {  // 128 assumption
       if (n < data.size()) {
-        buffer[n] = bitmap_data[(x * sheet_width) + y];
+        // buffer[n] = bitmap_data[(x * sheet_width) + y];
+        buffer[n] = bitmap_data[x][y];
         n++;
       }
     }

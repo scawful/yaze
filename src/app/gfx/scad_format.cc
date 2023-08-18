@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
@@ -19,48 +20,90 @@ CgxHeader ExtractCgxHeader(std::vector<uint8_t>& cgx_header) {
   memcpy(&header, cgx_header.data(), sizeof(CgxHeader));
   return header;
 }
+absl::Status LoadScr(std::string_view filename, uint8_t input_value,
+                     std::vector<uint8_t>& map_data) {
+  std::ifstream file(filename, std::ios::binary);
+  if (!file.is_open()) {
+    return absl::NotFoundError("SCR/PNL/MAP file not found.");
+  }
 
-absl::Status DecodeCgxFile(std::string_view filename,
-                           std::vector<uint8_t>& cgx_data,
-                           std::vector<uint8_t>& extra_cgx_data,
-                           std::vector<uint8_t>& decoded_cgx) {
+  // Check if file extension is PNL
+  bool pnl = false;
+  if (pnl) {
+    std::vector<uint8_t> scr_data;
+    map_data.resize(0x8000);
+    scr_data.resize(0x8000);
+
+    // Read from file for 0x8000 bytes
+    std::vector<uint8_t> file_content((std::istreambuf_iterator<char>(file)),
+                                      std::istreambuf_iterator<char>());
+    scr_data = std::vector<uint8_t>(file_content.begin(), file_content.end());
+
+    int md = 0x100;
+
+    for (int i = input_value * 0x400; i < 0x1000 + input_value * 0x400;
+         i += 2) {
+      auto b1_pos = (i - (input_value * 0x400));
+      map_data[b1_pos] = gfx::TileInfoToShort(
+          gfx::GetTilesInfo((ushort)scr_data[md + (i * 2)]));
+
+      // new Tile((scrdata[md + (i * 2) + 1]), (scrdata[md + (i * 2)]))
+      //     .getshortileinfo();
+
+      auto b2_pos = (i - (input_value * 0x400) + 1);
+      map_data[b2_pos] = gfx::TileInfoToShort(
+          gfx::GetTilesInfo((ushort)scr_data[md + (i * 2) + 2]));
+
+      // new Tile((scrdata[md + (i * 2) + 3]), (scrdata[md + (i * 2) + 2]))
+      //     .getshortileinfo();
+    }
+    // 0x900
+
+  } else {
+    int offset = 0;
+    std::vector<uint8_t> scr_data;
+    map_data.resize(0x2000);
+    scr_data.resize(0x2000);
+
+    // read from file for 0x2000 bytes
+    std::vector<uint8_t> file_content((std::istreambuf_iterator<char>(file)),
+                                      std::istreambuf_iterator<char>());
+    scr_data = std::vector<uint8_t>(file_content.begin(), file_content.end());
+
+    for (int i = 0; i < 0x1000 - offset; i++) {
+      map_data[i] = gfx::TileInfoToShort(
+          gfx::GetTilesInfo((ushort)scr_data[((i + offset) * 2)]));
+
+      // new Tile(scrdata[((i + offset) * 2)],
+      //                        scrdata[((i + offset) * 2) + 1])
+      //                   .getshortileinfo();
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status LoadCgx(uint8_t bpp, std::string_view filename,
+                     std::vector<uint8_t>& cgx_data,
+                     std::vector<uint8_t>& cgx_loaded,
+                     std::vector<uint8_t>& cgx_header) {
   std::ifstream file(filename, std::ios::binary);
   if (!file.is_open()) {
     return absl::NotFoundError("CGX file not found.");
   }
-
   std::vector<uint8_t> file_content((std::istreambuf_iterator<char>(file)),
                                     std::istreambuf_iterator<char>());
   cgx_data =
       std::vector<uint8_t>(file_content.begin(), file_content.end() - 0x500);
   file.seekg(cgx_data.size() + 0x100);
-  extra_cgx_data = std::vector<uint8_t>((std::istreambuf_iterator<char>(file)),
-                                        std::istreambuf_iterator<char>());
+  cgx_header = std::vector<uint8_t>((std::istreambuf_iterator<char>(file)),
+                                    std::istreambuf_iterator<char>());
   file.close();
 
-  decoded_cgx.clear();
-  const uint16_t num_tiles = cgx_data.size() >> 5;
-  for (size_t i = 0; i < num_tiles; i++) {
-    for (int j = 0; j < 8; j++) {
-      for (int h = 0; h < 8; h++) {
-        uint8_t pixel = 0;
-        for (int l = 0; l < 2; l++) {
-          for (int k = 0; k < 2; k++) {
-            if (cgx_data[(i * 0x20) + (l * 0x10) + (j * 2) + k] &
-                (1 << (7 - h))) {
-              pixel = pixel | (1 << (l * 2 + k));
-            }
-          }
-        }
-        decoded_cgx.push_back(pixel);
-      }
-    }
+  if (bpp > 8) {
+    cgx_loaded = gfx::BPP8SNESToIndexed(cgx_data, 40);
+    return absl::OkStatus();
   }
-
-  if (decoded_cgx.size() < 0x10000) {
-    std::cout << "Resetting VRAM Offset to not be out of bounds." << std::endl;
-    //// default_offset  "0"
-  }
+  cgx_loaded = gfx::BPP8SNESToIndexed(cgx_data, bpp);
   return absl::OkStatus();
 }
 
@@ -148,6 +191,48 @@ absl::Status DecodeObjFile(
   return absl::OkStatus();
 }
 
+absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_data,
+                            std::vector<uint8_t>& map_bitmap_data,
+                            std::vector<uint8_t>& cgx_loaded) {
+  const std::vector<uint16_t> dimensions = {0x000, 0x400, 0x800, 0xC00};
+  uint8_t p = 0;
+  for (const auto each_dimension : dimensions) {
+    p = each_dimension;
+    // for each tile on the tile buffer
+    for (int i = 0; i < 0x400; i++) {
+      if (cgx_loaded[i + p] != 0xFFFF) {
+        auto t = gfx::GetTilesInfo(cgx_loaded[i + p]);
+
+        for (auto yl = 0; yl < 8; yl++) {
+          for (auto xl = 0; xl < 8; xl++) {
+            int mx = xl * (1 - t.horizontal_mirror_) +
+                     (7 - xl) * (t.horizontal_mirror_);
+            int my =
+                yl * (1 - t.vertical_mirror_) + (7 - yl) * (t.vertical_mirror_);
+
+            int ty = (t.id_ / 16) * 1024;
+            int tx = (t.id_ % 16) * 8;
+            auto pixel = cgx_loaded[(tx + ty) + (yl * 128) + xl];
+
+            int index =
+                (((i % 32) * 8) + ((i / 32) * 2048) + (mx) + (my * 256));
+
+            if (bpp != 8) {
+              map_bitmap_data[index] =
+                  (uchar)(((pixel)&0xFF) + t.palette_ * 16);
+            } else {
+              map_bitmap_data[index] = (uchar)(((pixel)&0xFF));
+            }
+
+            // + t.palette * 16
+          }
+        }
+      }
+    }
+  }
+  return absl::OkStatus();
+}
+
 std::vector<SDL_Color> DecodeColFile(const std::string& filename) {
   std::vector<SDL_Color> decoded_col;
   std::ifstream file(filename, std::ios::binary | std::ios::ate);
@@ -181,80 +266,6 @@ std::vector<SDL_Color> DecodeColFile(const std::string& filename) {
   }
 
   return decoded_col;
-}
-
-SDL_Surface* CreateCgxPreviewImage(int default_cgram,
-                                   const std::vector<uint8_t>& cgx_data,
-                                   const std::vector<uint8_t>& extra_cgx_data,
-                                   std::vector<SDL_Color> decoded_col) {
-  std::vector<std::vector<std::vector<int>>> tiles;
-
-  const int target_width = 16;
-  const int target_height = 64;
-  int num_tiles = cgx_data.size() >> 5;
-
-  int set_height = std::floor(num_tiles / target_width);
-
-  for (int tile = 0; tile < num_tiles; tile++) {
-    std::vector<std::vector<int>> single_tile;
-    for (int row = 0; row < 8; row++) {
-      std::vector<int> single_row;
-      for (int col = 0; col < 8; col++) {
-        int palette_num = 0;
-        for (int pair = 0; pair < 2; pair++) {
-          for (int bitplane = 0; bitplane < 2; bitplane++) {
-            if (cgx_data[(tile * 0x20) + (pair * 0x10) + (row * 2) + bitplane] &
-                (1 << (7 - col))) {
-              palette_num |= (1 << (pair * 2 + bitplane));
-            }
-          }
-        }
-        single_row.push_back(palette_num);
-      }
-      single_tile.push_back(single_row);
-    }
-    tiles.push_back(single_tile);
-  }
-
-  std::vector<int> pixmap;
-  int row_i = 0;
-  for (int line = 0; line < set_height; line++) {
-    for (int row = 0; row < 8; row++) {
-      for (int i = 0; i < target_width; i++) {
-        for (int color : tiles[row_i + i][row]) {
-          pixmap.push_back(color);
-        }
-      }
-    }
-    row_i += target_width;
-  }
-
-  int cols = target_width * 8;
-  int rows = target_height * 8;
-
-  SDL_Surface* cgx_image = SDL_CreateRGBSurface(0, cols, rows, 32, 0, 0, 0, 0);
-
-  int use_palette = default_cgram;
-
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < cols; col++) {
-      int extra_data_index = (col >> 3) | (row & 0xFF8) << 1;
-      int palette_row = extra_cgx_data[extra_data_index];
-      int index = (row * cols) + col;
-
-      if (index >= 0 && index < pixmap.size() &&
-          (pixmap[index] + use_palette + palette_row * 16) <
-              decoded_col.size()) {
-        SDL_Color color =
-            decoded_col[pixmap[index] + use_palette + palette_row * 16];
-        uint32_t pixel =
-            SDL_MapRGBA(cgx_image->format, color.r, color.g, color.b, color.a);
-        ((uint32_t*)cgx_image->pixels)[(row * cols) + col] = pixel;
-      }
-    }
-  }
-
-  return cgx_image;
 }
 
 }  // namespace gfx
