@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/rom.h"
@@ -146,12 +147,43 @@ class Compress : public CommandHandler {
   }
 };
 
-// Decompress Graphics
+// Decompress (Export) Graphics
+//
+// -e <rom_file> <bin_file> --mode=<optional:mode>
+//
+// mode:
 class Decompress : public CommandHandler {
  public:
   absl::Status handle(std::string_view arg) override {
-    RETURN_IF_ERROR(rom_.LoadFromFile(arg, true))
-    RETURN_IF_ERROR(rom_.LoadAllGraphicsData())
+    auto args_vec = ParseArguments(arg);
+    Color::Modifier underline(Color::FG_UNDERLINE);
+    Color::Modifier reset(Color::FG_RESET);
+    std::cout << "Please specify the tilesheets you want to export\n";
+    std::cout << "You can input an individual sheet, a range X-Y, or comma "
+                 "separate values.\n\n";
+    std::cout << underline << "Tilesheets\n" << reset;
+    std::cout << "0-112 -> compressed 3bpp bgr \n";
+    std::cout << "113-114 -> compressed 2bpp\n";
+    std::cout << "115-126 -> uncompressed 3bpp sprites\n";
+    std::cout << "127-217 -> compressed 3bpp sprites\n";
+    std::cout << "218-222 -> compressed 2bpp\n";
+
+    std::cout << "Enter tilesheets: ";
+    std::string sheet_input;
+    std::cin >> sheet_input;
+
+    // Batch Mode
+    // if (args_vec.size() == 1) {
+    //   auto rom_filename = args_vec[1];
+    //   RETURN_IF_ERROR(rom_.LoadFromFile(arg, true))
+    //   RETURN_IF_ERROR(rom_.LoadAllGraphicsData())
+    //   for (auto& graphic_sheet : rom_.GetGraphicsBin()) {
+    //     const auto filename =
+    //         absl::StrCat(rom_.filename(), graphic_sheet.first);
+    //     graphic_sheet.second.SaveSurfaceToFile(filename);
+    //   }
+    // }
+
     std::cout << "Decompress selected with argument: " << arg << std::endl;
     return absl::OkStatus();
   }
@@ -191,9 +223,9 @@ struct Commands {
       {"-c", std::make_shared<CreatePatch>()},
       {"-o", std::make_shared<Open>()},
       {"-b", std::make_shared<Backup>()},
-      {"-i", std::make_shared<Compress>()}, // Import 
-      {"-e", std::make_shared<Decompress>()}, // Export 
-      {"-s", std::make_shared<SnesToPc>()}, 
+      {"-i", std::make_shared<Compress>()},    // Import
+      {"-e", std::make_shared<Decompress>()},  // Export
+      {"-s", std::make_shared<SnesToPc>()},
       {"-p", std::make_shared<PcToSnes>()}};
 };
 
