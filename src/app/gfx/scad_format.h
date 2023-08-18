@@ -46,8 +46,6 @@ struct CgxHeader {
   uint8_t color_path[0x100];
 };
 
-CgxHeader ExtractCgxHeader(std::vector<uint8_t>& cgx_header);
-
 absl::Status LoadScr(std::string_view filename, uint8_t input_value,
                      std::vector<uint8_t>& map_data);
 
