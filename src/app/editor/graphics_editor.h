@@ -15,7 +15,6 @@
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "app/viewer/cgx_viewer.h"
 
 namespace yaze {
 namespace app {
@@ -147,8 +146,6 @@ class GraphicsEditor {
 
   gfx::SNESPalette palette_;
   gfx::SNESPalette col_file_palette_;
-
-  viewer::CgxViewer cgx_viewer_;
 
   absl::Status status_;
 };
