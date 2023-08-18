@@ -9,6 +9,128 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
+                    const uint32_t bpp) {
+  tile8 tile;
+  assert(bpp >= 1 && bpp <= 8);
+  unsigned int bpp_pos[8];  // More for conveniance and readibility
+  for (int col = 0; col < 8; col++) {
+    for (int row = 0; row < 8; row++) {
+      if (bpp == 1) {
+        tile.data[col * 8 + row] = (data[offset + col] >> (7 - row)) & 0x01;
+        continue;
+      }
+      /* SNES bpp format interlace each byte of the first 2 bitplanes.
+       * | byte 1 of first bitplane | byte 1 of second bitplane |
+       * | byte 2 of first bitplane | byte 2 of second bitplane | ..
+       */
+      bpp_pos[0] = offset + col * 2;
+      bpp_pos[1] = offset + col * 2 + 1;
+      char mask = 1 << (7 - row);
+      tile.data[col * 8 + row] = (data[bpp_pos[0]] & mask) == mask;
+      tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[1]] & mask) == mask)
+                                  << 1;
+      if (bpp == 3) {
+        // When we have 3 bitplanes, the bytes for the third bitplane are after
+        // the 16 bytes of the 2 bitplanes.
+        bpp_pos[2] = offset + 16 + col;
+        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[2]] & mask) == mask)
+                                    << 2;
+      }
+      if (bpp >= 4) {
+        // For 4 bitplanes, the 2 added bitplanes are interlaced like the first
+        // two.
+        bpp_pos[2] = offset + 16 + col * 2;
+        bpp_pos[3] = offset + 16 + col * 2 + 1;
+        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[2]] & mask) == mask)
+                                    << 2;
+        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[3]] & mask) == mask)
+                                    << 3;
+      }
+      if (bpp == 8) {
+        bpp_pos[4] = offset + 32 + col * 2;
+        bpp_pos[5] = offset + 32 + col * 2 + 1;
+        bpp_pos[6] = offset + 48 + col * 2;
+        bpp_pos[7] = offset + 48 + col * 2 + 1;
+        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[4]] & mask) == mask)
+                                    << 4;
+        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[5]] & mask) == mask)
+                                    << 5;
+        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[6]] & mask) == mask)
+                                    << 6;
+        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[7]] & mask) == mask)
+                                    << 7;
+      }
+    }
+  }
+  return tile;
+}
+
+Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
+  // Allocate memory for output data
+  std::vector<uchar> output(bpp * 8, 0);  // initialized with 0
+  unsigned maxcolor = 2 << bpp;
+
+  // Iterate over all columns and rows of the tile
+  for (unsigned int col = 0; col < 8; col++) {
+    for (unsigned int row = 0; row < 8; row++) {
+      uchar color = tile.data[col * 8 + row];
+      if (color > maxcolor) throw std::runtime_error("Invalid color value.");
+
+      // 1bpp format
+      if (bpp == 1) output[col] += (uchar)((color & 1) << (7 - row));
+
+      // 2bpp format
+      if (bpp >= 2) {
+        output[col * 2] += (uchar)((color & 1) << (7 - row));
+        output[col * 2 + 1] += (uchar)((uchar)((color & 2) == 2) << (7 - row));
+      }
+
+      // 3bpp format
+      if (bpp == 3)
+        output[16 + col] += (uchar)(((color & 4) == 4) << (7 - row));
+
+      // 4bpp format
+      if (bpp >= 4) {
+        output[16 + col * 2] += (uchar)(((color & 4) == 4) << (7 - row));
+        output[16 + col * 2 + 1] += (uchar)(((color & 8) == 8) << (7 - row));
+      }
+
+      // 8bpp format
+      if (bpp == 8) {
+        output[32 + col * 2] += (uchar)(((color & 16) == 16) << (7 - row));
+        output[32 + col * 2 + 1] += (uchar)(((color & 32) == 32) << (7 - row));
+        output[48 + col * 2] += (uchar)(((color & 64) == 64) << (7 - row));
+        output[48 + col * 2 + 1] +=
+            (uchar)(((color & 128) == 128) << (7 - row));
+      }
+    }
+  }
+  return output;
+}
+
+std::vector<uchar> ConvertBpp(const std::vector<uchar>& tiles,
+                              uint32_t from_bpp, uint32_t to_bpp) {
+  unsigned int nb_tile = tiles.size() / (from_bpp * 8);
+  std::vector<uchar> converted(nb_tile * to_bpp * 8);
+
+  for (unsigned int i = 0; i < nb_tile; i++) {
+    tile8 tile = UnpackBppTile(tiles, i * from_bpp * 8, from_bpp);
+    std::vector<uchar> packed_tile = PackBppTile(tile, to_bpp);
+    std::memcpy(converted.data() + i * to_bpp * 8, packed_tile.data(),
+                to_bpp * 8);
+  }
+  return converted;
+}
+
+std::vector<uchar> Convert3bppTo4bpp(const std::vector<uchar>& tiles) {
+  return ConvertBpp(tiles, 3, 4);
+}
+
+std::vector<uchar> Convert4bppTo3bpp(const std::vector<uchar>& tiles) {
+  return ConvertBpp(tiles, 4, 3);
+}
+
 Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;

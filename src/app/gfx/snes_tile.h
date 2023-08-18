@@ -2,6 +2,7 @@
 #define YAZE_APP_GFX_SNES_TILE_H
 
 #include <cstdint>
+#include <cstring>
 #include <vector>
 
 #include "app/core/constants.h"
@@ -17,11 +18,22 @@ Bytes SnesTo8bppSheet(Bytes sheet, int bpp);
 Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp = 0);
 
 struct tile8 {
-  unsigned int id;
+  uint32_t id;
   char data[64];
-  unsigned int palette_id;
+  uint32_t palette_id;
 };
 using tile8 = struct tile8;
+
+tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
+                    const uint32_t bpp);
+
+Bytes PackBppTile(const tile8& tile, const uint32_t bpp);
+
+std::vector<uchar> ConvertBpp(const std::vector<uchar>& tiles,
+                              uint32_t from_bpp, uint32_t to_bpp);
+
+std::vector<uchar> Convert3bppTo4bpp(const std::vector<uchar>& tiles);
+std::vector<uchar> Convert4bppTo3bpp(const std::vector<uchar>& tiles);
 
 // vhopppcc cccccccc
 // [0, 1]
