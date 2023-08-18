@@ -9,7 +9,7 @@ project(yaze VERSION 0.01)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -52,10 +52,11 @@ find_library(SDL_MIXER_LIBRARY
   PATH_SUFFIXES lib ${VC_LIB_PATH_SUFFIX}
   )
 add_subdirectory(src/lib/SDL_mixer)
+find_package(SDL2_image)
 
 # Asar ------------------------------------------------------------------------
-add_subdirectory(src/lib/asar/src)
-include(cmake/asar.cmake)
+# add_subdirectory(src/lib/asar/src)
+# include(cmake/asar.cmake)
 
 # snes-spc --------------------------------------------------------------------
 ADD_DEFINITIONS(-DSNES_SPC_EXPORTS)

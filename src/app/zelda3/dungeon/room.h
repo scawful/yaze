@@ -1,6 +1,9 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 
+#include <cstdint>
+#include <vector>
+
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -8,6 +11,9 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
+#include "app/zelda3/dungeon/room_names.h"
+#include "app/zelda3/dungeon/room_object.h"
+#include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
@@ -82,37 +88,68 @@ constexpr int door_pos_right = 0x19C6;
 
 constexpr int dungeon_spr_ptrs = 0x090000;
 
-class Room {
- public:
-  Room() = default;
+constexpr ushort stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
 
- private:
+void DrawDungeonRoomBG1(std::vector<uint8_t>& tiles_bg1_buffer,
+                        std::vector<uint8_t>& current_gfx16,
+                        std::vector<uint8_t>& room_bg1_ptr);
+
+void DrawDungeonRoomBG2(std::vector<uint8_t>& tiles_bg2_buffer,
+                        std::vector<uint8_t>& current_gfx16,
+                        std::vector<uint8_t>& room_bg2_ptr);
+
+struct object_door {
+  object_door(short id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
+      : id_(id), x_(x), y_(y), size_(size), layer_(layer) {}
+
+  short id_;
+  uint8_t x_;
+  uint8_t y_;
+  uint8_t size_;
+  uint8_t type_;
+  uint8_t layer_;
+};
+
+struct ChestData {
+  ChestData(uchar i, bool s) : id_(i), size_(s){};
+
+  uchar id_;
+  bool size_;
+};
+
+struct StaircaseRooms {};
+
+class Room : public SharedROM {
+ public:
   void LoadGfxGroups();
   bool SaveGroupsToROM();
-  void LoadChests();
-  void LoadBlocks();
-  void LoadTorches();
-  void LoadSecrets();
-  void Resync();
 
-  void LoadObjectsFromArray(int loc);
-  void LoadSpritesFromArray(int loc);
+  void LoadSprites();
+  void LoadChests();
+
+  void LoadObjects();
+
+  RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
+                       uint8_t layer);
 
   void LoadRoomGraphics(uchar entrance_blockset = 0xFF);
   void LoadAnimatedGraphics();
 
   void LoadRoomFromROM();
 
-  DungeonDestination Pits;
-  DungeonDestination Stair1;
-  DungeonDestination Stair2;
-  DungeonDestination Stair3;
-  DungeonDestination Stair4;
-
+ private:
   int animated_frame = 0;
 
-  int RoomID = 0;
-  ushort MessageID = 0;
+  int room_id_ = 0;
+
+  uint8_t floor1;
+  uint8_t floor2;
+  uint8_t blockset;
+  uint8_t spriteset;
+  uint8_t palette;
+  uint8_t layout;
+
+  ushort message_id_ = 0;
   uchar BackgroundTileset;
   uchar SpriteTileset;
   uchar Layer2Behavior;
@@ -128,12 +165,25 @@ class Room {
   uint8_t spriteGfx[144][4];
   uint8_t paletteGfx[72][4];
 
-  // LayerMergeType LayerMerging;
+  std::vector<zelda3::Sprite> sprites_;
+  std::vector<StaircaseRooms> staircaseRooms;
+
+  DungeonDestination Pits;
+  DungeonDestination Stair1;
+  DungeonDestination Stair2;
+  DungeonDestination Stair3;
+  DungeonDestination Stair4;
+
   uchar Tag1;
   uchar Tag2;
   bool IsDark;
 
-  ROM rom_;
+  bool floor;
+
+  // std::vector<Chest> chest_list;
+  std::vector<ChestData> chests_in_room;
+  std::vector<uint8_t> current_gfx16_;
+  std::vector<RoomObject> tilesObjects;
 
   gfx::Bitmap current_graphics_;
 };
