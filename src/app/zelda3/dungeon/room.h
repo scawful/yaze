@@ -23,26 +23,6 @@ namespace dungeon {
 constexpr int entrance_gfx_group = 0x5D97;
 constexpr int gfx_animated_pointer = 0x10275;  // JP 0x10624 //long pointer
 
-class DungeonDestination {
- public:
-  DungeonDestination(uint8_t i) : Index(i) {}
-
-  uint8_t Index;
-  uint8_t Target = 0;
-  uint8_t TargetLayer = 0;
-  // RoomObject* AssociatedObject = nullptr;
-
-  // bool IsAssociated() { return AssociatedObject != nullptr; }
-
-  // int RealX() { return AssociatedObject ? AssociatedObject->RealX : 0; }
-
-  // int RealY() { return AssociatedObject ? AssociatedObject->RealY : 0; }
-
-  std::string ToString() {
-    return std::to_string(Index) + ": To " + std::to_string(Target);
-  }
-};
-
 constexpr int dungeons_palettes_groups = 0x75460;           // JP 0x67DD0
 constexpr int dungeons_main_bg_palette_pointers = 0xDEC4B;  // JP Same
 constexpr int dungeons_palettes = 0xDD734;
@@ -97,6 +77,16 @@ void DrawDungeonRoomBG1(std::vector<uint8_t>& tiles_bg1_buffer,
 void DrawDungeonRoomBG2(std::vector<uint8_t>& tiles_bg2_buffer,
                         std::vector<uint8_t>& current_gfx16,
                         std::vector<uint8_t>& room_bg2_ptr);
+
+class DungeonDestination {
+ public:
+  DungeonDestination(uint8_t i) : Index(i) {}
+
+  uint8_t Index;
+  uint8_t Target = 0;
+  uint8_t TargetLayer = 0;
+  // RoomObject* AssociatedObject = nullptr;
+};
 
 struct object_door {
   object_door(short id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
