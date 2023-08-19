@@ -400,17 +400,60 @@ class CPU : public Memory {
 
   void CLV() { status &= ~0x40; }
 
+  // Push Accumulator on Stack
   void PHA() { memory.PushByte(A); }
 
+  // Pull Accumulator from Stack
   void PLA() {
     A = memory.PopByte();
     SetNegativeFlag((A & 0x80) != 0);
     SetZeroFlag(A == 0);
   }
 
+  // Push Processor Status Register on Stack
   void PHP() { memory.PushByte(status); }
 
+  // Pull Processor Status Register from Stack
   void PLP() { status = memory.PopByte(); }
+
+  void PHX() { memory.PushByte(X); }
+
+  void PLX() {
+    X = memory.PopByte();
+    SetNegativeFlag((A & 0x80) != 0);
+    SetZeroFlag(X == 0);
+  }
+
+  void PHY() { memory.PushByte(Y); }
+
+  void PLY() {
+    Y = memory.PopByte();
+    SetNegativeFlag((A & 0x80) != 0);
+    SetZeroFlag(Y == 0);
+  }
+
+  // Push Data Bank Register on Stack
+  void PHB() { memory.PushByte(DB); }
+
+  // Pull Data Bank Register from Stack
+  void PLB() {
+    DB = memory.PopByte();
+    SetNegativeFlag((DB & 0x80) != 0);
+    SetZeroFlag(DB == 0);
+  }
+
+  // Push Program Bank Register on Stack
+  void PHD() { memory.PushWord(D); }
+
+  // Pull Direct Page Register from Stack
+  void PLD() {
+    D = memory.PopWord();
+    SetNegativeFlag((D & 0x8000) != 0);
+    SetZeroFlag(D == 0);
+  }
+
+  // Push Program Bank Register on Stack
+  void PHK() { memory.PushByte(PB); }
 
   void SEI() { status |= 0x04; }
 
