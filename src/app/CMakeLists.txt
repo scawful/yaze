@@ -2,7 +2,10 @@ add_executable(
   yaze
   app/yaze.cc
   app/rom.cc
+  app/emu/apu.cc
   app/emu/cpu.cc
+  app/emu/ppu.cc
+  app/emu/snes.cc
   ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EDITOR_SRC}
   ${YAZE_APP_GFX_SRC}
