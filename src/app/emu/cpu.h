@@ -328,6 +328,11 @@ class CPU : public Memory {
   // Helper function to get the value of a specific flag bit
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
 
+  void ClearMemory() override { memory.ClearMemory(); }
+  void LoadData(const std::vector<uint8_t>& data) override {
+    memory.LoadData(data);
+  }
+
   // Appease the C++ Gods...
   uint8_t operator[](int i) const override { return 0; }
   uint8_t at(int i) const override { return 0; }
