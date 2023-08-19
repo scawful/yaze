@@ -65,60 +65,6 @@ uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
   return fetchedByte;
 }
 
-uint16_t CPU::DirectPageIndexedIndirectX() {
-  uint8_t dp = FetchByte();
-  return memory.ReadWord((dp + X) & 0xFF);
-}
-
-uint16_t CPU::StackRelative() {
-  uint8_t sr = FetchByte();
-  return SP + sr;
-}
-
-uint16_t CPU::DirectPage() { return FetchByte(); }
-
-uint16_t CPU::DirectPageIndirectLong() {
-  uint8_t dp = FetchByte();
-  return memory.ReadWordLong(dp);
-}
-
-uint16_t CPU::Immediate() { return PC++; }
-
-uint16_t CPU::Absolute() { return FetchWord(); }
-
-uint16_t CPU::AbsoluteLong() { return FetchLong(); }
-
-uint16_t CPU::DirectPageIndirectIndexedY() {
-  uint8_t dp = FetchByte();
-  return memory.ReadWord(dp) + Y;
-}
-
-uint16_t CPU::DirectPageIndirect() {
-  uint8_t dp = FetchByte();
-  return memory.ReadWord(dp);
-}
-
-uint16_t CPU::StackRelativeIndirectIndexedY() {
-  uint8_t sr = FetchByte();
-  return memory.ReadWord(SP + sr) + Y;
-}
-
-uint16_t CPU::DirectPageIndexedX() {
-  uint8_t dp = FetchByte();
-  return (dp + X) & 0xFF;
-}
-
-uint16_t CPU::DirectPageIndirectLongIndexedY() {
-  uint8_t dp = FetchByte();
-  return memory.ReadWordLong(dp) + Y;
-}
-
-uint16_t CPU::AbsoluteIndexedY() { return FetchWord() + Y; }
-
-uint16_t CPU::AbsoluteIndexedX() { return FetchWord() + X; }
-
-uint16_t CPU::AbsoluteLongIndexedX() { return FetchLong() + X; }
-
 void CPU::ExecuteInstruction(uint8_t opcode) {
   // uint8_t opcode = FetchByte();
   uint8_t operand = -1;

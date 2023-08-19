@@ -34,6 +34,13 @@ class Memory {
   virtual void WriteByte(uint32_t address, uint8_t value) = 0;
   virtual void WriteWord(uint32_t address, uint16_t value) = 0;
 
+  virtual void PushByte(uint8_t value) = 0;
+  virtual uint8_t PopByte() = 0;
+  virtual void PushWord(uint16_t value) = 0;
+  virtual uint16_t PopWord() = 0;
+  virtual int16_t SP() const = 0;
+  virtual void SetSP(int16_t value) = 0;
+
   virtual void SetMemory(const std::vector<uint8_t>& data) = 0;
   virtual void ClearMemory() = 0;
   virtual void LoadData(const std::vector<uint8_t>& data) = 0;
@@ -65,6 +72,7 @@ class MemoryImpl : public Memory {
            (static_cast<uint32_t>(memory_.at(mapped_address + 1)) << 8) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 2)) << 16);
   }
+
   void WriteByte(uint32_t address, uint8_t value) override {
     uint32_t mapped_address = GetMappedAddress(address);
     memory_.at(mapped_address) = value;
@@ -75,19 +83,47 @@ class MemoryImpl : public Memory {
     memory_.at(mapped_address + 1) = (value >> 8) & 0xFF;
   }
 
+  // Stack operations
+  void PushByte(uint8_t value) override {
+    if (SP_ > 0x0100) {
+      memory_.at(SP_--) = value;
+    } else {
+      // Handle stack underflow
+      std::cout << "Stack underflow!" << std::endl;
+    }
+  }
+
+  uint8_t PopByte() override {
+    if (SP_ < 0x1FF) {
+      return memory_.at(++SP_);
+    } else {
+      // Handle stack overflow
+      std::cout << "Stack overflow!" << std::endl;
+      return 0;
+    }
+  }
+
+  void PushWord(uint16_t value) override {
+    PushByte(value >> 8);
+    PushByte(value & 0xFF);
+  }
+
+  uint16_t PopWord() override {
+    uint8_t low = PopByte();
+    uint8_t high = PopByte();
+    return (static_cast<uint16_t>(high) << 8) | low;
+  }
+
+  int16_t SP() const override { return SP_; }
+  void SetSP(int16_t value) override { SP_ = value; }
+
   void SetMemory(const std::vector<uint8_t>& data) override { memory_ = data; }
-
   void ClearMemory() override { memory_.resize(64000, 0x00); }
-
   void LoadData(const std::vector<uint8_t>& data) override {
     std::copy(data.begin(), data.end(), memory_.begin());
   }
 
   uint8_t at(int i) const override { return memory_[i]; }
-  auto size() const { return memory_.size(); }
-  auto begin() const { return memory_.begin(); }
-  auto end() const { return memory_.end(); }
-
   uint8_t operator[](int i) const override {
     if (i > memory_.size()) {
       std::cout << i << " out of bounds \n";
@@ -95,6 +131,10 @@ class MemoryImpl : public Memory {
     }
     return memory_[i];
   }
+
+  auto size() const { return memory_.size(); }
+  auto begin() const { return memory_.begin(); }
+  auto end() const { return memory_.end(); }
 
  private:
   uint32_t GetMappedAddress(uint32_t address) const {
@@ -135,6 +175,9 @@ class MemoryImpl : public Memory {
 
   // Memory (64KB)
   std::vector<uint8_t> memory_;
+
+  // Stack Pointer
+  uint16_t SP_ = 0x01FF;
 };
 
 }  // namespace emu
