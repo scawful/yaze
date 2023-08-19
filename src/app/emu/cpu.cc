@@ -8,25 +8,28 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-uint8_t CPU::ReadByte(uint16_t addr) const {
-  return memory.at(addr);  // Read a byte from memory at the specified address
+uint8_t CPU::ReadByte(uint16_t address) const {
+  return memory.ReadByte(address);
 }
 
 uint16_t CPU::ReadWord(uint16_t address) const {
-  uint8_t low = ReadByte(address);
-  uint8_t high = ReadByte(address + 1);
-  return (high << 8) | low;
+  return memory.ReadWord(address);
 }
 
 uint32_t CPU::ReadWordLong(uint16_t address) const {
-  uint8_t low = ReadByte(address);
-  uint8_t mid = ReadByte(address + 1);
-  uint8_t high = ReadByte(address + 2);
-  return (high << 16) | (mid << 8) | low;
+  return memory.ReadWordLong(address);
+}
+
+void CPU::WriteByte(uint32_t address, uint8_t value) {
+  memory.WriteByte(address, value);
+}
+
+void CPU::WriteWord(uint32_t address, uint16_t value) {
+  memory.WriteWord(address, value);
 }
 
 uint8_t CPU::FetchByte() {
-  uint8_t byte = memory.ReadWord(PC);  // Read a byte from memory at PC
+  uint8_t byte = memory.ReadByte(PC);  // Read a byte from memory at PC
   PC++;                                // Increment the Program Counter
   return byte;
 }
@@ -64,7 +67,7 @@ uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
 
 uint16_t CPU::DirectPageIndexedIndirectX() {
   uint8_t dp = FetchByte();
-  return ReadWord((dp + X) & 0xFF);
+  return memory.ReadWord((dp + X) & 0xFF);
 }
 
 uint16_t CPU::StackRelative() {
@@ -76,7 +79,7 @@ uint16_t CPU::DirectPage() { return FetchByte(); }
 
 uint16_t CPU::DirectPageIndirectLong() {
   uint8_t dp = FetchByte();
-  return ReadWordLong(dp);
+  return memory.ReadWordLong(dp);
 }
 
 uint16_t CPU::Immediate() { return PC++; }
@@ -87,17 +90,17 @@ uint16_t CPU::AbsoluteLong() { return FetchLong(); }
 
 uint16_t CPU::DirectPageIndirectIndexedY() {
   uint8_t dp = FetchByte();
-  return ReadWord(dp) + Y;
+  return memory.ReadWord(dp) + Y;
 }
 
 uint16_t CPU::DirectPageIndirect() {
   uint8_t dp = FetchByte();
-  return ReadWord(dp);
+  return memory.ReadWord(dp);
 }
 
 uint16_t CPU::StackRelativeIndirectIndexedY() {
   uint8_t sr = FetchByte();
-  return ReadWord(SP + sr) + Y;
+  return memory.ReadWord(SP + sr) + Y;
 }
 
 uint16_t CPU::DirectPageIndexedX() {
@@ -107,7 +110,7 @@ uint16_t CPU::DirectPageIndexedX() {
 
 uint16_t CPU::DirectPageIndirectLongIndexedY() {
   uint8_t dp = FetchByte();
-  return ReadWordLong(dp) + Y;
+  return memory.ReadWordLong(dp) + Y;
 }
 
 uint16_t CPU::AbsoluteIndexedY() { return FetchWord() + Y; }
@@ -141,7 +144,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       ADC(operand);
       break;
     case 0x6D:  // ADC Absolute
-      operand = memory.ReadByte(Absolute());
+      operand = memory.ReadWord(Absolute());
       ADC(operand);
       break;
     case 0x6F:  // ADC Absolute Long
@@ -182,49 +185,62 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x21:  // AND DP Indexed Indirect, X
-      // AND();
+      operand = memory.ReadByte(DirectPageIndexedIndirectX());
+      AND(operand);
       break;
     case 0x23:  // AND Stack Relative
-      // AND();
+      operand = memory.ReadByte(StackRelative());
+      AND(operand);
       break;
     case 0x25:  // AND Direct Page
-      // AND();
+      operand = FetchByteDirectPage(PC);
+      AND(operand);
       break;
     case 0x27:  // AND DP Indirect Long
-      // AND();
+      operand = memory.ReadByte(DirectPageIndirectLong());
+      AND(operand);
       break;
     case 0x29:  // AND Immediate
-      // AND();
+      AND(Immediate());
       break;
     case 0x2D:  // AND Absolute
-      // AND();
+      AND(Absolute());
       break;
     case 0x2F:  // AND Absolute Long
-      // AND();
+      operand = memory.ReadByte(AbsoluteLong());
+      AND(operand);
       break;
     case 0x31:  // AND DP Indirect Indexed, Y
-      // AND();
+      operand = memory.ReadByte(DirectPageIndirectIndexedY());
+      AND(operand);
       break;
     case 0x32:  // AND DP Indirect
-      // AND();
+      operand = memory.ReadByte(DirectPageIndirect());
+      AND(operand);
       break;
     case 0x33:  // AND SR Indirect Indexed, Y
-      // AND();
+      operand = memory.ReadByte(StackRelativeIndirectIndexedY());
+      AND(operand);
       break;
     case 0x35:  // AND DP Indexed, X
-      // AND();
+      operand = memory.ReadByte(DirectPageIndexedX());
+      AND(operand);
       break;
     case 0x37:  // AND DP Indirect Long Indexed, Y
-      // AND();
+      operand = memory.ReadByte(DirectPageIndirectLongIndexedY());
+      AND(operand);
       break;
     case 0x39:  // AND Absolute Indexed, Y
-      // AND();
+      operand = memory.ReadByte(AbsoluteIndexedY());
+      AND(operand);
       break;
     case 0x3D:  // AND Absolute Indexed, X
-      // AND();
+      operand = memory.ReadByte(AbsoluteIndexedX());
+      AND(operand);
       break;
     case 0x3F:  // AND Absolute Long Indexed, X
-      // AND();
+      operand = memory.ReadByte(AbsoluteLongIndexedX());
+      AND(operand);
       break;
 
     case 0x06:  // ASL Direct Page
@@ -999,7 +1015,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
 }
 
 void CPU::ADC(uint8_t operand) {
-  auto C = (bool)GetCarryFlag();
+  auto C = GetCarryFlag();
   if (GetAccumulatorSize()) {                         // 8-bit mode
     uint16_t result = (A & 0xFF) + (operand & 0xFF);  // + (C ? 1 : 0);
     SetCarryFlag(!(result > 0xFF));                   // Update the carry flag
@@ -1030,6 +1046,21 @@ void CPU::ADC(uint8_t operand) {
 
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x8000);
+  }
+}
+
+void CPU::AND(uint16_t address) {
+  uint8_t operand;
+  if (GetAccumulatorSize() == 0) {  // 16-bit mode
+    uint16_t operand16 = memory.ReadWord(address);
+    A &= operand16;
+    SetZeroFlag(A == 0);
+    SetNegativeFlag(A & 0x8000);
+  } else {  // 8-bit mode
+    operand = memory.ReadByte(address);
+    A &= operand;
+    SetZeroFlag(A == 0);
+    SetNegativeFlag(A & 0x80);
   }
 }
 

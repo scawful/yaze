@@ -14,6 +14,10 @@ class MockMemory : public Memory {
   MOCK_CONST_METHOD1(ReadByte, uint8_t(uint16_t address));
   MOCK_CONST_METHOD1(ReadWord, uint16_t(uint16_t address));
   MOCK_CONST_METHOD1(ReadWordLong, uint32_t(uint16_t address));
+
+  MOCK_METHOD2(WriteByte, void(uint32_t address, uint8_t value));
+  MOCK_METHOD2(WriteWord, void(uint32_t address, uint16_t value));
+
   MOCK_CONST_METHOD1(at, uint8_t(int i));
   uint8_t operator[](int i) const override { return at(i); }
 
@@ -28,6 +32,12 @@ class MockMemory : public Memory {
         .WillByDefault([this](uint16_t address) {
           return static_cast<uint16_t>(memory_.at(address)) |
                  (static_cast<uint16_t>(memory_.at(address + 1)) << 8);
+        });
+    ON_CALL(*this, ReadWordLong(::testing::_))
+        .WillByDefault([this](uint16_t address) {
+          return static_cast<uint32_t>(memory_.at(address)) |
+                 (static_cast<uint32_t>(memory_.at(address + 1)) << 8) |
+                 (static_cast<uint32_t>(memory_.at(address + 2)) << 16);
         });
   }
 
@@ -73,6 +83,118 @@ TEST(CPUTest, AddPositiveAndNegativeNumbers) {
 
   cpu.ExecuteInstruction(0x69);  // ADC Immediate
   EXPECT_EQ(cpu.A, static_cast<uint8_t>(-10));
+}
+
+TEST(CPUTest, ADCDirectPage) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.A = 0x01;
+  cpu.D = 0x0001;
+  std::vector<uint8_t> data = {0x65, 0x01, 0x05};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x01));
+
+  cpu.ExecuteInstruction(0x65);  // ADC Direct Page
+  EXPECT_EQ(cpu.A, 0x06);
+}
+
+TEST(CPUTest, ADCAbsolute) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.A = 0x01;
+  cpu.PC = 1;         // PC register
+  cpu.status = 0x00;  // 16-bit mode
+  std::vector<uint8_t> data = {0x6D, 0x03, 0x00, 0x05, 0x00};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0003));
+
+  EXPECT_CALL(mock_memory, ReadWord(0x0003)).WillOnce(Return(0x0005));
+
+  cpu.ExecuteInstruction(0x6D);  // ADC Absolute
+  EXPECT_EQ(cpu.A, 0x06);
+}
+
+TEST(CPUTest, ADCIndirectX) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.A = 0x01;       // A register
+  cpu.X = 0x02;       // X register
+  cpu.PC = 0;         // PC register
+  cpu.status = 0x00;  // 16-bit mode
+  std::vector<uint8_t> data = {0x72, 0x04, 0x00, 0x00, 0x20, 0x05, 0xFF};
+  mock_memory.SetMemoryContents(data);
+
+  // Get the absolute address
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0004));
+
+  cpu.ExecuteInstruction(0x72);  // ADC Indirect Indexed with X
+  EXPECT_EQ(cpu.A, 0x06);
+}
+
+TEST(CPUTest, ADCIndexedIndirect) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.A = 0x01;
+  cpu.X = 0x02;
+  cpu.PC = 1;
+  cpu.status = 0x00;  // 16-bit mode
+  std::vector<uint8_t> data = {/*ADC=*/0x61, /*DP=*/0x01, 0x18, 0x20, 0x05};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0003));
+
+  cpu.ExecuteInstruction(0x61);  // ADC Indexed Indirect
+  EXPECT_EQ(cpu.A, 0x06);
+}
+
+TEST(CPUTest, ANDImmediate) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.PC = 0;
+  cpu.status = 0xFF;                               // 8-bit mode
+  cpu.A = 0b11110000;                              // A register
+  std::vector<uint8_t> data = {0x29, 0b10101010};  // AND #0b10101010
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0b10101010));
+
+  cpu.ExecuteInstruction(0x29);  // AND Immediate
+  EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
+}
+
+TEST(CPUTest, ANDAbsolute) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.A = 0b11111111;  // A register
+  cpu.status = 0x00;   // 16-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x2D, 0x03, 0x00, 0b10101010, 0x01, 0x02};
+  mock_memory.SetMemoryContents(data);
+
+  // Get the absolute address
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0003));
+
+  // Get the value at the absolute address
+  EXPECT_CALL(mock_memory, ReadWord(0x0003)).WillOnce(Return(0b10101010));
+
+  cpu.ExecuteInstruction(0x2D);  // AND Absolute
+
+  EXPECT_THAT(cpu.PC, testing::Eq(0x03));
+  EXPECT_EQ(cpu.A, 0b10101010);  // A register should now be 0b10101010
+}
+
+TEST(CPUTest, ANDIndexedIndirect) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.A = 0b10101010;  // A register
+  cpu.X = 0x02;        // X register
+  std::vector<uint8_t> data = {0x21, 0x10, 0x18, 0x20, 0b01010101};
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x21);  // AND Indexed Indirect
+  EXPECT_EQ(cpu.A, 0b00000000);  // A register should now be 0b00000000
 }
 
 TEST(CPUTest, CheckCarryFlag) {
@@ -136,8 +258,9 @@ TEST(CPUTest, BranchLongAlways) {
 TEST(CPUTest, REP) {
   MockMemory mock_memory;
   CPU cpu(mock_memory);
-  cpu.status = 0xFF;                         // All flags set
-  std::vector<uint8_t> data = {0xC2, 0x30, 0x00};  // REP #0x30 (clear N & Z flags)
+  cpu.status = 0xFF;  // All flags set
+  std::vector<uint8_t> data = {0xC2, 0x30,
+                               0x00};  // REP #0x30 (clear N & Z flags)
   mock_memory.SetMemoryContents(data);
 
   cpu.ExecuteInstruction(0xC2);  // REP
@@ -147,8 +270,9 @@ TEST(CPUTest, REP) {
 TEST(CPUTest, SEP) {
   MockMemory mock_memory;
   CPU cpu(mock_memory);
-  cpu.status = 0x00;                         // All flags cleared
-  std::vector<uint8_t> data = {0xE2, 0x30, 0x00};  // SEP #0x30 (set N & Z flags)
+  cpu.status = 0x00;  // All flags cleared
+  std::vector<uint8_t> data = {0xE2, 0x30,
+                               0x00};  // SEP #0x30 (set N & Z flags)
   mock_memory.SetMemoryContents(data);
 
   cpu.ExecuteInstruction(0xE2);  // SEP
@@ -197,55 +321,6 @@ TEST(CPUTest, TAY) {
 
   cpu.ExecuteInstruction(0xA8);  // TAY
   EXPECT_EQ(cpu.Y, 0xDE);        // Y register should now be equal to A
-}
-
-TEST(CPUTest, ADCDirectPage) {
-  MockMemory mock_memory;
-  CPU cpu(mock_memory);
-  cpu.A = 0x01;
-  cpu.D = 0x0000;
-  std::vector<uint8_t> data = {0x65, 0x01, 0x05};
-  mock_memory.SetMemoryContents(data);
-
-  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x01));
-
-  cpu.ExecuteInstruction(0x65);  // ADC Direct Page
-  EXPECT_EQ(cpu.A, 0x06);
-}
-
-TEST(CPUTest, ADCAbsolute) {
-  MockMemory mock_memory;
-  CPU cpu(mock_memory);
-  cpu.A = 0x01;
-  std::vector<uint8_t> data = {0x6D, 0x10, 0x00, 0x05};
-  mock_memory.SetMemoryContents(data);
-
-  cpu.ExecuteInstruction(0x6D);  // ADC Absolute
-  EXPECT_EQ(cpu.A, 0x06);
-}
-
-TEST(CPUTest, ADCIndirectX) {
-  MockMemory mock_memory;
-  CPU cpu(mock_memory);
-  cpu.A = 0x01;
-  cpu.X = 0x02;
-  std::vector<uint8_t> data = {0x72, 0x10, 0x00, 0x00, 0x20, 0x05};
-  mock_memory.SetMemoryContents(data);
-
-  cpu.ExecuteInstruction(0x72);  // ADC Indirect Indexed with X
-  EXPECT_EQ(cpu.A, 0x06);
-}
-
-TEST(CPUTest, ADCIndexedIndirect) {
-  MockMemory mock_memory;
-  CPU cpu(mock_memory);
-  cpu.A = 0x01;
-  cpu.X = 0x02;
-  std::vector<uint8_t> data = {0x61, 0x10, 0x18, 0x20, 0x05};
-  mock_memory.SetMemoryContents(data);
-
-  cpu.ExecuteInstruction(0x61);  // ADC Indexed Indirect
-  EXPECT_EQ(cpu.A, 0x06);
 }
 
 }  // namespace emu

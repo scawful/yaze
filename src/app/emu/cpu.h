@@ -1,8 +1,11 @@
+#ifndef YAZE_APP_EMU_CPU_H_
+#define YAZE_APP_EMU_CPU_H_
+
 #include <cstdint>
 #include <iostream>
 #include <vector>
 
-#include "mem.h"
+#include "app/emu/mem.h"
 
 namespace yaze {
 namespace app {
@@ -91,9 +94,15 @@ class CPU : public Memory {
  public:
   explicit CPU(Memory& mem) : memory(mem) {}
 
+  void Init() {}
+
   uint8_t ReadByte(uint16_t address) const override;
   uint16_t ReadWord(uint16_t address) const override;
   uint32_t ReadWordLong(uint16_t address) const override;
+
+  void WriteByte(uint32_t address, uint8_t value) override;
+  void WriteWord(uint32_t address, uint16_t value) override;
+
   void SetMemory(const std::vector<uint8_t>& data) override {
     memory.SetMemory(data);
   }
@@ -156,48 +165,30 @@ class CPU : public Memory {
   // B 	      #$10 	00010000 	Break (emulation mode only)
 
   // Setting flags in the status register
-  void SetZeroFlag(bool condition) {
-    if (condition) {
-      status |= 0x02;
-    } else {
-      status &= ~0x02;
-    }
-  }
-
-  void SetNegativeFlag(bool condition) {
-    if (condition) {
-      status |= 0x80;
-    } else {
-      status &= ~0x80;
-    }
-  }
-
-  void SetOverflowFlag(bool condition) {
-    if (condition) {
-      status |= 0x40;
-    } else {
-      status &= ~0x40;
-    }
-  }
-
-  void SetCarryFlag(bool condition) {
-    if (condition) {
-      status |= 0x01;
-    } else {
-      status &= ~0x01;
-    }
-  }
-
-  int GetCarryFlag() { return status & 0x01; }
-  int GetZeroFlag() { return status & 0x02; }
-
   int GetAccumulatorSize() { return status & 0x20; }
   int GetIndexSize() { return status & 0x10; }
 
-  int GetEmulationMode() { return status & 0x04; }
+  // Set individual flags
+  void SetNegativeFlag(bool set) { SetFlag(0x80, set); }
+  void SetOverflowFlag(bool set) { SetFlag(0x40, set); }
+  void SetBreakFlag(bool set) { SetFlag(0x10, set); }
+  void SetDecimalFlag(bool set) { SetFlag(0x08, set); }
+  void SetInterruptFlag(bool set) { SetFlag(0x04, set); }
+  void SetZeroFlag(bool set) { SetFlag(0x02, set); }
+  void SetCarryFlag(bool set) { SetFlag(0x01, set); }
+
+  // Get individual flags
+  bool GetNegativeFlag() const { return GetFlag(0x80); }
+  bool GetOverflowFlag() const { return GetFlag(0x40); }
+  bool GetBreakFlag() const { return GetFlag(0x10); }
+  bool GetDecimalFlag() const { return GetFlag(0x08); }
+  bool GetInterruptFlag() const { return GetFlag(0x04); }
+  bool GetZeroFlag() const { return GetFlag(0x02); }
+  bool GetCarryFlag() const { return GetFlag(0x01); }
 
   // Instructions
   void ADC(uint8_t operand);
+  void AND(uint16_t address);
 
   void BEQ(int8_t offset) {
     if (GetZeroFlag()) {  // If the zero flag is set
@@ -324,6 +315,19 @@ class CPU : public Memory {
     SetNegativeFlag(Y & 0x80);
   }
 
+ private:
+  // Helper function to set or clear a specific flag bit
+  void SetFlag(uint8_t mask, bool set) {
+    if (set) {
+      status |= mask;  // Set the bit
+    } else {
+      status &= ~mask;  // Clear the bit
+    }
+  }
+
+  // Helper function to get the value of a specific flag bit
+  bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
+
   // Appease the C++ Gods...
   uint8_t operator[](int i) const override { return 0; }
   uint8_t at(int i) const override { return 0; }
@@ -332,3 +336,5 @@ class CPU : public Memory {
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze
+
+#endif  // YAZE_APP_EMU_CPU_H_
