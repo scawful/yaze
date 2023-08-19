@@ -38,6 +38,9 @@ class Memory {
   virtual uint8_t PopByte() = 0;
   virtual void PushWord(uint16_t value) = 0;
   virtual uint16_t PopWord() = 0;
+  virtual void PushLong(uint32_t value) = 0;
+  virtual uint32_t PopLong() = 0;
+
   virtual int16_t SP() const = 0;
   virtual void SetSP(int16_t value) = 0;
 
@@ -74,7 +77,7 @@ class MemoryImpl : public Memory {
   }
 
   void WriteByte(uint32_t address, uint8_t value) override {
-   // uint32_t mapped_address = GetMappedAddress(address);
+    // uint32_t mapped_address = GetMappedAddress(address);
     memory_[address] = value;
   }
   void WriteWord(uint32_t address, uint16_t value) override {
@@ -112,6 +115,20 @@ class MemoryImpl : public Memory {
     uint8_t low = PopByte();
     uint8_t high = PopByte();
     return (static_cast<uint16_t>(high) << 8) | low;
+  }
+
+  void PushLong(uint32_t value) override {
+    PushByte(value >> 16);
+    PushByte(value >> 8);
+    PushByte(value & 0xFF);
+  }
+
+  uint32_t PopLong() override {
+    uint8_t low = PopByte();
+    uint8_t mid = PopByte();
+    uint8_t high = PopByte();
+    return (static_cast<uint32_t>(high) << 16) |
+           (static_cast<uint32_t>(mid) << 8) | low;
   }
 
   int16_t SP() const override { return SP_; }

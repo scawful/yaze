@@ -22,6 +22,9 @@ class MockMemory : public Memory {
   MOCK_METHOD0(PopByte, uint8_t());
   MOCK_METHOD1(PushWord, void(uint16_t value));
   MOCK_METHOD0(PopWord, uint16_t());
+  MOCK_METHOD1(PushLong, void(uint32_t value));
+  MOCK_METHOD0(PopLong, uint32_t());
+
   MOCK_CONST_METHOD0(SP, int16_t());
   MOCK_METHOD1(SetSP, void(int16_t value));
 
@@ -79,6 +82,19 @@ class MockMemory : public Memory {
       uint16_t value = static_cast<uint16_t>(memory_.at(SP_)) |
                        (static_cast<uint16_t>(memory_.at(SP_ + 1)) << 8);
       this->SetSP(SP_ + 2);
+      return value;
+    });
+    ON_CALL(*this, PushLong(::testing::_))
+        .WillByDefault([this](uint32_t value) {
+          memory_.at(SP_) = value & 0xFF;
+          memory_.at(SP_ + 1) = (value >> 8) & 0xFF;
+          memory_.at(SP_ + 2) = (value >> 16) & 0xFF;
+        });
+    ON_CALL(*this, PopLong()).WillByDefault([this]() {
+      uint32_t value = static_cast<uint32_t>(memory_.at(SP_)) |
+                       (static_cast<uint32_t>(memory_.at(SP_ + 1)) << 8) |
+                       (static_cast<uint32_t>(memory_.at(SP_ + 2)) << 16);
+      this->SetSP(SP_ + 3);
       return value;
     });
     ON_CALL(*this, ClearMemory()).WillByDefault([this]() {
@@ -465,6 +481,65 @@ TEST_F(CPUTest, INY) {
   EXPECT_EQ(cpu.Y, 0x00);
   EXPECT_FALSE(cpu.GetNegativeFlag());
   EXPECT_TRUE(cpu.GetZeroFlag());
+}
+
+// ============================================================================
+// JMP - Jump to new location
+// ============================================================================
+
+TEST_F(CPUTest, JMP_Absolute) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0x4C, 0x05, 0x20};  // JMP $2005
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0x1001)).WillOnce(Return(0x2005));
+
+  cpu.ExecuteInstruction(0x4C);  // JMP Absolute
+  EXPECT_EQ(cpu.PC, 0x2005);
+}
+
+TEST_F(CPUTest, JMP_Indirect) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0x6C, 0x03, 0x20, 0x05, 0x30};  // JMP ($2003)
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0x1001)).WillOnce(Return(0x2003));
+  EXPECT_CALL(mock_memory, ReadWord(0x2003)).WillOnce(Return(0x3005));
+
+  cpu.ExecuteInstruction(0x6C);  // JMP Indirect
+  EXPECT_EQ(cpu.PC, 0x3005);
+}
+
+// ============================================================================
+// JSR - Jump to Subroutine
+// ============================================================================
+
+TEST_F(CPUTest, JSR_Absolute) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0x20, 0x05, 0x20};  // JSR $2005
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0x1001)).WillOnce(Return(0x2005));
+  EXPECT_CALL(mock_memory, PushWord(0x1002)).Times(1);
+
+  cpu.ExecuteInstruction(0x20);  // JSR Absolute
+  EXPECT_EQ(cpu.PC, 0x2005);
+}
+
+// ============================================================================
+// JSL - Jump to Subroutine Long
+// ============================================================================
+
+TEST_F(CPUTest, JSL_AbsoluteLong) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0x22, 0x05, 0x20, 0x00};  // JSL $002005
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWordLong(0x1001)).WillOnce(Return(0x002005));
+  EXPECT_CALL(mock_memory, PushLong(0x1003)).Times(1);
+
+  cpu.ExecuteInstruction(0x22);  // JSL Absolute Long
+  EXPECT_EQ(cpu.PC, 0x002005);
 }
 
 // ============================================================================
