@@ -10,6 +10,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/zelda3/dungeon/object_names.h"
 
 namespace yaze {
 namespace app {
@@ -77,6 +78,10 @@ class RoomObject : public SharedROM {
         height(16),
         uniqueID(0) {}
 
+  virtual void Draw() {
+    // ... Draw function implementation here
+  }
+
   void getObjectSize() {
     previousSize = size_;
     size_ = 1;
@@ -117,10 +122,11 @@ class RoomObject : public SharedROM {
   }
 
   void DrawTile(Tile t, int xx, int yy, std::vector<uint8_t>& current_gfx16,
-                std::vector<uint8_t>& tiles_bg1_buffer, std::vector<uint8_t>& tiles_bg2_buffer,
+                std::vector<uint8_t>& tiles_bg1_buffer,
+                std::vector<uint8_t>& tiles_bg2_buffer,
                 ushort tileUnder = 0xFFFF);
 
- private:
+ protected:
   int16_t id;
 
   uint8_t x_;
@@ -151,8 +157,6 @@ class RoomObject : public SharedROM {
   int offsetY = 0;
   bool diagonalFix = false;
   bool selected = false;
-  bool redraw = false;
-  bool preview = false;
   int previewId = 0;
   uint8_t previousSize = 0;
   bool showRectangle = false;
@@ -161,6 +165,68 @@ class RoomObject : public SharedROM {
   uint8_t z = 0;
   bool deleted = false;
 };
+
+class Subtype1 : public RoomObject {
+ public:
+  std::vector<Tile> tiles;
+  std::string name;
+  bool allBgs;
+  Sorting sort;
+  int tile_count_;
+
+  Subtype1(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer,
+           int tileCount)
+      : RoomObject(id, x, y, size, layer), tile_count_(tileCount) {
+    auto rom_data = rom()->data();
+    name = Type1RoomObjectNames[id & 0xFF];
+    int pos =
+        core::tile_address +
+        static_cast<int16_t>(
+            (rom_data[core::subtype1_tiles + ((id & 0xFF) * 2) + 1] << 8) +
+            rom_data[core::subtype1_tiles + ((id & 0xFF) * 2)]);
+    addTiles(tile_count_, pos);
+    sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
+  }
+
+  void Draw() override {
+    for (int s = 0; s < size_ + (tile_count_ == 8 ? 1 : 0); s++) {
+      for (int i = 0; i < tile_count_; i++) {
+        // DrawTile(tiles[i], ((s * 2)) * 8, (i / 2) * 8);
+      }
+    }
+  }
+};
+
+class Subtype2_Multiple : public RoomObject {
+ public:
+  int tx = 0;
+  int ty = 0;
+  std::vector<Tile> tiles;
+  std::string name;
+  bool allBgs;
+  Sorting sort;
+
+  Subtype2_Multiple(int16_t id, uint8_t x, uint8_t y, uint8_t size,
+                    uint8_t layer)
+      : RoomObject(id, x, y, size, layer) {
+    // ... Constructor implementation here
+  }
+
+  void Draw() override {
+    // ... Draw function implementation here
+  }
+
+  void setdata(const std::string& name, int tx, int ty, bool allbg = false) {
+    // ... setdata function implementation here
+  }
+
+  // Other member functions and variables
+};
+
+class Subtype3 : public RoomObject {
+
+};
+
 }  // namespace dungeon
 }  // namespace zelda3
 }  // namespace app

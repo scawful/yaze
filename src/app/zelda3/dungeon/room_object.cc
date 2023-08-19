@@ -10,6 +10,7 @@ void RoomObject::DrawTile(Tile t, int xx, int yy,
                           std::vector<uint8_t>& tiles_bg1_buffer,
                           std::vector<uint8_t>& tiles_bg2_buffer,
                           ushort tileUnder) {
+  bool preview = false;
   if (width < xx + 8) {
     width = xx + 8;
   }
@@ -53,7 +54,7 @@ void RoomObject::DrawTile(Tile t, int xx, int yy,
   } else {
     if (((xx / 8) + nx + offsetX) + ((ny + offsetY + (yy / 8)) * 64) < 4096 &&
         ((xx / 8) + nx + offsetX) + ((ny + offsetY + (yy / 8)) * 64) >= 0) {
-      ushort td = 0; // gfx::GetTilesInfo();  // TODO t.GetTileInfo()
+      ushort td = 0;  // gfx::GetTilesInfo();  // TODO t.GetTileInfo()
 
       // collisionPoint.Add(
       //     new Point(xx + ((nx + offsetX) * 8), yy + ((ny + +offsetY) * 8)));
