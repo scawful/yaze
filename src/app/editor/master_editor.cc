@@ -215,6 +215,13 @@ void MasterEditor::DrawViewMenu() {
   static bool show_imgui_demo = false;
   static bool show_memory_viewer = false;
   static bool show_palette_editor = false;
+  static bool show_emulator = false;
+
+  if (show_emulator) {
+    ImGui::Begin("Emulator", &show_emulator, ImGuiWindowFlags_MenuBar);
+    emulator_.Run();
+    ImGui::End();
+  }
 
   if (show_imgui_metrics) {
     ImGui::ShowMetricsWindow(&show_imgui_metrics);
@@ -269,6 +276,7 @@ void MasterEditor::DrawViewMenu() {
   }
 
   if (ImGui::BeginMenu("View")) {
+    ImGui::MenuItem("Emulator", nullptr, &show_emulator);
     ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
     ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
     ImGui::MenuItem("Palette Editor", nullptr, &show_palette_editor);
