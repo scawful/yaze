@@ -208,7 +208,7 @@ absl::Status DecodeObjFile(
     expected_cut = 0x900;
   }
 
-  std::ifstream file(filename, std::ios::binary);
+  std::ifstream file(filename.data(), std::ios::binary);
   if (!file.is_open()) {
     return absl::NotFoundError("OBJ file not found.");
   }

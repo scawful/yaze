@@ -636,55 +636,55 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x48:  // PHA Push Accumulator
-      // PHA();
+      PHA();
       break;
 
     case 0x8B:  // PHB Push Data Bank Register
-      // PHB();
+      PHB();
       break;
 
     case 0x0B:  // PHD Push Direct Page Register
-      // PHD();
+      PHD();
       break;
 
     case 0x4B:  // PHK Push Program Bank Register
-      // PHK();
+      PHK();
       break;
 
     case 0x08:  // PHP Push Processor Status Register
-      // PHP();
+      PHP();
       break;
 
     case 0xDA:  // PHX Push X register
-      // PHX();
+      PHX();
       break;
 
     case 0x5A:  // PHY Push Y register
-      // PHY();
+      PHY();
       break;
 
     case 0x68:  // PLA Pull Accumulator
-      // PLA();
+      PLA();
       break;
 
     case 0xAB:  // PLB Pull Data Bank Register
-      // PLB();
+      PLB();
       break;
 
     case 0x2B:  // PLD Pull Direct Page Register
-      // PLD();
+      PLD();
       break;
 
     case 0x28:  // PLP Pull Processor Status Register
-      // PLP();
+      PLP();
       break;
 
     case 0xFA:  // PLX Pull X register
-      // PLX();
+      PLX();
       break;
 
     case 0x7A:  // PLY Pull Y register
-      // PLY();
+      PLY();
       break;
 
     case 0xC2:  // REP Reset status bits
