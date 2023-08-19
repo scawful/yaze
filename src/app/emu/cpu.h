@@ -344,7 +344,6 @@ class CPU : public Memory {
   // TSB: Test and set bits
   // WAI: Wait for interrupt
   // XBA: Exchange B and A accumulator
-  // XCE: Exchange carry and emulation
 
   void ADC(uint8_t operand);
   void AND(uint16_t address);
@@ -450,6 +449,26 @@ class CPU : public Memory {
       SetNegativeFlag(value & 0x80);
       SetZeroFlag(value == 0);
     }
+  }
+
+  // JMP: Jump to new address
+  void JMP(uint16_t address) {
+    PC = address;  // Set program counter to the new address
+  }
+
+  // JSR: Jump to subroutine
+  void JSR(uint16_t address) {
+    PC -= 1;              // Subtract 1 from program counter
+    memory.PushWord(PC);  // Push the program counter onto the stack
+    PC = address;         // Set program counter to the new address
+  }
+
+  // JSL: Jump to subroutine long
+  void JSL(uint32_t address) {
+    PC -= 1;              // Subtract 1 from program counter
+    memory.PushLong(PC);  // Push the program counter onto the stack as a long
+                          // value (24 bits)
+    PC = address;         // Set program counter to the new address
   }
 
   // Push Accumulator on Stack
@@ -620,6 +639,8 @@ class CPU : public Memory {
   void PushWord(uint16_t value) override { memory.PushWord(value); }
   uint8_t PopByte() override { return memory.PopByte(); }
   uint16_t PopWord() override { return memory.PopWord(); }
+  void PushLong(uint32_t value) override { memory.PushLong(value); }
+  uint32_t PopLong() override { return memory.PopLong(); }
   void ClearMemory() override { memory.ClearMemory(); }
   void LoadData(const std::vector<uint8_t>& data) override {
     memory.LoadData(data);

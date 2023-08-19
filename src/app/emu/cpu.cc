@@ -448,13 +448,13 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x4C:  // JMP Absolute
-      // JMP();
+      JMP(Absolute());
       break;
     case 0x5C:  // JMP Absolute Long
       // JMP();
       break;
     case 0x6C:  // JMP Absolute Indirect
-      // JMP();
+      JMP(AbsoluteIndirect());
       break;
     case 0x7C:  // JMP Absolute Indexed Indirect, X
       // JMP();
@@ -464,11 +464,11 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x20:  // JSR Absolute
-      // JSR();
+      JSR(Absolute());
       break;
 
     case 0x22:  // JSL Absolute Long
-      // JSL();
+      JSL(AbsoluteLong());
       break;
 
     case 0xFC:  // JSR Absolute Indexed Indirect, X
