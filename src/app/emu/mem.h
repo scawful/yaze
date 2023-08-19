@@ -1,6 +1,28 @@
 #ifndef MEM_H
 #define MEM_H
 
+#include <cstdint>
+#include <iostream>
+#include <vector>
+
+namespace yaze {
+namespace app {
+namespace emu {
+
+class DirectPageMemory {
+ public:
+  DirectPageMemory(size_t size = 256) : memory_(size, 0) {}
+
+  uint8_t ReadByte(uint8_t address) const { return memory_[address]; }
+
+  void WriteByte(uint8_t address, uint8_t value) { memory_[address] = value; }
+
+  auto size() const { return memory_.size(); }
+
+ private:
+  std::vector<uint8_t> memory_;
+};
+
 // memory.h
 class Memory {
  public:
@@ -8,6 +30,10 @@ class Memory {
   virtual uint8_t ReadByte(uint16_t address) const = 0;
   virtual uint16_t ReadWord(uint16_t address) const = 0;
   virtual uint32_t ReadWordLong(uint16_t address) const = 0;
+
+  virtual void WriteByte(uint32_t address, uint8_t value) = 0;
+  virtual void WriteWord(uint32_t address, uint16_t value) = 0;
+
   virtual void SetMemory(const std::vector<uint8_t>& data) = 0;
 
   virtual uint8_t operator[](int i) const = 0;
@@ -17,12 +43,36 @@ class Memory {
 class MemoryImpl : public Memory {
  public:
   uint8_t ReadByte(uint16_t address) const override {
+    if (address < dp_memory_.size()) {
+      return dp_memory_.ReadByte(static_cast<uint8_t>(address));
+    }
+    // uint32_t mapped_address = GetMappedAddress(address);
     return memory_.at(address);
   }
   uint16_t ReadWord(uint16_t address) const override {
-    return static_cast<uint16_t>(memory_.at(address)) |
-           (static_cast<uint16_t>(memory_.at(address + 1)) << 8);
+    if (address < dp_memory_.size()) {
+      return dp_memory_.ReadByte(static_cast<uint8_t>(address));
+    }
+    uint32_t mapped_address = GetMappedAddress(address);
+    return static_cast<uint16_t>(memory_.at(mapped_address)) |
+           (static_cast<uint16_t>(memory_.at(mapped_address + 1)) << 8);
   }
+  uint32_t ReadWordLong(uint16_t address) const override {
+    uint32_t mapped_address = GetMappedAddress(address);
+    return static_cast<uint32_t>(memory_.at(mapped_address)) |
+           (static_cast<uint32_t>(memory_.at(mapped_address + 1)) << 8) |
+           (static_cast<uint32_t>(memory_.at(mapped_address + 2)) << 16);
+  }
+  void WriteByte(uint32_t address, uint8_t value) override {
+    uint32_t mapped_address = GetMappedAddress(address);
+    memory_.at(mapped_address) = value;
+  }
+  void WriteWord(uint32_t address, uint16_t value) override {
+    uint32_t mapped_address = GetMappedAddress(address);
+    memory_.at(mapped_address) = value & 0xFF;
+    memory_.at(mapped_address + 1) = (value >> 8) & 0xFF;
+  }
+
   void SetMemory(const std::vector<uint8_t>& data) override { memory_ = data; }
 
   uint8_t at(int i) const override { return memory_[i]; }
@@ -38,8 +88,49 @@ class MemoryImpl : public Memory {
     return memory_[i];
   }
 
+ private:
+  uint32_t GetMappedAddress(uint32_t address) const {
+    uint32_t bank = address >> 16;
+    uint32_t offset = address & 0xFFFF;
+
+    switch (bank) {
+      case 0x00:  // Direct Page / Stack
+        return 0x0000 + offset;
+      case 0x01:  // Main RAM
+        return 0x2000 + offset;
+      case 0x02:  // ROM (LoROM)
+        return 0x4000 + offset;
+      case 0x03:  // ROM (HiROM)
+        return 0x8000 + offset;
+      default:
+        return address;  // Return the original address if no mapping is defined
+    }
+  }
+
+  // Direct Page Memory
+  DirectPageMemory dp_memory_;
+
+  // Define memory regions
+  std::vector<uint8_t> rom_;
+  std::vector<uint8_t> ram_;
+  std::vector<uint8_t> vram_;
+  std::vector<uint8_t> oam_;
+
+  static const uint32_t kROMStart = 0xC00000;
+  static const uint32_t kROMSize = 0x400000;
+  static const uint32_t kRAMStart = 0x7E0000;
+  static const uint32_t kRAMSize = 0x20000;
+  static const uint32_t kVRAMStart = 0x210000;
+  static const uint32_t kVRAMSize = 0x10000;
+  static const uint32_t kOAMStart = 0x218000;
+  static const uint32_t kOAMSize = 0x220;
+
   // Memory (64KB)
   std::vector<uint8_t> memory_;
 };
+
+}  // namespace emu
+}  // namespace app
+}  // namespace yaze
 
 #endif  // MEM_H
