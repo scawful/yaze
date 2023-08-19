@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/core/emulator.h"
 #include "app/core/pipeline.h"
 #include "app/editor/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
@@ -64,6 +65,7 @@ class MasterEditor : public SharedROM {
 
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
+  core::Emulator emulator_;
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
