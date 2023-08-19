@@ -63,7 +63,7 @@ absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_bitmap_data,
                             std::vector<uint8_t>& map_data,
                             std::vector<uint8_t>& cgx_loaded);
 
-std::vector<SDL_Color> DecodeColFile(const std::string& filename);
+std::vector<SDL_Color> DecodeColFile(const std::string_view filename);
 
 absl::Status DecodeObjFile(
     std::string_view filename, std::vector<uint8_t>& obj_data,

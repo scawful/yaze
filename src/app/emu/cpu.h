@@ -11,101 +11,21 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-// ADC: Add with carry
-// AND: Logical AND
-// ASL: Arithmetic shift left
-// BCC: Branch if carry clear
-// BCS: Branch if carry set
-// BEQ: Branch if equal (zero set)
-// BIT: Bit test
-// BMI: Branch if minus (negative set)
-// BNE: Branch if not equal (zero clear)
-// BPL: Branch if plus (negative clear)
-// BRA: Branch always
-// BRK: Break
-// BRL: Branch always long
-// BVC: Branch if overflow clear
-// BVS: Branch if overflow set
-// CLC: Clear carry
-// CLD: Clear decimal
-// CLI: Clear interrupt disable
-// CLV: Clear overflow
-// CMP: Compare
-// COP: Coprocessor
-// CPX: Compare X register
-// CPY: Compare Y register
-// DEC: Decrement
-// DEX: Decrement X register
-// DEY: Decrement Y register
-// EOR: Exclusive OR
-// INC: Increment
-// INX: Increment X register
-// INY: Increment Y register
-// JMP: Jump
-// JML: Jump long
-// JSR: Jump to subroutine
-// JSL: Jump to subroutine long
-// LDA: Load accumulator
-// LDX: Load X register
-// LDY: Load Y register
-// LSR: Logical shift right
-// MVN: Move negative
-// MVP: Move positive
-// NOP: No operation
-// ORA: Logical OR
-// PEA: Push effective address
-// PEI: Push effective indirect address
-// PER: Push effective PC-relative address
-// PHA: Push accumulator
-// PHB: Push data bank register
-// PHD: Push direct page register
-// PHK: Push program bank register
-// PHP: Push processor status register
-// PHX: Push X register
-// PHY: Push Y register
-// PLA: Pull accumulator
-// PLB: Pull data bank register
-// PLD: Pull direct page register
-// PLP: Pull processor status register
-// PLX: Pull X register
-// PLY: Pull Y register
-// ROL: Rotate left
-// ROR: Rotate right
-// RTI: Return from interrupt
-// RTL: Return from subroutine long
-// RTS: Return from subroutine
-// SBC: Subtract with carry
-// STA: Store accumulator
-// STP: Stop the clock
-// STX: Store X register
-// STY: Store Y register
-// STZ: Store zero
-// TDC: Transfer direct page register to accumulator
-// TRB: Test and reset bits
-// TSB: Test and set bits
-// WAI: Wait for interrupt
-// XBA: Exchange B and A accumulator
-// XCE: Exchange carry and emulation
-
 class CPU : public Memory {
- private:
-  Memory& memory;
-
  public:
   explicit CPU(Memory& mem) : memory(mem) {}
-
-  void Init() {}
+  void Init() { memory.ClearMemory(); }
 
   uint8_t ReadByte(uint16_t address) const override;
   uint16_t ReadWord(uint16_t address) const override;
   uint32_t ReadWordLong(uint16_t address) const override;
-
   void WriteByte(uint32_t address, uint8_t value) override;
   void WriteWord(uint32_t address, uint16_t value) override;
-
   void SetMemory(const std::vector<uint8_t>& data) override {
     memory.SetMemory(data);
   }
+  int16_t SP() const override { return memory.SP(); }
+  void SetSP(int16_t value) override { memory.SetSP(value); }
 
   uint8_t FetchByte();
   uint16_t FetchWord();
@@ -115,37 +35,217 @@ class CPU : public Memory {
 
   uint8_t FetchByteDirectPage(uint8_t operand);
 
-  uint16_t DirectPageIndexedIndirectX();
-  uint16_t StackRelative();
-  uint16_t DirectPage();
-  uint16_t DirectPageIndirectLong();
-  uint16_t Immediate();
-  uint16_t Absolute();
-  uint16_t AbsoluteLong();
-  uint16_t DirectPageIndirectIndexedY();
-  uint16_t DirectPageIndirect();
-  uint16_t StackRelativeIndirectIndexedY();
-  uint16_t DirectPageIndexedX();
-  uint16_t DirectPageIndirectLongIndexedY();
-  uint16_t AbsoluteIndexedY();
-  uint16_t AbsoluteIndexedX();
-  uint16_t AbsoluteLongIndexedX();
-
   void ExecuteInstruction(uint8_t opcode);
 
-  void loadROM(const std::vector<uint8_t>& rom) {
-    // if (rom.size() > memory.size()) {
-    //   std::cerr << "ROM too large" << std::endl;
-    //   return;
-    // }
-    // std::copy(rom.begin(), rom.end(), memory.begin());
+  // ==========================================================================
+  // Addressing Modes
+
+  // Effective Address:
+  //    Bank: Data Bank Register if locating data
+  //          Program Bank Register if transferring control
+  //    High: Second operand byte
+  //    Low:  First operand byte
+  //
+  // LDA addr
+  uint16_t Absolute() { return FetchWord(); }
+
+  // Effective Address:
+  //    The Data Bank Register is concatened with the 16-bit operand
+  //    the 24-bit result is added to the X Index Register
+  //    based on the emulation mode (16:X=0, 8:X=1)
+  //
+  // LDA addr, X
+  uint16_t AbsoluteIndexedX() { return FetchWord() + X; }
+
+  // Effective Address:
+  //    The Data Bank Register is concatened with the 16-bit operand
+  //    the 24-bit result is added to the Y Index Register
+  //    based on the emulation mode (16:Y=0, 8:Y=1)
+  //
+  // LDA addr, Y
+  uint16_t AbsoluteIndexedY() { return FetchWord() + Y; }
+
+  // Test Me :)
+  // Effective Address:
+  //    Bank:             Program Bank Register (PBR)
+  //    High/low:         The Indirect Address
+  //    Indirect Address: Located in the Program Bank at the sum of
+  //                      the operand double byte and X based on the
+  //                      emulation mode
+  // JMP (addr, X)
+  uint16_t AbsoluteIndexedIndirect() {
+    uint16_t address = FetchWord() + X;
+    return memory.ReadWord(address);
   }
 
+  // Effective Address:
+  //    Bank:             Program Bank Register (PBR)
+  //    High/low:         The Indirect Address
+  //    Indirect Address: Located in Bank Zero, at the operand double byte
+  //
+  // JMP (addr)
+  uint16_t AbsoluteIndirect() {
+    uint16_t address = FetchWord();
+    return memory.ReadWord(address);
+  }
+
+  // Effective Address:
+  //   Bank/High/Low: The 24-bit Indirect Address
+  //   Indirect Address: Located in Bank Zero, at the operand double byte
+  //
+  // JMP [addr]
+  uint32_t AbsoluteIndirectLong() {
+    uint16_t address = FetchWord();
+    return memory.ReadWordLong(address);
+  }
+
+  // Effective Address:
+  //    Bank: Third operand byte
+  //    High: Second operand byte
+  //    Low:  First operand byte
+  //
+  // LDA long
+  uint16_t AbsoluteLong() { return FetchLong(); }
+
+  // Effective Address:
+  //   The 24-bit operand is added to X based on the emulation mode
+  //
+  // LDA long, X
+  uint16_t AbsoluteLongIndexedX() { return FetchLong() + X; }
+
+  // Source Effective Address:
+  //    Bank: Second operand byte
+  //    High/Low: The 16-bit value in X, if X is 8-bit high byte is 0
+  //
+  // Destination Effective Address:
+  //    Bank: First operand byte
+  //    High/Low: The 16-bit value in Y, if Y is 8-bit high byte is 0
+  //
+  // Length:
+  //    The number of bytes to be moved: 16-bit value in Acculumator C plus 1.
+  //
+  // MVN src, dst
+  void BlockMove(uint16_t source, uint16_t dest, uint16_t length) {
+    for (int i = 0; i < length; i++) {
+      memory.WriteByte(dest + i, memory.ReadByte(source + i));
+    }
+  }
+
+  // Effective Address:
+  //    Bank:     Zero
+  //    High/low: Direct Page Register plus operand byte
+  //
+  // LDA dp
+  uint16_t DirectPage() { return FetchByte(); }
+
+  // Effective Address:
+  //    Bank:     Zero
+  //    High/low: Direct Page Register plus operand byte plus X
+  //              based on the emulation mode
+  //
+  // LDA dp, X
+  uint16_t DirectPageIndexedX() {
+    uint8_t dp = FetchByte();
+    return (dp + X) & 0xFF;
+  }
+
+  // Effective Address:
+  //    Bank:     Zero
+  //    High/low: Direct Page Register plus operand byte plus Y
+  //              based on the emulation mode
+  // LDA dp, Y
+  uint16_t DirectPageIndexedY() {
+    uint8_t dp = FetchByte();
+    return (dp + Y) & 0xFF;
+  }
+
+  // Effective Address:
+  // Bank:      Data bank register
+  // High/low:  The indirect address
+  // Indirect Address: Located in the direct page at the sum of the direct page
+  // register, the operand byte, and X based on the emulation mode in bank zero.
+  //
+  // LDA (dp, X)
+  uint16_t DirectPageIndexedIndirectX() {
+    uint8_t dp = FetchByte();
+    return memory.ReadWord((dp + X) & 0xFF);
+  }
+
+  // Effective Address:
+  // Bank:     Data bank register
+  // High/low: The 16-bit indirect address
+  // Indirect Address: The operand byte plus the direct page register in bank
+  // zero.
+  //
+  // LDA (dp)
+  uint16_t DirectPageIndirect() {
+    uint8_t dp = FetchByte();
+    return memory.ReadWord(dp);
+  }
+
+  // Effective Address:
+  //    Bank/High/Low:    The 24-bit indirect address
+  //    Indirect address: The operand byte plus the direct page
+  //                   register in bank zero.
+  //
+  // LDA [dp]
+  uint16_t DirectPageIndirectLong() {
+    uint8_t dp = FetchByte();
+    return memory.ReadWordLong(dp);
+  }
+
+  // Effective Address:
+  //    Found by concatenating the data bank to the double-byte
+  //    indirect address, then adding Y based on the emulation mode.
+  //
+  // Indirect Address: Located in the Direct Page at the sum of the direct page
+  //                   register and the operand byte, in bank zero.
+  //
+  // LDA (dp), Y
+  uint16_t DirectPageIndirectIndexedY() {
+    uint8_t dp = FetchByte();
+    return memory.ReadWord(dp) + Y;
+  }
+
+  // Effective Address:
+  //    Found by adding to the triple-byte indirect address Y based on the
+  //    emulation mode. Indrect Address: Located in the Direct Page at the sum
+  //    of the direct page register and the operand byte in bank zero.
+  // Indirect Address:
+  //    Located in the Direct Page at the sum of the direct page register and
+  //    the operand byte in bank zero.
+  //
+  // LDA (dp), Y
+  uint16_t DirectPageIndirectLongIndexedY() {
+    uint8_t dp = FetchByte();
+    return memory.ReadWordLong(dp) + Y;
+  }
+
+  // 8-bit data: Data Operand Byte
+  // 16-bit data 65816 native mode m or x = 0
+  //   Data High: Second Operand Byte
+  //   Data Low:  First Operand Byte
+  //
+  // LDA #const
+  uint16_t Immediate() { return PC++; }
+
+  uint16_t StackRelative() {
+    uint8_t sr = FetchByte();
+    return SP() + sr;
+  }
+
+  uint16_t StackRelativeIndirectIndexedY() {
+    uint8_t sr = FetchByte();
+    return memory.ReadWord(SP() + sr) + Y;
+  }
+
+  // ==========================================================================
   // Registers
-  uint8_t A = 0;    // Accumulator
-  uint8_t X = 0;    // X index register
-  uint8_t Y = 0;    // Y index register
-  uint8_t SP = 0;   // Stack Pointer
+
+  uint8_t A = 0;  // Accumulator
+  uint8_t X = 0;  // X index register
+  uint8_t Y = 0;  // Y index register
+  // uint8_t SP = 0;   // Stack Pointer
   uint16_t DB = 0;  // Data Bank register
   uint16_t D = 0;   // Direct Page register
   uint16_t PB = 0;  // Program Bank register
@@ -165,8 +265,8 @@ class CPU : public Memory {
   // B 	      #$10 	00010000 	Break (emulation mode only)
 
   // Setting flags in the status register
-  int GetAccumulatorSize() { return status & 0x20; }
-  int GetIndexSize() { return status & 0x10; }
+  int GetAccumulatorSize() const { return status & 0x20; }
+  int GetIndexSize() const { return status & 0x10; }
 
   // Set individual flags
   void SetNegativeFlag(bool set) { SetFlag(0x80, set); }
@@ -186,7 +286,84 @@ class CPU : public Memory {
   bool GetZeroFlag() const { return GetFlag(0x02); }
   bool GetCarryFlag() const { return GetFlag(0x01); }
 
+  // ==========================================================================
   // Instructions
+
+  // Left to implement
+  // * = in progress
+
+  // ADC: Add with carry                  *
+  // AND: Logical AND                     *
+  // ASL: Arithmetic shift left
+  // BCC: Branch if carry clear           *
+  // BCS: Branch if carry set             *
+  // BEQ: Branch if equal (zero set)      *
+  // BIT: Bit test
+  // BMI: Branch if minus (negative set)
+  // BNE: Branch if not equal (zero clear)
+  // BPL: Branch if plus (negative clear)
+  // BRA: Branch always
+  // BRK: Break
+  // BRL: Branch always long
+  // BVC: Branch if overflow clear
+  // BVS: Branch if overflow set
+  // CMP: Compare
+  // COP: Coprocessor
+  // CPX: Compare X register
+  // CPY: Compare Y register
+  // DEC: Decrement
+  // DEX: Decrement X register
+  // DEY: Decrement Y register
+  // EOR: Exclusive OR
+  // INC: Increment
+  // INX: Increment X register
+  // INY: Increment Y register
+  // JMP: Jump
+  // JML: Jump long
+  // JSR: Jump to subroutine
+  // JSL: Jump to subroutine long
+  // LDA: Load accumulator
+  // LDX: Load X register
+  // LDY: Load Y register
+  // LSR: Logical shift right
+  // MVN: Move negative
+  // MVP: Move positive
+  // NOP: No operation
+  // ORA: Logical OR
+  // PEA: Push effective address
+  // PEI: Push effective indirect address
+  // PER: Push effective PC-relative address
+  // PHA: Push accumulator
+  // PHB: Push data bank register
+  // PHD: Push direct page register
+  // PHK: Push program bank register
+  // PHP: Push processor status register
+  // PHX: Push X register
+  // PHY: Push Y register
+  // PLA: Pull accumulator
+  // PLB: Pull data bank register
+  // PLD: Pull direct page register
+  // PLP: Pull processor status register
+  // PLX: Pull X register
+  // PLY: Pull Y register
+  // ROL: Rotate left
+  // ROR: Rotate right
+  // RTI: Return from interrupt
+  // RTL: Return from subroutine long
+  // RTS: Return from subroutine
+  // SBC: Subtract with carry
+  // STA: Store accumulator
+  // STP: Stop the clock
+  // STX: Store X register
+  // STY: Store Y register
+  // STZ: Store zero
+  // TDC: Transfer direct page register to accumulator
+  // TRB: Test and reset bits
+  // TSB: Test and set bits
+  // WAI: Wait for interrupt
+  // XBA: Exchange B and A accumulator
+  // XCE: Exchange carry and emulation
+
   void ADC(uint8_t operand);
   void AND(uint16_t address);
 
@@ -223,6 +400,18 @@ class CPU : public Memory {
 
   void CLV() { status &= ~0x40; }
 
+  void PHA() { memory.PushByte(A); }
+
+  void PLA() {
+    A = memory.PopByte();
+    SetNegativeFlag((A & 0x80) != 0);
+    SetZeroFlag(A == 0);
+  }
+
+  void PHP() { memory.PushByte(status); }
+
+  void PLP() { status = memory.PopByte(); }
+
   void SEI() { status |= 0x04; }
 
   void SED() { status |= 0x08; }
@@ -251,7 +440,7 @@ class CPU : public Memory {
     SetNegativeFlag(A & 0x80);
   }
 
-  void TCS() { SP = A; }
+  void TCS() { memory.SetSP(A); }
 
   void TAX() {
     X = A;
@@ -290,15 +479,15 @@ class CPU : public Memory {
   }
 
   void TSX() {
-    X = SP;
+    X = SP();
     SetZeroFlag(X == 0);
     SetNegativeFlag(X & 0x80);
   }
 
-  void TXS() { SP = X; }
+  void TXS() { memory.SetSP(X); }
 
   void TSC() {
-    A = SP;
+    A = SP();
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
   }
@@ -328,14 +517,19 @@ class CPU : public Memory {
   // Helper function to get the value of a specific flag bit
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
 
+  // Appease the C++ Gods...
+  void PushByte(uint8_t value) override { memory.PushByte(value); }
+  void PushWord(uint16_t value) override { memory.PushWord(value); }
+  uint8_t PopByte() override { return memory.PopByte(); }
+  uint16_t PopWord() override { return memory.PopWord(); }
   void ClearMemory() override { memory.ClearMemory(); }
   void LoadData(const std::vector<uint8_t>& data) override {
     memory.LoadData(data);
   }
-
-  // Appease the C++ Gods...
   uint8_t operator[](int i) const override { return 0; }
   uint8_t at(int i) const override { return 0; }
+
+  Memory& memory;
 };
 
 }  // namespace emu

@@ -18,12 +18,20 @@ class MockMemory : public Memory {
   MOCK_METHOD2(WriteByte, void(uint32_t address, uint8_t value));
   MOCK_METHOD2(WriteWord, void(uint32_t address, uint16_t value));
 
-  MOCK_CONST_METHOD1(at, uint8_t(int i));
-  uint8_t operator[](int i) const override { return at(i); }
+  MOCK_METHOD1(PushByte, void(uint8_t value));
+  MOCK_METHOD0(PopByte, uint8_t());
+  MOCK_METHOD1(PushWord, void(uint16_t value));
+  MOCK_METHOD0(PopWord, uint16_t());
+  MOCK_CONST_METHOD0(SP, int16_t());
+  MOCK_METHOD1(SetSP, void(int16_t value));
 
   MOCK_METHOD1(SetMemory, void(const std::vector<uint8_t>& data));
-  MOCK_METHOD0(ClearMemory, void());
   MOCK_METHOD1(LoadData, void(const std::vector<uint8_t>& data));
+
+  MOCK_METHOD0(ClearMemory, void());
+
+  MOCK_CONST_METHOD1(at, uint8_t(int i));
+  uint8_t operator[](int i) const override { return at(i); }
 
   void SetMemoryContents(const std::vector<uint8_t>& data) {
     memory_.resize(64000);
@@ -42,10 +50,30 @@ class MockMemory : public Memory {
                  (static_cast<uint32_t>(memory_.at(address + 1)) << 8) |
                  (static_cast<uint32_t>(memory_.at(address + 2)) << 16);
         });
+    ON_CALL(*this, PushByte(::testing::_)).WillByDefault([this](uint8_t value) {
+      memory_.at(SP_) = value;
+    });
+    ON_CALL(*this, PopByte()).WillByDefault([this]() {
+      uint8_t value = memory_.at(SP_);
+      this->SetSP(SP_ + 1);
+      return value;
+    });
+    ON_CALL(*this, PushWord(::testing::_))
+        .WillByDefault([this](uint16_t value) {
+          memory_.at(SP_) = value & 0xFF;
+          memory_.at(SP_ + 1) = (value >> 8) & 0xFF;
+        });
+    ON_CALL(*this, PopWord()).WillByDefault([this]() {
+      uint16_t value = static_cast<uint16_t>(memory_.at(SP_)) |
+                       (static_cast<uint16_t>(memory_.at(SP_ + 1)) << 8);
+      this->SetSP(SP_ + 2);
+      return value;
+    });
   }
 
  private:
   std::vector<uint8_t> memory_;
+  uint16_t SP_ = 0x01FF;
 };
 
 using ::testing::_;
@@ -119,6 +147,15 @@ TEST(CPUTest, ADC_Absolute) {
 
   cpu.ExecuteInstruction(0x6D);  // ADC Absolute
   EXPECT_EQ(cpu.A, 0x06);
+}
+
+TEST(CPUTest, ADC_AbsoluteLong) {
+  MockMemory mock_memory;
+  CPU cpu(mock_memory);
+  cpu.A = 0x01;
+  cpu.PC = 1;         // PC register
+  cpu.status = 0x00;  // 16-bit mode
+  std::vector<uint8_t> data = {0x2F, 0x03, 0x00, 0x00, 0x05, 0x00};
 }
 
 /**
@@ -287,6 +324,48 @@ TEST(CPUTest, BRL) {
 
   cpu.ExecuteInstruction(0x82);  // BRL
   EXPECT_EQ(cpu.PC, 0x1004);
+}
+
+// ============================================================================
+// Stack Tests
+
+class CPUTestKit : public ::testing::Test {
+ protected:
+  MockMemory memory_;
+  CPU cpu_{memory_};
+};
+
+TEST_F(CPUTestKit, PHA_PLA_Test) {
+  cpu_.A = 0x42;
+  EXPECT_CALL(memory_, PushByte(0x42)).WillOnce(Return());
+  cpu_.PHA();
+  cpu_.A = 0x00;
+  EXPECT_CALL(memory_, PopByte()).WillOnce(Return(0x42));
+  cpu_.PLA();
+  EXPECT_EQ(cpu_.A, 0x42);
+}
+
+TEST_F(CPUTestKit, PHP_PLP_Test) {
+  // Set some status flags
+  cpu_.SetNegativeFlag(true);
+  cpu_.SetZeroFlag(false);
+  EXPECT_TRUE(cpu_.GetNegativeFlag());
+  EXPECT_FALSE(cpu_.GetZeroFlag());
+
+  EXPECT_CALL(memory_, PushByte(0x80)).WillOnce(Return());
+  cpu_.PHP();
+
+  // Clear status flags
+  cpu_.SetNegativeFlag(false);
+  cpu_.SetZeroFlag(true);
+  EXPECT_FALSE(cpu_.GetNegativeFlag());
+  EXPECT_TRUE(cpu_.GetZeroFlag());
+
+  EXPECT_CALL(memory_, PopByte()).WillOnce(Return(0x80));
+  cpu_.PLP();
+
+  EXPECT_TRUE(cpu_.GetNegativeFlag());
+  EXPECT_FALSE(cpu_.GetZeroFlag());
 }
 
 // ============================================================================

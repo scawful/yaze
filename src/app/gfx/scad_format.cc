@@ -45,7 +45,7 @@ absl::Status LoadCgx(uint8_t bpp, std::string_view filename,
                      std::vector<uint8_t>& cgx_data,
                      std::vector<uint8_t>& cgx_loaded,
                      std::vector<uint8_t>& cgx_header) {
-  std::ifstream file(filename, std::ios::binary);
+  std::ifstream file(filename.data(), std::ios::binary);
   if (!file.is_open()) {
     return absl::NotFoundError("CGX file not found.");
   }
@@ -68,7 +68,7 @@ absl::Status LoadCgx(uint8_t bpp, std::string_view filename,
 
 absl::Status LoadScr(std::string_view filename, uint8_t input_value,
                      std::vector<uint8_t>& map_data) {
-  std::ifstream file(filename, std::ios::binary);
+  std::ifstream file(filename.data(), std::ios::binary);
   if (!file.is_open()) {
     return absl::NotFoundError("SCR/PNL/MAP file not found.");
   }
@@ -157,9 +157,9 @@ absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_data,
   return absl::OkStatus();
 }
 
-std::vector<SDL_Color> DecodeColFile(const std::string& filename) {
+std::vector<SDL_Color> DecodeColFile(const std::string_view filename) {
   std::vector<SDL_Color> decoded_col;
-  std::ifstream file(filename, std::ios::binary | std::ios::ate);
+  std::ifstream file(filename.data(), std::ios::binary | std::ios::ate);
 
   if (!file.is_open()) {
     return decoded_col;  // Return an empty vector if the file couldn't be
