@@ -58,8 +58,8 @@ class MemoryImpl : public Memory {
     if (address < dp_memory_.size()) {
       return dp_memory_.ReadByte(static_cast<uint8_t>(address));
     }
-    // uint32_t mapped_address = GetMappedAddress(address);
-    return memory_.at(address);
+    uint32_t mapped_address = GetMappedAddress(address);
+    return memory_.at(mapped_address);
   }
   uint16_t ReadWord(uint16_t address) const override {
     if (address < dp_memory_.size()) {
@@ -77,8 +77,8 @@ class MemoryImpl : public Memory {
   }
 
   void WriteByte(uint32_t address, uint8_t value) override {
-    // uint32_t mapped_address = GetMappedAddress(address);
-    memory_[address] = value;
+    uint32_t mapped_address = GetMappedAddress(address);
+    memory_[mapped_address] = value;
   }
   void WriteWord(uint32_t address, uint16_t value) override {
     uint32_t mapped_address = GetMappedAddress(address);

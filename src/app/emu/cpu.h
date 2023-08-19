@@ -105,7 +105,7 @@ class CPU : public Memory {
   //    Low:  First operand byte
   //
   // LDA long
-  uint16_t AbsoluteLong() { return FetchLong(); }
+  uint32_t AbsoluteLong() { return FetchLong(); }
 
   // Effective Address:
   //   The 24-bit operand is added to X based on the emulation mode
@@ -243,11 +243,14 @@ class CPU : public Memory {
   // Registers
 
   uint8_t A = 0;    // Accumulator
+  uint8_t B = 0;    // Accumulator (High)
   uint8_t X = 0;    // X index register
+  uint8_t X2 = 0;   // X index register (High)
   uint8_t Y = 0;    // Y index register
+  uint8_t Y2 = 0;   // Y index register (High)
   uint16_t D = 0;   // Direct Page register
   uint16_t DB = 0;  // Data Bank register
-  uint16_t PB = 0;  // Program Bank register
+  uint8_t PB = 0;   // Program Bank register
   uint16_t PC = 0;  // Program Counter
   uint8_t E = 1;    // Emulation mode flag
   uint8_t status;   // Processor Status (P)
@@ -288,91 +291,47 @@ class CPU : public Memory {
 
   // ==========================================================================
   // Instructions
+  /// ``` Unimplemented
 
-  // Left to implement
-  // * = in progress
-
-  // ADC: Add with carry                  *
-  // AND: Logical AND                     *
-  // ASL: Arithmetic shift left
-  // BCC: Branch if carry clear           *
-  // BCS: Branch if carry set             *
-  // BEQ: Branch if equal (zero set)      *
-  // BIT: Bit test
-  // BMI: Branch if minus (negative set)
-  // BNE: Branch if not equal (zero clear)
-  // BPL: Branch if plus (negative clear)
-  // BRA: Branch always
-  // BRK: Break
-  // BRL: Branch always long
-  // BVC: Branch if overflow clear
-  // BVS: Branch if overflow set
-  // CMP: Compare
-  // COP: Coprocessor
-  // CPX: Compare X register
-  // CPY: Compare Y register
-  // DEC: Decrement
-  // EOR: Exclusive OR
-  // JMP: Jump
-  // JML: Jump long
-  // JSR: Jump to subroutine
-  // JSL: Jump to subroutine long
-  // LDA: Load accumulator
-  // LDX: Load X register
-  // LDY: Load Y register
-  // LSR: Logical shift right
-  // MVN: Move negative
-  // MVP: Move positive
-  // NOP: No operation
-  // ORA: Logical OR
-  // PEA: Push effective address
-  // PEI: Push effective indirect address
-  // PER: Push effective PC-relative address
-  // ROL: Rotate left
-  // ROR: Rotate right
-  // RTI: Return from interrupt
-  // RTL: Return from subroutine long
-  // RTS: Return from subroutine
-  // SBC: Subtract with carry
-  // STA: Store accumulator
-  // STP: Stop the clock
-  // STX: Store X register
-  // STY: Store Y register
-  // STZ: Store zero
-  // TDC: Transfer direct page register to accumulator
-  // TRB: Test and reset bits
-  // TSB: Test and set bits
-  // WAI: Wait for interrupt
-  // XBA: Exchange B and A accumulator
-
+  // ADC: Add with carry
   void ADC(uint8_t operand);
+  void ANDAbsoluteLong(uint32_t address);
+
+  // AND: Logical AND
   void AND(uint16_t address);
 
-  void BEQ(int8_t offset) {
-    if (GetZeroFlag()) {  // If the zero flag is set
-      PC += offset;       // Add the offset to the program counter
-    }
-  }
+  // ASL: Arithmetic shift left ```
 
+  // BCC: Branch if carry clear
   void BCC(int8_t offset) {
     if (!GetCarryFlag()) {  // If the carry flag is clear
       PC += offset;         // Add the offset to the program counter
     }
   }
 
+  // BCS: Branch if carry set ```
+
+  // BEQ: Branch if equal (zero set)
+  void BEQ(int8_t offset) {
+    if (GetZeroFlag()) {  // If the zero flag is set
+      PC += offset;       // Add the offset to the program counter
+    }
+  }
+
+  // BIT: Bit test ```
+  // BMI: Branch if minus (negative set) ```
+  // BNE: Branch if not equal (zero clear) ```
+  // BPL: Branch if plus (negative clear) ```
+  // BRA: Branch always ```
+  // BRK: Break ```
+
+  // BRL: Branch always long
   void BRL(int16_t offset) {
     PC += offset;  // Add the offset to the program counter
   }
 
-  void LDA() {
-    A = memory[PC];
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
-    PC++;
-  }
-
-  // SEC: Set carry flag
-  void SEC() { status |= 0x01; }
+  // BVC: Branch if overflow clear ```
+  // BVS: Branch if overflow set ```
 
   // CLC: Clear carry flag
   void CLC() { status &= ~0x01; }
@@ -386,19 +345,24 @@ class CPU : public Memory {
   // CLV: Clear overflow flag
   void CLV() { status &= ~0x40; }
 
-  bool emulation_mode = false;
+  // CMP: Compare ```
+  // COP: Coprocessor ```
 
+  // CPX: Compare X register
   void CPX(uint16_t address) {
     uint16_t memory_value =
         E ? memory.ReadByte(address) : memory.ReadWord(address);
     compare(X, memory_value);
   }
 
+  // CPY: Compare Y register
   void CPY(uint16_t address) {
     uint16_t memory_value =
         E ? memory.ReadByte(address) : memory.ReadWord(address);
     compare(Y, memory_value);
   }
+
+  // DEC: Decrement ```
 
   // DEX: Decrement X register
   void DEX() {
@@ -414,21 +378,10 @@ class CPU : public Memory {
     SetNegativeFlag(Y & 0x80);
   }
 
-  // INX: Increment X register
-  void INX() {
-    X++;
-    SetNegativeFlag(X & 0x80);
-    SetZeroFlag(X == 0);
-  }
+  // EOR: Exclusive OR ```
 
-  // INY: Increment Y register
-  void INY() {
-    Y++;
-    SetNegativeFlag(Y & 0x80);
-    SetZeroFlag(Y == 0);
-  }
-
-  // INC: Increment memory
+  // INC: Increment
+  // TODO: Check if this is correct
   void INC(uint16_t address) {
     if (GetAccumulatorSize()) {
       uint8_t value = ReadByte(address);
@@ -451,9 +404,31 @@ class CPU : public Memory {
     }
   }
 
-  // JMP: Jump to new address
+  // INX: Increment X register
+  void INX() {
+    X++;
+    SetNegativeFlag(X & 0x80);
+    SetZeroFlag(X == 0);
+  }
+
+  // INY: Increment Y register
+  void INY() {
+    Y++;
+    SetNegativeFlag(Y & 0x80);
+    SetZeroFlag(Y == 0);
+  }
+
+  // JMP: Jump
   void JMP(uint16_t address) {
     PC = address;  // Set program counter to the new address
+  }
+
+  // JML: Jump long
+  void JML(uint32_t address) {
+    // Set the lower 16 bits of PC to the lower 16 bits of the address
+    PC = static_cast<uint8_t>(address & 0xFFFF);
+    // Set the PBR to the upper 8 bits of the address
+    PB = static_cast<uint8_t>((address >> 16) & 0xFF);
   }
 
   // JSR: Jump to subroutine
@@ -471,50 +446,64 @@ class CPU : public Memory {
     PC = address;         // Set program counter to the new address
   }
 
-  // Push Accumulator on Stack
+  // LDA: Load accumulator
+  void LDA() {
+    A = memory[PC];
+    SetZeroFlag(A == 0);
+    SetNegativeFlag(A & 0x80);
+    PC++;
+  }
+
+  // LDX: Load X register ```
+  // LDY: Load Y register ```
+  // LSR: Logical shift right ```
+  // MVN: Move negative ```
+  // MVP: Move positive ```
+
+  // NOP: No operation
+  void NOP() {
+    // Do nothing
+  }
+
+  // ORA: Logical OR ```
+  // PEA: Push effective address ```
+  // PEI: Push effective indirect address ```
+  // PER: Push effective PC-relative address ```
+
+  // PHA: Push Accumulator on Stack
   void PHA() { memory.PushByte(A); }
 
-  // Pull Accumulator from Stack
+  // PHB: Push Data Bank Register on Stack
+  void PHB() { memory.PushByte(DB); }
+
+  // PHD: Push Program Bank Register on Stack
+  void PHD() { memory.PushWord(D); }
+
+  // PHK: Push Program Bank Register on Stack
+  void PHK() { memory.PushByte(PB); }
+
+  // PHP: Push Processor Status Register on Stack
+  void PHP() { memory.PushByte(status); }
+
+  // PHX: Push X Index Register on Stack
+  void PHX() { memory.PushByte(X); }
+
+  // PHY: Push Y Index Register on Stack
+  void PHY() { memory.PushByte(Y); }
+
+  // PLA: Pull Accumulator from Stack
   void PLA() {
     A = memory.PopByte();
     SetNegativeFlag((A & 0x80) != 0);
     SetZeroFlag(A == 0);
   }
 
-  // Push Processor Status Register on Stack
-  void PHP() { memory.PushByte(status); }
-
-  // Pull Processor Status Register from Stack
-  void PLP() { status = memory.PopByte(); }
-
-  void PHX() { memory.PushByte(X); }
-
-  void PLX() {
-    X = memory.PopByte();
-    SetNegativeFlag((A & 0x80) != 0);
-    SetZeroFlag(X == 0);
-  }
-
-  void PHY() { memory.PushByte(Y); }
-
-  void PLY() {
-    Y = memory.PopByte();
-    SetNegativeFlag((A & 0x80) != 0);
-    SetZeroFlag(Y == 0);
-  }
-
-  // Push Data Bank Register on Stack
-  void PHB() { memory.PushByte(DB); }
-
-  // Pull Data Bank Register from Stack
+  // PLB: Pull data bank register
   void PLB() {
     DB = memory.PopByte();
     SetNegativeFlag((DB & 0x80) != 0);
     SetZeroFlag(DB == 0);
   }
-
-  // Push Program Bank Register on Stack
-  void PHD() { memory.PushWord(D); }
 
   // Pull Direct Page Register from Stack
   void PLD() {
@@ -523,88 +512,140 @@ class CPU : public Memory {
     SetZeroFlag(D == 0);
   }
 
-  // Push Program Bank Register on Stack
-  void PHK() { memory.PushByte(PB); }
+  // Pull Processor Status Register from Stack
+  void PLP() { status = memory.PopByte(); }
 
-  void SEI() { status |= 0x04; }
-
-  void SED() { status |= 0x08; }
-
-  void SEP() {
-    PC++;
-    auto byte = FetchByte();
-    status |= byte;
+  // PLX: Pull X Index Register from Stack
+  void PLX() {
+    X = memory.PopByte();
+    SetNegativeFlag((A & 0x80) != 0);
+    SetZeroFlag(X == 0);
   }
 
+  // PHY: Pull Y Index Register from Stack
+  void PLY() {
+    Y = memory.PopByte();
+    SetNegativeFlag((A & 0x80) != 0);
+    SetZeroFlag(Y == 0);
+  }
+
+  // REP: Reset status bits
   void REP() {
     PC++;
     auto byte = FetchByte();
     status &= ~byte;
   }
 
-  void TCD() {
-    D = A;
-    SetZeroFlag(D == 0);
-    SetNegativeFlag(D & 0x80);
+  // ROL: Rotate left ```
+  // ROR: Rotate right ```
+  // RTI: Return from interrupt ```
+  // RTL: Return from subroutine long ```
+  // RTS: Return from subroutine ```
+  // SBC: Subtract with carry ```
+
+  // SEC: Set carry flag
+  void SEC() { status |= 0x01; }
+
+  // SED: Set decimal mode
+  void SED() { status |= 0x08; }
+
+  // SEI: Set interrupt disable flag
+  void SEI() { status |= 0x04; }
+
+  // SEP: Set status bits
+  void SEP() {
+    PC++;
+    auto byte = FetchByte();
+    status |= byte;
   }
 
-  void TDC() {
-    A = D;
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
-  }
+  // STA: Store accumulator ```
+  // STP: Stop the clock ```
+  // STX: Store X register ```
+  // STY: Store Y register ```
+  // STZ: Store zero ```
 
-  void TCS() { memory.SetSP(A); }
-
+  // TAX: Transfer accumulator to X
   void TAX() {
     X = A;
     SetZeroFlag(X == 0);
     SetNegativeFlag(X & 0x80);
   }
 
+  // TAY: Transfer accumulator to Y
   void TAY() {
     Y = A;
     SetZeroFlag(Y == 0);
     SetNegativeFlag(Y & 0x80);
   }
 
-  void TYA() {
-    A = Y;
+  // TCD: Transfer accumulator to direct page register
+  void TCD() {
+    D = A;
+    SetZeroFlag(D == 0);
+    SetNegativeFlag(D & 0x80);
+  }
+
+  // TCS: Transfer accumulator to stack pointer
+  void TCS() { memory.SetSP(A); }
+
+  // TDC: Transfer direct page register to accumulator
+  void TDC() {
+    A = D;
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
   }
 
-  void TXA() {
-    A = X;
+  // TRB: Test and reset bits ```
+  // TSB: Test and set bits ```
+
+  // TSC: Transfer stack pointer to accumulator
+  void TSC() {
+    A = SP();
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
   }
 
-  void TXY() {
-    X = Y;
-    SetZeroFlag(X == 0);
-    SetNegativeFlag(X & 0x80);
-  }
-
-  void TYX() {
-    Y = X;
-    SetZeroFlag(Y == 0);
-    SetNegativeFlag(Y & 0x80);
-  }
-
+  // TSX: Transfer stack pointer to X
   void TSX() {
     X = SP();
     SetZeroFlag(X == 0);
     SetNegativeFlag(X & 0x80);
   }
 
-  void TXS() { memory.SetSP(X); }
-
-  void TSC() {
-    A = SP();
+  // TXA: Transfer X to accumulator
+  void TXA() {
+    A = X;
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
   }
+
+  // TXS: Transfer X to stack pointer
+  void TXS() { memory.SetSP(X); }
+
+  // TXY: Transfer X to Y
+  void TXY() {
+    X = Y;
+    SetZeroFlag(X == 0);
+    SetNegativeFlag(X & 0x80);
+  }
+
+  // TYA: Transfer Y to accumulator
+  void TYA() {
+    A = Y;
+    SetZeroFlag(A == 0);
+    SetNegativeFlag(A & 0x80);
+  }
+
+  // TYX: Transfer Y to X
+  void TYX() {
+    Y = X;
+    SetZeroFlag(Y == 0);
+    SetNegativeFlag(Y & 0x80);
+  }
+
+  // WAI: Wait for interrupt ```
+  // XBA: Exchange B and A accumulator ```
 
   // XCE: Exchange Carry and Emulation Flags
   void XCE() {
