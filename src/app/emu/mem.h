@@ -11,7 +11,7 @@ namespace emu {
 
 class DirectPageMemory {
  public:
-  DirectPageMemory(size_t size = 256) : memory_(size, 0) {}
+  explicit DirectPageMemory(size_t size = 256) : memory_(size, 0) {}
 
   uint8_t ReadByte(uint8_t address) const { return memory_[address]; }
 
@@ -35,6 +35,8 @@ class Memory {
   virtual void WriteWord(uint32_t address, uint16_t value) = 0;
 
   virtual void SetMemory(const std::vector<uint8_t>& data) = 0;
+  virtual void ClearMemory() = 0;
+  virtual void LoadData(const std::vector<uint8_t>& data) = 0;
 
   virtual uint8_t operator[](int i) const = 0;
   virtual uint8_t at(int i) const = 0;
@@ -74,6 +76,12 @@ class MemoryImpl : public Memory {
   }
 
   void SetMemory(const std::vector<uint8_t>& data) override { memory_ = data; }
+
+  void ClearMemory() override { memory_.resize(64000, 0x00); }
+
+  void LoadData(const std::vector<uint8_t>& data) override {
+    std::copy(data.begin(), data.end(), memory_.begin());
+  }
 
   uint8_t at(int i) const override { return memory_[i]; }
   auto size() const { return memory_.size(); }
