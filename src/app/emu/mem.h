@@ -74,8 +74,8 @@ class MemoryImpl : public Memory {
   }
 
   void WriteByte(uint32_t address, uint8_t value) override {
-    uint32_t mapped_address = GetMappedAddress(address);
-    memory_.at(mapped_address) = value;
+   // uint32_t mapped_address = GetMappedAddress(address);
+    memory_[address] = value;
   }
   void WriteWord(uint32_t address, uint16_t value) override {
     uint32_t mapped_address = GetMappedAddress(address);

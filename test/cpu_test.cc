@@ -36,6 +36,9 @@ class MockMemory : public Memory {
   void SetMemoryContents(const std::vector<uint8_t>& data) {
     memory_.resize(64000);
     std::copy(data.begin(), data.end(), memory_.begin());
+  }
+
+  void Init() {
     ON_CALL(*this, ReadByte(::testing::_))
         .WillByDefault(
             [this](uint16_t address) { return memory_.at(address); });
@@ -49,6 +52,15 @@ class MockMemory : public Memory {
           return static_cast<uint32_t>(memory_.at(address)) |
                  (static_cast<uint32_t>(memory_.at(address + 1)) << 8) |
                  (static_cast<uint32_t>(memory_.at(address + 2)) << 16);
+        });
+    ON_CALL(*this, WriteByte(::testing::_, ::testing::_))
+        .WillByDefault([this](uint32_t address, uint8_t value) {
+          memory_[address] = value;
+        });
+    ON_CALL(*this, WriteWord(::testing::_, ::testing::_))
+        .WillByDefault([this](uint32_t address, uint16_t value) {
+          memory_[address] = value & 0xFF;
+          memory_[address + 1] = (value >> 8) & 0xFF;
         });
     ON_CALL(*this, PushByte(::testing::_)).WillByDefault([this](uint8_t value) {
       memory_.at(SP_) = value;
@@ -69,6 +81,9 @@ class MockMemory : public Memory {
       this->SetSP(SP_ + 2);
       return value;
     });
+    ON_CALL(*this, ClearMemory()).WillByDefault([this]() {
+      memory_.resize(64000, 0x00);
+    });
   }
 
  private:
@@ -78,6 +93,11 @@ class MockMemory : public Memory {
 
 class CPUTest : public ::testing::Test {
  public:
+  void SetUp() override {
+    mock_memory.Init();
+    mock_memory.ClearMemory();
+  }
+
   MockMemory mock_memory;
   CPU cpu{mock_memory};
 };
@@ -239,9 +259,10 @@ TEST_F(CPUTest, AND_Immediate) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_Absolute) {
+TEST_F(CPUTest, AND_Absolute_16BitMode) {
   cpu.A = 0b11111111;  // A register
-  cpu.status = 0x00;   // 16-bit mode
+  cpu.E = 0;           // 16-bit mode
+  cpu.status = 0x00;   // Clear status flags
   cpu.PC = 1;          // PC register
   std::vector<uint8_t> data = {0x2D, 0x03, 0x00, 0b10101010, 0x01, 0x02};
   mock_memory.SetMemoryContents(data);
@@ -308,6 +329,142 @@ TEST_F(CPUTest, BRL) {
 
   cpu.ExecuteInstruction(0x82);  // BRL
   EXPECT_EQ(cpu.PC, 0x1004);
+}
+
+// ============================================================================
+
+// Test for CPX instruction
+TEST_F(CPUTest, CPX_CarryFlagSet) {
+  cpu.X = 0x1000;
+  cpu.CPX(0x0F00);
+  ASSERT_TRUE(cpu.GetCarryFlag());  // Carry flag should be set
+}
+
+TEST_F(CPUTest, CPX_ZeroFlagSet) {
+  cpu.X = 0x0F00;
+  cpu.ExecuteInstruction(0xE0);    // Immediate CPX
+  ASSERT_TRUE(cpu.GetZeroFlag());  // Zero flag should be set
+}
+
+TEST_F(CPUTest, CPX_NegativeFlagSet) {
+  cpu.PC = 1;
+  cpu.X = 0x8000;
+  std::vector<uint8_t> data = {0xE0, 0xFF, 0xFF};
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0xE0);  // Immediate CPX (0xFFFF)
+
+  ASSERT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
+}
+
+// Test for CPY instruction
+TEST_F(CPUTest, CPY_CarryFlagSet) {
+  cpu.Y = 0x1000;
+  cpu.CPY(0x0F00);
+  ASSERT_TRUE(cpu.GetCarryFlag());  // Carry flag should be set
+}
+
+TEST_F(CPUTest, CPY_ZeroFlagSet) {
+  cpu.Y = 0x0F00;
+  cpu.CPY(0x0F00);
+  ASSERT_TRUE(cpu.GetZeroFlag());  // Zero flag should be set
+}
+
+TEST_F(CPUTest, CPY_NegativeFlagSet) {
+  cpu.PC = 1;
+  cpu.Y = 0x8000;
+  std::vector<uint8_t> data = {0xC0, 0xFF, 0xFF};
+  mock_memory.SetMemoryContents(data);
+  cpu.ExecuteInstruction(0xC0);        // Immediate CPY (0xFFFF)
+  ASSERT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
+}
+
+// ============================================================================
+// DEC - Decrement Memory
+
+// Test for DEX instruction
+TEST_F(CPUTest, DEX) {
+  cpu.X = 0x02;                  // Set X register to 2
+  cpu.ExecuteInstruction(0xCA);  // Execute DEX instruction
+  EXPECT_EQ(0x01, cpu.X);  // Expected value of X register after decrementing
+
+  cpu.X = 0x00;                  // Set X register to 0
+  cpu.ExecuteInstruction(0xCA);  // Execute DEX instruction
+  EXPECT_EQ(0xFF, cpu.X);  // Expected value of X register after decrementing
+
+  cpu.X = 0x80;                  // Set X register to 128
+  cpu.ExecuteInstruction(0xCA);  // Execute DEX instruction
+  EXPECT_EQ(0x7F, cpu.X);  // Expected value of X register after decrementing
+}
+
+// Test for DEY instruction
+TEST_F(CPUTest, DEY) {
+  cpu.Y = 0x02;                  // Set Y register to 2
+  cpu.ExecuteInstruction(0x88);  // Execute DEY instruction
+  EXPECT_EQ(0x01, cpu.Y);  // Expected value of Y register after decrementing
+
+  cpu.Y = 0x00;                  // Set Y register to 0
+  cpu.ExecuteInstruction(0x88);  // Execute DEY instruction
+  EXPECT_EQ(0xFF, cpu.Y);  // Expected value of Y register after decrementing
+
+  cpu.Y = 0x80;                  // Set Y register to 128
+  cpu.ExecuteInstruction(0x88);  // Execute DEY instruction
+  EXPECT_EQ(0x7F, cpu.Y);  // Expected value of Y register after decrementing
+}
+
+// ============================================================================
+// INC - Increment Memory
+
+/**
+TEST_F(CPUTest, INC) {
+  cpu.status &= 0x20;
+
+  EXPECT_CALL(mock_memory, WriteByte(0x1000, 0x7F)).WillOnce(Return());
+  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x7F));
+  EXPECT_CALL(mock_memory, WriteByte(0x1000, 0x80)).WillOnce(Return());
+
+  cpu.WriteByte(0x1000, 0x7F);
+  cpu.INC(0x1000);
+  EXPECT_EQ(cpu.ReadByte(0x1000), 0x80);
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+
+  EXPECT_CALL(mock_memory, WriteByte(0x1000, 0xFF)).WillOnce(Return());
+  cpu.WriteByte(0x1000, 0xFF);
+  cpu.INC(0x1000);
+  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x00));
+  EXPECT_EQ(cpu.ReadByte(0x1000), 0x00);
+  EXPECT_FALSE(cpu.GetNegativeFlag());
+  EXPECT_TRUE(cpu.GetZeroFlag());
+}
+*/
+
+TEST_F(CPUTest, INX) {
+  cpu.X = 0x7F;
+  cpu.INX();
+  EXPECT_EQ(cpu.X, 0x80);
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+
+  cpu.X = 0xFF;
+  cpu.INX();
+  EXPECT_EQ(cpu.X, 0x00);
+  EXPECT_FALSE(cpu.GetNegativeFlag());
+  EXPECT_TRUE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, INY) {
+  cpu.Y = 0x7F;
+  cpu.INY();
+  EXPECT_EQ(cpu.Y, 0x80);
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+
+  cpu.Y = 0xFF;
+  cpu.INY();
+  EXPECT_EQ(cpu.Y, 0x00);
+  EXPECT_FALSE(cpu.GetNegativeFlag());
+  EXPECT_TRUE(cpu.GetZeroFlag());
 }
 
 // ============================================================================
@@ -505,6 +662,35 @@ TEST_F(CPUTest, TAY) {
 
   cpu.ExecuteInstruction(0xA8);  // TAY
   EXPECT_EQ(cpu.Y, 0xDE);        // Y register should now be equal to A
+}
+
+// ============================================================================
+// XCE - Exchange Carry and Emulation Flags
+
+TEST_F(CPUTest, XCESwitchToNativeMode) {
+  cpu.ExecuteInstruction(0x18);  // Clear carry flag
+  cpu.ExecuteInstruction(0xFB);  // Switch to native mode
+  EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
+}
+
+TEST_F(CPUTest, XCESwitchToEmulationMode) {
+  cpu.ExecuteInstruction(0x38);  // Set carry flag
+  cpu.ExecuteInstruction(0xFB);  // Switch to emulation mode
+  EXPECT_TRUE(cpu.E);            // Emulation mode flag should be set
+}
+
+TEST_F(CPUTest, XCESwitchBackAndForth) {
+  cpu.ExecuteInstruction(0x18);  // Clear carry flag
+  cpu.ExecuteInstruction(0xFB);  // Switch to native mode
+  EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
+
+  cpu.ExecuteInstruction(0x38);  // Set carry flag
+  cpu.ExecuteInstruction(0xFB);  // Switch to emulation mode
+  EXPECT_TRUE(cpu.E);            // Emulation mode flag should be set
+
+  cpu.ExecuteInstruction(0x18);  // Clear carry flag
+  cpu.ExecuteInstruction(0xFB);  // Switch to native mode
+  EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
 }
 
 }  // namespace emu
