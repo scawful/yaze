@@ -41,6 +41,14 @@ class MockMemory : public Memory {
     std::copy(data.begin(), data.end(), memory_.begin());
   }
 
+  void InsertMemory(const uint64_t address, const std::vector<uint8_t>& data) {
+    int i = 0;
+    for (const auto& each : data) {
+      memory_[address + i] = each;
+      i++;
+    }
+  }
+
   void Init() {
     ON_CALL(*this, ReadByte(::testing::_))
         .WillByDefault(
@@ -111,6 +119,7 @@ class CPUTest : public ::testing::Test {
  public:
   void SetUp() override {
     mock_memory.Init();
+    EXPECT_CALL(mock_memory, ClearMemory()).Times(::testing::AtLeast(1));
     mock_memory.ClearMemory();
   }
 
@@ -189,7 +198,15 @@ TEST_F(CPUTest, ADC_AbsoluteLong) {
   cpu.A = 0x01;
   cpu.PC = 1;         // PC register
   cpu.status = 0x00;  // 16-bit mode
-  std::vector<uint8_t> data = {0x2F, 0x03, 0x00, 0x00, 0x05, 0x00};
+  std::vector<uint8_t> data = {0x6F, 0x04, 0x00, 0x00, 0x05, 0x00};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWordLong(0x0001)).WillOnce(Return(0x0004));
+
+  EXPECT_CALL(mock_memory, ReadWord(0x0004)).WillOnce(Return(0x0005));
+
+  cpu.ExecuteInstruction(0x6F);  // ADC Absolute Long
+  EXPECT_EQ(cpu.A, 0x06);
 }
 
 /**
@@ -295,6 +312,21 @@ TEST_F(CPUTest, AND_Absolute_16BitMode) {
   EXPECT_EQ(cpu.A, 0b10101010);  // A register should now be 0b10101010
 }
 
+TEST_F(CPUTest, AND_AbsoluteLong) {
+  cpu.A = 0x01;
+  cpu.PC = 1;         // PC register
+  cpu.status = 0x00;  // 16-bit mode
+  std::vector<uint8_t> data = {0x2F, 0x04, 0x00, 0x00, 0x05, 0x00};
+
+  mock_memory.SetMemoryContents(data);
+  EXPECT_CALL(mock_memory, ReadWordLong(0x0001)).WillOnce(Return(0x0004));
+
+  EXPECT_CALL(mock_memory, ReadWordLong(0x0004)).WillOnce(Return(0x0005));
+
+  cpu.ExecuteInstruction(0x2F);  // ADC Absolute Long
+  EXPECT_EQ(cpu.A, 0x01);
+}
+
 TEST_F(CPUTest, AND_IndexedIndirect) {
   cpu.A = 0b10101010;  // A register
   cpu.X = 0x02;        // X register
@@ -303,6 +335,78 @@ TEST_F(CPUTest, AND_IndexedIndirect) {
 
   cpu.ExecuteInstruction(0x21);  // AND Indexed Indirect
   EXPECT_EQ(cpu.A, 0b00000000);  // A register should now be 0b00000000
+}
+
+TEST_F(CPUTest, AND_AbsoluteIndexedX) {
+  cpu.A = 0b11110000;  // A register
+  cpu.X = 0x02;        // X register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x3D,       0x03,       0x00,
+                               0b00000000, 0b10101010, 0b01010101};
+  mock_memory.SetMemoryContents(data);
+
+  // Get the absolute address
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0003));
+
+  // Add the offset from the X register to the absolute address
+  uint16_t address = 0x0003 + static_cast<uint16_t>(cpu.X & 0xFF);
+
+  // Get the value at the absolute address + X
+  EXPECT_CALL(mock_memory, ReadByte(address)).WillOnce(Return(0b10101010));
+
+  cpu.ExecuteInstruction(0x3D);  // AND Absolute, X
+
+  EXPECT_THAT(cpu.PC, testing::Eq(0x03));
+  EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
+}
+
+TEST_F(CPUTest, AND_AbsoluteIndexedY) {
+  cpu.A = 0b11110000;  // A register
+  cpu.Y = 0x02;        // Y register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x39,       0x03,       0x00,
+                               0b00000000, 0b10101010, 0b01010101};
+  mock_memory.SetMemoryContents(data);
+
+  // Get the absolute address
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0003));
+
+  // Add the offset from the Y register to the absolute address
+  uint16_t address = 0x0003 + cpu.Y;
+
+  // Get the value at the absolute address + Y
+  EXPECT_CALL(mock_memory, ReadByte(address)).WillOnce(Return(0b10101010));
+
+  cpu.ExecuteInstruction(0x39);  // AND Absolute, Y
+
+  EXPECT_THAT(cpu.PC, testing::Eq(0x03));
+  EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
+}
+
+TEST_F(CPUTest, AND_AbsoluteLongIndexedX) {
+  cpu.A = 0b11110000;  // A register
+  cpu.X = 0x02;        // X register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x3F,       0x03,       0x00,      0x00,
+                               0b00000000, 0b10101010, 0b01010101};
+  mock_memory.SetMemoryContents(data);
+
+  // Get the absolute address
+  EXPECT_CALL(mock_memory, ReadWordLong(0x0001)).WillOnce(Return(0x0003));
+
+  // Add the offset from the X register to the absolute address
+  uint16_t address = 0x0003 + static_cast<uint16_t>(cpu.X & 0xFF);
+
+  // Get the value at the absolute address + X
+  EXPECT_CALL(mock_memory, ReadByte(address)).WillOnce(Return(0b10101010));
+
+  cpu.ExecuteInstruction(0x3F);  // AND Absolute Long, X
+
+  EXPECT_THAT(cpu.PC, testing::Eq(0x04));
+  EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
 // ============================================================================
@@ -508,6 +612,28 @@ TEST_F(CPUTest, JMP_Indirect) {
 
   cpu.ExecuteInstruction(0x6C);  // JMP Indirect
   EXPECT_EQ(cpu.PC, 0x3005);
+}
+
+// ============================================================================
+// JML - Jump Long
+// ============================================================================
+
+TEST_F(CPUTest, JML_AbsoluteLong) {
+  cpu.E = 0;
+  cpu.PC = 0x1001;
+  cpu.PB = 0x02;  // Set the program bank register to 0x02
+  std::vector<uint8_t> data = {0x5C, 0x05, 0x00, 0x03};  // JML $030005
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x030005, {0x00, 0x20, 0x00});
+
+  // NOP to set PB to 0x02
+  cpu.ExecuteInstruction(0xEA);
+
+  EXPECT_CALL(mock_memory, ReadWordLong(0x1001)).WillOnce(Return(0x030005));
+
+  cpu.ExecuteInstruction(0x5C);  // JML Absolute Long
+  EXPECT_EQ(cpu.PC, 0x0005);
+  EXPECT_EQ(cpu.PB, 0x03);  // The PBR should be updated to 0x03
 }
 
 // ============================================================================

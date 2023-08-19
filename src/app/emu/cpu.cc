@@ -66,6 +66,9 @@ uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
 }
 
 void CPU::ExecuteInstruction(uint8_t opcode) {
+  // Update the PC based on the Program Bank Register
+  PC |= (static_cast<uint16_t>(PB) << 16);
+
   // uint8_t opcode = FetchByte();
   uint8_t operand = -1;
   switch (opcode) {
@@ -94,7 +97,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       ADC(operand);
       break;
     case 0x6F:  // ADC Absolute Long
-      operand = memory.ReadByte(AbsoluteLong());
+      operand = memory.ReadWord(AbsoluteLong());
       ADC(operand);
       break;
     case 0x71:  // ADC DP Indirect Indexed, Y
@@ -153,8 +156,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       AND(Absolute());
       break;
     case 0x2F:  // AND Absolute Long
-      operand = memory.ReadByte(AbsoluteLong());
-      AND(operand);
+      ANDAbsoluteLong(AbsoluteLong());
       break;
     case 0x31:  // AND DP Indirect Indexed, Y
       operand = memory.ReadByte(DirectPageIndirectIndexedY());
@@ -177,16 +179,13 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       AND(operand);
       break;
     case 0x39:  // AND Absolute Indexed, Y
-      operand = memory.ReadByte(AbsoluteIndexedY());
-      AND(operand);
+      AND(AbsoluteIndexedY());
       break;
     case 0x3D:  // AND Absolute Indexed, X
-      operand = memory.ReadByte(AbsoluteIndexedX());
-      AND(operand);
+      AND(AbsoluteIndexedX());
       break;
     case 0x3F:  // AND Absolute Long Indexed, X
-      operand = memory.ReadByte(AbsoluteLongIndexedX());
-      AND(operand);
+      AND(AbsoluteLongIndexedX());
       break;
 
     case 0x06:  // ASL Direct Page
@@ -451,7 +450,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       JMP(Absolute());
       break;
     case 0x5C:  // JMP Absolute Long
-      // JMP();
+      JML(AbsoluteLong());
       break;
     case 0x6C:  // JMP Absolute Indirect
       JMP(AbsoluteIndirect());
@@ -574,7 +573,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xEA:  // NOP No Operation
-      // NOP();
+      NOP();
       break;
 
     case 0x01:  // ORA DP Indexed Indirect, X
@@ -1008,6 +1007,14 @@ void CPU::AND(uint16_t address) {
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
   }
+}
+
+// New function for absolute long addressing mode
+void CPU::ANDAbsoluteLong(uint32_t address) {
+  uint32_t operand32 = memory.ReadWordLong(address);
+  A &= operand32;
+  SetZeroFlag(A == 0);
+  SetNegativeFlag(A & 0x80000000);
 }
 
 }  // namespace emu
