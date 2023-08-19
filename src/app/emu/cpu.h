@@ -242,14 +242,14 @@ class CPU : public Memory {
   // ==========================================================================
   // Registers
 
-  uint8_t A = 0;  // Accumulator
-  uint8_t X = 0;  // X index register
-  uint8_t Y = 0;  // Y index register
-  // uint8_t SP = 0;   // Stack Pointer
-  uint16_t DB = 0;  // Data Bank register
+  uint8_t A = 0;    // Accumulator
+  uint8_t X = 0;    // X index register
+  uint8_t Y = 0;    // Y index register
   uint16_t D = 0;   // Direct Page register
+  uint16_t DB = 0;  // Data Bank register
   uint16_t PB = 0;  // Program Bank register
   uint16_t PC = 0;  // Program Counter
+  uint8_t E = 1;    // Emulation mode flag
   uint8_t status;   // Processor Status (P)
 
   // Mnemonic 	Value 	Binary 	Description
@@ -312,12 +312,7 @@ class CPU : public Memory {
   // CPX: Compare X register
   // CPY: Compare Y register
   // DEC: Decrement
-  // DEX: Decrement X register
-  // DEY: Decrement Y register
   // EOR: Exclusive OR
-  // INC: Increment
-  // INX: Increment X register
-  // INY: Increment Y register
   // JMP: Jump
   // JML: Jump long
   // JSR: Jump to subroutine
@@ -333,19 +328,6 @@ class CPU : public Memory {
   // PEA: Push effective address
   // PEI: Push effective indirect address
   // PER: Push effective PC-relative address
-  // PHA: Push accumulator
-  // PHB: Push data bank register
-  // PHD: Push direct page register
-  // PHK: Push program bank register
-  // PHP: Push processor status register
-  // PHX: Push X register
-  // PHY: Push Y register
-  // PLA: Pull accumulator
-  // PLB: Pull data bank register
-  // PLD: Pull direct page register
-  // PLP: Pull processor status register
-  // PLX: Pull X register
-  // PLY: Pull Y register
   // ROL: Rotate left
   // ROR: Rotate right
   // RTI: Return from interrupt
@@ -390,15 +372,85 @@ class CPU : public Memory {
     PC++;
   }
 
+  // SEC: Set carry flag
   void SEC() { status |= 0x01; }
 
+  // CLC: Clear carry flag
   void CLC() { status &= ~0x01; }
 
+  // CLD: Clear decimal mode
   void CLD() { status &= ~0x08; }
 
+  // CLI: Clear interrupt disable flag
   void CLI() { status &= ~0x04; }
 
+  // CLV: Clear overflow flag
   void CLV() { status &= ~0x40; }
+
+  bool emulation_mode = false;
+
+  void CPX(uint16_t address) {
+    uint16_t memory_value =
+        E ? memory.ReadByte(address) : memory.ReadWord(address);
+    compare(X, memory_value);
+  }
+
+  void CPY(uint16_t address) {
+    uint16_t memory_value =
+        E ? memory.ReadByte(address) : memory.ReadWord(address);
+    compare(Y, memory_value);
+  }
+
+  // DEX: Decrement X register
+  void DEX() {
+    X--;
+    SetZeroFlag(X == 0);
+    SetNegativeFlag(X & 0x80);
+  }
+
+  // DEY: Decrement Y register
+  void DEY() {
+    Y--;
+    SetZeroFlag(Y == 0);
+    SetNegativeFlag(Y & 0x80);
+  }
+
+  // INX: Increment X register
+  void INX() {
+    X++;
+    SetNegativeFlag(X & 0x80);
+    SetZeroFlag(X == 0);
+  }
+
+  // INY: Increment Y register
+  void INY() {
+    Y++;
+    SetNegativeFlag(Y & 0x80);
+    SetZeroFlag(Y == 0);
+  }
+
+  // INC: Increment memory
+  void INC(uint16_t address) {
+    if (GetAccumulatorSize()) {
+      uint8_t value = ReadByte(address);
+      value++;
+      if (value == static_cast<uint8_t>(0x100)) {
+        value = 0x00;  // Wrap around in 8-bit mode
+      }
+      WriteByte(address, value);
+      SetNegativeFlag(value & 0x80);
+      SetZeroFlag(value == 0);
+    } else {
+      uint16_t value = ReadWord(address);
+      value++;
+      if (value == static_cast<uint16_t>(0x10000)) {
+        value = 0x0000;  // Wrap around in 16-bit mode
+      }
+      WriteByte(address, value);
+      SetNegativeFlag(value & 0x80);
+      SetZeroFlag(value == 0);
+    }
+  }
 
   // Push Accumulator on Stack
   void PHA() { memory.PushByte(A); }
@@ -535,19 +587,22 @@ class CPU : public Memory {
     SetNegativeFlag(A & 0x80);
   }
 
-  void INX() {
-    X++;
-    SetZeroFlag(X == 0);
-    SetNegativeFlag(X & 0x80);
-  }
-
-  void INY() {
-    Y++;
-    SetZeroFlag(Y == 0);
-    SetNegativeFlag(Y & 0x80);
+  // XCE: Exchange Carry and Emulation Flags
+  void XCE() {
+    uint8_t carry = status & 0x01;
+    status &= ~0x01;
+    status |= E;
+    E = carry;
   }
 
  private:
+  void compare(uint16_t register_value, uint16_t memory_value) {
+    uint16_t result = register_value - memory_value;
+    SetNegativeFlag(result & (E ? 0x8000 : 0x80));  // Negative flag
+    SetZeroFlag(result == 0);                       // Zero flag
+    SetCarryFlag(register_value >= 0);              // Carry flag
+  }
+
   // Helper function to set or clear a specific flag bit
   void SetFlag(uint8_t mask, bool set) {
     if (set) {

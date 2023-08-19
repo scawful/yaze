@@ -334,23 +334,23 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xE0:  // CPX Immediate
-      // CPX();
+      CPX(Immediate());
       break;
     case 0xE4:  // CPX Direct Page
       // CPX();
       break;
     case 0xEC:  // CPX Absolute
-      // CPX();
+      CPX(Absolute());
       break;
 
     case 0xC0:  // CPY Immediate
-      // CPY();
+      CPY(Immediate());
       break;
     case 0xC4:  // CPY Direct Page
       // CPY();
       break;
     case 0xCC:  // CPY Absolute
-      // CPY();
+      CPY(Absolute());
       break;
 
     case 0x3A:  // DEC Accumulator
@@ -370,11 +370,11 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xCA:  // DEX Decrement X register
-      // DEX();
+      DEX();
       break;
 
     case 0x88:  // DEY Decrement Y register
-      // DEY();
+      DEY();
       break;
 
     case 0x41:  // EOR DP Indexed Indirect, X
@@ -951,7 +951,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xFB:  // XCE
-      // XCE();
+      XCE();
       break;
     default:
       std::cerr << "Unknown instruction: " << std::hex
@@ -962,7 +962,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
 
 void CPU::ADC(uint8_t operand) {
   auto C = GetCarryFlag();
-  if (GetAccumulatorSize()) {                         // 8-bit mode
+  if (!E) {                                           // 8-bit mode
     uint16_t result = (A & 0xFF) + (operand & 0xFF);  // + (C ? 1 : 0);
     SetCarryFlag(!(result > 0xFF));                   // Update the carry flag
 
@@ -997,7 +997,7 @@ void CPU::ADC(uint8_t operand) {
 
 void CPU::AND(uint16_t address) {
   uint8_t operand;
-  if (GetAccumulatorSize() == 0) {  // 16-bit mode
+  if (E == 0) {  // 16-bit mode
     uint16_t operand16 = memory.ReadWord(address);
     A &= operand16;
     SetZeroFlag(A == 0);
