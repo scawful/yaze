@@ -75,7 +75,7 @@ class CPU : public Memory {
   // JMP (addr, X)
   uint16_t AbsoluteIndexedIndirect() {
     uint16_t address = FetchWord() + X;
-    return memory.ReadWord(address);
+    return memory.ReadWord(address & 0xFFFF);  // Consider PBR if needed
   }
 
   // Effective Address:
@@ -136,7 +136,10 @@ class CPU : public Memory {
   //    High/low: Direct Page Register plus operand byte
   //
   // LDA dp
-  uint16_t DirectPage() { return FetchByte(); }
+  uint16_t DirectPage() {
+    uint8_t dp = FetchByte();
+    return D + dp;
+  }
 
   // Effective Address:
   //    Bank:     Zero
@@ -168,7 +171,9 @@ class CPU : public Memory {
   // LDA (dp, X)
   uint16_t DirectPageIndexedIndirectX() {
     uint8_t dp = FetchByte();
-    return memory.ReadWord((dp + X) & 0xFF);
+    uint16_t effective_address = D + dp + X;
+    uint16_t indirect_address = memory.ReadWord(effective_address & 0xFFFF);
+    return indirect_address;
   }
 
   // Effective Address:
@@ -180,7 +185,9 @@ class CPU : public Memory {
   // LDA (dp)
   uint16_t DirectPageIndirect() {
     uint8_t dp = FetchByte();
-    return memory.ReadWord(dp);
+    // Add the Direct Page register to the fetched operand
+    uint16_t effective_address = D + dp;
+    return memory.ReadWord(effective_address);
   }
 
   // Effective Address:
@@ -191,7 +198,8 @@ class CPU : public Memory {
   // LDA [dp]
   uint16_t DirectPageIndirectLong() {
     uint8_t dp = FetchByte();
-    return memory.ReadWordLong(dp);
+    uint16_t effective_address = D + dp;
+    return memory.ReadWordLong(effective_address);
   }
 
   // Effective Address:
@@ -204,7 +212,8 @@ class CPU : public Memory {
   // LDA (dp), Y
   uint16_t DirectPageIndirectIndexedY() {
     uint8_t dp = FetchByte();
-    return memory.ReadWord(dp) + Y;
+    uint16_t effective_address = D + dp;
+    return memory.ReadWord(effective_address) + Y;
   }
 
   // Effective Address:
@@ -218,7 +227,8 @@ class CPU : public Memory {
   // LDA (dp), Y
   uint16_t DirectPageIndirectLongIndexedY() {
     uint8_t dp = FetchByte();
-    return memory.ReadWordLong(dp) + Y;
+    uint16_t effective_address = D + dp;
+    return memory.ReadWordLong(effective_address) + Y;
   }
 
   // 8-bit data: Data Operand Byte
