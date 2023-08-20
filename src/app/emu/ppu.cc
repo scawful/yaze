@@ -140,7 +140,7 @@ void PPU::RenderSprites() {
 }
 
 uint32_t PPU::GetPaletteColor(uint8_t colorIndex) {
-  // ...
+  return memory_.ReadWordLong(colorIndex);
 }
 
 uint8_t PPU::ReadVRAM(uint16_t address) {
@@ -151,17 +151,13 @@ void PPU::WriteVRAM(uint16_t address, uint8_t value) {
   // ...
 }
 
-uint8_t PPU::ReadOAM(uint16_t address) {
-  // ...
-}
+uint8_t PPU::ReadOAM(uint16_t address) { return memory_.ReadByte(address); }
 
 void PPU::WriteOAM(uint16_t address, uint8_t value) {
   // ...
 }
 
-uint8_t PPU::ReadCGRAM(uint16_t address) {
-  // ...
-}
+uint8_t PPU::ReadCGRAM(uint16_t address) { return memory_.ReadByte(address); }
 
 void PPU::WriteCGRAM(uint16_t address, uint8_t value) {
   // ...
@@ -198,7 +194,7 @@ void PPU::UpdateTileData() {
   // Update the sprites based on the fetched tile data
   for (uint16_t spriteIndex = 0; spriteIndex < sprites_.size(); ++spriteIndex) {
     uint16_t spriteAddress =
-        oamBaseAddress_ + spriteIndex * sizeof(SpriteAttributes);
+        oam_address_ + spriteIndex * sizeof(SpriteAttributes);
     uint16_t spriteData = memory_.ReadWord(
         spriteAddress);  // Assume ReadWord reads a 16-bit value from VRAM
 

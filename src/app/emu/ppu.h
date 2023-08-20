@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EMU_PPU_H
 #define YAZE_APP_EMU_PPU_H
 
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -600,6 +601,30 @@ struct WramAccessRegisters {
   uint32_t address;  // Register $2181/$2182/$2183
 };
 
+struct Tile {
+  uint16_t index;    // Index of the tile in VRAM
+  uint8_t palette;   // Palette number used for this tile
+  bool flip_x;       // Horizontal flip flag
+  bool flip_y;       // Vertical flip flag
+  uint8_t priority;  // Priority of this tile
+};
+
+struct BackgroundLayer {
+  enum class Size { SIZE_32x32, SIZE_64x32, SIZE_32x64, SIZE_64x64 };
+
+  enum class ColorDepth { BPP_2, BPP_4, BPP_8 };
+
+  Size size;                        // Size of the background layer
+  ColorDepth color_depth;           // Color depth of the background layer
+  std::vector<Tile> tilemap;        // Tilemap data
+  std::vector<uint8_t> tile_data;   // Tile data in VRAM
+  uint16_t tilemap_base_address;    // Base address of the tilemap in VRAM
+  uint16_t tile_data_base_address;  // Base address of the tile data in VRAM
+  uint8_t scroll_x;                 // Horizontal scroll offset
+  uint8_t scroll_y;                 // Vertical scroll offset
+  bool enabled;                     // Whether the background layer is enabled
+};
+
 class PPU {
  public:
   // Initializes the PPU with the necessary resources and dependencies
@@ -686,6 +711,17 @@ class PPU {
   Memory& memory_;
   std::vector<uint8_t> frame_buffer_;
 
+  Tilemap tilemap_;
+  BackgroundMode bg_mode_;
+  std::array<BackgroundLayer, 4> bg_layers_;
+  std::vector<SpriteAttributes> sprites_;
+  std::vector<uint8_t> tileData_;
+
+  uint16_t oam_address_;
+  uint16_t tileDataSize_;
+  uint16_t vramBaseAddress_;
+  uint16_t tilemapBaseAddress_;
+
   // The VRAM memory area holds tiles and tile maps.
   std::array<uint8_t, 64 * 1024> vram_;
 
@@ -694,17 +730,6 @@ class PPU {
 
   // The CGRAM memory area holds the color palette data.
   std::array<uint8_t, 512> cgram_;
-
-  uint16_t oam_address_;
-
-  BackgroundMode bg_mode_;
-  std::vector<SpriteAttributes> sprites_;
-  std::vector<uint8_t> tileData_;
-  Tilemap tilemap_;
-  uint16_t tileDataSize_;
-  uint16_t oamBaseAddress_;
-  uint16_t vramBaseAddress_;
-  uint16_t tilemapBaseAddress_;
 };
 
 }  // namespace emu

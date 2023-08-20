@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "app/emu/log.h"
 #include "app/emu/mem.h"
 
 namespace yaze {
@@ -27,10 +28,13 @@ class Clock {
   unsigned long long cycleCount;  // Total number of cycles executed
 };
 
-class CPU : public Memory, public Clock {
+class CPU : public Memory, public Clock, public Loggable {
  public:
   explicit CPU(Memory& mem) : memory(mem) {}
-  void Init() { memory.ClearMemory(); }
+  void Init() { 
+    
+    memory.ClearMemory(); 
+  }
 
   uint8_t ReadByte(uint16_t address) const override;
   uint16_t ReadWord(uint16_t address) const override;

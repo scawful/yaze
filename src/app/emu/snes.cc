@@ -251,11 +251,6 @@ void SNES::Init(ROM& rom) {
   // Misc
   memory_.WriteByte(0x2133, 0x00);  // SETINI
 
-  // Load ROM data into memory
-  // TODO: Load memory based on memory mapping and ROM format.
-  memory_.SetMemory(rom.vector());
-
-  // Initialize other private member variables
   running_ = true;
   scanline = 0;
 }
