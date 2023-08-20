@@ -11,7 +11,23 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class CPU : public Memory {
+class Clock {
+ public:
+  Clock() = default;
+  virtual ~Clock() = default;
+
+  void Cycle() { cycle++; }
+  void SetFrequency(float frequency) { this->frequency = frequency; }
+  float GetFrequency() const { return frequency; }
+  unsigned long long GetCycleCount() const { return cycleCount; }
+
+ private:
+  uint64_t cycle;                 // Current cycle
+  float frequency;                // Frequency of the clock in Hz
+  unsigned long long cycleCount;  // Total number of cycles executed
+};
+
+class CPU : public Memory, public Clock {
  public:
   explicit CPU(Memory& mem) : memory(mem) {}
   void Init() { memory.ClearMemory(); }
