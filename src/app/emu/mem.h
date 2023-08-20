@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+#include "app/emu/log.h"
+
 // LoROM (Mode 20):
 
 // Banks   Offset        Purpose
@@ -138,7 +140,7 @@ class Memory {
   virtual uint8_t at(int i) const = 0;
 };
 
-class MemoryImpl : public Memory {
+class MemoryImpl : public Memory, public Loggable {
  public:
   void Initialize(const std::vector<uint8_t>& romData) {
     const size_t ROM_CHUNK_SIZE = 0x8000;           // 32 KB
