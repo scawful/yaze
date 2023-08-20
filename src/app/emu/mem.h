@@ -9,20 +9,6 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class DirectPageMemory {
- public:
-  explicit DirectPageMemory(size_t size = 256) : memory_(size, 0) {}
-
-  uint8_t ReadByte(uint8_t address) const { return memory_[address]; }
-
-  void WriteByte(uint8_t address, uint8_t value) { memory_[address] = value; }
-
-  auto size() const { return memory_.size(); }
-
- private:
-  std::vector<uint8_t> memory_;
-};
-
 // memory.h
 class Memory {
  public:
@@ -55,16 +41,10 @@ class Memory {
 class MemoryImpl : public Memory {
  public:
   uint8_t ReadByte(uint16_t address) const override {
-    if (address < dp_memory_.size()) {
-      return dp_memory_.ReadByte(static_cast<uint8_t>(address));
-    }
     uint32_t mapped_address = GetMappedAddress(address);
     return memory_.at(mapped_address);
   }
   uint16_t ReadWord(uint16_t address) const override {
-    if (address < dp_memory_.size()) {
-      return dp_memory_.ReadByte(static_cast<uint8_t>(address));
-    }
     uint32_t mapped_address = GetMappedAddress(address);
     return static_cast<uint16_t>(memory_.at(mapped_address)) |
            (static_cast<uint16_t>(memory_.at(mapped_address + 1)) << 8);
@@ -171,9 +151,6 @@ class MemoryImpl : public Memory {
         return address;  // Return the original address if no mapping is defined
     }
   }
-
-  // Direct Page Memory
-  DirectPageMemory dp_memory_;
 
   // Define memory regions
   std::vector<uint8_t> rom_;

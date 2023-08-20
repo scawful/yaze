@@ -54,8 +54,10 @@ int16_t CPU::FetchSignedWord() {
 }
 
 uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
+  uint16_t distance = D * 0x100;
+
   // Calculate the effective address in the Direct Page
-  uint16_t effectiveAddress = D + operand;
+  uint16_t effectiveAddress = operand + distance;
 
   // Fetch the byte from memory
   uint8_t fetchedByte = memory.ReadByte(effectiveAddress);
@@ -81,8 +83,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       ADC(operand);
       break;
     case 0x65:  // ADC Direct Page
-      operand = FetchByteDirectPage(PC);
-      ADC(operand);
+      ADC(FetchByteDirectPage(PC));
       break;
     case 0x67:  // ADC DP Indirect Long
       operand = memory.ReadByte(DirectPageIndirectLong());

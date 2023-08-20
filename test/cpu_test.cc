@@ -110,7 +110,6 @@ class MockMemory : public Memory {
     });
   }
 
- private:
   std::vector<uint8_t> memory_;
   uint16_t SP_ = 0x01FF;
 };
@@ -209,58 +208,53 @@ TEST_F(CPUTest, ADC_AbsoluteLong) {
   EXPECT_EQ(cpu.A, 0x06);
 }
 
-/**
- * Direct Page Unimplemented
- *
 TEST_F(CPUTest, ADC_DirectPage) {
-
-
   cpu.A = 0x01;
   cpu.D = 0x0001;
-  std::vector<uint8_t> data = {0x65, 0x01, 0x05};
+  std::vector<uint8_t> data = {0x65, 0x01, 0x00};
   mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x100, {0x05, 0x05, 0x05});
 
-  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x01));
+  EXPECT_CALL(mock_memory, ReadByte(0x100)).WillOnce(Return(0x05));
 
   cpu.ExecuteInstruction(0x65);  // ADC Direct Page
   EXPECT_EQ(cpu.A, 0x06);
 }
 
+// ADC Direct Page Indirect
 TEST_F(CPUTest, ADC_DirectPageIndirect) {
-
-
-  cpu.A = 0x01;       // A register
-  cpu.X = 0x02;       // X register
-  cpu.PC = 0;         // PC register
-  cpu.status = 0x00;  // 16-bit mode
-  std::vector<uint8_t> data = {0x72, 0x04, 0x00, 0x00, 0x20, 0x05, 0xFF};
+  cpu.A = 0x02;
+  cpu.D = 0x2000;  // Setting Direct Page register to 0x2000
+  std::vector<uint8_t> data = {0x72, 0x10};  // ADC (dp)
   mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x2010, {0x00, 0x30});  // [0x2010] = 0x3000
+  mock_memory.InsertMemory(0x3000, {0x05});        // [0x3000] = 0x05
 
-  // Get the absolute address
-  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0004));
+  EXPECT_CALL(mock_memory, ReadByte(0x0000)).WillOnce(Return(0x10));
+  EXPECT_CALL(mock_memory, ReadWord(0x2010)).WillOnce(Return(0x3000));
+  EXPECT_CALL(mock_memory, ReadByte(0x3000)).WillOnce(Return(0x05));
 
-  cpu.ExecuteInstruction(0x72);  // ADC Indirect Indexed with X
-  EXPECT_EQ(cpu.A, 0x06);
+  cpu.ExecuteInstruction(0x72);  // ADC (dp)
+  EXPECT_EQ(cpu.A, 0x07);        // 0x02 + 0x05 = 0x07
 }
 
+// ADC Direct Page Indexed Indirect, X
 TEST_F(CPUTest, ADC_DirectPageIndexedIndirectX) {
-
-
-  cpu.A = 0x01;
-  cpu.X = 0x02;
-  cpu.PC = 1;
-  cpu.status = 0x00;  // 16-bit mode
-  std::vector<uint8_t> data = {0x61, 0x01, 0x18, 0x00, 0x05};
+  cpu.A = 0x03;
+  cpu.D = 0x2000;  // Setting Direct Page register to 0x2000
+  std::vector<uint8_t> data = {0x61, 0x10};  // ADC (dp, X)
   mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x2012, {0x00, 0x30});  // [0x2012] = 0x3000
+  mock_memory.InsertMemory(0x3000, {0x06});        // [0x3000] = 0x06
 
-  EXPECT_CALL(mock_memory, ReadByte(0x0001)).WillOnce(Return(0x0001));
+  cpu.X = 0x02;  // X register
+  EXPECT_CALL(mock_memory, ReadByte(0x0000)).WillOnce(Return(0x10));
+  EXPECT_CALL(mock_memory, ReadWord(0x2012)).WillOnce(Return(0x3000));
+  EXPECT_CALL(mock_memory, ReadByte(0x3000)).WillOnce(Return(0x06));
 
-  EXPECT_CALL(mock_memory, ReadWord(0x0003)).WillOnce(Return(0x0005));
-
-  cpu.ExecuteInstruction(0x61);  // ADC Indexed Indirect
-  EXPECT_EQ(cpu.A, 0x06);
+  cpu.ExecuteInstruction(0x61);  // ADC (dp, X)
+  EXPECT_EQ(cpu.A, 0x09);        // 0x03 + 0x06 = 0x09
 }
-**/
 
 TEST_F(CPUTest, ADC_CheckCarryFlag) {
   cpu.A = 0xFF;

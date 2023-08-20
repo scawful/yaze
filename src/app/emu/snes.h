@@ -13,8 +13,8 @@ namespace emu {
 
 class SNES {
  public:
-  SNES()=default;
-  ~SNES()=default;
+  SNES() = default;
+  ~SNES() = default;
 
   // Initialization
   void Init(ROM& rom);
