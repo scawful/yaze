@@ -67,6 +67,22 @@ uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
   return fetchedByte;
 }
 
+void CPU::Run() {
+  while (true) {
+    // Fetch the next opcode from memory at the current program counter
+    uint8_t opcode = memory.ReadByte(PC);
+
+    // Increment the program counter to point to the next instruction
+    PC++;
+
+    // Execute the instruction corresponding to the fetched opcode
+    ExecuteInstruction(opcode);
+
+    // Optionally, handle interrupts or other external events
+    HandleInterrupts();
+  }
+}
+
 void CPU::ExecuteInstruction(uint8_t opcode) {
   // Update the PC based on the Program Bank Register
   PC |= (static_cast<uint16_t>(PB) << 16);
@@ -262,11 +278,11 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x50:  // BVC Branch if overflow clear
-      // BVC();
+      BVC(ReadByte(PC));
       break;
 
     case 0x70:  // BVS Branch if overflow set
-      // BVS();
+      BVS(ReadByte(PC));
       break;
 
     case 0x18:  // CLC Clear carry
@@ -286,49 +302,49 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xC1:  // CMP DP Indexed Indirect, X
-      // CMP();
+      CMP(DirectPageIndexedIndirectX());
       break;
     case 0xC3:  // CMP Stack Relative
-      // CMP();
+      CMP(StackRelative());
       break;
     case 0xC5:  // CMP Direct Page
-      // CMP();
+      CMP(DirectPage());
       break;
     case 0xC7:  // CMP DP Indirect Long
-      // CMP();
+      CMP(DirectPageIndirectLong());
       break;
     case 0xC9:  // CMP Immediate
-      // CMP();
+      CMP(Immediate(), true);
       break;
     case 0xCD:  // CMP Absolute
-      // CMP();
+      CMP(Absolute());
       break;
     case 0xCF:  // CMP Absolute Long
-      // CMP();
+      CMP(AbsoluteLong());
       break;
     case 0xD1:  // CMP DP Indirect Indexed, Y
-      // CMP();
+      CMP(DirectPageIndirectIndexedY());
       break;
     case 0xD2:  // CMP DP Indirect
-      // CMP();
+      CMP(DirectPageIndirect());
       break;
     case 0xD3:  // CMP SR Indirect Indexed, Y
-      // CMP();
+      CMP(StackRelativeIndirectIndexedY());
       break;
     case 0xD5:  // CMP DP Indexed, X
-      // CMP();
+      CMP(DirectPageIndexedX());
       break;
     case 0xD7:  // CMP DP Indirect Long Indexed, Y
-      // CMP();
+      CMP(DirectPageIndirectLongIndexedY());
       break;
     case 0xD9:  // CMP Absolute Indexed, Y
-      // CMP();
+      CMP(AbsoluteIndexedY());
       break;
     case 0xDD:  // CMP Absolute Indexed, X
-      // CMP();
+      CMP(AbsoluteIndexedX());
       break;
     case 0xDF:  // CMP Absolute Long Indexed, X
-      // CMP();
+      CMP(AbsoluteLongIndexedX());
       break;
 
     case 0x02:  // COP Coprocessor
@@ -356,19 +372,19 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x3A:  // DEC Accumulator
-      // DEC();
+      DEC(A);
       break;
     case 0xC6:  // DEC Direct Page
-      // DEC();
+      DEC(DirectPage());
       break;
     case 0xCE:  // DEC Absolute
-      // DEC();
+      DEC(Absolute());
       break;
     case 0xD6:  // DEC DP Indexed, X
-      // DEC();
+      DEC(DirectPageIndexedX());
       break;
     case 0xDE:  // DEC Absolute Indexed, X
-      // DEC();
+      DEC(AbsoluteIndexedX());
       break;
 
     case 0xCA:  // DEX Decrement X register
@@ -380,49 +396,49 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x41:  // EOR DP Indexed Indirect, X
-      // EOR();
+      EOR(DirectPageIndexedIndirectX());
       break;
     case 0x43:  // EOR Stack Relative
-      // EOR();
+      EOR(StackRelative());
       break;
     case 0x45:  // EOR Direct Page
-      // EOR();
+      EOR(DirectPage());
       break;
     case 0x47:  // EOR DP Indirect Long
-      // EOR();
+      EOR(DirectPageIndirectLong());
       break;
     case 0x49:  // EOR Immediate
-      // EOR();
+      EOR(Immediate(), true);
       break;
     case 0x4D:  // EOR Absolute
-      // EOR();
+      EOR(Absolute());
       break;
     case 0x4F:  // EOR Absolute Long
-      // EOR();
+      EOR(AbsoluteLong());
       break;
     case 0x51:  // EOR DP Indirect Indexed, Y
-      // EOR();
+      EOR(DirectPageIndirectIndexedY());
       break;
     case 0x52:  // EOR DP Indirect
-      // EOR();
+      EOR(DirectPageIndirect());
       break;
     case 0x53:  // EOR SR Indirect Indexed, Y
-      // EOR();
+      EOR(StackRelativeIndirectIndexedY());
       break;
     case 0x55:  // EOR DP Indexed, X
-      // EOR();
+      EOR(DirectPageIndexedX());
       break;
     case 0x57:  // EOR DP Indirect Long Indexed, Y
-      // EOR();
+      EOR(DirectPageIndirectLongIndexedY());
       break;
     case 0x59:  // EOR Absolute Indexed, Y
-      // EOR();
+      EOR(AbsoluteIndexedY());
       break;
     case 0x5D:  // EOR Absolute Indexed, X
-      // EOR();
+      EOR(AbsoluteIndexedX());
       break;
     case 0x5F:  // EOR Absolute Long Indexed, X
-      // EOR();
+      EOR(AbsoluteLongIndexedX());
       break;
 
     case 0x1A:  // INC Accumulator
@@ -524,51 +540,51 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xA2:  // LDX Immediate
-      // LDX();
+      LDX(Immediate(), true);
       break;
     case 0xA6:  // LDX Direct Page
-      // LDX();
+      LDX(DirectPage());
       break;
     case 0xAE:  // LDX Absolute
-      // LDX();
+      LDX(Absolute());
       break;
     case 0xB6:  // LDX DP Indexed, Y
-      // LDX();
+      LDX(DirectPageIndexedY());
       break;
     case 0xBE:  // LDX Absolute Indexed, Y
-      // LDX();
+      LDX(AbsoluteIndexedY());
       break;
 
     case 0xA0:  // LDY Immediate
-      // LDY();
+      LDY(Immediate(), true);
       break;
     case 0xA4:  // LDY Direct Page
-      // LDY();
+      LDY(DirectPage());
       break;
     case 0xAC:  // LDY Absolute
-      // LDY();
+      LDY(Absolute());
       break;
     case 0xB4:  // LDY DP Indexed, X
-      // LDY();
+      LDY(DirectPageIndexedX());
       break;
     case 0xBC:  // LDY Absolute Indexed, X
-      // LDY();
+      LDY(AbsoluteIndexedX());
       break;
 
     case 0x46:  // LSR Direct Page
-      // LSR();
+      LSR(DirectPage());
       break;
     case 0x4A:  // LSR Accumulator
-      // LSR();
+      LSR(A);
       break;
     case 0x4E:  // LSR Absolute
-      // LSR();
+      LSR(Absolute());
       break;
     case 0x56:  // LSR DP Indexed, X
-      // LSR();
+      LSR(DirectPageIndexedX());
       break;
     case 0x5E:  // LSR Absolute Indexed, X
-      // LSR();
+      LSR(AbsoluteIndexedX());
       break;
 
     case 0x54:  // MVN Block Move Next
@@ -580,61 +596,61 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x01:  // ORA DP Indexed Indirect, X
-      // ORA();
+      ORA(DirectPageIndexedIndirectX());
       break;
     case 0x03:  // ORA Stack Relative
-      // ORA();
+      ORA(StackRelative());
       break;
     case 0x05:  // ORA Direct Page
-      // ORA();
+      ORA(DirectPage());
       break;
     case 0x07:  // ORA DP Indirect Long
-      // ORA();
+      ORA(DirectPageIndirectLong());
       break;
     case 0x09:  // ORA Immediate
-      // ORA();
+      ORA(Immediate(), true);
       break;
     case 0x0D:  // ORA Absolute
-      // ORA();
+      ORA(Absolute());
       break;
     case 0x0F:  // ORA Absolute Long
-      // ORA();
+      ORA(AbsoluteLong());
       break;
     case 0x11:  // ORA DP Indirect Indexed, Y
-      // ORA();
+      ORA(DirectPageIndirectIndexedY());
       break;
     case 0x12:  // ORA DP Indirect
-      // ORA();
+      ORA(DirectPageIndirect());
       break;
     case 0x13:  // ORA SR Indirect Indexed, Y
-      // ORA();
+      ORA(StackRelativeIndirectIndexedY());
       break;
     case 0x15:  // ORA DP Indexed, X
-      // ORA();
+      ORA(DirectPageIndexedX());
       break;
     case 0x17:  // ORA DP Indirect Long Indexed, Y
-      // ORA();
+      ORA(DirectPageIndirectLongIndexedY());
       break;
     case 0x19:  // ORA Absolute Indexed, Y
-      // ORA();
+      ORA(AbsoluteIndexedY());
       break;
     case 0x1D:  // ORA Absolute Indexed, X
-      // ORA();
+      ORA(AbsoluteIndexedX());
       break;
     case 0x1F:  // ORA Absolute Long Indexed, X
-      // ORA();
+      ORA(AbsoluteLongIndexedX());
       break;
 
     case 0xF4:  // PEA Push Effective Absolute address
-      // PEA();
+      PEA();
       break;
 
     case 0xD4:  // PEI Push Effective Indirect address
-      // PEI();
+      PEI();
       break;
 
     case 0x62:  // PER Push Effective PC Relative Indirect address
-      // PER();
+      PER();
       break;
 
     case 0x48:  // PHA Push Accumulator
@@ -694,94 +710,93 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x26:  // ROL Direct Page
-      // ROL();
+      ROL(DirectPage());
       break;
-
     case 0x2A:  // ROL Accumulator
-      // ROL();
+      ROL(A);
       break;
     case 0x2E:  // ROL Absolute
-      // ROL();
+      ROL(Absolute());
       break;
     case 0x36:  // ROL DP Indexed, X
-      // ROL();
+      ROL(DirectPageIndexedX());
       break;
     case 0x3E:  // ROL Absolute Indexed, X
-      // ROL();
+      ROL(AbsoluteIndexedX());
       break;
 
     case 0x66:  // ROR Direct Page
-      // ROR();
+      ROR(DirectPage());
       break;
     case 0x6A:  // ROR Accumulator
-      // ROR();
+      ROR(A);
       break;
     case 0x6E:  // ROR Absolute
-      // ROR();
+      ROR(Absolute());
       break;
     case 0x76:  // ROR DP Indexed, X
-      // ROR();
+      ROR(DirectPageIndexedX());
       break;
     case 0x7E:  // ROR Absolute Indexed, X
-      // ROR();
+      ROR(AbsoluteIndexedX());
       break;
 
     case 0x40:  // RTI Return from interrupt
-      // RTI();
+      RTI();
       break;
 
     case 0x6B:  // RTL Return from subroutine long
-      // RTL();
+      RTL();
       break;
 
     case 0x60:  // RTS Return from subroutine
-      // RTS();
+      RTS();
       break;
 
     case 0xE1:  // SBC DP Indexed Indirect, X
-      // SBC();
+      SBC(DirectPageIndexedIndirectX());
       break;
     case 0xE3:  // SBC Stack Relative
-      // SBC();
+      SBC(StackRelative());
       break;
     case 0xE5:  // SBC Direct Page
-      // SBC();
+      SBC(DirectPage());
       break;
     case 0xE7:  // SBC DP Indirect Long
-      // SBC();
+      SBC(DirectPageIndirectLong());
       break;
     case 0xE9:  // SBC Immediate
-      // SBC();
+      SBC(Immediate(), true);
       break;
     case 0xED:  // SBC Absolute
-      // SBC();
+      SBC(Absolute());
       break;
     case 0xEF:  // SBC Absolute Long
-      // SBC();
+      SBC(AbsoluteLong());
       break;
     case 0xF1:  // SBC DP Indirect Indexed, Y
-      // SBC();
+      SBC(DirectPageIndirectIndexedY());
       break;
     case 0xF2:  // SBC DP Indirect
-      // SBC();
+      SBC(DirectPageIndirect());
       break;
     case 0xF3:  // SBC SR Indirect Indexed, Y
-      // SBC();
+      SBC(StackRelativeIndirectIndexedY());
       break;
     case 0xF5:  // SBC DP Indexed, X
-      // SBC();
+      SBC(DirectPageIndexedX());
       break;
     case 0xF7:  // SBC DP Indirect Long Indexed, Y
-      // SBC();
+      SBC(DirectPageIndirectLongIndexedY());
       break;
     case 0xF9:  // SBC Absolute Indexed, Y
-      // SBC();
+      SBC(AbsoluteIndexedY());
       break;
     case 0xFD:  // SBC Absolute Indexed, X
-      // SBC();
+      SBC(AbsoluteIndexedX());
       break;
     case 0xFF:  // SBC Absolute Long Indexed, X
-      // SBC();
+      SBC(AbsoluteLongIndexedX());
       break;
 
     case 0x38:  // SEC Set carry
@@ -801,90 +816,90 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x81:  // STA DP Indexed Indirect, X
-      // STA();
+      STA(DirectPageIndexedIndirectX());
       break;
     case 0x83:  // STA Stack Relative
-      // STA();
+      STA(StackRelative());
       break;
     case 0x85:  // STA Direct Page
-      // STA();
+      STA(DirectPage());
       break;
     case 0x87:  // STA DP Indirect Long
-      // STA();
+      STA(DirectPageIndirectLong());
       break;
     case 0x8D:  // STA Absolute
-      // STA();
+      STA(Absolute());
       break;
     case 0x8F:  // STA Absolute Long
-      // STA();
+      STA(AbsoluteLong());
       break;
     case 0x91:  // STA DP Indirect Indexed, Y
-      // STA();
+      STA(DirectPageIndirectIndexedY());
       break;
     case 0x92:  // STA DP Indirect
-      // STA();
+      STA(DirectPageIndirect());
       break;
     case 0x93:  // STA SR Indirect Indexed, Y
-      // STA();
+      STA(StackRelativeIndirectIndexedY());
       break;
     case 0x95:  // STA DP Indexed, X
-      // STA();
+      STA(DirectPageIndexedX());
       break;
     case 0x97:  // STA DP Indirect Long Indexed, Y
-      // STA();
+      STA(DirectPageIndirectLongIndexedY());
       break;
     case 0x99:  // STA Absolute Indexed, Y
-      // STA();
+      STA(AbsoluteIndexedY());
       break;
     case 0x9D:  // STA Absolute Indexed, X
-      // STA();
+      STA(AbsoluteIndexedX());
       break;
     case 0x9F:  // STA Absolute Long Indexed, X
-      // STA();
+      STA(AbsoluteLongIndexedX());
       break;
 
     case 0xDB:  // STP Stop the clock
-      // STP();
+      STP();
       break;
 
     case 0x86:  // STX Direct Page
-      // STX();
+      STX(DirectPage());
       break;
     case 0x8E:  // STX Absolute
-      // STX();
+      STX(Absolute());
       break;
     case 0x96:  // STX DP Indexed, Y
-      // STX();
+      STX(DirectPageIndexedY());
       break;
 
     case 0x84:  // STY Direct Page
-      // STY();
+      STY(DirectPage());
       break;
     case 0x8C:  // STY Absolute
-      // STY();
+      STY(Absolute());
       break;
     case 0x94:  // STY DP Indexed, X
-      // STY();
+      STY(DirectPageIndexedX());
       break;
 
     case 0x64:  // STZ Direct Page
-      // STZ();
+      STZ(DirectPage());
       break;
     case 0x74:  // STZ DP Indexed, X
-      // STZ();
+      STZ(DirectPageIndexedX());
       break;
     case 0x9C:  // STZ Absolute
-      // STZ();
+      STZ(Absolute());
       break;
     case 0x9E:  // STZ Absolute Indexed, X
-      // STZ();
+      STZ(AbsoluteIndexedX());
       break;
 
-    case 0xAA:  // TAX
+    case 0xAA:  // TAX Transfer accumulator to X
       TAX();
       break;
 
-    case 0xA8:  // TAY
+    case 0xA8:  // TAY Transfer accumulator to Y
       TAY();
       break;
 
@@ -901,58 +916,56 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x14:  // TRB Direct Page
-      // TRB();
+      TRB(DirectPage());
       break;
-
     case 0x1C:  // TRB Absolute
-      // TRB();
+      TRB(Absolute());
       break;
 
     case 0x04:  // TSB Direct Page
-      // TSB();
+      TSB(DirectPage());
       break;
-
     case 0x0C:  // TSB Absolute
-      // TSB();
+      TSB(Absolute());
       break;
 
     case 0x3B:  // TSC
       TSC();
       break;
 
-    case 0xBA:  // TSX
+    case 0xBA:  // TSX Transfer stack pointer to X
       TSX();
       break;
 
-    case 0x8A:  // TXA
+    case 0x8A:  // TXA Transfer X to accumulator
       TXA();
       break;
 
-    case 0x9A:  // TXS
+    case 0x9A:  // TXS Transfer X to stack pointer
       TXS();
       break;
 
-    case 0x9B:  // TXY
+    case 0x9B:  // TXY Transfer X to Y
       TXY();
       break;
 
-    case 0x98:  // TYA
+    case 0x98:  // TYA Transfer Y to accumulator
       TYA();
       break;
 
-    case 0xBB:  // TYX
+    case 0xBB:  // TYX Transfer Y to X
       TYX();
       break;
 
-    case 0xCB:  // WAI
-      // WAI();
+    case 0xCB:  // WAI Wait for interrupt
+      WAI();
       break;
 
-    case 0xEB:  // XBA
-      // XBA();
+    case 0xEB:  // XBA Exchange B and A
+      XBA();
       break;
 
-    case 0xFB:  // XCE
+    case 0xFB:  // XCE Exchange carry and emulation bits
       XCE();
       break;
     default:
@@ -961,29 +974,26 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
   }
 }
-
 void CPU::ADC(uint8_t operand) {
-  auto C = GetCarryFlag();
-  if (!E) {                                           // 8-bit mode
-    uint16_t result = (A & 0xFF) + (operand & 0xFF);  // + (C ? 1 : 0);
-    SetCarryFlag(!(result > 0xFF));                   // Update the carry flag
+  bool C = GetCarryFlag();
+  if (GetAccumulatorSize()) {  // 8-bit mode
+    uint16_t result = static_cast<uint16_t>(A & 0xFF) +
+                      static_cast<uint16_t>(operand) + (C ? 1 : 0);
+    SetCarryFlag(result > 0xFF);  // Update the carry flag
 
     // Update the overflow flag
     bool overflow = (~(A ^ operand) & (A ^ result) & 0x80) != 0;
-    if (overflow) {
-      status |= 0x40;  // Set overflow flag
-    } else {
-      status &= ~0x40;  // Clear overflow flag
-    }
+    SetOverflowFlag(overflow);
 
-    // Update the accumulator
+    // Update the accumulator with proper wrap-around
     A = (A & 0xFF00) | (result & 0xFF);
 
-    SetZeroFlag(A == 0);
+    SetZeroFlag((A & 0xFF) == 0);
     SetNegativeFlag(A & 0x80);
   } else {
-    uint32_t result = A + operand;     // + (C ? 1 : 0);
-    SetCarryFlag(!(result > 0xFFFF));  // Update the carry flag
+    uint32_t result =
+        static_cast<uint32_t>(A) + static_cast<uint32_t>(operand) + (C ? 1 : 0);
+    SetCarryFlag(result > 0xFFFF);  // Update the carry flag
 
     // Update the overflow flag
     bool overflow = (~(A ^ operand) & (A ^ result) & 0x8000) != 0;
@@ -996,6 +1006,8 @@ void CPU::ADC(uint8_t operand) {
     SetNegativeFlag(A & 0x8000);
   }
 }
+
+void CPU::HandleInterrupts() {}
 
 void CPU::AND(uint16_t value, bool isImmediate) {
   uint16_t operand;

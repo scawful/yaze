@@ -14,6 +14,30 @@ namespace yaze {
 namespace app {
 namespace emu {
 
+namespace {
+uint8_t GetHeaderOffset(const Memory& memory) {
+  uint8_t mapMode = memory[(0x00 << 16) + 0xFFD5];
+  uint8_t offset;
+
+  switch (mapMode & 0x07) {
+    case 0:  // LoROM
+      offset = 0x7F;
+      break;
+    case 1:  // HiROM
+      offset = 0xFF;
+      break;
+    case 5:  // ExHiROM
+      offset = 0x40;
+      break;
+    default:
+      throw std::runtime_error("Unsupported map mode");
+  }
+
+  return offset;
+}
+
+}  // namespace
+
 void DMA::StartDMATransfer(uint8_t channelMask) {
   for (int i = 0; i < 8; ++i) {
     if ((channelMask & (1 << i)) != 0) {
@@ -78,7 +102,63 @@ void DMA::EnableHDMATransfers(uint8_t channelMask) {
   HDMAEN = channelMask;  // Set the HDMAEN register to the channel mask
 }
 
+ROMInfo SNES::ReadRomHeader(uint32_t offset) {
+  ROMInfo romInfo;
+
+  // Read cartridge title
+  char title[22];
+  for (int i = 0; i < 21; ++i) {
+    title[i] = cpu.ReadByte(offset + i);
+  }
+  title[21] = '\0';  // Null-terminate the string
+  romInfo.title = std::string(title);
+
+  // Read ROM speed and memory map mode
+  uint8_t romSpeedAndMapMode = cpu.ReadByte(offset + 0x15);
+  romInfo.romSpeed = (ROMSpeed)(romSpeedAndMapMode & 0x07);
+  romInfo.bankSize = (BankSize)((romSpeedAndMapMode >> 5) & 0x01);
+
+  // Read ROM type
+  romInfo.romType = (ROMType)cpu.ReadByte(offset + 0x16);
+
+  // Read ROM size
+  romInfo.romSize = (ROMSize)cpu.ReadByte(offset + 0x17);
+
+  // Read RAM size
+  romInfo.sramSize = (SRAMSize)cpu.ReadByte(offset + 0x18);
+
+  // Read country code
+  romInfo.countryCode = (CountryCode)cpu.ReadByte(offset + 0x19);
+
+  // Read license
+  romInfo.license = (License)cpu.ReadByte(offset + 0x1A);
+
+  // Read ROM version
+  romInfo.version = cpu.ReadByte(offset + 0x1B);
+
+  // Read checksum complement
+  romInfo.checksumComplement = cpu.ReadWord(offset + 0x1E);
+
+  // Read checksum
+  romInfo.checksum = cpu.ReadWord(offset + 0x1C);
+
+  // Read NMI VBL vector
+  romInfo.nmiVblVector = cpu.ReadWord(offset + 0x3E);
+
+  // Read reset vector
+  romInfo.resetVector = cpu.ReadWord(offset + 0x3C);
+
+  return romInfo;
+}
+
 void SNES::Init(ROM& rom) {
+  // Load the ROM into memory and set up the memory mapping
+  memory_.Initialize(rom.vector());
+
+  // Read the ROM header
+  auto header_offset = GetHeaderOffset(memory_);
+  rom_info_ = ReadRomHeader(header_offset);
+
   // Perform a long jump into a FastROM bank (if the ROM speed is FastROM)
   // Disable the emulation flag (switch to 65816 native mode)s
   cpu.Init();
@@ -237,7 +317,7 @@ void SNES::Run() {
 
 // Enable NMI Interrupts
 void SNES::EnableVBlankInterrupts() {
-  vBlankFlag = 0;
+  vBlankFlag = false;
 
   // Clear the RDNMI VBlank flag
   memory_.ReadByte(0x4210);  // RDNMI
@@ -248,7 +328,7 @@ void SNES::EnableVBlankInterrupts() {
 
 // Wait until the VBlank routine has been processed
 void SNES::WaitForVBlank() {
-  vBlankFlag = 1;
+  vBlankFlag = true;
 
   // Loop until `vBlankFlag` is clear
   while (vBlankFlag) {

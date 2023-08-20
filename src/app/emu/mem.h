@@ -5,6 +5,43 @@
 #include <iostream>
 #include <vector>
 
+// LoROM (Mode 20):
+
+// Banks   Offset        Purpose
+// 00-3F   0000-1FFF     LowRAM (shadowed from 7E)
+//         2000-2FFF     PPU1, APU
+//         3000-3FFF     SFX, DSP, etc.
+//         4000-41FF     Controller
+//         4200-5FFF     PPU2, DMA, etc.
+//         6000-7FFF     Expansion RAM (reserved)
+//         8000-FFFF     32k ROM Chunk
+// 40-7C   0000-7FFF     32k ROM Chunk
+//         8000-FFFF     32k ROM Chunk
+// 7D      0000-FFFF     SRAM
+// 7E      0000-1FFF     LowRAM
+//         2000-FFFF     System RAM
+// 7F      0000-FFFF     System RAM
+
+// HiROM (Mode 21):
+
+// Banks   Offset        Purpose
+// 00-3F   0000-1FFF     LowRAM (shadowed from 7E)
+//         2000-2FFF     PPU1, APU
+//         3000-3FFF     SFX, DSP, etc.
+//         4000-41FF     Controller
+//         4200-5FFF     PPU2, DMA, etc.
+//         6000-7FFF     SRAM (256KB)
+//         8000-FFFF     32k ROM Chunk
+// 40-6F   0000-FFFF     64k ROM Chunk
+// 70-77   0000-FFFF     SRAM (256KB)
+// 78-7D   0000-FFFF     Never Used
+// 7E      0000-1FFF     LowRAM
+//         2000-7FFF     HighRAM
+//         8000-FFFF     Expanded RAM
+// 7F      0000-FFFF     More Expanded RAM
+// 80-EF   0000-FFFF     Mirror of 00-6F
+// F0-FF   0000-FFFF     64k ROM Chunk
+
 namespace yaze {
 namespace app {
 namespace emu {
@@ -103,6 +140,86 @@ class Memory {
 
 class MemoryImpl : public Memory {
  public:
+  void Initialize(const std::vector<uint8_t>& romData) {
+    const size_t ROM_CHUNK_SIZE = 0x8000;           // 32 KB
+    const size_t SRAM_SIZE = 0x10000;               // 64 KB
+    const size_t SYSTEM_RAM_SIZE = 0x20000;         // 128 KB
+    const size_t EXPANSION_RAM_SIZE = 0x2000;       // 8 KB
+    const size_t HARDWARE_REGISTERS_SIZE = 0x4000;  // 16 KB
+
+    // Clear memory
+    memory_.clear();
+    memory_.resize(0x1000000, 0);  // 24-bit address space
+
+    // Load ROM data into memory based on LoROM mapping
+    size_t romSize = romData.size();
+    size_t romAddress = 0;
+    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
+      for (size_t offset = 0x8000; offset <= 0xFFFF; offset += ROM_CHUNK_SIZE) {
+        if (romAddress < romSize) {
+          std::copy(romData.begin() + romAddress,
+                    romData.begin() + romAddress + ROM_CHUNK_SIZE,
+                    memory_.begin() + (bank << 16) + offset);
+          romAddress += ROM_CHUNK_SIZE;
+        }
+      }
+    }
+
+    // Initialize SRAM at banks 0x7D and 0xFD
+    std::fill(memory_.begin() + (0x7D << 16), memory_.begin() + (0x7E << 16),
+              0);
+    std::fill(memory_.begin() + (0xFD << 16), memory_.begin() + (0xFE << 16),
+              0);
+
+    // Initialize System RAM at banks 0x7E and 0x7F
+    std::fill(memory_.begin() + (0x7E << 16),
+              memory_.begin() + (0x7E << 16) + SYSTEM_RAM_SIZE, 0);
+
+    // Initialize Shadow RAM at banks 0x00-0x3F and 0x80-0xBF
+    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
+      std::fill(memory_.begin() + (bank << 16),
+                memory_.begin() + (bank << 16) + 0x2000, 0);
+    }
+
+    // Initialize Hardware Registers at banks 0x00-0x3F and 0x80-0xBF
+    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
+      std::fill(
+          memory_.begin() + (bank << 16) + 0x2000,
+          memory_.begin() + (bank << 16) + 0x2000 + HARDWARE_REGISTERS_SIZE, 0);
+    }
+
+    // Initialize Expansion RAM at banks 0x00-0x3F and 0x80-0xBF
+    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
+      std::fill(memory_.begin() + (bank << 16) + 0x6000,
+                memory_.begin() + (bank << 16) + 0x6000 + EXPANSION_RAM_SIZE,
+                0);
+    }
+
+    // Initialize Reset and NMI Vectors at bank 0xFF
+    std::fill(memory_.begin() + (0xFF << 16) + 0xFF00,
+              memory_.begin() + (0xFF << 16) + 0xFFFF + 1, 0);
+
+    // Copy data into rom_ vector
+    rom_.resize(kROMSize);
+    std::copy(memory_.begin() + kROMStart,
+              memory_.begin() + kROMStart + kROMSize, rom_.begin());
+
+    // Copy data into ram_ vector
+    ram_.resize(kRAMSize);
+    std::copy(memory_.begin() + kRAMStart,
+              memory_.begin() + kRAMStart + kRAMSize, ram_.begin());
+
+    // Copy data into vram_ vector
+    vram_.resize(kVRAMSize);
+    std::copy(memory_.begin() + kVRAMStart,
+              memory_.begin() + kVRAMStart + kVRAMSize, vram_.begin());
+
+    // Copy data into oam_ vector
+    oam_.resize(kOAMSize);
+    std::copy(memory_.begin() + kOAMStart,
+              memory_.begin() + kOAMStart + kOAMSize, oam_.begin());
+  }
+
   uint8_t ReadByte(uint16_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
     return memory_.at(mapped_address);
@@ -174,6 +291,7 @@ class MemoryImpl : public Memory {
            (static_cast<uint32_t>(mid) << 8) | low;
   }
 
+  // Stack Pointer access.
   int16_t SP() const override { return SP_; }
   void SetSP(int16_t value) override { SP_ = value; }
 

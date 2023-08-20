@@ -62,6 +62,8 @@ class SNES : public DMA {
   SNES() = default;
   ~SNES() = default;
 
+  ROMInfo ReadRomHeader(uint32_t offset);
+
   // Initialization
   void Init(ROM& rom);
 
@@ -110,6 +112,7 @@ class SNES : public DMA {
   APU apu{memory_};
 
   // Helper classes
+  ROMInfo rom_info_;
   Debugger debugger;
 
   std::vector<uint8_t> rom_data;
