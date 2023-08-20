@@ -11,7 +11,53 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class SNES {
+// Direct Memory Address
+class DMA {
+ public:
+  DMA() {
+    // Initialize DMA and HDMA channels
+    for (int i = 0; i < 8; ++i) {
+      channels[i].DMAPn = 0;
+      channels[i].BBADn = 0;
+      channels[i].UNUSEDn = 0;
+      channels[i].A1Tn = 0xFFFFFF;
+      channels[i].DASn = 0xFFFF;
+      channels[i].A2An = 0xFFFF;
+      channels[i].NLTRn = 0xFF;
+    }
+  }
+
+  // DMA Transfer Modes
+  enum class DMA_TRANSFER_TYPE {
+    OAM,
+    PPUDATA,
+    CGDATA,
+    FILL_VRAM,
+    CLEAR_VRAM,
+    RESET_VRAM
+  };
+
+  // Functions for handling DMA and HDMA transfers
+  void StartDMATransfer(uint8_t channels);
+  void EnableHDMATransfers(uint8_t channels);
+
+  // Structure for DMA and HDMA channel registers
+  struct Channel {
+    uint8_t DMAPn;    // DMA/HDMA parameters
+    uint8_t BBADn;    // B-bus address
+    uint8_t UNUSEDn;  // Unused byte
+    uint32_t A1Tn;    // DMA Current Address / HDMA Table Start Address
+    uint16_t DASn;    // DMA Byte-Counter / HDMA indirect table address
+    uint16_t A2An;    // HDMA Table Current Address
+    uint8_t NLTRn;    // HDMA Line-Counter
+  };
+  Channel channels[8];
+
+  uint8_t MDMAEN = 0;  // Start DMA transfer
+  uint8_t HDMAEN = 0;  // Enable HDMA transfers
+};
+
+class SNES : public DMA {
  public:
   SNES() = default;
   ~SNES() = default;
@@ -22,20 +68,22 @@ class SNES {
   // Main emulation loop
   void Run();
 
-  // Functions for CPU-related operations
-  void Fetch();
-  void Decode();
-  void Execute();
+  // Enable NMI Interrupts
+  void EnableVBlankInterrupts();
+
+  // Wait until the VBlank routine has been processed
+  void WaitForVBlank();
+
+  // NMI Interrupt Service Routine
+  void NmiIsr();
+
+  // VBlank routine
+  void VBlankRoutine();
 
   // Functions for PPU-related operations
   void RenderScanline();
-  void UpdateSprites();
   void DrawBackgroundLayer(int layer);
   void DrawSprites();
-
-  // Memory-related functions
-  uint8_t ReadMemory(uint16_t address);
-  void WriteMemory(uint16_t address, uint8_t value);
 
   // Controller input handling
   void HandleInput();
@@ -51,6 +99,10 @@ class SNES {
   bool running() const { return running_; }
 
  private:
+  void WriteToRegister(uint16_t address, uint8_t value) {
+    memory_.WriteByte(address, value);
+  }
+
   // Components of the SNES
   MemoryImpl memory_;
   CPU cpu{memory_};
@@ -60,11 +112,17 @@ class SNES {
   // Helper classes
   Debugger debugger;
 
-  // Other private member variables
   std::vector<uint8_t> rom_data;
+
+  // Byte flag to indicate if the VBlank routine should be executed or not
+  std::atomic<bool> vBlankFlag;
+
+  // 32-bit counter to track the number of NMI interrupts (useful for clocks and
+  // timers)
+  std::atomic<uint32_t> frameCounter;
+
+  // Other private member variables
   bool running_;
-  uint16_t pc;
-  uint32_t cycle;
   int scanline;
 };
 
