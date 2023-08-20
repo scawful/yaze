@@ -9,6 +9,69 @@ namespace yaze {
 namespace app {
 namespace emu {
 
+enum ROMSpeed { SLOW_ROM = 0x00, FAST_ROM = 0x07 };
+
+enum BankSize { LOW_ROM = 0x00, HI_ROM = 0x01 };
+
+enum ROMType {
+  ROM_DEFAULT = 0x00,
+  ROM_RAM = 0x01,
+  ROM_SRAM = 0x02,
+  ROM_DSP1 = 0x03,
+  ROM_DSP1_RAM = 0x04,
+  ROM_DSP1_SRAM = 0x05,
+  FX = 0x06
+};
+
+enum ROMSize {
+  SIZE_2_MBIT = 0x08,
+  SIZE_4_MBIT = 0x09,
+  SIZE_8_MBIT = 0x0A,
+  SIZE_16_MBIT = 0x0B,
+  SIZE_32_MBIT = 0x0C
+};
+
+enum SRAMSize {
+  NO_SRAM = 0x00,
+  SRAM_16_KBIT = 0x01,
+  SRAM_32_KBIT = 0x02,
+  SRAM_64_KBIT = 0x03
+};
+
+enum CountryCode {
+  JAPAN = 0x00,
+  USA = 0x01,
+  EUROPE_OCEANIA_ASIA = 0x02,
+  // ... and other countries
+};
+
+enum License {
+  INVALID = 0,
+  NINTENDO = 1,
+  ZAMUSE = 5,
+  CAPCOM = 8,
+  // ... and other licenses
+};
+
+class ROMInfo {
+ public:
+  std::string title;
+  ROMSpeed romSpeed;
+  BankSize bankSize;
+  ROMType romType;
+  ROMSize romSize;
+  SRAMSize sramSize;
+  CountryCode countryCode;
+  License license;
+  uint8_t version;
+  uint16_t checksumComplement;
+  uint16_t checksum;
+  uint16_t nmiVblVector;
+  uint16_t resetVector;
+
+  // Additional methods and constructors
+};
+
 // memory.h
 class Memory {
  public:
@@ -133,30 +196,37 @@ class MemoryImpl : public Memory {
   auto begin() const { return memory_.begin(); }
   auto end() const { return memory_.end(); }
 
- private:
-  uint32_t GetMappedAddress(uint32_t address) const {
-    uint32_t bank = address >> 16;
-    uint32_t offset = address & 0xFFFF;
-
-    switch (bank) {
-      case 0x00:  // Direct Page / Stack
-        return 0x0000 + offset;
-      case 0x01:  // Main RAM
-        return 0x2000 + offset;
-      case 0x02:  // ROM (LoROM)
-        return 0x4000 + offset;
-      case 0x03:  // ROM (HiROM)
-        return 0x8000 + offset;
-      default:
-        return address;  // Return the original address if no mapping is defined
-    }
-  }
-
   // Define memory regions
   std::vector<uint8_t> rom_;
   std::vector<uint8_t> ram_;
   std::vector<uint8_t> vram_;
   std::vector<uint8_t> oam_;
+
+ private:
+  uint32_t GetMappedAddress(uint32_t address) const {
+    uint32_t bank = address >> 16;
+    uint32_t offset = address & 0xFFFF;
+
+    if (bank <= 0x3F) {
+      if (offset <= 0x1FFF) {
+        return offset;  // Shadow RAM
+      } else if (offset <= 0x5FFF) {
+        return offset - 0x2000 + 0x2000;  // Hardware Registers
+      } else if (offset <= 0x7FFF) {
+        return offset - 0x6000 + 0x6000;  // Expansion RAM
+      } else {
+        return (bank << 15) + (offset - 0x8000) + 0x8000;  // ROM
+      }
+    } else if (bank == 0x7D) {
+      return offset + 0x7D0000;  // SRAM
+    } else if (bank == 0x7E || bank == 0x7F) {
+      return offset + 0x7E0000;  // System RAM
+    } else if (bank >= 0x80) {
+      // Handle HiROM and mirrored areas
+    }
+
+    return address;  // Return the original address if no mapping is defined
+  }
 
   static const uint32_t kROMStart = 0xC00000;
   static const uint32_t kROMSize = 0x400000;
