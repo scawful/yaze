@@ -168,7 +168,7 @@ TEST_F(CPUTest, CheckMemoryContents) {
 
 TEST_F(CPUTest, ADC_Immediate_TwoPositiveNumbers) {
   cpu.A = 0x01;
-  cpu.status = 0xFF;  // 8-bit mode
+  cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0x01};
   mock_memory.SetMemoryContents(data);
 
@@ -180,7 +180,7 @@ TEST_F(CPUTest, ADC_Immediate_TwoPositiveNumbers) {
 
 TEST_F(CPUTest, ADC_Immediate_PositiveAndNegativeNumbers) {
   cpu.A = 10;
-  cpu.status = 0xFF;  // 8-bit mode
+  cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0x69, static_cast<uint8_t>(-20)};
   mock_memory.SetMemoryContents(data);
 
@@ -270,7 +270,7 @@ TEST_F(CPUTest, ADC_DirectPageIndexedIndirectX) {
 
 TEST_F(CPUTest, ADC_CheckCarryFlag) {
   cpu.A = 0xFF;
-  cpu.status = 0xFF;                         // 8-bit mode
+  cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0x15, 0x01};  // Operand at address 0x15
   mock_memory.SetMemoryContents(data);
 
@@ -286,6 +286,8 @@ TEST_F(CPUTest, ADC_AbsoluteIndexedX) {
   cpu.A = 0x03;
   cpu.X = 0x02;  // X register
   cpu.PC = 0x0001;
+  cpu.SetCarryFlag(false);
+  cpu.SetAccumulatorSize(false);  // 16-bit mode
   std::vector<uint8_t> data = {0x7D, 0x03, 0x00, 0x00, 0x05, 0x00};
   mock_memory.SetMemoryContents(data);
 
@@ -612,6 +614,24 @@ TEST_F(CPUTest, BCS_WhenCarryFlagClear) {
   EXPECT_EQ(cpu.PC, 0x1000);
 }
 
+// ============================================================================
+// BEQ - Branch if Equal
+
+TEST_F(CPUTest, BEQ) {
+  cpu.SetZeroFlag(true);
+  cpu.PC = 0x1000;
+  std::vector<uint8_t> data = {0xF0, 0x03, 0x02};  // Operand at address 0x1001
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x03));
+
+  cpu.ExecuteInstruction(0xF0);  // BEQ
+  EXPECT_EQ(cpu.PC, 0x1003);
+}
+
+// ============================================================================
+// BIT - Bit Test
+
 TEST_F(CPUTest, BIT_Immediate) {
   cpu.A = 0x01;
   cpu.PC = 0x0001;
@@ -665,6 +685,9 @@ TEST_F(CPUTest, BIT_AbsoluteIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
+// ============================================================================
+// BMI - Branch if Minus
+
 TEST_F(CPUTest, BMI_BranchTaken) {
   cpu.PC = 0x0000;
   cpu.SetNegativeFlag(true);
@@ -684,6 +707,9 @@ TEST_F(CPUTest, BMI_BranchNotTaken) {
   cpu.ExecuteInstruction(0x30);  // BMI
   EXPECT_EQ(cpu.PC, 0x0000);
 }
+
+// ============================================================================
+// BNE - Branch if Not Equal
 
 TEST_F(CPUTest, BNE_BranchTaken) {
   cpu.PC = 0x0000;
@@ -705,6 +731,9 @@ TEST_F(CPUTest, BNE_BranchNotTaken) {
   EXPECT_EQ(cpu.PC, 0x0000);
 }
 
+// ============================================================================
+// BPL - Branch if Positive
+
 TEST_F(CPUTest, BPL_BranchTaken) {
   cpu.PC = 0x0000;
   cpu.SetNegativeFlag(false);
@@ -724,6 +753,9 @@ TEST_F(CPUTest, BPL_BranchNotTaken) {
   cpu.ExecuteInstruction(0x10);  // BPL
   EXPECT_EQ(cpu.PC, 0x0000);
 }
+
+// ============================================================================
+// BRA - Branch Always
 
 TEST_F(CPUTest, BRA) {
   cpu.PC = 0x0000;
@@ -762,7 +794,123 @@ TEST_F(CPUTest, BRL) {
 }
 
 // ============================================================================
+// BVC - Branch if Overflow Clear
+
+TEST_F(CPUTest, BVC_BranchTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetOverflowFlag(false);
+  std::vector<uint8_t> data = {0x02};  // BVC
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x50);  // BVC
+  EXPECT_EQ(cpu.PC, 0x0002);
+}
+
+// ============================================================================
+// BVS - Branch if Overflow Set
+
+TEST_F(CPUTest, BVS_BranchTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetOverflowFlag(true);
+  std::vector<uint8_t> data = {0x02};  // BVS
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x70);  // BVS
+  EXPECT_EQ(cpu.PC, 0x0002);
+}
+
+// ============================================================================
+// CLC - Clear Carry Flag
+
+TEST_F(CPUTest, CLC) {
+  cpu.SetCarryFlag(true);
+  cpu.PC = 0x0000;
+  std::vector<uint8_t> data = {0x18};  // CLC
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x18);  // CLC
+  EXPECT_FALSE(cpu.GetCarryFlag());
+}
+
+// ============================================================================
+// CLD - Clear Decimal Mode Flag
+
+TEST_F(CPUTest, CLD) {
+  cpu.SetDecimalFlag(true);
+  cpu.PC = 0x0000;
+  std::vector<uint8_t> data = {0xD8};  // CLD
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0xD8);  // CLD
+  EXPECT_FALSE(cpu.GetDecimalFlag());
+}
+
+// ============================================================================
+// CLI - Clear Interrupt Disable Flag
+
+TEST_F(CPUTest, CLI) {
+  cpu.SetInterruptFlag(true);
+  cpu.PC = 0x0000;
+  std::vector<uint8_t> data = {0x58};  // CLI
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x58);  // CLI
+  EXPECT_FALSE(cpu.GetInterruptFlag());
+}
+
+// ============================================================================
+// CLV - Clear Overflow Flag
+
+TEST_F(CPUTest, CLV) {
+  cpu.SetOverflowFlag(true);
+  cpu.PC = 0x0000;
+  std::vector<uint8_t> data = {0xB8};  // CLV
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0xB8);  // CLV
+  EXPECT_FALSE(cpu.GetOverflowFlag());
+}
+
+// ============================================================================
+// CMP - Compare Accumulator
+
+TEST_F(CPUTest, CMP_Immediate_8Bit) {
+  // Set the accumulator to 8-bit mode
+  cpu.status = 0x00;
+  cpu.SetAccumulatorSize(true);
+  cpu.A = 0x80;  // Set the accumulator to 0x80
+  mock_memory.InsertMemory(0x0000, {0x40});
+
+  // Set up the memory to return 0x40 when the Immediate addressing mode is used
+  EXPECT_CALL(mock_memory, ReadByte(0x00)).WillOnce(::testing::Return(0x40));
+
+  // Execute the CMP Immediate instruction
+  cpu.ExecuteInstruction(0xC9);
+
+  // Check the status flags
+  EXPECT_TRUE(cpu.GetCarryFlag());     // Carry flag should be set
+  EXPECT_FALSE(cpu.GetZeroFlag());     // Zero flag should not be set
+  EXPECT_FALSE(cpu.GetNegativeFlag());  // Negative flag should be set
+}
+
+TEST_F(CPUTest, CMP_Absolute_16Bit) {
+  // Set the accumulator to 16-bit mode
+  cpu.SetAccumulatorSize(false);
+  cpu.A = 0x8000;  // Set the accumulator to 0x8000
+  mock_memory.InsertMemory(0x0000, {0x34, 0x12});
+
+  // Execute the CMP Absolute instruction
+  cpu.ExecuteInstruction(0xCD);
+
+  // Check the status flags
+  EXPECT_TRUE(cpu.GetCarryFlag());     // Carry flag should be set
+  EXPECT_FALSE(cpu.GetZeroFlag());     // Zero flag should not be set
+  EXPECT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
+}
+
+// ============================================================================
 // Test for CPX instruction
+
 TEST_F(CPUTest, CPX_CarryFlagSet) {
   cpu.X = 0x1000;
   cpu.CPX(0x0FFF);

@@ -51,7 +51,9 @@ class CPU : public Memory, public Clock {
 
   uint8_t FetchByteDirectPage(uint8_t operand);
 
+  void Run();
   void ExecuteInstruction(uint8_t opcode);
+  void HandleInterrupts();
 
   // ==========================================================================
   // Addressing Modes
@@ -274,12 +276,11 @@ class CPU : public Memory, public Clock {
   // ==========================================================================
   // Registers
 
-  uint8_t A = 0;    // Accumulator
-  uint8_t B = 0;    // Accumulator (High)
+  uint16_t A = 0;   // Accumulator
   uint16_t X = 0;   // X index register
   uint16_t Y = 0;   // Y index register
   uint16_t D = 0;   // Direct Page register
-  uint16_t DB = 0;  // Data Bank register
+  uint8_t DB = 0;   // Data Bank register
   uint8_t PB = 0;   // Program Bank register
   uint16_t PC = 0;  // Program Counter
   uint8_t E = 1;    // Emulation mode flag
@@ -435,29 +436,76 @@ class CPU : public Memory, public Clock {
   // CLV: Clear overflow flag
   void CLV() { status &= ~0x40; }
 
-  // CMP: Compare ```
-  // COP: Coprocessor ```
+  // CMP: Compare TESTME
+  // n Set if MSB of result is set; else cleared
+  // z Set if result is zero; else cleared
+  // c Set if no borrow; else cleared
+  void CMP(uint8_t value, bool isImmediate = false) {
+    if (GetAccumulatorSize()) {  // 8-bit
+      uint8_t result = isImmediate ? A - value : A - memory.ReadByte(value);
+      SetZeroFlag(result == 0);
+      SetNegativeFlag(result & 0x80);
+      SetCarryFlag(A >= value);
+    } else {  // 16-bit
+      uint16_t result = isImmediate ? A - value : A - memory.ReadWord(value);
+      SetZeroFlag(result == 0);
+      SetNegativeFlag(result & 0x8000);
+      SetCarryFlag(A >= value);
+    }
+  }
+
+  // COP: Coprocessor TESTME
+  void COP() {
+    PC += 2;  // Increment the program counter by 2
+    memory.PushWord(PC);
+    memory.PushByte(status);
+    SetInterruptFlag(true);
+    if (E) {
+      PC = memory.ReadWord(0xFFF4);
+    } else {
+      PC = memory.ReadWord(0xFFE4);
+    }
+    SetDecimalFlag(false);
+  }
 
   // CPX: Compare X register
-  // CPX: Compare X register
   void CPX(uint16_t value, bool isImmediate = false) {
-    uint16_t memory_value = isImmediate
-                                ? value
-                                : (GetIndexSize() ? memory.ReadByte(value)
-                                                  : memory.ReadWord(value));
-    compare(X, memory_value);
+    if (GetIndexSize()) {  // 8-bit
+      uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
+      compare(X, memory_value);
+    } else {  // 16-bit
+      uint16_t memory_value = isImmediate ? value : memory.ReadWord(value);
+      compare(X, memory_value);
+    }
   }
 
   // CPY: Compare Y register
   void CPY(uint16_t value, bool isImmediate = false) {
-    uint16_t memory_value = isImmediate
-                                ? value
-                                : (GetIndexSize() ? memory.ReadByte(value)
-                                                  : memory.ReadWord(value));
-    compare(Y, memory_value);
+    if (GetIndexSize()) {  // 8-bit
+      uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
+      compare(Y, memory_value);
+    } else {  // 16-bit
+      uint16_t memory_value = isImmediate ? value : memory.ReadWord(value);
+      compare(Y, memory_value);
+    }
   }
 
-  // DEC: Decrement ```
+  // DEC: Decrement TESTME
+  void DEC(uint16_t address) {
+    if (GetAccumulatorSize()) {
+      uint8_t value = memory.ReadByte(address);
+      value--;
+      memory.WriteByte(address, value);
+      SetZeroFlag(value == 0);
+      SetNegativeFlag(value & 0x80);
+    } else {
+      uint16_t value = memory.ReadWord(address);
+      value--;
+      memory.WriteWord(address, value);
+      SetZeroFlag(value == 0);
+      SetNegativeFlag(value & 0x8000);
+    }
+  }
 
   // DEX: Decrement X register
   void DEX() {
@@ -485,7 +533,18 @@ class CPU : public Memory, public Clock {
     }
   }
 
-  // EOR: Exclusive OR ```
+  // EOR: Exclusive OR TESTMEs
+  void EOR(uint16_t address, bool isImmediate = false) {
+    if (GetAccumulatorSize()) {
+      A ^= isImmediate ? address : memory.ReadByte(address);
+      SetZeroFlag(A == 0);
+      SetNegativeFlag(A & 0x80);
+    } else {
+      A ^= isImmediate ? address : memory.ReadWord(address);
+      SetZeroFlag(A == 0);
+      SetNegativeFlag(A & 0x8000);
+    }
+  }
 
   // INC: Increment
   void INC(uint16_t address) {
@@ -779,7 +838,12 @@ class CPU : public Memory, public Clock {
     }
   }
 
-  // STP: Stop the clock ```
+  // TODO: Make this work with the Clock class of the CPU
+  // STP: Stop the clock
+  void STP() {
+    // During the next phase 2 clock cycle, stop the processors oscillator input
+    // The processor is effectively shut down until a reset occurs (RES` pin).
+  }
 
   // STX: Store X register
   void STX(uint16_t address) {
@@ -900,15 +964,20 @@ class CPU : public Memory, public Clock {
     SetNegativeFlag(Y & 0x80);
   }
 
-  // WAI: Wait for interrupt ```
+  // TODO: Make this communicate with the SNES class
+  // WAI: Wait for interrupt TESTME
+  void WAI() {
+    // Pull the RDY pin low
+    // Power consumption is reduced(?)
+    // RDY remains low until an external hardware interupt
+    // (NMI, IRQ, ABORT, or RESET) is received from the SNES class
+  }
 
   // XBA: Exchange B and A accumulator
   void XBA() {
-    uint8_t temp = A;
-    A = B;
-    B = temp;
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
+    uint8_t lowByte = A & 0xFF;
+    uint8_t highByte = (A >> 8) & 0xFF;
+    A = (lowByte << 8) | highByte;
   }
 
   // XCE: Exchange Carry and Emulation Flags
