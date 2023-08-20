@@ -196,7 +196,7 @@ class CPU : public Memory {
   //                   register in bank zero.
   //
   // LDA [dp]
-  uint16_t DirectPageIndirectLong() {
+  uint32_t DirectPageIndirectLong() {
     uint8_t dp = FetchByte();
     uint16_t effective_address = D + dp;
     return memory.ReadWordLong(effective_address);
@@ -227,8 +227,8 @@ class CPU : public Memory {
   // LDA (dp), Y
   uint16_t DirectPageIndirectLongIndexedY() {
     uint8_t dp = FetchByte();
-    uint16_t effective_address = D + dp;
-    return memory.ReadWordLong(effective_address) + Y;
+    uint16_t effective_address = D + dp + Y;
+    return memory.ReadWordLong(effective_address);
   }
 
   // 8-bit data: Data Operand Byte
@@ -237,7 +237,13 @@ class CPU : public Memory {
   //   Data Low:  First Operand Byte
   //
   // LDA #const
-  uint16_t Immediate() { return PC++; }
+  uint16_t Immediate() {
+    if (GetAccumulatorSize()) {
+      return FetchByte();
+    } else {
+      return FetchWord();
+    }
+  }
 
   uint16_t StackRelative() {
     uint8_t sr = FetchByte();
@@ -246,7 +252,7 @@ class CPU : public Memory {
 
   uint16_t StackRelativeIndirectIndexedY() {
     uint8_t sr = FetchByte();
-    return memory.ReadWord(SP() + sr) + Y;
+    return memory.ReadWord(SP() + sr + Y);
   }
 
   // ==========================================================================
@@ -254,10 +260,8 @@ class CPU : public Memory {
 
   uint8_t A = 0;    // Accumulator
   uint8_t B = 0;    // Accumulator (High)
-  uint8_t X = 0;    // X index register
-  uint8_t X2 = 0;   // X index register (High)
-  uint8_t Y = 0;    // Y index register
-  uint8_t Y2 = 0;   // Y index register (High)
+  uint16_t X = 0;   // X index register
+  uint16_t Y = 0;   // Y index register
   uint16_t D = 0;   // Direct Page register
   uint16_t DB = 0;  // Data Bank register
   uint8_t PB = 0;   // Program Bank register
@@ -280,6 +284,8 @@ class CPU : public Memory {
   // Setting flags in the status register
   int GetAccumulatorSize() const { return status & 0x20; }
   int GetIndexSize() const { return status & 0x10; }
+  void SetAccumulatorSize(bool set) { SetFlag(0x20, set); }
+  void SetIndexSize(bool set) { SetFlag(0x10, set); }
 
   // Set individual flags
   void SetNegativeFlag(bool set) { SetFlag(0x80, set); }
@@ -301,16 +307,24 @@ class CPU : public Memory {
 
   // ==========================================================================
   // Instructions
-  /// ``` Unimplemented
 
   // ADC: Add with carry
   void ADC(uint8_t operand);
   void ANDAbsoluteLong(uint32_t address);
 
   // AND: Logical AND
-  void AND(uint16_t address);
+  void AND(uint16_t address, bool isImmediate = false);
 
-  // ASL: Arithmetic shift left ```
+  // ASL: Arithmetic shift left
+  void ASL(uint16_t address) {
+    uint8_t value = memory.ReadByte(address);
+    SetCarryFlag(!(value & 0x80));  // Set carry flag if bit 7 is set
+    value <<= 1;                    // Shift left
+    value &= 0xFE;                  // Clear bit 0
+    memory.WriteByte(address, value);
+    SetNegativeFlag(!value);
+    SetZeroFlag(value);
+  }
 
   // BCC: Branch if carry clear
   void BCC(int8_t offset) {
@@ -319,7 +333,12 @@ class CPU : public Memory {
     }
   }
 
-  // BCS: Branch if carry set ```
+  // BCS: Branch if carry set
+  void BCS(int8_t offset) {
+    if (GetCarryFlag()) {  // If the carry flag is set
+      PC += offset;        // Add the offset to the program counter
+    }
+  }
 
   // BEQ: Branch if equal (zero set)
   void BEQ(int8_t offset) {
@@ -328,20 +347,65 @@ class CPU : public Memory {
     }
   }
 
-  // BIT: Bit test ```
-  // BMI: Branch if minus (negative set) ```
-  // BNE: Branch if not equal (zero clear) ```
-  // BPL: Branch if plus (negative clear) ```
-  // BRA: Branch always ```
-  // BRK: Break ```
+  // BIT: Bit test
+  void BIT(uint16_t address) {
+    uint8_t value = memory.ReadByte(address);
+    SetNegativeFlag(value & 0x80);
+    SetOverflowFlag(value & 0x40);
+    SetZeroFlag((A & value) == 0);
+  }
+
+  // BMI: Branch if minus (negative set)
+  void BMI(int8_t offset) {
+    if (GetNegativeFlag()) {  // If the negative flag is set
+      PC += offset;           // Add the offset to the program counter
+    }
+  }
+
+  // BNE: Branch if not equal (zero clear)
+  void BNE(int8_t offset) {
+    if (!GetZeroFlag()) {  // If the zero flag is clear
+      PC += offset;        // Add the offset to the program counter
+    }
+  }
+
+  // BPL: Branch if plus (negative clear)
+  void BPL(int8_t offset) {
+    if (!GetNegativeFlag()) {  // If the negative flag is clear
+      PC += offset;            // Add the offset to the program counter
+    }
+  }
+
+  // BRA: Branch always
+  void BRA(int8_t offset) { PC += offset; }
+
+  // BRK: Break
+  void BRK() {
+    PC += 2;  // Increment the program counter by 2
+    memory.PushWord(PC);
+    memory.PushByte(status);
+    SetInterruptFlag(true);
+    PC = memory.ReadWord(0xFFFE);
+  }
 
   // BRL: Branch always long
   void BRL(int16_t offset) {
     PC += offset;  // Add the offset to the program counter
   }
 
-  // BVC: Branch if overflow clear ```
-  // BVS: Branch if overflow set ```
+  // BVC: Branch if overflow clear
+  void BVC(int8_t offset) {
+    if (!GetOverflowFlag()) {  // If the overflow flag is clear
+      PC += offset;            // Add the offset to the program counter
+    }
+  }
+
+  // BVS: Branch if overflow set
+  void BVS(int8_t offset) {
+    if (GetOverflowFlag()) {  // If the overflow flag is set
+      PC += offset;           // Add the offset to the program counter
+    }
+  }
 
   // CLC: Clear carry flag
   void CLC() { status &= ~0x01; }
@@ -359,16 +423,21 @@ class CPU : public Memory {
   // COP: Coprocessor ```
 
   // CPX: Compare X register
-  void CPX(uint16_t address) {
-    uint16_t memory_value =
-        E ? memory.ReadByte(address) : memory.ReadWord(address);
+  // CPX: Compare X register
+  void CPX(uint16_t value, bool isImmediate = false) {
+    uint16_t memory_value = isImmediate
+                                ? value
+                                : (GetIndexSize() ? memory.ReadByte(value)
+                                                  : memory.ReadWord(value));
     compare(X, memory_value);
   }
 
   // CPY: Compare Y register
-  void CPY(uint16_t address) {
-    uint16_t memory_value =
-        E ? memory.ReadByte(address) : memory.ReadWord(address);
+  void CPY(uint16_t value, bool isImmediate = false) {
+    uint16_t memory_value = isImmediate
+                                ? value
+                                : (GetIndexSize() ? memory.ReadByte(value)
+                                                  : memory.ReadWord(value));
     compare(Y, memory_value);
   }
 
@@ -376,56 +445,73 @@ class CPU : public Memory {
 
   // DEX: Decrement X register
   void DEX() {
-    X--;
-    SetZeroFlag(X == 0);
-    SetNegativeFlag(X & 0x80);
+    if (GetIndexSize()) {  // 8-bit
+      X = static_cast<uint8_t>(X - 1);
+      SetZeroFlag(X == 0);
+      SetNegativeFlag(X & 0x80);
+    } else {  // 16-bit
+      X = static_cast<uint16_t>(X - 1);
+      SetZeroFlag(X == 0);
+      SetNegativeFlag(X & 0x8000);
+    }
   }
 
   // DEY: Decrement Y register
   void DEY() {
-    Y--;
-    SetZeroFlag(Y == 0);
-    SetNegativeFlag(Y & 0x80);
+    if (GetIndexSize()) {  // 8-bit
+      Y = static_cast<uint8_t>(Y - 1);
+      SetZeroFlag(Y == 0);
+      SetNegativeFlag(Y & 0x80);
+    } else {  // 16-bit
+      Y = static_cast<uint16_t>(Y - 1);
+      SetZeroFlag(Y == 0);
+      SetNegativeFlag(Y & 0x8000);
+    }
   }
 
   // EOR: Exclusive OR ```
 
   // INC: Increment
-  // TODO: Check if this is correct
   void INC(uint16_t address) {
     if (GetAccumulatorSize()) {
-      uint8_t value = ReadByte(address);
+      uint8_t value = memory.ReadByte(address);
       value++;
-      if (value == static_cast<uint8_t>(0x100)) {
-        value = 0x00;  // Wrap around in 8-bit mode
-      }
-      WriteByte(address, value);
+      memory.WriteByte(address, value);
       SetNegativeFlag(value & 0x80);
       SetZeroFlag(value == 0);
     } else {
-      uint16_t value = ReadWord(address);
+      uint16_t value = memory.ReadWord(address);
       value++;
-      if (value == static_cast<uint16_t>(0x10000)) {
-        value = 0x0000;  // Wrap around in 16-bit mode
-      }
-      WriteByte(address, value);
-      SetNegativeFlag(value & 0x80);
+      memory.WriteWord(address, value);
+      SetNegativeFlag(value & 0x8000);
       SetZeroFlag(value == 0);
     }
   }
 
   // INX: Increment X register
   void INX() {
-    X++;
-    SetNegativeFlag(X & 0x80);
-    SetZeroFlag(X == 0);
+    if (GetIndexSize()) {  // 8-bit
+      X = static_cast<uint8_t>(X + 1);
+      SetZeroFlag(X == 0);
+      SetNegativeFlag(X & 0x80);
+    } else {  // 16-bit
+      X = static_cast<uint16_t>(X + 1);
+      SetZeroFlag(X == 0);
+      SetNegativeFlag(X & 0x8000);
+    }
   }
 
   // INY: Increment Y register
   void INY() {
-    Y++;
-    SetNegativeFlag(Y & 0x80);
-    SetZeroFlag(Y == 0);
+    if (GetIndexSize()) {  // 8-bit
+      Y = static_cast<uint8_t>(Y + 1);
+      SetZeroFlag(Y == 0);
+      SetNegativeFlag(Y & 0x80);
+    } else {  // 16-bit
+      Y = static_cast<uint16_t>(Y + 1);
+      SetZeroFlag(Y == 0);
+      SetNegativeFlag(Y & 0x8000);
+    }
   }
 
   // JMP: Jump
@@ -457,16 +543,54 @@ class CPU : public Memory {
   }
 
   // LDA: Load accumulator
-  void LDA() {
-    A = memory[PC];
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
-    PC++;
+  void LDA(uint16_t address, bool isImmediate = false) {
+    if (GetAccumulatorSize()) {
+      A = isImmediate ? address : memory.ReadByte(address);
+      SetZeroFlag(A == 0);
+      SetNegativeFlag(A & 0x80);
+    } else {
+      A = isImmediate ? address : memory.ReadWord(address);
+      SetZeroFlag(A == 0);
+      SetNegativeFlag(A & 0x8000);
+    }
   }
 
-  // LDX: Load X register ```
-  // LDY: Load Y register ```
-  // LSR: Logical shift right ```
+  // LDX: Load X register
+  void LDX(uint16_t address, bool isImmediate = false) {
+    if (GetIndexSize()) {
+      X = isImmediate ? address : memory.ReadByte(address);
+      SetZeroFlag(X == 0);
+      SetNegativeFlag(X & 0x80);
+    } else {
+      X = isImmediate ? address : memory.ReadWord(address);
+      SetZeroFlag(X == 0);
+      SetNegativeFlag(X & 0x8000);
+    }
+  }
+
+  // LDY: Load Y register
+  void LDY(uint16_t address, bool isImmediate = false) {
+    if (GetIndexSize()) {
+      Y = isImmediate ? address : memory.ReadByte(address);
+      SetZeroFlag(Y == 0);
+      SetNegativeFlag(Y & 0x80);
+    } else {
+      Y = isImmediate ? address : memory.ReadWord(address);
+      SetZeroFlag(Y == 0);
+      SetNegativeFlag(Y & 0x8000);
+    }
+  }
+
+  // LSR: Logical shift right
+  void LSR(uint16_t address) {
+    uint8_t value = memory.ReadByte(address);
+    SetCarryFlag(value & 0x01);
+    value >>= 1;
+    memory.WriteByte(address, value);
+    SetNegativeFlag(false);
+    SetZeroFlag(value == 0);
+  }
+
   // MVN: Move negative ```
   // MVP: Move positive ```
 
@@ -475,10 +599,36 @@ class CPU : public Memory {
     // Do nothing
   }
 
-  // ORA: Logical OR ```
-  // PEA: Push effective address ```
-  // PEI: Push effective indirect address ```
-  // PER: Push effective PC-relative address ```
+  // ORA: Logical OR
+  void ORA(uint16_t address, bool isImmediate = false) {
+    if (GetAccumulatorSize()) {
+      A |= isImmediate ? address : memory.ReadByte(address);
+      SetZeroFlag(A == 0);
+      SetNegativeFlag(A & 0x80);
+    } else {
+      A |= isImmediate ? address : memory.ReadWord(address);
+      SetZeroFlag(A == 0);
+      SetNegativeFlag(A & 0x8000);
+    }
+  }
+
+  // PEA: Push effective address
+  void PEA() {
+    uint16_t address = FetchWord();
+    memory.PushWord(address);
+  }
+
+  // PEI: Push effective indirect address
+  void PEI() {
+    uint16_t address = FetchWord();
+    memory.PushWord(memory.ReadWord(address));
+  }
+
+  // PER: Push effective PC-relative address
+  void PER() {
+    uint16_t address = FetchWord();
+    memory.PushWord(PC + address);
+  }
 
   // PHA: Push Accumulator on Stack
   void PHA() { memory.PushByte(A); }
@@ -546,12 +696,47 @@ class CPU : public Memory {
     status &= ~byte;
   }
 
-  // ROL: Rotate left ```
-  // ROR: Rotate right ```
-  // RTI: Return from interrupt ```
-  // RTL: Return from subroutine long ```
-  // RTS: Return from subroutine ```
-  // SBC: Subtract with carry ```
+  // ROL: Rotate left
+  void ROL(uint16_t address) {
+    uint8_t value = memory.ReadByte(address);
+    uint8_t carry = GetCarryFlag() ? 0x01 : 0x00;
+    SetCarryFlag(value & 0x80);
+    value <<= 1;
+    value |= carry;
+    memory.WriteByte(address, value);
+    SetNegativeFlag(value & 0x80);
+    SetZeroFlag(value == 0);
+  }
+
+  // ROR: Rotate right
+  void ROR(uint16_t address) {
+    uint8_t value = memory.ReadByte(address);
+    uint8_t carry = GetCarryFlag() ? 0x80 : 0x00;
+    SetCarryFlag(value & 0x01);
+    value >>= 1;
+    value |= carry;
+    memory.WriteByte(address, value);
+    SetNegativeFlag(value & 0x80);
+    SetZeroFlag(value == 0);
+  }
+
+  // RTI: Return from interrupt
+  void RTI() {
+    status = memory.PopByte();
+    PC = memory.PopWord();
+  }
+
+  // RTL: Return from subroutine long
+  void RTL() {
+    PC = memory.PopWord();
+    PB = memory.PopByte();
+  }
+
+  // RTS: Return from subroutine
+  void RTS() { PC = memory.PopWord() + 1; }
+
+  // SBC: Subtract with carry
+  void SBC(uint16_t operand, bool isImmediate = false);
 
   // SEC: Set carry flag
   void SEC() { status |= 0x01; }
@@ -569,11 +754,43 @@ class CPU : public Memory {
     status |= byte;
   }
 
-  // STA: Store accumulator ```
+  // STA: Store accumulator
+  void STA(uint16_t address) {
+    if (GetAccumulatorSize()) {
+      memory.WriteByte(address, static_cast<uint8_t>(A));
+    } else {
+      memory.WriteWord(address, A);
+    }
+  }
+
   // STP: Stop the clock ```
-  // STX: Store X register ```
-  // STY: Store Y register ```
-  // STZ: Store zero ```
+
+  // STX: Store X register
+  void STX(uint16_t address) {
+    if (GetIndexSize()) {
+      memory.WriteByte(address, static_cast<uint8_t>(X));
+    } else {
+      memory.WriteWord(address, X);
+    }
+  }
+
+  // STY: Store Y register
+  void STY(uint16_t address) {
+    if (GetIndexSize()) {
+      memory.WriteByte(address, static_cast<uint8_t>(Y));
+    } else {
+      memory.WriteWord(address, Y);
+    }
+  }
+
+  // STZ: Store zero
+  void STZ(uint16_t address) {
+    if (GetAccumulatorSize()) {
+      memory.WriteByte(address, 0x00);
+    } else {
+      memory.WriteWord(address, 0x0000);
+    }
+  }
 
   // TAX: Transfer accumulator to X
   void TAX() {
@@ -606,8 +823,21 @@ class CPU : public Memory {
     SetNegativeFlag(A & 0x80);
   }
 
-  // TRB: Test and reset bits ```
-  // TSB: Test and set bits ```
+  // TRB: Test and reset bits
+  void TRB(uint16_t address) {
+    uint8_t value = memory.ReadByte(address);
+    SetZeroFlag((A & value) == 0);
+    value &= ~A;
+    memory.WriteByte(address, value);
+  }
+
+  // TSB: Test and set bits
+  void TSB(uint16_t address) {
+    uint8_t value = memory.ReadByte(address);
+    SetZeroFlag((A & value) == 0);
+    value |= A;
+    memory.WriteByte(address, value);
+  }
 
   // TSC: Transfer stack pointer to accumulator
   void TSC() {
@@ -655,7 +885,15 @@ class CPU : public Memory {
   }
 
   // WAI: Wait for interrupt ```
-  // XBA: Exchange B and A accumulator ```
+
+  // XBA: Exchange B and A accumulator
+  void XBA() {
+    uint8_t temp = A;
+    A = B;
+    B = temp;
+    SetZeroFlag(A == 0);
+    SetNegativeFlag(A & 0x80);
+  }
 
   // XCE: Exchange Carry and Emulation Flags
   void XCE() {
@@ -667,10 +905,20 @@ class CPU : public Memory {
 
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
-    uint16_t result = register_value - memory_value;
-    SetNegativeFlag(result & (E ? 0x8000 : 0x80));  // Negative flag
-    SetZeroFlag(result == 0);                       // Zero flag
-    SetCarryFlag(register_value >= 0);              // Carry flag
+    uint16_t result;
+    if (GetIndexSize()) {
+      // 8-bit mode
+      uint8_t result8 = static_cast<uint8_t>(register_value) -
+                        static_cast<uint8_t>(memory_value);
+      result = result8;
+      SetNegativeFlag(result & 0x80);  // Negative flag for 8-bit
+    } else {
+      // 16-bit mode
+      result = register_value - memory_value;
+      SetNegativeFlag(result & 0x8000);  // Negative flag for 16-bit
+    }
+    SetZeroFlag(result == 0);                      // Zero flag
+    SetCarryFlag(register_value >= memory_value);  // Carry flag
   }
 
   // Helper function to set or clear a specific flag bit

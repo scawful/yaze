@@ -86,12 +86,11 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       ADC(FetchByteDirectPage(PC));
       break;
     case 0x67:  // ADC DP Indirect Long
-      operand = memory.ReadByte(DirectPageIndirectLong());
+      operand = memory.ReadWord(DirectPageIndirectLong());
       ADC(operand);
       break;
     case 0x69:  // ADC Immediate
-      operand = memory.ReadByte(Immediate());
-      ADC(operand);
+      ADC(Immediate());
       break;
     case 0x6D:  // ADC Absolute
       operand = memory.ReadWord(Absolute());
@@ -118,15 +117,14 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       ADC(operand);
       break;
     case 0x77:  // ADC DP Indirect Long Indexed, Y
-      operand = memory.ReadByte(DirectPageIndirectLongIndexedY());
-      ADC(operand);
+      ADC(DirectPageIndirectLongIndexedY());
       break;
     case 0x79:  // ADC Absolute Indexed, Y
-      operand = memory.ReadByte(AbsoluteIndexedY());
+      operand = memory.ReadWord(AbsoluteIndexedY());
       ADC(operand);
       break;
     case 0x7D:  // ADC Absolute Indexed, X
-      operand = memory.ReadByte(AbsoluteIndexedX());
+      operand = memory.ReadWord(AbsoluteIndexedX());
       ADC(operand);
       break;
     case 0x7F:  // ADC Absolute Long Indexed, X
@@ -151,7 +149,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       AND(operand);
       break;
     case 0x29:  // AND Immediate
-      AND(Immediate());
+      AND(Immediate(), true);
       break;
     case 0x2D:  // AND Absolute
       AND(Absolute());
@@ -190,19 +188,23 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x06:  // ASL Direct Page
-      // ASL();
+      ASL(DirectPage());
       break;
     case 0x0A:  // ASL Accumulator
-      // ASL();
+      A <<= 1;
+      A &= 0xFE;
+      SetCarryFlag(A & 0x80);
+      SetNegativeFlag(A);
+      SetZeroFlag(!A);
       break;
     case 0x0E:  // ASL Absolute
-      // ASL();
+      ASL(Absolute());
       break;
     case 0x16:  // ASL DP Indexed, X
-      // ASL();
+      ASL(DirectPageIndexedX());
       break;
     case 0x1E:  // ASL Absolute Indexed, X
-      // ASL();
+      ASL(AbsoluteIndexedX());
       break;
 
     case 0x90:  // BCC Branch if carry clear
@@ -211,7 +213,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xB0:  // BCS  Branch if carry set
-      // BCS();
+      BCS(memory.ReadByte(PC));
       break;
 
     case 0xF0:  // BEQ Branch if equal (zero set)
@@ -220,39 +222,39 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x24:  // BIT Direct Page
-      // BIT();
+      BIT(DirectPage());
       break;
     case 0x2C:  // BIT Absolute
-      // BIT();
+      BIT(Absolute());
       break;
     case 0x34:  // BIT DP Indexed, X
-      // BIT();
+      BIT(DirectPageIndexedX());
       break;
     case 0x3C:  // BIT Absolute Indexed, X
-      // BIT();
+      BIT(AbsoluteIndexedX());
       break;
     case 0x89:  // BIT Immediate
-      // BIT();
+      BIT(Immediate());
       break;
 
     case 0x30:  // BMI Branch if minus (negative set)
-      // BMI();
+      BMI(ReadByte(PC));
       break;
 
     case 0xD0:  // BNE Branch if not equal (zero clear)
-      // BNE();
+      BNE(ReadByte(PC));
       break;
 
     case 0x10:  // BPL Branch if plus (negative clear)
-      // BPL();
+      BPL(ReadByte(PC));
       break;
 
     case 0x80:  // BRA Branch always
-      // BRA();
+      BRA(ReadByte(PC));
       break;
 
     case 0x00:  // BRK Break
-      // BRK();
+      BRK();
       break;
 
     case 0x82:  // BRL Branch always long
@@ -334,20 +336,20 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xE0:  // CPX Immediate
-      CPX(Immediate());
+      CPX(Immediate(), true);
       break;
     case 0xE4:  // CPX Direct Page
-      // CPX();
+      CPX(DirectPage());
       break;
     case 0xEC:  // CPX Absolute
       CPX(Absolute());
       break;
 
     case 0xC0:  // CPY Immediate
-      CPY(Immediate());
+      CPY(Immediate(), true);
       break;
     case 0xC4:  // CPY Direct Page
-      // CPY();
+      CPY(DirectPage());
       break;
     case 0xCC:  // CPY Absolute
       CPY(Absolute());
@@ -424,19 +426,19 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x1A:  // INC Accumulator
-      // INC();
+      INC(A);
       break;
     case 0xE6:  // INC Direct Page
-      // INC();
+      INC(DirectPage());
       break;
     case 0xEE:  // INC Absolute
-      // INC();
+      INC(Absolute());
       break;
     case 0xF6:  // INC DP Indexed, X
-      // INC();
+      INC(DirectPageIndexedX());
       break;
     case 0xFE:  // INC Absolute Indexed, X
-      // INC();
+      INC(AbsoluteIndexedX());
       break;
 
     case 0xE8:  // INX Increment X register
@@ -457,10 +459,10 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       JMP(AbsoluteIndirect());
       break;
     case 0x7C:  // JMP Absolute Indexed Indirect, X
-      // JMP();
+      JMP(AbsoluteIndexedIndirect());
       break;
     case 0xDC:  // JMP Absolute Indirect Long
-      // JMP();
+      JMP(AbsoluteIndirectLong());
       break;
 
     case 0x20:  // JSR Absolute
@@ -472,53 +474,53 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xFC:  // JSR Absolute Indexed Indirect, X
-      // JSR();
+      JSR(AbsoluteIndexedIndirect());
       break;
 
     case 0xA1:  // LDA DP Indexed Indirect, X
-      // LDA();
+      LDA(DirectPageIndexedIndirectX());
       break;
     case 0xA3:  // LDA Stack Relative
-      // LDA();
+      LDA(StackRelative());
       break;
     case 0xA5:  // LDA Direct Page
-      // LDA();
+      LDA(DirectPage());
       break;
     case 0xA7:  // LDA DP Indirect Long
-      // LDA();
+      LDA(DirectPageIndirectLong());
       break;
     case 0xA9:  // LDA Immediate
-      LDA();
+      LDA(PC + 1, true);
       break;
     case 0xAD:  // LDA Absolute
-      // LDA();
+      LDA(Absolute());
       break;
     case 0xAF:  // LDA Absolute Long
-      // LDA();
+      LDA(AbsoluteLong());
       break;
     case 0xB1:  // LDA DP Indirect Indexed, Y
-      // LDA();
+      LDA(DirectPageIndirectIndexedY());
       break;
     case 0xB2:  // LDA DP Indirect
-      // LDA();
+      LDA(DirectPageIndirect());
       break;
     case 0xB3:  // LDA SR Indirect Indexed, Y
-      // LDA();
+      LDA(StackRelativeIndirectIndexedY());
       break;
     case 0xB5:  // LDA DP Indexed, X
-      // LDA();
+      LDA(DirectPageIndexedX());
       break;
     case 0xB7:  // LDA DP Indirect Long Indexed, Y
-      // LDA();
+      LDA(DirectPageIndirectLongIndexedY());
       break;
     case 0xB9:  // LDA Absolute Indexed, Y
-      // LDA();
+      LDA(DirectPageIndirectLongIndexedY());
       break;
     case 0xBD:  // LDA Absolute Indexed, X
-      // LDA();
+      LDA(DirectPageIndirectLongIndexedY());
       break;
     case 0xBF:  // LDA Absolute Long Indexed, X
-      // LDA();
+      LDA(DirectPageIndirectLongIndexedY());
       break;
 
     case 0xA2:  // LDX Immediate
@@ -995,15 +997,15 @@ void CPU::ADC(uint8_t operand) {
   }
 }
 
-void CPU::AND(uint16_t address) {
-  uint8_t operand;
+void CPU::AND(uint16_t value, bool isImmediate) {
+  uint16_t operand;
   if (E == 0) {  // 16-bit mode
-    uint16_t operand16 = memory.ReadWord(address);
-    A &= operand16;
+    operand = isImmediate ? value : memory.ReadWord(value);
+    A &= operand;
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x8000);
   } else {  // 8-bit mode
-    operand = memory.ReadByte(address);
+    operand = isImmediate ? value : memory.ReadByte(value);
     A &= operand;
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
@@ -1016,6 +1018,39 @@ void CPU::ANDAbsoluteLong(uint32_t address) {
   A &= operand32;
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80000000);
+}
+
+void CPU::SBC(uint16_t value, bool isImmediate) {
+  uint16_t operand;
+  if (!GetAccumulatorSize()) {  // 16-bit mode
+    operand = isImmediate ? value : memory.ReadWord(value);
+    uint32_t result = A - operand - (GetCarryFlag() ? 0 : 1);
+    SetCarryFlag(!(result > 0xFFFF));  // Update the carry flag
+
+    // Update the overflow flag
+    bool overflow = ((A ^ operand) & (A ^ result) & 0x8000) != 0;
+    SetOverflowFlag(overflow);
+
+    // Update the accumulator
+    A = result & 0xFFFF;
+
+    SetZeroFlag(A == 0);
+    SetNegativeFlag(A & 0x8000);
+  } else {  // 8-bit mode
+    operand = isImmediate ? value : memory.ReadByte(value);
+    uint16_t result = A - operand - (GetCarryFlag() ? 0 : 1);
+    SetCarryFlag(!(result > 0xFF));  // Update the carry flag
+
+    // Update the overflow flag
+    bool overflow = ((A ^ operand) & (A ^ result) & 0x80) != 0;
+    SetOverflowFlag(overflow);
+
+    // Update the accumulator
+    A = result & 0xFF;
+
+    SetZeroFlag(A == 0);
+    SetNegativeFlag(A & 0x80);
+  }
 }
 
 }  // namespace emu

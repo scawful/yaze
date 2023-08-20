@@ -41,6 +41,16 @@ class MockMemory : public Memory {
     std::copy(data.begin(), data.end(), memory_.begin());
   }
 
+  void SetMemoryContents(const std::vector<uint16_t>& data) {
+    memory_.resize(64000);
+    int i = 0;
+    for (const auto& each : data) {
+      memory_[i] = each & 0xFF;
+      memory_[i + 1] = (each >> 8) & 0xFF;
+      i += 2;
+    }
+  }
+
   void InsertMemory(const uint64_t address, const std::vector<uint8_t>& data) {
     int i = 0;
     for (const auto& each : data) {
@@ -158,7 +168,8 @@ TEST_F(CPUTest, CheckMemoryContents) {
 
 TEST_F(CPUTest, ADC_Immediate_TwoPositiveNumbers) {
   cpu.A = 0x01;
-  std::vector<uint8_t> data = {0x69, 0x01};
+  cpu.status = 0xFF;  // 8-bit mode
+  std::vector<uint8_t> data = {0x01};
   mock_memory.SetMemoryContents(data);
 
   EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x01));
@@ -169,6 +180,7 @@ TEST_F(CPUTest, ADC_Immediate_TwoPositiveNumbers) {
 
 TEST_F(CPUTest, ADC_Immediate_PositiveAndNegativeNumbers) {
   cpu.A = 10;
+  cpu.status = 0xFF;  // 8-bit mode
   std::vector<uint8_t> data = {0x69, static_cast<uint8_t>(-20)};
   mock_memory.SetMemoryContents(data);
 
@@ -258,7 +270,7 @@ TEST_F(CPUTest, ADC_DirectPageIndexedIndirectX) {
 
 TEST_F(CPUTest, ADC_CheckCarryFlag) {
   cpu.A = 0xFF;
-  cpu.status = 0;
+  cpu.status = 0xFF;                         // 8-bit mode
   std::vector<uint8_t> data = {0x15, 0x01};  // Operand at address 0x15
   mock_memory.SetMemoryContents(data);
 
@@ -270,17 +282,93 @@ TEST_F(CPUTest, ADC_CheckCarryFlag) {
   EXPECT_TRUE(cpu.GetCarryFlag());
 }
 
+TEST_F(CPUTest, ADC_AbsoluteIndexedX) {
+  cpu.A = 0x03;
+  cpu.X = 0x02;  // X register
+  cpu.PC = 0x0001;
+  std::vector<uint8_t> data = {0x7D, 0x03, 0x00, 0x00, 0x05, 0x00};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0003));
+  EXPECT_CALL(mock_memory, ReadWord(0x0005)).WillOnce(Return(0x0005));
+
+  cpu.ExecuteInstruction(0x7D);  // ADC Absolute Indexed X
+  EXPECT_EQ(cpu.A, 0x08);
+}
+
+TEST_F(CPUTest, ADC_AbsoluteIndexedY) {
+  cpu.A = 0x03;
+  cpu.Y = 0x02;  // Y register
+  cpu.PC = 0x0001;
+  std::vector<uint8_t> data = {0x79, 0x03, 0x00, 0x00, 0x05, 0x00};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x0003));
+  EXPECT_CALL(mock_memory, ReadWord(0x0005)).WillOnce(Return(0x0005));
+
+  cpu.ExecuteInstruction(0x79);  // ADC Absolute Indexed Y
+  EXPECT_EQ(cpu.A, 0x08);
+}
+
+TEST_F(CPUTest, ADC_DirectPageIndexedY) {
+  cpu.A = 0x03;
+  cpu.D = 0x2000;
+  cpu.Y = 0x02;
+  std::vector<uint8_t> data = {0x77, 0x10};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x2012, {0x06});
+
+  EXPECT_CALL(mock_memory, ReadByte(0x0000)).WillOnce(Return(0x10));
+  EXPECT_CALL(mock_memory, ReadWordLong(0x2012)).WillOnce(Return(0x06));
+
+  cpu.ExecuteInstruction(0x77);  // ADC Direct Page Indexed Y
+  EXPECT_EQ(cpu.A, 0x09);
+}
+
+TEST_F(CPUTest, ADC_DirectPageIndirectLong) {
+  cpu.A = 0x03;
+  cpu.D = 0x2000;
+  cpu.PC = 0x0001;
+  std::vector<uint8_t> data = {0x67, 0x10};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x2010, {0x05, 0x00, 0x30});
+  mock_memory.InsertMemory(0x300005, {0x06});
+
+  EXPECT_CALL(mock_memory, ReadByte(0x0001)).WillOnce(Return(0x10));
+  EXPECT_CALL(mock_memory, ReadWordLong(0x2010)).WillOnce(Return(0x300005));
+  EXPECT_CALL(mock_memory, ReadWord(0x300005)).WillOnce(Return(0x06));
+
+  cpu.ExecuteInstruction(0x67);  // ADC Direct Page Indirect Long
+  EXPECT_EQ(cpu.A, 0x09);
+}
+
+TEST_F(CPUTest, ADC_StackRelative) {
+  cpu.A = 0x03;
+  cpu.PC = 0x0001;
+  cpu.SetSP(0x01FF);                         // Setting Stack Pointer to 0x01FF
+  std::vector<uint8_t> data = {0x63, 0x02};  // ADC sr
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x0201, {0x06});  // [0x0201] = 0x06
+
+  EXPECT_CALL(mock_memory, SP()).WillOnce(Return(0x01FF));
+
+  EXPECT_CALL(mock_memory, ReadByte(0x0001)).WillOnce(Return(0x02));  // Operand
+  EXPECT_CALL(mock_memory, ReadByte(0x0201))
+      .WillOnce(Return(0x06));  // Memory value
+
+  cpu.ExecuteInstruction(0x63);  // ADC Stack Relative
+  EXPECT_EQ(cpu.A, 0x09);        // 0x03 + 0x06 = 0x09
+}
+
 // ============================================================================
 // AND - Logical AND
 
 TEST_F(CPUTest, AND_Immediate) {
   cpu.PC = 0;
-  cpu.status = 0xFF;                               // 8-bit mode
-  cpu.A = 0b11110000;                              // A register
-  std::vector<uint8_t> data = {0x29, 0b10101010};  // AND #0b10101010
+  cpu.status = 0xFF;                         // 8-bit mode
+  cpu.A = 0b11110000;                        // A register
+  std::vector<uint8_t> data = {0b10101010};  // AND #0b10101010
   mock_memory.SetMemoryContents(data);
-
-  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0b10101010));
 
   cpu.ExecuteInstruction(0x29);  // AND Immediate
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
@@ -404,6 +492,71 @@ TEST_F(CPUTest, AND_AbsoluteLongIndexedX) {
 }
 
 // ============================================================================
+// ASL - Arithmetic Shift Left
+
+TEST_F(CPUTest, ASL_DirectPage) {
+  cpu.D = 0x1000;  // Setting Direct Page register to 0x1000
+  cpu.PC = 0x1000;
+  std::vector<uint8_t> data = {0x06, 0x10};  // ASL dp
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x1010, {0x40});  // [0x1010] = 0x40
+
+  cpu.ExecuteInstruction(0x06);  // ASL Direct Page
+  EXPECT_TRUE(cpu.GetCarryFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+}
+
+TEST_F(CPUTest, ASL_Accumulator) {
+  cpu.status = 0xFF;  // 8-bit mode
+  cpu.A = 0x40;
+  std::vector<uint8_t> data = {0x0A};  // ASL A
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x0A);  // ASL Accumulator
+  EXPECT_EQ(cpu.A, 0x80);
+  EXPECT_TRUE(cpu.GetCarryFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+}
+
+TEST_F(CPUTest, ASL_Absolute) {
+  std::vector<uint8_t> data = {0x0E, 0x10, 0x20};  // ASL abs
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x2010, {0x40});  // [0x2010] = 0x40
+
+  cpu.ExecuteInstruction(0x0E);  // ASL Absolute
+  EXPECT_TRUE(cpu.GetCarryFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+}
+
+TEST_F(CPUTest, ASL_DP_Indexed_X) {
+  cpu.D = 0x1000;  // Setting Direct Page register to 0x1000
+  cpu.X = 0x02;    // Setting X register to 0x02
+  std::vector<uint8_t> data = {0x16, 0x10};  // ASL dp,X
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x1012, {0x40});  // [0x1012] = 0x40
+
+  cpu.ExecuteInstruction(0x16);  // ASL DP Indexed, X
+  EXPECT_TRUE(cpu.GetCarryFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+}
+
+TEST_F(CPUTest, ASL_Absolute_Indexed_X) {
+  cpu.X = 0x02;                                    // Setting X register to 0x02
+  std::vector<uint8_t> data = {0x1E, 0x10, 0x20};  // ASL abs,X
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x2012, {0x40});  // [0x2012] = 0x40
+
+  cpu.ExecuteInstruction(0x1E);  // ASL Absolute Indexed, X
+  EXPECT_TRUE(cpu.GetCarryFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+}
+
+// ============================================================================
 // BCC - Branch if Carry Clear
 
 TEST_F(CPUTest, BCC_WhenCarryFlagClear) {
@@ -432,6 +585,169 @@ TEST_F(CPUTest, BCC_WhenCarryFlagSet) {
 }
 
 // ============================================================================
+// BCS - Branch if Carry Set
+
+TEST_F(CPUTest, BCS_WhenCarryFlagSet) {
+  cpu.SetCarryFlag(true);
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xB0, 0x03, 0x02};  // Operand at address 0x1001
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x03));
+
+  cpu.ExecuteInstruction(0xB0);  // BCS
+  EXPECT_EQ(cpu.PC, 0x1004);
+}
+
+TEST_F(CPUTest, BCS_WhenCarryFlagClear) {
+  cpu.SetCarryFlag(false);
+  cpu.PC = 0x1000;
+  std::vector<uint8_t> data = {0x10, 0x02, 0x01};  // Operand at address 0x1001
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(2));
+
+  cpu.ExecuteInstruction(0xB0);  // BCS
+  cpu.BCS(2);
+  EXPECT_EQ(cpu.PC, 0x1000);
+}
+
+TEST_F(CPUTest, BIT_Immediate) {
+  cpu.A = 0x01;
+  cpu.PC = 0x0001;
+  cpu.status = 0xFF;
+  std::vector<uint8_t> data = {0x00, 0x10};  // BIT
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x0010, {0x81});  // [0x0010] = 0x81
+
+  cpu.ExecuteInstruction(0x89);  // BIT
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, BIT_Absolute) {
+  cpu.A = 0x01;
+  cpu.PC = 0x0001;
+  cpu.status = 0xFF;
+  std::vector<uint8_t> data = {0x00, 0x10};  // BIT
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x0010, {0x81});  // [0x0010] = 0x81
+
+  // Read the operand
+  EXPECT_CALL(mock_memory, ReadByte(0x0001)).WillOnce(Return(0x10));
+
+  // Read the value at the address of the operand
+  EXPECT_CALL(mock_memory, ReadByte(0x0010)).WillOnce(Return(0x81));
+
+  cpu.ExecuteInstruction(0x24);  // BIT
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetOverflowFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, BIT_AbsoluteIndexedX) {
+  cpu.A = 0x01;
+  cpu.X = 0x02;
+  cpu.PC = 0x0001;
+  cpu.status = 0xFF;
+  std::vector<uint8_t> data = {0x00, 0x10};  // BIT
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x0012, {0x81});  // [0x0010] = 0x81
+
+  // Read the operand
+  EXPECT_CALL(mock_memory, ReadWord(0x0001)).WillOnce(Return(0x10));
+
+  // Read the value at the address of the operand
+  EXPECT_CALL(mock_memory, ReadByte(0x0012)).WillOnce(Return(0x81));
+
+  cpu.ExecuteInstruction(0x3C);  // BIT
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetOverflowFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, BMI_BranchTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetNegativeFlag(true);
+  std::vector<uint8_t> data = {0x02};  // BMI
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x30);  // BMI
+  EXPECT_EQ(cpu.PC, 0x0002);
+}
+
+TEST_F(CPUTest, BMI_BranchNotTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetNegativeFlag(false);
+  std::vector<uint8_t> data = {0x30, 0x02};  // BMI
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x30);  // BMI
+  EXPECT_EQ(cpu.PC, 0x0000);
+}
+
+TEST_F(CPUTest, BNE_BranchTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetZeroFlag(false);
+  std::vector<uint8_t> data = {0x02};  // BNE
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0xD0);  // BNE
+  EXPECT_EQ(cpu.PC, 0x0002);
+}
+
+TEST_F(CPUTest, BNE_BranchNotTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetZeroFlag(true);
+  std::vector<uint8_t> data = {0xD0, 0x02};  // BNE
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0xD0);  // BNE
+  EXPECT_EQ(cpu.PC, 0x0000);
+}
+
+TEST_F(CPUTest, BPL_BranchTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetNegativeFlag(false);
+  std::vector<uint8_t> data = {0x02};  // BPL
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x10);  // BPL
+  EXPECT_EQ(cpu.PC, 0x0002);
+}
+
+TEST_F(CPUTest, BPL_BranchNotTaken) {
+  cpu.PC = 0x0000;
+  cpu.SetNegativeFlag(true);
+  std::vector<uint8_t> data = {0x10, 0x02};  // BPL
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x10);  // BPL
+  EXPECT_EQ(cpu.PC, 0x0000);
+}
+
+TEST_F(CPUTest, BRA) {
+  cpu.PC = 0x0000;
+  std::vector<uint8_t> data = {0x02};  // BRA
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x80);  // BRA
+  EXPECT_EQ(cpu.PC, 0x0002);
+}
+
+TEST_F(CPUTest, BRK) {
+  cpu.PC = 0x0000;
+  std::vector<uint8_t> data = {0x00};  // BRK
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0xFFFE, {0x10, 0x20});  // [0xFFFE] = 0x2010
+
+  EXPECT_CALL(mock_memory, ReadWord(0xFFFE)).WillOnce(Return(0x2010));
+
+  cpu.ExecuteInstruction(0x00);  // BRK
+  EXPECT_EQ(cpu.PC, 0x2010);
+  EXPECT_TRUE(cpu.GetInterruptFlag());
+}
+
+// ============================================================================
 // BRL - Branch Long
 
 TEST_F(CPUTest, BRL) {
@@ -446,50 +762,57 @@ TEST_F(CPUTest, BRL) {
 }
 
 // ============================================================================
-
 // Test for CPX instruction
 TEST_F(CPUTest, CPX_CarryFlagSet) {
   cpu.X = 0x1000;
-  cpu.CPX(0x0F00);
+  cpu.CPX(0x0FFF);
   ASSERT_TRUE(cpu.GetCarryFlag());  // Carry flag should be set
 }
 
 TEST_F(CPUTest, CPX_ZeroFlagSet) {
-  cpu.X = 0x0F00;
+  cpu.SetIndexSize(false);  // Set X register to 16-bit mode
+  cpu.SetAccumulatorSize(false);
+  cpu.X = 0x1234;
+  std::vector<uint8_t> data = {0x34, 0x12};  // CPX #0x1234
+  mock_memory.SetMemoryContents(data);
   cpu.ExecuteInstruction(0xE0);    // Immediate CPX
   ASSERT_TRUE(cpu.GetZeroFlag());  // Zero flag should be set
 }
 
 TEST_F(CPUTest, CPX_NegativeFlagSet) {
-  cpu.PC = 1;
-  cpu.X = 0x8000;
-  std::vector<uint8_t> data = {0xE0, 0xFF, 0xFF};
+  cpu.SetIndexSize(false);  // Set X register to 16-bit mode
+  cpu.PC = 0;
+  cpu.X = 0x9000;
+  std::vector<uint8_t> data = {0xE0, 0x01, 0x80};  // CPX #0x8001
   mock_memory.SetMemoryContents(data);
-
-  cpu.ExecuteInstruction(0xE0);  // Immediate CPX (0xFFFF)
-
+  cpu.ExecuteInstruction(0xE0);        // Immediate CPX
   ASSERT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
 // Test for CPY instruction
 TEST_F(CPUTest, CPY_CarryFlagSet) {
   cpu.Y = 0x1000;
-  cpu.CPY(0x0F00);
+  cpu.CPY(0x0FFF);
   ASSERT_TRUE(cpu.GetCarryFlag());  // Carry flag should be set
 }
 
 TEST_F(CPUTest, CPY_ZeroFlagSet) {
-  cpu.Y = 0x0F00;
-  cpu.CPY(0x0F00);
+  cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
+  cpu.SetAccumulatorSize(false);
+  cpu.Y = 0x5678;
+  std::vector<uint8_t> data = {0x78, 0x56};  // CPY #0x5678
+  mock_memory.SetMemoryContents(data);
+  cpu.ExecuteInstruction(0xC0);    // Immediate CPY
   ASSERT_TRUE(cpu.GetZeroFlag());  // Zero flag should be set
 }
 
 TEST_F(CPUTest, CPY_NegativeFlagSet) {
-  cpu.PC = 1;
-  cpu.Y = 0x8000;
-  std::vector<uint8_t> data = {0xC0, 0xFF, 0xFF};
+  cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
+  cpu.PC = 0;
+  cpu.Y = 0x9000;
+  std::vector<uint8_t> data = {0xC0, 0x01, 0x80};  // CPY #0x8001
   mock_memory.SetMemoryContents(data);
-  cpu.ExecuteInstruction(0xC0);        // Immediate CPY (0xFFFF)
+  cpu.ExecuteInstruction(0xC0);        // Immediate CPY
   ASSERT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
@@ -498,6 +821,7 @@ TEST_F(CPUTest, CPY_NegativeFlagSet) {
 
 // Test for DEX instruction
 TEST_F(CPUTest, DEX) {
+  cpu.SetIndexSize(true);        // Set X register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 2
   cpu.ExecuteInstruction(0xCA);  // Execute DEX instruction
   EXPECT_EQ(0x01, cpu.X);  // Expected value of X register after decrementing
@@ -513,6 +837,7 @@ TEST_F(CPUTest, DEX) {
 
 // Test for DEY instruction
 TEST_F(CPUTest, DEY) {
+  cpu.SetIndexSize(true);        // Set Y register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 2
   cpu.ExecuteInstruction(0x88);  // Execute DEY instruction
   EXPECT_EQ(0x01, cpu.Y);  // Expected value of Y register after decrementing
@@ -530,30 +855,109 @@ TEST_F(CPUTest, DEY) {
 // INC - Increment Memory
 
 /**
-TEST_F(CPUTest, INC) {
-  cpu.status &= 0x20;
+TEST_F(CPUTest, INC_DirectPage_8bit) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xE6, 0x7F, 0x7F};
+  mock_memory.SetMemoryContents(data);
 
-  EXPECT_CALL(mock_memory, WriteByte(0x1000, 0x7F)).WillOnce(Return());
-  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x7F));
-  EXPECT_CALL(mock_memory, WriteByte(0x1000, 0x80)).WillOnce(Return());
+  EXPECT_CALL(mock_memory, ReadByte(0x7F)).WillOnce(Return(0x7F));
+  EXPECT_CALL(mock_memory, WriteByte(0, 0x80)).Times(1);
 
-  cpu.WriteByte(0x1000, 0x7F);
-  cpu.INC(0x1000);
-  EXPECT_EQ(cpu.ReadByte(0x1000), 0x80);
+  cpu.SetAccumulatorSize(true);
+  cpu.ExecuteInstruction(0xE6);  // INC Direct Page
   EXPECT_TRUE(cpu.GetNegativeFlag());
   EXPECT_FALSE(cpu.GetZeroFlag());
+}
 
-  EXPECT_CALL(mock_memory, WriteByte(0x1000, 0xFF)).WillOnce(Return());
-  cpu.WriteByte(0x1000, 0xFF);
-  cpu.INC(0x1000);
-  EXPECT_CALL(mock_memory, ReadByte(_)).WillOnce(Return(0x00));
-  EXPECT_EQ(cpu.ReadByte(0x1000), 0x00);
+TEST_F(CPUTest, INC_Absolute_16bit) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xEE, 0x7F, 0xFF};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0xFF7F)).WillOnce(Return(0x7FFF));
+  EXPECT_CALL(mock_memory, WriteWord(0xFF7F, 0x8000)).Times(1);
+
+  cpu.SetAccumulatorSize(false);
+  cpu.ExecuteInstruction(0xEE);  // INC Absolute
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, INC_DirectPage_ZeroResult_8bit) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xE6, 0xFF};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(0xFF)).WillOnce(Return(0xFF));
+  EXPECT_CALL(mock_memory, WriteByte(0xFF, 0x00)).Times(1);
+
+  cpu.SetAccumulatorSize(true);
+  cpu.ExecuteInstruction(0xE6);  // INC Direct Page
   EXPECT_FALSE(cpu.GetNegativeFlag());
   EXPECT_TRUE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, INC_Absolute_ZeroResult_16bit) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xEE, 0xFF, 0xFF};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0xFFFF)).WillOnce(Return(0xFFFF));
+  EXPECT_CALL(mock_memory, WriteWord(0xFFFF, 0x0000)).Times(1);
+
+  cpu.SetAccumulatorSize(false);
+  cpu.ExecuteInstruction(0xEE);  // INC Absolute
+  EXPECT_FALSE(cpu.GetNegativeFlag());
+  EXPECT_TRUE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, INC_DirectPage_8bit_Overflow) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xE6, 0x80};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(0x80)).WillOnce(Return(0xFF));
+  EXPECT_CALL(mock_memory, WriteByte(0x80, 0x00)).Times(1);
+
+  cpu.SetAccumulatorSize(true);
+  cpu.ExecuteInstruction(0xE6);  // INC Direct Page
+  EXPECT_FALSE(cpu.GetNegativeFlag());
+  EXPECT_TRUE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, INC_DirectPageIndexedX_8bit) {
+  cpu.PC = 0x1001;
+  cpu.X = 0x01;
+  std::vector<uint8_t> data = {0xF6, 0x7E};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(0x7F)).WillOnce(Return(0x7F));
+  EXPECT_CALL(mock_memory, WriteByte(0x7F, 0x80)).Times(1);
+
+  cpu.SetAccumulatorSize(true);
+  cpu.ExecuteInstruction(0xF6);  // INC DP Indexed, X
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, INC_AbsoluteIndexedX_16bit) {
+  cpu.PC = 0x1001;
+  cpu.X = 0x01;
+  std::vector<uint8_t> data = {0xFE, 0x7F, 0xFF};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadWord(0xFF80)).WillOnce(Return(0x7FFF));
+  EXPECT_CALL(mock_memory, WriteWord(0xFF80, 0x8000)).Times(1);
+
+  cpu.SetAccumulatorSize(false);
+  cpu.ExecuteInstruction(0xFE);  // INC Absolute Indexed, X
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
 }
 */
 
 TEST_F(CPUTest, INX) {
+  cpu.SetIndexSize(true);  // Set X register to 8-bit mode
   cpu.X = 0x7F;
   cpu.INX();
   EXPECT_EQ(cpu.X, 0x80);
@@ -568,6 +972,7 @@ TEST_F(CPUTest, INX) {
 }
 
 TEST_F(CPUTest, INY) {
+  cpu.SetIndexSize(true);  // Set Y register to 8-bit mode
   cpu.Y = 0x7F;
   cpu.INY();
   EXPECT_EQ(cpu.Y, 0x80);
@@ -661,6 +1066,68 @@ TEST_F(CPUTest, JSL_AbsoluteLong) {
   cpu.ExecuteInstruction(0x22);  // JSL Absolute Long
   EXPECT_EQ(cpu.PC, 0x002005);
 }
+
+// ============================================================================
+// LDA - Load Accumulator
+
+/**
+TEST_F(CPUTest, LDA_Immediate_8bit) {
+  cpu.PC = 0x1001;
+  cpu.SetAccumulatorSize(true);
+  cpu.A = 0x00;
+  std::vector<uint8_t> data = {0xA9, 0x7F, 0x7F};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x7F, {0xAA});
+
+  cpu.ExecuteInstruction(0xA9);  // LDA Immediate
+  EXPECT_EQ(cpu.A, 0x7F);
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, LDA_Immediate_16bit) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xA9, 0x7F, 0xFF};
+  mock_memory.SetMemoryContents(data);
+
+  cpu.SetAccumulatorSize(false);
+  cpu.ExecuteInstruction(0xA9);  // LDA Immediate
+  EXPECT_EQ(cpu.A, 0xFF7F);
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, LDA_DirectPage) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xA5, 0x7F};
+  mock_memory.SetMemoryContents(data);
+
+  EXPECT_CALL(mock_memory, ReadByte(0x7F)).WillOnce(Return(0x80));
+
+  cpu.SetAccumulatorSize(true);
+  cpu.ExecuteInstruction(0xA5);  // LDA Direct Page
+  EXPECT_EQ(cpu.A, 0x80);
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+
+TEST_F(CPUTest, LDA_Absolute) {
+  cpu.PC = 0x1001;
+  std::vector<uint8_t> data = {0xAD, 0x7F, 0xFF};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x7FFF, {0x7F});
+
+  EXPECT_CALL(mock_memory, ReadWord(0x1001)).WillOnce(Return(0x7FFF));
+
+  EXPECT_CALL(mock_memory, ReadByte(0x7FFF)).WillOnce(Return(0x7F));
+
+  cpu.SetAccumulatorSize(true);
+  cpu.ExecuteInstruction(0xAD);  // LDA Absolute
+  EXPECT_EQ(cpu.A, 0x7F);
+  EXPECT_TRUE(cpu.GetNegativeFlag());
+  EXPECT_FALSE(cpu.GetZeroFlag());
+}
+*/
 
 // ============================================================================
 // Stack Tests
