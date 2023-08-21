@@ -111,6 +111,12 @@ class ROMInfo {
   // Additional methods and constructors
 };
 
+class Observer {
+ public:
+  virtual ~Observer() = default;
+  virtual void Notify(uint32_t address, uint8_t data) = 0;
+};
+
 // memory.h
 class Memory {
  public:
@@ -224,15 +230,18 @@ class MemoryImpl : public Memory, public Loggable {
 
   uint8_t ReadByte(uint16_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
+    NotifyObservers(mapped_address, /*data=*/0);
     return memory_.at(mapped_address);
   }
   uint16_t ReadWord(uint16_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
+    NotifyObservers(mapped_address, /*data=*/0);
     return static_cast<uint16_t>(memory_.at(mapped_address)) |
            (static_cast<uint16_t>(memory_.at(mapped_address + 1)) << 8);
   }
   uint32_t ReadWordLong(uint16_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
+    NotifyObservers(mapped_address, /*data=*/0);
     return static_cast<uint32_t>(memory_.at(mapped_address)) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 1)) << 8) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 2)) << 16);
@@ -292,6 +301,8 @@ class MemoryImpl : public Memory, public Loggable {
     return (static_cast<uint32_t>(high) << 16) |
            (static_cast<uint32_t>(mid) << 8) | low;
   }
+
+  void AddObserver(Observer* observer) { observers_.push_back(observer); }
 
   // Stack Pointer access.
   int16_t SP() const override { return SP_; }
@@ -356,6 +367,14 @@ class MemoryImpl : public Memory, public Loggable {
   static const uint32_t kVRAMSize = 0x10000;
   static const uint32_t kOAMStart = 0x218000;
   static const uint32_t kOAMSize = 0x220;
+
+  void NotifyObservers(uint32_t address, uint8_t data) const {
+    for (auto observer : observers_) {
+      observer->Notify(address, data);
+    }
+  }
+
+  std::vector<Observer*> observers_;
 
   // Memory (64KB)
   std::vector<uint8_t> memory_;
