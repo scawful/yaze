@@ -72,11 +72,13 @@ const std::unordered_map<uint8_t, std::string> opcode_to_mnemonic = {
 
 const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
 
-class CPU : public Memory, public Clock, public Loggable {
+class CPU : public Memory, public Loggable {
  public:
-  explicit CPU(Memory& mem) : memory(mem) {}
+  explicit CPU(Memory& mem, VirtualClock& vclock)
+      : memory(mem), clock(vclock) {}
+
   void Init() {
-    SetFrequency(kCpuClockSpeed);
+    clock.SetFrequency(kCpuClockSpeed);
     memory.ClearMemory();
   }
 
@@ -1037,6 +1039,7 @@ class CPU : public Memory, public Clock, public Loggable {
   }
   int16_t SP() const override { return memory.SP(); }
   void SetSP(int16_t value) override { memory.SetSP(value); }
+  void UpdateClock(int delta_time) { clock.UpdateClock(delta_time); }
 
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
@@ -1083,6 +1086,7 @@ class CPU : public Memory, public Clock, public Loggable {
   uint8_t at(int i) const override { return 0; }
 
   Memory& memory;
+  VirtualClock& clock;
 };
 
 }  // namespace emu

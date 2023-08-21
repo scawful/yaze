@@ -7,7 +7,17 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class Clock {
+class VirtualClock {
+ public:
+  virtual ~VirtualClock() = default;
+  virtual void UpdateClock(double delta) = 0;
+  virtual unsigned long long GetCycleCount() const = 0;
+  virtual void ResetAccumulatedTime() = 0;
+  virtual void SetFrequency(float new_frequency) = 0;
+  virtual float GetFrequency() const = 0;
+};
+
+class Clock : public VirtualClock {
  public:
   Clock() = default;
   virtual ~Clock() = default;
@@ -27,15 +37,17 @@ class Clock {
     cycleCount++;
   }
 
-  void UpdateClock(double delta) {
+  void UpdateClock(double delta) override {
     UpdateCycleCount(delta);
     ResetAccumulatedTime();
   }
 
-  unsigned long long GetCycleCount() const { return cycleCount; }
-  float GetFrequency() const { return frequency; }
-  void SetFrequency(float new_frequency) { this->frequency = new_frequency; }
-  void ResetAccumulatedTime() { accumulatedTime = 0.0; }
+  void ResetAccumulatedTime() override { accumulatedTime = 0.0; }
+  unsigned long long GetCycleCount() const override { return cycleCount; }
+  float GetFrequency() const override { return frequency; }
+  void SetFrequency(float new_frequency) override {
+    this->frequency = new_frequency;
+  }
 
  private:
   uint64_t cycle = 0;                 // Current cycle

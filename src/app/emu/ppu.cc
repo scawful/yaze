@@ -10,8 +10,6 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-PPU::PPU(Memory& memory) : memory_(memory) {}
-
 void PPU::RenderScanline() {
   // Fetch the tile data from VRAM, tile map data from memory, and palette data
   // from CGRAM
@@ -47,7 +45,7 @@ void PPU::RenderScanline() {
 }
 
 void PPU::Update() {
-  auto cycles_to_run = GetCycleCount();
+  auto cycles_to_run = clock_.GetCycleCount();
 
   UpdateInternalState(cycles_to_run);
 
@@ -55,7 +53,7 @@ void PPU::Update() {
   if (currentScanline < visibleScanlines) {
     // Render the current scanline
     // This involves fetching tile data, applying palette colors, handling
-    // sprite priorities, etc.
+    // sprite spriorities, etc.
     RenderScanline();
 
     // Increment the current scanline

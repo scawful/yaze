@@ -10,11 +10,9 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-APU::APU(Memory& memory) : memory_(memory) {}
-
 void APU::Init() {
   // Set the clock frequency
-  SetFrequency(kApuClockSpeed);
+  clock_.SetFrequency(kApuClockSpeed);
 
   // Initialize registers
   // ...
@@ -22,14 +20,14 @@ void APU::Init() {
 
 void APU::Reset() {
   // Reset the clock
-  ResetAccumulatedTime();
+  clock_.ResetAccumulatedTime();
 
   // Reset the SPC700
   // ...
 }
 
 void APU::Update() {
-  auto cycles_to_run = GetCycleCount();
+  auto cycles_to_run = clock_.GetCycleCount();
 
   for (auto i = 0; i < cycles_to_run; ++i) {
     // Update the APU

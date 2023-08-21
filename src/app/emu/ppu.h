@@ -631,7 +631,7 @@ const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 class PPU : public Clock {
  public:
   // Initializes the PPU with the necessary resources and dependencies
-  PPU(Memory& memory);
+  PPU(Memory& memory, VirtualClock& clock) : memory_(memory), clock_(clock) {}
 
   void Init() {
     // Initialize the frame buffer with a size that corresponds to the
@@ -714,6 +714,7 @@ class PPU : public Clock {
   // ===========================================================
   // Member variables to store internal PPU state and resources
   Memory& memory_;
+  VirtualClock& clock_;
   std::vector<uint8_t> frame_buffer_;
 
   Tilemap tilemap_;
