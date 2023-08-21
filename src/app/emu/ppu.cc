@@ -13,14 +13,6 @@ namespace emu {
 PPU::PPU(Memory& memory) : memory_(memory) {}
 
 void PPU::RenderScanline() {
-  // Render background layers
-  // ...
-
-  // Render sprites
-  // ...
-}
-
-void PPU::Update() {
   // Fetch the tile data from VRAM, tile map data from memory, and palette data
   // from CGRAM
   UpdateTileData();     // Fetches the tile data from VRAM and stores it in an
@@ -52,6 +44,39 @@ void PPU::Update() {
   // Display the frame buffer on the screen
   DisplayFrameBuffer();  // Sends the frame buffer to the display hardware
                          // (e.g., SDL2)
+}
+
+void PPU::Update() {
+  auto cycles_to_run = GetCycleCount();
+
+  UpdateInternalState(cycles_to_run);
+
+  // Render however many scanlines we're supposed to.
+  if (currentScanline < visibleScanlines) {
+    // Render the current scanline
+    // This involves fetching tile data, applying palette colors, handling
+    // sprite priorities, etc.
+    RenderScanline();
+
+    // Increment the current scanline
+    currentScanline++;
+  }
+}
+
+void PPU::UpdateInternalState(int cycles) {
+  // Update the PPU's internal state based on the number of cycles
+  cycleCount += cycles;
+
+  // Check if it's time to move to the next scanline
+  if (cycleCount >= cyclesPerScanline) {
+    currentScanline++;
+    cycleCount -= cyclesPerScanline;
+
+    // If we've reached the end of the frame, reset to the first scanline
+    if (currentScanline >= totalScanlines) {
+      currentScanline = 0;
+    }
+  }
 }
 
 // Reads a byte from the specified PPU register

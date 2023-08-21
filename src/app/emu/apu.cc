@@ -21,15 +21,23 @@ void APU::Init() {
 }
 
 void APU::Reset() {
-  // Render background layers
-  // ...
+  // Reset the clock
+  ResetAccumulatedTime();
 
-  // Render sprites
+  // Reset the SPC700
   // ...
 }
 
 void APU::Update() {
-  // ...
+  auto cycles_to_run = GetCycleCount();
+
+  for (auto i = 0; i < cycles_to_run; ++i) {
+    // Update the APU
+    // ...
+
+    // Update the SPC700
+    // ...
+  }
 }
 
 uint8_t APU::ReadRegister(uint16_t address) {
