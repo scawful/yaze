@@ -142,7 +142,7 @@ class Memory {
 
 class MemoryImpl : public Memory, public Loggable {
  public:
-  void Initialize(const std::vector<uint8_t>& romData) {
+  void Initialize(const std::vector<uint8_t> romData) {
     const size_t ROM_CHUNK_SIZE = 0x8000;           // 32 KB
     const size_t SRAM_SIZE = 0x10000;               // 64 KB
     const size_t SYSTEM_RAM_SIZE = 0x20000;         // 128 KB
