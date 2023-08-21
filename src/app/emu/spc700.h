@@ -189,7 +189,39 @@ class SPC700 {
     PSW.N = (operand & 0x80);
   }
 
-  // ADC SBC CMP
+  // ADC
+  void ADC(uint8_t operand, bool isImmediate = false) {
+    uint8_t value = isImmediate ? imm() : operand;
+    uint16_t result = A + value + PSW.C;
+    PSW.V = ((A ^ result) & (value ^ result) & 0x80);
+    PSW.C = (result > 0xFF);
+    PSW.Z = ((result & 0xFF) == 0);
+    PSW.N = (result & 0x80);
+    PSW.H = ((A ^ value ^ result) & 0x10);
+    A = result & 0xFF;
+  }
+
+  // SBC
+  void SBC(uint8_t operand, bool isImmediate = false) {
+    uint8_t value = isImmediate ? imm() : operand;
+    uint16_t result = A - value - (1 - PSW.C);
+    PSW.V = ((A ^ result) & (A ^ value) & 0x80);
+    PSW.C = (result < 0x100);
+    PSW.Z = ((result & 0xFF) == 0);
+    PSW.N = (result & 0x80);
+    PSW.H = ((A ^ value ^ result) & 0x10);
+    A = result & 0xFF;
+  }
+
+  // CMP
+  void CMP(uint8_t operand, bool isImmediate = false) {
+    uint8_t value = isImmediate ? imm() : operand;
+    uint16_t result = A - value;
+    PSW.C = (result < 0x100);
+    PSW.Z = ((result & 0xFF) == 0);
+    PSW.N = (result & 0x80);
+  }
+
   // AND OR EOR ASL LSR ROL XCN
   // INC DEC
   // MOVW INCW DECW ADDW SUBW CMPW MUL DIV
