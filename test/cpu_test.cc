@@ -3,11 +3,21 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "app/emu/clock.h"
 #include "app/emu/mem.h"
 
 namespace yaze {
 namespace app {
 namespace emu {
+
+class MockClock : public VirtualClock {
+ public:
+  MOCK_METHOD(void, UpdateClock, (double delta), (override));
+  MOCK_METHOD(unsigned long long, GetCycleCount, (), (const, override));
+  MOCK_METHOD(void, ResetAccumulatedTime, (), (override));
+  MOCK_METHOD(void, SetFrequency, (float new_frequency), (override));
+  MOCK_METHOD(float, GetFrequency, (), (const, override));
+};
 
 class MockMemory : public Memory {
  public:
@@ -133,7 +143,8 @@ class CPUTest : public ::testing::Test {
   }
 
   MockMemory mock_memory;
-  CPU cpu{mock_memory};
+  MockClock mock_clock;
+  CPU cpu{mock_memory, mock_clock};
 };
 
 using ::testing::_;

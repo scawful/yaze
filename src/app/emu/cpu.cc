@@ -70,7 +70,7 @@ uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
 }
 
 void CPU::Update() {
-  auto cycles_to_run = GetCycleCount();
+  auto cycles_to_run = clock.GetCycleCount();
 
   // Execute the calculated number of cycles
   for (int i = 0; i < cycles_to_run; i++) {

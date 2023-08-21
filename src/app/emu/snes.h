@@ -2,6 +2,7 @@
 #include <string>
 
 #include "app/emu/apu.h"
+#include "app/emu/clock.h"
 #include "app/emu/cpu.h"
 #include "app/emu/dbg.h"
 #include "app/emu/ppu.h"
@@ -102,9 +103,11 @@ class SNES : public DMA {
 
   // Components of the SNES
   MemoryImpl memory_;
-  CPU cpu{memory_};
-  PPU ppu{memory_};
-  APU apu{memory_};
+  Clock clock_;
+
+  CPU cpu{memory_, clock_};
+  PPU ppu{memory_, clock_};
+  APU apu{memory_, clock_};
 
   // Helper classes
   ROMInfo rom_info_;

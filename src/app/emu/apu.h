@@ -15,10 +15,10 @@ const int kApuClockSpeed = 1024000;  // 1.024 MHz
 const int apuSampleRate = 32000;     // 32 KHz
 const int apuClocksPerSample = 64;   // 64 clocks per sample
 
-class APU : public SPC700, public Clock {
+class APU : public SPC700, public Observer {
  public:
   // Initializes the APU with the necessary resources and dependencies
-  APU(Memory &memory);
+  APU(Memory &memory, VirtualClock &clock) : memory_(memory), clock_(clock) {}
 
   void Init();
 
@@ -27,6 +27,14 @@ class APU : public SPC700, public Clock {
 
   // Runs the APU for one frame
   void Update();
+
+  void Notify(uint32_t address, uint8_t data) override {
+    if (address >= 0x2140 && address <= 0x2143) {
+      // Handle communication with the APU
+    }
+  }
+
+  void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
 
   // Reads a byte from the specified APU register
   uint8_t ReadRegister(uint16_t address);
@@ -57,6 +65,7 @@ class APU : public SPC700, public Clock {
 
   // Member variables to store internal APU state and resources
   Memory &memory_;
+  VirtualClock &clock_;
   std::vector<int16_t> audioSamples_;
   // Other state variables (registers, counters, channel settings, etc.)
 };
