@@ -645,6 +645,7 @@ class PPU : public Clock {
 
   // Runs the PPU for one frame.
   void Update();
+  void UpdateInternalState(int cycles);
 
   // Reads a byte from the specified PPU register
   uint8_t ReadRegister(uint16_t address);
@@ -734,6 +735,12 @@ class PPU : public Clock {
 
   // The CGRAM memory area holds the color palette data.
   std::array<uint8_t, 512> cgram_;
+
+  int cycleCount = 0;
+  int currentScanline = 0;
+  const int cyclesPerScanline = 341;  // SNES PPU has 341 cycles per scanline
+  const int totalScanlines = 262;     // SNES PPU has 262 scanlines per frame
+  const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 };
 
 }  // namespace emu
