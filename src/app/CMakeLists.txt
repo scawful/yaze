@@ -6,6 +6,7 @@ add_executable(
   app/emu/cpu.cc
   app/emu/ppu.cc
   app/emu/snes.cc
+  app/emu/spc700.cc
   ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EDITOR_SRC}
   ${YAZE_APP_GFX_SRC}

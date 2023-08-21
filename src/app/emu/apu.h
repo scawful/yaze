@@ -4,12 +4,13 @@
 #include <cstdint>
 
 #include "app/emu/mem.h"
+#include "app/emu/spc700.h"
 
 namespace yaze {
 namespace app {
 namespace emu {
 
-class APU {
+class APU : public SPC700 {
  public:
   // Initializes the APU with the necessary resources and dependencies
   APU(Memory &memory);
