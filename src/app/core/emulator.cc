@@ -23,7 +23,7 @@ void Emulator::Run() {
 
   RenderEmulator();
 
-  while (running_) {
+  if (running_) {
     // Handle user input events
     HandleEvents();
     // Update the emulator state
@@ -42,9 +42,10 @@ void Emulator::RenderNavBar() {
   MENU_BAR()
 
   if (ImGui::BeginMenu("Game")) {
+    MENU_ITEM("Power Off") {}
     MENU_ITEM("Pause") {}
     MENU_ITEM("Reset") {}
-    MENU_ITEM("Power Off") {}
+
     MENU_ITEM("Save State") {}
     MENU_ITEM("Load State") {}
 
