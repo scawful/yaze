@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "app/emu/clock.h"
 #include "app/emu/mem.h"
 #include "app/emu/spc700.h"
 
@@ -10,7 +11,11 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class APU : public SPC700 {
+const int kApuClockSpeed = 1024000;  // 1.024 MHz
+const int apuSampleRate = 32000;     // 32 KHz
+const int apuClocksPerSample = 64;   // 64 clocks per sample
+
+class APU : public SPC700, public Clock {
  public:
   // Initializes the APU with the necessary resources and dependencies
   APU(Memory &memory);
@@ -20,8 +25,8 @@ class APU : public SPC700 {
   // Resets the APU to its initial state
   void Reset();
 
-  // Runs the APU for a specified number of clock cycles
-  void Run(int cycles);
+  // Runs the APU for one frame
+  void Update();
 
   // Reads a byte from the specified APU register
   uint8_t ReadRegister(uint16_t address);

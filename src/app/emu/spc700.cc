@@ -11,6 +11,7 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
   switch (opcode) {
       // 8-bit Move Memory to Register
     case 0xE8:  // MOV A, #imm
+      MOV(A, true);
       break;
     case 0xE6:  // MOV A, (X)
       break;

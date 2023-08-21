@@ -69,18 +69,15 @@ uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
   return fetchedByte;
 }
 
-void CPU::Run() {
-  while (true) {
-    // Fetch the next opcode from memory at the current program counter
-    uint8_t opcode = memory.ReadByte(PC);
+void CPU::Update() {
+  auto cycles_to_run = GetCycleCount();
 
-    // Increment the program counter to point to the next instruction
-    PC++;
+  // Execute the calculated number of cycles
+  for (int i = 0; i < cycles_to_run; i++) {
+    // Fetch and execute an instruction
+    ExecuteInstruction(FetchByte());
 
-    // Execute the instruction corresponding to the fetched opcode
-    ExecuteInstruction(opcode);
-
-    // Optionally, handle interrupts or other external events
+    // Handle any interrupts, if necessary
     HandleInterrupts();
   }
 }

@@ -82,11 +82,6 @@ class SNES : public DMA {
   // VBlank routine
   void VBlankRoutine();
 
-  // Functions for PPU-related operations
-  void RenderScanline();
-  void DrawBackgroundLayer(int layer);
-  void DrawSprites();
-
   // Controller input handling
   void HandleInput();
 
@@ -118,11 +113,11 @@ class SNES : public DMA {
   std::vector<uint8_t> rom_data;
 
   // Byte flag to indicate if the VBlank routine should be executed or not
-  std::atomic<bool> vBlankFlag;
+  std::atomic<bool> v_blank_flag_;
 
   // 32-bit counter to track the number of NMI interrupts (useful for clocks and
   // timers)
-  std::atomic<uint32_t> frameCounter;
+  std::atomic<uint32_t> frame_counter_;
 
   // Other private member variables
   bool running_;

@@ -265,52 +265,37 @@ void SNES::Init(ROM& rom) {
 void SNES::Run() {
   running_ = true;
 
-  const int cpuClockSpeed = 21477272;  // 21.477272 MHz
-  const int ppuClockSpeed = 5369318;   // 5.369318 MHz
-  const int apuClockSpeed = 32000;     // 32 KHz
-  const double targetFPS = 60.0;       // 60 frames per second
+  const double targetFPS = 60.0;  // 60 frames per second
 
-  const double cpuCycleTime = 1.0 / cpuClockSpeed;
-  const double ppuCycleTime = 1.0 / ppuClockSpeed;
-  const double apuCycleTime = 1.0 / apuClockSpeed;
   const double frameTime = 1.0 / targetFPS;
 
-  double cpuAccumulatedTime = 0.0;
-  double ppuAccumulatedTime = 0.0;
-  double apuAccumulatedTime = 0.0;
-  double frameAccumulatedTime = 0.0;
+  double frame_accumulated_time = 0.0;
 
-  auto lastTime = std::chrono::high_resolution_clock::now();
+  auto last_time = std::chrono::high_resolution_clock::now();
 
   if (running_) {
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    double deltaTime =
-        std::chrono::duration<double>(currentTime - lastTime).count();
-    lastTime = currentTime;
+    auto current_time = std::chrono::high_resolution_clock::now();
+    double delta_time =
+        std::chrono::duration<double>(current_time - last_time).count();
+    last_time = current_time;
 
-    cpuAccumulatedTime += deltaTime;
-    ppuAccumulatedTime += deltaTime;
-    apuAccumulatedTime += deltaTime;
-    frameAccumulatedTime += deltaTime;
+    frame_accumulated_time += delta_time;
 
-    while (cpuAccumulatedTime >= cpuCycleTime) {
-      cpu.ExecuteInstruction(cpu.FetchByte());
-      cpuAccumulatedTime -= cpuCycleTime;
-    }
+    // Update the CPU
+    cpu.UpdateClock(delta_time);
+    cpu.Update();
 
-    while (ppuAccumulatedTime >= ppuCycleTime) {
-      RenderScanline();
-      ppuAccumulatedTime -= ppuCycleTime;
-    }
+    // Update the PPU
+    ppu.UpdateClock(delta_time);
+    ppu.Update();
 
-    while (apuAccumulatedTime >= apuCycleTime) {
-      // apu.Update();
-      apuAccumulatedTime -= apuCycleTime;
-    }
+    // Update the APU
+    apu.UpdateClock(delta_time);
+    apu.Update();
 
-    if (frameAccumulatedTime >= frameTime) {
+    if (frame_accumulated_time >= frameTime) {
       // renderer.Render();
-      frameAccumulatedTime -= frameTime;
+      frame_accumulated_time -= frameTime;
     }
 
     HandleInput();
@@ -319,7 +304,7 @@ void SNES::Run() {
 
 // Enable NMI Interrupts
 void SNES::EnableVBlankInterrupts() {
-  vBlankFlag = false;
+  v_blank_flag_ = false;
 
   // Clear the RDNMI VBlank flag
   memory_.ReadByte(0x4210);  // RDNMI
@@ -330,10 +315,10 @@ void SNES::EnableVBlankInterrupts() {
 
 // Wait until the VBlank routine has been processed
 void SNES::WaitForVBlank() {
-  vBlankFlag = true;
+  v_blank_flag_ = true;
 
-  // Loop until `vBlankFlag` is clear
-  while (vBlankFlag) {
+  // Loop until `v_blank_flag_` is clear
+  while (v_blank_flag_) {
     std::this_thread::yield();
   }
 }
@@ -350,15 +335,15 @@ void SNES::NmiIsr() {
   cpu.DB = 0x80;  // Assuming bank 0x80, can be changed to 0x00
   cpu.D = 0;
 
-  if (vBlankFlag) {
+  if (v_blank_flag_) {
     VBlankRoutine();
 
-    // Clear `vBlankFlag`
-    vBlankFlag = false;
+    // Clear `v_blank_flag_`
+    v_blank_flag_ = false;
   }
 
-  // Increment 32-bit frameCounter
-  frameCounter++;
+  // Increment 32-bit frame_counter_
+  frame_counter_++;
 
   // Restore CPU registers
   cpu.PHB();
@@ -368,24 +353,6 @@ void SNES::NmiIsr() {
 void SNES::VBlankRoutine() {
   // Execute code that needs to run during VBlank, such as transferring data to
   // the PPU
-  // ...
-}
-
-void SNES::RenderScanline() {
-  // Render background layers
-  for (int layer = 0; layer < 4; layer++) {
-    DrawBackgroundLayer(layer);
-  }
-
-  // Render sprites
-  DrawSprites();
-}
-
-void SNES::DrawBackgroundLayer(int layer) {
-  // ...
-}
-
-void SNES::DrawSprites() {
   // ...
 }
 

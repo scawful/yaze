@@ -13,6 +13,9 @@ namespace emu {
 APU::APU(Memory& memory) : memory_(memory) {}
 
 void APU::Init() {
+  // Set the clock frequency
+  SetFrequency(kApuClockSpeed);
+
   // Initialize registers
   // ...
 }
@@ -25,7 +28,7 @@ void APU::Reset() {
   // ...
 }
 
-void APU::Run(int cycles) {
+void APU::Update() {
   // ...
 }
 

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "app/emu/clock.h"
 #include "app/emu/mem.h"
 
 namespace yaze {
@@ -585,14 +586,14 @@ struct JoypadRegisters {
 
 // DMA Registers
 struct DmaRegisters {
-  uint8_t startDmaTransfer;          // Register $420B
-  uint8_t enableHDmaTransfer;        // Register $420C
-  uint8_t dmaControlRegister[8];     // Register $43?0
-  uint8_t dmaDestinationAddress[8];  // Register $43?1
-  uint32_t dmaSourceAddress[8];      // Register $43?2/$43?3/$43?4
-  uint16_t bytesToTransfer[8];       // Register $43?5/$43?6/$43?7
-  uint16_t hdmaCountPointer[8];      // Register $43?8/$43?9
-  uint8_t scanlinesLeft[8];          // Register $43?A
+  uint8_t startDmaTransfer;              // Register $420B
+  uint8_t enableHDmaTransfer;            // Register $420C
+  uint8_t dmacontrol_register_ister[8];  // Register $43?0
+  uint8_t dmaDestinationAddress[8];      // Register $43?1
+  uint32_t dmaSourceAddress[8];          // Register $43?2/$43?3/$43?4
+  uint16_t bytesToTransfer[8];           // Register $43?5/$43?6/$43?7
+  uint16_t hdmaCountPointer[8];          // Register $43?8/$43?9
+  uint8_t scanlinesLeft[8];              // Register $43?A
 };
 
 // WRAM access Registers
@@ -625,7 +626,9 @@ struct BackgroundLayer {
   bool enabled;                     // Whether the background layer is enabled
 };
 
-class PPU {
+const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
+
+class PPU : public Clock {
  public:
   // Initializes the PPU with the necessary resources and dependencies
   PPU(Memory& memory);
@@ -633,14 +636,15 @@ class PPU {
   void Init() {
     // Initialize the frame buffer with a size that corresponds to the
     // screen resolution
+    SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
   }
 
   // Resets the PPU to its initial state
   void Reset() { std::fill(frame_buffer_.begin(), frame_buffer_.end(), 0); }
 
-  // Runs the PPU for a specified number of clock cycles
-  void Run(int cycles);
+  // Runs the PPU for one frame.
+  void Update();
 
   // Reads a byte from the specified PPU register
   uint8_t ReadRegister(uint16_t address);

@@ -20,7 +20,7 @@ void PPU::RenderScanline() {
   // ...
 }
 
-void PPU::Run(int cycles) {
+void PPU::Update() {
   // Fetch the tile data from VRAM, tile map data from memory, and palette data
   // from CGRAM
   UpdateTileData();     // Fetches the tile data from VRAM and stores it in an
