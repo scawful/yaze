@@ -65,9 +65,9 @@ class SDSP {
 class SPC700 {
   AudioRAM aram;
   SDSP sdsp;
-  uint8_t testReg;
-  uint8_t controlReg;
-  uint8_t dspAddrReg;
+  uint8_t test_register_;
+  uint8_t control_register_;
+  uint8_t dsp_address_register_;
 
   // Registers
   uint8_t A;    // 8-bit accumulator
@@ -95,13 +95,13 @@ class SPC700 {
   uint8_t read(uint16_t address) {
     switch (address) {
       case 0xF0:
-        return testReg;
+        return test_register_;
       case 0xF1:
-        return controlReg;
+        return control_register_;
       case 0xF2:
-        return dspAddrReg;
+        return dsp_address_register_;
       case 0xF3:
-        return sdsp.readGlobalReg(dspAddrReg);
+        return sdsp.readGlobalReg(dsp_address_register_);
       default:
         if (address < 0xFFC0) {
           return aram.read(address);
@@ -116,16 +116,16 @@ class SPC700 {
   void write(uint16_t address, uint8_t value) {
     switch (address) {
       case 0xF0:
-        testReg = value;
+        test_register_ = value;
         break;
       case 0xF1:
-        controlReg = value;
+        control_register_ = value;
         break;
       case 0xF2:
-        dspAddrReg = value;
+        dsp_address_register_ = value;
         break;
       case 0xF3:
-        sdsp.writeGlobalReg(dspAddrReg, value);
+        sdsp.writeGlobalReg(dsp_address_register_, value);
         break;
       default:
         if (address < 0xFFC0) {
@@ -182,7 +182,7 @@ class SPC700 {
 
   // Instructions
   // MOV
-  void MOV(uint8_t operand, bool isImmediate) {
+  void MOV(uint8_t operand, bool isImmediate = false) {
     uint8_t value = isImmediate ? imm() : operand;
     operand = value;
     PSW.Z = (operand == 0);

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/emu/clock.h"
 #include "app/emu/log.h"
 #include "app/emu/mem.h"
 
@@ -69,37 +70,15 @@ const std::unordered_map<uint8_t, std::string> opcode_to_mnemonic = {
 
 };
 
-class Clock {
- public:
-  Clock() = default;
-  virtual ~Clock() = default;
-
-  void Cycle() { cycle++; }
-  void SetFrequency(float frequency) { this->frequency = frequency; }
-  float GetFrequency() const { return frequency; }
-  unsigned long long GetCycleCount() const { return cycleCount; }
-
- private:
-  uint64_t cycle;                 // Current cycle
-  float frequency;                // Frequency of the clock in Hz
-  unsigned long long cycleCount;  // Total number of cycles executed
-};
+const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
 
 class CPU : public Memory, public Clock, public Loggable {
  public:
   explicit CPU(Memory& mem) : memory(mem) {}
-  void Init() { memory.ClearMemory(); }
-
-  uint8_t ReadByte(uint16_t address) const override;
-  uint16_t ReadWord(uint16_t address) const override;
-  uint32_t ReadWordLong(uint16_t address) const override;
-  void WriteByte(uint32_t address, uint8_t value) override;
-  void WriteWord(uint32_t address, uint16_t value) override;
-  void SetMemory(const std::vector<uint8_t>& data) override {
-    memory.SetMemory(data);
+  void Init() {
+    SetFrequency(kCpuClockSpeed);
+    memory.ClearMemory();
   }
-  int16_t SP() const override { return memory.SP(); }
-  void SetSP(int16_t value) override { memory.SetSP(value); }
 
   uint8_t FetchByte();
   uint16_t FetchWord();
@@ -109,7 +88,7 @@ class CPU : public Memory, public Clock, public Loggable {
 
   uint8_t FetchByteDirectPage(uint8_t operand);
 
-  void Run();
+  void Update();
   void ExecuteInstruction(uint8_t opcode);
   void HandleInterrupts();
 
@@ -1047,6 +1026,17 @@ class CPU : public Memory, public Clock, public Loggable {
     status |= E;
     E = carry;
   }
+
+  uint8_t ReadByte(uint16_t address) const override;
+  uint16_t ReadWord(uint16_t address) const override;
+  uint32_t ReadWordLong(uint16_t address) const override;
+  void WriteByte(uint32_t address, uint8_t value) override;
+  void WriteWord(uint32_t address, uint16_t value) override;
+  void SetMemory(const std::vector<uint8_t>& data) override {
+    memory.SetMemory(data);
+  }
+  int16_t SP() const override { return memory.SP(); }
+  void SetSP(int16_t value) override { memory.SetSP(value); }
 
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
