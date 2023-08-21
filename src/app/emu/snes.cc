@@ -15,22 +15,26 @@ namespace app {
 namespace emu {
 
 namespace {
-uint8_t GetHeaderOffset(const Memory& memory) {
+
+uint16_t GetHeaderOffset(const Memory& memory) {
   uint8_t mapMode = memory[(0x00 << 16) + 0xFFD5];
-  uint8_t offset;
+  uint16_t offset;
 
   switch (mapMode & 0x07) {
     case 0:  // LoROM
-      offset = 0x7F;
+      // offset = 0x7F;
+      offset = 0xFFC0;
       break;
     case 1:  // HiROM
-      offset = 0xFF;
+      offset = 0xFFC0;
       break;
     case 5:  // ExHiROM
       offset = 0x40;
       break;
     default:
-      throw std::runtime_error("Unsupported map mode");
+      throw std::invalid_argument(
+          "Unable to locate supported ROM mapping mode in the provided ROM "
+          "file. Please try another ROM file.");
   }
 
   return offset;
@@ -160,8 +164,11 @@ void SNES::Init(ROM& rom) {
   rom_info_ = ReadRomHeader(header_offset);
 
   // Perform a long jump into a FastROM bank (if the ROM speed is FastROM)
-  // Disable the emulation flag (switch to 65816 native mode)s
+  // Disable the emulation flag (switch to 65816 native mode)
+
+  // Initialize CPU
   cpu.Init();
+  cpu.PC = rom_info_.resetVector;
 
   // Initialize PPU
   ppu.Init();
@@ -275,7 +282,7 @@ void SNES::Run() {
 
   auto lastTime = std::chrono::high_resolution_clock::now();
 
-  while (running_) {
+  if (running_) {
     auto currentTime = std::chrono::high_resolution_clock::now();
     double deltaTime =
         std::chrono::duration<double>(currentTime - lastTime).count();
@@ -287,7 +294,7 @@ void SNES::Run() {
     frameAccumulatedTime += deltaTime;
 
     while (cpuAccumulatedTime >= cpuCycleTime) {
-      cpu.ExecuteInstruction(cpu.ReadByte(cpu.PC));
+      cpu.ExecuteInstruction(cpu.FetchByte());
       cpuAccumulatedTime -= cpuCycleTime;
     }
 
