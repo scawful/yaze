@@ -125,7 +125,8 @@ void FileDialogPipeline(absl::string_view display_key,
                                             file_extensions.data(), ".");
   }
 
-  if (ImGuiFileDialog::Instance()->Display(display_key.data())) {
+  if (ImGuiFileDialog::Instance()->Display(
+          display_key.data(), ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       callback();
     }
