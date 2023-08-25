@@ -1,7 +1,7 @@
 #include "rom.h"
 
 #include <SDL.h>
-// #include <asar/src/asar/interface-lib.h>
+#include <asar/src/asar/interface-lib.h>
 
 #include <cstddef>
 #include <cstdio>
@@ -26,18 +26,6 @@
 
 namespace yaze {
 namespace app {
-
-namespace {
-
-int GetGraphicsAddress(const uchar* data, uint8_t offset) {
-  auto part_one = data[kOverworldGraphicsPos1 + offset] << 16;
-  auto part_two = data[kOverworldGraphicsPos2 + offset] << 8;
-  auto part_three = data[kOverworldGraphicsPos3 + offset];
-  auto snes_addr = (part_one | part_two | part_three);
-  return core::SnesToPc(snes_addr);
-}
-
-}  // namespace
 
 absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
   Bytes sheet;
@@ -120,10 +108,29 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
     rom_data_[i] = byte_to_read;
   }
 
+  // Check if the sROM has a header
+  constexpr size_t baseROMSize = 1048576;  // 1MB
+  constexpr size_t headerSize = 0x200;     // 512 bytes
+
+  if (size_ % baseROMSize == headerSize) {
+    has_header_ = true;
+  }
+
+  if (has_header_) {
+    // remove header
+    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);
+    size_ -= 0x200;
+  }
+
   file.close();
   if (z3_load) {
     // copy ROM title
     memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
+    if (rom_data_[kTitleStringOffset + 0x19] == 0) {
+      version_ = Z3_Version::JP;
+    } else {
+      version_ = Z3_Version::US;
+    }
     LoadAllPalettes();
   }
   is_loaded_ = true;
@@ -213,6 +220,7 @@ void ROM::LoadAllPalettes() {
         ReadPalette(core::dungeonMainPalettes + (i * 180), 90));
   }
 
+  // TODO: Make these grass colors editable color fields
   palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassLW));
   palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassDW));
   palette_groups_["grass"].AddColor(ReadColor(core::hardcodedGrassSpecial));

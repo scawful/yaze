@@ -15,6 +15,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <stack>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -32,6 +33,83 @@
 
 namespace yaze {
 namespace app {
+
+struct VersionConstants {
+  uint32_t kGgxAnimatedPointer;
+  uint32_t kOverworldGfxGroups1;
+  uint32_t kOverworldGfxGroups2;
+  // long ptrs all tiles of maps[high/low] (mapid* 3)
+  uint32_t compressedAllMap32PointersHigh;
+  uint32_t compressedAllMap32PointersLow;
+  uint32_t overworldMapPaletteGroup;
+  uint32_t overlayPointers;
+  uint32_t overlayPointersBank;
+  uint32_t overworldTilesType;
+  uint32_t kOverworldGfxPtr1;
+  uint32_t kOverworldGfxPtr2;
+  uint32_t kOverworldGfxPtr3;
+  uint32_t kMap32TileTL;
+  uint32_t kMap32TileTR;
+  uint32_t kMap32TileBL;
+  uint32_t kMap32TileBR;
+  uint32_t kSpriteBlocksetPointer;
+};
+
+enum class Z3_Version {
+  US = 1,
+  JP = 2,
+  SD = 3,
+  RANDO = 4,
+};
+
+static constexpr uint32_t overworldMapPaletteGroup = 0x67E74;
+static constexpr uint32_t overlayPointers = 0x3FAF4;
+static constexpr uint32_t overlayPointersBank = 0x07;
+static constexpr uint32_t overworldTilesType = 0x7FD94;
+
+static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
+    {Z3_Version::US,
+     {
+         0x10275,  // kGgxAnimatedPointer
+         0x5D97,   // kOverworldGfxGroups1
+         0x6073,   // kOverworldGfxGroups2
+         0x1794D,  // compressedAllMap32PointersHigh
+         0x17B2D,  // compressedAllMap32PointersLow
+         0x75504,  // overworldMapPaletteGroup
+         0x77664,  // overlayPointers
+         0x0E,     // overlayPointersBank
+         0x71459,  // overworldTilesType
+         0x4F80,   // kOverworldGfxPtr1
+         0x505F,   // kOverworldGfxPtr2
+         0x513E,   // kOverworldGfxPtr3
+         0x18000,  // kMap32TileTL
+         0x1B400,  // kMap32TileTR
+         0x20000,  // kMap32TileBL
+         0x23400,  // kMap32TileBR
+         0x5B57,   // kSpriteBlocksetPointer
+     }},
+    {Z3_Version::JP,
+     {
+         0x10624,  // kGgxAnimatedPointer
+         0x5DD7,   // kOverworldGfxGroups1
+         0x60B3,   // kOverworldGfxGroups2
+         0x176B1,  // compressedAllMap32PointersHigh
+         0x17891,  // compressedAllMap32PointersLow
+         0x67E74,  // overworldMapPaletteGroup
+         0x3FAF4,  // overlayPointers
+         0x07,     // overlayPointersBank
+         0x7FD94,  // overworldTilesType
+         0x4FC0,   // kOverworldGfxPtr1
+         0x509F,   // kOverworldGfxPtr2
+         0x517E,   // kOverworldGfxPtr3
+         0x18000,  // kMap32TileTL
+         0x1B3C0,  // kMap32TileTR
+         0x20000,  // kMap32TileBL
+         0x233C0,  // kMap32TileBR
+         0x5B97,   // kSpriteBlocksetPointer
+     }}
+
+};
 
 constexpr int kOverworldGraphicsPos1 = 0x4F80;
 constexpr int kOverworldGraphicsPos2 = 0x505F;
@@ -113,6 +191,16 @@ class ROM {
     WriteShort(address, bgr);
   }
 
+  VersionConstants GetVersionConstants() const {
+    return kVersionConstantsMap.at(version_);
+  }
+  int GetGraphicsAddress(const uchar* data, uint8_t addr) const {
+    auto part_one = data[GetVersionConstants().kOverworldGfxPtr1 + addr] << 16;
+    auto part_two = data[GetVersionConstants().kOverworldGfxPtr2 + addr] << 8;
+    auto part_three = data[GetVersionConstants().kOverworldGfxPtr3 + addr];
+    auto snes_addr = (part_one | part_two | part_three);
+    return core::SnesToPc(snes_addr);
+  }
   uint32_t GetPaletteAddress(const std::string& groupName, size_t paletteIndex,
                              size_t colorIndex) const;
   gfx::PaletteGroup GetPaletteGroup(const std::string& group) {
@@ -182,13 +270,14 @@ class ROM {
  private:
   long size_ = 0;
   bool is_loaded_ = false;
+  bool has_header_ = false;
   uchar title_[21] = "ROM Not Loaded";
   std::string filename_;
 
   Bytes rom_data_;
   Bytes graphics_buffer_;
 
-  core::Z3_Version version_;
+  Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
 
   std::shared_ptr<SDL_Renderer> renderer_;
@@ -211,7 +300,7 @@ class SharedROM {
     if (!shared_rom_) {
       shared_rom_ = std::make_shared<ROM>();
     }
-    ROM *rom = shared_rom_.get();
+    ROM* rom = shared_rom_.get();
     return rom;
   }
 

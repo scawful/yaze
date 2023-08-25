@@ -16,6 +16,8 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/gui/input.h"
+#include "app/gui/style.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
 
@@ -75,8 +77,15 @@ absl::Status OverworldEditor::DrawToolset() {
     TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
     ImGui::TableNextColumn();                   // Palette
     palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
+    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+    ImGui::TableNextColumn();       // Experimental
+    ImGui::Checkbox("Experimental", &show_experimental);
 
     ImGui::EndTable();
+  }
+
+  if (show_experimental) {
+    RETURN_IF_ERROR(DrawExperimentalModal())
   }
   return absl::OkStatus();
 }
@@ -361,6 +370,50 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       sprite_previews_[sprite.id()].ApplyPalette(palette_);
       rom()->RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::DrawExperimentalModal() {
+  ImGui::Begin("Experimental", &show_experimental);
+
+  gui::TextWithSeparators("PROTOTYPE OVERWORLD TILEMAP LOADER");
+  ImGui::Text("Please provide two files:");
+  ImGui::Text("One based on MAPn.DAT, which represents the overworld tilemap");
+  ImGui::Text("One based on MAPDATn.DAT, which is the tile32 configurations.");
+  ImGui::Text("Currently, loading CGX for this component is NOT supported. ");
+  ImGui::Text("Please load a US ROM of LTTP (JP ROM support coming soon).");
+  ImGui::Text(
+      "Once you've loaded the files, you can click the button below to load "
+      "the tilemap into the editor");
+
+  ImGui::InputText("##TilemapFile", &ow_tilemap_filename_);
+  ImGui::SameLine();
+  core::FileDialogPipeline(
+      "ImportTilemapsKey", ".CGX,.cgx\0", "Tilemap Hex File", [this]() {
+        ow_tilemap_filename_ = ImGuiFileDialog::Instance()->GetFilePathName();
+      });
+
+  ImGui::InputText("##Tile32ConfigurationFile",
+                   &tile32_configuration_filename_);
+  ImGui::SameLine();
+  core::FileDialogPipeline("ImportTile32Key", ".CGX,.cgx\0", "Tile32 Hex File",
+                           [this]() {
+                             tile32_configuration_filename_ =
+                                 ImGuiFileDialog::Instance()->GetFilePathName();
+                           });
+
+  ImGui::Button("Load Prototype Overworld with ROM graphics");
+
+  gui::TextWithSeparators("Configuration");
+
+  gui::InputHexShort("Tilemap File Offset (High)", &tilemap_file_offset_high_);
+  gui::InputHexShort("Tilemap File Offset (Low)", &tilemap_file_offset_low_);
+
+  gui::InputHexShort("LW Maps to Load", &light_maps_to_load_);
+  gui::InputHexShort("DW Maps to Load", &dark_maps_to_load_);
+  gui::InputHexShort("SP Maps to Load", &sp_maps_to_load_);
+
+  ImGui::End();
   return absl::OkStatus();
 }
 

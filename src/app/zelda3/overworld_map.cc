@@ -285,22 +285,24 @@ void OverworldMap::LoadSpritesBlocksets() {
   static_graphics_[11] = static_graphics_base + 0x07;
 
   for (int i = 0; i < 4; i++) {
-    static_graphics_[12 + i] = (rom_[core::kSpriteBlocksetPointer +
-                                     (sprite_graphics_[game_state_] * 4) + i] +
-                                static_graphics_base);
+    static_graphics_[12 + i] =
+        (rom_[rom_.GetVersionConstants().kSpriteBlocksetPointer +
+              (sprite_graphics_[game_state_] * 4) + i] +
+         static_graphics_base);
   }
 }
 
 void OverworldMap::LoadMainBlocksets() {
   for (int i = 0; i < 8; i++) {
-    static_graphics_[i] =
-        rom_[core::overworldgfxGroups2 + (world_index_ * 8) + i];
+    static_graphics_[i] = rom_[rom_.GetVersionConstants().kOverworldGfxGroups2 +
+                               (world_index_ * 8) + i];
   }
 }
 
 void OverworldMap::LoadAreaGraphicsBlocksets() {
   for (int i = 0; i < 4; i++) {
-    uchar value = rom_[core::overworldgfxGroups + (area_graphics_ * 4) + i];
+    uchar value = rom_[rom_.GetVersionConstants().kOverworldGfxGroups1 +
+                       (area_graphics_ * 4) + i];
     if (value != 0) {
       static_graphics_[3 + i] = value;
     }
@@ -328,7 +330,8 @@ void OverworldMap::LoadAreaGraphics() {
 gfx::SNESPalette OverworldMap::GetPalette(const std::string& group, int index,
                                           int previousIndex, int limit) {
   if (index == 255) {
-    index = rom_[core::overworldMapPaletteGroup + (previousIndex * 4)];
+    index = rom_[rom_.GetVersionConstants().overworldMapPaletteGroup +
+                 (previousIndex * 4)];
   }
   if (index != 255) {
     if (index >= limit) {
@@ -349,9 +352,12 @@ void OverworldMap::LoadPalette() {
   area_palette_ = std::min(area_palette_, 0xA3);
 
   uchar pal0 = 0;
-  uchar pal1 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4)];
-  uchar pal2 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) + 1];
-  uchar pal3 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) + 2];
+  uchar pal1 = rom_[rom_.GetVersionConstants().overworldMapPaletteGroup +
+                    (area_palette_ * 4)];
+  uchar pal2 = rom_[rom_.GetVersionConstants().overworldMapPaletteGroup +
+                    (area_palette_ * 4) + 1];
+  uchar pal3 = rom_[rom_.GetVersionConstants().overworldMapPaletteGroup +
+                    (area_palette_ * 4) + 2];
   uchar pal4 = rom_[core::overworldSpritePaletteGroup +
                     (sprite_palette_[game_state_] * 2)];
   uchar pal5 = rom_[core::overworldSpritePaletteGroup +
@@ -364,7 +370,8 @@ void OverworldMap::LoadPalette() {
 
   // Additional handling of `pal3` and `parent_`
   if (pal3 == 255) {
-    pal3 = rom_[core::overworldMapPaletteGroup + (previousPalId * 4) + 2];
+    pal3 = rom_[rom_.GetVersionConstants().overworldMapPaletteGroup +
+                (previousPalId * 4) + 2];
   }
   if (parent_ < 0x40) {
     pal0 = parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ? 2 : 0;
