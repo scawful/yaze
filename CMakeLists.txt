@@ -32,7 +32,6 @@ include_directories(${PROTOBUF_INCLUDE_PATH})
 # Video Libraries -------------------------------------------------------------
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
 
 # SDL2 ------------------------------------------------------------------------
 if (UNIX)
