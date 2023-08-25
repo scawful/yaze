@@ -372,662 +372,274 @@ class CPU : public Memory, public Loggable {
   void AND(uint16_t address, bool isImmediate = false);
 
   // ASL: Arithmetic shift left
-  void ASL(uint16_t address) {
-    uint8_t value = memory.ReadByte(address);
-    SetCarryFlag(!(value & 0x80));  // Set carry flag if bit 7 is set
-    value <<= 1;                    // Shift left
-    value &= 0xFE;                  // Clear bit 0
-    memory.WriteByte(address, value);
-    SetNegativeFlag(!value);
-    SetZeroFlag(value);
-  }
+  void ASL(uint16_t address);
 
   // BCC: Branch if carry clear
-  void BCC(int8_t offset) {
-    if (!GetCarryFlag()) {  // If the carry flag is clear
-      PC += offset;         // Add the offset to the program counter
-    }
-  }
+  void BCC(int8_t offset);
 
   // BCS: Branch if carry set
-  void BCS(int8_t offset) {
-    if (GetCarryFlag()) {  // If the carry flag is set
-      PC += offset;        // Add the offset to the program counter
-    }
-  }
+  void BCS(int8_t offset);
 
-  // BEQ: Branch if equal (zero set)
-  void BEQ(int8_t offset) {
-    if (GetZeroFlag()) {  // If the zero flag is set
-      PC += offset;       // Add the offset to the program counter
-    }
-  }
+  // BEQ: Branch if equal
+  void BEQ(int8_t offset);
 
   // BIT: Bit test
-  void BIT(uint16_t address) {
-    uint8_t value = memory.ReadByte(address);
-    SetNegativeFlag(value & 0x80);
-    SetOverflowFlag(value & 0x40);
-    SetZeroFlag((A & value) == 0);
-  }
+  void BIT(uint16_t address);
 
-  // BMI: Branch if minus (negative set)
-  void BMI(int8_t offset) {
-    if (GetNegativeFlag()) {  // If the negative flag is set
-      PC += offset;           // Add the offset to the program counter
-    }
-  }
+  // BMI: Branch if minus
+  void BMI(int8_t offset);
 
-  // BNE: Branch if not equal (zero clear)
-  void BNE(int8_t offset) {
-    if (!GetZeroFlag()) {  // If the zero flag is clear
-      PC += offset;        // Add the offset to the program counter
-    }
-  }
+  // BNE: Branch if not equal
+  void BNE(int8_t offset);
 
-  // BPL: Branch if plus (negative clear)
-  void BPL(int8_t offset) {
-    if (!GetNegativeFlag()) {  // If the negative flag is clear
-      PC += offset;            // Add the offset to the program counter
-    }
-  }
+  // BPL: Branch if plus
+  void BPL(int8_t offset);
 
   // BRA: Branch always
-  void BRA(int8_t offset) { PC += offset; }
+  void BRA(int8_t offset);
 
-  // BRK: Break
-  void BRK() {
-    PC += 2;  // Increment the program counter by 2
-    memory.PushWord(PC);
-    memory.PushByte(status);
-    SetInterruptFlag(true);
-    try {
-      PC = memory.ReadWord(0xFFFE);
-    } catch (const std::exception& e) {
-      std::cout << "BRK: " << e.what() << std::endl;
-    }
-  }
+  // BRK: Force interrupt
+  void BRK();
 
   // BRL: Branch always long
-  void BRL(int16_t offset) {
-    PC += offset;  // Add the offset to the program counter
-  }
+  void BRL(int16_t offset);
 
   // BVC: Branch if overflow clear
-  void BVC(int8_t offset) {
-    if (!GetOverflowFlag()) {  // If the overflow flag is clear
-      PC += offset;            // Add the offset to the program counter
-    }
-  }
+  void BVC(int8_t offset);
 
   // BVS: Branch if overflow set
-  void BVS(int8_t offset) {
-    if (GetOverflowFlag()) {  // If the overflow flag is set
-      PC += offset;           // Add the offset to the program counter
-    }
-  }
+  void BVS(int8_t offset);
 
   // CLC: Clear carry flag
-  void CLC() { status &= ~0x01; }
+  void CLC();
 
   // CLD: Clear decimal mode
-  void CLD() { status &= ~0x08; }
+  void CLD();
 
-  // CLI: Clear interrupt disable flag
-  void CLI() { status &= ~0x04; }
+  // CLI: Clear interrupt disable bit
+  void CLI();
 
   // CLV: Clear overflow flag
-  void CLV() { status &= ~0x40; }
+  void CLV();
 
-  // CMP: Compare TESTME
-  // n Set if MSB of result is set; else cleared
-  // z Set if result is zero; else cleared
-  // c Set if no borrow; else cleared
-  void CMP(uint8_t value, bool isImmediate = false) {
-    if (GetAccumulatorSize()) {  // 8-bit
-      uint8_t result = isImmediate ? A - value : A - memory.ReadByte(value);
-      SetZeroFlag(result == 0);
-      SetNegativeFlag(result & 0x80);
-      SetCarryFlag(A >= value);
-    } else {  // 16-bit
-      uint16_t result = isImmediate ? A - value : A - memory.ReadWord(value);
-      SetZeroFlag(result == 0);
-      SetNegativeFlag(result & 0x8000);
-      SetCarryFlag(A >= value);
-    }
-  }
+  // CMP: Compare
+  void CMP(uint16_t address, bool isImmediate = false);
 
-  // COP: Coprocessor TESTME
-  void COP() {
-    PC += 2;  // Increment the program counter by 2
-    memory.PushWord(PC);
-    memory.PushByte(status);
-    SetInterruptFlag(true);
-    if (E) {
-      PC = memory.ReadWord(0xFFF4);
-    } else {
-      PC = memory.ReadWord(0xFFE4);
-    }
-    SetDecimalFlag(false);
-  }
+  // COP: Coprocessor enable
+  void COP();
 
   // CPX: Compare X register
-  void CPX(uint16_t value, bool isImmediate = false) {
-    if (GetIndexSize()) {  // 8-bit
-      uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
-      compare(X, memory_value);
-    } else {  // 16-bit
-      uint16_t memory_value = isImmediate ? value : memory.ReadWord(value);
-      compare(X, memory_value);
-    }
-  }
+  void CPX(uint16_t address, bool isImmediate = false);
 
   // CPY: Compare Y register
-  void CPY(uint16_t value, bool isImmediate = false) {
-    if (GetIndexSize()) {  // 8-bit
-      uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
-      compare(Y, memory_value);
-    } else {  // 16-bit
-      uint16_t memory_value = isImmediate ? value : memory.ReadWord(value);
-      compare(Y, memory_value);
-    }
-  }
+  void CPY(uint16_t address, bool isImmediate = false);
 
-  // DEC: Decrement TESTME
-  void DEC(uint16_t address) {
-    if (GetAccumulatorSize()) {
-      uint8_t value = memory.ReadByte(address);
-      value--;
-      memory.WriteByte(address, value);
-      SetZeroFlag(value == 0);
-      SetNegativeFlag(value & 0x80);
-    } else {
-      uint16_t value = memory.ReadWord(address);
-      value--;
-      memory.WriteWord(address, value);
-      SetZeroFlag(value == 0);
-      SetNegativeFlag(value & 0x8000);
-    }
-  }
+  // DEC: Decrement memory
+  void DEC(uint16_t address);
 
   // DEX: Decrement X register
-  void DEX() {
-    if (GetIndexSize()) {  // 8-bit
-      X = static_cast<uint8_t>(X - 1);
-      SetZeroFlag(X == 0);
-      SetNegativeFlag(X & 0x80);
-    } else {  // 16-bit
-      X = static_cast<uint16_t>(X - 1);
-      SetZeroFlag(X == 0);
-      SetNegativeFlag(X & 0x8000);
-    }
-  }
+  void DEX();
 
   // DEY: Decrement Y register
-  void DEY() {
-    if (GetIndexSize()) {  // 8-bit
-      Y = static_cast<uint8_t>(Y - 1);
-      SetZeroFlag(Y == 0);
-      SetNegativeFlag(Y & 0x80);
-    } else {  // 16-bit
-      Y = static_cast<uint16_t>(Y - 1);
-      SetZeroFlag(Y == 0);
-      SetNegativeFlag(Y & 0x8000);
-    }
-  }
+  void DEY();
 
-  // EOR: Exclusive OR TESTMEs
-  void EOR(uint16_t address, bool isImmediate = false) {
-    if (GetAccumulatorSize()) {
-      A ^= isImmediate ? address : memory.ReadByte(address);
-      SetZeroFlag(A == 0);
-      SetNegativeFlag(A & 0x80);
-    } else {
-      A ^= isImmediate ? address : memory.ReadWord(address);
-      SetZeroFlag(A == 0);
-      SetNegativeFlag(A & 0x8000);
-    }
-  }
+  // EOR: Exclusive OR
+  void EOR(uint16_t address, bool isImmediate = false);
 
-  // INC: Increment
-  void INC(uint16_t address) {
-    if (GetAccumulatorSize()) {
-      uint8_t value = memory.ReadByte(address);
-      value++;
-      memory.WriteByte(address, value);
-      SetNegativeFlag(value & 0x80);
-      SetZeroFlag(value == 0);
-    } else {
-      uint16_t value = memory.ReadWord(address);
-      value++;
-      memory.WriteWord(address, value);
-      SetNegativeFlag(value & 0x8000);
-      SetZeroFlag(value == 0);
-    }
-  }
+  // INC: Increment memory
+  void INC(uint16_t address);
 
   // INX: Increment X register
-  void INX() {
-    if (GetIndexSize()) {  // 8-bit
-      X = static_cast<uint8_t>(X + 1);
-      SetZeroFlag(X == 0);
-      SetNegativeFlag(X & 0x80);
-    } else {  // 16-bit
-      X = static_cast<uint16_t>(X + 1);
-      SetZeroFlag(X == 0);
-      SetNegativeFlag(X & 0x8000);
-    }
-  }
+  void INX();
 
   // INY: Increment Y register
-  void INY() {
-    if (GetIndexSize()) {  // 8-bit
-      Y = static_cast<uint8_t>(Y + 1);
-      SetZeroFlag(Y == 0);
-      SetNegativeFlag(Y & 0x80);
-    } else {  // 16-bit
-      Y = static_cast<uint16_t>(Y + 1);
-      SetZeroFlag(Y == 0);
-      SetNegativeFlag(Y & 0x8000);
-    }
-  }
+  void INY();
 
   // JMP: Jump
-  void JMP(uint16_t address) {
-    PC = address;  // Set program counter to the new address
-  }
+  void JMP(uint16_t address);
 
   // JML: Jump long
-  void JML(uint32_t address) {
-    // Set the lower 16 bits of PC to the lower 16 bits of the address
-    PC = static_cast<uint8_t>(address & 0xFFFF);
-    // Set the PBR to the upper 8 bits of the address
-    PB = static_cast<uint8_t>((address >> 16) & 0xFF);
-  }
+  void JML(uint32_t address);
 
   // JSR: Jump to subroutine
-  void JSR(uint16_t address) {
-    PC -= 1;              // Subtract 1 from program counter
-    memory.PushWord(PC);  // Push the program counter onto the stack
-    PC = address;         // Set program counter to the new address
-  }
+  void JSR(uint16_t address);
 
   // JSL: Jump to subroutine long
-  void JSL(uint32_t address) {
-    PC -= 1;              // Subtract 1 from program counter
-    memory.PushLong(PC);  // Push the program counter onto the stack as a long
-                          // value (24 bits)
-    PC = address;         // Set program counter to the new address
-  }
+  void JSL(uint32_t address);
 
   // LDA: Load accumulator
-  void LDA(uint16_t address, bool isImmediate = false) {
-    if (GetAccumulatorSize()) {
-      A = isImmediate ? address : memory.ReadByte(address);
-      SetZeroFlag(A == 0);
-      SetNegativeFlag(A & 0x80);
-    } else {
-      A = isImmediate ? memory.ReadWord(PC) : memory.ReadWord(address);
-      SetZeroFlag(A == 0);
-      SetNegativeFlag(A & 0x8000);
-    }
-  }
+  void LDA(uint16_t address, bool isImmediate = false);
 
   // LDX: Load X register
-  void LDX(uint16_t address, bool isImmediate = false) {
-    if (GetIndexSize()) {
-      X = isImmediate ? address : memory.ReadByte(address);
-      SetZeroFlag(X == 0);
-      SetNegativeFlag(X & 0x80);
-    } else {
-      X = isImmediate ? address : memory.ReadWord(address);
-      SetZeroFlag(X == 0);
-      SetNegativeFlag(X & 0x8000);
-    }
-  }
+  void LDX(uint16_t address, bool isImmediate = false);
 
   // LDY: Load Y register
-  void LDY(uint16_t address, bool isImmediate = false) {
-    if (GetIndexSize()) {
-      Y = isImmediate ? address : memory.ReadByte(address);
-      SetZeroFlag(Y == 0);
-      SetNegativeFlag(Y & 0x80);
-    } else {
-      Y = isImmediate ? address : memory.ReadWord(address);
-      SetZeroFlag(Y == 0);
-      SetNegativeFlag(Y & 0x8000);
-    }
-  }
+  void LDY(uint16_t address, bool isImmediate = false);
 
   // LSR: Logical shift right
-  void LSR(uint16_t address) {
-    uint8_t value = memory.ReadByte(address);
-    SetCarryFlag(value & 0x01);
-    value >>= 1;
-    memory.WriteByte(address, value);
-    SetNegativeFlag(false);
-    SetZeroFlag(value == 0);
-  }
+  void LSR(uint16_t address);
 
-  // MVN: Move negative ```
-  // MVP: Move positive ```
+  // MVN: Block move next
+  void MVN(uint16_t source, uint16_t dest, uint16_t length);
+
+  // MVP: Block move previous
+  void MVP(uint16_t source, uint16_t dest, uint16_t length);
 
   // NOP: No operation
-  void NOP() {
-    // Do nothing
-  }
+  void NOP();
 
-  // ORA: Logical OR
-  void ORA(uint16_t address, bool isImmediate = false) {
-    if (GetAccumulatorSize()) {
-      A |= isImmediate ? address : memory.ReadByte(address);
-      SetZeroFlag(A == 0);
-      SetNegativeFlag(A & 0x80);
-    } else {
-      A |= isImmediate ? address : memory.ReadWord(address);
-      SetZeroFlag(A == 0);
-      SetNegativeFlag(A & 0x8000);
-    }
-  }
+  // ORA: Logical inclusive OR
+  void ORA(uint16_t address, bool isImmediate = false);
 
-  // PEA: Push effective address
-  void PEA() {
-    uint16_t address = FetchWord();
-    memory.PushWord(address);
-  }
+  // PEA: Push effective absolute address
+  void PEA(uint16_t address);
 
   // PEI: Push effective indirect address
-  void PEI() {
-    uint16_t address = FetchWord();
-    memory.PushWord(memory.ReadWord(address));
-  }
+  void PEI(uint16_t address);
 
-  // PER: Push effective PC-relative address
-  void PER() {
-    uint16_t address = FetchWord();
-    memory.PushWord(PC + address);
-  }
+  // PER: Push effective relative address
+  void PER(uint16_t address);
 
-  // PHA: Push Accumulator on Stack
-  void PHA() { memory.PushByte(A); }
+  // PHA: Push accumulator
+  void PHA();
 
-  // PHB: Push Data Bank Register on Stack
-  void PHB() { memory.PushByte(DB); }
+  // PHB: Push data bank register
+  void PHB();
 
-  // PHD: Push Program Bank Register on Stack
-  void PHD() { memory.PushWord(D); }
+  // PHD: Push direct page register
+  void PHD();
 
-  // PHK: Push Program Bank Register on Stack
-  void PHK() { memory.PushByte(PB); }
+  // PHK: Push program bank register
+  void PHK();
 
-  // PHP: Push Processor Status Register on Stack
-  void PHP() { memory.PushByte(status); }
+  // PHP: Push processor status (flags)
+  void PHP();
 
-  // PHX: Push X Index Register on Stack
-  void PHX() { memory.PushByte(X); }
+  // PHX: Push X register
+  void PHX();
 
-  // PHY: Push Y Index Register on Stack
-  void PHY() { memory.PushByte(Y); }
+  // PHY: Push Y register
+  void PHY();
 
-  // PLA: Pull Accumulator from Stack
-  void PLA() {
-    A = memory.PopByte();
-    SetNegativeFlag((A & 0x80) != 0);
-    SetZeroFlag(A == 0);
-  }
+  // PLA: Pull accumulator
+  void PLA();
 
   // PLB: Pull data bank register
-  void PLB() {
-    DB = memory.PopByte();
-    SetNegativeFlag((DB & 0x80) != 0);
-    SetZeroFlag(DB == 0);
-  }
+  void PLB();
 
-  // Pull Direct Page Register from Stack
-  void PLD() {
-    D = memory.PopWord();
-    SetNegativeFlag((D & 0x8000) != 0);
-    SetZeroFlag(D == 0);
-  }
+  // PLD: Pull direct page register
+  void PLD();
 
-  // Pull Processor Status Register from Stack
-  void PLP() { status = memory.PopByte(); }
+  // PLP: Pull processor status (flags)
+  void PLP();
 
-  // PLX: Pull X Index Register from Stack
-  void PLX() {
-    X = memory.PopByte();
-    SetNegativeFlag((A & 0x80) != 0);
-    SetZeroFlag(X == 0);
-  }
+  // PLX: Pull X register
+  void PLX();
 
-  // PHY: Pull Y Index Register from Stack
-  void PLY() {
-    Y = memory.PopByte();
-    SetNegativeFlag((A & 0x80) != 0);
-    SetZeroFlag(Y == 0);
-  }
+  // PLY: Pull Y register
+  void PLY();
 
-  // REP: Reset status bits
-  void REP() {
-    auto byte = FetchByte();
-    status &= ~byte;
-  }
+  // REP: Reset processor status bits
+  void REP();
 
   // ROL: Rotate left
-  void ROL(uint16_t address) {
-    uint8_t value = memory.ReadByte(address);
-    uint8_t carry = GetCarryFlag() ? 0x01 : 0x00;
-    SetCarryFlag(value & 0x80);
-    value <<= 1;
-    value |= carry;
-    memory.WriteByte(address, value);
-    SetNegativeFlag(value & 0x80);
-    SetZeroFlag(value == 0);
-  }
+  void ROL(uint16_t address);
 
   // ROR: Rotate right
-  void ROR(uint16_t address) {
-    uint8_t value = memory.ReadByte(address);
-    uint8_t carry = GetCarryFlag() ? 0x80 : 0x00;
-    SetCarryFlag(value & 0x01);
-    value >>= 1;
-    value |= carry;
-    memory.WriteByte(address, value);
-    SetNegativeFlag(value & 0x80);
-    SetZeroFlag(value == 0);
-  }
+  void ROR(uint16_t address);
 
   // RTI: Return from interrupt
-  void RTI() {
-    status = memory.PopByte();
-    PC = memory.PopWord();
-  }
+  void RTI();
 
   // RTL: Return from subroutine long
-  void RTL() {
-    PC = memory.PopWord();
-    PB = memory.PopByte();
-  }
+  void RTL();
 
   // RTS: Return from subroutine
-  void RTS() { PC = memory.PopWord() + 1; }
+  void RTS();
 
   // SBC: Subtract with carry
   void SBC(uint16_t operand, bool isImmediate = false);
 
   // SEC: Set carry flag
-  void SEC() { status |= 0x01; }
+  void SEC();
 
   // SED: Set decimal mode
-  void SED() { status |= 0x08; }
+  void SED();
 
-  // SEI: Set interrupt disable flag
-  void SEI() { status |= 0x04; }
+  // SEI: Set interrupt disable status
+  void SEI();
 
-  // SEP: Set status bits
-  void SEP() {
-    auto byte = FetchByte();
-    status |= byte;
-  }
+  // SEP: Set processor status bits
+  void SEP();
 
   // STA: Store accumulator
-  void STA(uint16_t address) {
-    if (GetAccumulatorSize()) {
-      memory.WriteByte(address, static_cast<uint8_t>(A));
-    } else {
-      memory.WriteWord(address, A);
-    }
-  }
+  void STA(uint16_t address);
 
-  // TODO: Make this work with the Clock class of the CPU
-  // STP: Stop the clock
-  void STP() {
-    // During the next phase 2 clock cycle, stop the processors oscillator input
-    // The processor is effectively shut down until a reset occurs (RES` pin).
-  }
+  // STP: Stop the processor
+  void STP();
 
   // STX: Store X register
-  void STX(uint16_t address) {
-    if (GetIndexSize()) {
-      memory.WriteByte(address, static_cast<uint8_t>(X));
-    } else {
-      memory.WriteWord(address, X);
-    }
-  }
+  void STX(uint16_t address);
 
   // STY: Store Y register
-  void STY(uint16_t address) {
-    if (GetIndexSize()) {
-      memory.WriteByte(address, static_cast<uint8_t>(Y));
-    } else {
-      memory.WriteWord(address, Y);
-    }
-  }
+  void STY(uint16_t address);
 
   // STZ: Store zero
-  void STZ(uint16_t address) {
-    if (GetAccumulatorSize()) {
-      memory.WriteByte(address, 0x00);
-    } else {
-      memory.WriteWord(address, 0x0000);
-    }
-  }
+  void STZ(uint16_t address);
 
   // TAX: Transfer accumulator to X
-  void TAX() {
-    X = A;
-    SetZeroFlag(X == 0);
-    SetNegativeFlag(X & 0x80);
-  }
+  void TAX();
 
   // TAY: Transfer accumulator to Y
-  void TAY() {
-    Y = A;
-    SetZeroFlag(Y == 0);
-    SetNegativeFlag(Y & 0x80);
-  }
+  void TAY();
 
-  // TCD: Transfer accumulator to direct page register
-  void TCD() {
-    D = A;
-    SetZeroFlag(D == 0);
-    SetNegativeFlag(D & 0x80);
-  }
+  // TCD: Transfer 16-bit accumulator to direct page register
+  void TCD();
 
-  // TCS: Transfer accumulator to stack pointer
-  void TCS() { memory.SetSP(A); }
+  // TCS: Transfer 16-bit accumulator to stack pointer
+  void TCS();
 
-  // TDC: Transfer direct page register to accumulator
-  void TDC() {
-    A = D;
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
-  }
+  // TDC: Transfer direct page register to 16-bit accumulator
+  void TDC();
 
   // TRB: Test and reset bits
-  void TRB(uint16_t address) {
-    uint8_t value = memory.ReadByte(address);
-    SetZeroFlag((A & value) == 0);
-    value &= ~A;
-    memory.WriteByte(address, value);
-  }
+  void TRB(uint16_t address);
 
   // TSB: Test and set bits
-  void TSB(uint16_t address) {
-    uint8_t value = memory.ReadByte(address);
-    SetZeroFlag((A & value) == 0);
-    value |= A;
-    memory.WriteByte(address, value);
-  }
+  void TSB(uint16_t address);
 
-  // TSC: Transfer stack pointer to accumulator
-  void TSC() {
-    A = SP();
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
-  }
+  // TSC: Transfer stack pointer to 16-bit accumulator
+  void TSC();
 
   // TSX: Transfer stack pointer to X
-  void TSX() {
-    X = SP();
-    SetZeroFlag(X == 0);
-    SetNegativeFlag(X & 0x80);
-  }
+  void TSX();
 
   // TXA: Transfer X to accumulator
-  void TXA() {
-    A = X;
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
-  }
+  void TXA();
 
   // TXS: Transfer X to stack pointer
-  void TXS() { memory.SetSP(X); }
+  void TXS();
 
   // TXY: Transfer X to Y
-  void TXY() {
-    X = Y;
-    SetZeroFlag(X == 0);
-    SetNegativeFlag(X & 0x80);
-  }
+  void TXY();
 
   // TYA: Transfer Y to accumulator
-  void TYA() {
-    A = Y;
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
-  }
+  void TYA();
 
   // TYX: Transfer Y to X
-  void TYX() {
-    Y = X;
-    SetZeroFlag(Y == 0);
-    SetNegativeFlag(Y & 0x80);
-  }
+  void TYX();
 
-  // TODO: Make this communicate with the SNES class
-  // WAI: Wait for interrupt TESTME
-  void WAI() {
-    // Pull the RDY pin low
-    // Power consumption is reduced(?)
-    // RDY remains low until an external hardware interupt
-    // (NMI, IRQ, ABORT, or RESET) is received from the SNES class
-  }
+  // WAI: Wait for interrupt
+  void WAI();
 
-  // XBA: Exchange B and A accumulator
-  void XBA() {
-    uint8_t lowByte = A & 0xFF;
-    uint8_t highByte = (A >> 8) & 0xFF;
-    A = (lowByte << 8) | highByte;
-  }
+  // WDM: Reserved for future expansion
+  void WDM();
 
-  // XCE: Exchange Carry and Emulation Flags
-  void XCE() {
-    uint8_t carry = status & 0x01;
-    status &= ~0x01;
-    status |= E;
-    E = carry;
-  }
+  // XBA: Exchange B and A
+  void XBA();
+
+  // XCE: Exchange carry and emulation bits
+  void XCE();
 
   uint8_t ReadByte(uint16_t address) const override;
   uint16_t ReadWord(uint16_t address) const override;
