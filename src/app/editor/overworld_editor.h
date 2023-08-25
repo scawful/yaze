@@ -33,10 +33,10 @@ static constexpr uint kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#drawTool",  "#separator2",
-    "#zoomOutTool",   "#zoomInTool", "#separator", "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",  "#spriteTool",
-    "#transportTool", "#musicTool"};
+    "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
+    "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
+    "#transportTool", "#musicTool",  "#separator3", "#tilemapTool"};
 
 static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
     "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
@@ -78,6 +78,8 @@ class OverworldEditor : public Editor, public SharedROM {
   absl::Status LoadGraphics();
   absl::Status LoadSpriteGraphics();
 
+  absl::Status DrawExperimentalModal();
+
   int current_world_ = 0;
   int current_map_ = 0;
   int current_tile16_ = 0;
@@ -90,11 +92,21 @@ class OverworldEditor : public Editor, public SharedROM {
   char message_id_[5] = "";
   char staticgfx[16];
 
+  uint32_t tilemap_file_offset_high_ = 0;
+  uint32_t tilemap_file_offset_low_ = 0;
+  uint32_t light_maps_to_load_ = 0x51;
+  uint32_t dark_maps_to_load_ = 0x2A;
+  uint32_t sp_maps_to_load_ = 0x07;
+
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
   bool selected_tile_loaded_ = false;
   bool update_selected_tile_ = true;
+
+  bool show_experimental = false;
+  std::string ow_tilemap_filename_ = "";
+  std::string tile32_configuration_filename_ = "";
 
   Bytes selected_tile_data_;
   std::vector<Bytes> tile16_individual_data_;

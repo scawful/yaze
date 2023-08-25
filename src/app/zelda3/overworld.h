@@ -94,9 +94,10 @@ class Overworld {
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 
+  absl::Status LoadPrototype(ROM &rom_, std::vector<uint8_t> &tilemap,
+                             std::vector<uint8_t> tile32);
+
  private:
-  const int map32address[4] = {core::map32TilesTL, core::map32TilesTR,
-                               core::map32TilesBL, core::map32TilesBR};
   enum Dimension {
     map32TilesTL = 0,
     map32TilesTR = 1,

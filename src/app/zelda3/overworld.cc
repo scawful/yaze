@@ -21,16 +21,14 @@ namespace zelda3 {
 
 namespace {
 
-uint GetOwMapGfxHighPtr(const uchar *rom, int index) {
-  int map_high_ptr = core::compressedAllMap32PointersHigh;
+uint GetOwMapGfxHighPtr(const uchar *rom, int index, uint32_t map_high_ptr) {
   int p1 = (rom[map_high_ptr + 2 + (3 * index)] << 16) +
            (rom[map_high_ptr + 1 + (3 * index)] << 8) +
            (rom[map_high_ptr + (3 * index)]);
   return core::SnesToPc(p1);
 }
 
-uint GetOwMapGfxLowPtr(const uchar *rom, int index) {
-  int map_low_ptr = core::compressedAllMap32PointersLow;
+uint GetOwMapGfxLowPtr(const uchar *rom, int index, uint32_t map_low_ptr) {
   int p2 = (rom[map_low_ptr + 2 + (3 * index)] << 16) +
            (rom[map_low_ptr + 1 + (3 * index)] << 8) +
            (rom[map_low_ptr + (3 * index)]);
@@ -321,13 +319,13 @@ void Overworld::SaveMap32Tiles() {
     }
   };
 
-  write_tiles(core::map32TilesTL,
+  write_tiles(rom_.GetVersionConstants().kMap32TileTL,
               [&](int i) { return tiles32_unique_[i].tile0_; });
-  write_tiles(core::map32TilesTR,
+  write_tiles(rom_.GetVersionConstants().kMap32TileTR,
               [&](int i) { return tiles32_unique_[i].tile1_; });
-  write_tiles(core::map32TilesBL,
+  write_tiles(rom_.GetVersionConstants().kMap32TileBL,
               [&](int i) { return tiles32_unique_[i].tile2_; });
-  write_tiles(core::map32TilesBR,
+  write_tiles(rom_.GetVersionConstants().kMap32TileBR,
               [&](int i) { return tiles32_unique_[i].tile3_; });
 
   if (unique_size > max_tiles) {
@@ -338,6 +336,11 @@ void Overworld::SaveMap32Tiles() {
 // ----------------------------------------------------------------------------
 
 ushort Overworld::GenerateTile32(int i, int k, int dimension) {
+  const uint32_t map32address[4] = {rom_.GetVersionConstants().kMap32TileTL,
+                                    rom_.GetVersionConstants().kMap32TileTR,
+                                    rom_.GetVersionConstants().kMap32TileBL,
+                                    rom_.GetVersionConstants().kMap32TileBR};
+
   return (ushort)(rom_[map32address[dimension] + k + (i)] +
                   (((rom_[map32address[dimension] + (i) + (k <= 1 ? 4 : 5)] >>
                      (k % 2 == 0 ? 4 : 0)) &
@@ -428,8 +431,12 @@ absl::Status Overworld::DecompressAllMapTiles() {
   int sy = 0;
   int c = 0;
   for (int i = 0; i < 160; i++) {
-    auto p1 = GetOwMapGfxHighPtr(rom_.data(), i);
-    auto p2 = GetOwMapGfxLowPtr(rom_.data(), i);
+    auto p1 = GetOwMapGfxHighPtr(
+        rom_.data(), i,
+        rom_.GetVersionConstants().compressedAllMap32PointersHigh);
+    auto p2 = GetOwMapGfxLowPtr(
+        rom_.data(), i,
+        rom_.GetVersionConstants().compressedAllMap32PointersLow);
     int ttpos = 0;
 
     if (p1 >= highest) {
@@ -625,6 +632,51 @@ void Overworld::LoadSpritesFromMap(int spriteStart, int spriteCount,
       spriteAddress += 3;
     }
   }
+}
+
+absl::Status Overworld::LoadPrototype(ROM &rom, std::vector<uint8_t> &tilemap,
+                                      std::vector<uint8_t> tile32) {
+  rom_ = rom;
+
+  AssembleMap32Tiles();
+  AssembleMap16Tiles();
+  RETURN_IF_ERROR(DecompressAllMapTiles())
+
+  for (int map_index = 0; map_index < core::kNumOverworldMaps; ++map_index)
+    overworld_maps_.emplace_back(map_index, rom_, tiles16);
+
+  FetchLargeMaps();
+  LoadEntrances();
+
+  auto size = tiles16.size();
+  std::vector<std::future<absl::Status>> futures;
+  for (int i = 0; i < core::kNumOverworldMaps; ++i) {
+    futures.push_back(std::async(std::launch::async, [this, i, size]() {
+      if (i < 64) {
+        return overworld_maps_[i].BuildMap(size, game_state_, 0, map_parent_,
+                                           map_tiles_.light_world);
+      } else if (i < 0x80 && i >= 0x40) {
+        return overworld_maps_[i].BuildMap(size, game_state_, 1, map_parent_,
+                                           map_tiles_.dark_world);
+      } else {
+        return overworld_maps_[i].BuildMap(size, game_state_, 2, map_parent_,
+                                           map_tiles_.special_world);
+      }
+    }));
+  }
+
+  // Wait for all tasks to complete and check their results
+  for (auto &future : futures) {
+    absl::Status status = future.get();
+    if (!status.ok()) {
+      return status;
+    }
+  }
+
+  // LoadSprites();
+
+  is_loaded_ = true;
+  return absl::OkStatus();
 }
 
 }  // namespace zelda3

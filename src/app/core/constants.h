@@ -119,53 +119,8 @@ namespace core {
 // Window Variables
 // ============================================================================
 
-constexpr int kScreenWidth = 1440;
-constexpr int kScreenHeight = 900;
-
-// ============================================================================
-// Z3 Version Constants
-// ============================================================================
-
-enum class Z3_Version {
-  US = 1,
-  JP = 2,
-  SD = 3,
-};
-
-template <Z3_Version version>
-class VersionConstants;
-
-template <>
-class VersionConstants<Z3_Version::US> {
- public:
-  static constexpr uint32_t kGgxAnimatedPointer = 0x10275;
-  static constexpr uint32_t kOverworldGfxGroups1 = 0x5D97;
-  static constexpr uint32_t kOverworldGfxGroups2 = 0x6073;
-
-  static constexpr uint32_t compressedAllMap32PointersHigh = 0x1794D;
-  static constexpr uint32_t compressedAllMap32PointersLow = 0x17B2D;
-};
-
-template <>
-class VersionConstants<Z3_Version::JP> {
- public:
-  static constexpr uint32_t kGgxAnimatedPointer = 0x10624;
-  static constexpr uint32_t kOverworldGfxGroups1 = 0x5DD7;
-  static constexpr uint32_t kOverworldGfxGroups2 = 0x60B3;
-
-  // LONGPointers all tiles of maps[High] (mapid* 3)
-  static constexpr uint32_t compressedAllMap32PointersHigh = 0x176B1;
-
-  // LONGPointers all tiles of maps[Low] (mapid* 3)
-  static constexpr uint32_t compressedAllMap32PointersLow = 0x17891;
-
-  static constexpr uint32_t overworldMapPalette = 0x7D1C;  // JP
-  static constexpr uint32_t overworldMapPaletteGroup = 0x67E74;
-  static constexpr uint32_t overworldMapSize = 0x1273B;  // JP
-  static constexpr uint32_t overlayPointers = 0x3FAF4;
-  static constexpr uint32_t overlayPointersBank = 0x07;
-  static constexpr uint32_t overworldTilesType = 0x7FD94;
-};
+constexpr int kScreenWidth = 1200;
+constexpr int kScreenHeight = 800;
 
 // ============================================================================
 // Magic numbers
@@ -209,10 +164,6 @@ constexpr int subtype3_tiles = 0x84F0;         // JP = Same
 constexpr int gfx_animated_pointer = 0x10275;  // JP 0x10624 //long pointer
 constexpr int overworldgfxGroups2 = 0x6073;    // 0x60B3
 
-// 2 byte pointer bank 00 pc -> 0x4320
-constexpr int gfx_1_pointer = 0x6790;  // CF80 ; 004F80
-constexpr int gfx_2_pointer = 0x6795;  // D05F ; 00505F
-constexpr int gfx_3_pointer = 0x679A;  // D13E ; 00513E
 constexpr int hud_palettes = 0xDD660;
 constexpr int maxGfx = 0xC3FB5;
 
@@ -380,7 +331,6 @@ constexpr int blocks_pointer4 = 0x15B0F;
 constexpr int torch_data = 0x2736A;  // JP 0x2704A
 constexpr int torches_length_pointer = 0x88C1;
 
-constexpr int kSpriteBlocksetPointer = 0x5B57;
 constexpr int sprites_data =
     0x4D8B0;  // It use the unused pointers to have more space //Save purpose
 constexpr int sprites_data_empty_room = 0x4D8AE;
