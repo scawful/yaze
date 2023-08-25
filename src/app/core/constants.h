@@ -142,14 +142,8 @@ constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int UncompressedSheetSize = 0x0800;
 
 constexpr int NumberOfSheets = 223;
-constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfRooms = 296;
 
-constexpr int kNumOverworldMaps = 160;
-constexpr int Map32PerScreen = 256;
-constexpr int NumberOfMap16 = 3752;  // 4096
-constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
-constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfColors = 3143;
 
 // ============================================================================
@@ -162,7 +156,6 @@ constexpr int subtype1_tiles = 0x8000;         // JP = Same
 constexpr int subtype2_tiles = 0x83F0;         // JP = Same
 constexpr int subtype3_tiles = 0x84F0;         // JP = Same
 constexpr int gfx_animated_pointer = 0x10275;  // JP 0x10624 //long pointer
-constexpr int overworldgfxGroups2 = 0x6073;    // 0x60B3
 
 constexpr int hud_palettes = 0xDD660;
 constexpr int maxGfx = 0xC3FB5;
@@ -170,129 +163,6 @@ constexpr int maxGfx = 0xC3FB5;
 constexpr int kTilesheetWidth = 128;
 constexpr int kTilesheetHeight = 32;
 constexpr int kTilesheetDepth = 8;
-
-// ============================================================================
-//  Overworld Related Variables
-// ============================================================================
-
-constexpr int compressedAllMap32PointersHigh = 0x1794D;
-constexpr int compressedAllMap32PointersLow = 0x17B2D;
-constexpr int overworldgfxGroups = 0x05D97;
-constexpr int map16Tiles = 0x78000;
-constexpr int map32TilesTL = 0x18000;
-constexpr int map32TilesTR = 0x1B400;
-constexpr int map32TilesBL = 0x20000;
-constexpr int map32TilesBR = 0x23400;
-constexpr int overworldPalGroup1 = 0xDE6C8;
-constexpr int overworldPalGroup2 = 0xDE86C;
-constexpr int overworldPalGroup3 = 0xDE604;
-constexpr int overworldMapPalette = 0x7D1C;
-constexpr int overworldSpritePalette = 0x7B41;
-constexpr int overworldMapPaletteGroup = 0x75504;
-constexpr int overworldSpritePaletteGroup = 0x75580;
-constexpr int overworldSpriteset = 0x7A41;
-constexpr int overworldSpecialGFXGroup = 0x16821;
-constexpr int overworldSpecialPALGroup = 0x16831;
-
-constexpr int overworldSpritesBegining = 0x4C881;
-constexpr int overworldSpritesAgahnim = 0x4CA21;
-constexpr int overworldSpritesZelda = 0x4C901;
-
-constexpr int overworldItemsPointers = 0xDC2F9;
-constexpr int overworldItemsAddress = 0xDC8B9;  // 1BC2F9
-constexpr int overworldItemsBank = 0xDC8BF;
-constexpr int overworldItemsEndData = 0xDC89C;  // 0DC89E
-
-constexpr int mapGfx = 0x7C9C;
-constexpr int overlayPointers = 0x77664;
-constexpr int overlayPointersBank = 0x0E;
-
-constexpr int overworldTilesType = 0x71459;
-constexpr int overworldMessages = 0x3F51D;
-
-constexpr int overworldMusicBegining = 0x14303;
-constexpr int overworldMusicZelda = 0x14303 + 0x40;
-constexpr int overworldMusicMasterSword = 0x14303 + 0x80;
-constexpr int overworldMusicAgahim = 0x14303 + 0xC0;
-constexpr int overworldMusicDW = 0x14403;
-
-constexpr int overworldEntranceAllowedTilesLeft = 0xDB8C1;
-constexpr int overworldEntranceAllowedTilesRight = 0xDB917;
-
-// 0x00 = small maps, 0x20 = large maps
-constexpr int overworldMapSize = 0x12844;
-
-// 0x01 = small maps, 0x03 = large maps
-constexpr int overworldMapSizeHighByte = 0x12884;
-
-// relative to the WORLD + 0x200 per map
-// large map that are not == parent id = same position as their parent!
-// eg for X position small maps :
-// 0000, 0200, 0400, 0600, 0800, 0A00, 0C00, 0E00
-// all Large map would be :
-// 0000, 0000, 0400, 0400, 0800, 0800, 0C00, 0C00
-
-constexpr int overworldMapParentId = 0x125EC;
-
-constexpr int overworldTransitionPositionY = 0x128C4;
-
-constexpr int overworldTransitionPositionX = 0x12944;
-
-constexpr int overworldScreenSize = 0x1788D;
-
-constexpr int OverworldScreenSizeForLoading = 0x4C635;
-
-constexpr int OverworldScreenTileMapChangeByScreen = 0x12634;
-
-constexpr int transition_target_north = 0x13ee2;
-
-constexpr int transition_target_west = 0x13f62;
-
-constexpr int overworldCustomMosaicASM = 0x1301D0;
-
-constexpr int overworldCustomMosaicArray = 0x1301F0;
-
-// ============================================================================
-// Overworld Exits/Entrances Variables
-// ============================================================================
-constexpr int OWExitRoomId = 0x15D8A;  // 0x15E07 Credits sequences
-// 105C2 Ending maps
-// 105E2 Sprite Group Table for Ending
-constexpr int OWExitMapId = 0x15E28;
-constexpr int OWExitVram = 0x15E77;
-constexpr int OWExitYScroll = 0x15F15;
-constexpr int OWExitXScroll = 0x15FB3;
-constexpr int OWExitYPlayer = 0x16051;
-constexpr int OWExitXPlayer = 0x160EF;
-constexpr int OWExitYCamera = 0x1618D;
-constexpr int OWExitXCamera = 0x1622B;
-constexpr int OWExitDoorPosition = 0x15724;
-constexpr int OWExitUnk1 = 0x162C9;
-constexpr int OWExitUnk2 = 0x16318;
-constexpr int OWExitDoorType1 = 0x16367;
-constexpr int OWExitDoorType2 = 0x16405;
-constexpr int OWEntranceMap = 0xDB96F;
-constexpr int OWEntrancePos = 0xDBA71;
-constexpr int OWEntranceEntranceId = 0xDBB73;
-constexpr int OWHolePos = 0xDB800;  //(0x13 entries, 2 bytes each) modified(less
-                                    // 0x400) map16 coordinates for each hole
-constexpr int OWHoleArea =
-    0xDB826;  //(0x13 entries, 2 bytes each) corresponding
-              // area numbers for each hole
-constexpr int OWHoleEntrance =
-    0xDB84C;  //(0x13 entries, 1 byte each)  corresponding entrance numbers
-
-constexpr int OWExitMapIdWhirlpool = 0x16AE5;    //  JP = ;016849
-constexpr int OWExitVramWhirlpool = 0x16B07;     //  JP = ;01686B
-constexpr int OWExitYScrollWhirlpool = 0x16B29;  // JP = ;01688D
-constexpr int OWExitXScrollWhirlpool = 0x16B4B;  // JP = ;016DE7
-constexpr int OWExitYPlayerWhirlpool = 0x16B6D;  // JP = ;016E09
-constexpr int OWExitXPlayerWhirlpool = 0x16B8F;  // JP = ;016E2B
-constexpr int OWExitYCameraWhirlpool = 0x16BB1;  // JP = ;016E4D
-constexpr int OWExitXCameraWhirlpool = 0x16BD3;  // JP = ;016E6F
-constexpr int OWExitUnk1Whirlpool = 0x16BF5;     //    JP = ;016E91
-constexpr int OWExitUnk2Whirlpool = 0x16C17;     //    JP = ;016EB3
-constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
 
 // ============================================================================
 // Dungeon Related Variables
