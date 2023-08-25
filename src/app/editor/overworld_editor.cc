@@ -347,7 +347,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
 
   // Render the overworld maps loaded from the ROM.
-  for (int i = 0; i < core::kNumOverworldMaps; ++i) {
+  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     overworld_.SetCurrentMap(i);
     auto palette = overworld_.AreaPalette();
     core::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,

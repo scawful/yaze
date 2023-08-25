@@ -32,31 +32,7 @@ void ScreenEditor::Update() {
   DrawNamingScreenEditor();
   DrawOverworldMapEditor();
   DrawDungeonMapsEditor();
-  DrawMosaicEditor();
   END_TAB_BAR()
-}
-
-void ScreenEditor::DrawWorldGrid(int world, int h, int w) {
-  const float time = (float)ImGui::GetTime();
-
-  int i = 0;
-  if (world == 1) {
-    i = 64;
-  } else if (world == 2) {
-    i = 128;
-  }
-  for (int y = 0; y < h; y++)
-    for (int x = 0; x < w; x++) {
-      if (x > 0) ImGui::SameLine();
-      ImGui::PushID(y * 4 + x);
-      std::string label = absl::StrCat(" #", absl::StrFormat("%x", i));
-      if (ImGui::Selectable(label.c_str(), mosaic_tiles_[i] != 0, 0,
-                            ImVec2(35, 25))) {
-        mosaic_tiles_[i] ^= 1;
-      }
-      ImGui::PopID();
-      i++;
-    }
 }
 
 void ScreenEditor::DrawInventoryMenuEditor() {
@@ -114,30 +90,6 @@ void ScreenEditor::DrawOverworldMapEditor() {
 }
 void ScreenEditor::DrawDungeonMapsEditor() {
   TAB_ITEM("Dungeon Maps")
-  END_TAB_ITEM()
-}
-
-void ScreenEditor::DrawMosaicEditor() {
-  TAB_ITEM("Mosaic Transitions")
-
-  if (ImGui::BeginTable("Worlds", 3, ImGuiTableFlags_Borders)) {
-    ImGui::TableSetupColumn("Light World");
-    ImGui::TableSetupColumn("Dark World");
-    ImGui::TableSetupColumn("Special World");
-    ImGui::TableHeadersRow();
-
-    ImGui::TableNextColumn();
-    DrawWorldGrid(0);
-
-    ImGui::TableNextColumn();
-    DrawWorldGrid(1);
-
-    ImGui::TableNextColumn();
-    DrawWorldGrid(2, 4);
-
-    ImGui::EndTable();
-  }
-
   END_TAB_ITEM()
 }
 

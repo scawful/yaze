@@ -19,15 +19,12 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-using MosaicArray = std::array<int, core::kNumOverworldMaps>;
-
 class ScreenEditor : public SharedROM {
  public:
   ScreenEditor();
   void Update();
 
  private:
-  void DrawMosaicEditor();
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -36,9 +33,6 @@ class ScreenEditor : public SharedROM {
 
   void DrawToolset();
   void DrawInventoryToolset();
-  void DrawWorldGrid(int world, int h = 8, int w = 8);
-
-  char mosaic_tiles_[core::kNumOverworldMaps];
 
   Bytes all_gfx_;
   zelda3::Inventory inventory_;
