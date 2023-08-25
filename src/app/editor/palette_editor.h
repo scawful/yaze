@@ -3,6 +3,8 @@
 
 #include <imgui/imgui.h>
 
+#include <stack>
+
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
@@ -26,15 +28,39 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
     "ow_aux",      "global_sprites", "dungeon_main", "ow_mini_map",
     "ow_mini_map", "3d_object",      "3d_object"};
 
+struct PaletteChange {
+  std::string groupName;
+  size_t paletteIndex;
+  size_t colorIndex;
+  gfx::SNESColor originalColor;
+};
+
 class PaletteEditor : public SharedROM {
  public:
   absl::Status Update();
+
+  void EditColorInPalette(gfx::SNESPalette& palette, int index);
+  void ResetColorToOriginal(gfx::SNESPalette& palette, int index,
+                            const gfx::SNESPalette& originalPalette);
+
   void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
 
   void DrawPortablePalette(gfx::SNESPalette& palette);
 
  private:
   absl::Status DrawPaletteGroup(int i);
+
+ private:
+  void InitializeSavedPalette(const gfx::SNESPalette& palette) {
+    for (int n = 0; n < palette.size(); n++) {
+      saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
+      saved_palette_[n].y = palette.GetColor(n).GetRGB().y / 255;
+      saved_palette_[n].z = palette.GetColor(n).GetRGB().z / 255;
+      saved_palette_[n].w = 255;  // Alpha
+    }
+  }
+
+  std::stack<PaletteChange> changeHistory;
 
   ImVec4 saved_palette_[256] = {};
   ImVec4 current_color_;

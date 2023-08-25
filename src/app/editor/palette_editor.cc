@@ -43,9 +43,38 @@ absl::Status PaletteEditor::Update() {
   return absl::OkStatus();
 }
 
+void PaletteEditor::EditColorInPalette(gfx::SNESPalette& palette, int index) {
+  if (index >= palette.size()) {
+    // Handle error: the index is out of bounds
+    return;
+  }
+
+  // Get the current color
+  auto currentColor = palette.GetColor(index).GetRGB();
+  if (ImGui::ColorPicker4("Color Picker", (float*)&currentColor)) {
+    // The color was modified, update it in the palette
+    palette(index, currentColor);
+  }
+}
+
+void PaletteEditor::ResetColorToOriginal(
+    gfx::SNESPalette& palette, int index,
+    const gfx::SNESPalette& originalPalette) {
+  if (index >= palette.size() || index >= originalPalette.size()) {
+    // Handle error: the index is out of bounds
+    return;
+  }
+
+  auto originalColor = originalPalette.GetColor(index).GetRGB();
+  palette(index, originalColor);
+}
+
 absl::Status PaletteEditor::DrawPaletteGroup(int i) {
   auto size = rom()->GetPaletteGroup(kPaletteGroupNames[i].data()).size();
   auto palettes = rom()->GetPaletteGroup(kPaletteGroupNames[i].data());
+  if (static bool init = false; !init) {
+    InitializeSavedPalette(palettes[0]);
+  }
   for (int j = 0; j < size; j++) {
     ImGui::Text("%d", j);
 
@@ -58,14 +87,16 @@ absl::Status PaletteEditor::DrawPaletteGroup(int i) {
 
       std::string popupId = kPaletteCategoryNames[i].data() +
                             std::to_string(j) + "_" + std::to_string(n);
-      if (ImGui::ColorButton(popupId.c_str(), palette[n].GetRGB(),
-                             palette_button_flags)) {
-        static auto float_array = gfx::ToFloatArray(palette[n]);
-        if (ImGui::ColorEdit4(popupId.c_str(), float_array.data(),
-                              palette_button_flags))
-          current_color_ = ImVec4(palette[n].GetRGB().x, palette[n].GetRGB().y,
-                                  palette[n].GetRGB().z,
-                                  palette[n].GetRGB().w);  // Prese rve alpha!
+      if (ImGui::ColorButton(
+              popupId.c_str(),
+              ImVec4(palette[n].GetRGB().x / 255, palette[n].GetRGB().y / 255,
+                     palette[n].GetRGB().z / 255, palette[n].GetRGB().w / 255),
+              palette_button_flags)) {
+        if (ImGui::ColorEdit4(popupId.c_str(),
+                              gfx::ToFloatArray(palette[n]).data(),
+                              palette_button_flags)) {
+          EditColorInPalette(palette, n);
+        }
       }
 
       if (ImGui::BeginPopupContextItem(popupId.c_str())) {
@@ -111,12 +142,7 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
   // Generate a default palette. The palette will persist and can be edited.
   static bool init = false;
   if (loaded && !init) {
-    for (int n = 0; n < palette.size(); n++) {
-      saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
-      saved_palette_[n].y = palette.GetColor(n).GetRGB().y / 255;
-      saved_palette_[n].z = palette.GetColor(n).GetRGB().z / 255;
-      saved_palette_[n].w = 255;  // Alpha
-    }
+    InitializeSavedPalette(palette);
     init = true;
   }
 
@@ -188,12 +214,7 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
 void PaletteEditor::DrawPortablePalette(gfx::SNESPalette& palette) {
   static bool init = false;
   if (!init) {
-    for (int n = 0; n < palette.size(); n++) {
-      saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
-      saved_palette_[n].y = palette.GetColor(n).GetRGB().y / 255;
-      saved_palette_[n].z = palette.GetColor(n).GetRGB().z / 255;
-      saved_palette_[n].w = 255;  // Alpha
-    }
+    InitializeSavedPalette(palette);
     init = true;
   }
 
