@@ -6,6 +6,7 @@
 #include "app/emu/cpu.h"
 #include "app/emu/dbg.h"
 #include "app/emu/ppu.h"
+#include "app/emu/spc700.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -104,10 +105,11 @@ class SNES : public DMA {
   // Components of the SNES
   MemoryImpl memory_;
   Clock clock_;
+  AudioRAM audio_ram_;
 
   CPU cpu{memory_, clock_};
   PPU ppu{memory_, clock_};
-  APU apu{memory_, clock_};
+  APU apu{memory_, audio_ram_, clock_};
 
   // Helper classes
   ROMInfo rom_info_;

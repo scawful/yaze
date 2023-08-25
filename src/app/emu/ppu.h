@@ -30,13 +30,19 @@ class IPPU {
 
 namespace PPURegisters {
 
+constexpr uint16_t INIDISP = 0x2100;
+
 // OAM Size Register ($2101): Controls the size of the object/sprite, the base
 // address, and the name selection for the OAM (Object Attribute Memory).
+constexpr uint16_t OBJSEL = 0x2101;
 
 // OAM Address Register ($2102-$2103): Sets the address for accessing OAM data.
+constexpr uint16_t OAMADDL = 0x2102;
+constexpr uint16_t OAMADDH = 0x2103;
 
 // OAM Data Register ($2104): Holds the data to be written to the OAM at a
 // specified address.
+constexpr uint16_t OAMDATA = 0x2104;
 
 // OAM Data Read Register ($2138): Allows reading data from the OAM.
 
@@ -44,37 +50,26 @@ namespace PPURegisters {
 
 // Screen Mode Register ($2105): Defines the screen mode and character size for
 // each background layer.
+constexpr uint16_t BGMODE = 0x2105;
 
 // Screen Pixelation Register ($2106): Sets the pixel size and screen
 // designation for the mosaic display.
-
-// BGx VRAM Location Registers ($2107-$210A): Define the location in VRAM where
-// the background screen data is stored.
-
-// BGx & BGy VRAM Location Registers ($210B-$210C): Set the base address for BG
-// character data in VRAM.
-
-// BGx Scroll Registers ($210D-$2114): Control the horizontal and vertical
-// scroll values for each background layer.
-
-// Video Port Control Register ($2115): Designates the VRAM address increment
-// value.
-
-// Video Port Address Register ($2116-$2117): Sets the initial address for
-// reading from or writing to VRAM.
-constexpr uint16_t INIDISP = 0x2100;
-constexpr uint16_t OBJSEL = 0x2101;
-constexpr uint16_t OAMADDL = 0x2102;
-constexpr uint16_t OAMADDH = 0x2103;
-constexpr uint16_t OAMDATA = 0x2104;
-constexpr uint16_t BGMODE = 0x2105;
 constexpr uint16_t MOSAIC = 0x2106;
+
+// BGx VRAM Location Registers ($2107-$210A)
+// Define the location in VRAM where the background screen data is stored.
 constexpr uint16_t BG1SC = 0x2107;
 constexpr uint16_t BG2SC = 0x2108;
 constexpr uint16_t BG3SC = 0x2109;
 constexpr uint16_t BG4SC = 0x210A;
+
+// BGx & BGy VRAM Location Registers ($210B-$210C):
+// Set the base address for BG character data in VRAM.
 constexpr uint16_t BG12NBA = 0x210B;
 constexpr uint16_t BG34NBA = 0x210C;
+
+// BGx Scroll Registers ($210D-$2114): Control the horizontal and vertical
+// scroll values for each background layer.
 constexpr uint16_t BG1HOFS = 0x210D;
 constexpr uint16_t BG1VOFS = 0x210E;
 constexpr uint16_t BG2HOFS = 0x210F;
@@ -83,9 +78,16 @@ constexpr uint16_t BG3HOFS = 0x2111;
 constexpr uint16_t BG3VOFS = 0x2112;
 constexpr uint16_t BG4HOFS = 0x2113;
 constexpr uint16_t BG4VOFS = 0x2114;
+
+// Video Port Control Register ($2115): Designates the VRAM address increment
+// value.
 constexpr uint16_t VMAIN = 0x2115;
+
+// Video Port Address Register ($2116-$2117): Sets the initial address for
+// reading from or writing to VRAM.
 constexpr uint16_t VMADDL = 0x2116;
 constexpr uint16_t VMADDH = 0x2117;
+
 constexpr uint16_t VMDATAL = 0x2118;
 constexpr uint16_t VMDATAH = 0x2119;
 constexpr uint16_t M7SEL = 0x211A;
@@ -166,12 +168,19 @@ struct MOSAIC {
 };
 
 struct BGSC {
+  explicit BGSC(uint8_t value)
+      : horizontal_tilemap_count(value & 0x01),
+        vertical_tilemap_count((value >> 1) & 0x01),
+        vram_address((value >> 2) & 0x3F) {}
   uint8_t horizontal_tilemap_count : 1;
   uint8_t vertical_tilemap_count : 1;
   uint8_t vram_address : 6;
 };
 
 struct BGNBA {
+  explicit BGNBA(uint8_t value)
+      : chr_base_address_2(value & 0x0F),
+        chr_base_address_1((value >> 4) & 0x0F) {}
   uint8_t chr_base_address_2 : 4;
   uint8_t chr_base_address_1 : 4;
 };
@@ -427,12 +436,10 @@ enum class BackgroundMode {
   Mode1,  // 2 layers, 4bpp (16 colors), 1 layer, 2bpp (4 colors)
   Mode2,  // 2 layers, 4bpp (16 colors), 1 layer for offset-per-tile
   Mode3,  // 1 layer, 8bpp (256 colors), 1 layer, 4bpp (16 colors)
-  Mode4,  // 1 layer, 8bpp (256 colors), 1 layer, 2bpp (4 colors), 1 layer for
-          // offset-per-tile
-  Mode5,  // 1 layer, 4bpp (16 colors), 1 layer, 2bpp (4 colors), high
-          // resolution
-  Mode6,  // 1 layer, 4bpp (16 colors), 1 layer for offset-per-tile, high
-          // resolution
+  Mode4,  // 1 layer, 8bpp (256 colors), 1 layer, 2bpp (4 colors)
+          // 1 layer for offset-per-tile
+  Mode5,  // 1 layer, 4bpp (16 colors), 1 layer, 2bpp (4 colors) hi-res
+  Mode6,  // 1 layer, 4bpp (16 colors), 1 layer for offset-per-tile, hi-res
   Mode7,  // 1 layer, 8bpp (256 colors), rotation/scaling
 };
 
@@ -628,7 +635,7 @@ struct BackgroundLayer {
 
 const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 
-class PPU : public Clock {
+class PPU : public Clock, public Observer {
  public:
   // Initializes the PPU with the necessary resources and dependencies
   PPU(Memory& memory, VirtualClock& clock) : memory_(memory), clock_(clock) {}
@@ -646,6 +653,10 @@ class PPU : public Clock {
   // Runs the PPU for one frame.
   void Update();
   void UpdateInternalState(int cycles);
+
+  void Notify(uint32_t address, uint8_t data) override {
+    // Handle communication in the PPU.
+  }
 
   // Reads a byte from the specified PPU register
   uint8_t ReadRegister(uint16_t address);
