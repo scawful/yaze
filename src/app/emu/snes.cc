@@ -156,6 +156,10 @@ ROMInfo SNES::ReadRomHeader(uint32_t offset) {
 }
 
 void SNES::Init(ROM& rom) {
+  // Setup observers for the memory space
+  memory_.AddObserver(&apu);
+  memory_.AddObserver(&ppu);
+
   // Load the ROM into memory and set up the memory mapping
   memory_.Initialize(rom.vector());
 

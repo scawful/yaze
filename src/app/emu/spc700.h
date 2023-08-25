@@ -9,7 +9,18 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class AudioRAM {
+class VirtualAudioRAM {
+ public:
+  virtual ~VirtualAudioRAM() = default;
+
+  // Read a byte from ARAM at the given address
+  virtual uint8_t read(uint16_t address) const = 0;
+
+  // Write a byte to ARAM at the given address
+  virtual void write(uint16_t address, uint8_t value) = 0;
+};
+
+class AudioRAM : public VirtualAudioRAM {
   static const size_t ARAM_SIZE = 64 * 1024;  // 64 KB
   std::vector<uint8_t> ram;
 
@@ -17,10 +28,12 @@ class AudioRAM {
   AudioRAM() : ram(ARAM_SIZE, 0) {}
 
   // Read a byte from ARAM at the given address
-  uint8_t read(uint16_t address) const { return ram[address % ARAM_SIZE]; }
+  uint8_t read(uint16_t address) const override {
+    return ram[address % ARAM_SIZE];
+  }
 
   // Write a byte to ARAM at the given address
-  void write(uint16_t address, uint8_t value) {
+  void write(uint16_t address, uint8_t value) override {
     ram[address % ARAM_SIZE] = value;
   }
 };
@@ -63,7 +76,11 @@ class SDSP {
 };
 
 class SPC700 {
-  AudioRAM aram;
+ private:
+  VirtualAudioRAM& aram_;
+
+ public:
+  explicit SPC700(VirtualAudioRAM& aram) : aram_(aram) {}
   SDSP sdsp;
   uint8_t test_register_;
   uint8_t control_register_;
@@ -104,7 +121,7 @@ class SPC700 {
         return sdsp.readGlobalReg(dsp_address_register_);
       default:
         if (address < 0xFFC0) {
-          return aram.read(address);
+          return aram_.read(address);
         } else {
           // Handle IPL ROM or RAM reads here
         }
@@ -129,7 +146,7 @@ class SPC700 {
         break;
       default:
         if (address < 0xFFC0) {
-          aram.write(address, value);
+          aram_.write(address, value);
         } else {
           // Handle IPL ROM or RAM writes here
         }
@@ -222,7 +239,31 @@ class SPC700 {
     PSW.N = (result & 0x80);
   }
 
-  // AND OR EOR ASL LSR ROL XCN
+  // AND
+  void AND(uint8_t operand, bool isImmediate = false) {
+    uint8_t value = isImmediate ? imm() : operand;
+    A &= value;
+    PSW.Z = (A == 0);
+    PSW.N = (A & 0x80);
+  }
+
+  // OR
+  void OR(uint8_t operand, bool isImmediate = false) {
+    uint8_t value = isImmediate ? imm() : operand;
+    A |= value;
+    PSW.Z = (A == 0);
+    PSW.N = (A & 0x80);
+  }
+
+  // EOR
+  void EOR(uint8_t operand, bool isImmediate = false) {
+    uint8_t value = isImmediate ? imm() : operand;
+    A ^= value;
+    PSW.Z = (A == 0);
+    PSW.N = (A & 0x80);
+  }
+
+  // ASL LSR ROL XCN
   // INC DEC
   // MOVW INCW DECW ADDW SUBW CMPW MUL DIV
   // DAA DAS

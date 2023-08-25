@@ -107,8 +107,6 @@ class ROMInfo {
   uint16_t checksum;
   uint16_t nmiVblVector;
   uint16_t resetVector;
-
-  // Additional methods and constructors
 };
 
 class Observer {
