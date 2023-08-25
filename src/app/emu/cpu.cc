@@ -1342,7 +1342,7 @@ void CPU::CLV() { status &= ~0x40; }
 // n Set if MSB of result is set; else cleared
 // z Set if result is zero; else cleared
 // c Set if no borrow; else cleared
-void CPU::CMP(uint8_t value, bool isImmediate = false) {
+void CPU::CMP(uint16_t value, bool isImmediate) {
   if (GetAccumulatorSize()) {  // 8-bit
     uint8_t result = isImmediate ? A - value : A - memory.ReadByte(value);
     SetZeroFlag(result == 0);
@@ -1371,7 +1371,7 @@ void CPU::COP() {
 }
 
 // CPX: Compare X register
-void CPU::CPX(uint16_t value, bool isImmediate = false) {
+void CPU::CPX(uint16_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
     uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
     compare(X, memory_value);
@@ -1382,7 +1382,7 @@ void CPU::CPX(uint16_t value, bool isImmediate = false) {
 }
 
 // CPY: Compare Y register
-void CPU::CPY(uint16_t value, bool isImmediate = false) {
+void CPU::CPY(uint16_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
     uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
     compare(Y, memory_value);
@@ -1436,7 +1436,7 @@ void CPU::DEY() {
 }
 
 // EOR: Exclusive OR TESTMEs
-void CPU::EOR(uint16_t address, bool isImmediate = false) {
+void CPU::EOR(uint16_t address, bool isImmediate) {
   if (GetAccumulatorSize()) {
     A ^= isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(A == 0);
@@ -1520,7 +1520,7 @@ void CPU::JSL(uint32_t address) {
 }
 
 // LDA: Load accumulator
-void CPU::LDA(uint16_t address, bool isImmediate = false) {
+void CPU::LDA(uint16_t address, bool isImmediate ) {
   if (GetAccumulatorSize()) {
     A = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(A == 0);
@@ -1533,7 +1533,7 @@ void CPU::LDA(uint16_t address, bool isImmediate = false) {
 }
 
 // LDX: Load X register
-void CPU::LDX(uint16_t address, bool isImmediate = false) {
+void CPU::LDX(uint16_t address, bool isImmediate ) {
   if (GetIndexSize()) {
     X = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(X == 0);
@@ -1546,7 +1546,7 @@ void CPU::LDX(uint16_t address, bool isImmediate = false) {
 }
 
 // LDY: Load Y register
-void CPU::LDY(uint16_t address, bool isImmediate = false) {
+void CPU::LDY(uint16_t address, bool isImmediate ) {
   if (GetIndexSize()) {
     Y = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(Y == 0);
@@ -1577,7 +1577,7 @@ void CPU::NOP() {
 }
 
 // ORA: Logical OR
-void CPU::ORA(uint16_t address, bool isImmediate = false) {
+void CPU::ORA(uint16_t address, bool isImmediate ) {
   if (GetAccumulatorSize()) {
     A |= isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(A == 0);
