@@ -24,7 +24,6 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
-  ${GLEW_INCLUDE_DIRS}
   lib/SDL_mixer/include/
   # lib/asar/src/asar/
   # lib/snes_spc/snes_spc/
@@ -35,8 +34,6 @@ target_link_libraries(
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
-  ${GLEW_LIBRARIES}
-  ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   SDL2_mixer
   ImGui
