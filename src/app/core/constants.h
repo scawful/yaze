@@ -167,7 +167,6 @@ class VersionConstants<Z3_Version::JP> {
   static constexpr uint32_t overworldTilesType = 0x7FD94;
 };
 
-
 // ============================================================================
 // Magic numbers
 // ============================================================================
@@ -668,7 +667,6 @@ static const absl::string_view SecretItemNames[] = {
     "Nothing ",  // 22
 
     "Hole",       "Warp",        "Staircase",     "Bombable",  "Switch"};
-
 
 static const absl::string_view TileTypeNames[] = {
     "$00 Nothing (standard floor)",

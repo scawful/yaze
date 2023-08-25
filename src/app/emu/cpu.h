@@ -492,13 +492,13 @@ class CPU : public Memory, public Loggable {
   void ORA(uint16_t address, bool isImmediate = false);
 
   // PEA: Push effective absolute address
-  void PEA(uint16_t address);
+  void PEA();
 
   // PEI: Push effective indirect address
-  void PEI(uint16_t address);
+  void PEI();
 
   // PER: Push effective relative address
-  void PER(uint16_t address);
+  void PER();
 
   // PHA: Push accumulator
   void PHA();
