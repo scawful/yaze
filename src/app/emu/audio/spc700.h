@@ -70,6 +70,8 @@ class SPC700 {
 
   void Reset();
 
+  void Notify(uint32_t address, uint8_t data);
+
   void ExecuteInstructions(uint8_t opcode);
 
   // Read a byte from the memory-mapped registers

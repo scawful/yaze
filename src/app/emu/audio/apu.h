@@ -61,7 +61,7 @@ class APU : public Observer {
 
   void Notify(uint32_t address, uint8_t data) override {
     if (address >= 0x2140 && address <= 0x2143) {
-      // Handle communication with the APU
+      spc700_.Notify(address, data);
     }
   }
 
@@ -176,12 +176,12 @@ class APU : public Observer {
   void WriteDSPMemory(uint16_t address, uint8_t value);
 
   // Member variables to store internal APU state and resources
-  Memory &memory_;
   AudioRam &aram_;
   Clock &clock_;
+  Memory &memory_;
 
+  DigitalSignalProcessor dsp_;
   SPC700 spc700_{aram_};
-  Dsp dsp_;
   std::vector<int16_t> audioSamples_;
 };
 

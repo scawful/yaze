@@ -84,6 +84,9 @@ class SNES : public DMA {
   // VBlank routine
   void VBlankRoutine();
 
+  // Boot the APU with the IPL ROM
+  void BootAPUWithIPL();
+
   // Controller input handling
   void HandleInput();
 

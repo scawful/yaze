@@ -9,6 +9,24 @@ namespace emu {
 
 void SPC700::Reset() {}
 
+void SPC700::Notify(uint32_t address, uint8_t data) {
+  // Check if the address corresponds to the APU's I/O ports
+  if (address >= 0x2140 && address <= 0x2143) {
+    // Handle the IPL process based on the address and data
+    if (address == 0x2140) {
+      // ... Handle data sent to APUIO0 ...
+      // For instance, checking for the $CC signal to start the APU program
+    } else if (address == 0x2141) {
+      // ... Handle data sent to APUIO1 ...
+      // This might involve storing data for the APU or signaling the DSP, etc.
+    } else if (address == 0x2142) {
+      // ... Handle data sent to APUIO2 ...
+    } else if (address == 0x2143) {
+      // ... Handle data sent to APUIO3 ...
+    }
+  }
+}
+
 void SPC700::ExecuteInstructions(uint8_t opcode) {
   switch (opcode) {
       // 8-bit Move Memory to Register
