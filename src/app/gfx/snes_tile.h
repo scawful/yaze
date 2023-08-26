@@ -60,13 +60,49 @@ TileInfo GetTilesInfo(ushort tile);
 
 class Tile32 {
  public:
-  ushort tile0_;
-  ushort tile1_;
-  ushort tile2_;
-  ushort tile3_;
+  uint16_t tile0_;
+  uint16_t tile1_;
+  uint16_t tile2_;
+  uint16_t tile3_;
 
-  Tile32(ushort t0, ushort t1, ushort t2, ushort t3)
+  // Default constructor
+  Tile32() : tile0_(0), tile1_(0), tile2_(0), tile3_(0) {}
+
+  // Parameterized constructor
+  Tile32(uint16_t t0, uint16_t t1, uint16_t t2, uint16_t t3)
       : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {}
+
+  // Copy constructor
+  Tile32(const Tile32& other)
+      : tile0_(other.tile0_),
+        tile1_(other.tile1_),
+        tile2_(other.tile2_),
+        tile3_(other.tile3_) {}
+
+  // Constructor from packed value
+  Tile32(uint64_t packedVal) {
+    tile0_ = (packedVal >> 48) & 0xFFFF;
+    tile1_ = (packedVal >> 32) & 0xFFFF;
+    tile2_ = (packedVal >> 16) & 0xFFFF;
+    tile3_ = packedVal & 0xFFFF;
+  }
+
+  // Equality operator
+  bool operator==(const Tile32& other) const {
+    return tile0_ == other.tile0_ && tile1_ == other.tile1_ &&
+           tile2_ == other.tile2_ && tile3_ == other.tile3_;
+  }
+
+  // Inequality operator
+  bool operator!=(const Tile32& other) const { return !(*this == other); }
+
+  // Get packed uint64_t representation
+  uint64_t GetPackedValue() const {
+    return (static_cast<uint64_t>(tile0_) << 48) |
+           (static_cast<uint64_t>(tile1_) << 32) |
+           (static_cast<uint64_t>(tile2_) << 16) |
+           static_cast<uint64_t>(tile3_);
+  }
 };
 
 class Tile16 {

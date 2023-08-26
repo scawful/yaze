@@ -182,6 +182,12 @@ class ROM {
     rom_data_[addr + 1] = (uint16_t)((value >> 8) & 0xFF);
   }
 
+  void WriteVector(int addr, std::vector<uint8_t> data) {
+    for (int i = 0; i < data.size(); i++) {
+      rom_data_[addr + i] = data[i];
+    }
+  }
+
   void WriteColor(uint32_t address, const gfx::SNESColor& color) {
     uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
                    ((color.GetSNES() & 0x1F) << 10) |
