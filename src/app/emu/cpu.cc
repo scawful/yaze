@@ -1530,7 +1530,7 @@ void CPU::LDA(uint16_t address, bool isImmediate) {
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
   } else {
-    A = isImmediate ? memory.ReadWord(PC) : memory.ReadWord(address);
+    A = isImmediate ? address : memory.ReadWord(address);
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x8000);
   }

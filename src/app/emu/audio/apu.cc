@@ -27,7 +27,7 @@ void APU::Init() {
       [this](int16_t sample) { this->PushToAudioBuffer(sample); });
 
   // Initialize registers
-  // ...
+  SignalReady();
 }
 
 void APU::Reset() {

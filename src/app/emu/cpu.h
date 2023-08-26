@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "app/emu/clock.h"
-#include "app/emu/log.h"
+#include "app/emu/debug/log.h"
 #include "app/emu/mem.h"
 
 namespace yaze {

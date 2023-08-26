@@ -40,8 +40,8 @@ const int apuClocksPerSample = 64;   // 64 clocks per sample
 class APU : public Observer {
  public:
   // Initializes the APU with the necessary resources and dependencies
-  APU(Memory &memory, AudioRam &aram, Clock &clock)
-      : memory_(memory), aram_(aram), clock_(clock) {}
+  APU(MemoryImpl &memory, AudioRam &aram, Clock &clock)
+      : aram_(aram), clock_(clock), memory_(memory) {}
 
   void Init();
 
@@ -68,7 +68,9 @@ class APU : public Observer {
   void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
 
   // Method to fetch a sample from AudioRam
-  uint8_t FetchSampleFromRam(uint16_t address) { return aram_.read(address); }
+  uint8_t FetchSampleFromRam(uint16_t address) const {
+    return aram_.read(address);
+  }
 
   // Method to push a processed sample to the audio buffer
   void PushToAudioBuffer(int16_t sample) { audioSamples_.push_back(sample); }
@@ -94,13 +96,15 @@ class APU : public Observer {
     // Set Port 0 = $AA and Port 1 = $BB
     ports_[0] = READY_SIGNAL_0;
     ports_[1] = READY_SIGNAL_1;
+    memory_.WriteByte(0x2140, READY_SIGNAL_0);
+    memory_.WriteByte(0x2141, READY_SIGNAL_1);
   }
 
   bool IsReadySignalReceived() const {
     return ports_[0] == READY_SIGNAL_0 && ports_[1] == READY_SIGNAL_1;
   }
 
-  void WaitForSignal() {
+  void WaitForSignal() const {
     // This might be an active wait or a passive state where APU does nothing
     // until it's externally triggered by the main CPU writing to its ports.
     while (ports_[0] != BEGIN_SIGNAL)
@@ -178,7 +182,7 @@ class APU : public Observer {
   // Member variables to store internal APU state and resources
   AudioRam &aram_;
   Clock &clock_;
-  Memory &memory_;
+  MemoryImpl &memory_;
 
   DigitalSignalProcessor dsp_;
   SPC700 spc700_{aram_};

@@ -197,7 +197,7 @@ void SNES::Init(ROM& rom) {
   apu.Init();
 
   // Initialize SDL_Mixer to play the audio samples
-  Mix_HookMusic(audio_callback, &apu);
+  // Mix_HookMusic(audio_callback, &apu);
 
   // Disable interrupts and rendering
   memory_.WriteByte(0x4200, 0x00);  // NMITIMEN
