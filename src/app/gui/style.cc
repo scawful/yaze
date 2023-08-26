@@ -4,6 +4,8 @@
 #include "imgui/imgui_internal.h"
 
 namespace yaze {
+namespace app {
+
 namespace gui {
 
 void TextWithSeparators(const absl::string_view &text) {
@@ -111,4 +113,5 @@ void ColorsYaze() {
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
 }  // namespace gui
+}  // namespace app
 }  // namespace yaze

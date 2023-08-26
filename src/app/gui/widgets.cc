@@ -7,6 +7,7 @@
 #include "app/core/constants.h"
 
 namespace yaze {
+namespace app {
 namespace gui {
 namespace widgets {
 
@@ -93,4 +94,5 @@ TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
 
 }  // namespace widgets
 }  // namespace gui
+}  // namespace app
 }  // namespace yaze

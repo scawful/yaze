@@ -704,6 +704,11 @@ absl::StatusOr<Bytes> DecompressOverworld(const uchar* data, int pos,
   return DecompressV2(data, pos, size, kNintendoMode1);
 }
 
+absl::StatusOr<Bytes> DecompressOverworld(const std::vector<uint8_t> data,
+                                          int pos, int size) {
+  return DecompressV2(data.data(), pos, size, kNintendoMode1);
+}
+
 }  // namespace lc_lz2
 }  // namespace gfx
 }  // namespace app

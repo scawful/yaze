@@ -83,11 +83,11 @@ void ButtonPipe(absl::string_view button_text, std::function<void()> callback) {
   }
 }
 
-void BitmapCanvasPipeline(int width, int height, int tile_size, bool is_loaded,
-                          gfx::Bitmap& bitmap, bool scrollbar, int canvas_id) {
-  gui::Canvas canvas;
-
-  auto draw_canvas = [&]() {
+void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
+                          int height, int tile_size, bool is_loaded,
+                          bool scrollbar, int canvas_id) {
+  auto draw_canvas = [](gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
+                        int height, int tile_size, bool is_loaded) {
     canvas.DrawBackground(ImVec2(width + 1, height + 1));
     canvas.DrawContextMenu();
     canvas.DrawBitmap(bitmap, 2, is_loaded);
@@ -100,11 +100,11 @@ void BitmapCanvasPipeline(int width, int height, int tile_size, bool is_loaded,
     if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)canvas_id);
         ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                           ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      draw_canvas();
+      draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
     }
     ImGui::EndChild();
   } else {
-    draw_canvas();
+    draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
   }
 }
 

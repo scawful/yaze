@@ -13,6 +13,7 @@
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gui/canvas.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -28,8 +29,9 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
 
 void ButtonPipe(absl::string_view button_text, std::function<void()> callback);
 
-void BitmapCanvasPipeline(int width, int height, int tile_size, bool is_loaded,
-                          gfx::Bitmap& bitmap, bool scrollbar, int canvas_id);
+void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
+                          int height, int tile_size, bool is_loaded,
+                          bool scrollbar, int canvas_id);
 
 void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
                                   ROM& z3_rom, gfx::Bitmap& bitmap,

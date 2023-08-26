@@ -6,6 +6,7 @@
 #include "absl/strings/string_view.h"
 
 namespace yaze {
+namespace app {
 namespace gui {
 
 const int kStepOneHex = 0x01;
@@ -67,4 +68,5 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
 }
 
 }  // namespace gui
+}  // namespace app
 }  // namespace yaze

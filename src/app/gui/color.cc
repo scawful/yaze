@@ -9,6 +9,8 @@
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {
+namespace app {
+
 namespace gui {
 
 void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
@@ -83,4 +85,5 @@ void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
 }
 
 }  // namespace gui
+}  // namespace app
 }  // namespace yaze

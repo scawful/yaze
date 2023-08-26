@@ -3,14 +3,11 @@
 
 #include <imgui/imgui.h>
 
-#include <stack>
-
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/rom.h"
-
 
 namespace yaze {
 namespace app {
@@ -33,6 +30,49 @@ struct PaletteChange {
   size_t paletteIndex;
   size_t colorIndex;
   gfx::SNESColor originalColor;
+  gfx::SNESColor newColor;
+};
+
+class PaletteEditorHistory {
+ public:
+  // Record a change in the palette editor
+  void RecordChange(const std::string& groupName, size_t paletteIndex,
+                    size_t colorIndex, const gfx::SNESColor& originalColor,
+                    const gfx::SNESColor& newColor) {
+    // Check size and remove the oldest if necessary
+    if (recentChanges.size() >= maxHistorySize) {
+      recentChanges.pop_front();
+    }
+
+    // Push the new change
+    recentChanges.push_back(
+        {groupName, paletteIndex, colorIndex, originalColor, newColor});
+  }
+
+  // Get recent changes for display in the palette editor
+  const std::deque<PaletteChange>& GetRecentChanges() const {
+    return recentChanges;
+  }
+
+  // Restore the original color
+  gfx::SNESColor GetOriginalColor(const std::string& groupName,
+                                  size_t paletteIndex,
+                                  size_t colorIndex) const {
+    for (const auto& change : recentChanges) {
+      if (change.groupName == groupName &&
+          change.paletteIndex == paletteIndex &&
+          change.colorIndex == colorIndex) {
+        return change.originalColor;
+      }
+    }
+    // Handle error or return default (this is just an example,
+    // handle as appropriate for your application)
+    return gfx::SNESColor();
+  }
+
+ private:
+  std::deque<PaletteChange> recentChanges;
+  static const size_t maxHistorySize = 50;  // or any other number you deem fit
 };
 
 class PaletteEditor : public SharedROM {
@@ -42,7 +82,6 @@ class PaletteEditor : public SharedROM {
   void EditColorInPalette(gfx::SNESPalette& palette, int index);
   void ResetColorToOriginal(gfx::SNESPalette& palette, int index,
                             const gfx::SNESPalette& originalPalette);
-
   void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
 
   void DrawPortablePalette(gfx::SNESPalette& palette);
@@ -60,7 +99,7 @@ class PaletteEditor : public SharedROM {
     }
   }
 
-  std::stack<PaletteChange> changeHistory;
+  PaletteEditorHistory history_;
 
   ImVec4 saved_palette_[256] = {};
   ImVec4 current_color_;
