@@ -1,12 +1,12 @@
 #include <cstdint>
 #include <string>
 
-#include "app/emu/apu.h"
+#include "app/emu/audio/apu.h"
+#include "app/emu/audio/spc700.h"
 #include "app/emu/clock.h"
 #include "app/emu/cpu.h"
-#include "app/emu/dbg.h"
-#include "app/emu/ppu.h"
-#include "app/emu/spc700.h"
+#include "app/emu/debug/debugger.h"
+#include "app/emu/video/ppu.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -104,8 +104,8 @@ class SNES : public DMA {
 
   // Components of the SNES
   MemoryImpl memory_;
-  Clock clock_;
-  AudioRAM audio_ram_;
+  ClockImpl clock_;
+  AudioRamImpl audio_ram_;
 
   CPU cpu{memory_, clock_};
   PPU ppu{memory_, clock_};

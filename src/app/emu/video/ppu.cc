@@ -1,4 +1,4 @@
-#include "app/emu/ppu.h"
+#include "app/emu/video/ppu.h"
 
 #include <cstdint>
 #include <iostream>
@@ -155,7 +155,31 @@ void PPU::UpdateModeSettings() {
 }
 
 void PPU::RenderBackground(int layer) {
-  // ...
+  switch (layer) {
+    case 1:
+    //   // Render the first background layer
+    //   auto bg1_tilemap_info =
+    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG1SC)); auto bg1_chr_data =
+    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG12NBA)); break;
+    // case 2:
+    //   // Render the second background layer
+    //   auto bg2_tilemap_info =
+    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG2SC)); auto bg2_chr_data =
+    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG12NBA)); break;
+    // case 3:
+    //   // Render the third background layer
+    //   auto bg3_tilemap_info =
+    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG3SC)); auto bg3_chr_data =
+    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG34NBA)); break;
+    // case 4:
+    //   // Render the fourth background layer
+    //   auto bg4_tilemap_info =
+    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG4SC)); auto bg4_chr_data =
+    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG34NBA)); break;
+    default:
+      // Invalid layer, do nothing
+      break;
+  }
 }
 
 void PPU::RenderSprites() {

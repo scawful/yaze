@@ -9,9 +9,9 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class VirtualAudioRAM {
+class AudioRam {
  public:
-  virtual ~VirtualAudioRAM() = default;
+  virtual ~AudioRam() = default;
 
   // Read a byte from ARAM at the given address
   virtual uint8_t read(uint16_t address) const = 0;
@@ -20,12 +20,12 @@ class VirtualAudioRAM {
   virtual void write(uint16_t address, uint8_t value) = 0;
 };
 
-class AudioRAM : public VirtualAudioRAM {
+class AudioRamImpl : public AudioRam {
   static const size_t ARAM_SIZE = 64 * 1024;  // 64 KB
   std::vector<uint8_t> ram = std::vector<uint8_t>(ARAM_SIZE, 0);
 
  public:
-  AudioRAM() = default;
+  AudioRamImpl() = default;
 
   // Read a byte from ARAM at the given address
   uint8_t read(uint16_t address) const override {
@@ -38,51 +38,12 @@ class AudioRAM : public VirtualAudioRAM {
   }
 };
 
-// Digital Signal Processor
-class DigitalSignalProcessor {
- private:
-  static const size_t NUM_VOICES = 8;
-  static const size_t NUM_VOICE_REGS = 10;
-  static const size_t NUM_GLOBAL_REGS = 15;
-
-  // Each voice has 10 registers
-  std::vector<std::vector<uint8_t>> voices = std::vector<std::vector<uint8_t>>(
-      NUM_VOICES, std::vector<uint8_t>(NUM_VOICE_REGS, 0));
-
-  // Global registers
-  std::vector<uint8_t> globalRegs = std::vector<uint8_t>(NUM_GLOBAL_REGS, 0x00);
-
- public:
-  DigitalSignalProcessor() = default;
-
-  // Read a byte from a voice register
-  uint8_t ReadVoiceReg(uint8_t voice, uint8_t reg) const {
-    return voices[voice % NUM_VOICES][reg % NUM_VOICE_REGS];
-  }
-
-  // Write a byte to a voice register
-  void WriteVoiceReg(uint8_t voice, uint8_t reg, uint8_t value) {
-    voices[voice % NUM_VOICES][reg % NUM_VOICE_REGS] = value;
-  }
-
-  // Read a byte from a global register
-  uint8_t ReadGlobalReg(uint8_t reg) const {
-    return globalRegs[reg % NUM_GLOBAL_REGS];
-  }
-
-  // Write a byte to a global register
-  void WriteGlobalReg(uint8_t reg, uint8_t value) {
-    globalRegs[reg % NUM_GLOBAL_REGS] = value;
-  }
-};
-
 class SPC700 {
  private:
-  VirtualAudioRAM& aram_;
+  AudioRam& aram_;
 
  public:
-  explicit SPC700(VirtualAudioRAM& aram) : aram_(aram) {}
-  DigitalSignalProcessor sdsp;
+  explicit SPC700(AudioRam& aram) : aram_(aram) {}
   uint8_t test_register_;
   uint8_t control_register_;
   uint8_t dsp_address_register_;
@@ -107,6 +68,8 @@ class SPC700 {
   };
   Flags PSW;  // Processor status word
 
+  void Reset();
+
   void ExecuteInstructions(uint8_t opcode);
 
   // Read a byte from the memory-mapped registers
@@ -118,8 +81,6 @@ class SPC700 {
         return control_register_;
       case 0xF2:
         return dsp_address_register_;
-      case 0xF3:
-        return sdsp.ReadGlobalReg(dsp_address_register_);
       default:
         if (address < 0xFFC0) {
           return aram_.read(address);
@@ -141,9 +102,6 @@ class SPC700 {
         break;
       case 0xF2:
         dsp_address_register_ = value;
-        break;
-      case 0xF3:
-        sdsp.WriteGlobalReg(dsp_address_register_, value);
         break;
       default:
         if (address < 0xFFC0) {
