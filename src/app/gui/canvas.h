@@ -10,6 +10,7 @@
 #include "app/rom.h"
 
 namespace yaze {
+namespace app {
 namespace gui {
 
 using app::gfx::Bitmap;
@@ -83,6 +84,7 @@ class Canvas {
 };
 
 }  // namespace gui
+}  // namespace app
 }  // namespace yaze
 
 #endif

@@ -70,7 +70,13 @@ class OverworldEditor : public Editor, public SharedROM {
   void DrawOverworldEntrances();
   void DrawOverworldMaps();
   void DrawOverworldSprites();
-  void DrawOverworldEdits() const;
+
+  void DrawOverworldEdits();
+  void RenderUpdatedMapBitmap(const ImVec2 &click_position,
+                              const Bytes &tile_data);
+  void QueueROMChanges(int index, ushort new_tile16);
+  void DetermineActiveMap(const ImVec2 &mouse_position);
+
   void DrawOverworldCanvas();
 
   void DrawTile8Selector();

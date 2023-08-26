@@ -9,6 +9,8 @@
 #include "app/rom.h"
 
 namespace yaze {
+namespace app {
+
 namespace gui {
 
 constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
@@ -209,4 +211,5 @@ void Canvas::DrawOverlay() {
 }
 
 }  // namespace gui
+}  // namespace app
 }  // namespace yaze

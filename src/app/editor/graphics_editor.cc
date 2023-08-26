@@ -19,6 +19,8 @@
 #include "app/gui/style.h"
 #include "app/rom.h"
 
+//
+
 namespace yaze {
 namespace app {
 namespace editor {
@@ -33,25 +35,24 @@ absl::Status GraphicsEditor::Update() {
   }
 
   BEGIN_TABLE("#gfxEditTable", 4, kGfxEditFlags)
-  SETUP_COLUMN("Graphics (BIN, CGX, SCR)")
+  SETUP_COLUMN("File Import (BIN, CGX, ROM)")
   SETUP_COLUMN("Palette (COL)")
-  ImGui::TableSetupColumn("Maps and Animations (SCR, PNL)",
+  ImGui::TableSetupColumn("Tilemaps and Objects (SCR, PNL, OBJ)",
                           ImGuiTableColumnFlags_WidthFixed);
-  SETUP_COLUMN("Preview")
+  SETUP_COLUMN("Graphics Preview")
   TABLE_HEADERS()
-  NEXT_COLUMN()
+  NEXT_COLUMN() {
+    status_ = DrawCgxImport();
+    status_ = DrawClipboardImport();
+    status_ = DrawFileImport();
+    status_ = DrawExperimentalFeatures();
+  }
 
-  status_ = DrawCgxImport();
-  status_ = DrawClipboardImport();
-  status_ = DrawFileImport();
-  status_ = DrawExperimentalFeatures();
+  NEXT_COLUMN() { status_ = DrawPaletteControls(); }
 
   NEXT_COLUMN()
-  status_ = DrawPaletteControls();
-
-  NEXT_COLUMN()
-  core::BitmapCanvasPipeline(0x200, 0x200, 0x20, scr_loaded_, scr_bitmap_,
-                             false, 0);
+  core::BitmapCanvasPipeline(scr_canvas_, scr_bitmap_, 0x200, 0x200, 0x20,
+                             scr_loaded_, false, 0);
   status_ = DrawScrImport();
 
   NEXT_COLUMN()
@@ -69,12 +70,12 @@ absl::Status GraphicsEditor::Update() {
                                     super_donkey_, graphics_bin_);
   } else if (cgx_loaded_ && col_file_) {
     // Load the CGX graphics
-    core::BitmapCanvasPipeline(0x100, 16384, 0x20, cgx_loaded_, cgx_bitmap_,
-                               true, 5);
+    core::BitmapCanvasPipeline(import_canvas_, cgx_bitmap_, 0x100, 16384, 0x20,
+                               cgx_loaded_, true, 5);
   } else {
     // Load the BIN/Clipboard Graphics
-    core::BitmapCanvasPipeline(0x100, 16384, 0x20, gfx_loaded_, bitmap_, true,
-                               2);
+    core::BitmapCanvasPipeline(import_canvas_, bitmap_, 0x100, 16384, 0x20,
+                               gfx_loaded_, true, 2);
   }
   END_TABLE()
 
@@ -124,7 +125,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   core::ButtonPipe("Copy CGX Path",
                    [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
-  core::ButtonPipe("Decompress CGX Data", [this]() {
+  core::ButtonPipe("Load CGX Data", [this]() {
     status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                            decoded_cgx_, extra_cgx_data_);
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
@@ -217,6 +218,49 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   return absl::OkStatus();
 }
 
+absl::Status GraphicsEditor::DrawObjImport() {
+  gui::TextWithSeparators("OBJ Import");
+
+  ImGui::InputText("##ObjFile", obj_file_path_, sizeof(obj_file_path_));
+  ImGui::SameLine();
+
+  core::FileDialogPipeline(
+      "ImportObjKey", ".obj,.OBJ,.bak,.BAK\0", "Open OBJ", [this]() {
+        strncpy(file_path_,
+                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+                sizeof(file_path_));
+        status_ = temp_rom_.LoadFromFile(file_path_);
+        is_open_ = true;
+      });
+
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::DrawTilemapImport() {
+  gui::TextWithSeparators("Tilemap Import");
+
+  ImGui::InputText("##TMapFile", tilemap_file_path_,
+                   sizeof(tilemap_file_path_));
+  ImGui::SameLine();
+
+  core::FileDialogPipeline(
+      "ImportTilemapKey", ".DAT,.dat,.BIN,.bin,.hex,.HEX\0", "Open Tilemap",
+      [this]() {
+        strncpy(tilemap_file_path_,
+                ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
+                sizeof(tilemap_file_path_));
+        status_ = tilemap_rom_.LoadFromFile(tilemap_file_path_);
+
+        // Extract the high and low bytes from the file.
+        auto decomp_sheet = gfx::lc_lz2::DecompressV2(
+            tilemap_rom_.data(), gfx::lc_lz2::kNintendoMode1);
+        tilemap_loaded_ = true;
+        is_open_ = true;
+      });
+
+  return absl::OkStatus();
+}
+
 absl::Status GraphicsEditor::DrawFileImport() {
   gui::TextWithSeparators("BIN Import");
 
@@ -290,8 +334,7 @@ absl::Status GraphicsEditor::DrawExperimentalFeatures() {
   }
   ImGui::SetItemTooltip(
       "Requires `super_donkey_1.bin` to be imported under the "
-      "BIN import "
-      "section.");
+      "BIN import section.");
   return absl::OkStatus();
 }
 
@@ -314,11 +357,11 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
 
   if (rom()->isLoaded()) {
     auto palette_group = rom()->GetPaletteGroup("ow_main");
-    palette_ = palette_group[current_palette_];
+    z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
       bitmap_.ApplyPalette(col_file_palette_);
     } else {
-      bitmap_.ApplyPalette(palette_);
+      bitmap_.ApplyPalette(z3_rom_palette_);
     }
   }
 
@@ -347,8 +390,8 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       // ROM palette
       auto palette_group =
           rom()->GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
-      palette_ = palette_group[current_palette_index_];
-      graphics_bin_[i].ApplyPalette(palette_);
+      z3_rom_palette_ = palette_group[current_palette_index_];
+      graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 
     rom()->RenderBitmap(&graphics_bin_[i]);
@@ -372,8 +415,8 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       // ROM palette
       auto palette_group =
           rom()->GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
-      palette_ = palette_group[current_palette_index_];
-      graphics_bin_[i].ApplyPalette(palette_);
+      z3_rom_palette_ = palette_group[current_palette_index_];
+      graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 
     rom()->RenderBitmap(&graphics_bin_[i]);

@@ -7,6 +7,7 @@
 #include "absl/strings/string_view.h"
 
 namespace yaze {
+namespace app {
 namespace gui {
 
 void TextWithSeparators(const absl::string_view& text);
@@ -14,6 +15,7 @@ void TextWithSeparators(const absl::string_view& text);
 void ColorsYaze();
 
 }  // namespace gui
+}  // namespace app
 }  // namespace yaze
 
 #endif

@@ -107,6 +107,7 @@ absl::StatusOr<Bytes> DecompressV2(const uchar* data, int offset,
                                    int size = 0x800, int mode = 1);
 absl::StatusOr<Bytes> DecompressGraphics(const uchar* data, int pos, int size);
 absl::StatusOr<Bytes> DecompressOverworld(const uchar* data, int pos, int size);
+absl::StatusOr<Bytes> DecompressOverworld(const std::vector<uint8_t> data, int pos, int size);
 
 // Compression V1
 

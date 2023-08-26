@@ -15,6 +15,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "app/zelda3/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -65,9 +66,13 @@ class GraphicsEditor : public SharedROM {
 
  private:
   absl::Status DrawToolset();
+
   absl::Status DrawCgxImport();
   absl::Status DrawScrImport();
   absl::Status DrawFileImport();
+  absl::Status DrawObjImport();
+  absl::Status DrawTilemapImport();
+
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
@@ -77,9 +82,9 @@ class GraphicsEditor : public SharedROM {
 
   absl::Status DecompressSuperDonkey();
 
+  int current_palette_ = 0;
   uint64_t current_offset_ = 0;
   uint64_t current_size_ = 0;
-  int current_palette_ = 0;
   uint64_t current_palette_index_ = 0;
 
   int current_bpp_ = 0;
@@ -95,12 +100,17 @@ class GraphicsEditor : public SharedROM {
 
   bool refresh_graphics_ = false;
   bool open_memory_editor_ = false;
+
   bool gfx_loaded_ = false;
   bool is_open_ = false;
   bool super_donkey_ = false;
+
   bool col_file_ = false;
   bool cgx_loaded_ = false;
   bool scr_loaded_ = false;
+  bool obj_loaded_ = false;
+
+  bool tilemap_loaded_ = false;
 
   char file_path_[256] = "";
   char col_file_path_[256] = "";
@@ -112,7 +122,14 @@ class GraphicsEditor : public SharedROM {
   char scr_file_path_[256] = "";
   char scr_file_name_[256] = "";
 
+  char obj_file_path_[256] = "";
+
+  char tilemap_file_path_[256] = "";
+  char tilemap_file_name_[256] = "";
+
   ROM temp_rom_;
+  ROM tilemap_rom_;
+
   Bytes import_data_;
   Bytes graphics_buffer_;
 
@@ -123,6 +140,8 @@ class GraphicsEditor : public SharedROM {
 
   std::vector<uint8_t> scr_data_;
   std::vector<uint8_t> decoded_scr_data_;
+
+  zelda3::Overworld overworld_;
 
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
@@ -135,6 +154,8 @@ class GraphicsEditor : public SharedROM {
   gfx::Bitmap bitmap_;
   gui::Canvas import_canvas_;
 
+  gui::Canvas scr_canvas_;
+
   gui::Canvas super_donkey_canvas_;
   gfx::BitmapTable graphics_bin_;
 
@@ -142,7 +163,7 @@ class GraphicsEditor : public SharedROM {
 
   gfx::PaletteGroup col_file_palette_group_;
 
-  gfx::SNESPalette palette_;
+  gfx::SNESPalette z3_rom_palette_;
   gfx::SNESPalette col_file_palette_;
 
   absl::Status status_;

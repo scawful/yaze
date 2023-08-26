@@ -2,10 +2,13 @@
 
 #include <SDL.h>
 
+#include <fstream>
 #include <future>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -33,6 +36,57 @@ uint GetOwMapGfxLowPtr(const uchar *rom, int index, uint32_t map_low_ptr) {
            (rom[map_low_ptr + 1 + (3 * index)] << 8) +
            (rom[map_low_ptr + (3 * index)]);
   return core::SnesToPc(p2);
+}
+
+absl::flat_hash_map<int, MapData> parseFile(const std::string &filename) {
+  absl::flat_hash_map<int, MapData> resultMap;
+
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    std::cerr << "Failed to open file: " << filename << std::endl;
+    return resultMap;
+  }
+
+  std::string line;
+  int currentKey;
+  bool isHigh = true;
+
+  while (getline(file, line)) {
+    // Skip empty or whitespace-only lines
+    if (line.find_first_not_of(" \t\r\n") == std::string::npos) {
+      continue;
+    }
+
+    // If the line starts with "MAPDTH" or "MAPDTL", extract the ID.
+    if (line.find("MAPDTH") == 0) {
+      auto num_str = line.substr(6);  // Extract ID after "MAPDTH"
+      currentKey = std::stoi(num_str);
+      isHigh = true;
+    } else if (line.find("MAPDTL") == 0) {
+      auto num_str = line.substr(6);  // Extract ID after "MAPDTH"
+      currentKey = std::stoi(num_str);
+      isHigh = false;
+    } else {
+      // Check if the currentKey is already in the map. If not, initialize it.
+      if (resultMap.find(currentKey) == resultMap.end()) {
+        resultMap[currentKey] = MapData();
+      }
+
+      // Split the line by commas and convert to uint8_t.
+      std::stringstream ss(line);
+      std::string valueStr;
+      while (getline(ss, valueStr, ',')) {
+        uint8_t value = std::stoi(valueStr, nullptr, 16);
+        if (isHigh) {
+          resultMap[currentKey].highData.push_back(value);
+        } else {
+          resultMap[currentKey].lowData.push_back(value);
+        }
+      }
+    }
+  }
+
+  return resultMap;
 }
 
 }  // namespace
@@ -463,6 +517,39 @@ absl::Status Overworld::DecompressAllMapTiles() {
   return absl::OkStatus();
 }
 
+absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
+  proto_map_data_ = parseFile(filename);
+  int sx = 0;
+  int sy = 0;
+  int c = 0;
+  for (int i = 0; i < proto_map_data_.size(); i++) {
+    int ttpos = 0;
+
+    ASSIGN_OR_RETURN(auto bytes, gfx::lc_lz2::DecompressOverworld(
+                                     proto_map_data_[i].lowData, 0,
+                                     proto_map_data_[i].lowData.size()))
+    ASSIGN_OR_RETURN(auto bytes2, gfx::lc_lz2::DecompressOverworld(
+                                      proto_map_data_[i].highData, 0,
+                                      proto_map_data_[i].highData.size()))
+    OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
+
+    sx++;
+    if (sx >= 8) {
+      sy++;
+      sx = 0;
+    }
+
+    c++;
+    if (c >= 64) {
+      sx = 0;
+      sy = 0;
+      c = 0;
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 // ----------------------------------------------------------------------------
 
 void Overworld::FetchLargeMaps() {
@@ -619,13 +706,13 @@ void Overworld::LoadSpritesFromMap(int spriteStart, int spriteCount,
   }
 }
 
-absl::Status Overworld::LoadPrototype(ROM &rom, std::vector<uint8_t> &tilemap,
-                                      std::vector<uint8_t> tile32) {
+absl::Status Overworld::LoadPrototype(ROM &rom,
+                                      const std::string &tilemap_filename) {
   rom_ = rom;
 
   AssembleMap32Tiles();
   AssembleMap16Tiles();
-  RETURN_IF_ERROR(DecompressAllMapTiles())
+  RETURN_IF_ERROR(DecompressProtoMapTiles(tilemap_filename))
 
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
     overworld_maps_.emplace_back(map_index, rom_, tiles16);

@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
@@ -171,6 +172,11 @@ constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 
+struct MapData {
+  std::vector<uint8_t> highData;
+  std::vector<uint8_t> lowData;
+};
+
 class Overworld {
  public:
   absl::Status Load(ROM &rom);
@@ -189,6 +195,9 @@ class Overworld {
   auto AreaPalette() const {
     return overworld_maps_[current_map_].AreaPalette();
   }
+  auto AreaPaletteById(int id) const {
+    return overworld_maps_[id].AreaPalette();
+  }
   auto BitmapData() const { return overworld_maps_[current_map_].BitmapData(); }
   auto Tile16Blockset() const {
     return overworld_maps_[current_map_].Tile16Blockset();
@@ -197,8 +206,7 @@ class Overworld {
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 
-  absl::Status LoadPrototype(ROM &rom_, std::vector<uint8_t> &tilemap,
-                             std::vector<uint8_t> tile32);
+  absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
 
  private:
   enum Dimension {
@@ -216,12 +224,11 @@ class Overworld {
   void OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx, int sy,
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
+  absl::Status DecompressProtoMapTiles(const std::string &filename);
   void FetchLargeMaps();
   void LoadEntrances();
   void LoadSprites();
   void LoadSpritesFromMap(int spriteStart, int spriteCount, int spriteIndex);
-
-  void LoadOverworldMap();
 
   int game_state_ = 0;
   int current_map_ = 0;
@@ -238,6 +245,8 @@ class Overworld {
   std::vector<OverworldEntrance> all_entrances_;
   std::vector<OverworldEntrance> all_holes_;
   std::vector<std::vector<Sprite>> all_sprites_;
+
+  absl::flat_hash_map<int, MapData> proto_map_data_;
 };
 
 }  // namespace zelda3

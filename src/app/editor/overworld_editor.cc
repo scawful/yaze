@@ -18,6 +18,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
+#include "app/gui/widgets.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
 
@@ -194,14 +195,68 @@ void OverworldEditor::DrawOverworldSprites() {
 
 // ----------------------------------------------------------------------------
 
-void OverworldEditor::DrawOverworldEdits() const {
+void OverworldEditor::DrawOverworldEdits() {
   auto mouse_position = ow_map_canvas_.GetCurrentDrawnTilePosition();
   auto canvas_size = ow_map_canvas_.GetCanvasSize();
   int x = mouse_position.x / canvas_size.x;
   int y = mouse_position.y / canvas_size.y;
   auto index = x + (y * 64);
 
-  std::cout << "==> " << index << std::endl;
+  // Determine which overworld map the user is currently editing.
+  DetermineActiveMap(mouse_position);
+
+  // Render the updated map bitmap.
+  RenderUpdatedMapBitmap(mouse_position,
+                         tile16_individual_data_[current_tile16_]);
+
+  // Queue up the raw ROM changes.
+  QueueROMChanges(index, current_tile16_);
+}
+
+void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
+                                             const Bytes &tile_data) {
+  // Calculate the tile position relative to the current active map
+  constexpr int tile_size = 16;  // Tile size is 16x16 pixels
+
+  // Calculate the tile index for x and y based on the click_position
+  int tile_index_x = static_cast<int>(click_position.x) / tile_size;
+  int tile_index_y = static_cast<int>(click_position.y) / tile_size;
+
+  // Calculate the pixel start position based on tile index and tile size
+  ImVec2 start_position;
+  start_position.x = tile_index_x * tile_size;
+  start_position.y = tile_index_y * tile_size;
+
+  // Get the current map's bitmap from the BitmapTable
+  gfx::Bitmap &current_bitmap = maps_bmp_[current_map_];
+
+  // Update the bitmap's pixel data based on the start_position and tile_data
+  for (int y = 0; y < tile_size; ++y) {
+    for (int x = 0; x < tile_size; ++x) {
+      int pixel_index = (start_position.y + y) * current_bitmap.width() +
+                        (start_position.x + x);
+      current_bitmap.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
+    }
+  }
+
+  // Render the updated bitmap to the canvas
+  rom()->RenderBitmap(&current_bitmap);
+}
+
+void OverworldEditor::QueueROMChanges(int index, ushort new_tile16) {
+  // Store the changes made by the user to the ROM (or project file)
+}
+
+void OverworldEditor::DetermineActiveMap(const ImVec2 &mouse_position) {
+  // Assuming each small map is 256x256 pixels (adjust as needed)
+  constexpr int small_map_size = 512;
+
+  // Calculate which small map the mouse is currently over
+  int map_x = mouse_position.x / small_map_size;
+  int map_y = mouse_position.y / small_map_size;
+
+  // Calculate the index of the map in the `maps_bmp_` vector
+  current_map_ = map_x + map_y * 8;
 }
 
 // ----------------------------------------------------------------------------
@@ -225,8 +280,7 @@ void OverworldEditor::DrawOverworldCanvas() {
       if (!blockset_canvas_.Points().empty()) {
         int x = blockset_canvas_.Points().front().x / 32;
         int y = blockset_canvas_.Points().front().y / 32;
-        current_tile16_ = x + (y * 0x10);
-
+        current_tile16_ = x + (y * 8);
         if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
                                            16)) {
           // Update the overworld map.
@@ -272,8 +326,9 @@ void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar(kTileSelectorTab.data(),
                          ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
-      core::BitmapCanvasPipeline(0x100, (8192 * 2), 0x20, map_blockset_loaded_,
-                                 tile16_blockset_bmp_, true, 1);
+      core::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
+                                 (8192 * 2), 0x20, map_blockset_loaded_, true,
+                                 1);
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
@@ -286,8 +341,9 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Area Graphics")) {
-      core::BitmapCanvasPipeline(256, 0x10 * 0x40, 0x20, overworld_.isLoaded(),
-                                 current_gfx_bmp_, true, 3);
+      core::BitmapCanvasPipeline(current_gfx_canvas_, current_gfx_bmp_, 256,
+                                 0x10 * 0x40, 0x20, overworld_.isLoaded(), true,
+                                 3);
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();
@@ -319,17 +375,19 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.Tile16Blockset();
 
+  std::cout << tile16_data.size() << std::endl;
+
   // Loop through the tiles and copy their pixel data into separate vectors
   for (int i = 0; i < 4096; i++) {
     // Create a new vector for the pixel data of the current tile
-    Bytes tile_data;
-    for (int j = 0; j < 16 * 16; j++) tile_data.push_back(0x00);
+    Bytes tile_data(16 * 16, 0x00);  // More efficient initialization
 
     // Copy the pixel data for the current tile into the vector
     for (int ty = 0; ty < 16; ty++) {
       for (int tx = 0; tx < 16; tx++) {
-        int position = (tx + (ty * 0x10));
-        uchar value = tile16_data[i + tx + (ty * 0x80)];
+        int position = tx + (ty * 0x10);
+        uchar value =
+            tile16_data[(i % 8 * 16) + (i / 8 * 16 * 0x80) + (ty * 0x80) + tx];
         tile_data[position] = value;
       }
     }
@@ -389,20 +447,25 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
   ImGui::InputText("##TilemapFile", &ow_tilemap_filename_);
   ImGui::SameLine();
   core::FileDialogPipeline(
-      "ImportTilemapsKey", ".CGX,.cgx\0", "Tilemap Hex File", [this]() {
+      "ImportTilemapsKey", ".DAT,.dat\0", "Tilemap Hex File", [this]() {
         ow_tilemap_filename_ = ImGuiFileDialog::Instance()->GetFilePathName();
       });
 
   ImGui::InputText("##Tile32ConfigurationFile",
                    &tile32_configuration_filename_);
   ImGui::SameLine();
-  core::FileDialogPipeline("ImportTile32Key", ".CGX,.cgx\0", "Tile32 Hex File",
+  core::FileDialogPipeline("ImportTile32Key", ".DAT,.dat\0", "Tile32 Hex File",
                            [this]() {
                              tile32_configuration_filename_ =
                                  ImGuiFileDialog::Instance()->GetFilePathName();
                            });
 
-  ImGui::Button("Load Prototype Overworld with ROM graphics");
+  if (ImGui::Button("Load Prototype Overworld with ROM graphics")) {
+    if (rom()->isLoaded() && !all_gfx_loaded_) {
+      RETURN_IF_ERROR(LoadGraphics())
+      all_gfx_loaded_ = true;
+    }
+  }
 
   gui::TextWithSeparators("Configuration");
 
