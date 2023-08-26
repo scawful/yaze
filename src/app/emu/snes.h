@@ -128,7 +128,7 @@ class SNES : public DMA {
   std::atomic<uint32_t> frame_counter_;
 
   // Other private member variables
-  bool running_;
+  bool running_ = false;
   int scanline;
 };
 
