@@ -323,7 +323,7 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
   }
 
   // Run the other save functions
-  SaveAllPalettes();
+  // SaveAllPalettes();
 
   // Open the file that we know exists for writing
   std::fstream file(filename.data(), std::ios::binary | std::ios::out);

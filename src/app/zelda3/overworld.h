@@ -120,6 +120,7 @@ constexpr int overworldMapPaletteGroup = 0x75504;
 constexpr int overworldSpritePaletteGroup = 0x75580;
 constexpr int overworldSpriteset = 0x7A41;
 constexpr int overworldSpecialGFXGroup = 0x16821;
+constexpr int OverworldMapDataOverflow = 0x130000;
 constexpr int overworldSpecialPALGroup = 0x16831;
 constexpr int overworldSpritesBegining = 0x4C881;
 constexpr int overworldSpritesAgahnim = 0x4CA21;
@@ -177,10 +178,14 @@ struct MapData {
   std::vector<uint8_t> lowData;
 };
 
-class Overworld {
+class Overworld : public SharedROM {
  public:
   absl::Status Load(ROM &rom);
+
   absl::Status SaveOverworldMaps();
+  absl::Status SaveLargeMaps();
+
+  bool CreateTile32Tilemap(bool onlyShow = false);
   void SaveMap16Tiles();
   void SaveMap32Tiles();
 
@@ -247,6 +252,17 @@ class Overworld {
   std::vector<std::vector<Sprite>> all_sprites_;
 
   absl::flat_hash_map<int, MapData> proto_map_data_;
+
+  std::vector<std::vector<uint8_t>> mapDatap1 =
+      std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
+  std::vector<std::vector<uint8_t>> mapDatap2 =
+      std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
+
+  std::vector<int> mapPointers1id = std::vector<int>(kNumOverworldMaps);
+  std::vector<int> mapPointers2id = std::vector<int>(kNumOverworldMaps);
+
+  std::vector<int> mapPointers1 = std::vector<int>(kNumOverworldMaps);
+  std::vector<int> mapPointers2 = std::vector<int>(kNumOverworldMaps);
 };
 
 }  // namespace zelda3
