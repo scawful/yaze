@@ -248,6 +248,7 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
       // 8-bit boolean logic
 
     case 0x28:  // AND A, #imm
+      AND(A, imm());
       break;
     case 0x26:  // AND A, (X)
       break;
@@ -433,10 +434,13 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
       // . branching
 
     case 0x2F:  // BRA rel
+      BRA(rel());
       break;
     case 0xF0:  // BEQ rel
+      BEQ(rel());
       break;
     case 0xD0:  // BNE rel
+      BNE(rel());
       break;
     case 0xB0:  // BCS rel
       break;
