@@ -74,8 +74,7 @@ const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
 
 class CPU : public Memory, public Loggable {
  public:
-  explicit CPU(Memory& mem, VirtualClock& vclock)
-      : memory(mem), clock(vclock) {}
+  explicit CPU(Memory& mem, Clock& vclock) : memory(mem), clock(vclock) {}
 
   void Init() {
     clock.SetFrequency(kCpuClockSpeed);
@@ -698,7 +697,7 @@ class CPU : public Memory, public Loggable {
   uint8_t at(int i) const override { return 0; }
 
   Memory& memory;
-  VirtualClock& clock;
+  Clock& clock;
 };
 
 }  // namespace emu

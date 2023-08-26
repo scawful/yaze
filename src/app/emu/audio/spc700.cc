@@ -1,4 +1,4 @@
-#include "app/emu/spc700.h"
+#include "app/emu/audio/spc700.h"
 
 #include <iostream>
 #include <vector>
@@ -6,6 +6,8 @@
 namespace yaze {
 namespace app {
 namespace emu {
+
+void SPC700::Reset() {}
 
 void SPC700::ExecuteInstructions(uint8_t opcode) {
   switch (opcode) {

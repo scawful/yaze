@@ -1176,6 +1176,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
 
 void CPU::HandleInterrupts() {}
 
+// ADC: Add with carry
 void CPU::ADC(uint8_t operand) {
   bool C = GetCarryFlag();
   if (GetAccumulatorSize()) {  // 8-bit mode
@@ -1209,6 +1210,7 @@ void CPU::ADC(uint8_t operand) {
   }
 }
 
+// AND: Logical AND
 void CPU::AND(uint16_t value, bool isImmediate) {
   uint16_t operand;
   if (E == 0) {  // 16-bit mode
@@ -1232,6 +1234,7 @@ void CPU::ANDAbsoluteLong(uint32_t address) {
   SetNegativeFlag(A & 0x80000000);
 }
 
+// ASL: Arithmetic shift left
 void CPU::ASL(uint16_t address) {
   uint8_t value = memory.ReadByte(address);
   SetCarryFlag(!(value & 0x80));  // Set carry flag if bit 7 is set
@@ -1242,6 +1245,7 @@ void CPU::ASL(uint16_t address) {
   SetZeroFlag(value);
 }
 
+// BCC: Branch if carry clear
 void CPU::BCC(int8_t offset) {
   if (!GetCarryFlag()) {  // If the carry flag is clear
     PC += offset;         // Add the offset to the program counter
@@ -1520,7 +1524,7 @@ void CPU::JSL(uint32_t address) {
 }
 
 // LDA: Load accumulator
-void CPU::LDA(uint16_t address, bool isImmediate ) {
+void CPU::LDA(uint16_t address, bool isImmediate) {
   if (GetAccumulatorSize()) {
     A = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(A == 0);
@@ -1533,7 +1537,7 @@ void CPU::LDA(uint16_t address, bool isImmediate ) {
 }
 
 // LDX: Load X register
-void CPU::LDX(uint16_t address, bool isImmediate ) {
+void CPU::LDX(uint16_t address, bool isImmediate) {
   if (GetIndexSize()) {
     X = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(X == 0);
@@ -1546,7 +1550,7 @@ void CPU::LDX(uint16_t address, bool isImmediate ) {
 }
 
 // LDY: Load Y register
-void CPU::LDY(uint16_t address, bool isImmediate ) {
+void CPU::LDY(uint16_t address, bool isImmediate) {
   if (GetIndexSize()) {
     Y = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(Y == 0);
@@ -1577,7 +1581,7 @@ void CPU::NOP() {
 }
 
 // ORA: Logical OR
-void CPU::ORA(uint16_t address, bool isImmediate ) {
+void CPU::ORA(uint16_t address, bool isImmediate) {
   if (GetAccumulatorSize()) {
     A |= isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(A == 0);

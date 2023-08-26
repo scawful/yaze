@@ -1,9 +1,9 @@
-#ifndef YAZE_APP_EMU_DBG_H_
-#define YAZE_APP_EMU_DBG_H_
+#ifndef YAZE_APP_EMU_DEBUG_DEBUGGER_H_
+#define YAZE_APP_EMU_DEBUG_DEBUGGER_H_
 
-#include "app/emu/apu.h"
+#include "app/emu/audio/apu.h"
 #include "app/emu/cpu.h"
-#include "app/emu/ppu.h"
+#include "app/emu/video/ppu.h"
 
 namespace yaze {
 namespace app {
@@ -11,7 +11,7 @@ namespace emu {
 
 class Debugger {
  public:
-  Debugger()=default;
+  Debugger() = default;
   // Attach the debugger to the emulator
   // Debugger(CPU &cpu, PPU &ppu, APU &apu);
 

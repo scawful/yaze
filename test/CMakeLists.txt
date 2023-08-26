@@ -15,12 +15,17 @@ add_executable(
   yaze_test.cc
   z3ed_test.cc
   cpu_test.cc
+  spc700_test.cc
   ../src/cli/patch.cc
   ../src/cli/command_handler.cc
   compression_test.cc
   snes_palette_test.cc
   ../src/app/rom.cc
   ../src/app/emu/cpu.cc
+  ../src/app/emu/audio/apu.cc
+  ../src/app/emu/video/ppu.cc
+  ../src/app/emu/audio/dsp.cc
+  ../src/app/emu/audio/spc700.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc

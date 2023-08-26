@@ -7,9 +7,9 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class VirtualClock {
+class Clock {
  public:
-  virtual ~VirtualClock() = default;
+  virtual ~Clock() = default;
   virtual void UpdateClock(double delta) = 0;
   virtual unsigned long long GetCycleCount() const = 0;
   virtual void ResetAccumulatedTime() = 0;
@@ -17,10 +17,10 @@ class VirtualClock {
   virtual float GetFrequency() const = 0;
 };
 
-class Clock : public VirtualClock {
+class ClockImpl : public Clock {
  public:
-  Clock() = default;
-  virtual ~Clock() = default;
+  ClockImpl() = default;
+  virtual ~ClockImpl() = default;
 
   void UpdateCycleCount(double deltaTime) {
     accumulatedTime += deltaTime;

@@ -10,7 +10,7 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class MockClock : public VirtualClock {
+class MockClock : public Clock {
  public:
   MOCK_METHOD(void, UpdateClock, (double delta), (override));
   MOCK_METHOD(unsigned long long, GetCycleCount, (), (const, override));
@@ -149,6 +149,24 @@ class CPUTest : public ::testing::Test {
 
 using ::testing::_;
 using ::testing::Return;
+
+TEST_F(CPUTest, CPURunTest) {
+  // Arrange
+  EXPECT_CALL(mock_clock, UpdateClock(_)).Times(1);
+  EXPECT_CALL(mock_clock, GetCycleCount()).WillOnce(Return(1));
+  EXPECT_CALL(mock_clock, ResetAccumulatedTime()).Times(1);
+
+  mock_memory.InsertMemory(0x00, {0x69, 0x01, 0xEA, 0xEA});
+
+  // Act
+  mock_clock.UpdateClock(1.0);
+  cpu.Update();
+  mock_clock.ResetAccumulatedTime();
+
+  // Assert
+  // Google Mock will automatically check the expectations
+  ASSERT_THAT(cpu.A, ::testing::Eq(0x01));
+}
 
 // ============================================================================
 // Infrastructure

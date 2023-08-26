@@ -635,17 +635,19 @@ struct BackgroundLayer {
 
 const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 
-class PPU : public Clock, public Observer {
+class PPU : public Observer {
  public:
   // Initializes the PPU with the necessary resources and dependencies
-  PPU(Memory& memory, VirtualClock& clock) : memory_(memory), clock_(clock) {}
+  PPU(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
 
   void Init() {
     // Initialize the frame buffer with a size that corresponds to the
     // screen resolution
-    SetFrequency(kPpuClockSpeed);
+    clock_.SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
   }
+
+  void UpdateClock(double delta_time) { clock_.UpdateClock(delta_time); }
 
   // Resets the PPU to its initial state
   void Reset() { std::fill(frame_buffer_.begin(), frame_buffer_.end(), 0); }
@@ -725,7 +727,7 @@ class PPU : public Clock, public Observer {
   // ===========================================================
   // Member variables to store internal PPU state and resources
   Memory& memory_;
-  VirtualClock& clock_;
+  Clock& clock_;
   std::vector<uint8_t> frame_buffer_;
 
   Tilemap tilemap_;

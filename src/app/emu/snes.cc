@@ -1,14 +1,20 @@
-#include "snes.h"
+#include "app/emu/snes.h"
+
+#include <SDL_mixer.h>
 
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <thread>
 
-#include "app/emu/apu.h"
+#include "app/emu/audio/apu.h"
+#include "app/emu/audio/spc700.h"
+#include "app/emu/clock.h"
 #include "app/emu/cpu.h"
+#include "app/emu/debug/debugger.h"
 #include "app/emu/mem.h"
-#include "app/emu/ppu.h"
+#include "app/emu/video/ppu.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -38,6 +44,16 @@ uint16_t GetHeaderOffset(const Memory& memory) {
   }
 
   return offset;
+}
+
+void audio_callback(void* userdata, uint8_t* stream, int len) {
+  auto* apu = static_cast<APU*>(userdata);
+  auto* buffer = reinterpret_cast<int16_t*>(stream);
+
+  for (int i = 0; i < len / 2; i++) {  // Assuming 16-bit samples
+    buffer[i] = apu->GetNextSample();  // This function should be implemented in
+                                       // APU to fetch the next sample
+  }
 }
 
 }  // namespace
@@ -179,6 +195,9 @@ void SNES::Init(ROM& rom) {
 
   // Initialize APU
   apu.Init();
+
+  // Initialize SDL_Mixer to play the audio samples
+  Mix_HookMusic(audio_callback, &apu);
 
   // Disable interrupts and rendering
   memory_.WriteByte(0x4200, 0x00);  // NMITIMEN
