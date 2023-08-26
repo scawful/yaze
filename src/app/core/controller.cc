@@ -158,6 +158,7 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() const {
+  Mix_CloseAudio();
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -214,20 +215,51 @@ absl::Status Controller::CreateGuiContext() const {
 
   // Load available fonts
   const ImGuiIO &io = ImGui::GetIO();
-  io.Fonts->AddFontFromFileTTF("assets/font/Karla-Regular.ttf", 14.0f);
 
-  // merge in icons from Google Material Design
+  // Define constants
+  static const char *KARLA_REGULAR = "assets/font/Karla-Regular.ttf";
+  static const char *ROBOTO_MEDIUM = "assets/font/Roboto-Medium.ttf";
+  static const char *COUSINE_REGULAR = "assets/font/Cousine-Regular.ttf";
+  static const char *DROID_SANS = "assets/font/DroidSans.ttf";
+  static const char *NOTO_SANS_JP = "assets/font/NotoSansJP.ttf";
+  static const float FONT_SIZE_DEFAULT = 14.0f;
+  static const float FONT_SIZE_DROID_SANS = 16.0f;
+  static const float ICON_FONT_SIZE = 18.0f;
+
+  // Icon configuration
   static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
   ImFontConfig icons_config;
   icons_config.MergeMode = true;
   icons_config.GlyphOffset.y = 5.0f;
   icons_config.GlyphMinAdvanceX = 13.0f;
   icons_config.PixelSnapH = true;
-  io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, 18.0f, &icons_config,
-                               icons_ranges);
-  io.Fonts->AddFontFromFileTTF("assets/font/Roboto-Medium.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/font/Cousine-Regular.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/font/DroidSans.ttf", 16.0f);
+
+  // Japanese font configuration
+  ImFontConfig japanese_font_config;
+  japanese_font_config.MergeMode = true;
+
+  // List of fonts to be loaded
+  std::vector<const char *> font_paths = {KARLA_REGULAR, ROBOTO_MEDIUM,
+                                          COUSINE_REGULAR, DROID_SANS};
+
+  // Load fonts with associated icon and Japanese merges
+  for (const auto &font_path : font_paths) {
+    float font_size =
+        (font_path == DROID_SANS) ? FONT_SIZE_DROID_SANS : FONT_SIZE_DEFAULT;
+
+    if (!io.Fonts->AddFontFromFileTTF(font_path, font_size)) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to load font from %s", font_path));
+    }
+
+    // Merge icon set
+    io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, ICON_FONT_SIZE,
+                                 &icons_config, icons_ranges);
+
+    // Merge Japanese font
+    io.Fonts->AddFontFromFileTTF(NOTO_SANS_JP, font_size, &japanese_font_config,
+                                 io.Fonts->GetGlyphRangesJapanese());
+  }
 
   // Set the default style
   gui::ColorsYaze();
