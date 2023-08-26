@@ -222,6 +222,7 @@ absl::Status Controller::CreateGuiContext() const {
   static const char *COUSINE_REGULAR = "assets/font/Cousine-Regular.ttf";
   static const char *DROID_SANS = "assets/font/DroidSans.ttf";
   static const char *NOTO_SANS_JP = "assets/font/NotoSansJP.ttf";
+  static const char *IBM_PLEX_JP = "assets/font/IBMPlexSansJP-Bold.ttf";
   static const float FONT_SIZE_DEFAULT = 14.0f;
   static const float FONT_SIZE_DROID_SANS = 16.0f;
   static const float ICON_FONT_SIZE = 18.0f;
@@ -237,10 +238,13 @@ absl::Status Controller::CreateGuiContext() const {
   // Japanese font configuration
   ImFontConfig japanese_font_config;
   japanese_font_config.MergeMode = true;
+  icons_config.GlyphOffset.y = 5.0f;
+  icons_config.GlyphMinAdvanceX = 13.0f;
+  icons_config.PixelSnapH = true;
 
   // List of fonts to be loaded
   std::vector<const char *> font_paths = {KARLA_REGULAR, ROBOTO_MEDIUM,
-                                          COUSINE_REGULAR, DROID_SANS};
+                                          COUSINE_REGULAR, IBM_PLEX_JP};
 
   // Load fonts with associated icon and Japanese merges
   for (const auto &font_path : font_paths) {
@@ -257,7 +261,7 @@ absl::Status Controller::CreateGuiContext() const {
                                  &icons_config, icons_ranges);
 
     // Merge Japanese font
-    io.Fonts->AddFontFromFileTTF(NOTO_SANS_JP, font_size, &japanese_font_config,
+    io.Fonts->AddFontFromFileTTF(NOTO_SANS_JP, 18.0f, &japanese_font_config,
                                  io.Fonts->GetGlyphRangesJapanese());
   }
 
