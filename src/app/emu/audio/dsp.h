@@ -51,7 +51,7 @@ using SamplePusher = std::function<void(int16_t)>;
  *
  */
 
-class Dsp {
+class DigitalSignalProcessor {
  private:
   static const size_t kNumVoices = 8;
   static const size_t kNumVoiceRegs = 10;
@@ -130,12 +130,12 @@ class Dsp {
        180,        150,   110,   92,    55,    37,    18}};
 
   // DSP Period Table
-  const std::vector<std::vector<uint16_t>> DspPeriodTable = {
+  const std::vector<std::vector<uint16_t>> DigitalSignalProcessorPeriodTable = {
       // ... Your DSP period table here ...
   };
 
   // DSP Period Offset
-  const std::vector<uint16_t> DspPeriodOffset = {
+  const std::vector<uint16_t> DigitalSignalProcessorPeriodOffset = {
       // ... Your DSP period offsets here ...
   };
 
@@ -156,7 +156,7 @@ class Dsp {
   SamplePusher sample_pusher_;
 
  public:
-  Dsp() = default;
+  DigitalSignalProcessor() = default;
 
   void Reset();
 

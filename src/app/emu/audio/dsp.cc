@@ -6,9 +6,9 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-void Dsp::Reset() {}
+void DigitalSignalProcessor::Reset() {}
 
-uint8_t Dsp::ReadVoiceReg(uint8_t voice, uint8_t reg) const {
+uint8_t DigitalSignalProcessor::ReadVoiceReg(uint8_t voice, uint8_t reg) const {
   voice %= kNumVoices;
   switch (reg % kNumVoiceRegs) {
     case 0:
@@ -37,7 +37,7 @@ uint8_t Dsp::ReadVoiceReg(uint8_t voice, uint8_t reg) const {
   }
 }
 
-void Dsp::WriteVoiceReg(uint8_t voice, uint8_t reg, uint8_t value) {
+void DigitalSignalProcessor::WriteVoiceReg(uint8_t voice, uint8_t reg, uint8_t value) {
   voice %= kNumVoices;
   switch (reg % kNumVoiceRegs) {
     case 0:
@@ -69,11 +69,11 @@ void Dsp::WriteVoiceReg(uint8_t voice, uint8_t reg, uint8_t value) {
 }
 
 // Set the callbacks
-void Dsp::SetSampleFetcher(SampleFetcher fetcher) { sample_fetcher_ = fetcher; }
+void DigitalSignalProcessor::SetSampleFetcher(SampleFetcher fetcher) { sample_fetcher_ = fetcher; }
 
-void Dsp::SetSamplePusher(SamplePusher pusher) { sample_pusher_ = pusher; }
+void DigitalSignalProcessor::SetSamplePusher(SamplePusher pusher) { sample_pusher_ = pusher; }
 
-int16_t Dsp::DecodeSample(uint8_t voice_num) {
+int16_t DigitalSignalProcessor::DecodeSample(uint8_t voice_num) {
   Voice const& voice = voices_[voice_num];
   uint16_t sample_address = voice.source_number;
 
@@ -82,7 +82,7 @@ int16_t Dsp::DecodeSample(uint8_t voice_num) {
   return sample;
 }
 
-int16_t Dsp::ProcessSample(uint8_t voice_num, int16_t sample) {
+int16_t DigitalSignalProcessor::ProcessSample(uint8_t voice_num, int16_t sample) {
   Voice const& voice = voices_[voice_num];
 
   // Adjust the pitch (for simplicity, we're just adjusting the sample value)
@@ -96,7 +96,7 @@ int16_t Dsp::ProcessSample(uint8_t voice_num, int16_t sample) {
   return (left_sample + right_sample) / 2;
 }
 
-void Dsp::MixSamples() {
+void DigitalSignalProcessor::MixSamples() {
   int16_t mixed_sample = 0;
 
   for (uint8_t i = 0; i < kNumVoices; i++) {
@@ -116,7 +116,7 @@ void Dsp::MixSamples() {
   sample_pusher_(mixed_sample);
 }
 
-void Dsp::UpdateEnvelope(uint8_t voice) {
+void DigitalSignalProcessor::UpdateEnvelope(uint8_t voice) {
   uint8_t adsr1 = ReadVoiceReg(voice, 0x05);
   uint8_t adsr2 = ReadVoiceReg(voice, 0x06);
   uint8_t gain = ReadVoiceReg(voice, 0x07);
@@ -216,7 +216,7 @@ void Dsp::UpdateEnvelope(uint8_t voice) {
   }
 }
 
-void Dsp::update_voice_state(uint8_t voice_num) {
+void DigitalSignalProcessor::update_voice_state(uint8_t voice_num) {
   if (voice_num >= kNumVoices) return;
 
   Voice& voice = voices_[voice_num];
@@ -261,7 +261,7 @@ void Dsp::update_voice_state(uint8_t voice_num) {
   }
 }
 
-void Dsp::process_envelope(uint8_t voice_num) {
+void DigitalSignalProcessor::process_envelope(uint8_t voice_num) {
   if (voice_num >= kNumVoices) return;
 
   Voice& voice = voices_[voice_num];
