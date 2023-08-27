@@ -12,6 +12,7 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -29,7 +30,9 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {
@@ -197,6 +200,8 @@ class ROM {
     WriteShort(address, bgr);
   }
 
+  void QueueChanges(std::function<void()> function) { changes_.push(function); }
+
   VersionConstants GetVersionConstants() const {
     return kVersionConstantsMap.at(version_);
   }
@@ -286,6 +291,7 @@ class ROM {
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
 
+  std::stack<std::function<void()>> changes_;
   std::shared_ptr<SDL_Renderer> renderer_;
   std::unordered_map<std::string, gfx::PaletteGroup> palette_groups_;
 };

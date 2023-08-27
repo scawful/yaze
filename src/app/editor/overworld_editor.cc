@@ -245,13 +245,15 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
 
 void OverworldEditor::QueueROMChanges(int index, ushort new_tile16) {
   // Store the changes made by the user to the ROM (or project file)
-  overworld_.SaveOverworldMaps();
-  if (!overworld_.CreateTile32Tilemap()) {
-    // overworld_.SaveMap16Tiles();
-    overworld_.SaveMap32Tiles();
-  } else {
-    std::cout << "Failed to create tile32 tilemap" << std::endl;
-  }
+  rom()->QueueChanges([&]() {
+    overworld_.SaveOverworldMaps();
+    if (!overworld_.CreateTile32Tilemap()) {
+      // overworld_.SaveMap16Tiles();
+      overworld_.SaveMap32Tiles();
+    } else {
+      std::cout << "Failed to create tile32 tilemap" << std::endl;
+    }
+  });
 }
 
 void OverworldEditor::DetermineActiveMap(const ImVec2 &mouse_position) {

@@ -3,16 +3,24 @@
 #include <SDL.h>
 #include <asar/src/asar/interface-lib.h>
 
+#include <algorithm>
+#include <chrono>
 #include <cstddef>
-#include <cstdio>
+#include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <memory>
+#include <stack>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -21,8 +29,9 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/compression.h"
+#include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gfx/compression.h"
 
 namespace yaze {
 namespace app {
@@ -324,6 +333,11 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
 
   // Run the other save functions
   // SaveAllPalettes();
+  while (!changes_.empty()) {
+    auto change = changes_.top();
+    change();
+    changes_.pop();
+  }
 
   // Open the file that we know exists for writing
   std::fstream file(filename.data(), std::ios::binary | std::ios::out);
