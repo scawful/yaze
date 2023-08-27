@@ -4,11 +4,44 @@
 #include <iostream>
 #include <vector>
 
-#include "app/emu/mem.h"
+#include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace app {
 namespace emu {
+
+using namespace PPURegisters;
+
+void PPU::Update() {
+  auto cycles_to_run = clock_.GetCycleCount();
+
+  UpdateInternalState(cycles_to_run);
+
+  // Render however many scanlines we're supposed to.
+  if (current_scanline_ < visibleScanlines) {
+    // Render the current scanline
+    RenderScanline();
+
+    // Increment the current scanline
+    current_scanline_++;
+  }
+}
+
+void PPU::UpdateInternalState(int cycles) {
+  // Update the PPU's internal state based on the number of cycles
+  cycle_count_ += cycles;
+
+  // Check if it's time to move to the next scanline
+  if (cycle_count_ >= cyclesPerScanline) {
+    current_scanline_++;
+    cycle_count_ -= cyclesPerScanline;
+
+    // If we've reached the end of the frame, reset to the first scanline
+    if (current_scanline_ >= totalScanlines) {
+      current_scanline_ = 0;
+    }
+  }
+}
 
 void PPU::RenderScanline() {
   // Fetch the tile data from VRAM, tile map data from memory, and palette data
@@ -40,106 +73,65 @@ void PPU::RenderScanline() {
                     // the frame buffer
 
   // Display the frame buffer on the screen
-  DisplayFrameBuffer();  // Sends the frame buffer to the display hardware
-                         // (e.g., SDL2)
+  DisplayFrameBuffer();
 }
 
-void PPU::Update() {
-  auto cycles_to_run = clock_.GetCycleCount();
-
-  UpdateInternalState(cycles_to_run);
-
-  // Render however many scanlines we're supposed to.
-  if (currentScanline < visibleScanlines) {
-    // Render the current scanline
-    // This involves fetching tile data, applying palette colors, handling
-    // sprite spriorities, etc.
-    RenderScanline();
-
-    // Increment the current scanline
-    currentScanline++;
-  }
-}
-
-void PPU::UpdateInternalState(int cycles) {
-  // Update the PPU's internal state based on the number of cycles
-  cycleCount += cycles;
-
-  // Check if it's time to move to the next scanline
-  if (cycleCount >= cyclesPerScanline) {
-    currentScanline++;
-    cycleCount -= cyclesPerScanline;
-
-    // If we've reached the end of the frame, reset to the first scanline
-    if (currentScanline >= totalScanlines) {
-      currentScanline = 0;
+void PPU::Notify(uint32_t address, uint8_t data) {
+  // Handle communication in the PPU.
+  if (address >= 0x2100 && address <= 0x213F) {
+    // Handle register notification
+    switch (address) {
+      case PPURegisters::INIDISP:
+        enable_forced_blanking_ = (data >> 7) & 0x01;
+        break;
+      case PPURegisters::BGMODE:
+        // Update the PPU mode settings
+        UpdateModeSettings();
+        break;
     }
-  }
-}
-
-// Reads a byte from the specified PPU register
-uint8_t PPU::ReadRegister(uint16_t address) {
-  switch (address) {
-    case 0x2102:  // OAM Address Register (low byte)
-      return oam_address_ & 0xFF;
-    case 0x2103:  // OAM Address Register (high byte)
-      return (oam_address_ >> 8) & 0xFF;
-    // ... handle other PPU registers
-    default:
-      // Invalid register address, return 0
-      return 0;
-  }
-}
-
-// Writes a byte to the specified PPU register
-void PPU::WriteRegister(uint16_t address, uint8_t value) {
-  switch (address) {
-    case 0x2102:  // OAM Address Register (low byte)
-      oam_address_ = (oam_address_ & 0xFF00) | value;
-      break;
-    case 0x2103:  // OAM Address Register (high byte)
-      oam_address_ = (oam_address_ & 0x00FF) | (value << 8);
-      break;
-    // ... handle other PPU registers
-    default:
-      // Invalid register address, do nothing
-      break;
   }
 }
 
 void PPU::UpdateModeSettings() {
   // Read the PPU mode settings from the PPU registers
-  uint8_t modeRegister = ReadRegister(PPURegisters::INIDISP);
+  uint8_t modeRegister = memory_.ReadByte(PPURegisters::INIDISP);
 
-  // Extract the PPU mode and other relevant settings from the register value
-  BackgroundMode mode = static_cast<BackgroundMode>(
-      modeRegister & 0x07);  // Mode is stored in the lower 3 bits
-  bool backgroundEnabled =
-      (modeRegister >> 7) & 0x01;  // Background enabled flag is stored in bit 7
-  bool spritesEnabled =
-      (modeRegister >> 6) & 0x01;  // Sprites enabled flag is stored in bit 6
+  // Mode is stored in the lower 3 bits
+  auto mode = static_cast<BackgroundMode>(modeRegister & 0x07);
 
-  // Update the internal mode settings based on the extracted values
-  // modeSettings_.backgroundEnabled = backgroundEnabled;
-  // modeSettings_.spritesEnabled = spritesEnabled;
-
-  // Update the tilemap, tile data, and palette settings based on the selected
-  // mode
+  // Update the tilemap, tile data, and palette settings
   switch (mode) {
     case BackgroundMode::Mode0:
-      // Mode 0: 4 background layers, all with 2bpp
-      // Update the tilemap, tile data, and palette settings accordingly
-      // ...
+      // Mode 0: 4 layers, each 2bpp (4 colors)
       break;
 
     case BackgroundMode::Mode1:
-      // Mode 1: 3 background layers (2 with 4bpp, 1 with 2bpp)
-      // Update the tilemap, tile data, and palette settings accordingly
-      // ...
+      // Mode 1: 2 layers, 4bpp (16 colors), 1 layer, 2bpp (4 colors)
       break;
 
-      // Handle other modes and update the settings accordingly
-      // ...
+    case BackgroundMode::Mode2:
+      // Mode 2: 2 layers, 4bpp (16 colors), 1 layer for offset-per-tile
+      break;
+
+    case BackgroundMode::Mode3:
+      // Mode 3: 1 layer, 8bpp (256 colors), 1 layer, 4bpp (16 colors)
+      break;
+
+    case BackgroundMode::Mode4:
+      // Mode 4: 1 layer, 8bpp (256 colors), 1 layer, 2bpp (4 colors)
+      break;
+
+    case BackgroundMode::Mode5:
+      // Mode 5: 1 layer, 4bpp (16 colors), 1 layer, 2bpp (4 colors) hi-res
+      break;
+
+    case BackgroundMode::Mode6:
+      // Mode 6: 1 layer, 4bpp (16 colors), 1 layer for offset-per-tile, hi-res
+      break;
+
+    case BackgroundMode::Mode7:
+      // Mode 7: 1 layer, 8bpp (256 colors), rotation/scaling
+      break;
 
     default:
       // Invalid mode setting, handle the error or set default settings
@@ -151,31 +143,108 @@ void PPU::UpdateModeSettings() {
   // Update tile data, tilemaps, sprites, and palette based on the mode settings
   UpdateTileData();
   UpdatePaletteData();
-  // ...
 }
 
+// Internal methods to handle PPU rendering and operations
+void PPU::UpdateTileData() {
+  // Fetch tile data from VRAM and store it in the internal buffer
+  for (uint16_t address = 0; address < tile_data_size_; ++address) {
+    tile_data_[address] = memory_.ReadByte(vram_base_address_ + address);
+  }
+
+  // Update the tilemap entries based on the fetched tile data
+  for (uint16_t entryIndex = 0; entryIndex < tilemap_.entries.size();
+       ++entryIndex) {
+    uint16_t tilemapAddress =
+        tilemap_base_address_ + entryIndex * sizeof(TilemapEntry);
+    // Assume ReadWord reads a 16-bit value from VRAM
+    uint16_t tileData = memory_.ReadWord(tilemapAddress);
+
+    // Extract tilemap entry attributes from the tile data
+    TilemapEntry entry;
+    // Tile number is stored in the lower 10 bits
+    entry.tileNumber = tileData & 0x03FF;
+
+    // Palette is stored in bits 10-12
+    entry.palette = (tileData >> 10) & 0x07;
+
+    // Priority is stored in bit 13
+    entry.priority = (tileData >> 13) & 0x01;
+
+    // Horizontal flip is stored in bit 14
+    entry.hFlip = (tileData >> 14) & 0x01;
+
+    // Vertical flip is stored in bit 15
+    entry.vFlip = (tileData >> 15) & 0x01;
+
+    tilemap_.entries[entryIndex] = entry;
+  }
+
+  // Update the sprites based on the fetched tile data
+  for (uint16_t spriteIndex = 0; spriteIndex < sprites_.size(); ++spriteIndex) {
+    uint16_t spriteAddress =
+        oam_address_ + spriteIndex * sizeof(SpriteAttributes);
+    // Assume ReadWord reads a 16-bit value from VRAM
+    uint16_t spriteData = memory_.ReadWord(spriteAddress);
+
+    // Extract sprite attributes from the sprite data
+    SpriteAttributes sprite;
+
+    sprite.x = memory_.ReadByte(spriteAddress);
+    sprite.y = memory_.ReadByte(spriteAddress + 1);
+
+    // Tile number is stored in the lower 9
+    sprite.tile = spriteData & 0x01FF;
+
+    // bits Palette is stored in bits 9-11
+    sprite.palette = (spriteData >> 9) & 0x07;
+
+    // Priority is stored in bits 12-13
+    sprite.priority = (spriteData >> 12) & 0x03;
+
+    // Horizontal flip is stored in bit 14
+    sprite.hFlip = (spriteData >> 14) & 0x01;
+
+    // Vertical flip is stored in bit 15
+    sprite.vFlip = (spriteData >> 15) & 0x01;
+
+    sprites_[spriteIndex] = sprite;
+  }
+}
+
+void PPU::UpdateTileMapData() {}
+
 void PPU::RenderBackground(int layer) {
+  auto bg1_tilemap_info = BGSC(0);
+  auto bg1_chr_data = BGNBA(0);
+  auto bg2_tilemap_info = BGSC(0);
+  auto bg2_chr_data = BGNBA(0);
+  auto bg3_tilemap_info = BGSC(0);
+  auto bg3_chr_data = BGNBA(0);
+  auto bg4_tilemap_info = BGSC(0);
+  auto bg4_chr_data = BGNBA(0);
+
   switch (layer) {
     case 1:
-    //   // Render the first background layer
-    //   auto bg1_tilemap_info =
-    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG1SC)); auto bg1_chr_data =
-    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG12NBA)); break;
-    // case 2:
-    //   // Render the second background layer
-    //   auto bg2_tilemap_info =
-    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG2SC)); auto bg2_chr_data =
-    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG12NBA)); break;
-    // case 3:
-    //   // Render the third background layer
-    //   auto bg3_tilemap_info =
-    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG3SC)); auto bg3_chr_data =
-    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG34NBA)); break;
-    // case 4:
-    //   // Render the fourth background layer
-    //   auto bg4_tilemap_info =
-    //   PPURegisters::BGSC(ReadVRAM(PPURegisters::BG4SC)); auto bg4_chr_data =
-    //   PPURegisters::BGNBA(ReadVRAM(PPURegisters::BG34NBA)); break;
+      // Render the first background layer
+      bg1_tilemap_info = BGSC(memory_.ReadByte(BG1SC));
+      bg1_chr_data = BGNBA(memory_.ReadByte(BG12NBA));
+      break;
+    case 2:
+      // Render the second background layer
+      bg2_tilemap_info = BGSC(memory_.ReadByte(BG2SC));
+      bg2_chr_data = BGNBA(memory_.ReadByte(BG12NBA));
+      break;
+    case 3:
+      // Render the third background layer
+      bg3_tilemap_info = BGSC(memory_.ReadByte(BG3SC));
+      bg3_chr_data = BGNBA(memory_.ReadByte(BG34NBA));
+      break;
+    case 4:
+      // Render the fourth background layer
+      bg4_tilemap_info = BGSC(memory_.ReadByte(BG4SC));
+      bg4_chr_data = BGNBA(memory_.ReadByte(BG34NBA));
+      break;
     default:
       // Invalid layer, do nothing
       break;
@@ -186,83 +255,13 @@ void PPU::RenderSprites() {
   // ...
 }
 
-uint32_t PPU::GetPaletteColor(uint8_t colorIndex) {
-  return memory_.ReadWordLong(colorIndex);
-}
+void PPU::UpdatePaletteData() {}
 
-uint8_t PPU::ReadVRAM(uint16_t address) {
-  // ...
-}
+void PPU::ApplyEffects() {}
 
-void PPU::WriteVRAM(uint16_t address, uint8_t value) {
-  // ...
-}
+void PPU::ComposeLayers() {}
 
-uint8_t PPU::ReadOAM(uint16_t address) { return memory_.ReadByte(address); }
-
-void PPU::WriteOAM(uint16_t address, uint8_t value) {
-  // ...
-}
-
-uint8_t PPU::ReadCGRAM(uint16_t address) { return memory_.ReadByte(address); }
-
-void PPU::WriteCGRAM(uint16_t address, uint8_t value) {
-  // ...
-}
-
-// Internal methods to handle PPU rendering and operations
-void PPU::UpdateTileData() {
-  // Fetch tile data from VRAM and store it in the internal buffer
-  for (uint16_t address = 0; address < tileDataSize_; ++address) {
-    tileData_[address] = memory_.ReadByte(vramBaseAddress_ + address);
-  }
-
-  // Update the tilemap entries based on the fetched tile data
-  for (uint16_t entryIndex = 0; entryIndex < tilemap_.entries.size();
-       ++entryIndex) {
-    uint16_t tilemapAddress =
-        tilemapBaseAddress_ + entryIndex * sizeof(TilemapEntry);
-    uint16_t tileData = memory_.ReadWord(
-        tilemapAddress);  // Assume ReadWord reads a 16-bit value from VRAM
-
-    // Extract tilemap entry attributes from the tile data
-    TilemapEntry entry;
-    entry.tileNumber =
-        tileData & 0x03FF;  // Tile number is stored in the lower 10 bits
-    entry.palette = (tileData >> 10) & 0x07;  // Palette is stored in bits 10-12
-    entry.priority = (tileData >> 13) & 0x01;  // Priority is stored in bit 13
-    entry.hFlip =
-        (tileData >> 14) & 0x01;  // Horizontal flip is stored in bit 14
-    entry.vFlip = (tileData >> 15) & 0x01;  // Vertical flip is stored in bit 15
-
-    tilemap_.entries[entryIndex] = entry;
-  }
-
-  // Update the sprites based on the fetched tile data
-  for (uint16_t spriteIndex = 0; spriteIndex < sprites_.size(); ++spriteIndex) {
-    uint16_t spriteAddress =
-        oam_address_ + spriteIndex * sizeof(SpriteAttributes);
-    uint16_t spriteData = memory_.ReadWord(
-        spriteAddress);  // Assume ReadWord reads a 16-bit value from VRAM
-
-    // Extract sprite attributes from the sprite data
-    SpriteAttributes sprite;
-    sprite.x = memory_.ReadByte(spriteAddress);
-    sprite.y = memory_.ReadByte(spriteAddress + 1);
-    sprite.tile =
-        spriteData & 0x01FF;  // Tile number is stored in the lower 9 bits
-    sprite.palette =
-        (spriteData >> 9) & 0x07;  // Palette is stored in bits 9-11
-    sprite.priority =
-        (spriteData >> 12) & 0x03;  // Priority is stored in bits 12-13
-    sprite.hFlip =
-        (spriteData >> 14) & 0x01;  // Horizontal flip is stored in bit 14
-    sprite.vFlip =
-        (spriteData >> 15) & 0x01;  // Vertical flip is stored in bit 15
-
-    sprites_[spriteIndex] = sprite;
-  }
-}
+void PPU::DisplayFrameBuffer() {}
 
 }  // namespace emu
 }  // namespace app

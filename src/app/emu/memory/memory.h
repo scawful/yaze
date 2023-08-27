@@ -24,26 +24,6 @@
 //         2000-FFFF     System RAM
 // 7F      0000-FFFF     System RAM
 
-// HiROM (Mode 21):
-
-// Banks   Offset        Purpose
-// 00-3F   0000-1FFF     LowRAM (shadowed from 7E)
-//         2000-2FFF     PPU1, APU
-//         3000-3FFF     SFX, DSP, etc.
-//         4000-41FF     Controller
-//         4200-5FFF     PPU2, DMA, etc.
-//         6000-7FFF     SRAM (256KB)
-//         8000-FFFF     32k ROM Chunk
-// 40-6F   0000-FFFF     64k ROM Chunk
-// 70-77   0000-FFFF     SRAM (256KB)
-// 78-7D   0000-FFFF     Never Used
-// 7E      0000-1FFF     LowRAM
-//         2000-7FFF     HighRAM
-//         8000-FFFF     Expanded RAM
-// 7F      0000-FFFF     More Expanded RAM
-// 80-EF   0000-FFFF     Mirror of 00-6F
-// F0-FF   0000-FFFF     64k ROM Chunk
-
 namespace yaze {
 namespace app {
 namespace emu {
@@ -115,6 +95,15 @@ class Observer {
   virtual void Notify(uint32_t address, uint8_t data) = 0;
 };
 
+constexpr uint32_t kROMStart = 0xC00000;
+constexpr uint32_t kROMSize = 0x400000;
+constexpr uint32_t kRAMStart = 0x7E0000;
+constexpr uint32_t kRAMSize = 0x20000;
+constexpr uint32_t kVRAMStart = 0x210000;
+constexpr uint32_t kVRAMSize = 0x10000;
+constexpr uint32_t kOAMStart = 0x218000;
+constexpr uint32_t kOAMSize = 0x220;
+
 // memory.h
 class Memory {
  public:
@@ -122,6 +111,8 @@ class Memory {
   virtual uint8_t ReadByte(uint16_t address) const = 0;
   virtual uint16_t ReadWord(uint16_t address) const = 0;
   virtual uint32_t ReadWordLong(uint16_t address) const = 0;
+  virtual std::vector<uint8_t> ReadByteVector(uint16_t address,
+                                              uint16_t length) const = 0;
 
   virtual void WriteByte(uint32_t address, uint8_t value) = 0;
   virtual void WriteWord(uint32_t address, uint16_t value) = 0;
@@ -154,8 +145,7 @@ class MemoryImpl : public Memory, public Loggable {
     const size_t HARDWARE_REGISTERS_SIZE = 0x4000;  // 16 KB
 
     // Clear memory
-    memory_.clear();
-    memory_.resize(0x1000000, 0);  // 24-bit address space
+    std::fill(memory_.begin(), memory_.end(), 0);
 
     // Load ROM data into memory based on LoROM mapping
     size_t romSize = romData.size();
@@ -244,6 +234,13 @@ class MemoryImpl : public Memory, public Loggable {
            (static_cast<uint32_t>(memory_.at(mapped_address + 1)) << 8) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 2)) << 16);
   }
+  std::vector<uint8_t> ReadByteVector(uint16_t address,
+                                      uint16_t length) const override {
+    uint32_t mapped_address = GetMappedAddress(address);
+    NotifyObservers(mapped_address, /*data=*/0);
+    return std::vector<uint8_t>(memory_.begin() + mapped_address,
+                                memory_.begin() + mapped_address + length);
+  }
 
   void WriteByte(uint32_t address, uint8_t value) override {
     uint32_t mapped_address = GetMappedAddress(address);
@@ -305,9 +302,10 @@ class MemoryImpl : public Memory, public Loggable {
   // Stack Pointer access.
   int16_t SP() const override { return SP_; }
   void SetSP(int16_t value) override { SP_ = value; }
-
-  void SetMemory(const std::vector<uint8_t>& data) override { memory_ = data; }
-  void ClearMemory() override { memory_.resize(64000, 0x00); }
+  void ClearMemory() override { std::fill(memory_.begin(), memory_.end(), 0); }
+  void SetMemory(const std::vector<uint8_t>& data) override {
+    std::copy(data.begin(), data.end(), memory_.begin());
+  }
   void LoadData(const std::vector<uint8_t>& data) override {
     std::copy(data.begin(), data.end(), memory_.begin());
   }
@@ -357,15 +355,6 @@ class MemoryImpl : public Memory, public Loggable {
     return address;  // Return the original address if no mapping is defined
   }
 
-  static const uint32_t kROMStart = 0xC00000;
-  static const uint32_t kROMSize = 0x400000;
-  static const uint32_t kRAMStart = 0x7E0000;
-  static const uint32_t kRAMSize = 0x20000;
-  static const uint32_t kVRAMStart = 0x210000;
-  static const uint32_t kVRAMSize = 0x10000;
-  static const uint32_t kOAMStart = 0x218000;
-  static const uint32_t kOAMSize = 0x220;
-
   void NotifyObservers(uint32_t address, uint8_t data) const {
     for (auto observer : observers_) {
       observer->Notify(address, data);
@@ -375,7 +364,7 @@ class MemoryImpl : public Memory, public Loggable {
   std::vector<Observer*> observers_;
 
   // Memory (64KB)
-  std::vector<uint8_t> memory_;
+  std::array<uint8_t, 0x10000> memory_;
 
   // Stack Pointer
   uint16_t SP_ = 0x01FF;

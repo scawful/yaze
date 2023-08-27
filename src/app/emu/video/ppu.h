@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "app/emu/clock.h"
-#include "app/emu/mem.h"
+#include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace app {
@@ -640,44 +640,37 @@ class PPU : public Observer {
   // Initializes the PPU with the necessary resources and dependencies
   PPU(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
 
+  // Initialize the frame buffer
   void Init() {
-    // Initialize the frame buffer with a size that corresponds to the
-    // screen resolution
     clock_.SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
   }
-
-  void UpdateClock(double delta_time) { clock_.UpdateClock(delta_time); }
 
   // Resets the PPU to its initial state
   void Reset() { std::fill(frame_buffer_.begin(), frame_buffer_.end(), 0); }
 
   // Runs the PPU for one frame.
   void Update();
+  void UpdateClock(double delta_time) { clock_.UpdateClock(delta_time); }
   void UpdateInternalState(int cycles);
-
-  void Notify(uint32_t address, uint8_t data) override {
-    // Handle communication in the PPU.
-  }
-
-  // Reads a byte from the specified PPU register
-  uint8_t ReadRegister(uint16_t address);
-
-  // Writes a byte to the specified PPU register
-  void WriteRegister(uint16_t address, uint8_t value);
 
   // Renders a scanline of the screen
   void RenderScanline();
+
+  void Notify(uint32_t address, uint8_t data) override;
 
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
 
  private:
+  // Updates internal state based on PPU register settings
+  void UpdateModeSettings();
+
   // Internal methods to handle PPU rendering and operations
   void UpdateTileData();
 
-  // Updates internal state based on PPU register settings
-  void UpdateModeSettings();
+  // Fetches the tile map data from memory and stores it in an internal buffer
+  void UpdateTileMapData();
 
   // Renders a background layer
   void RenderBackground(int layer);
@@ -685,73 +678,41 @@ class PPU : public Observer {
   // Renders sprites (also known as objects)
   void RenderSprites();
 
-  void UpdateTileMapData() {
-    // Fetches the tile map data from memory and stores it in an internal
-    // buffer
-  }
+  // Fetches the palette data from CGRAM and stores it in an internal buffer
+  void UpdatePaletteData();
 
-  void UpdatePaletteData() {
-    // Fetches the palette data from CGRAM and stores it in an internal
-    // buffer
-  }
+  // Applies effects to the layers based on the current mode and register
+  void ApplyEffects();
 
-  void ApplyEffects() {
-    // Applies effects to the layers based on the current mode and register
-    // settings
-  }
+  // Combines the layers into a single image and stores it in the frame buffer
+  void ComposeLayers();
 
-  void ComposeLayers() {
-    // Combines the layers into a single image and stores it in the frame
-    // buffer
-  }
-
-  void DisplayFrameBuffer() {
-    // Sends the frame buffer to the display hardware (e.g., SDL2)
-  }
-
-  // Retrieves a pixel color from the palette
-  uint32_t GetPaletteColor(uint8_t colorIndex);
-
-  // Handles VRAM (Video RAM) reads and writes
-  uint8_t ReadVRAM(uint16_t address);
-  void WriteVRAM(uint16_t address, uint8_t value);
-
-  // Handles OAM (Object Attribute Memory) reads and writes
-  uint8_t ReadOAM(uint16_t address);
-  void WriteOAM(uint16_t address, uint8_t value);
-
-  // Handle CGRAM (Color Palette RAM) reads and writes
-  uint8_t ReadCGRAM(uint16_t address);
-  void WriteCGRAM(uint16_t address, uint8_t value);
+  // Sends the frame buffer to the display hardware (e.g., SDL2)
+  void DisplayFrameBuffer();
 
   // ===========================================================
   // Member variables to store internal PPU state and resources
   Memory& memory_;
   Clock& clock_;
-  std::vector<uint8_t> frame_buffer_;
 
   Tilemap tilemap_;
   BackgroundMode bg_mode_;
   std::array<BackgroundLayer, 4> bg_layers_;
   std::vector<SpriteAttributes> sprites_;
-  std::vector<uint8_t> tileData_;
+  std::vector<uint8_t> tile_data_;
+  std::vector<uint8_t> frame_buffer_;
 
   uint16_t oam_address_;
-  uint16_t tileDataSize_;
-  uint16_t vramBaseAddress_;
-  uint16_t tilemapBaseAddress_;
+  uint16_t tile_data_size_;
+  uint16_t vram_base_address_;
+  uint16_t tilemap_base_address_;
 
-  // The VRAM memory area holds tiles and tile maps.
-  std::array<uint8_t, 64 * 1024> vram_;
+  uint16_t screen_brightness_ = 0x00;
 
-  // The OAM memory area holds sprite properties.
-  std::array<uint8_t, 544> oam_;
+  bool enable_forced_blanking_ = false;
 
-  // The CGRAM memory area holds the color palette data.
-  std::array<uint8_t, 512> cgram_;
-
-  int cycleCount = 0;
-  int currentScanline = 0;
+  int cycle_count_ = 0;
+  int current_scanline_ = 0;
   const int cyclesPerScanline = 341;  // SNES PPU has 341 cycles per scanline
   const int totalScanlines = 262;     // SNES PPU has 262 scanlines per frame
   const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines

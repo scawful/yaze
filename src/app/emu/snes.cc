@@ -12,7 +12,7 @@
 #include "app/emu/clock.h"
 #include "app/emu/cpu.h"
 #include "app/emu/debug/debugger.h"
-#include "app/emu/mem.h"
+#include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 #include "app/rom.h"
 

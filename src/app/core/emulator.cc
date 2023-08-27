@@ -53,6 +53,7 @@ void Emulator::RenderNavBar() {
   }
 
   if (ImGui::BeginMenu("Debug")) {
+    ImGui::MenuItem("PPU Register Viewer", nullptr, &show_ppu_reg_viewer_);
     MENU_ITEM("Debugger") {}
     MENU_ITEM("Memory Viewer") {}
     MENU_ITEM("Tile Viewer") {}
