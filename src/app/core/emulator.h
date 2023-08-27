@@ -33,6 +33,7 @@ class Emulator : public SharedROM {
   emu::SNES snes_;
 
   bool running_ = false;
+  bool show_ppu_reg_viewer_ = false;
 };
 
 }  // namespace core

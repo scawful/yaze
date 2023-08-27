@@ -8,7 +8,7 @@
 #include "app/emu/audio/dsp.h"
 #include "app/emu/audio/spc700.h"
 #include "app/emu/clock.h"
-#include "app/emu/mem.h"
+#include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace app {

@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-#include "app/emu/mem.h"
+#include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace app {

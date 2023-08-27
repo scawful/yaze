@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "app/emu/clock.h"
-#include "app/emu/mem.h"
+#include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace app {
@@ -24,6 +24,8 @@ class MockMemory : public Memory {
   MOCK_CONST_METHOD1(ReadByte, uint8_t(uint16_t address));
   MOCK_CONST_METHOD1(ReadWord, uint16_t(uint16_t address));
   MOCK_CONST_METHOD1(ReadWordLong, uint32_t(uint16_t address));
+  MOCK_METHOD(std::vector<uint8_t>, ReadByteVector,
+              (uint16_t address, uint16_t length), (const, override));
 
   MOCK_METHOD2(WriteByte, void(uint32_t address, uint8_t value));
   MOCK_METHOD2(WriteWord, void(uint32_t address, uint16_t value));
@@ -83,6 +85,14 @@ class MockMemory : public Memory {
           return static_cast<uint32_t>(memory_.at(address)) |
                  (static_cast<uint32_t>(memory_.at(address + 1)) << 8) |
                  (static_cast<uint32_t>(memory_.at(address + 2)) << 16);
+        });
+    ON_CALL(*this, ReadByteVector(::testing::_, ::testing::_))
+        .WillByDefault([this](uint16_t address, uint16_t length) {
+          std::vector<uint8_t> data;
+          for (int i = 0; i < length; i++) {
+            data.push_back(memory_.at(address + i));
+          }
+          return data;
         });
     ON_CALL(*this, WriteByte(::testing::_, ::testing::_))
         .WillByDefault([this](uint32_t address, uint8_t value) {

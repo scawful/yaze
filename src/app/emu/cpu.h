@@ -8,7 +8,7 @@
 
 #include "app/emu/clock.h"
 #include "app/emu/debug/log.h"
-#include "app/emu/mem.h"
+#include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace app {
@@ -683,6 +683,10 @@ class CPU : public Memory, public Loggable {
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
 
   // Appease the C++ Gods...
+  std::vector<uint8_t> ReadByteVector(uint16_t address,
+                                      uint16_t size) const override {
+    return memory.ReadByteVector(address, size);
+  }
   void PushByte(uint8_t value) override { memory.PushByte(value); }
   void PushWord(uint16_t value) override { memory.PushWord(value); }
   uint8_t PopByte() override { return memory.PopByte(); }
