@@ -470,10 +470,8 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
                            });
 
   if (ImGui::Button("Load Prototype Overworld with ROM graphics")) {
-    if (rom()->isLoaded() && !all_gfx_loaded_) {
-      RETURN_IF_ERROR(LoadGraphics())
-      all_gfx_loaded_ = true;
-    }
+    RETURN_IF_ERROR(LoadGraphics())
+    all_gfx_loaded_ = true;
   }
 
   gui::TextWithSeparators("Configuration");
