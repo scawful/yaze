@@ -279,6 +279,38 @@ Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
   return buffer;
 }
 
+uint16_t TileInfoToWord(TileInfo tile_info) {
+  uint16_t result = 0;
+
+  // Copy the id_ value
+  result |= tile_info.id_ & 0x3FF;  // ids are 10 bits
+
+  // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
+  result |= (tile_info.vertical_mirror_ ? 1 : 0) << 15;
+  result |= (tile_info.horizontal_mirror_ ? 1 : 0) << 14;
+  result |= (tile_info.over_ ? 1 : 0) << 13;
+
+  // Set the palette_
+  result |= (tile_info.palette_ & 0x07) << 10;  // palettes are 3 bits
+
+  return result;
+}
+
+TileInfo WordToTileInfo(uint16_t word) {
+  // Extract the id_ value
+  uint16_t id = word & 0x3FF;  // ids are 10 bits
+
+  // Extract the vertical_mirror_, horizontal_mirror_, and over_ flags
+  bool vertical_mirror = (word >> 15) & 0x01;
+  bool horizontal_mirror = (word >> 14) & 0x01;
+  bool over = (word >> 13) & 0x01;
+
+  // Extract the palette_
+  uint8_t palette = (word >> 10) & 0x07;  // palettes are 3 bits
+
+  return TileInfo(id, palette, vertical_mirror, horizontal_mirror, over);
+}
+
 ushort TileInfoToShort(TileInfo tile_info) {
   ushort result = 0;
 
