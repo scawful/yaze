@@ -2,36 +2,39 @@
 #define YAZE_APP_ROM_H
 
 #include <SDL.h>
+#include <__functional/function.h>  // for function
+#include <__memory/shared_ptr.h>    // for shared_ptr, make_shared
 #include <asar/src/asar/interface-lib.h>
 
 #include <algorithm>
 #include <chrono>
-#include <cstddef>
-#include <cstdint>
+#include <cstddef>  // for size_t
+#include <cstdint>  // for uint32_t, uint8_t, uint16_t
 #include <cstring>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <functional>
-#include <iostream>
-#include <map>
+#include <iostream>  // for string, operator<<, basic_...
+#include <map>       // for map
 #include <memory>
-#include <stack>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <stack>          // for stack
+#include <string>         // for hash, operator==
+#include <unordered_map>  // for unordered_map
+#include <vector>         // for vector
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
+#include "SDL_render.h"                    // for SDL_Renderer
+#include "absl/container/flat_hash_map.h"  // for flat_hash_map
+#include "absl/status/status.h"            // for Status
+#include "absl/status/statusor.h"          // for StatusOr
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"
-#include "app/core/common.h"
-#include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
+#include "absl/strings/string_view.h"  // for string_view
+#include "app/core/common.h"           // for SnesToPc
+#include "app/core/constants.h"        // for Bytes, uchar, armorPalettes
+#include "app/gfx/bitmap.h"            // for Bitmap, BitmapTable
 #include "app/gfx/compression.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_palette.h"  // for PaletteGroup, SNESColor
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
@@ -176,13 +179,53 @@ class ROM {
   // Read functions
   gfx::SNESColor ReadColor(int offset);
   gfx::SNESPalette ReadPalette(int offset, int num_colors);
+  uint8_t ReadByte(int offset) { return rom_data_[offset]; }
+  uint16_t ReadWord(int offset) {
+    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+  }
+  uint16_t ReadShort(int offset) {
+    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+  }
+  std::vector<uint8_t> ReadByteVector(uint32_t offset, uint32_t length) {
+    std::vector<uint8_t> result;
+    for (int i = offset; i < length; i++) {
+      result.push_back(rom_data_[i]);
+    }
+    return result;
+  }
+
+  gfx::Tile16 ReadTile16(uint32_t tile16_id) {
+    // Skip 8 bytes per tile.
+    auto tpos = 0x78000 + (tile16_id * 0x08);
+    gfx::Tile16 tile16;
+    tile16.tile0_ = gfx::WordToTileInfo(ReadShort(tpos));
+    tpos += 2;
+    tile16.tile1_ = gfx::WordToTileInfo(ReadShort(tpos));
+    tpos += 2;
+    tile16.tile2_ = gfx::WordToTileInfo(ReadShort(tpos));
+    tpos += 2;
+    tile16.tile3_ = gfx::WordToTileInfo(ReadShort(tpos));
+    return tile16;
+  }
+
+  void WriteTile16(int tile16_id, const gfx::Tile16& tile) {
+    // Skip 8 bytes per tile.
+    auto tpos = 0x78000 + (tile16_id * 0x08);
+    WriteShort(tpos, gfx::TileInfoToWord(tile.tile0_));
+    tpos += 2;
+    WriteShort(tpos, gfx::TileInfoToWord(tile.tile1_));
+    tpos += 2;
+    WriteShort(tpos, gfx::TileInfoToWord(tile.tile2_));
+    tpos += 2;
+    WriteShort(tpos, gfx::TileInfoToWord(tile.tile3_));
+  }
 
   // Write functions
   void Write(int addr, int value) { rom_data_[addr] = value; }
 
-  void WriteShort(int addr, int value) {
-    rom_data_[addr] = (uint16_t)(value & 0xFF);
-    rom_data_[addr + 1] = (uint16_t)((value >> 8) & 0xFF);
+  void WriteShort(uint32_t addr, uint16_t value) {
+    rom_data_[addr] = (uint8_t)(value & 0xFF);
+    rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   }
 
   void WriteVector(int addr, std::vector<uint8_t> data) {
@@ -198,6 +241,42 @@ class ROM {
 
     // Write the 16-bit color value to the ROM at the specified address
     WriteShort(address, bgr);
+  }
+
+  void WriteTile32(int id, const gfx::Tile32& tile) {
+    const uint32_t map32address[4] = {
+        GetVersionConstants().kMap32TileTL, GetVersionConstants().kMap32TileTR,
+        GetVersionConstants().kMap32TileBL, GetVersionConstants().kMap32TileBR};
+
+    if (id < 0 || id >= 0x4540) {
+      std::cout << "Invalid tile ID: " << id << std::endl;
+      return;
+    }
+
+    // Helper lambda to avoid code repetition
+    auto writeTilesToRom = [&](int base_addr, auto get_tile) {
+      for (int j = 0; j < 4; ++j) {
+        Write(base_addr + id + j, get_tile(tile) & 0xFF);
+      }
+      Write(base_addr + id + 4,
+            ((get_tile(tile) >> 4) & 0xF0) | ((get_tile(tile) >> 8) & 0x0F));
+      Write(base_addr + id + 5,
+            ((get_tile(tile) >> 4) & 0xF0) | ((get_tile(tile) >> 8) & 0x0F));
+    };
+
+    writeTilesToRom(map32address[0],
+                    [](const gfx::Tile32& t) { return t.tile0_; });
+    writeTilesToRom(map32address[1],
+                    [](const gfx::Tile32& t) { return t.tile1_; });
+    writeTilesToRom(map32address[2],
+                    [](const gfx::Tile32& t) { return t.tile2_; });
+    writeTilesToRom(map32address[3],
+                    [](const gfx::Tile32& t) { return t.tile3_; });
+  }
+
+  void Expand(int size) {
+    rom_data_.resize(size);
+    size_ = size;
   }
 
   void QueueChanges(std::function<void()> function) { changes_.push(function); }
