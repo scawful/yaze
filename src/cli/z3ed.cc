@@ -44,6 +44,9 @@ void HelpCommand() {
   std::cout << "Backup ROM              -b    <rom_file> <optional:new_file>\n";
   std::cout << "Expand ROM              -x    <rom_file> <file_size>\n\n";
 
+  std::cout << "Transfer Tile16         -t    <src_rom> <dest_rom> "
+               "<tile32_id_list:csv>\n\n";
+
   std::cout << "Export Graphics         -e    <rom_file> <bin_file>\n";
   std::cout << "Import Graphics         -i    <bin_file> <rom_file>\n\n";
 
@@ -58,11 +61,16 @@ int RunCommandHandler(int argc, char* argv[]) {
     return EXIT_SUCCESS;
   }
 
+  std::vector<std::string> arguments;
+  for (int i = 2; i < argc; i++) {  // Skip the arg mode (argv[1])
+    std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
+    arguments.emplace_back(argv[i]);
+  }
+
   Commands commands;
   std::string mode = argv[1];
-  std::string arg = argv[2];
   if (commands.handlers.find(mode) != commands.handlers.end()) {
-    PRINT_IF_ERROR(commands.handlers[mode]->handle(arg))
+    PRINT_IF_ERROR(commands.handlers[mode]->handle(arguments))
   } else {
     std::cerr << "Invalid mode specified: " << mode << std::endl;
   }

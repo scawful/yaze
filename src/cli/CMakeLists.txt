@@ -5,7 +5,11 @@ add_executable(
   cli/command_handler.cc
   app/rom.cc
   app/core/common.cc
+  app/core/pipeline.cc
   ${YAZE_APP_GFX_SRC}
+  ${YAZE_APP_ZELDA3_SRC}
+  ${YAZE_GUI_SRC}
+  ${IMGUI_SRC}
 )
 
 target_include_directories(
@@ -16,6 +20,7 @@ target_include_directories(
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
+  lib/SDL_mixer/include/
 )
 
 target_link_libraries(
@@ -26,5 +31,6 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  SDL2_mixer
   ImGui
 )
