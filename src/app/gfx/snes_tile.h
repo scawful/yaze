@@ -54,6 +54,8 @@ class TileInfo {
         palette_(palette) {}
 };
 
+uint16_t TileInfoToWord(TileInfo tile_info);
+TileInfo WordToTileInfo(uint16_t word);
 ushort TileInfoToShort(TileInfo tile_info);
 
 TileInfo GetTilesInfo(ushort tile);
