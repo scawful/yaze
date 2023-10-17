@@ -1,37 +1,32 @@
 #include "rom.h"
 
-#include <SDL.h>
-#include <asar/src/asar/interface-lib.h>
+#include <__algorithm/remove.h>         // for remove
+#include <__algorithm/replace.h>        // for replace
+#include <__chrono/system_clock.h>      // for system_clock
+#include <__filesystem/copy_options.h>  // for copy_options, copy_options...
+#include <__filesystem/operations.h>    // for copy, file_size
+#include <__utility/pair.h>             // for tuple_element<>::type
 
-#include <algorithm>
-#include <chrono>
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
-#include <ctime>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <map>
-#include <memory>
-#include <stack>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <cstddef>        // for size_t
+#include <cstdint>        // for uint32_t, uint8_t
+#include <cstring>        // for memcpy
+#include <ctime>          // for ctime
+#include <fstream>        // for string, fstream, ifstream
+#include <stack>          // for stack
+#include <string>         // for hash, operator==, char_traits
+#include <unordered_map>  // for unordered_map, operator!=
+#include <vector>         // for vector, vector<>::value_type
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"
-#include "app/core/common.h"
-#include "app/core/constants.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gfx/compression.h"
+#include "absl/container/flat_hash_map.h"  // for flat_hash_map, BitMask
+#include "absl/status/status.h"            // for OkStatus, InternalError
+#include "absl/status/statusor.h"          // for StatusOr
+#include "absl/strings/str_cat.h"          // for StrCat
+#include "absl/strings/string_view.h"      // for string_view, operator==
+#include "app/core/constants.h"            // for Bytes, ASSIGN_OR_RETURN
+#include "app/gfx/bitmap.h"                // for Bitmap, BitmapTable
+#include "app/gfx/compression.h"           // for DecompressV2
+#include "app/gfx/snes_palette.h"          // for PaletteGroup, SNESColor
+#include "app/gfx/snes_tile.h"             // for SnesTo8bppSheet
 
 namespace yaze {
 namespace app {
