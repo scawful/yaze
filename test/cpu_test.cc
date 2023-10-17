@@ -1022,6 +1022,163 @@ TEST_F(CPUTest, DEY) {
   EXPECT_EQ(0x7F, cpu.Y);  // Expected value of Y register after decrementing
 }
 
+// EOR
+
+TEST_F(CPUTest, EOR_Immediate_8bit) {
+  cpu.A = 0b10101010;  // A register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x49, 0b01010101};
+  mock_memory.SetMemoryContents(data);
+
+  cpu.ExecuteInstruction(0x49);  // EOR Immediate
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_DirectPageIndexedIndirectX) {
+  cpu.A = 0b10101010;  // A register
+  cpu.X = 0x02;        // X register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x41, 0x7E};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x0080, {0x00, 0x10});  // [0x0080] = 0x1000
+  mock_memory.InsertMemory(0x1000, {0b01010101});  // [0x1000] = 0b01010101
+
+  cpu.ExecuteInstruction(0x41);  // EOR DP Indexed Indirect, X
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_DirectPage) {
+  cpu.A = 0b10101010;  // A register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x45, 0x7F};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007F, {0b01010101});  // [0x007F] = 0b01010101
+
+  cpu.ExecuteInstruction(0x45);  // EOR Direct Page
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_DirectPageIndirectLong) {
+  cpu.A = 0b10101010;  // A register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x47, 0x7F};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007F, {0x00, 0x10, 0x00});  // [0x007F] = 0x1000
+  mock_memory.InsertMemory(0x1000, {0b01010101});        // [0x1000] = 0b01010101
+
+  cpu.ExecuteInstruction(0x47);  // EOR Direct Page Indirect Long
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_Absolute) {
+  cpu.A = 0b10101010;  // A register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x4D, 0x00, 0x10};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x1000, {0b01010101});  // [0x1000] = 0b01010101
+
+  cpu.ExecuteInstruction(0x4D);  // EOR Absolute
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_AbsoluteLong) {
+  cpu.A = 0b10101010;  // A register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x4F, 0x00, 0x10, 0x00};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x1000, {0b01010101});  // [0x1000] = 0b01010101
+
+  cpu.ExecuteInstruction(0x4F);  // EOR Absolute Long
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_DirectPageIndirectLongIndexedY) {
+  cpu.A = 0b10101010;  // A register
+  cpu.Y = 0x02;        // Y register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x51, 0x7E};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007E, {0x00, 0x10, 0x00});  // [0x007E] = 0x1000
+  mock_memory.InsertMemory(0x1002, {0b01010101});        // [0x1002] = 0b01010101
+
+  cpu.ExecuteInstruction(0x51);  // EOR DP Indirect Long Indexed, Y
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_DirectPageIndirectIndexedY) {
+  cpu.A = 0b10101010;  // A register
+  cpu.Y = 0x02;        // Y register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x51, 0x7E};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007E, {0x00, 0x10});  // [0x007E] = 0x1000
+  mock_memory.InsertMemory(0x1002, {0b01010101});  // [0x1002] = 0b01010101
+
+  cpu.ExecuteInstruction(0x51);  // EOR DP Indirect Indexed, Y
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_DirectPageIndirectIndexedYLong) {
+  cpu.A = 0b10101010;  // A register
+  cpu.Y = 0x02;        // Y register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x57, 0x7C};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007E, {0x00, 0x10, 0x00});  // [0x007E] = 0x1000
+  mock_memory.InsertMemory(0x1002, {0b01010101});        // [0x1002] = 0b01010101
+
+  cpu.ExecuteInstruction(0x57);  // EOR DP Indirect Long Indexed, Y
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_AbsoluteIndexedX) {
+  cpu.A = 0b10101010;  // A register
+  cpu.X = 0x02;        // X register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x5D, 0x7C, 0x00};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007E, {0b01010101});  // [0x007E] = 0b01010101
+
+  cpu.ExecuteInstruction(0x5D);  // EOR Absolute Indexed, X
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_AbsoluteIndexedY) {
+  cpu.A = 0b10101010;  // A register
+  cpu.Y = 0x02;        // Y register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x59, 0x7C, 0x00};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007E, {0b01010101});  // [0x007E] = 0b01010101
+
+  cpu.ExecuteInstruction(0x59);  // EOR Absolute Indexed, Y
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
+TEST_F(CPUTest, EOR_AbsoluteLongIndexedX) {
+  cpu.A = 0b10101010;  // A register
+  cpu.X = 0x02;        // X register
+  cpu.status = 0xFF;   // 8-bit mode
+  cpu.PC = 1;          // PC register
+  std::vector<uint8_t> data = {0x5F, 0x7C, 0x00, 0x00};
+  mock_memory.SetMemoryContents(data);
+  mock_memory.InsertMemory(0x007E, {0b01010101});  // [0x007E] = 0b01010101
+
+  cpu.ExecuteInstruction(0x5F);  // EOR Absolute Long Indexed, X
+  EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
+}
+
 // ============================================================================
 // INC - Increment Memory
 
