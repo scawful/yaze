@@ -9,66 +9,6 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-uint8_t CPU::ReadByte(uint16_t address) const {
-  auto value = memory.ReadByte(address);
-  return value;
-}
-
-uint16_t CPU::ReadWord(uint16_t address) const {
-  return memory.ReadWord(address);
-}
-
-uint32_t CPU::ReadWordLong(uint16_t address) const {
-  return memory.ReadWordLong(address);
-}
-
-void CPU::WriteByte(uint32_t address, uint8_t value) {
-  memory.WriteByte(address, value);
-}
-
-void CPU::WriteWord(uint32_t address, uint16_t value) {
-  memory.WriteWord(address, value);
-}
-
-uint8_t CPU::FetchByte() {
-  uint8_t byte = memory.ReadByte(PC);  // Read a byte from memory at PC
-  PC++;                                // Increment the Program Counter
-  return byte;
-}
-
-uint16_t CPU::FetchWord() {
-  uint16_t value = memory.ReadWord(PC);
-  PC += 2;
-  return value;
-}
-
-uint32_t CPU::FetchLong() {
-  uint32_t value = memory.ReadWordLong(PC);
-  PC += 3;
-  return value;
-}
-
-int8_t CPU::FetchSignedByte() { return static_cast<int8_t>(FetchByte()); }
-
-int16_t CPU::FetchSignedWord() {
-  auto offset = static_cast<int16_t>(FetchWord());
-  return offset;
-}
-
-uint8_t CPU::FetchByteDirectPage(uint8_t operand) {
-  uint16_t distance = D * 0x100;
-
-  // Calculate the effective address in the Direct Page
-  uint16_t effectiveAddress = operand + distance;
-
-  // Fetch the byte from memory
-  uint8_t fetchedByte = memory.ReadByte(effectiveAddress);
-
-  PC++;  // Increment the Program Counter
-
-  return fetchedByte;
-}
-
 void CPU::Update() {
   auto cycles_to_run = clock.GetCycleCount();
 
@@ -1174,7 +1114,22 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
   std::cout << std::endl;
 }
 
+// Interrupt Vectors
+// Emulation mode, e = 1      Native mode, e = 0
+//
+// 0xFFFE,FF - IRQ/BRK        0xFFEE,EF  - IRQ
+// 0xFFFC,FD - RESET
+// 0xFFFA,FB - NMI            0xFFEA,EB  - NMI
+// 0xFFF8,F9 - ABORT          0xFFE8,E9  - ABORT
+//                            0xFFE6,E7  - BRK
+// 0xFFF4,F5 - COP            0xFFE4,E5  - COP
 void CPU::HandleInterrupts() {}
+
+/**
+ * 65816 Instruction Set
+ *
+ * TODO: MVN, MVP, STP, WDM
+ */
 
 // ADC: Add with carry
 void CPU::ADC(uint8_t operand) {
@@ -1572,8 +1527,23 @@ void CPU::LSR(uint16_t address) {
   SetZeroFlag(value == 0);
 }
 
-// MVN: Move negative ```
-// MVP: Move positive ```
+// MVN: Block Move Next
+void CPU::MVN(uint16_t source, uint16_t dest, uint16_t length) {
+  for (uint16_t i = 0; i < length; i++) {
+    memory.WriteByte(dest, memory.ReadByte(source));
+    source++;
+    dest++;
+  }
+}
+
+// MVP: Block Move Previous
+void CPU::MVP(uint16_t source, uint16_t dest, uint16_t length) {
+  for (uint16_t i = 0; i < length; i++) {
+    memory.WriteByte(dest, memory.ReadByte(source));
+    source--;
+    dest--;
+  }
+}
 
 // NOP: No operation
 void CPU::NOP() {
