@@ -68,47 +68,6 @@ void PrintCompressionPiece(const CompressionPiecePointer& piece);
 
 void PrintCompressionChain(const CompressionPiecePointer& chain_head);
 
-// Compression V2
-
-void CheckByteRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
-                       CompressionCommand& cmd);
-
-void CheckWordRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
-                       CompressionCommand& cmd);
-
-void CheckIncByteV2(const uchar* data, uint& src_pos, const uint last_pos,
-                    CompressionCommand& cmd);
-
-void CheckIntraCopyV2(const uchar* data, uint& src_pos, const uint last_pos,
-                      uint start, CompressionCommand& cmd);
-
-void ValidateForByteGainV2(const CompressionCommand& cmd, uint& max_win,
-                           uint& cmd_with_max);
-
-void CompressionCommandAlternativeV2(const uchar* data,
-                                     const CompressionCommand& cmd,
-                                     CompressionPiecePointer& compressed_chain,
-                                     uint& src_pos, uint& comp_accumulator,
-                                     uint& cmd_with_max, uint& max_win);
-
-absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
-                                 const int length, int mode = 1,
-                                 bool check = false);
-absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
-                                       const int length);
-absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
-                                        const int length);
-
-std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator);
-void memfill(const uchar* data, Bytes& buffer, int buffer_pos, int offset,
-             int length);
-
-absl::StatusOr<Bytes> DecompressV2(const uchar* data, int offset,
-                                   int size = 0x800, int mode = 1);
-absl::StatusOr<Bytes> DecompressGraphics(const uchar* data, int pos, int size);
-absl::StatusOr<Bytes> DecompressOverworld(const uchar* data, int pos, int size);
-absl::StatusOr<Bytes> DecompressOverworld(const std::vector<uint8_t> data, int pos, int size);
-
 // Compression V1
 
 void CheckByteRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
@@ -138,6 +97,38 @@ void CompressionCommandAlternative(const uchar* rom_data,
                                    uint& src_data_pos, uint& comp_accumulator,
                                    uint& cmd_with_max, uint& max_win);
 
+// Compression V2
+
+void CheckByteRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
+                       CompressionCommand& cmd);
+
+void CheckWordRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
+                       CompressionCommand& cmd);
+
+void CheckIncByteV2(const uchar* data, uint& src_pos, const uint last_pos,
+                    CompressionCommand& cmd);
+
+void CheckIntraCopyV2(const uchar* data, uint& src_pos, const uint last_pos,
+                      uint start, CompressionCommand& cmd);
+
+void ValidateForByteGainV2(const CompressionCommand& cmd, uint& max_win,
+                           uint& cmd_with_max);
+
+void CompressionCommandAlternativeV2(const uchar* data,
+                                     const CompressionCommand& cmd,
+                                     CompressionPiecePointer& compressed_chain,
+                                     uint& src_pos, uint& comp_accumulator,
+                                     uint& cmd_with_max, uint& max_win);
+
+absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
+                                 const int length, int mode = 1,
+                                 bool check = false);
+
+absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
+                                       const int length);
+absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
+                                        const int length);
+
 absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
     CompressionPiecePointer& piece, int mode);
 
@@ -147,6 +138,71 @@ absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
                                        int mode, int start, int src_data_pos);
 
 CompressionPiecePointer MergeCopy(CompressionPiecePointer& start);
+
+// Compression V3
+
+struct CompressionContext {
+  std::vector<uint8_t> data;
+  std::vector<uint8_t> compressed_data;
+  std::vector<CompressionPiece> compression_pieces;
+  std::vector<uint8_t> compression_string;
+  uint src_pos;
+  uint last_pos;
+  uint start;
+  uint comp_accumulator = 0;
+  uint cmd_with_max = kCommandDirectCopy;
+  uint max_win = 0;
+  CompressionCommand current_cmd = {};
+  int mode;
+
+  // Constructor to initialize the context
+  CompressionContext(const std::vector<uint8_t>& data_, const int start,
+                     const int length)
+      : data(data_), src_pos(start), last_pos(start + length - 1), mode(0) {}
+
+  // Constructor to initialize the context
+  CompressionContext(const std::vector<uint8_t>& data_, const int start,
+                     const int length, int mode_)
+      : data(data_),
+        src_pos(start),
+        last_pos(start + length - 1),
+        mode(mode_) {}
+};
+
+void CheckByteRepeatV3(CompressionContext& context);
+void CheckWordRepeatV3(CompressionContext& context);
+void CheckIncByteV3(CompressionContext& context);
+void CheckIntraCopyV3(CompressionContext& context);
+
+void InitializeCompression(CompressionContext& context);
+void CheckAvailableCompressionCommands(CompressionContext& context);
+void DetermineBestCompression(CompressionContext& context);
+void HandleDirectCopy(CompressionContext& context);
+void AddCompressionToChain(CompressionContext& context);
+absl::Status ValidateCompressionResultV3(const CompressionContext& context);
+
+absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
+    CompressionPiece& piece, int mode);
+void FinalizeCompression(CompressionContext& context);
+
+absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t> data,
+                                 const int start, const int length,
+                                 int mode = 1, bool check = false);
+
+// Decompression
+
+std::string SetBuffer(const std::vector<uint8_t>& data, int src_pos,
+                      int comp_accumulator);
+std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator);
+void memfill(const uchar* data, Bytes& buffer, int buffer_pos, int offset,
+             int length);
+
+absl::StatusOr<Bytes> DecompressV2(const uchar* data, int offset,
+                                   int size = 0x800, int mode = 1);
+absl::StatusOr<Bytes> DecompressGraphics(const uchar* data, int pos, int size);
+absl::StatusOr<Bytes> DecompressOverworld(const uchar* data, int pos, int size);
+absl::StatusOr<Bytes> DecompressOverworld(const std::vector<uint8_t> data,
+                                          int pos, int size);
 
 }  // namespace lc_lz2
 
