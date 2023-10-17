@@ -2,8 +2,6 @@
 
 #include <gmock/gmock.h>
 
-#include "IPPU.h"
-
 namespace yaze {
 namespace app {
 namespace emu {
