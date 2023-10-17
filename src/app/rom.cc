@@ -1,20 +1,17 @@
 #include "rom.h"
 
-#include <__algorithm/remove.h>         // for remove
-#include <__algorithm/replace.h>        // for replace
-#include <__chrono/system_clock.h>      // for system_clock
-#include <__filesystem/copy_options.h>  // for copy_options, copy_options...
-#include <__filesystem/operations.h>    // for copy, file_size
-#include <__utility/pair.h>             // for tuple_element<>::type
-
+#include <algorithm>      // for remove
+#include <chrono>         // for system_clock
 #include <cstddef>        // for size_t
 #include <cstdint>        // for uint32_t, uint8_t
 #include <cstring>        // for memcpy
 #include <ctime>          // for ctime
+#include <filesystem>     // for copy_options, copy_options...
 #include <fstream>        // for string, fstream, ifstream
 #include <stack>          // for stack
 #include <string>         // for hash, operator==, char_traits
 #include <unordered_map>  // for unordered_map, operator!=
+#include <utility>        // for tuple_element<>::type
 #include <vector>         // for vector, vector<>::value_type
 
 #include "absl/container/flat_hash_map.h"  // for flat_hash_map, BitMask
