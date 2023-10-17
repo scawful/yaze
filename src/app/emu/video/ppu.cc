@@ -44,6 +44,12 @@ void PPU::UpdateInternalState(int cycles) {
 }
 
 void PPU::RenderScanline() {
+  for (int y = 0; y < 240; ++y) {
+    for (int x = 0; x < 256; ++x) {
+      frame_buffer_[y * 256 + x] = (x + y) % 256;  // Simple gradient pattern
+    }
+  }
+
   // Fetch the tile data from VRAM, tile map data from memory, and palette data
   // from CGRAM
   UpdateTileData();     // Fetches the tile data from VRAM and stores it in an
