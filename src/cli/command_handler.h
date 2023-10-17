@@ -1,21 +1,30 @@
 #ifndef YAZE_CLI_COMMAND_HANDLER_H
 #define YAZE_CLI_COMMAND_HANDLER_H
 
-#include <cstdint>
-#include <iostream>
+#include <__memory/shared_ptr.h>  // for make_shared, shared_ptr
+
+#include <cstdint>   // for uint8_t, uint32_t
+#include <iostream>  // for operator<<, string, ostream, basic_...
 #include <memory>
 #include <sstream>
-#include <string>
+#include <string>  // for char_traits, basic_string, hash
 #include <string_view>
-#include <unordered_map>
-#include <vector>
+#include <unordered_map>  // for unordered_map
+#include <vector>         // for vector, vector<>::value_type
 
-#include "absl/status/status.h"
+#include "absl/status/status.h"  // for OkStatus, Status
 #include "absl/strings/str_cat.h"
-#include "app/core/common.h"
-#include "app/core/constants.h"
-#include "app/rom.h"
-#include "cli/patch.h"
+#include "app/core/common.h"     // for PcToSnes, SnesToPc
+#include "app/core/constants.h"  // for RETURN_IF_ERROR
+#include "app/core/pipeline.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/compression.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
+#include "app/gui/canvas.h"
+#include "app/rom.h"  // for ROM
+#include "app/zelda3/overworld.h"
+#include "cli/patch.h"  // for ApplyBpsPatch, CreateBpsPatch
 
 namespace yaze {
 namespace cli {
@@ -46,31 +55,18 @@ class Modifier {
 };
 }  // namespace Color
 
-namespace {
-std::vector<std::string> ParseArguments(const std::string_view args) {
-  std::vector<std::string> arguments;
-  std::stringstream ss(args.data());
-  std::string arg;
-  while (ss >> arg) {
-    arguments.push_back(arg);
-  }
-  return arguments;
-}
-}  // namespace
-
 class CommandHandler {
  public:
   CommandHandler() = default;
   virtual ~CommandHandler() = default;
-  virtual absl::Status handle(std::string_view arg) = 0;
+  virtual absl::Status handle(const std::vector<std::string>& arg_vec) = 0;
 
   app::ROM rom_;
 };
 
 class ApplyPatch : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
-    auto arg_vec = ParseArguments(arg);
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
     std::string rom_filename = arg_vec[1];
     std::string patch_filename = arg_vec[2];
     RETURN_IF_ERROR(rom_.LoadFromFile(rom_filename))
@@ -94,7 +90,7 @@ class ApplyPatch : public CommandHandler {
 
 class CreatePatch : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
     std::vector<uint8_t> source;
     std::vector<uint8_t> target;
     std::vector<uint8_t> patch;
@@ -111,10 +107,11 @@ class CreatePatch : public CommandHandler {
 
 class Open : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
     Color::Modifier green(Color::FG_GREEN);
     Color::Modifier blue(Color::FG_BLUE);
     Color::Modifier reset(Color::FG_RESET);
+    auto const& arg = arg_vec[0];
     RETURN_IF_ERROR(rom_.LoadFromFile(arg))
     std::cout << "Title: " << green << rom_.title() << std::endl;
     std::cout << reset << "Size: " << blue << "0x" << std::hex << rom_.size()
@@ -123,14 +120,14 @@ class Open : public CommandHandler {
   }
 };
 
+// Backup ROM
 class Backup : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
-    auto args_vec = ParseArguments(arg);
-    RETURN_IF_ERROR(rom_.LoadFromFile(args_vec[0]))
-    if (args_vec.size() == 2) {
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
+    if (arg_vec.size() == 2) {
       // Optional filename added
-      RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true, args_vec[1]))
+      RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true, arg_vec[1]))
     } else {
       RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true))
     }
@@ -141,8 +138,8 @@ class Backup : public CommandHandler {
 // Compress Graphics
 class Compress : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
-    std::cout << "Compress selected with argument: " << arg << std::endl;
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    std::cout << "Compress selected with argument: " << arg_vec[0] << std::endl;
     return absl::OkStatus();
   }
 };
@@ -154,8 +151,7 @@ class Compress : public CommandHandler {
 // mode:
 class Decompress : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
-    auto args_vec = ParseArguments(arg);
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
     Color::Modifier underline(Color::FG_UNDERLINE);
     Color::Modifier reset(Color::FG_RESET);
     std::cout << "Please specify the tilesheets you want to export\n";
@@ -173,8 +169,8 @@ class Decompress : public CommandHandler {
     std::cin >> sheet_input;
 
     // Batch Mode
-    // if (args_vec.size() == 1) {
-    //   auto rom_filename = args_vec[1];
+    // if (arg_vec.size() == 1) {
+    //   auto rom_filename = arg_vec[1];
     //   RETURN_IF_ERROR(rom_.LoadFromFile(arg, true))
     //   RETURN_IF_ERROR(rom_.LoadAllGraphicsData())
     //   for (auto& graphic_sheet : rom_.GetGraphicsBin()) {
@@ -184,15 +180,18 @@ class Decompress : public CommandHandler {
     //   }
     // }
 
-    std::cout << "Decompress selected with argument: " << arg << std::endl;
+    std::cout << "Decompress selected with argument: " << arg_vec[0]
+              << std::endl;
     return absl::OkStatus();
   }
 };
 
 // SnesToPc Conversion
+// -s <address>
 class SnesToPc : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    auto arg = arg_vec[0];
     std::stringstream ss(arg.data());
     uint32_t snes_address;
     ss >> std::hex >> snes_address;
@@ -204,7 +203,8 @@ class SnesToPc : public CommandHandler {
 
 class PcToSnes : public CommandHandler {
  public:
-  absl::Status handle(std::string_view arg) override {
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    auto arg = arg_vec[0];
     std::stringstream ss(arg.data());
     uint32_t pc_address;
     ss >> std::hex >> pc_address;
@@ -217,16 +217,74 @@ class PcToSnes : public CommandHandler {
   }
 };
 
+// -r <rom_file> <address> <optional:length, default: 0x01>
+class ReadFromRom : public CommandHandler {
+ public:
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
+
+    std::stringstream ss(arg_vec[1].data());
+    uint32_t offset;
+    ss >> std::hex >> offset;
+    uint32_t length = 0x01;
+    if (!arg_vec[2].empty()) {
+      length = std::stoi(arg_vec[2]);
+    }
+
+    if (length > 1) {
+      auto returned_bytes = rom_.ReadByteVector(offset, length);
+      for (const auto& each : returned_bytes) {
+        std::cout << each;
+      }
+      std::cout << std::endl;
+    } else {
+      auto byte = rom_.ReadByte(offset);
+      std::cout << std::hex << byte << std::endl;
+    }
+
+    return absl::OkStatus();
+  }
+};
+
+// Transfer tile 16 data from one rom to another
+// -t <src_rom> <dest_rom> "<tile32_id_list:csv>"
+class Tile16Transfer : public CommandHandler {
+ public:
+  absl::Status handle(const std::vector<std::string>& arg_vec) override;
+};
+
+class Expand : public CommandHandler {
+ public:
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
+
+    std::stringstream ss(arg_vec[1].data());
+    uint32_t size;
+    ss >> std::hex >> size;
+
+    rom_.Expand(size);
+
+    std::cout << "Successfully expanded ROM to " << std::hex << size
+              << std::endl;
+
+    return absl::OkStatus();
+  }
+};
+
 struct Commands {
   std::unordered_map<std::string, std::shared_ptr<CommandHandler>> handlers = {
       {"-a", std::make_shared<ApplyPatch>()},
       {"-c", std::make_shared<CreatePatch>()},
       {"-o", std::make_shared<Open>()},
       {"-b", std::make_shared<Backup>()},
+      {"-x", std::make_shared<Expand>()},
       {"-i", std::make_shared<Compress>()},    // Import
       {"-e", std::make_shared<Decompress>()},  // Export
       {"-s", std::make_shared<SnesToPc>()},
-      {"-p", std::make_shared<PcToSnes>()}};
+      {"-p", std::make_shared<PcToSnes>()},
+      {"-t", std::make_shared<Tile16Transfer>()},
+      {"-r", std::make_shared<ReadFromRom>()}  // Read from ROM
+  };
 };
 
 }  // namespace cli
