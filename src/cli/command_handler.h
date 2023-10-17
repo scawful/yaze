@@ -1,11 +1,9 @@
 #ifndef YAZE_CLI_COMMAND_HANDLER_H
 #define YAZE_CLI_COMMAND_HANDLER_H
 
-#include <__memory/shared_ptr.h>  // for make_shared, shared_ptr
-
 #include <cstdint>   // for uint8_t, uint32_t
 #include <iostream>  // for operator<<, string, ostream, basic_...
-#include <memory>
+#include <memory>    // for make_shared, shared_ptr
 #include <sstream>
 #include <string>  // for char_traits, basic_string, hash
 #include <string_view>
