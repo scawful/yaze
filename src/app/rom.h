@@ -2,8 +2,6 @@
 #define YAZE_APP_ROM_H
 
 #include <SDL.h>
-#include <__functional/function.h>  // for function
-#include <__memory/shared_ptr.h>    // for shared_ptr, make_shared
 #include <asar/src/asar/interface-lib.h>
 
 #include <algorithm>
@@ -14,10 +12,10 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
-#include <functional>
-#include <iostream>  // for string, operator<<, basic_...
-#include <map>       // for map
-#include <memory>
+#include <functional>     // for function
+#include <iostream>       // for string, operator<<, basic_...
+#include <map>            // for map
+#include <memory>         // for shared_ptr, make_shared
 #include <stack>          // for stack
 #include <string>         // for hash, operator==
 #include <unordered_map>  // for unordered_map
