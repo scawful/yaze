@@ -27,7 +27,7 @@ Building and installation
 
 ## Documentation
 
-- For users, please refer to [getting_started.md](docs/getting_started.md) for instructions on how to use YAZE.
+- For users, please refer to [getting_started.md](docs/getting-started.md) for instructions on how to use YAZE.
 - For developers, please refer to [infrastructure.md](docs/infrastructure.md) for information on the project's infrastructure.
 
 License
@@ -39,3 +39,8 @@ SDL2, ImGUI and Abseil are subject to respective licenses.
 Screenshots
 --------
 ![image](https://user-images.githubusercontent.com/47263509/194669806-2b0da68d-9d38-4f52-bcce-c60ee861092c.png)
+
+![image](https://github.com/scawful/yaze/assets/47263509/8913f7ff-6345-4295-ae05-782fd3949eb5)
+
+![image](https://github.com/scawful/yaze/assets/47263509/e1cf3edb-a59e-4f0a-b4e0-d68925803e58)
+
