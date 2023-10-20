@@ -2,11 +2,6 @@
 
 For developers to reference.
 
-## Main Components
-
-- `app` Namespace: Represents the GUI editor YAZE.
-- `cli` Namespace: Represents the command line interface Z3ED.
-
 ## Directory Structure
 
 - **.github/workflows**: Contains `yaze_test` workflow config.
@@ -16,19 +11,28 @@ For developers to reference.
   - [Getting Started](./getting-started.md)
   - [LC_LZ2 Compression](./compression.md)
 - **src**: Contains source files. 
+  - **app**: Contains the GUI editor `yaze`
+  - **cli**: Contains the command line interface `z3ed`
   - **lib**: Contains git submodule dependencies.
-- **test**: Contains test files and configurations.
+    - Abseil-cpp
+    - Asar
+    - ImGui
+      - ImGuiFileDialog
+      - ImGuiColorTextEdit
+      - imgui_memory_editor
+    - SDL2
+- **test**: Contains testing interface `yaze_test`
 
 ## App Organization
 
 - **Core Namespace**:
     - Contains fundamental functionalities.
-      - [Common](../src/core/common.h)
-      - [Constants](../src/core/constants.h)
-      - [Controller](../src/core/controller.h)
-      - [Editor](../src/core/editor.h)
-      - [Emulator](../src/core/emulator.h)
-      - [Pipeline](../src/core/pipeline.h)
+      - [Common](../src/app/core/common.h)
+      - [Constants](../src/app/core/constants.h)
+      - [Controller](../src/app/core/controller.h)
+      - [Editor](../src/app/core/editor.h)
+      - [Emulator](../src/app/core/emulator.h)
+      - [Pipeline](../src/app/core/pipeline.h)
 - **Editor Namespace**:
   - Editors are responsible for representing the GUI view and handling user input.
   - These classes are all controlled by [MasterEditor](../src/app/editor/master_editor.h)
@@ -41,33 +45,33 @@ For developers to reference.
     - [SpriteEditor](../src/app/editor/sprite_editor.h)
 - **Emu Namespace**:
     - Contains business logic for `core::emulator`
-      - [Audio](../src/emu/audio/)
-      - [Debug](../src/emu/debug/)
-      - [Memory](../src/emu/memory/)
-      - [Video](../src/emu/video/)
+      - [Audio](../src/app/emu/audio/)
+      - [Debug](../src/app/emu/debug/)
+      - [Memory](../src/app/emu/memory/)
+      - [Video](../src/app/emu/video/)
 - **Gfx Namespace**:
     - Handles graphics related tasks.
-      - [Bitmap](../src/gfx/bitmap.h)
-      - [Compression](../src/gfx/compression.h)
-      - [SCAD Format](../src/gfx/scad_format.h)
-      - [SNES Palette](../src/gfx/snes_palette.h)
-      - [SNES Tile](../src/gfx/snes_tile.h)
+      - [Bitmap](../src/app/gfx/bitmap.h)
+      - [Compression](../src/app/gfx/compression.h)
+      - [SCAD Format](../src/app/gfx/scad_format.h)
+      - [SNES Palette](../src/app/gfx/snes_palette.h)
+      - [SNES Tile](../src/app/gfx/snes_tile.h)
 - **Gui Namespace**:
     - Manages GUI elements.
-      - [Canvas](../src/gui/canvas.h)
-      - [Color](../src/gui/color.h)
-      - [Icons](../src/gui/icons.h)
-      - [Input](../src/gui/input.h)
-      - [Style](../src/gui/style.h)
-      - [Widgets](../src/gui/widgets.h)
+      - [Canvas](../src/app/gui/canvas.h)
+      - [Color](../src/app/gui/color.h)
+      - [Icons](../src/app/gui/icons.h)
+      - [Input](../src/app/gui/input.h)
+      - [Style](../src/app/gui/style.h)
+      - [Widgets](../src/app/gui/widgets.h)
 - **Zelda3 Namespace**:
     - Holds business logic specific to Zelda3.
-      - [Dungeon](../src/zelda3/dungeon/)
-      - [Music](../src/zelda3/music/)
-      - [Screen](../src/zelda3/screen/)
-      - [Sprite](../src/zelda3/sprite/)
-      - [OverworldMap](../src/zelda3/overworld_map.h)
-      - [Overworld](../src/zelda3/overworld.h)
+      - [Dungeon](../src/app/zelda3/dungeon/)
+      - [Music](../src/app/zelda3/music/)
+      - [Screen](../src/app/zelda3/screen/)
+      - [Sprite](../src/app/zelda3/sprite/)
+      - [OverworldMap](../src/app/zelda3/overworld_map.h)
+      - [Overworld](../src/app/zelda3/overworld.h)
 
 ### Flow of Control
 
