@@ -21,16 +21,16 @@ namespace zelda3 {
 // bank 19, 1A, 1B
 // iirc 1A is OW, 1B is dungeon
 // 19 is general spc stuff like samples, ects
-static char op_len[32] = {1, 1, 2, 3, 0, 1, 2, 1, 2, 1, 1, 3, 0, 1, 2, 3,
-                          1, 3, 3, 0, 1, 3, 0, 3, 3, 3, 1, 2, 0, 0, 0, 0};
+constexpr char op_len[32] = {1, 1, 2, 3, 0, 1, 2, 1, 2, 1, 1, 3, 0, 1, 2, 3,
+                             1, 3, 3, 0, 1, 3, 0, 3, 3, 3, 1, 2, 0, 0, 0, 0};
 
 // =============================================================================
 
 static int sbank_ofs[] = {0xc8000, 0, 0xd8000, 0};
 
-static char fil1[4] = {0, 15, 61, 115};
-static char fil2[4] = {0, 4, 5, 6};
-static char fil3[4] = {0, 0, 15, 13};
+constexpr char fil1[4] = {0, 15, 61, 115};
+constexpr char fil2[4] = {0, 4, 5, 6};
+constexpr char fil3[4] = {0, 0, 15, 13};
 
 constexpr int kOverworldMusicBank = 0x0D0000;
 constexpr int kDungeonMusicBank = 0x0D8000;
@@ -84,7 +84,7 @@ using Song = struct {
   short numparts;
   short lopst;
   unsigned short addr;
-  bool in_use = true;
+  bool in_use; // true
 };
 // =============================================================================
 
@@ -99,8 +99,6 @@ using ZeldaWave = struct {
 // ============================================================================
 
 using SampleEdit = struct {
-  // EDITWIN ew;
-  // HWND dlg;
   unsigned short flag;
   unsigned short init;
   unsigned short editsamp;

@@ -71,7 +71,8 @@ class ApplyPatch : public CommandHandler {
     auto source = rom_.vector();
     std::ifstream patch_file(patch_filename, std::ios::binary);
     std::vector<uint8_t> patch;
-    patch_file.read(reinterpret_cast<char*>(patch.data()), patch.size());
+    patch.resize(rom_.size());
+    patch_file.read((char*)patch.data(), patch.size());
 
     // Apply patch
     std::vector<uint8_t> patched;
@@ -79,8 +80,7 @@ class ApplyPatch : public CommandHandler {
 
     // Save patched file
     std::ofstream patched_rom("patched.sfc", std::ios::binary);
-    patched_rom.write(reinterpret_cast<const char*>(patched.data()),
-                      patched.size());
+    patched_rom.write((char*)patched.data(), patched.size());
     patched_rom.close();
     return absl::OkStatus();
   }
