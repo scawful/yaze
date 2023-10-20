@@ -82,28 +82,56 @@ For developers to reference.
   - Initializes SDLRenderer and SDLWindow
   - Initializes ImGui, fonts, themes, and clipboard.
   - Handles user input from keyboard and mouse.
-  - Updates `editor::MasterEditor`.
+  - Updates `editor::MasterEditor`
   - Renders the output to the screen.
   - Handles the teardown of SDL and ImGui resources.
-  - [app/editor/master_editor.cc](../src/app/editor/master_editor.cc)
-    - Handles the main menu bar.
-      - File
-      - Edit
-      - View
-      - Help
-    - Handles `absl::Status` errors as popups delivered to the user.
-    - Update all the editors in a tab view.
-      - [app/editor/assembly_editor.cc](../src/app/editor/assembly_editor.cc)
-      - [app/editor/dungeon_editor.cc](../src/app/editor/dungeon_editor.cc)
-      - [app/editor/graphics_editor.cc](../src/app/editor/graphics_editor.cc)
-      - [app/editor/music_editor.cc](../src/app/editor/music_editor.cc)
-      - [app/editor/overworld_editor.cc](../src/app/editor/overworld_editor.cc)
-      - [app/editor/screen_editor.cc](../src/app/editor/screen_editor.cc)
-      - [app/editor/sprite_editor.cc](../src/app/editor/sprite_editor.cc)
+- [app/editor/master_editor.cc](../src/app/editor/master_editor.cc)
+  - Handles the main menu bar.
+    - File
+      - Open - [app::ROM::LoadFromFile](../src/app/rom.cc&l=90)
+      - Save - [app::ROM::SaveToFile](../src/app/rom.cc&l=301)
+    - Edit
+    - View
+      - Emulator
+      - HEX Editor
+      - ASM Editor
+      - Palette Editor
+      - Memory Viewer
+      - ImGui Demo
+      - GUI Tools
+        - Runtime Metrics
+        - Style Editor
+    - Help
+  - Handles `absl::Status` errors as popups delivered to the user.
+  - Update all the editors in a tab view.
+    - [app/editor/assembly_editor.cc](../src/app/editor/assembly_editor.cc)
+    - [app/editor/dungeon_editor.cc](../src/app/editor/dungeon_editor.cc)
+    - [app/editor/graphics_editor.cc](../src/app/editor/graphics_editor.cc)
+    - [app/editor/music_editor.cc](../src/app/editor/music_editor.cc)
+    - [app/editor/overworld_editor.cc](../src/app/editor/overworld_editor.cc)
+    - [app/editor/screen_editor.cc](../src/app/editor/screen_editor.cc)
+    - [app/editor/sprite_editor.cc](../src/app/editor/sprite_editor.cc)
+
+## Overworld
+
+- [app/zelda3/overworld.cc](../src/app/zelda3/overworld.cc)
+- [app/zelda3/overworld.h](../src/app/zelda3/overworld.h)
+- [app/zelda3/overworld_map.cc](../src/app/zelda3/overworld_map.cc)
+- [app/zelda3/overworld_map.h](../src/app/zelda3/overworld_map.h)
+
+---
+
+- **Construction of Tile16 and Tile32**
+- **Save and Load Resources**
+  - Sprites
+  - Entrances
+  - Tilemaps
 
 ## Bitmap
 
-Located in [app/gfx/bitmap.cc](../src/app/gfx/bitmap.cc)
+- [app/gfx/bitmap.cc](../src/app/gfx/bitmap.cc)
+- [app/gfx/bitmap.h](../src/app/gfx/bitmap.cc)
+---
 
 - **Initialization**: Offers multiple constructors to create bitmaps using different data types.
 - **Palette Application**: Provides grayscale palettes and can convert `SNESPalette` to `SDL_Palette`.
