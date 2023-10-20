@@ -59,10 +59,10 @@ absl::Status LoadCgx(uint8_t bpp, std::string_view filename,
   file.close();
 
   if (bpp > 8) {
-    cgx_loaded = gfx::BPP8SNESToIndexed(cgx_data, 40);
+    cgx_loaded = gfx::Bpp8SnesToIndexed(cgx_data, 40);
     return absl::OkStatus();
   }
-  cgx_loaded = gfx::BPP8SNESToIndexed(cgx_data, bpp);
+  cgx_loaded = gfx::Bpp8SnesToIndexed(cgx_data, bpp);
   return absl::OkStatus();
 }
 

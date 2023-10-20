@@ -38,6 +38,42 @@ uint GetOwMapGfxLowPtr(const uchar *rom, int index, uint32_t map_low_ptr) {
   return core::SnesToPc(p2);
 }
 
+std::vector<uint64_t> GetAllTile16(OWBlockset &tiles_used) {
+  std::vector<uint64_t> all_tile_16;  // Ensure it's 64 bits
+
+  int sx = 0;
+  int sy = 0;
+  int c = 0;
+  for (int i = 0; i < kNumOverworldMaps; i++) {
+    for (int y = 0; y < 32; y += 2) {
+      for (int x = 0; x < 32; x += 2) {
+        gfx::Tile32 current_tile(
+            tiles_used[x + (sx * 32)][y + (sy * 32)],
+            tiles_used[x + 1 + (sx * 32)][y + (sy * 32)],
+            tiles_used[x + (sx * 32)][y + 1 + (sy * 32)],
+            tiles_used[x + 1 + (sx * 32)][y + 1 + (sy * 32)]);
+
+        all_tile_16.push_back(current_tile.GetPackedValue());
+      }
+    }
+
+    sx++;
+    if (sx >= 8) {
+      sy++;
+      sx = 0;
+    }
+
+    c++;
+    if (c >= 64) {
+      sx = 0;
+      sy = 0;
+      c = 0;
+    }
+  }
+
+  return all_tile_16;
+}
+
 absl::flat_hash_map<int, MapData> parseFile(const std::string &filename) {
   absl::flat_hash_map<int, MapData> resultMap;
 
@@ -136,137 +172,98 @@ absl::Status Overworld::Load(ROM &rom) {
 }
 
 absl::Status Overworld::SaveOverworldMaps() {
-  for (int i = 0; i < 160; i++) {
-    mapPointers1id[i] = -1;
-    mapPointers2id[i] = -1;
-  }
+  // Initialize map pointers
+  std::fill(map_pointers1_id.begin(), map_pointers1_id.end(), -1);
+  std::fill(map_pointers1_id.begin(), map_pointers1_id.end(), -1);
 
+  // Compress and save each map
   int pos = 0x058000;
   for (int i = 0; i < 160; i++) {
-    int npos = 0;
-    std::vector<uint8_t> singleMap1(512);
-    std::vector<uint8_t> singleMap2(512);
+    std::vector<uint8_t> single_map_1(512);
+    std::vector<uint8_t> single_map_2(512);
 
+    // Copy tiles32 data to single_map_1 and single_map_2
+    int npos = 0;
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
         auto packed1 = tiles32[npos + (i * 256)].GetPackedValue();
         auto packed2 = tiles32[npos + (i * 256) + 16].GetPackedValue();
-        singleMap1[npos] = static_cast<uint8_t>(packed1 & 0xFF);
-        singleMap2[npos] = static_cast<uint8_t>(packed2 & 0xFF);
+        single_map_1[npos] = static_cast<uint8_t>(packed1 & 0xFF);
+        single_map_2[npos] = static_cast<uint8_t>(packed2 & 0xFF);
         npos++;
       }
     }
-    ASSIGN_OR_RETURN(auto a,
-                     gfx::lc_lz2::CompressOverworld(singleMap1.data(), 0, 256));
-    ASSIGN_OR_RETURN(auto b,
-                     gfx::lc_lz2::CompressOverworld(singleMap2.data(), 0, 256));
 
+    // Compress single_map_1 and single_map_2
+    ASSIGN_OR_RETURN(
+        auto a, gfx::lc_lz2::CompressOverworld(single_map_1.data(), 0, 256))
+    ASSIGN_OR_RETURN(
+        auto b, gfx::lc_lz2::CompressOverworld(single_map_2.data(), 0, 256))
     if (a.empty() || b.empty()) {
       return absl::AbortedError("Error compressing map gfx.");
     }
 
-    mapDatap1[i] = a;
-    mapDatap2[i] = b;
+    // Save compressed data and pointers
+    map_data_p1[i] = a;
+    map_data_p2[i] = b;
 
-    int snesPos = core::PcToSnes(pos);
-    mapPointers1[i] = snesPos;
-
-    // Handle the special case for debugging
-    if (i == 0x54) {
-      // Here, if you need to print the values, use the appropriate logging or
-      // output method. std::cout << std::hex << (pos + a.size()) << std::endl;
-      // std::cout << std::hex << (pos + b.size()) << std::endl;
-    }
-
-    // Handle specific memory regions
-    if ((pos + a.size()) >= 0x5FE70 && (pos + a.size()) <= 0x60000) {
-      pos = 0x60000;
-    }
-
-    if ((pos + a.size()) >= 0x6411F && (pos + a.size()) <= 0x70000) {
-      pos = OverworldMapDataOverflow;  // Assuming you've defined
-                                       // Constants in C++ as well.
-    }
-
-    for (int j = 0; j < i; j++) {
-      if (a == mapDatap1[j]) {
-        mapPointers1id[i] = j;
-      }
-
-      if (b == mapDatap2[j]) {
-        mapPointers2id[i] = j;
-      }
-    }
-
-    if (mapPointers1id[i] == -1) {
-      std::copy(a.begin(), a.end(), mapDatap1[i].begin());
-
-      int snesPos = core::PcToSnes(pos);
-      mapPointers1[i] = snesPos;
-
-      // Assuming ROM is a class/namespace and Write is a function in it
-      rom()->Write(compressedAllMap32PointersLow + 0 + 3 * i,
-                   static_cast<uint8_t>(snesPos & 0xFF));
-      rom()->Write(compressedAllMap32PointersLow + 1 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 8) & 0xFF));
-      rom()->Write(compressedAllMap32PointersLow + 2 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 16) & 0xFF));
-
+    if (map_pointers1_id[i] == -1) {
+      // Save compressed data and pointer for map1
+      std::copy(a.begin(), a.end(), map_data_p1[i].begin());
+      int snes_pos = core::PcToSnes(pos);
+      map_pointers1[i] = snes_pos;
+      rom()->Write(kCompressedAllMap32PointersLow + 0 + 3 * i,
+                   static_cast<uint8_t>(snes_pos & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersLow + 1 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 8) & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersLow + 2 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 16) & 0xFF));
       rom()->WriteVector(pos, a);
-
       pos += a.size();
     } else {
-      int snesPos = mapPointers1[mapPointers1id[i]];
-      rom()->Write(compressedAllMap32PointersLow + 0 + 3 * i,
-                   static_cast<uint8_t>(snesPos & 0xFF));
-      rom()->Write(compressedAllMap32PointersLow + 1 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 8) & 0xFF));
-      rom()->Write(compressedAllMap32PointersLow + 2 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 16) & 0xFF));
+      // Save pointer for map1
+      int snes_pos = map_pointers1[map_pointers1_id[i]];
+      rom()->Write(kCompressedAllMap32PointersLow + 0 + 3 * i,
+                   static_cast<uint8_t>(snes_pos & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersLow + 1 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 8) & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersLow + 2 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 16) & 0xFF));
     }
 
-    if ((pos + b.size()) >= 0x5FE70 && (pos + b.size()) <= 0x60000) {
-      pos = 0x60000;
-    }
-    if ((pos + b.size()) >= 0x6411F && (pos + b.size()) <= 0x70000) {
-      pos = OverworldMapDataOverflow;
-    }
-
-    // Map2
-    if (mapPointers2id[i] == -1) {
-      std::copy(b.begin(), b.end(), mapDatap2[i].begin());
-
-      int snesPos = core::PcToSnes(pos);
-      mapPointers2[i] = snesPos;
-
-      rom()->Write(compressedAllMap32PointersHigh + 0 + 3 * i,
-                   static_cast<uint8_t>(snesPos & 0xFF));
-      rom()->Write(compressedAllMap32PointersHigh + 1 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 8) & 0xFF));
-      rom()->Write(compressedAllMap32PointersHigh + 2 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 16) & 0xFF));
-
+    if (map_pointers2_id[i] == -1) {
+      // Save compressed data and pointer for map2
+      std::copy(b.begin(), b.end(), map_data_p2[i].begin());
+      int snes_pos = core::PcToSnes(pos);
+      map_pointers2[i] = snes_pos;
+      rom()->Write(kCompressedAllMap32PointersHigh + 0 + 3 * i,
+                   static_cast<uint8_t>(snes_pos & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersHigh + 1 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 8) & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersHigh + 2 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 16) & 0xFF));
       rom()->WriteVector(pos, b);
-
       pos += b.size();
     } else {
-      int snesPos = mapPointers2[mapPointers2id[i]];
-      rom()->Write(compressedAllMap32PointersHigh + 0 + 3 * i,
-                   static_cast<uint8_t>(snesPos & 0xFF));
-      rom()->Write(compressedAllMap32PointersHigh + 1 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 8) & 0xFF));
-      rom()->Write(compressedAllMap32PointersHigh + 2 + 3 * i,
-                   static_cast<uint8_t>((snesPos >> 16) & 0xFF));
+      // Save pointer for map2
+      int snes_pos = map_pointers2[map_pointers2_id[i]];
+      rom()->Write(kCompressedAllMap32PointersHigh + 0 + 3 * i,
+                   static_cast<uint8_t>(snes_pos & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersHigh + 1 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 8) & 0xFF));
+      rom()->Write(kCompressedAllMap32PointersHigh + 2 + 3 * i,
+                   static_cast<uint8_t>((snes_pos >> 16) & 0xFF));
     }
   }
 
+  // Check if too many maps data
   if (pos > 0x137FFF) {
     std::cerr << "Too many maps data " << std::hex << pos << std::endl;
     return absl::AbortedError("Too many maps data");
   }
 
-  RETURN_IF_ERROR(SaveLargeMaps());  // Assuming this function exists and
-                                     // returns an absl::Status
+  // Save large maps
+  RETURN_IF_ERROR(SaveLargeMaps())
 
   return absl::OkStatus();
 }
@@ -476,79 +473,52 @@ absl::Status Overworld::SaveLargeMaps() {
 
 // ----------------------------------------------------------------------------
 
-bool Overworld::CreateTile32Tilemap(bool onlyShow) {
+bool Overworld::CreateTile32Tilemap(bool only_show) {
   tiles32_unique_.clear();
   tiles32.clear();
 
-  std::vector<uint64_t> allTile16;  // Ensure it's 64 bits
-
-  int sx = 0;
-  int sy = 0;
-  int c = 0;
+  OWBlockset *tiles_used;
   for (int i = 0; i < kNumOverworldMaps; i++) {
-    OWBlockset *tilesused;
     if (i < 64) {
-      tilesused = &map_tiles_.light_world;
+      tiles_used = &map_tiles_.light_world;
     } else if (i < 128 && i >= 64) {
-      tilesused = &map_tiles_.dark_world;
+      tiles_used = &map_tiles_.dark_world;
     } else {
-      tilesused = &map_tiles_.special_world;
+      tiles_used = &map_tiles_.special_world;
     }
 
-    for (int y = 0; y < 32; y += 2) {
-      for (int x = 0; x < 32; x += 2) {
-        gfx::Tile32 currentTile(
-            (*tilesused)[x + (sx * 32)][y + (sy * 32)],
-            (*tilesused)[x + 1 + (sx * 32)][y + (sy * 32)],
-            (*tilesused)[x + (sx * 32)][y + 1 + (sy * 32)],
-            (*tilesused)[x + 1 + (sx * 32)][y + 1 + (sy * 32)]);
+    std::vector<uint64_t> all_tile_16 = GetAllTile16(*tiles_used);
 
-        allTile16.push_back(currentTile.GetPackedValue());
-      }
+    std::vector<uint64_t> unique_tiles(all_tile_16);  // Ensure it's 64 bits
+    std::sort(unique_tiles.begin(), unique_tiles.end());
+    unique_tiles.erase(std::unique(unique_tiles.begin(), unique_tiles.end()),
+                       unique_tiles.end());
+
+    // Ensure it's 64 bits
+    std::unordered_map<uint64_t, ushort> all_tiles_indexed;
+    for (size_t j = 0; j < unique_tiles.size(); j++) {
+      all_tiles_indexed.insert({unique_tiles[j], static_cast<ushort>(j)});
     }
 
-    sx++;
-    if (sx >= 8) {
-      sy++;
-      sx = 0;
+    for (int j = 0; j < NumberOfMap32; j++) {
+      tiles32.push_back(all_tiles_indexed[all_tile_16[j]]);
     }
 
-    c++;
-    if (c >= 64) {
-      sx = 0;
-      sy = 0;
-      c = 0;
+    for (const auto &tile : unique_tiles) {
+      tiles32_unique_.push_back(static_cast<ushort>(tile));
+    }
+
+    while (tiles32_unique_.size() % 4 != 0) {
+      gfx::Tile32 padding_tile(420, 420, 420, 420);
+      tiles32_unique_.push_back(padding_tile.GetPackedValue());
     }
   }
 
-  std::vector<uint64_t> uniqueTiles(allTile16);  // Ensure it's 64 bits
-  std::sort(uniqueTiles.begin(), uniqueTiles.end());
-  uniqueTiles.erase(std::unique(uniqueTiles.begin(), uniqueTiles.end()),
-                    uniqueTiles.end());
-
-  std::unordered_map<uint64_t, ushort> alltilesIndexed;  // Ensure it's 64 bits
-  for (size_t i = 0; i < uniqueTiles.size(); i++) {
-    alltilesIndexed.insert({uniqueTiles[i], static_cast<ushort>(i)});
-  }
-
-  for (int i = 0; i < NumberOfMap32; i++) {
-    this->tiles32.push_back(alltilesIndexed[allTile16[i]]);
-  }
-
-  for (const auto &tile : uniqueTiles) {
-    this->tiles32_unique_.push_back(static_cast<ushort>(tile));
-  }
-
-  while (this->tiles32_unique_.size() % 4 != 0) {
-    gfx::Tile32 paddingTile(420, 420, 420, 420);
-    this->tiles32_unique_.push_back(paddingTile.GetPackedValue());
-  }
-
-  if (onlyShow) {
-    std::cout << "Number of unique Tiles32: " << uniqueTiles.size()
+  if (only_show) {
+    std::cout << "Number of unique Tiles32: " << tiles32_unique_.size()
               << " Out of: " << LimitOfMap32 << std::endl;
-  } else if (this->tiles32_unique_.size() > LimitOfMap32) {
-    std::cerr << "Number of unique Tiles32: " << uniqueTiles.size()
+  } else if (tiles32_unique_.size() > LimitOfMap32) {
+    std::cerr << "Number of unique Tiles32: " << tiles32_unique_.size()
               << " Out of: " << LimitOfMap32
               << "\nUnique Tile32 count exceed the limit"
               << "\nThe ROM Has not been saved"
@@ -558,14 +528,14 @@ bool Overworld::CreateTile32Tilemap(bool onlyShow) {
     return true;
   }
 
-  std::cout << "Number of unique Tiles32: " << uniqueTiles.size()
-            << " Saved:" << this->tiles32_unique_.size()
+  std::cout << "Number of unique Tiles32: " << tiles32_unique_.size()
+            << " Saved:" << tiles32_unique_.size()
             << " Out of: " << LimitOfMap32 << std::endl;
 
-  int v = this->tiles32_unique_.size();
+  int v = tiles32_unique_.size();
   for (int i = v; i < LimitOfMap32; i++) {
-    gfx::Tile32 paddingTile(420, 420, 420, 420);
-    this->tiles32_unique_.push_back(paddingTile.GetPackedValue());
+    gfx::Tile32 padding_tile(420, 420, 420, 420);
+    tiles32_unique_.push_back(padding_tile.GetPackedValue());
   }
 
   return false;
@@ -588,14 +558,15 @@ void Overworld::SaveMap16Tiles() {
   }
 }
 
-void Overworld::SaveMap32Tiles() {
+// ----------------------------------------------------------------------------
+
+absl::Status Overworld::SaveMap32Tiles() {
   int index = 0;
   int c = tiles32_unique_.size();
 
   for (int i = 0; i < c; i += 6) {
     if (index >= 0x4540) {
-      std::cout << "Too many unique tiles!" << std::endl;
-      break;
+      return absl::AbortedError("Too many unique tile32 definitions.");
     }
 
     // Helper lambda to avoid code repetition
@@ -624,19 +595,22 @@ void Overworld::SaveMap32Tiles() {
     index += 4;
     c += 2;
   }
+  return absl::OkStatus();
 }
 
 // ----------------------------------------------------------------------------
 
-ushort Overworld::GenerateTile32(int i, int k, int dimension) {
+uint16_t Overworld::GenerateTile32(int index, int quadrant, int dimension) {
+  // The addresses of the four 32x32 pixel tiles in the ROM.
   const uint32_t map32address[4] = {rom()->GetVersionConstants().kMap32TileTL,
                                     rom()->GetVersionConstants().kMap32TileTR,
                                     rom()->GetVersionConstants().kMap32TileBL,
                                     rom()->GetVersionConstants().kMap32TileBR};
 
-  return (ushort)(rom_[map32address[dimension] + k + (i)] +
-                  (((rom_[map32address[dimension] + (i) + (k <= 1 ? 4 : 5)] >>
-                     (k % 2 == 0 ? 4 : 0)) &
+  return (ushort)(rom_[map32address[dimension] + quadrant + (index)] +
+                  (((rom_[map32address[dimension] + (index) +
+                          (quadrant <= 1 ? 4 : 5)] >>
+                     (quadrant % 2 == 0 ? 4 : 0)) &
                     0x0F) *
                    256));
 }
@@ -644,15 +618,24 @@ ushort Overworld::GenerateTile32(int i, int k, int dimension) {
 // ----------------------------------------------------------------------------
 
 void Overworld::AssembleMap32Tiles() {
+  // Loop through each 32x32 pixel tile in the ROM.
   for (int i = 0; i < 0x33F0; i += 6) {
+    // Loop through each quadrant of the 32x32 pixel tile.
     for (int k = 0; k < 4; k++) {
-      tiles32.push_back(gfx::Tile32(
-          /*top-left=*/GenerateTile32(i, k, (int)Dimension::map32TilesTL),
-          /*top-right=*/GenerateTile32(i, k, (int)Dimension::map32TilesTR),
-          /*bottom-left=*/GenerateTile32(i, k, (int)Dimension::map32TilesBL),
-          /*bottom-right=*/GenerateTile32(i, k, (int)Dimension::map32TilesBR)));
+      // Generate the 16-bit tile for the current quadrant of the current 32x32
+      // pixel tile.
+      uint16_t tl = GenerateTile32(i, k, (int)Dimension::map32TilesTL);
+      uint16_t tr = GenerateTile32(i, k, (int)Dimension::map32TilesTR);
+      uint16_t bl = GenerateTile32(i, k, (int)Dimension::map32TilesBL);
+      uint16_t br = GenerateTile32(i, k, (int)Dimension::map32TilesBR);
+
+      // Add the generated 16-bit tiles to the tiles32 vector.
+      tiles32.push_back(gfx::Tile32(tl, tr, bl, br));
     }
   }
+
+  // Initialize the light_world, dark_world, and special_world vectors with the
+  // appropriate number of tiles.
   map_tiles_.light_world.resize(kTile32Num);
   map_tiles_.dark_world.resize(kTile32Num);
   map_tiles_.special_world.resize(kTile32Num);
@@ -726,10 +709,10 @@ absl::Status Overworld::DecompressAllMapTiles() {
   for (int i = 0; i < 160; i++) {
     auto p1 = GetOwMapGfxHighPtr(
         rom()->data(), i,
-        rom()->GetVersionConstants().compressedAllMap32PointersHigh);
+        rom()->GetVersionConstants().kCompressedAllMap32PointersHigh);
     auto p2 = GetOwMapGfxLowPtr(
         rom()->data(), i,
-        rom()->GetVersionConstants().compressedAllMap32PointersLow);
+        rom()->GetVersionConstants().kCompressedAllMap32PointersLow);
     int ttpos = 0;
 
     if (p1 >= highest) {

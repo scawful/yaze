@@ -108,8 +108,8 @@ class OverworldEntrance {
   }
 };
 
-constexpr int compressedAllMap32PointersHigh = 0x1794D;
-constexpr int compressedAllMap32PointersLow = 0x17B2D;
+constexpr int kCompressedAllMap32PointersHigh = 0x1794D;
+constexpr int kCompressedAllMap32PointersLow = 0x17B2D;
 constexpr int overworldgfxGroups = 0x05D97;
 constexpr int overworldPalGroup1 = 0xDE6C8;
 constexpr int overworldPalGroup2 = 0xDE86C;
@@ -187,7 +187,7 @@ class Overworld : public SharedROM {
 
   bool CreateTile32Tilemap(bool onlyShow = false);
   void SaveMap16Tiles();
-  void SaveMap32Tiles();
+  absl::Status SaveMap32Tiles();
 
   auto GetTiles16() const { return tiles16; }
   auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
@@ -221,7 +221,7 @@ class Overworld : public SharedROM {
     map32TilesBR = 3
   };
 
-  ushort GenerateTile32(int i, int k, int dimension);
+  uint16_t GenerateTile32(int index, int quadrant, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
@@ -253,16 +253,16 @@ class Overworld : public SharedROM {
 
   absl::flat_hash_map<int, MapData> proto_map_data_;
 
-  std::vector<std::vector<uint8_t>> mapDatap1 =
+  std::vector<std::vector<uint8_t>> map_data_p1 =
       std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
-  std::vector<std::vector<uint8_t>> mapDatap2 =
+  std::vector<std::vector<uint8_t>> map_data_p2 =
       std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
 
-  std::vector<int> mapPointers1id = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> mapPointers2id = std::vector<int>(kNumOverworldMaps);
+  std::vector<int> map_pointers1_id = std::vector<int>(kNumOverworldMaps);
+  std::vector<int> map_pointers2_id = std::vector<int>(kNumOverworldMaps);
 
-  std::vector<int> mapPointers1 = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> mapPointers2 = std::vector<int>(kNumOverworldMaps);
+  std::vector<int> map_pointers1 = std::vector<int>(kNumOverworldMaps);
+  std::vector<int> map_pointers2 = std::vector<int>(kNumOverworldMaps);
 };
 
 }  // namespace zelda3
