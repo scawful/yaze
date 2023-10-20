@@ -5,6 +5,8 @@
 
 #include "absl/strings/string_view.h"
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #define BASIC_BUTTON(w) if (ImGui::Button(w))
 
 #define TAB_BAR(w) if (ImGui::BeginTabBar(w)) {
