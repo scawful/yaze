@@ -2,7 +2,6 @@
 #define YAZE_APP_CORE_INPUT_H
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
 
 #include <cstddef>
 #include <cstdint>
