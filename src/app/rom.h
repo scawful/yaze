@@ -38,13 +38,20 @@
 namespace yaze {
 namespace app {
 
+enum class Z3_Version {
+  US = 1,
+  JP = 2,
+  SD = 3,
+  RANDO = 4,
+};
+
 struct VersionConstants {
   uint32_t kGgxAnimatedPointer;
   uint32_t kOverworldGfxGroups1;
   uint32_t kOverworldGfxGroups2;
   // long ptrs all tiles of maps[high/low] (mapid* 3)
-  uint32_t compressedAllMap32PointersHigh;
-  uint32_t compressedAllMap32PointersLow;
+  uint32_t kCompressedAllMap32PointersHigh;
+  uint32_t kCompressedAllMap32PointersLow;
   uint32_t overworldMapPaletteGroup;
   uint32_t overlayPointers;
   uint32_t overlayPointersBank;
@@ -59,26 +66,14 @@ struct VersionConstants {
   uint32_t kSpriteBlocksetPointer;
 };
 
-enum class Z3_Version {
-  US = 1,
-  JP = 2,
-  SD = 3,
-  RANDO = 4,
-};
-
-static constexpr uint32_t overworldMapPaletteGroup = 0x67E74;
-static constexpr uint32_t overlayPointers = 0x3FAF4;
-static constexpr uint32_t overlayPointersBank = 0x07;
-static constexpr uint32_t overworldTilesType = 0x7FD94;
-
 static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::US,
      {
          0x10275,  // kGgxAnimatedPointer
          0x5D97,   // kOverworldGfxGroups1
          0x6073,   // kOverworldGfxGroups2
-         0x1794D,  // compressedAllMap32PointersHigh
-         0x17B2D,  // compressedAllMap32PointersLow
+         0x1794D,  // kCompressedAllMap32PointersHigh
+         0x17B2D,  // kCompressedAllMap32PointersLow
          0x75504,  // overworldMapPaletteGroup
          0x77664,  // overlayPointers
          0x0E,     // overlayPointersBank
@@ -97,8 +92,8 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x10624,  // kGgxAnimatedPointer
          0x5DD7,   // kOverworldGfxGroups1
          0x60B3,   // kOverworldGfxGroups2
-         0x176B1,  // compressedAllMap32PointersHigh
-         0x17891,  // compressedAllMap32PointersLow
+         0x176B1,  // kCompressedAllMap32PointersHigh
+         0x17891,  // kCompressedAllMap32PointersLow
          0x67E74,  // overworldMapPaletteGroup
          0x3FAF4,  // overlayPointers
          0x07,     // overlayPointersBank
@@ -115,18 +110,15 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
 
 };
 
-constexpr int kOverworldGraphicsPos1 = 0x4F80;
-constexpr int kOverworldGraphicsPos2 = 0x505F;
-constexpr int kOverworldGraphicsPos3 = 0x513E;
-constexpr int kTile32Num = 4432;
-constexpr int kTitleStringOffset = 0x7FC0;
-constexpr int kTitleStringLength = 20;
-constexpr int kSNESToPCOffset = 0x138000;
-
+constexpr uint32_t kOverworldGraphicsPos1 = 0x4F80;
+constexpr uint32_t kOverworldGraphicsPos2 = 0x505F;
+constexpr uint32_t kOverworldGraphicsPos3 = 0x513E;
+constexpr uint32_t kTile32Num = 4432;
+constexpr uint32_t kTitleStringOffset = 0x7FC0;
+constexpr uint32_t kTitleStringLength = 20;
 constexpr uint32_t kNumGfxSheets = 223;
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
-constexpr uint32_t kPtrTableStart = 0x4F80;
 constexpr uint32_t kLinkSpriteLocation = 0x80000;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
 
@@ -158,21 +150,65 @@ const absl::flat_hash_map<std::string, uint32_t> paletteGroupColorCounts = {
 
 class ROM {
  public:
-  // Load functions
-  absl::StatusOr<Bytes> Load2bppGraphics();
+  /**
+   * Loads 2bpp graphics from ROM data.
+   *
+   * This function loads 2bpp graphics from ROM data by iterating over a list of
+   * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
+   * appending the converted sheet data to a byte vector.
+   *
+   */
+  absl::StatusOr<Bytes> Load2BppGraphics();
+
+  /**
+   * This function iterates over all graphics sheets in the ROM and loads them
+   * into memory. Depending on the sheet's index, it may be uncompressed or
+   * compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits
+   * per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics
+   * data is converted to 8 BPP and stored in a bitmap.
+   *
+   * The graphics sheets are divided into the following ranges:
+   * 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
+   * 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
+   * 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
+   * 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
+   * 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
+   *
+   */
   absl::Status LoadAllGraphicsData();
+
+  /**
+   * Load ROM data from a file.
+   *
+   * @param filename The name of the file to load.
+   * @param z3_load Whether to load data specific to Zelda 3.
+   *
+   */
   absl::Status LoadFromFile(const absl::string_view& filename,
                             bool z3_load = true);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
+
+  /**
+   * @brief Loads all the palettes for the game.
+   *
+   * This function loads all the palettes for the game, including overworld,
+   * HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object
+   * palettes. It also adds the loaded palettes to their respective palette
+   * groups.
+   *
+   */
   void LoadAllPalettes();
 
   // Save functions
-  absl::Status SaveToFile(bool backup, absl::string_view filename = "");
-  absl::Status UpdatePaletteColor(const std::string& groupName,
-                                  size_t paletteIndex, size_t colorIndex,
+  absl::Status UpdatePaletteColor(const std::string& group_name,
+                                  size_t palette_index, size_t colorIndex,
                                   const gfx::SNESColor& newColor);
+  void SavePalette(int index, const std::string& group_name,
+                   gfx::SNESPalette& palette);
   void SaveAllPalettes();
+
+  absl::Status SaveToFile(bool backup, absl::string_view filename = "");
 
   // Read functions
   gfx::SNESColor ReadColor(int offset);
@@ -241,47 +277,19 @@ class ROM {
     WriteShort(address, bgr);
   }
 
-  void WriteTile32(int id, const gfx::Tile32& tile) {
-    const uint32_t map32address[4] = {
-        GetVersionConstants().kMap32TileTL, GetVersionConstants().kMap32TileTR,
-        GetVersionConstants().kMap32TileBL, GetVersionConstants().kMap32TileBR};
-
-    if (id < 0 || id >= 0x4540) {
-      std::cout << "Invalid tile ID: " << id << std::endl;
-      return;
-    }
-
-    // Helper lambda to avoid code repetition
-    auto writeTilesToRom = [&](int base_addr, auto get_tile) {
-      for (int j = 0; j < 4; ++j) {
-        Write(base_addr + id + j, get_tile(tile) & 0xFF);
-      }
-      Write(base_addr + id + 4,
-            ((get_tile(tile) >> 4) & 0xF0) | ((get_tile(tile) >> 8) & 0x0F));
-      Write(base_addr + id + 5,
-            ((get_tile(tile) >> 4) & 0xF0) | ((get_tile(tile) >> 8) & 0x0F));
-    };
-
-    writeTilesToRom(map32address[0],
-                    [](const gfx::Tile32& t) { return t.tile0_; });
-    writeTilesToRom(map32address[1],
-                    [](const gfx::Tile32& t) { return t.tile1_; });
-    writeTilesToRom(map32address[2],
-                    [](const gfx::Tile32& t) { return t.tile2_; });
-    writeTilesToRom(map32address[3],
-                    [](const gfx::Tile32& t) { return t.tile3_; });
-  }
-
   void Expand(int size) {
     rom_data_.resize(size);
     size_ = size;
   }
 
-  void QueueChanges(std::function<void()> function) { changes_.push(function); }
+  void QueueChanges(std::function<void()> const& function) {
+    changes_.push(function);
+  }
 
   VersionConstants GetVersionConstants() const {
     return kVersionConstantsMap.at(version_);
   }
+
   int GetGraphicsAddress(const uchar* data, uint8_t addr) const {
     auto part_one = data[GetVersionConstants().kOverworldGfxPtr1 + addr] << 16;
     auto part_two = data[GetVersionConstants().kOverworldGfxPtr2 + addr] << 8;
@@ -289,6 +297,7 @@ class ROM {
     auto snes_addr = (part_one | part_two | part_three);
     return core::SnesToPc(snes_addr);
   }
+
   uint32_t GetPaletteAddress(const std::string& groupName, size_t paletteIndex,
                              size_t colorIndex) const;
   gfx::PaletteGroup GetPaletteGroup(const std::string& group) {
@@ -305,7 +314,9 @@ class ROM {
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
   auto isLoaded() const { return is_loaded_; }
-  auto char_data() { return reinterpret_cast<char*>(rom_data_.data()); }
+  auto char_data() {
+    return static_cast<char*>(static_cast<void*>(rom_data_.data()));
+  }
 
   auto push_back(uchar byte) { rom_data_.push_back(byte); }
 

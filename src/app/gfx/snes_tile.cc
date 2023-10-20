@@ -75,7 +75,9 @@ Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
   for (unsigned int col = 0; col < 8; col++) {
     for (unsigned int row = 0; row < 8; row++) {
       uchar color = tile.data[col * 8 + row];
-      if (color > maxcolor) throw std::runtime_error("Invalid color value.");
+      if (color > maxcolor) {
+        throw std::invalid_argument("Invalid color value.");
+      }
 
       // 1bpp format
       if (bpp == 1) output[col] += (uchar)((color & 1) << (7 - row));
@@ -178,7 +180,7 @@ Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
   return sheet_buffer_out;
 }
 
-Bytes BPP8SNESToIndexed(Bytes data, uint64_t bpp) {
+Bytes Bpp8SnesToIndexed(Bytes data, uint64_t bpp) {
   // 3BPP
   // [r0,bp1],[r0,bp2],[r1,bp1],[r1,bp2],[r2,bp1],[r2,bp2],[r3,bp1],[r3,bp2]
   // [r4,bp1],[r4,bp2],[r5,bp1],[r5,bp2],[r6,bp1],[r6,bp2],[r7,bp1],[r7,bp2]

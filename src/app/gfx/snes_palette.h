@@ -114,11 +114,10 @@ class SNESPalette {
   explicit SNESPalette(const std::vector<snes_color>&);
   explicit SNESPalette(const std::vector<SNESColor>&);
 
-  char* encode();
   SDL_Palette* GetSDL_Palette();
 
   void Create(const std::vector<SNESColor>& cols) {
-    for (const auto each : cols) {
+    for (const auto& each : cols) {
       colors.push_back(each);
     }
     size_ = cols.size();

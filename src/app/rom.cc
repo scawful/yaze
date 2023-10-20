@@ -28,7 +28,7 @@
 namespace yaze {
 namespace app {
 
-absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
+absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
   Bytes sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
@@ -46,16 +46,11 @@ absl::StatusOr<Bytes> ROM::Load2bppGraphics() {
 
 // ============================================================================
 
-// 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
-// 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
-// 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
-// 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
-// 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
 absl::Status ROM::LoadAllGraphicsData() {
   Bytes sheet;
   bool bpp3 = false;
 
-  for (int i = 0; i < core::NumberOfSheets; i++) {
+  for (int i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(core::Uncompressed3BPPSize);
       auto offset = GetGraphicsAddress(data(), i);
@@ -94,38 +89,44 @@ absl::Status ROM::LoadAllGraphicsData() {
 
 absl::Status ROM::LoadFromFile(const absl::string_view& filename,
                                bool z3_load) {
+  // Set filename
   filename_ = filename;
+
+  // Open file
   std::ifstream file(filename.data(), std::ios::binary);
   if (!file.is_open()) {
     return absl::InternalError(
         absl::StrCat("Could not open ROM file: ", filename));
   }
 
+  // Get file size and resize rom_data_
   size_ = std::filesystem::file_size(filename);
   rom_data_.resize(size_);
-  for (auto i = 0; i < size_; ++i) {
-    char byte_to_read = ' ';
-    file.read(&byte_to_read, sizeof(char));
-    rom_data_[i] = byte_to_read;
-  }
+
+  // Read file into rom_data_
+  file.read(reinterpret_cast<char*>(rom_data_.data()), size_);
 
   // Check if the sROM has a header
   constexpr size_t baseROMSize = 1048576;  // 1MB
   constexpr size_t headerSize = 0x200;     // 512 bytes
-
   if (size_ % baseROMSize == headerSize) {
     has_header_ = true;
   }
 
+  // Remove header if present
   if (has_header_) {
-    // remove header
+    auto header =
+        std::vector<uchar>(rom_data_.begin(), rom_data_.begin() + 0x200);
     rom_data_.erase(rom_data_.begin(), rom_data_.begin() + 0x200);
     size_ -= 0x200;
   }
 
+  // Close file
   file.close();
+
+  // Load Zelda 3 specific data if requested
   if (z3_load) {
-    // copy ROM title
+    // Copy ROM title
     memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
     if (rom_data_[kTitleStringOffset + 0x19] == 0) {
       version_ = Z3_Version::JP;
@@ -134,6 +135,8 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
     }
     LoadAllPalettes();
   }
+
+  // Set is_loaded_ flag and return success
   is_loaded_ = true;
   return absl::OkStatus();
 }
@@ -269,22 +272,26 @@ absl::Status ROM::UpdatePaletteColor(const std::string& groupName,
 
 // ============================================================================
 
+void ROM::SavePalette(int index, const std::string& group_name,
+                      gfx::SNESPalette& palette) {
+  // Iterate through all colors in the palette
+  for (size_t j = 0; j < palette.size(); ++j) {
+    gfx::SNESColor color = palette[j];
+    // If the color is modified, save the color to the ROM
+    if (color.isModified()) {
+      WriteColor(GetPaletteAddress(group_name, index, j), color);
+      color.setModified(false);  // Reset the modified flag after saving
+    }
+  }
+}
+
 void ROM::SaveAllPalettes() {
   // Iterate through all palette_groups_
-  for (auto& [groupName, palettes] : palette_groups_) {
+  for (auto& [group_name, palettes] : palette_groups_) {
     // Iterate through all palettes in the group
     for (size_t i = 0; i < palettes.size(); ++i) {
       auto palette = palettes[i];
-
-      // Iterate through all colors in the palette
-      for (size_t j = 0; j < palette.size(); ++j) {
-        gfx::SNESColor color = palette[j];
-        // If the color is modified, save the color to the ROM
-        if (color.isModified()) {
-          WriteColor(GetPaletteAddress(groupName, i, j), color);
-          color.setModified(false);  // Reset the modified flag after saving
-        }
-      }
+      SavePalette(i, group_name, palette);
     }
   }
 }
@@ -297,7 +304,6 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
   }
 
   // Check if filename is empty
-  // If it is, use the filename_ member variable
   if (filename == "") {
     filename = filename_;
   }

@@ -146,15 +146,6 @@ SNESPalette::SNESPalette(const std::vector<SNESColor>& cols) {
   size_ = cols.size();
 }
 
-char* SNESPalette::encode() {
-  auto data = new char[size_ * 2];
-  for (unsigned int i = 0; i < size_; i++) {
-    data[i * 2] = (char)(colors[i].GetSNES() & 0xFF);
-    data[i * 2 + 1] = (char)(colors[i].GetSNES() >> 8);
-  }
-  return data;
-}
-
 SDL_Palette* SNESPalette::GetSDL_Palette() {
   auto sdl_palette = std::make_shared<SDL_Palette>();
   sdl_palette->ncolors = size_;

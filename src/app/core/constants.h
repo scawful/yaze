@@ -141,7 +141,6 @@ constexpr ushort TileNameMask = 0x03FF;
 constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int UncompressedSheetSize = 0x0800;
 
-constexpr int NumberOfSheets = 223;
 constexpr int NumberOfRooms = 296;
 
 constexpr int NumberOfColors = 3143;
