@@ -52,6 +52,13 @@ class TileInfo {
         vertical_mirror_(v),
         horizontal_mirror_(h),
         palette_(palette) {}
+
+  bool operator==(const TileInfo& other) const {
+    return id_ == other.id_ && over_ == other.over_ &&
+           vertical_mirror_ == other.vertical_mirror_ &&
+           horizontal_mirror_ == other.horizontal_mirror_ &&
+           palette_ == other.palette_;
+  }
 };
 
 uint16_t TileInfoToWord(TileInfo tile_info);
@@ -123,6 +130,13 @@ class Tile16 {
     tiles_info.push_back(tile2_);
     tiles_info.push_back(tile3_);
   }
+
+  bool operator==(const Tile16& other) const {
+    return tile0_ == other.tile0_ && tile1_ == other.tile1_ &&
+           tile2_ == other.tile2_ && tile3_ == other.tile3_;
+  }
+
+  bool operator!=(const Tile16& other) const { return !(*this == other); }
 };
 
 class OAMTile {

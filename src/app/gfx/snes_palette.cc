@@ -10,11 +10,41 @@
 #include <memory>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"  // for flat_hash_map
+#include "absl/status/status.h"            // for Status
 #include "app/core/constants.h"
 
 namespace yaze {
 namespace app {
 namespace gfx {
+
+// Define a hash map to hold the addresses of different palette groups
+const absl::flat_hash_map<std::string, uint32_t> paletteGroupAddresses = {
+    {"ow_main", core::overworldPaletteMain},
+    {"ow_aux", core::overworldPaletteAuxialiary},
+    {"ow_animated", core::overworldPaletteAnimated},
+    {"hud", core::hudPalettes},
+    {"global_sprites", core::globalSpritePalettesLW},
+    {"armors", core::armorPalettes},
+    {"swords", core::swordPalettes},
+    {"shields", core::shieldPalettes},
+    {"sprites_aux1", core::spritePalettesAux1},
+    {"sprites_aux2", core::spritePalettesAux2},
+    {"sprites_aux3", core::spritePalettesAux3},
+    {"dungeon_main", core::dungeonMainPalettes},
+    {"grass", core::hardcodedGrassLW},
+    {"3d_object", core::triforcePalette},
+    {"ow_mini_map", core::overworldMiniMapPalettes},
+};
+
+// Define a hash map to hold the number of colors in each palette group
+const absl::flat_hash_map<std::string, uint32_t> paletteGroupColorCounts = {
+    {"ow_main", 35},     {"ow_aux", 21},         {"ow_animated", 7},
+    {"hud", 32},         {"global_sprites", 60}, {"armors", 15},
+    {"swords", 3},       {"shields", 4},         {"sprites_aux1", 7},
+    {"sprites_aux2", 7}, {"sprites_aux3", 7},    {"dungeon_main", 90},
+    {"grass", 1},        {"3d_object", 8},       {"ow_mini_map", 128},
+};
 
 constexpr uint16_t SNES_RED_MASK = 32;
 constexpr uint16_t SNES_GREEN_MASK = 32;
@@ -63,6 +93,16 @@ std::vector<char> Convert(const std::vector<snes_color>& palette) {
     data[i * 2 + 1] = snes_data >> 8;
   }
   return data;
+}
+
+SNESColor ReadColorFromROM(int offset, const uchar* rom) {
+  short color = (ushort)((rom[offset + 1]) << 8) | rom[offset];
+  snes_color new_color;
+  new_color.red = (color & 0x1F) * 8;
+  new_color.green = ((color >> 5) & 0x1F) * 8;
+  new_color.blue = ((color >> 10) & 0x1F) * 8;
+  SNESColor snes_color(new_color);
+  return snes_color;
 }
 
 SNESColor GetCgxColor(uint16_t color) {
@@ -161,6 +201,40 @@ SDL_Palette* SNESPalette::GetSDL_Palette() {
   }
   sdl_palette->colors = color.data();
   return sdl_palette.get();
+}
+
+SNESPalette ReadPaletteFromROM(int offset, int num_colors, const uchar* rom) {
+  int color_offset = 0;
+  std::vector<gfx::SNESColor> colors(num_colors);
+
+  while (color_offset < num_colors) {
+    short color = (ushort)((rom[offset + 1]) << 8) | rom[offset];
+    gfx::snes_color new_color;
+    new_color.red = (color & 0x1F) * 8;
+    new_color.green = ((color >> 5) & 0x1F) * 8;
+    new_color.blue = ((color >> 10) & 0x1F) * 8;
+    colors[color_offset].SetSNES(ConvertRGBtoSNES(new_color));
+    color_offset++;
+    offset += 2;
+  }
+
+  gfx::SNESPalette palette(colors);
+  return palette;
+}
+
+uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
+                           size_t color_index) {
+  // Retrieve the base address for the palette group
+  uint32_t base_address = paletteGroupAddresses.at(group_name);
+
+  // Retrieve the number of colors for each palette in the group
+  uint32_t colors_per_palette = paletteGroupColorCounts.at(group_name);
+
+  // Calculate the address for thes specified color in the ROM
+  uint32_t address = base_address + (palette_index * colors_per_palette * 2) +
+                     (color_index * 2);
+
+  return address;
 }
 
 std::array<float, 4> ToFloatArray(const SNESColor& color) {

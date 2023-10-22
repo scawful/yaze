@@ -186,7 +186,7 @@ class Overworld : public SharedROM {
   absl::Status SaveLargeMaps();
 
   bool CreateTile32Tilemap(bool onlyShow = false);
-  void SaveMap16Tiles();
+  absl::Status SaveMap16Tiles();
   absl::Status SaveMap32Tiles();
 
   auto GetTiles16() const { return tiles16; }
