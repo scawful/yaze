@@ -160,7 +160,7 @@ absl::Status LoadGrassColors(const Bytes& rom_data,
   RETURN_IF_ERROR(palette_groups["grass"].AddColor(
       gfx::ReadColorFromROM(core::hardcodedGrassDW, rom_data.data())))
   RETURN_IF_ERROR(palette_groups["grass"].AddColor(
-      gfx::ReadColorFromROM(core::hardcodedGrassSpecial, rom_data.data())));
+      gfx::ReadColorFromROM(core::hardcodedGrassSpecial, rom_data.data())))
   return absl::OkStatus();
 }
 
@@ -242,21 +242,21 @@ absl::Status ROM::LoadAllGraphicsData() {
 }
 
 absl::Status ROM::LoadAllPalettes() {
-  RETURN_IF_ERROR(LoadOverworldMainPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadOverworldAuxiliaryPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadOverworldAnimatedPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadHUDPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadGlobalSpritePalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadArmorPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadSwordPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadShieldPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadSpriteAux1Palettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadSpriteAux2Palettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadSpriteAux3Palettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadDungeonMainPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadGrassColors(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(Load3DObjectPalettes(rom_data_, palette_groups_));
-  RETURN_IF_ERROR(LoadOverworldMiniMapPalettes(rom_data_, palette_groups_));
+  RETURN_IF_ERROR(LoadOverworldMainPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadOverworldAuxiliaryPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadOverworldAnimatedPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadHUDPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadGlobalSpritePalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadArmorPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadSwordPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadShieldPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadSpriteAux1Palettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadSpriteAux2Palettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadSpriteAux3Palettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadDungeonMainPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadGrassColors(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(Load3DObjectPalettes(rom_data_, palette_groups_))
+  RETURN_IF_ERROR(LoadOverworldMiniMapPalettes(rom_data_, palette_groups_))
   return absl::OkStatus();
 }
 
@@ -306,7 +306,7 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
     } else {
       version_ = Z3_Version::US;
     }
-    LoadAllPalettes();
+    RETURN_IF_ERROR(LoadAllPalettes())
   }
 
   // Set is_loaded_ flag and return success
@@ -380,8 +380,6 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
     return absl::InternalError(
         absl::StrCat("Could not open ROM file: ", filename));
   }
-
-  using byte_cast = const char* (*)(const void*);
 
   // Save the data to the file
   try {

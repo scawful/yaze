@@ -128,7 +128,8 @@ constexpr uint32_t kFontSpriteLocation = 0x70000;
 
 struct WriteAction {
   int address;
-  std::variant<uint8_t, uint16_t, std::vector<uint8_t>, gfx::SNESColor> value;
+  std::variant<int, uint8_t, uint16_t, std::vector<uint8_t>, gfx::SNESColor>
+      value;
 };
 
 class ROM {
@@ -142,7 +143,8 @@ class ROM {
   }
 
   absl::Status WriteHelper(const WriteAction& action) {
-    if (std::holds_alternative<uint8_t>(action.value)) {
+    if (std::holds_alternative<uint8_t>(action.value) ||
+        std::holds_alternative<int>(action.value)) {
       return Write(action.address, std::get<uint8_t>(action.value));
     } else if (std::holds_alternative<uint16_t>(action.value)) {
       return WriteShort(action.address, std::get<uint16_t>(action.value));
@@ -364,6 +366,20 @@ class ROM {
     size_ = size;
   }
 
+  absl::Status Reload() {
+    if (filename_.empty()) {
+      return absl::InvalidArgumentError("No filename specified");
+    }
+    return LoadFromFile(filename_);
+  }
+
+  absl::Status Close() {
+    rom_data_.clear();
+    size_ = 0;
+    is_loaded_ = false;
+    return absl::OkStatus();
+  }
+
   void QueueChanges(std::function<void()> const& function) {
     changes_.push(function);
   }
@@ -458,10 +474,10 @@ class ROM {
 
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
+  PaletteGroupMap palette_groups_;
 
   std::stack<std::function<void()>> changes_;
   std::shared_ptr<SDL_Renderer> renderer_;
-  std::unordered_map<std::string, gfx::PaletteGroup> palette_groups_;
 };
 
 class SharedROM {
