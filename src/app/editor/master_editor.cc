@@ -168,6 +168,11 @@ void MasterEditor::DrawFileMenu() {
     MENU_ITEM2("Save", "Ctrl+S") { status_ = rom()->SaveToFile(backup_rom_); }
     MENU_ITEM("Save As..") { save_as_menu = true; }
 
+    if (rom()->isLoaded()) {
+      MENU_ITEM("Reload") { status_ = rom()->Reload(); }
+      MENU_ITEM("Close") { status_ = rom()->Close(); }
+    }
+
     ImGui::Separator();
 
     if (ImGui::BeginMenu("Options")) {
