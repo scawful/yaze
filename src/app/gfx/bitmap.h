@@ -46,6 +46,32 @@ class Bitmap {
     this->pixel_data_[position] = value;
   }
 
+  void Cleanup() {
+    // Reset texture_
+    if (texture_) {
+      texture_.reset();
+    }
+
+    // Reset surface_ and its pixel data
+    if (surface_) {
+      surface_->pixels = nullptr;
+      surface_.reset();
+    }
+
+    // Reset data_
+    data_.clear();
+
+    // Reset other members if necessary
+    active_ = false;
+    pixel_data_ = nullptr;
+    width_ = 0;
+    height_ = 0;
+    depth_ = 0;
+    data_size_ = 0;
+    palette_.Clear();  // assuming there's a Clear() method or similar on
+                       // SNESPalette
+  }
+
   int width() const { return width_; }
   int height() const { return height_; }
   auto size() const { return data_size_; }

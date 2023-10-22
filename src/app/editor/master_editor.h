@@ -34,6 +34,9 @@ class MasterEditor : public SharedROM {
  public:
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
+  void Shutdown() {
+    overworld_editor_.Shutdown();
+  }
 
  private:
   void DrawFileDialog();

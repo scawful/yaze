@@ -157,7 +157,8 @@ void Controller::DoRender() const {
   SDL_RenderPresent(renderer_.get());
 }
 
-void Controller::OnExit() const {
+void Controller::OnExit() {
+  master_editor_.Shutdown();
   Mix_CloseAudio();
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
