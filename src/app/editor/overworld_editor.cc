@@ -200,7 +200,7 @@ void OverworldEditor::DrawOverworldEdits() {
   auto canvas_size = ow_map_canvas_.GetCanvasSize();
   int x = mouse_position.x / canvas_size.x;
   int y = mouse_position.y / canvas_size.y;
-  auto index = x + (y * 64);
+  auto index = x + (y * 8);
 
   // Determine which overworld map the user is currently editing.
   DetermineActiveMap(mouse_position);
@@ -213,14 +213,26 @@ void OverworldEditor::DrawOverworldEdits() {
   QueueROMChanges(index, current_tile16_);
 }
 
+void OverworldEditor::DetermineActiveMap(const ImVec2 &mouse_position) {
+  // Assuming each small map is 256x256 pixels (adjust as needed)
+  constexpr int small_map_size = 512;
+
+  // Calculate which small map the mouse is currently over
+  int map_x = mouse_position.x / small_map_size;
+  int map_y = mouse_position.y / small_map_size;
+
+  // Calculate the index of the map in the `maps_bmp_` vector
+  current_map_ = map_x + map_y * 8;
+}
+
 void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
                                              const Bytes &tile_data) {
   // Calculate the tile position relative to the current active map
   constexpr int tile_size = 16;  // Tile size is 16x16 pixels
 
   // Calculate the tile index for x and y based on the click_position
-  int tile_index_x = static_cast<int>(click_position.x) / tile_size;
-  int tile_index_y = static_cast<int>(click_position.y) / tile_size;
+  int tile_index_x = (static_cast<int>(click_position.x) % 512) / tile_size;
+  int tile_index_y = (static_cast<int>(click_position.y) % 512) / tile_size;
 
   // Calculate the pixel start position based on tile index and tile size
   ImVec2 start_position;
@@ -256,19 +268,21 @@ void OverworldEditor::QueueROMChanges(int index, ushort new_tile16) {
   });
 }
 
-void OverworldEditor::DetermineActiveMap(const ImVec2 &mouse_position) {
-  // Assuming each small map is 256x256 pixels (adjust as needed)
-  constexpr int small_map_size = 512;
-
-  // Calculate which small map the mouse is currently over
-  int map_x = mouse_position.x / small_map_size;
-  int map_y = mouse_position.y / small_map_size;
-
-  // Calculate the index of the map in the `maps_bmp_` vector
-  current_map_ = map_x + map_y * 8;
-}
-
 // ----------------------------------------------------------------------------
+
+void OverworldEditor::CheckForOverworldEdits() {
+  if (!blockset_canvas_.Points().empty()) {
+    // User has selected a tile they want to draw from the blockset.
+    int x = blockset_canvas_.Points().front().x / 32;
+    int y = blockset_canvas_.Points().front().y / 32;
+    current_tile16_ = x + (y * 8);
+    if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
+                                       16)) {
+      // Update the overworld map.
+      DrawOverworldEdits();
+    }
+  }
+}
 
 // Overworld Editor canvas
 // Allows the user to make changes to the overworld map.
@@ -285,17 +299,7 @@ void OverworldEditor::DrawOverworldCanvas() {
       DrawOverworldMaps();
       DrawOverworldEntrances();
       // DrawOverworldSprites();
-      // User has selected a tile they want to draw from the blockset.
-      if (!blockset_canvas_.Points().empty()) {
-        int x = blockset_canvas_.Points().front().x / 32;
-        int y = blockset_canvas_.Points().front().y / 32;
-        current_tile16_ = x + (y * 8);
-        if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
-                                           16)) {
-          // Update the overworld map.
-          DrawOverworldEdits();
-        }
-      }
+      CheckForOverworldEdits();
     }
     ow_map_canvas_.DrawGrid(64.0f);
     ow_map_canvas_.DrawOverlay();
