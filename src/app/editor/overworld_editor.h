@@ -63,6 +63,21 @@ class OverworldEditor : public Editor, public SharedROM {
   absl::Status Copy() { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() { return absl::UnimplementedError("Paste"); }
 
+  void Shutdown() {
+    for (auto &bmp : tile16_individual_) {
+      bmp.Cleanup();
+    }
+    for (auto &[i, bmp] : maps_bmp_) {
+      bmp.Cleanup();
+    }
+    for (auto &[i, bmp] : graphics_bin_) {
+      bmp.Cleanup();
+    }
+    for (auto &[i, bmp] : current_graphics_set_) {
+      bmp.Cleanup();
+    }
+  }
+
  private:
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
@@ -77,6 +92,7 @@ class OverworldEditor : public Editor, public SharedROM {
   void QueueROMChanges(int index, ushort new_tile16);
   void DetermineActiveMap(const ImVec2 &mouse_position);
 
+  void CheckForOverworldEdits();
   void DrawOverworldCanvas();
 
   void DrawTile8Selector();
