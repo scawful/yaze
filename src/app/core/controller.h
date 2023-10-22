@@ -27,7 +27,7 @@ class Controller {
   void OnInput();
   void OnLoad();
   void DoRender() const;
-  void OnExit() const;
+  void OnExit();
 
  private:
   struct sdl_deleter {
