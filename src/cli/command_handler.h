@@ -230,14 +230,18 @@ class ReadFromRom : public CommandHandler {
     }
 
     if (length > 1) {
-      auto returned_bytes = rom_.ReadByteVector(offset, length);
+      auto returned_bytes_status = rom_.ReadByteVector(offset, length);
+      if (!returned_bytes_status.ok()) {
+        return returned_bytes_status.status();
+      }
+      auto returned_bytes = returned_bytes_status.value();
       for (const auto& each : returned_bytes) {
         std::cout << each;
       }
       std::cout << std::endl;
     } else {
       auto byte = rom_.ReadByte(offset);
-      std::cout << std::hex << byte << std::endl;
+      std::cout << std::hex << byte.value() << std::endl;
     }
 
     return absl::OkStatus();

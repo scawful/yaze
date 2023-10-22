@@ -19,7 +19,8 @@
 #include <stack>          // for stack
 #include <string>         // for hash, operator==
 #include <unordered_map>  // for unordered_map
-#include <vector>         // for vector
+#include <variant>
+#include <vector>  // for vector
 
 #include "SDL_render.h"                    // for SDL_Renderer
 #include "absl/container/flat_hash_map.h"  // for flat_hash_map
@@ -38,6 +39,9 @@
 namespace yaze {
 namespace app {
 
+using PaletteGroupMap = std::unordered_map<std::string, gfx::PaletteGroup>;
+
+// Define an enum class for the different versions of the game
 enum class Z3_Version {
   US = 1,
   JP = 2,
@@ -45,11 +49,11 @@ enum class Z3_Version {
   RANDO = 4,
 };
 
+// Define a struct to hold the version-specific constants
 struct VersionConstants {
   uint32_t kGgxAnimatedPointer;
   uint32_t kOverworldGfxGroups1;
   uint32_t kOverworldGfxGroups2;
-  // long ptrs all tiles of maps[high/low] (mapid* 3)
   uint32_t kCompressedAllMap32PointersHigh;
   uint32_t kCompressedAllMap32PointersLow;
   uint32_t overworldMapPaletteGroup;
@@ -66,6 +70,7 @@ struct VersionConstants {
   uint32_t kSpriteBlocksetPointer;
 };
 
+// Define a map to hold the version constants for each version
 static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::US,
      {
@@ -106,10 +111,9 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x20000,  // kMap32TileBL
          0x233C0,  // kMap32TileBR
          0x5B97,   // kSpriteBlocksetPointer
-     }}
+     }}};
 
-};
-
+// Define some constants used throughout the ROM class
 constexpr uint32_t kOverworldGraphicsPos1 = 0x4F80;
 constexpr uint32_t kOverworldGraphicsPos2 = 0x505F;
 constexpr uint32_t kOverworldGraphicsPos3 = 0x513E;
@@ -122,34 +126,35 @@ constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kLinkSpriteLocation = 0x80000;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
 
-const absl::flat_hash_map<std::string, uint32_t> paletteGroupAddresses = {
-    {"ow_main", core::overworldPaletteMain},
-    {"ow_aux", core::overworldPaletteAuxialiary},
-    {"ow_animated", core::overworldPaletteAnimated},
-    {"hud", core::hudPalettes},
-    {"global_sprites", core::globalSpritePalettesLW},
-    {"armors", core::armorPalettes},
-    {"swords", core::swordPalettes},
-    {"shields", core::shieldPalettes},
-    {"sprites_aux1", core::spritePalettesAux1},
-    {"sprites_aux2", core::spritePalettesAux2},
-    {"sprites_aux3", core::spritePalettesAux3},
-    {"dungeon_main", core::dungeonMainPalettes},
-    {"grass", core::hardcodedGrassLW},
-    {"3d_object", core::triforcePalette},
-    {"ow_mini_map", core::overworldMiniMapPalettes},
-};
-
-const absl::flat_hash_map<std::string, uint32_t> paletteGroupColorCounts = {
-    {"ow_main", 35},     {"ow_aux", 21},         {"ow_animated", 7},
-    {"hud", 32},         {"global_sprites", 60}, {"armors", 15},
-    {"swords", 3},       {"shields", 4},         {"sprites_aux1", 7},
-    {"sprites_aux2", 7}, {"sprites_aux3", 7},    {"dungeon_main", 90},
-    {"grass", 1},        {"3d_object", 8},       {"ow_mini_map", 128},
+struct WriteAction {
+  int address;
+  std::variant<uint8_t, uint16_t, std::vector<uint8_t>, gfx::SNESColor> value;
 };
 
 class ROM {
  public:
+  template <typename... Args>
+  absl::Status RunTransaction(Args... args) {
+    absl::Status status;
+    // Fold expression to apply the Write function on each argument
+    ((status = WriteHelper(args)), ...);
+    return status;
+  }
+
+  absl::Status WriteHelper(const WriteAction& action) {
+    if (std::holds_alternative<uint8_t>(action.value)) {
+      return Write(action.address, std::get<uint8_t>(action.value));
+    } else if (std::holds_alternative<uint16_t>(action.value)) {
+      return WriteShort(action.address, std::get<uint16_t>(action.value));
+    } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
+      return WriteVector(action.address,
+                         std::get<std::vector<uint8_t>>(action.value));
+    } else if (std::holds_alternative<gfx::SNESColor>(action.value)) {
+      return WriteColor(action.address, std::get<gfx::SNESColor>(action.value));
+    }
+    return absl::InvalidArgumentError("Invalid write argument type");
+  }
+
   /**
    * Loads 2bpp graphics from ROM data.
    *
@@ -178,6 +183,17 @@ class ROM {
   absl::Status LoadAllGraphicsData();
 
   /**
+   * @brief Loads all the palettes for the game.
+   *
+   * This function loads all the palettes for the game, including overworld,
+   * HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object
+   * palettes. It also adds the loaded palettes to their respective palette
+   * groups.
+   *
+   */
+  absl::Status LoadAllPalettes();
+
+  /**
    * Load ROM data from a file.
    *
    * @param filename The name of the file to load.
@@ -190,37 +206,84 @@ class ROM {
   absl::Status LoadFromBytes(const Bytes& data);
 
   /**
-   * @brief Loads all the palettes for the game.
+   * @brief Saves the ROM data to a file
    *
-   * This function loads all the palettes for the game, including overworld,
-   * HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object
-   * palettes. It also adds the loaded palettes to their respective palette
-   * groups.
+   * @param backup If true, creates a backup file with timestamp in its name
+   * @param filename The name of the file to save the ROM data to
    *
+   * @return absl::Status Returns an OK status if the save was successful,
+   * otherwise returns an error status
    */
-  void LoadAllPalettes();
+  absl::Status SaveToFile(bool backup, absl::string_view filename = "");
 
-  // Save functions
+  /**
+   * Saves the given palette to the ROM if any of its colors have been modified.
+   *
+   * @param index The index of the palette to save.
+   * @param group_name The name of the group containing the palette.
+   * @param palette The palette to save.
+   */
+  void SavePalette(int index, const std::string& group_name,
+                   gfx::SNESPalette& palette);
+
+  /**
+   * @brief Saves all palettes in the ROM.
+   *
+   * This function iterates through all palette groups and all palettes in each
+   * group, and saves each palette using the SavePalette() function.
+   */
+  void SaveAllPalettes();
+
+  /**
+   * @brief Updates a color in a specified palette group.
+   *
+   * This function updates the color at the specified `colorIndex` in the
+   * palette at `palette_index` within the palette group with the given
+   * `group_name`. If the group, palette, or color indices are invalid, an error
+   * is returned.
+   *
+   * @param group_name The name of the palette group to update.
+   * @param palette_index The index of the palette within the group to update.
+   * @param colorIndex The index of the color within the palette to update.
+   * @param newColor The new color value to set.
+   *
+   * @return An `absl::Status` indicating whether the update was successful.
+   *         Returns `absl::OkStatus()` if successful, or an error status if the
+   *         group, palette, or color indices are invalid.
+   */
   absl::Status UpdatePaletteColor(const std::string& group_name,
                                   size_t palette_index, size_t colorIndex,
                                   const gfx::SNESColor& newColor);
-  void SavePalette(int index, const std::string& group_name,
-                   gfx::SNESPalette& palette);
-  void SaveAllPalettes();
-
-  absl::Status SaveToFile(bool backup, absl::string_view filename = "");
 
   // Read functions
-  gfx::SNESColor ReadColor(int offset);
-  gfx::SNESPalette ReadPalette(int offset, int num_colors);
-  uint8_t ReadByte(int offset) { return rom_data_[offset]; }
-  uint16_t ReadWord(int offset) {
-    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+  absl::StatusOr<uint8_t> ReadByte(int offset) {
+    if (offset >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Offset out of range");
+    }
+    return rom_data_[offset];
   }
-  uint16_t ReadShort(int offset) {
-    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+
+  absl::StatusOr<uint16_t> ReadWord(int offset) {
+    if (offset + 1 >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Offset out of range");
+    }
+    auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+    return result;
   }
-  std::vector<uint8_t> ReadByteVector(uint32_t offset, uint32_t length) {
+
+  absl::StatusOr<uint16_t> ReadShort(int offset) {
+    if (offset + 1 >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Offset out of range");
+    }
+    auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+    return result;
+  }
+
+  absl::StatusOr<std::vector<uint8_t>> ReadByteVector(uint32_t offset,
+                                                      uint32_t length) {
+    if (offset + length > rom_data_.size()) {
+      return absl::InvalidArgumentError("Offset and length out of range");
+    }
     std::vector<uint8_t> result;
     for (int i = offset; i < length; i++) {
       result.push_back(rom_data_[i]);
@@ -228,53 +291,72 @@ class ROM {
     return result;
   }
 
-  gfx::Tile16 ReadTile16(uint32_t tile16_id) {
+  absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id) {
     // Skip 8 bytes per tile.
     auto tpos = 0x78000 + (tile16_id * 0x08);
     gfx::Tile16 tile16;
-    tile16.tile0_ = gfx::WordToTileInfo(ReadShort(tpos));
+    ASSIGN_OR_RETURN(auto new_tile0, ReadShort(tpos))
+    tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
     tpos += 2;
-    tile16.tile1_ = gfx::WordToTileInfo(ReadShort(tpos));
+    ASSIGN_OR_RETURN(auto new_tile1, ReadShort(tpos))
+    tile16.tile1_ = gfx::WordToTileInfo(new_tile1);
     tpos += 2;
-    tile16.tile2_ = gfx::WordToTileInfo(ReadShort(tpos));
+    ASSIGN_OR_RETURN(auto new_tile2, ReadShort(tpos))
+    tile16.tile2_ = gfx::WordToTileInfo(new_tile2);
     tpos += 2;
-    tile16.tile3_ = gfx::WordToTileInfo(ReadShort(tpos));
+    ASSIGN_OR_RETURN(auto new_tile3, ReadShort(tpos))
+    tile16.tile3_ = gfx::WordToTileInfo(new_tile3);
     return tile16;
   }
 
-  void WriteTile16(int tile16_id, const gfx::Tile16& tile) {
+  absl::Status WriteTile16(int tile16_id, const gfx::Tile16& tile) {
     // Skip 8 bytes per tile.
     auto tpos = 0x78000 + (tile16_id * 0x08);
-    WriteShort(tpos, gfx::TileInfoToWord(tile.tile0_));
+    RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile0_)));
     tpos += 2;
-    WriteShort(tpos, gfx::TileInfoToWord(tile.tile1_));
+    RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile1_)));
     tpos += 2;
-    WriteShort(tpos, gfx::TileInfoToWord(tile.tile2_));
+    RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile2_)));
     tpos += 2;
-    WriteShort(tpos, gfx::TileInfoToWord(tile.tile3_));
+    RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile3_)));
+    return absl::OkStatus();
   }
 
   // Write functions
-  void Write(int addr, int value) { rom_data_[addr] = value; }
-
-  void WriteShort(uint32_t addr, uint16_t value) {
-    rom_data_[addr] = (uint8_t)(value & 0xFF);
-    rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+  absl::Status Write(int addr, int value) {
+    if (addr >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Address out of range");
+    }
+    rom_data_[addr] = value;
+    return absl::OkStatus();
   }
 
-  void WriteVector(int addr, std::vector<uint8_t> data) {
+  absl::Status WriteShort(uint32_t addr, uint16_t value) {
+    if (addr + 1 >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Address out of range");
+    }
+    rom_data_[addr] = (uint8_t)(value & 0xFF);
+    rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    return absl::OkStatus();
+  }
+
+  absl::Status WriteVector(int addr, std::vector<uint8_t> data) {
+    if (addr + data.size() > rom_data_.size()) {
+      return absl::InvalidArgumentError("Address and data size out of range");
+    }
     for (int i = 0; i < data.size(); i++) {
       rom_data_[addr + i] = data[i];
     }
+    return absl::OkStatus();
   }
 
-  void WriteColor(uint32_t address, const gfx::SNESColor& color) {
+  absl::Status WriteColor(uint32_t address, const gfx::SNESColor& color) {
     uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
                    ((color.GetSNES() & 0x1F) << 10) |
                    (color.GetSNES() & 0x7C00);
 
     // Write the 16-bit color value to the ROM at the specified address
-    WriteShort(address, bgr);
+    return WriteShort(address, bgr);
   }
 
   void Expand(int size) {
@@ -298,8 +380,6 @@ class ROM {
     return core::SnesToPc(snes_addr);
   }
 
-  uint32_t GetPaletteAddress(const std::string& groupName, size_t paletteIndex,
-                             size_t colorIndex) const;
   gfx::PaletteGroup GetPaletteGroup(const std::string& group) {
     return palette_groups_[group];
   }
