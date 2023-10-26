@@ -167,6 +167,8 @@ class ROM {
    */
   absl::StatusOr<Bytes> Load2BppGraphics();
 
+  absl::Status LoadLinkGraphics();
+
   /**
    * This function iterates over all graphics sheets in the ROM and loads them
    * into memory. Depending on the sheet's index, it may be uncompressed or
@@ -474,6 +476,8 @@ class ROM {
 
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
+  gfx::BitmapTable link_graphics_;
+  gfx::SNESPalette link_palette_;
   PaletteGroupMap palette_groups_;
 
   std::stack<std::function<void()>> changes_;
