@@ -202,6 +202,26 @@ absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
   return sheet;
 }
 
+absl::Status ROM::LoadLinkGraphics() {
+  const auto link_gfx_offset = 0x80000;
+  const auto link_gfx_length = 0x500;
+
+  // Load Links graphics from the ROM
+  for (int i = 0; i < 14; i++) {
+    ASSIGN_OR_RETURN(
+        auto link_sheet_data,
+        ReadByteVector(/*offset=*/link_gfx_offset + (i * link_gfx_length),
+                       /*length=*/link_gfx_length))
+    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
+    link_graphics_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
+                             core::kTilesheetDepth, link_sheet_8bpp);
+    link_graphics_[i].ApplyPalette(link_palette_);
+    RenderBitmap(&link_graphics_[i]);
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status ROM::LoadAllGraphicsData() {
   Bytes sheet;
   bool bpp3 = false;
