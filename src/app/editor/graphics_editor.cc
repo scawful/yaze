@@ -26,6 +26,39 @@ namespace app {
 namespace editor {
 
 absl::Status GraphicsEditor::Update() {
+  TAB_BAR("##TabBar")
+  status_ = UpdateScadView();
+  status_ = UpdateLinkGfxView();
+  END_TAB_BAR()
+  CLEAR_AND_RETURN_STATUS(status_)
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::UpdateLinkGfxView() {
+  TAB_ITEM("Player Animations")
+
+  const auto link_gfx_offset = 0x80000;
+  const auto link_gfx_length = 0x7000;
+
+  // Load Links graphics from the ROM
+  RETURN_IF_ERROR(rom()->LoadLinkGraphics());
+
+  // Split it into the pose data frames
+
+  // Create an animation step display for the poses
+
+  // Allow the user to modify the frames used in an anim step
+
+  // LinkOAM_AnimationSteps:
+  // #_0D85FB
+
+  END_TAB_ITEM()
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::UpdateScadView() {
+  TAB_ITEM("Prototype")
+
   RETURN_IF_ERROR(DrawToolset())
 
   if (open_memory_editor_) {
@@ -74,12 +107,12 @@ absl::Status GraphicsEditor::Update() {
                                cgx_loaded_, true, 5);
   } else {
     // Load the BIN/Clipboard Graphics
-    core::BitmapCanvasPipeline(import_canvas_, bitmap_, 0x100, 16384, 0x20,
+    core::BitmapCanvasPipeline(import_canvas_, bin_bitmap_, 0x100, 16384, 0x20,
                                gfx_loaded_, true, 2);
   }
   END_TABLE()
 
-  CLEAR_AND_RETURN_STATUS(status_)
+  END_TAB_ITEM()
   return absl::OkStatus();
 }
 
@@ -352,20 +385,20 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
                                      temp_rom_.data(), current_offset_, size))
 
   auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
-  bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
-                 converted_sheet.data(), size);
+  bin_bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
+                     converted_sheet.data(), size);
 
   if (rom()->isLoaded()) {
     auto palette_group = rom()->GetPaletteGroup("ow_main");
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
-      bitmap_.ApplyPalette(col_file_palette_);
+      bin_bitmap_.ApplyPalette(col_file_palette_);
     } else {
-      bitmap_.ApplyPalette(z3_rom_palette_);
+      bin_bitmap_.ApplyPalette(z3_rom_palette_);
     }
   }
 
-  rom()->RenderBitmap(&bitmap_);
+  rom()->RenderBitmap(&bin_bitmap_);
   gfx_loaded_ = true;
 
   return absl::OkStatus();
