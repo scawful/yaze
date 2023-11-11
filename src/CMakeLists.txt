@@ -17,6 +17,7 @@ set(
   app/editor/palette_editor.cc
   app/editor/screen_editor.cc
   app/editor/sprite_editor.cc
+  app/editor/modules/tile16_editor.cc
 )
 
 set(
