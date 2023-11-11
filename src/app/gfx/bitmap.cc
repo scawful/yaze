@@ -151,7 +151,7 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
   palette_ = palette;
   SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette.size(); ++i) {
-    if (palette.GetColor(i).isTransparent()) {
+    if (palette.GetColor(i).IsTransparent()) {
       surface_->format->palette->colors[i].r = 0;
       surface_->format->palette->colors[i].g = 0;
       surface_->format->palette->colors[i].b = 0;
