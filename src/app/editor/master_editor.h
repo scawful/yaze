@@ -49,15 +49,7 @@ class MasterEditor : public SharedROM {
   void DrawEditMenu();
   void DrawViewMenu();
   void DrawHelpMenu();
-
-  void DrawOverworldEditor();
-  void DrawDungeonEditor();
-  void DrawGraphicsEditor();
-  void DrawPaletteEditor();
-  void DrawMusicEditor();
-  void DrawScreenEditor();
-  void DrawSpriteEditor();
-
+  
   bool about_ = false;
   bool rom_info_ = false;
   bool backup_rom_ = true;
