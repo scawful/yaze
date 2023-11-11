@@ -62,15 +62,36 @@ absl::Status OverworldEditor::DrawToolset() {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
-    BUTTON_COLUMN(ICON_MD_UNDO)                 // Undo
-    BUTTON_COLUMN(ICON_MD_REDO)                 // Redo
-    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
-    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)             // Zoom Out
-    BUTTON_COLUMN(ICON_MD_ZOOM_IN)              // Zoom In
-    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
-    BUTTON_COLUMN(ICON_MD_DRAW)                 // Draw Tile
-    BUTTON_COLUMN(ICON_MD_DOOR_FRONT)           // Entrances
-    BUTTON_COLUMN(ICON_MD_DOOR_BACK)            // Exits
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_UNDO)) {
+      RETURN_IF_ERROR(Undo())
+    }
+
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_REDO)) {
+      RETURN_IF_ERROR(Redo())
+    }
+
+    TEXT_COLUMN(ICON_MD_MORE_VERT)   // Separator
+    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)  // Zoom Out
+    BUTTON_COLUMN(ICON_MD_ZOOM_IN)   // Zoom In
+    TEXT_COLUMN(ICON_MD_MORE_VERT)   // Separator
+
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_DRAW)) {
+      current_mode = EditingMode::DRAW_TILE;
+    }
+
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_DOOR_FRONT)) {
+      current_mode = EditingMode::ENTRANCES;
+    }
+
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_DOOR_BACK)) {
+      current_mode = EditingMode::EXITS;
+    }
+
     BUTTON_COLUMN(ICON_MD_GRASS)                // Items
     BUTTON_COLUMN(ICON_MD_PEST_CONTROL_RODENT)  // Sprites
     BUTTON_COLUMN(ICON_MD_ADD_LOCATION)         // Transports
