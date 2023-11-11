@@ -65,6 +65,9 @@ class GraphicsEditor : public SharedROM {
   absl::Status Update();
 
  private:
+  absl::Status UpdateLinkGfxView();
+  absl::Status UpdateScadView();
+
   absl::Status DrawToolset();
 
   absl::Status DrawCgxImport();
@@ -130,6 +133,13 @@ class GraphicsEditor : public SharedROM {
   ROM temp_rom_;
   ROM tilemap_rom_;
 
+  zelda3::Overworld overworld_;
+
+  MemoryEditor cgx_memory_editor_;
+  MemoryEditor col_memory_editor_;
+
+  PaletteEditor palette_editor_;
+
   Bytes import_data_;
   Bytes graphics_buffer_;
 
@@ -141,30 +151,27 @@ class GraphicsEditor : public SharedROM {
   std::vector<uint8_t> scr_data_;
   std::vector<uint8_t> decoded_scr_data_;
 
-  zelda3::Overworld overworld_;
-
-  MemoryEditor cgx_memory_editor_;
-  MemoryEditor col_memory_editor_;
-
-  PaletteEditor palette_editor_;
-
   gfx::Bitmap cgx_bitmap_;
   gfx::Bitmap scr_bitmap_;
+  gfx::Bitmap bin_bitmap_;
 
-  gfx::Bitmap bitmap_;
-  gui::Canvas import_canvas_;
+  gfx::Bitmap link_full_sheet_;
 
-  gui::Canvas scr_canvas_;
-
-  gui::Canvas super_donkey_canvas_;
   gfx::BitmapTable graphics_bin_;
-
   gfx::BitmapTable clipboard_graphics_bin_;
+
+  gfx::BitmapTable link_graphics_;
 
   gfx::PaletteGroup col_file_palette_group_;
 
   gfx::SNESPalette z3_rom_palette_;
   gfx::SNESPalette col_file_palette_;
+
+  gfx::SNESPalette link_palette_;
+
+  gui::Canvas import_canvas_;
+  gui::Canvas scr_canvas_;
+  gui::Canvas super_donkey_canvas_;
 
   absl::Status status_;
 };
