@@ -102,6 +102,18 @@ class OverworldEditor : public Editor, public SharedROM {
 
   absl::Status DrawExperimentalModal();
 
+  enum class EditingMode {
+    DRAW_TILE,
+    ENTRANCES,
+    EXITS,
+    ITEMS,
+    SPRITES,
+    TRANSPORTS,
+    MUSIC
+  };
+
+  EditingMode current_mode = EditingMode::DRAW_TILE;
+
   int current_world_ = 0;
   int current_map_ = 0;
   int current_tile16_ = 0;
