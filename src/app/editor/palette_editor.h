@@ -78,18 +78,18 @@ class PaletteEditorHistory {
 class PaletteEditor : public SharedROM {
  public:
   absl::Status Update();
+  absl::Status DrawPaletteGroups();
 
   void EditColorInPalette(gfx::SNESPalette& palette, int index);
   void ResetColorToOriginal(gfx::SNESPalette& palette, int index,
                             const gfx::SNESPalette& originalPalette);
   void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
-
   void DrawPortablePalette(gfx::SNESPalette& palette);
 
  private:
-  absl::Status DrawPaletteGroup(int i);
+  absl::Status DrawPaletteGroup(int category);
+  absl::Status HandleColorPopup(gfx::SNESPalette& palette, int i, int j, int n);
 
- private:
   void InitializeSavedPalette(const gfx::SNESPalette& palette) {
     for (int n = 0; n < palette.size(); n++) {
       saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
@@ -99,11 +99,15 @@ class PaletteEditor : public SharedROM {
     }
   }
 
+  absl::Status status_;
+
   PaletteEditorHistory history_;
 
   ImVec4 saved_palette_[256] = {};
   ImVec4 current_color_;
 
+  ImGuiColorEditFlags color_popup_flags =
+      ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha;
   ImGuiColorEditFlags palette_button_flags =
       ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoTooltip;
   ImGuiColorEditFlags palette_button_flags_2 = ImGuiColorEditFlags_NoAlpha |

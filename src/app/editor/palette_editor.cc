@@ -5,6 +5,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
 #include "app/gui/icons.h"
 
 static inline float ImSaturate(float f) {
@@ -23,7 +24,7 @@ int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
   int w = vsnprintf(buf, buf_size, fmt, args);
 #endif
   va_end(args);
-  if (buf == NULL) return w;
+  if (buf == nullptr) return w;
   if (w == -1 || w >= (int)buf_size) w = (int)buf_size - 1;
   buf[w] = 0;
   return w;
@@ -34,12 +35,32 @@ namespace app {
 namespace editor {
 
 absl::Status PaletteEditor::Update() {
-  for (int i = 0; i < kNumPalettes; ++i) {
-    if (ImGui::TreeNode(kPaletteCategoryNames[i].data())) {
-      RETURN_IF_ERROR(DrawPaletteGroup(i))
-      ImGui::TreePop();
+  if (ImGui::BeginTable("paletteEditorTable", 2,
+                        ImGuiTableFlags_Reorderable |
+                            ImGuiTableFlags_Resizable |
+                            ImGuiTableFlags_SizingStretchSame,
+                        ImVec2(0, 0))) {
+    ImGui::TableSetupColumn("Palette Groups",
+                            ImGuiTableColumnFlags_WidthStretch,
+                            ImGui::GetContentRegionAvail().x);
+    ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch,
+                            ImGui::GetContentRegionAvail().x);
+    ImGui::TableHeadersRow();
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    for (int category = 0; category < kNumPalettes; ++category) {
+      if (ImGui::TreeNode(kPaletteCategoryNames[category].data())) {
+        status_ = DrawPaletteGroup(category);
+        ImGui::TreePop();
+      }
     }
+    ImGui::TableNextColumn();
+    ImGui::Text("Test Column");
+    ImGui::EndTable();
   }
+
+  CLEAR_AND_RETURN_STATUS(status_)
+
   return absl::OkStatus();
 }
 
@@ -51,7 +72,7 @@ void PaletteEditor::EditColorInPalette(gfx::SNESPalette& palette, int index) {
 
   // Get the current color
   auto currentColor = palette.GetColor(index).GetRGB();
-  if (ImGui::ColorPicker4("Color Picker", (float*)&currentColor)) {
+  if (ImGui::ColorPicker4("Color Picker", (float*)&palette[index])) {
     // The color was modified, update it in the palette
     palette(index, currentColor);
   }
@@ -69,12 +90,18 @@ void PaletteEditor::ResetColorToOriginal(
   palette(index, originalColor);
 }
 
-absl::Status PaletteEditor::DrawPaletteGroup(int i) {
-  auto size = rom()->GetPaletteGroup(kPaletteGroupNames[i].data()).size();
-  auto palettes = rom()->GetPaletteGroup(kPaletteGroupNames[i].data());
-  if (static bool init = false; !init) {
-    InitializeSavedPalette(palettes[0]);
+absl::Status PaletteEditor::DrawPaletteGroup(int category) {
+  if (!rom()->isLoaded()) {
+    return absl::NotFoundError("ROM not open, no palettes to display");
   }
+
+  const auto size =
+      rom()->GetPaletteGroup(kPaletteGroupNames[category].data()).size();
+  auto palettes = rom()->GetPaletteGroup(kPaletteGroupNames[category].data());
+  // if (static bool init = false; !init) {
+  //   InitializeSavedPalette(palettes[0]);
+  // }
+  static bool edit_color = false;
   for (int j = 0; j < size; j++) {
     ImGui::Text("%d", j);
 
@@ -85,51 +112,61 @@ absl::Status PaletteEditor::DrawPaletteGroup(int i) {
       ImGui::PushID(n);
       if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
-      std::string popupId = kPaletteCategoryNames[i].data() +
-                            std::to_string(j) + "_" + std::to_string(n);
-      if (ImGui::ColorButton(
-              popupId.c_str(),
-              ImVec4(palette[n].GetRGB().x / 255, palette[n].GetRGB().y / 255,
-                     palette[n].GetRGB().z / 255, palette[n].GetRGB().w / 255),
-              palette_button_flags)) {
-        if (ImGui::ColorEdit4(popupId.c_str(),
+      auto popup_id =
+          absl::StrCat(kPaletteCategoryNames[category].data(), j, "_", n);
+
+      // Small icon of the color in the palette
+      if (gui::SNESColorButton(popup_id, palette[n], palette_button_flags)) {
+        edit_color = true;
+      }
+
+      if (ImGui::BeginPopupContextItem(popup_id.c_str())) {
+        RETURN_IF_ERROR(HandleColorPopup(palette, category, j, n))
+      }
+
+      if (edit_color) {
+        // The color button was clicked, open the popup
+        if (ImGui::ColorEdit4(popup_id.c_str(),
                               gfx::ToFloatArray(palette[n]).data(),
                               palette_button_flags)) {
           EditColorInPalette(palette, n);
         }
       }
 
-      if (ImGui::BeginPopupContextItem(popupId.c_str())) {
-        auto col = gfx::ToFloatArray(palette[n]);
-        if (ImGui::ColorEdit4(
-                "Edit Color", col.data(),
-                ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha)) {
-          RETURN_IF_ERROR(rom()->UpdatePaletteColor(
-              kPaletteGroupNames[i].data(), j, n, palette[n]))
-        }
-        if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");
-        if (ImGui::BeginPopup("Copy")) {
-          int cr = IM_F32_TO_INT8_SAT(col[0]);
-          int cg = IM_F32_TO_INT8_SAT(col[1]);
-          int cb = IM_F32_TO_INT8_SAT(col[2]);
-          char buf[64];
-          CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)",
-                             col[0], col[1], col[2]);
-          if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
-          CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d)", cr, cg, cb);
-          if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
-          CustomFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg,
-                             cb);
-          if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
-          ImGui::EndPopup();
-        }
-
-        ImGui::EndPopup();
-      }
-
       ImGui::PopID();
     }
   }
+  return absl::OkStatus();
+}
+
+absl::Status PaletteEditor::HandleColorPopup(gfx::SNESPalette& palette, int i,
+                                             int j, int n) {
+  auto col = gfx::ToFloatArray(palette[n]);
+  if (ImGui::ColorEdit4("Edit Color", col.data(), color_popup_flags)) {
+    RETURN_IF_ERROR(rom()->UpdatePaletteColor(kPaletteGroupNames[i].data(), j,
+                                              n, palette[n]))
+  }
+
+  if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");
+
+  if (ImGui::BeginPopup("Copy")) {
+    int cr = IM_F32_TO_INT8_SAT(col[0]);
+    int cg = IM_F32_TO_INT8_SAT(col[1]);
+    int cb = IM_F32_TO_INT8_SAT(col[2]);
+    char buf[64];
+
+    CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
+                       col[1], col[2]);
+
+    if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
+    CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d)", cr, cg, cb);
+    if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
+    CustomFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg, cb);
+    if (ImGui::Selectable(buf)) ImGui::SetClipboardText(buf);
+    ImGui::EndPopup();
+  }
+
+  ImGui::EndPopup();
   return absl::OkStatus();
 }
 
