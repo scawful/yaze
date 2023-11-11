@@ -72,13 +72,35 @@ void MasterEditor::UpdateScreen() {
   DrawInfoPopup();
 
   TAB_BAR("##TabBar")
-  DrawOverworldEditor();
-  DrawDungeonEditor();
-  DrawGraphicsEditor();
-  DrawMusicEditor();
-  DrawSpriteEditor();
-  DrawScreenEditor();
-  DrawPaletteEditor();
+
+  TAB_ITEM("Overworld")
+  status_ = overworld_editor_.Update();
+  END_TAB_ITEM()
+
+  TAB_ITEM("Dungeon")
+  dungeon_editor_.Update();
+  END_TAB_ITEM()
+
+  TAB_ITEM("Graphics")
+  status_ = graphics_editor_.Update();
+  END_TAB_ITEM()
+
+  TAB_ITEM("Music")
+  music_editor_.Update();
+  END_TAB_ITEM()
+
+  TAB_ITEM("Sprites")
+  status_ = sprite_editor_.Update();
+  END_TAB_ITEM()
+
+  TAB_ITEM("Screens")
+  screen_editor_.Update();
+  END_TAB_ITEM()
+
+  TAB_ITEM("Palettes")
+  status_ = palette_editor_.Update();
+  END_TAB_ITEM()
+
   END_TAB_BAR()
 
   ImGui::End();
@@ -322,48 +344,6 @@ void MasterEditor::DrawHelpMenu() {
     }
     ImGui::EndPopup();
   }
-}
-
-void MasterEditor::DrawOverworldEditor() {
-  TAB_ITEM("Overworld")
-  status_ = overworld_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawDungeonEditor() {
-  TAB_ITEM("Dungeon")
-  dungeon_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawGraphicsEditor() {
-  TAB_ITEM("Graphics")
-  status_ = graphics_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawPaletteEditor() {
-  TAB_ITEM("Palettes")
-  status_ = palette_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawScreenEditor() {
-  TAB_ITEM("Screens")
-  screen_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawMusicEditor() {
-  TAB_ITEM("Music")
-  music_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawSpriteEditor() {
-  TAB_ITEM("Sprites")
-  status_ = sprite_editor_.Update();
-  END_TAB_ITEM()
 }
 
 }  // namespace editor
