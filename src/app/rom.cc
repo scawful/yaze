@@ -426,9 +426,9 @@ void ROM::SavePalette(int index, const std::string& group_name,
   for (size_t j = 0; j < palette.size(); ++j) {
     gfx::SNESColor color = palette[j];
     // If the color is modified, save the color to the ROM
-    if (color.isModified()) {
+    if (color.IsModified()) {
       WriteColor(gfx::GetPaletteAddress(group_name, index, j), color);
-      color.setModified(false);  // Reset the modified flag after saving
+      color.SetModified(false);  // Reset the modified flag after saving
     }
   }
 }
@@ -457,7 +457,7 @@ absl::Status ROM::UpdatePaletteColor(const std::string& groupName,
       if (colorIndex < palette_groups_[groupName][paletteIndex].size()) {
         // Update the color value in the palette
         palette_groups_[groupName][paletteIndex][colorIndex] = newColor;
-        palette_groups_[groupName][paletteIndex][colorIndex].setModified(true);
+        palette_groups_[groupName][paletteIndex][colorIndex].SetModified(true);
       } else {
         return absl::AbortedError(
             "Error: Invalid color index in UpdatePaletteColor.");

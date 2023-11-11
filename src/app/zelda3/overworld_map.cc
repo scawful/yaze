@@ -144,7 +144,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
 
   current.Create(new_palette);
   for (int i = 0; i < 256; i++) {
-    current[(i / 16) * 16].setTransparent(true);
+    current[(i / 16) * 16].SetTransparent(true);
   }
 }
 

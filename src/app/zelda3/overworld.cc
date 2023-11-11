@@ -139,21 +139,40 @@ absl::Status Overworld::Load(ROM &rom) {
 
   FetchLargeMaps();
   LoadEntrances();
+  // Load Sprites will go here.
+  RETURN_IF_ERROR(LoadOverworldMaps())
 
+  is_loaded_ = true;
+  return absl::OkStatus();
+}
+
+OWBlockset &Overworld::GetMapTiles(int world_type) {
+  switch (world_type) {
+    case 0:
+      return map_tiles_.light_world;
+    case 1:
+      return map_tiles_.dark_world;
+    case 2:
+      return map_tiles_.special_world;
+    default:
+      return map_tiles_.light_world;
+  }
+}
+
+absl::Status Overworld::LoadOverworldMaps() {
   auto size = tiles16.size();
   std::vector<std::future<absl::Status>> futures;
   for (int i = 0; i < kNumOverworldMaps; ++i) {
-    futures.push_back(std::async(std::launch::async, [this, i, size]() {
-      if (i < 64) {
-        return overworld_maps_[i].BuildMap(size, game_state_, 0, map_parent_,
-                                           map_tiles_.light_world);
-      } else if (i < 0x80 && i >= 0x40) {
-        return overworld_maps_[i].BuildMap(size, game_state_, 1, map_parent_,
-                                           map_tiles_.dark_world);
-      } else {
-        return overworld_maps_[i].BuildMap(size, game_state_, 2, map_parent_,
-                                           map_tiles_.special_world);
-      }
+    int world_type = 0;
+    if (i >= 64 && i < 0x80) {
+      world_type = 1;
+    } else if (i >= 0x80) {
+      world_type = 2;
+    }
+    futures.push_back(std::async(std::launch::async, [this, i, size,
+                                                      world_type]() {
+      return overworld_maps_[i].BuildMap(size, game_state_, world_type,
+                                         map_parent_, GetMapTiles(world_type));
     }));
   }
 
@@ -164,10 +183,6 @@ absl::Status Overworld::Load(ROM &rom) {
       return status;
     }
   }
-
-  // LoadSprites();
-
-  is_loaded_ = true;
   return absl::OkStatus();
 }
 
@@ -273,8 +288,6 @@ absl::Status Overworld::SaveOverworldMaps() {
 
   return absl::OkStatus();
 }
-
-// ----------------------------------------------------------------------------
 
 absl::Status Overworld::SaveLargeMaps() {
   for (int i = 0; i < 0x40; i++) {
@@ -469,8 +482,6 @@ absl::Status Overworld::SaveLargeMaps() {
   return absl::OkStatus();
 }
 
-// ----------------------------------------------------------------------------
-
 bool Overworld::CreateTile32Tilemap(bool only_show) {
   tiles32_unique_.clear();
   tiles32.clear();
@@ -539,8 +550,6 @@ bool Overworld::CreateTile32Tilemap(bool only_show) {
   return false;
 }
 
-// ----------------------------------------------------------------------------
-
 absl::Status Overworld::SaveMap16Tiles() {
   int tpos = kMap16Tiles;
   // 3760
@@ -556,8 +565,6 @@ absl::Status Overworld::SaveMap16Tiles() {
   }
   return absl::OkStatus();
 }
-
-// ----------------------------------------------------------------------------
 
 absl::Status Overworld::SaveMap32Tiles() {
   constexpr int kMaxUniqueTiles = 0x4540;
@@ -618,8 +625,6 @@ absl::Status Overworld::SaveMap32Tiles() {
   return absl::OkStatus();
 }
 
-// ----------------------------------------------------------------------------
-
 uint16_t Overworld::GenerateTile32(int index, int quadrant, int dimension) {
   // The addresses of the four 32x32 pixel tiles in the ROM.
   const uint32_t map32address[4] = {rom()->GetVersionConstants().kMap32TileTL,
@@ -634,8 +639,6 @@ uint16_t Overworld::GenerateTile32(int index, int quadrant, int dimension) {
                     0x0F) *
                    256));
 }
-
-// ----------------------------------------------------------------------------
 
 void Overworld::AssembleMap32Tiles() {
   // Loop through each 32x32 pixel tile in the ROM.
@@ -666,8 +669,6 @@ void Overworld::AssembleMap32Tiles() {
   }
 }
 
-// ----------------------------------------------------------------------------
-
 void Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   for (int i = 0; i < 4096; i += 1) {
@@ -683,8 +684,6 @@ void Overworld::AssembleMap16Tiles() {
   }
 }
 
-// ----------------------------------------------------------------------------
-
 void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                                  OWBlockset &world) {
   int position_x1 = (x * 2) + (sx * 32);
@@ -696,8 +695,6 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   world[position_x1][position_y2] = tiles32[tpos].tile2_;
   world[position_x2][position_y2] = tiles32[tpos].tile3_;
 }
-
-// ----------------------------------------------------------------------------
 
 void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
                                  int sy, int &ttpos) {
@@ -717,8 +714,6 @@ void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
     }
   }
 }
-
-// ----------------------------------------------------------------------------
 
 absl::Status Overworld::DecompressAllMapTiles() {
   int lowest = 0x0FFFFF;
@@ -768,9 +763,6 @@ absl::Status Overworld::DecompressAllMapTiles() {
       c = 0;
     }
   }
-
-  std::cout << "MapPointers(lowest) : " << lowest << std::endl;
-  std::cout << "MapPointers(highest) : " << highest << std::endl;
   return absl::OkStatus();
 }
 
@@ -806,8 +798,6 @@ absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
 
   return absl::OkStatus();
 }
-
-// ----------------------------------------------------------------------------
 
 void Overworld::FetchLargeMaps() {
   for (int i = 128; i < 145; i++) {
@@ -866,8 +856,6 @@ void Overworld::FetchLargeMaps() {
   }
 }
 
-// ----------------------------------------------------------------------------
-
 void Overworld::LoadEntrances() {
   for (int i = 0; i < 129; i++) {
     short mapId = rom()->toint16(OWEntranceMap + (i * 2));
@@ -902,8 +890,6 @@ void Overworld::LoadEntrances() {
   }
 }
 
-// ----------------------------------------------------------------------------
-
 void Overworld::LoadSprites() {
   for (int i = 0; i < 3; i++) {
     all_sprites_.emplace_back();
@@ -925,8 +911,6 @@ void Overworld::LoadSprites() {
   LoadSpritesFromMap(overworldSpritesZelda, 144, 1);
   LoadSpritesFromMap(overworldSpritesAgahnim, 144, 2);
 }
-
-// ----------------------------------------------------------------------------
 
 void Overworld::LoadSpritesFromMap(int spriteStart, int spriteCount,
                                    int spriteIndex) {

@@ -181,7 +181,8 @@ struct MapData {
 class Overworld : public SharedROM {
  public:
   absl::Status Load(ROM &rom);
-
+  OWBlockset& GetMapTiles(int world_type);
+  absl::Status LoadOverworldMaps();
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
 
@@ -189,9 +190,6 @@ class Overworld : public SharedROM {
   absl::Status SaveMap16Tiles();
   absl::Status SaveMap32Tiles();
 
-  auto GetTiles16() const { return tiles16; }
-  auto GetOverworldMap(uint index) { return overworld_maps_[index]; }
-  auto GetOverworldMaps() const { return overworld_maps_; }
   auto Sprites(int state) const { return all_sprites_[state]; }
   auto AreaGraphics() const {
     return overworld_maps_[current_map_].AreaGraphics();
@@ -207,7 +205,6 @@ class Overworld : public SharedROM {
   auto Tile16Blockset() const {
     return overworld_maps_[current_map_].Tile16Blockset();
   }
-  auto GameState() const { return game_state_; }
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 
