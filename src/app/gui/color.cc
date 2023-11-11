@@ -10,8 +10,29 @@
 
 namespace yaze {
 namespace app {
-
 namespace gui {
+
+ImVec4 ConvertSNESColorToImVec4(const SNESColor& color) {
+  return ImVec4(static_cast<float>(color.GetRGB().x) / 255.0f,
+                static_cast<float>(color.GetRGB().y) / 255.0f,
+                static_cast<float>(color.GetRGB().z) / 255.0f,
+                1.0f  // Assuming alpha is always fully opaque for SNES colors,
+                      // adjust if necessary
+  );
+}
+
+IMGUI_API bool SNESColorButton(absl::string_view id, SNESColor& color,
+                               ImGuiColorEditFlags flags,
+                               const ImVec2& size_arg) {
+  // Convert the SNES color values to ImGui color values (normalized to 0-1
+  // range)
+  ImVec4 displayColor = ConvertSNESColorToImVec4(color);
+
+  // Call the original ImGui::ColorButton with the converted color
+  bool pressed = ImGui::ColorButton(id.data(), displayColor, flags, size_arg);
+
+  return pressed;
+}
 
 void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
