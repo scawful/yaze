@@ -14,12 +14,12 @@ add_executable(
   yaze_test
   yaze_test.cc
   z3ed_test.cc
-  cpu_test.cc
-  spc700_test.cc
-  ../src/cli/patch.cc
-  ../src/cli/command_handler.cc
+  emu/cpu_test.cc
+  emu/spc700_test.cc
   compression_test.cc
   snes_palette_test.cc
+  ../src/cli/patch.cc
+  ../src/cli/command_handler.cc
   ../src/app/rom.cc
   ../src/app/emu/cpu.cc
   ../src/app/emu/audio/apu.cc
