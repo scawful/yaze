@@ -8,7 +8,6 @@ set(
 
 set(
   YAZE_APP_EDITOR_SRC
-  app/editor/assembly_editor.cc
   app/editor/dungeon_editor.cc
   app/editor/graphics_editor.cc
   app/editor/master_editor.cc
@@ -17,6 +16,7 @@ set(
   app/editor/palette_editor.cc
   app/editor/screen_editor.cc
   app/editor/sprite_editor.cc
+  app/editor/modules/assembly_editor.cc
   app/editor/modules/tile16_editor.cc
   app/editor/modules/gfx_group_editor.cc
 )
