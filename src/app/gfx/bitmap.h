@@ -6,11 +6,13 @@
 #include <cstdint>
 #include <memory>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
+
 
 namespace yaze {
 namespace app {
@@ -113,7 +115,7 @@ class Bitmap {
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
 };
 
-using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
+using BitmapTable = absl::flat_hash_map<int, gfx::Bitmap>;
 
 }  // namespace gfx
 }  // namespace app

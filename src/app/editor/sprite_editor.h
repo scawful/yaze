@@ -6,10 +6,12 @@
 namespace yaze {
 namespace app {
 namespace editor {
+
 class SpriteEditor {
   public:
     absl::Status Update();
 };
+
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze

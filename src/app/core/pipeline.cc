@@ -83,11 +83,11 @@ void ButtonPipe(absl::string_view button_text, std::function<void()> callback) {
   }
 }
 
-void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
-                          int height, int tile_size, bool is_loaded,
+void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap,
+                          int width, int height, int tile_size, bool is_loaded,
                           bool scrollbar, int canvas_id) {
-  auto draw_canvas = [](gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
-                        int height, int tile_size, bool is_loaded) {
+  auto draw_canvas = [](gui::Canvas& canvas, const gfx::Bitmap& bitmap,
+                        int width, int height, int tile_size, bool is_loaded) {
     canvas.DrawBackground(ImVec2(width + 1, height + 1));
     canvas.DrawContextMenu();
     canvas.DrawBitmap(bitmap, 2, is_loaded);
