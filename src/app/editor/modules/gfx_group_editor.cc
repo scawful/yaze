@@ -1,0 +1,109 @@
+#include "gfx_group_editor.h"
+
+#include <imgui/imgui.h>
+
+#include <cmath>
+
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "app/core/editor.h"
+#include "app/core/pipeline.h"
+#include "app/editor/palette_editor.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_tile.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
+#include "app/gui/input.h"
+#include "app/gui/widgets.h"
+#include "app/rom.h"
+#include "app/zelda3/overworld.h"
+
+namespace yaze {
+namespace app {
+namespace editor {
+
+using ImGui::SameLine;
+
+absl::Status GfxGroupEditor::Update() {
+  if (ImGui::BeginTabBar("GfxGroupEditor")) {
+    // Main tab
+    if (ImGui::BeginTabItem("Main")) {
+      gui::InputHexByte("Selected Blockset", &selected_blockset_);
+
+      ImGui::Text("Values");
+
+      if (ImGui::BeginTable("##BlocksetTable", 2, ImGuiTableFlags_Borders,
+                            ImVec2(0, 0))) {
+        ImGui::TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                                ImGui::GetContentRegionAvail().x);
+        ImGui::TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
+                                256);
+        ImGui::TableHeadersRow();
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        {
+          ImGui::BeginGroup();
+          for (int i = 0; i < 8; i++) {
+            ImGui::SetNextItemWidth(100.f);
+            gui::InputHexByte(("##blockset0" + std::to_string(i)).c_str(),
+                              &rom()->main_blockset_ids[selected_blockset_][i]);
+            if (i != 3 && i != 7) {
+              SameLine();
+            }
+          }
+          ImGui::EndGroup();
+        }
+        ImGui::TableNextColumn();
+        {
+          ImGui::BeginGroup();
+          for (int i = 0; i < 8; i++) {
+            auto sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
+            core::BitmapCanvasPipeline(blockset_canvas_,
+                                       graphics_bin_[sheet_id], 256,
+                                       0x10 * 0x04, 0x20, true, false, 0);
+          }
+          ImGui::EndGroup();
+        }
+        ImGui::EndTable();
+      }
+
+      ImGui::EndTabItem();
+    }
+
+    // Rooms tab
+    if (ImGui::BeginTabItem("Rooms")) {
+      ImGui::EndTabItem();
+    }
+
+    // Sprites tab
+    if (ImGui::BeginTabItem("Sprites")) {
+      ImGui::EndTabItem();
+    }
+
+    // Palettes tab
+    if (ImGui::BeginTabItem("Palettes")) {
+      ImGui::EndTabItem();
+    }
+
+    ImGui::EndTabBar();
+  }
+
+  ImGui::Separator();
+  ImGui::Text("Palette: ");
+  ImGui::InputInt("##PreviewPaletteID", &preview_palette_id_);
+
+  return absl::OkStatus();
+}
+
+void GfxGroupEditor::InitBlockset(gfx::Bitmap tile16_blockset,
+                                  gfx::BitmapTable graphics_bin,
+                                  gfx::SNESPalette palette) {
+  tile16_blockset_bmp_ = tile16_blockset;
+  graphics_bin_ = graphics_bin;
+  palette_ = palette;
+}
+
+}  // namespace editor
+}  // namespace app
+}  // namespace yaze

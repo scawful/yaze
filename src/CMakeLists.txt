@@ -18,6 +18,7 @@ set(
   app/editor/screen_editor.cc
   app/editor/sprite_editor.cc
   app/editor/modules/tile16_editor.cc
+  app/editor/modules/gfx_group_editor.cc
 )
 
 set(
