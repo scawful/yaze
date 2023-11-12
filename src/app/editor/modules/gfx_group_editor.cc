@@ -58,10 +58,17 @@ absl::Status GfxGroupEditor::Update() {
         {
           ImGui::BeginGroup();
           for (int i = 0; i < 8; i++) {
-            auto sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
+            int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
+            if (sheet_id != last_sheet_id_) {
+              last_sheet_id_ = sheet_id;
+              auto palette_group = rom()->GetPaletteGroup("ow_main");
+              auto palette = palette_group[preview_palette_id_];
+              graphics_bin_[sheet_id].ApplyPalette(palette);
+              rom()->UpdateBitmap(&graphics_bin_[sheet_id]);
+            }
             core::BitmapCanvasPipeline(blockset_canvas_,
                                        graphics_bin_[sheet_id], 256,
-                                       0x10 * 0x04, 0x20, true, false, 0);
+                                       0x10 * 0x04, 0x20, true, false, 22);
           }
           ImGui::EndGroup();
         }
@@ -73,11 +80,85 @@ absl::Status GfxGroupEditor::Update() {
 
     // Rooms tab
     if (ImGui::BeginTabItem("Rooms")) {
+      gui::InputHexByte("Selected Blockset", &selected_roomset_);
+
+      ImGui::Text("Values - Overwrites 4 of main blockset");
+      if (ImGui::BeginTable("##Roomstable", 2, ImGuiTableFlags_Borders,
+                            ImVec2(0, 0))) {
+        ImGui::TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                                ImGui::GetContentRegionAvail().x);
+        ImGui::TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
+                                256);
+        ImGui::TableHeadersRow();
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        {
+          ImGui::BeginGroup();
+          for (int i = 0; i < 4; i++) {
+            ImGui::SetNextItemWidth(100.f);
+            gui::InputHexByte(("##roomset0" + std::to_string(i)).c_str(),
+                              &rom()->room_blockset_ids[selected_roomset_][i]);
+            if (i != 3 && i != 7) {
+              SameLine();
+            }
+          }
+          ImGui::EndGroup();
+        }
+        ImGui::TableNextColumn();
+        {
+          ImGui::BeginGroup();
+          for (int i = 0; i < 4; i++) {
+            int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
+            core::BitmapCanvasPipeline(roomset_canvas_, graphics_bin_[sheet_id],
+                                       256, 0x10 * 0x04, 0x20, true, false, 23);
+          }
+          ImGui::EndGroup();
+        }
+        ImGui::EndTable();
+      }
+
       ImGui::EndTabItem();
     }
 
     // Sprites tab
     if (ImGui::BeginTabItem("Sprites")) {
+      gui::InputHexByte("Selected Spriteset", &selected_spriteset_);
+
+      ImGui::Text("Values");
+      if (ImGui::BeginTable("##SpritesTable", 2, ImGuiTableFlags_Borders,
+                            ImVec2(0, 0))) {
+        ImGui::TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                                ImGui::GetContentRegionAvail().x);
+        ImGui::TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
+                                256);
+        ImGui::TableHeadersRow();
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        {
+          ImGui::BeginGroup();
+          for (int i = 0; i < 4; i++) {
+            ImGui::SetNextItemWidth(100.f);
+            gui::InputHexByte(("##spriteset0" + std::to_string(i)).c_str(),
+                              &rom()->spriteset_ids[selected_spriteset_][i]);
+            if (i != 3 && i != 7) {
+              SameLine();
+            }
+          }
+          ImGui::EndGroup();
+        }
+        ImGui::TableNextColumn();
+        {
+          ImGui::BeginGroup();
+          for (int i = 0; i < 4; i++) {
+            int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
+            core::BitmapCanvasPipeline(spriteset_canvas_,
+                                       graphics_bin_[sheet_id], 256,
+                                       0x10 * 0x04, 0x20, true, false, 24);
+          }
+          ImGui::EndGroup();
+        }
+        ImGui::EndTable();
+      }
       ImGui::EndTabItem();
     }
 
@@ -96,12 +177,9 @@ absl::Status GfxGroupEditor::Update() {
   return absl::OkStatus();
 }
 
-void GfxGroupEditor::InitBlockset(gfx::Bitmap tile16_blockset,
-                                  gfx::BitmapTable graphics_bin,
-                                  gfx::SNESPalette palette) {
+void GfxGroupEditor::InitBlockset(gfx::Bitmap tile16_blockset) {
   tile16_blockset_bmp_ = tile16_blockset;
-  graphics_bin_ = graphics_bin;
-  palette_ = palette;
+  graphics_bin_ = rom()->GetGraphicsBin();
 }
 
 }  // namespace editor
