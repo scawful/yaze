@@ -327,6 +327,7 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
       version_ = Z3_Version::US;
     }
     RETURN_IF_ERROR(LoadAllPalettes())
+    LoadGfxGroups();
   }
 
   // Set is_loaded_ flag and return success
