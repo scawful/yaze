@@ -29,7 +29,7 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
 
 void ButtonPipe(absl::string_view button_text, std::function<void()> callback);
 
-void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
+void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap, int width,
                           int height, int tile_size, bool is_loaded,
                           bool scrollbar, int canvas_id);
 

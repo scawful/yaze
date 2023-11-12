@@ -33,8 +33,7 @@ absl::Status OverworldEditor::Update() {
   if (rom()->isLoaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(LoadGraphics())
     tile16_editor_.InitBlockset(tile16_blockset_bmp_);
-    gfx_group_editor_.InitBlockset(tile16_blockset_bmp_, graphics_bin_,
-                                   palette_);
+    gfx_group_editor_.InitBlockset(tile16_blockset_bmp_);
     all_gfx_loaded_ = true;
   }
 

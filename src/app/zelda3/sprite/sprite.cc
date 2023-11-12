@@ -11,8 +11,8 @@ Sprite::Sprite() {
   }
 }
 
-void Sprite::InitSprite(Bytes& src, uchar mapid, uchar id, uchar x, uchar y,
-                        int map_x, int map_y) {
+void Sprite::InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x,
+                        uchar y, int map_x, int map_y) {
   current_gfx_ = src;
   overworld_ = true;
   map_id_ = mapid;

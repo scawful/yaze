@@ -23,7 +23,7 @@ class Sprite {
   Sprite();
   Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
          int map_y);
-  void InitSprite(Bytes& src, uchar mapid, uchar id, uchar x, uchar y,
+  void InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x, uchar y,
                   int map_x, int map_y);
   void updateBBox();
 
