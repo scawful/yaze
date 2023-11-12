@@ -9,6 +9,18 @@ namespace yaze {
 namespace app {
 namespace core {
 
+class ExperimentFlags {
+ private:
+  struct Flags {
+    bool kDrawOverworldSprites = false;
+  };
+  Flags flags_;
+
+ public:
+  auto flags() const { return flags_; }
+  Flags *mutable_flags() { return &flags_; }
+};
+
 uint32_t SnesToPc(uint32_t addr);
 uint32_t PcToSnes(uint32_t addr);
 

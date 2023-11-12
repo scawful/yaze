@@ -8,6 +8,7 @@
 #include <imgui_memory_editor.h>
 
 #include "absl/status/status.h"
+#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/emulator.h"
 #include "app/core/pipeline.h"
@@ -30,13 +31,11 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class MasterEditor : public SharedROM {
+class MasterEditor : public SharedROM, public core::ExperimentFlags {
  public:
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateScreen();
-  void Shutdown() {
-    overworld_editor_.Shutdown();
-  }
+  void Shutdown() { overworld_editor_.Shutdown(); }
 
  private:
   void DrawFileDialog();
@@ -49,7 +48,7 @@ class MasterEditor : public SharedROM {
   void DrawEditMenu();
   void DrawViewMenu();
   void DrawHelpMenu();
-  
+
   bool about_ = false;
   bool rom_info_ = false;
   bool backup_rom_ = true;
