@@ -2,6 +2,7 @@ add_executable(
   yaze
   app/yaze.cc
   app/rom.cc
+  app/emu/emulator.cc
   app/emu/audio/apu.cc
   app/emu/audio/spc700.cc
   app/emu/audio/dsp.cc

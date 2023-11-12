@@ -9,7 +9,7 @@
 
 namespace yaze {
 namespace app {
-namespace core {
+namespace emu {
 
 class Emulator : public SharedROM {
  public:
@@ -30,13 +30,13 @@ class Emulator : public SharedROM {
   void UpdateEmulator();
 
   // Member variables to store internal state and resources
-  emu::SNES snes_;
+  SNES snes_;
 
   bool running_ = false;
   bool show_ppu_reg_viewer_ = false;
 };
 
-}  // namespace core
+}  // namespace emu
 }  // namespace app
 }  // namespace yaze
 

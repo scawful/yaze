@@ -10,7 +10,6 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/core/emulator.h"
 #include "app/core/pipeline.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
@@ -20,6 +19,7 @@
 #include "app/editor/palette_editor.h"
 #include "app/editor/screen_editor.h"
 #include "app/editor/sprite_editor.h"
+#include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
@@ -59,7 +59,7 @@ class MasterEditor : public SharedROM, public core::ExperimentFlags {
 
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
-  core::Emulator emulator_;
+  emu::Emulator emulator_;
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;

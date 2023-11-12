@@ -1,13 +1,15 @@
-#include "app/core/emulator.h"
+#include "app/emu/emulator.h"
 
 #include <cstdint>
 #include <vector>
 
 #include "app/core/constants.h"
+#include "app/emu/snes.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
-namespace core {
+namespace emu {
 
 void Emulator::Run() {
   // Initialize the emulator if a ROM is loaded
@@ -80,6 +82,6 @@ void Emulator::UpdateEmulator() {
   snes_.Run();
 }
 
-}  // namespace core
+}  // namespace emu
 }  // namespace app
 }  // namespace yaze

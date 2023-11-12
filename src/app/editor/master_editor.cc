@@ -7,12 +7,18 @@
 #include <imgui_memory_editor.h>
 
 #include "absl/status/status.h"
+#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/pipeline.h"
 #include "app/editor/dungeon_editor.h"
+#include "app/editor/graphics_editor.h"
 #include "app/editor/modules/assembly_editor.h"
 #include "app/editor/music_editor.h"
 #include "app/editor/overworld_editor.h"
+#include "app/editor/palette_editor.h"
+#include "app/editor/screen_editor.h"
+#include "app/editor/sprite_editor.h"
+#include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
@@ -177,11 +183,14 @@ void MasterEditor::DrawYazeMenu() {
   DrawHelpMenu();
   END_MENU_BAR()
 }
-
 void MasterEditor::DrawFileMenu() {
   static bool save_as_menu = false;
 
   if (ImGui::BeginMenu("File")) {
+    if (ImGui::MenuItem("New", "Ctrl+N")) {
+      // TODO: Implement new ROM creation.
+    }
+
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
                                               ".sfc,.smc", ".");
@@ -206,16 +215,25 @@ void MasterEditor::DrawFileMenu() {
                       &mutable_flags()->kUseBitmapManager);
       ImGui::EndMenu();
     }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Quit", "Ctrl+Q")) {
+      // TODO: Implement quit confirmation dialog.
+    }
+
     ImGui::EndMenu();
   }
 
   if (save_as_menu) {
     static std::string save_as_filename = "";
-    ImGui::Begin("Save As..", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Save As..", &save_as_menu, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::InputText("Filename", &save_as_filename);
     if (ImGui::Button("Save", gui::kDefaultModalSize)) {
       status_ = rom()->SaveToFile(backup_rom_, save_as_filename);
+      save_as_menu = false;
     }
+    ImGui::SameLine();
     if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
       save_as_menu = false;
     }
