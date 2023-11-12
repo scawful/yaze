@@ -111,9 +111,6 @@ struct StaircaseRooms {};
 
 class Room : public SharedROM {
  public:
-  void LoadGfxGroups();
-  bool SaveGroupsToROM();
-
   void LoadSprites();
   void LoadChests();
 
