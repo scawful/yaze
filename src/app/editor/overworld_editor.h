@@ -10,8 +10,11 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/core/common.h"
 #include "app/core/editor.h"
 #include "app/core/pipeline.h"
+#include "app/editor/modules/gfx_group_editor.h"
+#include "app/editor/modules/tile16_editor.h"
 #include "app/editor/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -54,7 +57,9 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
-class OverworldEditor : public Editor, public SharedROM {
+class OverworldEditor : public Editor,
+                        public SharedROM,
+                        public core::ExperimentFlags {
  public:
   absl::Status Update() final;
   absl::Status Undo() { return absl::UnimplementedError("Undo"); }
@@ -82,7 +87,7 @@ class OverworldEditor : public Editor, public SharedROM {
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
 
-  void DrawOverworldEntrances();
+  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling);
   void DrawOverworldMaps();
   void DrawOverworldSprites();
 
@@ -137,6 +142,13 @@ class OverworldEditor : public Editor, public SharedROM {
   bool map_blockset_loaded_ = false;
   bool selected_tile_loaded_ = false;
   bool update_selected_tile_ = true;
+  bool is_dragging_entrance_ = false;
+  bool show_tile16_editor_ = false;
+  bool show_gfx_group_editor_ = false;
+
+  bool IsMouseHoveringOverEntrance(const zelda3::OverworldEntrance &entrance,
+                                   ImVec2 canvas_p, ImVec2 scrolling);
+  zelda3::OverworldEntrance *dragged_entrance_;
 
   bool show_experimental = false;
   std::string ow_tilemap_filename_ = "";
@@ -146,6 +158,8 @@ class OverworldEditor : public Editor, public SharedROM {
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
+  Tile16Editor tile16_editor_;
+  GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
   zelda3::Overworld overworld_;
 

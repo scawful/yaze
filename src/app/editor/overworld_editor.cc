@@ -26,19 +26,22 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-// ----------------------------------------------------------------------------
+using ImGui::Separator;
 
 absl::Status OverworldEditor::Update() {
   // Initialize overworld graphics, maps, and palettes
   if (rom()->isLoaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(LoadGraphics())
+    tile16_editor_.InitBlockset(tile16_blockset_bmp_);
+    gfx_group_editor_.InitBlockset(tile16_blockset_bmp_, graphics_bin_,
+                                   palette_);
     all_gfx_loaded_ = true;
   }
 
   // Draws the toolset for editing the Overworld.
   RETURN_IF_ERROR(DrawToolset())
 
-  ImGui::Separator();
+  Separator();
   if (ImGui::BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
     ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                             ImGui::GetContentRegionAvail().x);
@@ -58,7 +61,10 @@ absl::Status OverworldEditor::Update() {
 // ----------------------------------------------------------------------------
 
 absl::Status OverworldEditor::DrawToolset() {
-  if (ImGui::BeginTable("OWToolset", 17, kToolsetTableFlags, ImVec2(0, 0))) {
+  static bool show_gfx_group = false;
+  static bool show_tile16 = false;
+
+  if (ImGui::BeginTable("OWToolset", 19, kToolsetTableFlags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -96,8 +102,20 @@ absl::Status OverworldEditor::DrawToolset() {
     BUTTON_COLUMN(ICON_MD_PEST_CONTROL_RODENT)  // Sprites
     BUTTON_COLUMN(ICON_MD_ADD_LOCATION)         // Transports
     BUTTON_COLUMN(ICON_MD_MUSIC_NOTE)           // Music
-    TEXT_COLUMN(ICON_MD_MORE_VERT)              // Separator
-    ImGui::TableNextColumn();                   // Palette
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_GRID_VIEW)) {
+      show_tile16 = !show_tile16;
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_TABLE_CHART)) {
+      show_gfx_group = !show_gfx_group;
+    }
+
+    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+
+    ImGui::TableNextColumn();  // Palette
     palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
     ImGui::TableNextColumn();       // Experimental
@@ -108,6 +126,19 @@ absl::Status OverworldEditor::DrawToolset() {
 
   if (show_experimental) {
     RETURN_IF_ERROR(DrawExperimentalModal())
+  }
+
+  if (show_tile16) {
+    // Create a table in ImGui for the Tile16 Editor
+    ImGui::Begin("Tile16 Editor", &show_tile16);
+    RETURN_IF_ERROR(tile16_editor_.Update())
+    ImGui::End();
+  }
+
+  if (show_gfx_group) {
+    ImGui::Begin("Gfx Group Editor", &show_gfx_group);
+    RETURN_IF_ERROR(gfx_group_editor_.Update())
+    ImGui::End();
   }
   return absl::OkStatus();
 }
@@ -165,16 +196,56 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
 // ----------------------------------------------------------------------------
 
-void OverworldEditor::DrawOverworldEntrances() {
-  for (const auto &each : overworld_.Entrances()) {
+void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
+                                             ImVec2 scrolling) {
+  for (auto &each : overworld_.Entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40)) {
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
                               ImVec4(210, 24, 210, 150));
       std::string str = absl::StrFormat("%#x", each.entrance_id_);
       ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+
+      // Check if this entrance is being clicked and dragged
+      if (IsMouseHoveringOverEntrance(each, canvas_p0, scrolling) &&
+          ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        dragged_entrance_ = &each;
+        is_dragging_entrance_ = true;
+        if (ImGui::BeginDragDropSource()) {
+          ImGui::SetDragDropPayload("ENTRANCE_PAYLOAD", &each,
+                                    sizeof(zelda3::OverworldEntrance));
+          ImGui::Text("Moving Entrance ID: %s", str.c_str());
+          ImGui::EndDragDropSource();
+        }
+      } else if (is_dragging_entrance_ && dragged_entrance_ == &each &&
+                 ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+        // Adjust the X and Y position of the entrance rectangle based on the
+        // mouse position when it is released after being dragged
+        const ImGuiIO &io = ImGui::GetIO();
+        const ImVec2 origin(canvas_p0.x + scrolling.x,
+                            canvas_p0.y + scrolling.y);
+        dragged_entrance_->x_ = io.MousePos.x - origin.x - 8;
+        dragged_entrance_->y_ = io.MousePos.y - origin.y - 8;
+        is_dragging_entrance_ = false;
+      }
     }
   }
+}
+
+bool OverworldEditor::IsMouseHoveringOverEntrance(
+    const zelda3::OverworldEntrance &entrance, ImVec2 canvas_p0,
+    ImVec2 scrolling) {
+  // Get the mouse position relative to the canvas
+  const ImGuiIO &io = ImGui::GetIO();
+  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Check if the mouse is hovering over the entrance
+  if (mouse_pos.x >= entrance.x_ && mouse_pos.x <= entrance.x_ + 16 &&
+      mouse_pos.y >= entrance.y_ && mouse_pos.y <= entrance.y_ + 16) {
+    return true;
+  }
+  return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -309,7 +380,7 @@ void OverworldEditor::CheckForOverworldEdits() {
 // Allows the user to make changes to the overworld map.
 void OverworldEditor::DrawOverworldCanvas() {
   DrawOverworldMapSettings();
-  ImGui::Separator();
+  Separator();
   if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)7);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar |
@@ -318,8 +389,11 @@ void OverworldEditor::DrawOverworldCanvas() {
     ow_map_canvas_.DrawContextMenu();
     if (overworld_.isLoaded()) {
       DrawOverworldMaps();
-      DrawOverworldEntrances();
-      // DrawOverworldSprites();
+      DrawOverworldEntrances(ow_map_canvas_.GetZeroPoint(),
+                             ow_map_canvas_.Scrolling());
+      if (flags().kDrawOverworldSprites) {
+        DrawOverworldSprites();
+      }
       CheckForOverworldEdits();
     }
     ow_map_canvas_.DrawGrid(64.0f);
@@ -445,6 +519,10 @@ absl::Status OverworldEditor::LoadGraphics() {
     core::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,
                                        overworld_.BitmapData(), *rom(),
                                        maps_bmp_[i], palette);
+  }
+
+  if (flags().kDrawOverworldSprites) {
+    LoadSpriteGraphics();
   }
 
   return absl::OkStatus();
