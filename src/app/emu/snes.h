@@ -1,3 +1,6 @@
+#ifndef YAZE_APP_EMU_SNES_H
+#define YAZE_APP_EMU_SNES_H
+
 #include <SDL_mixer.h>
 
 #include <cstdint>
@@ -95,3 +98,5 @@ class SNES : public DMA {
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze
+
+#endif  // YAZE_APP_EMU_SNES_H
