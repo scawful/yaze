@@ -13,7 +13,6 @@
 #include "app/core/constants.h"
 #include "app/gfx/snes_palette.h"
 
-
 namespace yaze {
 namespace app {
 namespace gfx {
@@ -21,15 +20,19 @@ namespace gfx {
 class Bitmap {
  public:
   Bitmap() = default;
-  Bitmap(int width, int height, int depth, uchar *data);
   Bitmap(int width, int height, int depth, int data_size);
-  Bitmap(int width, int height, int depth, uchar *data, int data_size);
   Bitmap(int width, int height, int depth, Bytes data);
 
-  void Create(int width, int height, int depth, uchar *data);
+  [[deprecated]] Bitmap(int width, int height, int depth, uchar *data);
+  [[deprecated]] Bitmap(int width, int height, int depth, uchar *data,
+                        int data_size);
+
   void Create(int width, int height, int depth, int data_size);
-  void Create(int width, int height, int depth, uchar *data, int data_size);
   void Create(int width, int height, int depth, Bytes data);
+
+  [[deprecated]] void Create(int width, int height, int depth, uchar *data);
+  [[deprecated]] void Create(int width, int height, int depth, uchar *data,
+                             int data_size);
 
   void CreateFromSurface(SDL_Surface *surface);
 
@@ -115,7 +118,53 @@ class Bitmap {
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
 };
 
-using BitmapTable = absl::flat_hash_map<int, gfx::Bitmap>;
+using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
+
+class BitmapManager {
+ private:
+  std::unordered_map<int, std::shared_ptr<gfx::Bitmap>> bitmap_cache_;
+
+ public:
+  std::shared_ptr<gfx::Bitmap> LoadBitmap(int id, const Bytes &data, int width,
+                                          int height, int depth) {
+    auto bitmap = std::make_shared<gfx::Bitmap>(width, height, depth, data);
+    bitmap_cache_[id] = bitmap;
+    return bitmap;
+  }
+
+  std::shared_ptr<gfx::Bitmap> operator[](int id) {
+    auto it = bitmap_cache_.find(id);
+    if (it != bitmap_cache_.end()) {
+      return it->second;
+    }
+    return nullptr;  // or handle the error accordingly
+  }
+
+  using value_type = std::pair<const int, std::shared_ptr<gfx::Bitmap>>;
+  using iterator =
+      std::unordered_map<int, std::shared_ptr<gfx::Bitmap>>::iterator;
+  using const_iterator =
+      std::unordered_map<int, std::shared_ptr<gfx::Bitmap>>::const_iterator;
+
+  iterator begin() noexcept { return bitmap_cache_.begin(); }
+  iterator end() noexcept { return bitmap_cache_.end(); }
+  const_iterator begin() const noexcept { return bitmap_cache_.begin(); }
+  const_iterator end() const noexcept { return bitmap_cache_.end(); }
+  const_iterator cbegin() const noexcept { return bitmap_cache_.cbegin(); }
+  const_iterator cend() const noexcept { return bitmap_cache_.cend(); }
+
+  
+
+  std::shared_ptr<gfx::Bitmap> GetBitmap(int id) {
+    auto it = bitmap_cache_.find(id);
+    if (it != bitmap_cache_.end()) {
+      return it->second;
+    }
+    return nullptr;  // or handle the error accordingly
+  }
+
+  void ClearCache() { bitmap_cache_.clear(); }
+};
 
 }  // namespace gfx
 }  // namespace app
