@@ -29,9 +29,9 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"  // for string_view
-#include "app/core/common.h"           // for SnesToPc
-#include "app/core/constants.h"        // for Bytes, uchar, armorPalettes
-#include "app/gfx/bitmap.h"            // for Bitmap, BitmapTable
+#include "app/core/common.h"
+#include "app/core/constants.h"  // for Bytes, uchar, armorPalettes
+#include "app/gfx/bitmap.h"      // for Bitmap, BitmapTable
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"  // for PaletteGroup, SNESColor
 #include "app/gfx/snes_tile.h"
@@ -132,7 +132,7 @@ struct WriteAction {
       value;
 };
 
-class ROM {
+class ROM : public core::ExperimentFlags {
  public:
   template <typename... Args>
   absl::Status RunTransaction(Args... args) {
@@ -464,6 +464,8 @@ class ROM {
     bitmap->UpdateTexture(renderer_);
   }
 
+  auto BitmapManager() const { return graphics_manager_; }
+
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;
   std::vector<std::vector<uint8_t>> spriteset_ids;
@@ -555,6 +557,7 @@ class ROM {
 
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
+  gfx::BitmapManager graphics_manager_;
   gfx::BitmapTable link_graphics_;
   gfx::SNESPalette link_palette_;
   PaletteGroupMap palette_groups_;
