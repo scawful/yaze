@@ -55,6 +55,7 @@ class Canvas {
   auto Points() const { return points_; }
   auto GetDrawList() const { return draw_list_; }
   auto GetZeroPoint() const { return canvas_p0_; }
+  auto Scrolling() const { return scrolling_; }
   auto GetCurrentDrawnTilePosition() const { return drawn_tile_pos_; }
   auto GetCanvasSize() const { return canvas_sz_; }
   void SetCanvasSize(ImVec2 canvas_size) {
