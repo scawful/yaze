@@ -31,24 +31,27 @@ For developers to reference.
       - [Constants](../src/app/core/constants.h)
       - [Controller](../src/app/core/controller.h)
       - [Editor](../src/app/core/editor.h)
-      - [Emulator](../src/app/core/emulator.h)
       - [Pipeline](../src/app/core/pipeline.h)
 - **Editor Namespace**:
   - Editors are responsible for representing the GUI view and handling user input.
   - These classes are all controlled by [MasterEditor](../src/app/editor/master_editor.h)
-    - [AssemblyEditor](../src/app/editor/assembly_editor.h)
     - [DungeonEditor](../src/app/editor/dungeon_editor.h)
     - [GraphicsEditor](../src/app/editor/graphics_editor.h)
     - [MusicEditor](../src/app/editor/music_editor.h)
     - [OverworldEditor](../src/app/editor/overworld_editor.h)
     - [ScreenEditor](../src/app/editor/screen_editor.h)
     - [SpriteEditor](../src/app/editor/sprite_editor.h)
+    - **Modules**
+      - [AssemblyEditor](../src/app/editor/modules/assembly_editor.h)
+      - [GfxGroupEditor](../src/app/editor/modules/gfx_group_editor.h)
+      - [Tile16Editor](../src/app/editor/modules/tile16_editor.h)
 - **Emu Namespace**:
     - Contains business logic for `core::emulator`
       - [Audio](../src/app/emu/audio/)
       - [Debug](../src/app/emu/debug/)
       - [Memory](../src/app/emu/memory/)
       - [Video](../src/app/emu/video/)
+      - [Emulator](../src/app/emu/emulator.h)
 - **Gfx Namespace**:
     - Handles graphics related tasks.
       - [Bitmap](../src/app/gfx/bitmap.h)
