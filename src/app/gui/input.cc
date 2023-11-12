@@ -24,6 +24,18 @@ bool InputHexShort(const char* label, uint32_t* data) {
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
+bool InputHexWord(const char* label, uint16_t* data) {
+  return ImGui::InputScalar(label, ImGuiDataType_U16, data, &kStepOneHex,
+                            &kStepFastHex, "%04X",
+                            ImGuiInputTextFlags_CharsHexadecimal);
+}
+
+bool InputHexByte(const char* label, uint8_t* data) {
+  return ImGui::InputScalar(label, ImGuiDataType_U8, data, &kStepOneHex,
+                            &kStepFastHex, "%02X",
+                            ImGuiInputTextFlags_CharsHexadecimal);
+}
+
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
   const ImVec2 lineStart = ImGui::GetCursorScreenPos();
