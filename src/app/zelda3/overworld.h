@@ -9,6 +9,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
+#include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
@@ -178,10 +179,10 @@ struct MapData {
   std::vector<uint8_t> lowData;
 };
 
-class Overworld : public SharedROM {
+class Overworld : public SharedROM, public core::ExperimentFlags {
  public:
   absl::Status Load(ROM &rom);
-  OWBlockset& GetMapTiles(int world_type);
+  OWBlockset &GetMapTiles(int world_type);
   absl::Status LoadOverworldMaps();
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
@@ -194,7 +195,7 @@ class Overworld : public SharedROM {
   auto AreaGraphics() const {
     return overworld_maps_[current_map_].AreaGraphics();
   }
-  auto Entrances() const { return all_entrances_; }
+  auto &Entrances() { return all_entrances_; }
   auto AreaPalette() const {
     return overworld_maps_[current_map_].AreaPalette();
   }
