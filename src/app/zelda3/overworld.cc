@@ -140,7 +140,7 @@ absl::Status Overworld::Load(ROM &rom) {
   FetchLargeMaps();
   LoadEntrances();
   RETURN_IF_ERROR(LoadOverworldMaps())
-  if (flags().kDrawOverworldSprites) {
+  if (flags()->kDrawOverworldSprites) {
     LoadSprites();
   }
 

@@ -390,7 +390,7 @@ void OverworldEditor::DrawOverworldCanvas() {
       DrawOverworldMaps();
       DrawOverworldEntrances(ow_map_canvas_.GetZeroPoint(),
                              ow_map_canvas_.Scrolling());
-      if (flags().kDrawOverworldSprites) {
+      if (flags()->kDrawOverworldSprites) {
         DrawOverworldSprites();
       }
       CheckForOverworldEdits();
@@ -520,7 +520,7 @@ absl::Status OverworldEditor::LoadGraphics() {
                                        maps_bmp_[i], palette);
   }
 
-  if (flags().kDrawOverworldSprites) {
+  if (flags()->kDrawOverworldSprites) {
     LoadSpriteGraphics();
   }
 

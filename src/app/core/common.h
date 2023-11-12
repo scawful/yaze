@@ -10,15 +10,30 @@ namespace app {
 namespace core {
 
 class ExperimentFlags {
- private:
+ public:
   struct Flags {
     bool kDrawOverworldSprites = false;
+    bool kUseBitmapManager = false;
   };
-  Flags flags_;
 
- public:
-  auto flags() const { return flags_; }
-  Flags *mutable_flags() { return &flags_; }
+  ExperimentFlags() = default;
+  virtual ~ExperimentFlags() = default;
+  auto flags() const {
+    if (!flags_) {
+      flags_ = std::make_shared<Flags>();
+    }
+    Flags *flags = flags_.get();
+    return flags;
+  }
+  Flags *mutable_flags() {
+    if (!flags_) {
+      flags_ = std::make_shared<Flags>();
+    }
+    return flags_.get();
+  }
+
+ private:
+  static std::shared_ptr<Flags> flags_;
 };
 
 uint32_t SnesToPc(uint32_t addr);

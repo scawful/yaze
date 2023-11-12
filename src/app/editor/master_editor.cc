@@ -199,8 +199,11 @@ void MasterEditor::DrawFileMenu() {
 
     if (ImGui::BeginMenu("Options")) {
       ImGui::MenuItem("Backup ROM", "", &backup_rom_);
+      ImGui::Separator();
       ImGui::Checkbox("Enable Overworld Sprites",
                       &mutable_flags()->kDrawOverworldSprites);
+      ImGui::Checkbox("Use Bitmap Manager",
+                      &mutable_flags()->kUseBitmapManager);
       ImGui::EndMenu();
     }
     ImGui::EndMenu();

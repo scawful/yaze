@@ -244,17 +244,37 @@ absl::Status ROM::LoadAllGraphicsData() {
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
-      graphics_bin_[i] =
-          gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                      core::kTilesheetDepth, converted_sheet.data(), 0x1000);
-      graphics_bin_.at(i).CreateTexture(renderer_);
+      if (flags()->kUseBitmapManager) {
+        graphics_manager_.LoadBitmap(i, converted_sheet, core::kTilesheetWidth,
+                                     core::kTilesheetHeight,
+                                     core::kTilesheetDepth);
+        graphics_manager_[i]->CreateTexture(renderer_);
 
-      for (int j = 0; j < graphics_bin_.at(i).size(); ++j) {
-        graphics_buffer_.push_back(graphics_bin_.at(i).at(j));
+      } else {
+        graphics_bin_[i] =
+            gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
+                        core::kTilesheetDepth, converted_sheet.data(), 0x1000);
+        graphics_bin_.at(i).CreateTexture(renderer_);
+      }
+
+      if (flags()->kUseBitmapManager) {
+        for (int j = 0; j < graphics_manager_[i].get()->size(); ++j) {
+          graphics_buffer_.push_back(graphics_manager_[i]->at(j));
+        }
+      } else {
+        for (int j = 0; j < graphics_bin_[i].size(); ++j) {
+          graphics_buffer_.push_back(graphics_bin_.at(i).at(j));
+        }
       }
     } else {
-      for (int j = 0; j < graphics_bin_.at(0).size(); ++j) {
-        graphics_buffer_.push_back(0xFF);
+      if (flags()->kUseBitmapManager) {
+        for (int j = 0; j < graphics_manager_[i].get()->size(); ++j) {
+          graphics_buffer_.push_back(0xFF);
+        }
+      } else {
+        for (int j = 0; j < graphics_bin_[0].size(); ++j) {
+          graphics_buffer_.push_back(0xFF);
+        }
       }
     }
   }

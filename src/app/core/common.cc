@@ -7,6 +7,8 @@ namespace yaze {
 namespace app {
 namespace core {
 
+std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
+
 uint32_t SnesToPc(uint32_t addr) {
   if (addr >= 0x808000) {
     addr -= 0x808000;
