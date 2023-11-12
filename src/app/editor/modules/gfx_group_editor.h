@@ -27,16 +27,21 @@ class GfxGroupEditor : public SharedROM {
  public:
   absl::Status Update();
 
-  void InitBlockset(gfx::Bitmap tile16_blockset, gfx::BitmapTable graphics_bin,
-                    gfx::SNESPalette palette);
+  void InitBlockset(gfx::Bitmap tile16_blockset);
 
  private:
-  int preview_palette_id_;
+  int preview_palette_id_ = 0;
+  int last_sheet_id_ = 0;
   uint8_t selected_blockset_ = 0;
+  uint8_t selected_roomset_ = 0;
+  uint8_t selected_spriteset_ = 0;
 
   gui::Canvas blockset_canvas_;
+  gui::Canvas roomset_canvas_;
+  gui::Canvas spriteset_canvas_;
 
   gfx::SNESPalette palette_;
+  gfx::PaletteGroup palette_group_;
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::BitmapTable graphics_bin_;
 
