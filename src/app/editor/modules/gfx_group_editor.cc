@@ -59,15 +59,15 @@ absl::Status GfxGroupEditor::Update() {
           ImGui::BeginGroup();
           for (int i = 0; i < 8; i++) {
             int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
+            auto &sheet = *rom()->BitmapManager()[sheet_id];
             if (sheet_id != last_sheet_id_) {
               last_sheet_id_ = sheet_id;
               auto palette_group = rom()->GetPaletteGroup("ow_main");
               auto palette = palette_group[preview_palette_id_];
-              graphics_bin_[sheet_id].ApplyPalette(palette);
-              rom()->UpdateBitmap(&graphics_bin_[sheet_id]);
+              sheet.ApplyPalette(palette);
+              rom()->UpdateBitmap(&sheet);
             }
-            core::BitmapCanvasPipeline(blockset_canvas_,
-                                       graphics_bin_[sheet_id], 256,
+            core::BitmapCanvasPipeline(blockset_canvas_, sheet, 256,
                                        0x10 * 0x04, 0x20, true, false, 22);
           }
           ImGui::EndGroup();
@@ -109,8 +109,9 @@ absl::Status GfxGroupEditor::Update() {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
             int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
-            core::BitmapCanvasPipeline(roomset_canvas_, graphics_bin_[sheet_id],
-                                       256, 0x10 * 0x04, 0x20, true, false, 23);
+            auto &sheet = *rom()->BitmapManager()[sheet_id];
+            core::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
+                                       0x20, true, false, 23);
           }
           ImGui::EndGroup();
         }
@@ -151,8 +152,8 @@ absl::Status GfxGroupEditor::Update() {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
             int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
-            core::BitmapCanvasPipeline(spriteset_canvas_,
-                                       graphics_bin_[sheet_id], 256,
+            auto sheet = *rom()->BitmapManager()[sheet_id];
+            core::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256,
                                        0x10 * 0x04, 0x20, true, false, 24);
           }
           ImGui::EndGroup();
@@ -179,7 +180,6 @@ absl::Status GfxGroupEditor::Update() {
 
 void GfxGroupEditor::InitBlockset(gfx::Bitmap tile16_blockset) {
   tile16_blockset_bmp_ = tile16_blockset;
-  graphics_bin_ = rom()->GetGraphicsBin();
 }
 
 }  // namespace editor
