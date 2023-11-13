@@ -5,6 +5,7 @@
 #include "app/core/common.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_names.h"
 #include "zelda3/dungeon/room.h"
@@ -14,6 +15,15 @@ namespace app {
 namespace editor {
 
 void DungeonEditor::Update() {
+  if (!is_loaded_) {
+    for (int i = 0; i < 0x100; i++) {
+      rooms_.emplace_back(zelda3::dungeon::Room(i));
+      rooms_[i].LoadHeader();
+      rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
+    }
+    is_loaded_ = true;
+  }
+
   DrawToolset();
 
   ImGui::Separator();
@@ -31,24 +41,116 @@ void DungeonEditor::Update() {
       if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)9);
           ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        int i = 0;
         for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
           ImGui::Button(each_room_name.data());
+          if (ImGui::IsItemClicked()) {
+            active_rooms_.push_back(i);
+          }
+          i += 1;
         }
       }
       ImGui::EndChild();
     }
 
     ImGui::TableNextColumn();
-    DrawDungeonCanvas();
+    DrawDungeonTabView();
     ImGui::TableNextColumn();
     DrawTileSelector();
     ImGui::EndTable();
   }
 }
 
-void DungeonEditor::DrawDungeonCanvas() {
+// Using ImGui Custom Tabs show each individual room the user selects from the
+// Buttons above to open a canvas for each individual room.
+void DungeonEditor::DrawDungeonTabView() {
+  static int next_tab_id = 0;
+
+  // TabItemButton() and Leading/Trailing flags are distinct features which we
+  // will demo together. (It is possible to submit regular tabs with
+  // Leading/Trailing flags, or TabItemButton tabs without Leading/Trailing
+  // flags... but they tend to make more sense together)
+  static bool show_trailing_button = true;
+  ImGui::Checkbox("Show Trailing TabItemButton()", &show_trailing_button);
+
+  // Expose some other flags which are useful to showcase how they interact with
+  // Leading/Trailing tabs
+  static ImGuiTabBarFlags tab_bar_flags =
+      ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
+      ImGuiTabBarFlags_FittingPolicyResizeDown |
+      ImGuiTabBarFlags_TabListPopupButton;
+
+  if (ImGui::CheckboxFlags("ImGuiTabBarFlags_FittingPolicyResizeDown",
+                           &tab_bar_flags,
+                           ImGuiTabBarFlags_FittingPolicyResizeDown))
+    tab_bar_flags &= ~(ImGuiTabBarFlags_FittingPolicyMask_ ^
+                       ImGuiTabBarFlags_FittingPolicyResizeDown);
+  if (ImGui::CheckboxFlags("ImGuiTabBarFlags_FittingPolicyScroll",
+                           &tab_bar_flags,
+                           ImGuiTabBarFlags_FittingPolicyScroll))
+    tab_bar_flags &= ~(ImGuiTabBarFlags_FittingPolicyMask_ ^
+                       ImGuiTabBarFlags_FittingPolicyScroll);
+
+  if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags)) {
+    // Demo Trailing Tabs: click the "+" button to add a new tab (in your app
+    // you may want to use a font icon instead of the "+") Note that we submit
+    // it before the regular tabs, but because of the ImGuiTabItemFlags_Trailing
+    // flag it will always appear at the end.
+    if (show_trailing_button)
+      if (ImGui::TabItemButton(
+              "+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
+        active_rooms_.push_back(next_tab_id++);  // Add new tab
+
+    // Submit our regular tabs
+    for (int n = 0; n < active_rooms_.Size;) {
+      bool open = true;
+
+      if (ImGui::BeginTabItem(
+              zelda3::dungeon::kRoomNames[active_rooms_[n]].data(), &open,
+              ImGuiTabItemFlags_None)) {
+        DrawDungeonCanvas(active_rooms_[n]);
+        ImGui::EndTabItem();
+      }
+
+      if (!open)
+        active_rooms_.erase(active_rooms_.Data + n);
+      else
+        n++;
+    }
+
+    ImGui::EndTabBar();
+  }
+  ImGui::Separator();
+}
+
+void DungeonEditor::DrawDungeonCanvas(int room_id) {
+  ImGui::BeginGroup();
+
+  gui::InputHexByte("Layout", &rooms_[room_id].layout);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Blockset", &rooms_[room_id].blockset);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Spriteset", &rooms_[room_id].spriteset);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Palette", &rooms_[room_id].palette);
+
+  gui::InputHexByte("Floor1", &rooms_[room_id].floor1);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Floor2", &rooms_[room_id].floor2);
+  ImGui::SameLine();
+
+  gui::InputHexWord("Message ID", &rooms_[room_id].message_id_);
+  ImGui::SameLine();
+
+  ImGui::EndGroup();
+
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
+  canvas_.DrawBitmap(rooms_[room_id].current_graphics_, 2, is_loaded_);
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
 }

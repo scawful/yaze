@@ -20,13 +20,16 @@ class DungeonEditor : public SharedROM {
  private:
   void DrawToolset();
 
-  void DrawDungeonCanvas();
+  void DrawDungeonTabView();
+  void DrawDungeonCanvas(int room_id);
   void DrawRoomGraphics();
   void DrawTileSelector();
 
   bool is_loaded_ = false;
 
   gfx::Bitmap room_gfx_bmp_;
+
+  ImVector<int> active_rooms_;
 
   std::vector<zelda3::dungeon::Room> rooms_;
 
