@@ -43,7 +43,6 @@ class GfxGroupEditor : public SharedROM {
   gfx::SNESPalette palette_;
   gfx::PaletteGroup palette_group_;
   gfx::Bitmap tile16_blockset_bmp_;
-  gfx::BitmapTable graphics_bin_;
 
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
