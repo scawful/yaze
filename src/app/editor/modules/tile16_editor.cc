@@ -46,6 +46,25 @@ absl::Status Tile16Editor::Update() {
         ImGui::TableNextColumn();
         {
           // Create various options for the Tile16 Editor
+          if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)27);
+              ImGui::BeginChild(child_id,
+                                ImVec2(ImGui::GetContentRegionAvail().x, 0x100),
+                                true)) {
+            tile16_edit_canvas_.DrawBackground(ImVec2(0x40, 0x40));
+            tile16_edit_canvas_.DrawContextMenu();
+            if (!blockset_canvas_.Points().empty()) {
+              int x = blockset_canvas_.Points().front().x / 32;
+              int y = blockset_canvas_.Points().front().y / 32;
+              current_tile16_ = x + (y * 8);
+              if (tile16_edit_canvas_.DrawTilePainter(
+                      tile16_individual_[current_tile16_], 16)) {
+                // Update the tile16
+              }
+            }
+            tile16_edit_canvas_.DrawGrid(64.0f);
+            tile16_edit_canvas_.DrawOverlay();
+          }
+          ImGui::EndChild();
 
           ImGui::Separator();
           ImGui::Text("Options:");
@@ -132,11 +151,16 @@ absl::Status Tile16Editor::Update() {
   return absl::OkStatus();
 }
 
-absl::Status Tile16Editor::InitBlockset(gfx::Bitmap tile16_blockset_bmp) {
+absl::Status Tile16Editor::InitBlockset(
+    gfx::Bitmap tile16_blockset_bmp, std::vector<gfx::Bitmap> tile16_individual,
+    std::vector<gfx::Bitmap> tile8_individual_) {
   tile16_blockset_bmp_ = tile16_blockset_bmp;
+  tile16_individual_ = tile16_individual;
+  tile8_individual_ = tile8_individual_;
   map_blockset_loaded_ = true;
   return absl::OkStatus();
 }
+ 
 
 }  // namespace editor
 }  // namespace app
