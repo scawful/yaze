@@ -63,6 +63,9 @@ class SNES : public DMA {
 
   bool running() const { return running_; }
 
+  auto Cpu() -> CPU& { return cpu; }
+  auto Ppu() -> PPU& { return ppu; }
+
  private:
   void WriteToRegister(uint16_t address, uint8_t value) {
     memory_.WriteByte(address, value);

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/core/common.h"
 #include "app/emu/clock.h"
 #include "app/emu/debug/log.h"
 #include "app/emu/memory/memory.h"
@@ -13,6 +14,25 @@
 namespace yaze {
 namespace app {
 namespace emu {
+
+class InstructionEntry {
+ public:
+  // Constructor
+  InstructionEntry(uint32_t addr, uint8_t op, const std::string& ops,
+                   const std::string& instr)
+      : address(addr), opcode(op), operands(ops), instruction(instr) {}
+
+  // Getters for the class members
+  uint32_t GetAddress() const { return address; }
+  uint8_t GetOpcode() const { return opcode; }
+  const std::string& GetOperands() const { return operands; }
+  const std::string& GetInstruction() const { return instruction; }
+
+  uint32_t address;         // Memory address of the instruction
+  uint8_t opcode;           // Opcode of the instruction
+  std::string operands;     // Operand(s) of the instruction, if any
+  std::string instruction;  // Human-readable instruction text
+};
 
 const std::unordered_map<uint8_t, std::string> opcode_to_mnemonic = {
     {0x00, "BRK"}, {0x01, "ORA"}, {0x02, "COP"}, {0x03, "ORA"}, {0x04, "TSB"},
@@ -72,18 +92,19 @@ const std::unordered_map<uint8_t, std::string> opcode_to_mnemonic = {
 
 const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
 
-class CPU : public Memory, public Loggable {
+class CPU : public Memory, public Loggable, public core::ExperimentFlags {
  public:
   explicit CPU(Memory& mem, Clock& vclock) : memory(mem), clock(vclock) {}
 
   void Init() {
     clock.SetFrequency(kCpuClockSpeed);
-    memory.ClearMemory();
   }
 
   void Update();
   void ExecuteInstruction(uint8_t opcode);
   void HandleInterrupts();
+
+  std::vector<InstructionEntry> instruction_log_;
 
   // ==========================================================================
   // Addressing Modes

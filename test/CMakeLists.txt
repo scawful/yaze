@@ -18,6 +18,7 @@ add_executable(
   emu/spc700_test.cc
   compression_test.cc
   snes_palette_test.cc
+  room_object_test.cc
   ../src/cli/patch.cc
   ../src/cli/command_handler.cc
   ../src/app/rom.cc

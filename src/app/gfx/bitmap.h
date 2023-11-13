@@ -20,15 +20,33 @@ namespace gfx {
 class Bitmap {
  public:
   Bitmap() = default;
+
   Bitmap(int width, int height, int depth, int data_size);
-  Bitmap(int width, int height, int depth, Bytes data);
+  // Bitmap(int width, int height, int depth, Bytes data);
+
+  Bitmap(int width, int height, int depth, const Bytes &data)
+      : width_(width), height_(height), depth_(depth), data_(data) {
+    CreateTextureFromData();
+  }
+
+  // Function to create texture from pixel data
+  void CreateTextureFromData() {
+    // Safely create the texture from the raw data
+    // Assuming a function exists that converts Bytes to the appropriate format
+    auto raw_pixel_data = data_;
+    surface_ = std::shared_ptr<SDL_Surface>(
+        SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
+                                       SDL_PIXELFORMAT_INDEX8),
+        SDL_Surface_Deleter());
+    surface_->pixels = data_.data();
+  }
 
   [[deprecated]] Bitmap(int width, int height, int depth, uchar *data);
   [[deprecated]] Bitmap(int width, int height, int depth, uchar *data,
                         int data_size);
 
   void Create(int width, int height, int depth, int data_size);
-  void Create(int width, int height, int depth, Bytes data);
+  void Create(int width, int height, int depth, const Bytes &data);
 
   [[deprecated]] void Create(int width, int height, int depth, uchar *data);
   [[deprecated]] void Create(int width, int height, int depth, uchar *data,
@@ -73,8 +91,7 @@ class Bitmap {
     height_ = 0;
     depth_ = 0;
     data_size_ = 0;
-    palette_.Clear();  // assuming there's a Clear() method or similar on
-                       // SNESPalette
+    palette_.Clear();
   }
 
   int width() const { return width_; }
@@ -84,6 +101,7 @@ class Bitmap {
   auto at(int i) const { return pixel_data_[i]; }
   auto texture() const { return texture_.get(); }
   auto IsActive() const { return active_; }
+  auto SetActive(bool active) { active_ = active; }
 
  private:
   struct SDL_Texture_Deleter {
@@ -137,7 +155,7 @@ class BitmapManager {
     if (it != bitmap_cache_.end()) {
       return it->second;
     }
-    return nullptr;  // or handle the error accordingly
+    return nullptr;
   }
 
   using value_type = std::pair<const int, std::shared_ptr<gfx::Bitmap>>;
@@ -152,8 +170,6 @@ class BitmapManager {
   const_iterator end() const noexcept { return bitmap_cache_.end(); }
   const_iterator cbegin() const noexcept { return bitmap_cache_.cbegin(); }
   const_iterator cend() const noexcept { return bitmap_cache_.cend(); }
-
-  
 
   std::shared_ptr<gfx::Bitmap> GetBitmap(int id) {
     auto it = bitmap_cache_.find(id);

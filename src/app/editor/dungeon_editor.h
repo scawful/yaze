@@ -8,6 +8,7 @@
 #include "app/gui/icons.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace app {
@@ -32,6 +33,7 @@ class DungeonEditor : public SharedROM {
   ImVector<int> active_rooms_;
 
   std::vector<zelda3::dungeon::Room> rooms_;
+  zelda3::dungeon::DungeonObjectRenderer object_renderer_;
 
   gui::Canvas canvas_;
   gui::Canvas room_gfx_canvas_;

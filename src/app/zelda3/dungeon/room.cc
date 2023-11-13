@@ -78,6 +78,64 @@ void DrawDungeonRoomBG2(std::vector<uint8_t>& tiles_bg2_buffer,
   }
 }
 
+void Room::LoadHeader() {
+  // Address of the room header
+  int headerPointer = (rom()->data()[core::room_header_pointer + 2] << 16) +
+                      (rom()->data()[core::room_header_pointer + 1] << 8) +
+                      (rom()->data()[core::room_header_pointer]);
+  headerPointer = core::SnesToPc(headerPointer);
+
+  int address = (rom()->data()[core::room_header_pointers_bank] << 16) +
+                (rom()->data()[(headerPointer + 1) + (room_id_ * 2)] << 8) +
+                rom()->data()[(headerPointer) + (room_id_ * 2)];
+
+  auto header_location = core::SnesToPc(address);
+
+  // bg2 = (Background2)((rom()->data()[header_location] >> 5) & 0x07);
+  // collision = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
+  // light = ((rom()->data()[header_location]) & 0x01) == 1;
+
+  if (light) {
+    bg2 = Background2::DarkRoom;
+  }
+
+  palette = ((rom()->data()[header_location + 1] & 0x3F));
+  blockset = (rom()->data()[header_location + 2]);
+  spriteset = (rom()->data()[header_location + 3]);
+  // effect = (EffectKey)((rom()->data()[header_location + 4]));
+  // tag1 = (TagKey)((rom()->data()[header_location + 5]));
+  // tag2 = (TagKey)((rom()->data()[header_location + 6]));
+
+  // holewarpPlane = ((rom()->data()[header_location + 7]) & 0x03);
+  staircase_plane[0] = ((rom()->data()[header_location + 7] >> 2) & 0x03);
+  staircase_plane[1] = ((rom()->data()[header_location + 7] >> 4) & 0x03);
+  staircase_plane[2] = ((rom()->data()[header_location + 7] >> 6) & 0x03);
+  staircase_plane[3] = ((rom()->data()[header_location + 8]) & 0x03);
+
+  // if (holewarpPlane == 2) {
+  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
+  //                      index.ToString("X2"));
+  // } else if (staircasePlane[0] == 2) {
+  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
+  //                      index.ToString("X2"));
+  // } else if (staircasePlane[1] == 2) {
+  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
+  //                      index.ToString("X2"));
+  // } else if (staircasePlane[2] == 2) {
+  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
+  //                      index.ToString("X2"));
+  // } else if (staircasePlane[3] == 2) {
+  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
+  //                      index.ToString("X2"));
+  // }
+
+  // holewarp = (rom()->data()[header_location + 9]);
+  staircase_rooms[0] = (rom()->data()[header_location + 10]);
+  staircase_rooms[1] = (rom()->data()[header_location + 11]);
+  staircase_rooms[2] = (rom()->data()[header_location + 12]);
+  staircase_rooms[3] = (rom()->data()[header_location + 13]);
+}
+
 void Room::LoadSprites() {
   auto rom_data = rom()->vector();
   int spritePointer = (0x04 << 16) + (rom_data[rooms_sprite_pointer + 1] << 8) +
@@ -295,6 +353,10 @@ RoomObject Room::AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
 }
 
 void Room::LoadRoomGraphics(uchar entrance_blockset) {
+  auto mainGfx = rom()->main_blockset_ids;
+  auto roomGfx = rom()->room_blockset_ids;
+  auto spriteGfx = rom()->spriteset_ids;
+
   for (int i = 0; i < 8; i++) {
     blocks[i] = mainGfx[BackgroundTileset][i];
     if (i >= 6 && i <= 6) {

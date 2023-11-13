@@ -37,9 +37,9 @@ Bitmap::Bitmap(int width, int height, int depth, uchar *data, int data_size) {
   Create(width, height, depth, data, data_size);
 }
 
-Bitmap::Bitmap(int width, int height, int depth, Bytes data) {
-  Create(width, height, depth, data);
-}
+// Bitmap::Bitmap(int width, int height, int depth, Bytes data) {
+//   Create(width, height, depth, data);
+// }
 
 // Pass raw pixel data directly to the surface
 void Bitmap::Create(int width, int height, int depth, uchar *data) {
@@ -89,7 +89,7 @@ void Bitmap::Create(int width, int height, int depth, uchar *data, int size) {
   GrayscalePalette(surface_->format->palette);
 }
 
-void Bitmap::Create(int width, int height, int depth, Bytes data) {
+void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
   active_ = true;
   width_ = width;
   height_ = height;

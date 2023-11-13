@@ -29,11 +29,22 @@ class Emulator : public SharedROM {
   // Updates the emulator state (CPU, PPU, APU, etc.)
   void UpdateEmulator();
 
+  void RenderDebugger();
+  void RenderCpuState(CPU& cpu);
+  void RenderMemoryViewer();
+
+  void RenderCPUInstructionLog(
+      const std::vector<InstructionEntry>& instructionLog);
+
   // Member variables to store internal state and resources
   SNES snes_;
 
   bool running_ = false;
+  bool debugger_ = false;
+  bool loading_ = false;
   bool show_ppu_reg_viewer_ = false;
+  bool integrated_debugger_mode_ = true;
+  bool separate_debugger_mode_ = false;
 };
 
 }  // namespace emu

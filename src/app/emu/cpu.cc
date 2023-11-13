@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 namespace yaze {
@@ -1092,26 +1093,57 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
   }
 
-  // Log the address and opcode.
-  std::cout << "$" << std::uppercase << std::setw(2) << std::setfill('0')
-            << static_cast<int>(DB) << ":" << std::hex << PC << ": 0x"
-            << std::hex << static_cast<int>(opcode) << " "
-            << opcode_to_mnemonic.at(opcode) << " ";
+  if (flags()->kLogInstructions) {
+    std::ostringstream oss;
+    oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
+        << static_cast<int>(DB) << ":" << std::hex << PC << ": 0x" << std::hex
+        << static_cast<int>(opcode) << " " << opcode_to_mnemonic.at(opcode)
+        << " ";
 
-  // Log the operand.
-  if (operand) {
-    if (immediate) {
-      std::cout << "#";
-    }
-    std::cout << "$";
-    if (accumulator_mode) {
-      std::cout << std::hex << std::setw(2) << std::setfill('0') << operand;
-    } else {
-      std::cout << std::hex << std::setw(4) << std::setfill('0')
+    // Log the operand.
+    std::string ops;
+    if (operand) {
+      if (immediate) {
+        ops += "#";
+      }
+      std::ostringstream oss_ops;
+      oss_ops << "$";
+      if (accumulator_mode) {
+        oss_ops << std::hex << std::setw(2) << std::setfill('0')
                 << static_cast<int>(operand);
+      } else {
+        oss_ops << std::hex << std::setw(4) << std::setfill('0')
+                << static_cast<int>(operand);
+      }
+      ops = oss_ops.str();
     }
+
+    oss << ops << std::endl;
+
+    InstructionEntry entry(PC, opcode, ops, oss.str());
+    instruction_log_.push_back(entry);
+  } else {
+    // Log the address and opcode.
+    std::cout << "$" << std::uppercase << std::setw(2) << std::setfill('0')
+              << static_cast<int>(DB) << ":" << std::hex << PC << ": 0x"
+              << std::hex << static_cast<int>(opcode) << " "
+              << opcode_to_mnemonic.at(opcode) << " ";
+
+    // Log the operand.
+    if (operand) {
+      if (immediate) {
+        std::cout << "#";
+      }
+      std::cout << "$";
+      if (accumulator_mode) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << operand;
+      } else {
+        std::cout << std::hex << std::setw(4) << std::setfill('0')
+                  << static_cast<int>(operand);
+      }
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
 }
 
 // Interrupt Vectors

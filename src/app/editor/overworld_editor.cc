@@ -32,7 +32,8 @@ absl::Status OverworldEditor::Update() {
   // Initialize overworld graphics, maps, and palettes
   if (rom()->isLoaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(LoadGraphics())
-    tile16_editor_.InitBlockset(tile16_blockset_bmp_);
+    tile16_editor_.InitBlockset(tile16_blockset_bmp_, tile16_individual_,
+                                tile8_individual_);
     gfx_group_editor_.InitBlockset(tile16_blockset_bmp_);
     all_gfx_loaded_ = true;
   }
@@ -349,10 +350,10 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
 void OverworldEditor::QueueROMChanges(int index, ushort new_tile16) {
   // Store the changes made by the user to the ROM (or project file)
   rom()->QueueChanges([&]() {
-    overworld_.SaveOverworldMaps();
+    PRINT_IF_ERROR(overworld_.SaveOverworldMaps());
     if (!overworld_.CreateTile32Tilemap()) {
       // overworld_.SaveMap16Tiles();
-      overworld_.SaveMap32Tiles();
+      PRINT_IF_ERROR(overworld_.SaveMap32Tiles());
     } else {
       std::cout << "Failed to create tile32 tilemap" << std::endl;
     }
@@ -410,14 +411,16 @@ void OverworldEditor::DrawTile8Selector() {
       ImVec2(0x100 + 1, kNumSheetsToLoad * 0x40 + 1));
   graphics_bin_canvas_.DrawContextMenu();
   if (all_gfx_loaded_) {
-    for (const auto &[key, value] : graphics_bin_) {
+    // for (const auto &[key, value] : graphics_bin_) {
+    for (auto &[key, value] : rom()->BitmapManager()) {
       int offset = 0x40 * (key + 1);
       int top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 2;
       if (key >= 1) {
         top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 0x40 * key;
       }
+      auto texture = value.get()->texture();
       graphics_bin_canvas_.GetDrawList()->AddImage(
-          (void *)value.texture(),
+          (void *)texture,
           ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2, top_left_y),
           ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 0x100,
                  graphics_bin_canvas_.GetZeroPoint().y + offset));
@@ -521,7 +524,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
 
   if (flags()->kDrawOverworldSprites) {
-    LoadSpriteGraphics();
+    RETURN_IF_ERROR(LoadSpriteGraphics());
   }
 
   return absl::OkStatus();

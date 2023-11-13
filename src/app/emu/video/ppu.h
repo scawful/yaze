@@ -8,6 +8,7 @@
 #include "app/emu/clock.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu_registers.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -234,7 +235,7 @@ struct BackgroundLayer {
 
 const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 
-class PPU : public Observer {
+class PPU : public Observer, public SharedROM {
  public:
   // Initializes the PPU with the necessary resources and dependencies
   PPU(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
@@ -243,6 +244,8 @@ class PPU : public Observer {
   void Init() {
     clock_.SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
+    screen_ = std::make_shared<gfx::Bitmap>(256, 240, 8, 0x100);
+    screen_->SetActive(false);
   }
 
   // Resets the PPU to its initial state
@@ -260,6 +263,8 @@ class PPU : public Observer {
 
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
+
+  auto GetScreen() const { return screen_; }
 
  private:
   // Updates internal state based on PPU register settings
@@ -300,6 +305,7 @@ class PPU : public Observer {
   std::vector<SpriteAttributes> sprites_;
   std::vector<uint8_t> tile_data_;
   std::vector<uint8_t> frame_buffer_;
+  std::shared_ptr<gfx::Bitmap> screen_;
 
   uint16_t oam_address_;
   uint16_t tile_data_size_;
