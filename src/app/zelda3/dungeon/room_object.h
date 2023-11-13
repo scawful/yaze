@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "app/emu/cpu.h"
+#include "app/emu/video/ppu.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -16,6 +18,61 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 namespace dungeon {
+
+class DungeonObjectRenderer : public SharedROM {
+ public:
+
+  struct PseudoVram {
+    std::vector<gfx::Bitmap> sheets;
+  };
+
+  void CreateVramFromRoomBlockset() {
+    auto bitmap_manager = rom()->BitmapManager();
+    uint16_t room_id = 0;
+    auto room_blockset = rom()->room_blockset_ids[room_id];
+
+    for (const auto blockset_id : room_blockset) {
+      auto blockset = bitmap_manager[(uint16_t)blockset_id];
+      vram_.sheets.push_back(*blockset.get());
+    }
+
+  }
+
+  void RenderObjectsAsBitmaps() {
+    auto subtype1_ptr = core::subtype1_tiles;
+    auto subtype1_routine_ptr =
+        core::subtype1_tiles + 0x200;  // Where the draw routines start
+
+    auto subtype2_ptr = core::subtype2_tiles;
+    auto subtype2_routine_ptr =
+        core::subtype2_tiles + 0x80;  // Where the draw routines start
+
+    auto subtype3_ptr = core::subtype3_tiles;
+    auto subtype3_routine_ptr =
+        core::subtype3_tiles + 0x100;  // Where the draw routines start
+
+    auto data = (*rom()).vector();
+    // Construct a copy of the rooms VRAM
+    // Jump to the routine that draws the object based on the ID
+    // Run the routine and get the VRAM data using the CPU and PPU
+    // Render the VRAM data to a bitmap
+
+    memory_.Initialize(data);
+    cpu.PC = subtype1_routine_ptr;
+    cpu.JMP(cpu.FetchWord());
+    auto dest = cpu.PC + 0x10;
+    while (cpu.PC < dest) {
+      cpu.ExecuteInstruction(cpu.FetchByte());
+    }
+  }
+
+  emu::MemoryImpl memory_;
+  emu::ClockImpl clock_;
+  emu::CPU cpu{memory_, clock_};
+  emu::PPU ppu{memory_, clock_};
+  gfx::Bitmap bitmap;
+  PseudoVram vram_;
+};
 
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
 
@@ -223,9 +280,7 @@ class Subtype2_Multiple : public RoomObject {
   // Other member functions and variables
 };
 
-class Subtype3 : public RoomObject {
-
-};
+class Subtype3 : public RoomObject {};
 
 }  // namespace dungeon
 }  // namespace zelda3

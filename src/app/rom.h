@@ -464,7 +464,7 @@ class ROM : public core::ExperimentFlags {
     bitmap->UpdateTexture(renderer_);
   }
 
-  auto BitmapManager() const { return graphics_manager_; }
+  auto BitmapManager() { return graphics_manager_; }
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;

@@ -187,10 +187,6 @@ void MasterEditor::DrawFileMenu() {
   static bool save_as_menu = false;
 
   if (ImGui::BeginMenu("File")) {
-    if (ImGui::MenuItem("New", "Ctrl+N")) {
-      // TODO: Implement new ROM creation.
-    }
-
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
       ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
                                               ".sfc,.smc", ".");
@@ -209,10 +205,13 @@ void MasterEditor::DrawFileMenu() {
     if (ImGui::BeginMenu("Options")) {
       ImGui::MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::Separator();
+      ImGui::Text("Experiment Flags");
       ImGui::Checkbox("Enable Overworld Sprites",
                       &mutable_flags()->kDrawOverworldSprites);
       ImGui::Checkbox("Use Bitmap Manager",
                       &mutable_flags()->kUseBitmapManager);
+      ImGui::Checkbox("Log Instructions to Debugger",
+                      &mutable_flags()->kLogInstructions);
       ImGui::EndMenu();
     }
 

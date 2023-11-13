@@ -4,6 +4,107 @@
 #include <imgui/imgui_internal.h>
 
 #include "absl/strings/string_view.h"
+namespace ImGui {
+
+static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(
+    ImGuiDataType data_type, const char* format) {
+  if (data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double)
+    return ImGuiInputTextFlags_CharsScientific;
+  const char format_last_char = format[0] ? format[strlen(format) - 1] : 0;
+  return (format_last_char == 'x' || format_last_char == 'X')
+             ? ImGuiInputTextFlags_CharsHexadecimal
+             : ImGuiInputTextFlags_CharsDecimal;
+}
+
+bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
+                     const void* p_step, const void* p_step_fast,
+                     const char* format, float input_width,
+                     ImGuiInputTextFlags flags) {
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  if (window->SkipItems) return false;
+
+  ImGuiContext& g = *GImGui;
+  ImGuiStyle& style = g.Style;
+
+  if (format == NULL) format = DataTypeGetInfo(data_type)->PrintFmt;
+
+  char buf[64];
+  DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
+
+  // Testing ActiveId as a minor optimization as filtering is not needed until
+  // active
+  if (g.ActiveId == 0 && (flags & (ImGuiInputTextFlags_CharsDecimal |
+                                   ImGuiInputTextFlags_CharsHexadecimal |
+                                   ImGuiInputTextFlags_CharsScientific)) == 0)
+    flags |= InputScalar_DefaultCharsFilter(data_type, format);
+  flags |=
+      ImGuiInputTextFlags_AutoSelectAll |
+      ImGuiInputTextFlags_NoMarkEdited;  // We call MarkItemEdited() ourselves
+                                         // by comparing the actual data rather
+                                         // than the string.
+
+  bool value_changed = false;
+  if (p_step == NULL) {
+    ImGui::SetNextItemWidth(input_width);
+    if (InputText(label, buf, IM_ARRAYSIZE(buf), flags))
+      value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
+  } else {
+    const float button_size = GetFrameHeight();
+
+    BeginGroup();  // The only purpose of the group here is to allow the caller
+                   // to query item data e.g. IsItemActive()
+    PushID(label);
+    SetNextItemWidth(ImMax(
+        1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
+
+    // Place the label on the left of the input field
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                        ImVec2{style.ItemSpacing.x, style.ItemSpacing.y * 2});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                        ImVec2{style.FramePadding.x, style.FramePadding.y * 2});
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("%s", label);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(input_width);
+    if (InputText("", buf, IM_ARRAYSIZE(buf),
+                  flags))  // PushId(label) + "" gives us the expected ID
+                           // from outside point of view
+      value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
+    IMGUI_TEST_ENGINE_ITEM_INFO(
+        g.LastItemData.ID, label,
+        g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Inputable);
+
+    // Step buttons
+    const ImVec2 backup_frame_padding = style.FramePadding;
+    style.FramePadding.x = style.FramePadding.y;
+    ImGuiButtonFlags button_flags =
+        ImGuiButtonFlags_Repeat | ImGuiButtonFlags_DontClosePopups;
+    if (flags & ImGuiInputTextFlags_ReadOnly) BeginDisabled();
+    SameLine(0, style.ItemInnerSpacing.x);
+    if (ButtonEx("-", ImVec2(button_size, button_size), button_flags)) {
+      DataTypeApplyOp(data_type, '-', p_data, p_data,
+                      g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
+      value_changed = true;
+    }
+    SameLine(0, style.ItemInnerSpacing.x);
+    if (ButtonEx("+", ImVec2(button_size, button_size), button_flags)) {
+      DataTypeApplyOp(data_type, '+', p_data, p_data,
+                      g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
+      value_changed = true;
+    }
+    if (flags & ImGuiInputTextFlags_ReadOnly) EndDisabled();
+
+    style.FramePadding = backup_frame_padding;
+
+    PopID();
+    EndGroup();
+    ImGui::PopStyleVar(2);
+  }
+  if (value_changed) MarkItemEdited(g.LastItemData.ID);
+
+  return value_changed;
+}
+}  // namespace ImGui
 
 namespace yaze {
 namespace app {
@@ -24,16 +125,16 @@ bool InputHexShort(const char* label, uint32_t* data) {
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
-bool InputHexWord(const char* label, uint16_t* data) {
-  return ImGui::InputScalar(label, ImGuiDataType_U16, data, &kStepOneHex,
-                            &kStepFastHex, "%04X",
-                            ImGuiInputTextFlags_CharsHexadecimal);
+bool InputHexWord(const char* label, uint16_t* data, float input_width) {
+  return ImGui::InputScalarLeft(label, ImGuiDataType_U16, data, &kStepOneHex,
+                                &kStepFastHex, "%04X", input_width,
+                                ImGuiInputTextFlags_CharsHexadecimal);
 }
 
-bool InputHexByte(const char* label, uint8_t* data) {
-  return ImGui::InputScalar(label, ImGuiDataType_U8, data, &kStepOneHex,
-                            &kStepFastHex, "%02X",
-                            ImGuiInputTextFlags_CharsHexadecimal);
+bool InputHexByte(const char* label, uint8_t* data, float input_width) {
+  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
+                                &kStepFastHex, "%02X", input_width,
+                                ImGuiInputTextFlags_CharsHexadecimal);
 }
 
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {

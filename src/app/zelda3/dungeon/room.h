@@ -80,6 +80,8 @@ void DrawDungeonRoomBG2(std::vector<uint8_t>& tiles_bg2_buffer,
 
 class DungeonDestination {
  public:
+  DungeonDestination() = default;
+  ~DungeonDestination() = default;
   DungeonDestination(uint8_t i) : Index(i) {}
 
   uint8_t Index;
@@ -89,6 +91,7 @@ class DungeonDestination {
 };
 
 struct object_door {
+  object_door() = default;
   object_door(short id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
       : id_(id), x_(x), y_(y), size_(size), layer_(layer) {}
 
@@ -101,6 +104,7 @@ struct object_door {
 };
 
 struct ChestData {
+  ChestData() = default;
   ChestData(uchar i, bool s) : id_(i), size_(s){};
 
   uchar id_;
@@ -111,6 +115,10 @@ struct StaircaseRooms {};
 
 class Room : public SharedROM {
  public:
+  Room() = default;
+  Room(int room_id) : room_id_(room_id) {}
+  ~Room() = default;
+  void LoadHeader();
   void LoadSprites();
   void LoadChests();
 
@@ -124,19 +132,29 @@ class Room : public SharedROM {
 
   void LoadRoomFromROM();
 
+  uint8_t floor1 = 0;
+  uint8_t floor2 = 0;
+  uint8_t blockset = 0;
+  uint8_t spriteset = 0;
+  uint8_t palette = 0;
+  uint8_t layout = 0;
+
+  uint16_t message_id_ = 0;
+  
+  gfx::Bitmap current_graphics_;
+
  private:
   int animated_frame = 0;
 
   int room_id_ = 0;
 
-  uint8_t floor1;
-  uint8_t floor2;
-  uint8_t blockset;
-  uint8_t spriteset;
-  uint8_t palette;
-  uint8_t layout;
+  bool light;
+  bool is_loaded_ = false;
+  Background2 bg2;
 
-  ushort message_id_ = 0;
+  uint8_t staircase_plane[4];
+  uint8_t staircase_rooms[4];
+
   uchar BackgroundTileset;
   uchar SpriteTileset;
   uchar Layer2Behavior;
@@ -146,11 +164,6 @@ class Room : public SharedROM {
   uchar Layer2Mode;
   std::array<uchar, 16> blocks;
   std::array<uchar, 16> ChestList;
-
-  uint8_t mainGfx[37][8];
-  uint8_t roomGfx[82][4];
-  uint8_t spriteGfx[144][4];
-  uint8_t paletteGfx[72][4];
 
   std::vector<zelda3::Sprite> sprites_;
   std::vector<StaircaseRooms> staircaseRooms;
@@ -171,8 +184,6 @@ class Room : public SharedROM {
   std::vector<ChestData> chests_in_room;
   std::vector<uint8_t> current_gfx16_;
   std::vector<RoomObject> tilesObjects;
-
-  gfx::Bitmap current_graphics_;
 };
 
 }  // namespace dungeon

@@ -158,6 +158,9 @@ class OverworldEditor : public Editor,
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
+  std::vector<Bytes> tile8_individual_data_;
+  std::vector<gfx::Bitmap> tile8_individual_;
+
   Tile16Editor tile16_editor_;
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;

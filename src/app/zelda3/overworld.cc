@@ -11,6 +11,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/core/common.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"

@@ -13,7 +13,8 @@ class ExperimentFlags {
  public:
   struct Flags {
     bool kDrawOverworldSprites = false;
-    bool kUseBitmapManager = false;
+    bool kUseBitmapManager = true;
+    bool kLogInstructions = true;
   };
 
   ExperimentFlags() = default;

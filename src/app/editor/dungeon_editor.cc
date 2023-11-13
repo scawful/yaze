@@ -19,7 +19,7 @@ void DungeonEditor::Update() {
     for (int i = 0; i < 0x100; i++) {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
-      rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
+      // rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
     }
     is_loaded_ = true;
   }
@@ -38,7 +38,7 @@ void DungeonEditor::Update() {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     if (rom()->isLoaded()) {
-      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)9);
+      if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
           ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         int i = 0;
@@ -56,6 +56,9 @@ void DungeonEditor::Update() {
     ImGui::TableNextColumn();
     DrawDungeonTabView();
     ImGui::TableNextColumn();
+    if (ImGui::Button("dungeon object renderer")) {
+      object_renderer_.RenderObjectsAsBitmaps();
+    }
     DrawTileSelector();
     ImGui::EndTable();
   }
@@ -150,13 +153,13 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
-  canvas_.DrawBitmap(rooms_[room_id].current_graphics_, 2, is_loaded_);
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
 }
 
 void DungeonEditor::DrawToolset() {
-  if (ImGui::BeginTable("DWToolset", 9, toolset_table_flags_, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("DWToolset", 9, ImGuiTableFlags_SizingFixedFit,
+                        ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#undoTool");
     ImGui::TableSetupColumn("#redoTool");
     ImGui::TableSetupColumn("#history");
@@ -209,7 +212,7 @@ void DungeonEditor::DrawRoomGraphics() {
 void DungeonEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Room Graphics")) {
-      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)3);
+      if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
           ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawRoomGraphics();

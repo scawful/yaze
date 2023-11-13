@@ -46,7 +46,11 @@ void PPU::UpdateInternalState(int cycles) {
 void PPU::RenderScanline() {
   for (int y = 0; y < 240; ++y) {
     for (int x = 0; x < 256; ++x) {
-      frame_buffer_[y * 256 + x] = (x + y) % 256;  // Simple gradient pattern
+      // Calculate the color index based on the x and y coordinates
+      uint8_t color_index = (x + y) % 8;
+
+      // Set the pixel in the frame buffer to the calculated color index
+      frame_buffer_[y * 256 + x] = color_index;
     }
   }
 
@@ -267,7 +271,12 @@ void PPU::ApplyEffects() {}
 
 void PPU::ComposeLayers() {}
 
-void PPU::DisplayFrameBuffer() {}
+void PPU::DisplayFrameBuffer() {
+  if (!screen_->IsActive()) {
+    screen_->Create(256, 240, 24, frame_buffer_);
+    rom()->RenderBitmap(screen_.get());
+  }
+}
 
 }  // namespace emu
 }  // namespace app

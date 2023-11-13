@@ -17,8 +17,10 @@ constexpr ImVec2 kZeroPos = ImVec2(0, 0);
 
 IMGUI_API bool InputHex(const char* label, uint64_t* data);
 IMGUI_API bool InputHexShort(const char* label, uint32_t* data);
-IMGUI_API bool InputHexWord(const char* label, uint16_t* data);
-IMGUI_API bool InputHexByte(const char* label, uint8_t* data);
+IMGUI_API bool InputHexWord(const char* label, uint16_t* data,
+                            float input_width = 50.f);
+IMGUI_API bool InputHexByte(const char* label, uint8_t* data,
+                            float input_width = 50.f);
 
 using ItemLabelFlags = enum ItemLabelFlag {
   Left = 1u << 0u,
