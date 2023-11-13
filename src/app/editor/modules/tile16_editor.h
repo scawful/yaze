@@ -26,12 +26,16 @@ class Tile16Editor : public SharedROM {
  public:
   absl::Status Update();
 
-  absl::Status InitBlockset(gfx::Bitmap tile16_blockset_bmp);
+  absl::Status InitBlockset(gfx::Bitmap tile16_blockset_bmp,
+                            std::vector<gfx::Bitmap> tile16_individual,
+                            std::vector<gfx::Bitmap> tile8_individual_);
 
  private:
   bool map_blockset_loaded_ = false;
   bool transfer_started_ = false;
   bool transfer_blockset_loaded_ = false;
+
+  int current_tile16_ = 0;
 
   // Canvas dimensions
   int canvas_width;
@@ -49,6 +53,8 @@ class Tile16Editor : public SharedROM {
   gui::Canvas blockset_canvas_;
   gfx::Bitmap tile16_blockset_bmp_;
 
+  gui::Canvas tile16_edit_canvas_;
+
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
   gfx::Bitmap transfer_current_bmp_;
@@ -59,6 +65,7 @@ class Tile16Editor : public SharedROM {
   zelda3::Overworld transfer_overworld_;
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
+  std::vector<gfx::Bitmap> tile8_individual_;
   gfx::BitmapTable graphics_bin_;
 
   ROM transfer_rom_;
