@@ -19,53 +19,76 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-class DungeonObjectRenderer : public SharedROM {
+class DungeonObjectRenderer {
  public:
-
   struct PseudoVram {
     std::vector<gfx::Bitmap> sheets;
   };
 
   void CreateVramFromRoomBlockset() {
-    auto bitmap_manager = rom()->BitmapManager();
-    uint16_t room_id = 0;
-    auto room_blockset = rom()->room_blockset_ids[room_id];
+    // auto bitmap_manager = rom()->BitmapManager();
+    // uint16_t room_id = 0;
+    // auto room_blockset = rom()->room_blockset_ids[room_id];
 
-    for (const auto blockset_id : room_blockset) {
-      auto blockset = bitmap_manager[(uint16_t)blockset_id];
-      vram_.sheets.push_back(*blockset.get());
-    }
-
+    // for (const auto blockset_id : room_blockset) {
+    //   auto blockset = bitmap_manager[(uint16_t)blockset_id];
+    //   vram_.sheets.push_back(*blockset.get());
+    // }
   }
 
-  void RenderObjectsAsBitmaps() {
+  void RenderObjectsAsBitmaps(ROM& rom) {
+    memory_.Initialize(rom.vector());
+    cpu.Init();
+
     auto subtype1_ptr = core::subtype1_tiles;
-    auto subtype1_routine_ptr =
-        core::subtype1_tiles + 0x200;  // Where the draw routines start
+    auto subtype1_routine_ptr = core::subtype1_tiles + 0x200;
+    std::array<uint16_t, 256> routine_ptrs;
+    for (int i = 0; i < 256; i++) {
+      uint16_t actual_ptr = rom.toint16(subtype1_routine_ptr + (i * 2));
+      routine_ptrs[i] = actual_ptr;
+      std::cout << std::hex << routine_ptrs[i] << std::endl;
+    }
+
+    int i = 0;
+    for (const auto routine_ptr : routine_ptrs) {
+      cpu.PC = routine_ptr - 2;
+      cpu.PB = 0x00;
+
+      auto cycles_to_run = clock_.GetCycleCount();
+
+      while (true) {
+        auto opcode = cpu.FetchByte();
+        // Fetch and execute an instruction
+        cpu.ExecuteInstruction(opcode);
+
+        // Handle any interrupts, if necessary
+        cpu.HandleInterrupts();
+
+        // Check if the instruction is RTS
+        if (opcode == 0x60) {
+          break;
+        }
+        i++;
+        if (i > 50) {
+          break;
+        }
+      }
+    }
 
     auto subtype2_ptr = core::subtype2_tiles;
     auto subtype2_routine_ptr =
         core::subtype2_tiles + 0x80;  // Where the draw routines start
+    std::array<uint16_t, 128> subtype2_routine_ptrs;
+    for (int i = 0; i < 128; i++) {
+      subtype2_routine_ptrs[i] = subtype2_routine_ptr + i * 2;
+    }
 
     auto subtype3_ptr = core::subtype3_tiles;
     auto subtype3_routine_ptr =
         core::subtype3_tiles + 0x100;  // Where the draw routines start
-
-    auto data = (*rom()).vector();
-    // Construct a copy of the rooms VRAM
-    // Jump to the routine that draws the object based on the ID
-    // Run the routine and get the VRAM data using the CPU and PPU
-    // Render the VRAM data to a bitmap
-
-    memory_.Initialize(data);
-    cpu.PC = subtype1_routine_ptr;
-    cpu.JMP(cpu.FetchWord());
-    auto dest = cpu.PC + 0x10;
-    while (cpu.PC < dest) {
-      cpu.ExecuteInstruction(cpu.FetchByte());
-    }
   }
 
+  std::vector<uint8_t> rom_data_;
   emu::MemoryImpl memory_;
   emu::ClockImpl clock_;
   emu::CPU cpu{memory_, clock_};
