@@ -8,7 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/pipeline.h"
-#include "app/editor/palette_editor.h"
+#include "app/editor/resources/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/scad_format.h"
@@ -164,7 +164,8 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   core::ButtonPipe("Load CGX Data", [this]() {
     status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                            decoded_cgx_, extra_cgx_data_);
-    cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
+    PRINT_IF_ERROR(
+        cgx_bitmap_.InitializeFromData(0x80, 0x200, 8, decoded_cgx_));
     if (col_file_) {
       cgx_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&cgx_bitmap_);
@@ -197,8 +198,8 @@ absl::Status GraphicsEditor::DrawScrImport() {
     decoded_scr_data_.resize(0x100 * 0x100);
     status_ = gfx::DrawScrWithCgx(current_bpp_, scr_data_, decoded_scr_data_,
                                   decoded_cgx_);
-
-    scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
+    PRINT_IF_ERROR(
+        scr_bitmap_.InitializeFromData(0x100, 0x100, 8, decoded_scr_data_));
     if (scr_loaded_) {
       scr_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&scr_bitmap_);

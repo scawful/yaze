@@ -10,7 +10,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/pipeline.h"
-#include "app/editor/palette_editor.h"
+#include "app/editor/resources/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -32,8 +32,8 @@ absl::Status OverworldEditor::Update() {
   // Initialize overworld graphics, maps, and palettes
   if (rom()->isLoaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(LoadGraphics())
-    tile16_editor_.InitBlockset(tile16_blockset_bmp_, tile16_individual_,
-                                tile8_individual_);
+    RETURN_IF_ERROR(tile16_editor_.InitBlockset(
+        tile16_blockset_bmp_, tile16_individual_, tile8_individual_));
     gfx_group_editor_.InitBlockset(tile16_blockset_bmp_);
     all_gfx_loaded_ = true;
   }
