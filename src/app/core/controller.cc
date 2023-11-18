@@ -208,14 +208,20 @@ absl::Status Controller::CreateRenderer() {
 }
 
 absl::Status Controller::CreateGuiContext() const {
+  IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+
+  ImGuiIO &io = ImGui::GetIO();
+  if (flags()->kUseNewImGuiInput) {
+    io.ConfigFlags |=
+        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |=
+        ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+  }
 
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(), renderer_.get());
   ImGui_ImplSDLRenderer2_Init(renderer_.get());
-
-  // Load available fonts
-  const ImGuiIO &io = ImGui::GetIO();
 
   // Define constants
   static const char *KARLA_REGULAR = "assets/font/Karla-Regular.ttf";

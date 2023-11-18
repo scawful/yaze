@@ -12,9 +12,19 @@ namespace core {
 class ExperimentFlags {
  public:
   struct Flags {
+    // Load and render overworld sprites to the screen. Unstable.
     bool kDrawOverworldSprites = false;
+
+    // Bitmap manager abstraction to manage graphics bin of ROM.
     bool kUseBitmapManager = true;
+
+    // Log instructions to the GUI debugger.
     bool kLogInstructions = true;
+
+    // Flag to enable ImGui input config flags. Currently is
+    // handled manually by controller class but should be
+    // ported away from that eventually.
+    bool kUseNewImGuiInput = false;
   };
 
   ExperimentFlags() = default;

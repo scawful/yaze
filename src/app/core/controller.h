@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "absl/status/status.h"
+#include "app/core/common.h"
 #include "app/editor/master_editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
@@ -20,7 +21,7 @@ namespace yaze {
 namespace app {
 namespace core {
 
-class Controller {
+class Controller : public ExperimentFlags {
  public:
   bool IsActive() const;
   absl::Status OnEntry();
