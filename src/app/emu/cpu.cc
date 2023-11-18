@@ -10,16 +10,24 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-void CPU::Update() {
-  auto cycles_to_run = clock.GetCycleCount();
+void CPU::Update(UpdateMode mode, int stepCount) {
+  int cycles = (mode == UpdateMode::Run) ? clock.GetCycleCount() : stepCount;
 
   // Execute the calculated number of cycles
-  for (int i = 0; i < cycles_to_run; i++) {
+  for (int i = 0; i < cycles; i++) {
+    if (IsBreakpoint(PC)) {
+      break;
+    }
+
     // Fetch and execute an instruction
     ExecuteInstruction(FetchByte());
 
     // Handle any interrupts, if necessary
     HandleInterrupts();
+
+    if (mode == UpdateMode::Step) {
+      break;
+    }
   }
 }
 
@@ -1093,6 +1101,11 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
   }
 
+  LogInstructions(PC, opcode, operand, immediate, accumulator_mode);
+}
+
+void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
+                          bool immediate, bool accumulator_mode) {
   if (flags()->kLogInstructions) {
     std::ostringstream oss;
     oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
@@ -1160,7 +1173,7 @@ void CPU::HandleInterrupts() {}
 /**
  * 65816 Instruction Set
  *
- * TODO: MVN, MVP, STP, WDM
+ * TODO: STP, WDM
  */
 
 // ADC: Add with carry
