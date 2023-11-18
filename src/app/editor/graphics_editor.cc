@@ -19,11 +19,14 @@
 #include "app/gui/style.h"
 #include "app/rom.h"
 
-//
-
 namespace yaze {
 namespace app {
 namespace editor {
+
+using ImGui::Button;
+using ImGui::InputInt;
+using ImGui::InputText;
+using ImGui::SameLine;
 
 absl::Status GraphicsEditor::Update() {
   TAB_BAR("##TabBar")
@@ -123,7 +126,7 @@ absl::Status GraphicsEditor::DrawToolset() {
       ImGui::TableSetupColumn(name.data());
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_MEMORY)) {
+    if (Button(ICON_MD_MEMORY)) {
       if (!open_memory_editor_) {
         open_memory_editor_ = true;
       } else {
@@ -140,10 +143,10 @@ absl::Status GraphicsEditor::DrawToolset() {
 
 absl::Status GraphicsEditor::DrawCgxImport() {
   gui::TextWithSeparators("Cgx Import");
-  ImGui::InputInt("BPP", &current_bpp_);
+  InputInt("BPP", &current_bpp_);
 
-  ImGui::InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
-  ImGui::SameLine();
+  InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
+  SameLine();
 
   core::FileDialogPipeline("ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [this]() {
     strncpy(cgx_file_path_,
@@ -172,7 +175,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 }
 
 absl::Status GraphicsEditor::DrawScrImport() {
-  ImGui::InputText("##ScrFile", scr_file_name_, sizeof(scr_file_name_));
+  InputText("##ScrFile", scr_file_name_, sizeof(scr_file_name_));
 
   core::FileDialogPipeline(
       "ImportScrKey", ".SCR,.scr,.BAK\0", "Open SCR", [this]() {
@@ -186,7 +189,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
         scr_loaded_ = true;
       });
 
-  ImGui::InputInt("SCR Mod", &scr_mod_value_);
+  InputInt("SCR Mod", &scr_mod_value_);
 
   core::ButtonPipe("Load Scr Data", [this]() {
     status_ = gfx::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
@@ -207,8 +210,8 @@ absl::Status GraphicsEditor::DrawScrImport() {
 
 absl::Status GraphicsEditor::DrawPaletteControls() {
   gui::TextWithSeparators("COL Import");
-  ImGui::InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
-  ImGui::SameLine();
+  InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
+  SameLine();
 
   core::FileDialogPipeline(
       "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [this]() {
@@ -254,8 +257,8 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
 absl::Status GraphicsEditor::DrawObjImport() {
   gui::TextWithSeparators("OBJ Import");
 
-  ImGui::InputText("##ObjFile", obj_file_path_, sizeof(obj_file_path_));
-  ImGui::SameLine();
+  InputText("##ObjFile", obj_file_path_, sizeof(obj_file_path_));
+  SameLine();
 
   core::FileDialogPipeline(
       "ImportObjKey", ".obj,.OBJ,.bak,.BAK\0", "Open OBJ", [this]() {
@@ -272,9 +275,8 @@ absl::Status GraphicsEditor::DrawObjImport() {
 absl::Status GraphicsEditor::DrawTilemapImport() {
   gui::TextWithSeparators("Tilemap Import");
 
-  ImGui::InputText("##TMapFile", tilemap_file_path_,
-                   sizeof(tilemap_file_path_));
-  ImGui::SameLine();
+  InputText("##TMapFile", tilemap_file_path_, sizeof(tilemap_file_path_));
+  SameLine();
 
   core::FileDialogPipeline(
       "ImportTilemapKey", ".DAT,.dat,.BIN,.bin,.hex,.HEX\0", "Open Tilemap",
@@ -297,8 +299,8 @@ absl::Status GraphicsEditor::DrawTilemapImport() {
 absl::Status GraphicsEditor::DrawFileImport() {
   gui::TextWithSeparators("BIN Import");
 
-  ImGui::InputText("##ROMFile", file_path_, sizeof(file_path_));
-  ImGui::SameLine();
+  InputText("##ROMFile", file_path_, sizeof(file_path_));
+  SameLine();
 
   core::FileDialogPipeline("ImportDlgKey", ".bin,.hex\0", "Open BIN", [this]() {
     strncpy(file_path_, ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
@@ -313,7 +315,7 @@ absl::Status GraphicsEditor::DrawFileImport() {
   gui::InputHex("BIN Offset", &current_offset_);
   gui::InputHex("BIN Size", &bin_size_);
 
-  if (ImGui::Button("Decompress BIN")) {
+  if (Button("Decompress BIN")) {
     if (strlen(file_path_) > 0) {
       RETURN_IF_ERROR(DecompressImportData(bin_size_))
     } else {
@@ -356,7 +358,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
 
 absl::Status GraphicsEditor::DrawExperimentalFeatures() {
   gui::TextWithSeparators("Experimental");
-  if (ImGui::Button("Decompress Super Donkey Full")) {
+  if (Button("Decompress Super Donkey Full")) {
     if (strlen(file_path_) > 0) {
       RETURN_IF_ERROR(DecompressSuperDonkey())
     } else {
