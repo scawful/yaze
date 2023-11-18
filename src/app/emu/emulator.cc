@@ -1,5 +1,7 @@
 #include "app/emu/emulator.h"
 
+#include <imgui/imgui.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -11,8 +13,22 @@ namespace yaze {
 namespace app {
 namespace emu {
 
+namespace {
+bool ShouldDisplay(const InstructionEntry& entry, const char* filter,
+                   bool showAll) {
+  // Implement logic to determine if the entry should be displayed based on the
+  // filter and showAll flag
+  return true;
+}
+}  // namespace
+
+using ImGui::NextColumn;
+using ImGui::SameLine;
+using ImGui::Separator;
+using ImGui::TableNextColumn;
+using ImGui::Text;
+
 void Emulator::Run() {
-  // Initialize the emulator if a ROM is loaded
   if (!snes_.running() && loading_) {
     if (rom()->isLoaded()) {
       snes_.Init(*rom());
@@ -20,15 +36,11 @@ void Emulator::Run() {
     }
   }
 
-  // Render the emulator output
   RenderNavBar();
 
   if (running_) {
-    // Handle user input events
     HandleEvents();
-    // Update the emulator state
     UpdateEmulator();
-
     RenderEmulator();
   }
 
@@ -38,10 +50,6 @@ void Emulator::Run() {
 }
 
 void Emulator::RenderEmulator() {
-  // Get the emulator output and render it to the child window
-  // You can use the ImGui::Image function to display the emulator output as a
-  // texture
-  // ...
   ImVec2 size = ImVec2(320, 240);
   if (snes_.running()) {
     ImGui::Image((void*)snes_.Ppu().GetScreen()->texture(), size, ImVec2(0, 0),
@@ -77,7 +85,6 @@ void Emulator::RenderNavBar() {
   }
 
   if (ImGui::BeginMenu("Debug")) {
-    ImGui::MenuItem("PPU Register Viewer", nullptr, &show_ppu_reg_viewer_);
     MENU_ITEM("Debugger") { debugger_ = !debugger_; }
     if (ImGui::MenuItem("Integrated Debugger", nullptr,
                         &integrated_debugger_mode_)) {
@@ -93,8 +100,8 @@ void Emulator::RenderNavBar() {
   }
 
   if (ImGui::BeginMenu("Options")) {
-    MENU_ITEM("Audio") {}
     MENU_ITEM("Input") {}
+    MENU_ITEM("Audio") {}
     MENU_ITEM("Video") {}
     ImGui::EndMenu();
   }
@@ -116,14 +123,16 @@ void Emulator::RenderDebugger() {
   // Define a lambda with the actual debugger
   auto debugger = [&]() {
     if (ImGui::BeginTable(
-            "DebugTable", 2,
+            "DebugTable", 3,
             ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
-      ImGui::TableNextColumn();
+      TableNextColumn();
       RenderCpuState(snes_.Cpu());
 
-      ImGui::TableNextColumn();
+      TableNextColumn();
       RenderCPUInstructionLog(snes_.Cpu().instruction_log_);
 
+      TableNextColumn();
+      RenderBreakpointList();
       ImGui::EndTable();
     }
   };
@@ -137,46 +146,99 @@ void Emulator::RenderDebugger() {
   }
 }
 
-void Emulator::RenderCpuState(CPU& cpu) {
-  ImGui::Columns(2, "RegistersColumns");
-  ImGui::Separator();
-  ImGui::Text("A: 0x%04X", cpu.A);
-  ImGui::NextColumn();
-  ImGui::Text("D: 0x%04X", cpu.D);
-  ImGui::NextColumn();
-  ImGui::Text("X: 0x%04X", cpu.X);
-  ImGui::NextColumn();
-  ImGui::Text("DB: 0x%02X", cpu.DB);
-  ImGui::NextColumn();
-  ImGui::Text("Y: 0x%04X", cpu.Y);
-  ImGui::NextColumn();
-  ImGui::Text("PB: 0x%02X", cpu.PB);
-  ImGui::NextColumn();
-  ImGui::Text("PC: 0x%04X", cpu.PC);
-  ImGui::NextColumn();
-  ImGui::Text("E: %d", cpu.E);
-  ImGui::NextColumn();
-  ImGui::Columns(1);
-  ImGui::Separator();
-  // Call Stack
-  if (ImGui::CollapsingHeader("Call Stack")) {
-    // For each return address in the call stack:
-    ImGui::Text("Return Address: 0x%08X", 0xFFFFFF);  // Placeholder
+void Emulator::RenderBreakpointList() {
+  Text("Breakpoints");
+  Separator();
+  static char breakpoint_input[10] = "";
+  static int current_memory_mode = 0;
+
+  static bool read_mode = false;
+  static bool write_mode = false;
+  static bool execute_mode = false;
+
+  if (ImGui::Combo("##TypeOfMemory", &current_memory_mode, "PRG\0RAM\0")) {
   }
+
+  ImGui::Checkbox("Read", &read_mode);
+  SameLine();
+  ImGui::Checkbox("Write", &write_mode);
+  SameLine();
+  ImGui::Checkbox("Execute", &execute_mode);
+
+  // Breakpoint input fields and buttons
+  if (ImGui::InputText("##BreakpointInput", breakpoint_input, 10,
+                       ImGuiInputTextFlags_EnterReturnsTrue)) {
+    int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
+    snes_.Cpu().SetBreakpoint(breakpoint);
+    memset(breakpoint_input, 0, sizeof(breakpoint_input));
+  }
+  SameLine();
+  if (ImGui::Button("Add")) {
+    int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
+    snes_.Cpu().SetBreakpoint(breakpoint);
+    memset(breakpoint_input, 0, sizeof(breakpoint_input));
+  }
+  SameLine();
+  if (ImGui::Button("Clear")) {
+    snes_.Cpu().ClearBreakpoints();
+  }
+  Separator();
+  auto breakpoints = snes_.Cpu().GetBreakpoints();
+  if (!breakpoints.empty()) {
+    Text("Breakpoints:");
+    ImGui::BeginChild("BreakpointsList", ImVec2(0, 100), true);
+    for (auto breakpoint : breakpoints) {
+      if (ImGui::Selectable(absl::StrFormat("0x%04X", breakpoint).c_str())) {
+        // Jump to breakpoint
+        // snes_.Cpu().JumpToBreakpoint(breakpoint);
+      }
+    }
+    ImGui::EndChild();
+  }
+}
+
+void Emulator::RenderCpuState(CPU& cpu) {
+  if (ImGui::CollapsingHeader("Register Values",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::Columns(2, "RegistersColumns");
+    Separator();
+    Text("A: 0x%04X", cpu.A);
+    NextColumn();
+    Text("D: 0x%04X", cpu.D);
+    NextColumn();
+    Text("X: 0x%04X", cpu.X);
+    NextColumn();
+    Text("DB: 0x%02X", cpu.DB);
+    NextColumn();
+    Text("Y: 0x%04X", cpu.Y);
+    NextColumn();
+    Text("PB: 0x%02X", cpu.PB);
+    NextColumn();
+    Text("PC: 0x%04X", cpu.PC);
+    NextColumn();
+    Text("E: %d", cpu.E);
+    NextColumn();
+    ImGui::Columns(1);
+    Separator();
+  }
+  // Call Stack
+  if (ImGui::CollapsingHeader("Call Stack", ImGuiTreeNodeFlags_DefaultOpen)) {
+    // For each return address in the call stack:
+    Text("Return Address: 0x%08X", 0xFFFFFF);  // Placeholder
+  }
+
+  static int debugger_mode_ = 0;
+  const char* debugger_modes_[] = {"Run", "Step", "Pause"};
+  Text("Mode");
+  ImGui::ListBox("##DebuggerMode", &debugger_mode_, debugger_modes_,
+                 IM_ARRAYSIZE(debugger_modes_));
+
+  snes_.SetCpuMode(debugger_mode_);
 }
 
 void Emulator::RenderMemoryViewer() {
   // Render memory viewer
 }
-
-namespace {
-bool ShouldDisplay(const InstructionEntry& entry, const char* filter,
-                   bool showAll) {
-  // Implement logic to determine if the entry should be displayed based on the
-  // filter and showAll flag
-  return true;
-}
-}  // namespace
 
 void Emulator::RenderCPUInstructionLog(
     const std::vector<InstructionEntry>& instructionLog) {
@@ -193,7 +255,8 @@ void Emulator::RenderCPUInstructionLog(
     ImGui::Checkbox("Show All Opcodes", &showAllOpcodes);
 
     // Instruction list
-    ImGui::BeginChild("InstructionList");
+    ImGui::BeginChild("InstructionList", ImVec2(0, 0),
+                      ImGuiChildFlags_AlwaysAutoResize);
     for (const auto& entry : instructionLog) {
       if (ShouldDisplay(entry, filterBuf, showAllOpcodes)) {
         if (ImGui::Selectable(absl::StrFormat("%04X: %02X %s %s", entry.address,

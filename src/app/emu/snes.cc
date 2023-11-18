@@ -240,7 +240,7 @@ void SNES::Run() {
 
     // Update the CPU
     cpu.UpdateClock(delta_time);
-    cpu.Update();
+    cpu.Update(GetCpuMode());
 
     // Update the PPU
     ppu.UpdateClock(delta_time);

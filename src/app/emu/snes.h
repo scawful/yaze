@@ -66,6 +66,11 @@ class SNES : public DMA {
   auto Cpu() -> CPU& { return cpu; }
   auto Ppu() -> PPU& { return ppu; }
 
+  void SetCpuMode(int mode) { cpu_mode_ = mode; }
+  CPU::UpdateMode GetCpuMode() const {
+    return static_cast<CPU::UpdateMode>(cpu_mode_);
+  }
+
  private:
   void WriteToRegister(uint16_t address, uint8_t value) {
     memory_.WriteByte(address, value);
@@ -96,6 +101,7 @@ class SNES : public DMA {
   // Other private member variables
   bool running_ = false;
   int scanline;
+  int cpu_mode_ = 0;
 };
 
 }  // namespace emu

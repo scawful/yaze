@@ -30,19 +30,18 @@ class Emulator : public SharedROM {
   void UpdateEmulator();
 
   void RenderDebugger();
+  void RenderBreakpointList();
   void RenderCpuState(CPU& cpu);
   void RenderMemoryViewer();
 
   void RenderCPUInstructionLog(
       const std::vector<InstructionEntry>& instructionLog);
 
-  // Member variables to store internal state and resources
   SNES snes_;
 
   bool running_ = false;
-  bool debugger_ = false;
+  bool debugger_ = true;
   bool loading_ = false;
-  bool show_ppu_reg_viewer_ = false;
   bool integrated_debugger_mode_ = true;
   bool separate_debugger_mode_ = false;
 };
