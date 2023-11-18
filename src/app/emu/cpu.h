@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EMU_CPU_H_
 #define YAZE_APP_EMU_CPU_H_
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <unordered_map>
