@@ -140,7 +140,7 @@ class Room : public SharedROM {
   uint8_t layout = 0;
 
   uint16_t message_id_ = 0;
-  
+
   gfx::Bitmap current_graphics_;
 
  private:

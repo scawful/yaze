@@ -15,7 +15,7 @@ namespace app {
 namespace editor {
 
 void DungeonEditor::Update() {
-  if (!is_loaded_) {
+  if (!is_loaded_ && rom()->isLoaded()) {
     for (int i = 0; i < 0x100; i++) {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
@@ -56,9 +56,6 @@ void DungeonEditor::Update() {
     ImGui::TableNextColumn();
     DrawDungeonTabView();
     ImGui::TableNextColumn();
-    if (ImGui::Button("dungeon object renderer")) {
-      object_renderer_.RenderObjectsAsBitmaps();
-    }
     DrawTileSelector();
     ImGui::EndTable();
   }
@@ -158,7 +155,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 }
 
 void DungeonEditor::DrawToolset() {
-  if (ImGui::BeginTable("DWToolset", 9, ImGuiTableFlags_SizingFixedFit,
+  if (ImGui::BeginTable("DWToolset", 10, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#undoTool");
     ImGui::TableSetupColumn("#redoTool");
@@ -196,6 +193,12 @@ void DungeonEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button("Load Dungeon Objects")) {
+      // object_renderer_.CreateVramFromRoomBlockset();
+      object_renderer_.RenderObjectsAsBitmaps(*rom());
+    }
     ImGui::EndTable();
   }
 }
