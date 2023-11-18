@@ -160,7 +160,6 @@ absl::Status Tile16Editor::InitBlockset(
   map_blockset_loaded_ = true;
   return absl::OkStatus();
 }
- 
 
 }  // namespace editor
 }  // namespace app
