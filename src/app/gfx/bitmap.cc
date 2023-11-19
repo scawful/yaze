@@ -104,24 +104,6 @@ void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
   GrayscalePalette(surface_->format->palette);
 }
 
-void Bitmap::CreateFromSurface(SDL_Surface *surface) {
-  active_ = true;
-  width_ = surface->w;
-  height_ = surface->h;
-  depth_ = 8;
-  pixel_data_ = static_cast<uchar *>(surface->pixels);
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                     SDL_PIXELFORMAT_INDEX8),
-      SDL_Surface_Deleter());
-  surface_->pixels = pixel_data_;
-}
-
-void Bitmap::Apply(Bytes data) {
-  pixel_data_ = data.data();
-  data_ = data;
-}
-
 // Creates the texture that will be displayed to the screen.
 void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
   texture_ = std::shared_ptr<SDL_Texture>{
@@ -175,6 +157,43 @@ void Bitmap::ApplyPalette(const std::vector<SDL_Color> &palette) {
     surface_->format->palette->colors[i].a = palette[i].a;
   }
   SDL_LockSurface(surface_.get());
+}
+
+absl::Status Bitmap::InitializeFromData(uint32_t width, uint32_t height,
+                                        uint32_t depth, const Bytes &data) {
+  if (width == 0 || height == 0 || depth == 0) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Invalid arguments: width: ", width, ", height: ", height,
+                     ", depth: ", depth));
+  }
+
+  active_ = true;
+  width_ = width;
+  height_ = height;
+  depth_ = depth;
+  data_ = data;
+
+  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
+                                     SDL_PIXELFORMAT_INDEX8),
+      SDL_Surface_Deleter());
+
+  if (surface_ == nullptr) {
+    return absl::InternalError("Failed to create surface.");
+  }
+
+  surface_->pixels = data_.data();
+  GrayscalePalette(surface_->format->palette);
+  return absl::OkStatus();
+}
+
+void Bitmap::ReserveData(uint32_t width, uint32_t height, uint32_t depth,
+                         uint32_t size) {
+  width_ = width;
+  height_ = height;
+  depth_ = depth;
+  data_.reserve(size);
+  pixel_data_ = data_.data();
 }
 
 }  // namespace gfx

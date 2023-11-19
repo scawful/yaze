@@ -22,8 +22,6 @@ class Bitmap {
   Bitmap() = default;
 
   Bitmap(int width, int height, int depth, int data_size);
-  // Bitmap(int width, int height, int depth, Bytes data);
-
   Bitmap(int width, int height, int depth, const Bytes &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
     CreateTextureFromData();
@@ -48,13 +46,14 @@ class Bitmap {
   void Create(int width, int height, int depth, int data_size);
   void Create(int width, int height, int depth, const Bytes &data);
 
+  absl::Status InitializeFromData(uint32_t width, uint32_t height,
+                                  uint32_t depth, const Bytes &data);
+  void ReserveData(uint32_t width, uint32_t height, uint32_t depth,
+                   uint32_t size);
+
   [[deprecated]] void Create(int width, int height, int depth, uchar *data);
   [[deprecated]] void Create(int width, int height, int depth, uchar *data,
                              int data_size);
-
-  void CreateFromSurface(SDL_Surface *surface);
-
-  void Apply(Bytes data);
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
