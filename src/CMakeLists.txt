@@ -11,11 +11,11 @@ set(
   app/editor/dungeon_editor.cc
   app/editor/graphics_editor.cc
   app/editor/master_editor.cc
-  app/editor/music_editor.cc
   app/editor/overworld_editor.cc
-  app/editor/palette_editor.cc
   app/editor/screen_editor.cc
   app/editor/sprite_editor.cc
+  app/editor/resources/music_editor.cc
+  app/editor/resources/palette_editor.cc
   app/editor/modules/assembly_editor.cc
   app/editor/modules/tile16_editor.cc
   app/editor/modules/gfx_group_editor.cc
