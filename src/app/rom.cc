@@ -405,11 +405,16 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
   }
 
   // Run the other save functions
-  // SaveAllPalettes();
-  while (!changes_.empty()) {
-    auto change = changes_.top();
-    change();
-    changes_.pop();
+  if (flags()->kSaveAllPalettes) {
+    SaveAllPalettes();
+  }
+
+  if (flags()->kSaveWithChangeQueue) {
+    while (!changes_.empty()) {
+      auto change = changes_.top();
+      change();
+      changes_.pop();
+    }
   }
 
   // Open the file that we know exists for writing

@@ -25,6 +25,10 @@ class ExperimentFlags {
     // handled manually by controller class but should be
     // ported away from that eventually.
     bool kUseNewImGuiInput = false;
+
+    bool kSaveAllPalettes = false;
+
+    bool kSaveWithChangeQueue = false;
   };
 
   ExperimentFlags() = default;
