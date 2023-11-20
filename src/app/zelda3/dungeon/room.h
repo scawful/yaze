@@ -21,15 +21,12 @@ namespace zelda3 {
 namespace dungeon {
 
 constexpr int entrance_gfx_group = 0x5D97;
-constexpr int gfx_animated_pointer = 0x10275;  // JP 0x10624 //long pointer
-
-constexpr int dungeons_palettes_groups = 0x75460;           // JP 0x67DD0
 constexpr int dungeons_main_bg_palette_pointers = 0xDEC4B;  // JP Same
 constexpr int dungeons_palettes = 0xDD734;
-constexpr int room_items_pointers = 0xDB69;    // JP 0xDB67
-constexpr int rooms_sprite_pointer = 0x4C298;  // JP Same //2byte bank 09D62E
-constexpr int room_header_pointer = 0xB5DD;    // LONG
-constexpr int room_header_pointers_bank = 0xB5E7;  // JP Same
+constexpr int room_items_pointers = 0xDB69;     // JP 0xDB67
+constexpr int rooms_sprite_pointer = 0x4C298;   // JP Same //2byte bank 09D62E
+constexpr int kRoomHeaderPointer = 0xB5DD;      // LONG
+constexpr int kRoomHeaderPointerBank = 0xB5E7;  // JP Same
 constexpr int gfx_groups_pointer = 0x6237;
 constexpr int room_object_layout_pointer = 0x882D;
 constexpr int room_object_pointer = 0x874C;  // Long pointer
@@ -119,18 +116,19 @@ class Room : public SharedROM {
   Room(int room_id) : room_id_(room_id) {}
   ~Room() = default;
   void LoadHeader();
-  void LoadSprites();
-  void LoadChests();
-
-  void LoadObjects();
-
-  RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
-                       uint8_t layer);
-
   void LoadRoomGraphics(uchar entrance_blockset = 0xFF);
   void LoadAnimatedGraphics();
 
+  void LoadSprites();
+  void LoadChests();
+  void LoadObjects();
+
   void LoadRoomFromROM();
+
+  RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
+                       uint8_t layer) {
+    return RoomObject(oid, x, y, size, layer);
+  }
 
   uint8_t floor1 = 0;
   uint8_t floor2 = 0;
@@ -142,14 +140,18 @@ class Room : public SharedROM {
   uint16_t message_id_ = 0;
 
   gfx::Bitmap current_graphics_;
+  std::vector<uint8_t> bg1_buffer_;
+  std::vector<uint8_t> bg2_buffer_;
+  std::vector<uint8_t> current_gfx16_;
 
  private:
+  bool is_loaded_ = false;
+
   int animated_frame = 0;
 
   int room_id_ = 0;
 
   bool light;
-  bool is_loaded_ = false;
   Background2 bg2;
 
   uint8_t staircase_plane[4];
@@ -182,7 +184,6 @@ class Room : public SharedROM {
 
   // std::vector<Chest> chest_list;
   std::vector<ChestData> chests_in_room;
-  std::vector<uint8_t> current_gfx16_;
   std::vector<RoomObject> tilesObjects;
 };
 

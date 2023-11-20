@@ -51,7 +51,7 @@ enum class Z3_Version {
 
 // Define a struct to hold the version-specific constants
 struct VersionConstants {
-  uint32_t kGgxAnimatedPointer;
+  uint32_t kGfxAnimatedPointer;
   uint32_t kOverworldGfxGroups1;
   uint32_t kOverworldGfxGroups2;
   uint32_t kCompressedAllMap32PointersHigh;
@@ -68,13 +68,14 @@ struct VersionConstants {
   uint32_t kMap32TileBL;
   uint32_t kMap32TileBR;
   uint32_t kSpriteBlocksetPointer;
+  uint32_t kDungeonPalettesGroups;
 };
 
 // Define a map to hold the version constants for each version
 static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::US,
      {
-         0x10275,  // kGgxAnimatedPointer
+         0x10275,  // kGfxAnimatedPointer
          0x5D97,   // kOverworldGfxGroups1
          0x6073,   // kOverworldGfxGroups2
          0x1794D,  // kCompressedAllMap32PointersHigh
@@ -91,10 +92,11 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x20000,  // kMap32TileBL
          0x23400,  // kMap32TileBR
          0x5B57,   // kSpriteBlocksetPointer
+         0x75460,  // kDungeonPalettesGroups
      }},
     {Z3_Version::JP,
      {
-         0x10624,  // kGgxAnimatedPointer
+         0x10624,  // kGfxAnimatedPointer
          0x5DD7,   // kOverworldGfxGroups1
          0x60B3,   // kOverworldGfxGroups2
          0x176B1,  // kCompressedAllMap32PointersHigh
@@ -111,6 +113,7 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x20000,  // kMap32TileBL
          0x233C0,  // kMap32TileBR
          0x5B97,   // kSpriteBlocksetPointer
+         0x67DD0,  // kDungeonPalettesGroups
      }}};
 
 // Define some constants used throughout the ROM class
@@ -125,6 +128,7 @@ constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kLinkSpriteLocation = 0x80000;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
+constexpr uint32_t gfx_groups_pointer = 0x6237;
 
 struct WriteAction {
   int address;
@@ -280,6 +284,15 @@ class ROM : public core::ExperimentFlags {
       return absl::InvalidArgumentError("Offset out of range");
     }
     auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+    return result;
+  }
+
+  absl::StatusOr<uint32_t> ReadShortLong(int offset) {
+    if (offset + 2 >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Offset out of range");
+    }
+    auto result = (uint32_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8) |
+                             (rom_data_[offset + 2] << 16));
     return result;
   }
 
@@ -477,8 +490,8 @@ class ROM : public core::ExperimentFlags {
     spriteset_ids.resize(144, std::vector<uint8_t>(4));
     paletteset_ids.resize(72, std::vector<uint8_t>(4));
 
-    int gfxPointer = (rom_data_[core::gfx_groups_pointer + 1] << 8) +
-                     rom_data_[core::gfx_groups_pointer];
+    int gfxPointer = (rom_data_[gfx_groups_pointer + 1] << 8) +
+                     rom_data_[gfx_groups_pointer];
     gfxPointer = core::SnesToPc(gfxPointer);
 
     for (int i = 0; i < 37; i++) {
@@ -505,14 +518,15 @@ class ROM : public core::ExperimentFlags {
     for (int i = 0; i < 72; i++) {
       for (int j = 0; j < 4; j++) {
         paletteset_ids[i][j] =
-            rom_data_[core::dungeons_palettes_groups + (i * 4) + j];
+            rom_data_[GetVersionConstants().kDungeonPalettesGroups + (i * 4) +
+                      j];
       }
     }
   }
 
   bool SaveGroupsToROM() {
-    int gfxPointer = (rom_data_[core::gfx_groups_pointer + 1] << 8) +
-                     rom_data_[core::gfx_groups_pointer];
+    int gfxPointer = (rom_data_[gfx_groups_pointer + 1] << 8) +
+                     rom_data_[gfx_groups_pointer];
     gfxPointer = core::SnesToPc(gfxPointer);
 
     for (int i = 0; i < 37; i++) {
@@ -537,7 +551,7 @@ class ROM : public core::ExperimentFlags {
 
     for (int i = 0; i < 72; i++) {
       for (int j = 0; j < 4; j++) {
-        rom_data_[core::dungeons_palettes_groups + (i * 4) + j] =
+        rom_data_[GetVersionConstants().kDungeonPalettesGroups + (i * 4) + j] =
             paletteset_ids[i][j];
       }
     }
