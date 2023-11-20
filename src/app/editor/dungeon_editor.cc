@@ -14,12 +14,12 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-void DungeonEditor::Update() {
+absl::Status DungeonEditor::Update() {
   if (!is_loaded_ && rom()->isLoaded()) {
     for (int i = 0; i < 0x100; i++) {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
-      // rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
+      rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
     }
     is_loaded_ = true;
   }
@@ -59,19 +59,13 @@ void DungeonEditor::Update() {
     DrawTileSelector();
     ImGui::EndTable();
   }
+  return absl::OkStatus();
 }
 
 // Using ImGui Custom Tabs show each individual room the user selects from the
 // Buttons above to open a canvas for each individual room.
 void DungeonEditor::DrawDungeonTabView() {
   static int next_tab_id = 0;
-
-  // TabItemButton() and Leading/Trailing flags are distinct features which we
-  // will demo together. (It is possible to submit regular tabs with
-  // Leading/Trailing flags, or TabItemButton tabs without Leading/Trailing
-  // flags... but they tend to make more sense together)
-  static bool show_trailing_button = true;
-  ImGui::Checkbox("Show Trailing TabItemButton()", &show_trailing_button);
 
   // Expose some other flags which are useful to showcase how they interact with
   // Leading/Trailing tabs
@@ -92,14 +86,11 @@ void DungeonEditor::DrawDungeonTabView() {
                        ImGuiTabBarFlags_FittingPolicyScroll);
 
   if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags)) {
-    // Demo Trailing Tabs: click the "+" button to add a new tab (in your app
-    // you may want to use a font icon instead of the "+") Note that we submit
-    // it before the regular tabs, but because of the ImGuiTabItemFlags_Trailing
-    // flag it will always appear at the end.
-    if (show_trailing_button)
-      if (ImGui::TabItemButton(
-              "+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
-        active_rooms_.push_back(next_tab_id++);  // Add new tab
+    // TODO: Manage the room that is being added to the tab bar.
+    if (ImGui::TabItemButton(
+            "+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+      active_rooms_.push_back(next_tab_id++);  // Add new tab
+    }
 
     // Submit our regular tabs
     for (int n = 0; n < active_rooms_.Size;) {
@@ -168,10 +159,14 @@ void DungeonEditor::DrawToolset() {
     ImGui::TableSetupColumn("#spriteTool");
 
     ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_UNDO);
+    if (ImGui::Button(ICON_MD_UNDO)) {
+      PRINT_IF_ERROR(Undo());
+    }
 
     ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_REDO);
+    if (ImGui::Button(ICON_MD_REDO)) {
+      PRINT_IF_ERROR(Redo());
+    }
 
     ImGui::TableNextColumn();
     ImGui::Button(ICON_MD_MANAGE_HISTORY);

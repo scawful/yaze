@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "app/core/common.h"
+#include "app/core/editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/rom.h"
@@ -14,9 +15,14 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class DungeonEditor : public SharedROM {
+class DungeonEditor : public Editor, public SharedROM {
  public:
-  void Update();
+  absl::Status Update() override;
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
 
  private:
   void DrawToolset();
@@ -26,6 +32,7 @@ class DungeonEditor : public SharedROM {
   void DrawRoomGraphics();
   void DrawTileSelector();
 
+  uint16_t current_room_id_ = 0;
   bool is_loaded_ = false;
 
   gfx::Bitmap room_gfx_bmp_;

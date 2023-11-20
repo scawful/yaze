@@ -80,14 +80,14 @@ void DrawDungeonRoomBG2(std::vector<uint8_t>& tiles_bg2_buffer,
 
 void Room::LoadHeader() {
   // Address of the room header
-  int headerPointer = (rom()->data()[core::room_header_pointer + 2] << 16) +
-                      (rom()->data()[core::room_header_pointer + 1] << 8) +
-                      (rom()->data()[core::room_header_pointer]);
-  headerPointer = core::SnesToPc(headerPointer);
+  int header_pointer = (rom()->data()[kRoomHeaderPointer + 2] << 16) +
+                       (rom()->data()[kRoomHeaderPointer + 1] << 8) +
+                       (rom()->data()[kRoomHeaderPointer]);
+  header_pointer = core::SnesToPc(header_pointer);
 
-  int address = (rom()->data()[core::room_header_pointers_bank] << 16) +
-                (rom()->data()[(headerPointer + 1) + (room_id_ * 2)] << 8) +
-                rom()->data()[(headerPointer) + (room_id_ * 2)];
+  int address = (rom()->data()[kRoomHeaderPointerBank] << 16) +
+                (rom()->data()[(header_pointer + 1) + (room_id_ * 2)] << 8) +
+                rom()->data()[(header_pointer) + (room_id_ * 2)];
 
   auto header_location = core::SnesToPc(address);
 
@@ -134,6 +134,79 @@ void Room::LoadHeader() {
   staircase_rooms[1] = (rom()->data()[header_location + 11]);
   staircase_rooms[2] = (rom()->data()[header_location + 12]);
   staircase_rooms[3] = (rom()->data()[header_location + 13]);
+}
+
+void Room::LoadRoomGraphics(uchar entrance_blockset) {
+  auto mainGfx = rom()->main_blockset_ids;
+  auto roomGfx = rom()->room_blockset_ids;
+  auto spriteGfx = rom()->spriteset_ids;
+  current_gfx16_.reserve(0x4000);
+
+  for (int i = 0; i < 8; i++) {
+    blocks[i] = mainGfx[BackgroundTileset][i];
+    if (i >= 6 && i <= 6) {
+      // 3-6
+      if (entrance_blockset != 0xFF) {
+        // 6 is wrong for the entrance? -NOP need to fix that
+        // TODO: Find why this is wrong - Thats because of the stairs need to
+        // find a workaround
+        if (roomGfx[entrance_blockset][i - 3] != 0) {
+          blocks[i] = roomGfx[entrance_blockset][i - 3];
+        }
+      }
+    }
+  }
+
+  blocks[8] = 115 + 0;  // Static Sprites Blocksets (fairy,pot,ect...)
+  blocks[9] = 115 + 10;
+  blocks[10] = 115 + 6;
+  blocks[11] = 115 + 7;
+  for (int i = 0; i < 4; i++) {
+    blocks[12 + i] = (uchar)(spriteGfx[SpriteTileset + 64][i] + 115);
+  }  // 12-16 sprites
+
+  auto gfx_buffer_data = rom()->GetGraphicsBuffer();
+
+  // Into "room gfx16" 16 of them
+  int sheetPos = 0;
+  for (int i = 0; i < 16; i++) {
+    int d = 0;
+    int ioff = blocks[i] * 2048;
+    while (d < 2048) {
+      // NOTE LOAD BLOCKSETS SOMEWHERE FIRST
+      uchar mapByte = gfx_buffer_data[d + ioff];
+      if (i < 4) {
+        mapByte += 0x88;
+      }  // Last line of 6, first line of 7 ?
+
+      current_gfx16_[d + sheetPos] = mapByte;
+      d++;
+    }
+
+    sheetPos += 2048;
+  }
+
+  LoadAnimatedGraphics();
+}
+
+void Room::LoadAnimatedGraphics() {
+  int gfx_ptr =
+      core::SnesToPc(rom()->GetVersionConstants().kGfxAnimatedPointer);
+
+  auto gfx_buffer_data = rom()->GetGraphicsBuffer();
+  auto rom_data = rom()->vector();
+  int data = 0;
+  while (data < 512) {
+    uchar mapByte =
+        gfx_buffer_data[data + (92 * 2048) + (512 * animated_frame)];
+    current_gfx16_[data + (7 * 2048)] = mapByte;
+
+    mapByte =
+        gfx_buffer_data[data + (rom_data[gfx_ptr + BackgroundTileset] * 2048) +
+                        (512 * animated_frame)];
+    current_gfx16_[data + (7 * 2048) - 512] = mapByte;
+    data++;
+  }
 }
 
 void Room::LoadSprites() {
@@ -347,95 +420,15 @@ void Room::LoadObjects() {
   }
 }
 
-RoomObject Room::AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
-                           uint8_t layer) {
-  return RoomObject(oid, x, y, size, layer);
-}
-
-void Room::LoadRoomGraphics(uchar entrance_blockset) {
-  auto mainGfx = rom()->main_blockset_ids;
-  auto roomGfx = rom()->room_blockset_ids;
-  auto spriteGfx = rom()->spriteset_ids;
-
-  for (int i = 0; i < 8; i++) {
-    blocks[i] = mainGfx[BackgroundTileset][i];
-    if (i >= 6 && i <= 6) {
-      // 3-6
-      if (entrance_blockset != 0xFF) {
-        // 6 is wrong for the entrance? -NOP need to fix that
-        // TODO: Find why this is wrong - Thats because of the stairs need to
-        // find a workaround
-        if (roomGfx[entrance_blockset][i - 3] != 0) {
-          blocks[i] = roomGfx[entrance_blockset][i - 3];
-        }
-      }
-    }
-  }
-
-  blocks[8] = 115 + 0;  // Static Sprites Blocksets (fairy,pot,ect...)
-  blocks[9] = 115 + 10;
-  blocks[10] = 115 + 6;
-  blocks[11] = 115 + 7;
-  for (int i = 0; i < 4; i++) {
-    blocks[12 + i] = (uchar)(spriteGfx[SpriteTileset + 64][i] + 115);
-  }  // 12-16 sprites
-
-  auto newPdata = rom()->GetGraphicsBuffer();
-
-  uchar* sheetsData = current_graphics_.data();
-  // Into "room gfx16" 16 of them
-
-  int sheetPos = 0;
-  for (int i = 0; i < 16; i++) {
-    int d = 0;
-    int ioff = blocks[i] * 2048;
-    while (d < 2048) {
-      // NOTE LOAD BLOCKSETS SOMEWHERE FIRST
-      uchar mapByte = newPdata[d + ioff];
-      if (i < 4)  // removed switch
-      {
-        mapByte += 0x88;
-      }  // Last line of 6, first line of 7 ?
-
-      sheetsData[d + sheetPos] = mapByte;
-      d++;
-    }
-
-    sheetPos += 2048;
-  }
-
-  LoadAnimatedGraphics();
-}
-
-void Room::LoadAnimatedGraphics() {
-  int gfxanimatedPointer = core::SnesToPc(gfx_animated_pointer);
-
-  auto newPdata = rom()->GetGraphicsBuffer();
-  auto rom_data = rom()->vector();
-  uchar* sheetsData = current_graphics_.data();
-  int data = 0;
-  while (data < 512) {
-    uchar mapByte = newPdata[data + (92 * 2048) + (512 * animated_frame)];
-    sheetsData[data + (7 * 2048)] = mapByte;
-
-    mapByte =
-        newPdata[data +
-                 (rom_data[gfxanimatedPointer + BackgroundTileset] * 2048) +
-                 (512 * animated_frame)];
-    sheetsData[data + (7 * 2048) - 512] = mapByte;
-    data++;
-  }
-}
-
 void Room::LoadRoomFromROM() {
   // Load dungeon header
   auto rom_data = rom()->vector();
-  int headerPointer = core::SnesToPc(room_header_pointer);
+  int header_pointer = core::SnesToPc(kRoomHeaderPointer);
 
   message_id_ = messages_id_dungeon + (room_id_ * 2);
 
-  int hpos = core::SnesToPc((rom_data[room_header_pointers_bank] << 16) |
-                            headerPointer + (room_id_ * 2));
+  int hpos = core::SnesToPc((rom_data[kRoomHeaderPointerBank] << 16) |
+                            header_pointer + (room_id_ * 2));
   hpos++;
   uchar b = rom_data[hpos];
 
