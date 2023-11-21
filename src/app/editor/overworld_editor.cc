@@ -34,13 +34,18 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 absl::Status OverworldEditor::Update() {
-  // Initialize overworld graphics, maps, and palettes
   if (rom()->isLoaded() && !all_gfx_loaded_) {
+    // Initialize overworld graphics, maps, and palettes
     RETURN_IF_ERROR(LoadGraphics())
     RETURN_IF_ERROR(tile16_editor_.InitBlockset(
         tile16_blockset_bmp_, tile16_individual_, tile8_individual_));
     gfx_group_editor_.InitBlockset(tile16_blockset_bmp_);
     all_gfx_loaded_ = true;
+  } else if (!rom()->isLoaded() && all_gfx_loaded_) {
+    // Reset the editor if the ROM is unloaded
+    Shutdown();
+    all_gfx_loaded_ = false;
+    map_blockset_loaded_ = false;
   }
 
   // Draws the toolset for editing the Overworld.

@@ -13,8 +13,8 @@
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
 #include "app/editor/modules/assembly_editor.h"
-#include "app/editor/resources/music_editor.h"
 #include "app/editor/overworld_editor.h"
+#include "app/editor/resources/music_editor.h"
 #include "app/editor/resources/palette_editor.h"
 #include "app/editor/screen_editor.h"
 #include "app/editor/sprite_editor.h"
@@ -84,7 +84,7 @@ void MasterEditor::UpdateScreen() {
   END_TAB_ITEM()
 
   TAB_ITEM("Dungeon")
-  dungeon_editor_.Update();
+  status_ = dungeon_editor_.Update();
   END_TAB_ITEM()
 
   TAB_ITEM("Graphics")
@@ -146,7 +146,7 @@ void MasterEditor::DrawAboutPopup() {
   if (about_) ImGui::OpenPopup("About");
   if (ImGui::BeginPopupModal("About", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Yet Another Zelda3 Editor - v0.02");
+    ImGui::Text("Yet Another Zelda3 Editor - v0.05");
     ImGui::Text("Written by: scawful");
     ImGui::Spacing();
     ImGui::Text("Special Thanks: Zarby89, JaredBrian");
@@ -183,6 +183,7 @@ void MasterEditor::DrawYazeMenu() {
   DrawHelpMenu();
   END_MENU_BAR()
 }
+
 void MasterEditor::DrawFileMenu() {
   static bool save_as_menu = false;
 
@@ -212,6 +213,13 @@ void MasterEditor::DrawFileMenu() {
                       &mutable_flags()->kUseBitmapManager);
       ImGui::Checkbox("Log Instructions to Debugger",
                       &mutable_flags()->kLogInstructions);
+      ImGui::Checkbox("Use New ImGui Input",
+                      &mutable_flags()->kUseNewImGuiInput);
+      ImGui::Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
+      ImGui::Checkbox("Save With Change Queue",
+                      &mutable_flags()->kSaveWithChangeQueue);
+      ImGui::Checkbox("Draw Dungeon Room Graphics",
+                      &mutable_flags()->kDrawDungeonRoomGraphics);
       ImGui::EndMenu();
     }
 

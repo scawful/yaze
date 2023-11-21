@@ -26,9 +26,16 @@ class ExperimentFlags {
     // ported away from that eventually.
     bool kUseNewImGuiInput = false;
 
+    // Flag to enable the saving of all palettes to the ROM.
     bool kSaveAllPalettes = false;
 
+    // Flag to enable the change queue, which could have any anonymous
+    // save routine for the ROM. In practice, just the overworld tilemap
+    // and tile32 save.
     bool kSaveWithChangeQueue = false;
+
+    // Attempt to run the dungeon room draw routine when opening a room.
+    bool kDrawDungeonRoomGraphics = false;
   };
 
   ExperimentFlags() = default;

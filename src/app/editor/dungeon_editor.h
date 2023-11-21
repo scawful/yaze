@@ -15,7 +15,9 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class DungeonEditor : public Editor, public SharedROM {
+class DungeonEditor : public Editor,
+                      public SharedROM,
+                      public core::ExperimentFlags {
  public:
   absl::Status Update() override;
   absl::Status Cut() override { return absl::OkStatus(); }
