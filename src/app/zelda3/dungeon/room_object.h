@@ -19,7 +19,7 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-class DungeonObjectRenderer {
+class DungeonObjectRenderer : public SharedROM {
  public:
   struct PseudoVram {
     std::vector<gfx::Bitmap> sheets;
@@ -36,15 +36,16 @@ class DungeonObjectRenderer {
     // }
   }
 
-  void RenderObjectsAsBitmaps(ROM& rom) {
-    memory_.Initialize(rom.vector());
+  void RenderObjectsAsBitmaps() {
+    rom_data_ = rom()->vector();
+    memory_.Initialize(rom_data_);
     cpu.Init();
 
     auto subtype1_ptr = core::subtype1_tiles;
     auto subtype1_routine_ptr = core::subtype1_tiles + 0x200;
     std::array<uint16_t, 256> routine_ptrs;
     for (int i = 0; i < 256; i++) {
-      uint16_t actual_ptr = rom.toint16(subtype1_routine_ptr + (i * 2));
+      uint16_t actual_ptr = rom()->toint16(subtype1_routine_ptr + (i * 2));
       routine_ptrs[i] = actual_ptr;
       std::cout << std::hex << routine_ptrs[i] << std::endl;
     }
