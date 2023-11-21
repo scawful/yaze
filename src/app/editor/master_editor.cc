@@ -24,6 +24,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/style.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
 
@@ -176,12 +177,45 @@ void MasterEditor::DrawInfoPopup() {
 }
 
 void MasterEditor::DrawYazeMenu() {
+  static bool show_display_settings = false;
+  static bool show_command_line_interface = false;
+
   MENU_BAR()
   DrawFileMenu();
   DrawEditMenu();
   DrawViewMenu();
   DrawHelpMenu();
+
+  ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
+                  ImGui::CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
+  // Modify the style of the button to have no background color
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  if (ImGui::Button(ICON_MD_DISPLAY_SETTINGS)) {
+    show_display_settings = !show_display_settings;
+  }
+
+  if (ImGui::Button(ICON_MD_TERMINAL)) {
+    show_command_line_interface = !show_command_line_interface;
+  }
+  ImGui::PopStyleColor();
+
+  ImGui::Text(absl::StrCat("yaze v", core::kYazeVersion).c_str());
+
   END_MENU_BAR()
+
+  if (show_display_settings) {
+    ImGui::Begin("Display Settings", &show_display_settings,
+                 ImGuiWindowFlags_None);
+    gui::DrawDisplaySettings();
+    ImGui::End();
+  }
+
+  if (show_command_line_interface) {
+    ImGui::Begin("Command Line Interface", &show_command_line_interface,
+                 ImGuiWindowFlags_None);
+    ImGui::Text("Enter a command:");
+    ImGui::End();
+  }
 }
 
 void MasterEditor::DrawFileMenu() {
@@ -266,7 +300,6 @@ void MasterEditor::DrawEditMenu() {
 
 void MasterEditor::DrawViewMenu() {
   static bool show_imgui_metrics = false;
-  static bool show_imgui_style_editor = false;
   static bool show_memory_editor = false;
   static bool show_asm_editor = false;
   static bool show_imgui_demo = false;
@@ -303,12 +336,6 @@ void MasterEditor::DrawViewMenu() {
     ImGui::End();
   }
 
-  if (show_imgui_style_editor) {
-    ImGui::Begin("Style Editor (ImGui)", &show_imgui_style_editor);
-    ImGui::ShowStyleEditor();
-    ImGui::End();
-  }
-
   if (show_memory_viewer) {
     ImGui::Begin("Memory Viewer (ImGui)", &show_memory_viewer);
 
@@ -339,13 +366,7 @@ void MasterEditor::DrawViewMenu() {
     ImGui::MenuItem("Palette Editor", nullptr, &show_palette_editor);
     ImGui::MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
     ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
-    ImGui::Separator();
-    if (ImGui::BeginMenu("GUI Tools")) {
-      ImGui::MenuItem("Metrics (ImGui)", nullptr, &show_imgui_metrics);
-      ImGui::MenuItem("Style Editor (ImGui)", nullptr,
-                      &show_imgui_style_editor);
-      ImGui::EndMenu();
-    }
+    ImGui::MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
     ImGui::EndMenu();
   }
 }

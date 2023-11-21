@@ -108,22 +108,15 @@ ROMInfo SNES::ReadRomHeader(uint32_t offset) {
 }
 
 void SNES::Init(ROM& rom) {
-  // Setup observers for the memory space
-  memory_.AddObserver(&apu);
-  memory_.AddObserver(&ppu);
-
-  // Load the ROM into memory and set up the memory mapping
-  memory_.Initialize(rom.vector());
-
-  // Read the ROM header
-  auto header_offset = GetHeaderOffset(memory_);
-  rom_info_ = ReadRomHeader(header_offset);
-
   // Perform a long jump into a FastROM bank (if the ROM speed is FastROM)
   // Disable the emulation flag (switch to 65816 native mode)
 
   // Initialize CPU
   cpu.Init();
+
+  // Read the ROM header
+  auto header_offset = GetHeaderOffset(memory_);
+  rom_info_ = ReadRomHeader(header_offset);
   cpu.PC = rom_info_.resetVector;
 
   // Initialize PPU

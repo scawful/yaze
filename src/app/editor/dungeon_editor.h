@@ -34,8 +34,11 @@ class DungeonEditor : public Editor,
   void DrawRoomGraphics();
   void DrawTileSelector();
 
+  void DrawObjectRenderer();
+
   uint16_t current_room_id_ = 0;
   bool is_loaded_ = false;
+  bool show_object_render_ = false;
 
   gfx::Bitmap room_gfx_bmp_;
 
@@ -46,9 +49,9 @@ class DungeonEditor : public Editor,
 
   gui::Canvas canvas_;
   gui::Canvas room_gfx_canvas_;
-  ImGuiTableFlags toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit |
-                                         ImGuiTableFlags_Reorderable |
-                                         ImGuiTableFlags_Resizable;
+  ImGuiTableFlags toolset_table_flags_ =
+      ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Reorderable |
+      ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable;
 };
 
 }  // namespace editor

@@ -23,72 +23,125 @@ class DungeonObjectRenderer : public SharedROM {
  public:
   struct PseudoVram {
     std::vector<gfx::Bitmap> sheets;
+    // TODO: Initialize with mock VRAM data
   };
 
-  void CreateVramFromRoomBlockset() {
-    // auto bitmap_manager = rom()->bitmap_manager();
-    // uint16_t room_id = 0;
-    // auto room_blockset = rom()->room_blockset_ids[room_id];
-
-    // for (const auto blockset_id : room_blockset) {
-    //   auto blockset = bitmap_manager[(uint16_t)blockset_id];
-    //   vram_.sheets.push_back(*blockset.get());
-    // }
+  DungeonObjectRenderer() {
+    // TODO: Constructor implementation
   }
 
-  void RenderObjectsAsBitmaps() {
-    rom_data_ = rom()->vector();
-    memory_.Initialize(rom_data_);
-    cpu.Init();
+  void LoadObject(uint16_t objectId) {
+    // Prepare the CPU and memory environment
+    memory_.Initialize(rom()->vector());
 
-    auto subtype1_ptr = core::subtype1_tiles;
-    auto subtype1_routine_ptr = core::subtype1_tiles + 0x200;
-    std::array<uint16_t, 256> routine_ptrs;
-    for (int i = 0; i < 256; i++) {
-      uint16_t actual_ptr = rom()->toint16(subtype1_routine_ptr + (i * 2));
-      routine_ptrs[i] = actual_ptr;
-      std::cout << std::hex << routine_ptrs[i] << std::endl;
+    // Fetch the subtype pointers for the given object ID
+    auto subtypeInfo = FetchSubtypeInfo(objectId);
+
+    // Configure the object based on the fetched information
+    ConfigureObject(subtypeInfo);
+
+    // Run the CPU emulation for the object's draw routines
+    RenderObject(subtypeInfo);
+  }
+
+ private:
+  struct SubtypeInfo {
+    uint16_t subtypePtr;
+    uint16_t routinePtr;
+    // Additional fields as needed
+  };
+
+  SubtypeInfo FetchSubtypeInfo(uint16_t objectId) {
+    SubtypeInfo info;
+
+    // Determine the subtype based on objectId
+    // Assuming subtype is determined by some bits in objectId; modify as needed
+    uint8_t subtype = (objectId >> 8) & 0xFF;  // Example: top 8 bits
+
+    // Based on the subtype, fetch the correct pointers
+    switch (subtype) {
+      case 1:  // Subtype 1
+        info.subtypePtr = core::subtype1_tiles + (objectId & 0xFF) * 2;
+        info.routinePtr = core::subtype1_tiles + 0x200 + (objectId & 0xFF) * 2;
+        break;
+      case 2:  // Subtype 2
+        info.subtypePtr = core::subtype2_tiles + (objectId & 0x7F) * 2;
+        info.routinePtr = core::subtype2_tiles + 0x80 + (objectId & 0x7F) * 2;
+        break;
+      case 3:  // Subtype 3
+        info.subtypePtr = core::subtype3_tiles + (objectId & 0xFF) * 2;
+        info.routinePtr = core::subtype3_tiles + 0x100 + (objectId & 0xFF) * 2;
+        break;
+      default:
+        // Handle unknown subtype
+        throw std::runtime_error("Unknown subtype for object ID: " +
+                                 std::to_string(objectId));
     }
 
-    int i = 0;
-    for (const auto routine_ptr : routine_ptrs) {
-      cpu.PC = routine_ptr - 2;
-      cpu.PB = 0x00;
+    // Convert pointers from ROM-relative to absolute (if necessary)
+    // info.subtypePtr = ConvertToAbsolutePtr(info.subtypePtr);
+    // info.routinePtr = ConvertToAbsolutePtr(info.routinePtr);
 
-      auto cycles_to_run = clock_.GetCycleCount();
+    return info;
+  }
 
-      while (true) {
-        auto opcode = cpu.FetchByte();
-        // Fetch and execute an instruction
-        cpu.ExecuteInstruction(opcode);
+  void ConfigureObject(const SubtypeInfo& info) {
+    // TODO: Use the information in info to set up the object's initial state
+    // This may include setting CPU registers, loading specific tiles into VRAM,
+    // etc.
+  }
 
-        // Handle any interrupts, if necessary
-        cpu.HandleInterrupts();
+  void RenderObject(const SubtypeInfo& info) {
+    // Assuming that the routine pointer and other necessary setup is done in
+    // ConfigureObject Start CPU at the routine's entry point
+    cpu.PC =
+        info.routinePtr;  // info should be a member or passed as a parameter
+    cpu.PB = 0x01;  // Set the program bank; adjust based on your memory mapping
 
-        // Check if the instruction is RTS
-        if (opcode == 0x60) {
-          break;
-        }
-        i++;
-        if (i > 50) {
-          break;
-        }
+    // Run the CPU emulation loop
+    while (true) {
+      // Fetch the next opcode
+      uint8_t opcode = cpu.FetchByte();
+
+      // Execute the fetched instruction
+      cpu.ExecuteInstruction(opcode);
+
+      // Handle any interrupts, if necessary
+      cpu.HandleInterrupts();
+
+      // Check if the end of the routine is reached (typically RTS instruction)
+      if (opcode == 0x60) {  // RTS opcode
+        break;
       }
+
+      // Additional checks can be added here, e.g., maximum cycles or
+      // instructions
+
+      // Update the PPU state if necessary
+      // ppu.Update();
+
+      // After PPU update, reflect any changes in the Bitmap(s)
+      // UpdateBitmapFromPPU();
     }
 
-    auto subtype2_ptr = core::subtype2_tiles;
-    auto subtype2_routine_ptr =
-        core::subtype2_tiles + 0x80;  // Where the draw routines start
-    std::array<uint16_t, 128> subtype2_routine_ptrs;
-    for (int i = 0; i < 128; i++) {
-      subtype2_routine_ptrs[i] = subtype2_routine_ptr + i * 2;
-    }
-
-    auto subtype3_ptr = core::subtype3_tiles;
-    auto subtype3_routine_ptr =
-        core::subtype3_tiles + 0x100;  // Where the draw routines start
+    // Post-rendering operations (if any)
+    // PostRenderOperations();
   }
 
+  // Helper function to update Bitmap from PPU state
+  void UpdateBitmapFromPPU() {
+    // TODO: Implement logic to transfer PPU state changes to the Bitmap
+    // This involves reading the tile data and other graphics info from PPU
+    // and rendering it to the Bitmap object
+  }
+
+  // Optional: Handle any operations after rendering
+  void PostRenderOperations() {
+    // TODO: Implement any cleanup or additional processing needed after
+    // rendering
+  }
+
+  // Members
   std::vector<uint8_t> rom_data_;
   emu::MemoryImpl memory_;
   emu::ClockImpl clock_;
@@ -97,6 +150,43 @@ class DungeonObjectRenderer : public SharedROM {
   gfx::Bitmap bitmap;
   PseudoVram vram_;
 };
+
+//   void CreateVramFromRoomBlockset() {
+//     // auto bitmap_manager = rom()->bitmap_manager();
+//     // uint16_t room_id = 0;
+//     // auto room_blockset = rom()->room_blockset_ids[room_id];
+
+//     // for (const auto blockset_id : room_blockset) {
+//     //   auto blockset = bitmap_manager[(uint16_t)blockset_id];
+//     //   vram_.sheets.push_back(*blockset.get());
+//     // }
+//   }
+
+//     int i = 0;
+//     for (const auto routine_ptr : routine_ptrs) {
+//       cpu.PC = routine_ptr - 2;
+//       cpu.PB = 0x01;
+
+//       auto cycles_to_run = clock_.GetCycleCount();
+
+//       while (true) {
+//         auto opcode = cpu.FetchByte();
+//         // Fetch and execute an instruction
+//         cpu.ExecuteInstruction(opcode);
+
+//         // Handle any interrupts, if necessary
+//         cpu.HandleInterrupts();
+
+//         // Check if the instruction is RTS
+//         if (opcode == 0x60) {
+//           break;
+//         }
+//         i++;
+//         if (i > 50) {
+//           break;
+//         }
+//       }
+//     }
 
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
 

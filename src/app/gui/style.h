@@ -9,6 +9,8 @@ namespace yaze {
 namespace app {
 namespace gui {
 
+void DrawDisplaySettings(ImGuiStyle* ref = nullptr);
+
 void TextWithSeparators(const absl::string_view& text);
 
 void ColorsYaze();

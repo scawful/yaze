@@ -39,9 +39,11 @@ class Emulator : public SharedROM {
 
   SNES snes_;
 
+  bool power_ = false;
+  bool loading_ = false;
   bool running_ = false;
   bool debugger_ = true;
-  bool loading_ = false;
+  bool memory_setup_ = false;
   bool integrated_debugger_mode_ = true;
   bool separate_debugger_mode_ = false;
 };

@@ -48,7 +48,7 @@ static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
 constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
 constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
 constexpr ImGuiTableFlags kOWEditFlags = ImGuiTableFlags_Reorderable |
-                                         ImGuiTableFlags_Resizable |
+                                         ImGuiTableFlags_Resizable | ImGuiTableFlags_Hideable |
                                          ImGuiTableFlags_SizingStretchSame;
 
 constexpr absl::string_view kWorldList =
@@ -184,10 +184,6 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable graphics_bin_;
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
-
-  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
-                                  ImGuiTableFlags_Resizable |
-                                  ImGuiTableFlags_SizingStretchSame;
 };
 }  // namespace editor
 }  // namespace app

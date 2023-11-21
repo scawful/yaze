@@ -1,12 +1,14 @@
 #include "app/emu/emulator.h"
 
 #include <imgui/imgui.h>
+#include <imgui_memory_editor.h>
 
 #include <cstdint>
 #include <vector>
 
 #include "app/core/constants.h"
 #include "app/emu/snes.h"
+#include "app/gui/icons.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -20,6 +22,65 @@ bool ShouldDisplay(const InstructionEntry& entry, const char* filter,
   // filter and showAll flag
   return true;
 }
+
+void DrawMemoryWindow(Memory* memory) {
+  const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
+  static ImGuiTableFlags flags =
+      ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
+      ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg |
+      ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX;
+  if (auto outer_size = ImVec2(0.0f, TEXT_BASE_HEIGHT * 5.5f);
+      ImGui::BeginTable("table1", 4, flags, outer_size)) {
+    // Table headers
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("Memory Area");
+    ImGui::TableNextColumn();
+    ImGui::Text("Start Address");
+    ImGui::TableNextColumn();
+    ImGui::Text("Size");
+    ImGui::TableNextColumn();
+    ImGui::Text("Mapping");
+
+    // Retrieve memory information from MemoryImpl
+    MemoryImpl* memoryImpl = dynamic_cast<MemoryImpl*>(memory);
+    if (memoryImpl) {
+      // Display memory areas
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM");
+      ImGui::TableNextColumn();
+      ImGui::Text("0x000000");
+      ImGui::TableNextColumn();
+      ImGui::Text("%d MB", memoryImpl->rom_.size());
+      ImGui::TableNextColumn();
+      ImGui::Text("LoROM");
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("RAM");
+      ImGui::TableNextColumn();
+      ImGui::Text("0x7E0000");
+      ImGui::TableNextColumn();
+      ImGui::Text("%d KB", memoryImpl->ram_.size());
+      ImGui::TableNextColumn();
+      ImGui::Text("LoROM");
+    }
+
+    ImGui::EndTable();
+
+    if (ImGui::Button("Open Memory Viewer", ImVec2(200, 50))) {
+      ImGui::OpenPopup("Memory Viewer");
+    }
+
+    if (ImGui::BeginPopupModal("Memory Viewer", nullptr,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+      static MemoryEditor mem_edit;
+      mem_edit.DrawContents((void*)memoryImpl->data(), memoryImpl->size());
+      ImGui::EndPopup();
+    }
+  }
+}
 }  // namespace
 
 using ImGui::NextColumn;
@@ -30,13 +91,25 @@ using ImGui::Text;
 
 void Emulator::Run() {
   if (!snes_.running() && loading_) {
-    if (rom()->isLoaded()) {
+    if (loading_ && !memory_setup_) {
+      snes_.SetupMemory(*rom());
+      memory_setup_ = true;
+    }
+
+    if (rom()->isLoaded() && power_) {
       snes_.Init(*rom());
       running_ = true;
     }
   }
 
   RenderNavBar();
+
+  ImGui::Button(ICON_MD_ARROW_FORWARD_IOS);
+  ImGui::SameLine();
+  ImGui::Button(ICON_MD_DOUBLE_ARROW);
+  ImGui::SameLine();
+  ImGui::Button(ICON_MD_SUBDIRECTORY_ARROW_RIGHT);
+  ImGui::SameLine();
 
   if (running_) {
     HandleEvents();
@@ -67,7 +140,9 @@ void Emulator::RenderNavBar() {
 
   if (ImGui::BeginMenu("Game")) {
     MENU_ITEM("Load ROM") { loading_ = true; }
+    MENU_ITEM("Power On") { power_ = true; }
     MENU_ITEM("Power Off") {
+      power_ = false;
       running_ = false;
       loading_ = false;
       debugger_ = false;
@@ -133,6 +208,7 @@ void Emulator::RenderDebugger() {
 
       TableNextColumn();
       RenderBreakpointList();
+      DrawMemoryWindow(snes_.Memory());
       ImGui::EndTable();
     }
   };

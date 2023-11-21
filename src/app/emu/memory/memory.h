@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "app/emu/debug/log.h"
@@ -135,9 +136,21 @@ class Memory {
   virtual uint8_t at(int i) const = 0;
 };
 
+enum class MemoryMapping { SNES_LOROM = 0, PC_ADDRESS = 1 };
+
 class MemoryImpl : public Memory, public Loggable {
  public:
-  void Initialize(const std::vector<uint8_t>& romData) {
+  void Initialize(const std::vector<uint8_t>& romData,
+                  MemoryMapping mapping = MemoryMapping::SNES_LOROM) {
+    mapping_ = mapping;
+    if (mapping == MemoryMapping::PC_ADDRESS) {
+      memory_.resize(romData.size());
+      std::copy(romData.begin(), romData.end(), memory_.begin());
+      return;
+    }
+
+    memory_.reserve(0x1000000);  // 16 MB
+
     const size_t ROM_CHUNK_SIZE = 0x8000;           // 32 KB
     const size_t SRAM_SIZE = 0x10000;               // 64 KB
     const size_t SYSTEM_RAM_SIZE = 0x20000;         // 128 KB
@@ -322,6 +335,7 @@ class MemoryImpl : public Memory, public Loggable {
   auto size() const { return memory_.size(); }
   auto begin() const { return memory_.begin(); }
   auto end() const { return memory_.end(); }
+  auto data() const { return memory_.data(); }
 
   // Define memory regions
   std::vector<uint8_t> rom_;
@@ -333,6 +347,10 @@ class MemoryImpl : public Memory, public Loggable {
   uint32_t GetMappedAddress(uint32_t address) const {
     uint32_t bank = address >> 16;
     uint32_t offset = address & 0xFFFF;
+
+    if (mapping_ == MemoryMapping::PC_ADDRESS) {
+      return address;
+    }
 
     if (bank <= 0x3F) {
       if (offset <= 0x1FFF) {
@@ -364,10 +382,12 @@ class MemoryImpl : public Memory, public Loggable {
   std::vector<Observer*> observers_;
 
   // Memory (64KB)
-  std::array<uint8_t, 0x10000> memory_;
+  std::vector<uint8_t> memory_;
 
   // Stack Pointer
   uint16_t SP_ = 0x01FF;
+
+  MemoryMapping mapping_ = MemoryMapping::SNES_LOROM;
 };
 
 }  // namespace emu
