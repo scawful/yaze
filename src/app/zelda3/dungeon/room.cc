@@ -165,7 +165,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
     blocks[12 + i] = (uchar)(spriteGfx[SpriteTileset + 64][i] + 115);
   }  // 12-16 sprites
 
-  auto gfx_buffer_data = rom()->GetGraphicsBuffer();
+  auto gfx_buffer_data = rom()->graphics_buffer();
 
   // Into "room gfx16" 16 of them
   int sheetPos = 0;
@@ -173,7 +173,6 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
     int d = 0;
     int ioff = blocks[i] * 2048;
     while (d < 2048) {
-      // NOTE LOAD BLOCKSETS SOMEWHERE FIRST
       uchar mapByte = gfx_buffer_data[d + ioff];
       if (i < 4) {
         mapByte += 0x88;
@@ -191,9 +190,9 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
 
 void Room::LoadAnimatedGraphics() {
   int gfx_ptr =
-      core::SnesToPc(rom()->GetVersionConstants().kGfxAnimatedPointer);
+      core::SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
 
-  auto gfx_buffer_data = rom()->GetGraphicsBuffer();
+  auto gfx_buffer_data = rom()->graphics_buffer();
   auto rom_data = rom()->vector();
   int data = 0;
   while (data < 512) {

@@ -27,6 +27,11 @@ namespace app {
 namespace editor {
 
 using ImGui::Separator;
+using ImGui::TableHeadersRow;
+using ImGui::TableNextColumn;
+using ImGui::TableNextRow;
+using ImGui::TableSetupColumn;
+using ImGui::Text;
 
 absl::Status OverworldEditor::Update() {
   // Initialize overworld graphics, maps, and palettes
@@ -43,14 +48,14 @@ absl::Status OverworldEditor::Update() {
 
   Separator();
   if (ImGui::BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
-                            ImGui::GetContentRegionAvail().x);
-    ImGui::TableSetupColumn("Tile Selector");
-    ImGui::TableHeadersRow();
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
+    TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
+                     ImGui::GetContentRegionAvail().x);
+    TableSetupColumn("Tile Selector");
+    TableHeadersRow();
+    TableNextRow();
+    TableNextColumn();
     DrawOverworldCanvas();
-    ImGui::TableNextColumn();
+    TableNextColumn();
     DrawTileSelector();
     ImGui::EndTable();
   }
@@ -103,22 +108,22 @@ absl::Status OverworldEditor::DrawToolset() {
     BUTTON_COLUMN(ICON_MD_ADD_LOCATION)         // Transports
     BUTTON_COLUMN(ICON_MD_MUSIC_NOTE)           // Music
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::Button(ICON_MD_GRID_VIEW)) {
       show_tile16 = !show_tile16;
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::Button(ICON_MD_TABLE_CHART)) {
       show_gfx_group = !show_gfx_group;
     }
 
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
-    ImGui::TableNextColumn();  // Palette
+    TableNextColumn();  // Palette
     palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-    ImGui::TableNextColumn();       // Experimental
+    TableNextColumn();              // Experimental
     ImGui::Checkbox("Experimental", &show_experimental);
 
     ImGui::EndTable();
@@ -150,45 +155,46 @@ void OverworldEditor::DrawOverworldMapSettings() {
     for (const auto &name : kOverworldSettingsColumnNames)
       ImGui::TableSetupColumn(name.data());
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
     ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
 
-    ImGui::TableNextColumn();
-    ImGui::Text("GFX");
+    TableNextColumn();
+    Text("GFX");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(kInputFieldSize);
     ImGui::InputText("##mapGFX", map_gfx_, kByteSize);
 
-    ImGui::TableNextColumn();
-    ImGui::Text("Palette");
+    TableNextColumn();
+    Text("Palette");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(kInputFieldSize);
     ImGui::InputText("##mapPal", map_palette_, kByteSize);
 
-    ImGui::TableNextColumn();
-    ImGui::Text("Spr GFX");
+    TableNextColumn();
+    Text("Spr GFX");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(kInputFieldSize);
     ImGui::InputText("##sprGFX", spr_gfx_, kByteSize);
 
-    ImGui::TableNextColumn();
-    ImGui::Text("Spr Palette");
+    TableNextColumn();
+    Text("Spr Palette");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(kInputFieldSize);
     ImGui::InputText("##sprPal", spr_palette_, kByteSize);
 
-    ImGui::TableNextColumn();
-    ImGui::Text("Msg ID");
+    TableNextColumn();
+    Text("Msg ID");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(50.f);
     ImGui::InputText("##msgid", spr_palette_, kMessageIdSize);
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
-    ImGui::Combo("##world", &game_state_, "Part 0\0Part 1\0Part 2\0", 3);
+    // ImGui::Combo("##world", &game_state_, "Part 0\0Part 1\0Part 2\0", 3);
+    ImGui::Combo("##World", &game_state_, kGamePartComboString, 3);
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     ImGui::Checkbox("Show grid", &opt_enable_grid);  // TODO
     ImGui::EndTable();
   }
@@ -214,7 +220,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
         if (ImGui::BeginDragDropSource()) {
           ImGui::SetDragDropPayload("ENTRANCE_PAYLOAD", &each,
                                     sizeof(zelda3::OverworldEntrance));
-          ImGui::Text("Moving Entrance ID: %s", str.c_str());
+          Text("Moving Entrance ID: %s", str.c_str());
           ImGui::EndDragDropSource();
         }
       } else if (is_dragging_entrance_ && dragged_entrance_ == &each &&
@@ -412,7 +418,7 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawContextMenu();
   if (all_gfx_loaded_) {
     // for (const auto &[key, value] : graphics_bin_) {
-    for (auto &[key, value] : rom()->BitmapManager()) {
+    for (auto &[key, value] : rom()->bitmap_manager()) {
       int offset = 0x40 * (key + 1);
       int top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 2;
       if (key >= 1) {
@@ -465,7 +471,7 @@ void OverworldEditor::DrawTileSelector() {
 absl::Status OverworldEditor::LoadGraphics() {
   // Load all of the graphics data from the game.
   PRINT_IF_ERROR(rom()->LoadAllGraphicsData())
-  graphics_bin_ = rom()->GetGraphicsBin();
+  graphics_bin_ = rom()->graphics_bin();
 
   // Load the Link to the Past overworld.
   RETURN_IF_ERROR(overworld_.Load(*rom()))
@@ -549,12 +555,12 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
   ImGui::Begin("Experimental", &show_experimental);
 
   gui::TextWithSeparators("PROTOTYPE OVERWORLD TILEMAP LOADER");
-  ImGui::Text("Please provide two files:");
-  ImGui::Text("One based on MAPn.DAT, which represents the overworld tilemap");
-  ImGui::Text("One based on MAPDATn.DAT, which is the tile32 configurations.");
-  ImGui::Text("Currently, loading CGX for this component is NOT supported. ");
-  ImGui::Text("Please load a US ROM of LTTP (JP ROM support coming soon).");
-  ImGui::Text(
+  Text("Please provide two files:");
+  Text("One based on MAPn.DAT, which represents the overworld tilemap");
+  Text("One based on MAPDATn.DAT, which is the tile32 configurations.");
+  Text("Currently, loading CGX for this component is NOT supported. ");
+  Text("Please load a US ROM of LTTP (JP ROM support coming soon).");
+  Text(
       "Once you've loaded the files, you can click the button below to load "
       "the tilemap into the editor");
 

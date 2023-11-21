@@ -59,7 +59,7 @@ absl::Status GfxGroupEditor::Update() {
           ImGui::BeginGroup();
           for (int i = 0; i < 8; i++) {
             int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
-            auto &sheet = *rom()->BitmapManager()[sheet_id];
+            auto &sheet = *rom()->bitmap_manager()[sheet_id];
             if (sheet_id != last_sheet_id_) {
               last_sheet_id_ = sheet_id;
               auto palette_group = rom()->GetPaletteGroup("ow_main");
@@ -109,7 +109,7 @@ absl::Status GfxGroupEditor::Update() {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
             int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
-            auto &sheet = *rom()->BitmapManager()[sheet_id];
+            auto &sheet = *rom()->bitmap_manager()[sheet_id];
             core::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
                                        0x20, true, false, 23);
           }
@@ -152,7 +152,7 @@ absl::Status GfxGroupEditor::Update() {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
             int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
-            auto sheet = *rom()->BitmapManager()[sheet_id];
+            auto sheet = *rom()->bitmap_manager()[sheet_id];
             core::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256,
                                        0x10 * 0x04, 0x20, true, false, 24);
           }

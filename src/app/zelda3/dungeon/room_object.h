@@ -26,7 +26,7 @@ class DungeonObjectRenderer {
   };
 
   void CreateVramFromRoomBlockset() {
-    // auto bitmap_manager = rom()->BitmapManager();
+    // auto bitmap_manager = rom()->bitmap_manager();
     // uint16_t room_id = 0;
     // auto room_blockset = rom()->room_blockset_ids[room_id];
 

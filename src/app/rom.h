@@ -399,14 +399,14 @@ class ROM : public core::ExperimentFlags {
     changes_.push(function);
   }
 
-  VersionConstants GetVersionConstants() const {
+  VersionConstants version_constants() const {
     return kVersionConstantsMap.at(version_);
   }
 
   int GetGraphicsAddress(const uchar* data, uint8_t addr) const {
-    auto part_one = data[GetVersionConstants().kOverworldGfxPtr1 + addr] << 16;
-    auto part_two = data[GetVersionConstants().kOverworldGfxPtr2 + addr] << 8;
-    auto part_three = data[GetVersionConstants().kOverworldGfxPtr3 + addr];
+    auto part_one = data[version_constants().kOverworldGfxPtr1 + addr] << 16;
+    auto part_two = data[version_constants().kOverworldGfxPtr2 + addr] << 8;
+    auto part_three = data[version_constants().kOverworldGfxPtr3 + addr];
     auto snes_addr = (part_one | part_two | part_three);
     return core::SnesToPc(snes_addr);
   }
@@ -414,8 +414,10 @@ class ROM : public core::ExperimentFlags {
   gfx::PaletteGroup GetPaletteGroup(const std::string& group) {
     return palette_groups_[group];
   }
-  Bytes GetGraphicsBuffer() const { return graphics_buffer_; }
-  gfx::BitmapTable GetGraphicsBin() const { return graphics_bin_; }
+
+  Bytes graphics_buffer() const { return graphics_buffer_; }
+
+  gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
 
   auto title() const { return title_; }
   auto size() const { return size_; }
@@ -477,7 +479,7 @@ class ROM : public core::ExperimentFlags {
     bitmap->UpdateTexture(renderer_);
   }
 
-  auto BitmapManager() { return graphics_manager_; }
+  auto bitmap_manager() { return graphics_manager_; }
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;
@@ -510,16 +512,14 @@ class ROM : public core::ExperimentFlags {
     for (int i = 0; i < 144; i++) {
       for (int j = 0; j < 4; j++) {
         spriteset_ids[i][j] =
-            rom_data_[GetVersionConstants().kSpriteBlocksetPointer + (i * 4) +
-                      j];
+            rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
       }
     }
 
     for (int i = 0; i < 72; i++) {
       for (int j = 0; j < 4; j++) {
         paletteset_ids[i][j] =
-            rom_data_[GetVersionConstants().kDungeonPalettesGroups + (i * 4) +
-                      j];
+            rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
       }
     }
   }
@@ -544,14 +544,14 @@ class ROM : public core::ExperimentFlags {
 
     for (int i = 0; i < 144; i++) {
       for (int j = 0; j < 4; j++) {
-        rom_data_[GetVersionConstants().kSpriteBlocksetPointer + (i * 4) + j] =
+        rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j] =
             spriteset_ids[i][j];
       }
     }
 
     for (int i = 0; i < 72; i++) {
       for (int j = 0; j < 4; j++) {
-        rom_data_[GetVersionConstants().kDungeonPalettesGroups + (i * 4) + j] =
+        rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j] =
             paletteset_ids[i][j];
       }
     }
