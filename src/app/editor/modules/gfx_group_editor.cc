@@ -24,24 +24,24 @@ namespace app {
 namespace editor {
 
 using ImGui::SameLine;
+using ImGui::TableHeadersRow;
+using ImGui::TableNextColumn;
+using ImGui::TableNextRow;
+using ImGui::TableSetupColumn;
 
 absl::Status GfxGroupEditor::Update() {
   if (ImGui::BeginTabBar("GfxGroupEditor")) {
-    // Main tab
     if (ImGui::BeginTabItem("Main")) {
       gui::InputHexByte("Selected Blockset", &selected_blockset_);
-
       ImGui::Text("Values");
-
       if (ImGui::BeginTable("##BlocksetTable", 2, ImGuiTableFlags_Borders,
                             ImVec2(0, 0))) {
-        ImGui::TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                                ImGui::GetContentRegionAvail().x);
-        ImGui::TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
-                                256);
-        ImGui::TableHeadersRow();
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+        TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                         ImGui::GetContentRegionAvail().x);
+        TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+        TableHeadersRow();
+        TableNextRow();
+        TableNextColumn();
         {
           ImGui::BeginGroup();
           for (int i = 0; i < 8; i++) {
@@ -54,7 +54,7 @@ absl::Status GfxGroupEditor::Update() {
           }
           ImGui::EndGroup();
         }
-        ImGui::TableNextColumn();
+        TableNextColumn();
         {
           ImGui::BeginGroup();
           for (int i = 0; i < 8; i++) {
@@ -78,20 +78,18 @@ absl::Status GfxGroupEditor::Update() {
       ImGui::EndTabItem();
     }
 
-    // Rooms tab
     if (ImGui::BeginTabItem("Rooms")) {
       gui::InputHexByte("Selected Blockset", &selected_roomset_);
 
       ImGui::Text("Values - Overwrites 4 of main blockset");
       if (ImGui::BeginTable("##Roomstable", 2, ImGuiTableFlags_Borders,
                             ImVec2(0, 0))) {
-        ImGui::TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                                ImGui::GetContentRegionAvail().x);
-        ImGui::TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
-                                256);
-        ImGui::TableHeadersRow();
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+        TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                         ImGui::GetContentRegionAvail().x);
+        TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+        TableHeadersRow();
+        TableNextRow();
+        TableNextColumn();
         {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
@@ -104,7 +102,7 @@ absl::Status GfxGroupEditor::Update() {
           }
           ImGui::EndGroup();
         }
-        ImGui::TableNextColumn();
+        TableNextColumn();
         {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
@@ -121,20 +119,18 @@ absl::Status GfxGroupEditor::Update() {
       ImGui::EndTabItem();
     }
 
-    // Sprites tab
     if (ImGui::BeginTabItem("Sprites")) {
       gui::InputHexByte("Selected Spriteset", &selected_spriteset_);
 
       ImGui::Text("Values");
       if (ImGui::BeginTable("##SpritesTable", 2, ImGuiTableFlags_Borders,
                             ImVec2(0, 0))) {
-        ImGui::TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                                ImGui::GetContentRegionAvail().x);
-        ImGui::TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
-                                256);
-        ImGui::TableHeadersRow();
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+        TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                         ImGui::GetContentRegionAvail().x);
+        TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+        TableHeadersRow();
+        TableNextRow();
+        TableNextColumn();
         {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
@@ -147,7 +143,7 @@ absl::Status GfxGroupEditor::Update() {
           }
           ImGui::EndGroup();
         }
-        ImGui::TableNextColumn();
+        TableNextColumn();
         {
           ImGui::BeginGroup();
           for (int i = 0; i < 4; i++) {
@@ -163,7 +159,6 @@ absl::Status GfxGroupEditor::Update() {
       ImGui::EndTabItem();
     }
 
-    // Palettes tab
     if (ImGui::BeginTabItem("Palettes")) {
       ImGui::EndTabItem();
     }

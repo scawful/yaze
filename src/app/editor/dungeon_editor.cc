@@ -24,7 +24,9 @@ absl::Status DungeonEditor::Update() {
     for (int i = 0; i < 0x100; i++) {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
-      rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
+      if (flags()->kDrawDungeonRoomGraphics) {
+        rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
+      }
     }
     is_loaded_ = true;
   }
@@ -197,7 +199,7 @@ void DungeonEditor::DrawToolset() {
     ImGui::TableNextColumn();
     if (ImGui::Button("Load Dungeon Objects")) {
       // object_renderer_.CreateVramFromRoomBlockset();
-      object_renderer_.RenderObjectsAsBitmaps(*rom());
+      object_renderer_.RenderObjectsAsBitmaps();
     }
     ImGui::EndTable();
   }
