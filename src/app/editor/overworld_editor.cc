@@ -55,7 +55,7 @@ absl::Status OverworldEditor::Update() {
   if (ImGui::BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
-    TableSetupColumn("Tile Selector");
+    TableSetupColumn("Tile Selector", ImGuiTableColumnFlags_WidthFixed, 256);
     TableHeadersRow();
     TableNextRow();
     TableNextColumn();

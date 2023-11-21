@@ -65,10 +65,20 @@ class SNES : public DMA {
 
   auto Cpu() -> CPU& { return cpu; }
   auto Ppu() -> PPU& { return ppu; }
+  auto Memory() -> MemoryImpl* { return &memory_; }
 
   void SetCpuMode(int mode) { cpu_mode_ = mode; }
   CPU::UpdateMode GetCpuMode() const {
     return static_cast<CPU::UpdateMode>(cpu_mode_);
+  }
+
+  void SetupMemory(ROM& rom) {
+    // Setup observers for the memory space
+    memory_.AddObserver(&apu);
+    memory_.AddObserver(&ppu);
+
+    // Load the ROM into memory and set up the memory mapping
+    memory_.Initialize(rom.vector());
   }
 
  private:

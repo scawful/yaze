@@ -7,6 +7,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "app/zelda3/dungeon/object_names.h"
 #include "app/zelda3/dungeon/room_names.h"
 #include "zelda3/dungeon/room.h"
 
@@ -32,6 +33,7 @@ absl::Status DungeonEditor::Update() {
   }
 
   DrawToolset();
+  DrawObjectRenderer();
 
   ImGui::Separator();
   if (ImGui::BeginTable("#DungeonEditTable", 3, toolset_table_flags_,
@@ -197,9 +199,8 @@ void DungeonEditor::DrawToolset() {
     ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
 
     ImGui::TableNextColumn();
-    if (ImGui::Button("Load Dungeon Objects")) {
-      // object_renderer_.CreateVramFromRoomBlockset();
-      object_renderer_.RenderObjectsAsBitmaps();
+    if (ImGui::Button("Dungeon Object Renderer")) {
+      show_object_render_ = !show_object_render_;
     }
     ImGui::EndTable();
   }
@@ -226,6 +227,47 @@ void DungeonEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();
+  }
+}
+
+void DungeonEditor::DrawObjectRenderer() {
+  if (show_object_render_) {
+    ImGui::Begin("Dungeon Object Renderer", &show_object_render_);
+
+    // Create an ImGui table where the left side of the table is a matrix of
+    // buttons which represent each dungeon object. The right side of the table
+    // is a canvas which will display the selected dungeon object. The canvas
+    // will also have a tile selector and a grid overlay.
+    if (ImGui::BeginTable("DungeonObjectEditorTable", 2,
+                          ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0))) {
+      ImGui::TableSetupColumn("Dungeon Objects",
+                              ImGuiTableColumnFlags_WidthFixed, 150.0f);
+      ImGui::TableSetupColumn("Canvas");
+
+      ImGui::TableNextColumn();
+      ImGui::BeginChild("DungeonObjectButtons", ImVec2(150.0f, 0), true);
+
+      for (const auto each : zelda3::dungeon::Type1RoomObjectNames) {
+        ImGui::Button(each.data());
+        if (ImGui::IsItemClicked()) {
+        }
+      }
+
+      ImGui::EndChild();
+
+      // Right side of the table - Canvas
+      ImGui::TableNextColumn();
+      ImGui::BeginChild("DungeonObjectCanvas", ImVec2(0, 0), true);
+
+      // TODO: Insert code to display canvas, tile selector, and grid overlay
+      // here
+
+      ImGui::EndChild();
+
+      ImGui::EndTable();
+    }
+
+    ImGui::End();
   }
 }
 
