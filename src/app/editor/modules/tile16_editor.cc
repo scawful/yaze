@@ -120,7 +120,7 @@ absl::Status Tile16Editor::Update() {
 
           if (transfer_started_ && !transfer_blockset_loaded_) {
             PRINT_IF_ERROR(transfer_rom_.LoadAllGraphicsData())
-            graphics_bin_ = transfer_rom_.GetGraphicsBin();
+            graphics_bin_ = transfer_rom_.graphics_bin();
 
             // Load the Link to the Past overworld.
             PRINT_IF_ERROR(transfer_overworld_.Load(transfer_rom_))

@@ -51,7 +51,10 @@ constexpr ImGuiTableFlags kOWEditFlags = ImGuiTableFlags_Reorderable |
                                          ImGuiTableFlags_Resizable |
                                          ImGuiTableFlags_SizingStretchSame;
 
-constexpr absl::string_view kWorldList = "Light World\0Dark World\0Extra World";
+constexpr absl::string_view kWorldList =
+    "Light World\0Dark World\0Extra World\0";
+
+constexpr char *const kGamePartComboString[] = {"Part 0", "Part 1", "Part 2"};
 
 constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";

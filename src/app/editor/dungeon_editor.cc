@@ -14,6 +14,11 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using ImGui::TableHeadersRow;
+using ImGui::TableNextColumn;
+using ImGui::TableNextRow;
+using ImGui::TableSetupColumn;
+
 absl::Status DungeonEditor::Update() {
   if (!is_loaded_ && rom()->isLoaded()) {
     for (int i = 0; i < 0x100; i++) {
@@ -29,14 +34,14 @@ absl::Status DungeonEditor::Update() {
   ImGui::Separator();
   if (ImGui::BeginTable("#DungeonEditTable", 3, toolset_table_flags_,
                         ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("Room Selector");
+    TableSetupColumn("Room Selector");
 
-    ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
-                            ImGui::GetContentRegionAvail().x);
-    ImGui::TableSetupColumn("Object Selector");
-    ImGui::TableHeadersRow();
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
+    TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
+                     ImGui::GetContentRegionAvail().x);
+    TableSetupColumn("Object Selector");
+    TableHeadersRow();
+    TableNextRow();
+    TableNextColumn();
     if (rom()->isLoaded()) {
       if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
           ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -53,9 +58,9 @@ absl::Status DungeonEditor::Update() {
       ImGui::EndChild();
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     DrawDungeonTabView();
-    ImGui::TableNextColumn();
+    TableNextColumn();
     DrawTileSelector();
     ImGui::EndTable();
   }

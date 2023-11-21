@@ -209,6 +209,9 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto isLoaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 
+  auto MapTiles() const { return map_tiles_; }
+  auto mutable_map_tiles() { return &map_tiles_; }
+
   absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
 
  private:

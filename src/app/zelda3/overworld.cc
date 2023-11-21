@@ -588,7 +588,7 @@ absl::Status Overworld::SaveMap32Tiles() {
 
   for (int i = 0; i < num_32x32_tiles; ++i) {
     int base_addr =
-        rom()->GetVersionConstants().kMap32TileTL + i * kQuadrantsPer32x32Tile;
+        rom()->version_constants().kMap32TileTL + i * kQuadrantsPer32x32Tile;
 
     auto write_quadrant_to_rom = [&](int quadrant,
                                      auto get_tile) -> absl::Status {
@@ -630,10 +630,10 @@ absl::Status Overworld::SaveMap32Tiles() {
 
 uint16_t Overworld::GenerateTile32(int index, int quadrant, int dimension) {
   // The addresses of the four 32x32 pixel tiles in the ROM.
-  const uint32_t map32address[4] = {rom()->GetVersionConstants().kMap32TileTL,
-                                    rom()->GetVersionConstants().kMap32TileTR,
-                                    rom()->GetVersionConstants().kMap32TileBL,
-                                    rom()->GetVersionConstants().kMap32TileBR};
+  const uint32_t map32address[4] = {rom()->version_constants().kMap32TileTL,
+                                    rom()->version_constants().kMap32TileTR,
+                                    rom()->version_constants().kMap32TileBL,
+                                    rom()->version_constants().kMap32TileBR};
 
   return (ushort)(rom_[map32address[dimension] + quadrant + (index)] +
                   (((rom_[map32address[dimension] + (index) +
@@ -727,10 +727,10 @@ absl::Status Overworld::DecompressAllMapTiles() {
   for (int i = 0; i < 160; i++) {
     auto p1 = GetOwMapGfxHighPtr(
         rom()->data(), i,
-        rom()->GetVersionConstants().kCompressedAllMap32PointersHigh);
+        rom()->version_constants().kCompressedAllMap32PointersHigh);
     auto p2 = GetOwMapGfxLowPtr(
         rom()->data(), i,
-        rom()->GetVersionConstants().kCompressedAllMap32PointersLow);
+        rom()->version_constants().kCompressedAllMap32PointersLow);
     int ttpos = 0;
 
     if (p1 >= highest) {

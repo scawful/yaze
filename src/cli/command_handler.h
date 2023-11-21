@@ -171,7 +171,7 @@ class Decompress : public CommandHandler {
     //   auto rom_filename = arg_vec[1];
     //   RETURN_IF_ERROR(rom_.LoadFromFile(arg, true))
     //   RETURN_IF_ERROR(rom_.LoadAllGraphicsData())
-    //   for (auto& graphic_sheet : rom_.GetGraphicsBin()) {
+    //   for (auto& graphic_sheet : rom_.graphics_bin()) {
     //     const auto filename =
     //         absl::StrCat(rom_.filename(), graphic_sheet.first);
     //     graphic_sheet.second.SaveSurfaceToFile(filename);
