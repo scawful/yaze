@@ -87,61 +87,30 @@ class DungeonObjectRenderer : public SharedROM {
 
   void ConfigureObject(const SubtypeInfo& info) {
     // TODO: Use the information in info to set up the object's initial state
-    // This may include setting CPU registers, loading specific tiles into VRAM,
-    // etc.
   }
 
   void RenderObject(const SubtypeInfo& info) {
-    // Assuming that the routine pointer and other necessary setup is done in
-    // ConfigureObject Start CPU at the routine's entry point
-    cpu.PC =
-        info.routinePtr;  // info should be a member or passed as a parameter
-    cpu.PB = 0x01;  // Set the program bank; adjust based on your memory mapping
+    cpu.PC = info.routinePtr;
+    cpu.PB = 0x01;
 
-    // Run the CPU emulation loop
     while (true) {
-      // Fetch the next opcode
       uint8_t opcode = cpu.FetchByte();
-
-      // Execute the fetched instruction
       cpu.ExecuteInstruction(opcode);
-
-      // Handle any interrupts, if necessary
       cpu.HandleInterrupts();
 
-      // Check if the end of the routine is reached (typically RTS instruction)
+      // Check if the end of the routine is reached
       if (opcode == 0x60) {  // RTS opcode
         break;
       }
 
-      // Additional checks can be added here, e.g., maximum cycles or
-      // instructions
-
-      // Update the PPU state if necessary
-      // ppu.Update();
-
-      // After PPU update, reflect any changes in the Bitmap(s)
-      // UpdateBitmapFromPPU();
+      UpdateObjectBitmap();
     }
-
-    // Post-rendering operations (if any)
-    // PostRenderOperations();
   }
 
-  // Helper function to update Bitmap from PPU state
-  void UpdateBitmapFromPPU() {
-    // TODO: Implement logic to transfer PPU state changes to the Bitmap
-    // This involves reading the tile data and other graphics info from PPU
-    // and rendering it to the Bitmap object
+  void UpdateObjectBitmap() {
+    // TODO: Implement logic to transfer object draw data to the Bitmap
   }
 
-  // Optional: Handle any operations after rendering
-  void PostRenderOperations() {
-    // TODO: Implement any cleanup or additional processing needed after
-    // rendering
-  }
-
-  // Members
   std::vector<uint8_t> rom_data_;
   emu::MemoryImpl memory_;
   emu::ClockImpl clock_;
@@ -150,43 +119,6 @@ class DungeonObjectRenderer : public SharedROM {
   gfx::Bitmap bitmap;
   PseudoVram vram_;
 };
-
-//   void CreateVramFromRoomBlockset() {
-//     // auto bitmap_manager = rom()->bitmap_manager();
-//     // uint16_t room_id = 0;
-//     // auto room_blockset = rom()->room_blockset_ids[room_id];
-
-//     // for (const auto blockset_id : room_blockset) {
-//     //   auto blockset = bitmap_manager[(uint16_t)blockset_id];
-//     //   vram_.sheets.push_back(*blockset.get());
-//     // }
-//   }
-
-//     int i = 0;
-//     for (const auto routine_ptr : routine_ptrs) {
-//       cpu.PC = routine_ptr - 2;
-//       cpu.PB = 0x01;
-
-//       auto cycles_to_run = clock_.GetCycleCount();
-
-//       while (true) {
-//         auto opcode = cpu.FetchByte();
-//         // Fetch and execute an instruction
-//         cpu.ExecuteInstruction(opcode);
-
-//         // Handle any interrupts, if necessary
-//         cpu.HandleInterrupts();
-
-//         // Check if the instruction is RTS
-//         if (opcode == 0x60) {
-//           break;
-//         }
-//         i++;
-//         if (i > 50) {
-//           break;
-//         }
-//       }
-//     }
 
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
 
@@ -236,55 +168,55 @@ class RoomObject : public SharedROM {
   enum LayerType { BG1 = 0, BG2 = 1, BG3 = 2 };
 
   RoomObject(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer = 0)
-      : id(id),
+      : id_(id),
         x_(x),
         y_(y),
         size_(size),
-        Layer(static_cast<LayerType>(layer)),
-        nx(x),
-        ny(y),
-        ox(x),
-        oy(y),
-        width(16),
-        height(16),
-        uniqueID(0) {}
+        layer_(static_cast<LayerType>(layer)),
+        nx_(x),
+        ny_(y),
+        ox_(x),
+        oy_(y),
+        width_(16),
+        height_(16),
+        unique_id_(0) {}
 
   virtual void Draw() {
     // ... Draw function implementation here
   }
 
-  void getObjectSize() {
-    previousSize = size_;
+  void GetObjectSize() {
+    previous_size_ = size_;
     size_ = 1;
     // Draw();
-    getBaseSize();
+    GetBaseSize();
     UpdateSize();
     size_ = 2;
     // Draw();
-    getSizeSized();
+    GetSizeSized();
     UpdateSize();
-    size_ = previousSize;
-    // collisionPoint.clear();
+    size_ = previous_size_;
+    // collision_point_.clear();
   }
 
-  void getBaseSize() {
-    basewidth = width;
-    baseheight = height;
+  void GetBaseSize() {
+    base_width_ = width_;
+    base_height_ = height_;
   }
 
-  void getSizeSized() {
-    sizeheight = height - baseheight;
-    sizewidth = width - basewidth;
+  void GetSizeSized() {
+    size_height_ = height_ - base_height_;
+    size_width_ = width_ - base_width_;
   }
 
-  // virtual void Draw() { collisionPoint.clear(); }
+  // virtual void Draw() { collision_point_.clear(); }
 
   void UpdateSize() {
-    width = 8;
-    height = 8;
+    width_ = 8;
+    height_ = 8;
   }
 
-  void addTiles(int nbr, int pos) {
+  void AddTiles(int nbr, int pos) {
     auto rom_data = rom()->data();
     for (int i = 0; i < nbr; i++) {
       // tiles.push_back(
@@ -295,46 +227,46 @@ class RoomObject : public SharedROM {
   void DrawTile(Tile t, int xx, int yy, std::vector<uint8_t>& current_gfx16,
                 std::vector<uint8_t>& tiles_bg1_buffer,
                 std::vector<uint8_t>& tiles_bg2_buffer,
-                ushort tileUnder = 0xFFFF);
+                ushort tile_under = 0xFFFF);
 
  protected:
-  int16_t id;
+  int16_t id_;
 
   uint8_t x_;
   uint8_t y_;
   uint8_t size_;
 
-  LayerType Layer;
+  LayerType layer_;
 
   std::vector<uint8_t> preview_object_data_;
 
-  bool allBgs = false;
-  bool lit = false;
-  std::vector<gfx::Tile16> tiles;
-  int tileIndex = 0;
-  std::string name;
-  uint8_t nx;
-  uint8_t ny;
-  uint8_t ox;
-  uint8_t oy;
-  int width;
-  int height;
-  int basewidth;
-  int baseheight;
-  int sizewidth;
-  int sizeheight;
-  ObjectOption options = ObjectOption::Nothing;
-  int offsetX = 0;
-  int offsetY = 0;
-  bool diagonalFix = false;
-  bool selected = false;
-  int previewId = 0;
-  uint8_t previousSize = 0;
-  bool showRectangle = false;
-  // std::vector<Point> collisionPoint;
-  int uniqueID = 0;
-  uint8_t z = 0;
-  bool deleted = false;
+  bool all_bgs_ = false;
+  bool lit_ = false;
+  std::vector<gfx::Tile16> tiles_;
+  int tile_index_ = 0;
+  std::string name_;
+  uint8_t nx_;
+  uint8_t ny_;
+  uint8_t ox_;
+  uint8_t oy_;
+  int width_;
+  int height_;
+  int base_width_;
+  int base_height_;
+  int size_width_;
+  int size_height_;
+  ObjectOption options_ = ObjectOption::Nothing;
+  int offset_x_ = 0;
+  int offset_y_ = 0;
+  bool diagonal_fix_ = false;
+  bool selected_ = false;
+  int preview_id_ = 0;
+  uint8_t previous_size_ = 0;
+  bool show_rectangle_ = false;
+  // std::vector<Point> collision_point_;
+  int unique_id_ = 0;
+  uint8_t z_ = 0;
+  bool deleted_ = false;
 };
 
 class Subtype1 : public RoomObject {
@@ -355,7 +287,7 @@ class Subtype1 : public RoomObject {
         static_cast<int16_t>(
             (rom_data[core::subtype1_tiles + ((id & 0xFF) * 2) + 1] << 8) +
             rom_data[core::subtype1_tiles + ((id & 0xFF) * 2)]);
-    addTiles(tile_count_, pos);
+    AddTiles(tile_count_, pos);
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
@@ -368,33 +300,59 @@ class Subtype1 : public RoomObject {
   }
 };
 
-class Subtype2_Multiple : public RoomObject {
+class Subtype2 : public RoomObject {
  public:
-  int tx = 0;
-  int ty = 0;
   std::vector<Tile> tiles;
   std::string name;
   bool allBgs;
   Sorting sort;
 
-  Subtype2_Multiple(int16_t id, uint8_t x, uint8_t y, uint8_t size,
-                    uint8_t layer)
+  Subtype2(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
       : RoomObject(id, x, y, size, layer) {
-    // ... Constructor implementation here
+    auto rom_data = rom()->data();
+    name = Type2RoomObjectNames[id & 0x7F];
+    int pos =
+        core::tile_address +
+        static_cast<int16_t>(
+            (rom_data[core::subtype2_tiles + ((id & 0x7F) * 2) + 1] << 8) +
+            rom_data[core::subtype2_tiles + ((id & 0x7F) * 2)]);
+    AddTiles(8, pos);
+    sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
   void Draw() override {
-    // ... Draw function implementation here
+    for (int i = 0; i < 8; i++) {
+      // DrawTile(tiles[i], x_ * 8, (y_ + i) * 8);
+    }
   }
-
-  void setdata(const std::string& name, int tx, int ty, bool allbg = false) {
-    // ... setdata function implementation here
-  }
-
-  // Other member functions and variables
 };
 
-class Subtype3 : public RoomObject {};
+class Subtype3 : public RoomObject {
+ public:
+  std::vector<Tile> tiles;
+  std::string name;
+  bool allBgs;
+  Sorting sort;
+
+  Subtype3(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
+      : RoomObject(id, x, y, size, layer) {
+    auto rom_data = rom()->data();
+    name = Type3RoomObjectNames[id & 0xFF];
+    int pos =
+        core::tile_address +
+        static_cast<int16_t>(
+            (rom_data[core::subtype3_tiles + ((id & 0xFF) * 2) + 1] << 8) +
+            rom_data[core::subtype3_tiles + ((id & 0xFF) * 2)]);
+    AddTiles(8, pos);
+    sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
+  }
+
+  void Draw() override {
+    for (int i = 0; i < 8; i++) {
+      // DrawTile(tiles[i], x_ * 8, (y_ + i) * 8);
+    }
+  }
+};
 
 }  // namespace dungeon
 }  // namespace zelda3

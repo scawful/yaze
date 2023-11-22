@@ -150,12 +150,11 @@ class BitmapManager {
     return bitmap;
   }
 
-  std::shared_ptr<gfx::Bitmap> CopyBitmap(std::shared_ptr<gfx::Bitmap> bitmap,
-                                          int id) {
-    auto copy = std::make_shared<gfx::Bitmap>(bitmap->width(), bitmap->height(),
-                                              bitmap->depth(), bitmap->data());
-    bitmap_cache_[id] = copy;
-    return copy;
+  std::shared_ptr<gfx::Bitmap> CopyBitmap(const gfx::Bitmap &bitmap, int id) {
+    auto new_bitmap = std::make_shared<gfx::Bitmap>(
+        bitmap.width(), bitmap.height(), bitmap.depth(), bitmap.data());
+    bitmap_cache_[id] = new_bitmap;
+    return new_bitmap;
   }
 
   std::shared_ptr<gfx::Bitmap> operator[](int id) {

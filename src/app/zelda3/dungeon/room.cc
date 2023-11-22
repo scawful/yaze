@@ -91,9 +91,9 @@ void Room::LoadHeader() {
 
   auto header_location = core::SnesToPc(address);
 
-  // bg2 = (Background2)((rom()->data()[header_location] >> 5) & 0x07);
+  bg2 = (Background2)((rom()->data()[header_location] >> 5) & 0x07);
   // collision = (CollisionKey)((rom()->data()[header_location] >> 2) & 0x07);
-  // light = ((rom()->data()[header_location]) & 0x01) == 1;
+  light = ((rom()->data()[header_location]) & 0x01) == 1;
 
   if (light) {
     bg2 = Background2::DarkRoom;
@@ -137,13 +137,13 @@ void Room::LoadHeader() {
 }
 
 void Room::LoadRoomGraphics(uchar entrance_blockset) {
-  auto mainGfx = rom()->main_blockset_ids;
-  auto roomGfx = rom()->room_blockset_ids;
-  auto spriteGfx = rom()->spriteset_ids;
+  const auto& mainGfx = rom()->main_blockset_ids;
+  const auto& roomGfx = rom()->room_blockset_ids;
+  const auto& spriteGfx = rom()->spriteset_ids;
   current_gfx16_.reserve(0x4000);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = mainGfx[BackgroundTileset][i];
+    blocks_[i] = mainGfx[blockset][i];
     if (i >= 6 && i <= 6) {
       // 3-6
       if (entrance_blockset != 0xFF) {
@@ -162,7 +162,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
   blocks_[10] = 115 + 6;
   blocks_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    blocks_[12 + i] = (uchar)(spriteGfx[SpriteTileset + 64][i] + 115);
+    blocks_[12 + i] = (uchar)(spriteGfx[spriteset + 64][i] + 115);
   }  // 12-16 sprites
 }
 
@@ -427,12 +427,15 @@ void Room::LoadRoomFromROM() {
 
   message_id_ = messages_id_dungeon + (room_id_ * 2);
 
-  int hpos = core::SnesToPc((rom_data[kRoomHeaderPointerBank] << 16) |
-                            header_pointer + (room_id_ * 2));
-  hpos++;
-  uchar b = rom_data[hpos];
+  int address = (rom()->data()[kRoomHeaderPointerBank] << 16) +
+                (rom()->data()[(header_pointer + 1) + (room_id_ * 2)] << 8) +
+                rom()->data()[(header_pointer) + (room_id_ * 2)];
 
-  Layer2Mode = (uchar)(b >> 5);
+  int hpos = core::SnesToPc(address);
+  hpos++;
+  uint8_t b = rom_data[hpos];
+
+  Layer2Mode = (b >> 5);
   // TODO(@scawful): Make LayerMerging object.
   // LayerMerging = LayerMergeType.ListOf[(b & 0x0C) >> 2];
 
