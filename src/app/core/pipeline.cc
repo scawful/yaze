@@ -13,6 +13,8 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
+#include "app/gui/input.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -30,13 +32,27 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
       ImGui::PushID(n);
       if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
-      if (ImGui::ColorButton("##palette", palette[n].GetRGB(),
-                             ImGuiColorEditFlags_NoAlpha |
-                                 ImGuiColorEditFlags_NoPicker |
-                                 ImGuiColorEditFlags_NoTooltip,
-                             ImVec2(20, 20))) {
+      // Check if the current row is selected
+      bool is_selected = (palette_id == n / 8);
+
+      // Add outline rectangle to the selected row
+      if (is_selected) {
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+      }
+
+      if (gui::SNESColorButton("##palette", palette[n],
+                               ImGuiColorEditFlags_NoAlpha |
+                                   ImGuiColorEditFlags_NoPicker |
+                                   ImGuiColorEditFlags_NoTooltip,
+                               ImVec2(20, 20))) {
         palette_id = n / 8;
         refresh_graphics = true;
+      }
+
+      if (is_selected) {
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
       }
 
       ImGui::PopID();
