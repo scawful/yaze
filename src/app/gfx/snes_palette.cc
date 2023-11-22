@@ -262,6 +262,26 @@ PaletteGroup CreatePaletteGroupFromColFile(
   return toret;
 }
 
+// Take a SNESPalette with N many colors and divide it into palettes of 8 colors
+// each
+PaletteGroup CreatePaletteGroupFromLargePalette(SNESPalette& palette) {
+  PaletteGroup toret;
+
+  std::cout << "Palette size is " << palette.size() << std::endl;
+
+  for (int i = 0; i < palette.size(); i += 8) {
+    SNESPalette new_palette;
+    if (i + 8 < palette.size()) {
+      for (int j = 0; j < 8; j++) {
+        new_palette.AddColor(palette[i + j]);
+      }
+    }
+
+    toret.AddPalette(new_palette);
+  }
+  return toret;
+}
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze

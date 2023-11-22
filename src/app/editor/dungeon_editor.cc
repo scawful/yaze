@@ -4,6 +4,7 @@
 
 #include "app/core/common.h"
 #include "app/core/pipeline.h"
+#include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -31,10 +32,33 @@ absl::Status DungeonEditor::Update() {
         rooms_[i].LoadRoomGraphics();
       }
     }
+    graphics_bin_ = rom()->graphics_bin();
+    full_palette_ =
+        rom()->GetPaletteGroup("dungeon_main")[current_palette_group_id_];
+    current_palette_group_ =
+        gfx::CreatePaletteGroupFromLargePalette(full_palette_);
     is_loaded_ = true;
   }
 
+  if (refresh_graphics_) {
+    for (int block : rooms_[current_room_id_].blocks()) {
+      graphics_bin_[block].ApplyPalette(
+          current_palette_group_[current_palette_id_]);
+      rom()->UpdateBitmap(&graphics_bin_[block]);
+    }
+    refresh_graphics_ = false;
+  }
+
   DrawToolset();
+
+  if (palette_showing_) {
+    ImGui::Begin("Palette Editor", &palette_showing_, 0);
+    current_palette_ =
+        rom()->GetPaletteGroup("dungeon_main")[current_palette_group_id_];
+    core::SelectablePalettePipeline(current_palette_id_, refresh_graphics_,
+                                    current_palette_);
+    ImGui::End();
+  }
 
   if (ImGui::BeginTable("#DungeonEditTable", 3, kDungeonTableFlags,
                         ImVec2(0, 0))) {
@@ -149,7 +173,7 @@ void DungeonEditor::DrawToolset() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_PALETTE)) {
-      // Open the palette module
+      palette_showing_ = !palette_showing_;
     }
 
     ImGui::EndTable();
@@ -159,7 +183,7 @@ void DungeonEditor::DrawToolset() {
 void DungeonEditor::DrawRoomSelector() {
   if (rom()->isLoaded()) {
     gui::InputHexWord("Room ID", &current_room_id_);
-    // gui::InputHexByte("Palette ID", &rooms_[current_room_id_].palette);
+    gui::InputHex("Palette ID", &current_palette_id_);
 
     if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
         ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -183,7 +207,7 @@ void DungeonEditor::DrawDungeonTabView() {
 
   if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
     // TODO: Manage the room that is being added to the tab bar.
-    if (ImGui::TabItemButton("##tabitem", kDungeonTabFlags)) {
+    if (ImGui::TabItemButton("+", kDungeonTabFlags)) {
       active_rooms_.push_back(next_tab_id++);  // Add new tab
     }
 
@@ -249,14 +273,13 @@ void DungeonEditor::DrawRoomGraphics() {
     auto blocks = rooms_[current_room_id_].blocks();
     int current_block = 0;
     for (int block : blocks) {
-      auto bitmap = rom()->graphics_bin()[block];
       int offset = height * (current_block + 1);
       int top_left_y = room_gfx_canvas_.GetZeroPoint().y + 2;
       if (current_block >= 1) {
         top_left_y = room_gfx_canvas_.GetZeroPoint().y + height * current_block;
       }
       room_gfx_canvas_.GetDrawList()->AddImage(
-          (void*)bitmap.texture(),
+          (void*)graphics_bin_[block].texture(),
           ImVec2(room_gfx_canvas_.GetZeroPoint().x + 2, top_left_y),
           ImVec2(room_gfx_canvas_.GetZeroPoint().x + 0x100,
                  room_gfx_canvas_.GetZeroPoint().y + offset));

@@ -261,6 +261,8 @@ struct PaletteGroup {
 
 PaletteGroup CreatePaletteGroupFromColFile(std::vector<SNESColor>& colors);
 
+PaletteGroup CreatePaletteGroupFromLargePalette(SNESPalette& palette);
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze

@@ -15,8 +15,8 @@
 #include "app/editor/graphics_editor.h"
 #include "app/editor/modules/assembly_editor.h"
 #include "app/editor/modules/music_editor.h"
-#include "app/editor/overworld_editor.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/overworld_editor.h"
 #include "app/editor/screen_editor.h"
 #include "app/editor/sprite_editor.h"
 #include "app/emu/emulator.h"
@@ -60,6 +60,8 @@ class MasterEditor : public SharedROM, public core::ExperimentFlags {
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
   emu::Emulator emulator_;
+  Editor *current_editor_ = nullptr;
+
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;

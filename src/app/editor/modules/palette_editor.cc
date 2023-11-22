@@ -98,9 +98,6 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   const auto size =
       rom()->GetPaletteGroup(kPaletteGroupNames[category].data()).size();
   auto palettes = rom()->GetPaletteGroup(kPaletteGroupNames[category].data());
-  // if (static bool init = false; !init) {
-  //   InitializeSavedPalette(palettes[0]);
-  // }
   static bool edit_color = false;
   for (int j = 0; j < size; j++) {
     ImGui::Text("%d", j);
