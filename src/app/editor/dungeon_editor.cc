@@ -26,17 +26,9 @@ absl::Status DungeonEditor::Update() {
     for (int i = 0; i < 0x100; i++) {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
+      rooms_[i].LoadRoomFromROM();
       if (flags()->kDrawDungeonRoomGraphics) {
         rooms_[i].LoadRoomGraphics();
-
-        auto blocks = rooms_[i].blocks();
-        room_graphics_.emplace_back();
-        int current_sheet = 0;
-        for (auto& block : blocks) {
-          room_graphics_[i].CopyBitmap(rom()->bitmap_manager().GetBitmap(block),
-                                       current_sheet);
-          current_sheet += 1;
-        }
       }
     }
     is_loaded_ = true;
@@ -68,7 +60,8 @@ absl::Status DungeonEditor::Update() {
 
 void DungeonEditor::DrawRoomSelector() {
   if (rom()->isLoaded()) {
-    ImGui::InputInt("Room ID", (int*)&current_room_id_, 1, 1);
+    gui::InputHexWord("Room ID", &current_room_id_);
+    // gui::InputHexByte("Palette ID", &rooms_[current_room_id_].palette);
 
     if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
         ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -90,8 +83,6 @@ void DungeonEditor::DrawRoomSelector() {
 void DungeonEditor::DrawDungeonTabView() {
   static int next_tab_id = 0;
 
-  // Using ImGui Custom Tabs show each individual room the user selects from the
-  // Buttons above to open a canvas for each individual room.
   if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
     // TODO: Manage the room that is being added to the tab bar.
     if (ImGui::TabItemButton("##tabitem", kDungeonTabFlags)) {
@@ -154,19 +145,19 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 void DungeonEditor::DrawToolset() {
   if (ImGui::BeginTable("DWToolset", 12, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("#undoTool");
-    ImGui::TableSetupColumn("#redoTool");
-    ImGui::TableSetupColumn("#separator");
-    ImGui::TableSetupColumn("#anyTool");
+    TableSetupColumn("#undoTool");
+    TableSetupColumn("#redoTool");
+    TableSetupColumn("#separator");
+    TableSetupColumn("#anyTool");
 
-    ImGui::TableSetupColumn("#bg1Tool");
-    ImGui::TableSetupColumn("#bg2Tool");
-    ImGui::TableSetupColumn("#bg3Tool");
-    ImGui::TableSetupColumn("#separator");
-    ImGui::TableSetupColumn("#spriteTool");
-    ImGui::TableSetupColumn("#itemTool");
-    ImGui::TableSetupColumn("#doorTool");
-    ImGui::TableSetupColumn("#blockTool");
+    TableSetupColumn("#bg1Tool");
+    TableSetupColumn("#bg2Tool");
+    TableSetupColumn("#bg3Tool");
+    TableSetupColumn("#separator");
+    TableSetupColumn("#spriteTool");
+    TableSetupColumn("#itemTool");
+    TableSetupColumn("#doorTool");
+    TableSetupColumn("#blockTool");
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UNDO)) {
@@ -245,14 +236,30 @@ void DungeonEditor::DrawToolset() {
 }
 
 void DungeonEditor::DrawRoomGraphics() {
-  // room_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
-  // room_gfx_canvas_.DrawContextMenu();
-  // room_gfx_canvas_.DrawTileSelector(32);
-  // room_gfx_canvas_.DrawBitmap(room_gfx_bmp_, 2, is_loaded_);
-  // room_gfx_canvas_.DrawGrid(32.0f);
-  // room_gfx_canvas_.DrawOverlay();
-  core::GraphicsManagerCanvasPipeline(256, 0x10 * 0x40, 32, 0x10, 0, is_loaded_,
-                                      room_graphics_[current_room_id_]);
+  const auto height = 0x40;
+  room_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
+  room_gfx_canvas_.DrawContextMenu();
+  room_gfx_canvas_.DrawTileSelector(32);
+  if (is_loaded_) {
+    auto blocks = rooms_[current_room_id_].blocks();
+    int current_block = 0;
+    for (int block : blocks) {
+      auto bitmap = rom()->graphics_bin()[block];
+      int offset = height * (current_block + 1);
+      int top_left_y = room_gfx_canvas_.GetZeroPoint().y + 2;
+      if (current_block >= 1) {
+        top_left_y = room_gfx_canvas_.GetZeroPoint().y + height * current_block;
+      }
+      room_gfx_canvas_.GetDrawList()->AddImage(
+          (void*)bitmap.texture(),
+          ImVec2(room_gfx_canvas_.GetZeroPoint().x + 2, top_left_y),
+          ImVec2(room_gfx_canvas_.GetZeroPoint().x + 0x100,
+                 room_gfx_canvas_.GetZeroPoint().y + offset));
+      current_block += 1;
+    }
+  }
+  room_gfx_canvas_.DrawGrid(32.0f);
+  room_gfx_canvas_.DrawOverlay();
 }
 
 void DungeonEditor::DrawTileSelector() {
@@ -282,10 +289,9 @@ void DungeonEditor::DrawObjectRenderer() {
               ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
               ImGuiTableFlags_BordersV,
           ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("Dungeon Objects",
-                            ImGuiTableColumnFlags_WidthStretch,
-                            ImGui::GetContentRegionAvail().x);
-    ImGui::TableSetupColumn("Canvas");
+    TableSetupColumn("Dungeon Objects", ImGuiTableColumnFlags_WidthStretch,
+                     ImGui::GetContentRegionAvail().x);
+    TableSetupColumn("Canvas");
 
     ImGui::TableNextColumn();
     ImGui::BeginChild("DungeonObjectButtons", ImVec2(0, 0), true);

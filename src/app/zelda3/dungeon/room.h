@@ -160,14 +160,14 @@ class Room : public SharedROM {
   uint8_t staircase_plane[4];
   uint8_t staircase_rooms[4];
 
-  uchar BackgroundTileset;
-  uchar SpriteTileset;
-  uchar Layer2Behavior;
-  uchar Palette;
-  uchar Floor1Graphics;
-  uchar Floor2Graphics;
-  uchar Layer2Mode;
-  std::array<uchar, 16> blocks_;
+  uint8_t BackgroundTileset;
+  uint8_t SpriteTileset;
+  uint8_t Layer2Behavior;
+  uint8_t Palette;
+  uint8_t Floor1Graphics;
+  uint8_t Floor2Graphics;
+  uint8_t Layer2Mode;
+  std::array<uint8_t, 16> blocks_;
   std::array<uchar, 16> ChestList;
 
   std::vector<zelda3::Sprite> sprites_;
