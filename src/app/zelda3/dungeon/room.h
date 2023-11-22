@@ -117,6 +117,7 @@ class Room : public SharedROM {
   ~Room() = default;
   void LoadHeader();
   void LoadRoomGraphics(uchar entrance_blockset = 0xFF);
+  void CopyRoomGraphicsToBuffer();
   void LoadAnimatedGraphics();
 
   void LoadSprites();
@@ -124,6 +125,8 @@ class Room : public SharedROM {
   void LoadObjects();
 
   void LoadRoomFromROM();
+
+  auto blocks() const { return blocks_; }
 
   RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
                        uint8_t layer) {
@@ -164,7 +167,7 @@ class Room : public SharedROM {
   uchar Floor1Graphics;
   uchar Floor2Graphics;
   uchar Layer2Mode;
-  std::array<uchar, 16> blocks;
+  std::array<uchar, 16> blocks_;
   std::array<uchar, 16> ChestList;
 
   std::vector<zelda3::Sprite> sprites_;

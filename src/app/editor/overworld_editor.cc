@@ -51,7 +51,7 @@ absl::Status OverworldEditor::Update() {
   // Draws the toolset for editing the Overworld.
   RETURN_IF_ERROR(DrawToolset())
 
-  Separator();
+
   if (ImGui::BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);

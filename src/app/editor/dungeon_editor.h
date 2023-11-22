@@ -15,6 +15,19 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+constexpr ImGuiTabItemFlags kDungeonTabFlags =
+    ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip;
+
+constexpr ImGuiTabBarFlags kDungeonTabBarFlags =
+    ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
+    ImGuiTabBarFlags_FittingPolicyResizeDown |
+    ImGuiTabBarFlags_TabListPopupButton;
+
+constexpr ImGuiTableFlags kDungeonTableFlags =
+    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+    ImGuiTableFlags_BordersV;
+
 class DungeonEditor : public Editor,
                       public SharedROM,
                       public core::ExperimentFlags {
@@ -28,12 +41,13 @@ class DungeonEditor : public Editor,
 
  private:
   void DrawToolset();
+  void DrawRoomSelector();
 
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
+
   void DrawRoomGraphics();
   void DrawTileSelector();
-
   void DrawObjectRenderer();
 
   uint16_t current_room_id_ = 0;
@@ -47,8 +61,25 @@ class DungeonEditor : public Editor,
   std::vector<zelda3::dungeon::Room> rooms_;
   zelda3::dungeon::DungeonObjectRenderer object_renderer_;
 
+  enum BackgroundType {
+    kNoBackground,
+    kBackground1,
+    kBackground2,
+    kBackground3,
+    kBackgroundAny,
+  };
+  enum PlacementType { kNoType, kSprite, kItem, kDoor, kBlock };
+
+  int background_type_ = kNoBackground;
+  int placement_type_ = kNoType;
+
   gui::Canvas canvas_;
   gui::Canvas room_gfx_canvas_;
+
+  gui::Canvas dungeon_object_canvas_;
+
+  std::vector<gfx::BitmapManager> room_graphics_;
+
   ImGuiTableFlags toolset_table_flags_ =
       ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Reorderable |
       ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable;
