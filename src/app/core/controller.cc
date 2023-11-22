@@ -171,12 +171,17 @@ absl::Status Controller::CreateWindow() {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));
   } else {
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(0, &displayMode);
+    int screenWidth = displayMode.w * 0.8;
+    int screenHeight = displayMode.h * 0.8;
+
     window_ = std::unique_ptr<SDL_Window, sdl_deleter>(
         SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
                          SDL_WINDOWPOS_UNDEFINED,      // initial x position
                          SDL_WINDOWPOS_UNDEFINED,      // initial y position
-                         kScreenWidth,                 // width, in pixels
-                         kScreenHeight,                // height, in pixels
+                         screenWidth,                  // width, in pixels
+                         screenHeight,                 // height, in pixels
                          SDL_WINDOW_RESIZABLE),
         sdl_deleter());
     if (window_ == nullptr) {
