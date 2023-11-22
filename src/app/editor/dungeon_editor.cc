@@ -58,92 +58,8 @@ absl::Status DungeonEditor::Update() {
   return absl::OkStatus();
 }
 
-void DungeonEditor::DrawRoomSelector() {
-  if (rom()->isLoaded()) {
-    gui::InputHexWord("Room ID", &current_room_id_);
-    // gui::InputHexByte("Palette ID", &rooms_[current_room_id_].palette);
-
-    if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
-        ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      int i = 0;
-      for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
-        ImGui::Selectable(each_room_name.data(), current_room_id_ == i,
-                          ImGuiSelectableFlags_AllowDoubleClick);
-        if (ImGui::IsItemClicked()) {
-          active_rooms_.push_back(i);
-        }
-        i += 1;
-      }
-    }
-    ImGui::EndChild();
-  }
-}
-
-void DungeonEditor::DrawDungeonTabView() {
-  static int next_tab_id = 0;
-
-  if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
-    // TODO: Manage the room that is being added to the tab bar.
-    if (ImGui::TabItemButton("##tabitem", kDungeonTabFlags)) {
-      active_rooms_.push_back(next_tab_id++);  // Add new tab
-    }
-
-    // Submit our regular tabs
-    for (int n = 0; n < active_rooms_.Size;) {
-      bool open = true;
-
-      if (ImGui::BeginTabItem(
-              zelda3::dungeon::kRoomNames[active_rooms_[n]].data(), &open,
-              ImGuiTabItemFlags_None)) {
-        DrawDungeonCanvas(active_rooms_[n]);
-        ImGui::EndTabItem();
-      }
-
-      if (!open)
-        active_rooms_.erase(active_rooms_.Data + n);
-      else
-        n++;
-    }
-
-    ImGui::EndTabBar();
-  }
-  ImGui::Separator();
-}
-
-void DungeonEditor::DrawDungeonCanvas(int room_id) {
-  ImGui::BeginGroup();
-
-  gui::InputHexByte("Layout", &rooms_[room_id].layout);
-  ImGui::SameLine();
-
-  gui::InputHexByte("Blockset", &rooms_[room_id].blockset);
-  ImGui::SameLine();
-
-  gui::InputHexByte("Spriteset", &rooms_[room_id].spriteset);
-  ImGui::SameLine();
-
-  gui::InputHexByte("Palette", &rooms_[room_id].palette);
-
-  gui::InputHexByte("Floor1", &rooms_[room_id].floor1);
-  ImGui::SameLine();
-
-  gui::InputHexByte("Floor2", &rooms_[room_id].floor2);
-  ImGui::SameLine();
-
-  gui::InputHexWord("Message ID", &rooms_[room_id].message_id_);
-  ImGui::SameLine();
-
-  ImGui::EndGroup();
-
-  canvas_.DrawBackground();
-  canvas_.DrawContextMenu();
-  canvas_.DrawGrid();
-  canvas_.DrawOverlay();
-}
-
 void DungeonEditor::DrawToolset() {
-  if (ImGui::BeginTable("DWToolset", 12, ImGuiTableFlags_SizingFixedFit,
+  if (ImGui::BeginTable("DWToolset", 13, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
     TableSetupColumn("#undoTool");
     TableSetupColumn("#redoTool");
@@ -231,8 +147,97 @@ void DungeonEditor::DrawToolset() {
       ImGui::SetTooltip("Blocks");
     }
 
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_PALETTE)) {
+      // Open the palette module
+    }
+
     ImGui::EndTable();
   }
+}
+
+void DungeonEditor::DrawRoomSelector() {
+  if (rom()->isLoaded()) {
+    gui::InputHexWord("Room ID", &current_room_id_);
+    // gui::InputHexByte("Palette ID", &rooms_[current_room_id_].palette);
+
+    if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
+        ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      int i = 0;
+      for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
+        ImGui::Selectable(each_room_name.data(), current_room_id_ == i,
+                          ImGuiSelectableFlags_AllowDoubleClick);
+        if (ImGui::IsItemClicked()) {
+          active_rooms_.push_back(i);
+        }
+        i += 1;
+      }
+    }
+    ImGui::EndChild();
+  }
+}
+
+void DungeonEditor::DrawDungeonTabView() {
+  static int next_tab_id = 0;
+
+  if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
+    // TODO: Manage the room that is being added to the tab bar.
+    if (ImGui::TabItemButton("##tabitem", kDungeonTabFlags)) {
+      active_rooms_.push_back(next_tab_id++);  // Add new tab
+    }
+
+    // Submit our regular tabs
+    for (int n = 0; n < active_rooms_.Size;) {
+      bool open = true;
+
+      if (ImGui::BeginTabItem(
+              zelda3::dungeon::kRoomNames[active_rooms_[n]].data(), &open,
+              ImGuiTabItemFlags_None)) {
+        DrawDungeonCanvas(active_rooms_[n]);
+        ImGui::EndTabItem();
+      }
+
+      if (!open)
+        active_rooms_.erase(active_rooms_.Data + n);
+      else
+        n++;
+    }
+
+    ImGui::EndTabBar();
+  }
+  ImGui::Separator();
+}
+
+void DungeonEditor::DrawDungeonCanvas(int room_id) {
+  ImGui::BeginGroup();
+
+  gui::InputHexByte("Layout", &rooms_[room_id].layout);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Blockset", &rooms_[room_id].blockset);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Spriteset", &rooms_[room_id].spriteset);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Palette", &rooms_[room_id].palette);
+
+  gui::InputHexByte("Floor1", &rooms_[room_id].floor1);
+  ImGui::SameLine();
+
+  gui::InputHexByte("Floor2", &rooms_[room_id].floor2);
+  ImGui::SameLine();
+
+  gui::InputHexWord("Message ID", &rooms_[room_id].message_id_);
+  ImGui::SameLine();
+
+  ImGui::EndGroup();
+
+  canvas_.DrawBackground();
+  canvas_.DrawContextMenu();
+  canvas_.DrawGrid();
+  canvas_.DrawOverlay();
 }
 
 void DungeonEditor::DrawRoomGraphics() {
@@ -301,6 +306,9 @@ void DungeonEditor::DrawObjectRenderer() {
     for (const auto object_name : zelda3::dungeon::Type1RoomObjectNames) {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
+        object_renderer_.LoadObject(i);
+        rom()->RenderBitmap(object_renderer_.bitmap());
+        object_loaded_ = true;
       }
       i += 1;
     }
@@ -312,11 +320,14 @@ void DungeonEditor::DrawObjectRenderer() {
     ImGui::BeginChild("DungeonObjectCanvas", ImVec2(276, 0x10 * 0x40 + 1),
                       true);
 
-    dungeon_object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
-    dungeon_object_canvas_.DrawContextMenu();
-    dungeon_object_canvas_.DrawTileSelector(32);
-    dungeon_object_canvas_.DrawGrid(32.0f);
-    dungeon_object_canvas_.DrawOverlay();
+    object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
+    object_canvas_.DrawContextMenu();
+    object_canvas_.DrawTileSelector(32);
+    // if (object_loaded_) {
+    //   object_canvas_.DrawBitmap(*object_renderer_.bitmap(), 0, 0);
+    // }
+    object_canvas_.DrawGrid(32.0f);
+    object_canvas_.DrawOverlay();
 
     ImGui::EndChild();
 

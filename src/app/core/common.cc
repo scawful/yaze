@@ -23,6 +23,12 @@ uint32_t PcToSnes(uint32_t addr) {
   return addr;
 }
 
+uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) {
+  uint32_t result = 0;
+  result = (bank << 16) | addr;
+  return result;
+}
+
 int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) {
   return (addr1 << 16) | (addr2 << 8) | addr3;
 }

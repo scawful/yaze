@@ -53,6 +53,7 @@ class DungeonEditor : public Editor,
   uint16_t current_room_id_ = 0;
   bool is_loaded_ = false;
   bool show_object_render_ = false;
+  bool object_loaded_ = false;
 
   gfx::Bitmap room_gfx_bmp_;
 
@@ -60,6 +61,11 @@ class DungeonEditor : public Editor,
 
   std::vector<zelda3::dungeon::Room> rooms_;
   zelda3::dungeon::DungeonObjectRenderer object_renderer_;
+  gui::Canvas canvas_;
+  gui::Canvas room_gfx_canvas_;
+  gui::Canvas object_canvas_;
+
+  std::vector<gfx::BitmapManager> room_graphics_;
 
   enum BackgroundType {
     kNoBackground,
@@ -72,13 +78,6 @@ class DungeonEditor : public Editor,
 
   int background_type_ = kNoBackground;
   int placement_type_ = kNoType;
-
-  gui::Canvas canvas_;
-  gui::Canvas room_gfx_canvas_;
-
-  gui::Canvas dungeon_object_canvas_;
-
-  std::vector<gfx::BitmapManager> room_graphics_;
 
   ImGuiTableFlags toolset_table_flags_ =
       ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Reorderable |
