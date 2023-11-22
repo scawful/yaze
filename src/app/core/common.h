@@ -1,7 +1,9 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
+#include <chrono>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -58,14 +60,15 @@ class ExperimentFlags {
   static std::shared_ptr<Flags> flags_;
 };
 
-// NotifyFlag is a special type class which stores two copies of a type
+// NotifyValue is a special type class which stores two copies of a type
 // and uses that to check if the value was updated last or not
 // It should have an accessor which says if it was modified or not
 // and when that is read it should reset the value and state
 template <typename T>
-class NotifyFlag {
+class NotifyValue {
  public:
-  NotifyFlag() : value_(), modified_(false) {}
+  NotifyValue() : value_(), modified_(false) {}
+  NotifyValue(const T &value) : value_(value), modified_(false) {}
 
   void set(const T &value) {
     value_ = value;
@@ -85,6 +88,80 @@ class NotifyFlag {
  private:
   T value_;
   bool modified_;
+};
+
+struct TaskCheckpoint {
+  int task_index = 0;
+  bool complete = false;
+  // You can add more internal data or state-related variables here as needed
+};
+
+class TaskTimer {
+ public:
+  // Starts the timer
+  void StartTimer() { start_time_ = std::chrono::steady_clock::now(); }
+
+  // Checks if the task should finish based on the given timeout in seconds
+  bool ShouldFinishTask(int timeout_seconds) {
+    auto current_time = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(
+        current_time - start_time_);
+    return elapsed_time.count() >= timeout_seconds;
+  }
+
+ private:
+  std::chrono::steady_clock::time_point start_time_;
+};
+
+class TaskManager {
+ public:
+  using TaskFunction = std::function<void(int)>;
+
+  TaskManager(int totalTasks, int timeoutSeconds, const TaskFunction &taskFunc)
+      : total_tasks_(totalTasks),
+        timeout_seconds_(timeoutSeconds),
+        task_function_(taskFunc),
+        task_index_(0),
+        task_complete_(false) {}
+
+  void ExecuteTasks() {
+    if (task_complete_) {
+      return;
+    }
+
+    StartTimer();
+
+    for (; task_index_ < total_tasks_; ++task_index_) {
+      task_function_(task_index_);
+
+      if (ShouldFinishTask()) {
+        break;
+      }
+    }
+
+    if (task_index_ == total_tasks_) {
+      task_complete_ = true;
+    }
+  }
+
+  bool IsTaskComplete() const { return task_complete_; }
+
+ private:
+  int total_tasks_;
+  int timeout_seconds_;
+  TaskFunction task_function_;
+  int task_index_;
+  bool task_complete_;
+  std::chrono::steady_clock::time_point start_time_;
+
+  void StartTimer() { start_time_ = std::chrono::steady_clock::now(); }
+
+  bool ShouldFinishTask() {
+    auto current_time = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(
+        current_time - start_time_);
+    return elapsed_time.count() >= timeout_seconds_;
+  }
 };
 
 uint32_t SnesToPc(uint32_t addr);
