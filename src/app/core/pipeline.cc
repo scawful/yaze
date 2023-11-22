@@ -77,6 +77,38 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
   ImGui::EndChild();
 }
 
+void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
+                                   int num_sheets, int canvas_id,
+                                   bool is_loaded,
+                                   const gfx::BitmapManager& graphics_manager) {
+  gui::Canvas canvas;
+
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)canvas_id);
+      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    canvas.DrawBackground(ImVec2(width + 1, num_sheets * height + 1));
+    canvas.DrawContextMenu();
+    if (is_loaded) {
+      for (const auto& [key, value] : graphics_manager) {
+        int offset = height * (key + 1);
+        int top_left_y = canvas.GetZeroPoint().y + 2;
+        if (key >= 1) {
+          top_left_y = canvas.GetZeroPoint().y + height * key;
+        }
+        canvas.GetDrawList()->AddImage(
+            (void*)value->texture(),
+            ImVec2(canvas.GetZeroPoint().x + 2, top_left_y),
+            ImVec2(canvas.GetZeroPoint().x + 0x100,
+                   canvas.GetZeroPoint().y + offset));
+      }
+    }
+    canvas.DrawTileSelector(tile_size);
+    canvas.DrawGrid(tile_size);
+    canvas.DrawOverlay();
+  }
+  ImGui::EndChild();
+}
+
 void ButtonPipe(absl::string_view button_text, std::function<void()> callback) {
   if (ImGui::Button(button_text.data())) {
     callback();

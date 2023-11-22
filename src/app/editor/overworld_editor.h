@@ -47,9 +47,10 @@ static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
 
 constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
 constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
-constexpr ImGuiTableFlags kOWEditFlags = ImGuiTableFlags_Reorderable |
-                                         ImGuiTableFlags_Resizable | ImGuiTableFlags_Hideable |
-                                         ImGuiTableFlags_SizingStretchSame;
+constexpr ImGuiTableFlags kOWEditFlags =
+    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+    ImGuiTableFlags_BordersV;
 
 constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";

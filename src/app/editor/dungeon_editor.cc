@@ -3,6 +3,7 @@
 #include <imgui/imgui.h>
 
 #include "app/core/common.h"
+#include "app/core/pipeline.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -26,44 +27,38 @@ absl::Status DungeonEditor::Update() {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
       if (flags()->kDrawDungeonRoomGraphics) {
-        rooms_[i].LoadRoomGraphics(rooms_[i].blockset);
+        rooms_[i].LoadRoomGraphics();
+
+        auto blocks = rooms_[i].blocks();
+        room_graphics_.emplace_back();
+        int current_sheet = 0;
+        for (auto& block : blocks) {
+          room_graphics_[i].CopyBitmap(rom()->bitmap_manager().GetBitmap(block),
+                                       current_sheet);
+          current_sheet += 1;
+        }
       }
     }
     is_loaded_ = true;
   }
 
   DrawToolset();
-  DrawObjectRenderer();
 
-  ImGui::Separator();
-  if (ImGui::BeginTable("#DungeonEditTable", 3, toolset_table_flags_,
+  if (ImGui::BeginTable("#DungeonEditTable", 3, kDungeonTableFlags,
                         ImVec2(0, 0))) {
     TableSetupColumn("Room Selector");
-
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
     TableSetupColumn("Object Selector");
     TableHeadersRow();
     TableNextRow();
+
     TableNextColumn();
-    if (rom()->isLoaded()) {
-      if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
-          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-        int i = 0;
-        for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
-          ImGui::Button(each_room_name.data());
-          if (ImGui::IsItemClicked()) {
-            active_rooms_.push_back(i);
-          }
-          i += 1;
-        }
-      }
-      ImGui::EndChild();
-    }
+    DrawRoomSelector();
 
     TableNextColumn();
     DrawDungeonTabView();
+
     TableNextColumn();
     DrawTileSelector();
     ImGui::EndTable();
@@ -71,33 +66,35 @@ absl::Status DungeonEditor::Update() {
   return absl::OkStatus();
 }
 
-// Using ImGui Custom Tabs show each individual room the user selects from the
-// Buttons above to open a canvas for each individual room.
+void DungeonEditor::DrawRoomSelector() {
+  if (rom()->isLoaded()) {
+    ImGui::InputInt("Room ID", (int*)&current_room_id_, 1, 1);
+
+    if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
+        ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      int i = 0;
+      for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
+        ImGui::Selectable(each_room_name.data(), current_room_id_ == i,
+                          ImGuiSelectableFlags_AllowDoubleClick);
+        if (ImGui::IsItemClicked()) {
+          active_rooms_.push_back(i);
+        }
+        i += 1;
+      }
+    }
+    ImGui::EndChild();
+  }
+}
+
 void DungeonEditor::DrawDungeonTabView() {
   static int next_tab_id = 0;
 
-  // Expose some other flags which are useful to showcase how they interact with
-  // Leading/Trailing tabs
-  static ImGuiTabBarFlags tab_bar_flags =
-      ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
-      ImGuiTabBarFlags_FittingPolicyResizeDown |
-      ImGuiTabBarFlags_TabListPopupButton;
-
-  if (ImGui::CheckboxFlags("ImGuiTabBarFlags_FittingPolicyResizeDown",
-                           &tab_bar_flags,
-                           ImGuiTabBarFlags_FittingPolicyResizeDown))
-    tab_bar_flags &= ~(ImGuiTabBarFlags_FittingPolicyMask_ ^
-                       ImGuiTabBarFlags_FittingPolicyResizeDown);
-  if (ImGui::CheckboxFlags("ImGuiTabBarFlags_FittingPolicyScroll",
-                           &tab_bar_flags,
-                           ImGuiTabBarFlags_FittingPolicyScroll))
-    tab_bar_flags &= ~(ImGuiTabBarFlags_FittingPolicyMask_ ^
-                       ImGuiTabBarFlags_FittingPolicyScroll);
-
-  if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags)) {
+  // Using ImGui Custom Tabs show each individual room the user selects from the
+  // Buttons above to open a canvas for each individual room.
+  if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
     // TODO: Manage the room that is being added to the tab bar.
-    if (ImGui::TabItemButton(
-            "+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+    if (ImGui::TabItemButton("##tabitem", kDungeonTabFlags)) {
       active_rooms_.push_back(next_tab_id++);  // Add new tab
     }
 
@@ -155,17 +152,21 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 }
 
 void DungeonEditor::DrawToolset() {
-  if (ImGui::BeginTable("DWToolset", 10, ImGuiTableFlags_SizingFixedFit,
+  if (ImGui::BeginTable("DWToolset", 12, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
     ImGui::TableSetupColumn("#undoTool");
     ImGui::TableSetupColumn("#redoTool");
-    ImGui::TableSetupColumn("#history");
     ImGui::TableSetupColumn("#separator");
+    ImGui::TableSetupColumn("#anyTool");
+
     ImGui::TableSetupColumn("#bg1Tool");
     ImGui::TableSetupColumn("#bg2Tool");
     ImGui::TableSetupColumn("#bg3Tool");
-    ImGui::TableSetupColumn("#itemTool");
+    ImGui::TableSetupColumn("#separator");
     ImGui::TableSetupColumn("#spriteTool");
+    ImGui::TableSetupColumn("#itemTool");
+    ImGui::TableSetupColumn("#doorTool");
+    ImGui::TableSetupColumn("#blockTool");
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_UNDO)) {
@@ -178,41 +179,80 @@ void DungeonEditor::DrawToolset() {
     }
 
     ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_MANAGE_HISTORY);
+    ImGui::Text(ICON_MD_MORE_VERT);
+
+    ImGui::TableNextColumn();
+    if (ImGui::RadioButton(ICON_MD_FILTER_NONE,
+                           background_type_ == kBackgroundAny)) {
+      background_type_ = kBackgroundAny;
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::RadioButton(ICON_MD_FILTER_1,
+                           background_type_ == kBackground1)) {
+      background_type_ = kBackground1;
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::RadioButton(ICON_MD_FILTER_2,
+                           background_type_ == kBackground2)) {
+      background_type_ = kBackground2;
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::RadioButton(ICON_MD_FILTER_3,
+                           background_type_ == kBackground3)) {
+      background_type_ = kBackground3;
+    }
 
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
 
     ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_FILTER_1);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_FILTER_2);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_FILTER_3);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_GRASS);
-
-    ImGui::TableNextColumn();
-    ImGui::Button(ICON_MD_PEST_CONTROL_RODENT);
-
-    ImGui::TableNextColumn();
-    if (ImGui::Button("Dungeon Object Renderer")) {
-      show_object_render_ = !show_object_render_;
+    if (ImGui::RadioButton(ICON_MD_PEST_CONTROL, placement_type_ == kSprite)) {
+      placement_type_ = kSprite;
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Sprites");
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::RadioButton(ICON_MD_GRASS, placement_type_ == kItem)) {
+      placement_type_ = kItem;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Items");
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::RadioButton(ICON_MD_SENSOR_DOOR, placement_type_ == kDoor)) {
+      placement_type_ = kDoor;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Doors");
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::RadioButton(ICON_MD_SQUARE, placement_type_ == kBlock)) {
+      placement_type_ = kBlock;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Blocks");
+    }
+
     ImGui::EndTable();
   }
 }
 
 void DungeonEditor::DrawRoomGraphics() {
-  room_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
-  room_gfx_canvas_.DrawContextMenu();
-  room_gfx_canvas_.DrawTileSelector(32);
-  room_gfx_canvas_.DrawBitmap(room_gfx_bmp_, 2, is_loaded_);
-  room_gfx_canvas_.DrawGrid(32.0f);
-  room_gfx_canvas_.DrawOverlay();
+  // room_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
+  // room_gfx_canvas_.DrawContextMenu();
+  // room_gfx_canvas_.DrawTileSelector(32);
+  // room_gfx_canvas_.DrawBitmap(room_gfx_bmp_, 2, is_loaded_);
+  // room_gfx_canvas_.DrawGrid(32.0f);
+  // room_gfx_canvas_.DrawOverlay();
+  core::GraphicsManagerCanvasPipeline(256, 0x10 * 0x40, 32, 0x10, 0, is_loaded_,
+                                      room_graphics_[current_room_id_]);
 }
 
 void DungeonEditor::DrawTileSelector() {
@@ -226,48 +266,55 @@ void DungeonEditor::DrawTileSelector() {
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
+
+    if (ImGui::BeginTabItem("Object Renderer")) {
+      DrawObjectRenderer();
+      ImGui::EndTabItem();
+    }
     ImGui::EndTabBar();
   }
 }
 
 void DungeonEditor::DrawObjectRenderer() {
-  if (show_object_render_) {
-    ImGui::Begin("Dungeon Object Renderer", &show_object_render_);
+  if (ImGui::BeginTable(
+          "DungeonObjectEditorTable", 2,
+          ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+              ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+              ImGuiTableFlags_BordersV,
+          ImVec2(0, 0))) {
+    ImGui::TableSetupColumn("Dungeon Objects",
+                            ImGuiTableColumnFlags_WidthStretch,
+                            ImGui::GetContentRegionAvail().x);
+    ImGui::TableSetupColumn("Canvas");
 
-    // Create an ImGui table where the left side of the table is a matrix of
-    // buttons which represent each dungeon object. The right side of the table
-    // is a canvas which will display the selected dungeon object. The canvas
-    // will also have a tile selector and a grid overlay.
-    if (ImGui::BeginTable("DungeonObjectEditorTable", 2,
-                          ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0))) {
-      ImGui::TableSetupColumn("Dungeon Objects",
-                              ImGuiTableColumnFlags_WidthFixed, 150.0f);
-      ImGui::TableSetupColumn("Canvas");
+    ImGui::TableNextColumn();
+    ImGui::BeginChild("DungeonObjectButtons", ImVec2(0, 0), true);
 
-      ImGui::TableNextColumn();
-      ImGui::BeginChild("DungeonObjectButtons", ImVec2(150.0f, 0), true);
-
-      for (const auto each : zelda3::dungeon::Type1RoomObjectNames) {
-        ImGui::Button(each.data());
-        if (ImGui::IsItemClicked()) {
-        }
+    int selected_object = 0;
+    int i = 0;
+    for (const auto object_name : zelda3::dungeon::Type1RoomObjectNames) {
+      if (ImGui::Selectable(object_name.data(), selected_object == i)) {
+        selected_object = i;
       }
-
-      ImGui::EndChild();
-
-      // Right side of the table - Canvas
-      ImGui::TableNextColumn();
-      ImGui::BeginChild("DungeonObjectCanvas", ImVec2(0, 0), true);
-
-      // TODO: Insert code to display canvas, tile selector, and grid overlay
-      // here
-
-      ImGui::EndChild();
-
-      ImGui::EndTable();
+      i += 1;
     }
 
-    ImGui::End();
+    ImGui::EndChild();
+
+    // Right side of the table - Canvas
+    ImGui::TableNextColumn();
+    ImGui::BeginChild("DungeonObjectCanvas", ImVec2(276, 0x10 * 0x40 + 1),
+                      true);
+
+    dungeon_object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
+    dungeon_object_canvas_.DrawContextMenu();
+    dungeon_object_canvas_.DrawTileSelector(32);
+    dungeon_object_canvas_.DrawGrid(32.0f);
+    dungeon_object_canvas_.DrawOverlay();
+
+    ImGui::EndChild();
+
+    ImGui::EndTable();
   }
 }
 

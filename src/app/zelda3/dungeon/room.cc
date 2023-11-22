@@ -143,7 +143,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
   current_gfx16_.reserve(0x4000);
 
   for (int i = 0; i < 8; i++) {
-    blocks[i] = mainGfx[BackgroundTileset][i];
+    blocks_[i] = mainGfx[BackgroundTileset][i];
     if (i >= 6 && i <= 6) {
       // 3-6
       if (entrance_blockset != 0xFF) {
@@ -151,27 +151,29 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
         // TODO: Find why this is wrong - Thats because of the stairs need to
         // find a workaround
         if (roomGfx[entrance_blockset][i - 3] != 0) {
-          blocks[i] = roomGfx[entrance_blockset][i - 3];
+          blocks_[i] = roomGfx[entrance_blockset][i - 3];
         }
       }
     }
   }
 
-  blocks[8] = 115 + 0;  // Static Sprites Blocksets (fairy,pot,ect...)
-  blocks[9] = 115 + 10;
-  blocks[10] = 115 + 6;
-  blocks[11] = 115 + 7;
+  blocks_[8] = 115 + 0;  // Static Sprites Blocksets (fairy,pot,ect...)
+  blocks_[9] = 115 + 10;
+  blocks_[10] = 115 + 6;
+  blocks_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    blocks[12 + i] = (uchar)(spriteGfx[SpriteTileset + 64][i] + 115);
+    blocks_[12 + i] = (uchar)(spriteGfx[SpriteTileset + 64][i] + 115);
   }  // 12-16 sprites
+}
 
+void Room::CopyRoomGraphicsToBuffer() {
   auto gfx_buffer_data = rom()->graphics_buffer();
 
   // Into "room gfx16" 16 of them
   int sheetPos = 0;
   for (int i = 0; i < 16; i++) {
     int d = 0;
-    int ioff = blocks[i] * 2048;
+    int ioff = blocks_[i] * 2048;
     while (d < 2048) {
       uchar mapByte = gfx_buffer_data[d + ioff];
       if (i < 4) {
@@ -189,8 +191,7 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
 }
 
 void Room::LoadAnimatedGraphics() {
-  int gfx_ptr =
-      core::SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
+  int gfx_ptr = core::SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
 
   auto gfx_buffer_data = rom()->graphics_buffer();
   auto rom_data = rom()->vector();

@@ -95,6 +95,7 @@ class Bitmap {
 
   int width() const { return width_; }
   int height() const { return height_; }
+  auto depth() const { return depth_; }
   auto size() const { return data_size_; }
   auto data() const { return pixel_data_; }
   auto at(int i) const { return pixel_data_[i]; }
@@ -147,6 +148,14 @@ class BitmapManager {
     auto bitmap = std::make_shared<gfx::Bitmap>(width, height, depth, data);
     bitmap_cache_[id] = bitmap;
     return bitmap;
+  }
+
+  std::shared_ptr<gfx::Bitmap> CopyBitmap(std::shared_ptr<gfx::Bitmap> bitmap,
+                                          int id) {
+    auto copy = std::make_shared<gfx::Bitmap>(bitmap->width(), bitmap->height(),
+                                              bitmap->depth(), bitmap->data());
+    bitmap_cache_[id] = copy;
+    return copy;
   }
 
   std::shared_ptr<gfx::Bitmap> operator[](int id) {
