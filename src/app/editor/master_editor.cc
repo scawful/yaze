@@ -13,9 +13,9 @@
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
 #include "app/editor/modules/assembly_editor.h"
-#include "app/editor/overworld_editor.h"
 #include "app/editor/modules/music_editor.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/overworld_editor.h"
 #include "app/editor/screen_editor.h"
 #include "app/editor/sprite_editor.h"
 #include "app/emu/emulator.h"
@@ -40,7 +40,7 @@ constexpr ImGuiWindowFlags kMainEditorFlags =
     ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
 
 void NewMasterFrame() {
-  const ImGuiIO &io = ImGui::GetIO();
+  const ImGuiIO& io = ImGui::GetIO();
   ImGui::NewFrame();
   ImGui::SetNextWindowPos(gui::kZeroPos);
   ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
@@ -52,8 +52,8 @@ void NewMasterFrame() {
   }
 }
 
-bool BeginCentered(const char *name) {
-  ImGuiIO const &io = ImGui::GetIO();
+bool BeginCentered(const char* name) {
+  ImGuiIO const& io = ImGui::GetIO();
   ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGuiWindowFlags flags =
@@ -61,6 +61,53 @@ bool BeginCentered(const char *name) {
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
   return ImGui::Begin(name, nullptr, flags);
 }
+
+class RecentFilesManager {
+ public:
+  RecentFilesManager(const std::string& filename) : filename_(filename) {}
+
+  void AddFile(const std::string& filePath) {
+    // Add a file to the list, avoiding duplicates
+    auto it = std::find(recentFiles_.begin(), recentFiles_.end(), filePath);
+    if (it == recentFiles_.end()) {
+      recentFiles_.push_back(filePath);
+    }
+  }
+
+  void Save() {
+    std::ofstream file(filename_);
+    if (!file.is_open()) {
+      return;  // Handle the error appropriately
+    }
+
+    for (const auto& filePath : recentFiles_) {
+      file << filePath << std::endl;
+    }
+  }
+
+  void Load() {
+    std::ifstream file(filename_);
+    if (!file.is_open()) {
+      return;  // Handle the error appropriately
+    }
+
+    recentFiles_.clear();
+    std::string line;
+    while (std::getline(file, line)) {
+      if (!line.empty()) {
+        recentFiles_.push_back(line);
+      }
+    }
+  }
+
+  const std::vector<std::string>& GetRecentFiles() const {
+    return recentFiles_;
+  }
+
+ private:
+  std::string filename_;
+  std::vector<std::string> recentFiles_;
+};
 
 }  // namespace
 
@@ -81,10 +128,12 @@ void MasterEditor::UpdateScreen() {
   TAB_BAR("##TabBar")
 
   TAB_ITEM("Overworld")
+  current_editor_ = &overworld_editor_;
   status_ = overworld_editor_.Update();
   END_TAB_ITEM()
 
   TAB_ITEM("Dungeon")
+  current_editor_ = &dungeon_editor_;
   status_ = dungeon_editor_.Update();
   END_TAB_ITEM()
 
@@ -92,20 +141,20 @@ void MasterEditor::UpdateScreen() {
   status_ = graphics_editor_.Update();
   END_TAB_ITEM()
 
-  TAB_ITEM("Music")
-  music_editor_.Update();
-  END_TAB_ITEM()
-
   TAB_ITEM("Sprites")
   status_ = sprite_editor_.Update();
+  END_TAB_ITEM()
+
+  TAB_ITEM("Palettes")
+  status_ = palette_editor_.Update();
   END_TAB_ITEM()
 
   TAB_ITEM("Screens")
   screen_editor_.Update();
   END_TAB_ITEM()
 
-  TAB_ITEM("Palettes")
-  status_ = palette_editor_.Update();
+  TAB_ITEM("Music")
+  music_editor_.Update();
   END_TAB_ITEM()
 
   END_TAB_BAR()
@@ -114,12 +163,22 @@ void MasterEditor::UpdateScreen() {
 }
 
 void MasterEditor::DrawFileDialog() {
-  core::FileDialogPipeline("ChooseFileDlgKey", ".sfc,.smc", std::nullopt,
-                           [&]() {
-                             std::string filePathName =
-                                 ImGuiFileDialog::Instance()->GetFilePathName();
-                             status_ = rom()->LoadFromFile(filePathName);
-                           });
+  core::FileDialogPipeline(
+      "ChooseFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
+        std::string filePathName =
+            ImGuiFileDialog::Instance()->GetFilePathName();
+        status_ = rom()->LoadFromFile(filePathName);
+        static RecentFilesManager manager("recent_files.txt");
+
+        // Load existing recent files
+        manager.Load();
+
+        // Add a new file
+        manager.AddFile(filePathName);
+
+        // Save the updated list
+        manager.Save();
+      });
 }
 
 void MasterEditor::DrawStatusPopup() {
@@ -227,6 +286,21 @@ void MasterEditor::DrawFileMenu() {
                                               ".sfc,.smc", ".");
     }
 
+    if (ImGui::BeginMenu("Open Recent")) {
+      static RecentFilesManager manager("recent_files.txt");
+      manager.Load();
+      if (manager.GetRecentFiles().empty()) {
+        ImGui::MenuItem("No Recent Files", nullptr, false, false);
+      } else {
+        for (const auto& filePath : manager.GetRecentFiles()) {
+          if (ImGui::MenuItem(filePath.c_str())) {
+            status_ = rom()->LoadFromFile(filePath);
+          }
+        }
+      }
+      ImGui::EndMenu();
+    }
+
     MENU_ITEM2("Save", "Ctrl+S") { status_ = rom()->SaveToFile(backup_rom_); }
     MENU_ITEM("Save As..") { save_as_menu = true; }
 
@@ -284,12 +358,12 @@ void MasterEditor::DrawFileMenu() {
 
 void MasterEditor::DrawEditMenu() {
   if (ImGui::BeginMenu("Edit")) {
-    MENU_ITEM2("Undo", "Ctrl+Z") { status_ = overworld_editor_.Undo(); }
-    MENU_ITEM2("Redo", "Ctrl+Y") { status_ = overworld_editor_.Redo(); }
+    MENU_ITEM2("Undo", "Ctrl+Z") { status_ = current_editor_->Undo(); }
+    MENU_ITEM2("Redo", "Ctrl+Y") { status_ = current_editor_->Redo(); }
     ImGui::Separator();
-    MENU_ITEM2("Cut", "Ctrl+X") { status_ = overworld_editor_.Cut(); }
-    MENU_ITEM2("Copy", "Ctrl+C") { status_ = overworld_editor_.Copy(); }
-    MENU_ITEM2("Paste", "Ctrl+V") { status_ = overworld_editor_.Paste(); }
+    MENU_ITEM2("Cut", "Ctrl+X") { status_ = current_editor_->Cut(); }
+    MENU_ITEM2("Copy", "Ctrl+C") { status_ = current_editor_->Copy(); }
+    MENU_ITEM2("Paste", "Ctrl+V") { status_ = current_editor_->Paste(); }
     ImGui::Separator();
     MENU_ITEM2("Find", "Ctrl+F") {}
     ImGui::Separator();
@@ -319,7 +393,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void *)&(*rom()), rom()->size());
+    mem_edit.DrawWindow("Memory Editor", (void*)&(*rom()), rom()->size());
   }
 
   if (show_imgui_demo) {

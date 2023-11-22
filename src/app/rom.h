@@ -419,6 +419,10 @@ class ROM : public core::ExperimentFlags {
 
   gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
 
+  gfx::Bitmap* mutable_graphics_sheet(int index) {
+    return &graphics_bin_.at(index);
+  }
+
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto begin() { return rom_data_.begin(); }

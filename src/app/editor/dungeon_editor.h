@@ -5,6 +5,7 @@
 
 #include "app/core/common.h"
 #include "app/core/editor.h"
+#include "app/editor/modules/palette_editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/rom.h"
@@ -50,22 +51,36 @@ class DungeonEditor : public Editor,
   void DrawTileSelector();
   void DrawObjectRenderer();
 
-  uint16_t current_room_id_ = 0;
   bool is_loaded_ = false;
   bool show_object_render_ = false;
   bool object_loaded_ = false;
+  bool palette_showing_ = false;
+
+  bool refresh_graphics_ = false;
+  uint64_t current_palette_id_ = 0;
+  uint64_t current_palette_group_id_ = 0;
+
+  uint16_t current_room_id_ = 0;
 
   gfx::Bitmap room_gfx_bmp_;
+  gfx::SNESPalette current_palette_;
 
-  ImVector<int> active_rooms_;
+  gfx::SNESPalette full_palette_;
 
-  std::vector<zelda3::dungeon::Room> rooms_;
-  zelda3::dungeon::DungeonObjectRenderer object_renderer_;
+  gfx::PaletteGroup current_palette_group_;
+
   gui::Canvas canvas_;
   gui::Canvas room_gfx_canvas_;
   gui::Canvas object_canvas_;
 
+  gfx::BitmapTable graphics_bin_;
+
+  ImVector<int> active_rooms_;
+  std::vector<zelda3::dungeon::Room> rooms_;
   std::vector<gfx::BitmapManager> room_graphics_;
+  zelda3::dungeon::DungeonObjectRenderer object_renderer_;
+
+  PaletteEditor palette_editor_;
 
   enum BackgroundType {
     kNoBackground,
