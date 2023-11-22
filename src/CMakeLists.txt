@@ -14,8 +14,8 @@ set(
   app/editor/overworld_editor.cc
   app/editor/screen_editor.cc
   app/editor/sprite_editor.cc
-  app/editor/resources/music_editor.cc
-  app/editor/resources/palette_editor.cc
+  app/editor/modules/music_editor.cc
+  app/editor/modules/palette_editor.cc
   app/editor/modules/assembly_editor.cc
   app/editor/modules/tile16_editor.cc
   app/editor/modules/gfx_group_editor.cc

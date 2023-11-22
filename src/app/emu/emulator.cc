@@ -48,11 +48,21 @@ void DrawMemoryWindow(Memory* memory) {
       // Display memory areas
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("ROM");
+      ImGui::Text("ROM Bank 0-63");
       ImGui::TableNextColumn();
-      ImGui::Text("0x000000");
+      ImGui::Text("0x8000");
       ImGui::TableNextColumn();
-      ImGui::Text("%d MB", memoryImpl->rom_.size());
+      ImGui::Text("128 KB");
+      ImGui::TableNextColumn();
+      ImGui::Text("LoROM");
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM Bank 64-111");
+      ImGui::TableNextColumn();
+      ImGui::Text("0x0000");
+      ImGui::TableNextColumn();
+      ImGui::Text("64 KB");
       ImGui::TableNextColumn();
       ImGui::Text("LoROM");
 
@@ -60,9 +70,39 @@ void DrawMemoryWindow(Memory* memory) {
       ImGui::TableNextColumn();
       ImGui::Text("RAM");
       ImGui::TableNextColumn();
+      ImGui::Text("0x700000");
+      ImGui::TableNextColumn();
+      ImGui::Text("64 KB");
+      ImGui::TableNextColumn();
+      ImGui::Text("LoROM");
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("System RAM (WRAM)");
+      ImGui::TableNextColumn();
       ImGui::Text("0x7E0000");
       ImGui::TableNextColumn();
-      ImGui::Text("%d KB", memoryImpl->ram_.size());
+      ImGui::Text("128 KB");
+      ImGui::TableNextColumn();
+      ImGui::Text("LoROM");
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM Bank 128-191");
+      ImGui::TableNextColumn();
+      ImGui::Text("0x8000");
+      ImGui::TableNextColumn();
+      ImGui::Text("128 KB");
+      ImGui::TableNextColumn();
+      ImGui::Text("LoROM");
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM Bank 192-255");
+      ImGui::TableNextColumn();
+      ImGui::Text("0x0000");
+      ImGui::TableNextColumn();
+      ImGui::Text("64 KB");
       ImGui::TableNextColumn();
       ImGui::Text("LoROM");
     }
@@ -109,7 +149,6 @@ void Emulator::Run() {
   ImGui::Button(ICON_MD_DOUBLE_ARROW);
   ImGui::SameLine();
   ImGui::Button(ICON_MD_SUBDIRECTORY_ARROW_RIGHT);
-  ImGui::SameLine();
 
   if (running_) {
     HandleEvents();
@@ -331,8 +370,9 @@ void Emulator::RenderCPUInstructionLog(
     ImGui::Checkbox("Show All Opcodes", &showAllOpcodes);
 
     // Instruction list
-    ImGui::BeginChild("InstructionList", ImVec2(0, 0),
-                      ImGuiChildFlags_AlwaysAutoResize);
+    ImGui::BeginChild(
+        "InstructionList", ImVec2(0, 0),
+        ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeY);
     for (const auto& entry : instructionLog) {
       if (ShouldDisplay(entry, filterBuf, showAllOpcodes)) {
         if (ImGui::Selectable(absl::StrFormat("%04X: %02X %s %s", entry.address,

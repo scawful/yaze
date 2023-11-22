@@ -623,18 +623,18 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void XCE();
 
   // Memory access routines
-  uint8_t ReadByte(uint16_t address) const override {
+  uint8_t ReadByte(uint32_t address) const override {
     auto value = memory.ReadByte(address);
     return value;
   }
-  uint16_t ReadWord(uint16_t address) const override {
+  uint16_t ReadWord(uint32_t address) const override {
     return memory.ReadWord(address);
   }
-  uint32_t ReadWordLong(uint16_t address) const override {
+  uint32_t ReadWordLong(uint32_t address) const override {
     return memory.ReadWordLong(address);
   }
 
-  std::vector<uint8_t> ReadByteVector(uint16_t address,
+  std::vector<uint8_t> ReadByteVector(uint32_t address,
                                       uint16_t size) const override {
     return memory.ReadByteVector(address, size);
   }

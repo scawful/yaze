@@ -109,10 +109,10 @@ constexpr uint32_t kOAMSize = 0x220;
 class Memory {
  public:
   virtual ~Memory() = default;
-  virtual uint8_t ReadByte(uint16_t address) const = 0;
-  virtual uint16_t ReadWord(uint16_t address) const = 0;
-  virtual uint32_t ReadWordLong(uint16_t address) const = 0;
-  virtual std::vector<uint8_t> ReadByteVector(uint16_t address,
+  virtual uint8_t ReadByte(uint32_t address) const = 0;
+  virtual uint16_t ReadWord(uint32_t address) const = 0;
+  virtual uint32_t ReadWordLong(uint32_t address) const = 0;
+  virtual std::vector<uint8_t> ReadByteVector(uint32_t address,
                                               uint16_t length) const = 0;
 
   virtual void WriteByte(uint32_t address, uint8_t value) = 0;
@@ -149,7 +149,7 @@ class MemoryImpl : public Memory, public Loggable {
       return;
     }
 
-    memory_.reserve(0x1000000);  // 16 MB
+    memory_.resize(0x1000000);  // 16 MB
 
     const size_t ROM_CHUNK_SIZE = 0x8000;           // 32 KB
     const size_t SRAM_SIZE = 0x10000;               // 64 KB
@@ -229,25 +229,25 @@ class MemoryImpl : public Memory, public Loggable {
               memory_.begin() + kOAMStart + kOAMSize, oam_.begin());
   }
 
-  uint8_t ReadByte(uint16_t address) const override {
+  uint8_t ReadByte(uint32_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
     NotifyObservers(mapped_address, /*data=*/0);
     return memory_.at(mapped_address);
   }
-  uint16_t ReadWord(uint16_t address) const override {
+  uint16_t ReadWord(uint32_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
     NotifyObservers(mapped_address, /*data=*/0);
     return static_cast<uint16_t>(memory_.at(mapped_address)) |
            (static_cast<uint16_t>(memory_.at(mapped_address + 1)) << 8);
   }
-  uint32_t ReadWordLong(uint16_t address) const override {
+  uint32_t ReadWordLong(uint32_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
     NotifyObservers(mapped_address, /*data=*/0);
     return static_cast<uint32_t>(memory_.at(mapped_address)) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 1)) << 8) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 2)) << 16);
   }
-  std::vector<uint8_t> ReadByteVector(uint16_t address,
+  std::vector<uint8_t> ReadByteVector(uint32_t address,
                                       uint16_t length) const override {
     uint32_t mapped_address = GetMappedAddress(address);
     NotifyObservers(mapped_address, /*data=*/0);

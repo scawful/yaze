@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "app/emu/cpu.h"
+#include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -31,8 +32,9 @@ class DungeonObjectRenderer : public SharedROM {
   }
 
   void LoadObject(uint16_t objectId) {
+    rom_data_ = rom()->vector();
     // Prepare the CPU and memory environment
-    memory_.Initialize(rom()->vector());
+    memory_.Initialize(rom_data_);
 
     // Fetch the subtype pointers for the given object ID
     auto subtypeInfo = FetchSubtypeInfo(objectId);
@@ -44,11 +46,12 @@ class DungeonObjectRenderer : public SharedROM {
     RenderObject(subtypeInfo);
   }
 
+  gfx::Bitmap* bitmap() { return &bitmap_; }
+
  private:
   struct SubtypeInfo {
-    uint16_t subtypePtr;
-    uint16_t routinePtr;
-    // Additional fields as needed
+    uint32_t subtypePtr;
+    uint32_t routinePtr;
   };
 
   SubtypeInfo FetchSubtypeInfo(uint16_t objectId) {
@@ -56,13 +59,19 @@ class DungeonObjectRenderer : public SharedROM {
 
     // Determine the subtype based on objectId
     // Assuming subtype is determined by some bits in objectId; modify as needed
-    uint8_t subtype = (objectId >> 8) & 0xFF;  // Example: top 8 bits
+    uint8_t subtype = 1;  // Example: top 8 bits
 
     // Based on the subtype, fetch the correct pointers
     switch (subtype) {
       case 1:  // Subtype 1
         info.subtypePtr = core::subtype1_tiles + (objectId & 0xFF) * 2;
         info.routinePtr = core::subtype1_tiles + 0x200 + (objectId & 0xFF) * 2;
+        std::cout << "Subtype 1 " << std::hex << info.subtypePtr << std::endl;
+        info.routinePtr =
+            memory_.ReadWord(core::MapBankToWordAddress(0x01, info.routinePtr));
+        std::cout << "Subtype 1 " << std::hex << info.routinePtr << std::endl;
+        std::cout << "Subtype 1 " << std::hex << core::SnesToPc(info.routinePtr)
+                  << std::endl;
         break;
       case 2:  // Subtype 2
         info.subtypePtr = core::subtype2_tiles + (objectId & 0x7F) * 2;
@@ -86,13 +95,57 @@ class DungeonObjectRenderer : public SharedROM {
   }
 
   void ConfigureObject(const SubtypeInfo& info) {
-    // TODO: Use the information in info to set up the object's initial state
+    cpu.A = 0x00;
+    cpu.X = 0x00;
+
+    // Might need to set the height and width manually?
   }
+
+  /**
+   * Example:
+   * the STA $BF, $CD, $C2, $CE are the location of the object in the room
+   * $B2 is used for size loop
+   * so if object size is setted on 07 that draw code will be repeated 7 times
+   * and since Y is increasing by 4 it makes the object draw from left to right
+
+    RoomDraw_Rightwards2x2_1to15or32:
+      #_018B89: JSR RoomDraw_GetSize_1to15or32
+
+      .next
+      #_018B8C: JSR RoomDraw_Rightwards2x2
+
+      #_018B8F: DEC.b $B2
+      #_018B91: BNE .next
+
+      #_018B93: RTS
+
+    RoomDraw_Rightwards2x2:
+      #_019895: LDA.w RoomDrawObjectData+0,X
+      #_019898: STA.b [$BF],Y
+
+      #_01989A: LDA.w RoomDrawObjectData+2,X
+      #_01989D: STA.b [$CB],Y
+
+      #_01989F: LDA.w RoomDrawObjectData+4,X
+      #_0198A2: STA.b [$C2],Y
+
+      #_0198A4: LDA.w RoomDrawObjectData+6,X
+      #_0198A7: STA.b [$CE],Y
+
+      #_0198A9: INY
+      #_0198AA: INY
+      #_0198AB: INY
+      #_0198AC: INY
+
+      #_0198AD: RTS
+   *
+  */
 
   void RenderObject(const SubtypeInfo& info) {
     cpu.PC = info.routinePtr;
     cpu.PB = 0x01;
 
+    int i = 0;
     while (true) {
       uint8_t opcode = cpu.FetchByte();
       cpu.ExecuteInstruction(opcode);
@@ -103,12 +156,32 @@ class DungeonObjectRenderer : public SharedROM {
         break;
       }
 
+      if (i > 50) {
+        break;
+      }
+      i++;
+
       UpdateObjectBitmap();
     }
   }
 
   void UpdateObjectBitmap() {
-    // TODO: Implement logic to transfer object draw data to the Bitmap
+    // Object draw data
+    uint8_t room_object_draw_data0 = memory_.ReadByte(0x7E00BF);
+    uint8_t room_object_draw_data1 = memory_.ReadByte(0x7E00CB);
+    uint8_t room_object_draw_data2 = memory_.ReadByte(0x7E00C2);
+    uint8_t room_object_draw_data3 = memory_.ReadByte(0x7E00CE);
+
+    // Used with Y to index the room object draw data
+    uint8_t size_loop = memory_.ReadByte(0x7E00B2);
+
+    // Update the bitmap with this data by copying the tiles from vram.
+
+    std::cout << "Object draw data: " << std::hex << (int)room_object_draw_data0
+              << " " << (int)room_object_draw_data1 << " "
+              << (int)room_object_draw_data2 << " "
+              << (int)room_object_draw_data3 << std::endl;
+    std::cout << "Size loop: " << std::hex << (int)size_loop << std::endl;
   }
 
   std::vector<uint8_t> rom_data_;
@@ -116,7 +189,7 @@ class DungeonObjectRenderer : public SharedROM {
   emu::ClockImpl clock_;
   emu::CPU cpu{memory_, clock_};
   emu::PPU ppu{memory_, clock_};
-  gfx::Bitmap bitmap;
+  gfx::Bitmap bitmap_;
   PseudoVram vram_;
 };
 

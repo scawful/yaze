@@ -37,12 +37,12 @@ For developers to reference.
   - These classes are all controlled by [MasterEditor](../src/app/editor/master_editor.h)
     - [DungeonEditor](../src/app/editor/dungeon_editor.h)
     - [GraphicsEditor](../src/app/editor/graphics_editor.h)
-    - [MusicEditor](../src/app/editor/music_editor.h)
     - [OverworldEditor](../src/app/editor/overworld_editor.h)
     - [ScreenEditor](../src/app/editor/screen_editor.h)
     - [SpriteEditor](../src/app/editor/sprite_editor.h)
     - **Modules**
       - [AssemblyEditor](../src/app/editor/modules/assembly_editor.h)
+      - [MusicEditor](../src/app/editor/modules/music_editor.h)
       - [GfxGroupEditor](../src/app/editor/modules/gfx_group_editor.h)
       - [Tile16Editor](../src/app/editor/modules/tile16_editor.h)
 - **Emu Namespace**:
