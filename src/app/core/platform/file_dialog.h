@@ -43,9 +43,7 @@ class FileDialogWrapper {
   static std::string ShowOpenFileDialog();
 };
 
-
 #elif defined(__linux__)
-#include <gtk/gtk.h>
 
 std::string ShowOpenFileDialog() {
   // Linux-specific file dialog implementation using GTK
