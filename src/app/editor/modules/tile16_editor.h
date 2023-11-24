@@ -26,6 +26,11 @@ class Tile16Editor : public SharedROM {
  public:
   absl::Status Update();
 
+  absl::Status UpdateBlockset();
+  absl::Status UpdateTile16Edit();
+
+  absl::Status UpdateTransferTileCanvas();
+
   absl::Status InitBlockset(gfx::Bitmap tile16_blockset_bmp,
                             std::vector<gfx::Bitmap> tile16_individual,
                             std::vector<gfx::Bitmap> tile8_individual_);
