@@ -1,6 +1,12 @@
 #include "common.h"
 
+#include <imgui/imgui.h>
+
+#include <chrono>
 #include <cstdint>
+#include <functional>
+#include <memory>
+#include <stack>
 #include <string>
 
 namespace yaze {
@@ -138,6 +144,9 @@ uint16_t ldle16b(uint8_t const *const p_arr) {
 uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index) {
   return ldle16b(p_arr + (2 * p_index));
 }
+
+// Initialize the static member
+std::stack<ImGuiID> ImGuiIdIssuer::idStack;
 
 }  // namespace core
 }  // namespace app
