@@ -9,6 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/core/common.h"
 #include "app/core/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
@@ -50,7 +51,6 @@ absl::Status OverworldEditor::Update() {
 
   // Draws the toolset for editing the Overworld.
   RETURN_IF_ERROR(DrawToolset())
-
 
   if (ImGui::BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
@@ -127,8 +127,10 @@ absl::Status OverworldEditor::DrawToolset() {
 
     TableNextColumn();  // Palette
     palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
+
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
-    TableNextColumn();              // Experimental
+
+    TableNextColumn();  // Experimental
     ImGui::Checkbox("Experimental", &show_experimental);
 
     ImGui::EndTable();
@@ -453,8 +455,8 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
-      if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)1);
-          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+      if (ImGui::BeginChild(core::ImGuiIdIssuer::GetNewID(),
+                            ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawTile8Selector();
       }

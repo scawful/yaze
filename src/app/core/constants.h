@@ -93,6 +93,9 @@
   ImGui::Text(text);              \
   ImGui::Separator();
 
+#define TABLE_BORDERS_RESIZABLE \
+  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable
+
 #define CLEAR_AND_RETURN_STATUS(status) \
   if (!status.ok()) {                   \
     auto temp = status;                 \

@@ -44,6 +44,10 @@ class ExperimentFlags {
 
     // Use the new platform specific file dialog wrappers.
     bool kNewFileDialogWrapper = true;
+
+    // Platform specific loading of fonts from the system. Currently
+    // only supports macOS.
+    bool kLoadSystemFonts = true;
   };
 
   ExperimentFlags() = default;

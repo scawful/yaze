@@ -50,6 +50,45 @@ void AssemblyEditor::ChangeActiveFile(const std::string_view& filename) {
   current_file_ = filename;
 }
 
+void AssemblyEditor::DrawFileView() {
+  ImGui::BeginTable("##table_view", 4,
+                    ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+
+  // Table headers
+  ImGui::TableSetupColumn("Files", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+  ImGui::TableSetupColumn("Line", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+  ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+  ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch);
+
+  ImGui::TableHeadersRow();
+
+  // Table data
+  ImGui::TableNextRow();
+  ImGui::TableNextColumn();
+  // TODO: Add tree view of files
+
+  ImGui::TableNextColumn();
+  // TODO: Add line number
+
+  ImGui::TableNextColumn();
+  // TODO: Add address per line
+
+  ImGui::TableNextColumn();
+
+  auto cpos = text_editor_.GetCursorPosition();
+  SetEditorText();
+  ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
+              cpos.mColumn + 1, text_editor_.GetTotalLines(),
+              text_editor_.IsOverwrite() ? "Ovr" : "Ins",
+              text_editor_.CanUndo() ? "*" : " ",
+              text_editor_.GetLanguageDefinition().mName.c_str(),
+              current_file_.c_str());
+
+  text_editor_.Render("##asm_editor");
+
+  ImGui::EndTable();
+}
+
 void AssemblyEditor::DrawFileMenu() {
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
