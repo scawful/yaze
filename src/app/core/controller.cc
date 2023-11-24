@@ -11,6 +11,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/core/platform/font_loader.h"
 #include "app/editor/master_editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
@@ -212,7 +213,7 @@ absl::Status Controller::CreateRenderer() {
   return absl::OkStatus();
 }
 
-absl::Status Controller::CreateGuiContext() const {
+absl::Status Controller::CreateGuiContext() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
@@ -227,6 +228,25 @@ absl::Status Controller::CreateGuiContext() const {
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(), renderer_.get());
   ImGui_ImplSDLRenderer2_Init(renderer_.get());
+
+  if (flags()->kLoadSystemFonts) {
+    LoadSystemFonts();
+  } else {
+    LoadFontFamilies();
+  }
+
+  // Set the default style
+  gui::ColorsYaze();
+
+  // Build a new ImGui frame
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame(window_.get());
+
+  return absl::OkStatus();
+}
+
+absl::Status Controller::LoadFontFamilies() const {
+  ImGuiIO &io = ImGui::GetIO();
 
   // Define constants
   static const char *KARLA_REGULAR = "assets/font/Karla-Regular.ttf";
@@ -276,13 +296,6 @@ absl::Status Controller::CreateGuiContext() const {
     io.Fonts->AddFontFromFileTTF(NOTO_SANS_JP, 18.0f, &japanese_font_config,
                                  io.Fonts->GetGlyphRangesJapanese());
   }
-
-  // Set the default style
-  gui::ColorsYaze();
-
-  // Build a new ImGui frame
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame(window_.get());
 
   return absl::OkStatus();
 }

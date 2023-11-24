@@ -23,6 +23,9 @@ class AssemblyEditor {
  private:
   void DrawFileMenu();
   void DrawEditMenu();
+
+  void DrawFileView();
+
   void SetEditorText();
 
   bool file_is_loaded_ = false;

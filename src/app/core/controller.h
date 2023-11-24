@@ -39,7 +39,8 @@ class Controller : public ExperimentFlags {
 
   absl::Status CreateWindow();
   absl::Status CreateRenderer();
-  absl::Status CreateGuiContext() const;
+  absl::Status CreateGuiContext();
+  absl::Status LoadFontFamilies() const;
   void CloseWindow() { active_ = false; }
 
   friend int ::main(int argc, char **argv);
