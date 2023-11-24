@@ -1,10 +1,13 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
+#include <imgui/imgui.h>
+
 #include <chrono>
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <stack>
 #include <string>
 
 namespace yaze {
@@ -38,6 +41,9 @@ class ExperimentFlags {
 
     // Attempt to run the dungeon room draw routine when opening a room.
     bool kDrawDungeonRoomGraphics = true;
+
+    // Use the new platform specific file dialog wrappers.
+    bool kNewFileDialogWrapper = true;
   };
 
   ExperimentFlags() = default;
@@ -161,6 +167,27 @@ class TaskManager {
     auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(
         current_time - start_time_);
     return elapsed_time.count() >= timeout_seconds_;
+  }
+};
+
+class ImGuiIdIssuer {
+ private:
+  static std::stack<ImGuiID> idStack;
+
+ public:
+  // Generate and push a new ID onto the stack
+  static ImGuiID GetNewID() {
+    static int counter = 1;  // Start from 1 to ensure uniqueness
+    ImGuiID child_id = ImGui::GetID((void *)(intptr_t)counter++);
+    idStack.push(child_id);
+    return child_id;
+  }
+
+  // Pop all IDs from the stack (can be called explicitly or upon program exit)
+  static void Cleanup() {
+    while (!idStack.empty()) {
+      idStack.pop();
+    }
   }
 };
 
