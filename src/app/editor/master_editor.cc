@@ -10,6 +10,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/pipeline.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
 #include "app/editor/modules/assembly_editor.h"
@@ -282,8 +283,24 @@ void MasterEditor::DrawFileMenu() {
 
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
-      ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
-                                              ".sfc,.smc", ".");
+      if (flags()->kNewFileDialogWrapper) {
+        auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+        PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
+        static RecentFilesManager manager("recent_files.txt");
+
+        // Load existing recent files
+        manager.Load();
+
+        // Add a new file
+        manager.AddFile(file_name);
+
+        // Save the updated list
+        manager.Save();
+
+      } else {
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
+                                                ".sfc,.smc", ".");
+      }
     }
 
     if (ImGui::BeginMenu("Open Recent")) {
