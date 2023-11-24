@@ -15,8 +15,6 @@ add_executable(
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
-  # ${ASAR_STATIC_SRC}
-  # ${SNES_SPC_SOURCES}
   ${IMGUI_SRC}
 )
 
@@ -28,8 +26,6 @@ target_include_directories(
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   lib/SDL_mixer/include/
-  # lib/asar/src/asar/
-  # lib/snes_spc/snes_spc/
 )
 
 target_link_libraries(
@@ -40,6 +36,8 @@ target_link_libraries(
   ${CMAKE_DL_LIBS}
   SDL2_mixer
   ImGui
-  # asar-static
-  # snes_spc
 )
+
+if (APPLE)
+  target_link_libraries(yaze PUBLIC ${COCOA_LIBRARY})
+endif()
