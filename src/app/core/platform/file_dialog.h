@@ -5,34 +5,40 @@
 #include <shobjidl.h>
 #include <windows.h>
 
-std::string ShowOpenFileDialog() {
-  CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+class FileDialogWrapper {
+ public:
+  static std::string ShowOpenFileDialog() {
+    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
-  IFileDialog *pfd = NULL;
-  HRESULT hr =
-      CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileDialog,
-                       reinterpret_cast<void **>(&pfd));
-
-  if (SUCCEEDED(hr)) {
-    // Show the dialog
-    hr = pfd->Show(NULL);
+    IFileDialog *pfd = NULL;
+    HRESULT hr =
+        CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                         IID_IFileDialog, reinterpret_cast<void **>(&pfd));
+    std::string file_path_windows;
     if (SUCCEEDED(hr)) {
-      IShellItem *psiResult;
-      hr = pfd->GetResult(&psiResult);
+      // Show the dialog
+      hr = pfd->Show(NULL);
       if (SUCCEEDED(hr)) {
-        // Get the file path
-        PWSTR pszFilePath;
-        psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-        psiResult->Release();
-        CoTaskMemFree(pszFilePath);
+        IShellItem *psiResult;
+        hr = pfd->GetResult(&psiResult);
+        if (SUCCEEDED(hr)) {
+          // Get the file path
+          PWSTR pszFilePath;
+          psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+          char str[128];
+          wcstombs(str, pszFilePath, 128);
+          file_path_windows = str;
+          psiResult->Release();
+          CoTaskMemFree(pszFilePath);
+        }
       }
+      pfd->Release();
     }
-    pfd->Release();
-  }
 
-  CoUninitialize();
-  return L"";  // Return an empty string if no file was selected or an error
-}
+    CoUninitialize();
+    return file_path_windows;
+  }
+};
 
 #elif defined(__APPLE__)
 
