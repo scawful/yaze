@@ -53,8 +53,11 @@ set(
 set(SDL_TARGETS SDL2::SDL2)
 
 if(WIN32 OR MINGW)
-    list(PREPEND SDL_TARGETS SDL2::SDL2main)
+    list(PREPEND SDL_TARGETS SDL2::SDL2main ws2_32)
     add_definitions(-DSDL_MAIN_HANDLED)
+    list(APPEND YAZE_APP_CORE_SRC
+        app/core/platform/font_loader.cc
+      )
 endif()
 
 if(APPLE)
