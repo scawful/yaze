@@ -100,7 +100,7 @@ void HandleMouseMovement(int &wheel) {
 bool Controller::IsActive() const { return active_; }
 
 absl::Status Controller::OnEntry() {
-  RETURN_IF_ERROR(CreateWindow())
+  RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
   InitializeKeymap();
@@ -167,7 +167,7 @@ void Controller::OnExit() {
   SDL_Quit();
 }
 
-absl::Status Controller::CreateWindow() {
+absl::Status Controller::CreateSDL_Window() {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));

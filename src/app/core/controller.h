@@ -37,7 +37,7 @@ class Controller : public ExperimentFlags {
     void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
   };
 
-  absl::Status CreateWindow();
+  absl::Status CreateSDL_Window();
   absl::Status CreateRenderer();
   absl::Status CreateGuiContext();
   absl::Status LoadFontFamilies() const;
