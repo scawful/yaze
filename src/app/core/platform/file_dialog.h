@@ -51,11 +51,14 @@ class FileDialogWrapper {
 
 #elif defined(__linux__)
 
-std::string ShowOpenFileDialog() {
-  // Linux-specific file dialog implementation using GTK
-  // ...
-  return "file_path_linux";
-}
+class FileDialogWrapper {
+ public:
+  static std::string ShowOpenFileDialog() {
+    // Linux-specific file dialog implementation using GTK
+    // ...
+    return "file_path_linux";
+  }
+};
 
 #else
 #error "Unsupported platform."
