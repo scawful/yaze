@@ -33,17 +33,25 @@ class Canvas {
   // Tile painter shows a preview of the currently selected tile
   // and allows the user to left click to paint the tile or right
   // click to select a new tile to paint with.
-  bool DrawTilePainter(const Bitmap& bitmap, int size);
+  bool DrawTilePainter(const Bitmap& bitmap, int size, float scale = 1.0f);
 
   // Dictates which tile is currently selected based on what the user clicks
   // in the canvas window. Represented and split apart into a grid of tiles.
   void DrawTileSelector(int size);
 
-  // Draws the contents of the Bitmap image to the Canvas
+  void HandleTileEdits(Canvas& blockset_canvas,
+                       std::vector<gfx::Bitmap>& source_blockset,
+                       gfx::Bitmap& destination, int& current_tile,
+                       float scale = 1.0f,
+                       int tile_painter_size = 16, int tiles_per_row = 8);
+  void RenderUpdatedBitmap(const ImVec2& click_position, const Bytes& tile_data,
+                           gfx::Bitmap& destination);
 
+  // Draws the contents of the Bitmap image to the Canvas
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
-  void DrawBitmap(const Bitmap& bitmap, int x_offset, int y_offset);
+  void DrawBitmap(const Bitmap& bitmap, int x_offset = 0, int y_offset = 0,
+                  float scale = 1.0f);
 
   void DrawBitmapTable(const BitmapTable& gfx_bin);
   void DrawOutline(int x, int y, int w, int h);
