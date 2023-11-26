@@ -47,7 +47,7 @@ class GfxGroupEditor : public SharedROM {
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
-  gui::widgets::BitmapViewer gfx_group_viewer_;
+  gui::BitmapViewer gfx_group_viewer_;
   zelda3::Overworld overworld_;
 };
 

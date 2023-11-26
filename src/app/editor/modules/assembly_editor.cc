@@ -8,7 +8,7 @@ namespace app {
 namespace editor {
 
 AssemblyEditor::AssemblyEditor() {
-  text_editor_.SetLanguageDefinition(gui::widgets::GetAssemblyLanguageDef());
+  text_editor_.SetLanguageDefinition(gui::GetAssemblyLanguageDef());
   text_editor_.SetPalette(TextEditor::GetDarkPalette());
 }
 
