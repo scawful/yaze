@@ -150,8 +150,8 @@ void Controller::OnInput() {
 void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
 
 void Controller::DoRender() const {
-  SDL_RenderClear(renderer_.get());
   ImGui::Render();
+  SDL_RenderClear(renderer_.get());
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
   SDL_RenderPresent(renderer_.get());
 }
