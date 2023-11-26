@@ -14,20 +14,48 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class IPPU {
- public:
-  virtual ~IPPU() = default;
+using namespace yaze::app::emu::PpuRegisters;
 
-  virtual void writeRegister(uint16_t address, uint8_t data) = 0;
-  virtual uint8_t readRegister(uint16_t address) const = 0;
-  virtual void setOAMData(const std::vector<uint8_t>& data) = 0;
-  virtual std::vector<uint8_t> getOAMData() const = 0;
-  virtual void setVRAMData(const std::vector<uint8_t>& data) = 0;
-  virtual std::vector<uint8_t> getVRAMData() const = 0;
-  virtual void setCGRAMData(const std::vector<uint8_t>& data) = 0;
-  virtual std::vector<uint8_t> getCGRAMData() const = 0;
-  virtual void renderFrame() = 0;
-  virtual std::vector<uint32_t> getFrameBuffer() const = 0;
+class PpuInterface {
+ public:
+  virtual ~PpuInterface() = default;
+
+  // Memory Interactions
+  virtual void Write(uint16_t address, uint8_t data) = 0;
+  virtual uint8_t Read(uint16_t address) const = 0;
+
+  // Rendering Controls
+  virtual void RenderFrame() = 0;
+  virtual void RenderScanline() = 0;
+  virtual void RenderBackground(int layer) = 0;
+  virtual void RenderSprites() = 0;
+
+  // State Management
+  virtual void Init() = 0;
+  virtual void Reset() = 0;
+  virtual void Update(double deltaTime) = 0;
+  virtual void UpdateClock(double deltaTime) = 0;
+  virtual void UpdateInternalState(int cycles) = 0;
+
+  // Data Access
+  virtual const std::vector<uint8_t>& GetFrameBuffer() const = 0;
+  virtual std::shared_ptr<gfx::Bitmap> GetScreen() const = 0;
+
+  // Mode and Setting Updates
+  virtual void UpdateModeSettings() = 0;
+  virtual void UpdateTileData() = 0;
+  virtual void UpdateTileMapData() = 0;
+  virtual void UpdatePaletteData() = 0;
+
+  // Layer Composition
+  virtual void ApplyEffects() = 0;
+  virtual void ComposeLayers() = 0;
+
+  // Display Output
+  virtual void DisplayFrameBuffer() = 0;
+
+  // Notification (Observer pattern)
+  virtual void Notify(uint32_t address, uint8_t data) = 0;
 };
 
 // Enum representing different background modes
@@ -235,10 +263,10 @@ struct BackgroundLayer {
 
 const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 
-class PPU : public Observer, public SharedROM {
+class Ppu : public Observer, public SharedROM {
  public:
   // Initializes the PPU with the necessary resources and dependencies
-  PPU(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
+  Ppu(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
 
   // Initialize the frame buffer
   void Init() {
@@ -299,6 +327,43 @@ class PPU : public Observer, public SharedROM {
   Memory& memory_;
   Clock& clock_;
 
+  // PPU registers
+  OAMSize oam_size_;
+  OAMAddress oam_address_;
+  Mosaic mosaic_;
+  std::array<BGSC, 4> bgsc_;
+  std::array<BGNBA, 4> bgnba_;
+  std::array<BGHOFS, 4> bghofs_;
+  std::array<BGVOFS, 4> bgvofs_;
+  struct VMAIN vmain_;
+  struct VMADDL vmaddl_;
+  struct VMADDH vmaddh_;
+  // struct VMDATAL vmdatal_;
+  // struct VMDATAH vmdatah_;
+  struct M7SEL m7sel_;
+  struct M7A m7a_;
+  struct M7B m7b_;
+  struct M7C m7c_;
+  struct M7D m7d_;
+  struct M7X m7x_;
+  struct M7Y m7y_;
+  struct CGADD cgadd_;
+  struct CGDATA cgdata_;
+  struct W12SEL w12sel_;
+  struct W34SEL w34sel_;
+  struct WOBJSEL wobjsel_;
+  struct WH0 wh0_;
+  struct WH1 wh1_;
+  struct WH2 wh2_;
+  struct WH3 wh3_;
+  struct WBGLOG wbglog_;
+  struct WOBJLOG wobjlog_;
+  struct TM tm_;
+  struct TS ts_;
+  struct TSW tsw_;
+  struct TMW tmw_;
+  struct SETINI setini_;
+
   Tilemap tilemap_;
   BackgroundMode bg_mode_;
   std::array<BackgroundLayer, 4> bg_layers_;
@@ -307,11 +372,9 @@ class PPU : public Observer, public SharedROM {
   std::vector<uint8_t> frame_buffer_;
   std::shared_ptr<gfx::Bitmap> screen_;
 
-  uint16_t oam_address_;
   uint16_t tile_data_size_;
   uint16_t vram_base_address_;
   uint16_t tilemap_base_address_;
-
   uint16_t screen_brightness_ = 0x00;
 
   bool enable_forced_blanking_ = false;

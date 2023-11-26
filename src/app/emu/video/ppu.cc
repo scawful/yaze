@@ -10,9 +10,9 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-using namespace PPURegisters;
+using namespace PpuRegisters;
 
-void PPU::Update() {
+void Ppu::Update() {
   auto cycles_to_run = clock_.GetCycleCount();
 
   UpdateInternalState(cycles_to_run);
@@ -27,8 +27,8 @@ void PPU::Update() {
   }
 }
 
-void PPU::UpdateInternalState(int cycles) {
-  // Update the PPU's internal state based on the number of cycles
+void Ppu::UpdateInternalState(int cycles) {
+  // Update the Ppu's internal state based on the number of cycles
   cycle_count_ += cycles;
 
   // Check if it's time to move to the next scanline
@@ -43,7 +43,7 @@ void PPU::UpdateInternalState(int cycles) {
   }
 }
 
-void PPU::RenderScanline() {
+void Ppu::RenderScanline() {
   for (int y = 0; y < 240; ++y) {
     for (int x = 0; x < 256; ++x) {
       // Calculate the color index based on the x and y coordinates
@@ -86,25 +86,181 @@ void PPU::RenderScanline() {
   DisplayFrameBuffer();
 }
 
-void PPU::Notify(uint32_t address, uint8_t data) {
-  // Handle communication in the PPU.
+void Ppu::Notify(uint32_t address, uint8_t data) {
+  // Handle communication in the Ppu.
   if (address >= 0x2100 && address <= 0x213F) {
     // Handle register notification
     switch (address) {
-      case PPURegisters::INIDISP:
+      case INIDISP:
         enable_forced_blanking_ = (data >> 7) & 0x01;
         break;
-      case PPURegisters::BGMODE:
-        // Update the PPU mode settings
+      case OBJSEL:
+        oam_size_.base_selection = (data >> 2) & 0x03;
+        oam_size_.name_selection = (data >> 4) & 0x07;
+        oam_size_.object_size = data & 0x03;
+        break;
+      case OAMADDL:
+        oam_address_.oam_address_low = data;
+        break;
+      case OAMADDH:
+        oam_address_.oam_address_msb = data & 0x01;
+        oam_address_.oam_priority_rotation = (data >> 1) & 0x01;
+        break;
+      case OAMDATA:
+        // Write the data to OAM
+        break;
+      case BGMODE:
+        // Update the Ppu mode settings
         UpdateModeSettings();
+        break;
+      case MOSAIC:
+        mosaic_.bg_enable = (data >> 7) & 0x01;
+        mosaic_.mosaic_size = data & 0x0F;
+        break;
+      case BG1SC:
+        bgsc_[0] = BGSC(data);
+        break;
+      case BG2SC:
+        bgsc_[1] = BGSC(data);
+        break;
+      case BG3SC:
+        bgsc_[2] = BGSC(data);
+        break;
+      case BG4SC:
+        bgsc_[3] = BGSC(data);
+        break;
+      case BG12NBA:
+        bgnba_[0] = BGNBA(data);
+        break;
+      case BG34NBA:
+        bgnba_[1] = BGNBA(data);
+        break;
+      case BG1HOFS:
+        bghofs_[0].horizontal_scroll = data;
+        break;
+      case BG2HOFS:
+        bghofs_[1].horizontal_scroll = data;
+        break;
+      case BG3HOFS:
+        bghofs_[2].horizontal_scroll = data;
+        break;
+      case BG4HOFS:
+        bghofs_[3].horizontal_scroll = data;
+        break;
+      case BG1VOFS:
+        bgvofs_[0].vertical_scroll = data;
+        break;
+      case BG2VOFS:
+        bgvofs_[1].vertical_scroll = data;
+        break;
+      case BG3VOFS:
+        bgvofs_[2].vertical_scroll = data;
+        break;
+      case BG4VOFS:
+        bgvofs_[3].vertical_scroll = data;
+        break;
+      case VMAIN:
+        vmain_.increment_size = data & 0x03;
+        vmain_.remapping = (data >> 2) & 0x03;
+        vmain_.address_increment_mode = (data >> 4) & 0x01;
+        break;
+      case VMADDL:
+        vmaddl_.address_low = data;
+        break;
+      case VMADDH:
+        vmaddh_.address_high = data;
+        break;
+      case M7SEL:
+        m7sel_.flip_horizontal = data & 0x01;
+        m7sel_.flip_vertical = (data >> 1) & 0x01;
+        m7sel_.fill = (data >> 2) & 0x01;
+        m7sel_.tilemap_repeat = (data >> 3) & 0x01;
+        break;
+      case M7A:
+        m7a_.matrix_a = data;
+        break;
+      case M7B:
+        m7b_.matrix_b = data;
+        break;
+      case M7C:
+        m7c_.matrix_c = data;
+        break;
+      case M7D:
+        m7d_.matrix_d = data;
+        break;
+      case M7X:
+        m7x_.center_x = data;
+        break;
+      case M7Y:
+        m7y_.center_y = data;
+        break;
+      case CGADD:
+        cgadd_.address = data;
+        break;
+      case CGDATA:
+        // Write the data to CGRAM
+        break;
+      case W12SEL:
+        w12sel_.enable_bg1_a = data & 0x01;
+        w12sel_.invert_bg1_a = (data >> 1) & 0x01;
+        w12sel_.enable_bg1_b = (data >> 2) & 0x01;
+        w12sel_.invert_bg1_b = (data >> 3) & 0x01;
+        w12sel_.enable_bg2_c = (data >> 4) & 0x01;
+        w12sel_.invert_bg2_c = (data >> 5) & 0x01;
+        w12sel_.enable_bg2_d = (data >> 6) & 0x01;
+        w12sel_.invert_bg2_d = (data >> 7) & 0x01;
+        break;
+      case W34SEL:
+        w34sel_.enable_bg3_e = data & 0x01;
+        w34sel_.invert_bg3_e = (data >> 1) & 0x01;
+        w34sel_.enable_bg3_f = (data >> 2) & 0x01;
+        w34sel_.invert_bg3_f = (data >> 3) & 0x01;
+        w34sel_.enable_bg4_g = (data >> 4) & 0x01;
+        w34sel_.invert_bg4_g = (data >> 5) & 0x01;
+        w34sel_.enable_bg4_h = (data >> 6) & 0x01;
+        w34sel_.invert_bg4_h = (data >> 7) & 0x01;
+        break;
+      case WOBJSEL:
+        wobjsel_.enable_obj_i = data & 0x01;
+        wobjsel_.invert_obj_i = (data >> 1) & 0x01;
+        wobjsel_.enable_obj_j = (data >> 2) & 0x01;
+        wobjsel_.invert_obj_j = (data >> 3) & 0x01;
+        wobjsel_.enable_color_k = (data >> 4) & 0x01;
+        wobjsel_.invert_color_k = (data >> 5) & 0x01;
+        wobjsel_.enable_color_l = (data >> 6) & 0x01;
+        wobjsel_.invert_color_l = (data >> 7) & 0x01;
+        break;
+      case WH0:
+        wh0_.left_position = data;
+        break;
+      case WH1:
+        wh1_.right_position = data;
+        break;
+      case WH2:
+        wh2_.left_position = data;
+        break;
+      case WH3:
+        wh3_.right_position = data;
+        break;
+      case TM:
+        tm_.enable_layer = (data >> 5) & 0x01;  //
+        break;
+      case TS:
+        ts_.enable_layer = (data >> 5) & 0x01;
+        break;
+      case TMW:
+        tmw_.enable_window = (data >> 5) & 0x01;
+        break;
+      case TSW:
+        tsw_.enable_window = (data >> 5) & 0x01;
         break;
     }
   }
 }
 
-void PPU::UpdateModeSettings() {
-  // Read the PPU mode settings from the PPU registers
-  uint8_t modeRegister = memory_.ReadByte(PPURegisters::INIDISP);
+void Ppu::UpdateModeSettings() {
+  // Read the Ppu mode settings from the Ppu registers
+  uint8_t modeRegister = memory_.ReadByte(PpuRegisters::INIDISP);
 
   // Mode is stored in the lower 3 bits
   auto mode = static_cast<BackgroundMode>(modeRegister & 0x07);
@@ -149,14 +305,14 @@ void PPU::UpdateModeSettings() {
       break;
   }
 
-  // Update the internal state of the PPU based on the mode settings
+  // Update the internal state of the Ppu based on the mode settings
   // Update tile data, tilemaps, sprites, and palette based on the mode settings
   UpdateTileData();
   UpdatePaletteData();
 }
 
-// Internal methods to handle PPU rendering and operations
-void PPU::UpdateTileData() {
+// Internal methods to handle Ppu rendering and operations
+void Ppu::UpdateTileData() {
   // Fetch tile data from VRAM and store it in the internal buffer
   for (uint16_t address = 0; address < tile_data_size_; ++address) {
     tile_data_[address] = memory_.ReadByte(vram_base_address_ + address);
@@ -192,9 +348,7 @@ void PPU::UpdateTileData() {
 
   // Update the sprites based on the fetched tile data
   for (uint16_t spriteIndex = 0; spriteIndex < sprites_.size(); ++spriteIndex) {
-    uint16_t spriteAddress =
-        oam_address_ + spriteIndex * sizeof(SpriteAttributes);
-    // Assume ReadWord reads a 16-bit value from VRAM
+    uint16_t spriteAddress = spriteIndex * sizeof(SpriteAttributes);
     uint16_t spriteData = memory_.ReadWord(spriteAddress);
 
     // Extract sprite attributes from the sprite data
@@ -222,9 +376,9 @@ void PPU::UpdateTileData() {
   }
 }
 
-void PPU::UpdateTileMapData() {}
+void Ppu::UpdateTileMapData() {}
 
-void PPU::RenderBackground(int layer) {
+void Ppu::RenderBackground(int layer) {
   auto bg1_tilemap_info = BGSC(0);
   auto bg1_chr_data = BGNBA(0);
   auto bg2_tilemap_info = BGSC(0);
@@ -261,17 +415,15 @@ void PPU::RenderBackground(int layer) {
   }
 }
 
-void PPU::RenderSprites() {
-  // ...
-}
+void Ppu::RenderSprites() {}
 
-void PPU::UpdatePaletteData() {}
+void Ppu::UpdatePaletteData() {}
 
-void PPU::ApplyEffects() {}
+void Ppu::ApplyEffects() {}
 
-void PPU::ComposeLayers() {}
+void Ppu::ComposeLayers() {}
 
-void PPU::DisplayFrameBuffer() {
+void Ppu::DisplayFrameBuffer() {
   if (!screen_->IsActive()) {
     screen_->Create(256, 240, 24, frame_buffer_);
     rom()->RenderBitmap(screen_.get());
