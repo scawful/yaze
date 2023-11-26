@@ -14,8 +14,8 @@
 #include "app/core/editor.h"
 #include "app/core/pipeline.h"
 #include "app/editor/modules/gfx_group_editor.h"
-#include "app/editor/modules/tile16_editor.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/modules/tile16_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -72,6 +72,8 @@ class OverworldEditor : public Editor,
   absl::Status Copy() { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() { return absl::UnimplementedError("Paste"); }
 
+  auto overworld() { return &overworld_; }
+
   void Shutdown() {
     for (auto &bmp : tile16_individual_) {
       bmp.Cleanup();
@@ -87,6 +89,8 @@ class OverworldEditor : public Editor,
     }
   }
 
+  absl::Status LoadGraphics();
+
  private:
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
@@ -101,12 +105,13 @@ class OverworldEditor : public Editor,
   void QueueROMChanges(int index, ushort new_tile16);
   void DetermineActiveMap(const ImVec2 &mouse_position);
 
-  void CheckForOverworldEdits();
+  void CheckForOverworldEdits(); 
+  void CheckForCurrentMap();
   void DrawOverworldCanvas();
 
   void DrawTile8Selector();
   void DrawTileSelector();
-  absl::Status LoadGraphics();
+
   absl::Status LoadSpriteGraphics();
 
   absl::Status DrawExperimentalModal();
@@ -185,6 +190,8 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable graphics_bin_;
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
+
+  absl::Status status_;
 };
 }  // namespace editor
 }  // namespace app
