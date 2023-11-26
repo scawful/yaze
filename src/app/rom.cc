@@ -203,8 +203,8 @@ absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
 }
 
 absl::Status ROM::LoadLinkGraphics() {
-  const auto link_gfx_offset = 0x80000;
-  const auto link_gfx_length = 0x500;
+  const auto link_gfx_offset = 81920; // $10:8000
+  const auto link_gfx_length = 0x800;
 
   // Load Links graphics from the ROM
   for (int i = 0; i < 14; i++) {

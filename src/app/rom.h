@@ -475,13 +475,26 @@ class ROM : public core::ExperimentFlags {
     renderer_ = renderer;
   }
 
-  void RenderBitmap(gfx::Bitmap* bitmap) const {
-    bitmap->CreateTexture(renderer_);
+  void RenderBitmap(gfx::Bitmap* bitmap) {
+    if (flags()->kLoadTexturesAsStreaming) {
+      // bitmaps_to_create_.emplace(bitmap);
+      bitmap->CreateTexture(renderer_.get());
+    } else {
+      bitmap->CreateTexture(renderer_);
+    }
   }
 
-  void UpdateBitmap(gfx::Bitmap* bitmap) const {
-    bitmap->UpdateTexture(renderer_);
+  void UpdateBitmap(gfx::Bitmap* bitmap) {
+    if (flags()->kLoadTexturesAsStreaming) {
+      // bitmaps_to_render_.emplace(bitmap);
+      bitmap->UpdateTexture(renderer_.get());
+    } else {
+      bitmap->UpdateTexture(renderer_);
+    }
   }
+
+  std::stack<gfx::Bitmap*> bitmaps_to_create_;
+  std::stack<gfx::Bitmap*> bitmaps_to_render_;
 
   auto bitmap_manager() { return graphics_manager_; }
 
@@ -604,7 +617,7 @@ class SharedROM {
     return rom;
   }
 
- private:
+  // private:
   static std::shared_ptr<ROM> shared_rom_;
 };
 
