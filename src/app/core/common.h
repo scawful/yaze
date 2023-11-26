@@ -48,6 +48,8 @@ class ExperimentFlags {
     // Platform specific loading of fonts from the system. Currently
     // only supports macOS.
     bool kLoadSystemFonts = true;
+
+    bool kLoadTexturesAsStreaming = false;
   };
 
   ExperimentFlags() = default;
@@ -139,7 +141,6 @@ class TaskManager {
  public:
   TaskManager() = default;
   ~TaskManager() = default;
-  using TaskFunction = std::function<void(int)>;
 
   TaskManager(int totalTasks, int timeoutSeconds)
       : total_tasks_(totalTasks),
@@ -168,6 +169,7 @@ class TaskManager {
   }
 
   bool IsTaskComplete() const { return task_complete_; }
+  void SetTimeout(int timeout) { timeout_seconds_ = timeout; }
 
  private:
   int total_tasks_;
