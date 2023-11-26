@@ -30,10 +30,76 @@ using ImGui::SameLine;
 
 absl::Status GraphicsEditor::Update() {
   TAB_BAR("##TabBar")
+  status_ = UpdateGfxEdit();
   status_ = UpdateScadView();
   status_ = UpdateLinkGfxView();
   END_TAB_BAR()
   CLEAR_AND_RETURN_STATUS(status_)
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::UpdateGfxEdit() {
+  TAB_ITEM("Graphics Editor")
+
+  if (ImGui::BeginTable("##GfxEditTable", 3,
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
+                            ImGuiTableFlags_Reorderable |
+                            ImGuiTableFlags_Hideable |
+                            ImGuiTableFlags_SizingFixedFit,
+                        ImVec2(0, 0))) {
+    for (const auto& name : kGfxEditColumnNames)
+      ImGui::TableSetupColumn(name.data());
+
+    ImGui::TableHeadersRow();
+
+    NEXT_COLUMN() {
+      graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 223 * 0x40 + 1));
+      graphics_bin_canvas_.DrawContextMenu();
+
+      for (auto& [key, value] : rom()->bitmap_manager()) {
+        int offset = 0x40 * (key + 1);
+        int top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 2;
+        if (key >= 1) {
+          top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 0x40 * key;
+        }
+        auto texture = value.get()->texture();
+
+        graphics_bin_canvas_.GetDrawList()->AddImage(
+            (void*)texture,
+            ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2, top_left_y),
+            ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 0x100,
+                   graphics_bin_canvas_.GetZeroPoint().y + offset));
+
+        // Add a slightly transparent rectangle behind the text
+        ImVec2 textPos(graphics_bin_canvas_.GetZeroPoint().x + 2, top_left_y);
+        ImVec2 textSize =
+            ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
+        ImVec2 rectMin(textPos.x, textPos.y);
+        ImVec2 rectMax(textPos.x + textSize.x, textPos.y + textSize.y);
+        graphics_bin_canvas_.GetDrawList()->AddRectFilled(
+            rectMin, rectMax, IM_COL32(0, 125, 0, 128));
+
+        graphics_bin_canvas_.GetDrawList()->AddText(
+            textPos, IM_COL32(255, 255, 255, 255),
+            absl::StrFormat("%02X", key).c_str());
+      }
+
+      graphics_bin_canvas_.DrawGrid(16.0f);
+      graphics_bin_canvas_.DrawOverlay();
+    }
+
+    NEXT_COLUMN() {
+      // if (rom()->isLoaded()) {
+      //   status_ = DrawTilesetControls();
+      //   status_ = DrawTilesetCanvas();
+      // }
+    }
+
+    NEXT_COLUMN() { status_ = DrawPaletteControls(); }
+  }
+  ImGui::EndTable();
+
+  END_TAB_ITEM()
   return absl::OkStatus();
 }
 
