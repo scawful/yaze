@@ -191,6 +191,9 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveMap16Tiles();
   absl::Status SaveMap32Tiles();
 
+  auto overworld_map(int i) const { return overworld_maps_[i]; }
+  auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
+
   auto Sprites(int state) const { return all_sprites_[state]; }
   auto AreaGraphics() const {
     return overworld_maps_[current_map_].AreaGraphics();
