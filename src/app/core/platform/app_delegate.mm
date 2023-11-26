@@ -1,9 +1,11 @@
 // AppDelegate.mm
 #import <Cocoa/Cocoa.h>
 
+#import "app/core/controller.h"
+#import "app/core/editor.h"
+#import "app/core/platform/app_delegate.h"
 #import "app/core/platform/file_dialog.h"
 #import "app/rom.h"
-#import "app_delegate.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 - (void)setupMenus;
@@ -47,9 +49,7 @@
     [fileMenu addItem:[NSMenuItem separatorItem]];
 
     // Save
-    NSMenuItem *saveItem = [[NSMenuItem alloc] initWithTitle:@"Save"
-                                                      action:@selector(openFileAction:)
-                                               keyEquivalent:@"s"];
+    NSMenuItem *saveItem = [[NSMenuItem alloc] initWithTitle:@"Save" action:nil keyEquivalent:@"s"];
     [fileMenu addItem:saveItem];
 
     // Separator
@@ -80,15 +80,11 @@
     editMenuItem = [[NSMenuItem alloc] initWithTitle:@"Edit" action:nil keyEquivalent:@""];
     [editMenuItem setSubmenu:editMenu];
 
-    NSMenuItem *undoItem = [[NSMenuItem alloc] initWithTitle:@"Undo"
-                                                      action:@selector(openFileAction:)
-                                               keyEquivalent:@"z"];
+    NSMenuItem *undoItem = [[NSMenuItem alloc] initWithTitle:@"Undo" action:nil keyEquivalent:@"z"];
 
     [editMenu addItem:undoItem];
 
-    NSMenuItem *redoItem = [[NSMenuItem alloc] initWithTitle:@"Redo"
-                                                      action:@selector(openFileAction:)
-                                               keyEquivalent:@"Z"];
+    NSMenuItem *redoItem = [[NSMenuItem alloc] initWithTitle:@"Redo" action:nil keyEquivalent:@"Z"];
 
     [editMenu addItem:redoItem];
 
@@ -96,17 +92,15 @@
     [editMenu addItem:[NSMenuItem separatorItem]];
 
     NSMenuItem *cutItem = [[NSMenuItem alloc] initWithTitle:@"Cut"
-                                                     action:@selector(openFileAction:)
+                                                     action:@selector(cutAction:)
                                               keyEquivalent:@"x"];
     [editMenu addItem:cutItem];
 
-    NSMenuItem *copyItem = [[NSMenuItem alloc] initWithTitle:@"Copy"
-                                                      action:@selector(openFileAction:)
-                                               keyEquivalent:@"c"];
+    NSMenuItem *copyItem = [[NSMenuItem alloc] initWithTitle:@"Copy" action:nil keyEquivalent:@"c"];
     [editMenu addItem:copyItem];
 
     NSMenuItem *pasteItem = [[NSMenuItem alloc] initWithTitle:@"Paste"
-                                                       action:@selector(openFileAction:)
+                                                       action:nil
                                                 keyEquivalent:@"v"];
 
     [editMenu addItem:pasteItem];
@@ -115,7 +109,7 @@
     [editMenu addItem:[NSMenuItem separatorItem]];
 
     NSMenuItem *selectAllItem = [[NSMenuItem alloc] initWithTitle:@"Select All"
-                                                           action:@selector(openFileAction:)
+                                                           action:nil
                                                     keyEquivalent:@"a"];
 
     [editMenu addItem:selectAllItem];
@@ -131,41 +125,38 @@
 
     // Emulator view button
     NSMenuItem *emulatorViewItem = [[NSMenuItem alloc] initWithTitle:@"Emulator View"
-                                                              action:@selector(openFileAction:)
+                                                              action:nil
                                                        keyEquivalent:@"1"];
 
     [viewMenu addItem:emulatorViewItem];
 
     // Hex Editor View
     NSMenuItem *hexEditorViewItem = [[NSMenuItem alloc] initWithTitle:@"Hex Editor View"
-                                                               action:@selector(openFileAction:)
+                                                               action:nil
                                                         keyEquivalent:@"2"];
 
     [viewMenu addItem:hexEditorViewItem];
 
     // Disassembly view button
     NSMenuItem *disassemblyViewItem = [[NSMenuItem alloc] initWithTitle:@"Disassembly View"
-                                                                 action:@selector(openFileAction:)
+                                                                 action:nil
                                                           keyEquivalent:@"3"];
 
     [viewMenu addItem:disassemblyViewItem];
 
     // Memory view button
-
     NSMenuItem *memoryViewItem = [[NSMenuItem alloc] initWithTitle:@"Memory View"
-                                                            action:@selector(openFileAction:)
+                                                            action:nil
                                                      keyEquivalent:@"4"];
 
     [viewMenu addItem:memoryViewItem];
 
     // Add a separator
-
     [viewMenu addItem:[NSMenuItem separatorItem]];
 
     // Toggle fullscreen button
-
     NSMenuItem *toggleFullscreenItem = [[NSMenuItem alloc] initWithTitle:@"Toggle Fullscreen"
-                                                                  action:@selector(openFileAction:)
+                                                                  action:nil
                                                            keyEquivalent:@"f"];
 
     [viewMenu addItem:toggleFullscreenItem];
@@ -181,7 +172,7 @@
 
     // URL to online documentation
     NSMenuItem *documentationItem = [[NSMenuItem alloc] initWithTitle:@"Documentation"
-                                                               action:@selector(openFileAction:)
+                                                               action:nil
                                                         keyEquivalent:@"?"];
     [helpMenu addItem:documentationItem];
 
@@ -205,6 +196,10 @@
 
 - (void)openFileAction:(id)sender {
   yaze::app::SharedROM::shared_rom_->LoadFromFile(FileDialogWrapper::ShowOpenFileDialog());
+}
+
+- (void)cutAction:(id)sender {
+  // TODO: Implement
 }
 
 - (void)openRecentFileAction:(id)sender {
