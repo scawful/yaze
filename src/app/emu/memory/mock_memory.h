@@ -73,6 +73,29 @@ class MockMemory : public Memory {
     }
   }
 
+  void Initialize(const std::vector<uint8_t>& romData) {
+    // 16 MB, simplifying the memory layout for testing
+    memory_.resize(0x1000000);
+
+    // Clear memory
+    std::fill(memory_.begin(), memory_.end(), 0);
+
+    // Load ROM data into mock memory
+    size_t romSize = romData.size();
+    size_t romAddress = 0;
+    const size_t ROM_CHUNK_SIZE = 0x8000;  // 32 KB
+    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
+      for (size_t offset = 0x8000; offset <= 0xFFFF; offset += ROM_CHUNK_SIZE) {
+        if (romAddress < romSize) {
+          std::copy(romData.begin() + romAddress,
+                    romData.begin() + romAddress + ROM_CHUNK_SIZE,
+                    memory_.begin() + (bank << 16) + offset);
+          romAddress += ROM_CHUNK_SIZE;
+        }
+      }
+    }
+  }
+
   void Init() {
     ON_CALL(*this, ReadByte(::testing::_))
         .WillByDefault(

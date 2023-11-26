@@ -131,11 +131,13 @@ using ImGui::Text;
 
 void Emulator::Run() {
   if (!snes_.running() && loading_) {
+    // Setup and initialize memory
     if (loading_ && !memory_setup_) {
       snes_.SetupMemory(*rom());
       memory_setup_ = true;
     }
 
+    // Run the emulation
     if (rom()->isLoaded() && power_) {
       snes_.Init(*rom());
       running_ = true;
