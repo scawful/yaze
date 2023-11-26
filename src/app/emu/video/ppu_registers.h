@@ -9,7 +9,7 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-namespace PPURegisters {
+namespace PpuRegisters {
 
 constexpr uint16_t INIDISP = 0x2100;
 
@@ -143,12 +143,14 @@ struct BGMODE {
   uint8_t tile_size : 4;
 };
 
-struct MOSAIC {
+struct Mosaic {
   uint8_t bg_enable : 4;
   uint8_t mosaic_size : 4;
 };
 
 struct BGSC {
+  BGSC() = default;
+  ~BGSC() = default;
   explicit BGSC(uint8_t value)
       : horizontal_tilemap_count(value & 0x01),
         vertical_tilemap_count((value >> 1) & 0x01),
@@ -159,6 +161,8 @@ struct BGSC {
 };
 
 struct BGNBA {
+  BGNBA() = default;
+  ~BGNBA() = default;
   explicit BGNBA(uint8_t value)
       : chr_base_address_2(value & 0x0F),
         chr_base_address_1((value >> 4) & 0x0F) {}
@@ -409,7 +413,7 @@ struct STAT78 {
   uint8_t unused : 1;
 };
 
-}  // namespace PPURegisters
+}  // namespace PpuRegisters
 
 }  // namespace emu
 }  // namespace app
