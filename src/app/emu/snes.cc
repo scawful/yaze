@@ -64,45 +64,45 @@ ROMInfo SNES::ReadRomHeader(uint32_t offset) {
   // Read cartridge title
   char title[22];
   for (int i = 0; i < 21; ++i) {
-    title[i] = cpu.ReadByte(offset + i);
+    title[i] = cpu_.ReadByte(offset + i);
   }
   title[21] = '\0';  // Null-terminate the string
   romInfo.title = std::string(title);
 
   // Read ROM speed and memory map mode
-  uint8_t romSpeedAndMapMode = cpu.ReadByte(offset + 0x15);
+  uint8_t romSpeedAndMapMode = cpu_.ReadByte(offset + 0x15);
   romInfo.romSpeed = (ROMSpeed)(romSpeedAndMapMode & 0x07);
   romInfo.bankSize = (BankSize)((romSpeedAndMapMode >> 5) & 0x01);
 
   // Read ROM type
-  romInfo.romType = (ROMType)cpu.ReadByte(offset + 0x16);
+  romInfo.romType = (ROMType)cpu_.ReadByte(offset + 0x16);
 
   // Read ROM size
-  romInfo.romSize = (ROMSize)cpu.ReadByte(offset + 0x17);
+  romInfo.romSize = (ROMSize)cpu_.ReadByte(offset + 0x17);
 
   // Read RAM size
-  romInfo.sramSize = (SRAMSize)cpu.ReadByte(offset + 0x18);
+  romInfo.sramSize = (SRAMSize)cpu_.ReadByte(offset + 0x18);
 
   // Read country code
-  romInfo.countryCode = (CountryCode)cpu.ReadByte(offset + 0x19);
+  romInfo.countryCode = (CountryCode)cpu_.ReadByte(offset + 0x19);
 
   // Read license
-  romInfo.license = (License)cpu.ReadByte(offset + 0x1A);
+  romInfo.license = (License)cpu_.ReadByte(offset + 0x1A);
 
   // Read ROM version
-  romInfo.version = cpu.ReadByte(offset + 0x1B);
+  romInfo.version = cpu_.ReadByte(offset + 0x1B);
 
   // Read checksum complement
-  romInfo.checksumComplement = cpu.ReadWord(offset + 0x1E);
+  romInfo.checksumComplement = cpu_.ReadWord(offset + 0x1E);
 
   // Read checksum
-  romInfo.checksum = cpu.ReadWord(offset + 0x1C);
+  romInfo.checksum = cpu_.ReadWord(offset + 0x1C);
 
   // Read NMI VBL vector
-  romInfo.nmiVblVector = cpu.ReadWord(offset + 0x3E);
+  romInfo.nmiVblVector = cpu_.ReadWord(offset + 0x3E);
 
   // Read reset vector
-  romInfo.resetVector = cpu.ReadWord(offset + 0x3C);
+  romInfo.resetVector = cpu_.ReadWord(offset + 0x3C);
 
   return romInfo;
 }
@@ -112,18 +112,18 @@ void SNES::Init(ROM& rom) {
   // Disable the emulation flag (switch to 65816 native mode)
 
   // Initialize CPU
-  cpu.Init();
+  cpu_.Init();
 
   // Read the ROM header
   auto header_offset = GetHeaderOffset(memory_);
   rom_info_ = ReadRomHeader(header_offset);
-  cpu.PC = rom_info_.resetVector;
+  cpu_.PC = rom_info_.resetVector;
 
   // Initialize PPU
-  ppu.Init();
+  ppu_.Init();
 
   // Initialize APU
-  apu.Init();
+  apu_.Init();
 
   // Initialize SDL_Mixer to play the audio samples
   // Mix_HookMusic(audio_callback, &apu);
@@ -232,16 +232,16 @@ void SNES::Run() {
     frame_accumulated_time += delta_time;
 
     // Update the CPU
-    cpu.UpdateClock(delta_time);
-    cpu.Update(GetCpuMode());
+    cpu_.UpdateClock(delta_time);
+    cpu_.Update(GetCpuMode());
 
     // Update the PPU
-    ppu.UpdateClock(delta_time);
-    ppu.Update();
+    ppu_.UpdateClock(delta_time);
+    ppu_.Update();
 
     // Update the APU
-    apu.UpdateClock(delta_time);
-    apu.Update();
+    apu_.UpdateClock(delta_time);
+    apu_.Update();
 
     if (frame_accumulated_time >= frame_time) {
       // renderer.Render();
@@ -279,11 +279,11 @@ void SNES::NmiIsr() {
   // ...
 
   // Push CPU registers to stack
-  cpu.PHP();
+  cpu_.PHP();
 
   // Reset DB and DP registers
-  cpu.DB = 0x80;  // Assuming bank 0x80, can be changed to 0x00
-  cpu.D = 0;
+  cpu_.DB = 0x80;  // Assuming bank 0x80, can be changed to 0x00
+  cpu_.D = 0;
 
   if (v_blank_flag_) {
     VBlankRoutine();
@@ -296,7 +296,7 @@ void SNES::NmiIsr() {
   frame_counter_++;
 
   // Restore CPU registers
-  cpu.PHB();
+  cpu_.PHB();
 }
 
 // VBlank routine
@@ -307,7 +307,7 @@ void SNES::VBlankRoutine() {
 
 void SNES::BootAPUWithIPL() {
   // 1. Waiting for the SPC700 to be ready
-  while (!apu.IsReadySignalReceived()) {
+  while (!apu_.IsReadySignalReceived()) {
     // Active waiting (this can be optimized)
   }
 

@@ -155,9 +155,9 @@ void Emulator::Run() {
   if (running_) {
     HandleEvents();
     UpdateEmulator();
-    RenderEmulator();
   }
 
+  RenderEmulator();
   if (debugger_) {
     RenderDebugger();
   }
@@ -166,11 +166,25 @@ void Emulator::Run() {
 void Emulator::RenderEmulator() {
   ImVec2 size = ImVec2(320, 240);
   if (snes_.running()) {
-    ImGui::Image((void*)snes_.Ppu().GetScreen()->texture(), size, ImVec2(0, 0),
+    ImGui::BeginChild(
+        "EmulatorOutput", ImVec2(0, 0), true,
+        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
+    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
+    ImGui::Image((void*)snes_.ppu().GetScreen()->texture(), size, ImVec2(0, 0),
                  ImVec2(1, 1));
+    ImGui::EndChild();
     ImGui::Separator();
   } else {
+    ImGui::BeginChild(
+        "EmulatorOutput", ImVec2(0, 0), true,
+        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
+    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
     ImGui::Dummy(size);
+    ImGui::EndChild();
     ImGui::Separator();
     ImGui::Text("Emulator output not available.");
   }
@@ -242,10 +256,10 @@ void Emulator::RenderDebugger() {
             "DebugTable", 3,
             ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
       TableNextColumn();
-      RenderCpuState(snes_.Cpu());
+      RenderCpuState(snes_.cpu());
 
       TableNextColumn();
-      RenderCPUInstructionLog(snes_.Cpu().instruction_log_);
+      RenderCPUInstructionLog(snes_.cpu().instruction_log_);
 
       TableNextColumn();
       RenderBreakpointList();
@@ -286,21 +300,21 @@ void Emulator::RenderBreakpointList() {
   if (ImGui::InputText("##BreakpointInput", breakpoint_input, 10,
                        ImGuiInputTextFlags_EnterReturnsTrue)) {
     int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
-    snes_.Cpu().SetBreakpoint(breakpoint);
+    snes_.cpu().SetBreakpoint(breakpoint);
     memset(breakpoint_input, 0, sizeof(breakpoint_input));
   }
   SameLine();
   if (ImGui::Button("Add")) {
     int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
-    snes_.Cpu().SetBreakpoint(breakpoint);
+    snes_.cpu().SetBreakpoint(breakpoint);
     memset(breakpoint_input, 0, sizeof(breakpoint_input));
   }
   SameLine();
   if (ImGui::Button("Clear")) {
-    snes_.Cpu().ClearBreakpoints();
+    snes_.cpu().ClearBreakpoints();
   }
   Separator();
-  auto breakpoints = snes_.Cpu().GetBreakpoints();
+  auto breakpoints = snes_.cpu().GetBreakpoints();
   if (!breakpoints.empty()) {
     Text("Breakpoints:");
     ImGui::BeginChild("BreakpointsList", ImVec2(0, 100), true);
