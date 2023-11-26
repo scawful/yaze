@@ -18,6 +18,7 @@ set(
   app/editor/modules/assembly_editor.cc
   app/editor/modules/tile16_editor.cc
   app/editor/modules/gfx_group_editor.cc
+  app/editor/context/gfx_context.cc
 )
 
 set(

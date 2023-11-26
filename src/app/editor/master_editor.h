@@ -11,6 +11,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/pipeline.h"
+#include "app/editor/context/gfx_context.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
 #include "app/editor/modules/assembly_editor.h"
@@ -31,7 +32,9 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class MasterEditor : public SharedROM, public core::ExperimentFlags {
+class MasterEditor : public SharedROM,
+                     public GfxContext,
+                     public core::ExperimentFlags {
  public:
   MasterEditor() { current_editor_ = &overworld_editor_; }
 
@@ -56,6 +59,7 @@ class MasterEditor : public SharedROM, public core::ExperimentFlags {
   bool rom_info_ = false;
   bool backup_rom_ = true;
   bool show_status_ = false;
+  bool rom_assets_loaded_ = false;
 
   absl::Status status_;
   absl::Status prev_status_;
