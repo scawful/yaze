@@ -24,36 +24,28 @@ class Bitmap {
   Bitmap(int width, int height, int depth, int data_size);
   Bitmap(int width, int height, int depth, const Bytes &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
-    CreateTextureFromData();
+    // CreateTextureFromData();
+    InitializeFromData(width, height, depth, data);
   }
 
   // Function to create texture from pixel data
   void CreateTextureFromData() {
-    // Safely create the texture from the raw data
-    // Assuming a function exists that converts Bytes to the appropriate format
-    auto raw_pixel_data = data_;
+    active_ = true;
     surface_ = std::shared_ptr<SDL_Surface>(
         SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
                                        SDL_PIXELFORMAT_INDEX8),
         SDL_Surface_Deleter());
     surface_->pixels = data_.data();
+    data_size_ = data_.size();
   }
-
-  [[deprecated]] Bitmap(int width, int height, int depth, uchar *data);
-  [[deprecated]] Bitmap(int width, int height, int depth, uchar *data,
-                        int data_size);
 
   void Create(int width, int height, int depth, int data_size);
   void Create(int width, int height, int depth, const Bytes &data);
 
-  absl::Status InitializeFromData(uint32_t width, uint32_t height,
+  void InitializeFromData(uint32_t width, uint32_t height,
                                   uint32_t depth, const Bytes &data);
   void ReserveData(uint32_t width, uint32_t height, uint32_t depth,
                    uint32_t size);
-
-  [[deprecated]] void Create(int width, int height, int depth, uchar *data);
-  [[deprecated]] void Create(int width, int height, int depth, uchar *data,
-                             int data_size);
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
@@ -65,7 +57,11 @@ class Bitmap {
   void ApplyPalette(const std::vector<SDL_Color> &palette);
 
   void WriteToPixel(int position, uchar value) {
+    if (pixel_data_ == nullptr) {
+      pixel_data_ = data_.data();
+    }
     this->pixel_data_[position] = value;
+    modified_ = true;
   }
 
   void Cleanup() {
@@ -97,9 +93,15 @@ class Bitmap {
   int height() const { return height_; }
   auto depth() const { return depth_; }
   auto size() const { return data_size_; }
-  auto data() const { return pixel_data_; }
-  auto at(int i) const { return pixel_data_[i]; }
+  auto data() const { return data_.data(); }
+  auto mutable_data() { return data_; }
+  auto mutable_pixel_data() { return pixel_data_; }
+
+  auto vector() const { return data_; }
+  auto at(int i) const { return data_[i]; }
   auto texture() const { return texture_.get(); }
+  auto modified() const { return modified_; }
+  void set_modified(bool modified) { modified_ = modified; }
   auto IsActive() const { return active_; }
   auto SetActive(bool active) { active_ = active; }
 
@@ -129,6 +131,7 @@ class Bitmap {
   int data_size_ = 0;
   bool freed_ = false;
   bool active_ = false;
+  bool modified_ = false;
   uchar *pixel_data_;
   Bytes data_;
   gfx::SNESPalette palette_;
@@ -143,21 +146,20 @@ class BitmapManager {
   std::unordered_map<int, std::shared_ptr<gfx::Bitmap>> bitmap_cache_;
 
  public:
-  std::shared_ptr<gfx::Bitmap> LoadBitmap(int id, const Bytes &data, int width,
-                                          int height, int depth) {
-    auto bitmap = std::make_shared<gfx::Bitmap>(width, height, depth, data);
-    bitmap_cache_[id] = bitmap;
-    return bitmap;
+  void LoadBitmap(int id, const Bytes &data, int width, int height, int depth) {
+    bitmap_cache_[id] =
+        std::make_shared<gfx::Bitmap>(width, height, depth, data);
   }
 
-  std::shared_ptr<gfx::Bitmap> CopyBitmap(const gfx::Bitmap &bitmap, int id) {
+  std::shared_ptr<gfx::Bitmap> const &CopyBitmap(const gfx::Bitmap &bitmap,
+                                                 int id) {
     auto new_bitmap = std::make_shared<gfx::Bitmap>(
-        bitmap.width(), bitmap.height(), bitmap.depth(), bitmap.data());
+        bitmap.width(), bitmap.height(), bitmap.depth(), bitmap.vector());
     bitmap_cache_[id] = new_bitmap;
     return new_bitmap;
   }
 
-  std::shared_ptr<gfx::Bitmap> operator[](int id) {
+  std::shared_ptr<gfx::Bitmap> const &operator[](int id) {
     auto it = bitmap_cache_.find(id);
     if (it != bitmap_cache_.end()) {
       return it->second;
@@ -178,7 +180,7 @@ class BitmapManager {
   const_iterator cbegin() const noexcept { return bitmap_cache_.cbegin(); }
   const_iterator cend() const noexcept { return bitmap_cache_.cend(); }
 
-  std::shared_ptr<gfx::Bitmap> GetBitmap(int id) {
+  std::shared_ptr<gfx::Bitmap> const &GetBitmap(int id) {
     auto it = bitmap_cache_.find(id);
     if (it != bitmap_cache_.end()) {
       return it->second;
