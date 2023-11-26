@@ -29,11 +29,15 @@ class Tile16Editor : public SharedROM {
   absl::Status UpdateBlockset();
   absl::Status UpdateTile16Edit();
 
+  void DrawTileEditControls();
+
   absl::Status UpdateTransferTileCanvas();
 
-  absl::Status InitBlockset(gfx::Bitmap tile16_blockset_bmp,
-                            std::vector<gfx::Bitmap> tile16_individual,
-                            std::vector<gfx::Bitmap> tile8_individual_);
+  absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
+                            gfx::Bitmap current_gfx_bmp,
+                            const std::vector<gfx::Bitmap>& tile16_individual);
+
+  absl::Status LoadTile8();
 
  private:
   bool map_blockset_loaded_ = false;
@@ -41,6 +45,11 @@ class Tile16Editor : public SharedROM {
   bool transfer_blockset_loaded_ = false;
 
   int current_tile16_ = 0;
+  int current_tile8_ = 0;
+  uint8_t current_palette_ = 0;
+
+  core::NotifyValue<uint8_t> notify_tile16;
+  core::NotifyValue<uint8_t> notify_palette;
 
   // Canvas dimensions
   int canvas_width;
@@ -55,26 +64,41 @@ class Tile16Editor : public SharedROM {
   bool priority_tile;
   int tile_size;
 
+  // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_;
   gfx::Bitmap tile16_blockset_bmp_;
 
+  // Canvas for editing the selected tile
   gui::Canvas tile16_edit_canvas_;
+  gfx::Bitmap current_tile16_bmp_;
+  gfx::Bitmap current_tile8_bmp_;
+
+  // Tile8 canvas to get the tile to drawing in the tile16_edit_canvas_
+  gui::Canvas tile8_source_canvas_;
+  gfx::Bitmap current_gfx_bmp_;
 
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
   gfx::Bitmap transfer_current_bmp_;
 
+  std::vector<Bytes> tile16_individual_data_;
+  std::vector<gfx::Bitmap> tile16_individual_;
+
+  std::vector<gfx::Bitmap> current_gfx_individual_;
+
+  std::vector<uint8_t> current_tile16_data_;
+
   PaletteEditor palette_editor_;
 
   gfx::SNESPalette palette_;
   zelda3::Overworld transfer_overworld_;
-  std::vector<Bytes> tile16_individual_data_;
-  std::vector<gfx::Bitmap> tile16_individual_;
-  std::vector<gfx::Bitmap> tile8_individual_;
+
   gfx::BitmapTable graphics_bin_;
 
   ROM transfer_rom_;
   absl::Status transfer_status_;
+
+  core::TaskManager<std::function<void(int)>> task_manager_;
 };
 
 }  // namespace editor
