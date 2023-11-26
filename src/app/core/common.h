@@ -70,15 +70,12 @@ class ExperimentFlags {
   static std::shared_ptr<Flags> flags_;
 };
 
-// NotifyValue is a special type class which stores two copies of a type
-// and uses that to check if the value was updated last or not
-// It should have an accessor which says if it was modified or not
-// and when that is read it should reset the value and state
 template <typename T>
 class NotifyValue {
  public:
-  NotifyValue() : value_(), modified_(false) {}
-  NotifyValue(const T &value) : value_(value), modified_(false) {}
+  NotifyValue() : value_(), modified_(false), temp_value_() {}
+  NotifyValue(const T &value)
+      : value_(value), modified_(false), temp_value_() {}
 
   void set(const T &value) {
     value_ = value;
@@ -90,14 +87,28 @@ class NotifyValue {
     return value_;
   }
 
-  void operator=(const T &value) { set(value); }
-  operator T() const { return get(); }
+  T &mutable_get() {
+    modified_ = false;
+    temp_value_ = value_;
+    return temp_value_;
+  }
 
-  bool isModified() const { return modified_; }
+  void apply_changes() {
+    if (temp_value_ != value_) {
+      value_ = temp_value_;
+      modified_ = true;
+    }
+  }
+
+  void operator=(const T &value) { set(value); }
+  operator T() { return get(); }
+
+  bool modified() const { return modified_; }
 
  private:
   T value_;
   bool modified_;
+  T temp_value_;
 };
 
 struct TaskCheckpoint {
