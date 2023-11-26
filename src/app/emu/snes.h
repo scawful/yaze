@@ -63,8 +63,8 @@ class SNES : public DMA {
 
   bool running() const { return running_; }
 
-  auto Cpu() -> CPU& { return cpu; }
-  auto Ppu() -> PPU& { return ppu; }
+  auto cpu() -> CPU& { return cpu_; }
+  auto ppu() -> Ppu& { return ppu_; }
   auto Memory() -> MemoryImpl* { return &memory_; }
 
   void SetCpuMode(int mode) { cpu_mode_ = mode; }
@@ -74,8 +74,8 @@ class SNES : public DMA {
 
   void SetupMemory(ROM& rom) {
     // Setup observers for the memory space
-    memory_.AddObserver(&apu);
-    memory_.AddObserver(&ppu);
+    memory_.AddObserver(&apu_);
+    memory_.AddObserver(&ppu_);
 
     // Load the ROM into memory and set up the memory mapping
     memory_.Initialize(rom.vector());
@@ -91,9 +91,9 @@ class SNES : public DMA {
   ClockImpl clock_;
   AudioRamImpl audio_ram_;
 
-  CPU cpu{memory_, clock_};
-  PPU ppu{memory_, clock_};
-  APU apu{memory_, audio_ram_, clock_};
+  CPU cpu_{memory_, clock_};
+  Ppu ppu_{memory_, clock_};
+  APU apu_{memory_, audio_ram_, clock_};
 
   // Helper classes
   ROMInfo rom_info_;
