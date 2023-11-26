@@ -25,35 +25,8 @@ void GrayscalePalette(SDL_Palette *palette) {
 }
 }  // namespace
 
-Bitmap::Bitmap(int width, int height, int depth, uchar *data) {
-  Create(width, height, depth, data);
-}
-
 Bitmap::Bitmap(int width, int height, int depth, int data_size) {
   Create(width, height, depth, data_size);
-}
-
-Bitmap::Bitmap(int width, int height, int depth, uchar *data, int data_size) {
-  Create(width, height, depth, data, data_size);
-}
-
-// Bitmap::Bitmap(int width, int height, int depth, Bytes data) {
-//   Create(width, height, depth, data);
-// }
-
-// Pass raw pixel data directly to the surface
-void Bitmap::Create(int width, int height, int depth, uchar *data) {
-  active_ = true;
-  width_ = width;
-  height_ = height;
-  depth_ = depth;
-  pixel_data_ = data;
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                     SDL_PIXELFORMAT_INDEX8),
-      SDL_Surface_Deleter());
-  surface_->pixels = pixel_data_;
-  GrayscalePalette(surface_->format->palette);
 }
 
 // Reserves data to later draw to surface via pointer
@@ -73,28 +46,12 @@ void Bitmap::Create(int width, int height, int depth, int size) {
   GrayscalePalette(surface_->format->palette);
 }
 
-// Pass raw pixel data directly to the surface
-void Bitmap::Create(int width, int height, int depth, uchar *data, int size) {
-  active_ = true;
-  width_ = width;
-  height_ = height;
-  depth_ = depth;
-  pixel_data_ = data;
-  data_size_ = size;
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                     SDL_PIXELFORMAT_INDEX8),
-      SDL_Surface_Deleter());
-  surface_->pixels = pixel_data_;
-  GrayscalePalette(surface_->format->palette);
-}
-
 void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
   active_ = true;
   width_ = width;
   height_ = height;
   depth_ = depth;
-  data_ = std::move(data);
+  data_ = data;
   pixel_data_ = data_.data();
   surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
@@ -159,32 +116,23 @@ void Bitmap::ApplyPalette(const std::vector<SDL_Color> &palette) {
   SDL_LockSurface(surface_.get());
 }
 
-absl::Status Bitmap::InitializeFromData(uint32_t width, uint32_t height,
-                                        uint32_t depth, const Bytes &data) {
-  if (width == 0 || height == 0 || depth == 0) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Invalid arguments: width: ", width, ", height: ", height,
-                     ", depth: ", depth));
-  }
-
+void Bitmap::InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
+                                const Bytes &data) {
   active_ = true;
   width_ = width;
   height_ = height;
   depth_ = depth;
   data_ = data;
+  data_size_ = data.size();
+  pixel_data_ = data_.data();
 
   surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
       SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
                                      SDL_PIXELFORMAT_INDEX8),
       SDL_Surface_Deleter());
 
-  if (surface_ == nullptr) {
-    return absl::InternalError("Failed to create surface.");
-  }
-
-  surface_->pixels = data_.data();
+  surface_->pixels = pixel_data_;
   GrayscalePalette(surface_->format->palette);
-  return absl::OkStatus();
 }
 
 void Bitmap::ReserveData(uint32_t width, uint32_t height, uint32_t depth,
