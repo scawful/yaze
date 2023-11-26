@@ -42,7 +42,7 @@ void TitleScreen::BuildTileset() {
   staticgfx[15] = 112;
 
   // Loaded gfx for the current screen (empty at this point)
-  uchar* currentmapgfx8Data = tiles8Bitmap.data();
+  uchar* currentmapgfx8Data = tiles8Bitmap.mutable_data().data();
 
   // All gfx of the game pack of 2048 bytes (4bpp)
   uchar* allgfxData = nullptr;  // rom_.GetMasterGraphicsBin();
