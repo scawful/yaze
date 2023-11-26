@@ -60,7 +60,7 @@ void Canvas::DrawContextMenu() {
   }
 }
 
-bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
+bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();
   // Lock scrolled origin
@@ -86,8 +86,12 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size) {
       draw_list_->AddImage(
           (void *)bitmap.texture(),
           ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
-          ImVec2(origin.x + painter_pos.x + bitmap.width(),
-                 origin.y + painter_pos.y + bitmap.height()));
+          ImVec2(origin.x + painter_pos.x + bitmap.width() * scale,
+                 origin.y + painter_pos.y + bitmap.height() * scale));
+
+      //              ImVec2(
+      // canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width() * scale),
+      // canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height() * scale)));
     }
 
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -124,6 +128,52 @@ void Canvas::DrawTileSelector(int size) {
   }
 }
 
+void Canvas::HandleTileEdits(Canvas &blockset_canvas,
+                             std::vector<gfx::Bitmap> &source_blockset,
+                             gfx::Bitmap &destination, int &current_tile,
+                             float scale, int tile_painter_size,
+                             int tiles_per_row) {
+  if (!blockset_canvas.Points().empty()) {
+    uint16_t x = blockset_canvas.Points().front().x / 32;
+    uint16_t y = blockset_canvas.Points().front().y / 32;
+    current_tile = x + (y * tiles_per_row);
+    if (DrawTilePainter(source_blockset[current_tile], tile_painter_size,
+                        scale)) {
+      RenderUpdatedBitmap(GetCurrentDrawnTilePosition(),
+                          source_blockset[current_tile].mutable_data(),
+                          destination);
+    }
+  }
+}
+
+void Canvas::RenderUpdatedBitmap(const ImVec2 &click_position,
+                                 const Bytes &tile_data,
+                                 gfx::Bitmap &destination) {
+  // Calculate the tile position relative to the current active map
+  constexpr int tile_size = 16;  // Tile size is 16x16 pixels
+
+  // Calculate the tile index for x and y based on the click_position
+  int tile_index_x = (static_cast<int>(click_position.x) % 512) / tile_size;
+  int tile_index_y = (static_cast<int>(click_position.y) % 512) / tile_size;
+
+  // Calculate the pixel start position based on tile index and tile size
+  ImVec2 start_position;
+  start_position.x = tile_index_x * tile_size;
+  start_position.y = tile_index_y * tile_size;
+
+  // Update the bitmap's pixel data based on the start_position and tile_data
+  for (int y = 0; y < tile_size; ++y) {
+    for (int x = 0; x < tile_size; ++x) {
+      int pixel_index =
+          (start_position.y + y) * destination.width() + (start_position.x + x);
+      destination.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
+    }
+  }
+
+  // Render the updated bitmap to the canvas
+  // rom()->RenderBitmap(&current_bitmap);
+}
+
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
   if (ready) {
     draw_list_->AddImage(
@@ -134,13 +184,15 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
   }
 }
 
-void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset) {
+void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
+                        float scale) {
   draw_list_->AddImage(
       (void *)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
              canvas_p0_.y + y_offset + scrolling_.y),
-      ImVec2(canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width()),
-             canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height())));
+      ImVec2(
+          canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width() * scale),
+          canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height() * scale)));
 }
 
 // TODO: Add parameters for sizing and positioning
