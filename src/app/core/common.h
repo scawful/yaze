@@ -134,18 +134,20 @@ class TaskTimer {
   std::chrono::steady_clock::time_point start_time_;
 };
 
+template <typename TFunc>
 class TaskManager {
  public:
+  TaskManager() = default;
+  ~TaskManager() = default;
   using TaskFunction = std::function<void(int)>;
 
-  TaskManager(int totalTasks, int timeoutSeconds, const TaskFunction &taskFunc)
+  TaskManager(int totalTasks, int timeoutSeconds)
       : total_tasks_(totalTasks),
         timeout_seconds_(timeoutSeconds),
-        task_function_(taskFunc),
         task_index_(0),
         task_complete_(false) {}
 
-  void ExecuteTasks() {
+  void ExecuteTasks(const TFunc &taskFunc) {
     if (task_complete_) {
       return;
     }
@@ -153,7 +155,7 @@ class TaskManager {
     StartTimer();
 
     for (; task_index_ < total_tasks_; ++task_index_) {
-      task_function_(task_index_);
+      taskFunc(task_index_);
 
       if (ShouldFinishTask()) {
         break;
@@ -170,7 +172,6 @@ class TaskManager {
  private:
   int total_tasks_;
   int timeout_seconds_;
-  TaskFunction task_function_;
   int task_index_;
   bool task_complete_;
   std::chrono::steady_clock::time_point start_time_;
