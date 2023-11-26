@@ -62,7 +62,7 @@ void Inventory::Create() {
     }
   }
 
-  PRINT_IF_ERROR(bitmap_.InitializeFromData(256, 256, 8, data_))
+  bitmap_.Create(256, 256, 8, data_);
   bitmap_.ApplyPalette(palette_);
   rom()->RenderBitmap(&bitmap_);
 }

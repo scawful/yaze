@@ -252,7 +252,7 @@ absl::Status ROM::LoadAllGraphicsData() {
       }
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
-                      core::kTilesheetDepth, converted_sheet.data(), 0x1000);
+                      core::kTilesheetDepth, converted_sheet);
       graphics_bin_.at(i).CreateTexture(renderer_);
 
       if (flags()->kUseBitmapManager) {
@@ -260,16 +260,7 @@ absl::Status ROM::LoadAllGraphicsData() {
           graphics_buffer_.push_back(graphics_manager_[i]->at(j));
         }
       }
-      for (int j = 0; j < graphics_bin_[i].size(); ++j) {
-        graphics_buffer_.push_back(graphics_bin_.at(i).at(j));
-      }
-
     } else {
-      if (flags()->kUseBitmapManager) {
-        for (int j = 0; j < graphics_manager_[0].get()->size(); ++j) {
-          graphics_buffer_.push_back(0xFF);
-        }
-      }
       for (int j = 0; j < graphics_bin_[0].size(); ++j) {
         graphics_buffer_.push_back(0xFF);
       }
