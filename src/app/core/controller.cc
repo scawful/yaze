@@ -97,8 +97,6 @@ void HandleMouseMovement(int &wheel) {
 
 }  // namespace
 
-bool Controller::IsActive() const { return active_; }
-
 absl::Status Controller::OnEntry() {
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
@@ -149,7 +147,7 @@ void Controller::OnInput() {
   HandleMouseMovement(wheel);
 }
 
-void Controller::OnLoad() { master_editor_.UpdateScreen(); }
+void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
 
 void Controller::DoRender() const {
   SDL_RenderClear(renderer_.get());
@@ -219,10 +217,8 @@ absl::Status Controller::CreateGuiContext() {
 
   ImGuiIO &io = ImGui::GetIO();
   if (flags()->kUseNewImGuiInput) {
-    io.ConfigFlags |=
-        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    io.ConfigFlags |=
-        ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
   }
 
   // Initialize ImGui for SDL
@@ -232,7 +228,7 @@ absl::Status Controller::CreateGuiContext() {
   if (flags()->kLoadSystemFonts) {
     LoadSystemFonts();
   } else {
-    LoadFontFamilies();
+    RETURN_IF_ERROR(LoadFontFamilies());
   }
 
   // Set the default style

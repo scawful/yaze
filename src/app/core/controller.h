@@ -11,6 +11,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
+#include "app/core/editor.h"
 #include "app/editor/master_editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
@@ -23,7 +24,7 @@ namespace core {
 
 class Controller : public ExperimentFlags {
  public:
-  bool IsActive() const;
+  bool IsActive() const { return active_; }
   absl::Status OnEntry();
   void OnInput();
   void OnLoad();
