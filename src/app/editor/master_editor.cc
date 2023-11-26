@@ -128,6 +128,12 @@ absl::Status MasterEditor::Update() {
   DrawAboutPopup();
   DrawInfoPopup();
 
+  if (rom()->isLoaded() && !rom_assets_loaded_) {
+    // Initialize overworld graphics, maps, and palettes
+    RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
+    rom_assets_loaded_ = true;
+  }
+
   TAB_BAR("##TabBar")
 
   gui::RenderTabItem("Overworld", [&]() {
@@ -249,7 +255,7 @@ void MasterEditor::DrawYazeMenu() {
   }
   ImGui::PopStyleColor();
 
-  Text(absl::StrCat("yaze v", core::kYazeVersion).c_str());
+  Text("%s", absl::StrCat("yaze v", core::kYazeVersion).c_str());
 
   END_MENU_BAR()
 
@@ -277,16 +283,9 @@ void MasterEditor::DrawFileMenu() {
         auto file_name = FileDialogWrapper::ShowOpenFileDialog();
         PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
         static RecentFilesManager manager("recent_files.txt");
-
-        // Load existing recent files
         manager.Load();
-
-        // Add a new file
         manager.AddFile(file_name);
-
-        // Save the updated list
         manager.Save();
-
       } else {
         ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
                                                 ".sfc,.smc", ".");
@@ -322,6 +321,8 @@ void MasterEditor::DrawFileMenu() {
       ImGui::MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::Separator();
       Text("Experiment Flags");
+      ImGui::Checkbox("Enable Texture Streaming",
+                      &mutable_flags()->kLoadTexturesAsStreaming);
       ImGui::Checkbox("Enable Overworld Sprites",
                       &mutable_flags()->kDrawOverworldSprites);
       ImGui::Checkbox("Use Bitmap Manager",
