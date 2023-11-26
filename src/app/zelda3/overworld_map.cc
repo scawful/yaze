@@ -348,7 +348,7 @@ void OverworldMap::LoadPalette() {
   int previousSprPalId =
       index_ > 0 ? rom_[overworldSpritePalette + parent_ - 1] : 0;
 
-  area_palette_ = std::min(area_palette_, 0xA3);
+  area_palette_ = std::min((int)area_palette_, 0xA3);
 
   uchar pal0 = 0;
   uchar pal1 = rom_[rom_.version_constants().overworldMapPaletteGroup +
