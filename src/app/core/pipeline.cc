@@ -159,7 +159,7 @@ void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap,
 void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
                                   ROM& z3_rom, gfx::Bitmap& bitmap,
                                   gfx::SNESPalette& palette) {
-  PRINT_IF_ERROR(bitmap.InitializeFromData(width, height, depth, data));
+  bitmap.Create(width, height, depth, data);
   bitmap.ApplyPalette(palette);
   z3_rom.RenderBitmap(&bitmap);
 }

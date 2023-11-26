@@ -112,12 +112,14 @@ class RecentFilesManager {
 
 }  // namespace
 
+using ImGui::Text;
+
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
   rom()->SetupRenderer(renderer);
 }
 
-void MasterEditor::UpdateScreen() {
+absl::Status MasterEditor::Update() {
   NewMasterFrame();
 
   DrawYazeMenu();
@@ -128,39 +130,27 @@ void MasterEditor::UpdateScreen() {
 
   TAB_BAR("##TabBar")
 
-  TAB_ITEM("Overworld")
-  current_editor_ = &overworld_editor_;
-  status_ = overworld_editor_.Update();
-  END_TAB_ITEM()
+  gui::RenderTabItem("Overworld", [&]() {
+    current_editor_ = &overworld_editor_;
+    status_ = overworld_editor_.Update();
+  });
 
-  TAB_ITEM("Dungeon")
-  current_editor_ = &dungeon_editor_;
-  status_ = dungeon_editor_.Update();
-  END_TAB_ITEM()
+  gui::RenderTabItem("Dungeon", [&]() {
+    current_editor_ = &dungeon_editor_;
+    status_ = dungeon_editor_.Update();
+  });
 
-  TAB_ITEM("Graphics")
-  status_ = graphics_editor_.Update();
-  END_TAB_ITEM()
-
-  TAB_ITEM("Sprites")
-  status_ = sprite_editor_.Update();
-  END_TAB_ITEM()
-
-  TAB_ITEM("Palettes")
-  status_ = palette_editor_.Update();
-  END_TAB_ITEM()
-
-  TAB_ITEM("Screens")
-  screen_editor_.Update();
-  END_TAB_ITEM()
-
-  TAB_ITEM("Music")
-  music_editor_.Update();
-  END_TAB_ITEM()
-
+  gui::RenderTabItem("Graphics",
+                     [&]() { status_ = graphics_editor_.Update(); });
+  gui::RenderTabItem("Sprites", [&]() { status_ = sprite_editor_.Update(); });
+  gui::RenderTabItem("Palettes", [&]() { status_ = palette_editor_.Update(); });
+  gui::RenderTabItem("Screens", [&]() { screen_editor_.Update(); });
+  gui::RenderTabItem("Music", [&]() { music_editor_.Update(); });
   END_TAB_BAR()
 
   ImGui::End();
+
+  return absl::OkStatus();
 }
 
 void MasterEditor::DrawFileDialog() {
@@ -189,7 +179,7 @@ void MasterEditor::DrawStatusPopup() {
   }
 
   if (show_status_ && (BeginCentered("StatusWindow"))) {
-    ImGui::Text("%s", prev_status_.ToString().c_str());
+    Text("%s", prev_status_.ToString().c_str());
     ImGui::Spacing();
     ImGui::NextColumn();
     ImGui::Columns(1);
@@ -207,10 +197,10 @@ void MasterEditor::DrawAboutPopup() {
   if (about_) ImGui::OpenPopup("About");
   if (ImGui::BeginPopupModal("About", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Yet Another Zelda3 Editor - v0.05");
-    ImGui::Text("Written by: scawful");
+    Text("Yet Another Zelda3 Editor - v0.05");
+    Text("Written by: scawful");
     ImGui::Spacing();
-    ImGui::Text("Special Thanks: Zarby89, JaredBrian");
+    Text("Special Thanks: Zarby89, JaredBrian");
     ImGui::Separator();
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
@@ -225,8 +215,8 @@ void MasterEditor::DrawInfoPopup() {
   if (rom_info_) ImGui::OpenPopup("ROM Information");
   if (ImGui::BeginPopupModal("ROM Information", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Title: %s", rom()->title());
-    ImGui::Text("ROM Size: %ld", rom()->size());
+    Text("Title: %s", rom()->title());
+    Text("ROM Size: %ld", rom()->size());
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       rom_info_ = false;
@@ -259,7 +249,7 @@ void MasterEditor::DrawYazeMenu() {
   }
   ImGui::PopStyleColor();
 
-  ImGui::Text(absl::StrCat("yaze v", core::kYazeVersion).c_str());
+  Text(absl::StrCat("yaze v", core::kYazeVersion).c_str());
 
   END_MENU_BAR()
 
@@ -273,7 +263,7 @@ void MasterEditor::DrawYazeMenu() {
   if (show_command_line_interface) {
     ImGui::Begin("Command Line Interface", &show_command_line_interface,
                  ImGuiWindowFlags_None);
-    ImGui::Text("Enter a command:");
+    Text("Enter a command:");
     ImGui::End();
   }
 }
@@ -331,7 +321,7 @@ void MasterEditor::DrawFileMenu() {
     if (ImGui::BeginMenu("Options")) {
       ImGui::MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::Separator();
-      ImGui::Text("Experiment Flags");
+      Text("Experiment Flags");
       ImGui::Checkbox("Enable Overworld Sprites",
                       &mutable_flags()->kDrawOverworldSprites);
       ImGui::Checkbox("Use Bitmap Manager",
@@ -441,7 +431,7 @@ void MasterEditor::DrawViewMenu() {
         ImGui::TableNextRow();
         for (int column = 0; column < 3; column++) {
           ImGui::TableNextColumn();
-          ImGui::Text("Cell %d,%d", column, row);
+          Text("Cell %d,%d", column, row);
         }
       }
       ImGui::EndTable();
@@ -473,12 +463,12 @@ void MasterEditor::DrawHelpMenu() {
   if (open_rom_help) ImGui::OpenPopup("Open a ROM");
   if (ImGui::BeginPopupModal("Open a ROM", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("File -> Open");
-    ImGui::Text("Select a ROM file to open");
-    ImGui::Text("Supported ROMs (headered or unheadered):");
-    ImGui::Text("The Legend of Zelda: A Link to the Past");
-    ImGui::Text("US Version 1.0");
-    ImGui::Text("JP Version 1.0");
+    Text("File -> Open");
+    Text("Select a ROM file to open");
+    Text("Supported ROMs (headered or unheadered):");
+    Text("The Legend of Zelda: A Link to the Past");
+    Text("US Version 1.0");
+    Text("JP Version 1.0");
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       open_rom_help = false;
