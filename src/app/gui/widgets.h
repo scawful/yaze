@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
+#include <functional>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -14,9 +15,11 @@
 namespace yaze {
 namespace app {
 namespace gui {
-namespace widgets {
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
+
+void RenderTabItem(const std::string& title,
+                   const std::function<void()>& render_func);
 
 class BitmapViewer {
  public:
@@ -65,7 +68,6 @@ class BitmapViewer {
   int current_bitmap_index_;
 };
 
-}  // namespace widgets
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze
