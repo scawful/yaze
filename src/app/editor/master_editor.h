@@ -33,8 +33,11 @@ namespace editor {
 
 class MasterEditor : public SharedROM, public core::ExperimentFlags {
  public:
+  MasterEditor() { current_editor_ = &overworld_editor_; }
+
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
-  void UpdateScreen();
+  absl::Status Update();
+
   void Shutdown() { overworld_editor_.Shutdown(); }
 
  private:
@@ -60,7 +63,6 @@ class MasterEditor : public SharedROM, public core::ExperimentFlags {
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
   emu::Emulator emulator_;
-  Editor *current_editor_ = nullptr;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
@@ -70,6 +72,8 @@ class MasterEditor : public SharedROM, public core::ExperimentFlags {
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
+
+  Editor *current_editor_ = nullptr;
 };
 
 }  // namespace editor

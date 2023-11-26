@@ -164,8 +164,8 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   core::ButtonPipe("Load CGX Data", [this]() {
     status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                            decoded_cgx_, extra_cgx_data_);
-    PRINT_IF_ERROR(
-        cgx_bitmap_.InitializeFromData(0x80, 0x200, 8, decoded_cgx_));
+
+    cgx_bitmap_.InitializeFromData(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
       cgx_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&cgx_bitmap_);
@@ -198,8 +198,8 @@ absl::Status GraphicsEditor::DrawScrImport() {
     decoded_scr_data_.resize(0x100 * 0x100);
     status_ = gfx::DrawScrWithCgx(current_bpp_, scr_data_, decoded_scr_data_,
                                   decoded_cgx_);
-    PRINT_IF_ERROR(
-        scr_bitmap_.InitializeFromData(0x100, 0x100, 8, decoded_scr_data_));
+
+    scr_bitmap_.InitializeFromData(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
       scr_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&scr_bitmap_);
@@ -389,7 +389,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
 
   auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
   bin_bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
-                     converted_sheet.data(), size);
+                     converted_sheet);
 
   if (rom()->isLoaded()) {
     auto palette_group = rom()->GetPaletteGroup("ow_main");
