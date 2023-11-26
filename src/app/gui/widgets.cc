@@ -9,7 +9,14 @@
 namespace yaze {
 namespace app {
 namespace gui {
-namespace widgets {
+
+void RenderTabItem(const std::string &title,
+                   const std::function<void()> &render_func) {
+  if (ImGui::BeginTabItem(title.c_str())) {
+    render_func();
+    ImGui::EndTabItem();
+  }
+}
 
 // ============================================================================
 // 65816 LanguageDefinition
@@ -92,7 +99,6 @@ TextEditor::LanguageDefinition GetAssemblyLanguageDef() {
   return language_65816;
 }
 
-}  // namespace widgets
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze
