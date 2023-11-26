@@ -62,6 +62,64 @@ void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
 }
 
 // Creates the texture that will be displayed to the screen.
+void Bitmap::CreateTexture(SDL_Renderer *renderer) {
+  // Ensure width and height are non-zero
+  if (width_ <= 0 || height_ <= 0) {
+    SDL_Log("Invalid texture dimensions: width=%d, height=%d\n", width_,
+            height_);
+    return;
+  }
+
+  texture_ = std::shared_ptr<SDL_Texture>{
+      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888,
+                        SDL_TEXTUREACCESS_STREAMING, width_, height_),
+      SDL_Texture_Deleter{}};
+  if (texture_ == nullptr) {
+    SDL_Log("SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
+  }
+
+  SDL_Surface *converted_surface =
+      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0);
+  if (converted_surface) {
+    // Create texture from the converted surface
+    converted_surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+        converted_surface, SDL_Surface_Deleter());
+  } else {
+    // Handle the error
+    SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
+  }
+
+  SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
+                  &converted_surface_->pitch);
+
+  memcpy(texture_pixels, converted_surface_->pixels,
+         converted_surface_->h * converted_surface_->pitch);
+
+  SDL_UnlockTexture(texture_.get());
+}
+
+void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
+  SDL_Surface *converted_surface =
+      SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0);
+  if (converted_surface) {
+    // Create texture from the converted surface
+    converted_surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+        converted_surface, SDL_Surface_Deleter());
+  } else {
+    // Handle the error
+    SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
+  }
+
+  SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
+                  &converted_surface_->pitch);
+
+  memcpy(texture_pixels, converted_surface_->pixels,
+         converted_surface_->h * converted_surface_->pitch);
+
+  SDL_UnlockTexture(texture_.get());
+}
+
+// Creates the texture that will be displayed to the screen.
 void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
   texture_ = std::shared_ptr<SDL_Texture>{
       SDL_CreateTextureFromSurface(renderer.get(), surface_.get()),
@@ -69,8 +127,8 @@ void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
 }
 
 void Bitmap::UpdateTexture(std::shared_ptr<SDL_Renderer> renderer) {
-  SDL_DestroyTexture(texture_.get());
-  texture_ = nullptr;
+  // SDL_DestroyTexture(texture_.get());
+  // texture_ = nullptr;
   texture_ = std::shared_ptr<SDL_Texture>{
       SDL_CreateTextureFromSurface(renderer.get(), surface_.get()),
       SDL_Texture_Deleter{}};

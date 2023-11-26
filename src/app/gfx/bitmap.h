@@ -49,6 +49,8 @@ class Bitmap {
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
+  void CreateTexture(SDL_Renderer* renderer);
+  void UpdateTexture(SDL_Renderer* renderer);
 
   void SaveSurfaceToFile(std::string_view filename);
   void SetSurface(SDL_Surface *surface);
@@ -132,11 +134,13 @@ class Bitmap {
   bool freed_ = false;
   bool active_ = false;
   bool modified_ = false;
+  void *texture_pixels = nullptr;
   uchar *pixel_data_;
   Bytes data_;
   gfx::SNESPalette palette_;
   std::shared_ptr<SDL_Texture> texture_ = nullptr;
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
+  std::shared_ptr<SDL_Surface> converted_surface_ = nullptr;
 };
 
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
