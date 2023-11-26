@@ -4,6 +4,8 @@
 #import <CoreText/CoreText.h>
 #include <imgui/imgui.h>
 
+#include "app/gui/icons.h"
+
 void LoadSystemFonts() {
   // List of common macOS system fonts
   NSArray *fontNames = @[ @"Helvetica", @"Times New Roman", @"Courier", @"Arial", @"Verdana" ];
@@ -24,10 +26,19 @@ void LoadSystemFonts() {
     if (fontPath != nil && [[NSFileManager defaultManager] isReadableFileAtPath:fontPath]) {
       // Load the font into ImGui
       ImGuiIO &io = ImGui::GetIO();
+      ImFontConfig icons_config;
+      icons_config.MergeMode = true;
+      icons_config.GlyphOffset.y = 5.0f;
+      icons_config.GlyphMinAdvanceX = 13.0f;
+      icons_config.PixelSnapH = true;
+      static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
+      static const float ICON_FONT_SIZE = 18.0f;
       ImFont *imFont = io.Fonts->AddFontFromFileTTF([fontPath UTF8String], 14.0f);
       if (!imFont) {
         NSLog(@"Failed to load font: %@", fontPath);
       }
+      io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, ICON_FONT_SIZE, &icons_config,
+                                   icons_ranges);
     } else {
       NSLog(@"Font file not accessible: %@", fontPath);
     }
