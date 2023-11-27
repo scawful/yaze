@@ -10,7 +10,6 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
-#include "app/core/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -18,6 +17,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/pipeline.h"
 #include "app/gui/style.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
@@ -520,13 +520,13 @@ void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar(kTileSelectorTab.data(),
                          ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
-      core::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
+      gui::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
                                  (8192 * 2), 0x20, map_blockset_loaded_, true,
                                  1);
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
-      if (ImGui::BeginChild(core::ImGuiIdIssuer::GetNewID(),
+      if (ImGui::BeginChild("##tile8viewer",
                             ImGui::GetContentRegionAvail(), true,
                             ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawTile8Selector();
@@ -535,7 +535,7 @@ void OverworldEditor::DrawTileSelector() {
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Area Graphics")) {
-      core::BitmapCanvasPipeline(current_gfx_canvas_, current_gfx_bmp_, 256,
+      gui::BitmapCanvasPipeline(current_gfx_canvas_, current_gfx_bmp_, 256,
                                  0x10 * 0x40, 0x20, overworld_.isLoaded(), true,
                                  3);
       ImGui::EndTabItem();
@@ -556,12 +556,12 @@ absl::Status OverworldEditor::LoadGraphics() {
   palette_ = overworld_.AreaPalette();
 
   // Create the area graphics image
-  core::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
+  gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
                                      overworld_.AreaGraphics(), *rom(),
                                      current_gfx_bmp_, palette_);
 
   // Create the tile16 blockset image
-  core::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
+  gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
                                      overworld_.Tile16Blockset(), *rom(),
                                      tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
@@ -593,18 +593,18 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Render the bitmaps of each tile.
   for (int id = 0; id < 4096; id++) {
     tile16_individual_.emplace_back();
-    core::BuildAndRenderBitmapPipeline(0x10, 0x10, 0x80,
-                                       tile16_individual_data_[id], *rom(),
-                                       tile16_individual_[id], palette_);
+    gui::BuildAndRenderBitmapPipeline(0x10, 0x10, 0x80,
+                                      tile16_individual_data_[id], *rom(),
+                                      tile16_individual_[id], palette_);
   }
 
   // Render the overworld maps loaded from the ROM.
   for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
     overworld_.SetCurrentMap(i);
     auto palette = overworld_.AreaPalette();
-    core::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,
-                                       overworld_.BitmapData(), *rom(),
-                                       maps_bmp_[i], palette);
+    gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,
+                                      overworld_.BitmapData(), *rom(),
+                                      maps_bmp_[i], palette);
   }
 
   if (flags()->kDrawOverworldSprites) {
@@ -644,7 +644,7 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
 
   ImGui::InputText("##TilemapFile", &ow_tilemap_filename_);
   ImGui::SameLine();
-  core::FileDialogPipeline(
+  gui::FileDialogPipeline(
       "ImportTilemapsKey", ".DAT,.dat\0", "Tilemap Hex File", [this]() {
         ow_tilemap_filename_ = ImGuiFileDialog::Instance()->GetFilePathName();
       });
@@ -652,7 +652,7 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
   ImGui::InputText("##Tile32ConfigurationFile",
                    &tile32_configuration_filename_);
   ImGui::SameLine();
-  core::FileDialogPipeline("ImportTile32Key", ".DAT,.dat\0", "Tile32 Hex File",
+  gui::FileDialogPipeline("ImportTile32Key", ".DAT,.dat\0", "Tile32 Hex File",
                            [this]() {
                              tile32_configuration_filename_ =
                                  ImGuiFileDialog::Instance()->GetFilePathName();

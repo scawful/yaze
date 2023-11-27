@@ -7,7 +7,6 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/editor.h"
-#include "app/core/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -15,6 +14,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/pipeline.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
@@ -67,8 +67,8 @@ absl::Status GfxGroupEditor::Update() {
               sheet.ApplyPalette(palette);
               rom()->UpdateBitmap(&sheet);
             }
-            core::BitmapCanvasPipeline(blockset_canvas_, sheet, 256,
-                                       0x10 * 0x04, 0x20, true, false, 22);
+            gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
+                                      0x20, true, false, 22);
           }
           ImGui::EndGroup();
         }
@@ -108,8 +108,8 @@ absl::Status GfxGroupEditor::Update() {
           for (int i = 0; i < 4; i++) {
             int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
             auto &sheet = *rom()->bitmap_manager()[sheet_id];
-            core::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
-                                       0x20, true, false, 23);
+            gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
+                                      0x20, true, false, 23);
           }
           ImGui::EndGroup();
         }
@@ -149,8 +149,8 @@ absl::Status GfxGroupEditor::Update() {
           for (int i = 0; i < 4; i++) {
             int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
             auto sheet = *rom()->bitmap_manager()[sheet_id];
-            core::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256,
-                                       0x10 * 0x04, 0x20, true, false, 24);
+            gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256,
+                                      0x10 * 0x04, 0x20, true, false, 24);
           }
           ImGui::EndGroup();
         }

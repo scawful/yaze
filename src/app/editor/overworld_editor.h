@@ -12,7 +12,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
 #include "app/core/editor.h"
-#include "app/core/pipeline.h"
+#include "app/gui/pipeline.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/editor/modules/tile16_editor.h"

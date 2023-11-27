@@ -8,12 +8,12 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
+#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
 
@@ -51,10 +51,7 @@ constexpr const char* kPaletteGroupAddressesKeys[] = {
 };
 
 static constexpr std::string_view kGfxEditColumnNames[] = {
-    "Tilesheets",
-    "Current Graphics",
-    "Palette Controls"
-};
+    "Tilesheets", "Current Graphics", "Palette Controls"};
 
 static constexpr absl::string_view kGfxToolsetColumnNames[] = {
     "#memoryEditor",
@@ -70,8 +67,17 @@ class GraphicsEditor : public SharedROM {
   absl::Status Update();
 
  private:
+
+  // Graphics Editor Tab
   absl::Status UpdateGfxEdit();
+  absl::Status UpdateGfxSheetList();
+  absl::Status UpdateGfxTabView();
+  absl::Status UpdatePaletteColumn();
+
+  // Link Graphics Edit Tab
   absl::Status UpdateLinkGfxView();
+
+  // Prototype Graphics Viewer
   absl::Status UpdateScadView();
 
   absl::Status DrawToolset();
@@ -90,6 +96,14 @@ class GraphicsEditor : public SharedROM {
   absl::Status DecompressImportData(int size);
 
   absl::Status DecompressSuperDonkey();
+
+  uint16_t current_sheet_ = 0;
+  std::set<uint16_t> open_sheets_;
+  std::stack<uint16_t> release_queue_;
+  uint64_t edit_palette_group_ = 0;
+  uint64_t edit_palette_group_index_ = 0;
+  uint64_t edit_palette_index_ = 0;
+  float sheet_scale_ = 2.0f;
 
   int current_palette_ = 0;
   uint64_t current_offset_ = 0;
@@ -178,8 +192,8 @@ class GraphicsEditor : public SharedROM {
   gui::Canvas import_canvas_;
   gui::Canvas scr_canvas_;
   gui::Canvas super_donkey_canvas_;
-
-  gui::Canvas graphics_bin_canvas_;
+  gui::Canvas current_sheet_canvas_;
+  // gui::Canvas graphics_bin_canvas_;
 
   absl::Status status_;
 };

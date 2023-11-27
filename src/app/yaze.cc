@@ -17,7 +17,6 @@ int main(int argc, char** argv) {
   absl::InstallFailureSignalHandler(options);
 
   yaze::app::core::Controller controller;
-
   EXIT_IF_ERROR(controller.OnEntry())
 
 #ifdef __APPLE__
@@ -30,6 +29,5 @@ int main(int argc, char** argv) {
     controller.DoRender();
   }
   controller.OnExit();
-
   return EXIT_SUCCESS;
 }

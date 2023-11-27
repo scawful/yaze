@@ -7,7 +7,6 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
@@ -16,6 +15,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
+#include "app/gui/pipeline.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
 
@@ -52,54 +52,142 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
 
     ImGui::TableHeadersRow();
 
+    NEXT_COLUMN();
+
     NEXT_COLUMN() {
-      graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 223 * 0x40 + 1));
-      graphics_bin_canvas_.DrawContextMenu();
-
-      for (auto& [key, value] : rom()->bitmap_manager()) {
-        int offset = 0x40 * (key + 1);
-        int top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 2;
-        if (key >= 1) {
-          top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 0x40 * key;
-        }
-        auto texture = value.get()->texture();
-
-        graphics_bin_canvas_.GetDrawList()->AddImage(
-            (void*)texture,
-            ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2, top_left_y),
-            ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 0x100,
-                   graphics_bin_canvas_.GetZeroPoint().y + offset));
-
-        // Add a slightly transparent rectangle behind the text
-        ImVec2 textPos(graphics_bin_canvas_.GetZeroPoint().x + 2, top_left_y);
-        ImVec2 textSize =
-            ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
-        ImVec2 rectMin(textPos.x, textPos.y);
-        ImVec2 rectMax(textPos.x + textSize.x, textPos.y + textSize.y);
-        graphics_bin_canvas_.GetDrawList()->AddRectFilled(
-            rectMin, rectMax, IM_COL32(0, 125, 0, 128));
-
-        graphics_bin_canvas_.GetDrawList()->AddText(
-            textPos, IM_COL32(255, 255, 255, 255),
-            absl::StrFormat("%02X", key).c_str());
+      if (rom()->isLoaded()) {
+        status_ = UpdateGfxTabView();
       }
-
-      graphics_bin_canvas_.DrawGrid(16.0f);
-      graphics_bin_canvas_.DrawOverlay();
     }
 
     NEXT_COLUMN() {
-      // if (rom()->isLoaded()) {
-      //   status_ = DrawTilesetControls();
-      //   status_ = DrawTilesetCanvas();
-      // }
+      if (rom()->isLoaded()) {
+        status_ = UpdatePaletteColumn();
+      }
     }
-
-    NEXT_COLUMN() { status_ = DrawPaletteControls(); }
   }
   ImGui::EndTable();
 
   END_TAB_ITEM()
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::UpdateGfxSheetList() {
+  ImGui::BeginChild(
+      "##GfxEditChild", ImVec2(0, 0), true,
+      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  for (auto& [key, value] : rom()->bitmap_manager()) {
+    ImGui::BeginChild(absl::StrFormat("##GfxSheet%02X", key).c_str(),
+                      ImVec2(0x100 + 1, 0x40 + 1), true,
+                      ImGuiWindowFlags_NoDecoration);
+    ImGui::PopStyleVar();
+    gui::Canvas graphics_bin_canvas_;
+    graphics_bin_canvas_.UpdateEvent(
+        [&]() {
+          if (value.get()->IsActive()) {
+            auto texture = value.get()->texture();
+            graphics_bin_canvas_.GetDrawList()->AddImage(
+                (void*)texture,
+                ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2,
+                       graphics_bin_canvas_.GetZeroPoint().y + 2),
+                ImVec2(graphics_bin_canvas_.GetZeroPoint().x +
+                           value.get()->width() * sheet_scale_,
+                       graphics_bin_canvas_.GetZeroPoint().y +
+                           value.get()->height() * sheet_scale_));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              current_sheet_ = key;
+              open_sheets_.insert(key);
+            }
+
+            // Add a slightly transparent rectangle behind the text
+            ImVec2 textPos(graphics_bin_canvas_.GetZeroPoint().x + 2,
+                           graphics_bin_canvas_.GetZeroPoint().y + 2);
+            ImVec2 textSize =
+                ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
+            ImVec2 rectMin(textPos.x, textPos.y);
+            ImVec2 rectMax(textPos.x + textSize.x, textPos.y + textSize.y);
+            graphics_bin_canvas_.GetDrawList()->AddRectFilled(
+                rectMin, rectMax, IM_COL32(0, 125, 0, 128));
+            graphics_bin_canvas_.GetDrawList()->AddText(
+                textPos, IM_COL32(125, 255, 125, 255),
+                absl::StrFormat("%02X", key).c_str());
+          }
+        },
+        ImVec2(0x100 + 1, 0x40 + 1), 0x20, 16.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::EndChild();
+  }
+  ImGui::PopStyleVar();
+  ImGui::EndChild();
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::UpdateGfxTabView() {
+  static int next_tab_id = 0;
+
+  if (ImGui::BeginTabBar("##GfxEditTabBar",
+                         ImGuiTabBarFlags_AutoSelectNewTabs |
+                             ImGuiTabBarFlags_Reorderable |
+                             ImGuiTabBarFlags_FittingPolicyResizeDown |
+                             ImGuiTabBarFlags_TabListPopupButton)) {
+    // TODO: Manage the room that is being added to the tab bar.
+    if (ImGui::TabItemButton(
+            "+", ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+                     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+                     ImGuiTableFlags_BordersV)) {
+      open_sheets_.insert(next_tab_id++);  // Add new tab
+    }
+
+    // Submit our regular tabs
+    for (auto& each : open_sheets_) {
+      bool open = true;
+
+      if (ImGui::BeginTabItem(absl::StrFormat("%d", each).c_str(), &open,
+                              ImGuiTabItemFlags_None)) {
+        ImGui::BeginChild(
+            absl::StrFormat("##GfxEditPaletteChild%d", each).c_str(),
+            ImVec2(0, 0), true,
+            ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_AlwaysVerticalScrollbar);
+        current_sheet_canvas_.Update(*rom()->bitmap_manager()[each],
+                                     ImVec2(0x100 + 1, 0x40 + 1), 0x20, 4.0f,
+                                     16.0f);
+        ImGui::EndChild();
+
+        ImGui::EndTabItem();
+      }
+
+      if (!open) release_queue_.push(each);
+    }
+
+    ImGui::EndTabBar();
+  }
+  ImGui::Separator();
+  while (!release_queue_.empty()) {
+    auto each = release_queue_.top();
+    open_sheets_.erase(each);
+    release_queue_.pop();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::UpdatePaletteColumn() {
+  if (rom()->isLoaded()) {
+    gui::TextWithSeparators("ROM Palette");
+    ImGui::Combo("Palette", (int*)&edit_palette_group_,
+                 kPaletteGroupAddressesKeys,
+                 IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
+    gui::InputHex("Palette Index", &edit_palette_index_);
+  }
+
+  auto palette_group = rom()->mutable_palette_group(
+      kPaletteGroupAddressesKeys[edit_palette_group_])
+                           [edit_palette_group_index_];
+  auto palette = palette_group[edit_palette_index_];
+  gui::SelectablePalettePipeline(edit_palette_index_, refresh_graphics_,
+                                 palette);
+
   return absl::OkStatus();
 }
 
@@ -153,8 +241,8 @@ absl::Status GraphicsEditor::UpdateScadView() {
   NEXT_COLUMN() { status_ = DrawPaletteControls(); }
 
   NEXT_COLUMN()
-  core::BitmapCanvasPipeline(scr_canvas_, scr_bitmap_, 0x200, 0x200, 0x20,
-                             scr_loaded_, false, 0);
+  gui::BitmapCanvasPipeline(scr_canvas_, scr_bitmap_, 0x200, 0x200, 0x20,
+                            scr_loaded_, false, 0);
   status_ = DrawScrImport();
 
   NEXT_COLUMN()
@@ -168,16 +256,16 @@ absl::Status GraphicsEditor::UpdateScadView() {
       refresh_graphics_ = false;
     }
     // Load the full graphics space from `super_donkey_1.bin`
-    core::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
-                                    super_donkey_, graphics_bin_);
+    gui::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
+                                   super_donkey_, graphics_bin_);
   } else if (cgx_loaded_ && col_file_) {
     // Load the CGX graphics
-    core::BitmapCanvasPipeline(import_canvas_, cgx_bitmap_, 0x100, 16384, 0x20,
-                               cgx_loaded_, true, 5);
+    gui::BitmapCanvasPipeline(import_canvas_, cgx_bitmap_, 0x100, 16384, 0x20,
+                              cgx_loaded_, true, 5);
   } else {
     // Load the BIN/Clipboard Graphics
-    core::BitmapCanvasPipeline(import_canvas_, bin_bitmap_, 0x100, 16384, 0x20,
-                               gfx_loaded_, true, 2);
+    gui::BitmapCanvasPipeline(import_canvas_, bin_bitmap_, 0x100, 16384, 0x20,
+                              gfx_loaded_, true, 2);
   }
   END_TABLE()
 
@@ -214,7 +302,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   InputText("##CGXFile", cgx_file_name_, sizeof(cgx_file_name_));
   SameLine();
 
-  core::FileDialogPipeline("ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [this]() {
+  gui::FileDialogPipeline("ImportCgxKey", ".CGX,.cgx\0", "Open CGX", [this]() {
     strncpy(cgx_file_path_,
             ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
             sizeof(cgx_file_path_));
@@ -224,10 +312,10 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     is_open_ = true;
     cgx_loaded_ = true;
   });
-  core::ButtonPipe("Copy CGX Path",
-                   [this]() { ImGui::SetClipboardText(cgx_file_path_); });
+  gui::ButtonPipe("Copy CGX Path",
+                  [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
-  core::ButtonPipe("Load CGX Data", [this]() {
+  gui::ButtonPipe("Load CGX Data", [this]() {
     status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                            decoded_cgx_, extra_cgx_data_);
 
@@ -244,7 +332,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 absl::Status GraphicsEditor::DrawScrImport() {
   InputText("##ScrFile", scr_file_name_, sizeof(scr_file_name_));
 
-  core::FileDialogPipeline(
+  gui::FileDialogPipeline(
       "ImportScrKey", ".SCR,.scr,.BAK\0", "Open SCR", [this]() {
         strncpy(scr_file_path_,
                 ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
@@ -258,7 +346,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
 
   InputInt("SCR Mod", &scr_mod_value_);
 
-  core::ButtonPipe("Load Scr Data", [this]() {
+  gui::ButtonPipe("Load Scr Data", [this]() {
     status_ = gfx::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
 
     decoded_scr_data_.resize(0x100 * 0x100);
@@ -280,7 +368,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   InputText("##ColFile", col_file_name_, sizeof(col_file_name_));
   SameLine();
 
-  core::FileDialogPipeline(
+  gui::FileDialogPipeline(
       "ImportColKey", ".COL,.col,.BAK,.bak\0", "Open COL", [this]() {
         strncpy(col_file_path_,
                 ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
@@ -303,8 +391,8 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         is_open_ = true;
       });
 
-  core::ButtonPipe("Copy COL Path",
-                   [this]() { ImGui::SetClipboardText(col_file_path_); });
+  gui::ButtonPipe("Copy COL Path",
+                  [this]() { ImGui::SetClipboardText(col_file_path_); });
 
   if (rom()->isLoaded()) {
     gui::TextWithSeparators("ROM Palette");
@@ -314,8 +402,8 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   }
 
   if (col_file_palette_.size() != 0) {
-    core::SelectablePalettePipeline(current_palette_index_, refresh_graphics_,
-                                    col_file_palette_);
+    gui::SelectablePalettePipeline(current_palette_index_, refresh_graphics_,
+                                   col_file_palette_);
   }
 
   return absl::OkStatus();
@@ -327,7 +415,7 @@ absl::Status GraphicsEditor::DrawObjImport() {
   InputText("##ObjFile", obj_file_path_, sizeof(obj_file_path_));
   SameLine();
 
-  core::FileDialogPipeline(
+  gui::FileDialogPipeline(
       "ImportObjKey", ".obj,.OBJ,.bak,.BAK\0", "Open OBJ", [this]() {
         strncpy(file_path_,
                 ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
@@ -345,7 +433,7 @@ absl::Status GraphicsEditor::DrawTilemapImport() {
   InputText("##TMapFile", tilemap_file_path_, sizeof(tilemap_file_path_));
   SameLine();
 
-  core::FileDialogPipeline(
+  gui::FileDialogPipeline(
       "ImportTilemapKey", ".DAT,.dat,.BIN,.bin,.hex,.HEX\0", "Open Tilemap",
       [this]() {
         strncpy(tilemap_file_path_,
@@ -369,15 +457,15 @@ absl::Status GraphicsEditor::DrawFileImport() {
   InputText("##ROMFile", file_path_, sizeof(file_path_));
   SameLine();
 
-  core::FileDialogPipeline("ImportDlgKey", ".bin,.hex\0", "Open BIN", [this]() {
+  gui::FileDialogPipeline("ImportDlgKey", ".bin,.hex\0", "Open BIN", [this]() {
     strncpy(file_path_, ImGuiFileDialog::Instance()->GetFilePathName().c_str(),
             sizeof(file_path_));
     status_ = temp_rom_.LoadFromFile(file_path_);
     is_open_ = true;
   });
 
-  core::ButtonPipe("Copy File Path",
-                   [this]() { ImGui::SetClipboardText(file_path_); });
+  gui::ButtonPipe("Copy File Path",
+                  [this]() { ImGui::SetClipboardText(file_path_); });
 
   gui::InputHex("BIN Offset", &current_offset_);
   gui::InputHex("BIN Size", &bin_size_);
@@ -396,7 +484,7 @@ absl::Status GraphicsEditor::DrawFileImport() {
 
 absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::TextWithSeparators("Clipboard Import");
-  core::ButtonPipe("Paste from Clipboard", [this]() {
+  gui::ButtonPipe("Paste from Clipboard", [this]() {
     const char* text = ImGui::GetClipboardText();
     if (text) {
       const auto clipboard_data = Bytes(text, text + strlen(text));
@@ -410,7 +498,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::InputHex("Size", &clipboard_size_);
   gui::InputHex("Num Sheets", &num_sheets_to_load_);
 
-  core::ButtonPipe("Decompress Clipboard Data", [this]() {
+  gui::ButtonPipe("Decompress Clipboard Data", [this]() {
     if (temp_rom_.isLoaded()) {
       status_ = DecompressImportData(0x40000);
     } else {

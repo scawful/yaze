@@ -414,6 +414,9 @@ class ROM : public core::ExperimentFlags {
   gfx::PaletteGroup GetPaletteGroup(const std::string& group) {
     return palette_groups_[group];
   }
+  auto mutable_palette_group(const std::string& group) {
+    return &palette_groups_[group];
+  }
 
   Bytes graphics_buffer() const { return graphics_buffer_; }
 

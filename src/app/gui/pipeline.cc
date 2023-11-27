@@ -19,7 +19,7 @@
 
 namespace yaze {
 namespace app {
-namespace core {
+namespace gui {
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
                                gfx::SNESPalette& palette) {
@@ -29,11 +29,18 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
     ImGui::BeginGroup();  // Lock X position
     ImGui::Text("Palette");
     for (int n = 0; n < palette.size(); n++) {
+      // static gfx::SNESColor transparent_color;
+      // if ((n % 8) == 0) {
+      //   gui::SNESColorButton("##transparent", transparent_color, 0,
+      //                        ImVec2(20, 20));
+      //   ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+      // }
+
       ImGui::PushID(n);
-      if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+      if ((n % 7) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
       // Check if the current row is selected
-      bool is_selected = (palette_id == n / 8);
+      bool is_selected = (palette_id == n / 7);
 
       // Add outline rectangle to the selected row
       if (is_selected) {
@@ -46,7 +53,7 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
                                    ImGuiColorEditFlags_NoPicker |
                                    ImGuiColorEditFlags_NoTooltip,
                                ImVec2(20, 20))) {
-        palette_id = n / 8;
+        palette_id = n / 7;
         refresh_graphics = true;
       }
 
@@ -182,6 +189,6 @@ void FileDialogPipeline(absl::string_view display_key,
   }
 }
 
-}  // namespace core
+}  // namespace gui
 }  // namespace app
 }  // namespace yaze
