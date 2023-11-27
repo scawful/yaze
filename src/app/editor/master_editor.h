@@ -10,7 +10,7 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/core/pipeline.h"
+#include "app/gui/pipeline.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"

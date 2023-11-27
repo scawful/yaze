@@ -3,11 +3,11 @@
 #include <imgui/imgui.h>
 
 #include "app/core/common.h"
-#include "app/core/pipeline.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_names.h"
 #include "app/zelda3/dungeon/room_names.h"
@@ -55,8 +55,8 @@ absl::Status DungeonEditor::Update() {
     ImGui::Begin("Palette Editor", &palette_showing_, 0);
     current_palette_ =
         rom()->GetPaletteGroup("dungeon_main")[current_palette_group_id_];
-    core::SelectablePalettePipeline(current_palette_id_, refresh_graphics_,
-                                    current_palette_);
+    gui::SelectablePalettePipeline(current_palette_id_, refresh_graphics_,
+                                   current_palette_);
     ImGui::End();
   }
 

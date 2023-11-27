@@ -9,7 +9,6 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/core/pipeline.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
@@ -25,6 +24,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/pipeline.h"
 #include "app/gui/style.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
@@ -160,22 +160,20 @@ absl::Status MasterEditor::Update() {
 }
 
 void MasterEditor::DrawFileDialog() {
-  core::FileDialogPipeline(
-      "ChooseFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
-        std::string filePathName =
-            ImGuiFileDialog::Instance()->GetFilePathName();
-        status_ = rom()->LoadFromFile(filePathName);
-        static RecentFilesManager manager("recent_files.txt");
+  gui::FileDialogPipeline("ChooseFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
+    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+    status_ = rom()->LoadFromFile(filePathName);
+    static RecentFilesManager manager("recent_files.txt");
 
-        // Load existing recent files
-        manager.Load();
+    // Load existing recent files
+    manager.Load();
 
-        // Add a new file
-        manager.AddFile(filePathName);
+    // Add a new file
+    manager.AddFile(filePathName);
 
-        // Save the updated list
-        manager.Save();
-      });
+    // Save the updated list
+    manager.Save();
+  });
 }
 
 void MasterEditor::DrawStatusPopup() {

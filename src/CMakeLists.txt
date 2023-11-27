@@ -2,7 +2,6 @@ set(
   YAZE_APP_CORE_SRC
   app/core/common.cc
   app/core/controller.cc
-  app/core/pipeline.cc
 )
 
 set(
@@ -49,6 +48,7 @@ set(
   app/gui/style.cc
   app/gui/widgets.cc
   app/gui/color.cc
+  app/gui/pipeline.cc
 )
 
 set(SDL_TARGETS SDL2::SDL2)

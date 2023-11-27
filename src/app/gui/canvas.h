@@ -22,6 +22,12 @@ class Canvas {
   explicit Canvas(ImVec2 canvas_size)
       : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
 
+  void Update(const gfx::Bitmap& bitmap, ImVec2 bg_size, int tile_size,
+              float scale = 1.0f, float grid_size = 64.0f);
+
+  void UpdateEvent(const std::function<void()>& event, ImVec2 bg_size,
+                   int tile_size, float grid_size = 64.0f);
+
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
@@ -42,8 +48,8 @@ class Canvas {
   void HandleTileEdits(Canvas& blockset_canvas,
                        std::vector<gfx::Bitmap>& source_blockset,
                        gfx::Bitmap& destination, int& current_tile,
-                       float scale = 1.0f,
-                       int tile_painter_size = 16, int tiles_per_row = 8);
+                       float scale = 1.0f, int tile_painter_size = 16,
+                       int tiles_per_row = 8);
   void RenderUpdatedBitmap(const ImVec2& click_position, const Bytes& tile_data,
                            gfx::Bitmap& destination);
 
@@ -70,6 +76,7 @@ class Canvas {
     canvas_sz_ = canvas_size;
     custom_canvas_size_ = true;
   }
+  auto IsMouseHovering() const { return is_hovered_; }
 
  private:
   bool enable_grid_ = true;
@@ -85,11 +92,6 @@ class Canvas {
   ImVec2 canvas_p1_;
   ImVec2 mouse_pos_in_canvas_;
   ImVec2 drawn_tile_pos_;
-
-  std::vector<app::gfx::Bitmap> changed_tiles_;
-  app::gfx::Bitmap current_tile_;
-
-  std::string title_;
 };
 
 }  // namespace gui

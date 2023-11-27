@@ -10,13 +10,31 @@
 
 namespace yaze {
 namespace app {
-
 namespace gui {
 
 constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
 constexpr uint32_t kRectangleBorder = IM_COL32(255, 255, 255, 255);
 constexpr ImGuiButtonFlags kMouseFlags =
     ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight;
+
+void Canvas::Update(const gfx::Bitmap &bitmap, ImVec2 bg_size, int tile_size,
+                    float scale, float grid_size) {
+  DrawBackground(bg_size);
+  DrawContextMenu();
+  DrawTileSelector(tile_size);
+  DrawBitmap(bitmap, 0, 0, scale);
+  DrawGrid(grid_size);
+  DrawOverlay();
+}
+
+void Canvas::UpdateEvent(const std::function<void()> &event, ImVec2 bg_size,
+                         int tile_size, float grid_size) {
+  DrawBackground(bg_size);
+  DrawContextMenu();
+  event();
+  DrawGrid(grid_size);
+  DrawOverlay();
+}
 
 void Canvas::DrawBackground(ImVec2 canvas_size) {
   canvas_p0_ = ImGui::GetCursorScreenPos();
@@ -63,6 +81,7 @@ void Canvas::DrawContextMenu() {
 bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();
+  is_hovered_ = is_hovered;
   // Lock scrolled origin
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
@@ -88,10 +107,6 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
           ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
           ImVec2(origin.x + painter_pos.x + bitmap.width() * scale,
                  origin.y + painter_pos.y + bitmap.height() * scale));
-
-      //              ImVec2(
-      // canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width() * scale),
-      // canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height() * scale)));
     }
 
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -169,9 +184,6 @@ void Canvas::RenderUpdatedBitmap(const ImVec2 &click_position,
       destination.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
     }
   }
-
-  // Render the updated bitmap to the canvas
-  // rom()->RenderBitmap(&current_bitmap);
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {

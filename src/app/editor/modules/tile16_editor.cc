@@ -7,7 +7,6 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/editor.h"
-#include "app/core/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -15,6 +14,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
 
@@ -100,8 +100,8 @@ absl::Status Tile16Editor::Update() {
 }
 
 absl::Status Tile16Editor::UpdateBlockset() {
-  core::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
-                             (8192 * 2), 0x20, map_blockset_loaded_, true, 55);
+  gui::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
+                            (8192 * 2), 0x20, map_blockset_loaded_, true, 55);
 
   if (!blockset_canvas_.Points().empty()) {
     uint16_t x = blockset_canvas_.Points().front().x / 32;
@@ -180,7 +180,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
     ImGuiFileDialog::Instance()->OpenDialog(
         "ChooseTransferFileDlgKey", "Open Transfer ROM", ".sfc,.smc", ".");
   }
-  core::FileDialogPipeline(
+  gui::FileDialogPipeline(
       "ChooseTransferFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
         std::string filePathName =
             ImGuiFileDialog::Instance()->GetFilePathName();
@@ -198,16 +198,16 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
     palette_ = transfer_overworld_.AreaPalette();
 
     // Create the tile16 blockset image
-    core::BuildAndRenderBitmapPipeline(
-        0x80, 0x2000, 0x80, transfer_overworld_.Tile16Blockset(), *rom(),
-        transfer_blockset_bmp_, palette_);
+    gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
+                                      transfer_overworld_.Tile16Blockset(),
+                                      *rom(), transfer_blockset_bmp_, palette_);
     transfer_blockset_loaded_ = true;
   }
 
   // Create a canvas for holding the tiles which will be exported
-  core::BitmapCanvasPipeline(transfer_canvas_, transfer_blockset_bmp_, 0x100,
-                             (8192 * 2), 0x20, transfer_blockset_loaded_, true,
-                             3);
+  gui::BitmapCanvasPipeline(transfer_canvas_, transfer_blockset_bmp_, 0x100,
+                            (8192 * 2), 0x20, transfer_blockset_loaded_, true,
+                            3);
 
   return absl::OkStatus();
 }
