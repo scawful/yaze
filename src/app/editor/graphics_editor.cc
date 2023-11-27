@@ -53,6 +53,7 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
     ImGui::TableHeadersRow();
 
     NEXT_COLUMN();
+    UpdateGfxSheetList();
 
     NEXT_COLUMN() {
       if (rom()->isLoaded()) {
