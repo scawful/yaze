@@ -4,6 +4,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "absl/strings/string_view.h"
+
 namespace ImGui {
 
 static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(
@@ -31,17 +32,11 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   char buf[64];
   DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
 
-  // Testing ActiveId as a minor optimization as filtering is not needed until
-  // active
   if (g.ActiveId == 0 && (flags & (ImGuiInputTextFlags_CharsDecimal |
                                    ImGuiInputTextFlags_CharsHexadecimal |
                                    ImGuiInputTextFlags_CharsScientific)) == 0)
     flags |= InputScalar_DefaultCharsFilter(data_type, format);
-  flags |=
-      ImGuiInputTextFlags_AutoSelectAll |
-      ImGuiInputTextFlags_NoMarkEdited;  // We call MarkItemEdited() ourselves
-                                         // by comparing the actual data rather
-                                         // than the string.
+  flags |= ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoMarkEdited;
 
   bool value_changed = false;
   if (p_step == NULL) {
@@ -59,9 +54,9 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
 
     // Place the label on the left of the input field
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                        ImVec2{style.ItemSpacing.x, style.ItemSpacing.y * 2});
+                        ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2{style.FramePadding.x, style.FramePadding.y * 2});
+                        ImVec2{style.FramePadding.x, style.FramePadding.y});
     ImGui::AlignTextToFramePadding();
     ImGui::Text("%s", label);
     ImGui::SameLine();
