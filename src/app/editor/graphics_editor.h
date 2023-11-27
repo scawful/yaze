@@ -67,9 +67,9 @@ class GraphicsEditor : public SharedROM {
   absl::Status Update();
 
  private:
-
   // Graphics Editor Tab
   absl::Status UpdateGfxEdit();
+  void DrawGfxEditToolset();
   absl::Status UpdateGfxSheetList();
   absl::Status UpdateGfxTabView();
   absl::Status UpdatePaletteColumn();
@@ -97,14 +97,19 @@ class GraphicsEditor : public SharedROM {
 
   absl::Status DecompressSuperDonkey();
 
+  ImVec4 current_color_;
   uint16_t current_sheet_ = 0;
+  uint8_t tile_size_ = 0x04;
   std::set<uint16_t> open_sheets_;
   std::stack<uint16_t> release_queue_;
-  uint64_t edit_palette_group_ = 0;
+  uint64_t edit_palette_group_name_index_ = 0;
   uint64_t edit_palette_group_index_ = 0;
   uint64_t edit_palette_index_ = 0;
+  uint64_t edit_palette_sub_index_ = 0;
   float sheet_scale_ = 2.0f;
+  float current_scale_ = 4.0f;
 
+  // Prototype Graphics Viewer
   int current_palette_ = 0;
   uint64_t current_offset_ = 0;
   uint64_t current_size_ = 0;

@@ -53,24 +53,69 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
     ImGui::TableHeadersRow();
 
     NEXT_COLUMN();
-    UpdateGfxSheetList();
+    status_ = UpdateGfxSheetList();
 
-    NEXT_COLUMN() {
-      if (rom()->isLoaded()) {
-        status_ = UpdateGfxTabView();
-      }
+    NEXT_COLUMN();
+    if (rom()->isLoaded()) {
+      DrawGfxEditToolset();
+      status_ = UpdateGfxTabView();
     }
 
-    NEXT_COLUMN() {
-      if (rom()->isLoaded()) {
-        status_ = UpdatePaletteColumn();
-      }
+    NEXT_COLUMN();
+    if (rom()->isLoaded()) {
+      status_ = UpdatePaletteColumn();
     }
   }
   ImGui::EndTable();
 
   END_TAB_ITEM()
   return absl::OkStatus();
+}
+
+void GraphicsEditor::DrawGfxEditToolset() {
+  if (ImGui::BeginTable("##GfxEditToolset", 7, ImGuiTableFlags_SizingFixedFit,
+                        ImVec2(0, 0))) {
+    for (const auto& name : {"Select", "Pencil", "Fill", "Zoom Out", "Zoom In",
+                             "Current Color", "Tile Size"})
+      ImGui::TableSetupColumn(name);
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_SELECT_ALL)) {
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_DRAW)) {
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_FORMAT_COLOR_FILL)) {
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
+      if (current_scale_ >= 0.0f) {
+        current_scale_ -= 1.0f;
+      }
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_ZOOM_IN)) {
+      if (current_scale_ <= 8.0f) {
+        current_scale_ += 1.0f;
+      }
+    }
+
+    ImGui::TableNextColumn();
+    ImGui::ColorEdit4("Palette Color", (float*)&current_color_,
+                      ImGuiColorEditFlags_NoInputs |
+                          ImGuiColorEditFlags_NoLabel |
+                          ImGuiColorEditFlags_NoAlpha);
+
+    ImGui::TableNextColumn();
+    gui::InputHexByte("Tile Size", &tile_size_, 0x02);
+
+    ImGui::EndTable();
+  }
 }
 
 absl::Status GraphicsEditor::UpdateGfxSheetList() {
@@ -115,7 +160,8 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
                 absl::StrFormat("%02X", key).c_str());
           }
         },
-        ImVec2(0x100 + 1, 0x40 + 1), 0x20, 16.0f);
+        ImVec2(0x100 + 1, 0x40 + 1), 0x20, /*scale=*/1.0f,
+        /*grid_size=*/16.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::EndChild();
   }
@@ -132,12 +178,11 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                              ImGuiTabBarFlags_Reorderable |
                              ImGuiTabBarFlags_FittingPolicyResizeDown |
                              ImGuiTabBarFlags_TabListPopupButton)) {
-    // TODO: Manage the room that is being added to the tab bar.
     if (ImGui::TabItemButton(
             "+", ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
                      ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
                      ImGuiTableFlags_BordersV)) {
-      open_sheets_.insert(next_tab_id++);  // Add new tab
+      open_sheets_.insert(next_tab_id++);
     }
 
     // Submit our regular tabs
@@ -151,9 +196,22 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
             ImVec2(0, 0), true,
             ImGuiWindowFlags_NoDecoration |
                 ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        current_sheet_canvas_.Update(*rom()->bitmap_manager()[each],
-                                     ImVec2(0x100 + 1, 0x40 + 1), 0x20, 4.0f,
-                                     16.0f);
+        current_sheet_ = each;
+        current_sheet_canvas_.UpdateColorPainter(
+            *rom()->bitmap_manager()[each], current_color_,
+            [&]() {
+              int position =
+                  current_sheet_canvas_.GetCurrentDrawnTilePosition().x +
+                  (current_sheet_canvas_.GetCurrentDrawnTilePosition().y *
+                   0x20 * 8);
+              gfx::SNESColor color(current_color_);
+              rom()->bitmap_manager()[each]->WriteWordToPixel(position,
+                                                              color.GetSNES());
+              rom()->UpdateBitmap(
+                  rom()->mutable_bitmap_manager()->mutable_bitmap(each).get());
+            },
+            ImVec2(0x100 + 1, 0x40 + 1), tile_size_ * current_scale_,
+            current_scale_, 16.0f);
         ImGui::EndChild();
 
         ImGui::EndTabItem();
@@ -174,20 +232,31 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 }
 
 absl::Status GraphicsEditor::UpdatePaletteColumn() {
+  auto palette_group = rom()->GetPaletteGroup(
+      kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
+
+  auto palette = palette_group[edit_palette_index_];
+
   if (rom()->isLoaded()) {
     gui::TextWithSeparators("ROM Palette");
-    ImGui::Combo("Palette", (int*)&edit_palette_group_,
+    ImGui::SetNextItemWidth(100.f);
+    ImGui::Combo("Palette Group", (int*)&edit_palette_group_name_index_,
                  kPaletteGroupAddressesKeys,
                  IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
-    gui::InputHex("Palette Index", &edit_palette_index_);
+    ImGui::SetNextItemWidth(100.f);
+    gui::InputHex("Palette Group Index", &edit_palette_index_);
   }
 
-  auto palette_group = rom()->mutable_palette_group(
-      kPaletteGroupAddressesKeys[edit_palette_group_])
-                           [edit_palette_group_index_];
-  auto palette = palette_group[edit_palette_index_];
-  gui::SelectablePalettePipeline(edit_palette_index_, refresh_graphics_,
+  gui::SelectablePalettePipeline(edit_palette_sub_index_, refresh_graphics_,
                                  palette);
+
+  if (refresh_graphics_) {
+    rom()->bitmap_manager()[current_sheet_]->ApplyPaletteWithTransparent(
+        palette, edit_palette_sub_index_);
+    rom()->UpdateBitmap(
+        rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_).get());
+    refresh_graphics_ = false;
+  }
 
   return absl::OkStatus();
 }
@@ -202,11 +271,8 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
   RETURN_IF_ERROR(rom()->LoadLinkGraphics());
 
   // Split it into the pose data frames
-
   // Create an animation step display for the poses
-
   // Allow the user to modify the frames used in an anim step
-
   // LinkOAM_AnimationSteps:
   // #_0D85FB
 

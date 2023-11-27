@@ -29,12 +29,6 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
     ImGui::BeginGroup();  // Lock X position
     ImGui::Text("Palette");
     for (int n = 0; n < palette.size(); n++) {
-      // static gfx::SNESColor transparent_color;
-      // if ((n % 8) == 0) {
-      //   gui::SNESColorButton("##transparent", transparent_color, 0,
-      //                        ImVec2(20, 20));
-      //   ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
-      // }
 
       ImGui::PushID(n);
       if ((n % 7) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);

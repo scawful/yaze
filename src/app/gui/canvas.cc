@@ -19,16 +19,38 @@ constexpr ImGuiButtonFlags kMouseFlags =
 
 void Canvas::Update(const gfx::Bitmap &bitmap, ImVec2 bg_size, int tile_size,
                     float scale, float grid_size) {
+  if (scale != 1.0f) {
+    bg_size.x *= scale / 2;
+    bg_size.y *= scale / 2;
+  }
   DrawBackground(bg_size);
   DrawContextMenu();
   DrawTileSelector(tile_size);
-  DrawBitmap(bitmap, 0, 0, scale);
+  DrawBitmap(bitmap, 2, scale);
+  DrawGrid(grid_size);
+  DrawOverlay();
+}
+
+void Canvas::UpdateColorPainter(const gfx::Bitmap &bitmap, const ImVec4 &color,
+                                const std::function<void()> &event,
+                                ImVec2 bg_size, int tile_size, float scale,
+                                float grid_size) {
+  if (scale != 1.0f) {
+    bg_size.x *= scale / 2;
+    bg_size.y *= scale / 2;
+  }
+  DrawBackground(bg_size);
+  DrawContextMenu();
+  DrawBitmap(bitmap, 2, scale);
+  if (DrawSolidTilePainter(color, tile_size)) {
+    event();
+  }
   DrawGrid(grid_size);
   DrawOverlay();
 }
 
 void Canvas::UpdateEvent(const std::function<void()> &event, ImVec2 bg_size,
-                         int tile_size, float grid_size) {
+                         int tile_size, float scale, float grid_size) {
   DrawBackground(bg_size);
   DrawContextMenu();
   event();
@@ -123,6 +145,47 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
   return false;
 }
 
+bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int size) {
+  const ImGuiIO &io = ImGui::GetIO();
+  const bool is_hovered = ImGui::IsItemHovered();
+  is_hovered_ = is_hovered;
+  // Lock scrolled origin
+  const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  if (is_hovered) {
+    // Reset the previous tile hover
+    if (!points_.empty()) {
+      points_.clear();
+    }
+
+    // Calculate the coordinates of the mouse
+    ImVec2 painter_pos;
+    painter_pos.x = std::floor((double)mouse_pos.x / size) * size;
+    painter_pos.y = std::floor((double)mouse_pos.y / size) * size;
+
+    auto painter_pos_end = ImVec2(painter_pos.x + size, painter_pos.y + size);
+    points_.push_back(painter_pos);
+    points_.push_back(painter_pos_end);
+
+    draw_list_->AddRectFilled(
+        ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
+        ImVec2(origin.x + painter_pos.x + size,
+               origin.y + painter_pos.y + size),
+        IM_COL32(color.x * 255, color.y * 255, color.z * 255, 255));
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+      drawn_tile_pos_ = painter_pos;
+      return true;
+    }
+
+  } else {
+    // Erase the hover when the mouse is not in the canvas window.
+    points_.clear();
+  }
+  return false;
+}
+
 void Canvas::DrawTileSelector(int size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();  // Hovered
@@ -194,6 +257,14 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
         ImVec2(canvas_p0_.x + (bitmap.width() * 2),
                canvas_p0_.y + (bitmap.height() * 2)));
   }
+}
+
+void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
+  draw_list_->AddImage(
+      (void *)bitmap.texture(),
+      ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
+      ImVec2(canvas_p0_.x + (bitmap.width() * scale),
+             canvas_p0_.y + (bitmap.height() * scale)));
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
