@@ -24,7 +24,6 @@ class Bitmap {
   Bitmap(int width, int height, int depth, int data_size);
   Bitmap(int width, int height, int depth, const Bytes &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
-    // CreateTextureFromData();
     InitializeFromData(width, height, depth, data);
   }
 
@@ -42,20 +41,21 @@ class Bitmap {
   void Create(int width, int height, int depth, int data_size);
   void Create(int width, int height, int depth, const Bytes &data);
 
-  void InitializeFromData(uint32_t width, uint32_t height,
-                                  uint32_t depth, const Bytes &data);
+  void InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
+                          const Bytes &data);
   void ReserveData(uint32_t width, uint32_t height, uint32_t depth,
                    uint32_t size);
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
-  void CreateTexture(SDL_Renderer* renderer);
-  void UpdateTexture(SDL_Renderer* renderer);
+  void CreateTexture(SDL_Renderer *renderer);
+  void UpdateTexture(SDL_Renderer *renderer);
 
   void SaveSurfaceToFile(std::string_view filename);
   void SetSurface(SDL_Surface *surface);
 
   void ApplyPalette(const SNESPalette &palette);
+  void ApplyPaletteWithTransparent(const SNESPalette &palette, int index);
   void ApplyPalette(const std::vector<SDL_Color> &palette);
 
   void WriteToPixel(int position, uchar value) {
@@ -63,6 +63,15 @@ class Bitmap {
       pixel_data_ = data_.data();
     }
     this->pixel_data_[position] = value;
+    modified_ = true;
+  }
+
+  void WriteWordToPixel(int position, uint16_t value) {
+    if (pixel_data_ == nullptr) {
+      pixel_data_ = data_.data();
+    }
+    this->pixel_data_[position] = value & 0xFF;
+    this->pixel_data_[position + 1] = (value >> 8) & 0xFF;
     modified_ = true;
   }
 
@@ -170,6 +179,8 @@ class BitmapManager {
     }
     return nullptr;
   }
+
+  auto mutable_bitmap(int id) { return bitmap_cache_[id]; }
 
   using value_type = std::pair<const int, std::shared_ptr<gfx::Bitmap>>;
   using iterator =

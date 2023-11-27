@@ -163,6 +163,28 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
   SDL_LockSurface(surface_.get());
 }
 
+void Bitmap::ApplyPaletteWithTransparent(const SNESPalette &palette,
+                                         int index) {
+  palette_ = palette;
+  auto start_index = index * 7;
+  std::vector<ImVec4> colors;
+  colors.push_back(ImVec4(0, 0, 0, 0));
+  for (int i = start_index; i < start_index + 7; ++i) {
+    colors.push_back(palette.GetColor(i).GetRGB());
+  }
+
+  SDL_UnlockSurface(surface_.get());
+  int i = 0;
+  for (auto &each : colors) {
+    surface_->format->palette->colors[i].r = each.x;
+    surface_->format->palette->colors[i].g = each.y;
+    surface_->format->palette->colors[i].b = each.z;
+    surface_->format->palette->colors[i].a = each.w;
+    i++;
+  }
+  SDL_LockSurface(surface_.get());
+}
+
 void Bitmap::ApplyPalette(const std::vector<SDL_Color> &palette) {
   SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette.size(); ++i) {

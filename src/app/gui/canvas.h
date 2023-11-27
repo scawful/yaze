@@ -25,8 +25,13 @@ class Canvas {
   void Update(const gfx::Bitmap& bitmap, ImVec2 bg_size, int tile_size,
               float scale = 1.0f, float grid_size = 64.0f);
 
+  void UpdateColorPainter(const gfx::Bitmap& bitmap, const ImVec4& color,
+                          const std::function<void()>& event, ImVec2 bg_size,
+                          int tile_size, float scale = 1.0f,
+                          float grid_size = 64.0f);
+
   void UpdateEvent(const std::function<void()>& event, ImVec2 bg_size,
-                   int tile_size, float grid_size = 64.0f);
+                   int tile_size, float scale = 1.0f, float grid_size = 64.0f);
 
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
@@ -40,6 +45,7 @@ class Canvas {
   // and allows the user to left click to paint the tile or right
   // click to select a new tile to paint with.
   bool DrawTilePainter(const Bitmap& bitmap, int size, float scale = 1.0f);
+  bool DrawSolidTilePainter(const ImVec4& color, int size);
 
   // Dictates which tile is currently selected based on what the user clicks
   // in the canvas window. Represented and split apart into a grid of tiles.
@@ -56,6 +62,7 @@ class Canvas {
   // Draws the contents of the Bitmap image to the Canvas
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
+  void DrawBitmap(const Bitmap& bitmap, int border_offset, float scale);
   void DrawBitmap(const Bitmap& bitmap, int x_offset = 0, int y_offset = 0,
                   float scale = 1.0f);
 

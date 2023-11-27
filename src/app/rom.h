@@ -425,6 +425,8 @@ class ROM : public core::ExperimentFlags {
   gfx::Bitmap* mutable_graphics_sheet(int index) {
     return &graphics_bin_.at(index);
   }
+  auto bitmap_manager() { return graphics_manager_; }
+  auto mutable_bitmap_manager() { return &graphics_manager_; }
 
   auto title() const { return title_; }
   auto size() const { return size_; }
@@ -498,8 +500,6 @@ class ROM : public core::ExperimentFlags {
 
   std::stack<gfx::Bitmap*> bitmaps_to_create_;
   std::stack<gfx::Bitmap*> bitmaps_to_render_;
-
-  auto bitmap_manager() { return graphics_manager_; }
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;

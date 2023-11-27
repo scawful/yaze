@@ -126,8 +126,9 @@ bool InputHexWord(const char* label, uint16_t* data, float input_width) {
                                 ImGuiInputTextFlags_CharsHexadecimal);
 }
 
-bool InputHexByte(const char* label, uint8_t* data, float input_width) {
-  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
+bool InputHexByte(const char* label, uint8_t* data, uint8_t step,
+                  float input_width) {
+  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &step,
                                 &kStepFastHex, "%02X", input_width,
                                 ImGuiInputTextFlags_CharsHexadecimal);
 }

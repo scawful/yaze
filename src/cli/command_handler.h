@@ -14,7 +14,7 @@
 #include "absl/strings/str_cat.h"
 #include "app/core/common.h"     // for PcToSnes, SnesToPc
 #include "app/core/constants.h"  // for RETURN_IF_ERROR
-#include "app/core/pipeline.h"
+#include "app/gui/pipeline.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"
