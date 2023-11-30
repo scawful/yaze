@@ -107,6 +107,8 @@ class Bitmap {
   auto data() const { return data_.data(); }
   auto mutable_data() { return data_; }
   auto mutable_pixel_data() { return pixel_data_; }
+  auto surface() const { return surface_.get(); }
+  auto mutable_surface() { return surface_.get(); }
 
   auto vector() const { return data_; }
   auto at(int i) const { return data_[i]; }

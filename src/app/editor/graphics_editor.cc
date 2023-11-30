@@ -100,7 +100,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
 
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_ZOOM_IN)) {
-      if (current_scale_ <= 8.0f) {
+      if (current_scale_ <= 16.0f) {
         current_scale_ += 1.0f;
       }
     }
@@ -160,7 +160,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
                 absl::StrFormat("%02X", key).c_str());
           }
         },
-        ImVec2(0x100 + 1, 0x40 + 1), 0x20, /*scale=*/1.0f,
+        ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
         /*grid_size=*/16.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::EndChild();
@@ -179,41 +179,79 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                              ImGuiTabBarFlags_FittingPolicyResizeDown |
                              ImGuiTabBarFlags_TabListPopupButton)) {
     if (ImGui::TabItemButton(
-            "+", ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-                     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
-                     ImGuiTableFlags_BordersV)) {
+            "+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
       open_sheets_.insert(next_tab_id++);
     }
 
     // Submit our regular tabs
     for (auto& each : open_sheets_) {
       bool open = true;
-
       if (ImGui::BeginTabItem(absl::StrFormat("%d", each).c_str(), &open,
                               ImGuiTabItemFlags_None)) {
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          release_queue_.push(each);
+        }
+        if (ImGui::IsItemHovered()) {
+          if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+            release_queue_.push(each);
+            child_window_sheets_.insert(each);
+          }
+        }
         ImGui::BeginChild(
             absl::StrFormat("##GfxEditPaletteChild%d", each).c_str(),
             ImVec2(0, 0), true,
             ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                ImGuiWindowFlags_AlwaysHorizontalScrollbar);
         current_sheet_ = each;
         current_sheet_canvas_.UpdateColorPainter(
             *rom()->bitmap_manager()[each], current_color_,
             [&]() {
-              int position =
-                  current_sheet_canvas_.GetCurrentDrawnTilePosition().x +
-                  (current_sheet_canvas_.GetCurrentDrawnTilePosition().y *
-                   0x20 * 8);
-              gfx::SNESColor color(current_color_);
-              rom()->bitmap_manager()[each]->WriteWordToPixel(position,
-                                                              color.GetSNES());
+              // Convert the ImVec4 into a 16-bit value
+              Uint8 r = static_cast<Uint8>(current_color_.x * 31);
+              Uint8 g = static_cast<Uint8>(current_color_.y * 31);
+              Uint8 b = static_cast<Uint8>(current_color_.z * 31);
+              Uint16 snesColor =
+                  ((r & 0x1F) << 10) | ((g & 0x1F) << 5) | (b & 0x1F);
+
+              auto click_position =
+                  current_sheet_canvas_.GetCurrentDrawnTilePosition();
+
+              // Calculate the tile index for x and y based on the
+              // click_position
+              int tile_index_x =
+                  (static_cast<int>(click_position.x) % 8) / tile_size_;
+              int tile_index_y =
+                  (static_cast<int>(click_position.y) % 8) / tile_size_;
+
+              // Calculate the pixel start position based on tile index and tile
+              // size
+              ImVec2 start_position;
+              start_position.x = tile_index_x * tile_size_;
+              start_position.y = tile_index_y * tile_size_;
+
+              // Get the current map's bitmap from the BitmapTable
+              gfx::Bitmap& current_bitmap = *rom()->bitmap_manager()[each];
+
+              // Update the bitmap's pixel data based on the start_position and
+              // tile_data
+              for (int y = 0; y < tile_size_; ++y) {
+                for (int x = 0; x < tile_size_; ++x) {
+                  int pixel_index =
+                      (start_position.y + y) * current_bitmap.width() +
+                      (start_position.x + x);
+                  current_bitmap.WriteToPixel(pixel_index, snesColor);
+                }
+              }
+
+              // rom()->bitmap_manager()[each]->WriteToPixel(position,
+              // snesColor);
+
               rom()->UpdateBitmap(
                   rom()->mutable_bitmap_manager()->mutable_bitmap(each).get());
             },
-            ImVec2(0x100 + 1, 0x40 + 1), tile_size_ * current_scale_,
-            current_scale_, 16.0f);
+            ImVec2(0x100, 0x40), tile_size_, current_scale_, 8.0f);
         ImGui::EndChild();
-
         ImGui::EndTabItem();
       }
 
@@ -222,12 +260,39 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 
     ImGui::EndTabBar();
   }
-  ImGui::Separator();
   while (!release_queue_.empty()) {
     auto each = release_queue_.top();
     open_sheets_.erase(each);
     release_queue_.pop();
   }
+
+  if (!child_window_sheets_.empty()) {
+    int id_to_release = -1;
+    for (const auto& id : child_window_sheets_) {
+      bool active = true;
+      ImGui::SetNextWindowPos(ImGui::GetIO().MousePos, ImGuiCond_Once);
+      ImGui::SetNextWindowSize(ImVec2(0x100 + 1 * 16, 0x40 + 1 * 16),
+                               ImGuiCond_Once);
+      ImGui::Begin(absl::StrFormat("##GfxEditPaletteChildWindow%d", id).c_str(),
+                   &active, ImGuiWindowFlags_AlwaysUseWindowPadding);
+      current_sheet_ = id;
+      current_sheet_canvas_.UpdateColorPainter(
+          *rom()->bitmap_manager()[id], current_color_,
+          [&]() {
+
+          },
+          ImVec2(0x100, 0x40), tile_size_, current_scale_, 8.0f);
+      ImGui::End();
+
+      if (active == false) {
+        id_to_release = id;
+      }
+    }
+    if (id_to_release != -1) {
+      child_window_sheets_.erase(id_to_release);
+    }
+  }
+
   return absl::OkStatus();
 }
 
