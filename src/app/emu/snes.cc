@@ -28,8 +28,8 @@ uint16_t GetHeaderOffset(const Memory& memory) {
 
   switch (mapMode & 0x07) {
     case 0:  // LoROM
-      // offset = 0x7F;
-      offset = 0xFFC0;
+      offset = 0x7FC0;
+      // offset = 0xFFC0;
       break;
     case 1:  // HiROM
       offset = 0xFFC0;
@@ -110,13 +110,14 @@ ROMInfo SNES::ReadRomHeader(uint32_t offset) {
 void SNES::Init(ROM& rom) {
   // Perform a long jump into a FastROM bank (if the ROM speed is FastROM)
   // Disable the emulation flag (switch to 65816 native mode)
+  cpu_.E = 0;
 
   // Initialize CPU
   cpu_.Init();
 
   // Read the ROM header
   auto header_offset = GetHeaderOffset(memory_);
-  rom_info_ = ReadRomHeader(header_offset);
+  rom_info_ = ReadRomHeader((0x00 << 16) + header_offset);
   cpu_.PC = rom_info_.resetVector;
 
   // Initialize PPU
@@ -215,8 +216,6 @@ void SNES::Init(ROM& rom) {
 }
 
 void SNES::Run() {
-  running_ = true;
-
   const double targetFPS = 60.0;  // 60 frames per second
   const double frame_time = 1.0 / targetFPS;
   double frame_accumulated_time = 0.0;

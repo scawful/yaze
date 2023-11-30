@@ -13,9 +13,9 @@ enable_testing()
 add_executable(
   yaze_test
   yaze_test.cc
-  z3ed_test.cc
   emu/cpu_test.cc
   emu/spc700_test.cc
+  emu/ppu_test.cc
   compression_test.cc
   snes_palette_test.cc
   room_object_test.cc
