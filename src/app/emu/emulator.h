@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_CORE_EMULATOR_H
 #define YAZE_APP_CORE_EMULATOR_H
 
+#include <imgui/imgui.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -13,39 +15,34 @@ namespace emu {
 
 class Emulator : public SharedROM {
  public:
-  // Runs the emulator loop, including event handling and rendering
   void Run();
 
  private:
-  // Renders the emulator output to an ImGui child window
-  void RenderEmulator();
-
-  // Draws the navigation bar with various controls
   void RenderNavBar();
-
-  // Handles user input events
   void HandleEvents();
 
-  // Updates the emulator state (CPU, PPU, APU, etc.)
-  void UpdateEmulator();
-
-  void RenderDebugger();
+  void RenderEmulator();
+  void RenderSnesPpu();
   void RenderBreakpointList();
   void RenderCpuState(CPU& cpu);
   void RenderMemoryViewer();
 
-  void RenderCPUInstructionLog(
+  struct Bookmark {
+    std::string name;
+    uint64_t value;
+  };
+  std::vector<Bookmark> bookmarks;
+
+  void RenderCpuInstructionLog(
       const std::vector<InstructionEntry>& instructionLog);
 
   SNES snes_;
+  uint16_t manual_pc_ = 0;
+  uint8_t manual_pb_ = 0;
 
   bool power_ = false;
   bool loading_ = false;
   bool running_ = false;
-  bool debugger_ = true;
-  bool memory_setup_ = false;
-  bool integrated_debugger_mode_ = true;
-  bool separate_debugger_mode_ = false;
 };
 
 }  // namespace emu

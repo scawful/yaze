@@ -48,7 +48,7 @@ class MockMemory : public Memory {
   MOCK_METHOD0(ClearMemory, void());
 
   MOCK_CONST_METHOD1(at, uint8_t(int i));
-  uint8_t operator[](int i) const override { return at(i); }
+  uint8_t operator[](int i) const override { return memory_[i]; }
 
   void SetMemoryContents(const std::vector<uint8_t>& data) {
     memory_.resize(64000);

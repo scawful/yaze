@@ -9,6 +9,7 @@
 #include "app/core/constants.h"
 #include "app/emu/snes.h"
 #include "app/gui/icons.h"
+#include "app/gui/input.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -23,104 +24,6 @@ bool ShouldDisplay(const InstructionEntry& entry, const char* filter,
   return true;
 }
 
-void DrawMemoryWindow(Memory* memory) {
-  const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
-  static ImGuiTableFlags flags =
-      ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
-      ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg |
-      ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX;
-  if (auto outer_size = ImVec2(0.0f, TEXT_BASE_HEIGHT * 5.5f);
-      ImGui::BeginTable("table1", 4, flags, outer_size)) {
-    // Table headers
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("Memory Area");
-    ImGui::TableNextColumn();
-    ImGui::Text("Start Address");
-    ImGui::TableNextColumn();
-    ImGui::Text("Size");
-    ImGui::TableNextColumn();
-    ImGui::Text("Mapping");
-
-    // Retrieve memory information from MemoryImpl
-    MemoryImpl* memoryImpl = dynamic_cast<MemoryImpl*>(memory);
-    if (memoryImpl) {
-      // Display memory areas
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("ROM Bank 0-63");
-      ImGui::TableNextColumn();
-      ImGui::Text("0x8000");
-      ImGui::TableNextColumn();
-      ImGui::Text("128 KB");
-      ImGui::TableNextColumn();
-      ImGui::Text("LoROM");
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("ROM Bank 64-111");
-      ImGui::TableNextColumn();
-      ImGui::Text("0x0000");
-      ImGui::TableNextColumn();
-      ImGui::Text("64 KB");
-      ImGui::TableNextColumn();
-      ImGui::Text("LoROM");
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("RAM");
-      ImGui::TableNextColumn();
-      ImGui::Text("0x700000");
-      ImGui::TableNextColumn();
-      ImGui::Text("64 KB");
-      ImGui::TableNextColumn();
-      ImGui::Text("LoROM");
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("System RAM (WRAM)");
-      ImGui::TableNextColumn();
-      ImGui::Text("0x7E0000");
-      ImGui::TableNextColumn();
-      ImGui::Text("128 KB");
-      ImGui::TableNextColumn();
-      ImGui::Text("LoROM");
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("ROM Bank 128-191");
-      ImGui::TableNextColumn();
-      ImGui::Text("0x8000");
-      ImGui::TableNextColumn();
-      ImGui::Text("128 KB");
-      ImGui::TableNextColumn();
-      ImGui::Text("LoROM");
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("ROM Bank 192-255");
-      ImGui::TableNextColumn();
-      ImGui::Text("0x0000");
-      ImGui::TableNextColumn();
-      ImGui::Text("64 KB");
-      ImGui::TableNextColumn();
-      ImGui::Text("LoROM");
-    }
-
-    ImGui::EndTable();
-
-    if (ImGui::Button("Open Memory Viewer", ImVec2(200, 50))) {
-      ImGui::OpenPopup("Memory Viewer");
-    }
-
-    if (ImGui::BeginPopupModal("Memory Viewer", nullptr,
-                               ImGuiWindowFlags_AlwaysAutoResize)) {
-      static MemoryEditor mem_edit;
-      mem_edit.DrawContents((void*)memoryImpl->data(), memoryImpl->size());
-      ImGui::EndPopup();
-    }
-  }
-}
 }  // namespace
 
 using ImGui::NextColumn;
@@ -130,105 +33,28 @@ using ImGui::TableNextColumn;
 using ImGui::Text;
 
 void Emulator::Run() {
-  if (!snes_.running() && loading_) {
-    // Setup and initialize memory
-    if (loading_ && !memory_setup_) {
-      snes_.SetupMemory(*rom());
-      memory_setup_ = true;
-    }
+  if (!snes_.running() && rom()->isLoaded()) {
+    snes_.SetupMemory(*rom());
+  }
 
-    // Run the emulation
-    if (rom()->isLoaded() && power_) {
-      snes_.Init(*rom());
-      running_ = true;
-    }
+  // Setup and initialize memory
+  if (loading_ && !running_) {
+    snes_.Init(*rom());
+    running_ = true;
   }
 
   RenderNavBar();
 
-  ImGui::Button(ICON_MD_ARROW_FORWARD_IOS);
-  ImGui::SameLine();
-  ImGui::Button(ICON_MD_DOUBLE_ARROW);
-  ImGui::SameLine();
-  ImGui::Button(ICON_MD_SUBDIRECTORY_ARROW_RIGHT);
-
   if (running_) {
     HandleEvents();
-    UpdateEmulator();
+    snes_.Run();
   }
 
   RenderEmulator();
-  if (debugger_) {
-    RenderDebugger();
-  }
-}
-
-void Emulator::RenderEmulator() {
-  ImVec2 size = ImVec2(320, 240);
-  if (snes_.running()) {
-    ImGui::BeginChild(
-        "EmulatorOutput", ImVec2(0, 0), true,
-        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
-    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
-    ImGui::Image((void*)snes_.ppu().GetScreen()->texture(), size, ImVec2(0, 0),
-                 ImVec2(1, 1));
-    ImGui::EndChild();
-    ImGui::Separator();
-  } else {
-    ImGui::BeginChild(
-        "EmulatorOutput", ImVec2(0, 0), true,
-        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
-    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
-    ImGui::Dummy(size);
-    ImGui::EndChild();
-    ImGui::Separator();
-    ImGui::Text("Emulator output not available.");
-  }
 }
 
 void Emulator::RenderNavBar() {
   MENU_BAR()
-
-  if (ImGui::BeginMenu("Game")) {
-    MENU_ITEM("Load ROM") { loading_ = true; }
-    MENU_ITEM("Power On") { power_ = true; }
-    MENU_ITEM("Power Off") {
-      power_ = false;
-      running_ = false;
-      loading_ = false;
-      debugger_ = false;
-    }
-    MENU_ITEM("Pause") {
-      running_ = false;
-      debugger_ = false;
-    }
-    MENU_ITEM("Reset") {}
-
-    MENU_ITEM("Save State") {}
-    MENU_ITEM("Load State") {}
-
-    ImGui::EndMenu();
-  }
-
-  if (ImGui::BeginMenu("Debug")) {
-    MENU_ITEM("Debugger") { debugger_ = !debugger_; }
-    if (ImGui::MenuItem("Integrated Debugger", nullptr,
-                        &integrated_debugger_mode_)) {
-      separate_debugger_mode_ = !integrated_debugger_mode_;
-    }
-    if (ImGui::MenuItem("Separate Debugger Windows", nullptr,
-                        &separate_debugger_mode_)) {
-      integrated_debugger_mode_ = !separate_debugger_mode_;
-    }
-    MENU_ITEM("Memory Viewer") {}
-    MENU_ITEM("Tile Viewer") {}
-    ImGui::EndMenu();
-  }
-
   if (ImGui::BeginMenu("Options")) {
     MENU_ITEM("Input") {}
     MENU_ITEM("Audio") {}
@@ -236,6 +62,93 @@ void Emulator::RenderNavBar() {
     ImGui::EndMenu();
   }
   END_MENU_BAR()
+
+  if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
+    loading_ = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Start Emulation");
+  }
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MD_PAUSE)) {
+    snes_.SetCpuMode(1);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Pause Emulation");
+  }
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MD_SKIP_NEXT)) {
+    // Step through Code logic
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Step Through Code");
+  }
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MD_REFRESH)) {
+    // Reset Emulator logic
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Reset Emulator");
+  }
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MD_STOP)) {
+    // Stop Emulation logic
+    running_ = false;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Stop Emulation");
+  }
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MD_SAVE)) {
+    // Save State logic
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Save State");
+  }
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MD_SYSTEM_UPDATE_ALT)) {
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Load State");
+  }
+
+  // Additional elements
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SETTINGS)) {
+    // Settings logic
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Settings");
+  }
+
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_INFO)) {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("About Debugger");
+    }
+    // About Debugger logic
+  }
+  static bool show_memory_viewer = false;
+
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_MEMORY)) {
+    show_memory_viewer = !show_memory_viewer;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Memory Viewer");
+  }
+
+  if (show_memory_viewer) {
+    ImGui::Begin("Memory Viewer", &show_memory_viewer);
+    RenderMemoryViewer();
+    ImGui::End();
+  }
 }
 
 void Emulator::HandleEvents() {
@@ -243,38 +156,51 @@ void Emulator::HandleEvents() {
   // ...
 }
 
-void Emulator::UpdateEmulator() {
-  // Update the emulator state (CPU, PPU, APU, etc.)
-  // ...
-  snes_.Run();
+void Emulator::RenderEmulator() {
+  if (ImGui::BeginTable("##Emulator", 3,
+                        ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
+    ImGui::TableSetupColumn("CPU");
+    ImGui::TableSetupColumn("PPU");
+    ImGui::TableHeadersRow();
+
+    TableNextColumn();
+    RenderCpuInstructionLog(snes_.cpu().instruction_log_);
+
+    TableNextColumn();
+    RenderSnesPpu();
+    RenderBreakpointList();
+
+    TableNextColumn();
+    ImGui::BeginChild("##", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+    RenderCpuState(snes_.cpu());
+    ImGui::EndChild();
+
+    ImGui::EndTable();
+  }
 }
 
-void Emulator::RenderDebugger() {
-  // Define a lambda with the actual debugger
-  auto debugger = [&]() {
-    if (ImGui::BeginTable(
-            "DebugTable", 3,
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
-      TableNextColumn();
-      RenderCpuState(snes_.cpu());
+void Emulator::RenderSnesPpu() {
+  ImVec2 size = ImVec2(320, 240);
+  if (snes_.running()) {
+    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 240), true,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
+    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
+    ImGui::Image((void*)snes_.ppu().GetScreen()->texture(), size, ImVec2(0, 0),
+                 ImVec2(1, 1));
+    ImGui::EndChild();
 
-      TableNextColumn();
-      RenderCPUInstructionLog(snes_.cpu().instruction_log_);
-
-      TableNextColumn();
-      RenderBreakpointList();
-      DrawMemoryWindow(snes_.Memory());
-      ImGui::EndTable();
-    }
-  };
-
-  if (integrated_debugger_mode_) {
-    debugger();
-  } else if (separate_debugger_mode_) {
-    ImGui::Begin("Debugger");
-    debugger();
-    ImGui::End();
+  } else {
+    ImGui::Text("Emulator output not available.");
+    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 240), true,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+    ImGui::SetCursorPosX(((ImGui::GetWindowSize().x * 0.5f) - size.x) * 0.5f);
+    ImGui::SetCursorPosY(((ImGui::GetWindowSize().y * 0.5f) - size.y) * 0.5f);
+    ImGui::Dummy(size);
+    ImGui::EndChild();
   }
+  ImGui::Separator();
 }
 
 void Emulator::RenderBreakpointList() {
@@ -326,6 +252,13 @@ void Emulator::RenderBreakpointList() {
     }
     ImGui::EndChild();
   }
+  Separator();
+  gui::InputHexByte("PB", &manual_pb_, 1, 25.f);
+  gui::InputHexWord("PC", &manual_pc_, 25.f);
+  if (ImGui::Button("Set Current Address")) {
+    snes_.cpu().PC = manual_pc_;
+    snes_.cpu().PB = manual_pb_;
+  }
 }
 
 void Emulator::RenderCpuState(CPU& cpu) {
@@ -352,26 +285,74 @@ void Emulator::RenderCpuState(CPU& cpu) {
     ImGui::Columns(1);
     Separator();
   }
+
   // Call Stack
   if (ImGui::CollapsingHeader("Call Stack", ImGuiTreeNodeFlags_DefaultOpen)) {
     // For each return address in the call stack:
     Text("Return Address: 0x%08X", 0xFFFFFF);  // Placeholder
   }
 
-  static int debugger_mode_ = 0;
-  const char* debugger_modes_[] = {"Run", "Step", "Pause"};
-  Text("Mode");
-  ImGui::ListBox("##DebuggerMode", &debugger_mode_, debugger_modes_,
-                 IM_ARRAYSIZE(debugger_modes_));
-
-  snes_.SetCpuMode(debugger_mode_);
+  snes_.SetCpuMode(0);
 }
 
 void Emulator::RenderMemoryViewer() {
-  // Render memory viewer
+  static MemoryEditor mem_edit;
+  if (ImGui::Button("RAM")) {
+    mem_edit.GotoAddrAndHighlight(0x7E0000, 0x7E0001);
+  }
+
+  if (ImGui::BeginTable("MemoryViewerTable", 2,
+                        ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
+    ImGui::TableSetupColumn("Bookmarks");
+    ImGui::TableSetupColumn("Memory");
+    ImGui::TableHeadersRow();
+
+    TableNextColumn();
+    if (ImGui::CollapsingHeader("Bookmarks", ImGuiTreeNodeFlags_DefaultOpen)) {
+      // Input for adding a new bookmark
+      static char nameBuf[256];
+      static uint64_t uint64StringBuf;
+      ImGui::InputText("Name", nameBuf, IM_ARRAYSIZE(nameBuf));
+      gui::InputHex("Address", &uint64StringBuf);
+      if (ImGui::Button("Add Bookmark")) {
+        bookmarks.push_back({nameBuf, uint64StringBuf});
+        memset(nameBuf, 0, sizeof(nameBuf));
+        uint64StringBuf = 0;
+      }
+
+      // Tree view of bookmarks
+      for (const auto& bookmark : bookmarks) {
+        if (ImGui::TreeNode(bookmark.name.c_str(), ICON_MD_STAR)) {
+          auto bookmark_string = absl::StrFormat(
+              "%s: 0x%08X", bookmark.name.c_str(), bookmark.value);
+          if (ImGui::Selectable(bookmark_string.c_str())) {
+            mem_edit.GotoAddrAndHighlight(static_cast<ImU64>(bookmark.value),
+                                          1);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Delete")) {
+            // Logic to delete the bookmark
+            bookmarks.erase(std::remove_if(bookmarks.begin(), bookmarks.end(),
+                                           [&](const Bookmark& b) {
+                                             return b.name == bookmark.name &&
+                                                    b.value == bookmark.value;
+                                           }),
+                            bookmarks.end());
+          }
+          ImGui::TreePop();
+        }
+      }
+    }
+
+    TableNextColumn();
+    mem_edit.DrawContents((void*)snes_.Memory()->data(),
+                          snes_.Memory()->size());
+
+    ImGui::EndTable();
+  }
 }
 
-void Emulator::RenderCPUInstructionLog(
+void Emulator::RenderCpuInstructionLog(
     const std::vector<InstructionEntry>& instructionLog) {
   if (ImGui::CollapsingHeader("CPU Instruction Log")) {
     // Filtering options
@@ -382,7 +363,7 @@ void Emulator::RenderCPUInstructionLog(
     }
 
     // Toggle for showing all opcodes
-    static bool showAllOpcodes = false;
+    static bool showAllOpcodes = true;
     ImGui::Checkbox("Show All Opcodes", &showAllOpcodes);
 
     // Instruction list
@@ -391,10 +372,11 @@ void Emulator::RenderCPUInstructionLog(
         ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeY);
     for (const auto& entry : instructionLog) {
       if (ShouldDisplay(entry, filterBuf, showAllOpcodes)) {
-        if (ImGui::Selectable(absl::StrFormat("%04X: %02X %s %s", entry.address,
-                                              entry.opcode, entry.operands,
-                                              entry.instruction)
-                                  .c_str())) {
+        if (ImGui::Selectable(
+                absl::StrFormat("%06X: %s %s", entry.address,
+                                opcode_to_mnemonic.at(entry.opcode),
+                                entry.operands)
+                    .c_str())) {
           // Logic to handle click (e.g., jump to address, set breakpoint)
         }
       }

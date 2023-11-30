@@ -78,7 +78,8 @@ class SNES : public DMA {
     memory_.AddObserver(&ppu_);
 
     // Load the ROM into memory and set up the memory mapping
-    memory_.Initialize(rom.vector());
+    rom_data = rom.vector();
+    memory_.Initialize(rom_data);
   }
 
  private:

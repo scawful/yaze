@@ -96,8 +96,8 @@ class Observer {
   virtual void Notify(uint32_t address, uint8_t data) = 0;
 };
 
-constexpr uint32_t kROMStart = 0xC00000;
-constexpr uint32_t kROMSize = 0x400000;
+constexpr uint32_t kROMStart = 0x008000;
+constexpr uint32_t kROMSize = 0x200000;
 constexpr uint32_t kRAMStart = 0x7E0000;
 constexpr uint32_t kRAMSize = 0x20000;
 constexpr uint32_t kVRAMStart = 0x210000;
@@ -163,7 +163,7 @@ class MemoryImpl : public Memory, public Loggable {
     // Load ROM data into memory based on LoROM mapping
     size_t romSize = romData.size();
     size_t romAddress = 0;
-    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
+    for (size_t bank = 0x00; bank <= 0x3F; ++bank) {
       for (size_t offset = 0x8000; offset <= 0xFFFF; offset += ROM_CHUNK_SIZE) {
         if (romAddress < romSize) {
           std::copy(romData.begin() + romAddress,
@@ -360,7 +360,8 @@ class MemoryImpl : public Memory, public Loggable {
       } else if (offset <= 0x7FFF) {
         return offset - 0x6000 + 0x6000;  // Expansion RAM
       } else {
-        return (bank << 15) + (offset - 0x8000) + 0x8000;  // ROM
+        // Return lorom mapping
+        return (bank << 16) + (offset - 0x8000) + 0x8000;  // ROM
       }
     } else if (bank == 0x7D) {
       return offset + 0x7D0000;  // SRAM
@@ -389,6 +390,8 @@ class MemoryImpl : public Memory, public Loggable {
 
   MemoryMapping mapping_ = MemoryMapping::SNES_LOROM;
 };
+
+void DrawSnesMemoryMapping(const MemoryImpl& memory);
 
 }  // namespace emu
 }  // namespace app

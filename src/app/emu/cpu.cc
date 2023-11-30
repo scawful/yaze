@@ -32,10 +32,6 @@ void CPU::Update(UpdateMode mode, int stepCount) {
 }
 
 void CPU::ExecuteInstruction(uint8_t opcode) {
-  // Update the PC based on the Program Bank Register
-  PC |= (static_cast<uint16_t>(PB) << 16);
-
-  // uint8_t operand = -1;
   bool immediate = false;
   uint16_t operand = 0;
   bool accumulator_mode = GetAccumulatorSize();
@@ -181,7 +177,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       ASL(operand);
       break;
     case 0x16:  // ASL DP Indexed, X
-      operand = DirectPageIndexedX();
+      operand = ReadByBitMode((0x00 << 16) + DirectPageIndexedX());
       ASL(operand);
       break;
     case 0x1E:  // ASL Absolute Indexed, X
@@ -195,25 +191,30 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0xB0:  // BCS  Branch if carry set
-      BCS(memory.ReadByte(PC));
+      operand = memory.ReadByte(PC);
+      BCS(operand);
       break;
 
     case 0xF0:  // BEQ Branch if equal (zero set)
-      operand = memory.ReadByte(PC);
+      operand = memory.ReadByte((PB << 16) + PC + 1);
       BEQ(operand);
       break;
 
     case 0x24:  // BIT Direct Page
-      BIT(DirectPage());
+      operand = DirectPage();
+      BIT(operand);
       break;
     case 0x2C:  // BIT Absolute
-      BIT(Absolute());
+      operand = Absolute();
+      BIT(operand);
       break;
     case 0x34:  // BIT DP Indexed, X
-      BIT(DirectPageIndexedX());
+      operand = DirectPageIndexedX();
+      BIT(operand);
       break;
     case 0x3C:  // BIT Absolute Indexed, X
-      BIT(AbsoluteIndexedX());
+      operand = AbsoluteIndexedX();
+      BIT(operand);
       break;
     case 0x89:  // BIT Immediate
       operand = Immediate();
@@ -222,22 +223,22 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x30:  // BMI Branch if minus (negative set)
-      operand = memory.ReadByte(PC);
+      operand = memory.ReadByte((PB << 16) + PC + 1);
       BMI(operand);
       break;
 
     case 0xD0:  // BNE Branch if not equal (zero clear)
-      operand = memory.ReadByte(PC);
+      operand = memory.ReadByte((PB << 16) + PC + 1);
       BNE(operand);
       break;
 
     case 0x10:  // BPL Branch if plus (negative clear)
-      operand = memory.ReadByte(PC);
+      operand = memory.ReadByte((PB << 16) + PC + 1);
       BPL(operand);
       break;
 
     case 0x80:  // BRA Branch always
-      operand = memory.ReadByte(PC);
+      operand = memory.ReadByte((PB << 16) + PC + 1);
       BRA(operand);
       break;
 
@@ -247,16 +248,16 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
 
     case 0x82:  // BRL Branch always long
       operand = FetchSignedWord();
-      PC += operand;
+      next_pc_ = operand;
       break;
 
     case 0x50:  // BVC Branch if overflow clear
-      operand = memory.ReadByte(PC);
+      operand = FetchByte();
       BVC(operand);
       break;
 
     case 0x70:  // BVS Branch if overflow set
-      operand = memory.ReadByte(PC);
+      operand = FetchByte();
       BVS(operand);
       break;
 
@@ -505,7 +506,8 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
 
     case 0x20:  // JSR Absolute
-      JSR(Absolute());
+      operand = Absolute();
+      JSR(operand);
       break;
 
     case 0x22:  // JSL Absolute Long
@@ -526,7 +528,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       break;
     case 0xA5:  // LDA Direct Page
       operand = DirectPage();
-      LDA(operand);
+      LDA(operand, false, true);
       break;
     case 0xA7:  // LDA DP Indirect Long
       operand = DirectPageIndirectLong();
@@ -1102,6 +1104,8 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
   }
 
   LogInstructions(PC, opcode, operand, immediate, accumulator_mode);
+  uint8_t instructionLength = GetInstructionLength(opcode);
+  UpdatePC(instructionLength);
 }
 
 void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
@@ -1109,7 +1113,7 @@ void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
   if (flags()->kLogInstructions) {
     std::ostringstream oss;
     oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
-        << static_cast<int>(DB) << ":" << std::hex << PC << ": 0x" << std::hex
+        << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x" << std::hex
         << static_cast<int>(opcode) << " " << opcode_to_mnemonic.at(opcode)
         << " ";
 
@@ -1138,7 +1142,7 @@ void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
   } else {
     // Log the address and opcode.
     std::cout << "$" << std::uppercase << std::setw(2) << std::setfill('0')
-              << static_cast<int>(DB) << ":" << std::hex << PC << ": 0x"
+              << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x"
               << std::hex << static_cast<int>(opcode) << " "
               << opcode_to_mnemonic.at(opcode) << " ";
 
@@ -1231,7 +1235,7 @@ void CPU::ANDAbsoluteLong(uint32_t address) {
   uint32_t operand32 = memory.ReadWordLong(address);
   A &= operand32;
   SetZeroFlag(A == 0);
-  SetNegativeFlag(A & 0x80000000);
+  SetNegativeFlag(A & 0x8000);
 }
 
 // ASL: Arithmetic shift left
@@ -1248,21 +1252,21 @@ void CPU::ASL(uint16_t address) {
 // BCC: Branch if carry clear
 void CPU::BCC(int8_t offset) {
   if (!GetCarryFlag()) {  // If the carry flag is clear
-    PC += offset;         // Add the offset to the program counter
+    next_pc_ = offset;
   }
 }
 
 // BCS: Branch if carry set
 void CPU::BCS(int8_t offset) {
   if (GetCarryFlag()) {  // If the carry flag is set
-    PC += offset;        // Add the offset to the program counter
+    next_pc_ = offset;
   }
 }
 
 // BEQ: Branch if equal (zero set)
 void CPU::BEQ(int8_t offset) {
   if (GetZeroFlag()) {  // If the zero flag is set
-    PC += offset;       // Add the offset to the program counter
+    next_pc_ = offset;
   }
 }
 
@@ -1277,26 +1281,27 @@ void CPU::BIT(uint16_t address) {
 // BMI: Branch if minus (negative set)
 void CPU::BMI(int8_t offset) {
   if (GetNegativeFlag()) {  // If the negative flag is set
-    PC += offset;           // Add the offset to the program counter
+    next_pc_ = offset;
   }
 }
 
 // BNE: Branch if not equal (zero clear)
 void CPU::BNE(int8_t offset) {
   if (!GetZeroFlag()) {  // If the zero flag is clear
-    PC += offset;        // Add the offset to the program counter
+    // PC += offset;
+    next_pc_ = offset;
   }
 }
 
 // BPL: Branch if plus (negative clear)
 void CPU::BPL(int8_t offset) {
   if (!GetNegativeFlag()) {  // If the negative flag is clear
-    PC += offset;            // Add the offset to the program counter
+    next_pc_ = offset;
   }
 }
 
 // BRA: Branch always
-void CPU::BRA(int8_t offset) { PC += offset; }
+void CPU::BRA(int8_t offset) { next_pc_ = offset; }
 
 // BRK: Break
 void CPU::BRK() {
@@ -1312,21 +1317,19 @@ void CPU::BRK() {
 }
 
 // BRL: Branch always long
-void CPU::BRL(int16_t offset) {
-  PC += offset;  // Add the offset to the program counter
-}
+void CPU::BRL(int16_t offset) { next_pc_ = offset; }
 
 // BVC: Branch if overflow clear
 void CPU::BVC(int8_t offset) {
   if (!GetOverflowFlag()) {  // If the overflow flag is clear
-    PC += offset;            // Add the offset to the program counter
+    next_pc_ = offset;
   }
 }
 
 // BVS: Branch if overflow set
 void CPU::BVS(int8_t offset) {
   if (GetOverflowFlag()) {  // If the overflow flag is set
-    PC += offset;           // Add the offset to the program counter
+    next_pc_ = offset;
   }
 }
 
@@ -1497,40 +1500,41 @@ void CPU::INY() {
 
 // JMP: Jump
 void CPU::JMP(uint16_t address) {
-  PC = address;  // Set program counter to the new address
+  next_pc_ = address;  // Set program counter to the new address
 }
 
 // JML: Jump long
 void CPU::JML(uint32_t address) {
-  // Set the lower 16 bits of PC to the lower 16 bits of the address
-  PC = static_cast<uint8_t>(address & 0xFFFF);
+  next_pc_ = static_cast<uint16_t>(address & 0xFFFF);
   // Set the PBR to the upper 8 bits of the address
   PB = static_cast<uint8_t>((address >> 16) & 0xFF);
 }
 
 // JSR: Jump to subroutine
 void CPU::JSR(uint16_t address) {
-  PC -= 1;              // Subtract 1 from program counter
   memory.PushWord(PC);  // Push the program counter onto the stack
-  PC = address;         // Set program counter to the new address
+  next_pc_ = address;   // Set program counter to the new address
 }
 
 // JSL: Jump to subroutine long
 void CPU::JSL(uint32_t address) {
-  PC -= 1;              // Subtract 1 from program counter
   memory.PushLong(PC);  // Push the program counter onto the stack as a long
                         // value (24 bits)
-  PC = address;         // Set program counter to the new address
+  next_pc_ = address;   // Set program counter to the new address
 }
 
 // LDA: Load accumulator
-void CPU::LDA(uint16_t address, bool isImmediate) {
+void CPU::LDA(uint16_t address, bool isImmediate, bool direct_page) {
+  uint8_t bank = PB;
+  if (direct_page) {
+    bank = 0;
+  }
   if (GetAccumulatorSize()) {
-    A = isImmediate ? address : memory.ReadByte(address);
+    A = isImmediate ? address : memory.ReadByte((bank << 16) | address);
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
   } else {
-    A = isImmediate ? address : memory.ReadWord(address);
+    A = isImmediate ? address : memory.ReadWord((bank << 16) | address);
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x8000);
   }
@@ -1728,7 +1732,7 @@ void CPU::RTL() {
 }
 
 // RTS: Return from subroutine
-void CPU::RTS() { PC = memory.PopWord() + 1; }  // ASL: Arithmetic shift left
+void CPU::RTS() { last_call_frame_ = memory.PopWord(); }
 
 void CPU::SBC(uint16_t value, bool isImmediate) {
   uint16_t operand;
@@ -1935,6 +1939,250 @@ void CPU::XCE() {
   status &= ~0x01;
   status |= E;
   E = carry;
+}
+
+uint8_t CPU::GetInstructionLength(uint8_t opcode) {
+  switch (opcode) {
+    case 0x00:  // BRK
+      return 0;
+
+    case 0x60:  // RTS
+      PC = last_call_frame_;
+      return 3;
+
+    // TODO: Handle JMPs in logging.
+    case 0x20:  // JSR Absolute
+    case 0x4C:  // JMP Absolute
+    case 0x6C:  // JMP Absolute Indirect
+    case 0x5C:  // JMP Absolute Indexed Indirect
+    case 0x22:  // JSL Absolute Long
+      PC = next_pc_;
+      return 0;
+
+    // Branch Instructions (BCC, BCS, BNE, BEQ, etc.)
+    case 0x90:  // BCC near
+      if (!GetCarryFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+    case 0xB0:  // BCS near
+      if (GetCarryFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+    case 0x30:  // BMI near
+      if (GetNegativeFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+    case 0xF0:  // BEQ near
+      if (GetZeroFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+
+    case 0xD0:  // BNE Relative
+      if (!GetZeroFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+
+    case 0x10:  // BPL Relative
+      if (!GetNegativeFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+
+    case 0x50:  // BVC Relative
+      if (!GetOverflowFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+
+    case 0x70:  // BVS Relative
+      if (GetOverflowFlag()) {
+        PC += next_pc_;
+        return 0;
+      } else {
+        return 2;
+      }
+
+    case 0x80:  // BRA Relative
+      PC += next_pc_;
+      return 0;
+
+    case 0x82:  // BRL Relative Long
+      PC += next_pc_;
+      return 0;
+
+    // Single Byte Instructions
+    case 0x18:  // CLC
+    case 0xD8:  // CLD
+    case 0x58:  // CLI
+    case 0xB8:  // CLV
+    case 0xCA:  // DEX
+    case 0x88:  // DEY
+    case 0xE8:  // INX
+    case 0xC8:  // INY
+    case 0xEA:  // NOP
+    case 0x48:  // PHA
+    case 0x0B:  // PHD
+    case 0x4B:  // PHK
+    case 0x08:  // PHP
+    case 0xDA:  // PHX
+    case 0x5A:  // PHY
+    case 0x68:  // PLA
+    case 0xAB:  // PLB
+    case 0x2B:  // PLD
+    case 0x28:  // PLP
+    case 0xFA:  // PLX
+    case 0x7A:  // PLY
+    case 0xC2:  // REP
+    case 0x40:  // RTI
+    case 0x38:  // SEC
+    case 0xF8:  // SED
+    case 0xE2:  // SEP
+    case 0x78:  // SEI
+    case 0xAA:  // TAX
+    case 0xA8:  // TAY
+    case 0xBA:  // TSX
+    case 0x8A:  // TXA
+    case 0x9A:  // TXS
+    case 0x98:  // TYA
+    case 0x0A:  // ASL Accumulator
+      return 1;
+
+    // Two Byte Instructions
+    case 0x69:  // ADC Immediate
+    case 0x29:  // AND Immediate
+    case 0xC9:  // CMP Immediate
+    case 0xE0:  // CPX Immediate
+    case 0xC0:  // CPY Immediate
+    case 0x49:  // EOR Immediate
+    case 0xA9:  // LDA Immediate
+    case 0xA2:  // LDX Immediate
+    case 0xA0:  // LDY Immediate
+    case 0x09:  // ORA Immediate
+    case 0xE9:  // SBC Immediate
+    case 0x65:  // ADC Direct Page
+    case 0x72:  // ADC Direct Page Indirect
+    case 0x67:  // ADC Direct Page Indirect Long
+    case 0x75:  // ADC Direct Page Indexed, X
+    case 0x61:  // ADC Direct Page Indirect, X
+    case 0x71:  // ADC DP Indirect Indexed, Y
+    case 0x77:  // ADC DP Indirect Long Indexed, Y
+    case 0x63:  // ADC Stack Relative
+    case 0x73:  // ADC SR Indirect Indexed, Y
+      return GetAccumulatorSize() ? 2 : 3;
+
+    case 0x7D:  // ADC Absolute Indexed, X
+    case 0x79:  // ADC Absolute Indexed, Y
+    case 0x6D:  // ADC Absolute
+      return 3;
+
+    case 0x7F:  // ADC Absolute Long Indexed, X
+    case 0x6F:  // ADC Absolute Long
+      return 4;
+
+    case 0xA5:  // LDA Direct Page
+    case 0x05:  // ORA Direct Page
+    case 0x85:  // STA Direct Page
+    case 0xC6:  // DEC Direct Page
+    case 0x97:  // STA Direct Page Indexed Y
+    case 0x25:  // AND Direct Page
+    case 0x32:  // AND Direct Page Indirect Indexed Y
+    case 0x27:  // AND Direct Page Indirect Long
+    case 0x35:  // AND Direct Page Indexed X
+    case 0x21:  // AND Direct Page Indirect Indexed Y
+    case 0x31:  // AND Direct Page Indirect Long Indexed Y
+    case 0x37:  // AND Direct Page Indirect Long Indexed Y
+    case 0x23:  // AND Direct Page Indirect Indexed X
+    case 0x33:  // AND Direct Page Indirect Long Indexed Y
+    case 0xE6:  // INC Direct Page
+      return 2;
+
+      // ASL (Arithmetic Shift Left)
+    case 0x06:  // ASL Direct Page
+    case 0x16:  // ASL Direct Page Indexed, X
+      return 2;
+
+    case 0x0E:  // ASL Absolute
+    case 0x1E:  // ASL Absolute Indexed, X
+      return 3;
+
+    // Three Byte Instructions
+    case 0x2D:  // AND Absolute
+    case 0xCD:  // CMP Absolute
+    case 0xEC:  // CPX Absolute
+    case 0xCC:  // CPY Absolute
+    case 0x4D:  // EOR Absolute
+    case 0xAD:  // LDA Absolute
+    case 0xAE:  // LDX Absolute
+    case 0xAC:  // LDY Absolute
+    case 0x0D:  // ORA Absolute
+    case 0xED:  // SBC Absolute
+    case 0x8D:  // STA Absolute
+    case 0x8E:  // STX Absolute
+    case 0x8C:  // STY Absolute
+    case 0xBD:  // LDA Absolute Indexed X
+    case 0xBC:  // LDY Absolute Indexed X
+    case 0x3D:  // AND Absolute Indexed X
+    case 0x39:  // AND Absolute Indexed Y
+      return 3;
+
+    // Four Byte Instructions
+    case 0x2F:  // AND Absolute Long
+    case 0xCF:  // CMP Absolute Long
+    case 0x4F:  // EOR Absolute Long
+    case 0xAF:  // LDA Absolute Long
+    case 0x0F:  // ORA Absolute Long
+    case 0xEF:  // SBC Absolute Long
+    case 0x8F:  // STA Absolute Long
+    case 0x3F:  // AND Absolute Long Indexed X
+      return 4;
+
+      // BIT (Bit Test)
+      // Include all BIT variants similar to ADC
+
+      // BRK (Break) and COP (Co-Processor Enable)
+
+    case 0x02:  // COP param
+      return 2;
+
+    // CMP (Compare Accumulator)
+    // Include all CMP variants similar to ADC
+
+    // CPX (Compare X Register) and CPY (Compare Y Register)
+    // Include CPX and CPY variants
+
+    // DEC (Decrement Memory)
+    // Include DEC variants similar to ASL
+
+    // EOR (Exclusive OR with Accumulator)
+    // Include all EOR variants similar to ADC
+
+    // Variable length or Special cases
+    // Add cases for instructions with variable lengths or special handling
+    default:
+      auto mnemonic = opcode_to_mnemonic.at(opcode);
+      std::cerr << "Unknown instruction length: " << std::hex
+                << static_cast<int>(opcode) << ", " << mnemonic << std::endl;
+      return 1;  // Default to 1 as a safe fallback
+  }
 }
 
 }  // namespace emu

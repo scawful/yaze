@@ -134,7 +134,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    Low:  First operand byte
   //
   // LDA addr
-  uint16_t Absolute() { return FetchWord(); }
+  uint16_t Absolute() { return ReadWord((PB << 16) | PC + 1); }
 
   // Effective Address:
   //    The Data Bank Register is concatened with the 16-bit operand
@@ -162,7 +162,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // JMP (addr, X)
   uint16_t AbsoluteIndexedIndirect() {
     uint16_t address = FetchWord() + X;
-    return memory.ReadWord(address & 0xFFFF);  // Consider PBR if needed
+    return memory.ReadWord((PB << 16) | address & 0xFFFF);
   }
 
   // Effective Address:
@@ -173,7 +173,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // JMP (addr)
   uint16_t AbsoluteIndirect() {
     uint16_t address = FetchWord();
-    return memory.ReadWord(address);
+    return memory.ReadWord((PB << 16) | address);
   }
 
   // Effective Address:
@@ -183,7 +183,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // JMP [addr]
   uint32_t AbsoluteIndirectLong() {
     uint16_t address = FetchWord();
-    return memory.ReadWordLong(address);
+    return memory.ReadWordLong((PB << 16) | address);
   }
 
   // Effective Address:
@@ -224,7 +224,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //
   // LDA dp
   uint16_t DirectPage() {
-    uint8_t dp = FetchByte();
+    uint8_t dp = memory.ReadByte((PB << 16) | PC + 1);
     return D + dp;
   }
 
@@ -235,8 +235,8 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //
   // LDA dp, X
   uint16_t DirectPageIndexedX() {
-    uint8_t dp = FetchByte();
-    return (dp + X) & 0xFF;
+    uint8_t operand = FetchByte();
+    return D + operand + X;
   }
 
   // Effective Address:
@@ -326,9 +326,9 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // LDA #const
   uint16_t Immediate() {
     if (GetAccumulatorSize()) {
-      return FetchByte();
+      return memory.ReadByte((PB << 16) | PC + 1);
     } else {
-      return FetchWord();
+      return memory.ReadWord((PB << 16) | PC + 1);
     }
   }
 
@@ -341,6 +341,91 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
     uint8_t sr = FetchByte();
     return memory.ReadWord(SP() + sr + Y);
   }
+
+  // Memory access routines
+  uint8_t ReadByte(uint32_t address) const override {
+    return memory.ReadByte(address);
+  }
+  uint16_t ReadWord(uint32_t address) const override {
+    return memory.ReadWord(address);
+  }
+  uint32_t ReadWordLong(uint32_t address) const override {
+    return memory.ReadWordLong(address);
+  }
+
+  std::vector<uint8_t> ReadByteVector(uint32_t address,
+                                      uint16_t size) const override {
+    return memory.ReadByteVector(address, size);
+  }
+
+  void WriteByte(uint32_t address, uint8_t value) override {
+    memory.WriteByte(address, value);
+  }
+
+  void WriteWord(uint32_t address, uint16_t value) override {
+    memory.WriteWord(address, value);
+  }
+
+  uint8_t FetchByte() {
+    uint32_t address = (PB << 16) | PC + 1;
+    uint8_t byte = memory.ReadByte(address);
+    return byte;
+  }
+
+  uint16_t FetchWord() {
+    uint32_t address = (PB << 16) | PC + 1;
+    uint16_t value = memory.ReadWord(address);
+    return value;
+  }
+
+  uint32_t FetchLong() {
+    uint32_t value = memory.ReadWordLong((PB << 16) | PC + 1);
+    return value;
+  }
+
+  int8_t FetchSignedByte() { return static_cast<int8_t>(FetchByte()); }
+
+  int16_t FetchSignedWord() {
+    auto offset = static_cast<int16_t>(FetchWord());
+    return offset;
+  }
+
+  uint8_t FetchByteDirectPage(uint8_t operand) {
+    uint16_t distance = D * 0x100;
+
+    // Calculate the effective address in the Direct Page
+    uint16_t effectiveAddress = operand + distance;
+
+    // Fetch the byte from memory
+    uint8_t fetchedByte = memory.ReadByte(effectiveAddress);
+
+    next_pc_ = PC + 1;
+    // PC++;  // Increment the Program Counter
+
+    return fetchedByte;
+  }
+
+  uint16_t ReadByBitMode(uint32_t address) {
+    if (GetAccumulatorSize()) {
+      // 8-bit mode
+      return memory.ReadByte(address) & 0xFF;
+    } else {
+      // 16-bit mode
+      return memory.ReadWord(address);
+    }
+  }
+
+  void UpdatePC(uint8_t instruction_length) { PC += instruction_length; }
+
+  uint8_t GetInstructionLength(uint8_t opcode);
+  void SetMemory(const std::vector<uint8_t>& data) override {
+    memory.SetMemory(data);
+  }
+
+  int16_t SP() const override { return memory.SP(); }
+  void SetSP(int16_t value) override { memory.SetSP(value); }
+  void set_next_pc(uint16_t value) { next_pc_ = value; }
+  void UpdateClock(int delta_time) { clock.UpdateClock(delta_time); }
 
   // ======================================================
   // Instructions
@@ -449,7 +534,8 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void JSL(uint32_t address);
 
   // LDA: Load accumulator
-  void LDA(uint16_t address, bool isImmediate = false);
+  void LDA(uint16_t address, bool isImmediate = false,
+           bool direct_page = false);
 
   // LDX: Load X register
   void LDX(uint16_t address, bool isImmediate = false);
@@ -622,78 +708,6 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // XCE: Exchange carry and emulation bits
   void XCE();
 
-  // Memory access routines
-  uint8_t ReadByte(uint32_t address) const override {
-    auto value = memory.ReadByte(address);
-    return value;
-  }
-  uint16_t ReadWord(uint32_t address) const override {
-    return memory.ReadWord(address);
-  }
-  uint32_t ReadWordLong(uint32_t address) const override {
-    return memory.ReadWordLong(address);
-  }
-
-  std::vector<uint8_t> ReadByteVector(uint32_t address,
-                                      uint16_t size) const override {
-    return memory.ReadByteVector(address, size);
-  }
-
-  void WriteByte(uint32_t address, uint8_t value) override {
-    memory.WriteByte(address, value);
-  }
-
-  void WriteWord(uint32_t address, uint16_t value) override {
-    memory.WriteWord(address, value);
-  }
-
-  uint8_t FetchByte() {
-    uint8_t byte = memory.ReadByte(PC);  // Read a byte from memory at PC
-    PC++;                                // Increment the Program Counter
-    return byte;
-  }
-
-  uint16_t FetchWord() {
-    uint16_t value = memory.ReadWord(PC);
-    PC += 2;
-    return value;
-  }
-
-  uint32_t FetchLong() {
-    uint32_t value = memory.ReadWordLong(PC);
-    PC += 3;
-    return value;
-  }
-
-  int8_t FetchSignedByte() { return static_cast<int8_t>(FetchByte()); }
-
-  int16_t FetchSignedWord() {
-    auto offset = static_cast<int16_t>(FetchWord());
-    return offset;
-  }
-
-  uint8_t FetchByteDirectPage(uint8_t operand) {
-    uint16_t distance = D * 0x100;
-
-    // Calculate the effective address in the Direct Page
-    uint16_t effectiveAddress = operand + distance;
-
-    // Fetch the byte from memory
-    uint8_t fetchedByte = memory.ReadByte(effectiveAddress);
-
-    PC++;  // Increment the Program Counter
-
-    return fetchedByte;
-  }
-
-  void SetMemory(const std::vector<uint8_t>& data) override {
-    memory.SetMemory(data);
-  }
-
-  int16_t SP() const override { return memory.SP(); }
-  void SetSP(int16_t value) override { memory.SetSP(value); }
-  void UpdateClock(int delta_time) { clock.UpdateClock(delta_time); }
-
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
     uint16_t result;
@@ -737,6 +751,9 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   }
   uint8_t operator[](int i) const override { return 0; }
   uint8_t at(int i) const override { return 0; }
+
+  uint16_t last_call_frame_;
+  uint16_t next_pc_;
 
   Memory& memory;
   Clock& clock;

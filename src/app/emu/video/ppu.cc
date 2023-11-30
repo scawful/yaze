@@ -56,7 +56,7 @@ void Ppu::RenderScanline() {
 
   // Fetch the tile data from VRAM, tile map data from memory, and palette data
   // from CGRAM
-  UpdateTileData();     // Fetches the tile data from VRAM and stores it in an
+  // UpdateTileData();     // Fetches the tile data from VRAM and stores it in an
                         // internal buffer
   UpdateTileMapData();  // Fetches the tile map data from memory and stores it
                         // in an internal buffer
