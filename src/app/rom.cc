@@ -203,7 +203,7 @@ absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
 }
 
 absl::Status ROM::LoadLinkGraphics() {
-  const auto link_gfx_offset = 81920; // $10:8000
+  const auto link_gfx_offset = 81920;  // $10:8000
   const auto link_gfx_length = 0x800;
 
   // Load Links graphics from the ROM
@@ -248,6 +248,8 @@ absl::Status ROM::LoadAllGraphicsData() {
         graphics_manager_.LoadBitmap(i, converted_sheet, core::kTilesheetWidth,
                                      core::kTilesheetHeight,
                                      core::kTilesheetDepth);
+        graphics_manager_[i]->ApplyPaletteWithTransparent(
+            palette_groups_["dungeon_main"][0], 0);
         graphics_manager_[i]->CreateTexture(renderer_);
       }
       graphics_bin_[i] =

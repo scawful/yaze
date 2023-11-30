@@ -18,66 +18,6 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-void DrawDungeonRoomBG1(std::vector<uint8_t>& tiles_bg1_buffer,
-                        std::vector<uint8_t>& current_gfx16,
-                        std::vector<uint8_t>& room_bg1_data) {
-  for (int yy = 0; yy < 64; ++yy) {
-    for (int xx = 0; xx < 64; ++xx) {
-      if (tiles_bg1_buffer[xx + (yy * 64)] != 0xFFFF) {
-        auto t = gfx::GetTilesInfo(tiles_bg1_buffer[xx + (yy * 64)]);
-        for (int yl = 0; yl < 8; ++yl) {
-          for (int xl = 0; xl < 4; ++xl) {
-            int mx = xl * (1 - t.horizontal_mirror_) +
-                     (3 - xl) * t.horizontal_mirror_;
-            int my =
-                yl * (1 - t.vertical_mirror_) + (7 - yl) * t.vertical_mirror_;
-
-            int ty = (t.id_ / 16) * 512;
-            int tx = (t.id_ % 16) * 4;
-            uint8_t pixel = current_gfx16[(tx + ty) + (yl * 64) + xl];
-
-            int index = (xx * 8) + (yy * 4096) + ((mx * 2) + (my * 512));
-            room_bg1_data[index + t.horizontal_mirror_ ^ 1] =
-                static_cast<uint8_t>((pixel & 0x0F) + t.palette_ * 16);
-            room_bg1_data[index + t.horizontal_mirror_] =
-                static_cast<uint8_t>(((pixel >> 4) & 0x0F) + t.palette_ * 16);
-          }
-        }
-      }
-    }
-  }
-}
-
-void DrawDungeonRoomBG2(std::vector<uint8_t>& tiles_bg2_buffer,
-                        std::vector<uint8_t>& current_gfx16,
-                        std::vector<uint8_t>& room_bg2_data) {
-  for (int yy = 0; yy < 64; ++yy) {
-    for (int xx = 0; xx < 64; ++xx) {
-      if (tiles_bg2_buffer[xx + (yy * 64)] != 0xFFFF) {
-        auto t = gfx::GetTilesInfo(tiles_bg2_buffer[xx + (yy * 64)]);
-        for (int yl = 0; yl < 8; ++yl) {
-          for (int xl = 0; xl < 4; ++xl) {
-            int mx = xl * (1 - t.horizontal_mirror_) +
-                     (3 - xl) * t.horizontal_mirror_;
-            int my =
-                yl * (1 - t.vertical_mirror_) + (7 - yl) * t.vertical_mirror_;
-
-            int ty = (t.id_ / 16) * 512;
-            int tx = (t.id_ % 16) * 4;
-            uint8_t pixel = current_gfx16[(tx + ty) + (yl * 64) + xl];
-
-            int index = (xx * 8) + (yy * 4096) + ((mx * 2) + (my * 512));
-            room_bg2_data[index + t.horizontal_mirror_ ^ 1] =
-                static_cast<uint8_t>((pixel & 0x0F) + t.palette_ * 16);
-            room_bg2_data[index + t.horizontal_mirror_] =
-                static_cast<uint8_t>(((pixel >> 4) & 0x0F) + t.palette_ * 16);
-          }
-        }
-      }
-    }
-  }
-}
-
 void Room::LoadHeader() {
   // Address of the room header
   int header_pointer = (rom()->data()[kRoomHeaderPointer + 2] << 16) +
@@ -106,30 +46,12 @@ void Room::LoadHeader() {
   // tag1 = (TagKey)((rom()->data()[header_location + 5]));
   // tag2 = (TagKey)((rom()->data()[header_location + 6]));
 
-  // holewarpPlane = ((rom()->data()[header_location + 7]) & 0x03);
   staircase_plane[0] = ((rom()->data()[header_location + 7] >> 2) & 0x03);
   staircase_plane[1] = ((rom()->data()[header_location + 7] >> 4) & 0x03);
   staircase_plane[2] = ((rom()->data()[header_location + 7] >> 6) & 0x03);
   staircase_plane[3] = ((rom()->data()[header_location + 8]) & 0x03);
 
-  // if (holewarpPlane == 2) {
-  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
-  //                      index.ToString("X2"));
-  // } else if (staircasePlane[0] == 2) {
-  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
-  //                      index.ToString("X2"));
-  // } else if (staircasePlane[1] == 2) {
-  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
-  //                      index.ToString("X2"));
-  // } else if (staircasePlane[2] == 2) {
-  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
-  //                      index.ToString("X2"));
-  // } else if (staircasePlane[3] == 2) {
-  //   Console::WriteLine("Room Index Plane 1 : Used in room id = " +
-  //                      index.ToString("X2"));
-  // }
-
-  // holewarp = (rom()->data()[header_location + 9]);
+  holewarp = (rom()->data()[header_location + 9]);
   staircase_rooms[0] = (rom()->data()[header_location + 10]);
   staircase_rooms[1] = (rom()->data()[header_location + 11]);
   staircase_rooms[2] = (rom()->data()[header_location + 12]);

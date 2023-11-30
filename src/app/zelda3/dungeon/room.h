@@ -20,6 +20,26 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
+// public static int room_object_layout_pointer = 0x882D;
+// public static int room_object_pointer = 0x874C; // Long pointer
+// oh eh
+// in bank 01 ? lol
+// those are pointer of pointers
+// 0x882D -> readlong() -> 2FEF04 (04EF2F -> toPC->026F2F) ->
+// that's all the layout "room" pointers
+
+// 47EF04 ; layout00 ptr
+// AFEF04 ; layout01 ptr
+// F0EF04 ; layout02 ptr
+// 4CF004 ; layout03 ptr
+// A8F004 ; layout04 ptr
+// ECF004 ; layout05 ptr
+// 48F104 ; layout06 ptr
+// A4F104 ; layout07 ptr
+// also they are not exactly the same as rooms
+// the object array is terminated by a 0xFFFF there's no layers
+// in normal room when you encounter a 0xFFFF it goes to the next layer
+
 constexpr int entrance_gfx_group = 0x5D97;
 constexpr int dungeons_main_bg_palette_pointers = 0xDEC4B;  // JP Same
 constexpr int dungeons_palettes = 0xDD734;
@@ -45,7 +65,6 @@ constexpr int torches_length_pointer = 0x88C1;
 constexpr int sprite_blockset_pointer = 0x5B57;
 
 constexpr int sprites_data = 0x4D8B0;
-
 constexpr int sprites_data_empty_room = 0x4D8AE;
 constexpr int sprites_end_data = 0x4EC9E;
 constexpr int pit_pointer = 0x394AB;
@@ -66,14 +85,6 @@ constexpr int door_pos_right = 0x19C6;
 constexpr int dungeon_spr_ptrs = 0x090000;
 
 constexpr ushort stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
-
-void DrawDungeonRoomBG1(std::vector<uint8_t>& tiles_bg1_buffer,
-                        std::vector<uint8_t>& current_gfx16,
-                        std::vector<uint8_t>& room_bg1_ptr);
-
-void DrawDungeonRoomBG2(std::vector<uint8_t>& tiles_bg2_buffer,
-                        std::vector<uint8_t>& current_gfx16,
-                        std::vector<uint8_t>& room_bg2_ptr);
 
 class DungeonDestination {
  public:
@@ -139,6 +150,7 @@ class Room : public SharedROM {
   uint8_t spriteset = 0;
   uint8_t palette = 0;
   uint8_t layout = 0;
+  uint8_t holewarp = 0;
 
   uint16_t message_id_ = 0;
 
@@ -170,6 +182,7 @@ class Room : public SharedROM {
   std::array<uint8_t, 16> blocks_;
   std::array<uchar, 16> ChestList;
 
+  std::array<gfx::Bitmap, 3> background_bmps_;
   std::vector<zelda3::Sprite> sprites_;
   std::vector<StaircaseRooms> staircaseRooms;
 
