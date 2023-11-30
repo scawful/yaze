@@ -16,6 +16,10 @@ namespace yaze {
 namespace app {
 namespace gui {
 
+class DynamicLayout {
+  
+};
+
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
 
 void RenderTabItem(const std::string& title,

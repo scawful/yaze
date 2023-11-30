@@ -322,13 +322,14 @@ void DungeonEditor::DrawObjectRenderer() {
     TableSetupColumn("Canvas");
 
     ImGui::TableNextColumn();
-    ImGui::BeginChild("DungeonObjectButtons", ImVec2(0, 0), true);
+    ImGui::BeginChild("DungeonObjectButtons", ImVec2(250, 0), true);
 
     int selected_object = 0;
     int i = 0;
     for (const auto object_name : zelda3::dungeon::Type1RoomObjectNames) {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
+        current_object_ = i;
         object_renderer_.LoadObject(i);
         rom()->RenderBitmap(object_renderer_.bitmap());
         object_loaded_ = true;
@@ -355,6 +356,15 @@ void DungeonEditor::DrawObjectRenderer() {
     ImGui::EndChild();
 
     ImGui::EndTable();
+  }
+
+  if (object_loaded_) {
+    ImGui::Begin("Memory Viewer", &object_loaded_, 0);
+    auto memory = object_renderer_.memory();
+    static MemoryEditor mem_edit;
+    mem_edit.DrawContents((void*)object_renderer_.mutable_memory(),
+                          memory.size());
+    ImGui::End();
   }
 }
 

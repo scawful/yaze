@@ -68,6 +68,7 @@ class Canvas {
 
   void DrawBitmapTable(const BitmapTable& gfx_bin);
   void DrawOutline(int x, int y, int w, int h);
+  void DrawSelectRect(int tile_size, float scale = 1.0f);
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
   void DrawText(std::string text, int x, int y);
   void DrawGrid(float grid_step = 64.0f);
@@ -85,11 +86,18 @@ class Canvas {
   }
   auto IsMouseHovering() const { return is_hovered_; }
 
+  void set_global_scale(float scale) { global_scale_ = scale; }
+  auto global_scale() const { return global_scale_; }
+
  private:
   bool enable_grid_ = true;
+  bool enable_hex_tile_labels_ = false;
   bool enable_context_menu_ = true;
   bool custom_canvas_size_ = false;
   bool is_hovered_ = false;
+
+  float custom_step_ = 8.0f;
+  float global_scale_ = 1.0f;
 
   ImDrawList* draw_list_;
   ImVector<ImVec2> points_;

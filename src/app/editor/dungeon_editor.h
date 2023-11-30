@@ -57,6 +57,7 @@ class DungeonEditor : public Editor,
   bool palette_showing_ = false;
 
   bool refresh_graphics_ = false;
+  int current_object_ = 0;
   uint64_t current_palette_id_ = 0;
   uint64_t current_palette_group_id_ = 0;
 

@@ -214,6 +214,9 @@ SNESPalette ReadPaletteFromROM(int offset, int num_colors, const uchar* rom) {
     new_color.green = ((color >> 5) & 0x1F) * 8;
     new_color.blue = ((color >> 10) & 0x1F) * 8;
     colors[color_offset].SetSNES(ConvertRGBtoSNES(new_color));
+    if (color_offset == 0) {
+      colors[color_offset].SetTransparent(true);
+    }
     color_offset++;
     offset += 2;
   }
