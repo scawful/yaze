@@ -8,6 +8,7 @@ add_executable(
   app/emu/audio/dsp.cc
   app/emu/video/ppu.cc
   app/emu/memory/dma.cc
+  app/emu/memory/memory.cc
   app/emu/cpu.cc
   app/emu/snes.cc
   ${YAZE_APP_CORE_SRC}

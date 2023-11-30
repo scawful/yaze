@@ -31,7 +31,7 @@ For developers to reference.
       - [Constants](../src/app/core/constants.h)
       - [Controller](../src/app/core/controller.h)
       - [Editor](../src/app/core/editor.h)
-      - [Pipeline](../src/app/core/pipeline.h)
+      - [Pipeline](../src/app/gui/pipeline.h)
 - **Editor Namespace**:
   - Editors are responsible for representing the GUI view and handling user input.
   - These classes are all controlled by [MasterEditor](../src/app/editor/master_editor.h)

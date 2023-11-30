@@ -47,6 +47,8 @@ class DungeonObjectRenderer : public SharedROM {
   }
 
   gfx::Bitmap* bitmap() { return &bitmap_; }
+  auto memory() { return memory_; }
+  auto mutable_memory() { return memory_.data(); }
 
  private:
   struct SubtypeInfo {
@@ -67,11 +69,7 @@ class DungeonObjectRenderer : public SharedROM {
         info.subtypePtr = core::subtype1_tiles + (objectId & 0xFF) * 2;
         info.routinePtr = core::subtype1_tiles + 0x200 + (objectId & 0xFF) * 2;
         std::cout << "Subtype 1 " << std::hex << info.subtypePtr << std::endl;
-        info.routinePtr =
-            memory_.ReadWord(core::MapBankToWordAddress(0x01, info.routinePtr));
         std::cout << "Subtype 1 " << std::hex << info.routinePtr << std::endl;
-        std::cout << "Subtype 1 " << std::hex << core::SnesToPc(info.routinePtr)
-                  << std::endl;
         break;
       case 2:  // Subtype 2
         info.subtypePtr = core::subtype2_tiles + (objectId & 0x7F) * 2;
@@ -97,6 +95,8 @@ class DungeonObjectRenderer : public SharedROM {
   void ConfigureObject(const SubtypeInfo& info) {
     cpu.A = 0x00;
     cpu.X = 0x00;
+    cpu.SetAccumulatorSize(false);
+    cpu.SetIndexSize(false);
 
     // Might need to set the height and width manually?
   }
@@ -142,19 +142,14 @@ class DungeonObjectRenderer : public SharedROM {
   */
 
   void RenderObject(const SubtypeInfo& info) {
-    cpu.PC = info.routinePtr;
     cpu.PB = 0x01;
+    cpu.PC = cpu.ReadWord(0x01 << 16 | info.routinePtr);
 
     int i = 0;
     while (true) {
       uint8_t opcode = cpu.FetchByte();
       cpu.ExecuteInstruction(opcode);
       cpu.HandleInterrupts();
-
-      // Check if the end of the routine is reached
-      if (opcode == 0x60) {  // RTS opcode
-        break;
-      }
 
       if (i > 50) {
         break;
