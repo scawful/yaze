@@ -2,15 +2,7 @@ add_executable(
   yaze
   app/yaze.cc
   app/rom.cc
-  app/emu/emulator.cc
-  app/emu/audio/apu.cc
-  app/emu/audio/spc700.cc
-  app/emu/audio/dsp.cc
-  app/emu/video/ppu.cc
-  app/emu/memory/dma.cc
-  app/emu/memory/memory.cc
-  app/emu/cpu.cc
-  app/emu/snes.cc
+  ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_CORE_SRC}
   ${YAZE_APP_EDITOR_SRC}
   ${YAZE_APP_GFX_SRC}
@@ -23,10 +15,10 @@ target_include_directories(
   yaze PUBLIC
   lib/
   app/
+  lib/SDL_mixer/include/
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
-  lib/SDL_mixer/include/
 )
 
 target_link_libraries(

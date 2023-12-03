@@ -1,8 +1,6 @@
 #ifndef YAZE_APP_EMU_SNES_H
 #define YAZE_APP_EMU_SNES_H
 
-#include <SDL_mixer.h>
-
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -48,7 +46,8 @@ class SNES : public DMA {
   void VBlankRoutine();
 
   // Boot the APU with the IPL ROM
-  void BootAPUWithIPL();
+  void BootApuWithIPL();
+  void StartApuDataTransfer();
 
   // Controller input handling
   void HandleInput();

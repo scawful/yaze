@@ -51,6 +51,21 @@ set(
   app/gui/pipeline.cc
 )
 
+set(
+  YAZE_APP_EMU_SRC
+  app/emu/emulator.cc
+  app/emu/audio/apu.cc
+  app/emu/audio/spc700.cc
+  app/emu/audio/dsp.cc
+  app/emu/cpu/instructions.cc
+  app/emu/cpu/addressing.cc
+  app/emu/video/ppu.cc
+  app/emu/memory/dma.cc
+  app/emu/memory/memory.cc
+  app/emu/cpu.cc
+  app/emu/snes.cc
+)
+
 set(SDL_TARGETS SDL2::SDL2)
 
 if(WIN32 OR MINGW)
