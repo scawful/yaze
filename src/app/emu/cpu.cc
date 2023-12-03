@@ -368,14 +368,14 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
 
     case 0xD0:  // BNE Branch if not equal (zero clear)
     {
-      operand = FetchByte();
+      operand = FetchSignedByte();
       BNE(operand);
       break;
     }
 
     case 0x10:  // BPL Branch if plus (negative clear)
     {
-      operand = FetchByte();
+      operand = FetchSignedByte();
       BPL(operand);
       break;
     }
@@ -390,6 +390,18 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
     case 0x00:  // BRK Break
     {
       BRK();
+      std::cout << "BRK" << std::endl;
+      // Print all the registers 
+      std::cout << "A: " << std::hex << std::setw(2) << std::setfill('0') << (int)A << std::endl;
+      std::cout << "X: " << std::hex << std::setw(2) << std::setfill('0') << (int)X << std::endl;
+      std::cout << "Y: " << std::hex << std::setw(2) << std::setfill('0') << (int)Y << std::endl;
+      std::cout << "S: " << std::hex << std::setw(2) << std::setfill('0') << (int)SP() << std::endl;
+      std::cout << "PC: " << std::hex << std::setw(4) << std::setfill('0') << (int)PC << std::endl;
+      std::cout << "PB: " << std::hex << std::setw(2) << std::setfill('0') << (int)PB << std::endl;
+      std::cout << "D: " << std::hex << std::setw(4) << std::setfill('0') << (int)D << std::endl;
+      std::cout << "DB: " << std::hex << std::setw(2) << std::setfill('0') << (int)DB << std::endl;
+      std::cout << "E: " << std::hex << std::setw(2) << std::setfill('0') << (int)E << std::endl;
+      
       break;
     }
 
@@ -1730,6 +1742,13 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x93:  // STA SR Indirect Indexed, Y
     case 0x95:  // STA Direct Page Indexed, X
     case 0x96:  // STX Direct Page Indexed, Y
+    case 0xC7:  // CMP Direct Page Indirect Long
+    case 0xD7:  // CMP DP Indirect Long Indexed, Y
+    case 0xD2:  // CMP DP Indirect
+    case 0xD1:  // CMP DP Indirect Indexed, Y
+    case 0x03:  // ORA Stack Relative
+    case 0x13:  // ORA SR Indirect Indexed, Y
+    case 0x07:  // ORA Direct Page Indirect Long
       return 2;
 
     case 0x69:  // ADC Immediate
@@ -1772,6 +1791,11 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x5D:  // EOR Absolute Indexed, X
     case 0x59:  // EOR Absolute Indexed, Y
     case 0x83:  // STA Stack Relative Indirect Indexed, Y
+    case 0xCE:  // DEC Absolute
+    case 0xD5:  // CMP DP Indexed, X
+    case 0xD9:  // CMP Absolute Indexed, Y
+    case 0xDD:  // CMP Absolute Indexed, X
+    case 0x0C:  // TSB Absolute
       return 3;
 
     case 0x2F:  // AND Absolute Long
