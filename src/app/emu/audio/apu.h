@@ -157,6 +157,10 @@ class APU : public Observer {
     }
   }
 
+  void SetReadyCallback(std::function<void()> callback) {
+    ready_callback_ = callback;
+  }
+
  private:
   // Constants for communication
   static const uint8_t READY_SIGNAL_0 = 0xAA;
@@ -187,6 +191,8 @@ class APU : public Observer {
   DigitalSignalProcessor dsp_;
   SPC700 spc700_{aram_};
   std::vector<int16_t> audioSamples_;
+
+  std::function<void()> ready_callback_;
 };
 
 }  // namespace emu

@@ -43,11 +43,14 @@ void APU::Update() {
 
   for (auto i = 0; i < cycles_to_run; ++i) {
     // Update the APU
-    // ...
+    UpdateChannelSettings();
 
     // Update the SPC700
-    // ...
+    uint8_t opcode = spc700_.read(spc700_.PC);
+    spc700_.ExecuteInstructions(opcode);
   }
+
+  ProcessSamples();
 }
 
 void APU::ProcessSamples() {
