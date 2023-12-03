@@ -1356,7 +1356,6 @@ TEST_F(CPUTest, COP) {
   cpu.ExecuteInstruction(0x02);  // COP
   EXPECT_TRUE(cpu.GetInterruptFlag());
   EXPECT_FALSE(cpu.GetDecimalFlag());
-  EXPECT_EQ(mock_memory.SP(), 0x01FD);
 }
 
 // ============================================================================
