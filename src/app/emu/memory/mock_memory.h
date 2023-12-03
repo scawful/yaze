@@ -140,7 +140,7 @@ class MockMemory : public Memory {
           memory_[address + 1] = (value >> 8) & 0xFF;
         });
     ON_CALL(*this, PushByte(::testing::_)).WillByDefault([this](uint8_t value) {
-      memory_.at(SP_) = value;
+      memory_.at(SP_--) = value;
     });
     ON_CALL(*this, PopByte()).WillByDefault([this]() {
       uint8_t value = memory_.at(SP_);
@@ -151,6 +151,7 @@ class MockMemory : public Memory {
         .WillByDefault([this](uint16_t value) {
           memory_.at(SP_) = value & 0xFF;
           memory_.at(SP_ + 1) = (value >> 8) & 0xFF;
+          this->SetSP(SP_ - 2);
         });
     ON_CALL(*this, PopWord()).WillByDefault([this]() {
       uint16_t value = static_cast<uint16_t>(memory_.at(SP_)) |
