@@ -391,17 +391,26 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
     {
       BRK();
       std::cout << "BRK" << std::endl;
-      // Print all the registers 
-      std::cout << "A: " << std::hex << std::setw(2) << std::setfill('0') << (int)A << std::endl;
-      std::cout << "X: " << std::hex << std::setw(2) << std::setfill('0') << (int)X << std::endl;
-      std::cout << "Y: " << std::hex << std::setw(2) << std::setfill('0') << (int)Y << std::endl;
-      std::cout << "S: " << std::hex << std::setw(2) << std::setfill('0') << (int)SP() << std::endl;
-      std::cout << "PC: " << std::hex << std::setw(4) << std::setfill('0') << (int)PC << std::endl;
-      std::cout << "PB: " << std::hex << std::setw(2) << std::setfill('0') << (int)PB << std::endl;
-      std::cout << "D: " << std::hex << std::setw(4) << std::setfill('0') << (int)D << std::endl;
-      std::cout << "DB: " << std::hex << std::setw(2) << std::setfill('0') << (int)DB << std::endl;
-      std::cout << "E: " << std::hex << std::setw(2) << std::setfill('0') << (int)E << std::endl;
-      
+      // Print all the registers
+      std::cout << "A: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)A << std::endl;
+      std::cout << "X: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)X << std::endl;
+      std::cout << "Y: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)Y << std::endl;
+      std::cout << "S: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)SP() << std::endl;
+      std::cout << "PC: " << std::hex << std::setw(4) << std::setfill('0')
+                << (int)PC << std::endl;
+      std::cout << "PB: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)PB << std::endl;
+      std::cout << "D: " << std::hex << std::setw(4) << std::setfill('0')
+                << (int)D << std::endl;
+      std::cout << "DB: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)DB << std::endl;
+      std::cout << "E: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)E << std::endl;
+
       break;
     }
 
@@ -1533,11 +1542,14 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x7C:  // JMP Absolute Indexed Indirect
     case 0xFC:  // JSR Absolute Indexed Indirect
     case 0xDC:  // JMP Absolute Indirect Long
+    case 0x6B:  // RTL
+    case 0x80:  // BRA Relative
+    case 0x82:  // BRL Relative Long
       PC = next_pc_;
       return 0;
 
-    case 0x6B:  // RTL
-      PC = next_pc_;
+    case 0x60:  // RTS
+      PC = last_call_frame_;
       return 0;
 
     // Branch Instructions (BCC, BCS, BNE, BEQ, etc.)
@@ -1602,18 +1614,6 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
         return 2;
       }
 
-    case 0x80:  // BRA Relative
-      PC = next_pc_;
-      return 0;
-
-    case 0x82:  // BRL Relative Long
-      PC = next_pc_;
-      return 0;
-
-    case 0x60:  // RTS
-      PC = last_call_frame_;
-      return 0;
-
     case 0x18:  // CLC
     case 0xD8:  // CLD
     case 0x58:  // CLI
@@ -1645,6 +1645,7 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0xA8:  // TAY
     case 0xBA:  // TSX
     case 0x8A:  // TXA
+    case 0x9B:  // TXY
     case 0x9A:  // TXS
     case 0x98:  // TYA
     case 0x0A:  // ASL Accumulator
@@ -1657,10 +1658,17 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x7B:  // TDC
     case 0x3B:  // TSC
     case 0xEB:  // XBA
+    case 0xCB:  // WAI
+    case 0xDB:  // STP
+    case 0x4A:  // LSR Accumulator
+    case 0x6A:  // ROR Accumulator
       return 1;
 
     case 0xC2:  // REP
     case 0xE2:  // SEP
+    case 0xE4:  // CPX Direct Page
+    case 0xC4:  // CPY Direct Page
+    case 0xD6:  // DEC Direct Page Indexed, X
     case 0x45:  // EOR Direct Page
     case 0xA5:  // LDA Direct Page
     case 0x05:  // ORA Direct Page
@@ -1749,6 +1757,20 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x03:  // ORA Stack Relative
     case 0x13:  // ORA SR Indirect Indexed, Y
     case 0x07:  // ORA Direct Page Indirect Long
+    case 0x11:  // ORA DP Indirect Indexed, Y
+    case 0x12:  // ORA DP Indirect
+    case 0x15:  // ORA DP Indexed, X
+    case 0x17:  // ORA DP Indirect Long Indexed, Y
+    case 0x26:  // ROL Direct Page
+    case 0x36:  // ROL Direct Page Indexed, X
+    case 0x66:  // ROR Direct Page
+    case 0x76:  // ROR Direct Page Indexed, X
+    case 0x42:  // WDM
+    case 0xD3:  // CMP Stack Relative Indirect Indexed, Y
+    case 0x52:  // EOR Direct Page Indirect
+    case 0xA4:  // LDA Direct Page
+    case 0xA6:  // LDX Direct Page
+    case 0xD4:  // PEI
       return 2;
 
     case 0x69:  // ADC Immediate
@@ -1785,6 +1807,8 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x39:  // AND Absolute Indexed Y
     case 0x9C:  // STZ Absolute Indexed X
     case 0x9D:  // STA Absolute Indexed X
+    case 0x99:  // STA Absolute Indexed Y
+    case 0x3C:  // BIT Absolute Indexed X
     case 0x7D:  // ADC Absolute Indexed, X
     case 0x79:  // ADC Absolute Indexed, Y
     case 0x6D:  // ADC Absolute
@@ -1796,8 +1820,26 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0xD9:  // CMP Absolute Indexed, Y
     case 0xDD:  // CMP Absolute Indexed, X
     case 0x0C:  // TSB Absolute
+    case 0x1C:  // TRB Absolute
+    case 0xF9:  // SBC Absolute Indexed, Y
+    case 0xFD:  // SBC Absolute Indexed, X
+    case 0x2C:  // BIT Absolute
+    case 0x2E:  // ROL Absolute
+    case 0x3E:  // ROL Absolute Indexed, X
+    case 0x4E:  // LSR Absolute
+    case 0x5E:  // LSR Absolute Indexed, X
+    case 0xDE:  // DEC Absolute Indexed, X
+    case 0xEE:  // INC Absolute
+    case 0xB9:  // LDA Absolute Indexed, Y
+    case 0xBE:  // LDX Absolute Indexed, Y
+    case 0xFE:  // INC Absolute Indexed, X
+    case 0xF4:  // PEA
+    case 0x62:  // PER
+    case 0x6E:  // ROR Absolute
+    case 0x7E:  // ROR Absolute Indexed, X
       return 3;
 
+    case 0x6F:  // ADC Absolute Long
     case 0x2F:  // AND Absolute Long
     case 0xCF:  // CMP Absolute Long
     case 0x4F:  // EOR Absolute Long
@@ -1805,16 +1847,22 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x0F:  // ORA Absolute Long
     case 0xEF:  // SBC Absolute Long
     case 0x8F:  // STA Absolute Long
-    case 0x5F:  // EOR Absolute Long Indexed, X
-    case 0x3F:  // AND Absolute Long Indexed X
     case 0x7F:  // ADC Absolute Long Indexed, X
-    case 0x6F:  // ADC Absolute Long
+    case 0x3F:  // AND Absolute Long Indexed, X
+    case 0xDF:  // CMP Absolute Long Indexed, X
+    case 0x5F:  // EOR Absolute Long Indexed, X
+    case 0x9F:  // STA Absolute Long Indexed, X
+    case 0x1F:  // ORA Absolute Long Indexed, X
+    case 0xBF:  // LDA Absolute Long Indexed, X
+    case 0x9E:  // STZ Absolute Long Indexed, X
+    case 0xFF:  // SBC Absolute Long Indexed, X
       return 4;
 
     default:
       auto mnemonic = opcode_to_mnemonic.at(opcode);
       std::cerr << "Unknown instruction length: " << std::hex
                 << static_cast<int>(opcode) << ", " << mnemonic << std::endl;
+      throw std::runtime_error("Unknown instruction length");
       return 1;  // Default to 1 as a safe fallback
   }
 }

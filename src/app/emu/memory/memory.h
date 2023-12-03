@@ -270,6 +270,7 @@ class MemoryImpl : public Memory, public Loggable {
     } else {
       // Handle stack underflow
       std::cout << "Stack underflow!" << std::endl;
+      throw std::runtime_error("Stack underflow!");
     }
   }
 
@@ -279,7 +280,7 @@ class MemoryImpl : public Memory, public Loggable {
     } else {
       // Handle stack overflow
       std::cout << "Stack overflow!" << std::endl;
-      return 0;
+      throw std::runtime_error("Stack overflow!");
     }
   }
 
