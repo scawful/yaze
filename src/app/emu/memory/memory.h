@@ -125,12 +125,10 @@ class Memory {
   virtual void PushLong(uint32_t value) = 0;
   virtual uint32_t PopLong() = 0;
 
-  virtual int16_t SP() const = 0;
-  virtual void SetSP(int16_t value) = 0;
+  virtual uint16_t SP() const = 0;
+  virtual void SetSP(uint16_t value) = 0;
 
-  virtual void SetMemory(const std::vector<uint8_t>& data) = 0;
   virtual void ClearMemory() = 0;
-  virtual void LoadData(const std::vector<uint8_t>& data) = 0;
 
   virtual uint8_t operator[](int i) const = 0;
   virtual uint8_t at(int i) const = 0;
@@ -313,15 +311,9 @@ class MemoryImpl : public Memory, public Loggable {
   void AddObserver(Observer* observer) { observers_.push_back(observer); }
 
   // Stack Pointer access.
-  int16_t SP() const override { return SP_; }
-  void SetSP(int16_t value) override { SP_ = value; }
+  uint16_t SP() const override { return SP_; }
+  void SetSP(uint16_t value) override { SP_ = value; }
   void ClearMemory() override { std::fill(memory_.begin(), memory_.end(), 0); }
-  void SetMemory(const std::vector<uint8_t>& data) override {
-    std::copy(data.begin(), data.end(), memory_.begin());
-  }
-  void LoadData(const std::vector<uint8_t>& data) override {
-    std::copy(data.begin(), data.end(), memory_.begin());
-  }
 
   uint8_t at(int i) const override { return memory_[i]; }
   uint8_t operator[](int i) const override {

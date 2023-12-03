@@ -14,12 +14,13 @@
 #include "absl/strings/str_cat.h"
 #include "app/core/common.h"     // for PcToSnes, SnesToPc
 #include "app/core/constants.h"  // for RETURN_IF_ERROR
-#include "app/gui/pipeline.h"
+#include "app/emu/snes.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
+#include "app/gui/pipeline.h"
 #include "app/rom.h"  // for ROM
 #include "app/zelda3/overworld.h"
 #include "cli/patch.h"  // for ApplyBpsPatch, CreateBpsPatch
@@ -273,8 +274,32 @@ class Expand : public CommandHandler {
   }
 };
 
+// Start Emulator on a SNES rom file
+// -emu <rom_file> <optional:num_cpu_cycles>
+class Emulator : public CommandHandler {
+ public:
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    std::string filename = arg_vec[0];
+    RETURN_IF_ERROR(rom_.LoadFromFile(filename))
+
+    snes.SetupMemory(rom_);
+    snes.Init(rom_);
+
+    int i = 0;
+    while (i < 80000) {
+      snes.Run();
+      i++;
+    }
+
+    return absl::OkStatus();
+  }
+
+  app::emu::SNES snes;
+};
+
 struct Commands {
   std::unordered_map<std::string, std::shared_ptr<CommandHandler>> handlers = {
+      {"-emu", std::make_shared<Emulator>()},
       {"-a", std::make_shared<ApplyPatch>()},
       {"-c", std::make_shared<CreatePatch>()},
       {"-o", std::make_shared<Open>()},

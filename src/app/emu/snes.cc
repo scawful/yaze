@@ -29,7 +29,6 @@ uint16_t GetHeaderOffset(const Memory& memory) {
   switch (mapMode & 0x07) {
     case 0:  // LoROM
       offset = 0x7FC0;
-      // offset = 0xFFC0;
       break;
     case 1:  // HiROM
       offset = 0xFFC0;
@@ -113,12 +112,13 @@ void SNES::Init(ROM& rom) {
   cpu_.E = 0;
 
   // Initialize CPU
-  cpu_.Init();
+  cpu_.Init(); 
 
   // Read the ROM header
   auto header_offset = GetHeaderOffset(memory_);
   rom_info_ = ReadRomHeader((0x00 << 16) + header_offset);
-  cpu_.PC = rom_info_.resetVector;
+  cpu_.PB = 0x00;
+  cpu_.PC = 0x8000;
 
   // Initialize PPU
   ppu_.Init();
@@ -300,16 +300,28 @@ void SNES::NmiIsr() {
 
 // VBlank routine
 void SNES::VBlankRoutine() {
-  // Execute code that needs to run during VBlank, such as transferring data to
-  // the PPU
+  // Read the joypad state
+  // ...
+
+  // Update the PPU
+  // ...
+
+  // Update the APU
+  // ...
 }
 
-void SNES::BootAPUWithIPL() {
-  // 1. Waiting for the SPC700 to be ready
-  while (!apu_.IsReadySignalReceived()) {
-    // Active waiting (this can be optimized)
+void SNES::BootApuWithIPL() {
+  // 1. Check if the SPC700 is ready, else set a callback for when it becomes
+  // ready
+  if (!apu_.IsReadySignalReceived()) {
+    apu_.SetReadyCallback([this]() { this->StartApuDataTransfer(); });
+    return;  // Exit and wait for callback to be called
   }
 
+  StartApuDataTransfer();
+}
+
+void SNES::StartApuDataTransfer() {
   // 2. Setting the starting address
   const uint16_t startAddress = 0x0200;
   memory_.WriteByte(0x2142, startAddress & 0xFF);  // Lower byte

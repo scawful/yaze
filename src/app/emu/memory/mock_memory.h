@@ -21,6 +21,9 @@ class MockClock : public Clock {
   MOCK_METHOD(float, GetFrequency, (), (const, override));
 };
 
+// 0x1000000 is 16 MB, simplifying the memory layout for testing
+// 2 MB is = 0x200000
+
 class MockMemory : public Memory {
  public:
   MOCK_CONST_METHOD1(ReadByte, uint8_t(uint32_t address));
@@ -39,8 +42,8 @@ class MockMemory : public Memory {
   MOCK_METHOD1(PushLong, void(uint32_t value));
   MOCK_METHOD0(PopLong, uint32_t());
 
-  MOCK_CONST_METHOD0(SP, int16_t());
-  MOCK_METHOD1(SetSP, void(int16_t value));
+  MOCK_CONST_METHOD0(SP, uint16_t());
+  MOCK_METHOD1(SetSP, void(uint16_t value));
 
   MOCK_METHOD1(SetMemory, void(const std::vector<uint8_t>& data));
   MOCK_METHOD1(LoadData, void(const std::vector<uint8_t>& data));
@@ -51,12 +54,16 @@ class MockMemory : public Memory {
   uint8_t operator[](int i) const override { return memory_[i]; }
 
   void SetMemoryContents(const std::vector<uint8_t>& data) {
-    memory_.resize(64000);
+    if (data.size() > memory_.size()) {
+      memory_.resize(data.size());
+    }
     std::copy(data.begin(), data.end(), memory_.begin());
   }
 
   void SetMemoryContents(const std::vector<uint16_t>& data) {
-    memory_.resize(64000);
+    if (data.size() > memory_.size()) {
+      memory_.resize(data.size());
+    }
     int i = 0;
     for (const auto& each : data) {
       memory_[i] = each & 0xFF;
@@ -66,6 +73,10 @@ class MockMemory : public Memory {
   }
 
   void InsertMemory(const uint64_t address, const std::vector<uint8_t>& data) {
+    if (address > memory_.size()) {
+      memory_.resize(address + data.size());
+    }
+
     int i = 0;
     for (const auto& each : data) {
       memory_[address + i] = each;
@@ -160,6 +171,9 @@ class MockMemory : public Memory {
       this->SetSP(SP_ + 3);
       return value;
     });
+    ON_CALL(*this, SP()).WillByDefault([this]() { return SP_; });
+    ON_CALL(*this, SetSP(::testing::_))
+        .WillByDefault([this](uint16_t value) { SP_ = value; });
     ON_CALL(*this, ClearMemory()).WillByDefault([this]() {
       memory_.resize(64000, 0x00);
     });

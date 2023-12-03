@@ -50,30 +50,45 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void ExecuteInstruction(uint8_t opcode);
   void LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
                        bool immediate, bool accumulator_mode);
-  void HandleInterrupts();
+
+  void UpdatePC(uint8_t instruction_length) { PC += instruction_length; }
+
+  uint8_t GetInstructionLength(uint8_t opcode);
+  uint16_t SP() const override { return memory.SP(); }
+  void SetSP(uint16_t value) override { memory.SetSP(value); }
+  void set_next_pc(uint16_t value) { next_pc_ = value; }
+  void UpdateClock(int delta_time) { clock.UpdateClock(delta_time); }
 
   bool IsBreakpoint(uint32_t address) {
     return std::find(breakpoints_.begin(), breakpoints_.end(), address) !=
            breakpoints_.end();
   }
-
   void SetBreakpoint(uint32_t address) { breakpoints_.push_back(address); }
-
   void ClearBreakpoint(uint32_t address) {
     breakpoints_.erase(
         std::remove(breakpoints_.begin(), breakpoints_.end(), address),
         breakpoints_.end());
   }
-
   void ClearBreakpoints() {
     breakpoints_.clear();
     breakpoints_.shrink_to_fit();
   }
-
   auto GetBreakpoints() { return breakpoints_; }
 
   std::vector<uint32_t> breakpoints_;
   std::vector<InstructionEntry> instruction_log_;
+
+  // ======================================================
+  // Interrupt Vectors
+  // Emulation mode, e = 1      Native mode, e = 0
+  //
+  // 0xFFFE,FF - IRQ/BRK        0xFFEE,EF  - IRQ
+  // 0xFFFC,FD - RESET
+  // 0xFFFA,FB - NMI            0xFFEA,EB  - NMI
+  // 0xFFF8,F9 - ABORT          0xFFE8,E9  - ABORT
+  //                            0xFFE6,E7  - BRK
+  // 0xFFF4,F5 - COP            0xFFE4,E5  - COP
+  void HandleInterrupts();
 
   // ======================================================
   // Registers
@@ -101,8 +116,17 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // B 	      #$10 	00010000 	Break (emulation mode only)
 
   // Setting flags in the status register
+  bool m() { return GetAccumulatorSize() ? 1 : 0; }
   int GetAccumulatorSize() const { return status & 0x20; }
   int GetIndexSize() const { return status & 0x10; }
+  void set_16_bit_mode() {
+    SetAccumulatorSize(true);
+    SetIndexSize(true);
+  }
+  void set_8_bit_mode() {
+    SetAccumulatorSize(false);
+    SetIndexSize(false);
+  }
   void SetAccumulatorSize(bool set) { SetFlag(0x20, set); }
   void SetIndexSize(bool set) { SetFlag(0x10, set); }
 
@@ -124,6 +148,8 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   bool GetZeroFlag() const { return GetFlag(0x02); }
   bool GetCarryFlag() const { return GetFlag(0x01); }
 
+  enum class AccessType { Control, Data };
+
   // ==========================================================================
   // Addressing Modes
 
@@ -134,7 +160,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    Low:  First operand byte
   //
   // LDA addr
-  uint16_t Absolute() { return ReadWord((PB << 16) | PC + 1); }
+  uint16_t Absolute(AccessType access_type = AccessType::Data);
 
   // Effective Address:
   //    The Data Bank Register is concatened with the 16-bit operand
@@ -142,7 +168,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    based on the emulation mode (16:X=0, 8:X=1)
   //
   // LDA addr, X
-  uint16_t AbsoluteIndexedX() { return FetchWord() + X; }
+  uint32_t AbsoluteIndexedX();
 
   // Effective Address:
   //    The Data Bank Register is concatened with the 16-bit operand
@@ -150,7 +176,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    based on the emulation mode (16:Y=0, 8:Y=1)
   //
   // LDA addr, Y
-  uint16_t AbsoluteIndexedY() { return FetchWord() + Y; }
+  uint32_t AbsoluteIndexedY();
 
   // Test Me :)
   // Effective Address:
@@ -160,10 +186,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //                      the operand double byte and X based on the
   //                      emulation mode
   // JMP (addr, X)
-  uint16_t AbsoluteIndexedIndirect() {
-    uint16_t address = FetchWord() + X;
-    return memory.ReadWord((PB << 16) | address & 0xFFFF);
-  }
+  uint16_t AbsoluteIndexedIndirect();
 
   // Effective Address:
   //    Bank:             Program Bank Register (PBR)
@@ -171,20 +194,14 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    Indirect Address: Located in Bank Zero, at the operand double byte
   //
   // JMP (addr)
-  uint16_t AbsoluteIndirect() {
-    uint16_t address = FetchWord();
-    return memory.ReadWord((PB << 16) | address);
-  }
+  uint16_t AbsoluteIndirect();
 
   // Effective Address:
   //   Bank/High/Low: The 24-bit Indirect Address
   //   Indirect Address: Located in Bank Zero, at the operand double byte
   //
   // JMP [addr]
-  uint32_t AbsoluteIndirectLong() {
-    uint16_t address = FetchWord();
-    return memory.ReadWordLong((PB << 16) | address);
-  }
+  uint32_t AbsoluteIndirectLong();
 
   // Effective Address:
   //    Bank: Third operand byte
@@ -192,13 +209,13 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    Low:  First operand byte
   //
   // LDA long
-  uint32_t AbsoluteLong() { return FetchLong(); }
+  uint32_t AbsoluteLong();
 
   // Effective Address:
   //   The 24-bit operand is added to X based on the emulation mode
   //
   // LDA long, X
-  uint16_t AbsoluteLongIndexedX() { return FetchLong() + X; }
+  uint32_t AbsoluteLongIndexedX();
 
   // Source Effective Address:
   //    Bank: Second operand byte
@@ -212,21 +229,14 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    The number of bytes to be moved: 16-bit value in Acculumator C plus 1.
   //
   // MVN src, dst
-  void BlockMove(uint16_t source, uint16_t dest, uint16_t length) {
-    for (int i = 0; i < length; i++) {
-      memory.WriteByte(dest + i, memory.ReadByte(source + i));
-    }
-  }
+  void BlockMove(uint16_t source, uint16_t dest, uint16_t length);
 
   // Effective Address:
   //    Bank:     Zero
   //    High/low: Direct Page Register plus operand byte
   //
   // LDA dp
-  uint16_t DirectPage() {
-    uint8_t dp = memory.ReadByte((PB << 16) | PC + 1);
-    return D + dp;
-  }
+  uint16_t DirectPage();
 
   // Effective Address:
   //    Bank:     Zero
@@ -234,20 +244,14 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //              based on the emulation mode
   //
   // LDA dp, X
-  uint16_t DirectPageIndexedX() {
-    uint8_t operand = FetchByte();
-    return D + operand + X;
-  }
+  uint16_t DirectPageIndexedX();
 
   // Effective Address:
   //    Bank:     Zero
   //    High/low: Direct Page Register plus operand byte plus Y
   //              based on the emulation mode
   // LDA dp, Y
-  uint16_t DirectPageIndexedY() {
-    uint8_t dp = FetchByte();
-    return (dp + Y) & 0xFF;
-  }
+  uint16_t DirectPageIndexedY();
 
   // Effective Address:
   // Bank:      Data bank register
@@ -256,12 +260,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // register, the operand byte, and X based on the emulation mode in bank zero.
   //
   // LDA (dp, X)
-  uint16_t DirectPageIndexedIndirectX() {
-    uint8_t dp = FetchByte();
-    uint16_t effective_address = D + dp + X;
-    uint16_t indirect_address = memory.ReadWord(effective_address & 0xFFFF);
-    return indirect_address;
-  }
+  uint16_t DirectPageIndexedIndirectX();
 
   // Effective Address:
   // Bank:     Data bank register
@@ -270,12 +269,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // zero.
   //
   // LDA (dp)
-  uint16_t DirectPageIndirect() {
-    uint8_t dp = FetchByte();
-    // Add the Direct Page register to the fetched operand
-    uint16_t effective_address = D + dp;
-    return memory.ReadWord(effective_address);
-  }
+  uint16_t DirectPageIndirect();
 
   // Effective Address:
   //    Bank/High/Low:    The 24-bit indirect address
@@ -283,11 +277,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //                   register in bank zero.
   //
   // LDA [dp]
-  uint32_t DirectPageIndirectLong() {
-    uint8_t dp = FetchByte();
-    uint16_t effective_address = D + dp;
-    return memory.ReadWordLong(effective_address);
-  }
+  uint32_t DirectPageIndirectLong();
 
   // Effective Address:
   //    Found by concatenating the data bank to the double-byte
@@ -297,11 +287,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //                   register and the operand byte, in bank zero.
   //
   // LDA (dp), Y
-  uint16_t DirectPageIndirectIndexedY() {
-    uint8_t dp = FetchByte();
-    uint16_t effective_address = D + dp;
-    return memory.ReadWord(effective_address) + Y;
-  }
+  uint16_t DirectPageIndirectIndexedY();
 
   // Effective Address:
   //    Found by adding to the triple-byte indirect address Y based on the
@@ -312,11 +298,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    the operand byte in bank zero.
   //
   // LDA (dp), Y
-  uint16_t DirectPageIndirectLongIndexedY() {
-    uint8_t dp = FetchByte();
-    uint16_t effective_address = D + dp + Y;
-    return memory.ReadWordLong(effective_address);
-  }
+  uint32_t DirectPageIndirectLongIndexedY();
 
   // 8-bit data: Data Operand Byte
   // 16-bit data 65816 native mode m or x = 0
@@ -324,23 +306,19 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //   Data Low:  First Operand Byte
   //
   // LDA #const
-  uint16_t Immediate() {
-    if (GetAccumulatorSize()) {
-      return memory.ReadByte((PB << 16) | PC + 1);
-    } else {
-      return memory.ReadWord((PB << 16) | PC + 1);
-    }
-  }
+  uint16_t Immediate();
 
-  uint16_t StackRelative() {
-    uint8_t sr = FetchByte();
-    return SP() + sr;
-  }
+  uint16_t StackRelative();
 
-  uint16_t StackRelativeIndirectIndexedY() {
-    uint8_t sr = FetchByte();
-    return memory.ReadWord(SP() + sr + Y);
-  }
+  // Effective Address:
+  //    The Data Bank Register is concatenated to the Indirect Address;
+  //    the 24-bit result is added to Y (16 bits if x = 0; else 8 bits)
+  // Indirect Address:
+  //    Located at the 16-bit sum of the 8-bit operand and the 16-bit stack
+  //    pointer
+  //
+  // LDA (sr, S), Y
+  uint32_t StackRelativeIndirectIndexedY();
 
   // Memory access routines
   uint8_t ReadByte(uint32_t address) const override {
@@ -400,12 +378,11 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
     uint8_t fetchedByte = memory.ReadByte(effectiveAddress);
 
     next_pc_ = PC + 1;
-    // PC++;  // Increment the Program Counter
 
     return fetchedByte;
   }
 
-  uint16_t ReadByBitMode(uint32_t address) {
+  uint16_t ReadByteOrWord(uint32_t address) {
     if (GetAccumulatorSize()) {
       // 8-bit mode
       return memory.ReadByte(address) & 0xFF;
@@ -415,27 +392,15 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
     }
   }
 
-  void UpdatePC(uint8_t instruction_length) { PC += instruction_length; }
-
-  uint8_t GetInstructionLength(uint8_t opcode);
-  void SetMemory(const std::vector<uint8_t>& data) override {
-    memory.SetMemory(data);
-  }
-
-  int16_t SP() const override { return memory.SP(); }
-  void SetSP(int16_t value) override { memory.SetSP(value); }
-  void set_next_pc(uint16_t value) { next_pc_ = value; }
-  void UpdateClock(int delta_time) { clock.UpdateClock(delta_time); }
-
   // ======================================================
   // Instructions
 
   // ADC: Add with carry
-  void ADC(uint8_t operand);
-  void ANDAbsoluteLong(uint32_t address);
+  void ADC(uint16_t operand);
 
   // AND: Logical AND
-  void AND(uint16_t address, bool isImmediate = false);
+  void AND(uint32_t address, bool immediate = false);
+  void ANDAbsoluteLong(uint32_t address);
 
   // ASL: Arithmetic shift left
   void ASL(uint16_t address);
@@ -489,19 +454,19 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void CLV();
 
   // CMP: Compare
-  void CMP(uint16_t address, bool isImmediate = false);
+  void CMP(uint32_t address, bool immediate = false);
 
   // COP: Coprocessor enable
   void COP();
 
   // CPX: Compare X register
-  void CPX(uint16_t address, bool isImmediate = false);
+  void CPX(uint16_t address, bool immediate = false);
 
   // CPY: Compare Y register
-  void CPY(uint16_t address, bool isImmediate = false);
+  void CPY(uint16_t address, bool immediate = false);
 
   // DEC: Decrement memory
-  void DEC(uint16_t address);
+  void DEC(uint32_t address, bool accumulator = false);
 
   // DEX: Decrement X register
   void DEX();
@@ -510,10 +475,10 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void DEY();
 
   // EOR: Exclusive OR
-  void EOR(uint16_t address, bool isImmediate = false);
+  void EOR(uint32_t address, bool immediate = false);
 
   // INC: Increment memory
-  void INC(uint16_t address);
+  void INC(uint32_t address, bool accumulator = false);
 
   // INX: Increment X register
   void INX();
@@ -534,17 +499,16 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void JSL(uint32_t address);
 
   // LDA: Load accumulator
-  void LDA(uint16_t address, bool isImmediate = false,
-           bool direct_page = false);
+  void LDA(uint16_t address, bool immediate = false, bool direct_page = false);
 
   // LDX: Load X register
-  void LDX(uint16_t address, bool isImmediate = false);
+  void LDX(uint16_t address, bool immediate = false);
 
   // LDY: Load Y register
-  void LDY(uint16_t address, bool isImmediate = false);
+  void LDY(uint16_t address, bool immediate = false);
 
   // LSR: Logical shift right
-  void LSR(uint16_t address);
+  void LSR(uint16_t address, bool accumulator = false);
 
   // MVN: Block move next
   void MVN(uint16_t source, uint16_t dest, uint16_t length);
@@ -556,7 +520,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void NOP();
 
   // ORA: Logical inclusive OR
-  void ORA(uint16_t address, bool isImmediate = false);
+  void ORA(uint16_t address, bool immediate = false);
 
   // PEA: Push effective absolute address
   void PEA();
@@ -610,10 +574,10 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void REP();
 
   // ROL: Rotate left
-  void ROL(uint16_t address);
+  void ROL(uint32_t address, bool accumulator = false);
 
   // ROR: Rotate right
-  void ROR(uint16_t address);
+  void ROR(uint32_t address, bool accumulator = false);
 
   // RTI: Return from interrupt
   void RTI();
@@ -625,7 +589,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void RTS();
 
   // SBC: Subtract with carry
-  void SBC(uint16_t operand, bool isImmediate = false);
+  void SBC(uint32_t operand, bool immediate = false);
 
   // SEC: Set carry flag
   void SEC();
@@ -640,7 +604,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void SEP();
 
   // STA: Store accumulator
-  void STA(uint16_t address);
+  void STA(uint32_t address);
 
   // STP: Stop the processor
   void STP();
@@ -726,7 +690,6 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
     SetCarryFlag(register_value >= memory_value);  // Carry flag
   }
 
-  // Helper function to set or clear a specific flag bit
   void SetFlag(uint8_t mask, bool set) {
     if (set) {
       status |= mask;  // Set the bit
@@ -735,10 +698,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
     }
   }
 
-  // Helper function to get the value of a specific flag bit
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
-
-  // Appease the C++ Gods...
   void PushByte(uint8_t value) override { memory.PushByte(value); }
   void PushWord(uint16_t value) override { memory.PushWord(value); }
   uint8_t PopByte() override { return memory.PopByte(); }
@@ -746,9 +706,6 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void PushLong(uint32_t value) override { memory.PushLong(value); }
   uint32_t PopLong() override { return memory.PopLong(); }
   void ClearMemory() override { memory.ClearMemory(); }
-  void LoadData(const std::vector<uint8_t>& data) override {
-    memory.LoadData(data);
-  }
   uint8_t operator[](int i) const override { return 0; }
   uint8_t at(int i) const override { return 0; }
 
