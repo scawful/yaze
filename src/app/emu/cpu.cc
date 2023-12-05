@@ -410,7 +410,9 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
                 << (int)DB << std::endl;
       std::cout << "E: " << std::hex << std::setw(2) << std::setfill('0')
                 << (int)E << std::endl;
-
+      // status registers
+      std::cout << "C: " << std::hex << std::setw(2) << std::setfill('0')
+                << (int)status << std::endl;
       break;
     }
 
@@ -559,7 +561,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
 
     case 0xE0:  // CPX Immediate
     {
-      operand = Immediate();
+      operand = Immediate(/*index_size=*/true);
       immediate = true;
       CPX(operand, immediate);
       break;
@@ -803,7 +805,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
 
     case 0x20:  // JSR Absolute
     {
-      operand = Absolute();
+      operand = Absolute(AccessType::Control);
       JSR(operand);
       break;
     }
@@ -1504,10 +1506,13 @@ void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
     instruction_log_.push_back(entry);
   } else {
     // Log the address and opcode.
-    std::cout << "$" << std::uppercase << std::setw(2) << std::setfill('0')
-              << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x"
-              << std::hex << static_cast<int>(opcode) << " "
-              << opcode_to_mnemonic.at(opcode) << " ";
+    std::cout << "\033[1;36m"
+              << "$" << std::uppercase << std::setw(2) << std::setfill('0')
+              << static_cast<int>(PB) << ":" << std::hex << PC;
+    std::cout << " \033[1;32m"
+              << ": 0x" << std::hex << static_cast<int>(opcode) << " ";
+    std::cout << " \033[1;35m" << opcode_to_mnemonic.at(opcode) << " "
+              << "\033[0m";
 
     // Log the operand.
     if (operand) {
@@ -1543,10 +1548,14 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0xFC:  // JSR Absolute Indexed Indirect
     case 0xDC:  // JMP Absolute Indirect Long
     case 0x6B:  // RTL
-    case 0x80:  // BRA Relative
+
     case 0x82:  // BRL Relative Long
       PC = next_pc_;
       return 0;
+
+    case 0x80:  // BRA Relative
+      PC += next_pc_;
+      return 2;
 
     case 0x60:  // RTS
       PC = last_call_frame_;
@@ -1584,11 +1593,9 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
 
     case 0xD0:  // BNE Relative
       if (!GetZeroFlag()) {
-        PC = next_pc_;
-        return 0;
-      } else {
-        return 2;
+        PC += next_pc_;
       }
+      return 2;
 
     case 0x10:  // BPL Relative
       if (!GetNegativeFlag()) {
@@ -1776,15 +1783,17 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0x69:  // ADC Immediate
     case 0x29:  // AND Immediate
     case 0xC9:  // CMP Immediate
-    case 0xE0:  // CPX Immediate
-    case 0xC0:  // CPY Immediate
     case 0x49:  // EOR Immediate
     case 0xA9:  // LDA Immediate
-    case 0xA2:  // LDX Immediate
-    case 0xA0:  // LDY Immediate
     case 0x09:  // ORA Immediate
     case 0xE9:  // SBC Immediate
       return GetAccumulatorSize() ? 2 : 3;
+
+    case 0xE0:  // CPX Immediate
+    case 0xC0:  // CPY Immediate
+    case 0xA2:  // LDX Immediate
+    case 0xA0:  // LDY Immediate
+      return GetIndexSize() ? 2 : 3;
 
     case 0x0E:  // ASL Absolute
     case 0x1E:  // ASL Absolute Indexed, X
