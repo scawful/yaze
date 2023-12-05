@@ -43,7 +43,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   explicit CPU(Memory& mem, Clock& vclock) : memory(mem), clock(vclock) {}
   enum class UpdateMode { Run, Step, Pause };
 
-  void Init() { clock.SetFrequency(kCpuClockSpeed); }
+  void Init(bool verbose = false) { clock.SetFrequency(kCpuClockSpeed); }
 
   void Update(UpdateMode mode = UpdateMode::Run, int stepCount = 1);
 
@@ -306,7 +306,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //   Data Low:  First Operand Byte
   //
   // LDA #const
-  uint16_t Immediate();
+  uint16_t Immediate(bool index_size = false);
 
   uint16_t StackRelative();
 
@@ -460,10 +460,10 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void COP();
 
   // CPX: Compare X register
-  void CPX(uint16_t address, bool immediate = false);
+  void CPX(uint32_t address, bool immediate = false);
 
   // CPY: Compare Y register
-  void CPY(uint16_t address, bool immediate = false);
+  void CPY(uint32_t address, bool immediate = false);
 
   // DEC: Decrement memory
   void DEC(uint32_t address, bool accumulator = false);
