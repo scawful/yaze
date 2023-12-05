@@ -138,8 +138,9 @@ enum class MemoryMapping { SNES_LOROM = 0, PC_ADDRESS = 1 };
 
 class MemoryImpl : public Memory, public Loggable {
  public:
-  void Initialize(const std::vector<uint8_t>& romData,
+  void Initialize(const std::vector<uint8_t>& romData, bool verbose = false,
                   MemoryMapping mapping = MemoryMapping::SNES_LOROM) {
+    verbose_ = verbose;
     mapping_ = mapping;
     if (mapping == MemoryMapping::PC_ADDRESS) {
       memory_.resize(romData.size());
@@ -338,7 +339,7 @@ class MemoryImpl : public Memory, public Loggable {
 
  private:
   uint32_t GetMappedAddress(uint32_t address) const {
-    uint32_t bank = address >> 16;
+    uint8_t bank = address >> 16;
     uint32_t offset = address & 0xFFFF;
 
     if (mapping_ == MemoryMapping::PC_ADDRESS) {
@@ -347,9 +348,9 @@ class MemoryImpl : public Memory, public Loggable {
 
     if (bank <= 0x3F) {
       if (offset <= 0x1FFF) {
-        return offset;  // Shadow RAM
+        return (0x7E << 16) + offset;  // Shadow RAM
       } else if (offset <= 0x5FFF) {
-        return offset - 0x2000 + 0x2000;  // Hardware Registers
+        return (bank << 16) + (offset - 0x2000) + 0x2000;  // Hardware Registers
       } else if (offset <= 0x7FFF) {
         return offset - 0x6000 + 0x6000;  // Expansion RAM
       } else {
@@ -372,6 +373,8 @@ class MemoryImpl : public Memory, public Loggable {
       observer->Notify(address, data);
     }
   }
+
+  bool verbose_ = false;
 
   std::vector<Observer*> observers_;
 
