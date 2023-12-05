@@ -98,8 +98,9 @@ uint32_t CPU::DirectPageIndirectLongIndexedY() {
   return effective_address;
 }
 
-uint16_t CPU::Immediate() {
-  if (GetAccumulatorSize()) {
+uint16_t CPU::Immediate(bool index_size) {
+  bool bit_mode = index_size ? GetIndexSize() : GetAccumulatorSize();
+  if (bit_mode) {
     return memory.ReadByte((PB << 16) | PC + 1);
   } else {
     return memory.ReadWord((PB << 16) | PC + 1);
