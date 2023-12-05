@@ -202,7 +202,7 @@ void CPU::COP() {
   SetDecimalFlag(false);
 }
 
-void CPU::CPX(uint16_t value, bool isImmediate) {
+void CPU::CPX(uint32_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
     uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
     compare(X, memory_value);
@@ -212,7 +212,7 @@ void CPU::CPX(uint16_t value, bool isImmediate) {
   }
 }
 
-void CPU::CPY(uint16_t value, bool isImmediate) {
+void CPU::CPY(uint32_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
     uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
     compare(Y, memory_value);
