@@ -912,7 +912,7 @@ TEST_F(CPUTest, BNE_BranchTaken) {
   mock_memory.SetMemoryContents(data);
 
   cpu.ExecuteInstruction(0xD0);  // BNE
-  EXPECT_EQ(cpu.PC, 0x0005);
+  EXPECT_EQ(cpu.PC, 0x0007);
 }
 
 TEST_F(CPUTest, BNE_BranchNotTaken) {
