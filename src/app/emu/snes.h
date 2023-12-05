@@ -33,6 +33,9 @@ class SNES : public DMA {
   // Main emulation loop
   void Run();
 
+  // Step through a single instruction
+  void StepRun();
+
   // Enable NMI Interrupts
   void EnableVBlankInterrupts();
 
@@ -55,10 +58,6 @@ class SNES : public DMA {
   // Save/Load game state
   void SaveState(const std::string& path);
   void LoadState(const std::string& path);
-
-  // Debugger
-  void Debug();
-  void Breakpoint(uint16_t address);
 
   bool running() const { return running_; }
 

@@ -112,7 +112,7 @@ void SNES::Init(ROM& rom) {
   cpu_.E = 0;
 
   // Initialize CPU
-  cpu_.Init(); 
+  cpu_.Init();
 
   // Read the ROM header
   auto header_offset = GetHeaderOffset(memory_);
@@ -211,6 +211,9 @@ void SNES::Init(ROM& rom) {
   // Misc
   memory_.WriteByte(0x2133, 0x00);  // SETINI
 
+  // Psuedo-Init
+  memory_.WriteWord(0x2140, 0xBBAA);
+
   running_ = true;
   scanline = 0;
 }
@@ -249,6 +252,22 @@ void SNES::Run() {
 
     HandleInput();
   }
+}
+
+void SNES::StepRun() {
+  // Update the CPU
+  cpu_.UpdateClock(0.0);
+  cpu_.Update(CPU::UpdateMode::Step);
+
+  // Update the PPU
+  ppu_.UpdateClock(0.0);
+  ppu_.Update();
+
+  // Update the APU
+  apu_.UpdateClock(0.0);
+  apu_.Update();
+
+  HandleInput();
 }
 
 // Enable NMI Interrupts
@@ -360,14 +379,6 @@ void SNES::SaveState(const std::string& path) {
 }
 
 void SNES::LoadState(const std::string& path) {
-  // ...
-}
-
-void SNES::Debug() {
-  // ...
-}
-
-void SNES::Breakpoint(uint16_t address) {
   // ...
 }
 
