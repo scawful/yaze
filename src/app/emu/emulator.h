@@ -43,6 +43,7 @@ class Emulator : public SharedROM {
   bool power_ = false;
   bool loading_ = false;
   bool running_ = false;
+  bool step_ = true;
 };
 
 }  // namespace emu

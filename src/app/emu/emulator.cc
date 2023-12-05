@@ -35,19 +35,16 @@ using ImGui::Text;
 void Emulator::Run() {
   if (!snes_.running() && rom()->isLoaded()) {
     snes_.SetupMemory(*rom());
-  }
-
-  // Setup and initialize memory
-  if (loading_ && !running_) {
     snes_.Init(*rom());
-    running_ = true;
   }
 
   RenderNavBar();
 
   if (running_) {
     HandleEvents();
-    snes_.Run();
+    if (!step_) {
+      snes_.Run();
+    }
   }
 
   RenderEmulator();
@@ -69,7 +66,7 @@ void Emulator::RenderNavBar() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Start Emulation");
   }
-  ImGui::SameLine();
+  SameLine();
 
   if (ImGui::Button(ICON_MD_PAUSE)) {
     snes_.SetCpuMode(1);
@@ -77,15 +74,16 @@ void Emulator::RenderNavBar() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Pause Emulation");
   }
-  ImGui::SameLine();
+  SameLine();
 
   if (ImGui::Button(ICON_MD_SKIP_NEXT)) {
     // Step through Code logic
+    snes_.StepRun();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Step Through Code");
   }
-  ImGui::SameLine();
+  SameLine();
 
   if (ImGui::Button(ICON_MD_REFRESH)) {
     // Reset Emulator logic
@@ -93,7 +91,7 @@ void Emulator::RenderNavBar() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Reset Emulator");
   }
-  ImGui::SameLine();
+  SameLine();
 
   if (ImGui::Button(ICON_MD_STOP)) {
     // Stop Emulation logic
@@ -102,7 +100,7 @@ void Emulator::RenderNavBar() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Stop Emulation");
   }
-  ImGui::SameLine();
+  SameLine();
 
   if (ImGui::Button(ICON_MD_SAVE)) {
     // Save State logic
@@ -110,7 +108,7 @@ void Emulator::RenderNavBar() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Save State");
   }
-  ImGui::SameLine();
+  SameLine();
 
   if (ImGui::Button(ICON_MD_SYSTEM_UPDATE_ALT)) {
   }
@@ -119,7 +117,7 @@ void Emulator::RenderNavBar() {
   }
 
   // Additional elements
-  ImGui::SameLine();
+  SameLine();
   if (ImGui::Button(ICON_MD_SETTINGS)) {
     // Settings logic
   }
@@ -127,7 +125,7 @@ void Emulator::RenderNavBar() {
     ImGui::SetTooltip("Settings");
   }
 
-  ImGui::SameLine();
+  SameLine();
   if (ImGui::Button(ICON_MD_INFO)) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("About Debugger");
@@ -136,7 +134,7 @@ void Emulator::RenderNavBar() {
   }
   static bool show_memory_viewer = false;
 
-  ImGui::SameLine();
+  SameLine();
   if (ImGui::Button(ICON_MD_MEMORY)) {
     show_memory_viewer = !show_memory_viewer;
   }
@@ -329,7 +327,7 @@ void Emulator::RenderMemoryViewer() {
             mem_edit.GotoAddrAndHighlight(static_cast<ImU64>(bookmark.value),
                                           1);
           }
-          ImGui::SameLine();
+          SameLine();
           if (ImGui::Button("Delete")) {
             // Logic to delete the bookmark
             bookmarks.erase(std::remove_if(bookmarks.begin(), bookmarks.end(),
@@ -358,7 +356,7 @@ void Emulator::RenderCpuInstructionLog(
     // Filtering options
     static char filterBuf[256];
     ImGui::InputText("Filter", filterBuf, IM_ARRAYSIZE(filterBuf));
-    ImGui::SameLine();
+    SameLine();
     if (ImGui::Button("Clear")) { /* Clear filter logic */
     }
 
@@ -367,9 +365,8 @@ void Emulator::RenderCpuInstructionLog(
     ImGui::Checkbox("Show All Opcodes", &showAllOpcodes);
 
     // Instruction list
-    ImGui::BeginChild(
-        "InstructionList", ImVec2(0, 0),
-        ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeY);
+    ImGui::BeginChild("InstructionList", ImVec2(0, 0),
+                      ImGuiChildFlags_None);
     for (const auto& entry : instructionLog) {
       if (ShouldDisplay(entry, filterBuf, showAllOpcodes)) {
         if (ImGui::Selectable(
