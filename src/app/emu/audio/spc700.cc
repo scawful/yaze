@@ -1,206 +1,337 @@
 #include "app/emu/audio/spc700.h"
 
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <vector>
+
+#include "app/emu/audio/internal/opcodes.h"
 
 namespace yaze {
 namespace app {
 namespace emu {
 
-void SPC700::Reset() {}
+void Spc700::Reset() {}
 
-void SPC700::Notify(uint32_t address, uint8_t data) {
-  // Check if the address corresponds to the APU's I/O ports
-  if (address >= 0x2140 && address <= 0x2143) {
-    // Handle the IPL process based on the address and data
-    if (address == 0x2140) {
-      // ... Handle data sent to APUIO0 ...
-      // For instance, checking for the $CC signal to start the APU program
-    } else if (address == 0x2141) {
-      // ... Handle data sent to APUIO1 ...
-      // This might involve storing data for the APU or signaling the DSP, etc.
-    } else if (address == 0x2142) {
-      // ... Handle data sent to APUIO2 ...
-    } else if (address == 0x2143) {
-      // ... Handle data sent to APUIO3 ...
+void Spc700::BootIplRom() {
+  PC = 0xFFC0;
+  A = 0;
+  X = 0;
+  Y = 0;
+
+  // for (int i = 0; i < 0x40; ++i) {
+  //   uint8_t opcode = read(PC);
+  //   ExecuteInstructions(opcode);
+  //   PC++;
+  // }
+
+  int i = 0;
+  while (PC != 0xFFC0 + 0x3F) {
+    uint8_t opcode = read(PC);
+    ExecuteInstructions(opcode);
+    PC++;
+    i++;
+
+    if (i > 1000) {
+      break;
     }
   }
 }
 
-void SPC700::ExecuteInstructions(uint8_t opcode) {
+void Spc700::ExecuteInstructions(uint8_t opcode) {
+  uint16_t initialPC = PC;
   switch (opcode) {
-      // 8-bit Move Memory to Register
+    // 8-bit Move Memory to Register
     case 0xE8:  // MOV A, #imm
+    {
       MOV(A, imm());
       break;
+    }
     case 0xE6:  // MOV A, (X)
+    {
       MOV(A, X);
       break;
+    }
     case 0xBF:  // MOV A, (X)+
+    {
       MOV(A, X);
       X++;
       break;
+    }
     case 0xE4:  // MOV A, dp
+    {
       MOV(A, dp());
       break;
+    }
     case 0xF4:  // MOV A, dp+X
+    {
       MOV(A, dp_plus_x());
       break;
+    }
     case 0xE5:  // MOV A, !abs
+    {
       MOV(A, abs());
       break;
+    }
     case 0xF5:  // MOV A, !abs+X
+    {
       MOV(A, abs() + X);
       break;
+    }
     case 0xF6:  // MOV A, !abs+Y
+    {
       MOV(A, abs() + Y);
       break;
+    }
     case 0xE7:  // MOV A, [dp+X]
+    {
       MOV(A, read(dp_plus_x_indirect()));
       break;
+    }
     case 0xF7:  // MOV A, [dp]+Y
+    {
       MOV(A, read(dp_indirect_plus_y()));
       break;
+    }
     case 0xCD:  // MOV X, #imm
+    {
       MOV(X, imm());
       break;
+    }
     case 0xF8:  // MOV X, dp
+    {
       MOV(X, dp());
       break;
+    }
     case 0xF9:  // MOV X, dp+Y
+    {
       MOV(X, dp_plus_y());
       break;
+    }
     case 0xE9:  // MOV X, !abs
+    {
       MOV(X, abs());
       break;
+    }
     case 0x8D:  // MOV Y, #imm
+    {
       MOV(Y, imm());
       break;
+    }
     case 0xEB:  // MOV Y, dp
+    {
       MOV(Y, dp());
       break;
+    }
     case 0xFB:  // MOV Y, dp+X
+    {
       MOV(Y, dp_plus_x());
       break;
+    }
     case 0xEC:  // MOV Y, !abs
+    {
       MOV(Y, abs());
       break;
+    }
 
-      // 8-bit move register to memory
-
+    // 8-bit move register to memory
     case 0xC6:  // MOV (X), A
+    {
+      MOV_ADDR(X, A);
       break;
+    }
     case 0xAF:  // MOV (X)+, A
+    {
+      MOV_ADDR(X, A);
       break;
+    }
     case 0xC4:  // MOV dp, A
+    {
       MOV_ADDR(get_dp_addr(), A);
       break;
+    }
     case 0xD4:  // MOV dp+X, A
+    {
       MOV_ADDR(get_dp_addr() + X, A);
       break;
+    }
     case 0xC5:  // MOV !abs, A
+    {
       MOV_ADDR(abs(), A);
       break;
+    }
     case 0xD5:  // MOV !abs+X, A
+    {
       MOV_ADDR(abs() + X, A);
       break;
+    }
     case 0xD6:  // MOV !abs+Y, A
+    {
       MOV_ADDR(abs() + Y, A);
       break;
+    }
     case 0xC7:  // MOV [dp+X], A
+    {
       MOV_ADDR(dp_plus_x_indirect(), A);
       break;
+    }
     case 0xD7:  // MOV [dp]+Y, A
+    {
       MOV_ADDR(dp_indirect_plus_y(), A);
       break;
+    }
     case 0xD8:  // MOV dp, X
+    {
       MOV_ADDR(get_dp_addr(), X);
       break;
+    }
     case 0xD9:  // MOV dp+Y, X
+    {
       MOV_ADDR(get_dp_addr() + Y, X);
       break;
+    }
     case 0xC9:  // MOV !abs, X
+    {
       MOV_ADDR(abs(), X);
       break;
+    }
     case 0xCB:  // MOV dp, Y
+    {
       MOV_ADDR(get_dp_addr(), Y);
       break;
+    }
     case 0xDB:  // MOV dp+X, Y
+    {
       MOV_ADDR(get_dp_addr() + X, Y);
       break;
+    }
     case 0xCC:  // MOV !abs, Y
+    {
       MOV_ADDR(abs(), Y);
       break;
+    }
 
-      // . 8-bit move register to register / special direct page moves
-
+    // . 8-bit move register to register / special direct page moves
     case 0x7D:  // MOV A, X
+    {
+      MOV(A, X);
       break;
+    }
     case 0xDD:  // MOV A, Y
+    {
+      MOV(A, Y);
       break;
+    }
     case 0x5D:  // MOV X, A
+    {
+      MOV(X, A);
       break;
+    }
     case 0xFD:  // MOV Y, A
+    {
+      MOV(Y, A);
       break;
+    }
     case 0x9D:  // MOV X, SP
+    {
+      MOV(X, SP);
       break;
+    }
     case 0xBD:  // MOV SP, X
+    {
+      MOV(SP, X);
       break;
+    }
     case 0xFA:  // MOV dp, dp
+    {
+      MOV_ADDR(get_dp_addr(), dp());
       break;
+    }
     case 0x8F:  // MOV dp, #imm
+    {
+      MOV_ADDR(get_dp_addr(), imm());
       break;
+    }
 
-      // . 8-bit arithmetic
-
+    // . 8-bit arithmetic
     case 0x88:  // ADC A, #imm
+    {
       ADC(A, imm());
       break;
+    }
     case 0x86:  // ADC A, (X)
+    {
+      ADC(A, X);
       break;
+    }
     case 0x84:  // ADC A, dp
+    {
       ADC(A, dp());
       break;
+    }
     case 0x94:  // ADC A, dp+X
+    {
       ADC(A, dp_plus_x());
       break;
+    }
     case 0x85:  // ADC A, !abs
+    {
       ADC(A, abs());
       break;
+    }
     case 0x95:  // ADC A, !abs+X
+    {
+      ADC(A, abs() + X);
       break;
+    }
     case 0x96:  // ADC A, !abs+Y
+    {
+      ADC(A, abs() + Y);
       break;
+    }
     case 0x87:  // ADC A, [dp+X]
+    {
       ADC(A, dp_plus_x_indirect());
       break;
+    }
     case 0x97:  // ADC A, [dp]+Y
+    {
       ADC(A, dp_indirect_plus_y());
       break;
+    }
     case 0x99:  // ADC (X), (Y)
       break;
     case 0x89:  // ADC dp, dp
       break;
     case 0x98:  // ADC dp, #imm
       break;
+
     case 0xA8:  // SBC A, #imm
       SBC(A, imm());
       break;
     case 0xA6:  // SBC A, (X)
       break;
     case 0xA4:  // SBC A, dp
+      SBC(A, dp());
       break;
     case 0xB4:  // SBC A, dp+X
+      SBC(A, dp_plus_x());
       break;
     case 0xA5:  // SBC A, !abs
+      SBC(A, abs());
       break;
     case 0xB5:  // SBC A, !abs+X
+      SBC(A, abs() + X);
       break;
     case 0xB6:  // SBC A, !abs+Y
+      SBC(A, abs() + Y);
       break;
     case 0xA7:  // SBC A, [dp+X]
+      SBC(A, dp_plus_x_indirect());
       break;
     case 0xB7:  // SBC A, [dp]+Y
+      SBC(A, dp_indirect_plus_y());
       break;
     case 0xB9:  // SBC (X), (Y)
       break;
@@ -208,19 +339,26 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
       break;
     case 0xB8:  // SBC dp, #imm
       break;
+
     case 0x68:  // CMP A, #imm
+      CMP(A, imm());
       break;
     case 0x66:  // CMP A, (X)
       break;
     case 0x64:  // CMP A, dp
+      CMP(A, dp());
       break;
     case 0x74:  // CMP A, dp+X
+      CMP(A, dp_plus_x());
       break;
     case 0x65:  // CMP A, !abs
+      CMP(A, abs());
       break;
     case 0x75:  // CMP A, !abs+X
+      CMP(A, abs() + X);
       break;
     case 0x76:  // CMP A, !abs+Y
+      CMP(A, abs() + Y);
       break;
     case 0x67:  // CMP A, [dp+X]
       break;
@@ -245,8 +383,7 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
     case 0x5E:  // CMP Y, !abs
       break;
 
-      // 8-bit boolean logic
-
+    // 8-bit boolean logic
     case 0x28:  // AND A, #imm
       AND(A, imm());
       break;
@@ -287,12 +424,16 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
       OR(A, abs());
       break;
     case 0x15:  // OR A, !abs+X
+      OR(A, abs() + X);
       break;
     case 0x16:  // OR A, !abs+Y
+      OR(A, abs() + Y);
       break;
     case 0x07:  // OR A, [dp+X]
+      OR(A, dp_plus_x_indirect());
       break;
     case 0x17:  // OR A, [dp]+Y
+      OR(A, dp_indirect_plus_y());
       break;
     case 0x19:  // OR (X), (Y)
       break;
@@ -309,16 +450,22 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
       EOR(A, dp());
       break;
     case 0x54:  // EOR A, dp+X
+      EOR(A, dp_plus_x());
       break;
     case 0x45:  // EOR A, !abs
+      EOR(A, abs());
       break;
     case 0x55:  // EOR A, !abs+X
+      EOR(A, abs() + X);
       break;
     case 0x56:  // EOR A, !abs+Y
+      EOR(A, abs() + Y);
       break;
     case 0x47:  // EOR A, [dp+X]
+      EOR(A, dp_plus_x_indirect());
       break;
     case 0x57:  // EOR A, [dp]+Y
+      EOR(A, dp_indirect_plus_y());
       break;
     case 0x59:  // EOR (X), (Y)
       break;
@@ -406,6 +553,7 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
       // . 16-bit operations
 
     case 0xBA:  // MOVW YA, dp
+      MOVW(YA, dp());
       break;
     case 0xDA:  // MOVW dp, YA
       break;
@@ -478,24 +626,50 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
     case 0x7F:  // RETI
       break;
 
-      // . stack
-
+    // . stack
     case 0x2D:  // PUSH A
+    {
+      PUSH(A);
       break;
+    }
     case 0x4D:  // PUSH X
+    {
+      PUSH(X);
       break;
+    }
     case 0x6D:  // PUSH Y
+    {
+      PUSH(Y);
       break;
+    }
     case 0x0D:  // PUSH PSW
+    {
+      PUSH(FlagsToByte(PSW));
       break;
+    }
+
     case 0xAE:  // POP A
+    {
+      POP(A);
       break;
+    }
     case 0xCE:  // POP X
+    {
+      POP(X);
       break;
+    }
     case 0xEE:  // POP Y
+    {
+      POP(Y);
       break;
+    }
     case 0x8E:  // POP PSW
+    {
+      uint8_t flags_byte;
+      POP(flags_byte);
+      PSW = ByteToFlags(flags_byte);
       break;
+    }
 
       // . memory bit operations
 
@@ -519,35 +693,81 @@ void SPC700::ExecuteInstructions(uint8_t opcode) {
       // . status flags
 
     case 0x60:  // CLRC
+      CLRC();
       break;
     case 0x80:  // SETC
+      SETC();
       break;
     case 0xED:  // NOTC
+      NOTC();
       break;
     case 0xE0:  // CLRV
+      CLRV();
       break;
     case 0x20:  // CLRP
+      CLRP();
       break;
     case 0x40:  // SETP
+      SETP();
       break;
     case 0xA0:  // EI
+      EI();
       break;
     case 0xC0:  // DI
+      DI();
       break;
 
-      // .no-operation and halt
-
+    // .no-operation and haltF
     case 0x00:  // NOP
+    {
+      NOP();
       break;
+    }
     case 0xEF:  // SLEEP
+    {
+      SLEEP();
       break;
+    }
     case 0x0F:  // STOP
+    {
+      STOP();
       break;
+    }
 
     default:
       std::cout << "Unknown opcode: " << std::hex << opcode << std::endl;
       break;
   }
+
+  LogInstruction(initialPC, opcode);
+}
+
+void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
+  std::string mnemonic = spc_opcode_map.at(opcode);
+
+  std::stringstream log_entry_stream;
+  log_entry_stream << "\033[1;36m$" << std::hex << std::setw(4)
+                   << std::setfill('0') << initial_pc << "\033[0m";
+  log_entry_stream << " \033[1;32m" << std::hex << std::setw(2)
+                   << std::setfill('0') << static_cast<int>(opcode) << "\033[0m"
+                   << " \033[1;35m" << std::setw(18) << std::left
+                   << std::setfill(' ') << mnemonic << "\033[0m";
+
+  log_entry_stream << " \033[1;33mA: " << std::hex << std::setw(2)
+                   << std::setfill('0') << std::right << static_cast<int>(A)
+                   << "\033[0m";
+  log_entry_stream << " \033[1;33mX: " << std::hex << std::setw(2)
+                   << std::setfill('0') << std::right << static_cast<int>(X)
+                   << "\033[0m";
+  log_entry_stream << " \033[1;33mY: " << std::hex << std::setw(2)
+                   << std::setfill('0') << std::right << static_cast<int>(Y)
+                   << "\033[0m";
+  std::string log_entry = log_entry_stream.str();
+
+  std::cerr << log_entry << std::endl;
+
+  // Append the log entry to the log
+  log_.push_back(log_entry);
 }
 
 }  // namespace emu
