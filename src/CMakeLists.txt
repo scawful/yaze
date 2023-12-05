@@ -57,6 +57,7 @@ set(
   app/emu/audio/apu.cc
   app/emu/audio/spc700.cc
   app/emu/audio/dsp.cc
+  app/emu/audio/internal/addressing.cc
   app/emu/cpu/instructions.cc
   app/emu/cpu/addressing.cc
   app/emu/video/ppu.cc

@@ -25,6 +25,7 @@ add_executable(
   ../src/app/emu/cpu.cc
   ../src/app/emu/cpu/instructions.cc
   ../src/app/emu/cpu/addressing.cc
+  ../src/app/emu/audio/internal/addressing.cc
   ../src/app/emu/audio/apu.cc
   ../src/app/emu/video/ppu.cc
   ../src/app/emu/audio/dsp.cc
