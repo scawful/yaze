@@ -25,9 +25,6 @@ void APU::Init() {
 
   dsp_.SetSamplePusher(
       [this](int16_t sample) { this->PushToAudioBuffer(sample); });
-
-  // Initialize registers
-  SignalReady();
 }
 
 void APU::Reset() {
@@ -48,6 +45,7 @@ void APU::Update() {
     // Update the SPC700
     uint8_t opcode = spc700_.read(spc700_.PC);
     spc700_.ExecuteInstructions(opcode);
+    spc700_.PC++;
   }
 
   ProcessSamples();

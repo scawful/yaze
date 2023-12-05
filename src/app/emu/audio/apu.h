@@ -60,29 +60,27 @@ class APU : public Observer {
   int16_t GetNextSample();
 
   void Notify(uint32_t address, uint8_t data) override {
-    if (address >= 0x2140 && address <= 0x2143) {
-      spc700_.Notify(address, data);
+    ports_[address - 0x2140] = data;
+
+    switch (address) {
+      case 0x2140:
+        if (data == BEGIN_SIGNAL) {
+          BeginTransfer();
+        } else {
+          AcknowledgeSignal();
+        }
+        break;
+      case 0x2141:
+        // Handle data byte transfer here, if needed
+        break;
+      case 0x2142:
+        // Handle the setup of destination address, if needed
+        break;
+      case 0x2143:
+        // Handle additional communication or commands
+        break;
     }
   }
-
-  void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
-
-  // Method to fetch a sample from AudioRam
-  uint8_t FetchSampleFromRam(uint16_t address) const {
-    return aram_.read(address);
-  }
-
-  // Method to push a processed sample to the audio buffer
-  void PushToAudioBuffer(int16_t sample) { audioSamples_.push_back(sample); }
-
-  // Reads a byte from the specified APU register
-  uint8_t ReadRegister(uint16_t address);
-
-  // Writes a byte to the specified APU register
-  void WriteRegister(uint16_t address, uint8_t value);
-
-  // Returns the audio samples for the current frame
-  const std::vector<int16_t> &GetAudioSamples() const;
 
   // Called upon a reset
   void Initialize() {
@@ -123,43 +121,92 @@ class APU : public Observer {
   }
 
   void BeginTransfer() {
-    uint16_t destAddr = ReadAddressFromPorts();
-    uint8_t counter = 0;
+    const uint16_t startAddress = 0x0200;
 
-    // Port 1 determines whether to execute or transfer
-    while (ports_[1] != 0) {
-      uint8_t data = ports_[1];
-      aram_.write(destAddr, data);
-      AcknowledgeSignal();
+    // Write the starting address to ports 0x2142 and 0x2143
+    WriteToPort(2, static_cast<uint8_t>(startAddress & 0xFF));  // Lower byte
+    WriteToPort(3, static_cast<uint8_t>(startAddress >> 8));    // Upper byte
 
-      destAddr++;
-      counter++;
+    // Trigger the actual data transfer process
+    TriggerDataTransfer(startAddress);
+  }
 
-      // Synchronize with the counter from the main CPU
-      while (ports_[0] != counter)
-        ;
+  void TriggerDataTransfer(uint16_t startAddress) {
+    const int DATA_SIZE = 0x1000;  // Size of the data to be transferred
+    uint8_t audioData[DATA_SIZE];  // Buffer containing the audio data
+
+    // Load audioData as needed...
+
+    for (int i = 0; i < DATA_SIZE; ++i) {
+      WriteToPort(1, audioData[i]);  // Write data byte
+      WriteToPort(0, i & 0xFF);      // Write index and wait for acknowledgment
+      WaitForAcknowledgment(i & 0xFF);
+    }
+
+    // After transferring all data, trigger the execution of the program
+    StartSpcProgram(startAddress);
+  }
+
+  void WaitForAcknowledgment(uint8_t expectedIndex) {
+    while (ports_[0] != expectedIndex) {
+      // Active wait - consider implementing a more efficient mechanism
     }
   }
 
-  void ExecuteProgram() {
-    // For now, this is a placeholder. Actual execution would involve running
-    // the SPC700's instruction at the specified address.
-    spc700_.ExecuteInstructions(ReadAddressFromPorts());
+  void StartSpcProgram(uint16_t startAddress) {
+    // Send the start address for execution
+    WriteToPort(2, static_cast<uint8_t>(startAddress & 0xFF));  // Lower byte
+    WriteToPort(3, static_cast<uint8_t>(startAddress >> 8));    // Upper byte
+
+    WriteToPort(1, 0x00);  // Zero value indicates execution command
+    WriteToPort(0, 0xCE);  // Send a unique signal to start execution
+
+    // Wait for acknowledgment
+    WaitForAcknowledgment(0xCE);
   }
 
-  // This method will be called by the main CPU to write to the APU's ports.
+  void ExecuteProgram() { spc700_.ExecuteInstructions(ReadAddressFromPorts()); }
+
   void WriteToPort(uint8_t portNum, uint8_t value) {
-    if (portNum < 4) {
-      ports_[portNum] = value;
-      if (portNum == 0 && value == BEGIN_SIGNAL) {
-        BeginTransfer();
-      }
+    ports_[portNum] = value;
+    switch (portNum) {
+      case 0:
+        memory_.WriteByte(0x2140, value);
+        break;
+      case 1:
+        memory_.WriteByte(0x2141, value);
+        break;
+      case 2:
+        memory_.WriteByte(0x2142, value);
+        break;
+      case 3:
+        memory_.WriteByte(0x2143, value);
+        break;
     }
   }
 
   void SetReadyCallback(std::function<void()> callback) {
     ready_callback_ = callback;
   }
+
+  void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
+
+  // Method to fetch a sample from AudioRam
+  uint8_t FetchSampleFromRam(uint16_t address) const {
+    return aram_.read(address);
+  }
+
+  // Method to push a processed sample to the audio buffer
+  void PushToAudioBuffer(int16_t sample) { audioSamples_.push_back(sample); }
+
+  // Reads a byte from the specified APU register
+  uint8_t ReadRegister(uint16_t address);
+
+  // Writes a byte to the specified APU register
+  void WriteRegister(uint16_t address, uint8_t value);
+
+  // Returns the audio samples for the current frame
+  const std::vector<int16_t> &GetAudioSamples() const;
 
  private:
   // Constants for communication
@@ -189,7 +236,7 @@ class APU : public Observer {
   MemoryImpl &memory_;
 
   DigitalSignalProcessor dsp_;
-  SPC700 spc700_{aram_};
+  Spc700 spc700_{aram_};
   std::vector<int16_t> audioSamples_;
 
   std::function<void()> ready_callback_;
