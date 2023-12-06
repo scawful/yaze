@@ -1,4 +1,4 @@
-#include "app/emu/cpu.h"
+#include "app/emu/cpu/cpu.h"
 
 namespace yaze {
 namespace app {

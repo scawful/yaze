@@ -8,9 +8,9 @@
 #include <vector>
 
 #include "app/core/common.h"
-#include "app/emu/clock.h"
+#include "app/emu/cpu/clock.h"
+#include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/debug/log.h"
-#include "app/emu/internal/opcodes.h"
 #include "app/emu/memory/memory.h"
 
 namespace yaze {

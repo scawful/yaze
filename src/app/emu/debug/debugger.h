@@ -2,7 +2,7 @@
 #define YAZE_APP_EMU_DEBUG_DEBUGGER_H_
 
 #include "app/emu/audio/apu.h"
-#include "app/emu/cpu.h"
+#include "app/emu/cpu/cpu.h"
 #include "app/emu/video/ppu.h"
 
 namespace yaze {

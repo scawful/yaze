@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/emu/internal/opcodes.h"
+#include "app/emu/cpu/internal/opcodes.h"
 
 namespace yaze {
 namespace app {

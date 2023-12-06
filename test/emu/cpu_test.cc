@@ -1,11 +1,11 @@
-#include "app/emu/cpu.h"
+#include "app/emu/cpu/cpu.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/emu/clock.h"
-#include "app/emu/internal/asm_parser.h"
-#include "app/emu/internal/opcodes.h"
+#include "app/emu/cpu/clock.h"
+#include "app/emu/cpu/internal/opcodes.h"
+#include "app/emu/debug/asm_parser.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/memory/mock_memory.h"
 
@@ -4171,7 +4171,6 @@ TEST_F(CPUTest, XCESwitchBackAndForth) {
   cpu.ExecuteInstruction(0xFB);  // Switch to native mode
   EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
 }
-
 
 }  // namespace emu
 }  // namespace app

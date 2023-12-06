@@ -4,8 +4,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/emu/clock.h"
-#include "app/emu/cpu.h"
+#include "app/emu/cpu/clock.h"
+#include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/memory.h"
 
 using yaze::app::emu::Clock;

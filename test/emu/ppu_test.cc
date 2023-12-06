@@ -2,7 +2,7 @@
 
 #include <gmock/gmock.h>
 
-#include "app/emu/clock.h"
+#include "app/emu/cpu/clock.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/memory/mock_memory.h"
 
