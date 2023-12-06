@@ -96,7 +96,7 @@ class Canvas {
   bool custom_canvas_size_ = false;
   bool is_hovered_ = false;
 
-  float custom_step_ = 8.0f;
+  float custom_step_ = 0.0f;
   float global_scale_ = 1.0f;
 
   ImDrawList* draw_list_;

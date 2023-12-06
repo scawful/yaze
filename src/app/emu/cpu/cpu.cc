@@ -1876,6 +1876,7 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
   }
 }
 
+// TODO: Implement 65816 interrupts.
 void CPU::HandleInterrupts() {
   if (GetInterruptFlag()) {
     return;

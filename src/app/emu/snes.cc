@@ -329,17 +329,6 @@ void SNES::VBlankRoutine() {
   // ...
 }
 
-void SNES::BootApuWithIPL() {
-  // 1. Check if the SPC700 is ready, else set a callback for when it becomes
-  // ready
-  if (!apu_.IsReadySignalReceived()) {
-    apu_.SetReadyCallback([this]() { this->StartApuDataTransfer(); });
-    return;  // Exit and wait for callback to be called
-  }
-
-  StartApuDataTransfer();
-}
-
 void SNES::StartApuDataTransfer() {
   // 2. Setting the starting address
   const uint16_t startAddress = 0x0200;

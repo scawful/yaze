@@ -12,20 +12,21 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-void Spc700::Reset() {}
+void Spc700::Reset() {
+  PC = 0;
+  A = 0;
+  X = 0;
+  Y = 0;
+  SP = 0xFF;
+  PSW = ByteToFlags(0x00);
+  aram_.reset();
+}
 
 void Spc700::BootIplRom() {
   PC = 0xFFC0;
   A = 0;
   X = 0;
   Y = 0;
-
-  // for (int i = 0; i < 0x40; ++i) {
-  //   uint8_t opcode = read(PC);
-  //   ExecuteInstructions(opcode);
-  //   PC++;
-  // }
-
   int i = 0;
   while (PC != 0xFFC0 + 0x3F) {
     uint8_t opcode = read(PC);
@@ -615,16 +616,27 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0x1F:  // JMP [!abs+X]
       break;
 
-      // . subroutines
-
+    // . subroutines
     case 0x3F:  // CALL !abs
+    {
+      CALL(abs());
       break;
+    }
     case 0x4F:  // PCALL up
+    {
+      PCALL(imm());
       break;
+    }
     case 0x6F:  // RET
+    {
+      RET();
       break;
+    }
     case 0x7F:  // RETI
+    {
+      RETI();
       break;
+    }
 
     // . stack
     case 0x2D:  // PUSH A
