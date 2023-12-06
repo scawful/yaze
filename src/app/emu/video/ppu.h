@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/emu/clock.h"
+#include "app/emu/cpu/clock.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu_registers.h"
 #include "app/rom.h"

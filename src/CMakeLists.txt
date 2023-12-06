@@ -58,12 +58,12 @@ set(
   app/emu/audio/spc700.cc
   app/emu/audio/dsp.cc
   app/emu/audio/internal/addressing.cc
-  app/emu/cpu/instructions.cc
-  app/emu/cpu/addressing.cc
+  app/emu/cpu/internal/instructions.cc
+  app/emu/cpu/internal/addressing.cc
+  app/emu/cpu/cpu.cc
   app/emu/video/ppu.cc
   app/emu/memory/dma.cc
   app/emu/memory/memory.cc
-  app/emu/cpu.cc
   app/emu/snes.cc
 )
 
