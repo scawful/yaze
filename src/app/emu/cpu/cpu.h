@@ -178,7 +178,6 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   // LDA addr, Y
   uint32_t AbsoluteIndexedY();
 
-  // Test Me :)
   // Effective Address:
   //    Bank:             Program Bank Register (PBR)
   //    High/low:         The Indirect Address

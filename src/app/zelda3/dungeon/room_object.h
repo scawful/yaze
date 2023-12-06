@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "app/emu/cpu.h"
+#include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 #include "app/gfx/snes_palette.h"
@@ -147,7 +147,7 @@ class DungeonObjectRenderer : public SharedROM {
 
     int i = 0;
     while (true) {
-      uint8_t opcode = cpu.FetchByte();
+      uint8_t opcode = cpu.ReadByte(cpu.PC);
       cpu.ExecuteInstruction(opcode);
       cpu.HandleInterrupts();
 
@@ -156,7 +156,7 @@ class DungeonObjectRenderer : public SharedROM {
       }
       i++;
 
-      UpdateObjectBitmap();
+      // UpdateObjectBitmap();
     }
   }
 

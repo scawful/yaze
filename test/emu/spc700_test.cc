@@ -11,8 +11,9 @@ namespace emu {
 using testing::_;
 using testing::Return;
 
-class MockAudioRAM : public AudioRam {
+class MockAudioRam : public AudioRam {
  public:
+  MOCK_METHOD(void, reset, (), (override));
   MOCK_METHOD(uint8_t, read, (uint16_t address), (const, override));
   MOCK_METHOD(void, write, (uint16_t address, uint8_t value), (override));
 };
@@ -21,7 +22,7 @@ class Spc700Test : public ::testing::Test {
  public:
   Spc700Test() = default;
 
-  testing::NiceMock<MockAudioRAM> audioRAM;
+  testing::NiceMock<MockAudioRam> audioRAM;
   Spc700 spc700{audioRAM};
 };
 

@@ -13,27 +13,23 @@ namespace emu {
 class AudioRam {
  public:
   virtual ~AudioRam() = default;
-
-  // Read a byte from ARAM at the given address
+  virtual void reset() = 0;
   virtual uint8_t read(uint16_t address) const = 0;
-
-  // Write a byte to ARAM at the given address
   virtual void write(uint16_t address, uint8_t value) = 0;
 };
 
 class AudioRamImpl : public AudioRam {
-  static const size_t ARAM_SIZE = 64 * 1024;  // 64 KB
+  static const int ARAM_SIZE = 0x10000;
   std::vector<uint8_t> ram = std::vector<uint8_t>(ARAM_SIZE, 0);
 
  public:
   AudioRamImpl() = default;
+  void reset() override { ram = std::vector<uint8_t>(ARAM_SIZE, 0); }
 
-  // Read a byte from ARAM at the given address
   uint8_t read(uint16_t address) const override {
     return ram[address % ARAM_SIZE];
   }
 
-  // Write a byte to ARAM at the given address
   void write(uint16_t address, uint8_t value) override {
     ram[address % ARAM_SIZE] = value;
   }
@@ -54,17 +50,14 @@ class Spc700 {
 
  public:
   explicit Spc700(AudioRam& aram) : aram_(aram) {}
-  uint8_t test_register_;
-  uint8_t control_register_;
-  uint8_t dsp_address_register_;
 
   // Registers
-  uint8_t A = 0;    // 8-bit accumulator
-  uint8_t X = 0;    // 8-bit index
-  uint8_t Y = 0;    // 8-bit index
-  uint16_t YA = 0;  // 16-bit pair of A (lsb) and Y (msb)
-  uint16_t PC = 0;  // program counter
-  uint8_t SP = 0;   // stack pointer
+  uint8_t A = 0x00;      // 8-bit accumulator
+  uint8_t X = 0x00;      // 8-bit index
+  uint8_t Y = 0x00;      // 8-bit index
+  uint16_t YA = 0x00;    // 16-bit pair of A (lsb) and Y (msb)
+  uint16_t PC = 0xFFC0;  // program counter
+  uint8_t SP = 0x00;     // stack pointer
 
   struct Flags {
     uint8_t N : 1;  // Negative flag
@@ -105,42 +98,26 @@ class Spc700 {
 
   // Read a byte from the memory-mapped registers
   uint8_t read(uint16_t address) {
-    switch (address) {
-      case 0xF0:
-        return test_register_;
-      case 0xF1:
-        return control_register_;
-      case 0xF2:
-        return dsp_address_register_;
-      default:
-        if (address < 0xFFC0) {
-          return aram_.read(address);
-        } else {
-          // Handle IPL ROM or RAM reads here
-          return ipl_rom_[address - 0xFFC0];
-        }
+    if (address < 0xFFC0) {
+      return aram_.read(address);
+    } else {
+      // Check if register is set to unmap the IPL ROM
+      if (read(0xF1) & 0x80) {
+        return aram_.read(address);
+      }
+      return ipl_rom_[address - 0xFFC0];
     }
-    return 0;
   }
 
   // Write a byte to the memory-mapped registers
   void write(uint16_t address, uint8_t value) {
-    switch (address) {
-      case 0xF0:
-        test_register_ = value;
-        break;
-      case 0xF1:
-        control_register_ = value;
-        break;
-      case 0xF2:
-        dsp_address_register_ = value;
-        break;
-      default:
-        if (address < 0xFFC0) {
-          aram_.write(address, value);
-        } else {
-          // Handle IPL ROM or RAM writes here
-        }
+    if (address < 0xFFC0) {
+      aram_.write(address, value);
+    } else {
+      // Check if register is set to unmap the IPL ROM
+      if (read(0xF1) & 0x80) {
+        aram_.write(address, value);
+      }
     }
   }
 
@@ -148,87 +125,36 @@ class Spc700 {
   // Addressing modes
 
   // Immediate
-  uint8_t imm() {
-    PC++;
-    return read(PC);
-  }
+  uint8_t imm();
 
   // Direct page
-  uint8_t dp() {
-    PC++;
-    uint8_t offset = read(PC);
-    return read((PSW.P << 8) + offset);
-  }
+  uint8_t dp();
 
-  uint8_t get_dp_addr() {
-    PC++;
-    uint8_t offset = read(PC);
-    return (PSW.P << 8) + offset;
-  }
+  uint8_t get_dp_addr();
 
   // Direct page indexed by X
-  uint8_t dp_plus_x() {
-    PC++;
-    uint8_t offset = read(PC);
-    return read((PSW.P << 8) + offset + X);
-  }
+  uint8_t dp_plus_x();
 
   // Direct page indexed by Y
-  uint8_t dp_plus_y() {
-    PC++;
-    uint8_t offset = read(PC);
-    return read((PSW.P << 8) + offset + Y);
-  }
+  uint8_t dp_plus_y();
 
   // Indexed indirect (add index before 16-bit lookup).
-  uint16_t dp_plus_x_indirect() {
-    PC++;
-    uint8_t offset = read(PC);
-    uint16_t addr = read((PSW.P << 8) + offset + X) |
-                    (read((PSW.P << 8) + offset + X + 1) << 8);
-    return addr;
-  }
+  uint16_t dp_plus_x_indirect();
 
   // Indirect indexed (add index after 16-bit lookup).
-  uint16_t dp_indirect_plus_y() {
-    PC++;
-    uint8_t offset = read(PC);
-    uint16_t baseAddr =
-        read((PSW.P << 8) + offset) | (read((PSW.P << 8) + offset + 1) << 8);
-    return baseAddr + Y;
-  }
+  uint16_t dp_indirect_plus_y();
 
-  uint16_t abs() {
-    PC++;
-    uint16_t addr = read(PC) | (read(PC) << 8);
-    return addr;
-  }
+  uint16_t abs();
 
-  int8_t rel() {
-    PC++;
-    return static_cast<int8_t>(read(PC));
-  }
+  int8_t rel();
 
-  uint8_t i() { return read((PSW.P << 8) + X); }
+  uint8_t i();
 
-  uint8_t i_postinc() {
-    uint8_t value = read((PSW.P << 8) + X);
-    X++;
-    return value;
-  }
+  uint8_t i_postinc();
 
-  uint16_t addr_plus_i() {
-    PC++;
-    uint16_t addr = read(PC) | (read(PC) << 8);
-    return read(addr) + X;
-  }
+  uint16_t addr_plus_i();
 
-  uint16_t addr_plus_i_indexed() {
-    PC++;
-    uint16_t addr = read(PC) | (read(PC) << 8);
-    addr += X;
-    return read(addr) | (read(addr + 1) << 8);
-  }
+  uint16_t addr_plus_i_indexed();
 
   // ==========================================================================
   // Instructions

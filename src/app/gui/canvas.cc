@@ -389,6 +389,7 @@ void Canvas::DrawGrid(float grid_step) {
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
   if (enable_grid_) {
     if (custom_step_ != 0.f) grid_step = custom_step_;
+
     grid_step *= global_scale_;  // Apply global scale to grid step
     for (float x = fmodf(scrolling_.x, grid_step); x < canvas_sz_.x;
          x += grid_step)

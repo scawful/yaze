@@ -41,6 +41,7 @@ absl::Status OverworldEditor::Update() {
     gfx_group_editor_.InitBlockset(tile16_blockset_bmp_);
     all_gfx_loaded_ = true;
   } else if (!rom()->isLoaded() && all_gfx_loaded_) {
+    // TODO: Destroy the overworld graphics canvas.
     // Reset the editor if the ROM is unloaded
     Shutdown();
     all_gfx_loaded_ = false;
@@ -226,8 +227,9 @@ void OverworldEditor::DrawOverworldMapSettings() {
     ImGui::SetNextItemWidth(100.f);
     ImGui::Combo("##World", &game_state_, kGamePartComboString, 3);
 
+    // TODO: Make enable grid bool change the current canvas.
     TableNextColumn();
-    ImGui::Checkbox("Show grid", &opt_enable_grid);  // TODO
+    ImGui::Checkbox("Show grid", &opt_enable_grid);
     ImGui::EndTable();
   }
 }
@@ -521,14 +523,13 @@ void OverworldEditor::DrawTileSelector() {
                          ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Tile16")) {
       gui::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
-                                 (8192 * 2), 0x20, map_blockset_loaded_, true,
-                                 1);
+                                (8192 * 2), 0x20, map_blockset_loaded_, true,
+                                1);
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Tile8")) {
-      if (ImGui::BeginChild("##tile8viewer",
-                            ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      if (ImGui::BeginChild("##tile8viewer", ImGui::GetContentRegionAvail(),
+                            true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawTile8Selector();
       }
       ImGui::EndChild();
@@ -536,8 +537,8 @@ void OverworldEditor::DrawTileSelector() {
     }
     if (ImGui::BeginTabItem("Area Graphics")) {
       gui::BitmapCanvasPipeline(current_gfx_canvas_, current_gfx_bmp_, 256,
-                                 0x10 * 0x40, 0x20, overworld_.isLoaded(), true,
-                                 3);
+                                0x10 * 0x40, 0x20, overworld_.isLoaded(), true,
+                                3);
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();
@@ -557,13 +558,13 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Create the area graphics image
   gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
-                                     overworld_.AreaGraphics(), *rom(),
-                                     current_gfx_bmp_, palette_);
+                                    overworld_.AreaGraphics(), *rom(),
+                                    current_gfx_bmp_, palette_);
 
   // Create the tile16 blockset image
   gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
-                                     overworld_.Tile16Blockset(), *rom(),
-                                     tile16_blockset_bmp_, palette_);
+                                    overworld_.Tile16Blockset(), *rom(),
+                                    tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
@@ -653,10 +654,10 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
                    &tile32_configuration_filename_);
   ImGui::SameLine();
   gui::FileDialogPipeline("ImportTile32Key", ".DAT,.dat\0", "Tile32 Hex File",
-                           [this]() {
-                             tile32_configuration_filename_ =
-                                 ImGuiFileDialog::Instance()->GetFilePathName();
-                           });
+                          [this]() {
+                            tile32_configuration_filename_ =
+                                ImGuiFileDialog::Instance()->GetFilePathName();
+                          });
 
   if (ImGui::Button("Load Prototype Overworld with ROM graphics")) {
     RETURN_IF_ERROR(LoadGraphics())
