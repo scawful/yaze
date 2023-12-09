@@ -15,6 +15,7 @@ class AudioRam {
   virtual ~AudioRam() = default;
   virtual void reset() = 0;
   virtual uint8_t read(uint16_t address) const = 0;
+  virtual uint8_t& mutable_read(uint16_t address) = 0;
   virtual void write(uint16_t address, uint8_t value) = 0;
 };
 
@@ -28,6 +29,10 @@ class AudioRamImpl : public AudioRam {
 
   uint8_t read(uint16_t address) const override {
     return ram[address % ARAM_SIZE];
+  }
+
+  uint8_t& mutable_read(uint16_t address) override {
+    return ram.at(address % ARAM_SIZE);
   }
 
   void write(uint16_t address, uint8_t value) override {
@@ -109,6 +114,36 @@ class Spc700 {
     }
   }
 
+  uint8_t& mutable_read(uint16_t address) {
+    if (address < 0xFFC0) {
+      return aram_.mutable_read(address);
+    } else {
+      // NOTE: Mutable access to IPL ROM is not allowed
+      return aram_.mutable_read(address);
+    }
+  }
+
+  uint16_t& mutable_read_16(uint16_t address) {
+    if (address < 0xFFC0) {
+      return *reinterpret_cast<uint16_t*>(&aram_.mutable_read(address));
+    } else {
+      // NOTE: Mutable access to IPL ROM is not allowed
+      return *reinterpret_cast<uint16_t*>(&aram_.mutable_read(address));
+    }
+  }
+
+  uint16_t read_16(uint16_t address) {
+    if (address < 0xFFC0) {
+      return (aram_.read(address) | (aram_.read(address + 1) << 8));
+    } else {
+      // Check if register is set to unmap the IPL ROM
+      if (read(0xF1) & 0x80) {
+        return aram_.read(address);
+      }
+      return ipl_rom_[address - 0xFFC0];
+    }
+  }
+
   // Write a byte to the memory-mapped registers
   void write(uint16_t address, uint8_t value) {
     if (address < 0xFFC0) {
@@ -121,7 +156,7 @@ class Spc700 {
     }
   }
 
-  // ==========================================================================
+  // ======================================================
   // Addressing modes
 
   // Immediate
@@ -129,6 +164,7 @@ class Spc700 {
 
   // Direct page
   uint8_t dp();
+  uint8_t& mutable_dp();
 
   uint8_t get_dp_addr();
 

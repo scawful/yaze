@@ -304,63 +304,112 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0x99:  // ADC (X), (Y)
       break;
     case 0x89:  // ADC dp, dp
+    {
+      ADC(mutable_dp(), dp());
       break;
+    }
     case 0x98:  // ADC dp, #imm
+    {
+      ADC(mutable_dp(), imm());
       break;
+    }
 
     case 0xA8:  // SBC A, #imm
+    {
       SBC(A, imm());
       break;
+    }
     case 0xA6:  // SBC A, (X)
+    {
+      SBC(A, mutable_read(X));
       break;
+    }
     case 0xA4:  // SBC A, dp
+    {
       SBC(A, dp());
       break;
+    }
     case 0xB4:  // SBC A, dp+X
+    {
       SBC(A, dp_plus_x());
       break;
+    }
     case 0xA5:  // SBC A, !abs
+    {
       SBC(A, abs());
       break;
+    }
     case 0xB5:  // SBC A, !abs+X
+    {
       SBC(A, abs() + X);
       break;
+    }
     case 0xB6:  // SBC A, !abs+Y
+    {
       SBC(A, abs() + Y);
       break;
+    }
     case 0xA7:  // SBC A, [dp+X]
+    {
       SBC(A, dp_plus_x_indirect());
       break;
+    }
     case 0xB7:  // SBC A, [dp]+Y
+    {
       SBC(A, dp_indirect_plus_y());
       break;
+    }
     case 0xB9:  // SBC (X), (Y)
+    {
+      SBC(mutable_read(X), mutable_read(Y));
       break;
+    }
     case 0xA9:  // SBC dp, dp
+    {
+      SBC(mutable_dp(), dp());
       break;
+    }
     case 0xB8:  // SBC dp, #imm
+    {
+      SBC(mutable_dp(), imm());
       break;
+    }
 
     case 0x68:  // CMP A, #imm
+    {
       CMP(A, imm());
       break;
+    }
     case 0x66:  // CMP A, (X)
+    {
+      CMP(A, read(X));
       break;
+    }
     case 0x64:  // CMP A, dp
+    {
       CMP(A, dp());
       break;
+    }
     case 0x74:  // CMP A, dp+X
+    {
       CMP(A, dp_plus_x());
       break;
+    }
     case 0x65:  // CMP A, !abs
+    {
       CMP(A, abs());
       break;
+    }
     case 0x75:  // CMP A, !abs+X
+    {
       CMP(A, abs() + X);
       break;
+    }
     case 0x76:  // CMP A, !abs+Y
+    {
       CMP(A, abs() + Y);
       break;
+    }
     case 0x67:  // CMP A, [dp+X]
       break;
     case 0x77:  // CMP A, [dp]+Y
@@ -368,84 +417,167 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0x79:  // CMP (X), (Y)
       break;
     case 0x69:  // CMP dp, dp
+    {
+      CMP(mutable_dp(), dp());
       break;
+    }
     case 0x78:  // CMP dp, #imm
+    {
+      CMP(mutable_dp(), imm());
       break;
+    }
     case 0xC8:  // CMP X, #imm
+    {
+      CMP(X, imm());
       break;
+    }
     case 0x3E:  // CMP X, dp
+    {
+      CMP(X, dp());
       break;
+    }
     case 0x1E:  // CMP X, !abs
+    {
+      CMP(X, abs());
       break;
+    }
     case 0xAD:  // CMP Y, #imm
+    {
+      CMP(Y, imm());
       break;
+    }
     case 0x7E:  // CMP Y, dp
+    {
+      CMP(Y, dp());
       break;
+    }
     case 0x5E:  // CMP Y, !abs
+    {
+      CMP(Y, abs());
       break;
+    }
 
     // 8-bit boolean logic
     case 0x28:  // AND A, #imm
+    {
       AND(A, imm());
       break;
+    }
     case 0x26:  // AND A, (X)
+    {
+      AND(A, mutable_read(X));
       break;
+    }
     case 0x24:  // AND A, dp
+    {
+      AND(A, dp());
       break;
+    }
     case 0x34:  // AND A, dp+X
+    {
+      AND(A, dp_plus_x());
       break;
+    }
     case 0x25:  // AND A, !abs
+    {
+      AND(A, abs());
       break;
+    }
     case 0x35:  // AND A, !abs+X
+    {
+      AND(A, abs() + X);
       break;
+    }
     case 0x36:  // AND A, !abs+Y
+    {
+      AND(A, abs() + Y);
       break;
+    }
     case 0x27:  // AND A, [dp+X]
+    {
+      AND(A, dp_plus_x_indirect());
       break;
+    }
     case 0x37:  // AND A, [dp]+Y
+    {
+      AND(A, dp_indirect_plus_y());
       break;
+    }
     case 0x39:  // AND (X), (Y)
+    {
+      AND(mutable_read(X), mutable_read(Y));
       break;
+    }
     case 0x29:  // AND dp, dp
+    {
+      AND(mutable_dp(), dp());
       break;
+    }
     case 0x38:  // AND dp, #imm
+    {
+      AND(mutable_dp(), imm());
       break;
+    }
+
     case 0x08:  // OR A, #imm
+    {
       OR(A, imm());
       break;
+    }
     case 0x06:  // OR A, (X)
+    {
+      OR(A, mutable_read(X));
       break;
+    }
     case 0x04:  // OR A, dp
+    {
       OR(A, dp());
       break;
+    }
     case 0x14:  // OR A, dp+X
+    {
       OR(A, dp_plus_x());
       break;
+    }
     case 0x05:  // OR A, !abs
+    {
       OR(A, abs());
       break;
+    }
     case 0x15:  // OR A, !abs+X
+    {
       OR(A, abs() + X);
       break;
+    }
     case 0x16:  // OR A, !abs+Y
+    {
       OR(A, abs() + Y);
       break;
+    }
     case 0x07:  // OR A, [dp+X]
+    {
       OR(A, dp_plus_x_indirect());
       break;
+    }
     case 0x17:  // OR A, [dp]+Y
+    {
       OR(A, dp_indirect_plus_y());
       break;
+    }
     case 0x19:  // OR (X), (Y)
+      OR(mutable_read(X), mutable_read(Y));
       break;
     case 0x09:  // OR dp, dp
+      OR(mutable_dp(), dp());
       break;
     case 0x18:  // OR dp, #imm
+      OR(mutable_dp(), imm());
       break;
     case 0x48:  // EOR A, #imm
       EOR(A, imm());
       break;
     case 0x46:  // EOR A, (X)
+      EOR(A, mutable_read(X));
       break;
     case 0x44:  // EOR A, dp
       EOR(A, dp());
@@ -469,10 +601,13 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       EOR(A, dp_indirect_plus_y());
       break;
     case 0x59:  // EOR (X), (Y)
+      EOR(mutable_read(X), mutable_read(Y));
       break;
     case 0x49:  // EOR dp, dp
+      EOR(mutable_dp(), dp());
       break;
     case 0x58:  // EOR dp, #imm
+      EOR(mutable_dp(), imm());
       break;
 
       // . 8-bit increment / decrement
@@ -481,10 +616,13 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       INC(A);
       break;
     case 0xAB:  // INC dp
+      INC(mutable_dp());
       break;
     case 0xBB:  // INC dp+X
+      INC(mutable_read((PSW.P << 8) + dp_plus_x()));
       break;
     case 0xAC:  // INC !abs
+      INC(mutable_read(abs()));
       break;
     case 0x3D:  // INC X
       INC(X);
@@ -496,10 +634,13 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       DEC(A);
       break;
     case 0x8B:  // DEC dp
+      DEC(mutable_dp());
       break;
     case 0x9B:  // DEC dp+X
+      DEC(mutable_read((PSW.P << 8) + dp_plus_x()));
       break;
     case 0x8C:  // DEC !abs
+      DEC(mutable_read(abs()));
       break;
     case 0x1D:  // DEC X
       DEC(X);
@@ -526,29 +667,41 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       LSR(A);
       break;
     case 0x4B:  // LSR dp
+      LSR(mutable_dp());
       break;
     case 0x5B:  // LSR dp+X
+      LSR(mutable_read((PSW.P << 8) + dp_plus_x()));
       break;
     case 0x4C:  // LSR !abs
+      LSR(mutable_read(abs()));
       break;
+
     case 0x3C:  // ROL A
+      ROL(A);
       break;
     case 0x2B:  // ROL dp
+      ROL(dp());
       break;
     case 0x3B:  // ROL dp+X
+      ROL(dp_plus_x());
       break;
     case 0x2C:  // ROL !abs
+      ROL(abs());
       break;
     case 0x7C:  // ROR A
+      // ROR(A);
       break;
     case 0x6B:  // ROR dp
+      // ROR(dp());
       break;
     case 0x7B:  // ROR dp+X
+      // ROR(dp_plus_x());
       break;
     case 0x6C:  // ROR !abs
+      // ROR(abs());
       break;
     case 0x9F:  // XCN A Exchange nibbles of A
-
+      XCN(A);
       break;
 
       // . 16-bit operations
@@ -557,20 +710,28 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       MOVW(YA, dp());
       break;
     case 0xDA:  // MOVW dp, YA
+      MOVW(mutable_read_16(dp()), YA);
       break;
     case 0x3A:  // INCW dp
+      INCW(mutable_read_16(dp()));
       break;
     case 0x1A:  // DECW dp
+      DECW(mutable_read_16(dp()));
       break;
     case 0x7A:  // ADDW YA, dp
+      ADDW(YA, dp());
       break;
     case 0x9A:  // SUBW YA, dp
+      SUBW(YA, dp());
       break;
     case 0x5A:  // CMPW YA, dp
+      // CMPW(YA, dp());
       break;
     case 0xCF:  // MUL YA
+      MUL(YA);
       break;
     case 0x9E:  // DIV YA, X
+      // DIV(YA, X);
       break;
 
       // . decimal adjust
@@ -592,16 +753,22 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       BNE(rel());
       break;
     case 0xB0:  // BCS rel
+      BCS(rel());
       break;
     case 0x90:  // BCC rel
+      BCC(rel());
       break;
     case 0x70:  // BVS rel
+      BVS(rel());
       break;
     case 0x50:  // BVC rel
+      BVC(rel());
       break;
     case 0x30:  // BMI rel
+      BMI(rel());
       break;
     case 0x10:  // BPL rel
+      BPL(rel());
       break;
     case 0x2E:  // CBNE dp, rel
       break;
@@ -612,8 +779,10 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0xFE:  // DBNZ Y, rel
       break;
     case 0x5F:  // JMP !abs
+      JMP(abs());
       break;
     case 0x1F:  // JMP [!abs+X]
+      // JMP_INDIRECT(abs() + X);
       break;
 
     // . subroutines
@@ -686,6 +855,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       // . memory bit operations
 
     case 0xEA:  // NOT1 abs, bit
+      // NOT1(abs(), bit());
       break;
     case 0xAA:  // MOV1 C, abs, bit
       break;
