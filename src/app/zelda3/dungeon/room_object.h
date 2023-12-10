@@ -93,12 +93,16 @@ class DungeonObjectRenderer : public SharedROM {
   }
 
   void ConfigureObject(const SubtypeInfo& info) {
-    cpu.A = 0x00;
-    cpu.X = 0x00;
+    cpu.A = 0x03D8;
+    cpu.X = 0x03D8;
+    cpu.DB = 0x7E;
+    // VRAM target destinations
+    cpu.WriteLong(0xBF, 0x7E2000);
+    cpu.WriteLong(0xCB, 0x7E2080);
+    cpu.WriteLong(0xC2, 0x7E2002);
+    cpu.WriteLong(0xCE, 0x7E2082);
     cpu.SetAccumulatorSize(false);
     cpu.SetIndexSize(false);
-
-    // Might need to set the height and width manually?
   }
 
   /**
@@ -147,7 +151,7 @@ class DungeonObjectRenderer : public SharedROM {
 
     int i = 0;
     while (true) {
-      uint8_t opcode = cpu.ReadByte(cpu.PC);
+      uint8_t opcode = cpu.ReadByte(cpu.PB << 16 | cpu.PC);
       cpu.ExecuteInstruction(opcode);
       cpu.HandleInterrupts();
 
