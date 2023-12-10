@@ -15,24 +15,65 @@ class MockAudioRam : public AudioRam {
  public:
   MOCK_METHOD(void, reset, (), (override));
   MOCK_METHOD(uint8_t, read, (uint16_t address), (const, override));
+  MOCK_METHOD(uint8_t&, mutable_read, (uint16_t address), (override));
   MOCK_METHOD(void, write, (uint16_t address, uint8_t value), (override));
+
+  void SetupMemory(uint16_t address, const std::vector<uint8_t>& values) {
+    if (address > internal_audio_ram_.size()) {
+      internal_audio_ram_.resize(address + values.size());
+    }
+    int i = 0;
+    for (const auto& each : values) {
+      internal_audio_ram_[address + i] = each;
+      i++;
+    }
+  }
+
+  void SetUp() {
+    // internal_audio_ram_.resize(0x10000);  // 64 K (0x10000)
+    // std::fill(internal_audio_ram_.begin(), internal_audio_ram_.end(), 0);
+    ON_CALL(*this, read(_)).WillByDefault([this](uint16_t address) {
+      return internal_audio_ram_[address];
+    });
+    ON_CALL(*this, mutable_read(_))
+        .WillByDefault([this](uint16_t address) -> uint8_t& {
+          return internal_audio_ram_[address];
+        });
+    ON_CALL(*this, write(_, _))
+        .WillByDefault([this](uint16_t address, uint8_t value) {
+          internal_audio_ram_[address] = value;
+        });
+    ON_CALL(*this, reset()).WillByDefault([this]() {
+      std::fill(internal_audio_ram_.begin(), internal_audio_ram_.end(), 0);
+    });
+  }
+
+  std::vector<uint8_t> internal_audio_ram_ = std::vector<uint8_t>(0x10000, 0);
 };
 
 class Spc700Test : public ::testing::Test {
  public:
   Spc700Test() = default;
+  void SetUp() override {
+    // Set up the mock
+    audioRAM.SetUp();
 
-  testing::NiceMock<MockAudioRam> audioRAM;
+    // Set the Spc700 to bank 01
+    spc700.PC = 0x0100;
+  }
+
+  testing::StrictMock<MockAudioRam> audioRAM;
   Spc700 spc700{audioRAM};
 };
 
-// ============================================================================
+// ========================================================
 // 8-bit Move Memory to Register
 
 TEST_F(Spc700Test, MOV_A_Immediate) {
   // MOV A, imm
   uint8_t opcode = 0xE8;
   uint8_t immediate_value = 0x5A;
+  audioRAM.SetupMemory(0x0100, {opcode, immediate_value});
 
   EXPECT_CALL(audioRAM, read(_)).WillOnce(Return(immediate_value));
 
@@ -51,6 +92,154 @@ TEST_F(Spc700Test, MOV_A_X) {
   spc700.ExecuteInstructions(opcode);
 
   EXPECT_EQ(spc700.A, spc700.X);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_Y) {
+  // MOV A, Y
+  uint8_t opcode = 0xDD;
+  spc700.Y = 0x5A;
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, spc700.Y);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_dp) {
+  // MOV A, dp
+  uint8_t opcode = 0xE4;
+  uint8_t dp_value = 0x5A;
+  audioRAM.SetupMemory(0x005A, {0x42});
+  audioRAM.SetupMemory(0x0100, {opcode, dp_value});
+
+  EXPECT_CALL(audioRAM, read(_))
+      .WillOnce(Return(dp_value))
+      .WillOnce(Return(0x42));
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, 0x42);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_dp_plus_x) {
+  // MOV A, dp+X
+  uint8_t opcode = 0xF4;
+  uint8_t dp_value = 0x5A;
+  spc700.X = 0x01;
+  audioRAM.SetupMemory(0x005B, {0x42});
+  audioRAM.SetupMemory(0x0100, {opcode, dp_value});
+
+  EXPECT_CALL(audioRAM, read(_))
+      .WillOnce(Return(dp_value + spc700.X))
+      .WillOnce(Return(0x42));
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, 0x42);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_dp_indirect_plus_y) {
+  // MOV A, [dp]+Y
+  uint8_t opcode = 0xF7;
+  uint8_t dp_value = 0x5A;
+  spc700.Y = 0x01;
+  audioRAM.SetupMemory(0x005A, {0x00, 0x42});
+  audioRAM.SetupMemory(0x0100, {opcode, dp_value});
+  audioRAM.SetupMemory(0x4201, {0x69});
+
+  EXPECT_CALL(audioRAM, read(_))
+      .WillOnce(Return(dp_value))
+      .WillOnce(Return(0x4200))
+      .WillOnce(Return(0x69));
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, 0x69);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_dp_plus_x_indirect) {
+  // MOV A, [dp+X]
+  uint8_t opcode = 0xE7;
+  uint8_t dp_value = 0x5A;
+  spc700.X = 0x01;
+  audioRAM.SetupMemory(0x005B, {0x00, 0x42});
+  audioRAM.SetupMemory(0x0100, {opcode, dp_value});
+  audioRAM.SetupMemory(0x4200, {0x69});
+
+  EXPECT_CALL(audioRAM, read(_))
+      .WillOnce(Return(dp_value + 1))
+      .WillOnce(Return(0x4200))
+      .WillOnce(Return(0x69));
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, 0x69);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_abs) {
+  // MOV A, !abs
+  uint8_t opcode = 0xE5;
+  uint16_t abs_addr = 0x1234;
+  uint8_t abs_value = 0x5A;
+
+  EXPECT_CALL(audioRAM, read(_))
+      .WillOnce(Return(abs_addr & 0xFF))  // Low byte
+      .WillOnce(Return(abs_addr >> 8));   // High byte
+
+  EXPECT_CALL(audioRAM, read(abs_addr)).WillOnce(Return(abs_value));
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, abs_value);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_addr_plus_i) {
+  // MOV A, [!addr+X]
+  uint8_t opcode = 0x9D;
+  uint16_t abs_addr = 0x1234;
+  uint8_t abs_value = 0x5A;
+  spc700.X = 0x01;
+
+  EXPECT_CALL(audioRAM, read(_))
+      .WillOnce(Return(abs_addr & 0xFF))  // Low byte
+      .WillOnce(Return(abs_addr >> 8));   // High byte
+  EXPECT_CALL(audioRAM, read(abs_addr + spc700.X)).WillOnce(Return(abs_value));
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, abs_value);
+  EXPECT_EQ(spc700.PSW.Z, 0);
+  EXPECT_EQ(spc700.PSW.N, 0);
+}
+
+TEST_F(Spc700Test, MOV_A_addr_plus_i_indexed) {
+  // MOV A, [!addr]+Y
+  uint8_t opcode = 0x5F;
+  uint16_t abs_addr = 0x1234;
+  uint8_t abs_value = 0x5A;
+  spc700.Y = 0x01;
+
+  EXPECT_CALL(audioRAM, read(_))
+      .WillOnce(Return(abs_addr & 0xFF))  // Low byte
+      .WillOnce(Return(abs_addr >> 8));   // High byte
+  EXPECT_CALL(audioRAM, read(abs_addr + spc700.Y)).WillOnce(Return(abs_value));
+
+  spc700.ExecuteInstructions(opcode);
+
+  EXPECT_EQ(spc700.A, abs_value);
   EXPECT_EQ(spc700.PSW.Z, 0);
   EXPECT_EQ(spc700.PSW.N, 0);
 }
@@ -306,7 +495,7 @@ TEST_F(Spc700Test, ExecuteBEQWhenNotEqual) {
 
 TEST_F(Spc700Test, BootIplRomOk) {
   // Boot the IPL ROM
-  // spc700.BootIplRom();
+  spc700.BootIplRom();
 
   EXPECT_EQ(spc700.PC, 0xFFC1 + 0x3F);
 }
