@@ -117,6 +117,7 @@ class Memory {
 
   virtual void WriteByte(uint32_t address, uint8_t value) = 0;
   virtual void WriteWord(uint32_t address, uint16_t value) = 0;
+  virtual void WriteLong(uint32_t address, uint32_t value) = 0;
 
   virtual void PushByte(uint8_t value) = 0;
   virtual uint8_t PopByte() = 0;
@@ -263,6 +264,12 @@ class MemoryImpl : public Memory, public Loggable {
     memory_.at(mapped_address) = value & 0xFF;
     memory_.at(mapped_address + 1) = (value >> 8) & 0xFF;
   }
+  void WriteLong(uint32_t address, uint32_t value) override {
+    uint32_t mapped_address = GetMappedAddress(address);
+    memory_.at(mapped_address) = value & 0xFF;
+    memory_.at(mapped_address + 1) = (value >> 8) & 0xFF;
+    memory_.at(mapped_address + 2) = (value >> 16) & 0xFF;
+  }
 
   // Stack operations
   void PushByte(uint8_t value) override {
@@ -347,11 +354,11 @@ class MemoryImpl : public Memory, public Loggable {
     }
 
     if (bank <= 0x3F) {
-      if (offset <= 0x1FFF) {
+      if (address <= 0x1FFF) {
         return (0x7E << 16) + offset;  // Shadow RAM
-      } else if (offset <= 0x5FFF) {
+      } else if (address <= 0x5FFF) {
         return (bank << 16) + (offset - 0x2000) + 0x2000;  // Hardware Registers
-      } else if (offset <= 0x7FFF) {
+      } else if (address <= 0x7FFF) {
         return offset - 0x6000 + 0x6000;  // Expansion RAM
       } else {
         // Return lorom mapping

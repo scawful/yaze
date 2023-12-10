@@ -806,6 +806,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
     case 0x20:  // JSR Absolute
     {
       operand = Absolute(AccessType::Control);
+      PB = (operand >> 16);
       JSR(operand);
       break;
     }
@@ -904,7 +905,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
     case 0xBD:  // LDA Absolute Indexed, X
     {
       operand = AbsoluteIndexedX();
-      LDA(operand);
+      LDA(operand, false, false, true);
       break;
     }
     case 0xBF:  // LDA Absolute Long Indexed, X
@@ -1321,9 +1322,11 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
       STA(operand);
       break;
     case 0x97:  // STA DP Indirect Long Indexed, Y
+    {
       operand = DirectPageIndirectLongIndexedY();
       STA(operand);
       break;
+    }
     case 0x99:  // STA Absolute Indexed, Y
       operand = AbsoluteIndexedY();
       STA(operand);
@@ -1510,7 +1513,8 @@ void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
               << "$" << std::uppercase << std::setw(2) << std::setfill('0')
               << static_cast<int>(PB) << ":" << std::hex << PC;
     std::cout << " \033[1;32m"
-              << ": 0x" << std::hex << static_cast<int>(opcode) << " ";
+              << ": 0x" << std::hex << std::uppercase << std::setw(2)
+              << std::setfill('0') << static_cast<int>(opcode) << " ";
     std::cout << " \033[1;35m" << opcode_to_mnemonic.at(opcode) << " "
               << "\033[0m";
 
@@ -1526,7 +1530,53 @@ void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
         std::cout << std::hex << std::setw(4) << std::setfill('0')
                   << static_cast<int>(operand);
       }
+
+      bool x_indexing, y_indexing;
+      auto x_indexed_instruction_opcodes = {0x15, 0x16, 0x17, 0x55, 0x56,
+                                            0x57, 0xD5, 0xD6, 0xD7, 0xF5,
+                                            0xF6, 0xF7, 0xBD};
+      auto y_indexed_instruction_opcodes = {0x19, 0x97, 0x1D, 0x59, 0x5D, 0x99,
+                                            0x9D, 0xB9, 0xD9, 0xDD, 0xF9, 0xFD};
+      if (std::find(x_indexed_instruction_opcodes.begin(),
+                    x_indexed_instruction_opcodes.end(),
+                    opcode) != x_indexed_instruction_opcodes.end()) {
+        x_indexing = true;
+      } else {
+        x_indexing = false;
+      }
+      if (std::find(y_indexed_instruction_opcodes.begin(),
+                    y_indexed_instruction_opcodes.end(),
+                    opcode) != y_indexed_instruction_opcodes.end()) {
+        y_indexing = true;
+      } else {
+        y_indexing = false;
+      }
+
+      if (x_indexing) {
+        std::cout << ", X";
+      }
+
+      if (y_indexing) {
+        std::cout << ", Y";
+      }
     }
+
+    // Log the registers and flags.
+    std::cout << std::right;
+    std::cout << "\033[1;33m"
+              << " A:" << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(A);
+    std::cout << " X:" << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(X);
+    std::cout << " Y:" << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(Y);
+    std::cout << " S:" << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(status);
+    std::cout << " DB:" << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(DB);
+    std::cout << " D:" << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(D);
+
     std::cout << std::endl;
   }
 }
@@ -1548,7 +1598,6 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
     case 0xFC:  // JSR Absolute Indexed Indirect
     case 0xDC:  // JMP Absolute Indirect Long
     case 0x6B:  // RTL
-
     case 0x82:  // BRL Relative Long
       PC = next_pc_;
       return 0;
@@ -1559,7 +1608,7 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
 
     case 0x60:  // RTS
       PC = last_call_frame_;
-      return 0;
+      return 3;
 
     // Branch Instructions (BCC, BCS, BNE, BEQ, etc.)
     case 0x90:  // BCC near

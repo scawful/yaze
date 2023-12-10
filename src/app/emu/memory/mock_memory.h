@@ -34,6 +34,7 @@ class MockMemory : public Memory {
 
   MOCK_METHOD2(WriteByte, void(uint32_t address, uint8_t value));
   MOCK_METHOD2(WriteWord, void(uint32_t address, uint16_t value));
+  MOCK_METHOD2(WriteLong, void(uint32_t address, uint32_t value));
 
   MOCK_METHOD1(PushByte, void(uint8_t value));
   MOCK_METHOD0(PopByte, uint8_t());
@@ -173,8 +174,9 @@ class MockMemory : public Memory {
       return value;
     });
     ON_CALL(*this, SP()).WillByDefault([this]() { return SP_; });
-    ON_CALL(*this, SetSP(::testing::_))
-        .WillByDefault([this](uint16_t value) { SP_ = value; });
+    ON_CALL(*this, SetSP(::testing::_)).WillByDefault([this](uint16_t value) {
+      SP_ = value;
+    });
     ON_CALL(*this, ClearMemory()).WillByDefault([this]() {
       memory_.resize(64000, 0x00);
     });

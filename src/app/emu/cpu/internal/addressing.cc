@@ -4,7 +4,7 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-uint16_t CPU::Absolute(CPU::AccessType access_type) {
+uint32_t CPU::Absolute(CPU::AccessType access_type) {
   auto operand = FetchWord();
   uint32_t bank =
       (access_type == CPU::AccessType::Data) ? (DB << 16) : (PB << 16);
