@@ -160,7 +160,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   //    Low:  First operand byte
   //
   // LDA addr
-  uint16_t Absolute(AccessType access_type = AccessType::Data);
+  uint32_t Absolute(AccessType access_type = AccessType::Data);
 
   // Effective Address:
   //    The Data Bank Register is concatened with the 16-bit operand
@@ -342,6 +342,9 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void WriteWord(uint32_t address, uint16_t value) override {
     memory.WriteWord(address, value);
   }
+  void WriteLong(uint32_t address, uint32_t value) {
+    memory.WriteLong(address, value);
+  }
 
   uint8_t FetchByte() {
     uint32_t address = (PB << 16) | PC + 1;
@@ -498,7 +501,8 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void JSL(uint32_t address);
 
   // LDA: Load accumulator
-  void LDA(uint16_t address, bool immediate = false, bool direct_page = false);
+  void LDA(uint16_t address, bool immediate = false, bool direct_page = false,
+           bool data_bank = false);
 
   // LDX: Load X register
   void LDX(uint16_t address, bool immediate = false);

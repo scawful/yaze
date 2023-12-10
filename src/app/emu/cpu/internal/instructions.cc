@@ -361,7 +361,7 @@ void CPU::JSL(uint32_t address) {
   next_pc_ = address;   // Set program counter to the new address
 }
 
-void CPU::LDA(uint16_t address, bool isImmediate, bool direct_page) {
+void CPU::LDA(uint16_t address, bool isImmediate, bool direct_page, bool data_bank) {
   uint8_t bank = PB;
   if (direct_page) {
     bank = 0;
@@ -628,7 +628,9 @@ void CPU::RTL() {
   PB = memory.PopByte();
 }
 
-void CPU::RTS() { last_call_frame_ = memory.PopWord(); }
+void CPU::RTS() { 
+  last_call_frame_ = memory.PopWord();
+}
 
 void CPU::SBC(uint32_t value, bool isImmediate) {
   uint16_t operand;
