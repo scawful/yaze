@@ -17,6 +17,11 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+constexpr ImGuiTableFlags kDungeonObjectTableFlags =
+    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+    ImGuiTableFlags_BordersV;
+
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
@@ -34,9 +39,15 @@ absl::Status DungeonEditor::Update() {
     }
     graphics_bin_ = rom()->graphics_bin();
     full_palette_ =
-        rom()->GetPaletteGroup("dungeon_main")[current_palette_group_id_];
+        rom()->palette_group("dungeon_main")[current_palette_group_id_];
     current_palette_group_ =
         gfx::CreatePaletteGroupFromLargePalette(full_palette_);
+
+    // Create a vector of pointers to the current block bitmaps
+    for (int block : rooms_[current_room_id_].blocks()) {
+      room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
+    }
+
     is_loaded_ = true;
   }
 
@@ -54,7 +65,7 @@ absl::Status DungeonEditor::Update() {
   if (palette_showing_) {
     ImGui::Begin("Palette Editor", &palette_showing_, 0);
     current_palette_ =
-        rom()->GetPaletteGroup("dungeon_main")[current_palette_group_id_];
+        rom()->palette_group("dungeon_main")[current_palette_group_id_];
     gui::SelectablePalettePipeline(current_palette_id_, refresh_graphics_,
                                    current_palette_);
     ImGui::End();
@@ -311,12 +322,8 @@ void DungeonEditor::DrawTileSelector() {
 }
 
 void DungeonEditor::DrawObjectRenderer() {
-  if (ImGui::BeginTable(
-          "DungeonObjectEditorTable", 2,
-          ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-              ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
-              ImGuiTableFlags_BordersV,
-          ImVec2(0, 0))) {
+  if (ImGui::BeginTable("DungeonObjectEditorTable", 2, kDungeonObjectTableFlags,
+                        ImVec2(0, 0))) {
     TableSetupColumn("Dungeon Objects", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
     TableSetupColumn("Canvas");
@@ -330,7 +337,8 @@ void DungeonEditor::DrawObjectRenderer() {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
         current_object_ = i;
-        object_renderer_.LoadObject(i);
+        object_renderer_.LoadObject(i,
+                                    rooms_[current_room_id_].mutable_blocks());
         rom()->RenderBitmap(object_renderer_.bitmap());
         object_loaded_ = true;
       }
@@ -347,25 +355,24 @@ void DungeonEditor::DrawObjectRenderer() {
     object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
     object_canvas_.DrawContextMenu();
     object_canvas_.DrawTileSelector(32);
-    // if (object_loaded_) {
-    //   object_canvas_.DrawBitmap(*object_renderer_.bitmap(), 0, 0);
-    // }
+    if (object_loaded_) {
+      object_canvas_.DrawBitmap(*object_renderer_.bitmap(), 0, 0);
+    }
     object_canvas_.DrawGrid(32.0f);
     object_canvas_.DrawOverlay();
 
     ImGui::EndChild();
-
     ImGui::EndTable();
   }
 
-  if (object_loaded_) {
-    ImGui::Begin("Memory Viewer", &object_loaded_, 0);
-    auto memory = object_renderer_.memory();
-    static MemoryEditor mem_edit;
-    mem_edit.DrawContents((void*)object_renderer_.mutable_memory(),
-                          memory.size());
-    ImGui::End();
-  }
+  // if (object_loaded_) {
+  //   ImGui::Begin("Memory Viewer", &object_loaded_, 0);
+  //   auto memory = object_renderer_.memory();
+  //   static MemoryEditor mem_edit;
+  //   mem_edit.DrawContents((void*)object_renderer_.memory_ptr(),
+  //                         memory.size());
+  //   ImGui::End();
+  // }
 }
 
 }  // namespace editor

@@ -14,187 +14,16 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_names.h"
+#include "app/zelda3/dungeon/object_renderer.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-class DungeonObjectRenderer : public SharedROM {
- public:
-  struct PseudoVram {
-    std::vector<gfx::Bitmap> sheets;
-    // TODO: Initialize with mock VRAM data
-  };
-
-  DungeonObjectRenderer() {
-    // TODO: Constructor implementation
-  }
-
-  void LoadObject(uint16_t objectId) {
-    rom_data_ = rom()->vector();
-    // Prepare the CPU and memory environment
-    memory_.Initialize(rom_data_);
-
-    // Fetch the subtype pointers for the given object ID
-    auto subtypeInfo = FetchSubtypeInfo(objectId);
-
-    // Configure the object based on the fetched information
-    ConfigureObject(subtypeInfo);
-
-    // Run the CPU emulation for the object's draw routines
-    RenderObject(subtypeInfo);
-  }
-
-  gfx::Bitmap* bitmap() { return &bitmap_; }
-  auto memory() { return memory_; }
-  auto mutable_memory() { return memory_.data(); }
-
- private:
-  struct SubtypeInfo {
-    uint32_t subtypePtr;
-    uint32_t routinePtr;
-  };
-
-  SubtypeInfo FetchSubtypeInfo(uint16_t objectId) {
-    SubtypeInfo info;
-
-    // Determine the subtype based on objectId
-    // Assuming subtype is determined by some bits in objectId; modify as needed
-    uint8_t subtype = 1;  // Example: top 8 bits
-
-    // Based on the subtype, fetch the correct pointers
-    switch (subtype) {
-      case 1:  // Subtype 1
-        info.subtypePtr = core::subtype1_tiles + (objectId & 0xFF) * 2;
-        info.routinePtr = core::subtype1_tiles + 0x200 + (objectId & 0xFF) * 2;
-        std::cout << "Subtype 1 " << std::hex << info.subtypePtr << std::endl;
-        std::cout << "Subtype 1 " << std::hex << info.routinePtr << std::endl;
-        break;
-      case 2:  // Subtype 2
-        info.subtypePtr = core::subtype2_tiles + (objectId & 0x7F) * 2;
-        info.routinePtr = core::subtype2_tiles + 0x80 + (objectId & 0x7F) * 2;
-        break;
-      case 3:  // Subtype 3
-        info.subtypePtr = core::subtype3_tiles + (objectId & 0xFF) * 2;
-        info.routinePtr = core::subtype3_tiles + 0x100 + (objectId & 0xFF) * 2;
-        break;
-      default:
-        // Handle unknown subtype
-        throw std::runtime_error("Unknown subtype for object ID: " +
-                                 std::to_string(objectId));
-    }
-
-    // Convert pointers from ROM-relative to absolute (if necessary)
-    // info.subtypePtr = ConvertToAbsolutePtr(info.subtypePtr);
-    // info.routinePtr = ConvertToAbsolutePtr(info.routinePtr);
-
-    return info;
-  }
-
-  void ConfigureObject(const SubtypeInfo& info) {
-    cpu.A = 0x03D8;
-    cpu.X = 0x03D8;
-    cpu.DB = 0x7E;
-    // VRAM target destinations
-    cpu.WriteLong(0xBF, 0x7E2000);
-    cpu.WriteLong(0xCB, 0x7E2080);
-    cpu.WriteLong(0xC2, 0x7E2002);
-    cpu.WriteLong(0xCE, 0x7E2082);
-    cpu.SetAccumulatorSize(false);
-    cpu.SetIndexSize(false);
-  }
-
-  /**
-   * Example:
-   * the STA $BF, $CD, $C2, $CE are the location of the object in the room
-   * $B2 is used for size loop
-   * so if object size is setted on 07 that draw code will be repeated 7 times
-   * and since Y is increasing by 4 it makes the object draw from left to right
-
-    RoomDraw_Rightwards2x2_1to15or32:
-      #_018B89: JSR RoomDraw_GetSize_1to15or32
-
-      .next
-      #_018B8C: JSR RoomDraw_Rightwards2x2
-
-      #_018B8F: DEC.b $B2
-      #_018B91: BNE .next
-
-      #_018B93: RTS
-
-    RoomDraw_Rightwards2x2:
-      #_019895: LDA.w RoomDrawObjectData+0,X
-      #_019898: STA.b [$BF],Y
-
-      #_01989A: LDA.w RoomDrawObjectData+2,X
-      #_01989D: STA.b [$CB],Y
-
-      #_01989F: LDA.w RoomDrawObjectData+4,X
-      #_0198A2: STA.b [$C2],Y
-
-      #_0198A4: LDA.w RoomDrawObjectData+6,X
-      #_0198A7: STA.b [$CE],Y
-
-      #_0198A9: INY
-      #_0198AA: INY
-      #_0198AB: INY
-      #_0198AC: INY
-
-      #_0198AD: RTS
-   *
-  */
-
-  void RenderObject(const SubtypeInfo& info) {
-    cpu.PB = 0x01;
-    cpu.PC = cpu.ReadWord(0x01 << 16 | info.routinePtr);
-
-    int i = 0;
-    while (true) {
-      uint8_t opcode = cpu.ReadByte(cpu.PB << 16 | cpu.PC);
-      cpu.ExecuteInstruction(opcode);
-      cpu.HandleInterrupts();
-
-      if (i > 50) {
-        break;
-      }
-      i++;
-
-      // UpdateObjectBitmap();
-    }
-  }
-
-  void UpdateObjectBitmap() {
-    // Object draw data
-    uint8_t room_object_draw_data0 = memory_.ReadByte(0x7E00BF);
-    uint8_t room_object_draw_data1 = memory_.ReadByte(0x7E00CB);
-    uint8_t room_object_draw_data2 = memory_.ReadByte(0x7E00C2);
-    uint8_t room_object_draw_data3 = memory_.ReadByte(0x7E00CE);
-
-    // Used with Y to index the room object draw data
-    uint8_t size_loop = memory_.ReadByte(0x7E00B2);
-
-    // Update the bitmap with this data by copying the tiles from vram.
-
-    std::cout << "Object draw data: " << std::hex << (int)room_object_draw_data0
-              << " " << (int)room_object_draw_data1 << " "
-              << (int)room_object_draw_data2 << " "
-              << (int)room_object_draw_data3 << std::endl;
-    std::cout << "Size loop: " << std::hex << (int)size_loop << std::endl;
-  }
-
-  std::vector<uint8_t> rom_data_;
-  emu::MemoryImpl memory_;
-  emu::ClockImpl clock_;
-  emu::CPU cpu{memory_, clock_};
-  emu::Ppu ppu{memory_, clock_};
-  gfx::Bitmap bitmap_;
-  PseudoVram vram_;
-};
+struct Tile {};
 
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
-
-struct Tile {};
 
 enum Background2 {
   Off,
@@ -227,12 +56,6 @@ enum ObjectOption {
   Torch = 8,
   Bgr = 16,
   Stairs = 32
-};
-
-struct LayerType {
-  LayerType(uint8_t t) : type(t) {}
-
-  uint8_t type;
 };
 
 class RoomObject : public SharedROM {
@@ -268,7 +91,6 @@ class RoomObject : public SharedROM {
     GetSizeSized();
     UpdateSize();
     size_ = previous_size_;
-    // collision_point_.clear();
   }
 
   void GetBaseSize() {
@@ -281,8 +103,6 @@ class RoomObject : public SharedROM {
     size_width_ = width_ - base_width_;
   }
 
-  // virtual void Draw() { collision_point_.clear(); }
-
   void UpdateSize() {
     width_ = 8;
     height_ = 8;
@@ -291,8 +111,8 @@ class RoomObject : public SharedROM {
   void AddTiles(int nbr, int pos) {
     auto rom_data = rom()->data();
     for (int i = 0; i < nbr; i++) {
-      // tiles.push_back(
-      //     gfx::Tile16(rom_data[pos + (i * 2)], rom_data[pos + (i * 2) + 1]));
+      ASSIGN_OR_LOG_ERROR(auto tile, rom()->ReadTile16(pos + (i * 2)));
+      tiles_.push_back(tile);
     }
   }
 
@@ -302,43 +122,42 @@ class RoomObject : public SharedROM {
                 ushort tile_under = 0xFFFF);
 
  protected:
-  int16_t id_;
+  bool all_bgs_ = false;
+  bool lit_ = false;
+  bool deleted_ = false;
+  bool show_rectangle_ = false;
+  bool diagonal_fix_ = false;
+  bool selected_ = false;
 
+  int16_t id_;
   uint8_t x_;
   uint8_t y_;
   uint8_t size_;
-
-  LayerType layer_;
-
-  std::vector<uint8_t> preview_object_data_;
-
-  bool all_bgs_ = false;
-  bool lit_ = false;
-  std::vector<gfx::Tile16> tiles_;
-  int tile_index_ = 0;
-  std::string name_;
   uint8_t nx_;
   uint8_t ny_;
   uint8_t ox_;
   uint8_t oy_;
+  uint8_t z_ = 0;
+  uint8_t previous_size_ = 0;
+
   int width_;
   int height_;
   int base_width_;
   int base_height_;
   int size_width_;
   int size_height_;
-  ObjectOption options_ = ObjectOption::Nothing;
+  int tile_index_ = 0;
   int offset_x_ = 0;
   int offset_y_ = 0;
-  bool diagonal_fix_ = false;
-  bool selected_ = false;
   int preview_id_ = 0;
-  uint8_t previous_size_ = 0;
-  bool show_rectangle_ = false;
-  // std::vector<Point> collision_point_;
   int unique_id_ = 0;
-  uint8_t z_ = 0;
-  bool deleted_ = false;
+
+  std::string name_;
+
+  LayerType layer_;
+  ObjectOption options_ = ObjectOption::Nothing;
+  std::vector<gfx::Tile16> tiles_;
+  std::vector<uint8_t> preview_object_data_;
 };
 
 class Subtype1 : public RoomObject {
