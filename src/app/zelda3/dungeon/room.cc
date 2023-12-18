@@ -69,9 +69,6 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
     if (i >= 6 && i <= 6) {
       // 3-6
       if (entrance_blockset != 0xFF) {
-        // 6 is wrong for the entrance? -NOP need to fix that
-        // TODO: Find why this is wrong - Thats because of the stairs need to
-        // find a workaround
         if (roomGfx[entrance_blockset][i - 3] != 0) {
           blocks_[i] = roomGfx[entrance_blockset][i - 3];
         }
@@ -88,25 +85,34 @@ void Room::LoadRoomGraphics(uchar entrance_blockset) {
   }  // 12-16 sprites
 }
 
+constexpr int kGfxBufferOffset = 92 * 2048;
+constexpr int kGfxBufferStride = 512;
+constexpr int kGfxBufferAnimatedFrameOffset = 7 * 2048;
+constexpr int kGfxBufferAnimatedFrameStride = 512;
+constexpr int kGfxBufferRoomOffset = 2048;
+constexpr int kGfxBufferRoomSpriteOffset = 512;
+constexpr int kGfxBufferRoomSpriteStride = 2048;
+constexpr int kGfxBufferRoomSpriteLastLineOffset = 0x88;
+
 void Room::CopyRoomGraphicsToBuffer() {
   auto gfx_buffer_data = rom()->graphics_buffer();
 
-  // Into "room gfx16" 16 of them
-  int sheetPos = 0;
+  // Copy room graphics to buffer
+  int sheet_pos = 0;
   for (int i = 0; i < 16; i++) {
-    int d = 0;
-    int ioff = blocks_[i] * 2048;
-    while (d < 2048) {
-      uchar mapByte = gfx_buffer_data[d + ioff];
+    int data = 0;
+    int block_offset = blocks_[i] * kGfxBufferRoomOffset;
+    while (data < kGfxBufferRoomOffset) {
+      uchar map_byte = gfx_buffer_data[data + block_offset];
       if (i < 4) {
-        mapByte += 0x88;
-      }  // Last line of 6, first line of 7 ?
+        map_byte += kGfxBufferRoomSpriteLastLineOffset;
+      }
 
-      current_gfx16_[d + sheetPos] = mapByte;
-      d++;
+      current_gfx16_[data + sheet_pos] = map_byte;
+      data++;
     }
 
-    sheetPos += 2048;
+    sheet_pos += kGfxBufferRoomOffset;
   }
 
   LoadAnimatedGraphics();
@@ -243,8 +249,8 @@ void Room::LoadObjects() {
   short oid = 0;
   int layer = 0;
   bool door = false;
-  bool endRead = false;
-  while (!endRead) {
+  bool end_read = false;
+  while (!end_read) {
     b1 = rom_data[pos];
     b2 = rom_data[pos + 1];
 

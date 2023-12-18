@@ -20,13 +20,9 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-// public static int room_object_layout_pointer = 0x882D;
-// public static int room_object_pointer = 0x874C; // Long pointer
-// oh eh
-// in bank 01 ? lol
-// those are pointer of pointers
+// room_object_layout_pointer   0x882D
+// room_object_pointer          0x874C
 // 0x882D -> readlong() -> 2FEF04 (04EF2F -> toPC->026F2F) ->
-// that's all the layout "room" pointers
 
 // 47EF04 ; layout00 ptr
 // AFEF04 ; layout01 ptr
@@ -40,6 +36,9 @@ namespace dungeon {
 // the object array is terminated by a 0xFFFF there's no layers
 // in normal room when you encounter a 0xFFFF it goes to the next layer
 
+constexpr int room_object_layout_pointer = 0x882D;
+constexpr int room_object_pointer = 0x874C;  // Long pointer
+
 constexpr int entrance_gfx_group = 0x5D97;
 constexpr int dungeons_main_bg_palette_pointers = 0xDEC4B;  // JP Same
 constexpr int dungeons_palettes = 0xDD734;
@@ -48,8 +47,6 @@ constexpr int rooms_sprite_pointer = 0x4C298;   // JP Same //2byte bank 09D62E
 constexpr int kRoomHeaderPointer = 0xB5DD;      // LONG
 constexpr int kRoomHeaderPointerBank = 0xB5E7;  // JP Same
 constexpr int gfx_groups_pointer = 0x6237;
-constexpr int room_object_layout_pointer = 0x882D;
-constexpr int room_object_pointer = 0x874C;  // Long pointer
 constexpr int chests_length_pointer = 0xEBF6;
 constexpr int chests_data_pointer1 = 0xEBFB;
 
@@ -138,6 +135,7 @@ class Room : public SharedROM {
   void LoadRoomFromROM();
 
   auto blocks() const { return blocks_; }
+  auto& mutable_blocks() { return blocks_; }
 
   RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
                        uint8_t layer) {
@@ -160,14 +158,16 @@ class Room : public SharedROM {
   std::vector<uint8_t> current_gfx16_;
 
  private:
+  bool light = false;
   bool is_loaded_ = false;
-
-  int animated_frame = 0;
+  bool IsDark = false;
+  bool floor = false;
 
   int room_id_ = 0;
+  int animated_frame = 0;
 
-  bool light;
-  Background2 bg2;
+  uchar Tag1;
+  uchar Tag2;
 
   uint8_t staircase_plane[4];
   uint8_t staircase_rooms[4];
@@ -179,6 +179,7 @@ class Room : public SharedROM {
   uint8_t Floor1Graphics;
   uint8_t Floor2Graphics;
   uint8_t Layer2Mode;
+
   std::array<uint8_t, 16> blocks_;
   std::array<uchar, 16> ChestList;
 
@@ -186,19 +187,13 @@ class Room : public SharedROM {
   std::vector<zelda3::Sprite> sprites_;
   std::vector<StaircaseRooms> staircaseRooms;
 
+  Background2 bg2;
   DungeonDestination Pits;
   DungeonDestination Stair1;
   DungeonDestination Stair2;
   DungeonDestination Stair3;
   DungeonDestination Stair4;
 
-  uchar Tag1;
-  uchar Tag2;
-  bool IsDark;
-
-  bool floor;
-
-  // std::vector<Chest> chest_list;
   std::vector<ChestData> chests_in_room;
   std::vector<RoomObject> tilesObjects;
 };
