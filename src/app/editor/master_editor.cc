@@ -112,6 +112,8 @@ class RecentFilesManager {
 
 }  // namespace
 
+using ImGui::BeginMenu;
+using ImGui::MenuItem;
 using ImGui::Text;
 
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
@@ -275,8 +277,8 @@ void MasterEditor::DrawYazeMenu() {
 void MasterEditor::DrawFileMenu() {
   static bool save_as_menu = false;
 
-  if (ImGui::BeginMenu("File")) {
-    if (ImGui::MenuItem("Open", "Ctrl+O")) {
+  if (BeginMenu("File")) {
+    if (MenuItem("Open", "Ctrl+O")) {
       if (flags()->kNewFileDialogWrapper) {
         auto file_name = FileDialogWrapper::ShowOpenFileDialog();
         PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
@@ -290,14 +292,14 @@ void MasterEditor::DrawFileMenu() {
       }
     }
 
-    if (ImGui::BeginMenu("Open Recent")) {
+    if (BeginMenu("Open Recent")) {
       static RecentFilesManager manager("recent_files.txt");
       manager.Load();
       if (manager.GetRecentFiles().empty()) {
-        ImGui::MenuItem("No Recent Files", nullptr, false, false);
+        MenuItem("No Recent Files", nullptr, false, false);
       } else {
         for (const auto& filePath : manager.GetRecentFiles()) {
-          if (ImGui::MenuItem(filePath.c_str())) {
+          if (MenuItem(filePath.c_str())) {
             status_ = rom()->LoadFromFile(filePath);
           }
         }
@@ -315,8 +317,8 @@ void MasterEditor::DrawFileMenu() {
 
     ImGui::Separator();
 
-    if (ImGui::BeginMenu("Options")) {
-      ImGui::MenuItem("Backup ROM", "", &backup_rom_);
+    if (BeginMenu("Options")) {
+      MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::Separator();
       Text("Experiment Flags");
       ImGui::Checkbox("Enable Texture Streaming",
@@ -339,7 +341,7 @@ void MasterEditor::DrawFileMenu() {
 
     ImGui::Separator();
 
-    if (ImGui::MenuItem("Quit", "Ctrl+Q")) {
+    if (MenuItem("Quit", "Ctrl+Q")) {
       // TODO: Implement quit confirmation dialog.
     }
 
@@ -363,7 +365,7 @@ void MasterEditor::DrawFileMenu() {
 }
 
 void MasterEditor::DrawEditMenu() {
-  if (ImGui::BeginMenu("Edit")) {
+  if (BeginMenu("Edit")) {
     MENU_ITEM2("Undo", "Ctrl+Z") { status_ = current_editor_->Undo(); }
     MENU_ITEM2("Redo", "Ctrl+Y") { status_ = current_editor_->Redo(); }
     ImGui::Separator();
@@ -439,23 +441,23 @@ void MasterEditor::DrawViewMenu() {
     ImGui::End();
   }
 
-  if (ImGui::BeginMenu("View")) {
-    ImGui::MenuItem("Emulator", nullptr, &show_emulator);
-    ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
-    ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
-    ImGui::MenuItem("Palette Editor", nullptr, &show_palette_editor);
-    ImGui::MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
-    ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
-    ImGui::MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
+  if (BeginMenu("View")) {
+    MenuItem("Emulator", nullptr, &show_emulator);
+    MenuItem("HEX Editor", nullptr, &show_memory_editor);
+    MenuItem("ASM Editor", nullptr, &show_asm_editor);
+    MenuItem("Palette Editor", nullptr, &show_palette_editor);
+    MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
+    MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
+    MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
     ImGui::EndMenu();
   }
 }
 
 void MasterEditor::DrawHelpMenu() {
   static bool open_rom_help = false;
-  if (ImGui::BeginMenu("Help")) {
-    if (ImGui::MenuItem("How to open a ROM")) open_rom_help = true;
-    if (ImGui::MenuItem("About")) about_ = true;
+  if (BeginMenu("Help")) {
+    if (MenuItem("How to open a ROM")) open_rom_help = true;
+    if (MenuItem("About")) about_ = true;
     ImGui::EndMenu();
   }
 

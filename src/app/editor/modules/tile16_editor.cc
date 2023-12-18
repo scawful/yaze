@@ -112,7 +112,7 @@ absl::Status Tile16Editor::UpdateBlockset() {
     if (notify_tile16.modified()) {
       current_tile16_bmp_ = tile16_individual_[notify_tile16];
       current_tile16_bmp_.ApplyPalette(
-          rom()->GetPaletteGroup("ow_main")[current_palette_]);
+          rom()->palette_group("ow_main")[current_palette_]);
       rom()->RenderBitmap(&current_tile16_bmp_);
     }
   }
@@ -163,9 +163,9 @@ void Tile16Editor::DrawTileEditControls() {
   notify_palette.apply_changes();
   if (notify_palette.modified()) {
     current_gfx_bmp_.ApplyPalette(
-        rom()->GetPaletteGroup("ow_main")[notify_palette.get()]);
+        rom()->palette_group("ow_main")[notify_palette.get()]);
     current_tile16_bmp_.ApplyPalette(
-        rom()->GetPaletteGroup("ow_main")[notify_palette.get()]);
+        rom()->palette_group("ow_main")[notify_palette.get()]);
     rom()->UpdateBitmap(&current_gfx_bmp_);
   }
 
@@ -250,7 +250,7 @@ absl::Status Tile16Editor::LoadTile8() {
     current_gfx_individual_.emplace_back();
     current_gfx_individual_[index].Create(0x08, 0x08, 0x80, tile_data);
     current_gfx_individual_[index].ApplyPalette(
-        rom()->GetPaletteGroup("ow_main")[current_palette_]);
+        rom()->palette_group("ow_main")[current_palette_]);
     rom()->RenderBitmap(&current_gfx_individual_[index]);
   };
 
@@ -272,7 +272,7 @@ absl::Status Tile16Editor::LoadTile8() {
   // for (int i = 0; i < 128; i++) {
   //   std::vector<uint8_t> tile_data(0x40, 0x00);
 
-  //   // Copy the pixel data for the current tile into the vector
+  //   Copy the pixel data for the current tile into the vector
   //   for (int ty = 0; ty < 8; ty++) {
   //     for (int tx = 0; tx < 8; tx++) {
   //       int position = tx + (ty * 0x10);
@@ -287,7 +287,7 @@ absl::Status Tile16Editor::LoadTile8() {
   //   current_gfx_individual_.emplace_back();
   //   current_gfx_individual_[i].Create(0x08, 0x08, 0x80, tile_data);
   //   current_gfx_individual_[i].ApplyPalette(
-  //       rom()->GetPaletteGroup("ow_main")[current_palette_]);
+  //       rom()->palette_group("ow_main")[current_palette_]);
   //   rom()->RenderBitmap(&current_gfx_individual_[i]);
   // }
   return absl::OkStatus();

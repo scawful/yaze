@@ -279,15 +279,7 @@ class ROM : public core::ExperimentFlags {
     return result;
   }
 
-  absl::StatusOr<uint16_t> ReadShort(int offset) {
-    if (offset + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Offset out of range");
-    }
-    auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
-    return result;
-  }
-
-  absl::StatusOr<uint32_t> ReadShortLong(int offset) {
+  absl::StatusOr<uint32_t> ReadLong(int offset) {
     if (offset + 2 >= rom_data_.size()) {
       return absl::InvalidArgumentError("Offset out of range");
     }
@@ -312,16 +304,16 @@ class ROM : public core::ExperimentFlags {
     // Skip 8 bytes per tile.
     auto tpos = 0x78000 + (tile16_id * 0x08);
     gfx::Tile16 tile16;
-    ASSIGN_OR_RETURN(auto new_tile0, ReadShort(tpos))
+    ASSIGN_OR_RETURN(auto new_tile0, ReadWord(tpos))
     tile16.tile0_ = gfx::WordToTileInfo(new_tile0);
     tpos += 2;
-    ASSIGN_OR_RETURN(auto new_tile1, ReadShort(tpos))
+    ASSIGN_OR_RETURN(auto new_tile1, ReadWord(tpos))
     tile16.tile1_ = gfx::WordToTileInfo(new_tile1);
     tpos += 2;
-    ASSIGN_OR_RETURN(auto new_tile2, ReadShort(tpos))
+    ASSIGN_OR_RETURN(auto new_tile2, ReadWord(tpos))
     tile16.tile2_ = gfx::WordToTileInfo(new_tile2);
     tpos += 2;
-    ASSIGN_OR_RETURN(auto new_tile3, ReadShort(tpos))
+    ASSIGN_OR_RETURN(auto new_tile3, ReadWord(tpos))
     tile16.tile3_ = gfx::WordToTileInfo(new_tile3);
     return tile16;
   }
@@ -411,7 +403,7 @@ class ROM : public core::ExperimentFlags {
     return core::SnesToPc(snes_addr);
   }
 
-  gfx::PaletteGroup GetPaletteGroup(const std::string& group) {
+  gfx::PaletteGroup palette_group(const std::string& group) {
     return palette_groups_[group];
   }
   auto mutable_palette_group(const std::string& group) {
@@ -433,26 +425,11 @@ class ROM : public core::ExperimentFlags {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
+  auto push_back(uint8_t byte) { rom_data_.push_back(byte); }
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
   auto isLoaded() const { return is_loaded_; }
-  auto char_data() {
-    return static_cast<char*>(static_cast<void*>(rom_data_.data()));
-  }
-
-  auto push_back(uchar byte) { rom_data_.push_back(byte); }
-
   auto version() const { return version_; }
-
-  void malloc(int n_bytes) {
-    rom_data_.clear();
-    rom_data_.reserve(n_bytes);
-    rom_data_.resize(n_bytes);
-    for (int i = 0; i < n_bytes; i++) {
-      rom_data_.push_back(0x00);
-    }
-    size_ = n_bytes;
-  }
 
   uchar& operator[](int i) {
     if (i > size_) {

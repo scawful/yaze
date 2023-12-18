@@ -138,7 +138,6 @@ void Controller::OnInput() {
             break;
         }
         break;
-
       default:
         break;
     }

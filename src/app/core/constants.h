@@ -87,6 +87,18 @@
   }                                                                           \
   type_variable_name = std::move(*error_or_value);
 
+#define ASSIGN_OR_LOG_ERROR(type_variable_name, expression)         \
+  ASSIGN_OR_LOG_ERROR_IMPL(APPEND_NUMBER(error_or_value, __LINE__), \
+                           type_variable_name, expression)
+
+#define ASSIGN_OR_LOG_ERROR_IMPL(error_or_value, type_variable_name, \
+                                 expression)                         \
+  auto error_or_value = expression;                                  \
+  if (!error_or_value.ok()) {                                        \
+    std::cout << error_or_value.status().ToString() << std::endl;    \
+  }                                                                  \
+  type_variable_name = std::move(*error_or_value);
+
 #define APPEND_NUMBER(expression, number) \
   APPEND_NUMBER_INNER(expression, number)
 
