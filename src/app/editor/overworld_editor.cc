@@ -466,6 +466,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     DrawOverworldMapSettings();
     Separator();
   }
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)7);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar |
@@ -486,6 +488,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     ow_map_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
+  ImGui::PopStyleVar(2);
 }
 
 // ----------------------------------------------------------------------------

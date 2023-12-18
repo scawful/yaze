@@ -342,7 +342,7 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   void WriteWord(uint32_t address, uint16_t value) override {
     memory.WriteWord(address, value);
   }
-  void WriteLong(uint32_t address, uint32_t value) {
+  void WriteLong(uint32_t address, uint32_t value) override {
     memory.WriteLong(address, value);
   }
 

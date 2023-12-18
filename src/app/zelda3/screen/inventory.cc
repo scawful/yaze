@@ -79,7 +79,7 @@ absl::Status Inventory::BuildTileset() {
     test_.push_back(tilesheets_[i]);
   }
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
-  palette_ = rom()->GetPaletteGroup("hud")[0];
+  palette_ = rom()->palette_group("hud")[0];
   tilesheets_bmp_.ApplyPalette(palette_);
   rom()->RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();

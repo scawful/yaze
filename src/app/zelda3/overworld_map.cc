@@ -92,7 +92,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux1")[1][k];
+      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux1")[1][k];
       k++;
     }
   }
@@ -101,7 +101,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux3")[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux3")[0][k];
       k++;
     }
   }
@@ -110,7 +110,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("global_sprites")[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group("global_sprites")[0][k];
       k++;
     }
   }
@@ -137,7 +137,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("armors")[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group("armors")[0][k];
       k++;
     }
   }
@@ -337,9 +337,9 @@ gfx::SNESPalette OverworldMap::GetPalette(const std::string& group, int index,
     if (index >= limit) {
       index = limit - 1;
     }
-    return rom_.GetPaletteGroup(group)[index];
+    return rom_.palette_group(group)[index];
   } else {
-    return rom_.GetPaletteGroup(group)[0];
+    return rom_.palette_group(group)[0];
   }
 }
 
@@ -362,7 +362,7 @@ void OverworldMap::LoadPalette() {
   uchar pal5 = rom_[overworldSpritePaletteGroup +
                     (sprite_palette_[game_state_] * 2) + 1];
 
-  gfx::SNESColor bgr = rom_.GetPaletteGroup("grass")[0].GetColor(0);
+  gfx::SNESColor bgr = rom_.palette_group("grass")[0].GetColor(0);
 
   gfx::SNESPalette aux1 = GetPalette("ow_aux", pal1, previousPalId, 20);
   gfx::SNESPalette aux2 = GetPalette("ow_aux", pal2, previousPalId, 20);
@@ -374,13 +374,13 @@ void OverworldMap::LoadPalette() {
   }
   if (parent_ < 0x40) {
     pal0 = parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ? 2 : 0;
-    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(0);
+    bgr = rom_.palette_group("grass")[0].GetColor(0);
   } else if (parent_ >= 0x40 && parent_ < 0x80) {
     pal0 = parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47 ? 3 : 1;
-    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(1);
+    bgr = rom_.palette_group("grass")[0].GetColor(1);
   } else if (parent_ >= 128 && parent_ < kNumOverworldMaps) {
     pal0 = 0;
-    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(2);
+    bgr = rom_.palette_group("grass")[0].GetColor(2);
   }
   if (parent_ == 0x88) {
     pal0 = 4;
@@ -388,7 +388,7 @@ void OverworldMap::LoadPalette() {
   gfx::SNESPalette main = GetPalette("ow_main", pal0, previousPalId, 255);
   gfx::SNESPalette animated =
       GetPalette("ow_animated", std::min((int)pal3, 13), previousPalId, 14);
-  gfx::SNESPalette hud = rom_.GetPaletteGroup("hud")[0];
+  gfx::SNESPalette hud = rom_.palette_group("hud")[0];
 
   gfx::SNESPalette spr = GetPalette("sprites_aux3", pal4, previousSprPalId, 24);
   gfx::SNESPalette spr2 =

@@ -62,7 +62,7 @@ absl::Status GfxGroupEditor::Update() {
             auto &sheet = *rom()->bitmap_manager()[sheet_id];
             if (sheet_id != last_sheet_id_) {
               last_sheet_id_ = sheet_id;
-              auto palette_group = rom()->GetPaletteGroup("ow_main");
+              auto palette_group = rom()->palette_group("ow_main");
               auto palette = palette_group[preview_palette_id_];
               sheet.ApplyPalette(palette);
               rom()->UpdateBitmap(&sheet);
