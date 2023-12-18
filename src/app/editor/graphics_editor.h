@@ -67,12 +67,18 @@ class GraphicsEditor : public SharedROM {
   absl::Status Update();
 
  private:
+  enum class GfxEditMode {
+    kSelect,
+    kPencil,
+    kFill,
+  };
+
   // Graphics Editor Tab
   absl::Status UpdateGfxEdit();
-  void DrawGfxEditToolset();
   absl::Status UpdateGfxSheetList();
   absl::Status UpdateGfxTabView();
   absl::Status UpdatePaletteColumn();
+  void DrawGfxEditToolset();
 
   // Link Graphics Edit Tab
   absl::Status UpdateLinkGfxView();
@@ -80,23 +86,24 @@ class GraphicsEditor : public SharedROM {
   // Prototype Graphics Viewer
   absl::Status UpdateScadView();
 
-  absl::Status DrawToolset();
-
+  // Import Functions
   absl::Status DrawCgxImport();
   absl::Status DrawScrImport();
   absl::Status DrawFileImport();
   absl::Status DrawObjImport();
   absl::Status DrawTilemapImport();
 
+  // Other Functions
+  absl::Status DrawToolset();
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
   absl::Status DrawMemoryEditor();
 
   absl::Status DecompressImportData(int size);
-
   absl::Status DecompressSuperDonkey();
 
+  // Member Variables
   ImVec4 current_color_;
   uint16_t current_sheet_ = 0;
   uint8_t tile_size_ = 0x08;
@@ -115,92 +122,67 @@ class GraphicsEditor : public SharedROM {
   uint64_t current_offset_ = 0;
   uint64_t current_size_ = 0;
   uint64_t current_palette_index_ = 0;
-
   int current_bpp_ = 0;
-
   int scr_mod_value_ = 0;
 
   uint64_t num_sheets_to_load_ = 1;
-
   uint64_t bin_size_ = 0;
-
   uint64_t clipboard_offset_ = 0;
   uint64_t clipboard_size_ = 0;
 
   bool refresh_graphics_ = false;
   bool open_memory_editor_ = false;
-
   bool gfx_loaded_ = false;
   bool is_open_ = false;
   bool super_donkey_ = false;
-
   bool col_file_ = false;
   bool cgx_loaded_ = false;
   bool scr_loaded_ = false;
   bool obj_loaded_ = false;
-
   bool tilemap_loaded_ = false;
 
   char file_path_[256] = "";
   char col_file_path_[256] = "";
   char col_file_name_[256] = "";
-
   char cgx_file_path_[256] = "";
   char cgx_file_name_[256] = "";
-
   char scr_file_path_[256] = "";
   char scr_file_name_[256] = "";
-
   char obj_file_path_[256] = "";
-
   char tilemap_file_path_[256] = "";
   char tilemap_file_name_[256] = "";
 
+  GfxEditMode gfx_edit_mode_ = GfxEditMode::kSelect;
+
   ROM temp_rom_;
   ROM tilemap_rom_;
-
   zelda3::Overworld overworld_;
-
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
-
   PaletteEditor palette_editor_;
-
   Bytes import_data_;
   Bytes graphics_buffer_;
-
   std::vector<uint8_t> decoded_cgx_;
   std::vector<uint8_t> cgx_data_;
   std::vector<uint8_t> extra_cgx_data_;
   std::vector<SDL_Color> decoded_col_;
-
   std::vector<uint8_t> scr_data_;
   std::vector<uint8_t> decoded_scr_data_;
-
   gfx::Bitmap cgx_bitmap_;
   gfx::Bitmap scr_bitmap_;
   gfx::Bitmap bin_bitmap_;
-
   gfx::Bitmap link_full_sheet_;
-
   gfx::BitmapTable graphics_bin_;
   gfx::BitmapTable clipboard_graphics_bin_;
-
   gfx::BitmapTable link_graphics_;
-
   gfx::PaletteGroup col_file_palette_group_;
-
   gfx::SNESPalette z3_rom_palette_;
   gfx::SNESPalette col_file_palette_;
-
   gfx::SNESPalette link_palette_;
-
   gui::Canvas import_canvas_;
   gui::Canvas scr_canvas_;
   gui::Canvas super_donkey_canvas_;
   gui::Canvas current_sheet_canvas_;
-  // gui::Canvas graphics_bin_canvas_;
-
   absl::Status status_;
 };
 

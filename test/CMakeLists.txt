@@ -45,6 +45,7 @@ target_include_directories(
   ../src/lib/
   # ../src/lib/asar/src/asar/
   ${SDL2_INCLUDE_DIR}
+  ${PNG_INCLUDE_DIRS}
 )
 
 target_link_libraries(
