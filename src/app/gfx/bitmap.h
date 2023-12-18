@@ -27,24 +27,11 @@ class Bitmap {
     InitializeFromData(width, height, depth, data);
   }
 
-  // Function to create texture from pixel data
-  void CreateTextureFromData() {
-    active_ = true;
-    surface_ = std::shared_ptr<SDL_Surface>(
-        SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                       SDL_PIXELFORMAT_INDEX8),
-        SDL_Surface_Deleter());
-    surface_->pixels = data_.data();
-    data_size_ = data_.size();
-  }
-
   void Create(int width, int height, int depth, int data_size);
   void Create(int width, int height, int depth, const Bytes &data);
 
   void InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
                           const Bytes &data);
-  void ReserveData(uint32_t width, uint32_t height, uint32_t depth,
-                   uint32_t size);
 
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
@@ -53,6 +40,9 @@ class Bitmap {
 
   void SaveSurfaceToFile(std::string_view filename);
   void SetSurface(SDL_Surface *surface);
+  std::vector<uint8_t> GetPngData();
+  void LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
+                       int height);
 
   void ApplyPalette(const SNESPalette &palette);
   void ApplyPaletteWithTransparent(const SNESPalette &palette, int index);
@@ -73,6 +63,22 @@ class Bitmap {
     this->pixel_data_[position] = value & 0xFF;
     this->pixel_data_[position + 1] = (value >> 8) & 0xFF;
     modified_ = true;
+  }
+
+  void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
+                  int &tile_data_offset) {
+    int tile_offset = tile_index * 64;
+    int tile_x = x * 8;
+    int tile_y = y * 8;
+    for (int i = 0; i < 8; i++) {
+      int row_offset = tile_offset + (i * 8);
+      for (int j = 0; j < 8; j++) {
+        int pixel_offset = row_offset + j;
+        int pixel_value = data_[pixel_offset];
+        tile_data[tile_data_offset] = pixel_value;
+        tile_data_offset++;
+      }
+    }
   }
 
   void Cleanup() {
@@ -105,10 +111,11 @@ class Bitmap {
   auto depth() const { return depth_; }
   auto size() const { return data_size_; }
   auto data() const { return data_.data(); }
-  auto mutable_data() { return data_; }
+  auto &mutable_data() { return data_; }
   auto mutable_pixel_data() { return pixel_data_; }
   auto surface() const { return surface_.get(); }
   auto mutable_surface() { return surface_.get(); }
+  void set_data(const Bytes &data) { data_ = data; }
 
   auto vector() const { return data_; }
   auto at(int i) const { return data_[i]; }
@@ -142,12 +149,17 @@ class Bitmap {
   int height_ = 0;
   int depth_ = 0;
   int data_size_ = 0;
+
   bool freed_ = false;
   bool active_ = false;
   bool modified_ = false;
   void *texture_pixels = nullptr;
+
   uchar *pixel_data_;
   Bytes data_;
+
+  std::vector<uint8_t> png_data_;
+
   gfx::SNESPalette palette_;
   std::shared_ptr<SDL_Texture> texture_ = nullptr;
   std::shared_ptr<SDL_Surface> surface_ = nullptr;

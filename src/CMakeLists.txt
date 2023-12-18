@@ -86,6 +86,7 @@ if(APPLE)
       app/core/platform/file_dialog.mm
       app/core/platform/app_delegate.mm
       app/core/platform/font_loader.mm
+      app/core/platform/clipboard.mm
     )
 
     find_library(COCOA_LIBRARY Cocoa)

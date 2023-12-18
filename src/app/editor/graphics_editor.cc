@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/platform/clipboard.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
@@ -28,6 +29,16 @@ using ImGui::InputInt;
 using ImGui::InputText;
 using ImGui::SameLine;
 
+constexpr ImGuiTableFlags kGfxEditTableFlags =
+    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
+    ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
+    ImGuiTableFlags_SizingFixedFit;
+
+constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
+    ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
+    ImGuiTabBarFlags_FittingPolicyResizeDown |
+    ImGuiTabBarFlags_TabListPopupButton;
+
 absl::Status GraphicsEditor::Update() {
   TAB_BAR("##TabBar")
   status_ = UpdateGfxEdit();
@@ -41,11 +52,7 @@ absl::Status GraphicsEditor::Update() {
 absl::Status GraphicsEditor::UpdateGfxEdit() {
   TAB_ITEM("Graphics Editor")
 
-  if (ImGui::BeginTable("##GfxEditTable", 3,
-                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
-                            ImGuiTableFlags_Reorderable |
-                            ImGuiTableFlags_Hideable |
-                            ImGuiTableFlags_SizingFixedFit,
+  if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
                         ImVec2(0, 0))) {
     for (const auto& name : kGfxEditColumnNames)
       ImGui::TableSetupColumn(name.data());
@@ -73,33 +80,62 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
 }
 
 void GraphicsEditor::DrawGfxEditToolset() {
-  if (ImGui::BeginTable("##GfxEditToolset", 7, ImGuiTableFlags_SizingFixedFit,
+  if (ImGui::BeginTable("##GfxEditToolset", 9, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
-    for (const auto& name : {"Select", "Pencil", "Fill", "Zoom Out", "Zoom In",
-                             "Current Color", "Tile Size"})
+    for (const auto& name :
+         {"Select", "Pencil", "Fill", "Copy Sheet", "Paste Sheet", "Zoom Out",
+          "Zoom In", "Current Color", "Tile Size"})
       ImGui::TableSetupColumn(name);
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_SELECT_ALL)) {
+    if (Button(ICON_MD_SELECT_ALL)) {
+      gfx_edit_mode_ = GfxEditMode::kSelect;
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_DRAW)) {
+    if (Button(ICON_MD_DRAW)) {
+      gfx_edit_mode_ = GfxEditMode::kPencil;
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_FORMAT_COLOR_FILL)) {
+    if (Button(ICON_MD_FORMAT_COLOR_FILL)) {
+      gfx_edit_mode_ = GfxEditMode::kFill;
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
+    if (Button(ICON_MD_CONTENT_COPY)) {
+      std::vector<uint8_t> png_data =
+          rom()->bitmap_manager().GetBitmap(current_sheet_)->GetPngData();
+      CopyImageToClipboard(png_data);
+    }
+
+    ImGui::TableNextColumn();
+    if (Button(ICON_MD_CONTENT_PASTE)) {
+      std::vector<uint8_t> png_data;
+      int width, height;
+      GetImageFromClipboard(png_data, width, height);
+      if (png_data.size() > 0) {
+        rom()
+            ->bitmap_manager()
+            .GetBitmap(current_sheet_)
+            ->LoadFromPngData(png_data, width, height);
+        rom()->UpdateBitmap(rom()
+                                ->mutable_bitmap_manager()
+                                ->mutable_bitmap(current_sheet_)
+                                .get());
+      }
+    }
+    HOVER_HINT("Paste from Clipboard");
+
+    ImGui::TableNextColumn();
+    if (Button(ICON_MD_ZOOM_OUT)) {
       if (current_scale_ >= 0.0f) {
         current_scale_ -= 1.0f;
       }
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_ZOOM_IN)) {
+    if (Button(ICON_MD_ZOOM_IN)) {
       if (current_scale_ <= 16.0f) {
         current_scale_ += 1.0f;
       }
@@ -129,38 +165,42 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
                       ImGuiWindowFlags_NoDecoration);
     ImGui::PopStyleVar();
     gui::Canvas graphics_bin_canvas_;
-    graphics_bin_canvas_.UpdateEvent(
-        [&]() {
-          if (value.get()->IsActive()) {
-            auto texture = value.get()->texture();
-            graphics_bin_canvas_.GetDrawList()->AddImage(
-                (void*)texture,
-                ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2,
-                       graphics_bin_canvas_.GetZeroPoint().y + 2),
-                ImVec2(graphics_bin_canvas_.GetZeroPoint().x +
-                           value.get()->width() * sheet_scale_,
-                       graphics_bin_canvas_.GetZeroPoint().y +
-                           value.get()->height() * sheet_scale_));
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-              current_sheet_ = key;
-              open_sheets_.insert(key);
-            }
+    auto select_tile_event = [&]() {
+      if (value.get()->IsActive()) {
+        auto texture = value.get()->texture();
+        graphics_bin_canvas_.GetDrawList()->AddImage(
+            (void*)texture,
+            ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2,
+                   graphics_bin_canvas_.GetZeroPoint().y + 2),
+            ImVec2(graphics_bin_canvas_.GetZeroPoint().x +
+                       value.get()->width() * sheet_scale_,
+                   graphics_bin_canvas_.GetZeroPoint().y +
+                       value.get()->height() * sheet_scale_));
 
-            // Add a slightly transparent rectangle behind the text
-            ImVec2 textPos(graphics_bin_canvas_.GetZeroPoint().x + 2,
-                           graphics_bin_canvas_.GetZeroPoint().y + 2);
-            ImVec2 textSize =
-                ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
-            ImVec2 rectMin(textPos.x, textPos.y);
-            ImVec2 rectMax(textPos.x + textSize.x, textPos.y + textSize.y);
-            graphics_bin_canvas_.GetDrawList()->AddRectFilled(
-                rectMin, rectMax, IM_COL32(0, 125, 0, 128));
-            graphics_bin_canvas_.GetDrawList()->AddText(
-                textPos, IM_COL32(125, 255, 125, 255),
-                absl::StrFormat("%02X", key).c_str());
-          }
-        },
-        ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+          current_sheet_ = key;
+          open_sheets_.insert(key);
+        }
+
+        // Add a slightly transparent rectangle behind the text
+        ImVec2 text_pos(graphics_bin_canvas_.GetZeroPoint().x + 2,
+                        graphics_bin_canvas_.GetZeroPoint().y + 2);
+        ImVec2 text_size =
+            ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
+        ImVec2 rent_min(text_pos.x, text_pos.y);
+        ImVec2 rent_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
+
+        graphics_bin_canvas_.GetDrawList()->AddRectFilled(
+            rent_min, rent_max, IM_COL32(0, 125, 0, 128));
+
+        graphics_bin_canvas_.GetDrawList()->AddText(
+            text_pos, IM_COL32(125, 255, 125, 255),
+            absl::StrFormat("%02X", key).c_str());
+      }
+    };
+
+    graphics_bin_canvas_.UpdateEvent(
+        select_tile_event, ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
         /*grid_size=*/16.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::EndChild();
@@ -173,11 +213,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
 absl::Status GraphicsEditor::UpdateGfxTabView() {
   static int next_tab_id = 0;
 
-  if (ImGui::BeginTabBar("##GfxEditTabBar",
-                         ImGuiTabBarFlags_AutoSelectNewTabs |
-                             ImGuiTabBarFlags_Reorderable |
-                             ImGuiTabBarFlags_FittingPolicyResizeDown |
-                             ImGuiTabBarFlags_TabListPopupButton)) {
+  if (ImGui::BeginTabBar("##GfxEditTabBar", kGfxEditTabBarFlags)) {
     if (ImGui::TabItemButton(
             "+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
       open_sheets_.insert(next_tab_id++);
@@ -185,6 +221,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 
     // Submit our regular tabs
     for (auto& each : open_sheets_) {
+      current_sheet_ = each;
+
       bool open = true;
       if (ImGui::BeginTabItem(absl::StrFormat("%d", each).c_str(), &open,
                               ImGuiTabItemFlags_None)) {
@@ -197,59 +235,61 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
             child_window_sheets_.insert(each);
           }
         }
-        ImGui::BeginChild(
-            absl::StrFormat("##GfxEditPaletteChild%d", each).c_str(),
-            ImVec2(0, 0), true,
-            ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                ImGuiWindowFlags_AlwaysHorizontalScrollbar);
-        current_sheet_ = each;
+
+        const auto child_id =
+            absl::StrFormat("##GfxEditPaletteChildWindow%d", each);
+        ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), true,
+                          ImGuiWindowFlags_NoDecoration |
+                              ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                              ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+
+        auto draw_tile_event = [&]() {
+          // Convert the ImVec4 into a 16-bit value
+          Uint8 r = static_cast<Uint8>(current_color_.x * 31);
+          Uint8 g = static_cast<Uint8>(current_color_.y * 31);
+          Uint8 b = static_cast<Uint8>(current_color_.z * 31);
+          Uint16 snes_color =
+              ((r & 0x1F) << 10) | ((g & 0x1F) << 5) | (b & 0x1F);
+
+          auto click_position =
+              current_sheet_canvas_.GetCurrentDrawnTilePosition();
+
+          // Calculate the tile index for x and y based on the
+          // click_position
+          int tile_index_x =
+              (static_cast<int>(click_position.x) % 8) / tile_size_;
+          int tile_index_y =
+              (static_cast<int>(click_position.y) % 8) / tile_size_;
+
+          // Calculate the pixel start position based on tile index and tile
+          // size
+          ImVec2 start_position;
+          start_position.x = tile_index_x * tile_size_;
+          start_position.y = tile_index_y * tile_size_;
+
+          // Get the current map's bitmap from the BitmapTable
+          gfx::Bitmap& current_bitmap = *rom()->bitmap_manager()[each];
+
+          // Update the bitmap's pixel data based on the start_position and
+          // tile_data
+          for (int y = 0; y < tile_size_; ++y) {
+            for (int x = 0; x < tile_size_; ++x) {
+              int pixel_index =
+                  (start_position.y + y) * current_bitmap.width() +
+                  (start_position.x + x);
+              current_bitmap.WriteToPixel(pixel_index, snes_color);
+            }
+          }
+
+          // rom()->bitmap_manager()[each]->WriteToPixel(position,
+          // snesColor);
+
+          rom()->UpdateBitmap(
+              rom()->mutable_bitmap_manager()->mutable_bitmap(each).get());
+        };
+
         current_sheet_canvas_.UpdateColorPainter(
-            *rom()->bitmap_manager()[each], current_color_,
-            [&]() {
-              // Convert the ImVec4 into a 16-bit value
-              Uint8 r = static_cast<Uint8>(current_color_.x * 31);
-              Uint8 g = static_cast<Uint8>(current_color_.y * 31);
-              Uint8 b = static_cast<Uint8>(current_color_.z * 31);
-              Uint16 snesColor =
-                  ((r & 0x1F) << 10) | ((g & 0x1F) << 5) | (b & 0x1F);
-
-              auto click_position =
-                  current_sheet_canvas_.GetCurrentDrawnTilePosition();
-
-              // Calculate the tile index for x and y based on the
-              // click_position
-              int tile_index_x =
-                  (static_cast<int>(click_position.x) % 8) / tile_size_;
-              int tile_index_y =
-                  (static_cast<int>(click_position.y) % 8) / tile_size_;
-
-              // Calculate the pixel start position based on tile index and tile
-              // size
-              ImVec2 start_position;
-              start_position.x = tile_index_x * tile_size_;
-              start_position.y = tile_index_y * tile_size_;
-
-              // Get the current map's bitmap from the BitmapTable
-              gfx::Bitmap& current_bitmap = *rom()->bitmap_manager()[each];
-
-              // Update the bitmap's pixel data based on the start_position and
-              // tile_data
-              for (int y = 0; y < tile_size_; ++y) {
-                for (int x = 0; x < tile_size_; ++x) {
-                  int pixel_index =
-                      (start_position.y + y) * current_bitmap.width() +
-                      (start_position.x + x);
-                  current_bitmap.WriteToPixel(pixel_index, snesColor);
-                }
-              }
-
-              // rom()->bitmap_manager()[each]->WriteToPixel(position,
-              // snesColor);
-
-              rom()->UpdateBitmap(
-                  rom()->mutable_bitmap_manager()->mutable_bitmap(each).get());
-            },
+            *rom()->bitmap_manager()[each], current_color_, draw_tile_event,
             ImVec2(0x100, 0x40), tile_size_, current_scale_, 8.0f);
         ImGui::EndChild();
         ImGui::EndTabItem();
@@ -297,7 +337,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 }
 
 absl::Status GraphicsEditor::UpdatePaletteColumn() {
-  auto palette_group = rom()->GetPaletteGroup(
+  auto palette_group = rom()->palette_group(
       kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
 
   auto palette = palette_group[edit_palette_index_];
@@ -678,7 +718,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
                      converted_sheet);
 
   if (rom()->isLoaded()) {
-    auto palette_group = rom()->GetPaletteGroup("ow_main");
+    auto palette_group = rom()->palette_group("ow_main");
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
       bin_bitmap_.ApplyPalette(col_file_palette_);
@@ -711,7 +751,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     } else {
       // ROM palette
       auto palette_group =
-          rom()->GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
+          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
@@ -736,7 +776,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
     } else {
       // ROM palette
       auto palette_group =
-          rom()->GetPaletteGroup(kPaletteGroupAddressesKeys[current_palette_]);
+          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
