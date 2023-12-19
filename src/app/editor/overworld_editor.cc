@@ -185,9 +185,10 @@ absl::Status OverworldEditor::DrawToolset() {
 // ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawOverworldMapSettings() {
-  if (ImGui::BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
-    for (const auto &name : kOverworldSettingsColumnNames)
-      ImGui::TableSetupColumn(name.data());
+  if (ImGui::BeginTable(kOWMapTable.data(), 7, kOWMapFlags, ImVec2(0, 0), -1)) {
+    for (const auto &name : {"##1stCol", "##gfxCol", "##palCol", "##sprgfxCol",
+                             "##sprpalCol", "##msgidCol", "##2ndCol"})
+      ImGui::TableSetupColumn(name);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(120.f);
@@ -225,11 +226,8 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
     TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
-    ImGui::Combo("##World", &game_state_, kGamePartComboString, 3);
+    ImGui::Combo("##World", &game_state_, kGamePartComboString.data(), 3);
 
-    // TODO: Make enable grid bool change the current canvas.
-    TableNextColumn();
-    ImGui::Checkbox("Show grid", &opt_enable_grid);
     ImGui::EndTable();
   }
 }
@@ -328,7 +326,7 @@ void OverworldEditor::DrawOverworldSprites() {
 // ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawOverworldEdits() {
-  auto mouse_position = ow_map_canvas_.GetCurrentDrawnTilePosition();
+  auto mouse_position = ow_map_canvas_.drawn_tile_position();
   auto canvas_size = ow_map_canvas_.GetCanvasSize();
   int x = mouse_position.x / canvas_size.x;
   int y = mouse_position.y / canvas_size.y;
