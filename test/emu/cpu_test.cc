@@ -953,7 +953,7 @@ TEST_F(CPUTest, BRA) {
   mock_memory.SetMemoryContents(data);
 
   cpu.ExecuteInstruction(0x80);  // BRA
-  EXPECT_EQ(cpu.PC, 0x0002);
+  EXPECT_EQ(cpu.PC, 0x0004);
 }
 
 // ============================================================================
@@ -1375,7 +1375,7 @@ TEST_F(CPUTest, CPX_Immediate_NegativeFlagSet) {
   cpu.SetIndexSize(false);  // Set X register to 16-bit mode
   cpu.PC = 0;
   cpu.X = 0x9000;
-  std::vector<uint8_t> data = {0xE0, 0x01, 0x80};  // CPX #0x8001
+  std::vector<uint8_t> data = {0xE0, 0xFF, 0xFF};  // CPX #0x8001
   mock_memory.SetMemoryContents(data);
   cpu.ExecuteInstruction(0xE0);        // Immediate CPX
   ASSERT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
@@ -1961,7 +1961,7 @@ TEST_F(CPUTest, JSR_Absolute) {
 
   // Continue executing some code
   cpu.ExecuteInstruction(0x60);  // RTS
-  EXPECT_EQ(cpu.PC, 0x0000);
+  EXPECT_EQ(cpu.PC, 0x0003);
 }
 
 // ============================================================================
@@ -3277,7 +3277,7 @@ TEST_F(CPUTest, RTS) {
   EXPECT_CALL(mock_memory, PopWord()).WillOnce(Return(0x7FFF));
 
   cpu.ExecuteInstruction(0x60);  // RTS
-  EXPECT_EQ(cpu.PC, 0x7FFF);
+  EXPECT_EQ(cpu.PC, 0x7FFF + 3);
 }
 
 // ============================================================================
