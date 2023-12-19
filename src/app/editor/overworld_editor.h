@@ -12,7 +12,6 @@
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
 #include "app/core/editor.h"
-#include "app/gui/pipeline.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/editor/modules/tile16_editor.h"
@@ -21,6 +20,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
 
@@ -41,10 +41,6 @@ static constexpr absl::string_view kToolsetColumnNames[] = {
     "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
     "#transportTool", "#musicTool",  "#separator3", "#tilemapTool"};
 
-static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
-    "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
-    "##sprpalCol", "##msgidCol", "##2ndCol"};
-
 constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
 constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
 constexpr ImGuiTableFlags kOWEditFlags =
@@ -55,7 +51,7 @@ constexpr ImGuiTableFlags kOWEditFlags =
 constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";
 
-constexpr char *const kGamePartComboString[] = {"Part 0", "Part 1", "Part 2"};
+constexpr absl::string_view kGamePartComboString = "Part 0\0Part 1\0Part 2\0";
 
 constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
@@ -105,7 +101,7 @@ class OverworldEditor : public Editor,
   void QueueROMChanges(int index, ushort new_tile16);
   void DetermineActiveMap(const ImVec2 &mouse_position);
 
-  void CheckForOverworldEdits(); 
+  void CheckForOverworldEdits();
   void CheckForCurrentMap();
   void DrawOverworldCanvas();
 

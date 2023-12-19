@@ -219,93 +219,60 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       open_sheets_.insert(next_tab_id++);
     }
 
-    // Submit our regular tabs
-    for (auto& each : open_sheets_) {
-      current_sheet_ = each;
+    for (auto& sheet_id : open_sheets_) {
+      current_sheet_ = sheet_id;
 
       bool open = true;
-      if (ImGui::BeginTabItem(absl::StrFormat("%d", each).c_str(), &open,
+      if (ImGui::BeginTabItem(absl::StrFormat("%d", sheet_id).c_str(), &open,
                               ImGuiTabItemFlags_None)) {
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          release_queue_.push(each);
+          release_queue_.push(sheet_id);
         }
         if (ImGui::IsItemHovered()) {
           if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-            release_queue_.push(each);
-            child_window_sheets_.insert(each);
+            release_queue_.push(sheet_id);
+            child_window_sheets_.insert(sheet_id);
           }
         }
 
         const auto child_id =
-            absl::StrFormat("##GfxEditPaletteChildWindow%d", each);
+            absl::StrFormat("##GfxEditPaletteChildWindow%d", sheet_id);
         ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), true,
                           ImGuiWindowFlags_NoDecoration |
                               ImGuiWindowFlags_AlwaysVerticalScrollbar |
                               ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
         auto draw_tile_event = [&]() {
-          // Convert the ImVec4 into a 16-bit value
-          Uint8 r = static_cast<Uint8>(current_color_.x * 31);
-          Uint8 g = static_cast<Uint8>(current_color_.y * 31);
-          Uint8 b = static_cast<Uint8>(current_color_.z * 31);
-          Uint16 snes_color =
-              ((r & 0x1F) << 10) | ((g & 0x1F) << 5) | (b & 0x1F);
-
-          auto click_position =
-              current_sheet_canvas_.GetCurrentDrawnTilePosition();
-
-          // Calculate the tile index for x and y based on the
-          // click_position
-          int tile_index_x =
-              (static_cast<int>(click_position.x) % 8) / tile_size_;
-          int tile_index_y =
-              (static_cast<int>(click_position.y) % 8) / tile_size_;
-
-          // Calculate the pixel start position based on tile index and tile
-          // size
-          ImVec2 start_position;
-          start_position.x = tile_index_x * tile_size_;
-          start_position.y = tile_index_y * tile_size_;
-
-          // Get the current map's bitmap from the BitmapTable
-          gfx::Bitmap& current_bitmap = *rom()->bitmap_manager()[each];
-
-          // Update the bitmap's pixel data based on the start_position and
-          // tile_data
-          for (int y = 0; y < tile_size_; ++y) {
-            for (int x = 0; x < tile_size_; ++x) {
-              int pixel_index =
-                  (start_position.y + y) * current_bitmap.width() +
-                  (start_position.x + x);
-              current_bitmap.WriteToPixel(pixel_index, snes_color);
-            }
-          }
-
-          // rom()->bitmap_manager()[each]->WriteToPixel(position,
-          // snesColor);
-
-          rom()->UpdateBitmap(
-              rom()->mutable_bitmap_manager()->mutable_bitmap(each).get());
+          uint16_t snes_color = gfx::ConvertRGBtoSNES(current_color_);
+          auto click_position = current_sheet_canvas_.drawn_tile_position();
+          gfx::Bitmap& current_bitmap = *rom()->bitmap_manager()[sheet_id];
+          current_sheet_canvas_.DrawTileOnBitmap(click_position, tile_size_,
+                                                 current_bitmap, snes_color);
+          auto& bitmap = *rom()->bitmap_manager().mutable_bitmap(sheet_id);
+          rom()->UpdateBitmap(&bitmap);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
-            *rom()->bitmap_manager()[each], current_color_, draw_tile_event,
+            *rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
             ImVec2(0x100, 0x40), tile_size_, current_scale_, 8.0f);
         ImGui::EndChild();
         ImGui::EndTabItem();
       }
 
-      if (!open) release_queue_.push(each);
+      if (!open) release_queue_.push(sheet_id);
     }
 
     ImGui::EndTabBar();
   }
+
+  // Release any tabs that were closed
   while (!release_queue_.empty()) {
-    auto each = release_queue_.top();
-    open_sheets_.erase(each);
+    auto sheet_id = release_queue_.top();
+    open_sheets_.erase(sheet_id);
     release_queue_.pop();
   }
 
+  // Draw any child windows that were created
   if (!child_window_sheets_.empty()) {
     int id_to_release = -1;
     for (const auto& id : child_window_sheets_) {
