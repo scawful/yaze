@@ -34,6 +34,7 @@ struct snes_palette {
 using snes_palette = struct snes_palette;
 
 uint16_t ConvertRGBtoSNES(const snes_color& color);
+uint16_t ConvertRGBtoSNES(const ImVec4& color);
 snes_color ConvertSNEStoRGB(uint16_t snes_color);
 
 /**

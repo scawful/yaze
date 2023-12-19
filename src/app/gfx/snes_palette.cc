@@ -60,6 +60,14 @@ uint16_t ConvertRGBtoSNES(const snes_color& color) {
   return (blue * SNES_BLUE_SHIFT) + (green * SNES_GREEN_SHIFT) + red;
 }
 
+uint16_t ConvertRGBtoSNES(const ImVec4& color) {
+  snes_color new_color;
+  new_color.red = color.x * 255;
+  new_color.green = color.y * 255;
+  new_color.blue = color.z * 255;
+  return ConvertRGBtoSNES(new_color);
+}
+
 snes_color ConvertSNEStoRGB(uint16_t color_snes) {
   snes_color result;
 
