@@ -72,7 +72,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0xE5:  // MOV A, !abs
     {
-      MOV(A, abs());
+      MOV(A, read(abs()));
       break;
     }
     case 0xF5:  // MOV A, !abs+X
