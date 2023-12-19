@@ -178,6 +178,10 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int size) {
     painter_pos.x = std::floor((double)mouse_pos.x / size) * size;
     painter_pos.y = std::floor((double)mouse_pos.y / size) * size;
 
+    // Clamp the size to a grid
+    painter_pos.x = std::clamp(painter_pos.x, 0.0f, canvas_sz_.x);
+    painter_pos.y = std::clamp(painter_pos.y, 0.0f, canvas_sz_.y);
+
     auto painter_pos_end = ImVec2(painter_pos.x + size, painter_pos.y + size);
     points_.push_back(painter_pos);
     points_.push_back(painter_pos_end);
@@ -198,6 +202,28 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int size) {
     points_.clear();
   }
   return false;
+}
+
+void Canvas::DrawTileOnBitmap(const ImVec2 &position, int tile_size,
+                              gfx::Bitmap &bitmap, uint16_t color) {
+  // Calculate the tile indices based on the click position
+  int tile_index_x = static_cast<int>(position.x) / tile_size;
+  int tile_index_y = static_cast<int>(position.y) / tile_size;
+
+  // Calculate the pixel start position based on tile index and tile size
+  ImVec2 start_position(tile_index_x * tile_size, tile_index_y * tile_size);
+
+  // Update the bitmap's pixel data based on the start_position and color
+  for (int y = 0; y < tile_size; ++y) {
+    for (int x = 0; x < tile_size; ++x) {
+      // Calculate the actual pixel index in the bitmap
+      int pixel_index =
+          (start_position.y + y) * bitmap.width() + (start_position.x + x);
+
+      // Write the color to the pixel
+      bitmap.WriteToPixel(pixel_index, color);
+    }
+  }
 }
 
 void Canvas::DrawTileSelector(int size) {
@@ -230,7 +256,7 @@ void Canvas::HandleTileEdits(Canvas &blockset_canvas,
     current_tile = x + (y * tiles_per_row);
     if (DrawTilePainter(source_blockset[current_tile], tile_painter_size,
                         scale)) {
-      RenderUpdatedBitmap(GetCurrentDrawnTilePosition(),
+      RenderUpdatedBitmap(drawn_tile_position(),
                           source_blockset[current_tile].mutable_data(),
                           destination);
     }
