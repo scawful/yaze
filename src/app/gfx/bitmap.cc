@@ -348,8 +348,8 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
 
 void Bitmap::ApplyPaletteWithTransparent(const SNESPalette &palette,
                                          int index) {
-  palette_ = palette;
   auto start_index = index * 7;
+  palette_ = palette.sub_palette(start_index, start_index + 7);
   std::vector<ImVec4> colors;
   colors.push_back(ImVec4(0, 0, 0, 0));
   for (int i = start_index; i < start_index + 7; ++i) {

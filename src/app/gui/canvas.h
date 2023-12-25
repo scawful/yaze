@@ -48,8 +48,7 @@ class Canvas {
   bool DrawSolidTilePainter(const ImVec4& color, int size);
 
   // Draws a tile on the canvas at the specified position
-  void DrawTileOnBitmap(const ImVec2& position, int tile_size,
-                        gfx::Bitmap& bitmap, uint16_t color);
+  void DrawTileOnBitmap(int tile_size, gfx::Bitmap& bitmap, ImVec4 color);
 
   // Dictates which tile is currently selected based on what the user clicks
   // in the canvas window. Represented and split apart into a grid of tiles.
@@ -81,15 +80,17 @@ class Canvas {
 
   auto Points() const { return points_; }
   auto GetDrawList() const { return draw_list_; }
-  auto GetZeroPoint() const { return canvas_p0_; }
+  auto zero_point() const { return canvas_p0_; }
   auto Scrolling() const { return scrolling_; }
   auto drawn_tile_position() const { return drawn_tile_pos_; }
-  auto GetCanvasSize() const { return canvas_sz_; }
+  auto canvas_size() const { return canvas_sz_; }
   void SetCanvasSize(ImVec2 canvas_size) {
     canvas_sz_ = canvas_size;
     custom_canvas_size_ = true;
   }
   auto IsMouseHovering() const { return is_hovered_; }
+  void ZoomIn() { global_scale_ += 0.1f; }
+  void ZoomOut() { global_scale_ -= 0.1f; }
 
   void set_global_scale(float scale) { global_scale_ = scale; }
   auto global_scale() const { return global_scale_; }

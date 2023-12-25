@@ -285,15 +285,15 @@ void DungeonEditor::DrawRoomGraphics() {
     int current_block = 0;
     for (int block : blocks) {
       int offset = height * (current_block + 1);
-      int top_left_y = room_gfx_canvas_.GetZeroPoint().y + 2;
+      int top_left_y = room_gfx_canvas_.zero_point().y + 2;
       if (current_block >= 1) {
-        top_left_y = room_gfx_canvas_.GetZeroPoint().y + height * current_block;
+        top_left_y = room_gfx_canvas_.zero_point().y + height * current_block;
       }
       room_gfx_canvas_.GetDrawList()->AddImage(
           (void*)graphics_bin_[block].texture(),
-          ImVec2(room_gfx_canvas_.GetZeroPoint().x + 2, top_left_y),
-          ImVec2(room_gfx_canvas_.GetZeroPoint().x + 0x100,
-                 room_gfx_canvas_.GetZeroPoint().y + offset));
+          ImVec2(room_gfx_canvas_.zero_point().x + 2, top_left_y),
+          ImVec2(room_gfx_canvas_.zero_point().x + 0x100,
+                 room_gfx_canvas_.zero_point().y + offset));
       current_block += 1;
     }
   }
