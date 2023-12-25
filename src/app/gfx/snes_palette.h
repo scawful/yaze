@@ -187,6 +187,14 @@ class SNESPalette {
     colors[i].SetModified(true);
   }
 
+  SNESPalette sub_palette(int start, int end) const {
+    SNESPalette pal;
+    for (int i = start; i < end; i++) {
+      pal.AddColor(colors[i]);
+    }
+    return pal;
+  }
+
  private:
   int size_ = 0;                 /**< The size of the palette. */
   std::vector<SNESColor> colors; /**< The colors in the palette. */

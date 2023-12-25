@@ -23,18 +23,19 @@ namespace gui {
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
                                gfx::SNESPalette& palette) {
+  const auto palette_row_size = 7;
   if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)100);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     ImGui::BeginGroup();  // Lock X position
     ImGui::Text("Palette");
     for (int n = 0; n < palette.size(); n++) {
-
       ImGui::PushID(n);
-      if ((n % 7) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+      if ((n % palette_row_size) != 0)
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
       // Check if the current row is selected
-      bool is_selected = (palette_id == n / 7);
+      bool is_selected = (palette_id == n / palette_row_size);
 
       // Add outline rectangle to the selected row
       if (is_selected) {
@@ -47,7 +48,7 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
                                    ImGuiColorEditFlags_NoPicker |
                                    ImGuiColorEditFlags_NoTooltip,
                                ImVec2(20, 20))) {
-        palette_id = n / 7;
+        palette_id = n / palette_row_size;
         refresh_graphics = true;
       }
 
@@ -76,15 +77,15 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
     if (is_loaded) {
       for (const auto& [key, value] : graphics_bin) {
         int offset = height * (key + 1);
-        int top_left_y = canvas.GetZeroPoint().y + 2;
+        int top_left_y = canvas.zero_point().y + 2;
         if (key >= 1) {
-          top_left_y = canvas.GetZeroPoint().y + height * key;
+          top_left_y = canvas.zero_point().y + height * key;
         }
         canvas.GetDrawList()->AddImage(
             (void*)value.texture(),
-            ImVec2(canvas.GetZeroPoint().x + 2, top_left_y),
-            ImVec2(canvas.GetZeroPoint().x + 0x100,
-                   canvas.GetZeroPoint().y + offset));
+            ImVec2(canvas.zero_point().x + 2, top_left_y),
+            ImVec2(canvas.zero_point().x + 0x100,
+                   canvas.zero_point().y + offset));
       }
     }
     canvas.DrawTileSelector(tile_size);
@@ -108,15 +109,15 @@ void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
     if (is_loaded) {
       for (const auto& [key, value] : graphics_manager) {
         int offset = height * (key + 1);
-        int top_left_y = canvas.GetZeroPoint().y + 2;
+        int top_left_y = canvas.zero_point().y + 2;
         if (key >= 1) {
-          top_left_y = canvas.GetZeroPoint().y + height * key;
+          top_left_y = canvas.zero_point().y + height * key;
         }
         canvas.GetDrawList()->AddImage(
             (void*)value->texture(),
-            ImVec2(canvas.GetZeroPoint().x + 2, top_left_y),
-            ImVec2(canvas.GetZeroPoint().x + 0x100,
-                   canvas.GetZeroPoint().y + offset));
+            ImVec2(canvas.zero_point().x + 2, top_left_y),
+            ImVec2(canvas.zero_point().x + 0x100,
+                   canvas.zero_point().y + offset));
       }
     }
     canvas.DrawTileSelector(tile_size);

@@ -36,10 +36,6 @@ void Canvas::UpdateColorPainter(const gfx::Bitmap &bitmap, const ImVec4 &color,
                                 ImVec2 bg_size, int tile_size, float scale,
                                 float grid_size) {
   global_scale_ = scale;
-  if (scale != 1.0f) {
-    bg_size.x *= scale / 2;
-    bg_size.y *= scale / 2;
-  }
   DrawBackground(bg_size);
   DrawContextMenu();
   DrawBitmap(bitmap, 2, scale);
@@ -63,7 +59,8 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   canvas_p0_ = ImGui::GetCursorScreenPos();
   if (!custom_canvas_size_) canvas_sz_ = ImGui::GetContentRegionAvail();
   if (canvas_size.x != 0) canvas_sz_ = canvas_size;
-  canvas_p1_ = ImVec2(canvas_p0_.x + canvas_sz_.x, canvas_p0_.y + canvas_sz_.y);
+  canvas_p1_ = ImVec2(canvas_p0_.x + (canvas_sz_.x * global_scale_),
+                      canvas_p0_.y + (canvas_sz_.y * global_scale_));
   draw_list_ = ImGui::GetWindowDrawList();  // Draw border and background color
   draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, kRectangleColor);
   draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
@@ -71,7 +68,9 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
 
 void Canvas::DrawContextMenu() {
   const ImGuiIO &io = ImGui::GetIO();
-  ImGui::InvisibleButton("canvas", canvas_sz_, kMouseFlags);
+  auto scaled_sz =
+      ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
+  ImGui::InvisibleButton("canvas", scaled_sz, kMouseFlags);
   const bool is_active = ImGui::IsItemActive();  // Held
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
@@ -94,6 +93,11 @@ void Canvas::DrawContextMenu() {
   if (ImGui::BeginPopup("context")) {
     ImGui::MenuItem("Show Grid", nullptr, &enable_grid_);
     ImGui::Selectable("Show Labels", &enable_hex_tile_labels_);
+    if (ImGui::MenuItem("Reset Position", nullptr, false)) {
+      scrolling_.x = 0;
+      scrolling_.y = 0;
+    }
+    ImGui::Separator();
     if (ImGui::MenuItem("8x8", nullptr, custom_step_ == 8.0f)) {
       custom_step_ = 8.0f;
     }
@@ -106,10 +110,12 @@ void Canvas::DrawContextMenu() {
     if (ImGui::MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
       custom_step_ = 64.0f;
     }
-    if (ImGui::MenuItem("Reset Position", nullptr, false)) {
-      scrolling_.x = 0;
-      scrolling_.y = 0;
-    }
+    // Display bitmap metadata such as canvas size and global scale
+    ImGui::Separator();
+    ImGui::Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
+    ImGui::Text("Global Scale: %.1f", global_scale_);
+    ImGui::Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
+
     ImGui::EndPopup();
   }
 }
@@ -149,6 +155,8 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
       // Draw the currently selected tile on the overworld here
       // Save the coordinates of the selected tile.
       drawn_tile_pos_ = io.MousePos;
+      SDL_Log("Drawn tile position: %.0f, %.0f", drawn_tile_pos_.x,
+              drawn_tile_pos_.y);
       return true;
     }
 
@@ -159,13 +167,17 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
   return false;
 }
 
-bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int size) {
+bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();
   is_hovered_ = is_hovered;
   // Lock scrolled origin
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  auto scaled_tile_size = tile_size * global_scale_;
+
+  static bool is_dragging = false;
+  static ImVec2 start_drag_pos;
 
   if (is_hovered) {
     // Reset the previous tile hover
@@ -175,25 +187,36 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int size) {
 
     // Calculate the coordinates of the mouse
     ImVec2 painter_pos;
-    painter_pos.x = std::floor((double)mouse_pos.x / size) * size;
-    painter_pos.y = std::floor((double)mouse_pos.y / size) * size;
+    painter_pos.x =
+        std::floor((double)mouse_pos.x / scaled_tile_size) * scaled_tile_size;
+    painter_pos.y =
+        std::floor((double)mouse_pos.y / scaled_tile_size) * scaled_tile_size;
 
     // Clamp the size to a grid
-    painter_pos.x = std::clamp(painter_pos.x, 0.0f, canvas_sz_.x);
-    painter_pos.y = std::clamp(painter_pos.y, 0.0f, canvas_sz_.y);
+    painter_pos.x =
+        std::clamp(painter_pos.x, 0.0f, canvas_sz_.x * global_scale_);
+    painter_pos.y =
+        std::clamp(painter_pos.y, 0.0f, canvas_sz_.y * global_scale_);
 
-    auto painter_pos_end = ImVec2(painter_pos.x + size, painter_pos.y + size);
+    auto painter_pos_end = ImVec2(painter_pos.x + scaled_tile_size,
+                                  painter_pos.y + scaled_tile_size);
     points_.push_back(painter_pos);
     points_.push_back(painter_pos_end);
 
     draw_list_->AddRectFilled(
-        ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
-        ImVec2(origin.x + painter_pos.x + size,
-               origin.y + painter_pos.y + size),
+        ImVec2(origin.x + painter_pos.x + 1, origin.y + painter_pos.y + 1),
+        ImVec2(origin.x + painter_pos.x + scaled_tile_size,
+               origin.y + painter_pos.y + scaled_tile_size),
         IM_COL32(color.x * 255, color.y * 255, color.z * 255, 255));
 
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-      drawn_tile_pos_ = mouse_pos;
+      is_dragging = true;
+      start_drag_pos = painter_pos;
+    }
+
+    if (is_dragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+      is_dragging = false;
+      drawn_tile_pos_ = start_drag_pos;
       return true;
     }
 
@@ -204,13 +227,12 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int size) {
   return false;
 }
 
-void Canvas::DrawTileOnBitmap(const ImVec2 &position, int tile_size,
-                              gfx::Bitmap &bitmap, uint16_t color) {
-  // Calculate the tile indices based on the click position
-  int tile_index_x = static_cast<int>(position.x) / tile_size;
-  int tile_index_y = static_cast<int>(position.y) / tile_size;
+void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap &bitmap,
+                              ImVec4 color) {
+  const ImVec2 position = drawn_tile_pos_;
+  int tile_index_x = static_cast<int>(position.x / global_scale_) / tile_size;
+  int tile_index_y = static_cast<int>(position.y / global_scale_) / tile_size;
 
-  // Calculate the pixel start position based on tile index and tile size
   ImVec2 start_position(tile_index_x * tile_size, tile_index_y * tile_size);
 
   // Update the bitmap's pixel data based on the start_position and color
@@ -221,7 +243,7 @@ void Canvas::DrawTileOnBitmap(const ImVec2 &position, int tile_size,
           (start_position.y + y) * bitmap.width() + (start_position.x + x);
 
       // Write the color to the pixel
-      bitmap.WriteToPixel(pixel_index, color);
+      bitmap.WriteColor(pixel_index, color);
     }
   }
 }
@@ -299,11 +321,11 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
-  draw_list_->AddImage(
-      (void *)bitmap.texture(),
-      ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
-      ImVec2(canvas_p0_.x + (bitmap.width() * scale),
-             canvas_p0_.y + (bitmap.height() * scale)));
+  draw_list_->AddImage((void *)bitmap.texture(),
+                       ImVec2(canvas_p0_.x, canvas_p0_.y),
+                       ImVec2(canvas_p0_.x + (bitmap.width() * scale),
+                              canvas_p0_.y + (bitmap.height() * scale)));
+  draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
@@ -417,23 +439,23 @@ void Canvas::DrawGrid(float grid_step) {
     if (custom_step_ != 0.f) grid_step = custom_step_;
 
     grid_step *= global_scale_;  // Apply global scale to grid step
-    for (float x = fmodf(scrolling_.x, grid_step); x < canvas_sz_.x;
-         x += grid_step)
+    for (float x = fmodf(scrolling_.x, grid_step);
+         x < canvas_sz_.x * global_scale_; x += grid_step)
       draw_list_->AddLine(ImVec2(canvas_p0_.x + x, canvas_p0_.y),
                           ImVec2(canvas_p0_.x + x, canvas_p1_.y),
                           IM_COL32(200, 200, 200, 50), 0.5f);
-    for (float y = fmodf(scrolling_.y, grid_step); y < canvas_sz_.y;
-         y += grid_step)
+    for (float y = fmodf(scrolling_.y, grid_step);
+         y < canvas_sz_.y * global_scale_; y += grid_step)
       draw_list_->AddLine(ImVec2(canvas_p0_.x, canvas_p0_.y + y),
                           ImVec2(canvas_p1_.x, canvas_p0_.y + y),
                           IM_COL32(200, 200, 200, 50), 0.5f);
 
     if (enable_hex_tile_labels_) {
       // Draw the hex ID of the tile in the center of the tile square
-      for (float x = fmodf(scrolling_.x, grid_step); x < canvas_sz_.x;
-           x += grid_step) {
-        for (float y = fmodf(scrolling_.y, grid_step); y < canvas_sz_.y;
-             y += grid_step) {
+      for (float x = fmodf(scrolling_.x, grid_step);
+           x < canvas_sz_.x * global_scale_; x += grid_step) {
+        for (float y = fmodf(scrolling_.y, grid_step);
+             y < canvas_sz_.y * global_scale_; y += grid_step) {
           int tile_x = (x - scrolling_.x) / grid_step;
           int tile_y = (y - scrolling_.y) / grid_step;
           int tile_id = tile_x + (tile_y * 16);

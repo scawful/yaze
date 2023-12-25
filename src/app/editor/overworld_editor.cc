@@ -27,6 +27,7 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using ImGui::Button;
 using ImGui::Separator;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
@@ -93,10 +94,19 @@ absl::Status OverworldEditor::DrawToolset() {
       status_ = Redo();
     }
 
-    TEXT_COLUMN(ICON_MD_MORE_VERT)   // Separator
-    BUTTON_COLUMN(ICON_MD_ZOOM_OUT)  // Zoom Out
-    BUTTON_COLUMN(ICON_MD_ZOOM_IN)   // Zoom In
-    TEXT_COLUMN(ICON_MD_MORE_VERT)   // Separator
+    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
+      ow_map_canvas_.ZoomOut();
+    }
+
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_ZOOM_IN)) {
+      ow_map_canvas_.ZoomIn();
+    }
+
+    TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
     NEXT_COLUMN()
     if (ImGui::Button(ICON_MD_DRAW)) {
@@ -288,24 +298,6 @@ bool OverworldEditor::IsMouseHoveringOverEntrance(
 
 // ----------------------------------------------------------------------------
 
-void OverworldEditor::DrawOverworldMaps() {
-  int xx = 0;
-  int yy = 0;
-  for (int i = 0; i < 0x40; i++) {
-    int world_index = i + (current_world_ * 0x40);
-    int map_x = (xx * 0x200);
-    int map_y = (yy * 0x200);
-    ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y);
-    xx++;
-    if (xx >= 8) {
-      yy++;
-      xx = 0;
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
-
 void OverworldEditor::DrawOverworldSprites() {
   for (const auto &sprite : overworld_.Sprites(game_state_)) {
     // Get the sprite's bitmap and real X and Y positions
@@ -325,12 +317,28 @@ void OverworldEditor::DrawOverworldSprites() {
 
 // ----------------------------------------------------------------------------
 
+void OverworldEditor::DrawOverworldMaps() {
+  int xx = 0;
+  int yy = 0;
+  for (int i = 0; i < 0x40; i++) {
+    int world_index = i + (current_world_ * 0x40);
+    int map_x = (xx * 0x200 * ow_map_canvas_.global_scale());
+    int map_y = (yy * 0x200 * ow_map_canvas_.global_scale());
+    ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
+                              ow_map_canvas_.global_scale());
+    xx++;
+    if (xx >= 8) {
+      yy++;
+      xx = 0;
+    }
+  }
+}
+
 void OverworldEditor::DrawOverworldEdits() {
   auto mouse_position = ow_map_canvas_.drawn_tile_position();
-  auto canvas_size = ow_map_canvas_.GetCanvasSize();
+  auto canvas_size = ow_map_canvas_.canvas_size();
   int x = mouse_position.x / canvas_size.x;
   int y = mouse_position.y / canvas_size.y;
-  auto index = x + (y * 8);
 
   // Determine which overworld map the user is currently editing.
   DetermineActiveMap(mouse_position);
@@ -338,9 +346,6 @@ void OverworldEditor::DrawOverworldEdits() {
   // Render the updated map bitmap.
   RenderUpdatedMapBitmap(mouse_position,
                          tile16_individual_data_[current_tile16_]);
-
-  // Queue up the raw ROM changes.
-  QueueROMChanges(index, current_tile16_);
 }
 
 void OverworldEditor::DetermineActiveMap(const ImVec2 &mouse_position) {
@@ -385,7 +390,7 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
   rom()->UpdateBitmap(&current_bitmap);
 }
 
-void OverworldEditor::QueueROMChanges(int index, ushort new_tile16) {
+void OverworldEditor::SaveOverworldChanges() {
   // Store the changes made by the user to the ROM (or project file)
   rom()->QueueChanges([&]() {
     PRINT_IF_ERROR(overworld_.SaveOverworldMaps());
@@ -397,8 +402,6 @@ void OverworldEditor::QueueROMChanges(int index, ushort new_tile16) {
     }
   });
 }
-
-// ----------------------------------------------------------------------------
 
 void OverworldEditor::CheckForOverworldEdits() {
   if (!blockset_canvas_.Points().empty()) {
@@ -471,10 +474,11 @@ void OverworldEditor::DrawOverworldCanvas() {
                         ImGuiWindowFlags_AlwaysVerticalScrollbar |
                             ImGuiWindowFlags_AlwaysHorizontalScrollbar)) {
     ow_map_canvas_.DrawBackground(ImVec2(0x200 * 8, 0x200 * 8));
+    ImGui::PopStyleVar(2);
     ow_map_canvas_.DrawContextMenu();
     if (overworld_.isLoaded()) {
       DrawOverworldMaps();
-      DrawOverworldEntrances(ow_map_canvas_.GetZeroPoint(),
+      DrawOverworldEntrances(ow_map_canvas_.zero_point(),
                              ow_map_canvas_.Scrolling());
       if (flags()->kDrawOverworldSprites) {
         DrawOverworldSprites();
@@ -486,10 +490,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     ow_map_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
-  ImGui::PopStyleVar(2);
 }
-
-// ----------------------------------------------------------------------------
 
 // Tile 8 Selector
 // Displays all the individual tiles that make up a tile16.
@@ -501,23 +502,21 @@ void OverworldEditor::DrawTile8Selector() {
     // for (const auto &[key, value] : graphics_bin_) {
     for (auto &[key, value] : rom()->bitmap_manager()) {
       int offset = 0x40 * (key + 1);
-      int top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 2;
+      int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
       if (key >= 1) {
-        top_left_y = graphics_bin_canvas_.GetZeroPoint().y + 0x40 * key;
+        top_left_y = graphics_bin_canvas_.zero_point().y + 0x40 * key;
       }
       auto texture = value.get()->texture();
       graphics_bin_canvas_.GetDrawList()->AddImage(
           (void *)texture,
-          ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2, top_left_y),
-          ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 0x100,
-                 graphics_bin_canvas_.GetZeroPoint().y + offset));
+          ImVec2(graphics_bin_canvas_.zero_point().x + 2, top_left_y),
+          ImVec2(graphics_bin_canvas_.zero_point().x + 0x100,
+                 graphics_bin_canvas_.zero_point().y + offset));
     }
   }
   graphics_bin_canvas_.DrawGrid(16.0f);
   graphics_bin_canvas_.DrawOverlay();
 }
-
-// ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawTileSelector() {
   if (ImGui::BeginTabBar(kTileSelectorTab.data(),

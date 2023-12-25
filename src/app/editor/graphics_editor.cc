@@ -142,13 +142,21 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
 
     ImGui::TableNextColumn();
-    ImGui::ColorEdit4("Palette Color", (float*)&current_color_,
-                      ImGuiColorEditFlags_NoInputs |
-                          ImGuiColorEditFlags_NoLabel |
-                          ImGuiColorEditFlags_NoAlpha);
+    auto bitmap = rom()->bitmap_manager()[current_sheet_];
+    auto palette = bitmap->palette();
+    for (int i = 0; i < 8; i++) {
+      ImGui::SameLine();
+      auto color =
+          ImVec4(palette[i].GetRGB().x / 255.0f, palette[i].GetRGB().y / 255.0f,
+                 palette[i].GetRGB().z / 255.0f, 255.0f);
+      if (ImGui::ColorButton(absl::StrFormat("Palette Color %d", i).c_str(),
+                             color)) {
+        current_color_ = color;
+      }
+    }
 
     ImGui::TableNextColumn();
-    gui::InputHexByte("Tile Size", &tile_size_, 0x02);
+    gui::InputHexByte("Tile Size", &tile_size_, 0x01);
 
     ImGui::EndTable();
   }
@@ -170,11 +178,11 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
         auto texture = value.get()->texture();
         graphics_bin_canvas_.GetDrawList()->AddImage(
             (void*)texture,
-            ImVec2(graphics_bin_canvas_.GetZeroPoint().x + 2,
-                   graphics_bin_canvas_.GetZeroPoint().y + 2),
-            ImVec2(graphics_bin_canvas_.GetZeroPoint().x +
+            ImVec2(graphics_bin_canvas_.zero_point().x + 2,
+                   graphics_bin_canvas_.zero_point().y + 2),
+            ImVec2(graphics_bin_canvas_.zero_point().x +
                        value.get()->width() * sheet_scale_,
-                   graphics_bin_canvas_.GetZeroPoint().y +
+                   graphics_bin_canvas_.zero_point().y +
                        value.get()->height() * sheet_scale_));
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -183,8 +191,8 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
         }
 
         // Add a slightly transparent rectangle behind the text
-        ImVec2 text_pos(graphics_bin_canvas_.GetZeroPoint().x + 2,
-                        graphics_bin_canvas_.GetZeroPoint().y + 2);
+        ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
+                        graphics_bin_canvas_.zero_point().y + 2);
         ImVec2 text_size =
             ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
         ImVec2 rent_min(text_pos.x, text_pos.y);
@@ -220,11 +228,10 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
     }
 
     for (auto& sheet_id : open_sheets_) {
-      current_sheet_ = sheet_id;
-
       bool open = true;
       if (ImGui::BeginTabItem(absl::StrFormat("%d", sheet_id).c_str(), &open,
                               ImGuiTabItemFlags_None)) {
+        current_sheet_ = sheet_id;
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           release_queue_.push(sheet_id);
         }
@@ -243,18 +250,17 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                               ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
         auto draw_tile_event = [&]() {
-          uint16_t snes_color = gfx::ConvertRGBtoSNES(current_color_);
-          auto click_position = current_sheet_canvas_.drawn_tile_position();
-          gfx::Bitmap& current_bitmap = *rom()->bitmap_manager()[sheet_id];
-          current_sheet_canvas_.DrawTileOnBitmap(click_position, tile_size_,
-                                                 current_bitmap, snes_color);
-          auto& bitmap = *rom()->bitmap_manager().mutable_bitmap(sheet_id);
-          rom()->UpdateBitmap(&bitmap);
+          gfx::Bitmap& current_bitmap =
+              *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
+          current_sheet_canvas_.DrawTileOnBitmap(tile_size_, current_bitmap,
+                                                 current_color_);
+          rom()->UpdateBitmap(&current_bitmap);
         };
 
+        auto size = ImVec2(0x80, 0x20);
         current_sheet_canvas_.UpdateColorPainter(
             *rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
-            ImVec2(0x100, 0x40), tile_size_, current_scale_, 8.0f);
+            size, tile_size_, current_scale_, 8.0f);
         ImGui::EndChild();
         ImGui::EndTabItem();
       }

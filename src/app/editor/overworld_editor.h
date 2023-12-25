@@ -98,7 +98,7 @@ class OverworldEditor : public Editor,
   void DrawOverworldEdits();
   void RenderUpdatedMapBitmap(const ImVec2 &click_position,
                               const Bytes &tile_data);
-  void QueueROMChanges(int index, ushort new_tile16);
+  void SaveOverworldChanges();
   void DetermineActiveMap(const ImVec2 &mouse_position);
 
   void CheckForOverworldEdits();
@@ -109,7 +109,6 @@ class OverworldEditor : public Editor,
   void DrawTileSelector();
 
   absl::Status LoadSpriteGraphics();
-
   absl::Status DrawExperimentalModal();
 
   enum class EditingMode {

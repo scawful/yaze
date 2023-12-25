@@ -106,7 +106,7 @@ class GraphicsEditor : public SharedROM {
   // Member Variables
   ImVec4 current_color_;
   uint16_t current_sheet_ = 0;
-  uint8_t tile_size_ = 0x08;
+  uint8_t tile_size_ = 0x01;
   std::set<uint16_t> open_sheets_;
   std::set<uint16_t> child_window_sheets_;
   std::stack<uint16_t> release_queue_;
