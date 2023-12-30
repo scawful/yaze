@@ -9,30 +9,22 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gui/canvas.h"
+#include "app/gui/color.h"
+#include "app/gui/icons.h"
 #include "app/rom.h"
-#include "app/zelda3/inventory.h"
-#include "gui/canvas.h"
-#include "gui/color.h"
-#include "gui/icons.h"
+#include "app/zelda3/screen/inventory.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
 
-using MosaicArray = std::array<int, core::kNumOverworldMaps>;
-static int overworldCustomMosaicASM = 0x1301D0;
-
-class ScreenEditor {
+class ScreenEditor : public SharedROM {
  public:
   ScreenEditor();
-  void SetupROM(ROM &rom) {
-    rom_ = rom;
-    inventory_.SetupROM(rom_);
-  }
   void Update();
 
  private:
-  void DrawMosaicEditor();
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -41,11 +33,7 @@ class ScreenEditor {
 
   void DrawToolset();
   void DrawInventoryToolset();
-  void DrawWorldGrid(int world, int h = 8, int w = 8);
 
-  char mosaic_tiles_[core::kNumOverworldMaps];
-
-  ROM rom_;
   Bytes all_gfx_;
   zelda3::Inventory inventory_;
   gfx::SNESPalette palette_;

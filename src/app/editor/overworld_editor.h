@@ -10,14 +10,19 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/palette_editor.h"
+#include "app/core/common.h"
+#include "app/core/editor.h"
+#include "app/editor/modules/gfx_group_editor.h"
+#include "app/editor/modules/palette_editor.h"
+#include "app/editor/modules/tile16_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
+#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
 
 namespace yaze {
 namespace app {
@@ -31,43 +36,98 @@ static constexpr uint kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#drawTool",  "#separator2",
-    "#zoomOutTool",   "#zoomInTool", "#separator", "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",  "#spriteTool",
-    "#transportTool", "#musicTool"};
+    "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
+    "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
+    "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
+    "#transportTool", "#musicTool",  "#separator3", "#tilemapTool"};
 
-static constexpr absl::string_view kOverworldSettingsColumnNames[] = {
-    "##1stCol",    "##gfxCol",   "##palCol", "##sprgfxCol",
-    "##sprpalCol", "##msgidCol", "##2ndCol"};
+constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
+constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
+constexpr ImGuiTableFlags kOWEditFlags =
+    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+    ImGuiTableFlags_BordersV;
 
-class OverworldEditor {
+constexpr absl::string_view kWorldList =
+    "Light World\0Dark World\0Extra World\0";
+
+constexpr absl::string_view kGamePartComboString = "Part 0\0Part 1\0Part 2\0";
+
+constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
+constexpr absl::string_view kOWEditTable = "##OWEditTable";
+constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
+
+class OverworldEditor : public Editor,
+                        public SharedROM,
+                        public core::ExperimentFlags {
  public:
-  absl::Status Update();
-  absl::Status Undo() const { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() const { return absl::UnimplementedError("Redo"); }
-  absl::Status Cut() const { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() const { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() const { return absl::UnimplementedError("Paste"); }
-  void SetupROM(ROM &rom) { rom_ = rom; }
+  absl::Status Update() final;
+  absl::Status Undo() { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() { return absl::UnimplementedError("Redo"); }
+  absl::Status Cut() { return absl::UnimplementedError("Cut"); }
+  absl::Status Copy() { return absl::UnimplementedError("Copy"); }
+  absl::Status Paste() { return absl::UnimplementedError("Paste"); }
+
+  auto overworld() { return &overworld_; }
+
+  void Shutdown() {
+    for (auto &bmp : tile16_individual_) {
+      bmp.Cleanup();
+    }
+    for (auto &[i, bmp] : maps_bmp_) {
+      bmp.Cleanup();
+    }
+    for (auto &[i, bmp] : graphics_bin_) {
+      bmp.Cleanup();
+    }
+    for (auto &[i, bmp] : current_graphics_set_) {
+      bmp.Cleanup();
+    }
+  }
+
+  absl::Status LoadGraphics();
 
  private:
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
 
-  void DrawOverworldEntrances();
+  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling);
   void DrawOverworldMaps();
+  void DrawOverworldSprites();
+
+  void DrawOverworldEdits();
+  void RenderUpdatedMapBitmap(const ImVec2 &click_position,
+                              const Bytes &tile_data);
+  void SaveOverworldChanges();
+  void DetermineActiveMap(const ImVec2 &mouse_position);
+
+  void CheckForOverworldEdits();
+  void CheckForCurrentMap();
   void DrawOverworldCanvas();
 
-  void DrawTile16Selector();
   void DrawTile8Selector();
-  void DrawAreaGraphics();
   void DrawTileSelector();
-  absl::Status LoadGraphics();
+
+  absl::Status LoadSpriteGraphics();
+  absl::Status DrawExperimentalModal();
+
+  enum class EditingMode {
+    DRAW_TILE,
+    ENTRANCES,
+    EXITS,
+    ITEMS,
+    SPRITES,
+    TRANSPORTS,
+    MUSIC
+  };
+
+  EditingMode current_mode = EditingMode::DRAW_TILE;
 
   int current_world_ = 0;
   int current_map_ = 0;
   int current_tile16_ = 0;
   int selected_tile_ = 0;
+  int game_state_ = 0;
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
   char spr_gfx_[3] = "";
@@ -75,30 +135,45 @@ class OverworldEditor {
   char message_id_[5] = "";
   char staticgfx[16];
 
+  uint32_t tilemap_file_offset_high_ = 0;
+  uint32_t tilemap_file_offset_low_ = 0;
+  uint32_t light_maps_to_load_ = 0x51;
+  uint32_t dark_maps_to_load_ = 0x2A;
+  uint32_t sp_maps_to_load_ = 0x07;
+
   bool opt_enable_grid = true;
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
   bool selected_tile_loaded_ = false;
   bool update_selected_tile_ = true;
+  bool is_dragging_entrance_ = false;
+  bool show_tile16_editor_ = false;
+  bool show_gfx_group_editor_ = false;
 
-  ImGuiTableFlags toolset_table_flags = ImGuiTableFlags_SizingFixedFit;
-  ImGuiTableFlags ow_map_flags = ImGuiTableFlags_Borders;
-  ImGuiTableFlags ow_edit_flags = ImGuiTableFlags_Reorderable |
-                                  ImGuiTableFlags_Resizable |
-                                  ImGuiTableFlags_SizingStretchSame;
+  bool IsMouseHoveringOverEntrance(const zelda3::OverworldEntrance &entrance,
+                                   ImVec2 canvas_p, ImVec2 scrolling);
+  zelda3::OverworldEntrance *dragged_entrance_;
+
+  bool show_experimental = false;
+  std::string ow_tilemap_filename_ = "";
+  std::string tile32_configuration_filename_ = "";
 
   Bytes selected_tile_data_;
-  std::unordered_map<int, gfx::Bitmap> graphics_bin_;
-  std::unordered_map<int, gfx::Bitmap> current_graphics_set_;
-  std::unordered_map<int, gfx::Bitmap> maps_bmp_;
-  std::unordered_map<int, gfx::Bitmap> sprite_previews_;
-
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
 
-  ROM rom_;
+  std::vector<Bytes> tile8_individual_data_;
+  std::vector<gfx::Bitmap> tile8_individual_;
+
+  Tile16Editor tile16_editor_;
+  GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
   zelda3::Overworld overworld_;
+
+  gui::Canvas ow_map_canvas_;
+  gui::Canvas current_gfx_canvas_;
+  gui::Canvas blockset_canvas_;
+  gui::Canvas graphics_bin_canvas_;
 
   gfx::SNESPalette palette_;
   gfx::Bitmap selected_tile_bmp_;
@@ -106,10 +181,12 @@ class OverworldEditor {
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
 
-  gui::Canvas ow_map_canvas_;
-  gui::Canvas current_gfx_canvas_;
-  gui::Canvas blockset_canvas_;
-  gui::Canvas graphics_bin_canvas_;
+  gfx::BitmapTable maps_bmp_;
+  gfx::BitmapTable graphics_bin_;
+  gfx::BitmapTable current_graphics_set_;
+  gfx::BitmapTable sprite_previews_;
+
+  absl::Status status_;
 };
 }  // namespace editor
 }  // namespace app

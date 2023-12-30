@@ -2,8 +2,8 @@
 
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <imgui/backends/imgui_impl_sdl.h>
-#include <imgui/backends/imgui_impl_sdlrenderer.h>
+#include <imgui/backends/imgui_impl_sdl2.h>
+#include <imgui/backends/imgui_impl_sdlrenderer2.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
@@ -11,9 +11,10 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/core/platform/font_loader.h"
 #include "app/editor/master_editor.h"
-#include "gui/icons.h"
-#include "gui/style.h"
+#include "app/gui/icons.h"
+#include "app/gui/style.h"
 
 namespace yaze {
 namespace app {
@@ -30,6 +31,21 @@ void InitializeKeymap() {
   io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
   io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
   io.KeyMap[ImGuiKey_LeftCtrl] = SDL_GetScancodeFromKey(SDLK_LCTRL);
+}
+
+void ImGui_ImplSDL2_SetClipboardText(void *user_data, const char *text) {
+  SDL_SetClipboardText(text);
+}
+
+const char *ImGui_ImplSDL2_GetClipboardText(void *user_data) {
+  return SDL_GetClipboardText();
+}
+
+void InitializeClipboard() {
+  ImGuiIO &io = ImGui::GetIO();
+  io.SetClipboardTextFn = ImGui_ImplSDL2_SetClipboardText;
+  io.GetClipboardTextFn = ImGui_ImplSDL2_GetClipboardText;
+  io.ClipboardUserData = nullptr;
 }
 
 void HandleKeyDown(SDL_Event &event) {
@@ -81,10 +97,8 @@ void HandleMouseMovement(int &wheel) {
 
 }  // namespace
 
-bool Controller::isActive() const { return active_; }
-
-absl::Status Controller::onEntry() {
-  RETURN_IF_ERROR(CreateWindow())
+absl::Status Controller::OnEntry() {
+  RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
   InitializeKeymap();
@@ -93,7 +107,7 @@ absl::Status Controller::onEntry() {
   return absl::OkStatus();
 }
 
-void Controller::onInput() {
+void Controller::OnInput() {
   int wheel = 0;
   SDL_Event event;
   ImGuiIO &io = ImGui::GetIO();
@@ -124,7 +138,6 @@ void Controller::onInput() {
             break;
         }
         break;
-
       default:
         break;
     }
@@ -133,33 +146,40 @@ void Controller::onInput() {
   HandleMouseMovement(wheel);
 }
 
-void Controller::onLoad() { master_editor_.UpdateScreen(); }
+void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
 
-void Controller::doRender() const {
-  SDL_RenderClear(renderer_.get());
+void Controller::DoRender() const {
   ImGui::Render();
-  ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+  SDL_RenderClear(renderer_.get());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
   SDL_RenderPresent(renderer_.get());
 }
 
-void Controller::onExit() const {
-  ImGui_ImplSDLRenderer_Shutdown();
+void Controller::OnExit() {
+  master_editor_.Shutdown();
+  Mix_CloseAudio();
+  ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
   SDL_Quit();
 }
 
-absl::Status Controller::CreateWindow() {
+absl::Status Controller::CreateSDL_Window() {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));
   } else {
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(0, &displayMode);
+    int screenWidth = displayMode.w * 0.8;
+    int screenHeight = displayMode.h * 0.8;
+
     window_ = std::unique_ptr<SDL_Window, sdl_deleter>(
         SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
                          SDL_WINDOWPOS_UNDEFINED,      // initial x position
                          SDL_WINDOWPOS_UNDEFINED,      // initial y position
-                         kScreenWidth,                 // width, in pixels
-                         kScreenHeight,                // height, in pixels
+                         screenWidth,                  // width, in pixels
+                         screenHeight,                 // height, in pixels
                          SDL_WINDOW_RESIZABLE),
         sdl_deleter());
     if (window_ == nullptr) {
@@ -167,7 +187,7 @@ absl::Status Controller::CreateWindow() {
           absl::StrFormat("SDL_CreateWindow: %s\n", SDL_GetError()));
     }
     // Initialize SDL_mixer
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+    if (Mix_OpenAudio(32000, MIX_DEFAULT_FORMAT, 2, 1024) < 0) {
       printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n",
              Mix_GetError());
     }
@@ -191,35 +211,86 @@ absl::Status Controller::CreateRenderer() {
 }
 
 absl::Status Controller::CreateGuiContext() {
+  IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+
+  ImGuiIO &io = ImGui::GetIO();
+  if (flags()->kUseNewImGuiInput) {
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+  }
 
   // Initialize ImGui for SDL
   ImGui_ImplSDL2_InitForSDLRenderer(window_.get(), renderer_.get());
-  ImGui_ImplSDLRenderer_Init(renderer_.get());
+  ImGui_ImplSDLRenderer2_Init(renderer_.get());
 
-  // Load available fonts
-  const ImGuiIO &io = ImGui::GetIO();
-  io.Fonts->AddFontFromFileTTF("assets/font/Karla-Regular.ttf", 14.0f);
+  if (flags()->kLoadSystemFonts) {
+    LoadSystemFonts();
+  } else {
+    RETURN_IF_ERROR(LoadFontFamilies());
+  }
 
-  // merge in icons from Google Material Design
+  // Set the default style
+  gui::ColorsYaze();
+
+  // Build a new ImGui frame
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame(window_.get());
+
+  return absl::OkStatus();
+}
+
+absl::Status Controller::LoadFontFamilies() const {
+  ImGuiIO &io = ImGui::GetIO();
+
+  // Define constants
+  static const char *KARLA_REGULAR = "assets/font/Karla-Regular.ttf";
+  static const char *ROBOTO_MEDIUM = "assets/font/Roboto-Medium.ttf";
+  static const char *COUSINE_REGULAR = "assets/font/Cousine-Regular.ttf";
+  static const char *DROID_SANS = "assets/font/DroidSans.ttf";
+  static const char *NOTO_SANS_JP = "assets/font/NotoSansJP.ttf";
+  static const char *IBM_PLEX_JP = "assets/font/IBMPlexSansJP-Bold.ttf";
+  static const float FONT_SIZE_DEFAULT = 14.0f;
+  static const float FONT_SIZE_DROID_SANS = 16.0f;
+  static const float ICON_FONT_SIZE = 18.0f;
+
+  // Icon configuration
   static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
   ImFontConfig icons_config;
   icons_config.MergeMode = true;
   icons_config.GlyphOffset.y = 5.0f;
   icons_config.GlyphMinAdvanceX = 13.0f;
   icons_config.PixelSnapH = true;
-  io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, 18.0f, &icons_config,
-                               icons_ranges);
-  io.Fonts->AddFontFromFileTTF("assets/font/Roboto-Medium.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/font/Cousine-Regular.ttf", 14.0f);
-  io.Fonts->AddFontFromFileTTF("assets/font/DroidSans.ttf", 16.0f);
 
-  // Set the default style
-  gui::ColorsYaze();
+  // Japanese font configuration
+  ImFontConfig japanese_font_config;
+  japanese_font_config.MergeMode = true;
+  icons_config.GlyphOffset.y = 5.0f;
+  icons_config.GlyphMinAdvanceX = 13.0f;
+  icons_config.PixelSnapH = true;
 
-  // Build a new ImGui frame
-  ImGui_ImplSDLRenderer_NewFrame();
-  ImGui_ImplSDL2_NewFrame(window_.get());
+  // List of fonts to be loaded
+  std::vector<const char *> font_paths = {KARLA_REGULAR, ROBOTO_MEDIUM,
+                                          COUSINE_REGULAR, IBM_PLEX_JP};
+
+  // Load fonts with associated icon and Japanese merges
+  for (const auto &font_path : font_paths) {
+    float font_size =
+        (font_path == DROID_SANS) ? FONT_SIZE_DROID_SANS : FONT_SIZE_DEFAULT;
+
+    if (!io.Fonts->AddFontFromFileTTF(font_path, font_size)) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to load font from %s", font_path));
+    }
+
+    // Merge icon set
+    io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, ICON_FONT_SIZE,
+                                 &icons_config, icons_ranges);
+
+    // Merge Japanese font
+    io.Fonts->AddFontFromFileTTF(NOTO_SANS_JP, 18.0f, &japanese_font_config,
+                                 io.Fonts->GetGlyphRangesJapanese());
+  }
 
   return absl::OkStatus();
 }

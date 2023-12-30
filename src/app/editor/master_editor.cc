@@ -7,18 +7,27 @@
 #include <imgui_memory_editor.h>
 
 #include "absl/status/status.h"
+#include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/editor/assembly_editor.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/editor/dungeon_editor.h"
-#include "app/editor/music_editor.h"
+#include "app/editor/graphics_editor.h"
+#include "app/editor/modules/assembly_editor.h"
+#include "app/editor/modules/music_editor.h"
+#include "app/editor/modules/palette_editor.h"
 #include "app/editor/overworld_editor.h"
+#include "app/editor/screen_editor.h"
+#include "app/editor/sprite_editor.h"
+#include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
+#include "app/gui/input.h"
+#include "app/gui/pipeline.h"
+#include "app/gui/style.h"
+#include "app/gui/widgets.h"
 #include "app/rom.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
-#include "gui/input.h"
-#include "gui/widgets.h"
 
 namespace yaze {
 namespace app {
@@ -32,9 +41,9 @@ constexpr ImGuiWindowFlags kMainEditorFlags =
     ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
 
 void NewMasterFrame() {
-  const ImGuiIO &io = ImGui::GetIO();
+  const ImGuiIO& io = ImGui::GetIO();
   ImGui::NewFrame();
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImGui::SetNextWindowPos(gui::kZeroPos);
   ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
   ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
 
@@ -44,8 +53,8 @@ void NewMasterFrame() {
   }
 }
 
-bool BeginCentered(const char *name) {
-  ImGuiIO const &io = ImGui::GetIO();
+bool BeginCentered(const char* name) {
+  ImGuiIO const& io = ImGui::GetIO();
   ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGuiWindowFlags flags =
@@ -54,30 +63,65 @@ bool BeginCentered(const char *name) {
   return ImGui::Begin(name, nullptr, flags);
 }
 
-void DisplayStatus(absl::Status &status) {
-  if (BeginCentered("StatusWindow")) {
-    ImGui::Text("%s", status.ToString().c_str());
-    ImGui::Spacing();
-    ImGui::NextColumn();
-    ImGui::Columns(1);
-    ImGui::Separator();
-    ImGui::NewLine();
-    ImGui::SameLine(270);
-    if (ImGui::Button("OK", ImVec2(200, 0))) {
-      status = absl::OkStatus();
+class RecentFilesManager {
+ public:
+  RecentFilesManager(const std::string& filename) : filename_(filename) {}
+
+  void AddFile(const std::string& filePath) {
+    // Add a file to the list, avoiding duplicates
+    auto it = std::find(recentFiles_.begin(), recentFiles_.end(), filePath);
+    if (it == recentFiles_.end()) {
+      recentFiles_.push_back(filePath);
     }
-    ImGui::End();
   }
-}
+
+  void Save() {
+    std::ofstream file(filename_);
+    if (!file.is_open()) {
+      return;  // Handle the error appropriately
+    }
+
+    for (const auto& filePath : recentFiles_) {
+      file << filePath << std::endl;
+    }
+  }
+
+  void Load() {
+    std::ifstream file(filename_);
+    if (!file.is_open()) {
+      return;  // Handle the error appropriately
+    }
+
+    recentFiles_.clear();
+    std::string line;
+    while (std::getline(file, line)) {
+      if (!line.empty()) {
+        recentFiles_.push_back(line);
+      }
+    }
+  }
+
+  const std::vector<std::string>& GetRecentFiles() const {
+    return recentFiles_;
+  }
+
+ private:
+  std::string filename_;
+  std::vector<std::string> recentFiles_;
+};
 
 }  // namespace
 
+using ImGui::BeginMenu;
+using ImGui::MenuItem;
+using ImGui::Text;
+
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
-  rom_.SetupRenderer(renderer);
+  rom()->SetupRenderer(renderer);
 }
 
-void MasterEditor::UpdateScreen() {
+absl::Status MasterEditor::Update() {
   NewMasterFrame();
 
   DrawYazeMenu();
@@ -86,34 +130,72 @@ void MasterEditor::UpdateScreen() {
   DrawAboutPopup();
   DrawInfoPopup();
 
+  if (rom()->isLoaded() && !rom_assets_loaded_) {
+    // Initialize overworld graphics, maps, and palettes
+    RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
+    rom_assets_loaded_ = true;
+  }
+
   TAB_BAR("##TabBar")
-  DrawOverworldEditor();
-  DrawDungeonEditor();
-  DrawMusicEditor();
-  DrawSpriteEditor();
-  DrawScreenEditor();
-  DrawPaletteEditor();
+
+  gui::RenderTabItem("Overworld", [&]() {
+    current_editor_ = &overworld_editor_;
+    status_ = overworld_editor_.Update();
+  });
+
+  gui::RenderTabItem("Dungeon", [&]() {
+    current_editor_ = &dungeon_editor_;
+    status_ = dungeon_editor_.Update();
+  });
+
+  gui::RenderTabItem("Graphics",
+                     [&]() { status_ = graphics_editor_.Update(); });
+  gui::RenderTabItem("Sprites", [&]() { status_ = sprite_editor_.Update(); });
+  gui::RenderTabItem("Palettes", [&]() { status_ = palette_editor_.Update(); });
+  gui::RenderTabItem("Screens", [&]() { screen_editor_.Update(); });
+  gui::RenderTabItem("Music", [&]() { music_editor_.Update(); });
   END_TAB_BAR()
 
   ImGui::End();
+
+  return absl::OkStatus();
 }
 
 void MasterEditor::DrawFileDialog() {
-  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      status_ = rom_.LoadFromFile(filePathName);
-      overworld_editor_.SetupROM(rom_);
-      screen_editor_.SetupROM(rom_);
-      palette_editor_.SetupROM(rom_);
-    }
-    ImGuiFileDialog::Instance()->Close();
-  }
+  gui::FileDialogPipeline("ChooseFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
+    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+    status_ = rom()->LoadFromFile(filePathName);
+    static RecentFilesManager manager("recent_files.txt");
+
+    // Load existing recent files
+    manager.Load();
+
+    // Add a new file
+    manager.AddFile(filePathName);
+
+    // Save the updated list
+    manager.Save();
+  });
 }
 
 void MasterEditor::DrawStatusPopup() {
   if (!status_.ok()) {
-    DisplayStatus(status_);
+    show_status_ = true;
+    prev_status_ = status_;
+  }
+
+  if (show_status_ && (BeginCentered("StatusWindow"))) {
+    Text("%s", prev_status_.ToString().c_str());
+    ImGui::Spacing();
+    ImGui::NextColumn();
+    ImGui::Columns(1);
+    ImGui::Separator();
+    ImGui::NewLine();
+    ImGui::SameLine(270);
+    if (ImGui::Button("OK", gui::kDefaultModalSize)) {
+      show_status_ = false;
+    }
+    ImGui::End();
   }
 }
 
@@ -121,13 +203,13 @@ void MasterEditor::DrawAboutPopup() {
   if (about_) ImGui::OpenPopup("About");
   if (ImGui::BeginPopupModal("About", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Yet Another Zelda3 Editor - v0.02");
-    ImGui::Text("Written by: scawful");
+    Text("Yet Another Zelda3 Editor - v0.05");
+    Text("Written by: scawful");
     ImGui::Spacing();
-    ImGui::Text("Special Thanks: Zarby89, JaredBrian");
+    Text("Special Thanks: Zarby89, JaredBrian");
     ImGui::Separator();
 
-    if (ImGui::Button("Close", ImVec2(200, 0))) {
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       about_ = false;
       ImGui::CloseCurrentPopup();
     }
@@ -139,10 +221,10 @@ void MasterEditor::DrawInfoPopup() {
   if (rom_info_) ImGui::OpenPopup("ROM Information");
   if (ImGui::BeginPopupModal("ROM Information", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Title: %s", rom_.GetTitle());
-    ImGui::Text("ROM Size: %ld", rom_.size());
+    Text("Title: %s", rom()->title());
+    Text("ROM Size: %ld", rom()->size());
 
-    if (ImGui::Button("Close", ImVec2(200, 0))) {
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       rom_info_ = false;
       ImGui::CloseCurrentPopup();
     }
@@ -151,52 +233,145 @@ void MasterEditor::DrawInfoPopup() {
 }
 
 void MasterEditor::DrawYazeMenu() {
+  static bool show_display_settings = false;
+  static bool show_command_line_interface = false;
+
   MENU_BAR()
   DrawFileMenu();
   DrawEditMenu();
   DrawViewMenu();
   DrawHelpMenu();
+
+  ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
+                  ImGui::CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
+  // Modify the style of the button to have no background color
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  if (ImGui::Button(ICON_MD_DISPLAY_SETTINGS)) {
+    show_display_settings = !show_display_settings;
+  }
+
+  if (ImGui::Button(ICON_MD_TERMINAL)) {
+    show_command_line_interface = !show_command_line_interface;
+  }
+  ImGui::PopStyleColor();
+
+  Text("%s", absl::StrCat("yaze v", core::kYazeVersion).c_str());
+
   END_MENU_BAR()
+
+  if (show_display_settings) {
+    ImGui::Begin("Display Settings", &show_display_settings,
+                 ImGuiWindowFlags_None);
+    gui::DrawDisplaySettings();
+    ImGui::End();
+  }
+
+  if (show_command_line_interface) {
+    ImGui::Begin("Command Line Interface", &show_command_line_interface,
+                 ImGuiWindowFlags_None);
+    Text("Enter a command:");
+    ImGui::End();
+  }
 }
 
-void MasterEditor::DrawFileMenu() const {
-  if (ImGui::BeginMenu("File")) {
-    if (ImGui::MenuItem("Open", "Ctrl+O")) {
-      ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
-                                              ".sfc,.smc", ".");
+void MasterEditor::DrawFileMenu() {
+  static bool save_as_menu = false;
+
+  if (BeginMenu("File")) {
+    if (MenuItem("Open", "Ctrl+O")) {
+      if (flags()->kNewFileDialogWrapper) {
+        auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+        PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
+        static RecentFilesManager manager("recent_files.txt");
+        manager.Load();
+        manager.AddFile(file_name);
+        manager.Save();
+      } else {
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
+                                                ".sfc,.smc", ".");
+      }
     }
 
-    MENU_ITEM2("Save", "Ctrl+S") {}
-    MENU_ITEM("Save As..") {}
+    if (BeginMenu("Open Recent")) {
+      static RecentFilesManager manager("recent_files.txt");
+      manager.Load();
+      if (manager.GetRecentFiles().empty()) {
+        MenuItem("No Recent Files", nullptr, false, false);
+      } else {
+        for (const auto& filePath : manager.GetRecentFiles()) {
+          if (MenuItem(filePath.c_str())) {
+            status_ = rom()->LoadFromFile(filePath);
+          }
+        }
+      }
+      ImGui::EndMenu();
+    }
+
+    MENU_ITEM2("Save", "Ctrl+S") { status_ = rom()->SaveToFile(backup_rom_); }
+    MENU_ITEM("Save As..") { save_as_menu = true; }
+
+    if (rom()->isLoaded()) {
+      MENU_ITEM("Reload") { status_ = rom()->Reload(); }
+      MENU_ITEM("Close") { status_ = rom()->Close(); }
+    }
 
     ImGui::Separator();
 
-    // TODO: Make these options matter
-    if (ImGui::BeginMenu("Options")) {
-      static bool enabled = true;
-      ImGui::MenuItem("Enabled", "", &enabled);
-      ImGui::BeginChild("child", ImVec2(0, 60), true);
-      for (int i = 0; i < 10; i++) ImGui::Text("Scrolling Text %d", i);
-      ImGui::EndChild();
-      static float f = 0.5f;
-      static int n = 0;
-      ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
-      ImGui::InputFloat("Input", &f, 0.1f);
-      ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
+    if (BeginMenu("Options")) {
+      MenuItem("Backup ROM", "", &backup_rom_);
+      ImGui::Separator();
+      Text("Experiment Flags");
+      ImGui::Checkbox("Enable Texture Streaming",
+                      &mutable_flags()->kLoadTexturesAsStreaming);
+      ImGui::Checkbox("Enable Overworld Sprites",
+                      &mutable_flags()->kDrawOverworldSprites);
+      ImGui::Checkbox("Use Bitmap Manager",
+                      &mutable_flags()->kUseBitmapManager);
+      ImGui::Checkbox("Log Instructions to Debugger",
+                      &mutable_flags()->kLogInstructions);
+      ImGui::Checkbox("Use New ImGui Input",
+                      &mutable_flags()->kUseNewImGuiInput);
+      ImGui::Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
+      ImGui::Checkbox("Save With Change Queue",
+                      &mutable_flags()->kSaveWithChangeQueue);
+      ImGui::Checkbox("Draw Dungeon Room Graphics",
+                      &mutable_flags()->kDrawDungeonRoomGraphics);
       ImGui::EndMenu();
     }
+
+    ImGui::Separator();
+
+    if (MenuItem("Quit", "Ctrl+Q")) {
+      // TODO: Implement quit confirmation dialog.
+    }
+
     ImGui::EndMenu();
+  }
+
+  if (save_as_menu) {
+    static std::string save_as_filename = "";
+    ImGui::Begin("Save As..", &save_as_menu, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::InputText("Filename", &save_as_filename);
+    if (ImGui::Button("Save", gui::kDefaultModalSize)) {
+      status_ = rom()->SaveToFile(backup_rom_, save_as_filename);
+      save_as_menu = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
+      save_as_menu = false;
+    }
+    ImGui::End();
   }
 }
 
 void MasterEditor::DrawEditMenu() {
-  if (ImGui::BeginMenu("Edit")) {
-    MENU_ITEM2("Undo", "Ctrl+Z") { status_ = overworld_editor_.Undo(); }
-    MENU_ITEM2("Redo", "Ctrl+Y") { status_ = overworld_editor_.Redo(); }
+  if (BeginMenu("Edit")) {
+    MENU_ITEM2("Undo", "Ctrl+Z") { status_ = current_editor_->Undo(); }
+    MENU_ITEM2("Redo", "Ctrl+Y") { status_ = current_editor_->Redo(); }
     ImGui::Separator();
-    MENU_ITEM2("Cut", "Ctrl+X") { status_ = overworld_editor_.Cut(); }
-    MENU_ITEM2("Copy", "Ctrl+C") { status_ = overworld_editor_.Copy(); }
-    MENU_ITEM2("Paste", "Ctrl+V") { status_ = overworld_editor_.Paste(); }
+    MENU_ITEM2("Cut", "Ctrl+X") { status_ = current_editor_->Cut(); }
+    MENU_ITEM2("Copy", "Ctrl+C") { status_ = current_editor_->Copy(); }
+    MENU_ITEM2("Paste", "Ctrl+V") { status_ = current_editor_->Paste(); }
     ImGui::Separator();
     MENU_ITEM2("Find", "Ctrl+F") {}
     ImGui::Separator();
@@ -207,11 +382,18 @@ void MasterEditor::DrawEditMenu() {
 
 void MasterEditor::DrawViewMenu() {
   static bool show_imgui_metrics = false;
-  static bool show_imgui_style_editor = false;
   static bool show_memory_editor = false;
   static bool show_asm_editor = false;
   static bool show_imgui_demo = false;
   static bool show_memory_viewer = false;
+  static bool show_palette_editor = false;
+  static bool show_emulator = false;
+
+  if (show_emulator) {
+    ImGui::Begin("Emulator", &show_emulator, ImGuiWindowFlags_MenuBar);
+    emulator_.Run();
+    ImGui::End();
+  }
 
   if (show_imgui_metrics) {
     ImGui::ShowMetricsWindow(&show_imgui_metrics);
@@ -219,7 +401,7 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void *)&rom_, rom_.size());
+    mem_edit.DrawWindow("Memory Editor", (void*)&(*rom()), rom()->size());
   }
 
   if (show_imgui_demo) {
@@ -227,12 +409,12 @@ void MasterEditor::DrawViewMenu() {
   }
 
   if (show_asm_editor) {
-    assembly_editor_.Update();
+    assembly_editor_.Update(show_asm_editor);
   }
 
-  if (show_imgui_style_editor) {
-    ImGui::Begin("Style Editor (ImGui)", &show_imgui_style_editor);
-    ImGui::ShowStyleEditor();
+  if (show_palette_editor) {
+    ImGui::Begin("Palette Editor", &show_palette_editor);
+    status_ = palette_editor_.Update();
     ImGui::End();
   }
 
@@ -250,7 +432,7 @@ void MasterEditor::DrawViewMenu() {
         ImGui::TableNextRow();
         for (int column = 0; column < 3; column++) {
           ImGui::TableNextColumn();
-          ImGui::Text("Cell %d,%d", column, row);
+          Text("Cell %d,%d", column, row);
         }
       }
       ImGui::EndTable();
@@ -259,62 +441,42 @@ void MasterEditor::DrawViewMenu() {
     ImGui::End();
   }
 
-  if (ImGui::BeginMenu("View")) {
-    ImGui::MenuItem("HEX Editor", nullptr, &show_memory_editor);
-    ImGui::MenuItem("ASM Editor", nullptr, &show_asm_editor);
-    ImGui::MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
-    ImGui::MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
-    ImGui::Separator();
-    if (ImGui::BeginMenu("GUI Tools")) {
-      ImGui::MenuItem("Metrics (ImGui)", nullptr, &show_imgui_metrics);
-      ImGui::MenuItem("Style Editor (ImGui)", nullptr,
-                      &show_imgui_style_editor);
-      ImGui::EndMenu();
-    }
+  if (BeginMenu("View")) {
+    MenuItem("Emulator", nullptr, &show_emulator);
+    MenuItem("HEX Editor", nullptr, &show_memory_editor);
+    MenuItem("ASM Editor", nullptr, &show_asm_editor);
+    MenuItem("Palette Editor", nullptr, &show_palette_editor);
+    MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
+    MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
+    MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
     ImGui::EndMenu();
   }
 }
 
 void MasterEditor::DrawHelpMenu() {
-  if (ImGui::BeginMenu("Help")) {
-    if (ImGui::MenuItem("About")) about_ = true;
+  static bool open_rom_help = false;
+  if (BeginMenu("Help")) {
+    if (MenuItem("How to open a ROM")) open_rom_help = true;
+    if (MenuItem("About")) about_ = true;
     ImGui::EndMenu();
   }
-}
 
-void MasterEditor::DrawOverworldEditor() {
-  TAB_ITEM("Overworld")
-  status_ = overworld_editor_.Update();
-  END_TAB_ITEM()
-}
+  if (open_rom_help) ImGui::OpenPopup("Open a ROM");
+  if (ImGui::BeginPopupModal("Open a ROM", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    Text("File -> Open");
+    Text("Select a ROM file to open");
+    Text("Supported ROMs (headered or unheadered):");
+    Text("The Legend of Zelda: A Link to the Past");
+    Text("US Version 1.0");
+    Text("JP Version 1.0");
 
-void MasterEditor::DrawDungeonEditor() {
-  TAB_ITEM("Dungeon")
-  dungeon_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawPaletteEditor() {
-  TAB_ITEM("Palettes")
-  status_ = palette_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawScreenEditor() {
-  TAB_ITEM("Screens")
-  screen_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawMusicEditor() {
-  TAB_ITEM("Music")
-  music_editor_.Update();
-  END_TAB_ITEM()
-}
-
-void MasterEditor::DrawSpriteEditor() {
-  TAB_ITEM("Sprites")
-  END_TAB_ITEM()
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
+      open_rom_help = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
 }
 
 }  // namespace editor

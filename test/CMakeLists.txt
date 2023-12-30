@@ -1,4 +1,4 @@
-# GoogleTest ------------------------------------------------------------------------------------
+# GoogleTest ------------------------------------------------------------------
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -13,30 +13,52 @@ enable_testing()
 add_executable(
   yaze_test
   yaze_test.cc
-  rom_test.cc
+  emu/cpu_test.cc
+  emu/spc700_test.cc
+  emu/ppu_test.cc
+  compression_test.cc
+  snes_palette_test.cc
+  room_object_test.cc
+  ../src/cli/patch.cc
+  ../src/cli/command_handler.cc
   ../src/app/rom.cc
+  ../src/app/emu/cpu/cpu.cc
+  ../src/app/emu/cpu/internal/instructions.cc
+  ../src/app/emu/cpu/internal/addressing.cc
+  ../src/app/emu/audio/internal/addressing.cc
+  ../src/app/emu/audio/internal/instructions.cc
+  ../src/app/emu/audio/apu.cc
+  ../src/app/emu/video/ppu.cc
+  ../src/app/emu/audio/dsp.cc
+  ../src/app/emu/audio/spc700.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_palette.cc
+  ../src/app/gfx/compression.cc
   ../src/app/core/common.cc
-  ${ASAR_STATIC_SRC}
+  # ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_test PUBLIC
   ../src/
   ../src/lib/
-  ../src/lib/asar/src/asar/
-  ${SDL_INCLUDE_DIRS}
+  # ../src/lib/asar/src/asar/
+  ${SDL2_INCLUDE_DIR}
+  ${PNG_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   yaze_test
-  SDL2
   ${ABSL_TARGETS}
+  SDL2::SDL2
+  ${PNG_LIBRARIES}
+  ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  asar-static
+  # asar-static
+  # snes_spc
+  ImGui
   gmock_main
   gmock
   gtest_main

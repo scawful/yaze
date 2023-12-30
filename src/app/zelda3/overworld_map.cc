@@ -12,6 +12,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/zelda3/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -91,7 +92,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux1")[1][k];
+      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux1")[1][k];
       k++;
     }
   }
@@ -100,7 +101,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("sprites_aux3")[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux3")[0][k];
       k++;
     }
   }
@@ -109,7 +110,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("global_sprites")[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group("global_sprites")[0][k];
       k++;
     }
   }
@@ -136,14 +137,14 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.GetPaletteGroup("armors")[0][k];
+      new_palette[x + (16 * y)] = rom.palette_group("armors")[0][k];
       k++;
     }
   }
 
   current.Create(new_palette);
   for (int i = 0; i < 256; i++) {
-    current[(i / 16) * 16].setTransparent(true);
+    current[(i / 16) * 16].SetTransparent(true);
   }
 }
 
@@ -164,15 +165,14 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
     parent_ = map_parent[index_];
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-        area_graphics_ =
-            rom_[core::overworldSpecialGFXGroup + (parent_ - 0x80)];
-        area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
+        area_graphics_ = rom_[overworldSpecialGFXGroup + (parent_ - 0x80)];
+        area_palette_ = rom_[overworldSpecialPALGroup + 1];
       } else if (index_ == 0x88) {
         area_graphics_ = 0x51;
         area_palette_ = 0x00;
       } else {
-        area_graphics_ = rom_[core::mapGfx + parent_];
-        area_palette_ = rom_[core::overworldMapPalette + parent_];
+        area_graphics_ = rom_[mapGfx + parent_];
+        area_palette_ = rom_[overworldMapPalette + parent_];
       }
 
       initialized_ = true;
@@ -190,37 +190,37 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 
 void OverworldMap::LoadAreaInfo() {
   if (index_ != 0x80 && index_ <= 150 &&
-      rom_[core::overworldMapSize + (index_ & 0x3F)] != 0) {
+      rom_[overworldMapSize + (index_ & 0x3F)] != 0) {
     large_map_ = true;
   }
   if (index_ < 64) {
-    area_graphics_ = rom_[core::mapGfx + parent_];
-    area_palette_ = rom_[core::overworldMapPalette + parent_];
+    area_graphics_ = rom_[mapGfx + parent_];
+    area_palette_ = rom_[overworldMapPalette + parent_];
 
-    area_music_[0] = rom_[core::overworldMusicBegining + parent_];
-    area_music_[1] = rom_[core::overworldMusicZelda + parent_];
-    area_music_[2] = rom_[core::overworldMusicMasterSword + parent_];
-    area_music_[3] = rom_[core::overworldMusicAgahim + parent_];
+    area_music_[0] = rom_[overworldMusicBegining + parent_];
+    area_music_[1] = rom_[overworldMusicZelda + parent_];
+    area_music_[2] = rom_[overworldMusicMasterSword + parent_];
+    area_music_[3] = rom_[overworldMusicAgahim + parent_];
 
-    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_];
-    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 0x40];
-    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[0] = rom_[overworldSpriteset + parent_];
+    sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x40];
+    sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_];
-    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 0x40];
-    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[0] = rom_[overworldSpritePalette + parent_];
+    sprite_palette_[1] = rom_[overworldSpritePalette + parent_ + 0x40];
+    sprite_palette_[2] = rom_[overworldSpritePalette + parent_ + 0x80];
   } else if (index_ < 0x80) {
-    area_graphics_ = rom_[core::mapGfx + parent_];
-    area_palette_ = rom_[core::overworldMapPalette + parent_];
-    area_music_[0] = rom_[core::overworldMusicDW + (parent_ - 64)];
+    area_graphics_ = rom_[mapGfx + parent_];
+    area_palette_ = rom_[overworldMapPalette + parent_];
+    area_music_[0] = rom_[overworldMusicDW + (parent_ - 64)];
 
-    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[0] = rom_[overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[0] = rom_[overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[1] = rom_[overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[2] = rom_[overworldSpritePalette + parent_ + 0x80];
   } else {
     if (index_ == 0x94) {
       parent_ = 0x80;
@@ -242,235 +242,187 @@ void OverworldMap::LoadAreaInfo() {
       parent_ = 0x88;
     }
 
-    area_palette_ = rom_[core::overworldSpecialPALGroup + parent_ - 0x80];
+    area_palette_ = rom_[overworldSpecialPALGroup + parent_ - 0x80];
     if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
-      area_graphics_ = rom_[core::overworldSpecialGFXGroup + (parent_ - 0x80)];
-      area_palette_ = rom_[core::overworldSpecialPALGroup + 1];
+      area_graphics_ = rom_[overworldSpecialGFXGroup + (parent_ - 0x80)];
+      area_palette_ = rom_[overworldSpecialPALGroup + 1];
     } else if (index_ == 0x88) {
       area_graphics_ = 0x51;
       area_palette_ = 0x00;
     } else {
       // pyramid bg use 0x5B map
-      area_graphics_ = rom_[core::mapGfx + parent_];
-      area_palette_ = rom_[core::overworldMapPalette + parent_];
+      area_graphics_ = rom_[mapGfx + parent_];
+      area_palette_ = rom_[overworldMapPalette + parent_];
     }
 
-    message_id_ = rom_[core::overworldMessages + parent_];
+    message_id_ = rom_[overworldMessages + parent_];
 
-    sprite_graphics_[0] = rom_[core::overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[1] = rom_[core::overworldSpriteset + parent_ + 0x80];
-    sprite_graphics_[2] = rom_[core::overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[0] = rom_[overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[1] = rom_[overworldSpriteset + parent_ + 0x80];
+    sprite_graphics_[2] = rom_[overworldSpriteset + parent_ + 0x80];
 
-    sprite_palette_[0] = rom_[core::overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[1] = rom_[core::overworldSpritePalette + parent_ + 0x80];
-    sprite_palette_[2] = rom_[core::overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[0] = rom_[overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[1] = rom_[overworldSpritePalette + parent_ + 0x80];
+    sprite_palette_[2] = rom_[overworldSpritePalette + parent_ + 0x80];
   }
 }
 
-void OverworldMap::LoadAreaGraphics() {
-  int world_index = 0x20;
+void OverworldMap::LoadWorldIndex() {
   if (parent_ < 0x40) {
-    world_index = 0x20;
+    world_index_ = 0x20;
   } else if (parent_ >= 0x40 && parent_ < 0x80) {
-    world_index = 0x21;
+    world_index_ = 0x21;
   } else if (parent_ == 0x88) {
-    world_index = 0x24;
+    world_index_ = 0x24;
   }
+}
 
-  // Sprites Blocksets
-  static_graphics_[8] = 0x73 + 0x00;
-  static_graphics_[9] = 0x73 + 0x01;
-  static_graphics_[10] = 0x73 + 0x06;
-  static_graphics_[11] = 0x73 + 0x07;
+void OverworldMap::LoadSpritesBlocksets() {
+  int static_graphics_base = 0x73;
+  static_graphics_[8] = static_graphics_base + 0x00;
+  static_graphics_[9] = static_graphics_base + 0x01;
+  static_graphics_[10] = static_graphics_base + 0x06;
+  static_graphics_[11] = static_graphics_base + 0x07;
+
   for (int i = 0; i < 4; i++) {
-    static_graphics_[12 + i] = (rom_[core::kSpriteBlocksetPointer +
-                                     (sprite_graphics_[game_state_] * 4) + i] +
-                                0x73);
+    static_graphics_[12 + i] =
+        (rom_[rom_.version_constants().kSpriteBlocksetPointer +
+              (sprite_graphics_[game_state_] * 4) + i] +
+         static_graphics_base);
   }
+}
 
-  // Main Blocksets
+void OverworldMap::LoadMainBlocksets() {
   for (int i = 0; i < 8; i++) {
-    static_graphics_[i] =
-        rom_[core::overworldgfxGroups2 + (world_index * 8) + i];
+    static_graphics_[i] = rom_[rom_.version_constants().kOverworldGfxGroups2 +
+                               (world_index_ * 8) + i];
   }
+}
 
-  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4)] != 0) {
-    static_graphics_[3] = rom_[core::overworldgfxGroups + (area_graphics_ * 4)];
+void OverworldMap::LoadAreaGraphicsBlocksets() {
+  for (int i = 0; i < 4; i++) {
+    uchar value = rom_[rom_.version_constants().kOverworldGfxGroups1 +
+                       (area_graphics_ * 4) + i];
+    if (value != 0) {
+      static_graphics_[3 + i] = value;
+    }
   }
-  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 1] != 0) {
-    static_graphics_[4] =
-        rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 1];
-  }
-  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 2] != 0) {
-    static_graphics_[5] =
-        rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 2];
-  }
-  if (rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 3] != 0) {
-    static_graphics_[6] =
-        rom_[core::overworldgfxGroups + (area_graphics_ * 4) + 3];
-  }
+}
 
-  // Hardcoded overworld GFX Values, for death mountain
-  if ((parent_ >= 0x03 && parent_ <= 0x07) ||
-      (parent_ >= 0x0B && parent_ <= 0x0E)) {
-    static_graphics_[7] = 0x59;
-  } else if ((parent_ >= 0x43 && parent_ <= 0x47) ||
-             (parent_ >= 0x4B && parent_ <= 0x4E)) {
-    static_graphics_[7] = 0x59;
+void OverworldMap::LoadDeathMountainGFX() {
+  static_graphics_[7] = (((parent_ >= 0x03 && parent_ <= 0x07) ||
+                          (parent_ >= 0x0B && parent_ <= 0x0E)) ||
+                         ((parent_ >= 0x43 && parent_ <= 0x47) ||
+                          (parent_ >= 0x4B && parent_ <= 0x4E)))
+                            ? 0x59
+                            : 0x5B;
+}
+
+void OverworldMap::LoadAreaGraphics() {
+  LoadWorldIndex();
+  LoadSpritesBlocksets();
+  LoadMainBlocksets();
+  LoadAreaGraphicsBlocksets();
+  LoadDeathMountainGFX();
+}
+
+// New helper function to get a palette from the ROM.
+gfx::SNESPalette OverworldMap::GetPalette(const std::string& group, int index,
+                                          int previousIndex, int limit) {
+  if (index == 255) {
+    index = rom_[rom_.version_constants().overworldMapPaletteGroup +
+                 (previousIndex * 4)];
+  }
+  if (index != 255) {
+    if (index >= limit) {
+      index = limit - 1;
+    }
+    return rom_.palette_group(group)[index];
   } else {
-    static_graphics_[7] = 0x5B;
+    return rom_.palette_group(group)[0];
   }
 }
 
 void OverworldMap::LoadPalette() {
-  int previousPalId = 0;
-  int previousSprPalId = 0;
-  if (index_ > 0) {
-    previousPalId = rom_[core::overworldMapPalette + parent_ - 1];
-    previousSprPalId = rom_[core::overworldSpritePalette + parent_ - 1];
-  }
+  int previousPalId = index_ > 0 ? rom_[overworldMapPalette + parent_ - 1] : 0;
+  int previousSprPalId =
+      index_ > 0 ? rom_[overworldSpritePalette + parent_ - 1] : 0;
 
-  if (area_palette_ >= 0xA3) {
-    area_palette_ = 0xA3;
-  }
+  area_palette_ = std::min((int)area_palette_, 0xA3);
 
   uchar pal0 = 0;
+  uchar pal1 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+                    (area_palette_ * 4)];
+  uchar pal2 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+                    (area_palette_ * 4) + 1];
+  uchar pal3 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+                    (area_palette_ * 4) + 2];
+  uchar pal4 =
+      rom_[overworldSpritePaletteGroup + (sprite_palette_[game_state_] * 2)];
+  uchar pal5 = rom_[overworldSpritePaletteGroup +
+                    (sprite_palette_[game_state_] * 2) + 1];
 
-  uchar pal1 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4)];
-  uchar pal2 =
-      rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) + 1];  // aux2
-  uchar pal3 = rom_[core::overworldMapPaletteGroup + (area_palette_ * 4) +
-                    2];  // animated
+  gfx::SNESColor bgr = rom_.palette_group("grass")[0].GetColor(0);
 
-  uchar pal4 = rom_[core::overworldSpritePaletteGroup +
-                    (sprite_palette_[game_state_] * 2)];  // spr3
-  uchar pal5 = rom_[core::overworldSpritePaletteGroup +
-                    (sprite_palette_[game_state_] * 2) + 1];  // spr4
+  gfx::SNESPalette aux1 = GetPalette("ow_aux", pal1, previousPalId, 20);
+  gfx::SNESPalette aux2 = GetPalette("ow_aux", pal2, previousPalId, 20);
 
-  gfx::SNESPalette aux1;
-  gfx::SNESPalette aux2;
-  gfx::SNESPalette main;
-  gfx::SNESPalette animated;
-  gfx::SNESPalette hud;
-  gfx::SNESPalette spr;
-  gfx::SNESPalette spr2;
-  gfx::SNESColor bgr = rom_.GetPaletteGroup("grass")[0].GetColor(0);
-
-  if (pal1 == 255) {
-    pal1 = rom_[core::overworldMapPaletteGroup + (previousPalId * 4)];
-  }
-  if (pal1 != 255) {
-    if (pal1 >= 20) {
-      pal1 = 19;
-    }
-
-    aux1 = rom_.GetPaletteGroup("ow_aux")[pal1];
-  } else {
-    aux1 = rom_.GetPaletteGroup("ow_aux")[0];
-  }
-
-  if (pal2 == 255) {
-    pal2 = rom_[core::overworldMapPaletteGroup + (previousPalId * 4) + 1];
-  }
-  if (pal2 != 255) {
-    if (pal2 >= 20) {
-      pal2 = 19;
-    }
-
-    aux2 = rom_.GetPaletteGroup("ow_aux")[pal2];
-  } else {
-    aux2 = rom_.GetPaletteGroup("ow_aux")[0];
-  }
-
+  // Additional handling of `pal3` and `parent_`
   if (pal3 == 255) {
-    pal3 = rom_[core::overworldMapPaletteGroup + (previousPalId * 4) + 2];
+    pal3 = rom_[rom_.version_constants().overworldMapPaletteGroup +
+                (previousPalId * 4) + 2];
   }
-
   if (parent_ < 0x40) {
-    // Default LW Palette
-    pal0 = 0;
-    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(0);
-    if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07) {
-      pal0 = 2;
-    }
+    pal0 = parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ? 2 : 0;
+    bgr = rom_.palette_group("grass")[0].GetColor(0);
   } else if (parent_ >= 0x40 && parent_ < 0x80) {
-    // Default DW Palette
-    pal0 = 1;
-    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(1);
-    if (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47) {
-      pal0 = 3;
-    }
-  } else if (parent_ >= 128 && parent_ < core::kNumOverworldMaps) {
-    // Default SP Palette
+    pal0 = parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47 ? 3 : 1;
+    bgr = rom_.palette_group("grass")[0].GetColor(1);
+  } else if (parent_ >= 128 && parent_ < kNumOverworldMaps) {
     pal0 = 0;
-    bgr = rom_.GetPaletteGroup("grass")[0].GetColor(2);
+    bgr = rom_.palette_group("grass")[0].GetColor(2);
   }
-
   if (parent_ == 0x88) {
     pal0 = 4;
   }
+  gfx::SNESPalette main = GetPalette("ow_main", pal0, previousPalId, 255);
+  gfx::SNESPalette animated =
+      GetPalette("ow_animated", std::min((int)pal3, 13), previousPalId, 14);
+  gfx::SNESPalette hud = rom_.palette_group("hud")[0];
 
-  if (pal0 != 255) {
-    main = rom_.GetPaletteGroup("ow_main")[pal0];
-  } else {
-    main = rom_.GetPaletteGroup("ow_main")[0];
-  }
-
-  if (pal3 >= 14) {
-    pal3 = 13;
-  }
-  animated = rom_.GetPaletteGroup("ow_animated")[(pal3)];
-
-  hud = rom_.GetPaletteGroup("hud")[0];
-  if (pal4 == 255) {
-    pal4 = rom_[core::overworldSpritePaletteGroup +
-                (previousSprPalId * 2)];  // spr3
-  }
-  if (pal4 == 255) {
-    pal4 = 0;
-  }
-  if (pal4 >= 24) {
-    pal4 = 23;
-  }
-  spr = rom_.GetPaletteGroup("sprites_aux3")[pal4];
-
-  if (pal5 == 255) {
-    pal5 = rom_[core::overworldSpritePaletteGroup + (previousSprPalId * 2) +
-                1];  // spr3
-  }
-  if (pal5 == 255) {
-    pal5 = 0;
-  }
-  if (pal5 >= 24) {
-    pal5 = 23;
-  }
-  spr2 = rom_.GetPaletteGroup("sprites_aux3")[pal5];
+  gfx::SNESPalette spr = GetPalette("sprites_aux3", pal4, previousSprPalId, 24);
+  gfx::SNESPalette spr2 =
+      GetPalette("sprites_aux3", pal5, previousSprPalId, 24);
 
   SetColorsPalette(rom_, parent_, current_palette_, main, animated, aux1, aux2,
                    hud, bgr, spr, spr2);
 }
 
-absl::Status OverworldMap::BuildTileset() {
-  all_gfx_ = rom_.GetGraphicsBuffer();
-  current_gfx_.reserve(0x10000);
-  for (int i = 0; i < 0x10000; i++) {
-    current_gfx_.push_back(0x00);
+// New helper function to process graphics buffer.
+void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
+                                         int size) {
+  for (int i = 0; i < size; i++) {
+    auto byte = all_gfx_[i + (static_graphics_offset * size)];
+    switch (index) {
+      case 0:
+      case 3:
+      case 4:
+      case 5:
+        byte += 0x88;
+        break;
+    }
+    current_gfx_[(index * size) + i] = byte;
   }
+}
+
+absl::Status OverworldMap::BuildTileset() {
+  all_gfx_ = rom_.graphics_buffer();
+  current_gfx_.resize(0x10000, 0x00);
 
   for (int i = 0; i < 0x10; i++) {
-    for (int j = 0; j < 0x1000; j++) {
-      auto byte = all_gfx_[j + (static_graphics_[i] * 0x1000)];
-      switch (i) {
-        case 0:
-        case 3:
-        case 4:
-        case 5:
-          byte += 0x88;
-          break;
-      }
-      current_gfx_[(i * 0x1000) + j] = byte;
-    }
+    ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000);
   }
+
   return absl::OkStatus();
 }
 

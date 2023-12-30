@@ -5,6 +5,8 @@
 
 #include "absl/strings/string_view.h"
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #define BASIC_BUTTON(w) if (ImGui::Button(w))
 
 #define TAB_BAR(w) if (ImGui::BeginTabBar(w)) {
@@ -33,11 +35,36 @@
   ImGui::TableNextColumn(); \
   ImGui::Text(w);
 
+#define BEGIN_TABLE(l, n, f) if (ImGui::BeginTable(l, n, f, ImVec2(0, 0))) {
+#define SETUP_COLUMN(l) ImGui::TableSetupColumn(l);
+
+#define TABLE_HEADERS()     \
+  ImGui::TableHeadersRow(); \
+  ImGui::TableNextRow();
+
+#define NEXT_COLUMN() ImGui::TableNextColumn();
+
+#define END_TABLE()  \
+  ImGui::EndTable(); \
+  }
+
+#define HOVER_HINT(string) \
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip(string);
+
 #define PRINT_IF_ERROR(expression)                \
   {                                               \
     auto error = expression;                      \
     if (!error.ok()) {                            \
       std::cout << error.ToString() << std::endl; \
+    }                                             \
+  }
+
+#define EXIT_IF_ERROR(expression)                 \
+  {                                               \
+    auto error = expression;                      \
+    if (!error.ok()) {                            \
+      std::cout << error.ToString() << std::endl; \
+      return EXIT_FAILURE;                        \
     }                                             \
   }
 
@@ -60,10 +87,36 @@
   }                                                                           \
   type_variable_name = std::move(*error_or_value);
 
+#define ASSIGN_OR_LOG_ERROR(type_variable_name, expression)         \
+  ASSIGN_OR_LOG_ERROR_IMPL(APPEND_NUMBER(error_or_value, __LINE__), \
+                           type_variable_name, expression)
+
+#define ASSIGN_OR_LOG_ERROR_IMPL(error_or_value, type_variable_name, \
+                                 expression)                         \
+  auto error_or_value = expression;                                  \
+  if (!error_or_value.ok()) {                                        \
+    std::cout << error_or_value.status().ToString() << std::endl;    \
+  }                                                                  \
+  type_variable_name = std::move(*error_or_value);
+
 #define APPEND_NUMBER(expression, number) \
   APPEND_NUMBER_INNER(expression, number)
 
 #define APPEND_NUMBER_INNER(expression, number) expression##number
+
+#define TEXT_WITH_SEPARATOR(text) \
+  ImGui::Text(text);              \
+  ImGui::Separator();
+
+#define TABLE_BORDERS_RESIZABLE \
+  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable
+
+#define CLEAR_AND_RETURN_STATUS(status) \
+  if (!status.ok()) {                   \
+    auto temp = status;                 \
+    status = absl::OkStatus();          \
+    return temp;                        \
+  }
 
 using ushort = unsigned short;
 using uint = unsigned int;
@@ -82,39 +135,7 @@ namespace yaze {
 namespace app {
 namespace core {
 
-// ============================================================================
-// Window Variables
-// ============================================================================
-
-constexpr int kScreenWidth = 1200;
-constexpr int kScreenHeight = 800;
-
-// ============================================================================
-// 65816 LanguageDefinition
-// ============================================================================
-
-static const char *const kKeywords[] = {
-    "ADC", "AND", "ASL", "BCC", "BCS", "BEQ",   "BIT",   "BMI",       "BNE",
-    "BPL", "BRA", "BRL", "BVC", "BVS", "CLC",   "CLD",   "CLI",       "CLV",
-    "CMP", "CPX", "CPY", "DEC", "DEX", "DEY",   "EOR",   "INC",       "INX",
-    "INY", "JMP", "JSR", "JSL", "LDA", "LDX",   "LDY",   "LSR",       "MVN",
-    "NOP", "ORA", "PEA", "PER", "PHA", "PHB",   "PHD",   "PHP",       "PHX",
-    "PHY", "PLA", "PLB", "PLD", "PLP", "PLX",   "PLY",   "REP",       "ROL",
-    "ROR", "RTI", "RTL", "RTS", "SBC", "SEC",   "SEI",   "SEP",       "STA",
-    "STP", "STX", "STY", "STZ", "TAX", "TAY",   "TCD",   "TCS",       "TDC",
-    "TRB", "TSB", "TSC", "TSX", "TXA", "TXS",   "TXY",   "TYA",       "TYX",
-    "WAI", "WDM", "XBA", "XCE", "ORG", "LOROM", "HIROM", "NAMESPACE", "DB"};
-
-static const char *const kIdentifiers[] = {
-    "abort",   "abs",     "acos",    "asin",     "atan",    "atexit",
-    "atof",    "atoi",    "atol",    "ceil",     "clock",   "cosh",
-    "ctime",   "div",     "exit",    "fabs",     "floor",   "fmod",
-    "getchar", "getenv",  "isalnum", "isalpha",  "isdigit", "isgraph",
-    "ispunct", "isspace", "isupper", "kbhit",    "log10",   "log2",
-    "log",     "memcmp",  "modf",    "pow",      "putchar", "putenv",
-    "puts",    "rand",    "remove",  "rename",   "sinh",    "sqrt",
-    "srand",   "strcat",  "strcmp",  "strerror", "time",    "tolower",
-    "toupper"};
+constexpr float kYazeVersion = 0.05;
 
 // ============================================================================
 // Magic numbers
@@ -135,15 +156,8 @@ constexpr ushort TileNameMask = 0x03FF;
 constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int UncompressedSheetSize = 0x0800;
 
-constexpr int NumberOfSheets = 223;
-constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfRooms = 296;
 
-constexpr int kNumOverworldMaps = 160;
-constexpr int Map32PerScreen = 256;
-constexpr int NumberOfMap16 = 3752;  // 4096
-constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
-constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfColors = 3143;
 
 // ============================================================================
@@ -156,186 +170,13 @@ constexpr int subtype1_tiles = 0x8000;         // JP = Same
 constexpr int subtype2_tiles = 0x83F0;         // JP = Same
 constexpr int subtype3_tiles = 0x84F0;         // JP = Same
 constexpr int gfx_animated_pointer = 0x10275;  // JP 0x10624 //long pointer
-constexpr int overworldgfxGroups2 = 0x6073;    // 0x60B3
 
-// 2 byte pointer bank 00 pc -> 0x4320
-constexpr int gfx_1_pointer = 0x6790;  // CF80 ; 004F80
-constexpr int gfx_2_pointer = 0x6795;  // D05F ; 00505F
-constexpr int gfx_3_pointer = 0x679A;  // D13E ; 00513E
 constexpr int hud_palettes = 0xDD660;
 constexpr int maxGfx = 0xC3FB5;
 
 constexpr int kTilesheetWidth = 128;
 constexpr int kTilesheetHeight = 32;
 constexpr int kTilesheetDepth = 8;
-
-// ============================================================================
-//  Overworld Related Variables
-// ============================================================================
-
-constexpr int compressedAllMap32PointersHigh = 0x1794D;
-constexpr int compressedAllMap32PointersLow = 0x17B2D;
-constexpr int overworldgfxGroups = 0x05D97;
-constexpr int map16Tiles = 0x78000;
-constexpr int map32TilesTL = 0x18000;
-constexpr int map32TilesTR = 0x1B400;
-constexpr int map32TilesBL = 0x20000;
-constexpr int map32TilesBR = 0x23400;
-constexpr int overworldPalGroup1 = 0xDE6C8;
-constexpr int overworldPalGroup2 = 0xDE86C;
-constexpr int overworldPalGroup3 = 0xDE604;
-constexpr int overworldMapPalette = 0x7D1C;
-constexpr int overworldSpritePalette = 0x7B41;
-constexpr int overworldMapPaletteGroup = 0x75504;
-constexpr int overworldSpritePaletteGroup = 0x75580;
-constexpr int overworldSpriteset = 0x7A41;
-constexpr int overworldSpecialGFXGroup = 0x16821;
-constexpr int overworldSpecialPALGroup = 0x16831;
-
-constexpr int overworldSpritesBegining = 0x4C881;
-constexpr int overworldSpritesAgahnim = 0x4CA21;
-constexpr int overworldSpritesZelda = 0x4C901;
-
-constexpr int overworldItemsPointers = 0xDC2F9;
-constexpr int overworldItemsAddress = 0xDC8B9;  // 1BC2F9
-constexpr int overworldItemsBank = 0xDC8BF;
-constexpr int overworldItemsEndData = 0xDC89C;  // 0DC89E
-
-constexpr int mapGfx = 0x7C9C;
-constexpr int overlayPointers = 0x77664;
-constexpr int overlayPointersBank = 0x0E;
-
-constexpr int overworldTilesType = 0x71459;
-constexpr int overworldMessages = 0x3F51D;
-
-constexpr int overworldMusicBegining = 0x14303;
-constexpr int overworldMusicZelda = 0x14303 + 0x40;
-constexpr int overworldMusicMasterSword = 0x14303 + 0x80;
-constexpr int overworldMusicAgahim = 0x14303 + 0xC0;
-constexpr int overworldMusicDW = 0x14403;
-
-constexpr int overworldEntranceAllowedTilesLeft = 0xDB8C1;
-constexpr int overworldEntranceAllowedTilesRight = 0xDB917;
-
-// 0x00 = small maps, 0x20 = large maps
-constexpr int overworldMapSize = 0x12844;
-
-// 0x01 = small maps, 0x03 = large maps
-constexpr int overworldMapSizeHighByte = 0x12884;
-
-// relative to the WORLD + 0x200 per map
-// large map that are not == parent id = same position as their parent!
-// eg for X position small maps :
-// 0000, 0200, 0400, 0600, 0800, 0A00, 0C00, 0E00
-// all Large map would be :
-// 0000, 0000, 0400, 0400, 0800, 0800, 0C00, 0C00
-
-constexpr int overworldTransitionPositionY = 0x128C4;
-constexpr int overworldTransitionPositionX = 0x12944;
-
-constexpr int overworldScreenSize = 0x1788D;
-
-// ============================================================================
-// Overworld Exits/Entrances Variables
-// ============================================================================
-constexpr int OWExitRoomId = 0x15D8A;  // 0x15E07 Credits sequences
-// 105C2 Ending maps
-// 105E2 Sprite Group Table for Ending
-constexpr int OWExitMapId = 0x15E28;
-constexpr int OWExitVram = 0x15E77;
-constexpr int OWExitYScroll = 0x15F15;
-constexpr int OWExitXScroll = 0x15FB3;
-constexpr int OWExitYPlayer = 0x16051;
-constexpr int OWExitXPlayer = 0x160EF;
-constexpr int OWExitYCamera = 0x1618D;
-constexpr int OWExitXCamera = 0x1622B;
-constexpr int OWExitDoorPosition = 0x15724;
-constexpr int OWExitUnk1 = 0x162C9;
-constexpr int OWExitUnk2 = 0x16318;
-constexpr int OWExitDoorType1 = 0x16367;
-constexpr int OWExitDoorType2 = 0x16405;
-constexpr int OWEntranceMap = 0xDB96F;
-constexpr int OWEntrancePos = 0xDBA71;
-constexpr int OWEntranceEntranceId = 0xDBB73;
-constexpr int OWHolePos = 0xDB800;  //(0x13 entries, 2 bytes each) modified(less
-                                    // 0x400) map16 coordinates for each hole
-constexpr int OWHoleArea =
-    0xDB826;  //(0x13 entries, 2 bytes each) corresponding
-              // area numbers for each hole
-constexpr int OWHoleEntrance =
-    0xDB84C;  //(0x13 entries, 1 byte each)  corresponding entrance numbers
-
-constexpr int OWExitMapIdWhirlpool = 0x16AE5;    //  JP = ;016849
-constexpr int OWExitVramWhirlpool = 0x16B07;     //  JP = ;01686B
-constexpr int OWExitYScrollWhirlpool = 0x16B29;  // JP = ;01688D
-constexpr int OWExitXScrollWhirlpool = 0x16B4B;  // JP = ;016DE7
-constexpr int OWExitYPlayerWhirlpool = 0x16B6D;  // JP = ;016E09
-constexpr int OWExitXPlayerWhirlpool = 0x16B8F;  // JP = ;016E2B
-constexpr int OWExitYCameraWhirlpool = 0x16BB1;  // JP = ;016E4D
-constexpr int OWExitXCameraWhirlpool = 0x16BD3;  // JP = ;016E6F
-constexpr int OWExitUnk1Whirlpool = 0x16BF5;     //    JP = ;016E91
-constexpr int OWExitUnk2Whirlpool = 0x16C17;     //    JP = ;016EB3
-constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
-
-// ============================================================================
-// Dungeon Related Variables
-// ============================================================================
-
-// That could be turned into a pointer :
-constexpr int dungeons_palettes_groups = 0x75460;           // JP 0x67DD0
-constexpr int dungeons_main_bg_palette_pointers = 0xDEC4B;  // JP Same
-constexpr int dungeons_palettes =
-    0xDD734;  // JP Same (where all dungeons palettes are)
-
-// That could be turned into a pointer :
-constexpr int room_items_pointers = 0xDB69;  // JP 0xDB67
-
-constexpr int rooms_sprite_pointer = 0x4C298;  // JP Same //2byte bank 09D62E
-constexpr int room_header_pointer = 0xB5DD;    // LONG
-constexpr int room_header_pointers_bank = 0xB5E7;  // JP Same
-
-constexpr int gfx_groups_pointer = 0x6237;
-constexpr int room_object_layout_pointer = 0x882D;
-
-constexpr int room_object_pointer = 0x874C;  // Long pointer
-
-constexpr int chests_length_pointer = 0xEBF6;
-constexpr int chests_data_pointer1 = 0xEBFB;
-// constexpr int chests_data_pointer2 = 0xEC0A; //Disabled for now could be used
-// for expansion constexpr int chests_data_pointer3 = 0xEC10; //Disabled for now
-// could be used for expansion
-
-constexpr int blocks_length = 0x8896;  // word value
-constexpr int blocks_pointer1 = 0x15AFA;
-constexpr int blocks_pointer2 = 0x15B01;
-constexpr int blocks_pointer3 = 0x15B08;
-constexpr int blocks_pointer4 = 0x15B0F;
-
-constexpr int torch_data = 0x2736A;  // JP 0x2704A
-constexpr int torches_length_pointer = 0x88C1;
-
-constexpr int kSpriteBlocksetPointer = 0x5B57;
-constexpr int sprites_data =
-    0x4D8B0;  // It use the unused pointers to have more space //Save purpose
-constexpr int sprites_data_empty_room = 0x4D8AE;
-constexpr int sprites_end_data = 0x4EC9E;
-
-constexpr int pit_pointer = 0x394AB;
-constexpr int pit_count = 0x394A6;
-
-constexpr int doorPointers = 0xF83C0;
-
-// doors
-constexpr int door_gfx_up = 0x4D9E;
-constexpr int door_gfx_down = 0x4E06;
-constexpr int door_gfx_cavexit_down = 0x4E06;
-constexpr int door_gfx_left = 0x4E66;
-constexpr int door_gfx_right = 0x4EC6;
-
-constexpr int door_pos_up = 0x197E;
-constexpr int door_pos_down = 0x1996;
-constexpr int door_pos_left = 0x19AE;
-constexpr int door_pos_right = 0x19C6;
 
 // TEXT EDITOR RELATED CONSTANTS
 constexpr int gfx_font = 0x70000;  // 2bpp format
@@ -482,7 +323,7 @@ constexpr int customAreaSpecificBGPalette =
 constexpr int customAreaSpecificBGASM = 0x140150;
 constexpr int customAreaSpecificBGEnabled =
     0x140140;  // 1 byte, not 0 if enabled
-constexpr int overworldCustomMosaicArray = 0x1301F0;
+
 // ============================================================================
 // Dungeon Map Related Variables
 // ============================================================================
@@ -601,455 +442,6 @@ static const absl::string_view SecretItemNames[] = {
     "Nothing ",  // 22
 
     "Hole",       "Warp",        "Staircase",     "Bombable",  "Switch"};
-
-static const absl::string_view Type1RoomObjectNames[] = {
-    "Ceiling ↔",
-    "Wall (top, north) ↔",
-    "Wall (top, south) ↔",
-    "Wall (bottom, north) ↔",
-    "Wall (bottom, south) ↔",
-    "Wall columns (north) ↔",
-    "Wall columns (south) ↔",
-    "Deep wall (north) ↔",
-    "Deep wall (south) ↔",
-    "Diagonal wall A ◤ (top) ↔",
-    "Diagonal wall A ◣ (top) ↔",
-    "Diagonal wall A ◥ (top) ↔",
-    "Diagonal wall A ◢ (top) ↔",
-    "Diagonal wall B ◤ (top) ↔",
-    "Diagonal wall B ◣ (top) ↔",
-    "Diagonal wall B ◥ (top) ↔",
-    "Diagonal wall B ◢ (top) ↔",
-    "Diagonal wall C ◤ (top) ↔",
-    "Diagonal wall C ◣ (top) ↔",
-    "Diagonal wall C ◥ (top) ↔",
-    "Diagonal wall C ◢ (top) ↔",
-    "Diagonal wall A ◤ (bottom) ↔",
-    "Diagonal wall A ◣ (bottom) ↔",
-    "Diagonal wall A ◥ (bottom) ↔",
-    "Diagonal wall A ◢ (bottom) ↔",
-    "Diagonal wall B ◤ (bottom) ↔",
-    "Diagonal wall B ◣ (bottom) ↔",
-    "Diagonal wall B ◥ (bottom) ↔",
-    "Diagonal wall B ◢ (bottom) ↔",
-    "Diagonal wall C ◤ (bottom) ↔",
-    "Diagonal wall C ◣ (bottom) ↔",
-    "Diagonal wall C ◥ (bottom) ↔",
-    "Diagonal wall C ◢ (bottom) ↔",
-    "Platform stairs ↔",
-    "Rail ↔",
-    "Pit edge ┏━┓ A (north) ↔",
-    "Pit edge ┏━┓ B (north) ↔",
-    "Pit edge ┏━┓ C (north) ↔",
-    "Pit edge ┏━┓ D (north) ↔",
-    "Pit edge ┏━┓ E (north) ↔",
-    "Pit edge ┗━┛ (south) ↔",
-    "Pit edge ━━━ (south) ↔",
-    "Pit edge ━━━ (north) ↔",
-    "Pit edge ━━┛ (south) ↔",
-    "Pit edge ┗━━ (south) ↔",
-    "Pit edge ━━┓ (north) ↔",
-    "Pit edge ┏━━ (north) ↔",
-    "Rail wall (north) ↔",
-    "Rail wall (south) ↔",
-    "Nothing",
-    "Nothing",
-    "Carpet ↔",
-    "Carpet trim ↔",
-    "Weird door",  // TODO: WEIRD DOOR OBJECT NEEDS INVESTIGATION
-    "Drapes (north) ↔",
-    "Drapes (west, odd) ↔",
-    "Statues ↔",
-    "Columns ↔",
-    "Wall decors (north) ↔",
-    "Wall decors (south) ↔",
-    "Chairs in pairs ↔",
-    "Tall torches ↔",
-    "Supports (north) ↔",
-    "Water edge ┏━┓ (concave) ↔",
-    "Water edge ┗━┛ (concave) ↔",
-    "Water edge ┏━┓ (convex) ↔",
-    "Water edge ┗━┛ (convex) ↔",
-    "Water edge ┏━┛ (concave) ↔",
-    "Water edge ┗━┓ (concave) ↔",
-    "Water edge ┗━┓ (convex) ↔",
-    "Water edge ┏━┛ (convex) ↔",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Supports (south) ↔",
-    "Bar ↔",
-    "Shelf A ↔",
-    "Shelf B ↔",
-    "Shelf C ↔",
-    "Somaria path ↔",
-    "Cannon hole A (north) ↔",
-    "Cannon hole A (south) ↔",
-    "Pipe path ↔",
-    "Nothing",
-    "Wall torches (north) ↔",
-    "Wall torches (south) ↔",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Cannon hole B (north) ↔",
-    "Cannon hole B (south) ↔",
-    "Thick rail ↔",
-    "Blocks ↔",
-    "Long rail ↔",
-    "Ceiling ↕",
-    "Wall (top, west) ↕",
-    "Wall (top, east) ↕",
-    "Wall (bottom, west) ↕",
-    "Wall (bottom, east) ↕",
-    "Wall columns (west) ↕",
-    "Wall columns (east) ↕",
-    "Deep wall (west) ↕",
-    "Deep wall (east) ↕",
-    "Rail ↕",
-    "Pit edge (west) ↕",
-    "Pit edge (east) ↕",
-    "Rail wall (west) ↕",
-    "Rail wall (east) ↕",
-    "Nothing",
-    "Nothing",
-    "Carpet ↕",
-    "Carpet trim ↕",
-    "Nothing",
-    "Drapes (west) ↕",
-    "Drapes (east) ↕",
-    "Columns ↕",
-    "Wall decors (west) ↕",
-    "Wall decors (east) ↕",
-    "Supports (west) ↕",
-    "Water edge (west) ↕",
-    "Water edge (east) ↕",
-    "Supports (east) ↕",
-    "Somaria path ↕",
-    "Pipe path ↕",
-    "Nothing",
-    "Wall torches (west) ↕",
-    "Wall torches (east) ↕",
-    "Wall decors tight A (west) ↕",
-    "Wall decors tight A (east) ↕",
-    "Wall decors tight B (west) ↕",
-    "Wall decors tight B (east) ↕",
-    "Cannon hole (west) ↕",
-    "Cannon hole (east) ↕",
-    "Tall torches ↕",
-    "Thick rail ↕",
-    "Blocks ↕",
-    "Long rail ↕",
-    "Jump ledge (west) ↕",
-    "Jump ledge (east) ↕",
-    "Rug trim (west) ↕",
-    "Rug trim (east) ↕",
-    "Bar ↕",
-    "Wall flair (west) ↕",
-    "Wall flair (east) ↕",
-    "Blue pegs ↕",
-    "Orange pegs ↕",
-    "Invisible floor ↕",
-    "Fake pots ↕",
-    "Hammer pegs ↕",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Diagonal ceiling A ◤",
-    "Diagonal ceiling A ◣",
-    "Diagonal ceiling A ◥",
-    "Diagonal ceiling A ◢",
-    "Pit ⇲",
-    "Diagonal layer 2 mask A ◤",
-    "Diagonal layer 2 mask A ◣",
-    "Diagonal layer 2 mask A ◥",
-    "Diagonal layer 2 mask A ◢",
-    "Diagonal layer 2 mask B ◤",  // TODO: VERIFY
-    "Diagonal layer 2 mask B ◣",  // TODO: VERIFY
-    "Diagonal layer 2 mask B ◥",  // TODO: VERIFY
-    "Diagonal layer 2 mask B ◢",  // TODO: VERIFY
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Jump ledge (north) ↔",
-    "Jump ledge (south) ↔",
-    "Rug ↔",
-    "Rug trim (north) ↔",
-    "Rug trim (south) ↔",
-    "Archery game curtains ↔",
-    "Wall flair (north) ↔",
-    "Wall flair (south) ↔",
-    "Blue pegs ↔",
-    "Orange pegs ↔",
-    "Invisible floor ↔",
-    "Fake pressure plates ↔",
-    "Fake pots ↔",
-    "Hammer pegs ↔",
-    "Nothing",
-    "Nothing",
-    "Ceiling (large) ⇲",
-    "Chest platform (tall) ⇲",
-    "Layer 2 pit mask (large) ⇲",
-    "Layer 2 pit mask (medium) ⇲",
-    "Floor 1 ⇲",
-    "Floor 3 ⇲",
-    "Layer 2 mask (large) ⇲",
-    "Floor 4 ⇲",
-    "Water floor ⇲ ",
-    "Flood water (medium) ⇲ ",
-    "Conveyor floor ⇲ ",
-    "Nothing",
-    "Nothing",
-    "Moving wall (west) ⇲",
-    "Moving wall (east) ⇲",
-    "Nothing",
-    "Nothing",
-    "Icy floor A ⇲",
-    "Icy floor B ⇲",
-    "Moving wall flag",  // TODO: WTF IS THIS?
-    "Moving wall flag",  // TODO: WTF IS THIS?
-    "Moving wall flag",  // TODO: WTF IS THIS?
-    "Moving wall flag",  // TODO: WTF IS THIS?
-    "Layer 2 mask (medium) ⇲",
-    "Flood water (large) ⇲",
-    "Layer 2 swim mask ⇲",
-    "Flood water B (large) ⇲",
-    "Floor 2 ⇲",
-    "Chest platform (short) ⇲",
-    "Table / rock ⇲",
-    "Spike blocks ⇲",
-    "Spiked floor ⇲",
-    "Floor 7 ⇲",
-    "Tiled floor ⇲",
-    "Rupee floor ⇲",
-    "Conveyor upwards ⇲",
-    "Conveyor downwards ⇲",
-    "Conveyor leftwards ⇲",
-    "Conveyor rightwards ⇲",
-    "Heavy current water ⇲",
-    "Floor 10 ⇲",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-    "Nothing",
-};
-
-static const absl::string_view Type2RoomObjectNames[] = {
-    "Corner (top, concave) ▛",
-    "Corner (top, concave) ▙",
-    "Corner (top, concave) ▜",
-    "Corner (top, concave) ▟",
-    "Corner (top, convex) ▟",
-    "Corner (top, convex) ▜",
-    "Corner (top, convex) ▙",
-    "Corner (top, convex) ▛",
-    "Corner (bottom, concave) ▛",
-    "Corner (bottom, concave) ▙",
-    "Corner (bottom, concave) ▜",
-    "Corner (bottom, concave) ▟",
-    "Corner (bottom, convex) ▟",
-    "Corner (bottom, convex) ▜",
-    "Corner (bottom, convex) ▙",
-    "Corner (bottom, convex) ▛",
-    "Kinked corner north (bottom) ▜",
-    "Kinked corner south (bottom) ▟",
-    "Kinked corner north (bottom) ▛",
-    "Kinked corner south (bottom) ▙",
-    "Kinked corner west (bottom) ▙",
-    "Kinked corner west (bottom) ▛",
-    "Kinked corner east (bottom) ▟",
-    "Kinked corner east (bottom) ▜",
-    "Deep corner (concave) ▛",
-    "Deep corner (concave) ▙",
-    "Deep corner (concave) ▜",
-    "Deep corner (concave) ▟",
-    "Large brazier",
-    "Statue",
-    "Star tile (disabled)",
-    "Star tile (enabled)",
-    "Small torch (lit)",
-    "Barrel",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Table",
-    "Fairy statue",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Chair",
-    "Bed",
-    "Fireplace",
-    "Mario portrait",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Interroom stairs (up)",
-    "Interroom stairs (down)",
-    "Interroom stairs B (down)",
-    "Intraroom stairs north B",  // TODO: VERIFY LAYER HANDLING
-    "Intraroom stairs north (separate layers)",
-    "Intraroom stairs north (merged layers)",
-    "Intraroom stairs north (swim layer)",
-    "Block",
-    "Water ladder (north)",
-    "Water ladder (south)",  // TODO: NEEDS IN GAME VERIFICATION
-    "Dam floodgate",
-    "Interroom spiral stairs up (top)",
-    "Interroom spiral stairs down (top)",
-    "Interroom spiral stairs up (bottom)",
-    "Interroom spiral stairs down (bottom)",
-    "Sanctuary wall (north)",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Pew",
-    "Magic bat altar",
-};
-
-static const absl::string_view Type3RoomObjectNames[] = {
-    "Waterfall face (empty)",
-    "Waterfall face (short)",
-    "Waterfall face (long)",
-    "Somaria path endpoint",
-    "Somaria path intersection ╋",
-    "Somaria path corner ┏",
-    "Somaria path corner ┗",
-    "Somaria path corner ┓",
-    "Somaria path corner ┛",
-    "Somaria path intersection ┳",
-    "Somaria path intersection ┻",
-    "Somaria path intersection ┣",
-    "Somaria path intersection ┫",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Somaria path 2-way endpoint",
-    "Somaria path crossover",
-    "Babasu hole (north)",
-    "Babasu hole (south)",
-    "9 blue rupees",
-    "Telepathy tile",
-    "Warp door",  // TODO: NEEDS IN GAME VERIFICATION THAT THIS IS USELESS
-    "Kholdstare's shell",
-    "Hammer peg",
-    "Prison cell",
-    "Big key lock",
-    "Chest",
-    "Chest (open)",
-    "Intraroom stairs south",  // TODO: VERIFY LAYER HANDLING
-    "Intraroom stairs south (separate layers)",
-    "Intraroom stairs south (merged layers)",
-    "Interroom straight stairs up (north, top)",
-    "Interroom straight stairs down (north, top)",
-    "Interroom straight stairs up (south, top)",
-    "Interroom straight stairs down (south, top)",
-    "Deep corner (convex) ▟",
-    "Deep corner (convex) ▜",
-    "Deep corner (convex) ▙",
-    "Deep corner (convex) ▛",
-    "Interroom straight stairs up (north, bottom)",
-    "Interroom straight stairs down (north, bottom)",
-    "Interroom straight stairs up (south, bottom)",
-    "Interroom straight stairs down (south, bottom)",
-    "Lamp cones",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Liftable large block",
-    "Agahnim's altar",
-    "Agahnim's boss room",
-    "Pot",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Big chest",
-    "Big chest (open)",
-    "Intraroom stairs south (swim layer)",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Pipe end (south)",
-    "Pipe end (north)",
-    "Pipe end (east)",
-    "Pipe end (west)",
-    "Pipe corner ▛",
-    "Pipe corner ▙",
-    "Pipe corner ▜",
-    "Pipe corner ▟",
-    "Pipe-rock intersection ⯊",
-    "Pipe-rock intersection ⯋",
-    "Pipe-rock intersection ◖",
-    "Pipe-rock intersection ◗",
-    "Pipe crossover",
-    "Bombable floor",
-    "Fake bombable floor",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Warp tile",
-    "Tool rack",
-    "Furnace",
-    "Tub (wide)",
-    "Anvil",
-    "Warp tile (disabled)",
-    "Pressure plate",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Blue peg",
-    "Orange peg",
-    "Fortune teller room",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Bar corner ▛",
-    "Bar corner ▙",
-    "Bar corner ▜",
-    "Bar corner ▟",
-    "Decorative bowl",
-    "Tub (tall)",
-    "Bookcase",
-    "Range",
-    "Suitcase",
-    "Bar bottles",
-    "Arrow game hole (west)",
-    "Arrow game hole (east)",
-    "Vitreous goo gfx",
-    "Fake pressure plate",
-    "Medusa head",
-    "4-way shooter block",
-    "Pit",
-    "Wall crack (north)",
-    "Wall crack (south)",
-    "Wall crack (west)",
-    "Wall crack (east)",
-    "Large decor",
-    "Water grate (north)",
-    "Water grate (south)",
-    "Water grate (west)",
-    "Water grate (east)",
-    "Window sunlight",
-    "Floor sunlight",
-    "Trinexx's shell",
-    "Layer 2 mask (full)",
-    "Boss entrance",
-    "Minigame chest",
-    "Ganon door",
-    "Triforce wall ornament",
-    "Triforce floor tiles",
-    "Freezor hole",
-    "Pile of bones",
-    "Vitreous goo damage",
-    "Arrow tile ↑",
-    "Arrow tile ↓",
-    "Arrow tile →",
-    "Nothing",
-};
 
 static const absl::string_view TileTypeNames[] = {
     "$00 Nothing (standard floor)",

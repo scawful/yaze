@@ -1,5 +1,7 @@
 #if defined(_WIN32)
 #define main SDL_main
+#elif __APPLE__
+#include "app/core/platform/app_delegate.h"
 #endif
 
 #include "absl/debugging/failure_signal_handler.h"
@@ -10,22 +12,22 @@ int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
   absl::FailureSignalHandlerOptions options;
+  options.symbolize_stacktrace = true;
+  options.alarm_on_failure_secs = true;
   absl::InstallFailureSignalHandler(options);
 
   yaze::app::core::Controller controller;
+  EXIT_IF_ERROR(controller.OnEntry())
 
-  auto entry_status = controller.onEntry();
-  if (!entry_status.ok()) {
-    // TODO(@scawful): log the specific error
-    return EXIT_FAILURE;
+#ifdef __APPLE__
+  InitializeCocoa();
+#endif
+
+  while (controller.IsActive()) {
+    controller.OnInput();
+    controller.OnLoad();
+    controller.DoRender();
   }
-
-  while (controller.isActive()) {
-    controller.onInput();
-    controller.onLoad();
-    controller.doRender();
-  }
-  controller.onExit();
-
+  controller.OnExit();
   return EXIT_SUCCESS;
 }

@@ -8,28 +8,40 @@
 #include <imgui_memory_editor.h>
 
 #include "absl/status/status.h"
+#include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/editor/assembly_editor.h"
+#include "app/gui/pipeline.h"
+#include "app/editor/context/gfx_context.h"
 #include "app/editor/dungeon_editor.h"
-#include "app/editor/music_editor.h"
+#include "app/editor/graphics_editor.h"
+#include "app/editor/modules/assembly_editor.h"
+#include "app/editor/modules/music_editor.h"
+#include "app/editor/modules/palette_editor.h"
 #include "app/editor/overworld_editor.h"
-#include "app/editor/palette_editor.h"
 #include "app/editor/screen_editor.h"
+#include "app/editor/sprite_editor.h"
+#include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gui/canvas.h"
+#include "app/gui/icons.h"
+#include "app/gui/input.h"
 #include "app/rom.h"
-#include "gui/canvas.h"
-#include "gui/icons.h"
-#include "gui/input.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
 
-class MasterEditor {
+class MasterEditor : public SharedROM,
+                     public GfxContext,
+                     public core::ExperimentFlags {
  public:
+  MasterEditor() { current_editor_ = &overworld_editor_; }
+
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
-  void UpdateScreen();
+  absl::Status Update();
+
+  void Shutdown() { overworld_editor_.Shutdown(); }
 
  private:
   void DrawFileDialog();
@@ -38,31 +50,34 @@ class MasterEditor {
   void DrawInfoPopup();
 
   void DrawYazeMenu();
-  void DrawFileMenu() const;
+  void DrawFileMenu();
   void DrawEditMenu();
   void DrawViewMenu();
   void DrawHelpMenu();
 
-  void DrawOverworldEditor();
-  void DrawDungeonEditor();
-  void DrawPaletteEditor();
-  void DrawMusicEditor();
-  void DrawScreenEditor();
-  void DrawSpriteEditor();
-
   bool about_ = false;
   bool rom_info_ = false;
+  bool backup_rom_ = true;
+  bool show_status_ = false;
+  bool rom_assets_loaded_ = false;
+
+  absl::Status status_;
+  absl::Status prev_status_;
 
   std::shared_ptr<SDL_Renderer> sdl_renderer_;
-  absl::Status status_;
+
+  emu::Emulator emulator_;
 
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
+  GraphicsEditor graphics_editor_;
+  MusicEditor music_editor_;
   OverworldEditor overworld_editor_;
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
-  MusicEditor music_editor_;
-  ROM rom_;
+  SpriteEditor sprite_editor_;
+
+  Editor *current_editor_ = nullptr;
 };
 
 }  // namespace editor
