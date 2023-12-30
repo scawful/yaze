@@ -51,11 +51,11 @@ class DungeonObjectRenderer : public SharedROM {
 
  private:
   struct SubtypeInfo {
-    uint32_t subtypePtr;
-    uint32_t routinePtr;
+    uint32_t subtype_ptr;
+    uint32_t routine_ptr;
   };
 
-  SubtypeInfo FetchSubtypeInfo(uint16_t objectId) {
+  SubtypeInfo FetchSubtypeInfo(uint16_t object_id) {
     SubtypeInfo info;
 
     // Determine the subtype based on objectId
@@ -64,32 +64,34 @@ class DungeonObjectRenderer : public SharedROM {
     // Based on the subtype, fetch the correct pointers
     switch (subtype) {
       case 1:  // Subtype 1
-        info.subtypePtr = core::subtype1_tiles + (objectId & 0xFF) * 2;
-        info.routinePtr = core::subtype1_tiles + 0x200 + (objectId & 0xFF) * 2;
-        std::cout << "Subtype 1 " << std::hex << info.subtypePtr << std::endl;
-        std::cout << "Subtype 1 " << std::hex << info.routinePtr << std::endl;
+        info.subtype_ptr = core::subtype1_tiles + (object_id & 0xFF) * 2;
+        info.routine_ptr =
+            core::subtype1_tiles + 0x200 + (object_id & 0xFF) * 2;
+        std::cout << "Subtype 1 " << std::hex << info.subtype_ptr << std::endl;
+        std::cout << "Subtype 1 " << std::hex << info.routine_ptr << std::endl;
         break;
       case 2:  // Subtype 2
-        info.subtypePtr = core::subtype2_tiles + (objectId & 0x7F) * 2;
-        info.routinePtr = core::subtype2_tiles + 0x80 + (objectId & 0x7F) * 2;
+        info.subtype_ptr = core::subtype2_tiles + (object_id & 0x7F) * 2;
+        info.routine_ptr = core::subtype2_tiles + 0x80 + (object_id & 0x7F) * 2;
         break;
       case 3:  // Subtype 3
-        info.subtypePtr = core::subtype3_tiles + (objectId & 0xFF) * 2;
-        info.routinePtr = core::subtype3_tiles + 0x100 + (objectId & 0xFF) * 2;
+        info.subtype_ptr = core::subtype3_tiles + (object_id & 0xFF) * 2;
+        info.routine_ptr =
+            core::subtype3_tiles + 0x100 + (object_id & 0xFF) * 2;
         break;
       default:
         // Handle unknown subtype
         throw std::runtime_error("Unknown subtype for object ID: " +
-                                 std::to_string(objectId));
+                                 std::to_string(object_id));
     }
 
     // Find the RTS of the subtype routine
     while (true) {
-      uint8_t opcode = memory_.ReadByte(info.routinePtr);
+      uint8_t opcode = memory_.ReadByte(info.routine_ptr);
       if (opcode == 0x60) {
         break;
       }
-      info.routinePtr++;
+      info.routine_ptr++;
     }
 
     return info;
@@ -138,7 +140,7 @@ class DungeonObjectRenderer : public SharedROM {
 
   void RenderObject(const SubtypeInfo& info) {
     cpu.PB = 0x01;
-    cpu.PC = cpu.ReadWord(0x01 << 16 | info.routinePtr);
+    cpu.PC = cpu.ReadWord(0x01 << 16 | info.routine_ptr);
 
     int i = 0;
     while (true) {
