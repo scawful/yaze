@@ -459,7 +459,6 @@ class ROM : public core::ExperimentFlags {
 
   void RenderBitmap(gfx::Bitmap* bitmap) {
     if (flags()->kLoadTexturesAsStreaming) {
-      // bitmaps_to_create_.emplace(bitmap);
       bitmap->CreateTexture(renderer_.get());
     } else {
       bitmap->CreateTexture(renderer_);
@@ -468,15 +467,11 @@ class ROM : public core::ExperimentFlags {
 
   void UpdateBitmap(gfx::Bitmap* bitmap) {
     if (flags()->kLoadTexturesAsStreaming) {
-      // bitmaps_to_render_.emplace(bitmap);
       bitmap->UpdateTexture(renderer_.get());
     } else {
       bitmap->UpdateTexture(renderer_);
     }
   }
-
-  std::stack<gfx::Bitmap*> bitmaps_to_create_;
-  std::stack<gfx::Bitmap*> bitmaps_to_render_;
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;
