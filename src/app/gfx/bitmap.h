@@ -52,7 +52,7 @@ class Bitmap {
     if (pixel_data_ == nullptr) {
       pixel_data_ = data_.data();
     }
-    this->pixel_data_[position] = value;
+    pixel_data_[position] = value;
     modified_ = true;
   }
 
@@ -60,8 +60,8 @@ class Bitmap {
     if (pixel_data_ == nullptr) {
       pixel_data_ = data_.data();
     }
-    this->pixel_data_[position] = value & 0xFF;
-    this->pixel_data_[position + 1] = (value >> 8) & 0xFF;
+    pixel_data_[position] = value & 0xFF;
+    pixel_data_[position + 1] = (value >> 8) & 0xFF;
     modified_ = true;
   }
 
@@ -81,23 +81,6 @@ class Bitmap {
     }
   }
 
-  Uint8 ConvertImVec4ToIndex8(const ImVec4 &color, SDL_Surface *surface) {
-    if (surface->format->format != SDL_PIXELFORMAT_INDEX8) {
-      throw std::runtime_error(
-          "Surface is not in SDL_PIXELFORMAT_INDEX8 format.");
-    }
-
-    // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
-    SDL_Color sdl_color;
-    sdl_color.r = static_cast<Uint8>(color.x * 255);
-    sdl_color.g = static_cast<Uint8>(color.y * 255);
-    sdl_color.b = static_cast<Uint8>(color.z * 255);
-    sdl_color.a = static_cast<Uint8>(color.w * 255);
-
-    // Map SDL_Color to the nearest color index in the surface's palette
-    return SDL_MapRGB(surface->format, sdl_color.r, sdl_color.g, sdl_color.b);
-  }
-
   void WriteColor(int position, const ImVec4 &color) {
     // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
     SDL_Color sdl_color;
@@ -111,7 +94,7 @@ class Bitmap {
         SDL_MapRGB(surface_->format, sdl_color.r, sdl_color.g, sdl_color.b);
 
     // Write the color index to the pixel data
-    this->pixel_data_[position] = index;
+    pixel_data_[position] = index;
     modified_ = true;
   }
 
