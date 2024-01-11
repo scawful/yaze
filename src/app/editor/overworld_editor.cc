@@ -79,8 +79,9 @@ absl::Status OverworldEditor::Update() {
 absl::Status OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
   static bool show_tile16 = false;
+  static bool show_properties = false;
 
-  if (ImGui::BeginTable("OWToolset", 19, kToolsetTableFlags, ImVec2(0, 0))) {
+  if (ImGui::BeginTable("OWToolset", 20, kToolsetTableFlags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -170,6 +171,9 @@ absl::Status OverworldEditor::DrawToolset() {
     TableNextColumn();  // Experimental
     ImGui::Checkbox("Experimental", &show_experimental);
 
+    TableNextColumn();
+    ImGui::Checkbox("Properties", &show_properties);
+
     ImGui::EndTable();
   }
 
@@ -189,7 +193,45 @@ absl::Status OverworldEditor::DrawToolset() {
     RETURN_IF_ERROR(gfx_group_editor_.Update())
     ImGui::End();
   }
+
+  if (show_properties) {
+    ImGui::Begin("Properties", &show_properties);
+    DrawOverworldProperties();
+    ImGui::End();
+  }
+
   return absl::OkStatus();
+}
+
+void OverworldEditor::DrawOverworldProperties() {
+  static bool init_properties = false;
+  static gui::Canvas properties_canvas;
+
+  if (!init_properties) {
+    for (int i = 0; i < 0x40; i++) {
+      std::string area_graphics_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i).area_graphics());
+      properties_canvas.mutable_labels(0)->push_back(area_graphics_str);
+    }
+    for (int i = 0; i < 0x40; i++) {
+      std::string area_palette_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i).area_palette());
+      properties_canvas.mutable_labels(1)->push_back(area_palette_str);
+    }
+    init_properties = true;
+  }
+
+  if (ImGui::Button("Area Graphics")) {
+    properties_canvas.set_current_labels(0);
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button("Area Palette")) {
+    properties_canvas.set_current_labels(1);
+  }
+
+  properties_canvas.UpdateInfoGrid(ImVec2(512, 512), 16, 1.0f, 64);
 }
 
 // ----------------------------------------------------------------------------
@@ -276,6 +318,18 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
         dragged_entrance_->y_ = io.MousePos.y - origin.y - 8;
         is_dragging_entrance_ = false;
       }
+    }
+  }
+}
+
+void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
+  for (auto &each : overworld_.Exits()) {
+    if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
+        each.map_id_ >= (current_world_ * 0x40)) {
+      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
+                              ImVec4(255, 255, 255, 150));
+      std::string str = absl::StrFormat("%#x", each.entrance_id_);
+      ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
     }
   }
 }
@@ -420,32 +474,33 @@ void OverworldEditor::CheckForOverworldEdits() {
 void OverworldEditor::CheckForCurrentMap() {
   // DetermineActiveMap(ImGui::GetIO().MousePos);
   //  4096x4096, 512x512 maps and some are larges maps 1024x1024
-  auto current_map_x = current_map_ % 8;
-  auto current_map_y = current_map_ / 8;
-  auto large_map_size = 1024;
-  auto map_size = 512;
-
   auto mouse_position = ImGui::GetIO().MousePos;
-
-  // Assuming each small map is 256x256 pixels (adjust as needed)
   constexpr int small_map_size = 512;
+  auto large_map_size = 1024;
+
+  const auto canvas_zero_point = ow_map_canvas_.zero_point();
 
   // Calculate which small map the mouse is currently over
-  int map_x = mouse_position.x / small_map_size;
-  int map_y = mouse_position.y / small_map_size;
+  int map_x = (mouse_position.x - canvas_zero_point.x) / small_map_size;
+  int map_y = (mouse_position.y - canvas_zero_point.y) / small_map_size;
 
   // Calculate the index of the map in the `maps_bmp_` vector
   current_map_ = map_x + map_y * 8;
 
+  auto current_map_x = current_map_ % 8;
+  auto current_map_y = current_map_ / 8;
+
   if (overworld_.overworld_map(current_map_).IsLargeMap()) {
-    // Draw an outline around the current map
-    ow_map_canvas_.DrawOutline(current_map_x * large_map_size,
-                               current_map_y * large_map_size, large_map_size,
+    int parent_id = overworld_.overworld_map(current_map_).Parent();
+    int parent_map_x = parent_id % 8;
+    int parent_map_y = parent_id / 8;
+    ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
+                               parent_map_x * small_map_size, large_map_size,
                                large_map_size);
   } else {
-    // Draw an outline around the current map
-    ow_map_canvas_.DrawOutline(current_map_x * map_size,
-                               current_map_y * map_size, map_size, map_size);
+    ow_map_canvas_.DrawOutline(current_map_x * small_map_size,
+                               current_map_y * small_map_size, small_map_size,
+                               small_map_size);
   }
 
   static int prev_map_;
@@ -480,6 +535,8 @@ void OverworldEditor::DrawOverworldCanvas() {
       DrawOverworldMaps();
       DrawOverworldEntrances(ow_map_canvas_.zero_point(),
                              ow_map_canvas_.Scrolling());
+      DrawOverworldExits(ow_map_canvas_.zero_point(),
+                         ow_map_canvas_.Scrolling());
       if (flags()->kDrawOverworldSprites) {
         DrawOverworldSprites();
       }

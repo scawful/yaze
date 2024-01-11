@@ -10,8 +10,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
-#include "app/core/constants.h"
 #include "app/core/common.h"
+#include "app/core/constants.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
@@ -140,6 +140,7 @@ absl::Status Overworld::Load(ROM &rom) {
 
   FetchLargeMaps();
   LoadEntrances();
+  LoadExits();
   RETURN_IF_ERROR(LoadOverworldMaps())
   if (flags()->kDrawOverworldSprites) {
     LoadSprites();
@@ -891,6 +892,60 @@ void Overworld::LoadEntrances() {
         (y * 16) + (((mapId % 64) / 8) * 512), entranceId, mapId,
         (ushort)(mapPos + 0x400), true);
   }
+}
+
+void Overworld::LoadExits() {
+  const int NumberOfOverworldExits = 0x4F;
+  std::vector<OverworldExit> exits;
+  for (int i = 0; i < NumberOfOverworldExits; i++) {
+    auto rom_data = rom()->data();
+    ushort exitRoomID = (ushort)((rom_data[OWExitRoomId + (i * 2) + 1] << 8) +
+                                 rom_data[OWExitRoomId + (i * 2)]);
+    ushort exitMapID = rom_data[OWExitMapId + i];
+    ushort exitVRAM = (ushort)((rom_data[OWExitVram + (i * 2) + 1] << 8) +
+                               rom_data[OWExitVram + (i * 2)]);
+    ushort exitYScroll = (ushort)((rom_data[OWExitYScroll + (i * 2) + 1] << 8) +
+                                  rom_data[OWExitYScroll + (i * 2)]);
+    ushort exitXScroll = (ushort)((rom_data[OWExitXScroll + (i * 2) + 1] << 8) +
+                                  rom_data[OWExitXScroll + (i * 2)]);
+    ushort py = (ushort)((rom_data[OWExitYPlayer + (i * 2) + 1] << 8) +
+                         rom_data[OWExitYPlayer + (i * 2)]);
+    ushort px = (ushort)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
+                         rom_data[OWExitXPlayer + (i * 2)]);
+    ushort exitYCamera = (ushort)((rom_data[OWExitYCamera + (i * 2) + 1] << 8) +
+                                  rom_data[OWExitYCamera + (i * 2)]);
+    ushort exitXCamera = (ushort)((rom_data[OWExitXCamera + (i * 2) + 1] << 8) +
+                                  rom_data[OWExitXCamera + (i * 2)]);
+    ushort exitScrollModY = rom_data[OWExitUnk1 + i];
+    ushort exitScrollModX = rom_data[OWExitUnk2 + i];
+    ushort exitDoorType1 =
+        (ushort)((rom_data[OWExitDoorType1 + (i * 2) + 1] << 8) +
+                 rom_data[OWExitDoorType1 + (i * 2)]);
+    ushort exitDoorType2 =
+        (ushort)((rom_data[OWExitDoorType2 + (i * 2) + 1] << 8) +
+                 rom_data[OWExitDoorType2 + (i * 2)]);
+    OverworldExit exit(exitRoomID, exitMapID, exitVRAM, exitYScroll,
+                       exitXScroll, py, px, exitYCamera, exitXCamera,
+                       exitScrollModY, exitScrollModX, exitDoorType1,
+                       exitDoorType2);
+
+    std::cout << "Exit: " << i << " RoomID: " << exitRoomID
+              << " MapID: " << exitMapID << " VRAM: " << exitVRAM
+              << " YScroll: " << exitYScroll << " XScroll: " << exitXScroll
+              << " YPlayer: " << py << " XPlayer: " << px
+              << " YCamera: " << exitYCamera << " XCamera: " << exitXCamera
+              << " ScrollModY: " << exitScrollModY
+              << " ScrollModX: " << exitScrollModX
+              << " DoorType1: " << exitDoorType1
+              << " DoorType2: " << exitDoorType2 << std::endl;
+
+    if (px == 0xFFFF && py == 0xFFFF) {
+      exit.deleted = true;
+    }
+
+    exits.push_back(exit);
+  }
+  all_exits_ = exits;
 }
 
 void Overworld::LoadSprites() {
