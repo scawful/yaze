@@ -273,7 +273,7 @@ class Ppu : public Observer, public SharedROM {
     clock_.SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
     screen_ = std::make_shared<gfx::Bitmap>(256, 240, 8, 0x100);
-    screen_->SetActive(false);
+    screen_->set_active(false);
   }
 
   // Resets the PPU to its initial state

@@ -424,7 +424,7 @@ void Ppu::ApplyEffects() {}
 void Ppu::ComposeLayers() {}
 
 void Ppu::DisplayFrameBuffer() {
-  if (!screen_->IsActive()) {
+  if (!screen_->is_active()) {
     screen_->Create(256, 240, 24, frame_buffer_);
     rom()->RenderBitmap(screen_.get());
   }
