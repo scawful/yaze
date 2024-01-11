@@ -60,6 +60,141 @@ constexpr int OWExitUnk1Whirlpool = 0x16BF5;     //    JP = ;016E91
 constexpr int OWExitUnk2Whirlpool = 0x16C17;     //    JP = ;016EB3
 constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
 
+class OverworldExit {
+ public:
+  int x_;
+  int y_;
+  ushort room_id_;
+  ushort map_pos_;
+  uchar entrance_id_;
+  uchar area_x_;
+  uchar area_y_;
+  short map_id_;
+  bool is_hole_ = false;
+  bool deleted = false;
+
+  OverworldExit(ushort roomID, uchar mapID, ushort vramLocation, ushort yScroll,
+                ushort xScroll, ushort playerY, ushort playerX, ushort cameraY,
+                ushort cameraX, uchar scrollModY, uchar scrollModX,
+                ushort doorType1, ushort doorType2)
+      : x_(playerX),
+        y_(playerY),
+        map_pos_(vramLocation),
+        entrance_id_(0),
+        area_x_(0),
+        area_y_(0),
+        map_id_(mapID),
+        is_hole_(false) {
+    int mapX = (map_id_ - ((map_id_ / 8) * 8));
+    int mapY = (map_id_ / 8);
+
+    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+
+    if (doorType1 != 0) {
+      int p = (doorType1 & 0x7FFF) >> 1;
+      entrance_id_ = (uchar)(p % 64);
+      area_y_ = (uchar)(p >> 6);
+    }
+
+    if (doorType2 != 0) {
+      int p = (doorType2 & 0x7FFF) >> 1;
+      entrance_id_ = (uchar)(p % 64);
+      area_y_ = (uchar)(p >> 6);
+    }
+
+    if (map_id_ >= 64) {
+      map_id_ -= 64;
+    }
+
+    mapX = (map_id_ - ((map_id_ / 8) * 8));
+    mapY = (map_id_ / 8);
+
+    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+
+    map_pos_ = (ushort)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
+  }
+
+  // void updateMapStuff(uchar mapID, Overworld overworld) {
+  //   map_id_ = mapID;
+
+  //   int large = 256;
+  //   int mapid = mapID;
+
+  //   if (mapID < 128) {
+  //     large = overworld.AllMaps[mapID].LargeMap ? 768 : 256;
+  //     if (overworld.AllMaps[mapID].ParentID != mapID) {
+  //       mapid = overworld.AllMaps[mapID].ParentID;
+  //     }
+  //   }
+
+  //   int mapX = mapID - ((mapID / 8) * 8);
+  //   int mapY = mapID / 8;
+
+  //   area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
+  //   area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+
+  //   if (mapID >= 64) {
+  //     mapID -= 64;
+  //   }
+
+  //   int mapx = (mapID & 7) << 9;
+  //   int mapy = (mapID & 56) << 6;
+
+  //   if (IsAutomatic) {
+  //     x_ = x_ - 120;
+  //     y_ = y_ - 80;
+
+  //     if (x_ < mapx) {
+  //       x_ = mapx;
+  //     }
+
+  //     if (y_ < mapy) {
+  //       y_ = mapy;
+  //     }
+
+  //     if (x_ > mapx + large) {
+  //       x_ = mapx + large;
+  //     }
+
+  //     if (y_ > mapy + large + 32) {
+  //       y_ = mapy + large + 32;
+  //     }
+
+  //     cameraX = playerX + 0x07;
+  //     cameraY = playerY + 0x1F;
+
+  //     if (cameraX < mapx + 127) {
+  //       cameraX = mapx + 127;
+  //     }
+
+  //     if (cameraY < mapy + 111) {
+  //       cameraY = mapy + 111;
+  //     }
+
+  //     if (cameraX > mapx + 127 + large) {
+  //       cameraX = mapx + 127 + large;
+  //     }
+
+  //     if (cameraY > mapy + 143 + large) {
+  //       cameraY = mapy + 143 + large;
+  //     }
+  //   }
+
+  //   short vramXScroll = (short)(x_ - mapx);
+  //   short vramYScroll = (short)(y_ - mapy);
+
+  //   map_pos_ =
+  //       (ushort)(((vramYScroll & 0xFFF0) << 3) | ((vramXScroll & 0xFFF0) >>
+  //       3));
+
+  //   std::cout << "Exit:      " << room_id_ << " MapId: " << std::hex << mapid
+  //             << " X: " << static_cast<int>(area_x_)
+  //             << " Y: " << static_cast<int>(area_y_) << std::endl;
+  // }
+};
+
 class OverworldEntrance {
  public:
   int x_;
@@ -199,6 +334,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
     return overworld_maps_[current_map_].AreaGraphics();
   }
   auto &Entrances() { return all_entrances_; }
+  auto &Exits() { return all_exits_; }
   auto AreaPalette() const {
     return overworld_maps_[current_map_].AreaPalette();
   }
@@ -236,6 +372,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status DecompressProtoMapTiles(const std::string &filename);
   void FetchLargeMaps();
   void LoadEntrances();
+  void LoadExits();
   void LoadSprites();
   void LoadSpritesFromMap(int spriteStart, int spriteCount, int spriteIndex);
 
@@ -253,6 +390,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
   std::vector<OverworldEntrance> all_holes_;
+  std::vector<OverworldExit> all_exits_;
   std::vector<std::vector<Sprite>> all_sprites_;
 
   absl::flat_hash_map<int, MapData> proto_map_data_;

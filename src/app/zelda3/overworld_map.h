@@ -39,6 +39,12 @@ class OverworldMap {
   auto IsInitialized() const { return initialized_; }
   auto Parent() const { return parent_; }
 
+  auto area_graphics() const { return area_graphics_; }
+  auto area_palette() const { return area_palette_; }
+  auto sprite_graphics(int i) const { return sprite_graphics_[i]; }
+  auto sprite_palette(int i) const { return sprite_palette_[i]; }
+  auto message_id() const { return message_id_; }
+
   auto mutable_area_graphics() { return &area_graphics_; }
   auto mutable_area_palette() { return &area_palette_; }
   auto mutable_sprite_graphics(int i) { return &sprite_graphics_[i]; }

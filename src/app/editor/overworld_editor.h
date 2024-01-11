@@ -39,7 +39,8 @@ static constexpr absl::string_view kToolsetColumnNames[] = {
     "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
     "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
     "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
-    "#transportTool", "#musicTool",  "#separator3", "#tilemapTool"};
+    "#transportTool", "#musicTool",  "#separator3", "#tilemapTool",
+    "propertiesTool"};
 
 constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
 constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
@@ -91,7 +92,10 @@ class OverworldEditor : public Editor,
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
 
+  void DrawOverworldProperties();
+
   void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling);
+  void DrawOverworldExits(ImVec2 zero, ImVec2 scrolling);
   void DrawOverworldMaps();
   void DrawOverworldSprites();
 
