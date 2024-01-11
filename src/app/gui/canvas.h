@@ -33,6 +33,9 @@ class Canvas {
   void UpdateEvent(const std::function<void()>& event, ImVec2 bg_size,
                    int tile_size, float scale = 1.0f, float grid_size = 64.0f);
 
+  void UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale = 1.0f,
+                      float grid_size = 64.0f);
+
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
@@ -95,9 +98,25 @@ class Canvas {
   void set_global_scale(float scale) { global_scale_ = scale; }
   auto global_scale() const { return global_scale_; }
 
+  auto labels(int i) {
+    if (i >= labels_.size()) {
+      labels_.push_back(ImVector<std::string>());
+    }
+    return labels_[i];
+  }
+  auto mutable_labels(int i) {
+    if (i >= labels_.size()) {
+      labels_.push_back(ImVector<std::string>());
+    }
+    return &labels_[i];
+  }
+
+  auto set_current_labels(int i) { current_labels_ = i; }
+
  private:
   bool enable_grid_ = true;
   bool enable_hex_tile_labels_ = false;
+  bool enable_custom_labels_ = false;
   bool enable_context_menu_ = true;
   bool custom_canvas_size_ = false;
   bool is_hovered_ = false;
@@ -105,8 +124,11 @@ class Canvas {
   float custom_step_ = 0.0f;
   float global_scale_ = 1.0f;
 
+  int current_labels_ = 0;
+
   ImDrawList* draw_list_;
   ImVector<ImVec2> points_;
+  ImVector<ImVector<std::string>> labels_;
   ImVec2 scrolling_;
   ImVec2 canvas_sz_;
   ImVec2 canvas_p0_;
