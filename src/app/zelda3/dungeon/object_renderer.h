@@ -173,7 +173,7 @@ class DungeonObjectRenderer : public SharedROM {
     // Iterate over tilemap in memory to read tile IDs
     for (int tile_index = 0; tile_index < 512; tile_index++) {
       // Read the tile ID from memory
-      int tile_id = memory_.ReadWord(0x7E4000 + tile_index);
+      int tile_id = memory_.ReadWord(0x7E2000 + tile_index);
 
       int sheet_number = tile_id / 32;
       int local_id = tile_id % 32;
@@ -190,7 +190,8 @@ class DungeonObjectRenderer : public SharedROM {
       sheet->Get8x8Tile(tile_id, x, y, tilemap_, tilemap_offset);
     }
 
-    bitmap_.Create(256, 256, 8, tilemap_);
+    bitmap_.mutable_data() = tilemap_;
+    bitmap_.Create(256, 256, 8, tilemap_.size());
   }
 
   std::vector<uint8_t> tilemap_;

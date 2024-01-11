@@ -92,7 +92,6 @@ class DungeonDestination {
   uint8_t Index;
   uint8_t Target = 0;
   uint8_t TargetLayer = 0;
-  // RoomObject* AssociatedObject = nullptr;
 };
 
 struct object_door {
@@ -124,31 +123,34 @@ class Room : public SharedROM {
   Room(int room_id) : room_id_(room_id) {}
   ~Room() = default;
   void LoadHeader();
+  void LoadRoomFromROM();
+
   void LoadRoomGraphics(uchar entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
   void LoadAnimatedGraphics();
 
+  void LoadObjects();
   void LoadSprites();
   void LoadChests();
-  void LoadObjects();
-
-  void LoadRoomFromROM();
 
   auto blocks() const { return blocks_; }
   auto& mutable_blocks() { return blocks_; }
+  auto layer1() const { return background_bmps_[0]; }
+  auto layer2() const { return background_bmps_[1]; }
+  auto layer3() const { return background_bmps_[2]; }
 
   RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
                        uint8_t layer) {
     return RoomObject(oid, x, y, size, layer);
   }
 
-  uint8_t floor1 = 0;
-  uint8_t floor2 = 0;
   uint8_t blockset = 0;
   uint8_t spriteset = 0;
   uint8_t palette = 0;
   uint8_t layout = 0;
   uint8_t holewarp = 0;
+  uint8_t floor1 = 0;
+  uint8_t floor2 = 0;
 
   uint16_t message_id_ = 0;
 
@@ -158,44 +160,44 @@ class Room : public SharedROM {
   std::vector<uint8_t> current_gfx16_;
 
  private:
-  bool light = false;
-  bool is_loaded_ = false;
-  bool IsDark = false;
-  bool floor = false;
+  bool is_light_;
+  bool is_loaded_;
+  bool is_dark_;
+  bool is_floor_;
 
-  int room_id_ = 0;
-  int animated_frame = 0;
+  int room_id_;
+  int animated_frame_;
 
-  uchar Tag1;
-  uchar Tag2;
+  uchar tag1_;
+  uchar tag2_;
 
-  uint8_t staircase_plane[4];
-  uint8_t staircase_rooms[4];
+  uint8_t staircase_plane_[4];
+  uint8_t staircase_rooms_[4];
 
-  uint8_t BackgroundTileset;
-  uint8_t SpriteTileset;
-  uint8_t Layer2Behavior;
-  uint8_t Palette;
-  uint8_t Floor1Graphics;
-  uint8_t Floor2Graphics;
-  uint8_t Layer2Mode;
+  uint8_t background_tileset_;
+  uint8_t sprite_tileset_;
+  uint8_t layer2_behavior_;
+  uint8_t palette_;
+  uint8_t floor1_graphics_;
+  uint8_t floor2_graphics_;
+  uint8_t layer2_mode_;
 
   std::array<uint8_t, 16> blocks_;
-  std::array<uchar, 16> ChestList;
+  std::array<uchar, 16> chest_list_;
 
   std::array<gfx::Bitmap, 3> background_bmps_;
   std::vector<zelda3::Sprite> sprites_;
-  std::vector<StaircaseRooms> staircaseRooms;
+  std::vector<StaircaseRooms> staircase_rooms_vec_;
 
-  Background2 bg2;
-  DungeonDestination Pits;
-  DungeonDestination Stair1;
-  DungeonDestination Stair2;
-  DungeonDestination Stair3;
-  DungeonDestination Stair4;
+  Background2 bg2_;
+  DungeonDestination pits_;
+  DungeonDestination stair1_;
+  DungeonDestination stair2_;
+  DungeonDestination stair3_;
+  DungeonDestination stair4_;
 
-  std::vector<ChestData> chests_in_room;
-  std::vector<RoomObject> tilesObjects;
+  std::vector<ChestData> chests_in_room_;
+  std::vector<RoomObject> tile_objects_;
 };
 
 }  // namespace dungeon
