@@ -28,6 +28,7 @@ using ImGui::Button;
 using ImGui::InputInt;
 using ImGui::InputText;
 using ImGui::SameLine;
+using ImGui::TableNextColumn;
 
 constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
@@ -87,38 +88,41 @@ void GraphicsEditor::DrawGfxEditToolset() {
           "Zoom In", "Current Color", "Tile Size"})
       ImGui::TableSetupColumn(name);
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_SELECT_ALL)) {
       gfx_edit_mode_ = GfxEditMode::kSelect;
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_DRAW)) {
       gfx_edit_mode_ = GfxEditMode::kPencil;
     }
+    HOVER_HINT("Draw with current color");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_FORMAT_COLOR_FILL)) {
       gfx_edit_mode_ = GfxEditMode::kFill;
     }
+    HOVER_HINT("Fill with current color");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data =
-          rom()->bitmap_manager().GetBitmap(current_sheet_)->GetPngData();
+          rom()->bitmap_manager().shared_bitmap(current_sheet_)->GetPngData();
       CopyImageToClipboard(png_data);
     }
+    HOVER_HINT("Copy to Clipboard");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_CONTENT_PASTE)) {
       std::vector<uint8_t> png_data;
       int width, height;
       GetImageFromClipboard(png_data, width, height);
       if (png_data.size() > 0) {
         rom()
-            ->bitmap_manager()
-            .GetBitmap(current_sheet_)
-            ->LoadFromPngData(png_data, width, height);
+            ->mutable_bitmap_manager()
+            ->mutable_bitmap(current_sheet_)
+            ->Create(width, height, 8, png_data);
         rom()->UpdateBitmap(rom()
                                 ->mutable_bitmap_manager()
                                 ->mutable_bitmap(current_sheet_)
@@ -127,21 +131,21 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
     HOVER_HINT("Paste from Clipboard");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_ZOOM_OUT)) {
       if (current_scale_ >= 0.0f) {
         current_scale_ -= 1.0f;
       }
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_ZOOM_IN)) {
       if (current_scale_ <= 16.0f) {
         current_scale_ += 1.0f;
       }
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     auto bitmap = rom()->bitmap_manager()[current_sheet_];
     auto palette = bitmap->palette();
     for (int i = 0; i < 8; i++) {
@@ -155,7 +159,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
       }
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     gui::InputHexByte("Tile Size", &tile_size_, 0x01);
 
     ImGui::EndTable();
@@ -174,7 +178,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
     ImGui::PopStyleVar();
     gui::Canvas graphics_bin_canvas_;
     auto select_tile_event = [&]() {
-      if (value.get()->IsActive()) {
+      if (value.get()->is_active()) {
         auto texture = value.get()->texture();
         graphics_bin_canvas_.GetDrawList()->AddImage(
             (void*)texture,
@@ -424,7 +428,7 @@ absl::Status GraphicsEditor::DrawToolset() {
     for (const auto& name : kGfxToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_MEMORY)) {
       if (!open_memory_editor_) {
         open_memory_editor_ = true;

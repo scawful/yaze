@@ -110,47 +110,47 @@ void DungeonEditor::DrawToolset() {
     TableSetupColumn("#doorTool");
     TableSetupColumn("#blockTool");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::Button(ICON_MD_UNDO)) {
       PRINT_IF_ERROR(Undo());
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::Button(ICON_MD_REDO)) {
       PRINT_IF_ERROR(Redo());
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_FILTER_NONE,
                            background_type_ == kBackgroundAny)) {
       background_type_ = kBackgroundAny;
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_FILTER_1,
                            background_type_ == kBackground1)) {
       background_type_ = kBackground1;
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_FILTER_2,
                            background_type_ == kBackground2)) {
       background_type_ = kBackground2;
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_FILTER_3,
                            background_type_ == kBackground3)) {
       background_type_ = kBackground3;
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_PEST_CONTROL, placement_type_ == kSprite)) {
       placement_type_ = kSprite;
     }
@@ -158,7 +158,7 @@ void DungeonEditor::DrawToolset() {
       ImGui::SetTooltip("Sprites");
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_GRASS, placement_type_ == kItem)) {
       placement_type_ = kItem;
     }
@@ -166,7 +166,7 @@ void DungeonEditor::DrawToolset() {
       ImGui::SetTooltip("Items");
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_SENSOR_DOOR, placement_type_ == kDoor)) {
       placement_type_ = kDoor;
     }
@@ -174,7 +174,7 @@ void DungeonEditor::DrawToolset() {
       ImGui::SetTooltip("Doors");
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::RadioButton(ICON_MD_SQUARE, placement_type_ == kBlock)) {
       placement_type_ = kBlock;
     }
@@ -182,7 +182,7 @@ void DungeonEditor::DrawToolset() {
       ImGui::SetTooltip("Blocks");
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (ImGui::Button(ICON_MD_PALETTE)) {
       palette_showing_ = !palette_showing_;
     }
@@ -219,6 +219,12 @@ void DungeonEditor::DrawDungeonTabView() {
   if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
     // TODO: Manage the room that is being added to the tab bar.
     if (ImGui::TabItemButton("+", kDungeonTabFlags)) {
+      if (std::find(active_rooms_.begin(), active_rooms_.end(),
+                    current_room_id_) != active_rooms_.end()) {
+        // Room is already open
+        next_tab_id++;
+      }
+
       active_rooms_.push_back(next_tab_id++);  // Add new tab
     }
 
@@ -269,8 +275,11 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
   ImGui::EndGroup();
 
-  canvas_.DrawBackground();
+  canvas_.DrawBackground(ImVec2(0x200, 0x200));
   canvas_.DrawContextMenu();
+  if (is_loaded_) {
+    canvas_.DrawBitmap(rooms_[room_id].layer1(), 0, 0);
+  }
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
 }
@@ -328,7 +337,7 @@ void DungeonEditor::DrawObjectRenderer() {
                      ImGui::GetContentRegionAvail().x);
     TableSetupColumn("Canvas");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     ImGui::BeginChild("DungeonObjectButtons", ImVec2(250, 0), true);
 
     int selected_object = 0;
@@ -348,7 +357,7 @@ void DungeonEditor::DrawObjectRenderer() {
     ImGui::EndChild();
 
     // Right side of the table - Canvas
-    ImGui::TableNextColumn();
+    TableNextColumn();
     ImGui::BeginChild("DungeonObjectCanvas", ImVec2(276, 0x10 * 0x40 + 1),
                       true);
 
