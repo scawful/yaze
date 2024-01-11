@@ -55,6 +55,14 @@ void Canvas::UpdateEvent(const std::function<void()> &event, ImVec2 bg_size,
   DrawOverlay();
 }
 
+void Canvas::UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale,
+                            float grid_size) {
+  enable_custom_labels_ = true;
+  DrawBackground(bg_size);
+  DrawGrid(grid_size);
+  DrawOverlay();
+}
+
 void Canvas::DrawBackground(ImVec2 canvas_size) {
   canvas_p0_ = ImGui::GetCursorScreenPos();
   if (!custom_canvas_size_) canvas_sz_ = ImGui::GetContentRegionAvail();
@@ -97,6 +105,17 @@ void Canvas::DrawContextMenu() {
       scrolling_.x = 0;
       scrolling_.y = 0;
     }
+    if (ImGui::BeginMenu("Canvas Properties")) {
+      ImGui::Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
+      ImGui::Text("Global Scale: %.1f", global_scale_);
+      ImGui::Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Bitmap Properties")) {
+      ImGui::Text("Bitmap Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
+      ImGui::Text("Bitmap Position: %.0f x %.0f", origin.x, origin.y);
+      ImGui::EndMenu();
+    }
     ImGui::Separator();
     if (ImGui::MenuItem("8x8", nullptr, custom_step_ == 8.0f)) {
       custom_step_ = 8.0f;
@@ -110,12 +129,6 @@ void Canvas::DrawContextMenu() {
     if (ImGui::MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
       custom_step_ = 64.0f;
     }
-    // Display bitmap metadata such as canvas size and global scale
-    ImGui::Separator();
-    ImGui::Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
-    ImGui::Text("Global Scale: %.1f", global_scale_);
-    ImGui::Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
-
     ImGui::EndPopup();
   }
 }
@@ -143,7 +156,7 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
     points_.push_back(painter_pos);
     points_.push_back(painter_pos_end);
 
-    if (bitmap.IsActive()) {
+    if (bitmap.is_active()) {
       draw_list_->AddImage(
           (void *)bitmap.texture(),
           ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
@@ -463,6 +476,27 @@ void Canvas::DrawGrid(float grid_step) {
           draw_list_->AddText(ImVec2(canvas_p0_.x + x + (grid_step / 2) - 4,
                                      canvas_p0_.y + y + (grid_step / 2) - 4),
                               IM_COL32(255, 255, 255, 255), hex_id.data());
+        }
+      }
+    }
+
+    if (enable_custom_labels_) {
+      // Draw the contents of labels on the grid
+      for (float x = fmodf(scrolling_.x, grid_step);
+           x < canvas_sz_.x * global_scale_; x += grid_step) {
+        for (float y = fmodf(scrolling_.y, grid_step);
+             y < canvas_sz_.y * global_scale_; y += grid_step) {
+          int tile_x = (x - scrolling_.x) / grid_step;
+          int tile_y = (y - scrolling_.y) / grid_step;
+          int tile_id = tile_x + (tile_y * 8);
+
+          if (tile_id >= labels_[current_labels_].size()) {
+            break;
+          }
+          std::string label = labels_[current_labels_][tile_id];
+          draw_list_->AddText(ImVec2(canvas_p0_.x + x + (grid_step / 2) - 8,
+                                     canvas_p0_.y + y + (grid_step / 2) - 8),
+                              IM_COL32(255, 255, 255, 255), label.data());
         }
       }
     }
