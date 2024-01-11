@@ -148,8 +148,8 @@ class Bitmap {
   auto texture() const { return texture_.get(); }
   auto modified() const { return modified_; }
   void set_modified(bool modified) { modified_ = modified; }
-  auto IsActive() const { return active_; }
-  auto SetActive(bool active) { active_ = active; }
+  auto is_active() const { return active_; }
+  auto set_active(bool active) { active_ = active; }
 
  private:
   struct SDL_Texture_Deleter {
@@ -204,23 +204,24 @@ class BitmapManager {
         std::make_shared<gfx::Bitmap>(width, height, depth, data);
   }
 
-  std::shared_ptr<gfx::Bitmap> const &CopyBitmap(const gfx::Bitmap &bitmap,
-                                                 int id) {
-    auto new_bitmap = std::make_shared<gfx::Bitmap>(
-        bitmap.width(), bitmap.height(), bitmap.depth(), bitmap.vector());
-    bitmap_cache_[id] = new_bitmap;
-    return new_bitmap;
-  }
-
   std::shared_ptr<gfx::Bitmap> const &operator[](int id) {
     auto it = bitmap_cache_.find(id);
     if (it != bitmap_cache_.end()) {
       return it->second;
     }
-    return nullptr;
+    throw std::runtime_error(
+        absl::StrCat("Bitmap with id ", id, " not found."));
   }
-
+  std::shared_ptr<gfx::Bitmap> const &shared_bitmap(int id) {
+    auto it = bitmap_cache_.find(id);
+    if (it != bitmap_cache_.end()) {
+      return it->second;
+    }
+    throw std::runtime_error(
+        absl::StrCat("Bitmap with id ", id, " not found."));
+  }
   auto mutable_bitmap(int id) { return bitmap_cache_[id]; }
+  void clear_cache() { bitmap_cache_.clear(); }
 
   using value_type = std::pair<const int, std::shared_ptr<gfx::Bitmap>>;
   using iterator =
@@ -234,16 +235,6 @@ class BitmapManager {
   const_iterator end() const noexcept { return bitmap_cache_.end(); }
   const_iterator cbegin() const noexcept { return bitmap_cache_.cbegin(); }
   const_iterator cend() const noexcept { return bitmap_cache_.cend(); }
-
-  std::shared_ptr<gfx::Bitmap> const &GetBitmap(int id) {
-    auto it = bitmap_cache_.find(id);
-    if (it != bitmap_cache_.end()) {
-      return it->second;
-    }
-    return nullptr;  // or handle the error accordingly
-  }
-
-  void ClearCache() { bitmap_cache_.clear(); }
 };
 
 }  // namespace gfx
