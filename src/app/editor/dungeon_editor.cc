@@ -60,6 +60,26 @@ absl::Status DungeonEditor::Update() {
     refresh_graphics_ = false;
   }
 
+  TAB_BAR("##DungeonEditorTabBar")
+  TAB_ITEM("Dungeon Room Editor")
+  UpdateDungeonRoomView();
+  END_TAB_ITEM()
+  TAB_ITEM("Usage Statistics")
+  if (is_loaded_) {
+    static bool calc_stats = false;
+    if (!calc_stats) {
+      CalculateUsageStats();
+      calc_stats = true;
+    }
+    DrawUsageStats();
+  }
+  END_TAB_ITEM()
+  END_TAB_BAR()
+
+  return absl::OkStatus();
+}
+
+void DungeonEditor::UpdateDungeonRoomView() {
   DrawToolset();
 
   if (palette_showing_) {
@@ -90,7 +110,6 @@ absl::Status DungeonEditor::Update() {
     DrawTileSelector();
     ImGui::EndTable();
   }
-  return absl::OkStatus();
 }
 
 void DungeonEditor::DrawToolset() {
@@ -382,6 +401,99 @@ void DungeonEditor::DrawObjectRenderer() {
   //                         memory.size());
   //   ImGui::End();
   // }
+}
+
+void DungeonEditor::CalculateUsageStats() {
+  // Create a hash map of the usage for elements of each Dungeon Room such as
+  // the blockset, spriteset, palette, etc. This is so we can keep track of
+  // which graphics sets and palette sets are in use and which are not.
+
+  for (const auto& room : rooms_) {
+    // Blockset
+    if (blockset_usage_.find(room.blockset) == blockset_usage_.end()) {
+      blockset_usage_[room.blockset] = 1;
+    } else {
+      blockset_usage_[room.blockset] += 1;
+    }
+
+    // Spriteset
+    if (spriteset_usage_.find(room.spriteset) == spriteset_usage_.end()) {
+      spriteset_usage_[room.spriteset] = 1;
+    } else {
+      spriteset_usage_[room.spriteset] += 1;
+    }
+
+    // Palette
+    if (palette_usage_.find(room.palette) == palette_usage_.end()) {
+      palette_usage_[room.palette] = 1;
+    } else {
+      palette_usage_[room.palette] += 1;
+    }
+  }
+}
+
+namespace {
+template <typename T>
+void RenderSetUsage(const absl::flat_hash_map<T, int>& usage_map) {
+  // Sort the usage map by set number
+  std::vector<std::pair<T, int>> sorted_usage(usage_map.begin(),
+                                              usage_map.end());
+  std::sort(sorted_usage.begin(), sorted_usage.end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; });
+  for (const auto& [set, count] : sorted_usage) {
+    ImGui::Text("%#02x: %d uses", set, count);
+  }
+}
+
+// Calculate the unused sets in a usage map
+// Range for blocksets 0-0x24
+// Range for spritesets 0-0x8F
+// Range for palettes 0-0x47
+template <typename T>
+void RenderUnusedSets(const absl::flat_hash_map<T, int>& usage_map,
+                      int max_set) {
+  std::vector<int> unused_sets;
+  for (int i = 0; i < max_set; i++) {
+    if (usage_map.find(i) == usage_map.end()) {
+      unused_sets.push_back(i);
+    }
+  }
+  for (const auto& set : unused_sets) {
+    ImGui::Text("%#02x", set);
+  }
+}
+}  // namespace
+
+void DungeonEditor::DrawUsageStats() {
+  if (ImGui::BeginTable("DungeonUsageStatsTable", 6, kDungeonTableFlags,
+                        ImVec2(0, 0))) {
+    TableSetupColumn("Blockset Usage");
+    TableSetupColumn("Unused Blockset");
+    TableSetupColumn("Palette Usage");
+    TableSetupColumn("Unused Palette");
+    TableSetupColumn("Spriteset Usage");
+    TableSetupColumn("Unused Spriteset");
+    TableHeadersRow();
+
+    TableNextColumn();
+    RenderSetUsage(blockset_usage_);
+
+    TableNextColumn();
+    RenderUnusedSets(blockset_usage_, 0x25);
+
+    TableNextColumn();
+    RenderSetUsage(palette_usage_);
+
+    TableNextColumn();
+    RenderUnusedSets(palette_usage_, 0x48);
+
+    TableNextColumn();
+    RenderSetUsage(spriteset_usage_);
+
+    TableNextColumn();
+    RenderUnusedSets(spriteset_usage_, 0x90);
+  }
+  ImGui::EndTable();
 }
 
 }  // namespace editor
