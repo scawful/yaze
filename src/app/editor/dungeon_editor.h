@@ -41,6 +41,9 @@ class DungeonEditor : public Editor,
   absl::Status Redo() override { return absl::OkStatus(); }
 
  private:
+
+  void UpdateDungeonRoomView();
+
   void DrawToolset();
   void DrawRoomSelector();
 
@@ -50,6 +53,9 @@ class DungeonEditor : public Editor,
   void DrawRoomGraphics();
   void DrawTileSelector();
   void DrawObjectRenderer();
+
+  void CalculateUsageStats();
+  void DrawUsageStats();
 
   enum BackgroundType {
     kNoBackground,
@@ -92,6 +98,10 @@ class DungeonEditor : public Editor,
   std::vector<zelda3::dungeon::Room> rooms_;
   std::vector<gfx::BitmapManager> room_graphics_;
   zelda3::dungeon::DungeonObjectRenderer object_renderer_;
+
+  absl::flat_hash_map<uint16_t, int> spriteset_usage_;
+  absl::flat_hash_map<uint16_t, int> blockset_usage_;
+  absl::flat_hash_map<uint16_t, int> palette_usage_;
 };
 
 }  // namespace editor
