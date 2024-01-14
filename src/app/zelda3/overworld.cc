@@ -150,17 +150,16 @@ absl::Status Overworld::Load(ROM &rom) {
   return absl::OkStatus();
 }
 
-OWBlockset &Overworld::GetMapTiles(int world_type) {
-  switch (world_type) {
-    case 0:
-      return map_tiles_.light_world;
-    case 1:
-      return map_tiles_.dark_world;
-    case 2:
-      return map_tiles_.special_world;
-    default:
-      return map_tiles_.light_world;
-  }
+absl::Status Overworld::Save(ROM &rom) {
+  rom_ = rom;
+
+  RETURN_IF_ERROR(SaveMap16Tiles())
+  RETURN_IF_ERROR(SaveMap32Tiles())
+  RETURN_IF_ERROR(SaveOverworldMaps())
+  RETURN_IF_ERROR(SaveEntrances())
+  RETURN_IF_ERROR(SaveExits())
+
+  return absl::OkStatus();
 }
 
 absl::Status Overworld::LoadOverworldMaps() {
@@ -300,13 +299,13 @@ absl::Status Overworld::SaveLargeMaps() {
     int parentyPos = overworld_maps_[i].Parent() / 8;
     int parentxPos = overworld_maps_[i].Parent() % 8;
 
-    std::unordered_map<uint8_t, uint8_t> checkedMap;
+    std::unordered_map<uint8_t, uint8_t> checked_map;
 
     // Always write the map parent since it should not matter
     RETURN_IF_ERROR(
         rom()->Write(overworldMapParentId + i, overworld_maps_[i].Parent()))
 
-    if (checkedMap.count(overworld_maps_[i].Parent()) > 0) {
+    if (checked_map.count(overworld_maps_[i].Parent()) > 0) {
       continue;
     }
 
@@ -404,20 +403,20 @@ absl::Status Overworld::SaveLargeMaps() {
           WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 2,
                       0x0060}))
 
-      uint16_t lowerSubmaps;
+      uint16_t lower_submaps;
       // If parentX == 0 then lower submaps == 0x0060 too
       if (parentxPos == 0) {
-        lowerSubmaps = 0x0060;
+        lower_submaps = 0x0060;
       } else {
         // Otherwise lower submaps == 0x1060
-        lowerSubmaps = 0x1060;
+        lower_submaps = 0x1060;
       }
 
       RETURN_IF_ERROR(rom()->RunTransaction(
           WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 16,
-                      uint16_t(lowerSubmaps)},
+                      uint16_t(lower_submaps)},
           WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 18,
-                      uint16_t(lowerSubmaps)},
+                      uint16_t(lower_submaps)},
           WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 128,
                       uint16_t(0x0080)},  // Always 0x0080
           WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 2 + 128,
@@ -448,10 +447,10 @@ absl::Status Overworld::SaveLargeMaps() {
           WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 18 + 384,
                       uint16_t(0x2040)}))  // Always 0x2000
 
-      checkedMap.emplace(i, 1);
-      checkedMap.emplace((i + 1), 1);
-      checkedMap.emplace((i + 8), 1);
-      checkedMap.emplace((i + 9), 1);
+      checked_map.emplace(i, 1);
+      checked_map.emplace((i + 1), 1);
+      checked_map.emplace((i + 8), 1);
+      checked_map.emplace((i + 9), 1);
 
     } else {
       RETURN_IF_ERROR(rom()->RunTransaction(
@@ -480,7 +479,7 @@ absl::Status Overworld::SaveLargeMaps() {
           WriteAction{overworldTransitionPositionY + (i * 2),
                       uint16_t(yPos * 0x200)}))
 
-      checkedMap.emplace(i, 1);
+      checked_map.emplace(i, 1);
     }
   }
   return absl::OkStatus();
@@ -862,36 +861,90 @@ void Overworld::FetchLargeMaps() {
 
 void Overworld::LoadEntrances() {
   for (int i = 0; i < 129; i++) {
-    short mapId = rom()->toint16(OWEntranceMap + (i * 2));
-    ushort mapPos = rom()->toint16(OWEntrancePos + (i * 2));
-    uchar entranceId = (rom_[OWEntranceEntranceId + i]);
-    int p = mapPos >> 1;
+    short map_id = rom()->toint16(OWEntranceMap + (i * 2));
+    ushort map_pos = rom()->toint16(OWEntrancePos + (i * 2));
+    uchar entrance_id = rom_[OWEntranceEntranceId + i];
+    int p = map_pos >> 1;
     int x = (p % 64);
     int y = (p >> 6);
     bool deleted = false;
-    if (mapPos == 0xFFFF) {
+    if (map_pos == 0xFFFF) {
       deleted = true;
     }
     all_entrances_.emplace_back(
-        (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512),
-        (y * 16) + (((mapId % 64) / 8) * 512), entranceId, mapId, mapPos,
+        (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
+        (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id, map_pos,
         deleted);
   }
 
   for (int i = 0; i < 0x13; i++) {
-    auto mapId = (short)((rom_[OWHoleArea + (i * 2) + 1] << 8) +
-                         (rom_[OWHoleArea + (i * 2)]));
-    auto mapPos = (short)((rom_[OWHolePos + (i * 2) + 1] << 8) +
-                          (rom_[OWHolePos + (i * 2)]));
-    uchar entranceId = (rom_[OWHoleEntrance + i]);
-    int p = (mapPos + 0x400) >> 1;
+    auto map_id = (short)((rom_[OWHoleArea + (i * 2) + 1] << 8) +
+                          (rom_[OWHoleArea + (i * 2)]));
+    auto map_pos = (short)((rom_[OWHolePos + (i * 2) + 1] << 8) +
+                           (rom_[OWHolePos + (i * 2)]));
+    uchar entrance_id = (rom_[OWHoleEntrance + i]);
+    int p = (map_pos + 0x400) >> 1;
     int x = (p % 64);
     int y = (p >> 6);
     all_holes_.emplace_back(
-        (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512),
-        (y * 16) + (((mapId % 64) / 8) * 512), entranceId, mapId,
-        (ushort)(mapPos + 0x400), true);
+        (x * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512),
+        (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id,
+        (ushort)(map_pos + 0x400), true);
   }
+}
+
+absl::Status Overworld::SaveEntrances() {
+  for (int i = 0; i < 129; i++) {
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWEntranceMap + (i * 2), all_entrances_[i].map_id_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWEntrancePos + (i * 2), all_entrances_[i].map_pos_))
+    RETURN_IF_ERROR(rom()->WriteByte(OWEntranceEntranceId + i,
+                                     all_entrances_[i].entrance_id_))
+  }
+
+  for (int i = 0; i < 0x13; i++) {
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWHoleArea + (i * 2), all_holes_[i].map_id_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWHolePos + (i * 2), all_holes_[i].map_pos_))
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWHoleEntrance + i, all_holes_[i].entrance_id_))
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SaveExits() {
+  for (int i = 0; i < 0x4F; i++) {
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitRoomId + (i * 2), all_exits_[i].room_id_))
+    RETURN_IF_ERROR(rom()->WriteByte(OWExitMapId + i, all_exits_[i].map_id_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitVram + (i * 2), all_exits_[i].map_pos_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitYScroll + (i * 2), all_exits_[i].y_scroll_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitXScroll + (i * 2), all_exits_[i].x_scroll_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitYPlayer + (i * 2), all_exits_[i].y_player_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitXPlayer + (i * 2), all_exits_[i].x_player_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitYCamera + (i * 2), all_exits_[i].y_camera_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitXCamera + (i * 2), all_exits_[i].x_camera_))
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitUnk1 + i, all_exits_[i].scroll_mod_y_))
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitUnk2 + i, all_exits_[i].scroll_mod_x_))
+    RETURN_IF_ERROR(rom()->WriteShort(OWExitDoorType1 + (i * 2),
+                                      all_exits_[i].door_type_1_))
+    RETURN_IF_ERROR(rom()->WriteShort(OWExitDoorType2 + (i * 2),
+                                      all_exits_[i].door_type_2_))
+  }
+
+  return absl::OkStatus();
 }
 
 void Overworld::LoadExits() {
@@ -899,45 +952,49 @@ void Overworld::LoadExits() {
   std::vector<OverworldExit> exits;
   for (int i = 0; i < NumberOfOverworldExits; i++) {
     auto rom_data = rom()->data();
-    ushort exitRoomID = (ushort)((rom_data[OWExitRoomId + (i * 2) + 1] << 8) +
-                                 rom_data[OWExitRoomId + (i * 2)]);
-    ushort exitMapID = rom_data[OWExitMapId + i];
-    ushort exitVRAM = (ushort)((rom_data[OWExitVram + (i * 2) + 1] << 8) +
-                               rom_data[OWExitVram + (i * 2)]);
-    ushort exitYScroll = (ushort)((rom_data[OWExitYScroll + (i * 2) + 1] << 8) +
-                                  rom_data[OWExitYScroll + (i * 2)]);
-    ushort exitXScroll = (ushort)((rom_data[OWExitXScroll + (i * 2) + 1] << 8) +
-                                  rom_data[OWExitXScroll + (i * 2)]);
+    ushort exit_room_id = (ushort)((rom_data[OWExitRoomId + (i * 2) + 1] << 8) +
+                                   rom_data[OWExitRoomId + (i * 2)]);
+    ushort exit_map_id = rom_data[OWExitMapId + i];
+    ushort exit_vram = (ushort)((rom_data[OWExitVram + (i * 2) + 1] << 8) +
+                                rom_data[OWExitVram + (i * 2)]);
+    ushort exit_y_scroll =
+        (ushort)((rom_data[OWExitYScroll + (i * 2) + 1] << 8) +
+                 rom_data[OWExitYScroll + (i * 2)]);
+    ushort exit_x_scroll =
+        (ushort)((rom_data[OWExitXScroll + (i * 2) + 1] << 8) +
+                 rom_data[OWExitXScroll + (i * 2)]);
     ushort py = (ushort)((rom_data[OWExitYPlayer + (i * 2) + 1] << 8) +
                          rom_data[OWExitYPlayer + (i * 2)]);
     ushort px = (ushort)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
                          rom_data[OWExitXPlayer + (i * 2)]);
-    ushort exitYCamera = (ushort)((rom_data[OWExitYCamera + (i * 2) + 1] << 8) +
-                                  rom_data[OWExitYCamera + (i * 2)]);
-    ushort exitXCamera = (ushort)((rom_data[OWExitXCamera + (i * 2) + 1] << 8) +
-                                  rom_data[OWExitXCamera + (i * 2)]);
-    ushort exitScrollModY = rom_data[OWExitUnk1 + i];
-    ushort exitScrollModX = rom_data[OWExitUnk2 + i];
-    ushort exitDoorType1 =
+    ushort exit_y_camera =
+        (ushort)((rom_data[OWExitYCamera + (i * 2) + 1] << 8) +
+                 rom_data[OWExitYCamera + (i * 2)]);
+    ushort exit_x_camera =
+        (ushort)((rom_data[OWExitXCamera + (i * 2) + 1] << 8) +
+                 rom_data[OWExitXCamera + (i * 2)]);
+    ushort exit_scroll_mod_y = rom_data[OWExitUnk1 + i];
+    ushort exit_scroll_mod_x = rom_data[OWExitUnk2 + i];
+    ushort exit_door_type_1 =
         (ushort)((rom_data[OWExitDoorType1 + (i * 2) + 1] << 8) +
                  rom_data[OWExitDoorType1 + (i * 2)]);
-    ushort exitDoorType2 =
+    ushort exit_door_type_2 =
         (ushort)((rom_data[OWExitDoorType2 + (i * 2) + 1] << 8) +
                  rom_data[OWExitDoorType2 + (i * 2)]);
-    OverworldExit exit(exitRoomID, exitMapID, exitVRAM, exitYScroll,
-                       exitXScroll, py, px, exitYCamera, exitXCamera,
-                       exitScrollModY, exitScrollModX, exitDoorType1,
-                       exitDoorType2);
+    OverworldExit exit(exit_room_id, exit_map_id, exit_vram, exit_y_scroll,
+                       exit_x_scroll, py, px, exit_y_camera, exit_x_camera,
+                       exit_scroll_mod_y, exit_scroll_mod_x, exit_door_type_1,
+                       exit_door_type_2);
 
-    std::cout << "Exit: " << i << " RoomID: " << exitRoomID
-              << " MapID: " << exitMapID << " VRAM: " << exitVRAM
-              << " YScroll: " << exitYScroll << " XScroll: " << exitXScroll
+    std::cout << "Exit: " << i << " RoomID: " << exit_room_id
+              << " MapID: " << exit_map_id << " VRAM: " << exit_vram
+              << " YScroll: " << exit_y_scroll << " XScroll: " << exit_x_scroll
               << " YPlayer: " << py << " XPlayer: " << px
-              << " YCamera: " << exitYCamera << " XCamera: " << exitXCamera
-              << " ScrollModY: " << exitScrollModY
-              << " ScrollModX: " << exitScrollModX
-              << " DoorType1: " << exitDoorType1
-              << " DoorType2: " << exitDoorType2 << std::endl;
+              << " YCamera: " << exit_y_camera << " XCamera: " << exit_x_camera
+              << " ScrollModY: " << exit_scroll_mod_y
+              << " ScrollModX: " << exit_scroll_mod_x
+              << " DoorType1: " << exit_door_type_1
+              << " DoorType2: " << exit_door_type_2 << std::endl;
 
     if (px == 0xFFFF && py == 0xFFFF) {
       exit.deleted = true;
@@ -1048,6 +1105,19 @@ absl::Status Overworld::LoadPrototype(ROM &rom,
 
   is_loaded_ = true;
   return absl::OkStatus();
+}
+
+OWBlockset &Overworld::GetMapTiles(int world_type) {
+  switch (world_type) {
+    case 0:
+      return map_tiles_.light_world;
+    case 1:
+      return map_tiles_.dark_world;
+    case 2:
+      return map_tiles_.special_world;
+    default:
+      return map_tiles_.light_world;
+  }
 }
 
 }  // namespace zelda3

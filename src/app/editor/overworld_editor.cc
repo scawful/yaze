@@ -316,6 +316,8 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
                             canvas_p0.y + scrolling.y);
         dragged_entrance_->x_ = io.MousePos.x - origin.x - 8;
         dragged_entrance_->y_ = io.MousePos.y - origin.y - 8;
+        each.x_ = dragged_entrance_->x_;
+        each.y_ = dragged_entrance_->y_;
         is_dragging_entrance_ = false;
       }
     }
