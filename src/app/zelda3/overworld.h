@@ -64,8 +64,19 @@ class OverworldExit {
  public:
   int x_;
   int y_;
+  ushort y_scroll_;
+  ushort x_scroll_;
+  uchar y_player_;
+  uchar x_player_;
+  uchar y_camera_;
+  uchar x_camera_;
+  uchar scroll_mod_y_;
+  uchar scroll_mod_x_;
+  ushort door_type_1_;
+  ushort door_type_2_;
+
   ushort room_id_;
-  ushort map_pos_;
+  ushort map_pos_;  // Position in the vram
   uchar entrance_id_;
   uchar area_x_;
   uchar area_y_;
@@ -84,7 +95,18 @@ class OverworldExit {
         area_x_(0),
         area_y_(0),
         map_id_(mapID),
-        is_hole_(false) {
+        is_hole_(false),
+        room_id_(roomID),
+        y_scroll_(yScroll),
+        x_scroll_(xScroll),
+        y_player_(playerY),
+        x_player_(playerX),
+        y_camera_(cameraY),
+        x_camera_(cameraX),
+        scroll_mod_y_(scrollModY),
+        scroll_mod_x_(scrollModX),
+        door_type_1_(doorType1),
+        door_type_2_(doorType2) {
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
 
@@ -207,13 +229,13 @@ class OverworldEntrance {
   bool is_hole_ = false;
   bool deleted = false;
 
-  OverworldEntrance(int x, int y, uchar entranceId, short mapId, ushort mapPos,
-                    bool hole)
+  OverworldEntrance(int x, int y, uchar entrance_id, short map_id,
+                    ushort map_pos, bool hole)
       : x_(x),
         y_(y),
-        map_pos_(mapPos),
-        entrance_id_(entranceId),
-        map_id_(mapId),
+        map_pos_(map_pos),
+        entrance_id_(entrance_id),
+        map_id_(map_id),
         is_hole_(hole) {
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
@@ -227,8 +249,8 @@ class OverworldEntrance {
                                  is_hole_);
   }
 
-  void updateMapStuff(short mapId) {
-    map_id_ = mapId;
+  void UpdateMapStuff(short map_id) {
+    map_id_ = map_id;
 
     if (map_id_ >= 64) {
       map_id_ -= 64;
@@ -317,10 +339,14 @@ struct MapData {
 class Overworld : public SharedROM, public core::ExperimentFlags {
  public:
   absl::Status Load(ROM &rom);
+  absl::Status Save(ROM &rom);
   OWBlockset &GetMapTiles(int world_type);
   absl::Status LoadOverworldMaps();
+
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
+  absl::Status SaveEntrances();
+  absl::Status SaveExits();
 
   bool CreateTile32Tilemap(bool onlyShow = false);
   absl::Status SaveMap16Tiles();
@@ -376,10 +402,11 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   void LoadSprites();
   void LoadSpritesFromMap(int spriteStart, int spriteCount, int spriteIndex);
 
+  bool is_loaded_ = false;
+
   int game_state_ = 0;
   int current_map_ = 0;
   uchar map_parent_[160];
-  bool is_loaded_ = false;
 
   ROM rom_;
   OWMapTiles map_tiles_;

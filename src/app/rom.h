@@ -340,6 +340,14 @@ class ROM : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
+  absl::Status WriteByte(int addr, uint8_t value) {
+    if (addr >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Address out of range");
+    }
+    rom_data_[addr] = value;
+    return absl::OkStatus();
+  }
+
   absl::Status WriteShort(uint32_t addr, uint16_t value) {
     if (addr + 1 >= rom_data_.size()) {
       return absl::InvalidArgumentError("Address out of range");
