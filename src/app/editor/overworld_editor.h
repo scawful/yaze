@@ -132,6 +132,7 @@ class OverworldEditor : public Editor,
   int current_tile16_ = 0;
   int selected_tile_ = 0;
   int game_state_ = 0;
+  int current_exit_ = 0;
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
   char spr_gfx_[3] = "";
