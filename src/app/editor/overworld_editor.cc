@@ -323,8 +323,115 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
     }
   }
 }
+namespace {
+bool IsMouseHoveringOverExit(const zelda3::OverworldExit &exit,
+                             ImVec2 canvas_p0, ImVec2 scrolling) {
+  // Get the mouse position relative to the canvas
+  const ImGuiIO &io = ImGui::GetIO();
+  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Check if the mouse is hovering over the entrance
+  if (mouse_pos.x >= exit.x_ && mouse_pos.x <= exit.x_ + 16 &&
+      mouse_pos.y >= exit.y_ && mouse_pos.y <= exit.y_ + 16) {
+    return true;
+  }
+  return false;
+}
+
+// Call this function when you need to open the popup
+void OpenExitEditorPopup() { ImGui::OpenPopup("Exit editor"); }
+
+// This function should be called within your main GUI loop
+void DrawExitEditorPopup(zelda3::OverworldExit &exit) {
+  if (ImGui::BeginPopupModal("Exit editor", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    static int room = 385;
+    static int scrollY = 0, centerY = 143, yPos = 128;
+    static int scrollX = 256, centerX = 397, xPos = 496;
+    static int doorType = 0;  // Normal door: None = 0, Wooden = 1, Bombable = 2
+    static int fancyDoorType =
+        0;  // Fancy door: None = 0, Sanctuary = 1, Palace = 2
+    static int map = 128, unk1 = 0, unk2 = 0;
+    static int linkPosture = 2, spriteGFX = 12;
+    static int bgGFX = 47, palette = 10, sprPal = 8;
+    static int top = 0, bottom = 32, left = 256, right = 256;
+    static int leftEdgeOfMap = 0;
+
+    ImGui::InputScalar("Room", ImGuiDataType_U8, &exit.room_id_);
+    ImGui::InputInt("Scroll Y", &scrollY);
+    ImGui::InputInt("Center Y", &centerY);
+    ImGui::InputInt("Y pos", &yPos);
+    ImGui::InputInt("Scroll X", &scrollX);
+    ImGui::InputInt("Center X", &centerX);
+    ImGui::InputInt("X pos", &xPos);
+
+    ImGui::RadioButton("None", &doorType, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("Wooden", &doorType, 1);
+    ImGui::SameLine();
+    ImGui::RadioButton("Bombable", &doorType, 2);
+    // If door type is not None, input positions
+    if (doorType != 0) {
+      ImGui::InputInt("Door X pos",
+                      &xPos);  // Placeholder for door's X position
+      ImGui::InputInt("Door Y pos",
+                      &yPos);  // Placeholder for door's Y position
+    }
+
+    ImGui::RadioButton("None##Fancy", &fancyDoorType, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("Sanctuary", &fancyDoorType
+
+                       ,
+                       1);
+    ImGui::SameLine();
+    ImGui::RadioButton("Palace", &fancyDoorType, 2);
+    // If fancy door type is not None, input positions
+    if (fancyDoorType != 0) {
+      ImGui::InputInt("Fancy Door X pos",
+                      &xPos);  // Placeholder for fancy door's X position
+      ImGui::InputInt("Fancy Door Y pos",
+                      &yPos);  // Placeholder for fancy door's Y position
+    }
+
+    ImGui::InputInt("Map", &map);
+    ImGui::InputInt("Unk1", &unk1);
+    ImGui::InputInt("Unk2", &unk2);
+
+    ImGui::InputInt("Link's posture", &linkPosture);
+    ImGui::InputInt("Sprite GFX", &spriteGFX);
+    ImGui::InputInt("BG GFX", &bgGFX);
+    ImGui::InputInt("Palette", &palette);
+    ImGui::InputInt("Spr Pal", &sprPal);
+
+    ImGui::InputInt("Top", &top);
+    ImGui::InputInt("Bottom", &bottom);
+    ImGui::InputInt("Left", &left);
+    ImGui::InputInt("Right", &right);
+
+    ImGui::InputInt("Left edge of map", &leftEdgeOfMap);
+
+    if (ImGui::Button("OK")) {
+      // Implement what happens when OK is pressed
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Cancel")) {
+      // Implement what happens when Cancel is pressed
+
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+}
+}  // namespace
 
 void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
+  int i = 0;
   for (auto &each : overworld_.Exits()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40)) {
@@ -332,8 +439,18 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
                               ImVec4(255, 255, 255, 150));
       std::string str = absl::StrFormat("%#x", each.entrance_id_);
       ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+
+      // Check if this entrance is being clicked and dragged
+      if (IsMouseHoveringOverExit(each, canvas_p0, scrolling) &&
+          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        current_exit_ = i;
+        OpenExitEditorPopup();
+      }
     }
+    i++;
   }
+
+  DrawExitEditorPopup(overworld_.mutable_exits()->at(current_exit_));
 }
 
 bool OverworldEditor::IsMouseHoveringOverEntrance(
