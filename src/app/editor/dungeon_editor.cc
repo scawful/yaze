@@ -61,7 +61,7 @@ absl::Status DungeonEditor::Update() {
   }
 
   TAB_BAR("##DungeonEditorTabBar")
-  TAB_ITEM("Dungeon Room Editor")
+  TAB_ITEM("Room Editor")
   UpdateDungeonRoomView();
   END_TAB_ITEM()
   TAB_ITEM("Usage Statistics")
@@ -432,19 +432,24 @@ void DungeonEditor::CalculateUsageStats() {
   }
 }
 
-namespace {
-template <typename T>
-void RenderSetUsage(const absl::flat_hash_map<T, int>& usage_map) {
+void DungeonEditor::RenderSetUsage(
+    const absl::flat_hash_map<uint16_t, int>& usage_map,
+    uint16_t& selected_set) {
   // Sort the usage map by set number
-  std::vector<std::pair<T, int>> sorted_usage(usage_map.begin(),
-                                              usage_map.end());
+  std::vector<std::pair<uint16_t, int>> sorted_usage(usage_map.begin(),
+                                                     usage_map.end());
   std::sort(sorted_usage.begin(), sorted_usage.end(),
             [](const auto& a, const auto& b) { return a.first < b.first; });
+
   for (const auto& [set, count] : sorted_usage) {
-    ImGui::Text("%#02x: %d uses", set, count);
+    auto display_str = absl::StrFormat("%#02x: %d", set, count);
+    if (ImGui::Selectable(display_str.c_str(), selected_set == set)) {
+      selected_set = set;  // Update the selected set when clicked
+    }
   }
 }
 
+namespace {
 // Calculate the unused sets in a usage map
 // Range for blocksets 0-0x24
 // Range for spritesets 0-0x8F
@@ -465,35 +470,144 @@ void RenderUnusedSets(const absl::flat_hash_map<T, int>& usage_map,
 }  // namespace
 
 void DungeonEditor::DrawUsageStats() {
-  if (ImGui::BeginTable("DungeonUsageStatsTable", 6, kDungeonTableFlags,
-                        ImVec2(0, 0))) {
+  if (ImGui::Button("Refresh")) {
+    CalculateUsageStats();
+    selected_blockset_ = 0xFFFF;
+    selected_spriteset_ = 0xFFFF;
+    selected_palette_ = 0xFFFF;
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  if (ImGui::BeginTable("DungeonUsageStatsTable", 8,
+                        kDungeonTableFlags | ImGuiTableFlags_SizingFixedFit,
+                        ImGui::GetContentRegionAvail())) {
     TableSetupColumn("Blockset Usage");
     TableSetupColumn("Unused Blockset");
     TableSetupColumn("Palette Usage");
     TableSetupColumn("Unused Palette");
     TableSetupColumn("Spriteset Usage");
     TableSetupColumn("Unused Spriteset");
+    TableSetupColumn("Usage Grid");
+    TableSetupColumn("Group Preview");
     TableHeadersRow();
+    ImGui::PopStyleVar(2);
 
     TableNextColumn();
-    RenderSetUsage(blockset_usage_);
+    ImGui::BeginChild("BlocksetUsageScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    RenderSetUsage(blockset_usage_, selected_blockset_);
+    ImGui::EndChild();
 
     TableNextColumn();
+    ImGui::BeginChild("UnusedBlocksetScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
     RenderUnusedSets(blockset_usage_, 0x25);
+    ImGui::EndChild();
 
     TableNextColumn();
-    RenderSetUsage(palette_usage_);
+    ImGui::BeginChild("PaletteUsageScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    RenderSetUsage(palette_usage_, selected_palette_);
+    ImGui::EndChild();
 
     TableNextColumn();
+    ImGui::BeginChild("UnusedPaletteScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
     RenderUnusedSets(palette_usage_, 0x48);
+    ImGui::EndChild();
 
     TableNextColumn();
-    RenderSetUsage(spriteset_usage_);
+
+    ImGui::BeginChild("SpritesetUsageScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    RenderSetUsage(spriteset_usage_, selected_spriteset_);
+    ImGui::EndChild();
 
     TableNextColumn();
+    ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
     RenderUnusedSets(spriteset_usage_, 0x90);
+    ImGui::EndChild();
+
+    TableNextColumn();
+    DrawUsageGrid();
+
+    TableNextColumn();
+    if (selected_blockset_ < 0x25) {
+      gfx_group_editor_.SetSelectedBlockset(selected_blockset_);
+      gfx_group_editor_.DrawBlocksetViewer(true);
+    } else if (selected_spriteset_ < 0x90) {
+      gfx_group_editor_.SetSelectedSpriteset(selected_spriteset_ + 0x40);
+      gfx_group_editor_.DrawSpritesetViewer(true);
+    }
   }
   ImGui::EndTable();
+}
+
+void DungeonEditor::DrawUsageGrid() {
+  // Create a grid of 295 small squares which is 16 squares wide
+  // Each square represents a room in the game
+  // When you hover a square it should show a hover tooltip with the properties
+  // of the room such as the blockset, spriteset, palette, etc. Calculate the
+  // number of rows
+  int totalSquares = 295;
+  int squaresWide = 16;
+  int squaresTall = (totalSquares + squaresWide - 1) /
+                    squaresWide;  // Ceiling of totalSquares/squaresWide
+
+  // Loop through each row
+  for (int row = 0; row < squaresTall; ++row) {
+    // Start a new line for each row
+    ImGui::NewLine();
+
+    // Loop through each column in the row
+    for (int col = 0; col < squaresWide; ++col) {
+      // Check if we have reached 295 squares
+      if (row * squaresWide + col >= totalSquares) {
+        break;
+      }
+      // Determine if this square should be highlighted
+      const auto& room = rooms_[row * squaresWide + col];
+      bool highlight = room.blockset == selected_blockset_ ||
+                       room.spriteset == selected_spriteset_ ||
+                       room.palette == selected_palette_;
+
+      // Set highlight color if needed
+      if (highlight) {
+        ImGui::PushStyleColor(
+            ImGuiCol_Button,
+            ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
+      }
+
+      // Create a button or selectable for each square
+      if (ImGui::Button("##square", ImVec2(20, 20))) {
+        // Handle button click event here
+      }
+
+      // Reset style if it was highlighted
+      if (highlight) {
+        ImGui::PopStyleColor();
+      }
+
+      // Check if the square is hovered
+      if (ImGui::IsItemHovered()) {
+        // Display a tooltip with all the room properties
+        ImGui::BeginTooltip();
+        ImGui::Text("Room ID: %d", row * squaresWide + col);
+        ImGui::Text("Blockset: %#02x", room.blockset);
+        ImGui::Text("Spriteset: %#02x", room.spriteset);
+        ImGui::Text("Palette: %#02x", room.palette);
+        ImGui::Text("Floor1: %#02x", room.floor1);
+        ImGui::Text("Floor2: %#02x", room.floor2);
+        ImGui::Text("Message ID: %#04x", room.message_id_);
+        ImGui::EndTooltip();
+      }
+
+      // Keep squares in the same line
+      ImGui::SameLine();
+    }
+  }
 }
 
 }  // namespace editor

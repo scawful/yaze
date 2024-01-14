@@ -5,6 +5,7 @@
 
 #include "app/core/common.h"
 #include "app/core/editor.h"
+#include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
@@ -41,7 +42,6 @@ class DungeonEditor : public Editor,
   absl::Status Redo() override { return absl::OkStatus(); }
 
  private:
-
   void UpdateDungeonRoomView();
 
   void DrawToolset();
@@ -56,6 +56,9 @@ class DungeonEditor : public Editor,
 
   void CalculateUsageStats();
   void DrawUsageStats();
+  void DrawUsageGrid();
+  void RenderSetUsage(const absl::flat_hash_map<uint16_t, int>& usage_map,
+                      uint16_t& selected_set);
 
   enum BackgroundType {
     kNoBackground,
@@ -82,6 +85,7 @@ class DungeonEditor : public Editor,
 
   ImVector<int> active_rooms_;
 
+  GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
   gfx::SNESPalette current_palette_;
   gfx::SNESPalette full_palette_;
@@ -102,6 +106,11 @@ class DungeonEditor : public Editor,
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;
   absl::flat_hash_map<uint16_t, int> blockset_usage_;
   absl::flat_hash_map<uint16_t, int> palette_usage_;
+
+  // Add member variables to track the selected set
+  uint16_t selected_blockset_ = 0xFFFF;  // 0xFFFF indicates no selection
+  uint16_t selected_spriteset_ = 0xFFFF;
+  uint16_t selected_palette_ = 0xFFFF;
 };
 
 }  // namespace editor

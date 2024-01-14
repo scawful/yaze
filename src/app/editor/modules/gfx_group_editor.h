@@ -8,13 +8,13 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/editor.h"
-#include "app/gui/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/gui/pipeline.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
@@ -26,6 +26,17 @@ namespace editor {
 class GfxGroupEditor : public SharedROM {
  public:
   absl::Status Update();
+
+  void DrawBlocksetViewer(bool sheet_only = false);
+  void DrawRoomsetViewer();
+  void DrawSpritesetViewer(bool sheet_only = false);
+  void DrawPaletteViewer();
+
+  void SetSelectedBlockset(uint8_t blockset) { selected_blockset_ = blockset; }
+  void SetSelectedRoomset(uint8_t roomset) { selected_roomset_ = roomset; }
+  void SetSelectedSpriteset(uint8_t spriteset) {
+    selected_spriteset_ = spriteset;
+  }
 
   void InitBlockset(gfx::Bitmap tile16_blockset);
 

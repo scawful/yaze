@@ -33,89 +33,15 @@ absl::Status GfxGroupEditor::Update() {
   if (ImGui::BeginTabBar("GfxGroupEditor")) {
     if (ImGui::BeginTabItem("Main")) {
       gui::InputHexByte("Selected Blockset", &selected_blockset_);
-      ImGui::Text("Values");
-      if (ImGui::BeginTable("##BlocksetTable", 2, ImGuiTableFlags_Borders,
-                            ImVec2(0, 0))) {
-        TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                         ImGui::GetContentRegionAvail().x);
-        TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
-        TableHeadersRow();
-        TableNextRow();
-        TableNextColumn();
-        {
-          ImGui::BeginGroup();
-          for (int i = 0; i < 8; i++) {
-            ImGui::SetNextItemWidth(100.f);
-            gui::InputHexByte(("##blockset0" + std::to_string(i)).c_str(),
-                              &rom()->main_blockset_ids[selected_blockset_][i]);
-            if (i != 3 && i != 7) {
-              SameLine();
-            }
-          }
-          ImGui::EndGroup();
-        }
-        TableNextColumn();
-        {
-          ImGui::BeginGroup();
-          for (int i = 0; i < 8; i++) {
-            int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
-            auto &sheet = *rom()->bitmap_manager()[sheet_id];
-            if (sheet_id != last_sheet_id_) {
-              last_sheet_id_ = sheet_id;
-              auto palette_group = rom()->palette_group("ow_main");
-              auto palette = palette_group[preview_palette_id_];
-              sheet.ApplyPalette(palette);
-              rom()->UpdateBitmap(&sheet);
-            }
-            gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
-                                      0x20, true, false, 22);
-          }
-          ImGui::EndGroup();
-        }
-        ImGui::EndTable();
-      }
 
+      DrawBlocksetViewer();
       ImGui::EndTabItem();
     }
 
     if (ImGui::BeginTabItem("Rooms")) {
       gui::InputHexByte("Selected Blockset", &selected_roomset_);
 
-      ImGui::Text("Values - Overwrites 4 of main blockset");
-      if (ImGui::BeginTable("##Roomstable", 2, ImGuiTableFlags_Borders,
-                            ImVec2(0, 0))) {
-        TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                         ImGui::GetContentRegionAvail().x);
-        TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
-        TableHeadersRow();
-        TableNextRow();
-        TableNextColumn();
-        {
-          ImGui::BeginGroup();
-          for (int i = 0; i < 4; i++) {
-            ImGui::SetNextItemWidth(100.f);
-            gui::InputHexByte(("##roomset0" + std::to_string(i)).c_str(),
-                              &rom()->room_blockset_ids[selected_roomset_][i]);
-            if (i != 3 && i != 7) {
-              SameLine();
-            }
-          }
-          ImGui::EndGroup();
-        }
-        TableNextColumn();
-        {
-          ImGui::BeginGroup();
-          for (int i = 0; i < 4; i++) {
-            int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
-            auto &sheet = *rom()->bitmap_manager()[sheet_id];
-            gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
-                                      0x20, true, false, 23);
-          }
-          ImGui::EndGroup();
-        }
-        ImGui::EndTable();
-      }
-
+      DrawRoomsetViewer();
       ImGui::EndTabItem();
     }
 
@@ -123,39 +49,7 @@ absl::Status GfxGroupEditor::Update() {
       gui::InputHexByte("Selected Spriteset", &selected_spriteset_);
 
       ImGui::Text("Values");
-      if (ImGui::BeginTable("##SpritesTable", 2, ImGuiTableFlags_Borders,
-                            ImVec2(0, 0))) {
-        TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                         ImGui::GetContentRegionAvail().x);
-        TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
-        TableHeadersRow();
-        TableNextRow();
-        TableNextColumn();
-        {
-          ImGui::BeginGroup();
-          for (int i = 0; i < 4; i++) {
-            ImGui::SetNextItemWidth(100.f);
-            gui::InputHexByte(("##spriteset0" + std::to_string(i)).c_str(),
-                              &rom()->spriteset_ids[selected_spriteset_][i]);
-            if (i != 3 && i != 7) {
-              SameLine();
-            }
-          }
-          ImGui::EndGroup();
-        }
-        TableNextColumn();
-        {
-          ImGui::BeginGroup();
-          for (int i = 0; i < 4; i++) {
-            int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
-            auto sheet = *rom()->bitmap_manager()[sheet_id];
-            gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256,
-                                      0x10 * 0x04, 0x20, true, false, 24);
-          }
-          ImGui::EndGroup();
-        }
-        ImGui::EndTable();
-      }
+      DrawSpritesetViewer();
       ImGui::EndTabItem();
     }
 
@@ -171,6 +65,135 @@ absl::Status GfxGroupEditor::Update() {
   ImGui::InputInt("##PreviewPaletteID", &preview_palette_id_);
 
   return absl::OkStatus();
+}
+
+void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
+  if (ImGui::BeginTable("##BlocksetTable", sheet_only ? 1 : 2,
+                        ImGuiTableFlags_Borders, ImVec2(0, 0))) {
+    if (!sheet_only) {
+      TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                       ImGui::GetContentRegionAvail().x);
+    }
+
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableHeadersRow();
+    TableNextRow();
+    if (!sheet_only) {
+      TableNextColumn();
+      {
+        ImGui::BeginGroup();
+        for (int i = 0; i < 8; i++) {
+          ImGui::SetNextItemWidth(100.f);
+          gui::InputHexByte(("##blockset0" + std::to_string(i)).c_str(),
+                            &rom()->main_blockset_ids[selected_blockset_][i]);
+          if (i != 3 && i != 7) {
+            SameLine();
+          }
+        }
+        ImGui::EndGroup();
+      }
+    }
+    TableNextColumn();
+    {
+      ImGui::BeginGroup();
+      for (int i = 0; i < 8; i++) {
+        int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
+        auto &sheet = *rom()->bitmap_manager()[sheet_id];
+        if (sheet_id != last_sheet_id_) {
+          last_sheet_id_ = sheet_id;
+          auto palette_group = rom()->palette_group("ow_main");
+          auto palette = palette_group[preview_palette_id_];
+          sheet.ApplyPalette(palette);
+          rom()->UpdateBitmap(&sheet);
+        }
+        gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
+                                  0x20, true, false, 22);
+      }
+      ImGui::EndGroup();
+    }
+    ImGui::EndTable();
+  }
+}
+
+void GfxGroupEditor::DrawRoomsetViewer() {
+  ImGui::Text("Values - Overwrites 4 of main blockset");
+  if (ImGui::BeginTable("##Roomstable", 2, ImGuiTableFlags_Borders,
+                        ImVec2(0, 0))) {
+    TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                     ImGui::GetContentRegionAvail().x);
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableHeadersRow();
+    TableNextRow();
+    TableNextColumn();
+    {
+      ImGui::BeginGroup();
+      for (int i = 0; i < 4; i++) {
+        ImGui::SetNextItemWidth(100.f);
+        gui::InputHexByte(("##roomset0" + std::to_string(i)).c_str(),
+                          &rom()->room_blockset_ids[selected_roomset_][i]);
+        if (i != 3 && i != 7) {
+          SameLine();
+        }
+      }
+      ImGui::EndGroup();
+    }
+    TableNextColumn();
+    {
+      ImGui::BeginGroup();
+      for (int i = 0; i < 4; i++) {
+        int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
+        auto &sheet = *rom()->bitmap_manager()[sheet_id];
+        gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
+                                  0x20, true, false, 23);
+      }
+      ImGui::EndGroup();
+    }
+    ImGui::EndTable();
+  }
+}
+
+void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
+  if (ImGui::BeginTable("##SpritesTable", sheet_only ? 1 : 2,
+                        ImGuiTableFlags_Borders, ImVec2(0, 0))) {
+    if (!sheet_only) {
+      TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
+                       ImGui::GetContentRegionAvail().x);
+    }
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableHeadersRow();
+    TableNextRow();
+    if (!sheet_only) {
+      TableNextColumn();
+      {
+        ImGui::BeginGroup();
+        for (int i = 0; i < 4; i++) {
+          ImGui::SetNextItemWidth(100.f);
+          gui::InputHexByte(("##spriteset0" + std::to_string(i)).c_str(),
+                            &rom()->spriteset_ids[selected_spriteset_][i]);
+          if (i != 3 && i != 7) {
+            SameLine();
+          }
+        }
+        ImGui::EndGroup();
+      }
+    }
+    TableNextColumn();
+    {
+      ImGui::BeginGroup();
+      for (int i = 0; i < 4; i++) {
+        int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
+        auto sheet = *rom()->bitmap_manager()[115 + sheet_id];
+        gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256, 0x10 * 0x04,
+                                  0x20, true, false, 24);
+      }
+      ImGui::EndGroup();
+    }
+    ImGui::EndTable();
+  }
+}
+
+void GfxGroupEditor::DrawPaletteViewer() {
+  // TODO: Implement palette viewer
 }
 
 void GfxGroupEditor::InitBlockset(gfx::Bitmap tile16_blockset) {
