@@ -85,9 +85,9 @@ class PaletteEditor : public SharedROM {
                             const gfx::SNESPalette& originalPalette);
   void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
   void DrawPortablePalette(gfx::SNESPalette& palette);
+  absl::Status DrawPaletteGroup(int category);
 
  private:
-  absl::Status DrawPaletteGroup(int category);
   absl::Status HandleColorPopup(gfx::SNESPalette& palette, int i, int j, int n);
 
   void InitializeSavedPalette(const gfx::SNESPalette& palette) {

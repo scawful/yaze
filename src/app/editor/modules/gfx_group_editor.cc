@@ -12,6 +12,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
@@ -54,6 +55,7 @@ absl::Status GfxGroupEditor::Update() {
     }
 
     if (ImGui::BeginTabItem("Palettes")) {
+      DrawPaletteViewer();
       ImGui::EndTabItem();
     }
 
@@ -84,7 +86,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
         ImGui::BeginGroup();
         for (int i = 0; i < 8; i++) {
           ImGui::SetNextItemWidth(100.f);
-          gui::InputHexByte(("##blockset0" + std::to_string(i)).c_str(),
+          gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
                             &rom()->main_blockset_ids[selected_blockset_][i]);
           if (i != 3 && i != 7) {
             SameLine();
@@ -129,7 +131,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       ImGui::BeginGroup();
       for (int i = 0; i < 4; i++) {
         ImGui::SetNextItemWidth(100.f);
-        gui::InputHexByte(("##roomset0" + std::to_string(i)).c_str(),
+        gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
                           &rom()->room_blockset_ids[selected_roomset_][i]);
         if (i != 3 && i != 7) {
           SameLine();
@@ -168,7 +170,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
         ImGui::BeginGroup();
         for (int i = 0; i < 4; i++) {
           ImGui::SetNextItemWidth(100.f);
-          gui::InputHexByte(("##spriteset0" + std::to_string(i)).c_str(),
+          gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
                             &rom()->spriteset_ids[selected_spriteset_][i]);
           if (i != 3 && i != 7) {
             SameLine();
@@ -192,8 +194,66 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
   }
 }
 
+namespace {
+void DrawPaletteFromPaletteGroup(gfx::SNESPalette &palette) {
+  for (int n = 0; n < palette.size(); n++) {
+    ImGui::PushID(n);
+    if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+
+    auto popup_id = absl::StrCat("Palette", n);
+
+    // Small icon of the color in the palette
+    if (gui::SNESColorButton(popup_id, palette[n],
+                             ImGuiColorEditFlags_NoAlpha |
+                                 ImGuiColorEditFlags_NoPicker |
+                                 ImGuiColorEditFlags_NoTooltip)) {
+    }
+
+    ImGui::PopID();
+  }
+}
+}  // namespace
+
 void GfxGroupEditor::DrawPaletteViewer() {
   // TODO: Implement palette viewer
+  static PaletteEditor palette_editor;
+  static uint8_t selected_paletteset = 0;
+
+  gui::InputHexByte("Selected Paletteset", &selected_paletteset);
+
+  gui::InputHexByte("Dungeon Main",
+                    &rom()->paletteset_ids[selected_paletteset][0]);
+  gui::InputHexByte("Dungeon Spr Pal 1",
+                    &rom()->paletteset_ids[selected_paletteset][1]);
+  gui::InputHexByte("Dungeon Spr Pal 2",
+                    &rom()->paletteset_ids[selected_paletteset][2]);
+  gui::InputHexByte("Dungeon Spr Pal 3",
+                    &rom()->paletteset_ids[selected_paletteset][3]);
+
+  auto &palette =
+      *rom()
+           ->mutable_palette_group(
+               "dungeon_main")[rom()->paletteset_ids[selected_paletteset][0]]
+           .mutable_palette(0);
+  DrawPaletteFromPaletteGroup(palette);
+  // auto &spr_aux_pal1 =
+  //     *rom()
+  //          ->mutable_palette_group(
+  //              "sprites_aux1")[rom()->paletteset_ids[selected_paletteset][1]]
+  //          .mutable_palette(0);
+  // DrawPaletteFromPaletteGroup(spr_aux_pal1);
+  // auto &spr_aux_pal2 =
+  //     *rom()
+  //          ->mutable_palette_group(
+  //              "sprites_aux2")[rom()->paletteset_ids[selected_paletteset][2]]
+  //          .mutable_palette(0);
+  // DrawPaletteFromPaletteGroup(spr_aux_pal2);
+  // auto &spr_aux_pal3 =
+  //     *rom()
+  //          ->mutable_palette_group(
+  //              "sprites_aux3")[rom()->paletteset_ids[selected_paletteset][3]]
+  //          .mutable_palette(0);
+  // DrawPaletteFromPaletteGroup(spr_aux_pal3);
 }
 
 void GfxGroupEditor::InitBlockset(gfx::Bitmap tile16_blockset) {
