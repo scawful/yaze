@@ -58,7 +58,7 @@ class DungeonEditor : public Editor,
   void DrawUsageStats();
   void DrawUsageGrid();
   void RenderSetUsage(const absl::flat_hash_map<uint16_t, int>& usage_map,
-                      uint16_t& selected_set);
+                      uint16_t& selected_set, int spriteset_offset = 0x00);
 
   enum BackgroundType {
     kNoBackground,
@@ -107,10 +107,17 @@ class DungeonEditor : public Editor,
   absl::flat_hash_map<uint16_t, int> blockset_usage_;
   absl::flat_hash_map<uint16_t, int> palette_usage_;
 
+  std::vector<int64_t> room_size_pointers_;
+
   // Add member variables to track the selected set
   uint16_t selected_blockset_ = 0xFFFF;  // 0xFFFF indicates no selection
   uint16_t selected_spriteset_ = 0xFFFF;
   uint16_t selected_palette_ = 0xFFFF;
+
+  uint64_t total_room_size_ = 0;
+
+  std::unordered_map<int, int> room_size_addresses_;
+  std::unordered_map<int, ImVec4> room_palette_;
 };
 
 }  // namespace editor
