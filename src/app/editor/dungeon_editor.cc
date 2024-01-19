@@ -29,14 +29,73 @@ using ImGui::TableSetupColumn;
 
 absl::Status DungeonEditor::Update() {
   if (!is_loaded_ && rom()->isLoaded()) {
-    for (int i = 0; i < 0x100; i++) {
+    // 295 - 256 = 39
+    for (int i = 0; i < 0x100 + 40; i++) {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
       rooms_[i].LoadRoomFromROM();
       if (flags()->kDrawDungeonRoomGraphics) {
         rooms_[i].LoadRoomGraphics();
       }
+
+      room_size_pointers_.push_back(rooms_[i].room_size_ptr());
+      if (rooms_[i].room_size_ptr() != 0x0A8000) {
+        room_size_addresses_[i] = rooms_[i].room_size_ptr();
+      }
+
+      auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
+      ASSIGN_OR_RETURN(auto paletteid,
+                       rom()->ReadWord(0xDEC4B + dungeon_palette_ptr));
+      int pId = paletteid / 180;
+      auto color = rom()->palette_group("dungeon_main")[pId][3];
+
+      room_palette_[rooms_[i].palette] = color.GetRGB();
     }
+
+    std::map<int, std::vector<int>> roomsByBank;
+    for (const auto& room : room_size_addresses_) {
+      int bank = room.second >> 16;
+      roomsByBank[bank].push_back(room.second);
+    }
+
+    // Process and calculate room sizes within each bank
+    for (auto& bankRooms : roomsByBank) {
+      // Sort the rooms within this bank
+      std::sort(bankRooms.second.begin(), bankRooms.second.end());
+
+      for (size_t i = 0; i < bankRooms.second.size(); ++i) {
+        int roomPtr = bankRooms.second[i];
+
+        // Identify the room ID for the current room pointer
+        int roomId = std::find_if(room_size_addresses_.begin(),
+                                  room_size_addresses_.end(),
+                                  [roomPtr](const auto& entry) {
+                                    return entry.second == roomPtr;
+                                  })
+                         ->first;
+
+        if (roomPtr != 0x0A8000) {
+          if (i < bankRooms.second.size() - 1) {
+            // Calculate size as difference between current room and next room
+            // in the same bank
+            rooms_[roomId].set_room_size(bankRooms.second[i + 1] - roomPtr);
+          } else {
+            // Calculate size for the last room in this bank
+
+            int bankEndAddress = (bankRooms.first << 16) | 0xFFFF;
+            rooms_[roomId].set_room_size(bankEndAddress - roomPtr + 1);
+          }
+          total_room_size_ += rooms_[roomId].room_size();
+        } else {
+          // Room with address 0x0A8000
+          rooms_[roomId].set_room_size(0x00);
+        }
+
+        // Load a color from the palette for the room to use with the color
+        // button
+      }
+    }
+
     graphics_bin_ = rom()->graphics_bin();
     full_palette_ =
         rom()->palette_group("dungeon_main")[current_palette_group_id_];
@@ -243,7 +302,6 @@ void DungeonEditor::DrawDungeonTabView() {
         // Room is already open
         next_tab_id++;
       }
-
       active_rooms_.push_back(next_tab_id++);  // Add new tab
     }
 
@@ -433,8 +491,8 @@ void DungeonEditor::CalculateUsageStats() {
 }
 
 void DungeonEditor::RenderSetUsage(
-    const absl::flat_hash_map<uint16_t, int>& usage_map,
-    uint16_t& selected_set) {
+    const absl::flat_hash_map<uint16_t, int>& usage_map, uint16_t& selected_set,
+    int spriteset_offset) {
   // Sort the usage map by set number
   std::vector<std::pair<uint16_t, int>> sorted_usage(usage_map.begin(),
                                                      usage_map.end());
@@ -442,7 +500,14 @@ void DungeonEditor::RenderSetUsage(
             [](const auto& a, const auto& b) { return a.first < b.first; });
 
   for (const auto& [set, count] : sorted_usage) {
-    auto display_str = absl::StrFormat("%#02x: %d", set, count);
+    std::string display_str;
+    if (spriteset_offset != 0x00) {
+      display_str = absl::StrFormat("%#02x, %#02x: %d", set,
+                                    (set + spriteset_offset), count);
+    } else {
+      display_str =
+          absl::StrFormat("%#02x: %d", (set + spriteset_offset), count);
+    }
     if (ImGui::Selectable(display_str.c_str(), selected_set == set)) {
       selected_set = set;  // Update the selected set when clicked
     }
@@ -455,8 +520,8 @@ namespace {
 // Range for spritesets 0-0x8F
 // Range for palettes 0-0x47
 template <typename T>
-void RenderUnusedSets(const absl::flat_hash_map<T, int>& usage_map,
-                      int max_set) {
+void RenderUnusedSets(const absl::flat_hash_map<T, int>& usage_map, int max_set,
+                      int spriteset_offset = 0x00) {
   std::vector<int> unused_sets;
   for (int i = 0; i < max_set; i++) {
     if (usage_map.find(i) == usage_map.end()) {
@@ -464,17 +529,24 @@ void RenderUnusedSets(const absl::flat_hash_map<T, int>& usage_map,
     }
   }
   for (const auto& set : unused_sets) {
-    ImGui::Text("%#02x", set);
+    if (spriteset_offset != 0x00) {
+      ImGui::Text("%#02x, %#02x", set, (set + spriteset_offset));
+    } else {
+      ImGui::Text("%#02x", set);
+    }
   }
 }
 }  // namespace
 
 void DungeonEditor::DrawUsageStats() {
   if (ImGui::Button("Refresh")) {
-    CalculateUsageStats();
     selected_blockset_ = 0xFFFF;
     selected_spriteset_ = 0xFFFF;
     selected_palette_ = 0xFFFF;
+    spriteset_usage_.clear();
+    blockset_usage_.clear();
+    palette_usage_.clear();
+    CalculateUsageStats();
   }
 
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
@@ -521,17 +593,24 @@ void DungeonEditor::DrawUsageStats() {
 
     ImGui::BeginChild("SpritesetUsageScroll", ImVec2(0, 0), true,
                       ImGuiWindowFlags_HorizontalScrollbar);
-    RenderSetUsage(spriteset_usage_, selected_spriteset_);
+    RenderSetUsage(spriteset_usage_, selected_spriteset_, 0x40);
     ImGui::EndChild();
 
     TableNextColumn();
     ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
                       ImGuiWindowFlags_HorizontalScrollbar);
-    RenderUnusedSets(spriteset_usage_, 0x90);
+    RenderUnusedSets(spriteset_usage_, 0x90, 0x40);
     ImGui::EndChild();
 
     TableNextColumn();
+    ImGui::BeginChild("UsageGrid", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::Text("%s",
+                absl::StrFormat("Total size of all rooms: %d hex format: %#06x",
+                                total_room_size_, total_room_size_)
+                    .c_str());
     DrawUsageGrid();
+    ImGui::EndChild();
 
     TableNextColumn();
     if (selected_blockset_ < 0x25) {
@@ -551,7 +630,7 @@ void DungeonEditor::DrawUsageGrid() {
   // When you hover a square it should show a hover tooltip with the properties
   // of the room such as the blockset, spriteset, palette, etc. Calculate the
   // number of rows
-  int totalSquares = 295;
+  int totalSquares = 296;
   int squaresWide = 16;
   int squaresTall = (totalSquares + squaresWide - 1) /
                     squaresWide;  // Ceiling of totalSquares/squaresWide
@@ -569,6 +648,24 @@ void DungeonEditor::DrawUsageGrid() {
       }
       // Determine if this square should be highlighted
       const auto& room = rooms_[row * squaresWide + col];
+
+      // Create a button or selectable for each square
+      ImGui::BeginGroup();
+      ImVec4 color = room_palette_[room.palette];
+      color.x = color.x / 255;
+      color.y = color.y / 255;
+      color.z = color.z / 255;
+      color.w = 1.0f;
+      if (rooms_[row * squaresWide + col].room_size() > 0xFFFF) {
+        color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);  // Or any highlight color
+      }
+      if (rooms_[row * squaresWide + col].room_size() == 0) {
+        color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);  // Or any highlight color
+      }
+      ImGui::PushStyleColor(ImGuiCol_Button, color);
+      // Make the button text darker
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+
       bool highlight = room.blockset == selected_blockset_ ||
                        room.spriteset == selected_spriteset_ ||
                        room.palette == selected_palette_;
@@ -579,11 +676,21 @@ void DungeonEditor::DrawUsageGrid() {
             ImGuiCol_Button,
             ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
       }
-
-      // Create a button or selectable for each square
-      if (ImGui::Button("##square", ImVec2(20, 20))) {
-        // Handle button click event here
+      if (ImGui::Button(absl::StrFormat(
+                            "%#x", rooms_[row * squaresWide + col].room_size())
+                            .c_str(),
+                        ImVec2(55, 30))) {
+        // Switch over to the room editor tab
+        // and add a room tab by the ID of the square
+        // that was clicked
       }
+      if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+        ImGui::OpenPopup(
+            absl::StrFormat("RoomContextMenu%d", row * squaresWide + col)
+                .c_str());
+      }
+      ImGui::PopStyleColor(2);
+      ImGui::EndGroup();
 
       // Reset style if it was highlighted
       if (highlight) {
@@ -601,6 +708,8 @@ void DungeonEditor::DrawUsageGrid() {
         ImGui::Text("Floor1: %#02x", room.floor1);
         ImGui::Text("Floor2: %#02x", room.floor2);
         ImGui::Text("Message ID: %#04x", room.message_id_);
+        ImGui::Text("Size: %#06x", room.room_size());
+        ImGui::Text("Size Pointer: %#06x", room.room_size_ptr());
         ImGui::EndTooltip();
       }
 
