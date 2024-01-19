@@ -210,6 +210,8 @@ struct PaletteGroup {
 
   explicit PaletteGroup(uint8_t mSize);
 
+  auto mutable_palette(int i) { return &palettes[i]; }
+
   absl::Status AddPalette(SNESPalette pal) {
     palettes.emplace_back(pal);
     size_ = palettes.size();
