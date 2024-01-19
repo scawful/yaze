@@ -138,6 +138,9 @@ class Room : public SharedROM {
   auto layer1() const { return background_bmps_[0]; }
   auto layer2() const { return background_bmps_[1]; }
   auto layer3() const { return background_bmps_[2]; }
+  auto room_size() const { return room_size_; }
+  auto room_size_ptr() const { return room_size_pointer_; }
+  auto set_room_size(uint64_t size) { room_size_ = size; }
 
   RoomObject AddObject(short oid, uint8_t x, uint8_t y, uint8_t size,
                        uint8_t layer) {
@@ -182,6 +185,9 @@ class Room : public SharedROM {
   uint8_t floor2_graphics_;
   uint8_t layer2_mode_;
 
+  uint64_t room_size_;
+  int64_t room_size_pointer_;
+
   std::array<uint8_t, 16> blocks_;
   std::array<uchar, 16> chest_list_;
 
@@ -198,6 +204,8 @@ class Room : public SharedROM {
 
   std::vector<ChestData> chests_in_room_;
   std::vector<RoomObject> tile_objects_;
+
+  std::vector<int> room_addresses_;
 };
 
 }  // namespace dungeon

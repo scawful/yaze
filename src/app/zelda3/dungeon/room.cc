@@ -56,6 +56,70 @@ void Room::LoadHeader() {
   staircase_rooms_[1] = (rom()->data()[header_location + 11]);
   staircase_rooms_[2] = (rom()->data()[header_location + 12]);
   staircase_rooms_[3] = (rom()->data()[header_location + 13]);
+
+  // Calculate the size of the room based on how many objects are used per room
+  // Some notes from hacker Zarby89
+  // vanilla rooms are using in average ~0x80 bytes
+  // a "normal" person who wants more details than vanilla will use around 0x100
+  // bytes per rooms you could fit 128 rooms like that in 1 bank
+  // F8000 I don't remember if that's PC or snes tho
+  // Check last rooms
+  // F8000+(roomid*3)
+  // So we want to search the rom() object at this addressed based on the room
+  // ID since it's the roomid * 3 we will by pulling 3 bytes at a time We can do
+  // this with the rom()->ReadByteVector(addr, size)
+  try {
+    // Existing room size address calculation...
+    auto room_size_address = 0xF8000 + (room_id_ * 3);
+
+    std::cout << "Room #" << room_id_ << " Address: " << std::hex
+              << room_size_address << std::endl;
+
+    // Reading bytes for long address construction
+    uint8_t low = rom()->data()[room_size_address];
+    uint8_t high = rom()->data()[room_size_address + 1];
+    uint8_t bank = rom()->data()[room_size_address + 2];
+
+    // Constructing the long address
+    int long_address = (bank << 16) | (high << 8) | low;
+    std::cout << std::hex << std::setfill('0') << std::setw(6) << long_address
+              << std::endl;
+    room_size_pointer_ = long_address;
+
+    if (long_address == 0x0A8000) {
+      // Blank room disregard in size calculation
+      std::cout << "Size of Room #" << room_id_ << ": 0 bytes" << std::endl;
+      room_size_ = 0;
+    } else {
+      // use the long address to calculate the size of the room
+      // we will use the room_id_ to calculate the next room's address
+      // and subtract the two to get the size of the room
+
+      int next_room_address = 0xF8000 + ((room_id_ + 1) * 3);
+
+      std::cout << "Next Room Address: " << std::hex << next_room_address
+                << std::endl;
+
+      // Reading bytes for long address construction
+      uint8_t next_low = rom()->data()[next_room_address];
+      uint8_t next_high = rom()->data()[next_room_address + 1];
+      uint8_t next_bank = rom()->data()[next_room_address + 2];
+
+      // Constructing the long address
+      int next_long_address = (next_bank << 16) | (next_high << 8) | next_low;
+
+      std::cout << std::hex << std::setfill('0') << std::setw(6)
+                << next_long_address << std::endl;
+
+      // Calculate the size of the room
+      int room_size = next_long_address - long_address;
+      std::cout << "Size of Room #" << room_id_ << ": " << std::dec << room_size
+                << " bytes" << std::endl;
+      room_size_ = room_size;
+    }
+  } catch (const std::exception& e) {
+    std::cout << "Error: " << e.what() << std::endl;
+  }
 }
 
 void Room::LoadRoomFromROM() {
