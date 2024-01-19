@@ -112,6 +112,7 @@ class Canvas {
   }
 
   auto set_current_labels(int i) { current_labels_ = i; }
+  auto set_highlight_tile_id(int i) { highlight_tile_id = i; }
 
  private:
   bool enable_grid_ = true;
@@ -125,6 +126,7 @@ class Canvas {
   float global_scale_ = 1.0f;
 
   int current_labels_ = 0;
+  int highlight_tile_id = -1;
 
   ImDrawList* draw_list_;
   ImVector<ImVec2> points_;

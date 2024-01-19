@@ -463,6 +463,17 @@ void Canvas::DrawGrid(float grid_step) {
                           ImVec2(canvas_p1_.x, canvas_p0_.y + y),
                           IM_COL32(200, 200, 200, 50), 0.5f);
 
+    if (highlight_tile_id != -1) {
+      int tile_x = highlight_tile_id % 8;
+      int tile_y = highlight_tile_id / 8;
+      ImVec2 tile_pos(canvas_p0_.x + scrolling_.x + tile_x * grid_step,
+                      canvas_p0_.y + scrolling_.y + tile_y * grid_step);
+      ImVec2 tile_pos_end(tile_pos.x + grid_step, tile_pos.y + grid_step);
+
+      draw_list_->AddRectFilled(tile_pos, tile_pos_end,
+                                IM_COL32(255, 0, 255, 255));
+    }
+
     if (enable_hex_tile_labels_) {
       // Draw the hex ID of the tile in the center of the tile square
       for (float x = fmodf(scrolling_.x, grid_step);
