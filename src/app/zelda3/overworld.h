@@ -352,6 +352,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveMap16Tiles();
   absl::Status SaveMap32Tiles();
 
+  auto overworld_maps() const { return overworld_maps_; }
   auto overworld_map(int i) const { return overworld_maps_[i]; }
   auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
   auto mutable_exits() { return &all_exits_; }
@@ -420,6 +421,14 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   std::vector<OverworldEntrance> all_holes_;
   std::vector<OverworldExit> all_exits_;
   std::vector<std::vector<Sprite>> all_sprites_;
+
+  enum UsageStatEnum {
+    Entrance = 1,
+    Exit = 2,
+    Sprite = 3,
+    Hole = 4,
+  };
+  std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
 
   absl::flat_hash_map<int, MapData> proto_map_data_;
 
