@@ -89,6 +89,12 @@ class OverworldEditor : public Editor,
   absl::Status LoadGraphics();
 
  private:
+  absl::Status UpdateOverworldEdit();
+  absl::Status UpdateUsageStats();
+
+  void DrawUsageGrid();
+  void CalculateUsageStats();
+
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
 
@@ -115,6 +121,8 @@ class OverworldEditor : public Editor,
   absl::Status LoadSpriteGraphics();
   absl::Status DrawExperimentalModal();
 
+  auto gfx_group_editor() const { return gfx_group_editor_; }
+
   enum class EditingMode {
     DRAW_TILE,
     ENTRANCES,
@@ -133,6 +141,10 @@ class OverworldEditor : public Editor,
   int selected_tile_ = 0;
   int game_state_ = 0;
   int current_exit_ = 0;
+
+  int selected_entrance_ = 0;
+  int selected_usage_map_ = 0xFFFF;
+
   char map_gfx_[3] = "";
   char map_palette_[3] = "";
   char spr_gfx_[3] = "";
@@ -179,6 +191,7 @@ class OverworldEditor : public Editor,
   gui::Canvas current_gfx_canvas_;
   gui::Canvas blockset_canvas_;
   gui::Canvas graphics_bin_canvas_;
+  gui::Canvas properties_canvas_;
 
   gfx::SNESPalette palette_;
   gfx::Bitmap selected_tile_bmp_;
