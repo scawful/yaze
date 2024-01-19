@@ -10,6 +10,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
+#include "app/core/constants.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -49,6 +50,25 @@ absl::Status OverworldEditor::Update() {
     map_blockset_loaded_ = false;
   }
 
+  TAB_BAR("##OWEditorTabBar")
+  TAB_ITEM("Map Editor")
+  status_ = UpdateOverworldEdit();
+  END_TAB_ITEM()
+  TAB_ITEM("Usage Statistics")
+  status_ = UpdateUsageStats();
+  END_TAB_ITEM()
+  END_TAB_BAR()
+
+  if (!status_.ok()) {
+    auto temp = status_;
+    status_ = absl::OkStatus();
+    return temp;
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::UpdateOverworldEdit() {
   // Draws the toolset for editing the Overworld.
   RETURN_IF_ERROR(DrawToolset())
 
@@ -64,14 +84,99 @@ absl::Status OverworldEditor::Update() {
     DrawTileSelector();
     ImGui::EndTable();
   }
-
-  if (!status_.ok()) {
-    auto temp = status_;
-    status_ = absl::OkStatus();
-    return temp;
-  }
-
   return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::UpdateUsageStats() {
+  if (ImGui::BeginTable("##UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
+    TableSetupColumn("Entrances");
+    TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch,
+                     ImGui::GetContentRegionAvail().x);
+    TableSetupColumn("Usage", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableHeadersRow();
+    TableNextRow();
+
+    TableNextColumn();
+    ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    for (int i = 0; i < 0x81; i++) {
+      std::string str = absl::StrFormat("%#x", i);
+      if (ImGui::Selectable(str.c_str(), selected_entrance_ == i,
+                            overworld_.Entrances().at(i).deleted
+                                ? ImGuiSelectableFlags_Disabled
+                                : 0)) {
+        selected_entrance_ = i;
+        selected_usage_map_ = overworld_.Entrances().at(i).map_id_;
+        properties_canvas_.set_highlight_tile_id(selected_usage_map_);
+      }
+    }
+    ImGui::EndChild();
+
+    TableNextColumn();
+    DrawUsageGrid();
+    TableNextColumn();
+    DrawOverworldProperties();
+    ImGui::EndTable();
+  }
+  return absl::OkStatus();
+}
+
+void OverworldEditor::CalculateUsageStats() {
+  absl::flat_hash_map<uint16_t, int> entrance_usage;
+  for (auto each_entrance : overworld_.Entrances()) {
+    if (each_entrance.map_id_ < 0x40 + (current_world_ * 0x40) &&
+        each_entrance.map_id_ >= (current_world_ * 0x40)) {
+      entrance_usage[each_entrance.entrance_id_]++;
+    }
+  }
+}
+
+void OverworldEditor::DrawUsageGrid() {
+  // Create a grid of 8x8 squares
+  int totalSquares = 128;
+  int squaresWide = 8;
+  int squaresTall = (totalSquares + squaresWide - 1) /
+                    squaresWide;  // Ceiling of totalSquares/squaresWide
+
+  // Loop through each row
+  for (int row = 0; row < squaresTall; ++row) {
+    ImGui::NewLine();
+
+    for (int col = 0; col < squaresWide; ++col) {
+      if (row * squaresWide + col >= totalSquares) {
+        break;
+      }
+      // Determine if this square should be highlighted
+      bool highlight = selected_usage_map_ == (row * squaresWide + col);
+
+      // Set highlight color if needed
+      if (highlight) {
+        ImGui::PushStyleColor(
+            ImGuiCol_Button,
+            ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
+      }
+
+      // Create a button or selectable for each square
+      if (ImGui::Button("##square", ImVec2(20, 20))) {
+        // Switch over to the room editor tab
+        // and add a room tab by the ID of the square
+        // that was clicked
+      }
+
+      // Reset style if it was highlighted
+      if (highlight) {
+        ImGui::PopStyleColor();
+      }
+
+      // Check if the square is hovered
+      if (ImGui::IsItemHovered()) {
+        // Display a tooltip with all the room properties
+      }
+
+      // Keep squares in the same line
+      ImGui::SameLine();
+    }
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -205,33 +310,30 @@ absl::Status OverworldEditor::DrawToolset() {
 
 void OverworldEditor::DrawOverworldProperties() {
   static bool init_properties = false;
-  static gui::Canvas properties_canvas;
 
   if (!init_properties) {
     for (int i = 0; i < 0x40; i++) {
       std::string area_graphics_str = absl::StrFormat(
           "0x%02hX", overworld_.overworld_map(i).area_graphics());
-      properties_canvas.mutable_labels(0)->push_back(area_graphics_str);
+      properties_canvas_.mutable_labels(0)->push_back(area_graphics_str);
     }
     for (int i = 0; i < 0x40; i++) {
       std::string area_palette_str = absl::StrFormat(
           "0x%02hX", overworld_.overworld_map(i).area_palette());
-      properties_canvas.mutable_labels(1)->push_back(area_palette_str);
+      properties_canvas_.mutable_labels(1)->push_back(area_palette_str);
     }
     init_properties = true;
   }
 
   if (ImGui::Button("Area Graphics")) {
-    properties_canvas.set_current_labels(0);
+    properties_canvas_.set_current_labels(0);
   }
-
-  ImGui::SameLine();
 
   if (ImGui::Button("Area Palette")) {
-    properties_canvas.set_current_labels(1);
+    properties_canvas_.set_current_labels(1);
   }
 
-  properties_canvas.UpdateInfoGrid(ImVec2(512, 512), 16, 1.0f, 64);
+  properties_canvas_.UpdateInfoGrid(ImVec2(512, 512), 16, 1.0f, 64);
 }
 
 // ----------------------------------------------------------------------------
