@@ -5,6 +5,7 @@ add_executable(
   cli/command_handler.cc
   app/rom.cc
   app/core/common.cc
+  app/core/labeling.cc
   app/gui/pipeline.cc
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}

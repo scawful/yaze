@@ -36,6 +36,7 @@ add_executable(
   ../src/app/gfx/snes_palette.cc
   ../src/app/gfx/compression.cc
   ../src/app/core/common.cc
+  ../src/app/core/labeling.cc
   # ${ASAR_STATIC_SRC}
 )
 

@@ -2,6 +2,7 @@ set(
   YAZE_APP_CORE_SRC
   app/core/common.cc
   app/core/controller.cc
+  app/core/labeling.cc
 )
 
 set(

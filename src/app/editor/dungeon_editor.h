@@ -5,6 +5,7 @@
 
 #include "app/core/common.h"
 #include "app/core/editor.h"
+#include "app/core/labeling.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gui/canvas.h"
@@ -109,7 +110,6 @@ class DungeonEditor : public Editor,
 
   std::vector<int64_t> room_size_pointers_;
 
-  // Add member variables to track the selected set
   uint16_t selected_blockset_ = 0xFFFF;  // 0xFFFF indicates no selection
   uint16_t selected_spriteset_ = 0xFFFF;
   uint16_t selected_palette_ = 0xFFFF;
