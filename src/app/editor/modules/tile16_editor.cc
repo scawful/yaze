@@ -71,8 +71,7 @@ absl::Status Tile16Editor::Update() {
 
     // Create a tab for Tile16 Transfer
     if (BeginTabItem("Tile16 Transfer")) {
-      if (BeginTable("#Tile16TransferTable", 2,
-                     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
+      if (BeginTable("#Tile16TransferTable", 2, TABLE_BORDERS_RESIZABLE,
                      ImVec2(0, 0))) {
         TableSetupColumn("Current ROM Tiles", ImGuiTableColumnFlags_WidthFixed,
                          ImGui::GetContentRegionAvail().x / 2);
@@ -145,7 +144,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile16_edit_canvas_.DrawBitmap(current_tile16_bmp_, 0, 0, 4.0f);
     tile16_edit_canvas_.HandleTileEdits(
         tile8_source_canvas_, current_gfx_individual_, current_tile8_bmp_,
-        current_tile8_, 2.0f);
+        current_tile8_, 4.0f);
 
     tile16_edit_canvas_.DrawGrid(128.0f);
     tile16_edit_canvas_.DrawOverlay();
