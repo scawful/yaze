@@ -2,6 +2,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "absl/strings/string_view.h"
 
@@ -174,6 +175,18 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
     ImGui::SameLine();
   } else if (flags & ItemLabelFlag::Right)
     ImGui::SetCursorScreenPos(lineStart);
+}
+
+bool ListBox(const char* label, int* current_item,
+             const std::vector<std::string>& items, int height_in_items) {
+  std::vector<const char*> items_ptr;
+  items_ptr.reserve(items.size());
+  for (const auto& item : items) {
+    items_ptr.push_back(item.c_str());
+  }
+  int items_count = static_cast<int>(items.size());
+  return ImGui::ListBox(label, current_item, items_ptr.data(), items_count,
+                        height_in_items);
 }
 
 }  // namespace gui

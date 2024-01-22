@@ -81,6 +81,41 @@ class Bitmap {
     }
   }
 
+  void Get16x16Tile(int tile_index, int x, int y,
+                    std::vector<uint8_t> &tile_data, int &tile_data_offset) {
+    int tile_offset = tile_index * (width_ * height_);
+    int tile_x = x * 16;
+    int tile_y = y * 16;
+    for (int i = 0; i < 16; i++) {
+      int row_offset = tile_offset + ((i / 8) * (width_ * 8));
+      for (int j = 0; j < 16; j++) {
+        int pixel_offset =
+            row_offset + ((j / 8) * 8) + ((i % 8) * width_) + (j % 8);
+        int pixel_value = data_[pixel_offset];
+        tile_data[tile_data_offset] = pixel_value;
+        tile_data_offset++;
+      }
+    }
+  }
+
+  void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
+                    int &tile_data_offset) {
+    // Assuming 'width_' and 'height_' are the dimensions of the bitmap
+    // and 'data_' is the bitmap data.
+    for (int ty = 0; ty < 16; ty++) {
+      for (int tx = 0; tx < 16; tx++) {
+        // Calculate the pixel position in the bitmap
+        int pixel_x = tile_x + tx;
+        int pixel_y = tile_y + ty;
+        int pixel_offset = pixel_y * width_ + pixel_x;
+        int pixel_value = data_[pixel_offset];
+
+        // Store the pixel value in the tile data
+        tile_data[tile_data_offset++] = pixel_value;
+      }
+    }
+  }
+
   void WriteColor(int position, const ImVec4 &color) {
     // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
     SDL_Color sdl_color;

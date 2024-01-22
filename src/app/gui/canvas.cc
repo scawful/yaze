@@ -63,7 +63,7 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale,
   DrawOverlay();
 }
 
-void Canvas::DrawBackground(ImVec2 canvas_size) {
+void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
   canvas_p0_ = ImGui::GetCursorScreenPos();
   if (!custom_canvas_size_) canvas_sz_ = ImGui::GetContentRegionAvail();
   if (canvas_size.x != 0) canvas_sz_ = canvas_size;
@@ -72,25 +72,36 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   draw_list_ = ImGui::GetWindowDrawList();  // Draw border and background color
   draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, kRectangleColor);
   draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
+
+  const ImGuiIO &io = ImGui::GetIO();
+  auto scaled_sz =
+      ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
+  ImGui::InvisibleButton("canvas", scaled_sz, kMouseFlags);
+
+  if (can_drag) {
+    const bool is_active = ImGui::IsItemActive();  // Held
+    const ImVec2 origin(canvas_p0_.x + scrolling_.x,
+                        canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
+    const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+    // Pan (we use a zero mouse threshold when there's no context menu)
+    if (const float mouse_threshold_for_pan =
+            enable_context_menu_ ? -1.0f : 0.0f;
+        is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right,
+                                            mouse_threshold_for_pan)) {
+      scrolling_.x += io.MouseDelta.x;
+      scrolling_.y += io.MouseDelta.y;
+    }
+  }
 }
 
 void Canvas::DrawContextMenu() {
   const ImGuiIO &io = ImGui::GetIO();
   auto scaled_sz =
       ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
-  ImGui::InvisibleButton("canvas", scaled_sz, kMouseFlags);
-  const bool is_active = ImGui::IsItemActive();  // Held
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-  // Pan (we use a zero mouse threshold when there's no context menu)
-  if (const float mouse_threshold_for_pan = enable_context_menu_ ? -1.0f : 0.0f;
-      is_active &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan)) {
-    scrolling_.x += io.MouseDelta.x;
-    scrolling_.y += io.MouseDelta.y;
-  }
 
   // Context menu (under default mouse threshold)
   if (ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
@@ -117,18 +128,22 @@ void Canvas::DrawContextMenu() {
       ImGui::EndMenu();
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("8x8", nullptr, custom_step_ == 8.0f)) {
-      custom_step_ = 8.0f;
+    if (ImGui::BeginMenu("Grid Tile Size")) {
+      if (ImGui::MenuItem("8x8", nullptr, custom_step_ == 8.0f)) {
+        custom_step_ = 8.0f;
+      }
+      if (ImGui::MenuItem("16x16", nullptr, custom_step_ == 16.0f)) {
+        custom_step_ = 16.0f;
+      }
+      if (ImGui::MenuItem("32x32", nullptr, custom_step_ == 32.0f)) {
+        custom_step_ = 32.0f;
+      }
+      if (ImGui::MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
+        custom_step_ = 64.0f;
+      }
+      ImGui::EndMenu();
     }
-    if (ImGui::MenuItem("16x16", nullptr, custom_step_ == 16.0f)) {
-      custom_step_ = 16.0f;
-    }
-    if (ImGui::MenuItem("32x32", nullptr, custom_step_ == 32.0f)) {
-      custom_step_ = 32.0f;
-    }
-    if (ImGui::MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
-      custom_step_ = 64.0f;
-    }
+
     ImGui::EndPopup();
   }
 }
@@ -374,6 +389,23 @@ void Canvas::DrawOutline(int x, int y, int w, int h) {
   draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 255));
 }
 
+void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
+  draw_list_->AddRect(origin, size,
+                      IM_COL32(color.x, color.y, color.z, color.w));
+}
+
+void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
+  draw_list_->AddRect(origin, size, color);
+}
+
 void Canvas::DrawSelectRect(int tile_size, float scale) {
   const ImGuiIO &io = ImGui::GetIO();
   static ImVec2 drag_start_pos;
@@ -445,23 +477,27 @@ void Canvas::DrawText(std::string text, int x, int y) {
       IM_COL32(255, 255, 255, 255), text.data());
 }
 
-void Canvas::DrawGrid(float grid_step) {
+void Canvas::DrawGridLines(float grid_step) {
+  for (float x = fmodf(scrolling_.x, grid_step);
+       x < canvas_sz_.x * global_scale_; x += grid_step)
+    draw_list_->AddLine(ImVec2(canvas_p0_.x + x, canvas_p0_.y),
+                        ImVec2(canvas_p0_.x + x, canvas_p1_.y),
+                        IM_COL32(200, 200, 200, 50), 0.5f);
+  for (float y = fmodf(scrolling_.y, grid_step);
+       y < canvas_sz_.y * global_scale_; y += grid_step)
+    draw_list_->AddLine(ImVec2(canvas_p0_.x, canvas_p0_.y + y),
+                        ImVec2(canvas_p1_.x, canvas_p0_.y + y),
+                        IM_COL32(200, 200, 200, 50), 0.5f);
+}
+
+void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
   // Draw grid + all lines in the canvas
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
   if (enable_grid_) {
     if (custom_step_ != 0.f) grid_step = custom_step_;
-
     grid_step *= global_scale_;  // Apply global scale to grid step
-    for (float x = fmodf(scrolling_.x, grid_step);
-         x < canvas_sz_.x * global_scale_; x += grid_step)
-      draw_list_->AddLine(ImVec2(canvas_p0_.x + x, canvas_p0_.y),
-                          ImVec2(canvas_p0_.x + x, canvas_p1_.y),
-                          IM_COL32(200, 200, 200, 50), 0.5f);
-    for (float y = fmodf(scrolling_.y, grid_step);
-         y < canvas_sz_.y * global_scale_; y += grid_step)
-      draw_list_->AddLine(ImVec2(canvas_p0_.x, canvas_p0_.y + y),
-                          ImVec2(canvas_p1_.x, canvas_p0_.y + y),
-                          IM_COL32(200, 200, 200, 50), 0.5f);
+
+    DrawGridLines(grid_step);
 
     if (highlight_tile_id != -1) {
       int tile_x = highlight_tile_id % 8;
@@ -499,15 +535,16 @@ void Canvas::DrawGrid(float grid_step) {
              y < canvas_sz_.y * global_scale_; y += grid_step) {
           int tile_x = (x - scrolling_.x) / grid_step;
           int tile_y = (y - scrolling_.y) / grid_step;
-          int tile_id = tile_x + (tile_y * 8);
+          int tile_id = tile_x + (tile_y * tile_id_offset);
 
           if (tile_id >= labels_[current_labels_].size()) {
             break;
           }
           std::string label = labels_[current_labels_][tile_id];
-          draw_list_->AddText(ImVec2(canvas_p0_.x + x + (grid_step / 2) - 8,
-                                     canvas_p0_.y + y + (grid_step / 2) - 8),
-                              IM_COL32(255, 255, 255, 255), label.data());
+          draw_list_->AddText(
+              ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
+                     canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
+              IM_COL32(255, 255, 255, 255), label.data());
         }
       }
     }
