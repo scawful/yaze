@@ -3,6 +3,7 @@
 #include <imgui/imgui.h>
 
 #include "app/core/common.h"
+#include "app/core/labeling.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
@@ -279,8 +280,11 @@ void DungeonEditor::DrawRoomSelector() {
                           ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
       int i = 0;
       for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
-        ImGui::Selectable(each_room_name.data(), current_room_id_ == i,
-                          ImGuiSelectableFlags_AllowDoubleClick);
+        // ImGui::Selectable(each_room_name.data(), current_room_id_ == i,
+        //                   ImGuiSelectableFlags_AllowDoubleClick);
+        rom()->resource_label()->SelectableLabelWithNameEdit(
+            current_room_id_ == i, "Dungeon Room Names", each_room_name.data(),
+            zelda3::dungeon::kRoomNames[i].data());
         if (ImGui::IsItemClicked()) {
           active_rooms_.push_back(i);
         }

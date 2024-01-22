@@ -31,7 +31,8 @@
 #include "absl/strings/string_view.h"  // for string_view
 #include "app/core/common.h"
 #include "app/core/constants.h"  // for Bytes, uchar, armorPalettes
-#include "app/gfx/bitmap.h"      // for Bitmap, BitmapTable
+#include "app/core/labeling.h"
+#include "app/gfx/bitmap.h"  // for Bitmap, BitmapTable
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"  // for PaletteGroup, SNESColor
 #include "app/gfx/snes_tile.h"
@@ -559,6 +560,8 @@ class ROM : public core::ExperimentFlags {
     return false;
   }
 
+  auto resource_label() { return &resource_label_manager_; }
+
  private:
   long size_ = 0;
   bool is_loaded_ = false;
@@ -575,6 +578,7 @@ class ROM : public core::ExperimentFlags {
   gfx::BitmapTable link_graphics_;
   gfx::SNESPalette link_palette_;
   PaletteGroupMap palette_groups_;
+  core::ResourceLabelManager resource_label_manager_;
 
   std::stack<std::function<void()>> changes_;
   std::shared_ptr<SDL_Renderer> renderer_;
