@@ -33,7 +33,7 @@ using ImGui::TableNextColumn;
 using ImGui::Text;
 
 void Emulator::Run() {
-  if (!snes_.running() && rom()->isLoaded()) {
+  if (!snes_.running() && rom()->is_loaded()) {
     snes_.SetupMemory(*rom());
     snes_.Init(*rom());
   }
