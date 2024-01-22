@@ -28,7 +28,12 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using ImGui::BeginTabBar;
+using ImGui::BeginTabItem;
+using ImGui::BeginTable;
 using ImGui::Button;
+using ImGui::EndTabBar;
+using ImGui::EndTabItem;
 using ImGui::Separator;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
@@ -37,12 +42,12 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 absl::Status OverworldEditor::Update() {
-  if (rom()->isLoaded() && !all_gfx_loaded_) {
+  if (rom()->is_loaded() && !all_gfx_loaded_) {
     RETURN_IF_ERROR(tile16_editor_.InitBlockset(
         tile16_blockset_bmp_, current_gfx_bmp_, tile16_individual_));
     gfx_group_editor_.InitBlockset(tile16_blockset_bmp_);
     all_gfx_loaded_ = true;
-  } else if (!rom()->isLoaded() && all_gfx_loaded_) {
+  } else if (!rom()->is_loaded() && all_gfx_loaded_) {
     // TODO: Destroy the overworld graphics canvas.
     // Reset the editor if the ROM is unloaded
     Shutdown();
@@ -55,16 +60,13 @@ absl::Status OverworldEditor::Update() {
   status_ = UpdateOverworldEdit();
   END_TAB_ITEM()
   TAB_ITEM("Usage Statistics")
-  status_ = UpdateUsageStats();
+  if (rom()->is_loaded()) {
+    status_ = UpdateUsageStats();
+  }
   END_TAB_ITEM()
   END_TAB_BAR()
 
-  if (!status_.ok()) {
-    auto temp = status_;
-    status_ = absl::OkStatus();
-    return temp;
-  }
-
+  CLEAR_AND_RETURN_STATUS(status_);
   return absl::OkStatus();
 }
 
@@ -72,7 +74,7 @@ absl::Status OverworldEditor::UpdateOverworldEdit() {
   // Draws the toolset for editing the Overworld.
   RETURN_IF_ERROR(DrawToolset())
 
-  if (ImGui::BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
+  if (BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
     TableSetupColumn("Tile Selector", ImGuiTableColumnFlags_WidthFixed, 256);
@@ -88,7 +90,7 @@ absl::Status OverworldEditor::UpdateOverworldEdit() {
 }
 
 absl::Status OverworldEditor::UpdateUsageStats() {
-  if (ImGui::BeginTable("##UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
+  if (BeginTable("##UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Entrances");
     TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
@@ -186,7 +188,7 @@ absl::Status OverworldEditor::DrawToolset() {
   static bool show_tile16 = false;
   static bool show_properties = false;
 
-  if (ImGui::BeginTable("OWToolset", 20, kToolsetTableFlags, ImVec2(0, 0))) {
+  if (BeginTable("OWToolset", 20, kToolsetTableFlags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -269,7 +271,7 @@ absl::Status OverworldEditor::DrawToolset() {
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
     TableNextColumn();  // Palette
-    palette_editor_.DisplayPalette(palette_, overworld_.isLoaded());
+    palette_editor_.DisplayPalette(palette_, overworld_.is_loaded());
 
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
@@ -339,7 +341,7 @@ void OverworldEditor::DrawOverworldProperties() {
 // ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawOverworldMapSettings() {
-  if (ImGui::BeginTable(kOWMapTable.data(), 7, kOWMapFlags, ImVec2(0, 0), -1)) {
+  if (BeginTable(kOWMapTable.data(), 7, kOWMapFlags, ImVec2(0, 0), -1)) {
     for (const auto &name : {"##1stCol", "##gfxCol", "##palCol", "##sprgfxCol",
                              "##sprpalCol", "##msgidCol", "##2ndCol"})
       ImGui::TableSetupColumn(name);
@@ -752,7 +754,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     ow_map_canvas_.DrawBackground(ImVec2(0x200 * 8, 0x200 * 8));
     ImGui::PopStyleVar(2);
     ow_map_canvas_.DrawContextMenu();
-    if (overworld_.isLoaded()) {
+    if (overworld_.is_loaded()) {
       DrawOverworldMaps();
       DrawOverworldEntrances(ow_map_canvas_.zero_point(),
                              ow_map_canvas_.Scrolling());
@@ -761,7 +763,7 @@ void OverworldEditor::DrawOverworldCanvas() {
       if (flags()->kDrawOverworldSprites) {
         DrawOverworldSprites();
       }
-      CheckForCurrentMap();
+      //CheckForCurrentMap();
       CheckForOverworldEdits();
     }
     ow_map_canvas_.DrawGrid(64.0f);
@@ -797,29 +799,29 @@ void OverworldEditor::DrawTile8Selector() {
 }
 
 void OverworldEditor::DrawTileSelector() {
-  if (ImGui::BeginTabBar(kTileSelectorTab.data(),
-                         ImGuiTabBarFlags_FittingPolicyScroll)) {
-    if (ImGui::BeginTabItem("Tile16")) {
+  if (BeginTabBar(kTileSelectorTab.data(),
+                  ImGuiTabBarFlags_FittingPolicyScroll)) {
+    if (BeginTabItem("Tile16")) {
       gui::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
                                 (8192 * 2), 0x20, map_blockset_loaded_, true,
                                 1);
-      ImGui::EndTabItem();
+      EndTabItem();
     }
-    if (ImGui::BeginTabItem("Tile8")) {
+    if (BeginTabItem("Tile8")) {
       if (ImGui::BeginChild("##tile8viewer", ImGui::GetContentRegionAvail(),
                             true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawTile8Selector();
       }
       ImGui::EndChild();
-      ImGui::EndTabItem();
+      EndTabItem();
     }
-    if (ImGui::BeginTabItem("Area Graphics")) {
+    if (BeginTabItem("Area Graphics")) {
       gui::BitmapCanvasPipeline(current_gfx_canvas_, current_gfx_bmp_, 256,
-                                0x10 * 0x40, 0x20, overworld_.isLoaded(), true,
+                                0x10 * 0x40, 0x20, overworld_.is_loaded(), true,
                                 3);
-      ImGui::EndTabItem();
+      EndTabItem();
     }
-    ImGui::EndTabBar();
+    EndTabBar();
   }
 }
 

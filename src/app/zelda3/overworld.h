@@ -373,7 +373,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto Tile16Blockset() const {
     return overworld_maps_[current_map_].Tile16Blockset();
   }
-  auto isLoaded() const { return is_loaded_; }
+  auto is_loaded() const { return is_loaded_; }
   void SetCurrentMap(int i) { current_map_ = i; }
 
   auto MapTiles() const { return map_tiles_; }
