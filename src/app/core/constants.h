@@ -325,30 +325,6 @@ constexpr int customAreaSpecificBGEnabled =
     0x140140;  // 1 byte, not 0 if enabled
 
 // ============================================================================
-// Dungeon Map Related Variables
-// ============================================================================
-
-constexpr int dungeonMap_rooms_ptr = 0x57605;  // 14 pointers of map data
-constexpr int dungeonMap_floors = 0x575D9;     // 14 words values
-
-constexpr int dungeonMap_gfx_ptr = 0x57BE4;  // 14 pointers of gfx data
-
-// data start for floors/gfx MUST skip 575D9 to 57621 (pointers)
-constexpr int dungeonMap_datastart = 0x57039;
-
-// IF Byte = 0xB9 dungeon maps are not expanded
-constexpr int dungeonMap_expCheck = 0x56652;
-constexpr int dungeonMap_tile16 = 0x57009;
-constexpr int dungeonMap_tile16Exp = 0x109010;
-
-// 14 words values 0x000F = no boss
-constexpr int dungeonMap_bossrooms = 0x56807;
-constexpr int triforceVertices = 0x04FFD2;  // group of 3, X, Y ,Z
-constexpr int TriforceFaces = 0x04FFE4;     // group of 5
-
-constexpr int crystalVertices = 0x04FF98;
-
-// ============================================================================
 // Names
 // ============================================================================
 
