@@ -215,8 +215,6 @@ void DrawPaletteFromPaletteGroup(gfx::SNESPalette &palette) {
 }  // namespace
 
 void GfxGroupEditor::DrawPaletteViewer() {
-  // TODO: Implement palette viewer
-  static PaletteEditor palette_editor;
   static uint8_t selected_paletteset = 0;
 
   gui::InputHexByte("Selected Paletteset", &selected_paletteset);

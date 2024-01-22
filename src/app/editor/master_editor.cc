@@ -130,7 +130,7 @@ absl::Status MasterEditor::Update() {
   DrawAboutPopup();
   DrawInfoPopup();
 
-  if (rom()->isLoaded() && !rom_assets_loaded_) {
+  if (rom()->is_loaded() && !rom_assets_loaded_) {
     // Initialize overworld graphics, maps, and palettes
     RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
     rom_assets_loaded_ = true;
@@ -307,10 +307,10 @@ void MasterEditor::DrawFileMenu() {
       ImGui::EndMenu();
     }
 
-    MENU_ITEM2("Save", "Ctrl+S") { status_ = rom()->SaveToFile(backup_rom_); }
+    MENU_ITEM2("Save", "Ctrl+S") { SaveRom(); }
     MENU_ITEM("Save As..") { save_as_menu = true; }
 
-    if (rom()->isLoaded()) {
+    if (rom()->is_loaded()) {
       MENU_ITEM("Reload") { status_ = rom()->Reload(); }
       MENU_ITEM("Close") { status_ = rom()->Close(); }
     }
@@ -336,6 +336,7 @@ void MasterEditor::DrawFileMenu() {
                       &mutable_flags()->kSaveWithChangeQueue);
       ImGui::Checkbox("Draw Dungeon Room Graphics",
                       &mutable_flags()->kDrawDungeonRoomGraphics);
+      ImGui::Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
       ImGui::EndMenu();
     }
 
@@ -353,7 +354,7 @@ void MasterEditor::DrawFileMenu() {
     ImGui::Begin("Save As..", &save_as_menu, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::InputText("Filename", &save_as_filename);
     if (ImGui::Button("Save", gui::kDefaultModalSize)) {
-      status_ = rom()->SaveToFile(backup_rom_, save_as_filename);
+      SaveRom();
       save_as_menu = false;
     }
     ImGui::SameLine();
@@ -477,6 +478,14 @@ void MasterEditor::DrawHelpMenu() {
     }
     ImGui::EndPopup();
   }
+}
+
+void MasterEditor::SaveRom() {
+  if (flags()->kSaveDungeonMaps) {
+    status_ = screen_editor_.SaveDungeonMaps();
+    PRINT_IF_ERROR(status_);
+  }
+  status_ = rom()->SaveToFile(backup_rom_);
 }
 
 }  // namespace editor

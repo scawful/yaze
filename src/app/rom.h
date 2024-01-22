@@ -437,7 +437,7 @@ class ROM : public core::ExperimentFlags {
   auto push_back(uint8_t byte) { rom_data_.push_back(byte); }
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
-  auto isLoaded() const { return is_loaded_; }
+  auto is_loaded() const { return is_loaded_; }
   auto version() const { return version_; }
 
   uchar& operator[](int i) {
