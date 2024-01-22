@@ -91,7 +91,7 @@ void PaletteEditor::ResetColorToOriginal(
 }
 
 absl::Status PaletteEditor::DrawPaletteGroup(int category) {
-  if (!rom()->isLoaded()) {
+  if (!rom()->is_loaded()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
 

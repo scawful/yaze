@@ -64,13 +64,13 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
     status_ = UpdateGfxSheetList();
 
     NEXT_COLUMN();
-    if (rom()->isLoaded()) {
+    if (rom()->is_loaded()) {
       DrawGfxEditToolset();
       status_ = UpdateGfxTabView();
     }
 
     NEXT_COLUMN();
-    if (rom()->isLoaded()) {
+    if (rom()->is_loaded()) {
       status_ = UpdatePaletteColumn();
     }
   }
@@ -319,7 +319,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 
   auto palette = palette_group[edit_palette_index_];
 
-  if (rom()->isLoaded()) {
+  if (rom()->is_loaded()) {
     gui::TextWithSeparators("ROM Palette");
     ImGui::SetNextItemWidth(100.f);
     ImGui::Combo("Palette Group", (int*)&edit_palette_group_name_index_,
@@ -543,7 +543,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   gui::ButtonPipe("Copy COL Path",
                   [this]() { ImGui::SetClipboardText(col_file_path_); });
 
-  if (rom()->isLoaded()) {
+  if (rom()->is_loaded()) {
     gui::TextWithSeparators("ROM Palette");
     gui::InputHex("Palette Index", &current_palette_index_);
     ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
@@ -648,7 +648,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::InputHex("Num Sheets", &num_sheets_to_load_);
 
   gui::ButtonPipe("Decompress Clipboard Data", [this]() {
-    if (temp_rom_.isLoaded()) {
+    if (temp_rom_.is_loaded()) {
       status_ = DecompressImportData(0x40000);
     } else {
       status_ = absl::InvalidArgumentError(
@@ -694,7 +694,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
   bin_bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
                      converted_sheet);
 
-  if (rom()->isLoaded()) {
+  if (rom()->is_loaded()) {
     auto palette_group = rom()->palette_group("ow_main");
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {

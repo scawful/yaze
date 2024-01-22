@@ -13,7 +13,7 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 absl::Status SpriteEditor::Update() {
-  if (rom()->isLoaded() && !sheets_loaded_) {
+  if (rom()->is_loaded() && !sheets_loaded_) {
     // Load the values for current_sheets_ array
 
     sheets_loaded_ = true;

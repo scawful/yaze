@@ -29,8 +29,7 @@ using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 
 absl::Status DungeonEditor::Update() {
-  if (!is_loaded_ && rom()->isLoaded()) {
-    // 295 - 256 = 39
+  if (!is_loaded_ && rom()->is_loaded()) {
     for (int i = 0; i < 0x100 + 40; i++) {
       rooms_.emplace_back(zelda3::dungeon::Room(i));
       rooms_[i].LoadHeader();
@@ -91,9 +90,6 @@ absl::Status DungeonEditor::Update() {
           // Room with address 0x0A8000
           rooms_[roomId].set_room_size(0x00);
         }
-
-        // Load a color from the palette for the room to use with the color
-        // button
       }
     }
 
@@ -271,7 +267,7 @@ void DungeonEditor::DrawToolset() {
 }
 
 void DungeonEditor::DrawRoomSelector() {
-  if (rom()->isLoaded()) {
+  if (rom()->is_loaded()) {
     gui::InputHexWord("Room ID", &current_room_id_);
     gui::InputHex("Palette ID", &current_palette_id_);
 

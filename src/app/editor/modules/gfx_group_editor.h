@@ -47,6 +47,8 @@ class GfxGroupEditor : public SharedROM {
   uint8_t selected_roomset_ = 0;
   uint8_t selected_spriteset_ = 0;
 
+  PaletteEditor palette_editor_;
+
   gui::Canvas blockset_canvas_;
   gui::Canvas roomset_canvas_;
   gui::Canvas spriteset_canvas_;
