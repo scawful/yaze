@@ -9,11 +9,26 @@
 #include <stack>
 #include <string>
 
+#include "absl/strings/str_format.h"
+
 namespace yaze {
 namespace app {
 namespace core {
 
 std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
+
+std::string UppercaseHexByte(uint8_t byte) {
+  std::string result = absl::StrFormat("0x%02X", byte);
+  return result;
+}
+std::string UppercaseHexWord(uint16_t word) {
+  std::string result = absl::StrFormat("0x%04x", word);
+  return result;
+}
+std::string UppercaseHexLong(uint32_t dword) {
+  std::string result = absl::StrFormat("0x%08x", dword);
+  return result;
+}
 
 uint32_t SnesToPc(uint32_t addr) {
   if (addr >= 0x808000) {

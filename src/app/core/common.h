@@ -209,6 +209,10 @@ class ImGuiIdIssuer {
   }
 };
 
+std::string UppercaseHexByte(uint8_t byte);
+std::string UppercaseHexWord(uint16_t word);
+std::string UppercaseHexLong(uint32_t dword);
+
 uint32_t SnesToPc(uint32_t addr);
 uint32_t PcToSnes(uint32_t addr);
 
