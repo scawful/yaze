@@ -49,7 +49,11 @@ class ExperimentFlags {
     // only supports macOS.
     bool kLoadSystemFonts = true;
 
+    // Uses texture streaming from SDL for my dynamic updates.
     bool kLoadTexturesAsStreaming = false;
+
+    // Save dungeon map edits to the ROM.
+    bool kSaveDungeonMaps = false;
   };
 
   ExperimentFlags() = default;

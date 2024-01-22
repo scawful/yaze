@@ -38,7 +38,7 @@ class Canvas {
 
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
-  void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
+  void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0), bool drag = false);
 
   // Context Menu refers to what happens when the right mouse button is pressed
   // This routine also handles the scrolling for the canvas.
@@ -75,10 +75,14 @@ class Canvas {
 
   void DrawBitmapTable(const BitmapTable& gfx_bin);
   void DrawOutline(int x, int y, int w, int h);
+  void DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color);
+  void DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color);
   void DrawSelectRect(int tile_size, float scale = 1.0f);
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
   void DrawText(std::string text, int x, int y);
-  void DrawGrid(float grid_step = 64.0f);
+  void DrawGridLines(float grid_step);
+  void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
+
   void DrawOverlay();  // last
 
   auto Points() const { return points_; }
@@ -97,6 +101,21 @@ class Canvas {
 
   void set_global_scale(float scale) { global_scale_ = scale; }
   auto global_scale() const { return global_scale_; }
+  auto custom_labels_enabled() const { return enable_custom_labels_; }
+
+  void LoadCustomLabels(
+      std::vector<std::array<std::string, 25>> custom_labels) {
+    // Initialize labels
+    for (int i = 0; i < custom_labels.size(); i++) {
+      labels_.push_back(ImVector<std::string>());
+    }
+    for (int i = 0; i < custom_labels.size(); i++) {
+      for (int j = 0; j < custom_labels[i].size(); j++) {
+        labels_[i].push_back(custom_labels[i][j]);
+      }
+    }
+    enable_custom_labels_ = true;
+  }
 
   auto labels(int i) {
     if (i >= labels_.size()) {

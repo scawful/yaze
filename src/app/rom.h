@@ -418,7 +418,12 @@ class ROM : public core::ExperimentFlags {
   auto mutable_palette_group(const std::string& group) {
     return &palette_groups_[group];
   }
+  auto dungeon_palette(int i) { return palette_groups_["dungeon_main"][i]; }
+  auto mutable_dungeon_palette(int i) {
+    return palette_groups_["dungeon_main"].mutable_palette(i);
+  }
 
+  // Full graphical data for the game
   Bytes graphics_buffer() const { return graphics_buffer_; }
 
   gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
