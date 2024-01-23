@@ -144,17 +144,17 @@ void Canvas::DrawContextMenu() {
       }
       ImGui::EndMenu();
     }
-    ImGui::Separator();
-    if (ImGui::BeginMenu("Palette")) {
-      for (const auto each : editor::kPaletteGroupAddressesKeys) {
-        if (ImGui::BeginMenu(each)) {
-          // Apply the palette to the current bitmap
-          
-        }
-        ImGui::EndMenu();
-      }
-      ImGui::EndMenu();
-    }
+
+    // TODO: Add a menu item for selecting the palette
+    // ImGui::Separator();
+    // if (ImGui::BeginMenu("Palette")) {
+    //   for (const auto each : editor::kPaletteGroupAddressesKeys) {
+    //     if (ImGui::BeginMenu(each)) {
+    //     }
+    //     ImGui::EndMenu();
+    //   }
+    //   ImGui::EndMenu();
+    // }
 
     ImGui::EndPopup();
   }
