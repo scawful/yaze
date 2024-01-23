@@ -113,6 +113,7 @@ class RecentFilesManager {
 }  // namespace
 
 using ImGui::BeginMenu;
+using ImGui::Checkbox;
 using ImGui::MenuItem;
 using ImGui::Text;
 
@@ -203,7 +204,7 @@ void MasterEditor::DrawAboutPopup() {
   if (about_) ImGui::OpenPopup("About");
   if (ImGui::BeginPopupModal("About", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Yet Another Zelda3 Editor - v0.05");
+    Text("Yet Another Zelda3 Editor - v%d", core::kYazeVersion);
     Text("Written by: scawful");
     ImGui::Spacing();
     Text("Special Thanks: Zarby89, JaredBrian");
@@ -321,22 +322,20 @@ void MasterEditor::DrawFileMenu() {
       MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::Separator();
       Text("Experiment Flags");
-      ImGui::Checkbox("Enable Texture Streaming",
-                      &mutable_flags()->kLoadTexturesAsStreaming);
-      ImGui::Checkbox("Enable Overworld Sprites",
-                      &mutable_flags()->kDrawOverworldSprites);
-      ImGui::Checkbox("Use Bitmap Manager",
-                      &mutable_flags()->kUseBitmapManager);
-      ImGui::Checkbox("Log Instructions to Debugger",
-                      &mutable_flags()->kLogInstructions);
-      ImGui::Checkbox("Use New ImGui Input",
-                      &mutable_flags()->kUseNewImGuiInput);
-      ImGui::Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
-      ImGui::Checkbox("Save With Change Queue",
-                      &mutable_flags()->kSaveWithChangeQueue);
-      ImGui::Checkbox("Draw Dungeon Room Graphics",
-                      &mutable_flags()->kDrawDungeonRoomGraphics);
-      ImGui::Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
+      Checkbox("Enable Texture Streaming",
+               &mutable_flags()->kLoadTexturesAsStreaming);
+      Checkbox("Enable Overworld Sprites",
+               &mutable_flags()->kDrawOverworldSprites);
+      Checkbox("Use Bitmap Manager", &mutable_flags()->kUseBitmapManager);
+      Checkbox("Log Instructions to Debugger",
+               &mutable_flags()->kLogInstructions);
+      Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
+      Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
+      Checkbox("Save With Change Queue",
+               &mutable_flags()->kSaveWithChangeQueue);
+      Checkbox("Draw Dungeon Room Graphics",
+               &mutable_flags()->kDrawDungeonRoomGraphics);
+      Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
       ImGui::EndMenu();
     }
 
@@ -389,6 +388,7 @@ void MasterEditor::DrawViewMenu() {
   static bool show_memory_viewer = false;
   static bool show_palette_editor = false;
   static bool show_emulator = false;
+  static bool show_resource_label_manager = false;
 
   if (show_emulator) {
     ImGui::Begin("Emulator", &show_emulator, ImGuiWindowFlags_MenuBar);
@@ -442,12 +442,20 @@ void MasterEditor::DrawViewMenu() {
     ImGui::End();
   }
 
+  if (show_resource_label_manager) {
+    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
+  }
+
   if (BeginMenu("View")) {
     MenuItem("Emulator", nullptr, &show_emulator);
-    MenuItem("HEX Editor", nullptr, &show_memory_editor);
-    MenuItem("ASM Editor", nullptr, &show_asm_editor);
-    MenuItem("Palette Editor", nullptr, &show_palette_editor);
     MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
+    ImGui::Separator();
+    MenuItem("Resource Label Manager", nullptr, &show_resource_label_manager);
+    ImGui::Separator();
+    MenuItem("Hex Editor", nullptr, &show_memory_editor);
+    MenuItem("Assembly Editor", nullptr, &show_asm_editor);
+    MenuItem("Palette Editor", nullptr, &show_palette_editor);
+    ImGui::Separator();
     MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
     MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
     ImGui::EndMenu();

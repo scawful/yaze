@@ -347,6 +347,10 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
     LoadGfxGroups();
   }
 
+  // Set up the resource labels
+  std::string resource_label_filename = absl::StrFormat("%s.labels", filename);
+  resource_label_manager_.LoadLabels(resource_label_filename);
+
   // Set is_loaded_ flag and return success
   is_loaded_ = true;
   return absl::OkStatus();

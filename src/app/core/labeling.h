@@ -26,7 +26,8 @@ class ResourceLabelManager {
   ResourceLabelManager() = default;
 
   bool LoadLabels(const std::string& filename);
-  void DisplayLabels();
+  bool SaveLabels();
+  void DisplayLabels(bool* p_open);
   void EditLabel(const std::string& type, const std::string& key,
                  const std::string& newValue);
   void SelectableLabelWithNameEdit(bool selected, const std::string& type,
@@ -36,6 +37,8 @@ class ResourceLabelManager {
                                const std::string& defaultValue);
 
  private:
+  bool labels_loaded_ = false;
+  std::string filename_;
   struct ResourceType {
     std::string key_name;
     std::string display_description;

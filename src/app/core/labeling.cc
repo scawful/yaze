@@ -20,8 +20,18 @@ namespace core {
 bool ResourceLabelManager::LoadLabels(const std::string& filename) {
   std::ifstream file(filename);
   if (!file.is_open()) {
-    return false;
+    // Create the file if it does not exist
+    std::ofstream create_file(filename);
+    if (!create_file.is_open()) {
+      return false;
+    }
+    create_file.close();
+    file.open(filename);
+    if (!file.is_open()) {
+      return false;
+    }
   }
+  filename_ = filename;
 
   std::string line;
   while (std::getline(file, line)) {
@@ -32,11 +42,35 @@ bool ResourceLabelManager::LoadLabels(const std::string& filename) {
       labels_[type][key] = value;
     }
   }
+  labels_loaded_ = true;
   return true;
 }
 
-void ResourceLabelManager::DisplayLabels() {
-  if (ImGui::Begin("Resource Labels")) {
+bool ResourceLabelManager::SaveLabels() {
+  if (!labels_loaded_) {
+    return false;
+  }
+  std::ofstream file(filename_);
+  if (!file.is_open()) {
+    return false;
+  }
+  for (const auto& type_pair : labels_) {
+    for (const auto& label_pair : type_pair.second) {
+      file << type_pair.first << "," << label_pair.first << ","
+           << label_pair.second << std::endl;
+    }
+  }
+  file.close();
+  return true;
+}
+
+void ResourceLabelManager::DisplayLabels(bool* p_open) {
+  if (!labels_loaded_) {
+    ImGui::Text("No labels loaded.");
+    return;
+  }
+
+  if (ImGui::Begin("Resource Labels", p_open)) {
     for (const auto& type_pair : labels_) {
       if (ImGui::TreeNode(type_pair.first.c_str())) {
         for (const auto& label_pair : type_pair.second) {
@@ -45,6 +79,14 @@ void ResourceLabelManager::DisplayLabels() {
                       label_pair.second.c_str());
         }
         ImGui::TreePop();
+      }
+    }
+
+    if (ImGui::Button("Update Labels")) {
+      if (SaveLabels()) {
+        ImGui::Text("Labels updated successfully!");
+      } else {
+        ImGui::Text("Failed to update labels.");
       }
     }
   }
