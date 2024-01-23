@@ -196,6 +196,10 @@ void MasterEditor::DrawStatusPopup() {
     if (ImGui::Button("OK", gui::kDefaultModalSize)) {
       show_status_ = false;
     }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_CONTENT_COPY, ImVec2(50, 0))) {
+      ImGui::SetClipboardText(prev_status_.ToString().c_str());
+    }
     ImGui::End();
   }
 }
