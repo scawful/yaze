@@ -7,8 +7,9 @@ namespace yaze {
 namespace app {
 namespace gui {
 
-void BeginWindowWithDisplaySettings(const char* id, bool* active, const ImVec2& size,
-                    ImGuiWindowFlags flags) {
+void BeginWindowWithDisplaySettings(const char* id, bool* active,
+                                    const ImVec2& size,
+                                    ImGuiWindowFlags flags) {
   ImGuiStyle* ref = &ImGui::GetStyle();
   static float childBgOpacity = 0.75f;
   auto color = ImVec4(0.f, 0.f, 0.f, childBgOpacity);
@@ -29,6 +30,31 @@ void BeginWindowWithDisplaySettings(const char* id, bool* active, const ImVec2& 
 void EndWindowWithDisplaySettings() {
   ImGui::End();
   ImGui::PopStyleColor(3);
+}
+
+void BeginPadding(int i) {
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(i, i));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(i, i));
+}
+void EndPadding() { EndNoPadding(); }
+
+void BeginNoPadding() {
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+}
+void EndNoPadding() { ImGui::PopStyleVar(2); }
+
+void BeginChildWithScrollbar(int id) {
+  ImGuiID child_id = ImGui::GetID((void*)(intptr_t)id);
+  ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+}
+
+void BeginChildBothScrollbars(int id) {
+  ImGuiID child_id = ImGui::GetID((void*)(intptr_t)id);
+  ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                        ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 }
 
 void DrawDisplaySettings(ImGuiStyle* ref) {
