@@ -34,16 +34,15 @@ void Canvas::Update(const gfx::Bitmap &bitmap, ImVec2 bg_size, int tile_size,
 
 void Canvas::UpdateColorPainter(const gfx::Bitmap &bitmap, const ImVec4 &color,
                                 const std::function<void()> &event,
-                                ImVec2 bg_size, int tile_size, float scale,
-                                float grid_size) {
+                                int tile_size, float scale) {
   global_scale_ = scale;
-  DrawBackground(bg_size);
+  DrawBackground();
   DrawContextMenu();
   DrawBitmap(bitmap, 2, scale);
   if (DrawSolidTilePainter(color, tile_size)) {
     event();
   }
-  DrawGrid(grid_size);
+  DrawGrid();
   DrawOverlay();
 }
 

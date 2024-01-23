@@ -16,19 +16,39 @@ namespace gui {
 using app::gfx::Bitmap;
 using app::gfx::BitmapTable;
 
+enum class CanvasType { kTile, kBlock, kMap };
+enum class CanvasMode { kPaint, kSelect };
+enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
+
 class Canvas {
  public:
   Canvas() = default;
   explicit Canvas(ImVec2 canvas_size)
       : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
+  explicit Canvas(ImVec2 canvas_size, CanvasGridSize grid_size)
+      : custom_canvas_size_(true), canvas_sz_(canvas_size) {
+    switch (grid_size) {
+      case CanvasGridSize::k8x8:
+        custom_step_ = 8.0f;
+        break;
+      case CanvasGridSize::k16x16:
+        custom_step_ = 16.0f;
+        break;
+      case CanvasGridSize::k32x32:
+        custom_step_ = 32.0f;
+        break;
+      case CanvasGridSize::k64x64:
+        custom_step_ = 64.0f;
+        break;
+    }
+  }
 
   void Update(const gfx::Bitmap& bitmap, ImVec2 bg_size, int tile_size,
               float scale = 1.0f, float grid_size = 64.0f);
 
   void UpdateColorPainter(const gfx::Bitmap& bitmap, const ImVec4& color,
-                          const std::function<void()>& event, ImVec2 bg_size,
-                          int tile_size, float scale = 1.0f,
-                          float grid_size = 64.0f);
+                          const std::function<void()>& event, int tile_size,
+                          float scale = 1.0f);
 
   void UpdateEvent(const std::function<void()>& event, ImVec2 bg_size,
                    int tile_size, float scale = 1.0f, float grid_size = 64.0f);
@@ -82,41 +102,25 @@ class Canvas {
   void DrawText(std::string text, int x, int y);
   void DrawGridLines(float grid_step);
   void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
-
   void DrawOverlay();  // last
-
-  auto points() const { return points_; }
-  auto mutable_points() { return &points_; }
-  auto GetDrawList() const { return draw_list_; }
-  auto zero_point() const { return canvas_p0_; }
-  auto Scrolling() const { return scrolling_; }
-  auto drawn_tile_position() const { return drawn_tile_pos_; }
-  auto canvas_size() const { return canvas_sz_; }
   void SetCanvasSize(ImVec2 canvas_size) {
     canvas_sz_ = canvas_size;
     custom_canvas_size_ = true;
   }
-  auto IsMouseHovering() const { return is_hovered_; }
+  bool IsMouseHovering() const { return is_hovered_; }
   void ZoomIn() { global_scale_ += 0.1f; }
   void ZoomOut() { global_scale_ -= 0.1f; }
 
+  auto points() const { return points_; }
+  auto mutable_points() { return &points_; }
+  auto draw_list() const { return draw_list_; }
+  auto zero_point() const { return canvas_p0_; }
+  auto scrolling() const { return scrolling_; }
+  auto drawn_tile_position() const { return drawn_tile_pos_; }
+  auto canvas_size() const { return canvas_sz_; }
   void set_global_scale(float scale) { global_scale_ = scale; }
   auto global_scale() const { return global_scale_; }
   auto custom_labels_enabled() const { return enable_custom_labels_; }
-
-  void LoadCustomLabels(
-      std::vector<std::array<std::string, 25>> custom_labels) {
-    // Initialize labels
-    for (int i = 0; i < custom_labels.size(); i++) {
-      labels_.push_back(ImVector<std::string>());
-    }
-    for (int i = 0; i < custom_labels.size(); i++) {
-      for (int j = 0; j < custom_labels[i].size(); j++) {
-        labels_[i].push_back(custom_labels[i][j]);
-      }
-    }
-    enable_custom_labels_ = true;
-  }
 
   auto labels(int i) {
     if (i >= labels_.size()) {
