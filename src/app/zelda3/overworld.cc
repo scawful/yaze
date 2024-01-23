@@ -986,15 +986,18 @@ void Overworld::LoadExits() {
                        exit_scroll_mod_y, exit_scroll_mod_x, exit_door_type_1,
                        exit_door_type_2);
 
-    std::cout << "Exit: " << i << " RoomID: " << exit_room_id
-              << " MapID: " << exit_map_id << " VRAM: " << exit_vram
-              << " YScroll: " << exit_y_scroll << " XScroll: " << exit_x_scroll
-              << " YPlayer: " << py << " XPlayer: " << px
-              << " YCamera: " << exit_y_camera << " XCamera: " << exit_x_camera
-              << " ScrollModY: " << exit_scroll_mod_y
-              << " ScrollModX: " << exit_scroll_mod_x
-              << " DoorType1: " << exit_door_type_1
-              << " DoorType2: " << exit_door_type_2 << std::endl;
+    if (rom()->flags()->kLogToConsole) {
+      std::cout << "Exit: " << i << " RoomID: " << exit_room_id
+                << " MapID: " << exit_map_id << " VRAM: " << exit_vram
+                << " YScroll: " << exit_y_scroll
+                << " XScroll: " << exit_x_scroll << " YPlayer: " << py
+                << " XPlayer: " << px << " YCamera: " << exit_y_camera
+                << " XCamera: " << exit_x_camera
+                << " ScrollModY: " << exit_scroll_mod_y
+                << " ScrollModX: " << exit_scroll_mod_x
+                << " DoorType1: " << exit_door_type_1
+                << " DoorType2: " << exit_door_type_2 << std::endl;
+    }
 
     if (px == 0xFFFF && py == 0xFFFF) {
       exit.deleted = true;
