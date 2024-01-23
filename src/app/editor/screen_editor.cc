@@ -358,9 +358,11 @@ void ScreenEditor::DrawDungeonMapsEditor() {
 
     // Dungeon column
     ImGui::TableNextColumn();
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().y - 20);
-    gui::ListBox("##DungeonList", &selected_dungeon, dungeon_names,
-                 dungeon_names.size());
+    for (int i = 0; i < dungeon_names.size(); i++) {
+      rom()->resource_label()->SelectableLabelWithNameEdit(
+          selected_dungeon == i, "Dungeon Names", absl::StrFormat("%d", i),
+          dungeon_names[i]);
+    }
 
     // Map column
     ImGui::TableNextColumn();
