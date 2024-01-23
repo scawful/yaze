@@ -5,8 +5,31 @@
 
 namespace yaze {
 namespace app {
-
 namespace gui {
+
+void BeginWindowWithDisplaySettings(const char* id, bool* active, const ImVec2& size,
+                    ImGuiWindowFlags flags) {
+  ImGuiStyle* ref = &ImGui::GetStyle();
+  static float childBgOpacity = 0.75f;
+  auto color = ImVec4(0.f, 0.f, 0.f, childBgOpacity);
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, color);
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, color);
+  ImGui::PushStyleColor(ImGuiCol_Border, color);
+
+  ImGui::Begin(id, active, flags | ImGuiWindowFlags_MenuBar);
+  ImGui::BeginMenuBar();
+  if (ImGui::BeginMenu("Display Settings")) {
+    ImGui::SliderFloat("Child Background Opacity", &childBgOpacity, 0.0f, 1.0f);
+    ImGui::EndMenu();
+  }
+  ImGui::EndMenuBar();
+}
+
+void EndWindowWithDisplaySettings() {
+  ImGui::End();
+  ImGui::PopStyleColor(3);
+}
 
 void DrawDisplaySettings(ImGuiStyle* ref) {
   // You can pass in a reference ImGuiStyle structure to compare to, revert to
@@ -473,6 +496,7 @@ void ColorsYaze() {
   colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
+
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze
