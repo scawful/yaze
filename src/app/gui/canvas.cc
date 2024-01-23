@@ -5,6 +5,7 @@
 #include <cmath>
 #include <string>
 
+#include "app/editor/graphics_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
 
@@ -140,6 +141,17 @@ void Canvas::DrawContextMenu() {
       }
       if (ImGui::MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
         custom_step_ = 64.0f;
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::Separator();
+    if (ImGui::BeginMenu("Palette")) {
+      for (const auto each : editor::kPaletteGroupAddressesKeys) {
+        if (ImGui::BeginMenu(each)) {
+          // Apply the palette to the current bitmap
+          
+        }
+        ImGui::EndMenu();
       }
       ImGui::EndMenu();
     }
@@ -300,9 +312,9 @@ void Canvas::HandleTileEdits(Canvas &blockset_canvas,
                              gfx::Bitmap &destination, int &current_tile,
                              float scale, int tile_painter_size,
                              int tiles_per_row) {
-  if (!blockset_canvas.Points().empty()) {
-    uint16_t x = blockset_canvas.Points().front().x / 32;
-    uint16_t y = blockset_canvas.Points().front().y / 32;
+  if (!blockset_canvas.points().empty()) {
+    uint16_t x = blockset_canvas.points().front().x / 32;
+    uint16_t y = blockset_canvas.points().front().y / 32;
     current_tile = x + (y * tiles_per_row);
     if (DrawTilePainter(source_blockset[current_tile], tile_painter_size,
                         scale)) {

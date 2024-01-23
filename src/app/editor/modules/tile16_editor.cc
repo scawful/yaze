@@ -102,9 +102,9 @@ absl::Status Tile16Editor::UpdateBlockset() {
   gui::BitmapCanvasPipeline(blockset_canvas_, tile16_blockset_bmp_, 0x100,
                             (8192 * 2), 0x20, map_blockset_loaded_, true, 55);
 
-  if (!blockset_canvas_.Points().empty()) {
-    uint16_t x = blockset_canvas_.Points().front().x / 32;
-    uint16_t y = blockset_canvas_.Points().front().y / 32;
+  if (!blockset_canvas_.points().empty()) {
+    uint16_t x = blockset_canvas_.points().front().x / 32;
+    uint16_t y = blockset_canvas_.points().front().y / 32;
 
     notify_tile16.mutable_get() = x + (y * 8);
     notify_tile16.apply_changes();
