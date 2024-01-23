@@ -187,6 +187,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
         transfer_started_ = true;
       });
 
+  // TODO: Implement tile16 transfer
   if (transfer_started_ && !transfer_blockset_loaded_) {
     PRINT_IF_ERROR(transfer_rom_.LoadAllGraphicsData())
     graphics_bin_ = transfer_rom_.graphics_bin();
