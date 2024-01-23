@@ -349,14 +349,19 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
   const auto link_gfx_offset = 0x80000;
   const auto link_gfx_length = 0x7000;
 
-  // Load Links graphics from the ROM
-  RETURN_IF_ERROR(rom()->LoadLinkGraphics());
+  // TODO: Finish Rom::LoadLinkGraphics and implement this
+  if (ImGui::Button("Load Link Graphics (Experimental)")) {
+    if (rom()->is_loaded()) {
+      // Load Links graphics from the ROM
+      rom()->LoadLinkGraphics();
 
-  // Split it into the pose data frames
-  // Create an animation step display for the poses
-  // Allow the user to modify the frames used in an anim step
-  // LinkOAM_AnimationSteps:
-  // #_0D85FB
+      // Split it into the pose data frames
+      // Create an animation step display for the poses
+      // Allow the user to modify the frames used in an anim step
+      // LinkOAM_AnimationSteps:
+      // #_0D85FB
+    }
+  }
 
   END_TAB_ITEM()
   return absl::OkStatus();
