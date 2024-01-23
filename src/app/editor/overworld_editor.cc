@@ -316,12 +316,13 @@ void OverworldEditor::DrawOverworldProperties() {
   if (!init_properties) {
     for (int i = 0; i < 0x40; i++) {
       std::string area_graphics_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i).area_graphics());
+
+          "0x%02hX", overworld_.overworld_map(i)->area_graphics());
       properties_canvas_.mutable_labels(0)->push_back(area_graphics_str);
     }
     for (int i = 0; i < 0x40; i++) {
       std::string area_palette_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i).area_palette());
+          "0x%02hX", overworld_.overworld_map(i)->area_palette());
       properties_canvas_.mutable_labels(1)->push_back(area_palette_str);
     }
     init_properties = true;
@@ -713,8 +714,8 @@ void OverworldEditor::CheckForCurrentMap() {
   auto current_map_x = current_map_ % 8;
   auto current_map_y = current_map_ / 8;
 
-  if (overworld_.overworld_map(current_map_).IsLargeMap()) {
-    int parent_id = overworld_.overworld_map(current_map_).Parent();
+  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+    int parent_id = overworld_.overworld_map(current_map_)->Parent();
     int parent_map_x = parent_id % 8;
     int parent_map_y = parent_id / 8;
     ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
@@ -764,7 +765,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (flags()->kDrawOverworldSprites) {
       DrawOverworldSprites();
     }
-    // CheckForCurrentMap(); Performance Bottleneck
+    CheckForCurrentMap();
     CheckForOverworldEdits();
   }
   ow_map_canvas_.DrawGrid();
