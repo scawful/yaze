@@ -422,12 +422,6 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   std::vector<OverworldExit> all_exits_;
   std::vector<std::vector<Sprite>> all_sprites_;
 
-  enum UsageStatEnum {
-    Entrance = 1,
-    Exit = 2,
-    Sprite = 3,
-    Hole = 4,
-  };
   std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
 
   absl::flat_hash_map<int, MapData> proto_map_data_;
