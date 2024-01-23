@@ -29,7 +29,11 @@ ScreenEditor::ScreenEditor() { screen_canvas_.SetCanvasSize(ImVec2(512, 512)); }
 
 void ScreenEditor::Update() {
   TAB_BAR("##TabBar")
-  DrawDungeonMapsEditor();
+  TAB_ITEM("Dungeon Maps")
+  if (rom()->is_loaded()) {
+    DrawDungeonMapsEditor();
+  }
+  END_TAB_ITEM()
   DrawInventoryMenuEditor();
   DrawOverworldMapEditor();
   DrawTitleScreenEditor();
@@ -323,7 +327,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 }
 
 void ScreenEditor::DrawDungeonMapsEditor() {
-  if (rom()->is_loaded() && !dungeon_maps_loaded_) {
+  if (!dungeon_maps_loaded_) {
     if (LoadDungeonMaps().ok()) {
       if (LoadDungeonMapTile16().ok()) {
         auto bitmap_manager = rom()->mutable_bitmap_manager();
@@ -333,10 +337,10 @@ void ScreenEditor::DrawDungeonMapsEditor() {
         sheets_.emplace(3, *bitmap_manager->mutable_bitmap(215));
         dungeon_maps_loaded_ = true;
       } else {
-        throw std::runtime_error("Failed to load dungeon map tile16");
+        ImGui::Text("Failed to load dungeon map tile16");
       }
     } else {
-      throw std::runtime_error("Failed to load dungeon maps");
+      ImGui::Text("Failed to load dungeon maps");
     }
   }
 
@@ -346,8 +350,6 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       "Palace of Darkness", "Swamp Palace",  "Skull Woods",
       "Thieves' Town",      "Ice Palace",    "Misery Mire",
       "Turtle Rock",        "Ganon's Tower"};
-
-  TAB_ITEM("Dungeon Maps")
 
   if (ImGui::BeginTable("DungeonMapsTable", 4, ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("Dungeon");
@@ -393,8 +395,6 @@ void ScreenEditor::DrawDungeonMapsEditor() {
 
     ImGui::EndTable();
   }
-
-  END_TAB_ITEM()
 }
 
 void ScreenEditor::DrawTitleScreenEditor() {
