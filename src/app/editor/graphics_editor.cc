@@ -180,7 +180,7 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
     auto select_tile_event = [&]() {
       if (value.get()->is_active()) {
         auto texture = value.get()->texture();
-        graphics_bin_canvas_.GetDrawList()->AddImage(
+        graphics_bin_canvas_.draw_list()->AddImage(
             (void*)texture,
             ImVec2(graphics_bin_canvas_.zero_point().x + 2,
                    graphics_bin_canvas_.zero_point().y + 2),
@@ -202,10 +202,10 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
         ImVec2 rent_min(text_pos.x, text_pos.y);
         ImVec2 rent_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
 
-        graphics_bin_canvas_.GetDrawList()->AddRectFilled(
+        graphics_bin_canvas_.draw_list()->AddRectFilled(
             rent_min, rent_max, IM_COL32(0, 125, 0, 128));
 
-        graphics_bin_canvas_.GetDrawList()->AddText(
+        graphics_bin_canvas_.draw_list()->AddText(
             text_pos, IM_COL32(125, 255, 125, 255),
             absl::StrFormat("%02X", key).c_str());
       }
@@ -261,10 +261,9 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
           rom()->UpdateBitmap(&current_bitmap);
         };
 
-        auto size = ImVec2(0x80, 0x20);
         current_sheet_canvas_.UpdateColorPainter(
             *rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
-            size, tile_size_, current_scale_, 8.0f);
+            tile_size_, current_scale_);
         ImGui::EndChild();
         ImGui::EndTabItem();
       }
@@ -293,12 +292,13 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       ImGui::Begin(absl::StrFormat("##GfxEditPaletteChildWindow%d", id).c_str(),
                    &active, ImGuiWindowFlags_AlwaysUseWindowPadding);
       current_sheet_ = id;
+      //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
           *rom()->bitmap_manager()[id], current_color_,
           [&]() {
 
           },
-          ImVec2(0x100, 0x40), tile_size_, current_scale_, 8.0f);
+          tile_size_, current_scale_);
       ImGui::End();
 
       if (active == false) {

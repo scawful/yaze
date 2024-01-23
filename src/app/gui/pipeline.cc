@@ -81,7 +81,7 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
         if (key >= 1) {
           top_left_y = canvas.zero_point().y + height * key;
         }
-        canvas.GetDrawList()->AddImage(
+        canvas.draw_list()->AddImage(
             (void*)value.texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,
@@ -113,7 +113,7 @@ void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
         if (key >= 1) {
           top_left_y = canvas.zero_point().y + height * key;
         }
-        canvas.GetDrawList()->AddImage(
+        canvas.draw_list()->AddImage(
             (void*)value->texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,

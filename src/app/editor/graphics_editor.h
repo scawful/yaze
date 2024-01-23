@@ -182,7 +182,8 @@ class GraphicsEditor : public SharedROM {
   gui::Canvas import_canvas_;
   gui::Canvas scr_canvas_;
   gui::Canvas super_donkey_canvas_;
-  gui::Canvas current_sheet_canvas_;
+  gui::Canvas current_sheet_canvas_{ImVec2(0x80, 0x20),
+                                    gui::CanvasGridSize::k8x8};
   absl::Status status_;
 };
 

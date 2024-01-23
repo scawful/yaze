@@ -115,7 +115,9 @@ class OverworldEditor : public Editor,
   void CheckForCurrentMap();
   void DrawOverworldCanvas();
 
+  void DrawTile16Selector();
   void DrawTile8Selector();
+  void DrawAreaGraphics();
   void DrawTileSelector();
 
   absl::Status LoadSpriteGraphics();
@@ -187,10 +189,15 @@ class OverworldEditor : public Editor,
   PaletteEditor palette_editor_;
   zelda3::Overworld overworld_;
 
-  gui::Canvas ow_map_canvas_;
-  gui::Canvas current_gfx_canvas_;
-  gui::Canvas blockset_canvas_;
-  gui::Canvas graphics_bin_canvas_;
+  gui::Canvas ow_map_canvas_{ImVec2(0x200 * 8, 0x200 * 8),
+                             gui::CanvasGridSize::k64x64};
+  gui::Canvas current_gfx_canvas_{ImVec2(0x100 + 1, 0x10 * 0x40 + 1),
+                                  gui::CanvasGridSize::k32x32};
+  gui::Canvas blockset_canvas_{ImVec2(0x100 + 1, 0x2000 + 1),
+                               gui::CanvasGridSize::k32x32};
+  gui::Canvas graphics_bin_canvas_{
+      ImVec2(0x100 + 1, kNumSheetsToLoad * 0x40 + 1),
+      gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
 
   gfx::SNESPalette palette_;

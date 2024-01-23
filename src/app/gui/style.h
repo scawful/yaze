@@ -15,6 +15,16 @@ void BeginWindowWithDisplaySettings(const char* id, bool* active,
 
 void EndWindowWithDisplaySettings();
 
+void BeginPadding(int i);
+void EndPadding();
+
+void BeginNoPadding();
+void EndNoPadding();
+
+void BeginChildWithScrollbar(int id);
+
+void BeginChildBothScrollbars(int id);
+
 void DrawDisplaySettings(ImGuiStyle* ref = nullptr);
 
 void TextWithSeparators(const absl::string_view& text);
