@@ -353,7 +353,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveMap32Tiles();
 
   auto overworld_maps() const { return overworld_maps_; }
-  auto overworld_map(int i) const { return overworld_maps_[i]; }
+  auto overworld_map(int i) const { return &overworld_maps_[i]; }
   auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
   auto mutable_exits() { return &all_exits_; }
 
