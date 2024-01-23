@@ -326,6 +326,7 @@ void MasterEditor::DrawFileMenu() {
       MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::Separator();
       Text("Experiment Flags");
+      Checkbox("Enable console logging", &mutable_flags()->kLogToConsole);
       Checkbox("Enable Texture Streaming",
                &mutable_flags()->kLoadTexturesAsStreaming);
       Checkbox("Enable Overworld Sprites",

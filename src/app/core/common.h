@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <stack>
 #include <string>
@@ -54,6 +55,9 @@ class ExperimentFlags {
 
     // Save dungeon map edits to the ROM.
     bool kSaveDungeonMaps = false;
+
+    // Log to the console.
+    bool kLogToConsole = false;
   };
 
   ExperimentFlags() = default;
