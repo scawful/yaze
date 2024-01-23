@@ -296,9 +296,9 @@ absl::Status OverworldEditor::DrawToolset() {
   }
 
   if (show_gfx_group) {
-    ImGui::Begin("Gfx Group Editor", &show_gfx_group);
+    gui::BeginWindowWithDisplaySettings("Gfx Group Editor", &show_gfx_group);
     RETURN_IF_ERROR(gfx_group_editor_.Update())
-    ImGui::End();
+    gui::EndWindowWithDisplaySettings();
   }
 
   if (show_properties) {
@@ -721,13 +721,15 @@ void OverworldEditor::CheckForCurrentMap() {
                                parent_map_x * small_map_size, large_map_size,
                                large_map_size);
     // ow_map_canvas_.mutable_points()->push_back(
-    //     ImVec2(parent_map_x * small_map_size, parent_map_y * small_map_size));
+    //     ImVec2(parent_map_x * small_map_size, parent_map_y *
+    //     small_map_size));
   } else {
     ow_map_canvas_.DrawOutline(current_map_x * small_map_size,
-                               current_map_y * small_map_size,
-                               small_map_size, small_map_size);
+                               current_map_y * small_map_size, small_map_size,
+                               small_map_size);
     // ow_map_canvas_.mutable_points()->push_back(
-    //     ImVec2(current_map_x * small_map_size, current_map_y * small_map_size));
+    //     ImVec2(current_map_x * small_map_size, current_map_y *
+    //     small_map_size));
   }
 
   static int prev_map_;
