@@ -228,6 +228,14 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
       *rom()->mutable_dungeon_palette(3));
   rom()->RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
 
+  for (int i = 0; i < tile16_sheet_.num_tiles(); ++i) {
+    if (tile16_individual_.count(i) == 0) {
+      auto tile = tile16_sheet_.GetTile16(i);
+      tile16_individual_[i] = tile;
+      rom()->RenderBitmap(&tile16_individual_[i]);
+    }
+  }
+
   return absl::OkStatus();
 }
 
@@ -251,29 +259,30 @@ void ScreenEditor::DrawDungeonMapsTabs() {
         screen_canvas_.DrawTileSelector(64.f);
 
         auto boss_room = current_dungeon.boss_room;
-        for (int i = 0; i < 25; i++) {
-          if (current_dungeon.floor_rooms[floor_number][i] != 0x0F) {
-            int tile16_id = current_dungeon.floor_gfx[floor_number][i];
+        for (int j = 0; j < 25; j++) {
+          if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
+            int tile16_id = current_dungeon.floor_rooms[floor_number][j];
             int tile_x = (tile16_id % 16) * 16;
             int tile_y = (tile16_id / 16) * 16;
-            int posX = ((i % 5) * 32);
-            int posY = ((i / 5) * 32);
+            int posX = ((j % 5) * 32);
+            int posY = ((j / 5) * 32);
 
             if (tile16_individual_.count(tile16_id) == 0) {
               auto tile = tile16_sheet_.GetTile16(tile16_id);
+              std::cout << "Tile16: " << tile16_id << std::endl;
               rom()->RenderBitmap(&tile);
               tile16_individual_[tile16_id] = tile;
             }
-            auto bmp = tile16_individual_[tile16_id];
-            screen_canvas_.DrawBitmap(bmp, (posX * 2), (posY * 2), 4.0f);
+            screen_canvas_.DrawBitmap(tile16_individual_[tile16_id], (posX * 2),
+                                      (posY * 2), 4.0f);
 
-            if (current_dungeon.floor_rooms[floor_number][i] == boss_room) {
+            if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
               screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64,
                                                   64, core::kRedPen);
             }
 
             std::string label =
-                dungeon_map_labels_[selected_dungeon][floor_number][i];
+                dungeon_map_labels_[selected_dungeon][floor_number][j];
             screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
             // GFX.drawText(
             //     e.Graphics, 16 + ((i % 5) * 32), 20 + ((i / 5) * 32),
@@ -287,9 +296,9 @@ void ScreenEditor::DrawDungeonMapsTabs() {
         screen_canvas_.DrawGrid(64.f, 5);
         screen_canvas_.DrawOverlay();
 
-        if (!screen_canvas_.Points().empty()) {
-          int x = screen_canvas_.Points().front().x / 64;
-          int y = screen_canvas_.Points().front().y / 64;
+        if (!screen_canvas_.points().empty()) {
+          int x = screen_canvas_.points().front().x / 64;
+          int y = screen_canvas_.points().front().y / 64;
           selected_room = x + (y * 5);
         }
         ImGui::EndTabItem();
@@ -366,9 +375,9 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       tilesheet_canvas_.DrawGrid(32.f);
       tilesheet_canvas_.DrawOverlay();
 
-      if (!tilesheet_canvas_.Points().empty()) {
-        selected_tile16_ = tilesheet_canvas_.Points().front().x / 32 +
-                           (tilesheet_canvas_.Points().front().y / 32) * 16;
+      if (!tilesheet_canvas_.points().empty()) {
+        selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
+                           (tilesheet_canvas_.points().front().y / 32) * 16;
       }
     }
     ImGui::EndChild();

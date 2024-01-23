@@ -85,7 +85,8 @@ class Canvas {
 
   void DrawOverlay();  // last
 
-  auto Points() const { return points_; }
+  auto points() const { return points_; }
+  auto mutable_points() { return &points_; }
   auto GetDrawList() const { return draw_list_; }
   auto zero_point() const { return canvas_p0_; }
   auto Scrolling() const { return scrolling_; }

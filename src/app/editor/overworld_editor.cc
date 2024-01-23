@@ -681,10 +681,10 @@ void OverworldEditor::SaveOverworldChanges() {
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
-  if (!blockset_canvas_.Points().empty()) {
+  if (!blockset_canvas_.points().empty()) {
     // User has selected a tile they want to draw from the blockset.
-    int x = blockset_canvas_.Points().front().x / 32;
-    int y = blockset_canvas_.Points().front().y / 32;
+    int x = blockset_canvas_.points().front().x / 32;
+    int y = blockset_canvas_.points().front().y / 32;
     current_tile16_ = x + (y * 8);
     if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
                                        16)) {
@@ -720,10 +720,14 @@ void OverworldEditor::CheckForCurrentMap() {
     ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
                                parent_map_x * small_map_size, large_map_size,
                                large_map_size);
+    // ow_map_canvas_.mutable_points()->push_back(
+    //     ImVec2(parent_map_x * small_map_size, parent_map_y * small_map_size));
   } else {
     ow_map_canvas_.DrawOutline(current_map_x * small_map_size,
-                               current_map_y * small_map_size, small_map_size,
-                               small_map_size);
+                               current_map_y * small_map_size,
+                               small_map_size, small_map_size);
+    // ow_map_canvas_.mutable_points()->push_back(
+    //     ImVec2(current_map_x * small_map_size, current_map_y * small_map_size));
   }
 
   static int prev_map_;
@@ -763,7 +767,7 @@ void OverworldEditor::DrawOverworldCanvas() {
       if (flags()->kDrawOverworldSprites) {
         DrawOverworldSprites();
       }
-      //CheckForCurrentMap();
+      CheckForCurrentMap();
       CheckForOverworldEdits();
     }
     ow_map_canvas_.DrawGrid(64.0f);

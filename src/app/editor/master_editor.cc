@@ -204,7 +204,7 @@ void MasterEditor::DrawAboutPopup() {
   if (about_) ImGui::OpenPopup("About");
   if (ImGui::BeginPopupModal("About", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Yet Another Zelda3 Editor - v%d", core::kYazeVersion);
+    Text("Yet Another Zelda3 Editor - v%.2f", core::kYazeVersion);
     Text("Written by: scawful");
     ImGui::Spacing();
     Text("Special Thanks: Zarby89, JaredBrian");
