@@ -469,10 +469,30 @@ void MasterEditor::DrawViewMenu() {
 
 void MasterEditor::DrawHelpMenu() {
   static bool open_rom_help = false;
+  static bool open_supported_features = false;
   if (BeginMenu("Help")) {
     if (MenuItem("How to open a ROM")) open_rom_help = true;
+    if (MenuItem("Supported Features")) open_supported_features = true;
+
     if (MenuItem("About")) about_ = true;
     ImGui::EndMenu();
+  }
+
+  if (open_supported_features) ImGui::OpenPopup("Supported Features");
+  if (ImGui::BeginPopupModal("Supported Features", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    // TODO: Expand on details of what is currently implemented.
+    ImGui::BulletText("Overworld Editing");
+    ImGui::BulletText("Dungeon Editing");
+    ImGui::BulletText("Sprite Editing");
+    ImGui::BulletText("Palette Editing");
+    ImGui::BulletText("Screen Editing");
+
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
+      open_supported_features = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
   }
 
   if (open_rom_help) ImGui::OpenPopup("Open a ROM");
