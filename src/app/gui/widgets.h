@@ -16,9 +16,7 @@ namespace yaze {
 namespace app {
 namespace gui {
 
-class DynamicLayout {
-  
-};
+class DynamicLayout {};
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
 
@@ -29,7 +27,7 @@ class BitmapViewer {
  public:
   BitmapViewer() : current_bitmap_index_(0) {}
 
-  void Display(const std::vector<gfx::Bitmap>& bitmaps) {
+  void Display(const std::vector<gfx::Bitmap>& bitmaps, float scale = 1.0f) {
     if (bitmaps.empty()) {
       ImGui::Text("No bitmaps available.");
       return;
@@ -57,8 +55,9 @@ class BitmapViewer {
     // Assuming Bitmap has a function to get its texture ID, and width and
     // height.
     ImTextureID tex_id = current_bitmap.texture();
-    ImVec2 size(current_bitmap.width(), current_bitmap.height());
-    ImGui::Image(tex_id, size);
+    ImVec2 size(current_bitmap.width() * scale,
+                current_bitmap.height() * scale);
+    // ImGui::Image(tex_id, size);
 
     // Scroll if the image is larger than the display area.
     if (ImGui::BeginChild("BitmapScrollArea", ImVec2(0, 0), false,

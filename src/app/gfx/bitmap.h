@@ -47,6 +47,7 @@ class Bitmap {
   void ApplyPalette(const SNESPalette &palette);
   void ApplyPaletteWithTransparent(const SNESPalette &palette, int index);
   void ApplyPalette(const std::vector<SDL_Color> &palette);
+  void ApplyPaletteFromPaletteGroup(const SNESPalette &palette, int palette_id);
 
   void WriteToPixel(int position, uchar value) {
     if (pixel_data_ == nullptr) {

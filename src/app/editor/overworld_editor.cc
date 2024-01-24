@@ -185,7 +185,6 @@ void OverworldEditor::DrawUsageGrid() {
 
 absl::Status OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
-  static bool show_tile16 = false;
   static bool show_properties = false;
 
   if (BeginTable("OWToolset", 20, kToolsetTableFlags, ImVec2(0, 0))) {
@@ -260,7 +259,7 @@ absl::Status OverworldEditor::DrawToolset() {
 
     TableNextColumn();
     if (ImGui::Button(ICON_MD_GRID_VIEW)) {
-      show_tile16 = !show_tile16;
+      show_tile16_editor_ = !show_tile16_editor_;
     }
 
     TableNextColumn();
@@ -288,9 +287,9 @@ absl::Status OverworldEditor::DrawToolset() {
     RETURN_IF_ERROR(DrawExperimentalModal())
   }
 
-  if (show_tile16) {
+  if (show_tile16_editor_) {
     // Create a table in ImGui for the Tile16 Editor
-    ImGui::Begin("Tile16 Editor", &show_tile16);
+    ImGui::Begin("Tile16 Editor", &show_tile16_editor_);
     RETURN_IF_ERROR(tile16_editor_.Update())
     ImGui::End();
   }
@@ -537,7 +536,7 @@ void DrawExitEditorPopup(zelda3::OverworldExit &exit) {
 
 void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
   int i = 0;
-  for (auto &each : overworld_.Exits()) {
+  for (auto &each : *overworld_.exits()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40)) {
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
@@ -781,7 +780,15 @@ void OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawContextMenu();
   blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, /*border_offset=*/2,
                               map_blockset_loaded_);
-  blockset_canvas_.DrawTileSelector(32.0f);
+  if (blockset_canvas_.DrawTileSelector(32.0f)) {
+    // Open the tile16 editor to the tile
+    auto tile_pos = blockset_canvas_.points().front();
+    int grid_x = static_cast<int>(tile_pos.x / 32);
+    int grid_y = static_cast<int>(tile_pos.y / 32);
+    int id = grid_x + grid_y * 8;
+    tile16_editor_.set_tile16(id);
+    show_tile16_editor_ = true;
+  }
   blockset_canvas_.DrawGrid();
   blockset_canvas_.DrawOverlay();
   ImGui::EndChild();
@@ -865,7 +872,7 @@ absl::Status OverworldEditor::LoadGraphics() {
                                     current_gfx_bmp_, palette_);
 
   // Create the tile16 blockset image
-  gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
+  gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x08,
                                     overworld_.Tile16Blockset(), *rom(),
                                     tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;

@@ -8,13 +8,13 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/editor.h"
-#include "app/gui/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
 
@@ -27,6 +27,9 @@ class Tile16Editor : public SharedROM {
   absl::Status Update();
 
   absl::Status UpdateBlockset();
+
+  absl::Status DrawToCurrentTile16(ImVec2 pos);
+
   absl::Status UpdateTile16Edit();
 
   void DrawTileEditControls();
@@ -39,6 +42,14 @@ class Tile16Editor : public SharedROM {
 
   absl::Status LoadTile8();
 
+  auto set_tile16(int id) {
+    current_tile16_ = id;
+    current_tile16_bmp_ = tile16_individual_[id];
+    current_tile16_bmp_.ApplyPalette(
+        rom()->palette_group("ow_main")[current_palette_]);
+    rom()->RenderBitmap(&current_tile16_bmp_);
+  }
+
  private:
   bool map_blockset_loaded_ = false;
   bool transfer_started_ = false;
@@ -48,7 +59,7 @@ class Tile16Editor : public SharedROM {
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
 
-  core::NotifyValue<uint8_t> notify_tile16;
+  core::NotifyValue<uint32_t> notify_tile16;
   core::NotifyValue<uint8_t> notify_palette;
 
   // Canvas dimensions
@@ -65,7 +76,8 @@ class Tile16Editor : public SharedROM {
   int tile_size;
 
   // Tile16 blockset for selecting the tile to edit
-  gui::Canvas blockset_canvas_;
+  gui::Canvas blockset_canvas_{ImVec2(0x100, 0x4000),
+                               gui::CanvasGridSize::k32x32};
   gfx::Bitmap tile16_blockset_bmp_;
 
   // Canvas for editing the selected tile
@@ -87,6 +99,8 @@ class Tile16Editor : public SharedROM {
   std::vector<gfx::Bitmap> current_gfx_individual_;
 
   std::vector<uint8_t> current_tile16_data_;
+
+  std::vector<uint8_t> tile8_gfx_data_;
 
   PaletteEditor palette_editor_;
 
