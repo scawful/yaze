@@ -153,7 +153,8 @@ class SNESPalette {
 
   auto GetColor(int i) const {
     if (i > size_) {
-      throw std::out_of_range("SNESPalette: Index out of bounds");
+      std::cout << "SNESPalette: Index out of bounds" << std::endl;
+      return colors[0];
     }
     return colors[i];
   }
@@ -167,7 +168,8 @@ class SNESPalette {
 
   SNESColor& operator[](int i) {
     if (i > size_) {
-      throw std::out_of_range("SNESPalette: Index out of bounds");
+      std::cout << "SNESPalette: Index out of bounds" << std::endl;
+      return colors[0];
     }
     return colors[i];
   }

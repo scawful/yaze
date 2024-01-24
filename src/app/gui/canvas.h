@@ -75,16 +75,12 @@ class Canvas {
 
   // Dictates which tile is currently selected based on what the user clicks
   // in the canvas window. Represented and split apart into a grid of tiles.
-  void DrawTileSelector(int size);
+  bool DrawTileSelector(int size);
 
-  void HandleTileEdits(Canvas& blockset_canvas,
+  bool HandleTileEdits(Canvas& blockset_canvas,
                        std::vector<gfx::Bitmap>& source_blockset,
-                       gfx::Bitmap& destination, int& current_tile,
-                       float scale = 1.0f, int tile_painter_size = 16,
-                       int tiles_per_row = 8);
-
-  void RenderUpdatedBitmap(const ImVec2& click_position, const Bytes& tile_data,
-                           gfx::Bitmap& destination);
+                       int& current_tile, float scale = 1.0f,
+                       int tile_painter_size = 16, int tiles_per_row = 8);
 
   // Draws the contents of the Bitmap image to the Canvas
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
@@ -113,6 +109,7 @@ class Canvas {
 
   auto points() const { return points_; }
   auto mutable_points() { return &points_; }
+  auto push_back(ImVec2 pos) { points_.push_back(pos); }
   auto draw_list() const { return draw_list_; }
   auto zero_point() const { return canvas_p0_; }
   auto scrolling() const { return scrolling_; }
@@ -121,6 +118,9 @@ class Canvas {
   void set_global_scale(float scale) { global_scale_ = scale; }
   auto global_scale() const { return global_scale_; }
   auto custom_labels_enabled() const { return enable_custom_labels_; }
+  auto custom_step() const { return custom_step_; }
+  auto width() const { return canvas_sz_.x; }
+  auto height() const { return canvas_sz_.y; }
 
   auto labels(int i) {
     if (i >= labels_.size()) {
@@ -133,6 +133,18 @@ class Canvas {
       labels_.push_back(ImVector<std::string>());
     }
     return &labels_[i];
+  }
+
+  int GetTileIdFromMousePos() {
+    int x = mouse_pos_in_canvas_.x;
+    int y = mouse_pos_in_canvas_.y;
+    int num_columns = width() / custom_step_;
+    int num_rows = height() / custom_step_;
+    int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
+    if (tile_id >= num_columns * num_rows) {
+      tile_id = -1; // Invalid tile ID
+    }
+    return tile_id;
   }
 
   auto set_current_labels(int i) { current_labels_ = i; }

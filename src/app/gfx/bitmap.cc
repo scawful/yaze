@@ -332,6 +332,27 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
   SDL_LockSurface(surface_.get());
 }
 
+void Bitmap::ApplyPaletteFromPaletteGroup(const SNESPalette &palette,
+                                          int palette_id) {
+  auto start_index = palette_id * 8;
+  palette_ = palette.sub_palette(start_index, start_index + 8);
+  SDL_UnlockSurface(surface_.get());
+  for (int i = 0; i < palette_.size(); ++i) {
+    if (palette_.GetColor(i).IsTransparent()) {
+      surface_->format->palette->colors[i].r = 0;
+      surface_->format->palette->colors[i].g = 0;
+      surface_->format->palette->colors[i].b = 0;
+      surface_->format->palette->colors[i].a = 0;
+    } else {
+      surface_->format->palette->colors[i].r = palette_.GetColor(i).GetRGB().x;
+      surface_->format->palette->colors[i].g = palette_.GetColor(i).GetRGB().y;
+      surface_->format->palette->colors[i].b = palette_.GetColor(i).GetRGB().z;
+      surface_->format->palette->colors[i].a = palette_.GetColor(i).GetRGB().w;
+    }
+  }
+  SDL_LockSurface(surface_.get());
+}
+
 void Bitmap::ApplyPaletteWithTransparent(const SNESPalette &palette,
                                          int index) {
   auto start_index = index * 7;

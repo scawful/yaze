@@ -287,7 +287,7 @@ void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap &bitmap,
   }
 }
 
-void Canvas::DrawTileSelector(int size) {
+bool Canvas::DrawTileSelector(int size) {
   const ImGuiIO &io = ImGui::GetIO();
   const bool is_hovered = ImGui::IsItemHovered();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
@@ -303,50 +303,30 @@ void Canvas::DrawTileSelector(int size) {
 
     points_.push_back(painter_pos);
     points_.push_back(ImVec2(painter_pos.x + size, painter_pos.y + size));
+    mouse_pos_in_canvas_ = painter_pos;
   }
+
+  if (is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    return true;
+  }
+
+  return false;
 }
 
-void Canvas::HandleTileEdits(Canvas &blockset_canvas,
+bool Canvas::HandleTileEdits(Canvas &blockset_canvas,
                              std::vector<gfx::Bitmap> &source_blockset,
-                             gfx::Bitmap &destination, int &current_tile,
-                             float scale, int tile_painter_size,
-                             int tiles_per_row) {
+                             int &current_tile, float scale,
+                             int tile_painter_size, int tiles_per_row) {
   if (!blockset_canvas.points().empty()) {
     uint16_t x = blockset_canvas.points().front().x / 32;
     uint16_t y = blockset_canvas.points().front().y / 32;
     current_tile = x + (y * tiles_per_row);
     if (DrawTilePainter(source_blockset[current_tile], tile_painter_size,
                         scale)) {
-      RenderUpdatedBitmap(drawn_tile_position(),
-                          source_blockset[current_tile].mutable_data(),
-                          destination);
+      return true;
     }
   }
-}
-
-void Canvas::RenderUpdatedBitmap(const ImVec2 &click_position,
-                                 const Bytes &tile_data,
-                                 gfx::Bitmap &destination) {
-  // Calculate the tile position relative to the current active map
-  constexpr int tile_size = 16;  // Tile size is 16x16 pixels
-
-  // Calculate the tile index for x and y based on the click_position
-  int tile_index_x = (static_cast<int>(click_position.x) % 512) / tile_size;
-  int tile_index_y = (static_cast<int>(click_position.y) % 512) / tile_size;
-
-  // Calculate the pixel start position based on tile index and tile size
-  ImVec2 start_position;
-  start_position.x = tile_index_x * tile_size;
-  start_position.y = tile_index_y * tile_size;
-
-  // Update the bitmap's pixel data based on the start_position and tile_data
-  for (int y = 0; y < tile_size; ++y) {
-    for (int x = 0; x < tile_size; ++x) {
-      int pixel_index =
-          (start_position.y + y) * destination.width() + (start_position.x + x);
-      destination.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
-    }
-  }
+  return false;
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {

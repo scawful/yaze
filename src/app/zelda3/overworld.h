@@ -355,6 +355,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto overworld_maps() const { return overworld_maps_; }
   auto overworld_map(int i) const { return &overworld_maps_[i]; }
   auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
+  auto exits() const { return &all_exits_; }
   auto mutable_exits() { return &all_exits_; }
 
   auto Sprites(int state) const { return all_sprites_[state]; }
@@ -362,7 +363,6 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
     return overworld_maps_[current_map_].AreaGraphics();
   }
   auto &Entrances() { return all_entrances_; }
-  auto &Exits() { return all_exits_; }
   auto AreaPalette() const {
     return overworld_maps_[current_map_].AreaPalette();
   }
