@@ -44,12 +44,16 @@ class OverworldMap {
   auto sprite_graphics(int i) const { return sprite_graphics_[i]; }
   auto sprite_palette(int i) const { return sprite_palette_[i]; }
   auto message_id() const { return message_id_; }
+  auto area_music(int i) const { return area_music_[i]; }
+  auto static_graphics(int i) const { return static_graphics_[i]; }
 
   auto mutable_area_graphics() { return &area_graphics_; }
   auto mutable_area_palette() { return &area_palette_; }
   auto mutable_sprite_graphics(int i) { return &sprite_graphics_[i]; }
   auto mutable_sprite_palette(int i) { return &sprite_palette_[i]; }
   auto mutable_message_id() { return &message_id_; }
+  auto mutable_area_music(int i) { return &area_music_[i]; }
+  auto mutable_static_graphics(int i) { return &static_graphics_[i]; }
 
  private:
   void LoadAreaInfo();
@@ -71,24 +75,24 @@ class OverworldMap {
   absl::Status BuildTiles16Gfx(int count);
   absl::Status BuildBitmap(OWBlockset& world_blockset);
 
+  bool built_ = false;
+  bool large_map_ = false;
+  bool initialized_ = false;
+
   int parent_ = 0;
   int index_ = 0;
   int world_ = 0;
-  uint8_t message_id_ = 0;
+  int game_state_ = 0;
+  int world_index_ = 0;
+
+  uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;
   uint8_t area_palette_ = 0;
-  int game_state_ = 0;
-
-  int world_index_ = 0;
 
   uchar sprite_graphics_[3];
   uchar sprite_palette_[3];
   uchar area_music_[4];
   uchar static_graphics_[16];
-
-  bool initialized_ = false;
-  bool built_ = false;
-  bool large_map_ = false;
 
   ROM rom_;
   Bytes all_gfx_;
@@ -98,8 +102,6 @@ class OverworldMap {
   OWMapTiles map_tiles_;
 
   gfx::SNESPalette current_palette_;
-  // std::vector<zelda3::Sprite> sprite_graphics_;
-
   std::vector<gfx::Tile16> tiles16_;
 };
 

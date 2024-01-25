@@ -162,6 +162,35 @@ class ROM : public core::ExperimentFlags {
     return absl::InvalidArgumentError("Invalid write argument type");
   }
 
+  template <typename T, typename... Args>
+  absl::Status ReadTransaction(T& var, int address, Args&&... args) {
+    absl::Status status = ReadHelper<T>(var, address);
+    if (!status.ok()) {
+      return status;
+    }
+
+    if constexpr (sizeof...(args) > 0) {
+      status = ReadTransaction(std::forward<Args>(args)...);
+    }
+
+    return status;
+  }
+
+  template <typename T>
+  absl::Status ReadHelper(T& var, int address) {
+    if constexpr (std::is_same_v<T, uint8_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadByte(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, uint16_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadWord(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+      ASSIGN_OR_RETURN(auto result, ReadByteVector(address, var.size()));
+      var = result;
+    }
+    return absl::OkStatus();
+  }
+
   /**
    * Loads 2bpp graphics from ROM data.
    *
