@@ -124,28 +124,29 @@ absl::Status Tile16Editor::UpdateBlockset() {
 }
 
 absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
-  // Calculate the tile position relative to the current active map
-  constexpr int tile_size = 8;  // Tile size is 16x16 pixels
+  constexpr int tile_size = 8;
 
   // Calculate the tile index for x and y based on the click_position
-  int tile_index_x = (static_cast<int>(click_position.x) % 64) / tile_size;
-  int tile_index_y = (static_cast<int>(click_position.y) % 64) / tile_size;
+  int tile_index_x = (static_cast<int>(click_position.x) % 8) / tile_size;
+  int tile_index_y = (static_cast<int>(click_position.y) % 8) / tile_size;
 
   // Calculate the pixel start position based on tile index and tile size
   ImVec2 start_position;
   start_position.x = tile_index_x * tile_size;
   start_position.y = tile_index_y * tile_size;
 
-  // Update the bitmap's pixel data based on the start_position and tile_data
-  for (int y = 0; y < tile_size; ++y) {
-    for (int x = 0; x < tile_size; ++x) {
+  for (int y = 0; y < 8; ++y) {
+    for (int x = 0; x < 8; ++x) {
       int pixel_index = (start_position.y + y) * current_tile16_bmp_.width() +
                         (start_position.x + x);
+      int gfx_pixel_index = y * 8 + x;
       current_tile16_bmp_.WriteToPixel(
           pixel_index,
-          current_gfx_individual_[current_tile8_].data()[y * tile_size + x]);
+          current_gfx_individual_[current_tile8_].data()[gfx_pixel_index]);
     }
   }
+
+  return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::UpdateTile16Edit() {
@@ -179,12 +180,6 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   ImGui::Text("Tile16 ID: %d", current_tile16_);
   ImGui::Text("Tile8 ID: %d", current_tile8_);
 
-  // static gui::BitmapViewer bitmap_viewer_;
-  // bitmap_viewer_.Display(current_gfx_individual_, 4.0f);
-  MemoryEditor memory_editor;
-  memory_editor.DrawWindow("Tile8 Data", tile8_gfx_data_.data(),
-                           tile8_gfx_data_.size(), 0x0000);
-
   if (ImGui::BeginChild("Tile16 Editor Options",
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x50), true)) {
     tile16_edit_canvas_.DrawBackground(ImVec2(0x40, 0x40));
@@ -193,8 +188,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     if (!tile8_source_canvas_.points().empty()) {
       if (tile16_edit_canvas_.DrawTilePainter(
               current_gfx_individual_[current_tile8_], 32, 4.0f)) {
-        DrawToCurrentTile16(tile16_edit_canvas_.drawn_tile_position());
-        rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
+        RETURN_IF_ERROR(
+            DrawToCurrentTile16(tile16_edit_canvas_.drawn_tile_position()));
+        rom()->UpdateBitmap(&current_tile16_bmp_);
       }
     }
     tile16_edit_canvas_.DrawGrid(128.0f);
@@ -310,7 +306,7 @@ absl::Status Tile16Editor::LoadTile8() {
     }
 
     current_gfx_individual_.emplace_back();
-    current_gfx_individual_[index].Create(0x08, 0x08, 0x80, tile_data);
+    current_gfx_individual_[index].Create(0x08, 0x08, 0x08, tile_data);
     current_gfx_individual_[index].ApplyPaletteWithTransparent(
         rom()->palette_group("ow_main")[0], current_palette_);
     rom()->RenderBitmap(&current_gfx_individual_[index]);
