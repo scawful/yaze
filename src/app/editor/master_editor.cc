@@ -341,6 +341,7 @@ void MasterEditor::DrawFileMenu() {
       Checkbox("Draw Dungeon Room Graphics",
                &mutable_flags()->kDrawDungeonRoomGraphics);
       Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
+      Checkbox("Save Overworld Maps", &mutable_flags()->kSaveOverworldMaps);
       ImGui::EndMenu();
     }
 
@@ -518,6 +519,11 @@ void MasterEditor::SaveRom() {
     status_ = screen_editor_.SaveDungeonMaps();
     PRINT_IF_ERROR(status_);
   }
+  if (flags()->kSaveOverworldMaps) {
+    status_ = overworld_editor_.SaveOverworldMaps();
+    PRINT_IF_ERROR(status_);
+  }
+
   status_ = rom()->SaveToFile(backup_rom_);
 }
 
