@@ -87,6 +87,7 @@ class OverworldEditor : public Editor,
   }
 
   absl::Status LoadGraphics();
+  absl::Status SaveOverworldMaps();
 
  private:
   absl::Status UpdateOverworldEdit();

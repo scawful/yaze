@@ -375,7 +375,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
                       kInputFieldSize);
 
     TableNextColumn();
-    gui::InputHexByte(
+    gui::InputHexWord(
         "Msg Id",
         overworld_.mutable_overworld_map(current_map_)->mutable_message_id(),
         kInputFieldSize);
@@ -667,19 +667,6 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
   rom()->UpdateBitmap(&current_bitmap);
 }
 
-void OverworldEditor::SaveOverworldChanges() {
-  // Store the changes made by the user to the ROM (or project file)
-  rom()->QueueChanges([&]() {
-    PRINT_IF_ERROR(overworld_.SaveOverworldMaps());
-    if (!overworld_.CreateTile32Tilemap()) {
-      // overworld_.SaveMap16Tiles();
-      PRINT_IF_ERROR(overworld_.SaveMap32Tiles());
-    } else {
-      std::cout << "Failed to create tile32 tilemap" << std::endl;
-    }
-  });
-}
-
 void OverworldEditor::CheckForOverworldEdits() {
   if (!blockset_canvas_.points().empty()) {
     // User has selected a tile they want to draw from the blockset.
@@ -922,6 +909,11 @@ absl::Status OverworldEditor::LoadGraphics() {
     RETURN_IF_ERROR(LoadSpriteGraphics());
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::SaveOverworldMaps() {
+  RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
   return absl::OkStatus();
 }
 

@@ -58,6 +58,9 @@ class ExperimentFlags {
 
     // Log to the console.
     bool kLogToConsole = false;
+
+    // Save overworld map edits to the ROM.
+    bool kSaveOverworldMaps = false;
   };
 
   ExperimentFlags() = default;
