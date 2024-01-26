@@ -142,7 +142,7 @@ absl::Status Overworld::Load(ROM &rom) {
   LoadEntrances();
   LoadExits();
   RETURN_IF_ERROR(LoadOverworldMaps())
-  if (flags()->kDrawOverworldSprites) {
+  if (flags()->overworld.kDrawOverworldSprites) {
     LoadSprites();
   }
 
@@ -956,19 +956,14 @@ void Overworld::LoadExits() {
     uint16_t exit_door_type_1;
     uint16_t exit_door_type_2;
     rom()->ReadTransaction(
-        exit_room_id, (OWExitRoomId + (i * 2)),
-        exit_map_id, OWExitMapId + i,
-        exit_vram, OWExitVram + (i * 2), 
-        exit_y_scroll, OWExitYScroll + (i * 2),
-        exit_x_scroll, OWExitXScroll + (i * 2),
-        exit_y_player, OWExitYPlayer + (i * 2),
-        exit_x_player, OWExitXPlayer + (i * 2),
-        exit_y_camera, OWExitYCamera + (i * 2),
-        exit_x_camera, OWExitXCamera + (i * 2),
-        exit_scroll_mod_y, OWExitUnk1 + i,
-        exit_scroll_mod_x, OWExitUnk2 + i,
-        exit_door_type_1, OWExitDoorType1 + (i * 2),
-        exit_door_type_2, OWExitDoorType2 + (i * 2));
+        exit_room_id, (OWExitRoomId + (i * 2)), exit_map_id, OWExitMapId + i,
+        exit_vram, OWExitVram + (i * 2), exit_y_scroll, OWExitYScroll + (i * 2),
+        exit_x_scroll, OWExitXScroll + (i * 2), exit_y_player,
+        OWExitYPlayer + (i * 2), exit_x_player, OWExitXPlayer + (i * 2),
+        exit_y_camera, OWExitYCamera + (i * 2), exit_x_camera,
+        OWExitXCamera + (i * 2), exit_scroll_mod_y, OWExitUnk1 + i,
+        exit_scroll_mod_x, OWExitUnk2 + i, exit_door_type_1,
+        OWExitDoorType1 + (i * 2), exit_door_type_2, OWExitDoorType2 + (i * 2));
 
     ushort py = (ushort)((rom_data[OWExitYPlayer + (i * 2) + 1] << 8) +
                          rom_data[OWExitYPlayer + (i * 2)]);
@@ -1023,37 +1018,38 @@ void Overworld::LoadSprites() {
   LoadSpritesFromMap(overworldSpritesAgahnim, 144, 2);
 }
 
-void Overworld::LoadSpritesFromMap(int spriteStart, int spriteCount,
-                                   int spriteIndex) {
-  for (int i = 0; i < spriteCount; i++) {
+void Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
+                                   int sprite_index) {
+  for (int i = 0; i < sprite_count; i++) {
     if (map_parent_[i] != i) continue;
 
-    int ptrPos = spriteStart + (i * 2);
-    int spriteAddress = core::SnesToPc((0x09 << 0x10) + rom()->toint16(ptrPos));
+    int ptrPos = sprite_start + (i * 2);
+    int sprite_address =
+        core::SnesToPc((0x09 << 0x10) + rom()->toint16(ptrPos));
     while (true) {
-      uchar b1 = rom_[spriteAddress];
-      uchar b2 = rom_[spriteAddress + 1];
-      uchar b3 = rom_[spriteAddress + 2];
+      uchar b1 = rom_[sprite_address];
+      uchar b2 = rom_[sprite_address + 1];
+      uchar b3 = rom_[sprite_address + 2];
       if (b1 == 0xFF) break;
 
-      int editorMapIndex = i;
-      if (editorMapIndex >= 128)
-        editorMapIndex -= 128;
-      else if (editorMapIndex >= 64)
-        editorMapIndex -= 64;
+      int editor_map_index = i;
+      if (editor_map_index >= 128)
+        editor_map_index -= 128;
+      else if (editor_map_index >= 64)
+        editor_map_index -= 64;
 
-      int mapY = (editorMapIndex / 8);
-      int mapX = (editorMapIndex % 8);
+      int mapY = (editor_map_index / 8);
+      int mapX = (editor_map_index % 8);
 
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
       auto graphics_bytes = overworld_maps_[i].AreaGraphics();
-      all_sprites_[spriteIndex][i].InitSprite(graphics_bytes, (uchar)i, b3,
-                                              (uchar)(b2 & 0x3F),
-                                              (uchar)(b1 & 0x3F), realX, realY);
-      all_sprites_[spriteIndex][i].Draw();
+      all_sprites_[sprite_index][i].InitSprite(
+          graphics_bytes, (uchar)i, b3, (uchar)(b2 & 0x3F), (uchar)(b1 & 0x3F),
+          realX, realY);
+      all_sprites_[sprite_index][i].Draw();
 
-      spriteAddress += 3;
+      sprite_address += 3;
     }
   }
 }
