@@ -325,23 +325,43 @@ void MasterEditor::DrawFileMenu() {
     if (BeginMenu("Options")) {
       MenuItem("Backup ROM", "", &backup_rom_);
       ImGui::Separator();
-      Text("Experiment Flags");
-      Checkbox("Enable console logging", &mutable_flags()->kLogToConsole);
-      Checkbox("Enable Texture Streaming",
-               &mutable_flags()->kLoadTexturesAsStreaming);
-      Checkbox("Enable Overworld Sprites",
-               &mutable_flags()->kDrawOverworldSprites);
-      Checkbox("Use Bitmap Manager", &mutable_flags()->kUseBitmapManager);
-      Checkbox("Log Instructions to Debugger",
-               &mutable_flags()->kLogInstructions);
-      Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
-      Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
-      Checkbox("Save With Change Queue",
-               &mutable_flags()->kSaveWithChangeQueue);
-      Checkbox("Draw Dungeon Room Graphics",
-               &mutable_flags()->kDrawDungeonRoomGraphics);
-      Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
-      Checkbox("Save Overworld Maps", &mutable_flags()->kSaveOverworldMaps);
+      if (BeginMenu("Experiment Flags")) {
+        if (BeginMenu("Overworld Flags")) {
+          Checkbox("Enable Overworld Sprites",
+                   &mutable_flags()->overworld.kDrawOverworldSprites);
+          ImGui::Separator();
+          Checkbox("Save Overworld Maps",
+                   &mutable_flags()->overworld.kSaveOverworldMaps);
+          Checkbox("Save Overworld Entrances",
+                   &mutable_flags()->overworld.kSaveOverworldEntrances);
+          Checkbox("Save Overworld Exits",
+                   &mutable_flags()->overworld.kSaveOverworldExits);
+          Checkbox("Save Overworld Properties",
+                   &mutable_flags()->overworld.kSaveOverworldProperties);
+          ImGui::EndMenu();
+        }
+
+        if (BeginMenu("Dungeon Flags")) {
+          Checkbox("Draw Dungeon Room Graphics",
+                   &mutable_flags()->kDrawDungeonRoomGraphics);
+          ImGui::Separator();
+          Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
+          ImGui::EndMenu();
+        }
+
+        Checkbox("Enable console logging", &mutable_flags()->kLogToConsole);
+        Checkbox("Enable Texture Streaming",
+                 &mutable_flags()->kLoadTexturesAsStreaming);
+        Checkbox("Use Bitmap Manager", &mutable_flags()->kUseBitmapManager);
+        Checkbox("Log Instructions to Debugger",
+                 &mutable_flags()->kLogInstructions);
+        Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
+        Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
+        Checkbox("Save With Change Queue",
+                 &mutable_flags()->kSaveWithChangeQueue);
+        ImGui::EndMenu();
+      }
+
       ImGui::EndMenu();
     }
 
@@ -519,8 +539,20 @@ void MasterEditor::SaveRom() {
     status_ = screen_editor_.SaveDungeonMaps();
     PRINT_IF_ERROR(status_);
   }
-  if (flags()->kSaveOverworldMaps) {
-    status_ = overworld_editor_.SaveOverworldMaps();
+  if (flags()->overworld.kSaveOverworldMaps) {
+    status_ = overworld_editor_.overworld()->SaveOverworldMaps();
+    PRINT_IF_ERROR(status_);
+  }
+  if (flags()->overworld.kSaveOverworldEntrances) {
+    status_ = overworld_editor_.overworld()->SaveEntrances();
+    PRINT_IF_ERROR(status_);
+  }
+  if (flags()->overworld.kSaveOverworldExits) {
+    status_ = overworld_editor_.overworld()->SaveExits();
+    PRINT_IF_ERROR(status_);
+  }
+  if (flags()->overworld.kSaveOverworldProperties) {
+    status_ = overworld_editor_.overworld()->SaveMapProperties();
     PRINT_IF_ERROR(status_);
   }
 
