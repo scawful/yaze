@@ -17,7 +17,6 @@ static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(
              ? ImGuiInputTextFlags_CharsHexadecimal
              : ImGuiInputTextFlags_CharsDecimal;
 }
-
 bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                      const void* p_step, const void* p_step_fast,
                      const char* format, float input_width,
@@ -69,6 +68,27 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
     IMGUI_TEST_ENGINE_ITEM_INFO(
         g.LastItemData.ID, label,
         g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Inputable);
+
+    // Mouse wheel support
+    if (IsItemHovered() && g.IO.MouseWheel != 0.0f) {
+      float scroll_amount = g.IO.MouseWheel;
+      float scroll_speed = 0.25f;  // Adjust the scroll speed as needed
+
+      if (g.IO.KeyCtrl && p_step_fast)
+        scroll_amount *= *(const float*)p_step_fast;
+      else
+        scroll_amount *= *(const float*)p_step;
+
+      if (scroll_amount > 0.0f) {
+        scroll_amount *= scroll_speed;  // Adjust the scroll speed as needed
+        DataTypeApplyOp(data_type, '+', p_data, p_data, &scroll_amount);
+        value_changed = true;
+      } else if (scroll_amount < 0.0f) {
+        scroll_amount *= -scroll_speed;  // Adjust the scroll speed as needed
+        DataTypeApplyOp(data_type, '-', p_data, p_data, &scroll_amount);
+        value_changed = true;
+      }
+    }
 
     // Step buttons
     const ImVec2 backup_frame_padding = style.FramePadding;
@@ -129,7 +149,7 @@ bool InputHexWord(const char* label, uint16_t* data, float input_width) {
 
 bool InputHexByte(const char* label, uint8_t* data, uint8_t step,
                   float input_width) {
-  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &step,
+  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
                                 &kStepFastHex, "%02X", input_width,
                                 ImGuiInputTextFlags_CharsHexadecimal);
 }
