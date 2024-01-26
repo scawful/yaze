@@ -351,34 +351,44 @@ void OverworldEditor::DrawOverworldMapSettings() {
     ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
 
     TableNextColumn();
+    ImGui::BeginGroup();
     gui::InputHexByte(
         "Gfx",
         overworld_.mutable_overworld_map(current_map_)->mutable_area_graphics(),
         kInputFieldSize);
+    ImGui::EndGroup();
 
     TableNextColumn();
+    ImGui::BeginGroup();
     gui::InputHexByte(
         "Palette",
         overworld_.mutable_overworld_map(current_map_)->mutable_area_palette(),
         kInputFieldSize);
+    ImGui::EndGroup();
 
     TableNextColumn();
+    ImGui::BeginGroup();
     gui::InputHexByte("Spr Gfx",
                       overworld_.mutable_overworld_map(current_map_)
                           ->mutable_sprite_graphics(game_state_),
                       kInputFieldSize);
+    ImGui::EndGroup();
 
     TableNextColumn();
+    ImGui::BeginGroup();
     gui::InputHexByte("Spr Palette",
                       overworld_.mutable_overworld_map(current_map_)
                           ->mutable_sprite_palette(game_state_),
                       kInputFieldSize);
+    ImGui::EndGroup();
 
     TableNextColumn();
+    ImGui::BeginGroup();
     gui::InputHexWord(
         "Msg Id",
         overworld_.mutable_overworld_map(current_map_)->mutable_message_id(),
-        kInputFieldSize);
+        kInputFieldSize + 20);
+    ImGui::EndGroup();
 
     TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
@@ -707,16 +717,10 @@ void OverworldEditor::CheckForCurrentMap() {
     ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
                                parent_map_x * small_map_size, large_map_size,
                                large_map_size);
-    // ow_map_canvas_.mutable_points()->push_back(
-    //     ImVec2(parent_map_x * small_map_size, parent_map_y *
-    //     small_map_size));
   } else {
     ow_map_canvas_.DrawOutline(current_map_x * small_map_size,
                                current_map_y * small_map_size, small_map_size,
                                small_map_size);
-    // ow_map_canvas_.mutable_points()->push_back(
-    //     ImVec2(current_map_x * small_map_size, current_map_y *
-    //     small_map_size));
   }
 
   static int prev_map_;
@@ -748,7 +752,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     DrawOverworldEntrances(ow_map_canvas_.zero_point(),
                            ow_map_canvas_.scrolling());
     DrawOverworldExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-    if (flags()->kDrawOverworldSprites) {
+    if (flags()->overworld.kDrawOverworldSprites) {
       DrawOverworldSprites();
     }
     CheckForCurrentMap();
@@ -905,15 +909,10 @@ absl::Status OverworldEditor::LoadGraphics() {
                                       maps_bmp_[i], palette);
   }
 
-  if (flags()->kDrawOverworldSprites) {
+  if (flags()->overworld.kDrawOverworldSprites) {
     RETURN_IF_ERROR(LoadSpriteGraphics());
   }
 
-  return absl::OkStatus();
-}
-
-absl::Status OverworldEditor::SaveOverworldMaps() {
-  RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
   return absl::OkStatus();
 }
 
