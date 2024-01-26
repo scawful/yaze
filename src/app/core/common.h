@@ -18,9 +18,6 @@ namespace core {
 class ExperimentFlags {
  public:
   struct Flags {
-    // Load and render overworld sprites to the screen. Unstable.
-    bool kDrawOverworldSprites = false;
-
     // Bitmap manager abstraction to manage graphics bin of ROM.
     bool kUseBitmapManager = true;
 
@@ -59,8 +56,23 @@ class ExperimentFlags {
     // Log to the console.
     bool kLogToConsole = false;
 
-    // Save overworld map edits to the ROM.
-    bool kSaveOverworldMaps = false;
+    // Overworld flags
+    struct Overworld {
+      // Load and render overworld sprites to the screen. Unstable.
+      bool kDrawOverworldSprites = false;
+
+      // Save overworld map edits to the ROM.
+      bool kSaveOverworldMaps = false;
+
+      // Save overworld entrances to the ROM.
+      bool kSaveOverworldEntrances = false;
+
+      // Save overworld exits to the ROM.
+      bool kSaveOverworldExits = false;
+
+      // Save overworld properties to the ROM.
+      bool kSaveOverworldProperties = false;
+    } overworld;
   };
 
   ExperimentFlags() = default;
