@@ -68,6 +68,15 @@
     }                                             \
   }
 
+#define RETURN_VOID_IF_ERROR(expression)          \
+  {                                               \
+    auto error = expression;                      \
+    if (!error.ok()) {                            \
+      std::cout << error.ToString() << std::endl; \
+      return;                                     \
+    }                                             \
+  }
+
 #define RETURN_IF_ERROR(expression) \
   {                                 \
     auto error = expression;        \
@@ -136,7 +145,7 @@ namespace app {
 namespace core {
 
 constexpr uint32_t kRedPen = 0xFF0000FF;
-constexpr float kYazeVersion = 0.06;
+constexpr float kYazeVersion = 0.07;
 
 // ============================================================================
 // Magic numbers

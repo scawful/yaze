@@ -309,6 +309,11 @@ void DungeonEditor::DrawDungeonTabView() {
     for (int n = 0; n < active_rooms_.Size;) {
       bool open = true;
 
+      if (active_rooms_[n] > sizeof(zelda3::dungeon::kRoomNames) / 4) {
+        active_rooms_.erase(active_rooms_.Data + n);
+        continue;
+      }
+
       if (ImGui::BeginTabItem(
               zelda3::dungeon::kRoomNames[active_rooms_[n]].data(), &open,
               ImGuiTabItemFlags_None)) {

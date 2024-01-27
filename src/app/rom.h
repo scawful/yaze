@@ -417,12 +417,31 @@ class ROM : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
+  absl::Status WriteWord(int addr, uint16_t value) {
+    if (addr + 1 >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Address out of range");
+    }
+    rom_data_[addr] = (uint8_t)(value & 0xFF);
+    rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    return absl::OkStatus();
+  }
+
   absl::Status WriteShort(uint32_t addr, uint16_t value) {
     if (addr + 1 >= rom_data_.size()) {
       return absl::InvalidArgumentError("Address out of range");
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    return absl::OkStatus();
+  }
+
+  absl::Status WriteLong(uint32_t addr, uint32_t value) {
+    if (addr + 2 >= rom_data_.size()) {
+      return absl::InvalidArgumentError("Address out of range");
+    }
+    rom_data_[addr] = (uint8_t)(value & 0xFF);
+    rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
     return absl::OkStatus();
   }
 
@@ -532,7 +551,8 @@ class ROM : public core::ExperimentFlags {
   const uchar* operator&() { return rom_data_.data(); }
 
   ushort toint16(int offset) {
-    return (ushort)((rom_data_[offset + 1]) << 8) | rom_data_[offset];
+    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+    // return (ushort)((rom_data_[offset + 1]) << 8) | rom_data_[offset];
   }
 
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {

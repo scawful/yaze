@@ -71,6 +71,9 @@ class OverworldEditor : public Editor,
 
   auto overworld() { return &overworld_; }
 
+  int jump_to_tab() { return jump_to_tab_; }
+  int jump_to_tab_ = -1;
+
   void Shutdown() {
     for (auto &bmp : tile16_individual_) {
       bmp.Cleanup();
@@ -90,10 +93,6 @@ class OverworldEditor : public Editor,
 
  private:
   absl::Status UpdateOverworldEdit();
-  absl::Status UpdateUsageStats();
-
-  void DrawUsageGrid();
-  void CalculateUsageStats();
 
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
@@ -103,17 +102,16 @@ class OverworldEditor : public Editor,
   void RefreshMapPalette();
   void RefreshMapProperties();
 
-  void DrawOverworldProperties();
-
-  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling);
+  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling,
+                              bool holes = false);
   void DrawOverworldExits(ImVec2 zero, ImVec2 scrolling);
-  void DrawOverworldMaps();
+  void DrawOverworldItems();
   void DrawOverworldSprites();
 
+  void DrawOverworldMaps();
   void DrawOverworldEdits();
   void RenderUpdatedMapBitmap(const ImVec2 &click_position,
                               const Bytes &tile_data);
-
   void CheckForOverworldEdits();
   void CheckForCurrentMap();
   void DrawOverworldCanvas();
@@ -124,8 +122,16 @@ class OverworldEditor : public Editor,
   void DrawTileSelector();
 
   absl::Status LoadSpriteGraphics();
+
+  void DrawOverworldProperties();
+
   absl::Status DrawExperimentalModal();
 
+  absl::Status UpdateUsageStats();
+  void DrawUsageGrid();
+  void CalculateUsageStats();
+
+  void LoadAnimatedMaps();
   void DrawDebugWindow();
 
   auto gfx_group_editor() const { return gfx_group_editor_; }
@@ -149,7 +155,6 @@ class OverworldEditor : public Editor,
   int current_tile16_ = 0;
   int selected_tile_ = 0;
   int game_state_ = 0;
-  int current_exit_ = 0;
 
   int selected_entrance_ = 0;
   int selected_usage_map_ = 0xFFFF;
@@ -178,10 +183,16 @@ class OverworldEditor : public Editor,
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
 
-  bool IsMouseHoveringOverEntrance(const zelda3::OverworldEntrance &entrance,
-                                   ImVec2 canvas_p, ImVec2 scrolling);
-  zelda3::OverworldEntrance *dragged_entrance_;
-  zelda3::OverworldEntrance *current_entrance_;
+  bool is_dragging_entity_ = false;
+  zelda3::OverworldEntity *dragged_entity_;
+  zelda3::OverworldEntity *current_entity_;
+
+  int current_entrance_id_ = 0;
+  zelda3::OverworldEntrance current_entrance_;
+  int current_exit_id_ = 0;
+  zelda3::OverworldExit current_exit_;
+  int current_item_id_ = 0;
+  zelda3::OverworldItem current_item_;
 
   bool show_experimental = false;
   std::string ow_tilemap_filename_ = "";
@@ -220,6 +231,8 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable graphics_bin_;
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
+
+  gfx::BitmapTable animated_maps_;
 
   absl::Status status_;
 };

@@ -301,6 +301,37 @@ void OverworldMap::LoadMainBlocksets() {
   }
 }
 
+// For animating water tiles on the overworld map.
+// We want to swap out static_graphics_[07] with the next sheet
+// Usually it is 5A, so we make it 5B instead.
+// There is a middle frame which contains tiles from the bottom half
+// of the 5A sheet, so this will need some special manipulation to make work
+// during the BuildBitmap step (or a new one specifically for animating).
+void OverworldMap::DrawAnimatedTiles() {
+  std::cout << "static_graphics_[6] = "
+            << core::UppercaseHexByte(static_graphics_[6]) << std::endl;
+  std::cout << "static_graphics_[7] = "
+            << core::UppercaseHexByte(static_graphics_[7]) << std::endl;
+  std::cout << "static_graphics_[8] = "
+            << core::UppercaseHexByte(static_graphics_[8]) << std::endl;
+  if (static_graphics_[7] == 0x5B) {
+    static_graphics_[7] = 0x5A;
+  } else {
+    if (static_graphics_[7] == 0x59) {
+      static_graphics_[7] = 0x58;
+    }
+    static_graphics_[7] = 0x5B;
+  }
+  //   if (static_graphics_[7] == 0x5A) {
+  //   static_graphics_[7] = 0x5B;
+  // } else {
+  //   if (static_graphics_[7] == 0x58) {
+  //     static_graphics_[7] = 0x59;
+  //   }
+  //   static_graphics_[7] = 0x5A;
+  // }
+}
+
 void OverworldMap::LoadAreaGraphicsBlocksets() {
   for (int i = 0; i < 4; i++) {
     uchar value = rom_[rom_.version_constants().kOverworldGfxGroups1 +
