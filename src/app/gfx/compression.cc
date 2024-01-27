@@ -598,6 +598,11 @@ absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
   return CompressV2(data, pos, length, kNintendoMode1);
 }
 
+absl::StatusOr<Bytes> CompressOverworld(const std::vector<uint8_t> data,
+                                        const int pos, const int length) {
+  return CompressV3(data, pos, length, kNintendoMode1);
+}
+
 // ============================================================================
 // Compression V3
 
@@ -1019,7 +1024,7 @@ void FinalizeCompression(CompressionContext& context) {
             << context.compressed_data.size());
 }
 
-absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t> data,
+absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
                                  const int start, const int length, int mode,
                                  bool check) {
   if (length == 0) {
