@@ -128,6 +128,8 @@ absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
                                        const int length);
 absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
                                         const int length);
+absl::StatusOr<Bytes> CompressOverworld(const std::vector<uint8_t> data,
+                                        const int pos, const int length);
 
 absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
     CompressionPiecePointer& piece, int mode);
@@ -185,7 +187,7 @@ absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
     CompressionPiece& piece, int mode);
 void FinalizeCompression(CompressionContext& context);
 
-absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t> data,
+absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
                                  const int start, const int length,
                                  int mode = 1, bool check = false);
 
