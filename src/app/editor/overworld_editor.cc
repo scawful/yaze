@@ -348,11 +348,117 @@ void OverworldEditor::DrawOverworldProperties() {
 
 // ----------------------------------------------------------------------------
 
+void OverworldEditor::RefreshChildMap(int map_index) {
+  overworld_.mutable_overworld_map(map_index)->LoadAreaGraphics();
+  status_ = overworld_.mutable_overworld_map(map_index)->BuildTileset();
+  PRINT_IF_ERROR(status_);
+  status_ = overworld_.mutable_overworld_map(map_index)->BuildTiles16Gfx(
+      overworld_.tiles16().size());
+  PRINT_IF_ERROR(status_);
+  OWBlockset blockset;
+  if (current_world_ == 0) {
+    blockset = overworld_.map_tiles().light_world;
+  } else if (current_world_ == 1) {
+    blockset = overworld_.map_tiles().dark_world;
+  } else {
+    blockset = overworld_.map_tiles().special_world;
+  }
+  maps_bmp_[map_index].set_data(
+      overworld_.mutable_overworld_map(map_index)->BitmapData());
+  status_ = overworld_.mutable_overworld_map(map_index)->BuildBitmap(blockset);
+  PRINT_IF_ERROR(status_);
+  rom()->UpdateBitmap(&maps_bmp_[map_index]);
+}
+
+void OverworldEditor::RefreshOverworldMap() {
+  std::vector<std::future<void>> futures;
+
+  auto refresh_map_async = [this](int map_index) {
+    RefreshChildMap(map_index);
+  };
+
+  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+    // We need to update the map and its siblings if it's a large map
+    for (int i = 0; i < 4; i++) {
+      int sibling_index = overworld_.overworld_map(current_map_)->Parent() + i;
+      if (i >= 2) {
+        sibling_index += 6;
+      }
+      futures.push_back(
+          std::async(std::launch::async, refresh_map_async, sibling_index));
+    }
+  } else {
+    futures.push_back(
+        std::async(std::launch::async, refresh_map_async, current_map_));
+  }
+
+  for (auto &each : futures) {
+    each.get();
+  }
+}
+
+// TODO: Palette throws out of bounds error unexpectedly.
+void OverworldEditor::RefreshMapPalette() {
+  std::vector<std::future<void>> futures;
+
+  auto refresh_palette_async = [this](int map_index) {
+    overworld_.mutable_overworld_map(map_index)->LoadPalette();
+    maps_bmp_[map_index].ApplyPalette(
+        *overworld_.mutable_overworld_map(map_index)
+             ->mutable_current_palette());
+    rom()->UpdateBitmap(&maps_bmp_[map_index]);
+  };
+
+  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+    // We need to update the map and its siblings if it's a large map
+    for (int i = 0; i < 4; i++) {
+      int sibling_index = overworld_.overworld_map(current_map_)->Parent() + i;
+      if (i >= 2) {
+        sibling_index += 6;
+      }
+      futures.push_back(
+          std::async(std::launch::async, refresh_palette_async, sibling_index));
+    }
+  } else {
+    futures.push_back(
+        std::async(std::launch::async, refresh_palette_async, current_map_));
+  }
+
+  for (auto &each : futures) {
+    each.get();
+  }
+}
+
+void OverworldEditor::RefreshMapProperties() {
+  auto &current_ow_map = *overworld_.mutable_overworld_map(current_map_);
+  if (current_ow_map.IsLargeMap()) {
+    // We need to copy the properties from the parent map to the children
+    for (int i = 1; i < 4; i++) {
+      int sibling_index = current_ow_map.Parent() + i;
+      if (i >= 2) {
+        sibling_index += 6;
+      }
+      auto &map = *overworld_.mutable_overworld_map(sibling_index);
+      map.set_area_graphics(current_ow_map.area_graphics());
+      map.set_area_palette(current_ow_map.area_palette());
+      map.set_sprite_graphics(game_state_,
+                              current_ow_map.sprite_graphics(game_state_));
+      map.set_sprite_palette(game_state_,
+                             current_ow_map.sprite_palette(game_state_));
+      map.set_message_id(current_ow_map.message_id());
+    }
+  }
+}
+
 void OverworldEditor::DrawOverworldMapSettings() {
-  if (BeginTable(kOWMapTable.data(), 7, kOWMapFlags, ImVec2(0, 0), -1)) {
-    for (const auto &name : {"##1stCol", "##gfxCol", "##palCol", "##sprgfxCol",
-                             "##sprpalCol", "##msgidCol", "##2ndCol"})
+  if (BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
+    for (const auto &name :
+         {"##mapIdCol", "##1stCol", "##gfxCol", "##palCol", "##sprgfxCol",
+          "##sprpalCol", "##msgidCol", "##2ndCol"})
       ImGui::TableSetupColumn(name);
+
+    TableNextColumn();
+    ImGui::Text("Map ID: %#x", current_map_);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(120.f);
@@ -360,18 +466,24 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
     TableNextColumn();
     ImGui::BeginGroup();
-    gui::InputHexByte(
-        "Gfx",
-        overworld_.mutable_overworld_map(current_map_)->mutable_area_graphics(),
-        kInputFieldSize);
+    if (gui::InputHexByte("Gfx",
+                          overworld_.mutable_overworld_map(current_map_)
+                              ->mutable_area_graphics(),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+      RefreshOverworldMap();
+    }
     ImGui::EndGroup();
 
     TableNextColumn();
     ImGui::BeginGroup();
-    gui::InputHexByte(
-        "Palette",
-        overworld_.mutable_overworld_map(current_map_)->mutable_area_palette(),
-        kInputFieldSize);
+    if (gui::InputHexByte("Palette",
+                          overworld_.mutable_overworld_map(current_map_)
+                              ->mutable_area_palette(),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+      RefreshMapPalette();
+    }
     ImGui::EndGroup();
 
     TableNextColumn();
