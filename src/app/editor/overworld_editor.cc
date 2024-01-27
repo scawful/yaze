@@ -216,43 +216,49 @@ absl::Status OverworldEditor::DrawToolset() {
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_DRAW)) {
+    if (ImGui::Selectable(ICON_MD_DRAW,
+                          current_mode == EditingMode::DRAW_TILE)) {
       current_mode = EditingMode::DRAW_TILE;
     }
     HOVER_HINT("Draw Tile")
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_DOOR_FRONT)) {
+    if (ImGui::Selectable(ICON_MD_DOOR_FRONT,
+                          current_mode == EditingMode::ENTRANCES)) {
       current_mode = EditingMode::ENTRANCES;
     }
     HOVER_HINT("Entrances")
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_DOOR_BACK)) {
+    if (ImGui::Selectable(ICON_MD_DOOR_BACK,
+                          current_mode == EditingMode::EXITS)) {
       current_mode = EditingMode::EXITS;
     }
     HOVER_HINT("Exits")
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_GRASS)) {
+    if (ImGui::Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS)) {
       current_mode = EditingMode::ITEMS;
     }
     HOVER_HINT("Items")
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_PEST_CONTROL_RODENT)) {
+    if (ImGui::Selectable(ICON_MD_PEST_CONTROL_RODENT,
+                          current_mode == EditingMode::SPRITES)) {
       current_mode = EditingMode::SPRITES;
     }
     HOVER_HINT("Sprites")
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_ADD_LOCATION)) {
+    if (ImGui::Selectable(ICON_MD_ADD_LOCATION,
+                          current_mode == EditingMode::TRANSPORTS)) {
       current_mode = EditingMode::TRANSPORTS;
     }
     HOVER_HINT("Transports")
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_MUSIC_NOTE)) {
+    if (ImGui::Selectable(ICON_MD_MUSIC_NOTE,
+                          current_mode == EditingMode::MUSIC)) {
       current_mode = EditingMode::MUSIC;
     }
     HOVER_HINT("Music")
@@ -261,11 +267,13 @@ absl::Status OverworldEditor::DrawToolset() {
     if (ImGui::Button(ICON_MD_GRID_VIEW)) {
       show_tile16_editor_ = !show_tile16_editor_;
     }
+    HOVER_HINT("Tile16 Editor")
 
     TableNextColumn();
     if (ImGui::Button(ICON_MD_TABLE_CHART)) {
       show_gfx_group = !show_gfx_group;
     }
+    HOVER_HINT("Gfx Group Editor")
 
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
