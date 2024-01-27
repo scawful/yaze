@@ -142,15 +142,17 @@ class Canvas {
     int num_rows = height() / custom_step_;
     int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
     if (tile_id >= num_columns * num_rows) {
-      tile_id = -1; // Invalid tile ID
+      tile_id = -1;  // Invalid tile ID
     }
     return tile_id;
   }
 
   auto set_current_labels(int i) { current_labels_ = i; }
   auto set_highlight_tile_id(int i) { highlight_tile_id = i; }
+  auto set_draggable(bool value) { draggable_ = value; }
 
  private:
+  bool draggable_ = false;
   bool enable_grid_ = true;
   bool enable_hex_tile_labels_ = false;
   bool enable_custom_labels_ = false;

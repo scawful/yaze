@@ -133,7 +133,8 @@ constexpr uint32_t gfx_groups_pointer = 0x6237;
 
 struct WriteAction {
   int address;
-  std::variant<int, uint8_t, uint16_t, std::vector<uint8_t>, gfx::SNESColor>
+  std::variant<int, uint8_t, uint16_t, std::vector<uint8_t>, gfx::SNESColor,
+               std::vector<gfx::SNESColor>>
       value;
 };
 
@@ -147,9 +148,22 @@ class ROM : public core::ExperimentFlags {
     return status;
   }
 
+  template <typename T, typename... Args>
+  absl::Status RunTransactionV2(int address, T& var, Args&&... args) {
+    absl::Status status = WriteHelperV2<T>(var, address);
+    if (!status.ok()) {
+      return status;
+    }
+
+    if constexpr (sizeof...(args) > 0) {
+      status = WriteHelperV2(std::forward<Args>(args)...);
+    }
+
+    return status;
+  }
+
   absl::Status WriteHelper(const WriteAction& action) {
-    if (std::holds_alternative<uint8_t>(action.value) ||
-        std::holds_alternative<int>(action.value)) {
+    if (std::holds_alternative<uint8_t>(action.value)) {
       return Write(action.address, std::get<uint8_t>(action.value));
     } else if (std::holds_alternative<uint16_t>(action.value)) {
       return WriteShort(action.address, std::get<uint16_t>(action.value));
@@ -158,8 +172,33 @@ class ROM : public core::ExperimentFlags {
                          std::get<std::vector<uint8_t>>(action.value));
     } else if (std::holds_alternative<gfx::SNESColor>(action.value)) {
       return WriteColor(action.address, std::get<gfx::SNESColor>(action.value));
+    } else if (std::holds_alternative<std::vector<gfx::SNESColor>>(
+                   action.value)) {
+      return absl::UnimplementedError(
+          "WriteHelper: std::vector<gfx::SNESColor>");
     }
-    return absl::InvalidArgumentError("Invalid write argument type");
+    auto error_message = absl::StrFormat("Invalid write argument type: %s",
+                                         typeid(action.value).name());
+    return absl::InvalidArgumentError(error_message);
+  }
+
+  template <typename T>
+  absl::Status WriteHelperV2(int address, T& var) {
+    if constexpr (std::is_same_v<T, uint8_t>) {
+      return Write(address, var);
+    } else if constexpr (std::is_same_v<T, uint16_t>) {
+      return WriteShort(address, var);
+    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+      return WriteVector(address, var);
+    } else if constexpr (std::is_same_v<T, gfx::SNESColor>) {
+      return WriteColor(address, var);
+    } else if constexpr (std::is_same_v<T, std::vector<gfx::SNESColor>>) {
+      return absl::UnimplementedError(
+          "WriteHelperV2: std::vector<gfx::SNESColor>");
+    }
+    auto error_message =
+        absl::StrFormat("Invalid write argument type: %s", typeid(T).name());
+    return absl::InvalidArgumentError(error_message);
   }
 
   template <typename T, typename... Args>
