@@ -98,6 +98,11 @@ class OverworldEditor : public Editor,
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
 
+  void RefreshChildMap(int i);
+  void RefreshOverworldMap();
+  void RefreshMapPalette();
+  void RefreshMapProperties();
+
   void DrawOverworldProperties();
 
   void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling);
