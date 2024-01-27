@@ -130,14 +130,14 @@ class OverworldExit {
   }
 
   // Overworld overworld
-  void UpdateMapProperties(uchar map_id) {
+  void UpdateMapProperties(uchar map_id, bool large_map = false) {
     map_id_ = map_id;
 
     int large = 256;
     int mapid = map_id;
 
     if (map_id < 128) {
-      // large = overworld.overworld_map(map_id)->IsLargeMap() ? 768 : 256;
+      large = large_map ? 768 : 256;
       // if (overworld.overworld_map(map_id)->Parent() != map_id) {
       //   mapid = overworld.overworld_map(map_id)->Parent();
       // }
@@ -365,6 +365,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
   auto exits() const { return &all_exits_; }
   auto mutable_exits() { return &all_exits_; }
+  std::vector<gfx::Tile16> tiles16() const { return tiles16_; }
 
   auto Sprites(int state) const { return all_sprites_[state]; }
   auto AreaGraphics() const {
@@ -421,7 +422,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   ROM rom_;
   OWMapTiles map_tiles_;
 
-  std::vector<gfx::Tile16> tiles16;
+  std::vector<gfx::Tile16> tiles16_;
   std::vector<gfx::Tile32> tiles32;
   std::vector<gfx::Tile32> tiles32_unique_;
   std::vector<OverworldMap> overworld_maps_;

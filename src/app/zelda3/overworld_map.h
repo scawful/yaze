@@ -30,6 +30,12 @@ class OverworldMap {
   absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
                         OWBlockset& world_blockset);
 
+  void LoadAreaGraphics();
+  void LoadPalette();
+  absl::Status BuildTileset();
+  absl::Status BuildTiles16Gfx(int count);
+  absl::Status BuildBitmap(OWBlockset& world_blockset);
+
   auto Tile16Blockset() const { return current_blockset_; }
   auto AreaGraphics() const { return current_gfx_; }
   auto AreaPalette() const { return current_palette_; }
@@ -38,6 +44,8 @@ class OverworldMap {
   auto IsLargeMap() const { return large_map_; }
   auto IsInitialized() const { return initialized_; }
   auto Parent() const { return parent_; }
+  
+  auto mutable_current_palette() { return &current_palette_; }
 
   auto area_graphics() const { return area_graphics_; }
   auto area_palette() const { return area_palette_; }
@@ -55,6 +63,14 @@ class OverworldMap {
   auto mutable_area_music(int i) { return &area_music_[i]; }
   auto mutable_static_graphics(int i) { return &static_graphics_[i]; }
 
+  auto set_area_graphics(uint8_t value) { area_graphics_ = value; }
+  auto set_area_palette(uint8_t value) { area_palette_ = value; }
+  auto set_sprite_graphics(int i, uint8_t value) {
+    sprite_graphics_[i] = value;
+  }
+  auto set_sprite_palette(int i, uint8_t value) { sprite_palette_[i] = value; }
+  auto set_message_id(uint16_t value) { message_id_ = value; }
+
  private:
   void LoadAreaInfo();
 
@@ -63,17 +79,10 @@ class OverworldMap {
   void LoadMainBlocksets();
   void LoadAreaGraphicsBlocksets();
   void LoadDeathMountainGFX();
-  void LoadAreaGraphics();
-
-  void LoadPalette();
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
   gfx::SNESPalette GetPalette(const std::string& group, int index,
                               int previousIndex, int limit);
-
-  absl::Status BuildTileset();
-  absl::Status BuildTiles16Gfx(int count);
-  absl::Status BuildBitmap(OWBlockset& world_blockset);
 
   bool built_ = false;
   bool large_map_ = false;

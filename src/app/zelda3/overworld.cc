@@ -136,7 +136,7 @@ absl::Status Overworld::Load(ROM &rom) {
   RETURN_IF_ERROR(DecompressAllMapTiles())
 
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, tiles16);
+    overworld_maps_.emplace_back(map_index, rom_, tiles16_);
 
   FetchLargeMaps();
   LoadEntrances();
@@ -163,7 +163,7 @@ absl::Status Overworld::Save(ROM &rom) {
 }
 
 absl::Status Overworld::LoadOverworldMaps() {
-  auto size = tiles16.size();
+  auto size = tiles16_.size();
   std::vector<std::future<absl::Status>> futures;
   for (int i = 0; i < kNumOverworldMaps; ++i) {
     int world_type = 0;
@@ -214,9 +214,9 @@ absl::Status Overworld::SaveOverworldMaps() {
 
     // Compress single_map_1 and single_map_2
     ASSIGN_OR_RETURN(
-        auto a, gfx::lc_lz2::CompressOverworld(single_map_1.data(), 0, 256))
+        auto a, gfx::lc_lz2::CompressOverworld(single_map_1, 0, 256))
     ASSIGN_OR_RETURN(
-        auto b, gfx::lc_lz2::CompressOverworld(single_map_2.data(), 0, 256))
+        auto b, gfx::lc_lz2::CompressOverworld(single_map_2, 0, 256))
     if (a.empty() || b.empty()) {
       return absl::AbortedError("Error compressing map gfx.");
     }
@@ -557,13 +557,13 @@ absl::Status Overworld::SaveMap16Tiles() {
   int tpos = kMap16Tiles;
   // 3760
   for (int i = 0; i < NumberOfMap16; i += 1) {
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16[i].tile0_)))
+    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile0_)))
     tpos += 2;
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16[i].tile1_)))
+    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile1_)))
     tpos += 2;
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16[i].tile2_)))
+    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile2_)))
     tpos += 2;
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16[i].tile3_)))
+    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile3_)))
     tpos += 2;
   }
   return absl::OkStatus();
@@ -683,7 +683,7 @@ void Overworld::AssembleMap16Tiles() {
     tpos += 2;
     auto t3 = gfx::GetTilesInfo(rom()->toint16(tpos));
     tpos += 2;
-    tiles16.emplace_back(t0, t1, t2, t3);
+    tiles16_.emplace_back(t0, t1, t2, t3);
   }
 }
 
@@ -1103,12 +1103,12 @@ absl::Status Overworld::LoadPrototype(ROM &rom,
   RETURN_IF_ERROR(DecompressProtoMapTiles(tilemap_filename))
 
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
-    overworld_maps_.emplace_back(map_index, rom_, tiles16);
+    overworld_maps_.emplace_back(map_index, rom_, tiles16_);
 
   FetchLargeMaps();
   LoadEntrances();
 
-  auto size = tiles16.size();
+  auto size = tiles16_.size();
   std::vector<std::future<absl::Status>> futures;
   for (int i = 0; i < kNumOverworldMaps; ++i) {
     futures.push_back(std::async(std::launch::async, [this, i, size]() {

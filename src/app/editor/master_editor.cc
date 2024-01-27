@@ -349,16 +349,16 @@ void MasterEditor::DrawFileMenu() {
           ImGui::EndMenu();
         }
 
-        Checkbox("Enable console logging", &mutable_flags()->kLogToConsole);
+        Checkbox("Enable Console Logging", &mutable_flags()->kLogToConsole);
         Checkbox("Enable Texture Streaming",
                  &mutable_flags()->kLoadTexturesAsStreaming);
         Checkbox("Use Bitmap Manager", &mutable_flags()->kUseBitmapManager);
         Checkbox("Log Instructions to Debugger",
                  &mutable_flags()->kLogInstructions);
-        Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
         Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
         Checkbox("Save With Change Queue",
                  &mutable_flags()->kSaveWithChangeQueue);
+        Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
         ImGui::EndMenu();
       }
 
@@ -540,8 +540,18 @@ void MasterEditor::SaveRom() {
     PRINT_IF_ERROR(status_);
   }
   if (flags()->overworld.kSaveOverworldMaps) {
-    status_ = overworld_editor_.overworld()->SaveOverworldMaps();
-    PRINT_IF_ERROR(status_);
+    if (overworld_editor_.overworld()->CreateTile32Tilemap()) {
+      status_ = overworld_editor_.overworld()->SaveMap16Tiles();
+      PRINT_IF_ERROR(status_);
+      status_ = overworld_editor_.overworld()->SaveMap32Tiles();
+      PRINT_IF_ERROR(status_);
+      status_ = overworld_editor_.overworld()->SaveOverworldMaps();
+      PRINT_IF_ERROR(status_);
+    } else {
+      status_ = absl::InternalError(
+          "Failed to save Overworld maps, aborting ROM save.");
+      return;
+    }
   }
   if (flags()->overworld.kSaveOverworldEntrances) {
     status_ = overworld_editor_.overworld()->SaveEntrances();
