@@ -36,6 +36,8 @@ class OverworldMap {
   absl::Status BuildTiles16Gfx(int count);
   absl::Status BuildBitmap(OWBlockset& world_blockset);
 
+  void DrawAnimatedTiles();
+
   auto Tile16Blockset() const { return current_blockset_; }
   auto AreaGraphics() const { return current_gfx_; }
   auto AreaPalette() const { return current_palette_; }

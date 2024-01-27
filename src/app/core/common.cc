@@ -17,8 +17,12 @@ namespace core {
 
 std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
 
-std::string UppercaseHexByte(uint8_t byte) {
-  std::string result = absl::StrFormat("0x%02X", byte);
+std::string UppercaseHexByte(uint8_t byte, bool leading) {
+  if (leading) {
+    std::string result = absl::StrFormat("0x%02X", byte);
+    return result;
+  }
+  std::string result = absl::StrFormat("%02X", byte);
   return result;
 }
 std::string UppercaseHexWord(uint16_t word) {

@@ -42,6 +42,8 @@ class DungeonEditor : public Editor,
   absl::Status Undo() override { return absl::OkStatus(); }
   absl::Status Redo() override { return absl::OkStatus(); }
 
+  void add_room(int i) { active_rooms_.push_back(i); }
+
  private:
   void UpdateDungeonRoomView();
 

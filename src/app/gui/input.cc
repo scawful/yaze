@@ -135,6 +135,13 @@ bool InputHex(const char* label, uint64_t* data) {
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
+bool InputHex(const char* label, int* data, int num_digits, float input_width) {
+  const std::string format = "%0" + std::to_string(num_digits) + "X";
+  return ImGui::InputScalarLeft(label, ImGuiDataType_S32, data, &kStepOneHex,
+                                &kStepFastHex, format.c_str(), input_width,
+                                ImGuiInputTextFlags_CharsHexadecimal);
+}
+
 bool InputHexShort(const char* label, uint32_t* data) {
   return ImGui::InputScalar(label, ImGuiDataType_U32, data, &kStepOneHex,
                             &kStepFastHex, "%06X",

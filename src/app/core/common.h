@@ -65,13 +65,16 @@ class ExperimentFlags {
       bool kSaveOverworldMaps = false;
 
       // Save overworld entrances to the ROM.
-      bool kSaveOverworldEntrances = false;
+      bool kSaveOverworldEntrances = true;
 
       // Save overworld exits to the ROM.
-      bool kSaveOverworldExits = false;
+      bool kSaveOverworldExits = true;
+
+      // Save overworld items to the ROM.
+      bool kSaveOverworldItems = true;
 
       // Save overworld properties to the ROM.
-      bool kSaveOverworldProperties = false;
+      bool kSaveOverworldProperties = true;
     } overworld;
   };
 
@@ -232,7 +235,7 @@ class ImGuiIdIssuer {
   }
 };
 
-std::string UppercaseHexByte(uint8_t byte);
+std::string UppercaseHexByte(uint8_t byte, bool leading = false);
 std::string UppercaseHexWord(uint16_t word);
 std::string UppercaseHexLong(uint32_t dword);
 

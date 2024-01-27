@@ -43,13 +43,18 @@ class Sprite {
   auto y() const { return y_; }
   auto nx() const { return nx_; }
   auto ny() const { return ny_; }
+  auto map_id() const { return map_id_; }
+  auto map_x() const { return map_x_; }
+  auto map_y() const { return map_y_; }
+
   auto layer() const { return layer_; }
   auto subtype() const { return subtype_; }
   auto& keyDrop() const { return key_drop_; }
 
   auto Width() const { return bounding_box_.w; }
   auto Height() const { return bounding_box_.h; }
-  std::string Name() const { return name_; }
+  std::string& Name() { return name_; }
+  auto deleted() const { return deleted_; }
 
  private:
   Bytes current_gfx_;
@@ -80,6 +85,8 @@ class Sprite {
   int height_ = 16;
 
   int key_drop_;
+
+  bool deleted_ = false;
 };
 
 }  // namespace zelda3

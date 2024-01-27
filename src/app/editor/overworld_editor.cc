@@ -74,10 +74,6 @@ absl::Status OverworldEditor::Update() {
     static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
                                     ImGuiWindowFlags_NoMove |
                                     ImGuiWindowFlags_NoSavedSettings;
-
-    // We demonstrate using the full viewport area or the work area (without
-    // menu-bars, task-bars etc.) Based on your use case you may want one or the
-    // other.
     const ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(use_work_area ? viewport->WorkPos : viewport->Pos);
     ImGui::SetNextWindowSize(use_work_area ? viewport->WorkSize
@@ -109,9 +105,7 @@ absl::Status OverworldEditor::Update() {
 }
 
 absl::Status OverworldEditor::UpdateOverworldEdit() {
-  // Draws the toolset for editing the Overworld.
   RETURN_IF_ERROR(DrawToolset())
-
   if (BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
@@ -126,100 +120,6 @@ absl::Status OverworldEditor::UpdateOverworldEdit() {
   }
   return absl::OkStatus();
 }
-
-absl::Status OverworldEditor::UpdateUsageStats() {
-  if (BeginTable("##UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
-    TableSetupColumn("Entrances");
-    TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch,
-                     ImGui::GetContentRegionAvail().x);
-    TableSetupColumn("Usage", ImGuiTableColumnFlags_WidthFixed, 256);
-    TableHeadersRow();
-    TableNextRow();
-
-    TableNextColumn();
-    ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
-    for (int i = 0; i < 0x81; i++) {
-      std::string str = absl::StrFormat("%#x", i);
-      if (ImGui::Selectable(str.c_str(), selected_entrance_ == i,
-                            overworld_.Entrances().at(i).deleted
-                                ? ImGuiSelectableFlags_Disabled
-                                : 0)) {
-        selected_entrance_ = i;
-        selected_usage_map_ = overworld_.Entrances().at(i).map_id_;
-        properties_canvas_.set_highlight_tile_id(selected_usage_map_);
-      }
-    }
-    ImGui::EndChild();
-
-    TableNextColumn();
-    DrawUsageGrid();
-    TableNextColumn();
-    DrawOverworldProperties();
-    ImGui::EndTable();
-  }
-  return absl::OkStatus();
-}
-
-void OverworldEditor::CalculateUsageStats() {
-  absl::flat_hash_map<uint16_t, int> entrance_usage;
-  for (auto each_entrance : overworld_.Entrances()) {
-    if (each_entrance.map_id_ < 0x40 + (current_world_ * 0x40) &&
-        each_entrance.map_id_ >= (current_world_ * 0x40)) {
-      entrance_usage[each_entrance.entrance_id_]++;
-    }
-  }
-}
-
-void OverworldEditor::DrawUsageGrid() {
-  // Create a grid of 8x8 squares
-  int totalSquares = 128;
-  int squaresWide = 8;
-  int squaresTall = (totalSquares + squaresWide - 1) /
-                    squaresWide;  // Ceiling of totalSquares/squaresWide
-
-  // Loop through each row
-  for (int row = 0; row < squaresTall; ++row) {
-    ImGui::NewLine();
-
-    for (int col = 0; col < squaresWide; ++col) {
-      if (row * squaresWide + col >= totalSquares) {
-        break;
-      }
-      // Determine if this square should be highlighted
-      bool highlight = selected_usage_map_ == (row * squaresWide + col);
-
-      // Set highlight color if needed
-      if (highlight) {
-        ImGui::PushStyleColor(
-            ImGuiCol_Button,
-            ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
-      }
-
-      // Create a button or selectable for each square
-      if (ImGui::Button("##square", ImVec2(20, 20))) {
-        // Switch over to the room editor tab
-        // and add a room tab by the ID of the square
-        // that was clicked
-      }
-
-      // Reset style if it was highlighted
-      if (highlight) {
-        ImGui::PopStyleColor();
-      }
-
-      // Check if the square is hovered
-      if (ImGui::IsItemHovered()) {
-        // Display a tooltip with all the room properties
-      }
-
-      // Keep squares in the same line
-      ImGui::SameLine();
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
 
 absl::Status OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
@@ -367,35 +267,6 @@ absl::Status OverworldEditor::DrawToolset() {
   }
 
   return absl::OkStatus();
-}
-
-void OverworldEditor::DrawOverworldProperties() {
-  static bool init_properties = false;
-
-  if (!init_properties) {
-    for (int i = 0; i < 0x40; i++) {
-      std::string area_graphics_str = absl::StrFormat(
-
-          "0x%02hX", overworld_.overworld_map(i)->area_graphics());
-      properties_canvas_.mutable_labels(0)->push_back(area_graphics_str);
-    }
-    for (int i = 0; i < 0x40; i++) {
-      std::string area_palette_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i)->area_palette());
-      properties_canvas_.mutable_labels(1)->push_back(area_palette_str);
-    }
-    init_properties = true;
-  }
-
-  if (ImGui::Button("Area Graphics")) {
-    properties_canvas_.set_current_labels(0);
-  }
-
-  if (ImGui::Button("Area Palette")) {
-    properties_canvas_.set_current_labels(1);
-  }
-
-  properties_canvas_.UpdateInfoGrid(ImVec2(512, 512), 16, 1.0f, 64);
 }
 
 // ----------------------------------------------------------------------------
@@ -572,9 +443,25 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
 // ----------------------------------------------------------------------------
 
-namespace {
-void MoveEntranceOnGrid(zelda3::OverworldEntrance &entrance, ImVec2 canvas_p0,
-                        ImVec2 scrolling) {
+namespace entity_internal {
+
+bool IsMouseHoveringOverEntity(const zelda3::OverworldEntity &entity,
+                               ImVec2 canvas_p0, ImVec2 scrolling) {
+  // Get the mouse position relative to the canvas
+  const ImGuiIO &io = ImGui::GetIO();
+  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Check if the mouse is hovering over the entity
+  if (mouse_pos.x >= entity.x_ && mouse_pos.x <= entity.x_ + 16 &&
+      mouse_pos.y >= entity.y_ && mouse_pos.y <= entity.y_ + 16) {
+    return true;
+  }
+  return false;
+}
+
+void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+                      ImVec2 scrolling, bool free_movement = false) {
   // Get the mouse position relative to the canvas
   const ImGuiIO &io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
@@ -583,151 +470,203 @@ void MoveEntranceOnGrid(zelda3::OverworldEntrance &entrance, ImVec2 canvas_p0,
   // Calculate the new position on the 16x16 grid
   int new_x = static_cast<int>(mouse_pos.x) / 16 * 16;
   int new_y = static_cast<int>(mouse_pos.y) / 16 * 16;
+  if (free_movement) {
+    new_x = static_cast<int>(mouse_pos.x) / 8 * 8;
+    new_y = static_cast<int>(mouse_pos.y) / 8 * 8;
+  }
 
-  // Update the entrance position
-  entrance.x_ = new_x;
-  entrance.y_ = new_y;
+  // Update the entity position
+  entity->set_x(new_x);
+  entity->set_y(new_y);
 }
 
-void DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
+void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+                          ImVec2 scrolling, bool &is_dragging_entity,
+                          zelda3::OverworldEntity *&dragged_entity,
+                          zelda3::OverworldEntity *&current_entity,
+                          bool free_movement = false) {
+  std::string entity_type = "Entity";
+  if (entity->type_ == zelda3::OverworldEntity::EntityType::kExit) {
+    entity_type = "Exit";
+  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kEntrance) {
+    entity_type = "Entrance";
+  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kSprite) {
+    entity_type = "Sprite";
+  } else if (entity->type_ == zelda3::OverworldEntity::EntityType::kItem) {
+    entity_type = "Item";
+  }
+  if (IsMouseHoveringOverEntity(*entity, canvas_p0, scrolling) &&
+      ImGui::IsMouseDragging(ImGuiMouseButton_Left) && !is_dragging_entity) {
+    dragged_entity = entity;
+    is_dragging_entity = true;
+  } else if (IsMouseHoveringOverEntity(*entity, canvas_p0, scrolling) &&
+             ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    current_entity = entity;
+    ImGui::OpenPopup(absl::StrFormat("%s editor", entity_type.c_str()).c_str());
+  } else if (is_dragging_entity && dragged_entity == entity &&
+             ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+    MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);
+    entity->UpdateMapProperties(entity->map_id_);
+    is_dragging_entity = false;
+    dragged_entity = nullptr;
+  } else if (is_dragging_entity && dragged_entity == entity) {
+    if (ImGui::BeginDragDropSource()) {
+      ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
+                                sizeof(zelda3::OverworldEntity));
+      Text("Moving %s ID: %s", entity_type.c_str(),
+           core::UppercaseHexByte(entity->entity_id_).c_str());
+      ImGui::EndDragDropSource();
+    }
+    MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);
+    entity->x_ = dragged_entity->x_;
+    entity->y_ = dragged_entity->y_;
+    entity->UpdateMapProperties(entity->map_id_);
+  }
+}
+
+}  // namespace entity_internal
+
+namespace entrance_internal {
+
+bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
+  static bool set_done = false;
+  if (set_done) {
+    set_done = false;
+  }
   if (ImGui::BeginPopupModal("Entrance editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    static uint16_t map_id = entrance.map_id_;
-    static int entrance_id = entrance.entrance_id_;
-    static int x = entrance.x_;
-    static int y = entrance.y_;
+    gui::InputHex("Map ID", &entrance.map_id_);
+    gui::InputHexByte("Entrance ID", &entrance.entrance_id_,
+                      kInputFieldSize + 20);
+    gui::InputHex("X", &entrance.x_);
+    gui::InputHex("Y", &entrance.y_);
 
-    gui::InputHexWord("Map ID", &map_id, kInputFieldSize + 20);
-    gui::InputHexByte("Entrance ID", &entrance.entrance_id_, kInputFieldSize);
-    ImGui::SetNextItemWidth(100.f);
-    ImGui::InputInt("X", &x);
-    ImGui::SetNextItemWidth(100.f);
-    ImGui::InputInt("Y", &y);
-
-    if (ImGui::Button("OK")) {
-      // Implement what happens when OK is pressed
-      entrance.map_id_ = map_id;
-      entrance.entrance_id_ = entrance_id;
-      entrance.x_ = x;
-      entrance.y_ = y;
+    if (ImGui::Button(ICON_MD_DONE)) {
       ImGui::CloseCurrentPopup();
     }
 
     ImGui::SameLine();
-
-    if (ImGui::Button("Cancel")) {
-      // Implement what happens when Cancel is pressed
+    if (ImGui::Button(ICON_MD_CANCEL)) {
+      set_done = true;
       ImGui::CloseCurrentPopup();
     }
-
     ImGui::EndPopup();
   }
+  return set_done;
 }
 
-}  // namespace
+}  // namespace entrance_internal
 
-bool OverworldEditor::IsMouseHoveringOverEntrance(
-    const zelda3::OverworldEntrance &entrance, ImVec2 canvas_p0,
-    ImVec2 scrolling) {
-  // Get the mouse position relative to the canvas
-  const ImGuiIO &io = ImGui::GetIO();
-  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-  // Check if the mouse is hovering over the entrance
-  if (mouse_pos.x >= entrance.x_ && mouse_pos.x <= entrance.x_ + 16 &&
-      mouse_pos.y >= entrance.y_ && mouse_pos.y <= entrance.y_ + 16) {
-    return true;
-  }
-  return false;
-}
-
-void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
-                                             ImVec2 scrolling) {
+void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
+                                             bool holes) {
+  int i = 0;
   for (auto &each : overworld_.Entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
-        each.map_id_ >= (current_world_ * 0x40)) {
-      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
-                              ImVec4(210, 24, 210, 150));
+        each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
+      // Make this yellow
+      auto color = ImVec4(255, 255, 0, 100);
+      if (each.is_hole_) {
+        color = ImVec4(255, 255, 255, 200);
+      }
+      if (each.deleted) {
+        color = ImVec4(0, 0, 0, 0);
+      }
+      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
       std::string str = core::UppercaseHexByte(each.entrance_id_);
 
-      // Check if this entrance is being clicked and dragged
       if (current_mode == EditingMode::ENTRANCES) {
-        if (IsMouseHoveringOverEntrance(each, canvas_p0, scrolling) &&
-            ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-          dragged_entrance_ = &each;
-          is_dragging_entrance_ = true;
-          if (ImGui::BeginDragDropSource()) {
-            ImGui::SetDragDropPayload("ENTRANCE_PAYLOAD", &each,
-                                      sizeof(zelda3::OverworldEntrance));
-            Text("Moving Entrance ID: %s", str.c_str());
-            ImGui::EndDragDropSource();
-          }
-        } else if (IsMouseHoveringOverEntrance(each, canvas_p0, scrolling) &&
-                   ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          current_entrance_ = &each;
-          ImGui::OpenPopup("Entrance editor");
-        } else if (is_dragging_entrance_ && dragged_entrance_ == &each &&
-                   ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-          MoveEntranceOnGrid(*dragged_entrance_, canvas_p0, scrolling);
-          each.x_ = dragged_entrance_->x_;
-          each.y_ = dragged_entrance_->y_;
-          each.UpdateMapProperties(each.map_id_);
-          is_dragging_entrance_ = false;
-          dragged_entrance_ = nullptr;
-        } else if (is_dragging_entrance_ && dragged_entrance_ == &each) {
-          MoveEntranceOnGrid(*dragged_entrance_, canvas_p0, scrolling);
-          each.x_ = dragged_entrance_->x_;
-          each.y_ = dragged_entrance_->y_;
-          each.UpdateMapProperties(each.map_id_);
+        entity_internal::HandleEntityDragging(&each, canvas_p0, scrolling,
+                                              is_dragging_entity_,
+                                              dragged_entity_, current_entity_);
+
+        if (entity_internal::IsMouseHoveringOverEntity(each, canvas_p0,
+                                                       scrolling) &&
+            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          jump_to_tab_ = each.entrance_id_;
+        }
+
+        if (entity_internal::IsMouseHoveringOverEntity(each, canvas_p0,
+                                                       scrolling) &&
+            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+          current_entrance_id_ = i;
+          current_entrance_ = each;
         }
       }
 
-      ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+      ow_map_canvas_.DrawText(str, each.x_, each.y_);
     }
+    i++;
   }
 
-  DrawOverworldEntrancePopup(*current_entrance_);
-}
-
-namespace {
-bool IsMouseHoveringOverExit(const zelda3::OverworldExit &exit,
-                             ImVec2 canvas_p0, ImVec2 scrolling) {
-  // Get the mouse position relative to the canvas
-  const ImGuiIO &io = ImGui::GetIO();
-  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-  // Check if the mouse is hovering over the entrance
-  if (mouse_pos.x >= exit.x_ && mouse_pos.x <= exit.x_ + 16 &&
-      mouse_pos.y >= exit.y_ && mouse_pos.y <= exit.y_ + 16) {
-    return true;
+  if (entrance_internal::DrawOverworldEntrancePopup(
+          overworld_.Entrances()[current_entrance_id_])) {
+    overworld_.Entrances()[current_entrance_id_] = current_entrance_;
   }
-  return false;
 }
 
-void DrawExitEditorPopup(zelda3::OverworldExit &exit) {
+namespace exit_internal {
+
+bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
+  static bool set_done = false;
+  if (set_done) {
+    set_done = false;
+  }
   if (ImGui::BeginPopupModal("Exit editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    static int room = 385;
-    static int scrollY = 0, centerY = 143, yPos = 128;
-    static int scrollX = 256, centerX = 397, xPos = 496;
-    static int doorType = 0;  // Normal door: None = 0, Wooden = 1, Bombable = 2
-    static int fancyDoorType =
-        0;  // Fancy door: None = 0, Sanctuary = 1, Palace = 2
-    static int map = 128, unk1 = 0, unk2 = 0;
-    static int linkPosture = 2, spriteGFX = 12;
-    static int bgGFX = 47, palette = 10, sprPal = 8;
-    static int top = 0, bottom = 32, left = 256, right = 256;
+    // Normal door: None = 0, Wooden = 1, Bombable = 2
+    static int doorType = exit.door_type_1_;
+    // Fancy door: None = 0, Sanctuary = 1, Palace = 2
+    static int fancyDoorType = exit.door_type_2_;
+
+    static int xPos = 0;
+    static int yPos = 0;
+
+    // Special overworld exit properties
+    static int centerY = 0;
+    static int centerX = 0;
+    static int unk1 = 0;
+    static int unk2 = 0;
+    static int linkPosture = 0;
+    static int spriteGFX = 0;
+    static int bgGFX = 0;
+    static int palette = 0;
+    static int sprPal = 0;
+    static int top = 0;
+    static int bottom = 0;
+    static int left = 0;
+    static int right = 0;
     static int leftEdgeOfMap = 0;
 
-    ImGui::InputScalar("Room", ImGuiDataType_U8, &exit.room_id_);
-    ImGui::InputInt("Scroll Y", &scrollY);
-    ImGui::InputInt("Center Y", &centerY);
-    ImGui::InputInt("Y pos", &yPos);
-    ImGui::InputInt("Scroll X", &scrollX);
-    ImGui::InputInt("Center X", &centerX);
-    ImGui::InputInt("X pos", &xPos);
+    gui::InputHexWord("Room", &exit.room_id_);
+    ImGui::SameLine();
+    gui::InputHex("Entity ID", &exit.entity_id_, 4);
+    gui::InputHex("Map", &exit.map_id_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Automatic", &exit.is_automatic_);
+
+    gui::InputHex("X Positon", &exit.x_);
+    ImGui::SameLine();
+    gui::InputHex("Y Position", &exit.y_);
+
+    gui::InputHexByte("X Camera", &exit.x_camera_);
+    ImGui::SameLine();
+    gui::InputHexByte("Y Camera", &exit.y_camera_);
+
+    gui::InputHexWord("X Scroll", &exit.x_scroll_);
+    ImGui::SameLine();
+    gui::InputHexWord("Y Scroll", &exit.y_scroll_);
+
+    ImGui::Separator();
+
+    static bool show_properties = false;
+    ImGui::Checkbox("Show properties", &show_properties);
+    if (show_properties) {
+      ImGui::Text("Deleted? %s", exit.deleted ? "true" : "false");
+      ImGui::Text("Hole? %s", exit.is_hole_ ? "true" : "false");
+      ImGui::Text("Large Map? %s", exit.large_map_ ? "true" : "false");
+    }
+
+    gui::TextWithSeparators("Unimplemented below");
 
     ImGui::RadioButton("None", &doorType, 0);
     ImGui::SameLine();
@@ -736,102 +675,205 @@ void DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     ImGui::RadioButton("Bombable", &doorType, 2);
     // If door type is not None, input positions
     if (doorType != 0) {
-      ImGui::InputInt("Door X pos",
-                      &xPos);  // Placeholder for door's X position
-      ImGui::InputInt("Door Y pos",
-                      &yPos);  // Placeholder for door's Y position
+      gui::InputHex("Door X pos", &xPos);
+      gui::InputHex("Door Y pos", &yPos);
     }
 
     ImGui::RadioButton("None##Fancy", &fancyDoorType, 0);
     ImGui::SameLine();
-    ImGui::RadioButton("Sanctuary", &fancyDoorType
-
-                       ,
-                       1);
+    ImGui::RadioButton("Sanctuary", &fancyDoorType, 1);
     ImGui::SameLine();
     ImGui::RadioButton("Palace", &fancyDoorType, 2);
     // If fancy door type is not None, input positions
     if (fancyDoorType != 0) {
       // Placeholder for fancy door's X position
-      ImGui::InputInt("Fancy Door X pos", &xPos);
+      gui::InputHex("Fancy Door X pos", &xPos);
       // Placeholder for fancy door's Y position
-      ImGui::InputInt("Fancy Door Y pos", &yPos);
+      gui::InputHex("Fancy Door Y pos", &yPos);
     }
 
-    ImGui::InputInt("Map", &map);
-    ImGui::InputInt("Unk1", &unk1);
-    ImGui::InputInt("Unk2", &unk2);
+    static bool special_exit = false;
+    ImGui::Checkbox("Special exit", &special_exit);
+    if (special_exit) {
+      gui::InputHex("Center X", &centerX);
 
-    ImGui::InputInt("Link's posture", &linkPosture);
-    ImGui::InputInt("Sprite GFX", &spriteGFX);
-    ImGui::InputInt("BG GFX", &bgGFX);
-    ImGui::InputInt("Palette", &palette);
-    ImGui::InputInt("Spr Pal", &sprPal);
+      gui::InputHex("Center Y", &centerY);
+      gui::InputHex("Unk1", &unk1);
+      gui::InputHex("Unk2", &unk2);
 
-    ImGui::InputInt("Top", &top);
-    ImGui::InputInt("Bottom", &bottom);
-    ImGui::InputInt("Left", &left);
-    ImGui::InputInt("Right", &right);
+      gui::InputHex("Link's posture", &linkPosture);
+      gui::InputHex("Sprite GFX", &spriteGFX);
+      gui::InputHex("BG GFX", &bgGFX);
+      gui::InputHex("Palette", &palette);
+      gui::InputHex("Spr Pal", &sprPal);
 
-    ImGui::InputInt("Left edge of map", &leftEdgeOfMap);
+      gui::InputHex("Top", &top);
+      gui::InputHex("Bottom", &bottom);
+      gui::InputHex("Left", &left);
+      gui::InputHex("Right", &right);
 
-    if (ImGui::Button("OK")) {
-      // Implement what happens when OK is pressed
+      gui::InputHex("Left edge of map", &leftEdgeOfMap);
+    }
+
+    if (ImGui::Button(ICON_MD_DONE)) {
       ImGui::CloseCurrentPopup();
     }
 
     ImGui::SameLine();
 
-    if (ImGui::Button("Cancel")) {
-      // Implement what happens when Cancel is pressed
+    if (ImGui::Button(ICON_MD_CANCEL)) {
+      set_done = true;
+      ImGui::CloseCurrentPopup();
+    }
 
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DELETE)) {
+      exit.deleted = true;
       ImGui::CloseCurrentPopup();
     }
 
     ImGui::EndPopup();
   }
+
+  return set_done;
 }
-}  // namespace
+
+}  // namespace exit_internal
 
 void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
   int i = 0;
-  for (auto &each : *overworld_.exits()) {
+  for (auto &each : *overworld_.mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
-        each.map_id_ >= (current_world_ * 0x40)) {
+        each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
                               ImVec4(255, 255, 255, 150));
-      std::string str = absl::StrFormat("%#x", each.entrance_id_);
-      ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+      if (current_mode == EditingMode::EXITS) {
+        each.entity_id_ = i;
+        entity_internal::HandleEntityDragging(
+            &each, ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling(),
+            is_dragging_entity_, dragged_entity_, current_entity_, true);
 
-      // Check if this entrance is being clicked and dragged
-      if (IsMouseHoveringOverExit(each, canvas_p0, scrolling) &&
-          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        current_exit_ = i;
-        ImGui::OpenPopup("Exit editor");
+        if (entity_internal::IsMouseHoveringOverEntity(each, canvas_p0,
+                                                       scrolling) &&
+            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          jump_to_tab_ = each.room_id_;
+        }
+
+        if (entity_internal::IsMouseHoveringOverEntity(each, canvas_p0,
+                                                       scrolling) &&
+            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+          current_exit_id_ = i;
+          current_exit_ = each;
+          current_entity_ = &each;
+          current_entity_->entity_id_ = i;
+          ImGui::OpenPopup("Exit editor");
+        }
       }
+
+      std::string str = core::UppercaseHexByte(i);
+      ow_map_canvas_.DrawText(str, each.x_, each.y_);
     }
     i++;
   }
 
-  DrawExitEditorPopup(overworld_.mutable_exits()->at(current_exit_));
+  if (exit_internal::DrawExitEditorPopup(
+          overworld_.mutable_exits()->at(current_exit_id_))) {
+    overworld_.mutable_exits()->at(current_exit_id_) = current_exit_;
+  }
+}
+
+namespace item_internal {
+
+bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
+  static bool set_done = false;
+  if (set_done) {
+    set_done = false;
+  }
+  if (ImGui::BeginPopupModal("Item editor", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::BeginChild("ScrollRegion", ImVec2(0, 150), true,
+                      ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    ImGui::BeginGroup();
+    for (int i = 0; i < zelda3::kSecretItemNames.size(); i++) {
+      if (ImGui::Selectable(zelda3::kSecretItemNames[i].c_str(),
+                            item.id == i)) {
+        item.id = i;
+      }
+    }
+    ImGui::EndGroup();
+    ImGui::EndChild();
+
+    if (ImGui::Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_CLOSE)) {
+      set_done = true;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DELETE)) {
+      item.deleted = true;
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+  return set_done;
+}
+
+}  // namespace item_internal
+
+void OverworldEditor::DrawOverworldItems() {
+  int i = 0;
+  for (auto &item : *overworld_.mutable_all_items()) {
+    // Get the item's bitmap and real X and Y positions
+    if (item.room_map_id < 0x40 + (current_world_ * 0x40) &&
+        item.room_map_id >= (current_world_ * 0x40) && !item.deleted) {
+      std::string item_name = zelda3::kSecretItemNames[item.id];
+
+      ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, ImVec4(255, 0, 0, 150));
+      if (current_mode == EditingMode::ITEMS) {
+        if (entity_internal::IsMouseHoveringOverEntity(
+                item, ow_map_canvas_.zero_point(),
+                ow_map_canvas_.scrolling()) &&
+            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+          current_item_id_ = i;
+          current_item_ = item;
+        }
+
+        // Check if this item is being clicked and dragged
+        entity_internal::HandleEntityDragging(
+            &item, ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling(),
+            is_dragging_entity_, dragged_entity_, current_entity_);
+      }
+      ow_map_canvas_.DrawText(item_name, item.x_, item.y_);
+    }
+    i++;
+  }
+
+  if (item_internal::DrawItemEditorPopup(
+          overworld_.mutable_all_items()->at(current_item_id_))) {
+    overworld_.mutable_all_items()->at(current_item_id_) = current_item_;
+  }
 }
 
 // ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawOverworldSprites() {
-  for (const auto &sprite : overworld_.Sprites(game_state_)) {
-    // Get the sprite's bitmap and real X and Y positions
-    auto id = sprite.id();
-    const gfx::Bitmap &sprite_bitmap = sprite_previews_[id];
-    int realX = sprite.GetRealX();
-    int realY = sprite.GetRealY();
+  for (auto &sprite : *overworld_.mutable_sprites(game_state_)) {
+    int map_id = sprite.map_id();
+    int map_x = sprite.map_x();
+    int map_y = sprite.map_y();
 
-    // Draw the sprite's bitmap onto the canvas at its real X and Y positions
-    ow_map_canvas_.DrawBitmap(sprite_bitmap, realX, realY);
-    ow_map_canvas_.DrawRect(realX, realY, sprite.Width(), sprite.Height(),
-                            ImVec4(255, 0, 0, 150));
-    std::string str = absl::StrFormat("%s", sprite.Name());
-    ow_map_canvas_.DrawText(str, realX - 4, realY - 2);
+    if (map_id < 0x40 + (current_world_ * 0x40) &&
+        map_id >= (current_world_ * 0x40) && !sprite.deleted()) {
+      // auto globalx = (((map_id & 0x7) * 512) + (map_x * 16));
+      // auto globaly = (((map_id & 0x3F) / 8 * 512) + (map_y * 16));
+
+      ow_map_canvas_.DrawRect(map_x, map_y, 16, 16,
+                              /*magenta*/ ImVec4(255, 0, 255, 150));
+      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.Name()), map_x,
+                              map_y);
+    }
   }
 }
 
@@ -956,7 +998,7 @@ void OverworldEditor::CheckForOverworldEdits() {
 }
 
 void OverworldEditor::CheckForCurrentMap() {
-  //  4096x4096, 512x512 maps and some are larges maps 1024x1024
+  // 4096x4096, 512x512 maps and some are larges maps 1024x1024
   auto mouse_position = ImGui::GetIO().MousePos;
   constexpr int small_map_size = 512;
   auto large_map_size = 1024;
@@ -1008,9 +1050,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     DrawOverworldEntrances(ow_map_canvas_.zero_point(),
                            ow_map_canvas_.scrolling());
     DrawOverworldExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-    if (flags()->overworld.kDrawOverworldSprites) {
-      DrawOverworldSprites();
-    }
+    DrawOverworldItems();
+    DrawOverworldSprites();
     if (ImGui::IsItemHovered()) CheckForCurrentMap();
     CheckForOverworldEdits();
   }
@@ -1187,6 +1228,35 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
   return absl::OkStatus();
 }
 
+void OverworldEditor::DrawOverworldProperties() {
+  static bool init_properties = false;
+
+  if (!init_properties) {
+    for (int i = 0; i < 0x40; i++) {
+      std::string area_graphics_str = absl::StrFormat(
+
+          "0x%02hX", overworld_.overworld_map(i)->area_graphics());
+      properties_canvas_.mutable_labels(0)->push_back(area_graphics_str);
+    }
+    for (int i = 0; i < 0x40; i++) {
+      std::string area_palette_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i)->area_palette());
+      properties_canvas_.mutable_labels(1)->push_back(area_palette_str);
+    }
+    init_properties = true;
+  }
+
+  if (ImGui::Button("Area Graphics")) {
+    properties_canvas_.set_current_labels(0);
+  }
+
+  if (ImGui::Button("Area Palette")) {
+    properties_canvas_.set_current_labels(1);
+  }
+
+  properties_canvas_.UpdateInfoGrid(ImVec2(512, 512), 16, 1.0f, 64);
+}
+
 absl::Status OverworldEditor::DrawExperimentalModal() {
   ImGui::Begin("Experimental", &show_experimental);
 
@@ -1235,6 +1305,127 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
   ImGui::End();
   return absl::OkStatus();
 }
+
+absl::Status OverworldEditor::UpdateUsageStats() {
+  if (BeginTable("##UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
+    TableSetupColumn("Entrances");
+    TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch,
+                     ImGui::GetContentRegionAvail().x);
+    TableSetupColumn("Usage", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableHeadersRow();
+    TableNextRow();
+
+    TableNextColumn();
+    ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    for (int i = 0; i < 0x81; i++) {
+      std::string str = absl::StrFormat("%#x", i);
+      if (ImGui::Selectable(str.c_str(), selected_entrance_ == i,
+                            overworld_.Entrances().at(i).deleted
+                                ? ImGuiSelectableFlags_Disabled
+                                : 0)) {
+        selected_entrance_ = i;
+        selected_usage_map_ = overworld_.Entrances().at(i).map_id_;
+        properties_canvas_.set_highlight_tile_id(selected_usage_map_);
+      }
+    }
+    ImGui::EndChild();
+
+    TableNextColumn();
+    DrawUsageGrid();
+    TableNextColumn();
+    DrawOverworldProperties();
+    ImGui::EndTable();
+  }
+  return absl::OkStatus();
+}
+
+void OverworldEditor::CalculateUsageStats() {
+  absl::flat_hash_map<uint16_t, int> entrance_usage;
+  for (auto each_entrance : overworld_.Entrances()) {
+    if (each_entrance.map_id_ < 0x40 + (current_world_ * 0x40) &&
+        each_entrance.map_id_ >= (current_world_ * 0x40)) {
+      entrance_usage[each_entrance.entrance_id_]++;
+    }
+  }
+}
+
+void OverworldEditor::DrawUsageGrid() {
+  // Create a grid of 8x8 squares
+  int totalSquares = 128;
+  int squaresWide = 8;
+  int squaresTall = (totalSquares + squaresWide - 1) /
+                    squaresWide;  // Ceiling of totalSquares/squaresWide
+
+  // Loop through each row
+  for (int row = 0; row < squaresTall; ++row) {
+    ImGui::NewLine();
+
+    for (int col = 0; col < squaresWide; ++col) {
+      if (row * squaresWide + col >= totalSquares) {
+        break;
+      }
+      // Determine if this square should be highlighted
+      bool highlight = selected_usage_map_ == (row * squaresWide + col);
+
+      // Set highlight color if needed
+      if (highlight) {
+        ImGui::PushStyleColor(
+            ImGuiCol_Button,
+            ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
+      }
+
+      // Create a button or selectable for each square
+      if (ImGui::Button("##square", ImVec2(20, 20))) {
+        // Switch over to the room editor tab
+        // and add a room tab by the ID of the square
+        // that was clicked
+      }
+
+      // Reset style if it was highlighted
+      if (highlight) {
+        ImGui::PopStyleColor();
+      }
+
+      // Check if the square is hovered
+      if (ImGui::IsItemHovered()) {
+        // Display a tooltip with all the room properties
+      }
+
+      // Keep squares in the same line
+      ImGui::SameLine();
+    }
+  }
+}
+
+void OverworldEditor::LoadAnimatedMaps() {
+  int world_index = 0;
+  static std::vector<bool> animated_built(0x40, false);
+  if (!animated_built[world_index]) {
+    animated_maps_[world_index] = maps_bmp_[world_index];
+    auto &map = *overworld_.mutable_overworld_map(world_index);
+    map.DrawAnimatedTiles();
+    map.BuildTileset();
+    map.BuildTiles16Gfx(overworld_.tiles16().size());
+    OWBlockset blockset;
+    if (current_world_ == 0) {
+      blockset = overworld_.map_tiles().light_world;
+    } else if (current_world_ == 1) {
+      blockset = overworld_.map_tiles().dark_world;
+    } else {
+      blockset = overworld_.map_tiles().special_world;
+    }
+    map.BuildBitmap(blockset);
+
+    gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200, map.BitmapData(),
+                                      *rom(), animated_maps_[world_index],
+                                      *map.mutable_current_palette());
+
+    animated_built[world_index] = true;
+  }
+}
+
+// ----------------------------------------------------------------------------
 
 void OverworldEditor::DrawDebugWindow() {
   ImGui::Text("Current Map: %d", current_map_);

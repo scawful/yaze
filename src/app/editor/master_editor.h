@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_MASTER_EDITOR_H
 #define YAZE_APP_EDITOR_MASTER_EDITOR_H
 
+#define IMGUI_DEFINE_MATH_OPERATORS 1
+
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui/imgui.h>

@@ -4,6 +4,7 @@
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui/imgui.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
+#include <imgui_internal.h>
 #include <imgui_memory_editor.h>
 
 #include "absl/status/status.h"
@@ -122,6 +123,31 @@ void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   rom()->SetupRenderer(renderer);
 }
 
+namespace {
+// Function to switch the active tab in a tab bar
+void SetTabBarTab(ImGuiTabBar* tab_bar, ImGuiID tab_id) {
+  if (tab_bar == NULL) return;
+
+  // Find the tab item with the specified tab_id
+  // for (int i = 0; i < tab_bar->Tabs.Size; i++) {
+  ImGuiTabItem* tab_item = &tab_bar->Tabs[tab_id];
+  // if (tab_item->ID == tab_id) {
+  // Set the tab item as active
+  tab_item->LastFrameVisible = -1;
+  tab_item->LastFrameSelected = -1;
+  tab_bar->VisibleTabId = tab_id;
+  tab_bar->VisibleTabWasSubmitted = true;
+  tab_bar->SelectedTabId = tab_id;
+  tab_bar->NextSelectedTabId = tab_id;
+  tab_bar->ReorderRequestTabId = tab_id;
+  tab_bar->CurrFrameVisible = -1;
+
+  //   break;
+  // }
+  // }
+}
+}  // namespace
+
 absl::Status MasterEditor::Update() {
   NewMasterFrame();
 
@@ -138,15 +164,22 @@ absl::Status MasterEditor::Update() {
   }
 
   TAB_BAR("##TabBar")
+  auto current_tab_bar = ImGui::GetCurrentContext()->CurrentTabBar;
 
-  gui::RenderTabItem("Overworld", [&]() {
-    current_editor_ = &overworld_editor_;
-    status_ = overworld_editor_.Update();
-  });
+  if (overworld_editor_.jump_to_tab() == -1) {
+    gui::RenderTabItem("Overworld", [&]() {
+      current_editor_ = &overworld_editor_;
+      status_ = overworld_editor_.Update();
+    });
+  }
 
   gui::RenderTabItem("Dungeon", [&]() {
     current_editor_ = &dungeon_editor_;
     status_ = dungeon_editor_.Update();
+    if (overworld_editor_.jump_to_tab() != -1) {
+      dungeon_editor_.add_room(overworld_editor_.jump_to_tab());
+      overworld_editor_.jump_to_tab_ = -1;
+    }
   });
 
   gui::RenderTabItem("Graphics",
@@ -336,6 +369,8 @@ void MasterEditor::DrawFileMenu() {
                    &mutable_flags()->overworld.kSaveOverworldEntrances);
           Checkbox("Save Overworld Exits",
                    &mutable_flags()->overworld.kSaveOverworldExits);
+          Checkbox("Save Overworld Items",
+                   &mutable_flags()->overworld.kSaveOverworldItems);
           Checkbox("Save Overworld Properties",
                    &mutable_flags()->overworld.kSaveOverworldProperties);
           ImGui::EndMenu();
@@ -537,16 +572,16 @@ void MasterEditor::DrawHelpMenu() {
 void MasterEditor::SaveRom() {
   if (flags()->kSaveDungeonMaps) {
     status_ = screen_editor_.SaveDungeonMaps();
-    PRINT_IF_ERROR(status_);
+    RETURN_VOID_IF_ERROR(status_);
   }
   if (flags()->overworld.kSaveOverworldMaps) {
     if (overworld_editor_.overworld()->CreateTile32Tilemap()) {
       status_ = overworld_editor_.overworld()->SaveMap16Tiles();
-      PRINT_IF_ERROR(status_);
+      RETURN_VOID_IF_ERROR(status_);
       status_ = overworld_editor_.overworld()->SaveMap32Tiles();
-      PRINT_IF_ERROR(status_);
+      RETURN_VOID_IF_ERROR(status_);
       status_ = overworld_editor_.overworld()->SaveOverworldMaps();
-      PRINT_IF_ERROR(status_);
+      RETURN_VOID_IF_ERROR(status_);
     } else {
       status_ = absl::InternalError(
           "Failed to save Overworld maps, aborting ROM save.");
@@ -555,15 +590,19 @@ void MasterEditor::SaveRom() {
   }
   if (flags()->overworld.kSaveOverworldEntrances) {
     status_ = overworld_editor_.overworld()->SaveEntrances();
-    PRINT_IF_ERROR(status_);
+    RETURN_VOID_IF_ERROR(status_);
   }
   if (flags()->overworld.kSaveOverworldExits) {
     status_ = overworld_editor_.overworld()->SaveExits();
-    PRINT_IF_ERROR(status_);
+    RETURN_VOID_IF_ERROR(status_);
+  }
+  if (flags()->overworld.kSaveOverworldItems) {
+    status_ = overworld_editor_.overworld()->SaveItems();
+    RETURN_VOID_IF_ERROR(status_);
   }
   if (flags()->overworld.kSaveOverworldProperties) {
     status_ = overworld_editor_.overworld()->SaveMapProperties();
-    PRINT_IF_ERROR(status_);
+    RETURN_VOID_IF_ERROR(status_);
   }
 
   status_ = rom()->SaveToFile(backup_rom_);

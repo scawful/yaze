@@ -87,9 +87,8 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
     // Pan (we use a zero mouse threshold when there's no context menu)
     if (const float mouse_threshold_for_pan =
             enable_context_menu_ ? -1.0f : 0.0f;
-        is_active &&
-        ImGui::IsMouseDragging(ImGuiMouseButton_Right,
-                               mouse_threshold_for_pan)) {
+        is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right,
+                                            mouse_threshold_for_pan)) {
       scrolling_.x += io.MouseDelta.x;
       scrolling_.y += io.MouseDelta.y;
     }
@@ -459,9 +458,16 @@ void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
               canvas_p0_.y + scrolling_.y + y + h);
   draw_list_->AddRectFilled(origin, size,
                             IM_COL32(color.x, color.y, color.z, color.w));
+  // Add a black outline
+  ImVec2 outline_origin(origin.x - 1, origin.y - 1);
+  ImVec2 outline_size(size.x + 1, size.y + 1);
+  draw_list_->AddRect(outline_origin, outline_size, IM_COL32(0, 0, 0, 255));
 }
 
 void Canvas::DrawText(std::string text, int x, int y) {
+  draw_list_->AddText(ImVec2(canvas_p0_.x + scrolling_.x + x + 1,
+                             canvas_p0_.y + scrolling_.y + y + 1),
+                      IM_COL32(0, 0, 0, 255), text.data());
   draw_list_->AddText(
       ImVec2(canvas_p0_.x + scrolling_.x + x, canvas_p0_.y + scrolling_.y + y),
       IM_COL32(255, 255, 255, 255), text.data());

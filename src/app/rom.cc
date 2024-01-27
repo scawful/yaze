@@ -378,6 +378,7 @@ absl::Status ROM::LoadFromBytes(const Bytes& data) {
 }
 
 absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
+  absl::Status non_firing_status;
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
   }
@@ -404,8 +405,13 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
     std::replace(backup_filename.begin(), backup_filename.end(), ' ', '_');
 
     // Now, copy the original file to the backup file
-    std::filesystem::copy(filename, backup_filename,
-                          std::filesystem::copy_options::overwrite_existing);
+    try {
+      std::filesystem::copy(filename, backup_filename,
+                            std::filesystem::copy_options::overwrite_existing);
+    } catch (const std::filesystem::filesystem_error& e) {
+      non_firing_status = absl::InternalError(absl::StrCat(
+          "Could not create backup file: ", backup_filename, " - ", e.what()));
+    }
   }
 
   // Run the other save functions
@@ -442,6 +448,10 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
   if (!file) {
     return absl::InternalError(
         absl::StrCat("Error while writing to ROM file: ", filename));
+  }
+
+  if (!non_firing_status.ok()) {
+    return non_firing_status;
   }
 
   return absl::OkStatus();

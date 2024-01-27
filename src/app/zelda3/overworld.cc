@@ -141,10 +141,9 @@ absl::Status Overworld::Load(ROM &rom) {
   FetchLargeMaps();
   LoadEntrances();
   LoadExits();
+  LoadSprites();
+  RETURN_IF_ERROR(LoadItems());
   RETURN_IF_ERROR(LoadOverworldMaps())
-  if (flags()->overworld.kDrawOverworldSprites) {
-    LoadSprites();
-  }
 
   is_loaded_ = true;
   return absl::OkStatus();
@@ -213,10 +212,10 @@ absl::Status Overworld::SaveOverworldMaps() {
     }
 
     // Compress single_map_1 and single_map_2
-    ASSIGN_OR_RETURN(
-        auto a, gfx::lc_lz2::CompressOverworld(single_map_1, 0, 256))
-    ASSIGN_OR_RETURN(
-        auto b, gfx::lc_lz2::CompressOverworld(single_map_2, 0, 256))
+    ASSIGN_OR_RETURN(auto a,
+                     gfx::lc_lz2::CompressOverworld(single_map_1, 0, 256))
+    ASSIGN_OR_RETURN(auto b,
+                     gfx::lc_lz2::CompressOverworld(single_map_2, 0, 256))
     if (a.empty() || b.empty()) {
       return absl::AbortedError("Error compressing map gfx.");
     }
@@ -557,13 +556,17 @@ absl::Status Overworld::SaveMap16Tiles() {
   int tpos = kMap16Tiles;
   // 3760
   for (int i = 0; i < NumberOfMap16; i += 1) {
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile0_)))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile0_)))
     tpos += 2;
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile1_)))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile1_)))
     tpos += 2;
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile2_)))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile2_)))
     tpos += 2;
-    RETURN_IF_ERROR(rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile3_)))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile3_)))
     tpos += 2;
   }
   return absl::OkStatus();
@@ -936,6 +939,85 @@ absl::Status Overworld::SaveExits() {
   return absl::OkStatus();
 }
 
+absl::Status Overworld::SaveItems() {
+  std::vector<std::vector<OverworldItem>> roomItems(128);
+
+  for (int i = 0; i < 128; i++) {
+    roomItems[i] = std::vector<OverworldItem>();
+    for (const OverworldItem &item : all_items_) {
+      if (item.room_map_id == i) {
+        roomItems[i].push_back(item);
+        if (item.id == 0x86) {
+          rom()->WriteWord(0x16DC5 + (i * 2),
+                           (item.game_x_ + (item.game_y_ * 64)) * 2);
+        }
+      }
+    }
+  }
+
+  int dataPos = overworldItemsPointers + 0x100;
+
+  std::vector<int> itemPointers(128);
+  std::vector<int> itemPointersReuse(128);
+  int emptyPointer = 0;
+
+  for (int i = 0; i < 128; i++) {
+    itemPointersReuse[i] = -1;
+    for (int ci = 0; ci < i; ci++) {
+      if (roomItems[i].empty()) {
+        itemPointersReuse[i] = -2;
+        break;
+      }
+      // Unclear: this.compareItemsArrays(roomItems[i].ToArray(),
+      // roomItems[ci].ToArray()) Commenting out for now if
+      // (this.compareItemsArrays(roomItems[i].ToArray(),
+      // roomItems[ci].ToArray())) {
+      //   itemPointersReuse[i] = ci;
+      //   break;
+      // }
+    }
+  }
+
+  for (int i = 0; i < 128; i++) {
+    if (itemPointersReuse[i] == -1) {
+      itemPointers[i] = dataPos;
+      for (const OverworldItem &item : roomItems[i]) {
+        short mapPos =
+            static_cast<short>(((item.game_y_ << 6) + item.game_x_) << 1);
+
+        uint32_t data = static_cast<uint8_t>(mapPos & 0xFF) |
+                        static_cast<uint8_t>(mapPos >> 8) |
+                        static_cast<uint8_t>(item.id);
+        rom()->WriteLong(dataPos, data);
+        // WriteType::PotItemData);
+
+        dataPos += 3;
+      }
+
+      emptyPointer = dataPos;
+      rom()->WriteWord(dataPos, 0xFFFF);
+      dataPos += 2;
+    } else if (itemPointersReuse[i] == -2) {
+      itemPointers[i] = emptyPointer;
+    } else {
+      itemPointers[i] = itemPointers[itemPointersReuse[i]];
+    }
+
+    int snesaddr = core::PcToSnes(itemPointers[i]);
+    rom()->WriteWord(overworldItemsPointers + (i * 2), snesaddr);
+  }
+
+  if (dataPos > overworldItemsEndData) {
+    return absl::AbortedError("Too many items");
+  }
+
+  if (flags()->kLogToConsole) {
+    std::cout << "End of Items : " << dataPos << std::endl;
+  }
+
+  return absl::OkStatus();
+}
+
 void Overworld::LoadExits() {
   const int NumberOfOverworldExits = 0x4F;
   std::vector<OverworldExit> exits;
@@ -987,13 +1069,62 @@ void Overworld::LoadExits() {
                 << " DoorType2: " << exit_door_type_2 << std::endl;
     }
 
-    if (px == 0xFFFF && py == 0xFFFF) {
+    if ((px & py) == 0xFFFF) {
       exit.deleted = true;
     }
 
     exits.push_back(exit);
   }
   all_exits_ = exits;
+}
+
+absl::Status Overworld::LoadItems() {
+  ASSIGN_OR_RETURN(int pointer, rom()->ReadLong(zelda3::overworldItemsAddress));
+  int oointerPC = core::SnesToPc(pointer);  // 1BC2F9 -> 0DC2F9
+  for (int i = 0; i < 128; i++) {
+    int addr = (pointer & 0xFF0000) +                           // 1B
+               (rom()->data()[oointerPC + (i * 2) + 1] << 8) +  // F9
+               rom()->data()[oointerPC + (i * 2)];              // 3C
+
+    addr = core::SnesToPc(addr);
+
+    if (overworld_maps_[i].IsLargeMap()) {
+      if (overworld_maps_[i].Parent() != (uint8_t)i) {
+        continue;
+      }
+    }
+
+    while (true) {
+      uint8_t b1 = rom()->data()[addr];
+      uint8_t b2 = rom()->data()[addr + 1];
+      uint8_t b3 = rom()->data()[addr + 2];
+
+      if (b1 == 0xFF && b2 == 0xFF) {
+        break;
+      }
+
+      int p = (((b2 & 0x1F) << 8) + b1) >> 1;
+
+      int x = p % 64;
+      int y = p >> 6;
+
+      int fakeID = i;
+      if (fakeID >= 64) {
+        fakeID -= 64;
+      }
+
+      int sy = fakeID / 8;
+      int sx = fakeID - (sy * 8);
+
+      all_items_.emplace_back(zelda3::OverworldItem(
+          b3, (ushort)i, (x * 16) + (sx * 512), (y * 16) + (sy * 512), false));
+      auto size = all_items_.size();
+      all_items_.at(size - 1).game_x = (uint8_t)x;
+      all_items_.at(size - 1).game_y = (uint8_t)y;
+      addr += 3;
+    }
+  }
+  return absl::OkStatus();
 }
 
 void Overworld::LoadSprites() {
@@ -1025,7 +1156,7 @@ void Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
 
     int ptrPos = sprite_start + (i * 2);
     int sprite_address =
-        core::SnesToPc((0x09 << 0x10) + rom()->toint16(ptrPos));
+        core::SnesToPc((0x09 << 0x10) | rom()->toint16(ptrPos));
     while (true) {
       uchar b1 = rom_[sprite_address];
       uchar b2 = rom_[sprite_address + 1];
@@ -1033,20 +1164,20 @@ void Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
       if (b1 == 0xFF) break;
 
       int editor_map_index = i;
-      if (editor_map_index >= 128)
-        editor_map_index -= 128;
-      else if (editor_map_index >= 64)
-        editor_map_index -= 64;
-
+      if (sprite_index != 0) {
+        if (editor_map_index >= 128)
+          editor_map_index -= 128;
+        else if (editor_map_index >= 64)
+          editor_map_index -= 64;
+      }
       int mapY = (editor_map_index / 8);
       int mapX = (editor_map_index % 8);
 
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-      auto graphics_bytes = overworld_maps_[i].AreaGraphics();
       all_sprites_[sprite_index][i].InitSprite(
-          graphics_bytes, (uchar)i, b3, (uchar)(b2 & 0x3F), (uchar)(b1 & 0x3F),
-          realX, realY);
+          overworld_maps_[i].AreaGraphics(), (uchar)i, b3, (uchar)(b2 & 0x3F),
+          (uchar)(b1 & 0x3F), realX, realY);
       all_sprites_[sprite_index][i].Draw();
 
       sprite_address += 3;
@@ -1132,8 +1263,6 @@ absl::Status Overworld::LoadPrototype(ROM &rom,
       return status;
     }
   }
-
-  // LoadSprites();
 
   is_loaded_ = true;
   return absl::OkStatus();
