@@ -92,6 +92,7 @@ void HandleMouseMovement(int &wheel) {
   io.MousePos = ImVec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
   io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
   io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+  io.MouseDown[2] = buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE);
   io.MouseWheel = static_cast<float>(wheel);
 }
 

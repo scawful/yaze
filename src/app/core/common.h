@@ -48,7 +48,7 @@ class ExperimentFlags {
     bool kLoadSystemFonts = true;
 
     // Uses texture streaming from SDL for my dynamic updates.
-    bool kLoadTexturesAsStreaming = false;
+    bool kLoadTexturesAsStreaming = true;
 
     // Save dungeon map edits to the ROM.
     bool kSaveDungeonMaps = false;
