@@ -267,6 +267,8 @@ void OverworldMap::LoadAreaInfo() {
   }
 }
 
+// ============================================================================
+
 void OverworldMap::LoadWorldIndex() {
   if (parent_ < 0x40) {
     world_index_ = 0x20;
@@ -427,6 +429,9 @@ absl::Status OverworldMap::BuildTileset() {
 }
 
 absl::Status OverworldMap::BuildTiles16Gfx(int count) {
+  if (current_blockset_.size() != 0) {
+    current_blockset_.clear();
+  }
   current_blockset_.reserve(0x100000);
   for (int i = 0; i < 0x100000; i++) {
     current_blockset_.push_back(0x00);
@@ -474,6 +479,9 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 }
 
 absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
+  if (bitmap_data_.size() != 0) {
+    bitmap_data_.clear();
+  }
   bitmap_data_.reserve(0x40000);
   for (int i = 0; i < 0x40000; i++) {
     bitmap_data_.push_back(0x00);
