@@ -55,6 +55,44 @@ absl::Status OverworldEditor::Update() {
     map_blockset_loaded_ = false;
   }
 
+  // TODO: Setup pan tool with middle  mouse button
+  // if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+  //   previous_mode = current_mode;
+  //   current_mode = EditingMode::PAN;
+  //   ow_map_canvas_.set_draggable(true);
+  //   middle_mouse_dragging_ = true;
+  // }
+  // if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle) &&
+  //     current_mode == EditingMode::PAN && middle_mouse_dragging_) {
+  //   current_mode = previous_mode;
+  //   ow_map_canvas_.set_draggable(false);
+  //   middle_mouse_dragging_ = false;
+  // }
+
+  if (overworld_canvas_fullscreen_) {
+    static bool use_work_area = true;
+    static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
+                                    ImGuiWindowFlags_NoMove |
+                                    ImGuiWindowFlags_NoSavedSettings;
+
+    // We demonstrate using the full viewport area or the work area (without
+    // menu-bars, task-bars etc.) Based on your use case you may want one or the
+    // other.
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(use_work_area ? viewport->WorkPos : viewport->Pos);
+    ImGui::SetNextWindowSize(use_work_area ? viewport->WorkSize
+                                           : viewport->Size);
+
+    if (ImGui::Begin("Example: Fullscreen window",
+                     &overworld_canvas_fullscreen_, flags)) {
+      // Draws the toolset for editing the Overworld.
+      RETURN_IF_ERROR(DrawToolset())
+      DrawOverworldCanvas();
+    }
+    ImGui::End();
+    return absl::OkStatus();
+  }
+
   TAB_BAR("##OWEditorTabBar")
   TAB_ITEM("Map Editor")
   status_ = UpdateOverworldEdit();
@@ -187,7 +225,7 @@ absl::Status OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
   static bool show_properties = false;
 
-  if (BeginTable("OWToolset", 20, kToolsetTableFlags, ImVec2(0, 0))) {
+  if (BeginTable("OWToolset", 22, kToolsetTableFlags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -213,7 +251,21 @@ absl::Status OverworldEditor::DrawToolset() {
       ow_map_canvas_.ZoomIn();
     }
 
+    NEXT_COLUMN()
+    if (ImGui::Button(ICON_MD_OPEN_IN_FULL)) {
+      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+    }
+    HOVER_HINT("Fullscreen Canvas")
+
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+
+    NEXT_COLUMN()
+    if (ImGui::Selectable(ICON_MD_PAN_TOOL_ALT,
+                          current_mode == EditingMode::PAN)) {
+      current_mode = EditingMode::PAN;
+      ow_map_canvas_.set_draggable(true);
+    }
+    HOVER_HINT("Pan (Right click and drag)")
 
     NEXT_COLUMN()
     if (ImGui::Selectable(ICON_MD_DRAW,
@@ -946,7 +998,11 @@ void OverworldEditor::DrawOverworldCanvas() {
   gui::BeginChildBothScrollbars(7);
   ow_map_canvas_.DrawBackground();
   gui::EndNoPadding();
-  ow_map_canvas_.DrawContextMenu();
+  if (current_mode == EditingMode::PAN) {
+    ow_map_canvas_.DrawContextMenu();
+  } else {
+    ow_map_canvas_.set_draggable(false);
+  }
   if (overworld_.is_loaded()) {
     DrawOverworldMaps();
     DrawOverworldEntrances(ow_map_canvas_.zero_point(),
@@ -1134,6 +1190,8 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
 absl::Status OverworldEditor::DrawExperimentalModal() {
   ImGui::Begin("Experimental", &show_experimental);
 
+  DrawDebugWindow();
+
   gui::TextWithSeparators("PROTOTYPE OVERWORLD TILEMAP LOADER");
   Text("Please provide two files:");
   Text("One based on MAPn.DAT, which represents the overworld tilemap");
@@ -1176,6 +1234,36 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
 
   ImGui::End();
   return absl::OkStatus();
+}
+
+void OverworldEditor::DrawDebugWindow() {
+  ImGui::Text("Current Map: %d", current_map_);
+  ImGui::Text("Current Tile16: %d", current_tile16_);
+  int relative_x = (int)ow_map_canvas_.drawn_tile_position().x % 512;
+  int relative_y = (int)ow_map_canvas_.drawn_tile_position().y % 512;
+  ImGui::Text("Current Tile16 Drawn Position (Relative): %d, %d", relative_x,
+              relative_y);
+
+  // Print the size of the overworld map_tiles per world
+  ImGui::Text("Light World Map Tiles: %d",
+              overworld_.mutable_map_tiles()->light_world.size());
+  ImGui::Text("Dark World Map Tiles: %d",
+              overworld_.mutable_map_tiles()->dark_world.size());
+  ImGui::Text("Special World Map Tiles: %d",
+              overworld_.mutable_map_tiles()->special_world.size());
+
+  static bool view_lw_map_tiles = false;
+  static MemoryEditor mem_edit;
+  // Let's create buttons which let me view containers in the memory editor
+  if (ImGui::Button("View Light World Map Tiles")) {
+    view_lw_map_tiles = !view_lw_map_tiles;
+  }
+
+  if (view_lw_map_tiles) {
+    mem_edit.DrawContents(
+        overworld_.mutable_map_tiles()->light_world[current_map_].data(),
+        overworld_.mutable_map_tiles()->light_world[current_map_].size());
+  }
 }
 
 }  // namespace editor

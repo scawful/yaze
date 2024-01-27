@@ -78,7 +78,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
       ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
   ImGui::InvisibleButton("canvas", scaled_sz, kMouseFlags);
 
-  if (can_drag) {
+  if (draggable_ && ImGui::IsItemHovered()) {
     const bool is_active = ImGui::IsItemActive();  // Held
     const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                         canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
@@ -87,8 +87,9 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
     // Pan (we use a zero mouse threshold when there's no context menu)
     if (const float mouse_threshold_for_pan =
             enable_context_menu_ ? -1.0f : 0.0f;
-        is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right,
-                                            mouse_threshold_for_pan)) {
+        is_active &&
+        ImGui::IsMouseDragging(ImGuiMouseButton_Right,
+                               mouse_threshold_for_pan)) {
       scrolling_.x += io.MouseDelta.x;
       scrolling_.y += io.MouseDelta.y;
     }
@@ -110,12 +111,12 @@ void Canvas::DrawContextMenu() {
 
   // Contents of the Context Menu
   if (ImGui::BeginPopup("context")) {
-    ImGui::MenuItem("Show Grid", nullptr, &enable_grid_);
-    ImGui::Selectable("Show Labels", &enable_hex_tile_labels_);
     if (ImGui::MenuItem("Reset Position", nullptr, false)) {
       scrolling_.x = 0;
       scrolling_.y = 0;
     }
+    ImGui::MenuItem("Show Grid", nullptr, &enable_grid_);
+    ImGui::Selectable("Show Labels", &enable_hex_tile_labels_);
     if (ImGui::BeginMenu("Canvas Properties")) {
       ImGui::Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
       ImGui::Text("Global Scale: %.1f", global_scale_);
@@ -193,9 +194,7 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
       // Draw the currently selected tile on the overworld here
       // Save the coordinates of the selected tile.
-      drawn_tile_pos_ = io.MousePos;
-      SDL_Log("Drawn tile position: %.0f, %.0f", drawn_tile_pos_.x,
-              drawn_tile_pos_.y);
+      drawn_tile_pos_ = painter_pos;
       return true;
     }
 

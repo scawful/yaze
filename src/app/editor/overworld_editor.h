@@ -36,10 +36,10 @@ static constexpr uint kTile8DisplayHeight = 64;
 static constexpr float kInputFieldSize = 30.f;
 
 static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#drawTool",   "#separator2",
-    "#zoomOutTool",   "#zoomInTool", "#separator",  "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",   "#spriteTool",
-    "#transportTool", "#musicTool",  "#separator3", "#tilemapTool",
+    "#undoTool",      "#redoTool",  "#separator2", "#zoomOutTool",
+    "#zoomInTool",    "#separator", "#drawTool",   "#history",
+    "#entranceTool",  "#exitTool",  "#itemTool",   "#spriteTool",
+    "#transportTool", "#musicTool", "#separator3", "#tilemapTool",
     "propertiesTool"};
 
 constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
@@ -126,6 +126,8 @@ class OverworldEditor : public Editor,
   absl::Status LoadSpriteGraphics();
   absl::Status DrawExperimentalModal();
 
+  void DrawDebugWindow();
+
   auto gfx_group_editor() const { return gfx_group_editor_; }
 
   enum class EditingMode {
@@ -135,10 +137,12 @@ class OverworldEditor : public Editor,
     ITEMS,
     SPRITES,
     TRANSPORTS,
-    MUSIC
+    MUSIC,
+    PAN
   };
 
   EditingMode current_mode = EditingMode::DRAW_TILE;
+  EditingMode previous_mode = EditingMode::DRAW_TILE;
 
   int current_world_ = 0;
   int current_map_ = 0;
@@ -171,6 +175,8 @@ class OverworldEditor : public Editor,
   bool is_dragging_entrance_ = false;
   bool show_tile16_editor_ = false;
   bool show_gfx_group_editor_ = false;
+  bool overworld_canvas_fullscreen_ = false;
+  bool middle_mouse_dragging_ = false;
 
   bool IsMouseHoveringOverEntrance(const zelda3::OverworldEntrance &entrance,
                                    ImVec2 canvas_p, ImVec2 scrolling);

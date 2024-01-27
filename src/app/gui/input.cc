@@ -45,7 +45,9 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
       value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
   } else {
     const float button_size = GetFrameHeight();
-
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("%s", label);
+    ImGui::SameLine();
     BeginGroup();  // The only purpose of the group here is to allow the caller
                    // to query item data e.g. IsItemActive()
     PushID(label);
@@ -57,9 +59,7 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                         ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
                         ImVec2{style.FramePadding.x, style.FramePadding.y});
-    ImGui::AlignTextToFramePadding();
-    ImGui::Text("%s", label);
-    ImGui::SameLine();
+
     ImGui::SetNextItemWidth(input_width);
     if (InputText("", buf, IM_ARRAYSIZE(buf),
                   flags))  // PushId(label) + "" gives us the expected ID
