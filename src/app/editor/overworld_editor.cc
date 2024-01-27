@@ -520,6 +520,76 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
 // ----------------------------------------------------------------------------
 
+namespace {
+void MoveEntranceOnGrid(zelda3::OverworldEntrance &entrance, ImVec2 canvas_p0,
+                        ImVec2 scrolling) {
+  // Get the mouse position relative to the canvas
+  const ImGuiIO &io = ImGui::GetIO();
+  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Calculate the new position on the 16x16 grid
+  int new_x = static_cast<int>(mouse_pos.x) / 16 * 16;
+  int new_y = static_cast<int>(mouse_pos.y) / 16 * 16;
+
+  // Update the entrance position
+  entrance.x_ = new_x;
+  entrance.y_ = new_y;
+}
+
+void DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
+  if (ImGui::BeginPopupModal("Entrance editor", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    static uint16_t map_id = entrance.map_id_;
+    static int entrance_id = entrance.entrance_id_;
+    static int x = entrance.x_;
+    static int y = entrance.y_;
+
+    gui::InputHexWord("Map ID", &map_id, kInputFieldSize + 20);
+    gui::InputHexByte("Entrance ID", &entrance.entrance_id_, kInputFieldSize);
+    ImGui::SetNextItemWidth(100.f);
+    ImGui::InputInt("X", &x);
+    ImGui::SetNextItemWidth(100.f);
+    ImGui::InputInt("Y", &y);
+
+    if (ImGui::Button("OK")) {
+      // Implement what happens when OK is pressed
+      entrance.map_id_ = map_id;
+      entrance.entrance_id_ = entrance_id;
+      entrance.x_ = x;
+      entrance.y_ = y;
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Cancel")) {
+      // Implement what happens when Cancel is pressed
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+}
+
+}  // namespace
+
+bool OverworldEditor::IsMouseHoveringOverEntrance(
+    const zelda3::OverworldEntrance &entrance, ImVec2 canvas_p0,
+    ImVec2 scrolling) {
+  // Get the mouse position relative to the canvas
+  const ImGuiIO &io = ImGui::GetIO();
+  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Check if the mouse is hovering over the entrance
+  if (mouse_pos.x >= entrance.x_ && mouse_pos.x <= entrance.x_ + 16 &&
+      mouse_pos.y >= entrance.y_ && mouse_pos.y <= entrance.y_ + 16) {
+    return true;
+  }
+  return false;
+}
+
 void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
                                              ImVec2 scrolling) {
   for (auto &each : overworld_.Entrances()) {
@@ -527,36 +597,47 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0,
         each.map_id_ >= (current_world_ * 0x40)) {
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
                               ImVec4(210, 24, 210, 150));
-      std::string str = absl::StrFormat("%#x", each.entrance_id_);
-      ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
+      std::string str = core::UppercaseHexByte(each.entrance_id_);
 
       // Check if this entrance is being clicked and dragged
-      if (IsMouseHoveringOverEntrance(each, canvas_p0, scrolling) &&
-          ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-        dragged_entrance_ = &each;
-        is_dragging_entrance_ = true;
-        if (ImGui::BeginDragDropSource()) {
-          ImGui::SetDragDropPayload("ENTRANCE_PAYLOAD", &each,
-                                    sizeof(zelda3::OverworldEntrance));
-          Text("Moving Entrance ID: %s", str.c_str());
-          ImGui::EndDragDropSource();
+      if (current_mode == EditingMode::ENTRANCES) {
+        if (IsMouseHoveringOverEntrance(each, canvas_p0, scrolling) &&
+            ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+          dragged_entrance_ = &each;
+          is_dragging_entrance_ = true;
+          if (ImGui::BeginDragDropSource()) {
+            ImGui::SetDragDropPayload("ENTRANCE_PAYLOAD", &each,
+                                      sizeof(zelda3::OverworldEntrance));
+            Text("Moving Entrance ID: %s", str.c_str());
+            ImGui::EndDragDropSource();
+          }
+        } else if (IsMouseHoveringOverEntrance(each, canvas_p0, scrolling) &&
+                   ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          current_entrance_ = &each;
+          ImGui::OpenPopup("Entrance editor");
+        } else if (is_dragging_entrance_ && dragged_entrance_ == &each &&
+                   ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+          MoveEntranceOnGrid(*dragged_entrance_, canvas_p0, scrolling);
+          each.x_ = dragged_entrance_->x_;
+          each.y_ = dragged_entrance_->y_;
+          each.UpdateMapProperties(each.map_id_);
+          is_dragging_entrance_ = false;
+          dragged_entrance_ = nullptr;
+        } else if (is_dragging_entrance_ && dragged_entrance_ == &each) {
+          MoveEntranceOnGrid(*dragged_entrance_, canvas_p0, scrolling);
+          each.x_ = dragged_entrance_->x_;
+          each.y_ = dragged_entrance_->y_;
+          each.UpdateMapProperties(each.map_id_);
         }
-      } else if (is_dragging_entrance_ && dragged_entrance_ == &each &&
-                 ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-        // Adjust the X and Y position of the entrance rectangle based on the
-        // mouse position when it is released after being dragged
-        const ImGuiIO &io = ImGui::GetIO();
-        const ImVec2 origin(canvas_p0.x + scrolling.x,
-                            canvas_p0.y + scrolling.y);
-        dragged_entrance_->x_ = io.MousePos.x - origin.x - 8;
-        dragged_entrance_->y_ = io.MousePos.y - origin.y - 8;
-        each.x_ = dragged_entrance_->x_;
-        each.y_ = dragged_entrance_->y_;
-        is_dragging_entrance_ = false;
       }
+
+      ow_map_canvas_.DrawText(str, each.x_ - 4, each.y_ - 2);
     }
   }
+
+  DrawOverworldEntrancePopup(*current_entrance_);
 }
+
 namespace {
 bool IsMouseHoveringOverExit(const zelda3::OverworldExit &exit,
                              ImVec2 canvas_p0, ImVec2 scrolling) {
@@ -573,10 +654,6 @@ bool IsMouseHoveringOverExit(const zelda3::OverworldExit &exit,
   return false;
 }
 
-// Call this function when you need to open the popup
-void OpenExitEditorPopup() { ImGui::OpenPopup("Exit editor"); }
-
-// This function should be called within your main GUI loop
 void DrawExitEditorPopup(zelda3::OverworldExit &exit) {
   if (ImGui::BeginPopupModal("Exit editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -623,10 +700,10 @@ void DrawExitEditorPopup(zelda3::OverworldExit &exit) {
     ImGui::RadioButton("Palace", &fancyDoorType, 2);
     // If fancy door type is not None, input positions
     if (fancyDoorType != 0) {
-      ImGui::InputInt("Fancy Door X pos",
-                      &xPos);  // Placeholder for fancy door's X position
-      ImGui::InputInt("Fancy Door Y pos",
-                      &yPos);  // Placeholder for fancy door's Y position
+      // Placeholder for fancy door's X position
+      ImGui::InputInt("Fancy Door X pos", &xPos);
+      // Placeholder for fancy door's Y position
+      ImGui::InputInt("Fancy Door Y pos", &yPos);
     }
 
     ImGui::InputInt("Map", &map);
@@ -678,29 +755,13 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
       if (IsMouseHoveringOverExit(each, canvas_p0, scrolling) &&
           ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         current_exit_ = i;
-        OpenExitEditorPopup();
+        ImGui::OpenPopup("Exit editor");
       }
     }
     i++;
   }
 
   DrawExitEditorPopup(overworld_.mutable_exits()->at(current_exit_));
-}
-
-bool OverworldEditor::IsMouseHoveringOverEntrance(
-    const zelda3::OverworldEntrance &entrance, ImVec2 canvas_p0,
-    ImVec2 scrolling) {
-  // Get the mouse position relative to the canvas
-  const ImGuiIO &io = ImGui::GetIO();
-  const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-  // Check if the mouse is hovering over the entrance
-  if (mouse_pos.x >= entrance.x_ && mouse_pos.x <= entrance.x_ + 16 &&
-      mouse_pos.y >= entrance.y_ && mouse_pos.y <= entrance.y_ + 16) {
-    return true;
-  }
-  return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -743,28 +804,59 @@ void OverworldEditor::DrawOverworldMaps() {
 
 void OverworldEditor::DrawOverworldEdits() {
   auto mouse_position = ow_map_canvas_.drawn_tile_position();
-  auto canvas_size = ow_map_canvas_.canvas_size();
-  int x = mouse_position.x / canvas_size.x;
-  int y = mouse_position.y / canvas_size.y;
 
   // Determine which overworld map the user is currently editing.
-  DetermineActiveMap(mouse_position);
+  constexpr int small_map_size = 512;
+  int map_x = mouse_position.x / small_map_size;
+  int map_y = mouse_position.y / small_map_size;
+  current_map_ = map_x + map_y * 8;
+
+  // If the map has a parent, set the current_map_ to that parent map
+  // if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+  //   current_map_ = overworld_.overworld_map(current_map_)->Parent();
+  // }
 
   // Render the updated map bitmap.
   RenderUpdatedMapBitmap(mouse_position,
                          tile16_individual_data_[current_tile16_]);
-}
 
-void OverworldEditor::DetermineActiveMap(const ImVec2 &mouse_position) {
-  // Assuming each small map is 256x256 pixels (adjust as needed)
-  constexpr int small_map_size = 512;
+  // Determine tile16 position that was updated in the 512x512 map
+  // Each map is represented as a vector inside of the overworld_.map_tiles()
+  int superY = ((current_map_ - (current_world_ * 0x40)) / 0x08);
+  int superX = current_map_ - (current_world_ * 0x40) - (superY * 0x08);
+  float x = mouse_position.x / 0x10;
+  float y = mouse_position.y / 0x10;
+  int tile16_x = static_cast<int>(x) - (superX * 0x20);
+  int tile16_y = static_cast<int>(y) - (superY * 0x20);
 
-  // Calculate which small map the mouse is currently over
-  int map_x = mouse_position.x / small_map_size;
-  int map_y = mouse_position.y / small_map_size;
+  // Update the overworld_.map_tiles() data (word) based on tile16 ID and
+  // current world
+  uint16_t tile_value = current_tile16_;
+  uint8_t low_byte = tile_value & 0xFF;
+  uint8_t high_byte = (tile_value >> 8) & 0xFF;
+  if (current_world_ == 0) {
+    overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y] = low_byte;
+    // overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y + 1] =
+    //     high_byte;
+  } else if (current_world_ == 1) {
+    overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y] = low_byte;
+    // overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y + 1] =
+    //     high_byte;
+  } else {
+    overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y] =
+        low_byte;
+    // overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y + 1] =
+    //     high_byte;
+  }
 
-  // Calculate the index of the map in the `maps_bmp_` vector
-  current_map_ = map_x + map_y * 8;
+  if (flags()->kLogToConsole) {
+    std::cout << "Current Map: " << current_map_ << std::endl;
+    std::cout << "Current Tile: " << current_tile16_ << std::endl;
+    std::cout << "Mouse Position: " << mouse_position.x << ", "
+              << mouse_position.y << std::endl;
+    std::cout << "Map Position: " << map_x << ", " << map_y << std::endl;
+    std::cout << "Tile16 Position: " << x << ", " << y << std::endl;
+  }
 }
 
 void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
@@ -787,8 +879,7 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
   // Update the bitmap's pixel data based on the start_position and tile_data
   for (int y = 0; y < tile_size; ++y) {
     for (int x = 0; x < tile_size; ++x) {
-      int pixel_index = (start_position.y + y) * current_bitmap.width() +
-                        (start_position.x + x);
+      int pixel_index = (start_position.y + y) * 0x200 + (start_position.x + x);
       current_bitmap.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
     }
   }
@@ -798,7 +889,8 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
-  if (!blockset_canvas_.points().empty()) {
+  if (!blockset_canvas_.points().empty() &&
+      current_mode == EditingMode::DRAW_TILE) {
     // User has selected a tile they want to draw from the blockset.
     int x = blockset_canvas_.points().front().x / 32;
     int y = blockset_canvas_.points().front().y / 32;
@@ -812,7 +904,6 @@ void OverworldEditor::CheckForOverworldEdits() {
 }
 
 void OverworldEditor::CheckForCurrentMap() {
-  // DetermineActiveMap(ImGui::GetIO().MousePos);
   //  4096x4096, 512x512 maps and some are larges maps 1024x1024
   auto mouse_position = ImGui::GetIO().MousePos;
   constexpr int small_map_size = 512;
@@ -842,17 +933,6 @@ void OverworldEditor::CheckForCurrentMap() {
                                current_map_y * small_map_size, small_map_size,
                                small_map_size);
   }
-
-  static int prev_map_;
-
-  if (current_map_ != prev_map_) {
-    // Update the current map's tile16 blockset
-    // core::BuildAndRenderBitmapPipeline(
-    //     0x80, 0x2000, 0x80, maps_bmp_[current_map_].mutable_data(), *rom(),
-    //     maps_bmp_[current_map_], palette_);
-
-    prev_map_ = current_map_;
-  }
 }
 
 // Overworld Editor canvas
@@ -875,7 +955,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (flags()->overworld.kDrawOverworldSprites) {
       DrawOverworldSprites();
     }
-    CheckForCurrentMap();
+    if (ImGui::IsItemHovered()) CheckForCurrentMap();
     CheckForOverworldEdits();
   }
   ow_map_canvas_.DrawGrid();

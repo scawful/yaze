@@ -113,8 +113,6 @@ class OverworldEditor : public Editor,
   void DrawOverworldEdits();
   void RenderUpdatedMapBitmap(const ImVec2 &click_position,
                               const Bytes &tile_data);
-  void SaveOverworldChanges();
-  void DetermineActiveMap(const ImVec2 &mouse_position);
 
   void CheckForOverworldEdits();
   void CheckForCurrentMap();
@@ -177,6 +175,7 @@ class OverworldEditor : public Editor,
   bool IsMouseHoveringOverEntrance(const zelda3::OverworldEntrance &entrance,
                                    ImVec2 canvas_p, ImVec2 scrolling);
   zelda3::OverworldEntrance *dragged_entrance_;
+  zelda3::OverworldEntrance *current_entrance_;
 
   bool show_experimental = false;
   std::string ow_tilemap_filename_ = "";
