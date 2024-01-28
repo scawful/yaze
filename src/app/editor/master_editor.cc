@@ -129,10 +129,7 @@ void SetTabBarTab(ImGuiTabBar* tab_bar, ImGuiID tab_id) {
   if (tab_bar == NULL) return;
 
   // Find the tab item with the specified tab_id
-  // for (int i = 0; i < tab_bar->Tabs.Size; i++) {
   ImGuiTabItem* tab_item = &tab_bar->Tabs[tab_id];
-  // if (tab_item->ID == tab_id) {
-  // Set the tab item as active
   tab_item->LastFrameVisible = -1;
   tab_item->LastFrameSelected = -1;
   tab_bar->VisibleTabId = tab_id;
@@ -141,10 +138,6 @@ void SetTabBarTab(ImGuiTabBar* tab_bar, ImGuiID tab_id) {
   tab_bar->NextSelectedTabId = tab_id;
   tab_bar->ReorderRequestTabId = tab_id;
   tab_bar->CurrFrameVisible = -1;
-
-  //   break;
-  // }
-  // }
 }
 }  // namespace
 

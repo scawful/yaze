@@ -117,7 +117,7 @@ struct ChestData {
 
 struct StaircaseRooms {};
 
-class Room : public SharedROM {
+class Room : public SharedROM, public core::ExperimentFlags {
  public:
   Room() = default;
   Room(int room_id) : room_id_(room_id) {}
