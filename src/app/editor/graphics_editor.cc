@@ -253,9 +253,10 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                               ImGuiWindowFlags_AlwaysVerticalScrollbar |
                               ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
+        gfx::Bitmap& current_bitmap =
+            *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
+
         auto draw_tile_event = [&]() {
-          gfx::Bitmap& current_bitmap =
-              *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, current_bitmap,
                                                  current_color_);
           rom()->UpdateBitmap(&current_bitmap);
@@ -264,6 +265,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         current_sheet_canvas_.UpdateColorPainter(
             *rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
             tile_size_, current_scale_);
+
+
         ImGui::EndChild();
         ImGui::EndTabItem();
       }

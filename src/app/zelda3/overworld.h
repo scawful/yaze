@@ -14,39 +14,13 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/zelda3/common.h"
 #include "app/zelda3/overworld_map.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
-
-class OverworldEntity {
- public:
-  enum EntityType {
-    kEntrance = 0,
-    kExit = 1,
-    kItem = 2,
-    kSprite = 3,
-    kTransport = 4,
-    kMusic = 5,
-    kTilemap = 6,
-    kProperties = 7
-  } type_;
-  int x_;
-  int y_;
-  int game_x_;
-  int game_y_;
-  int entity_id_;
-  int map_id_;
-
-  auto set_x(int x) { x_ = x; }
-  auto set_y(int y) { y_ = y; }
-
-  OverworldEntity() = default;
-
-  virtual void UpdateMapProperties(short map_id) = 0;
-};
 
 // List of secret item names
 const std::vector<std::string> kSecretItemNames = {
@@ -96,15 +70,6 @@ class OverworldItem : public OverworldEntity {
   bool deleted = false;
   OverworldItem() = default;
 
-  /// <summary>
-  ///     Initializes a new instance of the <see cref="OverworldItem"/>
-  ///     class.
-  /// </summary>
-  /// <param name="id"> The ID. </param>
-  /// <param name="room_map_id"> The dungeon room ID or overworld area ID.
-  /// </param> <param name="x"> The in editor X position. </param> <param
-  /// name="y"> The in editor Y position. </param> <param name="bg2"> Whether
-  /// the Item is on BG2 or not. </param>
   OverworldItem(uint8_t id, uint16_t room_map_id, int x, int y, bool bg2) {
     this->id = id;
     this->x_ = x;
@@ -123,12 +88,6 @@ class OverworldItem : public OverworldEntity {
     // this->unique_id = ROM.unique_item_id++;
   }
 
-  /// <summary>
-  ///     Updates the item info when needed. Generally when moving items around
-  ///     in editor.
-  /// </summary>
-  /// <param name="room_map_id"> The dungeon room ID or overworld area ID where
-  /// the item was moved to. </param>
   void UpdateMapProperties(int16_t room_map_id) override {
     this->room_map_id = static_cast<uint16_t>(room_map_id);
 
@@ -205,7 +164,7 @@ class OverworldExit : public OverworldEntity {
   uchar area_x_;
   uchar area_y_;
   bool is_hole_ = false;
-  bool deleted = false;
+  bool deleted_ = false;
   bool is_automatic_ = false;
   bool large_map_ = false;
 
@@ -214,7 +173,7 @@ class OverworldExit : public OverworldEntity {
                 ushort y_scroll, ushort x_scroll, ushort player_y,
                 ushort player_x, ushort camera_y, ushort camera_x,
                 uchar scroll_mod_y, uchar scroll_mod_x, ushort door_type_1,
-                ushort door_type_2)
+                ushort door_type_2, bool deleted = false)
       : map_pos_(vram_location),
         entrance_id_(0),
         area_x_(0),
@@ -230,7 +189,8 @@ class OverworldExit : public OverworldEntity {
         scroll_mod_y_(scroll_mod_y),
         scroll_mod_x_(scroll_mod_x),
         door_type_1_(door_type_1),
-        door_type_2_(door_type_2) {
+        door_type_2_(door_type_2),
+        deleted_(deleted) {
     // Initialize entity variables
     this->x_ = player_x;
     this->y_ = player_y;
@@ -494,6 +454,10 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
 
   absl::Status SaveMapProperties();
 
+  int GetTile16Id(int grid_id) const {
+    return map_tiles_.light_world[game_state_][grid_id];
+  }
+
   auto overworld_maps() const { return overworld_maps_; }
   auto overworld_map(int i) const { return &overworld_maps_[i]; }
   auto mutable_overworld_map(int i) { return &overworld_maps_[i]; }
@@ -528,6 +492,8 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto all_items() const { return all_items_; }
   auto mutable_all_items() { return &all_items_; }
   auto &ref_all_items() { return all_items_; }
+  auto all_tiles_types() const { return all_tiles_types_; }
+  auto mutable_all_tiles_types() { return &all_tiles_types_; }
 
   absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
 
@@ -549,11 +515,13 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status DecompressAllMapTiles();
   absl::Status DecompressProtoMapTiles(const std::string &filename);
   void FetchLargeMaps();
+  void LoadTileTypes();
   void LoadEntrances();
   void LoadExits();
   absl::Status LoadItems();
-  void LoadSprites();
-  void LoadSpritesFromMap(int spriteStart, int spriteCount, int spriteIndex);
+  absl::Status LoadSprites();
+  absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
+                                  int spriteIndex);
 
   bool is_loaded_ = false;
 
@@ -563,6 +531,8 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
 
   ROM rom_;
   OWMapTiles map_tiles_;
+
+  uint8_t all_tiles_types_[0x200];
 
   std::vector<gfx::Tile16> tiles16_;
   std::vector<gfx::Tile32> tiles32;

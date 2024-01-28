@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 #include <cmath>
 #include <unordered_map>
@@ -12,6 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
 #include "app/core/editor.h"
+#include "app/editor/context/gfx_context.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/editor/modules/tile16_editor.h"
@@ -42,7 +44,8 @@ static constexpr absl::string_view kToolsetColumnNames[] = {
     "#transportTool", "#musicTool", "#separator3", "#tilemapTool",
     "propertiesTool"};
 
-constexpr ImGuiTableFlags kOWMapFlags = ImGuiTableFlags_Borders;
+constexpr ImGuiTableFlags kOWMapFlags =
+    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
 constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
 constexpr ImGuiTableFlags kOWEditFlags =
     ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
@@ -60,6 +63,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
 class OverworldEditor : public Editor,
                         public SharedROM,
+                        public GfxContext,
                         public core::ExperimentFlags {
  public:
   absl::Status Update() final;
@@ -75,16 +79,16 @@ class OverworldEditor : public Editor,
   int jump_to_tab_ = -1;
 
   void Shutdown() {
-    for (auto &bmp : tile16_individual_) {
+    for (auto& bmp : tile16_individual_) {
       bmp.Cleanup();
     }
-    for (auto &[i, bmp] : maps_bmp_) {
+    for (auto& [i, bmp] : maps_bmp_) {
       bmp.Cleanup();
     }
-    for (auto &[i, bmp] : graphics_bin_) {
+    for (auto& [i, bmp] : graphics_bin_) {
       bmp.Cleanup();
     }
-    for (auto &[i, bmp] : current_graphics_set_) {
+    for (auto& [i, bmp] : current_graphics_set_) {
       bmp.Cleanup();
     }
   }
@@ -110,10 +114,11 @@ class OverworldEditor : public Editor,
 
   void DrawOverworldMaps();
   void DrawOverworldEdits();
-  void RenderUpdatedMapBitmap(const ImVec2 &click_position,
-                              const Bytes &tile_data);
+  void RenderUpdatedMapBitmap(const ImVec2& click_position,
+                              const Bytes& tile_data);
   void CheckForOverworldEdits();
   void CheckForCurrentMap();
+  void CheckForSelectRectangle();
   void DrawOverworldCanvas();
 
   void DrawTile16Selector();
@@ -152,9 +157,10 @@ class OverworldEditor : public Editor,
 
   int current_world_ = 0;
   int current_map_ = 0;
+  int current_parent_ = 0;
+  int game_state_ = 1;
   int current_tile16_ = 0;
   int selected_tile_ = 0;
-  int game_state_ = 0;
 
   int selected_entrance_ = 0;
   int selected_usage_map_ = 0xFFFF;
@@ -184,8 +190,8 @@ class OverworldEditor : public Editor,
   bool middle_mouse_dragging_ = false;
 
   bool is_dragging_entity_ = false;
-  zelda3::OverworldEntity *dragged_entity_;
-  zelda3::OverworldEntity *current_entity_;
+  zelda3::OverworldEntity* dragged_entity_;
+  zelda3::OverworldEntity* current_entity_;
 
   int current_entrance_id_ = 0;
   zelda3::OverworldEntrance current_entrance_;
@@ -193,6 +199,8 @@ class OverworldEditor : public Editor,
   zelda3::OverworldExit current_exit_;
   int current_item_id_ = 0;
   zelda3::OverworldItem current_item_;
+  int current_sprite_id_ = 0;
+  zelda3::Sprite current_sprite_;
 
   bool show_experimental = false;
   std::string ow_tilemap_filename_ = "";

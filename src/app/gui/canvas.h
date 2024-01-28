@@ -46,7 +46,7 @@ class Canvas {
   void Update(const gfx::Bitmap& bitmap, ImVec2 bg_size, int tile_size,
               float scale = 1.0f, float grid_size = 64.0f);
 
-  void UpdateColorPainter(const gfx::Bitmap& bitmap, const ImVec4& color,
+  void UpdateColorPainter(gfx::Bitmap& bitmap, const ImVec4& color,
                           const std::function<void()>& event, int tile_size,
                           float scale = 1.0f);
 
@@ -90,6 +90,11 @@ class Canvas {
                   float scale = 1.0f);
 
   void DrawBitmapTable(const BitmapTable& gfx_bin);
+
+  void DrawBitmapGroup(std::vector<int> &group,
+                       std::vector<gfx::Bitmap>& tile16_individual_,
+                       int tile_size, float scale = 1.0f);
+
   void DrawOutline(int x, int y, int w, int h);
   void DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color);
   void DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color);
@@ -117,7 +122,7 @@ class Canvas {
   auto canvas_size() const { return canvas_sz_; }
   void set_global_scale(float scale) { global_scale_ = scale; }
   auto global_scale() const { return global_scale_; }
-  auto custom_labels_enabled() const { return enable_custom_labels_; }
+  auto custom_labels_enabled() { return &enable_custom_labels_; }
   auto custom_step() const { return custom_step_; }
   auto width() const { return canvas_sz_.x; }
   auto height() const { return canvas_sz_.y; }
@@ -151,6 +156,9 @@ class Canvas {
   auto set_highlight_tile_id(int i) { highlight_tile_id = i; }
   auto set_draggable(bool value) { draggable_ = value; }
 
+  auto selected_tiles() const { return selected_tiles_; }
+  auto mutable_selected_tiles() { return &selected_tiles_; }
+
  private:
   bool draggable_ = false;
   bool enable_grid_ = true;
@@ -175,6 +183,8 @@ class Canvas {
   ImVec2 canvas_p1_;
   ImVec2 mouse_pos_in_canvas_;
   ImVec2 drawn_tile_pos_;
+
+  std::vector<int> selected_tiles_;
 };
 
 }  // namespace gui
