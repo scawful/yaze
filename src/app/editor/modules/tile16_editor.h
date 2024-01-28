@@ -8,6 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/editor.h"
+#include "app/editor/context/gfx_context.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -22,10 +23,11 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class Tile16Editor : public SharedROM {
+class Tile16Editor : public GfxContext, public SharedROM {
  public:
   absl::Status Update();
-
+  absl::Status DrawTile16Editor();
+  absl::Status UpdateTile16Transfer();
   absl::Status UpdateBlockset();
 
   absl::Status DrawToCurrentTile16(ImVec2 pos);
@@ -38,7 +40,8 @@ class Tile16Editor : public SharedROM {
 
   absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
                             gfx::Bitmap current_gfx_bmp,
-                            const std::vector<gfx::Bitmap>& tile16_individual);
+                            const std::vector<gfx::Bitmap>& tile16_individual,
+                            uint8_t all_tiles_types[0x200]);
 
   absl::Status LoadTile8();
 
@@ -74,6 +77,8 @@ class Tile16Editor : public SharedROM {
   bool y_flip;
   bool priority_tile;
   int tile_size;
+
+  uint8_t *all_tiles_types_;
 
   // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_{ImVec2(0x100, 0x4000),
