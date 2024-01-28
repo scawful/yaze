@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "app/core/common.h"
+#include "app/editor/context/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -17,138 +18,6 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
-
-namespace {
-
-void CopyTile8bpp16(int x, int y, int tile, Bytes& bitmap, Bytes& blockset) {
-  int src_pos =
-      ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
-  int dest_pos = (x + (y * 0x200));
-  for (int yy = 0; yy < 0x10; yy++) {
-    for (int xx = 0; xx < 0x10; xx++) {
-      bitmap[dest_pos + xx + (yy * 0x200)] =
-          blockset[src_pos + xx + (yy * 0x80)];
-    }
-  }
-}
-
-void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
-                      gfx::SNESPalette main, gfx::SNESPalette animated,
-                      gfx::SNESPalette aux1, gfx::SNESPalette aux2,
-                      gfx::SNESPalette hud, gfx::SNESColor bgrcolor,
-                      gfx::SNESPalette spr, gfx::SNESPalette spr2) {
-  // Palettes infos, color 0 of a palette is always transparent (the arrays
-  // contains 7 colors width wide) There is 16 color per line so 16*Y
-
-  // Left side of the palette - Main, Animated
-  std::vector<gfx::SNESColor> new_palette(256);
-
-  // Main Palette, Location 0,2 : 35 colors [7x5]
-  int k = 0;
-  for (int y = 2; y < 7; y++) {
-    for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = main[k];
-      k++;
-    }
-  }
-
-  // Animated Palette, Location 0,7 : 7colors
-  for (int x = 1; x < 8; x++) {
-    new_palette[(16 * 7) + (x)] = animated[(x - 1)];
-  }
-
-  // Right side of the palette - Aux1, Aux2
-
-  // Aux1 Palette, Location 8,2 : 21 colors [7x3]
-  k = 0;
-  for (int y = 2; y < 5; y++) {
-    for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = aux1[k];
-      k++;
-    }
-  }
-
-  // Aux2 Palette, Location 8,5 : 21 colors [7x3]
-  k = 0;
-  for (int y = 5; y < 8; y++) {
-    for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = aux2[k];
-      k++;
-    }
-  }
-
-  // Hud Palette, Location 0,0 : 32 colors [16x2]
-  for (int i = 0; i < 32; i++) {
-    new_palette[i] = hud[i];
-  }
-
-  // Hardcoded grass color (that might change to become invisible instead)
-  for (int i = 0; i < 8; i++) {
-    new_palette[(i * 16)] = bgrcolor;
-    new_palette[(i * 16) + 8] = bgrcolor;
-  }
-
-  // Sprite Palettes
-  k = 0;
-  for (int y = 8; y < 9; y++) {
-    for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux1")[1][k];
-      k++;
-    }
-  }
-
-  // Sprite Palettes
-  k = 0;
-  for (int y = 8; y < 9; y++) {
-    for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux3")[0][k];
-      k++;
-    }
-  }
-
-  // Sprite Palettes
-  k = 0;
-  for (int y = 9; y < 13; y++) {
-    for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("global_sprites")[0][k];
-      k++;
-    }
-  }
-
-  // Sprite Palettes
-  k = 0;
-  for (int y = 13; y < 14; y++) {
-    for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = spr[k];
-      k++;
-    }
-  }
-
-  // Sprite Palettes
-  k = 0;
-  for (int y = 14; y < 15; y++) {
-    for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = spr2[k];
-      k++;
-    }
-  }
-
-  // Sprite Palettes
-  k = 0;
-  for (int y = 15; y < 16; y++) {
-    for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("armors")[0][k];
-      k++;
-    }
-  }
-
-  current.Create(new_palette);
-  for (int i = 0; i < 256; i++) {
-    current[(i / 16) * 16].SetTransparent(true);
-  }
-}
-
-}  // namespace
 
 OverworldMap::OverworldMap(int index, ROM& rom,
                            std::vector<gfx::Tile16>& tiles16)
@@ -322,14 +191,6 @@ void OverworldMap::DrawAnimatedTiles() {
     }
     static_graphics_[7] = 0x5B;
   }
-  //   if (static_graphics_[7] == 0x5A) {
-  //   static_graphics_[7] = 0x5B;
-  // } else {
-  //   if (static_graphics_[7] == 0x58) {
-  //     static_graphics_[7] = 0x59;
-  //   }
-  //   static_graphics_[7] = 0x5A;
-  // }
 }
 
 void OverworldMap::LoadAreaGraphicsBlocksets() {
@@ -358,6 +219,125 @@ void OverworldMap::LoadAreaGraphics() {
   LoadAreaGraphicsBlocksets();
   LoadDeathMountainGFX();
 }
+
+namespace palette_internal {
+
+void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
+                      gfx::SNESPalette main, gfx::SNESPalette animated,
+                      gfx::SNESPalette aux1, gfx::SNESPalette aux2,
+                      gfx::SNESPalette hud, gfx::SNESColor bgrcolor,
+                      gfx::SNESPalette spr, gfx::SNESPalette spr2) {
+  // Palettes infos, color 0 of a palette is always transparent (the arrays
+  // contains 7 colors width wide) There is 16 color per line so 16*Y
+
+  // Left side of the palette - Main, Animated
+  std::vector<gfx::SNESColor> new_palette(256);
+
+  // Main Palette, Location 0,2 : 35 colors [7x5]
+  int k = 0;
+  for (int y = 2; y < 7; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = main[k];
+      k++;
+    }
+  }
+
+  // Animated Palette, Location 0,7 : 7colors
+  for (int x = 1; x < 8; x++) {
+    new_palette[(16 * 7) + (x)] = animated[(x - 1)];
+  }
+
+  // Right side of the palette - Aux1, Aux2
+
+  // Aux1 Palette, Location 8,2 : 21 colors [7x3]
+  k = 0;
+  for (int y = 2; y < 5; y++) {
+    for (int x = 9; x < 16; x++) {
+      new_palette[x + (16 * y)] = aux1[k];
+      k++;
+    }
+  }
+
+  // Aux2 Palette, Location 8,5 : 21 colors [7x3]
+  k = 0;
+  for (int y = 5; y < 8; y++) {
+    for (int x = 9; x < 16; x++) {
+      new_palette[x + (16 * y)] = aux2[k];
+      k++;
+    }
+  }
+
+  // Hud Palette, Location 0,0 : 32 colors [16x2]
+  for (int i = 0; i < 32; i++) {
+    new_palette[i] = hud[i];
+  }
+
+  // Hardcoded grass color (that might change to become invisible instead)
+  for (int i = 0; i < 8; i++) {
+    new_palette[(i * 16)] = bgrcolor;
+    new_palette[(i * 16) + 8] = bgrcolor;
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 8; y < 9; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux1")[1][k];
+      k++;
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 8; y < 9; y++) {
+    for (int x = 9; x < 16; x++) {
+      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux3")[0][k];
+      k++;
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 9; y < 13; y++) {
+    for (int x = 1; x < 16; x++) {
+      new_palette[x + (16 * y)] = rom.palette_group("global_sprites")[0][k];
+      k++;
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 13; y < 14; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = spr[k];
+      k++;
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 14; y < 15; y++) {
+    for (int x = 1; x < 8; x++) {
+      new_palette[x + (16 * y)] = spr2[k];
+      k++;
+    }
+  }
+
+  // Sprite Palettes
+  k = 0;
+  for (int y = 15; y < 16; y++) {
+    for (int x = 1; x < 16; x++) {
+      new_palette[x + (16 * y)] = rom.palette_group("armors")[0][k];
+      k++;
+    }
+  }
+
+  current.Create(new_palette);
+  for (int i = 0; i < 256; i++) {
+    current[(i / 16) * 16].SetTransparent(true);
+  }
+}
+}  // namespace palette_internal
 
 // New helper function to get a palette from the ROM.
 gfx::SNESPalette OverworldMap::GetPalette(const std::string& group, int index,
@@ -427,8 +407,11 @@ void OverworldMap::LoadPalette() {
   gfx::SNESPalette spr2 =
       GetPalette("sprites_aux3", pal5, previousSprPalId, 24);
 
-  SetColorsPalette(rom_, parent_, current_palette_, main, animated, aux1, aux2,
-                   hud, bgr, spr, spr2);
+  palette_internal::SetColorsPalette(rom_, parent_, current_palette_, main,
+                                     animated, aux1, aux2, hud, bgr, spr, spr2);
+
+  gfx::Paletteset paletteset{main, animated, aux1, aux2, bgr, hud, spr, spr2};
+  palettesets_[area_graphics_] = paletteset;
 }
 
 // New helper function to process graphics buffer.
@@ -450,7 +433,7 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
 
 absl::Status OverworldMap::BuildTileset() {
   all_gfx_ = rom_.graphics_buffer();
-  current_gfx_.resize(0x10000, 0x00);
+  if (current_gfx_.size() == 0) current_gfx_.resize(0x10000, 0x00);
 
   for (int i = 0; i < 0x10; i++) {
     ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000);
@@ -460,13 +443,8 @@ absl::Status OverworldMap::BuildTileset() {
 }
 
 absl::Status OverworldMap::BuildTiles16Gfx(int count) {
-  if (current_blockset_.size() != 0) {
-    current_blockset_.clear();
-  }
-  current_blockset_.reserve(0x100000);
-  for (int i = 0; i < 0x100000; i++) {
-    current_blockset_.push_back(0x00);
-  }
+  if (current_blockset_.size() == 0) current_blockset_.resize(0x100000, 0x00);
+
   const int offsets[] = {0x00, 0x08, 0x400, 0x408};
   auto yy = 0;
   auto xx = 0;
@@ -508,6 +486,22 @@ absl::Status OverworldMap::BuildTiles16Gfx(int count) {
 
   return absl::OkStatus();
 }
+
+namespace {
+
+void CopyTile8bpp16(int x, int y, int tile, Bytes& bitmap, Bytes& blockset) {
+  int src_pos =
+      ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
+  int dest_pos = (x + (y * 0x200));
+  for (int yy = 0; yy < 0x10; yy++) {
+    for (int xx = 0; xx < 0x10; xx++) {
+      bitmap[dest_pos + xx + (yy * 0x200)] =
+          blockset[src_pos + xx + (yy * 0x80)];
+    }
+  }
+}
+
+}  // namespace
 
 absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
   if (bitmap_data_.size() != 0) {

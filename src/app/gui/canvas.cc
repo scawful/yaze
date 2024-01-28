@@ -32,7 +32,7 @@ void Canvas::Update(const gfx::Bitmap &bitmap, ImVec2 bg_size, int tile_size,
   DrawOverlay();
 }
 
-void Canvas::UpdateColorPainter(const gfx::Bitmap &bitmap, const ImVec4 &color,
+void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
                                 const std::function<void()> &event,
                                 int tile_size, float scale) {
   global_scale_ = scale;
@@ -143,17 +143,7 @@ void Canvas::DrawContextMenu() {
       }
       ImGui::EndMenu();
     }
-
     // TODO: Add a menu item for selecting the palette
-    // ImGui::Separator();
-    // if (ImGui::BeginMenu("Palette")) {
-    //   for (const auto each : editor::kPaletteGroupAddressesKeys) {
-    //     if (ImGui::BeginMenu(each)) {
-    //     }
-    //     ImGui::EndMenu();
-    //   }
-    //   ImGui::EndMenu();
-    // }
 
     ImGui::EndPopup();
   }
@@ -175,10 +165,13 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
 
     // Calculate the coordinates of the mouse
     ImVec2 painter_pos;
-    painter_pos.x = std::floor((double)mouse_pos.x / size) * size;
-    painter_pos.y = std::floor((double)mouse_pos.y / size) * size;
+    painter_pos.x =
+        std::floor((double)mouse_pos.x / (size * scale)) * (size * scale);
+    painter_pos.y =
+        std::floor((double)mouse_pos.y / (size * scale)) * (size * scale);
 
-    auto painter_pos_end = ImVec2(painter_pos.x + size, painter_pos.y + size);
+    auto painter_pos_end =
+        ImVec2(painter_pos.x + (size * scale), painter_pos.y + (size * scale));
     points_.push_back(painter_pos);
     points_.push_back(painter_pos_end);
 
@@ -186,8 +179,8 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
       draw_list_->AddImage(
           (void *)bitmap.texture(),
           ImVec2(origin.x + painter_pos.x, origin.y + painter_pos.y),
-          ImVec2(origin.x + painter_pos.x + bitmap.width() * scale,
-                 origin.y + painter_pos.y + bitmap.height() * scale));
+          ImVec2(origin.x + painter_pos.x + (size)*scale,
+                 origin.y + painter_pos.y + size * scale));
     }
 
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -195,8 +188,12 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
       // Save the coordinates of the selected tile.
       drawn_tile_pos_ = painter_pos;
       return true;
+    } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+      // Draw the currently selected tile on the overworld here
+      // Save the coordinates of the selected tile.
+      drawn_tile_pos_ = painter_pos;
+      return true;
     }
-
   } else {
     // Erase the hover when the mouse is not in the canvas window.
     points_.clear();
@@ -387,6 +384,26 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
                       IM_COL32(color.x, color.y, color.z, color.w));
 }
 
+namespace {
+std::vector<int> GetTileIDsInGrid(int start_x, int start_y, int width,
+                                  int height, int tile_size) {
+  std::vector<int> tile_ids;
+
+  int num_tiles_x = width / tile_size;
+  int num_tiles_y = height / tile_size;
+
+  for (int y = 0; y < num_tiles_y; y++) {
+    for (int x = 0; x < num_tiles_x; x++) {
+      int tile_id = (start_y / tile_size + y) * (width / tile_size) +
+                    (start_x / tile_size + x);
+      tile_ids.push_back(tile_id);
+    }
+  }
+
+  return tile_ids;
+}
+}  // namespace
+
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
   ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
                 canvas_p0_.y + scrolling_.y + y);
@@ -400,12 +417,8 @@ void Canvas::DrawSelectRect(int tile_size, float scale) {
   static ImVec2 drag_start_pos;
   static bool dragging = false;
 
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    if (!points_.empty()) {
-      points_.clear();
-    }
-    // Snap the start position to the nearest grid point with scaling
-    // consideration
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    // Start dragging and snap the start position to the nearest grid point
     drag_start_pos.x =
         std::floor(io.MousePos.x / (tile_size * scale)) * tile_size * scale;
     drag_start_pos.y =
@@ -413,40 +426,81 @@ void Canvas::DrawSelectRect(int tile_size, float scale) {
     dragging = true;
   }
 
-  if (dragging) {
-    ImVec2 current_pos = io.MousePos;
-    ImVec2 grid_pos;
-    grid_pos.x =
-        std::floor(current_pos.x / (tile_size * scale)) * tile_size * scale;
-    grid_pos.y =
-        std::floor(current_pos.y / (tile_size * scale)) * tile_size * scale;
+  ImVec2 current_pos = io.MousePos;
+  // Snap current position to the nearest grid point
+  ImVec2 snapped_current_pos;
+  snapped_current_pos.x =
+      std::floor(current_pos.x / (tile_size * scale)) * tile_size * scale;
+  snapped_current_pos.y =
+      std::floor(current_pos.y / (tile_size * scale)) * tile_size * scale;
+  // Calculate rect_min and rect_max considering the drag direction
+  ImVec2 rect_min = ImVec2(std::min(drag_start_pos.x, snapped_current_pos.x),
+                           std::min(drag_start_pos.y, snapped_current_pos.y));
+  ImVec2 rect_max = ImVec2(
+      std::max(drag_start_pos.x, snapped_current_pos.x) + tile_size * scale,
+      std::max(drag_start_pos.y, snapped_current_pos.y) + tile_size * scale);
 
-    // Calculate rect_min and rect_max considering the drag direction
-    ImVec2 rect_min, rect_max;
-    rect_min.x =
-        (grid_pos.x < drag_start_pos.x) ? grid_pos.x : drag_start_pos.x;
-    rect_min.y =
-        (grid_pos.y < drag_start_pos.y) ? grid_pos.y : drag_start_pos.y;
-    rect_max.x = (grid_pos.x >= drag_start_pos.x)
-                     ? grid_pos.x + tile_size * scale
-                     : drag_start_pos.x + tile_size * scale;
-    rect_max.y = (grid_pos.y >= drag_start_pos.y)
-                     ? grid_pos.y + tile_size * scale
-                     : drag_start_pos.y + tile_size * scale;
-
+  if (dragging && ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
     draw_list_->AddRect(rect_min, rect_max, kRectangleBorder);
+  }
 
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-      dragging = false;
-      // Convert the coordinates to scale-independent form
-      ImVec2 scaled_rect_min, scaled_rect_max;
-      scaled_rect_min.x = rect_min.x * scale;
-      scaled_rect_min.y = rect_min.y * scale;
-      scaled_rect_max.x = rect_max.x * scale;
-      scaled_rect_max.y = rect_max.y * scale;
+  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    dragging = false;
+    ImVec2 scaled_rect_min =
+        ImVec2(drag_start_pos.x / scale, drag_start_pos.y / scale);
+    ImVec2 scaled_rect_max = ImVec2(rect_max.x / scale, rect_max.y / scale);
 
-      points_.push_back(scaled_rect_min);
-      points_.push_back(scaled_rect_max);
+    // Here, calculate and store the tile16 IDs within the rectangle
+    selected_tiles_ =
+        GetTileIDsInGrid(scaled_rect_min.x, scaled_rect_min.y,
+                         scaled_rect_max.x - scaled_rect_min.x,
+                         scaled_rect_max.y - scaled_rect_min.y, tile_size);
+
+    // Clear and add the calculated rectangle points
+    points_.clear();
+    points_.push_back(scaled_rect_min);
+    points_.push_back(scaled_rect_max);
+  }
+}
+
+void Canvas::DrawBitmapGroup(std::vector<int> &group,
+                             std::vector<gfx::Bitmap> &tile16_individual_,
+                             int tile_size, float scale) {
+  if (points_.size() != 2) {
+    // Handle error: points_ should contain exactly two points
+    return;
+  }
+
+  // Top-left and bottom-right corners of the rectangle
+  ImVec2 rect_top_left = points_[0];
+  ImVec2 rect_bottom_right = points_[1];
+
+  // Calculate the start and end tiles in the grid
+  int start_tile_x = static_cast<int>(rect_top_left.x / (tile_size * scale));
+  int start_tile_y = static_cast<int>(rect_top_left.y / (tile_size * scale));
+  int end_tile_x = static_cast<int>(rect_bottom_right.x / (tile_size * scale));
+  int end_tile_y = static_cast<int>(rect_bottom_right.y / (tile_size * scale));
+
+  // Calculate the size of the rectangle in 16x16 grid form
+  int rect_width = (end_tile_x - start_tile_x + 1) * tile_size;
+  int rect_height = (end_tile_y - start_tile_y + 1) * tile_size;
+
+  const int tiles_per_row = rect_width / tile_size;
+
+  for (int i = 0; i < group.size(); ++i) {
+    int tile_id = group[i];
+
+    // Check if tile_id is within the range of tile16_individual_
+    if (tile_id >= 0 && tile_id < tile16_individual_.size()) {
+      int x = i % tiles_per_row;
+      int y = i / tiles_per_row;
+
+      // Calculate the position of the tile within the rectangle
+      int tile_pos_x = x * tile_size * scale + start_tile_x * tile_size * scale;
+      int tile_pos_y = y * tile_size * scale + start_tile_y * tile_size * scale;
+
+      // Draw the tile bitmap at the calculated position
+      DrawBitmap(tile16_individual_[tile_id], tile_pos_x, tile_pos_y, scale);
     }
   }
 }

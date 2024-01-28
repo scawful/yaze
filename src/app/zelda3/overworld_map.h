@@ -11,6 +11,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
+#include "app/editor/context/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -22,7 +23,9 @@ namespace zelda3 {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
-class OverworldMap {
+using editor::GfxContext;
+
+class OverworldMap : public GfxContext {
  public:
   OverworldMap() = default;
   OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16>& tiles16);
@@ -38,6 +41,7 @@ class OverworldMap {
 
   void DrawAnimatedTiles();
 
+
   auto Tile16Blockset() const { return current_blockset_; }
   auto AreaGraphics() const { return current_gfx_; }
   auto AreaPalette() const { return current_palette_; }
@@ -46,7 +50,7 @@ class OverworldMap {
   auto IsLargeMap() const { return large_map_; }
   auto IsInitialized() const { return initialized_; }
   auto Parent() const { return parent_; }
-  
+
   auto mutable_current_palette() { return &current_palette_; }
 
   auto area_graphics() const { return area_graphics_; }

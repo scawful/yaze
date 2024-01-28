@@ -13,14 +13,15 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/zelda3/common.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
 
-class Sprite {
+class Sprite : public OverworldEntity {
  public:
-  Sprite();
+  Sprite() = default;
   Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
          int map_y);
   void InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x, uchar y,
@@ -32,13 +33,14 @@ class Sprite {
                       bool mirror_x = false, bool mirror_y = false,
                       int sizex = 2, int sizey = 2);
 
+  void UpdateMapProperties(short map_id) override;
+
   // New methods
   void updateCoordinates(int map_x, int map_y);
 
   auto PreviewGraphics() const { return preview_gfx_; }
-  auto GetRealX() const { return bounding_box_.x; }
-  auto GetRealY() const { return bounding_box_.y; }
   auto id() const { return id_; }
+  auto set_id(uchar id) { id_ = id; }
   auto x() const { return x_; }
   auto y() const { return y_; }
   auto nx() const { return nx_; }
@@ -55,6 +57,7 @@ class Sprite {
   auto Height() const { return bounding_box_.h; }
   std::string& Name() { return name_; }
   auto deleted() const { return deleted_; }
+  auto set_deleted(bool deleted) { deleted_ = deleted; }
 
  private:
   Bytes current_gfx_;
@@ -62,8 +65,8 @@ class Sprite {
 
   uchar map_id_;
   uchar id_;
-  uchar x_;
-  uchar y_;
+  // uchar x_;
+  // uchar y_;
   uchar nx_;
   uchar ny_;
   uchar overlord_ = 0;

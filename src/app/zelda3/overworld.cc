@@ -141,8 +141,8 @@ absl::Status Overworld::Load(ROM &rom) {
   FetchLargeMaps();
   LoadEntrances();
   LoadExits();
-  LoadSprites();
   RETURN_IF_ERROR(LoadItems());
+  RETURN_IF_ERROR(LoadSprites());
   RETURN_IF_ERROR(LoadOverworldMaps())
 
   is_loaded_ = true;
@@ -862,6 +862,12 @@ void Overworld::FetchLargeMaps() {
   }
 }
 
+void Overworld::LoadTileTypes() {
+  for (int i = 0; i < 0x200; i++) {
+    all_tiles_types_[i] = rom()->data()[overworldTilesType + i];
+  }
+}
+
 void Overworld::LoadEntrances() {
   for (int i = 0; i < 129; i++) {
     short map_id = rom()->toint16(OWEntranceMap + (i * 2));
@@ -939,6 +945,37 @@ absl::Status Overworld::SaveExits() {
   return absl::OkStatus();
 }
 
+namespace {
+
+bool compareItemsArrays(std::vector<OverworldItem> itemArray1,
+                        std::vector<OverworldItem> itemArray2) {
+  if (itemArray1.size() != itemArray2.size()) {
+    return false;
+  }
+
+  bool match;
+  for (int i = 0; i < itemArray1.size(); i++) {
+    match = false;
+    for (int j = 0; j < itemArray2.size(); j++) {
+      // Check all sprite in 2nd array if one match
+      if (itemArray1[i].x_ == itemArray2[j].x_ &&
+          itemArray1[i].y_ == itemArray2[j].y_ &&
+          itemArray1[i].id == itemArray2[j].id) {
+        match = true;
+        break;
+      }
+    }
+
+    if (!match) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+}  // namespace
+
 absl::Status Overworld::SaveItems() {
   std::vector<std::vector<OverworldItem>> roomItems(128);
 
@@ -968,13 +1005,19 @@ absl::Status Overworld::SaveItems() {
         itemPointersReuse[i] = -2;
         break;
       }
-      // Unclear: this.compareItemsArrays(roomItems[i].ToArray(),
-      // roomItems[ci].ToArray()) Commenting out for now if
-      // (this.compareItemsArrays(roomItems[i].ToArray(),
-      // roomItems[ci].ToArray())) {
-      //   itemPointersReuse[i] = ci;
-      //   break;
-      // }
+
+      // Unclear:
+      compareItemsArrays(
+          std::vector<OverworldItem>(roomItems[i].begin(), roomItems[i].end()),
+          std::vector<OverworldItem>(roomItems[ci].begin(),
+                                     roomItems[ci].end()));
+      if (compareItemsArrays(std::vector<OverworldItem>(roomItems[i].begin(),
+                                                        roomItems[i].end()),
+                             std::vector<OverworldItem>(roomItems[ci].begin(),
+                                                        roomItems[ci].end()))) {
+        itemPointersReuse[i] = ci;
+        break;
+      }
     }
   }
 
@@ -1051,10 +1094,6 @@ void Overworld::LoadExits() {
                          rom_data[OWExitYPlayer + (i * 2)]);
     ushort px = (ushort)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
                          rom_data[OWExitXPlayer + (i * 2)]);
-    OverworldExit exit(exit_room_id, exit_map_id, exit_vram, exit_y_scroll,
-                       exit_x_scroll, py, px, exit_y_camera, exit_x_camera,
-                       exit_scroll_mod_y, exit_scroll_mod_x, exit_door_type_1,
-                       exit_door_type_2);
 
     if (rom()->flags()->kLogToConsole) {
       std::cout << "Exit: " << i << " RoomID: " << exit_room_id
@@ -1069,22 +1108,24 @@ void Overworld::LoadExits() {
                 << " DoorType2: " << exit_door_type_2 << std::endl;
     }
 
-    if ((px & py) == 0xFFFF) {
-      exit.deleted = true;
-    }
-
-    exits.push_back(exit);
+    exits.emplace_back(exit_room_id, exit_map_id, exit_vram, exit_y_scroll,
+                       exit_x_scroll, py, px, exit_y_camera, exit_x_camera,
+                       exit_scroll_mod_y, exit_scroll_mod_x, exit_door_type_1,
+                       exit_door_type_2, (px & py) == 0xFFFF);
   }
   all_exits_ = exits;
 }
 
 absl::Status Overworld::LoadItems() {
   ASSIGN_OR_RETURN(int pointer, rom()->ReadLong(zelda3::overworldItemsAddress));
-  int oointerPC = core::SnesToPc(pointer);  // 1BC2F9 -> 0DC2F9
+  int pointer_pc = core::SnesToPc(pointer);  // 1BC2F9 -> 0DC2F9
   for (int i = 0; i < 128; i++) {
-    int addr = (pointer & 0xFF0000) +                           // 1B
-               (rom()->data()[oointerPC + (i * 2) + 1] << 8) +  // F9
-               rom()->data()[oointerPC + (i * 2)];              // 3C
+    ASSIGN_OR_RETURN(uint16_t word_address,
+                     rom()->ReadWord(pointer_pc + i * 2));
+    int addr = (pointer & 0xFF0000) | word_address;  // 1B
+
+    //  (rom()->data()[pointer_pc + (i * 2) + 1] << 8) +  // F9
+    //  rom()->data()[pointer_pc + (i * 2)];              // 3C
 
     addr = core::SnesToPc(addr);
 
@@ -1095,9 +1136,9 @@ absl::Status Overworld::LoadItems() {
     }
 
     while (true) {
-      uint8_t b1 = rom()->data()[addr];
-      uint8_t b2 = rom()->data()[addr + 1];
-      uint8_t b3 = rom()->data()[addr + 2];
+      ASSIGN_OR_RETURN(uint8_t b1, rom()->ReadByte(addr));
+      ASSIGN_OR_RETURN(uint8_t b2, rom()->ReadByte(addr + 1));
+      ASSIGN_OR_RETURN(uint8_t b3, rom()->ReadByte(addr + 2));
 
       if (b1 == 0xFF && b2 == 0xFF) {
         break;
@@ -1116,51 +1157,41 @@ absl::Status Overworld::LoadItems() {
       int sy = fakeID / 8;
       int sx = fakeID - (sy * 8);
 
-      all_items_.emplace_back(zelda3::OverworldItem(
-          b3, (ushort)i, (x * 16) + (sx * 512), (y * 16) + (sy * 512), false));
+      all_items_.emplace_back(b3, (ushort)i, (x * 16) + (sx * 512),
+                              (y * 16) + (sy * 512), false);
       auto size = all_items_.size();
-      all_items_.at(size - 1).game_x = (uint8_t)x;
-      all_items_.at(size - 1).game_y = (uint8_t)y;
+
+      all_items_[size - 1].game_x = (uint8_t)x;
+      all_items_[size - 1].game_y = (uint8_t)y;
       addr += 3;
     }
   }
   return absl::OkStatus();
 }
 
-void Overworld::LoadSprites() {
+absl::Status Overworld::LoadSprites() {
   for (int i = 0; i < 3; i++) {
     all_sprites_.emplace_back();
   }
 
-  for (int i = 0; i < 64; i++) {
-    all_sprites_[0].emplace_back();
-  }
-
-  for (int i = 0; i < 144; i++) {
-    all_sprites_[1].emplace_back();
-  }
-
-  for (int i = 0; i < 144; i++) {
-    all_sprites_[2].emplace_back();
-  }
-
-  LoadSpritesFromMap(overworldSpritesBegining, 64, 0);
-  LoadSpritesFromMap(overworldSpritesZelda, 144, 1);
-  LoadSpritesFromMap(overworldSpritesAgahnim, 144, 2);
+  RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesBegining, 64, 0));
+  RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesZelda, 144, 1));
+  RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesAgahnim, 144, 2));
+  return absl::OkStatus();
 }
 
-void Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
-                                   int sprite_index) {
+absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
+                                           int sprite_index) {
   for (int i = 0; i < sprite_count; i++) {
     if (map_parent_[i] != i) continue;
 
     int ptrPos = sprite_start + (i * 2);
-    int sprite_address =
-        core::SnesToPc((0x09 << 0x10) | rom()->toint16(ptrPos));
+    ASSIGN_OR_RETURN(auto word_addr, rom()->ReadWord(ptrPos));
+    int sprite_address = core::SnesToPc((0x09 << 0x10) | word_addr);
     while (true) {
-      uchar b1 = rom_[sprite_address];
-      uchar b2 = rom_[sprite_address + 1];
-      uchar b3 = rom_[sprite_address + 2];
+      ASSIGN_OR_RETURN(uint8_t b1, rom()->ReadByte(sprite_address));
+      ASSIGN_OR_RETURN(uint8_t b2, rom()->ReadByte(sprite_address + 1));
+      ASSIGN_OR_RETURN(uint8_t b3, rom()->ReadByte(sprite_address + 2));
       if (b1 == 0xFF) break;
 
       int editor_map_index = i;
@@ -1175,14 +1206,16 @@ void Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
 
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-      all_sprites_[sprite_index][i].InitSprite(
-          overworld_maps_[i].AreaGraphics(), (uchar)i, b3, (uchar)(b2 & 0x3F),
-          (uchar)(b1 & 0x3F), realX, realY);
-      all_sprites_[sprite_index][i].Draw();
+      all_sprites_[sprite_index].emplace_back(overworld_maps_[i].AreaGraphics(),
+                                              (uchar)i, b3, (uchar)(b2 & 0x3F),
+                                              (uchar)(b1 & 0x3F), realX, realY);
+      // all_sprites_[sprite_index][i].Draw();
 
       sprite_address += 3;
     }
   }
+
+  return absl::OkStatus();
 }
 
 absl::Status Overworld::SaveMapProperties() {
