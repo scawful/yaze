@@ -278,8 +278,6 @@ PaletteGroup CreatePaletteGroupFromColFile(
 PaletteGroup CreatePaletteGroupFromLargePalette(SNESPalette& palette) {
   PaletteGroup toret;
 
-  std::cout << "Palette size is " << palette.size() << std::endl;
-
   for (int i = 0; i < palette.size(); i += 8) {
     SNESPalette new_palette;
     if (i + 8 < palette.size()) {
