@@ -276,6 +276,30 @@ PaletteGroup CreatePaletteGroupFromColFile(std::vector<SNESColor>& colors);
 
 PaletteGroup CreatePaletteGroupFromLargePalette(SNESPalette& palette);
 
+struct Paletteset {
+  Paletteset() = default;
+  Paletteset(gfx::SNESPalette main, gfx::SNESPalette animated,
+             gfx::SNESPalette aux1, gfx::SNESPalette aux2,
+             gfx::SNESColor background, gfx::SNESPalette hud,
+             gfx::SNESPalette spr, gfx::SNESPalette spr2)
+      : main(main),
+        animated(animated),
+        aux1(aux1),
+        aux2(aux2),
+        background(background),
+        hud(hud),
+        spr(spr),
+        spr2(spr2) {}
+  gfx::SNESPalette main;
+  gfx::SNESPalette animated;
+  gfx::SNESPalette aux1;
+  gfx::SNESPalette aux2;
+  gfx::SNESColor background;
+  gfx::SNESPalette hud;
+  gfx::SNESPalette spr;
+  gfx::SNESPalette spr2;
+};
+
 }  // namespace gfx
 }  // namespace app
 }  // namespace yaze
