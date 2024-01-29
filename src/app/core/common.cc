@@ -43,8 +43,22 @@ uint32_t SnesToPc(uint32_t addr) {
 }
 
 uint32_t PcToSnes(uint32_t addr) {
-  if (addr >= 0x400000) return -1;
-  addr = ((addr << 1) & 0x7F0000) | (addr & 0x7FFF) | 0x8000;
+  // Impl1
+  // if (addr >= 0x400000) return -1;
+  // addr = ((addr << 1) & 0x7F0000) | (addr & 0x7FFF) | 0x8000;
+
+  // Impl2
+  // return (addr & 0x7FFF) | 0x8000 | ((addr & 0x7F8000) << 1);
+
+  uint8_t *b = reinterpret_cast<uint8_t *>(&addr);
+  b[2] = static_cast<uint8_t>(b[2] * 2);
+
+  if (b[1] >= 0x80) {
+    b[2] += 1;
+  } else {
+    b[1] += 0x80;
+  }
+
   return addr;
 }
 

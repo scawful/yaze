@@ -90,10 +90,17 @@ class Tile32 {
 
   // Constructor from packed value
   Tile32(uint64_t packedVal) {
-    tile0_ = (packedVal >> 48) & 0xFFFF;
-    tile1_ = (packedVal >> 32) & 0xFFFF;
-    tile2_ = (packedVal >> 16) & 0xFFFF;
-    tile3_ = packedVal & 0xFFFF;
+    tile0_ = (ushort)packedVal;
+    tile1_ = (ushort)(packedVal >> 16);
+    tile2_ = (ushort)(packedVal >> 32);
+    tile3_ = (ushort)(packedVal >> 48);
+  }
+
+  // Get packed uint64_t representation
+  uint64_t GetPackedValue() const {
+    return static_cast<uint64_t>(tile3_) << 48 |
+           (static_cast<uint64_t>(tile2_) << 32) |
+           (static_cast<uint64_t>(tile1_) << 16) | tile0_;
   }
 
   // Equality operator
@@ -104,13 +111,6 @@ class Tile32 {
 
   // Inequality operator
   bool operator!=(const Tile32& other) const { return !(*this == other); }
-
-  // Get packed uint64_t representation
-  uint64_t GetPackedValue() const {
-    return static_cast<uint64_t>(tile3_) << 48 |
-           (static_cast<uint64_t>(tile2_) << 32) |
-           (static_cast<uint64_t>(tile1_) << 16) | tile0_;
-  }
 };
 
 class Tile16 {

@@ -266,6 +266,8 @@ void stle16b_i(uint8_t *const p_arr, size_t const p_index,
                uint16_t const p_val);
 uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
 
+uint16_t ldle16b(uint8_t const *const p_arr);
+
 void stle16b(uint8_t *const p_arr, uint16_t const p_val);
 void stle32b(uint8_t *const p_arr, uint32_t const p_val);
 
