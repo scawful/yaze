@@ -416,7 +416,13 @@ constexpr int overworldTransitionPositionY = 0x128C4;
 constexpr int overworldTransitionPositionX = 0x12944;
 constexpr int overworldScreenSize = 0x1788D;
 constexpr int OverworldScreenSizeForLoading = 0x4C635;
-constexpr int OverworldScreenTileMapChangeByScreen = 0x12634;
+
+// constexpr int OverworldScreenTileMapChangeByScreen = 0x12634;
+constexpr int OverworldScreenTileMapChangeByScreen1 = 0x12634;
+constexpr int OverworldScreenTileMapChangeByScreen2 = 0x126B4;
+constexpr int OverworldScreenTileMapChangeByScreen3 = 0x12734;
+constexpr int OverworldScreenTileMapChangeByScreen4 = 0x127B4;
+
 constexpr int transition_target_north = 0x13ee2;
 constexpr int transition_target_west = 0x13f62;
 constexpr int overworldCustomMosaicASM = 0x1301D0;
@@ -517,7 +523,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   void FetchLargeMaps();
   void LoadTileTypes();
   void LoadEntrances();
-  void LoadExits();
+  absl::Status LoadExits();
   absl::Status LoadItems();
   absl::Status LoadSprites();
   absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
@@ -535,7 +541,8 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   uint8_t all_tiles_types_[0x200];
 
   std::vector<gfx::Tile16> tiles16_;
-  std::vector<gfx::Tile32> tiles32;
+  std::vector<gfx::Tile32> tiles32_;
+  std::vector<ushort> tiles32_list_;
   std::vector<gfx::Tile32> tiles32_unique_;
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
@@ -543,10 +550,6 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   std::vector<OverworldExit> all_exits_;
   std::vector<OverworldItem> all_items_;
   std::vector<std::vector<Sprite>> all_sprites_;
-
-  std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
-
-  absl::flat_hash_map<int, MapData> proto_map_data_;
 
   std::vector<std::vector<uint8_t>> map_data_p1 =
       std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
@@ -558,6 +561,9 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
 
   std::vector<int> map_pointers1 = std::vector<int>(kNumOverworldMaps);
   std::vector<int> map_pointers2 = std::vector<int>(kNumOverworldMaps);
+
+  std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
+  absl::flat_hash_map<int, MapData> proto_map_data_;
 };
 
 }  // namespace zelda3

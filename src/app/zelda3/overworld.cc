@@ -39,42 +39,6 @@ uint GetOwMapGfxLowPtr(const uchar *rom, int index, uint32_t map_low_ptr) {
   return core::SnesToPc(p2);
 }
 
-std::vector<uint64_t> GetAllTile16(OWBlockset &tiles_used) {
-  std::vector<uint64_t> all_tile_16;  // Ensure it's 64 bits
-
-  int sx = 0;
-  int sy = 0;
-  int c = 0;
-  for (int i = 0; i < kNumOverworldMaps; i++) {
-    for (int y = 0; y < 32; y += 2) {
-      for (int x = 0; x < 32; x += 2) {
-        gfx::Tile32 current_tile(
-            tiles_used[x + (sx * 32)][y + (sy * 32)],
-            tiles_used[x + 1 + (sx * 32)][y + (sy * 32)],
-            tiles_used[x + (sx * 32)][y + 1 + (sy * 32)],
-            tiles_used[x + 1 + (sx * 32)][y + 1 + (sy * 32)]);
-
-        all_tile_16.push_back(current_tile.GetPackedValue());
-      }
-    }
-
-    sx++;
-    if (sx >= 8) {
-      sy++;
-      sx = 0;
-    }
-
-    c++;
-    if (c >= 64) {
-      sx = 0;
-      sy = 0;
-      c = 0;
-    }
-  }
-
-  return all_tile_16;
-}
-
 absl::flat_hash_map<int, MapData> parseFile(const std::string &filename) {
   absl::flat_hash_map<int, MapData> resultMap;
 
@@ -140,7 +104,7 @@ absl::Status Overworld::Load(ROM &rom) {
 
   FetchLargeMaps();
   LoadEntrances();
-  LoadExits();
+  RETURN_IF_ERROR(LoadExits());
   RETURN_IF_ERROR(LoadItems());
   RETURN_IF_ERROR(LoadSprites());
   RETURN_IF_ERROR(LoadOverworldMaps())
@@ -189,9 +153,11 @@ absl::Status Overworld::LoadOverworldMaps() {
 }
 
 absl::Status Overworld::SaveOverworldMaps() {
+  core::Logger::log("Saving Overworld Maps");
+
   // Initialize map pointers
   std::fill(map_pointers1_id.begin(), map_pointers1_id.end(), -1);
-  std::fill(map_pointers1_id.begin(), map_pointers1_id.end(), -1);
+  std::fill(map_pointers2_id.begin(), map_pointers2_id.end(), -1);
 
   // Compress and save each map
   int pos = 0x058000;
@@ -203,53 +169,126 @@ absl::Status Overworld::SaveOverworldMaps() {
     int npos = 0;
     for (int y = 0; y < 16; y++) {
       for (int x = 0; x < 16; x++) {
-        auto packed1 = tiles32[npos + (i * 256)].GetPackedValue();
-        auto packed2 = tiles32[npos + (i * 256) + 16].GetPackedValue();
-        single_map_1[npos] = static_cast<uint8_t>(packed1 & 0xFF);
-        single_map_2[npos] = static_cast<uint8_t>(packed2 & 0xFF);
+        auto packed = tiles32_list_[npos + (i * 256)];
+        single_map_1[npos] = packed & 0xFF;         // Lower 8 bits
+        single_map_2[npos] = (packed >> 8) & 0xFF;  // Next 8 bits
         npos++;
       }
     }
 
+    std::vector<uint8_t> a, b;
+    int size_a, size_b;
     // Compress single_map_1 and single_map_2
-    ASSIGN_OR_RETURN(auto a,
-                     gfx::lc_lz2::CompressOverworld(single_map_1, 0, 256))
-    ASSIGN_OR_RETURN(auto b,
-                     gfx::lc_lz2::CompressOverworld(single_map_2, 0, 256))
+    if (flags()->kUseClassicCompression) {
+      auto a_char = gfx::lc_lz2::Compress(single_map_1.data(), 256, &size_a, 1);
+      auto b_char = gfx::lc_lz2::Compress(single_map_2.data(), 256, &size_b, 1);
+      // Copy the compressed data to a and b
+      a.resize(size_a);
+      b.resize(size_b);
+      // Copy the arrays manually
+      for (int k = 0; k < size_a; k++) {
+        a[k] = a_char[k];
+      }
+      for (int k = 0; k < size_b; k++) {
+        b[k] = b_char[k];
+      }
+    } else {
+      ASSIGN_OR_RETURN(
+          a, gfx::lc_lz2::CompressOverworld(single_map_1.data(), 0, 256))
+      ASSIGN_OR_RETURN(
+          b, gfx::lc_lz2::CompressOverworld(single_map_2.data(), 0, 256))
+    }
     if (a.empty() || b.empty()) {
       return absl::AbortedError("Error compressing map gfx.");
     }
 
     // Save compressed data and pointers
-    map_data_p1[i] = a;
-    map_data_p2[i] = b;
+    map_data_p1[i] = std::vector<uint8_t>(a.size());
+    map_data_p2[i] = std::vector<uint8_t>(b.size());
+
+    if ((pos + a.size()) >= 0x5FE70 && (pos + a.size()) <= 0x60000) {
+      pos = 0x60000;
+    }
+
+    if ((pos + a.size()) >= 0x6411F && (pos + a.size()) <= 0x70000) {
+      core::Logger::log("Pos set to overflow region for map " +
+                        std::to_string(i) + " at " +
+                        core::UppercaseHexLong(pos));
+      pos = OverworldMapDataOverflow;  // 0x0F8780;
+    }
+
+    auto compareArray = [](const std::vector<uint8_t> &array1,
+                           const std::vector<uint8_t> &array2) -> bool {
+      if (array1.size() != array2.size()) {
+        return false;
+      }
+
+      for (size_t i = 0; i < array1.size(); i++) {
+        if (array1[i] != array2[i]) {
+          return false;
+        }
+      }
+
+      return true;
+    };
+
+    for (int j = 0; j < i; j++) {
+      if (compareArray(a, map_data_p1[j])) {
+        // Reuse pointer id j for P1 (a)
+        map_pointers1_id[i] = j;
+      }
+
+      if (compareArray(b, map_data_p2[j])) {
+        map_pointers2_id[i] = j;
+        // Reuse pointer id j for P2 (b)
+      }
+    }
 
     if (map_pointers1_id[i] == -1) {
       // Save compressed data and pointer for map1
       std::copy(a.begin(), a.end(), map_data_p1[i].begin());
       int snes_pos = core::PcToSnes(pos);
       map_pointers1[i] = snes_pos;
-
-      RETURN_IF_ERROR(rom()->RunTransaction(
-          WriteAction{kCompressedAllMap32PointersLow + 0 + 3 * i,
-                      uint8_t(snes_pos & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersLow + 1 + 3 * i,
-                      uint8_t((snes_pos >> 8) & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersLow + 2 + 3 * i,
-                      uint8_t((snes_pos >> 16) & 0xFF)},
-          WriteAction{pos, std::vector<uint8_t>(a)}))
-
-      pos += a.size();
+      uint8_t b1 = (uint8_t)(snes_pos & 0xFF);
+      uint8_t b2 = (uint8_t)((snes_pos >> 8) & 0xFF);
+      uint8_t b3 = (uint8_t)((snes_pos >> 16) & 0xFF);
+      core::Logger::log("Saving map pointers1 for map " + std::to_string(i) +
+                        " at " + core::UppercaseHexLong(snes_pos));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersLow + 0 + 3 * i, b1));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersLow + 1 + 3 * i, b2));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersLow + 2 + 3 * i, b3));
+      for (const uint8_t byte : a) {
+        RETURN_IF_ERROR(rom()->WriteByte(pos, byte));
+        pos++;
+      }
     } else {
       // Save pointer for map1
       int snes_pos = map_pointers1[map_pointers1_id[i]];
-      RETURN_IF_ERROR(rom()->RunTransaction(
-          WriteAction{kCompressedAllMap32PointersLow + 0 + 3 * i,
-                      uint8_t(snes_pos & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersLow + 1 + 3 * i,
-                      uint8_t((snes_pos >> 8) & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersLow + 2 + 3 * i,
-                      uint8_t((snes_pos >> 16) & 0xFF)}))
+      uint8_t b1 = (uint8_t)(snes_pos & 0xFF);
+      uint8_t b2 = (uint8_t)((snes_pos >> 8) & 0xFF);
+      uint8_t b3 = (uint8_t)((snes_pos >> 16) & 0xFF);
+      core::Logger::log("Saving map pointers1 for map " + std::to_string(i) +
+                        " at " + core::UppercaseHexLong(snes_pos));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersLow + 0 + 3 * i, b1));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersLow + 1 + 3 * i, b2));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersLow + 2 + 3 * i, b3));
+    }
+
+    if ((pos + b.size()) >= 0x5FE70 && (pos + b.size()) <= 0x60000) {
+      pos = 0x60000;
+    }
+
+    if ((pos + b.size()) >= 0x6411F && (pos + b.size()) <= 0x70000) {
+      core::Logger::log("Pos set to overflow region for map " +
+                        std::to_string(i) + " at " +
+                        core::UppercaseHexLong(pos));
+      pos = OverworldMapDataOverflow;
     }
 
     if (map_pointers2_id[i] == -1) {
@@ -257,32 +296,42 @@ absl::Status Overworld::SaveOverworldMaps() {
       std::copy(b.begin(), b.end(), map_data_p2[i].begin());
       int snes_pos = core::PcToSnes(pos);
       map_pointers2[i] = snes_pos;
-      RETURN_IF_ERROR(rom()->RunTransaction(
-          WriteAction{kCompressedAllMap32PointersHigh + 0 + 3 * i,
-                      static_cast<uint8_t>(snes_pos & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersHigh + 1 + 3 * i,
-                      static_cast<uint8_t>((snes_pos >> 8) & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersHigh + 2 + 3 * i,
-                      static_cast<uint8_t>((snes_pos >> 16) & 0xFF)},
-          WriteAction{pos, std::vector<uint8_t>(b)}))
-      pos += b.size();
+      uint8_t b1 = (uint8_t)(snes_pos & 0xFF);
+      uint8_t b2 = (uint8_t)((snes_pos >> 8) & 0xFF);
+      uint8_t b3 = (uint8_t)((snes_pos >> 16) & 0xFF);
+      core::Logger::log("Saving map pointers2 for map " + std::to_string(i) +
+                        " at " + core::UppercaseHexLong(snes_pos));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersHigh + 0 + 3 * i, b1));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersHigh + 1 + 3 * i, b2));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersHigh + 2 + 3 * i, b3));
+      for (const uint8_t byte : b) {
+        RETURN_IF_ERROR(rom()->WriteByte(pos, byte));
+        pos++;
+      }
     } else {
       // Save pointer for map2
       int snes_pos = map_pointers2[map_pointers2_id[i]];
-      RETURN_IF_ERROR(rom()->RunTransaction(
-          WriteAction{kCompressedAllMap32PointersHigh + 0 + 3 * i,
-                      static_cast<uint8_t>(snes_pos & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersHigh + 1 + 3 * i,
-                      static_cast<uint8_t>((snes_pos >> 8) & 0xFF)},
-          WriteAction{kCompressedAllMap32PointersHigh + 2 + 3 * i,
-                      static_cast<uint8_t>((snes_pos >> 16) & 0xFF)}))
+      uint8_t b1 = (uint8_t)(snes_pos & 0xFF);
+      uint8_t b2 = (uint8_t)((snes_pos >> 8) & 0xFF);
+      uint8_t b3 = (uint8_t)((snes_pos >> 16) & 0xFF);
+      core::Logger::log("Saving map pointers2 for map " + std::to_string(i) +
+                        " at " + core::UppercaseHexLong(snes_pos));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersHigh + 0 + 3 * i, b1));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersHigh + 1 + 3 * i, b2));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(kCompressedAllMap32PointersHigh + 2 + 3 * i, b3));
     }
   }
 
   // Check if too many maps data
   if (pos > 0x137FFF) {
     std::cerr << "Too many maps data " << std::hex << pos << std::endl;
-    return absl::AbortedError("Too many maps data");
+    return absl::AbortedError("Too many maps data " + std::to_string(pos));
   }
 
   // Save large maps
@@ -292,6 +341,7 @@ absl::Status Overworld::SaveOverworldMaps() {
 }
 
 absl::Status Overworld::SaveLargeMaps() {
+  core::Logger::log("Saving Large Maps");
   for (int i = 0; i < 0x40; i++) {
     int yPos = i / 8;
     int xPos = i % 8;
@@ -311,140 +361,173 @@ absl::Status Overworld::SaveLargeMaps() {
     // If it's large then save parent pos *
     // 0x200 otherwise pos * 0x200
     if (overworld_maps_[i].IsLargeMap()) {
-      RETURN_IF_ERROR(rom()->RunTransaction(
-          // Check 1
-          WriteAction{overworldMapSize + i, 0x20},
-          WriteAction{overworldMapSize + i + 1, 0x20},
-          WriteAction{overworldMapSize + i + 8, 0x20},
-          WriteAction{overworldMapSize + i + 9, 0x20},
-
-          // Check 2
-          WriteAction{overworldMapSizeHighByte + i, 0x03},
-          WriteAction{overworldMapSizeHighByte + i + 1, 0x03},
-          WriteAction{overworldMapSizeHighByte + i + 8, 0x03},
-          WriteAction{overworldMapSizeHighByte + i + 9, 0x03},
-
-          // Check 3
-          WriteAction{overworldScreenSize + i, 0x00},
-          WriteAction{overworldScreenSize + i + 64, 0x00},
-
-          WriteAction{overworldScreenSize + i + 1, 0x00},
-          WriteAction{overworldScreenSize + i + 1 + 64, 0x00},
-
-          WriteAction{overworldScreenSize + i + 8, 0x00},
-          WriteAction{overworldScreenSize + i + 8 + 64, 0x00},
-
-          WriteAction{overworldScreenSize + i + 9, 0x00},
-          WriteAction{overworldScreenSize + i + 9 + 64, 0x00},
-
-          // Check 4
-          WriteAction{OverworldScreenSizeForLoading + i, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 64, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 128, 0x04},
-
-          WriteAction{OverworldScreenSizeForLoading + i + 1, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 1 + 64, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 1 + 128, 0x04},
-
-          WriteAction{OverworldScreenSizeForLoading + i + 8, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 8 + 64, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 8 + 128, 0x04},
-
-          WriteAction{OverworldScreenSizeForLoading + i + 9, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 9 + 64, 0x04},
-          WriteAction{OverworldScreenSizeForLoading + i + 9 + 128, 0x04},
-
-          // Check 5 and 6
-          WriteAction{transition_target_north + (i * 2) + 2,
-                      (short)((parentyPos * 0x200) -
-                              0xE0)},  // (short) is placed to reduce the int to
-                                       // 2 bytes.
-          WriteAction{transition_target_west + (i * 2) + 2,
-                      (short)((parentxPos * 0x200) - 0x100)},
-
-          // (short) is placed to reduce the int to 2 bytes.
-          WriteAction{transition_target_north + (i * 2) + 16,
-                      (short)((parentyPos * 0x200) - 0xE0)},
-          WriteAction{transition_target_west + (i * 2) + 16,
-                      (short)((parentxPos * 0x200) - 0x100)},
-
-          // (short) is placed to reduce the int to 2 bytes.
-          WriteAction{transition_target_north + (i * 2) + 18,
-                      (short)((parentyPos * 0x200) - 0xE0)},
-          WriteAction{transition_target_west + (i * 2) + 18,
-                      (short)((parentxPos * 0x200) - 0x100)},
-
-          // Check 7 and 8
-          WriteAction{overworldTransitionPositionX + (i * 2),
-                      (parentxPos * 0x200)},
-          WriteAction{overworldTransitionPositionY + (i * 2),
-                      (parentyPos * 0x200)},
-
-          WriteAction{overworldTransitionPositionX + (i * 2) + 2,
-                      (parentxPos * 0x200)},
-          WriteAction{overworldTransitionPositionY + (i * 2) + 2,
-                      (parentyPos * 0x200)},
-
-          WriteAction{overworldTransitionPositionX + (i * 2) + 16,
-                      (parentxPos * 0x200)},
-          WriteAction{overworldTransitionPositionY + (i * 2) + 16,
-                      (parentyPos * 0x200)},
-
-          WriteAction{overworldTransitionPositionX + (i * 2) + 18,
-                      (parentxPos * 0x200)},
-          WriteAction{overworldTransitionPositionY + (i * 2) + 18,
-                      (parentyPos * 0x200)},
-
-          // Check 9
-          // Always 0x0060
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2), 0x0060},
-          // Always 0x0060
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 2,
-                      0x0060}))
-
-      uint16_t lower_submaps;
-      // If parentX == 0 then lower submaps == 0x0060 too
-      if (parentxPos == 0) {
-        lower_submaps = 0x0060;
-      } else {
-        // Otherwise lower submaps == 0x1060
-        lower_submaps = 0x1060;
+      const int large_map_offsets[] = {0, 1, 8, 9};
+      for (const auto &offset : large_map_offsets) {
+        // Check 1
+        RETURN_IF_ERROR(rom()->Write(overworldMapSize + i + offset, 0x20));
+        // Check 2
+        RETURN_IF_ERROR(
+            rom()->Write(overworldMapSizeHighByte + i + offset, 0x03));
+        // Check 3
+        RETURN_IF_ERROR(rom()->Write(overworldScreenSize + i + offset, 0x00));
+        RETURN_IF_ERROR(
+            rom()->Write(overworldScreenSize + i + offset + 64, 0x00));
+        // Check 4
+        RETURN_IF_ERROR(
+            rom()->Write(OverworldScreenSizeForLoading + i + offset, 0x04));
+        RETURN_IF_ERROR(rom()->Write(
+            OverworldScreenSizeForLoading + i + offset + 64, 0x04));
+        RETURN_IF_ERROR(rom()->Write(
+            OverworldScreenSizeForLoading + i + offset + 128, 0x04));
       }
 
-      RETURN_IF_ERROR(rom()->RunTransaction(
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 16,
-                      uint16_t(lower_submaps)},
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 18,
-                      uint16_t(lower_submaps)},
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 128,
-                      uint16_t(0x0080)},  // Always 0x0080
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 2 + 128,
-                      uint16_t(0x0080)},  // Always 0x0080
-                                          // Lower are always 8010
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 16 + 128,
-                      uint16_t(0x1080)},  // Always 0x1080
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 18 + 128,
-                      uint16_t(0x1080)},  // Always 0x1080
+      // Check 5 and 6
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2) + 2,
+                                        (short)((parentyPos * 0x200) - 0xE0)));
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2) + 2,
+                                        (short)((parentxPos * 0x200) - 0x100)));
 
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 256,
-                      uint16_t(0x1800)},  // Always 0x1800
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 16 + 256,
-                      uint16_t(0x1800)},  // Always 0x1800
-                                          // Right side is always 1840
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 2 + 256,
-                      uint16_t(0x1840)},  // Always 0x1840
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 18 + 256,
-                      uint16_t(0x1840)},  // Always 0x1840
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2) + 16,
+                                        (short)((parentyPos * 0x200) - 0xE0)));
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2) + 16,
+                                        (short)((parentxPos * 0x200) - 0x100)));
 
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 384,
-                      uint16_t(0x2000)},  // Always 0x2000
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 16 + 384,
-                      uint16_t(0x2000)},  // Always 0x2000
-                                          // Right side is always 0x2040
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 2 + 384,
-                      uint16_t(0x2040)},  // Always 0x2000
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 18 + 384,
-                      uint16_t(0x2040)}))  // Always 0x2000
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2) + 18,
+                                        (short)((parentyPos * 0x200) - 0xE0)));
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2) + 18,
+                                        (short)((parentxPos * 0x200) - 0x100)));
+
+      RETURN_IF_ERROR(rom()->WriteShort(overworldTransitionPositionX + (i * 2),
+                                        (parentxPos * 0x200)));
+      RETURN_IF_ERROR(rom()->WriteShort(overworldTransitionPositionY + (i * 2),
+                                        (parentyPos * 0x200)));
+
+      // Check 7 and 8
+      RETURN_IF_ERROR(rom()->WriteShort(
+          overworldTransitionPositionX + (i * 2) + 2, (parentxPos * 0x200)));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          overworldTransitionPositionY + (i * 2) + 2, (parentyPos * 0x200)));
+
+      RETURN_IF_ERROR(rom()->WriteShort(
+          overworldTransitionPositionX + (i * 2) + 16, (parentxPos * 0x200)));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          overworldTransitionPositionY + (i * 2) + 16, (parentyPos * 0x200)));
+
+      RETURN_IF_ERROR(rom()->WriteShort(
+          overworldTransitionPositionX + (i * 2) + 18, (parentxPos * 0x200)));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          overworldTransitionPositionY + (i * 2) + 18, (parentyPos * 0x200)));
+
+      // Check 9
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen1 + (i * 2), 0x0060));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen1 + (i * 2) + 2, 0x0060));
+
+      // If parentX == 0 then lower submaps == 0x0060 too
+      if (parentxPos == 0) {
+        RETURN_IF_ERROR(rom()->WriteShort(
+            OverworldScreenTileMapChangeByScreen1 + (i * 2) + 16, 0x0060));
+        RETURN_IF_ERROR(rom()->WriteShort(
+            OverworldScreenTileMapChangeByScreen1 + (i * 2) + 18, 0x0060));
+      } else {
+        // Otherwise lower submaps == 0x1060
+        RETURN_IF_ERROR(rom()->WriteShort(
+            OverworldScreenTileMapChangeByScreen1 + (i * 2) + 16, 0x1060));
+        RETURN_IF_ERROR(rom()->WriteShort(
+            OverworldScreenTileMapChangeByScreen1 + (i * 2) + 18, 0x1060));
+
+        // If the area to the left is a large map, we don't need to add an
+        // offset to it. otherwise leave it the same. Just to make sure where
+        // don't try to read outside of the array.
+        if ((i - 1) >= 0) {
+          // If the area to the left is a large area.
+          if (overworld_maps_[i - 1].IsLargeMap()) {
+            // If the area to the left is the bottom right of a large area.
+            if (overworld_maps_[i - 1].Parent() == 1) {
+              RETURN_IF_ERROR(rom()->WriteShort(
+                  OverworldScreenTileMapChangeByScreen1 + (i * 2) + 16,
+                  0x0060));
+            }
+          }
+        }
+      }
+
+      // Always 0x0080
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 128, 0x0080));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 2 + 128, 0x0080));
+      // Lower always 0x1080
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 16 + 128, 0x1080));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 18 + 128, 0x1080));
+
+      // If the area to the right is a large map, we don't need to add an offset
+      // to it. otherwise leave it the same. Just to make sure where don't try
+      // to read outside of the array.
+      if ((i + 2) < 64) {
+        // If the area to the right is a large area.
+        if (overworld_maps_[i + 2].IsLargeMap()) {
+          // If the area to the right is the top left of a large area.
+          if (overworld_maps_[i + 2].Parent() == 0) {
+            RETURN_IF_ERROR(rom()->WriteShort(
+                OverworldScreenTileMapChangeByScreen2 + (i * 2) + 18,
+                0x0080));  // Always 0x1080.
+          }
+        }
+      }
+
+      // Always 0x1800
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 256, 0x1800));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 16 + 256, 0x1800));
+      // Right side is always 0x1840
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 2 + 256, 0x1840));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 18 + 256, 0x1840));
+
+      // If the area above is a large map, we don't need to add an offset to it.
+      // otherwise leave it the same.
+      // Just to make sure where don't try to read outside of the array.
+      if (i - 8 >= 0) {
+        // If the area just above us is a large area.
+        if (overworld_maps_[i - 8].IsLargeMap()) {
+          // If the area just above us is the bottom left of a large area.
+          if (overworld_maps_[i - 8].Parent() == 2) {
+            RETURN_IF_ERROR(rom()->WriteShort(
+                OverworldScreenTileMapChangeByScreen3 + (i * 2) + 02, 0x1800));
+          }
+        }
+      }
+
+      // Always 0x2000
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 384, 0x2000));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 16 + 384, 0x2000));
+      // Right side always 0x2040
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 2 + 384, 0x2040));
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 18 + 384, 0x2040));
+
+      // If the area below is a large map, we don't need to add an offset to it.
+      // otherwise leave it the same.
+      // Just to make sure where don't try to read outside of the array.
+      if (i + 16 < 64) {
+        // If the area just below us is a large area.
+        if (overworld_maps_[i + 16].IsLargeMap()) {
+          // If the area just below us is the top left of a large area.
+          if (overworld_maps_[i + 16].Parent() == 0) {
+            RETURN_IF_ERROR(rom()->WriteShort(
+                OverworldScreenTileMapChangeByScreen4 + (i * 2) + 18, 0x2000));
+          }
+        }
+      }
 
       checked_map.emplace(i, 1);
       checked_map.emplace((i + 1), 1);
@@ -452,31 +535,84 @@ absl::Status Overworld::SaveLargeMaps() {
       checked_map.emplace((i + 9), 1);
 
     } else {
-      RETURN_IF_ERROR(rom()->RunTransaction(
-          WriteAction{overworldMapSize + i, 0x00},
-          WriteAction{overworldMapSizeHighByte + i, 0x01},
-          WriteAction{overworldScreenSize + i, 0x01},
-          WriteAction{overworldScreenSize + i + 64, 0x01},
-          WriteAction{OverworldScreenSizeForLoading + i, 0x02},
-          WriteAction{OverworldScreenSizeForLoading + i + 64, 0x02},
-          WriteAction{OverworldScreenSizeForLoading + i + 128, 0x02},
+      RETURN_IF_ERROR(rom()->WriteByte(overworldMapSize + i, 0x00));
+      RETURN_IF_ERROR(rom()->WriteByte(overworldMapSizeHighByte + i, 0x01));
 
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2),
-                      uint16_t(0x0060)},
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 128,
-                      uint16_t(0x0040)},
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 256,
-                      uint16_t(0x1800)},
-          WriteAction{OverworldScreenTileMapChangeByScreen + (i * 2) + 384,
-                      (0x1000)},
-          WriteAction{transition_target_north + (i * 2),
-                      uint16_t((yPos * 0x200) - 0xE0)},
-          WriteAction{transition_target_west + (i * 2),
-                      uint16_t((xPos * 0x200) - 0x100)},
-          WriteAction{overworldTransitionPositionX + (i * 2),
-                      uint16_t(xPos * 0x200)},
-          WriteAction{overworldTransitionPositionY + (i * 2),
-                      uint16_t(yPos * 0x200)}))
+      RETURN_IF_ERROR(rom()->WriteByte(overworldScreenSize + i, 0x01));
+      RETURN_IF_ERROR(rom()->WriteByte(overworldScreenSize + i + 64, 0x01));
+
+      RETURN_IF_ERROR(
+          rom()->WriteByte(OverworldScreenSizeForLoading + i, 0x02));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(OverworldScreenSizeForLoading + i + 64, 0x02));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(OverworldScreenSizeForLoading + i + 128, 0x02));
+
+      RETURN_IF_ERROR(rom()->WriteShort(
+          OverworldScreenTileMapChangeByScreen1 + (i * 2), 0x0060));
+
+      // If the area to the left is a large map, we don't need to add an offset
+      // to it. otherwise leave it the same.
+      // Just to make sure where don't try to read outside of the array.
+      if (i - 1 >= 0 && parentxPos != 0) {
+        if (overworld_maps_[i - 1].IsLargeMap()) {
+          if (overworld_maps_[i - 1].Parent() == 3) {
+            rom()->WriteShort(OverworldScreenTileMapChangeByScreen1 + (i * 2),
+                              0xF060);
+          }
+        }
+      }
+
+      rom()->WriteShort(OverworldScreenTileMapChangeByScreen2 + (i * 2) + 128,
+                        0x0040);
+      if (i + 1 < 64 && parentxPos != 7) {
+        if (overworld_maps_[i + 1].IsLargeMap()) {
+          if (overworld_maps_[i + 1].Parent() == 1) {
+            rom()->WriteShort(OverworldScreenTileMapChangeByScreen2 + (i * 2),
+                              0x1060);
+          }
+        }
+      }
+      rom()->WriteShort(OverworldScreenTileMapChangeByScreen3 + (i * 2) + 256,
+                        0x1800);
+      // If the area above is a large map, we don't need to add an offset to it.
+      // otherwise leave it the same.
+      // Just to make sure where don't try to read outside of the array.
+      if (i - 8 >= 0) {
+        // If the area just above us is a large area.
+        if (overworld_maps_[i - 8].IsLargeMap()) {
+          // If we are under the bottom right of the large area.
+          if (overworld_maps_[i - 8].Parent() == 3) {
+            rom()->WriteShort(OverworldScreenTileMapChangeByScreen3 + (i * 2),
+                              0x17C0);
+          }
+        }
+      }
+      rom()->WriteShort(OverworldScreenTileMapChangeByScreen4 + (i * 2) + 384,
+                        0x1000);
+      // If the area below is a large map, we don't need to add an offset to it.
+      // otherwise leave it the same.
+      // Just to make sure where don't try to read outside of the array.
+      if (i + 8 < 64) {
+        // If the area just below us is a large area.
+        if (overworld_maps_[i + 8].IsLargeMap()) {
+          // If we are on top of the top right of the large area.
+          if (overworld_maps_[i + 8].Parent() == 1) {
+            rom()->WriteShort(OverworldScreenTileMapChangeByScreen4 + (i * 2),
+                              0x0FC0);
+          }
+        }
+      }
+
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2),
+                                        (short)((yPos * 0x200) - 0xE0)));
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2),
+                                        (short)((xPos * 0x200) - 0x100)));
+
+      RETURN_IF_ERROR(rom()->WriteShort(overworldTransitionPositionX + (i * 2),
+                                        (xPos * 0x200)));
+      RETURN_IF_ERROR(rom()->WriteShort(overworldTransitionPositionY + (i * 2),
+                                        (yPos * 0x200)));
 
       checked_map.emplace(i, 1);
     }
@@ -484,45 +620,84 @@ absl::Status Overworld::SaveLargeMaps() {
   return absl::OkStatus();
 }
 
-bool Overworld::CreateTile32Tilemap(bool only_show) {
-  tiles32_unique_.clear();
-  tiles32.clear();
+namespace {
+std::vector<uint64_t> GetAllTile16(OWMapTiles &map_tiles_) {
+  std::vector<uint64_t> all_tile_16;  // Ensure it's 64 bits
 
-  OWBlockset *tiles_used;
+  int sx = 0;
+  int sy = 0;
+  int c = 0;
+  OWBlockset tiles_used;
   for (int i = 0; i < kNumOverworldMaps; i++) {
     if (i < 64) {
-      tiles_used = &map_tiles_.light_world;
+      tiles_used = map_tiles_.light_world;
     } else if (i < 128 && i >= 64) {
-      tiles_used = &map_tiles_.dark_world;
+      tiles_used = map_tiles_.dark_world;
     } else {
-      tiles_used = &map_tiles_.special_world;
+      tiles_used = map_tiles_.special_world;
     }
 
-    std::vector<uint64_t> all_tile_16 = GetAllTile16(*tiles_used);
+    for (int y = 0; y < 32; y += 2) {
+      for (int x = 0; x < 32; x += 2) {
+        gfx::Tile32 current_tile(
+            tiles_used[x + (sx * 32)][y + (sy * 32)],
+            tiles_used[x + 1 + (sx * 32)][y + (sy * 32)],
+            tiles_used[x + (sx * 32)][y + 1 + (sy * 32)],
+            tiles_used[x + 1 + (sx * 32)][y + 1 + (sy * 32)]);
 
-    std::vector<uint64_t> unique_tiles(all_tile_16);  // Ensure it's 64 bits
-    std::sort(unique_tiles.begin(), unique_tiles.end());
-    unique_tiles.erase(std::unique(unique_tiles.begin(), unique_tiles.end()),
-                       unique_tiles.end());
-
-    // Ensure it's 64 bits
-    std::unordered_map<uint64_t, ushort> all_tiles_indexed;
-    for (size_t j = 0; j < unique_tiles.size(); j++) {
-      all_tiles_indexed.insert({unique_tiles[j], static_cast<ushort>(j)});
+        all_tile_16.push_back(current_tile.GetPackedValue());
+      }
     }
 
-    for (int j = 0; j < NumberOfMap32; j++) {
-      tiles32.push_back(all_tiles_indexed[all_tile_16[j]]);
+    sx++;
+    if (sx >= 8) {
+      sy++;
+      sx = 0;
     }
 
-    for (const auto &tile : unique_tiles) {
-      tiles32_unique_.push_back(static_cast<ushort>(tile));
+    c++;
+    if (c >= 64) {
+      sx = 0;
+      sy = 0;
+      c = 0;
     }
+  }
 
-    while (tiles32_unique_.size() % 4 != 0) {
-      gfx::Tile32 padding_tile(420, 420, 420, 420);
-      tiles32_unique_.push_back(padding_tile.GetPackedValue());
-    }
+  return all_tile_16;
+}
+}  // namespace
+
+bool Overworld::CreateTile32Tilemap(bool only_show) {
+  tiles32_unique_.clear();
+  tiles32_.clear();
+  std::vector<uint64_t> all_tile_16 = GetAllTile16(map_tiles_);
+  // Convert to set then back to vector
+  std::set<uint64_t> unique_tiles_set(all_tile_16.begin(), all_tile_16.end());
+
+  std::vector<uint64_t> unique_tiles(all_tile_16);
+  unique_tiles.assign(unique_tiles_set.begin(), unique_tiles_set.end());
+  std::cout << "Number of unique Tiles16: " << unique_tiles.size() << std::endl;
+
+  // Ensure it's 64 bits
+  std::unordered_map<uint64_t, ushort> all_tiles_indexed;
+  for (size_t tile32_id = 0; tile32_id < unique_tiles.size(); tile32_id++) {
+    all_tiles_indexed.insert(
+        {unique_tiles[tile32_id], static_cast<ushort>(tile32_id)});
+  }
+
+  for (int j = 0; j < NumberOfMap32; j++) {
+    tiles32_list_.push_back(all_tiles_indexed[all_tile_16[j]]);
+  }
+
+  // Create the unique tiles list
+  for (const auto &tile : unique_tiles) {
+    // static_cast<ushort>(tile)
+    tiles32_unique_.push_back(gfx::Tile32(tile));
+  }
+
+  while (tiles32_unique_.size() % 4 != 0) {
+    gfx::Tile32 padding_tile(420, 420, 420, 420);
+    tiles32_unique_.push_back(padding_tile.GetPackedValue());
   }
 
   if (only_show) {
@@ -553,6 +728,7 @@ bool Overworld::CreateTile32Tilemap(bool only_show) {
 }
 
 absl::Status Overworld::SaveMap16Tiles() {
+  core::Logger::log("Saving Map16 Tiles");
   int tpos = kMap16Tiles;
   // 3760
   for (int i = 0; i < NumberOfMap16; i += 1) {
@@ -573,66 +749,85 @@ absl::Status Overworld::SaveMap16Tiles() {
 }
 
 absl::Status Overworld::SaveMap32Tiles() {
+  core::Logger::log("Saving Map32 Tiles");
   constexpr int kMaxUniqueTiles = 0x4540;
   constexpr int kTilesPer32x32Tile = 6;
   constexpr int kQuadrantsPer32x32Tile = 4;
 
-  if (tiles32_unique_.size() % kTilesPer32x32Tile != 0) {
-    return absl::InvalidArgumentError("Invalid number of unique tiles.");
-  }
-
   int unique_tile_index = 0;
   int num_unique_tiles = tiles32_unique_.size();
-  int num_32x32_tiles = num_unique_tiles / kTilesPer32x32Tile;
 
-  if (num_32x32_tiles > kMaxUniqueTiles / kQuadrantsPer32x32Tile) {
-    return absl::AbortedError("Too many unique tile32 definitions.");
-  }
+  for (int i = 0; i < num_unique_tiles; i += kTilesPer32x32Tile) {
+    if (unique_tile_index >= kMaxUniqueTiles) {
+      return absl::AbortedError("Too many unique tile32 definitions.");
+    }
 
-  for (int i = 0; i < num_32x32_tiles; ++i) {
-    int base_addr =
-        rom()->version_constants().kMap32TileTL + i * kQuadrantsPer32x32Tile;
+    // Compute base addresses for each quadrant
+    int base_addr_TL =
+        rom()->version_constants().kMap32TileTL + unique_tile_index;
+    int base_addr_TR =
+        rom()->version_constants().kMap32TileTR + unique_tile_index;
+    int base_addr_BL =
+        rom()->version_constants().kMap32TileBL + unique_tile_index;
+    int base_addr_BR =
+        rom()->version_constants().kMap32TileBR + unique_tile_index;
 
-    auto write_quadrant_to_rom = [&](int quadrant,
-                                     auto get_tile) -> absl::Status {
-      for (int j = 0; j < kQuadrantsPer32x32Tile; ++j) {
-        int tile_index = unique_tile_index + j;
-        const gfx::Tile32 &tile = tiles32_unique_[tile_index];
-        RETURN_IF_ERROR(
-            rom()->Write(base_addr + quadrant + j, get_tile(tile) & 0xFF));
-      }
+    for (int j = 0; j < 4; j++) {
+      RETURN_IF_ERROR(rom()->WriteByte(base_addr_TL + i + j,
+                                       tiles32_unique_[i + j].tile0_));
+      RETURN_IF_ERROR(rom()->WriteByte(base_addr_TR + i + j,
+                                       tiles32_unique_[i + j].tile1_));
+      RETURN_IF_ERROR(rom()->WriteByte(base_addr_BL + i + j,
+                                       tiles32_unique_[i + j].tile2_));
+      RETURN_IF_ERROR(rom()->WriteByte(base_addr_BR + i + j,
+                                       tiles32_unique_[i + j].tile3_));
+    }
 
-      int tile0 = get_tile(tiles32_unique_[unique_tile_index]);
-      int tile1 = get_tile(tiles32_unique_[unique_tile_index + 1]);
-      int tile2 = get_tile(tiles32_unique_[unique_tile_index + 2]);
-      int tile3 = get_tile(tiles32_unique_[unique_tile_index + 3]);
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_TL + i + 4,
+                         ((tiles32_unique_[i].tile0_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 1].tile0_ >> 8) & 0x0F)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_TL + i + 5,
+                         ((tiles32_unique_[i + 2].tile0_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 3].tile0_ >> 8) & 0x0F)));
 
-      RETURN_IF_ERROR(
-          rom()->Write(base_addr + quadrant + 4,
-                       ((tile0 >> 4) & 0xF0) | ((tile1 >> 8) & 0x0F)));
-      RETURN_IF_ERROR(
-          rom()->Write(base_addr + quadrant + 5,
-                       ((tile2 >> 4) & 0xF0) | ((tile3 >> 8) & 0x0F)));
-      return absl::OkStatus();
-    };
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_TR + i + 4,
+                         ((tiles32_unique_[i].tile1_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 1].tile1_ >> 8) & 0x0F)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_TR + i + 5,
+                         ((tiles32_unique_[i + 2].tile1_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 3].tile1_ >> 8) & 0x0F)));
 
-    RETURN_IF_ERROR(write_quadrant_to_rom(
-        0, [](const gfx::Tile32 &t) { return t.tile0_; }));
-    RETURN_IF_ERROR(write_quadrant_to_rom(
-        1, [](const gfx::Tile32 &t) { return t.tile1_; }));
-    RETURN_IF_ERROR(write_quadrant_to_rom(
-        2, [](const gfx::Tile32 &t) { return t.tile2_; }));
-    RETURN_IF_ERROR(write_quadrant_to_rom(
-        3, [](const gfx::Tile32 &t) { return t.tile3_; }));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_BL + i + 4,
+                         ((tiles32_unique_[i].tile2_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 1].tile2_ >> 8) & 0x0F)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_BL + i + 5,
+                         ((tiles32_unique_[i + 2].tile2_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 3].tile2_ >> 8) & 0x0F)));
 
-    unique_tile_index += kTilesPer32x32Tile;
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_BR + i + 4,
+                         ((tiles32_unique_[i].tile3_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 1].tile3_ >> 8) & 0x0F)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(base_addr_BR + i + 5,
+                         ((tiles32_unique_[i + 2].tile3_ >> 4) & 0xF0) |
+                             ((tiles32_unique_[i + 3].tile3_ >> 8) & 0x0F)));
+
+    unique_tile_index += 4;
+    num_unique_tiles += 2;
   }
 
   return absl::OkStatus();
 }
 
 uint16_t Overworld::GenerateTile32(int index, int quadrant, int dimension) {
-  // The addresses of the four 32x32 pixel tiles in the ROM.
+  // The addresses of the four 32x32 pixel tiles in the rom()->
   const uint32_t map32address[4] = {rom()->version_constants().kMap32TileTL,
                                     rom()->version_constants().kMap32TileTR,
                                     rom()->version_constants().kMap32TileBL,
@@ -647,7 +842,7 @@ uint16_t Overworld::GenerateTile32(int index, int quadrant, int dimension) {
 }
 
 void Overworld::AssembleMap32Tiles() {
-  // Loop through each 32x32 pixel tile in the ROM.
+  // Loop through each 32x32 pixel tile in the rom()->
   for (int i = 0; i < 0x33F0; i += 6) {
     // Loop through each quadrant of the 32x32 pixel tile.
     for (int k = 0; k < 4; k++) {
@@ -659,7 +854,7 @@ void Overworld::AssembleMap32Tiles() {
       uint16_t br = GenerateTile32(i, k, (int)Dimension::map32TilesBR);
 
       // Add the generated 16-bit tiles to the tiles32 vector.
-      tiles32.push_back(gfx::Tile32(tl, tr, bl, br));
+      tiles32_.push_back(gfx::Tile32(tl, tr, bl, br));
     }
   }
 
@@ -696,10 +891,10 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   int position_y1 = (y * 2) + (sy * 32);
   int position_x2 = (x * 2) + 1 + (sx * 32);
   int position_y2 = (y * 2) + 1 + (sy * 32);
-  world[position_x1][position_y1] = tiles32[tpos].tile0_;
-  world[position_x2][position_y1] = tiles32[tpos].tile1_;
-  world[position_x1][position_y2] = tiles32[tpos].tile2_;
-  world[position_x2][position_y2] = tiles32[tpos].tile3_;
+  world[position_x1][position_y1] = tiles32_[tpos].tile0_;
+  world[position_x2][position_y1] = tiles32_[tpos].tile1_;
+  world[position_x1][position_y2] = tiles32_[tpos].tile2_;
+  world[position_x2][position_y2] = tiles32_[tpos].tile3_;
 }
 
 void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
@@ -707,7 +902,7 @@ void Overworld::OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx,
   for (int y = 0; y < 16; y++) {
     for (int x = 0; x < 16; x++) {
       auto tidD = (ushort)((bytes2[ttpos] << 8) + bytes[ttpos]);
-      if (int tpos = tidD; tpos < tiles32.size()) {
+      if (int tpos = tidD; tpos < tiles32_.size()) {
         if (i < 64) {
           AssignWorldTiles(x, y, sx, sy, tpos, map_tiles_.light_world);
         } else if (i < 128 && i >= 64) {
@@ -750,42 +945,10 @@ absl::Status Overworld::DecompressAllMapTiles() {
       lowest = p2;
     }
 
-    ASSIGN_OR_RETURN(auto bytes,
-                     gfx::lc_lz2::DecompressOverworld(rom()->data(), p2, 1000))
-    ASSIGN_OR_RETURN(auto bytes2,
-                     gfx::lc_lz2::DecompressOverworld(rom()->data(), p1, 1000))
-    OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
-
-    sx++;
-    if (sx >= 8) {
-      sy++;
-      sx = 0;
-    }
-
-    c++;
-    if (c >= 64) {
-      sx = 0;
-      sy = 0;
-      c = 0;
-    }
-  }
-  return absl::OkStatus();
-}
-
-absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
-  proto_map_data_ = parseFile(filename);
-  int sx = 0;
-  int sy = 0;
-  int c = 0;
-  for (int i = 0; i < proto_map_data_.size(); i++) {
-    int ttpos = 0;
-
-    ASSIGN_OR_RETURN(auto bytes, gfx::lc_lz2::DecompressOverworld(
-                                     proto_map_data_[i].lowData, 0,
-                                     proto_map_data_[i].lowData.size()))
+    ASSIGN_OR_RETURN(
+        auto bytes, gfx::lc_lz2::DecompressOverworld(rom()->data(), p2, 0x1000))
     ASSIGN_OR_RETURN(auto bytes2, gfx::lc_lz2::DecompressOverworld(
-                                      proto_map_data_[i].highData, 0,
-                                      proto_map_data_[i].highData.size()))
+                                      rom()->data(), p1, 0x1000))
     OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
 
     sx++;
@@ -801,7 +964,6 @@ absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
       c = 0;
     }
   }
-
   return absl::OkStatus();
 }
 
@@ -902,166 +1064,7 @@ void Overworld::LoadEntrances() {
   }
 }
 
-absl::Status Overworld::SaveEntrances() {
-  for (int i = 0; i < 129; i++) {
-    RETURN_IF_ERROR(
-        rom()->WriteShort(OWEntranceMap + (i * 2), all_entrances_[i].map_id_))
-    RETURN_IF_ERROR(
-        rom()->WriteShort(OWEntrancePos + (i * 2), all_entrances_[i].map_pos_))
-    RETURN_IF_ERROR(rom()->WriteByte(OWEntranceEntranceId + i,
-                                     all_entrances_[i].entrance_id_))
-  }
-
-  for (int i = 0; i < 0x13; i++) {
-    RETURN_IF_ERROR(
-        rom()->WriteShort(OWHoleArea + (i * 2), all_holes_[i].map_id_))
-    RETURN_IF_ERROR(
-        rom()->WriteShort(OWHolePos + (i * 2), all_holes_[i].map_pos_))
-    RETURN_IF_ERROR(
-        rom()->WriteByte(OWHoleEntrance + i, all_holes_[i].entrance_id_))
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status Overworld::SaveExits() {
-  for (int i = 0; i < 0x4F; i++) {
-    RETURN_IF_ERROR(rom()->RunTransaction(
-        WriteAction{OWExitRoomId + (i * 2), all_exits_[i].room_id_},
-        WriteAction{OWExitMapId + i, all_exits_[i].map_id_},
-        WriteAction{OWExitVram + (i * 2), all_exits_[i].map_pos_},
-        WriteAction{OWExitYScroll + (i * 2), all_exits_[i].y_scroll_},
-        WriteAction{OWExitXScroll + (i * 2), all_exits_[i].x_scroll_},
-        WriteAction{OWExitYPlayer + (i * 2), all_exits_[i].y_player_},
-        WriteAction{OWExitXPlayer + (i * 2), all_exits_[i].x_player_},
-        WriteAction{OWExitYCamera + (i * 2), all_exits_[i].y_camera_},
-        WriteAction{OWExitXCamera + (i * 2), all_exits_[i].x_camera_},
-        WriteAction{OWExitUnk1 + i, all_exits_[i].scroll_mod_y_},
-        WriteAction{OWExitUnk2 + i, all_exits_[i].scroll_mod_x_},
-        WriteAction{OWExitDoorType1 + (i * 2), all_exits_[i].door_type_1_},
-        WriteAction{OWExitDoorType2 + (i * 2), all_exits_[i].door_type_2_}))
-  }
-
-  return absl::OkStatus();
-}
-
-namespace {
-
-bool compareItemsArrays(std::vector<OverworldItem> itemArray1,
-                        std::vector<OverworldItem> itemArray2) {
-  if (itemArray1.size() != itemArray2.size()) {
-    return false;
-  }
-
-  bool match;
-  for (int i = 0; i < itemArray1.size(); i++) {
-    match = false;
-    for (int j = 0; j < itemArray2.size(); j++) {
-      // Check all sprite in 2nd array if one match
-      if (itemArray1[i].x_ == itemArray2[j].x_ &&
-          itemArray1[i].y_ == itemArray2[j].y_ &&
-          itemArray1[i].id == itemArray2[j].id) {
-        match = true;
-        break;
-      }
-    }
-
-    if (!match) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-}  // namespace
-
-absl::Status Overworld::SaveItems() {
-  std::vector<std::vector<OverworldItem>> roomItems(128);
-
-  for (int i = 0; i < 128; i++) {
-    roomItems[i] = std::vector<OverworldItem>();
-    for (const OverworldItem &item : all_items_) {
-      if (item.room_map_id == i) {
-        roomItems[i].push_back(item);
-        if (item.id == 0x86) {
-          rom()->WriteWord(0x16DC5 + (i * 2),
-                           (item.game_x_ + (item.game_y_ * 64)) * 2);
-        }
-      }
-    }
-  }
-
-  int dataPos = overworldItemsPointers + 0x100;
-
-  std::vector<int> itemPointers(128);
-  std::vector<int> itemPointersReuse(128);
-  int emptyPointer = 0;
-
-  for (int i = 0; i < 128; i++) {
-    itemPointersReuse[i] = -1;
-    for (int ci = 0; ci < i; ci++) {
-      if (roomItems[i].empty()) {
-        itemPointersReuse[i] = -2;
-        break;
-      }
-
-      // Unclear:
-      compareItemsArrays(
-          std::vector<OverworldItem>(roomItems[i].begin(), roomItems[i].end()),
-          std::vector<OverworldItem>(roomItems[ci].begin(),
-                                     roomItems[ci].end()));
-      if (compareItemsArrays(std::vector<OverworldItem>(roomItems[i].begin(),
-                                                        roomItems[i].end()),
-                             std::vector<OverworldItem>(roomItems[ci].begin(),
-                                                        roomItems[ci].end()))) {
-        itemPointersReuse[i] = ci;
-        break;
-      }
-    }
-  }
-
-  for (int i = 0; i < 128; i++) {
-    if (itemPointersReuse[i] == -1) {
-      itemPointers[i] = dataPos;
-      for (const OverworldItem &item : roomItems[i]) {
-        short mapPos =
-            static_cast<short>(((item.game_y_ << 6) + item.game_x_) << 1);
-
-        uint32_t data = static_cast<uint8_t>(mapPos & 0xFF) |
-                        static_cast<uint8_t>(mapPos >> 8) |
-                        static_cast<uint8_t>(item.id);
-        rom()->WriteLong(dataPos, data);
-        // WriteType::PotItemData);
-
-        dataPos += 3;
-      }
-
-      emptyPointer = dataPos;
-      rom()->WriteWord(dataPos, 0xFFFF);
-      dataPos += 2;
-    } else if (itemPointersReuse[i] == -2) {
-      itemPointers[i] = emptyPointer;
-    } else {
-      itemPointers[i] = itemPointers[itemPointersReuse[i]];
-    }
-
-    int snesaddr = core::PcToSnes(itemPointers[i]);
-    rom()->WriteWord(overworldItemsPointers + (i * 2), snesaddr);
-  }
-
-  if (dataPos > overworldItemsEndData) {
-    return absl::AbortedError("Too many items");
-  }
-
-  if (flags()->kLogToConsole) {
-    std::cout << "End of Items : " << dataPos << std::endl;
-  }
-
-  return absl::OkStatus();
-}
-
-void Overworld::LoadExits() {
+absl::Status Overworld::LoadExits() {
   const int NumberOfOverworldExits = 0x4F;
   std::vector<OverworldExit> exits;
   for (int i = 0; i < NumberOfOverworldExits; i++) {
@@ -1080,7 +1083,7 @@ void Overworld::LoadExits() {
     uint16_t exit_scroll_mod_x;
     uint16_t exit_door_type_1;
     uint16_t exit_door_type_2;
-    rom()->ReadTransaction(
+    RETURN_IF_ERROR(rom()->ReadTransaction(
         exit_room_id, (OWExitRoomId + (i * 2)), exit_map_id, OWExitMapId + i,
         exit_vram, OWExitVram + (i * 2), exit_y_scroll, OWExitYScroll + (i * 2),
         exit_x_scroll, OWExitXScroll + (i * 2), exit_y_player,
@@ -1088,7 +1091,8 @@ void Overworld::LoadExits() {
         exit_y_camera, OWExitYCamera + (i * 2), exit_x_camera,
         OWExitXCamera + (i * 2), exit_scroll_mod_y, OWExitUnk1 + i,
         exit_scroll_mod_x, OWExitUnk2 + i, exit_door_type_1,
-        OWExitDoorType1 + (i * 2), exit_door_type_2, OWExitDoorType2 + (i * 2));
+        OWExitDoorType1 + (i * 2), exit_door_type_2,
+        OWExitDoorType2 + (i * 2)));
 
     ushort py = (ushort)((rom_data[OWExitYPlayer + (i * 2) + 1] << 8) +
                          rom_data[OWExitYPlayer + (i * 2)]);
@@ -1114,6 +1118,7 @@ void Overworld::LoadExits() {
                        exit_door_type_2, (px & py) == 0xFFFF);
   }
   all_exits_ = exits;
+  return absl::OkStatus();
 }
 
 absl::Status Overworld::LoadItems() {
@@ -1122,11 +1127,7 @@ absl::Status Overworld::LoadItems() {
   for (int i = 0; i < 128; i++) {
     ASSIGN_OR_RETURN(uint16_t word_address,
                      rom()->ReadWord(pointer_pc + i * 2));
-    int addr = (pointer & 0xFF0000) | word_address;  // 1B
-
-    //  (rom()->data()[pointer_pc + (i * 2) + 1] << 8) +  // F9
-    //  rom()->data()[pointer_pc + (i * 2)];              // 3C
-
+    int addr = (pointer & 0xFF0000) | word_address;  // 1B F9  3C
     addr = core::SnesToPc(addr);
 
     if (overworld_maps_[i].IsLargeMap()) {
@@ -1218,41 +1219,250 @@ absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
   return absl::OkStatus();
 }
 
+absl::Status Overworld::SaveEntrances() {
+  core::Logger::log("Saving Entrances");
+  for (int i = 0; i < 129; i++) {
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWEntranceMap + (i * 2), all_entrances_[i].map_id_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWEntrancePos + (i * 2), all_entrances_[i].map_pos_))
+    RETURN_IF_ERROR(rom()->WriteByte(OWEntranceEntranceId + i,
+                                     all_entrances_[i].entrance_id_))
+  }
+
+  for (int i = 0; i < 0x13; i++) {
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWHoleArea + (i * 2), all_holes_[i].map_id_))
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWHolePos + (i * 2), all_holes_[i].map_pos_))
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWHoleEntrance + i, all_holes_[i].entrance_id_))
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SaveExits() {
+  core::Logger::log("Saving Exits");
+  for (int i = 0; i < 0x4F; i++) {
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitRoomId + (i * 2), all_exits_[i].room_id_));
+    RETURN_IF_ERROR(rom()->Write(OWExitMapId + i, all_exits_[i].map_id_));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitVram + (i * 2), all_exits_[i].map_pos_));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitYScroll + (i * 2), all_exits_[i].y_scroll_));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OWExitXScroll + (i * 2), all_exits_[i].x_scroll_));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitYPlayer + (i * 2), all_exits_[i].y_player_));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitXPlayer + (i * 2), all_exits_[i].x_player_));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitYCamera + (i * 2), all_exits_[i].y_camera_));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitXCamera + (i * 2), all_exits_[i].x_camera_));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitUnk1 + i, all_exits_[i].scroll_mod_y_));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OWExitUnk2 + i, all_exits_[i].scroll_mod_x_));
+    RETURN_IF_ERROR(rom()->WriteShort(OWExitDoorType1 + (i * 2),
+                                      all_exits_[i].door_type_1_));
+    RETURN_IF_ERROR(rom()->WriteShort(OWExitDoorType2 + (i * 2),
+                                      all_exits_[i].door_type_2_));
+  }
+
+  return absl::OkStatus();
+}
+
+namespace {
+
+bool compareItemsArrays(std::vector<OverworldItem> itemArray1,
+                        std::vector<OverworldItem> itemArray2) {
+  if (itemArray1.size() != itemArray2.size()) {
+    return false;
+  }
+
+  bool match;
+  for (int i = 0; i < itemArray1.size(); i++) {
+    match = false;
+    for (int j = 0; j < itemArray2.size(); j++) {
+      // Check all sprite in 2nd array if one match
+      if (itemArray1[i].x_ == itemArray2[j].x_ &&
+          itemArray1[i].y_ == itemArray2[j].y_ &&
+          itemArray1[i].id == itemArray2[j].id) {
+        match = true;
+        break;
+      }
+    }
+
+    if (!match) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+}  // namespace
+
+absl::Status Overworld::SaveItems() {
+  std::vector<std::vector<OverworldItem>> roomItems(128);
+
+  for (int i = 0; i < 128; i++) {
+    roomItems[i] = std::vector<OverworldItem>();
+    for (const OverworldItem &item : all_items_) {
+      if (item.room_map_id == i) {
+        roomItems[i].push_back(item);
+        if (item.id == 0x86) {
+          RETURN_IF_ERROR(rom()->WriteWord(
+              0x16DC5 + (i * 2), (item.game_x_ + (item.game_y_ * 64)) * 2));
+        }
+      }
+    }
+  }
+
+  int dataPos = overworldItemsPointers + 0x100;
+
+  std::vector<int> itemPointers(128);
+  std::vector<int> itemPointersReuse(128);
+  int emptyPointer = 0;
+
+  for (int i = 0; i < 128; i++) {
+    itemPointersReuse[i] = -1;
+    for (int ci = 0; ci < i; ci++) {
+      if (roomItems[i].empty()) {
+        itemPointersReuse[i] = -2;
+        break;
+      }
+
+      // Unclear:
+      compareItemsArrays(
+          std::vector<OverworldItem>(roomItems[i].begin(), roomItems[i].end()),
+          std::vector<OverworldItem>(roomItems[ci].begin(),
+                                     roomItems[ci].end()));
+      if (compareItemsArrays(std::vector<OverworldItem>(roomItems[i].begin(),
+                                                        roomItems[i].end()),
+                             std::vector<OverworldItem>(roomItems[ci].begin(),
+                                                        roomItems[ci].end()))) {
+        itemPointersReuse[i] = ci;
+        break;
+      }
+    }
+  }
+
+  for (int i = 0; i < 128; i++) {
+    if (itemPointersReuse[i] == -1) {
+      itemPointers[i] = dataPos;
+      for (const OverworldItem &item : roomItems[i]) {
+        short mapPos =
+            static_cast<short>(((item.game_y_ << 6) + item.game_x_) << 1);
+
+        uint32_t data = static_cast<uint8_t>(mapPos & 0xFF) |
+                        static_cast<uint8_t>(mapPos >> 8) |
+                        static_cast<uint8_t>(item.id);
+        RETURN_IF_ERROR(rom()->WriteLong(dataPos, data));
+        // WriteType::PotItemData);
+
+        dataPos += 3;
+      }
+
+      emptyPointer = dataPos;
+      RETURN_IF_ERROR(rom()->WriteWord(dataPos, 0xFFFF));
+      dataPos += 2;
+    } else if (itemPointersReuse[i] == -2) {
+      itemPointers[i] = emptyPointer;
+    } else {
+      itemPointers[i] = itemPointers[itemPointersReuse[i]];
+    }
+
+    int snesaddr = core::PcToSnes(itemPointers[i]);
+    RETURN_IF_ERROR(
+        rom()->WriteWord(overworldItemsPointers + (i * 2), snesaddr));
+  }
+
+  if (dataPos > overworldItemsEndData) {
+    return absl::AbortedError("Too many items");
+  }
+
+  if (flags()->kLogToConsole) {
+    std::cout << "End of Items : " << dataPos << std::endl;
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status Overworld::SaveMapProperties() {
+  core::Logger::log("Saving Map Properties");
   for (int i = 0; i < 64; i++) {
-    RETURN_IF_ERROR(rom()->RunTransaction(
-        WriteAction{mapGfx + i, overworld_maps_[i].area_graphics()},
-        WriteAction{overworldSpriteset + i,
-                    overworld_maps_[i].sprite_graphics(0)},
-        WriteAction{overworldSpriteset + 64 + i,
-                    overworld_maps_[i].sprite_graphics(1)},
-        WriteAction{overworldSpriteset + 128 + i,
-                    overworld_maps_[i].sprite_graphics(2)},
-        WriteAction{overworldMapPalette + i, overworld_maps_[i].area_palette()},
-        WriteAction{overworldSpritePalette + i,
-                    overworld_maps_[i].sprite_palette(0)},
-        WriteAction{overworldSpritePalette + 64 + i,
-                    overworld_maps_[i].sprite_palette(1)},
-        WriteAction{overworldSpritePalette + 128 + i,
-                    overworld_maps_[i].sprite_palette(2)}))
+    RETURN_IF_ERROR(
+        rom()->WriteByte(mapGfx + i, overworld_maps_[i].area_graphics()));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldMapPalette + i,
+                                     overworld_maps_[i].area_palette()));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpriteset + i,
+                                     overworld_maps_[i].sprite_graphics(0)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpriteset + 64 + i,
+                                     overworld_maps_[i].sprite_graphics(1)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpriteset + 128 + i,
+                                     overworld_maps_[i].sprite_graphics(2)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpritePalette + i,
+                                     overworld_maps_[i].sprite_palette(0)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpritePalette + 64 + i,
+                                     overworld_maps_[i].sprite_palette(1)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpritePalette + 128 + i,
+                                     overworld_maps_[i].sprite_palette(2)));
   }
 
   for (int i = 64; i < 128; i++) {
-    RETURN_IF_ERROR(rom()->RunTransaction(
-        WriteAction{mapGfx + i, overworld_maps_[i].area_graphics()},
-        WriteAction{overworldSpriteset + i,
-                    overworld_maps_[i].sprite_graphics(0)},
-        WriteAction{overworldSpriteset + 64 + i,
-                    overworld_maps_[i].sprite_graphics(1)},
-        WriteAction{overworldSpriteset + 128 + i,
-                    overworld_maps_[i].sprite_graphics(2)},
-        WriteAction{overworldMapPalette + i, overworld_maps_[i].area_palette()},
-        WriteAction{overworldSpritePalette + 64 + i,
-                    overworld_maps_[i].sprite_palette(0)},
-        WriteAction{overworldSpritePalette + 128 + i,
-                    overworld_maps_[i].sprite_palette(1)},
-        WriteAction{overworldSpritePalette + 192 + i,
-                    overworld_maps_[i].sprite_palette(2)}))
+    RETURN_IF_ERROR(
+        rom()->WriteByte(mapGfx + i, overworld_maps_[i].area_graphics()));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpriteset + i,
+                                     overworld_maps_[i].sprite_graphics(0)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpriteset + 64 + i,
+                                     overworld_maps_[i].sprite_graphics(1)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpriteset + 128 + i,
+                                     overworld_maps_[i].sprite_graphics(2)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldMapPalette + i,
+                                     overworld_maps_[i].area_palette()));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpritePalette + 64 + i,
+                                     overworld_maps_[i].sprite_palette(0)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpritePalette + 128 + i,
+                                     overworld_maps_[i].sprite_palette(1)));
+    RETURN_IF_ERROR(rom()->WriteByte(overworldSpritePalette + 192 + i,
+                                     overworld_maps_[i].sprite_palette(2)));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
+  proto_map_data_ = parseFile(filename);
+  int sx = 0;
+  int sy = 0;
+  int c = 0;
+  for (int i = 0; i < proto_map_data_.size(); i++) {
+    int ttpos = 0;
+
+    ASSIGN_OR_RETURN(auto bytes, gfx::lc_lz2::DecompressOverworld(
+                                     proto_map_data_[i].lowData, 0,
+                                     proto_map_data_[i].lowData.size()))
+    ASSIGN_OR_RETURN(auto bytes2, gfx::lc_lz2::DecompressOverworld(
+                                      proto_map_data_[i].highData, 0,
+                                      proto_map_data_[i].highData.size()))
+    OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
+
+    sx++;
+    if (sx >= 8) {
+      sy++;
+      sx = 0;
+    }
+
+    c++;
+    if (c >= 64) {
+      sx = 0;
+      sy = 0;
+      c = 0;
+    }
   }
 
   return absl::OkStatus();
