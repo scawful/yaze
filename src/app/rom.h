@@ -133,8 +133,8 @@ constexpr uint32_t gfx_groups_pointer = 0x6237;
 
 struct WriteAction {
   int address;
-  std::variant<int, uint8_t, uint16_t, std::vector<uint8_t>, gfx::SNESColor,
-               std::vector<gfx::SNESColor>>
+  std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
+               gfx::SNESColor, std::vector<gfx::SNESColor>>
       value;
 };
 
@@ -148,24 +148,11 @@ class ROM : public core::ExperimentFlags {
     return status;
   }
 
-  template <typename T, typename... Args>
-  absl::Status RunTransactionV2(int address, T& var, Args&&... args) {
-    absl::Status status = WriteHelperV2<T>(var, address);
-    if (!status.ok()) {
-      return status;
-    }
-
-    if constexpr (sizeof...(args) > 0) {
-      status = WriteHelperV2(std::forward<Args>(args)...);
-    }
-
-    return status;
-  }
-
   absl::Status WriteHelper(const WriteAction& action) {
     if (std::holds_alternative<uint8_t>(action.value)) {
       return Write(action.address, std::get<uint8_t>(action.value));
-    } else if (std::holds_alternative<uint16_t>(action.value)) {
+    } else if (std::holds_alternative<uint16_t>(action.value) ||
+               std::holds_alternative<short>(action.value)) {
       return WriteShort(action.address, std::get<uint16_t>(action.value));
     } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
       return WriteVector(action.address,
@@ -179,25 +166,7 @@ class ROM : public core::ExperimentFlags {
     }
     auto error_message = absl::StrFormat("Invalid write argument type: %s",
                                          typeid(action.value).name());
-    return absl::InvalidArgumentError(error_message);
-  }
-
-  template <typename T>
-  absl::Status WriteHelperV2(int address, T& var) {
-    if constexpr (std::is_same_v<T, uint8_t>) {
-      return Write(address, var);
-    } else if constexpr (std::is_same_v<T, uint16_t>) {
-      return WriteShort(address, var);
-    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
-      return WriteVector(address, var);
-    } else if constexpr (std::is_same_v<T, gfx::SNESColor>) {
-      return WriteColor(address, var);
-    } else if constexpr (std::is_same_v<T, std::vector<gfx::SNESColor>>) {
-      return absl::UnimplementedError(
-          "WriteHelperV2: std::vector<gfx::SNESColor>");
-    }
-    auto error_message =
-        absl::StrFormat("Invalid write argument type: %s", typeid(T).name());
+    throw std::runtime_error(error_message);
     return absl::InvalidArgumentError(error_message);
   }
 
@@ -291,7 +260,8 @@ class ROM : public core::ExperimentFlags {
    * @return absl::Status Returns an OK status if the save was successful,
    * otherwise returns an error status
    */
-  absl::Status SaveToFile(bool backup, absl::string_view filename = "");
+  absl::Status SaveToFile(bool backup, bool save_new = false,
+                          std::string filename = "");
 
   /**
    * Saves the given palette to the ROM if any of its colors have been modified.
@@ -403,7 +373,9 @@ class ROM : public core::ExperimentFlags {
   // Write functions
   absl::Status Write(int addr, int value) {
     if (addr >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Address out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write %d value failed, address %d out of range", value,
+          addr));
     }
     rom_data_[addr] = value;
     return absl::OkStatus();
@@ -411,47 +383,68 @@ class ROM : public core::ExperimentFlags {
 
   absl::Status WriteByte(int addr, uint8_t value) {
     if (addr >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Address out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write byte %#02x value failed, address %d out of range",
+          value, addr));
     }
     rom_data_[addr] = value;
+    std::string log_str = absl::StrFormat("WriteByte: %#06X: %s", addr,
+                                          core::UppercaseHexByte(value).data());
+    core::Logger::log(log_str);
     return absl::OkStatus();
   }
 
   absl::Status WriteWord(int addr, uint16_t value) {
     if (addr + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Address out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write word %#04x value failed, address %d out of range",
+          value, addr));
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    core::Logger::log(absl::StrFormat("WriteWord: %#06X: %s", addr,
+                                      core::UppercaseHexWord(value)));
     return absl::OkStatus();
   }
 
   absl::Status WriteShort(uint32_t addr, uint16_t value) {
     if (addr + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Address out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write short %#04x value failed, address %d out of range",
+          value, addr));
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    core::Logger::log(absl::StrFormat("WriteShort: %#06X: %s", addr,
+                                      core::UppercaseHexWord(value)));
     return absl::OkStatus();
   }
 
   absl::Status WriteLong(uint32_t addr, uint32_t value) {
     if (addr + 2 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Address out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write long %#06x value failed, address %d out of range",
+          value, addr));
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
     rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
+    core::Logger::log(absl::StrFormat("WriteLong: %#06X: %s", addr,
+                                      core::UppercaseHexLong(value)));
     return absl::OkStatus();
   }
 
   absl::Status WriteVector(int addr, std::vector<uint8_t> data) {
     if (addr + data.size() > rom_data_.size()) {
-      return absl::InvalidArgumentError("Address and data size out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write vector value failed, address %d out of range",
+          addr));
     }
     for (int i = 0; i < data.size(); i++) {
       rom_data_[addr + i] = data[i];
     }
+    core::Logger::log(absl::StrFormat("WriteVector: %#06X: %s", addr,
+                                      core::UppercaseHexByte(data[0])));
     return absl::OkStatus();
   }
 
@@ -461,6 +454,8 @@ class ROM : public core::ExperimentFlags {
                    (color.GetSNES() & 0x7C00);
 
     // Write the 16-bit color value to the ROM at the specified address
+    core::Logger::log(absl::StrFormat("WriteColor: %#06X: %s", address,
+                                      core::UppercaseHexWord(bgr)));
     return WriteShort(address, bgr);
   }
 

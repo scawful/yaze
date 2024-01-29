@@ -350,6 +350,7 @@ void MasterEditor::DrawFileMenu() {
 
     if (BeginMenu("Options")) {
       MenuItem("Backup ROM", "", &backup_rom_);
+      MenuItem("Save New Auto", "", &save_new_auto_);
       ImGui::Separator();
       if (BeginMenu("Experiment Flags")) {
         if (BeginMenu("Overworld Flags")) {
@@ -387,6 +388,8 @@ void MasterEditor::DrawFileMenu() {
         Checkbox("Save With Change Queue",
                  &mutable_flags()->kSaveWithChangeQueue);
         Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
+        Checkbox("Use Classic Compression",
+                 &mutable_flags()->kUseClassicCompression);
         ImGui::EndMenu();
       }
 
@@ -568,10 +571,10 @@ void MasterEditor::SaveRom() {
     RETURN_VOID_IF_ERROR(status_);
   }
   if (flags()->overworld.kSaveOverworldMaps) {
-    if (overworld_editor_.overworld()->CreateTile32Tilemap()) {
-      status_ = overworld_editor_.overworld()->SaveMap16Tiles();
-      RETURN_VOID_IF_ERROR(status_);
+    if (!overworld_editor_.overworld()->CreateTile32Tilemap()) {
       status_ = overworld_editor_.overworld()->SaveMap32Tiles();
+      RETURN_VOID_IF_ERROR(status_);
+      status_ = overworld_editor_.overworld()->SaveMap16Tiles();
       RETURN_VOID_IF_ERROR(status_);
       status_ = overworld_editor_.overworld()->SaveOverworldMaps();
       RETURN_VOID_IF_ERROR(status_);
@@ -598,7 +601,7 @@ void MasterEditor::SaveRom() {
     RETURN_VOID_IF_ERROR(status_);
   }
 
-  status_ = rom()->SaveToFile(backup_rom_);
+  status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
 }
 
 }  // namespace editor

@@ -347,6 +347,10 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
     LoadGfxGroups();
   }
 
+  // Expand the ROM data to 2MB without changing the data in the first 1MB
+  rom_data_.resize(baseROMSize * 2);
+  size_ = baseROMSize * 2;
+
   // Set up the resource labels
   std::string resource_label_filename = absl::StrFormat("%s.labels", filename);
   resource_label_manager_.LoadLabels(resource_label_filename);
@@ -377,7 +381,7 @@ absl::Status ROM::LoadFromBytes(const Bytes& data) {
   return absl::OkStatus();
 }
 
-absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
+absl::Status ROM::SaveToFile(bool backup, bool save_new, std::string filename) {
   absl::Status non_firing_status;
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
@@ -427,11 +431,34 @@ absl::Status ROM::SaveToFile(bool backup, absl::string_view filename) {
     }
   }
 
+  if (save_new) {
+    // Create a file of the same name and append the date between the filename
+    // and file extension
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
+    std::cout << filename_no_ext << std::endl;
+    filename = absl::StrCat(filename_no_ext, "_", std::ctime(&now_c));
+    // Remove spaces from new_filename and replace with _
+    filename.erase(std::remove(filename.begin(), filename.end(), ' '),
+                   filename.end());
+    // Remove newline character from ctime()
+    filename.erase(std::remove(filename.begin(), filename.end(), '\n'),
+                   filename.end());
+    // Add the file extension back to the new_filename
+    filename = filename + ".sfc";
+    std::cout << filename << std::endl;
+  }
+
   // Open the file that we know exists for writing
-  std::ofstream file(filename.data(), std::ios::binary);
+  std::ofstream file(filename.data(), std::ios::binary | std::ios::app);
   if (!file) {
-    return absl::InternalError(
-        absl::StrCat("Could not open ROM file: ", filename));
+    // Create the file if it does not exist
+    file.open(filename.data(), std::ios::binary);
+    if (!file) {
+      return absl::InternalError(
+          absl::StrCat("Could not open or create ROM file: ", filename));
+    }
   }
 
   // Save the data to the file
