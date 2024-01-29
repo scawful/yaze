@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -55,6 +56,9 @@ class ExperimentFlags {
 
     // Log to the console.
     bool kLogToConsole = false;
+
+    // use the classic compression algorithm
+    bool kUseClassicCompression = false;
 
     // Overworld flags
     struct Overworld {
@@ -232,6 +236,14 @@ class ImGuiIdIssuer {
     while (!idStack.empty()) {
       idStack.pop();
     }
+  }
+};
+
+class Logger {
+ public:
+  static void log(std::string message) {
+    static std::ofstream fout("log.txt", std::ios::out | std::ios::app);
+    fout << message << std::endl;
   }
 };
 
