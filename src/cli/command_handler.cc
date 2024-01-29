@@ -75,7 +75,8 @@ absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
     }
   }
 
-  RETURN_IF_ERROR(dest_rom.SaveToFile(/*backup=*/true, arg_vec[1]))
+  RETURN_IF_ERROR(
+      dest_rom.SaveToFile(/*backup=*/true, /*save_new=*/false, arg_vec[1]))
 
   std::cout << "Successfully transferred tile16" << std::endl;
 
