@@ -107,10 +107,9 @@ class Tile32 {
 
   // Get packed uint64_t representation
   uint64_t GetPackedValue() const {
-    return (static_cast<uint64_t>(tile0_) << 48) |
-           (static_cast<uint64_t>(tile1_) << 32) |
-           (static_cast<uint64_t>(tile2_) << 16) |
-           static_cast<uint64_t>(tile3_);
+    return static_cast<uint64_t>(tile3_) << 48 |
+           (static_cast<uint64_t>(tile2_) << 32) |
+           (static_cast<uint64_t>(tile1_) << 16) | tile0_;
   }
 };
 
