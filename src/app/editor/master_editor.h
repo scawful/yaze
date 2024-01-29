@@ -61,7 +61,8 @@ class MasterEditor : public SharedROM,
 
   bool about_ = false;
   bool rom_info_ = false;
-  bool backup_rom_ = true;
+  bool backup_rom_ = false;
+  bool save_new_auto_ = true;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
 
