@@ -191,6 +191,9 @@ absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
                                  const int start, const int length,
                                  int mode = 1, bool check = false);
 
+uint8_t* Compress(uint8_t const* const src, int const oldsize, int* const size,
+                  int const flag);
+
 // Decompression
 
 std::string SetBuffer(const std::vector<uint8_t>& data, int src_pos,
