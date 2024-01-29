@@ -588,6 +588,153 @@ absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
   return CreateCompressionString(compressed_chain_start->next, mode);
 }
 
+// Hyrule Magic
+uint8_t* Compress(uint8_t const* const src, int const oldsize, int* const size,
+                  int const flag) {
+  unsigned char* b2 =
+      (unsigned char*)malloc(0x1000);  // allocate a 2^12 sized buffer
+
+  int i, j, k, l, m = 0, n, o = 0, bd = 0, p, q = 0, r;
+
+  for (i = 0; i < oldsize;) {
+    l = src[i];  // grab a char from the buffer.
+
+    k = 0;
+
+    r = !!q;  // r = the same logical value (0 or 1) as q, but not the same
+              // value necesarily.
+
+    for (j = 0; j < i - 1; j++) {
+      if (src[j] == l) {
+        m = oldsize - j;
+
+        for (n = 0; n < m; n++)
+          if (src[n + j] != src[n + i]) break;
+
+        if (n > k) k = n, o = j;
+      }
+    }
+
+    for (n = i + 1; n < oldsize; n++) {
+      if (src[n] != l) {
+        // look for chars identical to the first one.
+        // stop if we can't find one.
+        // n will reach i+k+1 for some k >= 0.
+
+        break;
+      }
+    }
+
+    n -= i;  // offset back by i. i.e. n = k+1 as above.
+
+    if (n > 1 + r)
+      p = 1;
+    else {
+      m = src[i + 1];
+
+      for (n = i + 2; n < oldsize; n++) {
+        if (src[n] != l) break;
+
+        n++;
+
+        if (src[n] != m) break;
+      }
+
+      n -= i;
+
+      if (n > 2 + r)
+        p = 2;
+      else {
+        m = oldsize - i;
+
+        for (n = 1; n < m; n++)
+          if (src[i + n] != l + n) break;
+
+        if (n > 1 + r)
+          p = 3;
+        else
+          p = 0;
+      }
+    }
+
+    if (k > 3 + r && k > n + (p & 1)) p = 4, n = k;
+
+    if (!p)
+      q++, i++;
+    else {
+      if (q) {
+        q--;
+
+        if (q > 31) {
+          b2[bd++] = (unsigned char)(224 + (q >> 8));
+        }
+
+        b2[bd++] = (unsigned char)q;
+        q++;
+
+        memcpy(b2 + bd, src + i - q, q);
+
+        bd += q;
+        q = 0;
+      }
+
+      i += n;
+      n--;
+
+      if (n > 31) {
+        b2[bd++] = (unsigned char)(224 + (n >> 8) + (p << 2));
+        b2[bd++] = (unsigned char)n;
+      } else
+        b2[bd++] = (unsigned char)((p << 5) + n);
+
+      switch (p) {
+        case 1:
+        case 3:
+          b2[bd++] = (unsigned char)l;
+          break;
+
+        case 2:
+          b2[bd++] = (unsigned char)l;
+          b2[bd++] = (unsigned char)m;
+
+          break;
+
+        case 4:
+          if (flag) {
+            b2[bd++] = (unsigned char)(o >> 8);
+            b2[bd++] = (unsigned char)o;
+          } else {
+            b2[bd++] = (unsigned char)o;
+            b2[bd++] = (unsigned char)(o >> 8);
+          }
+      }
+
+      continue;
+    }
+  }
+
+  if (q) {
+    q--;
+
+    if (q > 31) {
+      b2[bd++] = (unsigned char)(224 + (q >> 8));
+    }
+
+    b2[bd++] = (unsigned char)q;
+    q++;
+
+    memcpy(b2 + bd, src + i - q, q);
+
+    bd += q;
+  }
+
+  b2[bd++] = 255;
+  b2 = (unsigned char*)realloc(b2, bd);
+  *size = bd;
+
+  return b2;
+}
+
 absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
                                        const int length) {
   return CompressV2(data, pos, length, kNintendoMode2);
