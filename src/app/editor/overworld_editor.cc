@@ -50,7 +50,6 @@ absl::Status OverworldEditor::Update() {
     all_gfx_loaded_ = true;
   } else if (!rom()->is_loaded() && all_gfx_loaded_) {
     // TODO: Destroy the overworld graphics canvas.
-    // Reset the editor if the ROM is unloaded
     Shutdown();
     all_gfx_loaded_ = false;
     map_blockset_loaded_ = false;
@@ -267,6 +266,26 @@ absl::Status OverworldEditor::DrawToolset() {
     ImGui::End();
   }
 
+  if (!ImGui::IsAnyItemActive()) {
+    if (ImGui::IsKeyDown(ImGuiKey_1)) {
+      current_mode = EditingMode::PAN;
+    } else if (ImGui::IsKeyDown(ImGuiKey_2)) {
+      current_mode = EditingMode::DRAW_TILE;
+    } else if (ImGui::IsKeyDown(ImGuiKey_3)) {
+      current_mode = EditingMode::ENTRANCES;
+    } else if (ImGui::IsKeyDown(ImGuiKey_4)) {
+      current_mode = EditingMode::EXITS;
+    } else if (ImGui::IsKeyDown(ImGuiKey_5)) {
+      current_mode = EditingMode::ITEMS;
+    } else if (ImGui::IsKeyDown(ImGuiKey_6)) {
+      current_mode = EditingMode::SPRITES;
+    } else if (ImGui::IsKeyDown(ImGuiKey_7)) {
+      current_mode = EditingMode::TRANSPORTS;
+    } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
+      current_mode = EditingMode::MUSIC;
+    }
+  }
+
   return absl::OkStatus();
 }
 
@@ -302,19 +321,21 @@ void OverworldEditor::RefreshOverworldMap() {
     RefreshChildMap(map_index);
   };
 
+  int source_map_id = current_map_;
   if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+    source_map_id = current_parent_;
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
-      int sibling_index = overworld_.overworld_map(current_map_)->Parent() + i;
+      int sibling_index = overworld_.overworld_map(source_map_id)->Parent() + i;
       if (i >= 2) sibling_index += 6;
       futures.push_back(
           std::async(std::launch::async, refresh_map_async, sibling_index));
       indices[i] = sibling_index;
     }
   }
-  indices[0] = current_map_;
+  indices[0] = source_map_id;
   futures.push_back(
-      std::async(std::launch::async, refresh_map_async, current_map_));
+      std::async(std::launch::async, refresh_map_async, source_map_id));
 
   for (auto &each : futures) {
     each.get();
@@ -439,6 +460,319 @@ void OverworldEditor::DrawOverworldMapSettings() {
     ImGui::Combo("##World", &game_state_, kGamePartComboString.data(), 3);
 
     ImGui::EndTable();
+  }
+}
+
+// ----------------------------------------------------------------------------
+
+void OverworldEditor::DrawOverworldMaps() {
+  int xx = 0;
+  int yy = 0;
+  for (int i = 0; i < 0x40; i++) {
+    int world_index = i + (current_world_ * 0x40);
+    int map_x = (xx * 0x200 * ow_map_canvas_.global_scale());
+    int map_y = (yy * 0x200 * ow_map_canvas_.global_scale());
+    ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
+                              ow_map_canvas_.global_scale());
+    xx++;
+    if (xx >= 8) {
+      yy++;
+      xx = 0;
+    }
+  }
+}
+
+void OverworldEditor::DrawOverworldEdits() {
+  auto mouse_position = ow_map_canvas_.drawn_tile_position();
+
+  // Determine which overworld map the user is currently editing.
+  constexpr int small_map_size = 512;
+  int map_x = mouse_position.x / small_map_size;
+  int map_y = mouse_position.y / small_map_size;
+  current_map_ = map_x + map_y * 8;
+  if (current_world_ == 1) {
+    current_map_ += 0x40;
+  } else if (current_world_ == 2) {
+    current_map_ += 0x80;
+  }
+
+  // Render the updated map bitmap.
+  RenderUpdatedMapBitmap(mouse_position,
+                         tile16_individual_data_[current_tile16_]);
+
+  // Determine tile16 position that was updated in the 512x512 map
+  // Each map is represented as a vector inside of the overworld_.map_tiles()
+  int superY = ((current_map_ - (current_world_ * 0x40)) / 0x08);
+  int superX = current_map_ - (current_world_ * 0x40) - (superY * 0x08);
+  float x = mouse_position.x / 0x10;
+  float y = mouse_position.y / 0x10;
+  int tile16_x = static_cast<int>(x) - (superX * 0x20);
+  int tile16_y = static_cast<int>(y) - (superY * 0x20);
+
+  // Update the overworld_.map_tiles() data (word) based on tile16 ID and
+  // current world
+  uint16_t tile_value = current_tile16_;
+  uint8_t low_byte = tile_value & 0xFF;
+  uint8_t high_byte = (tile_value >> 8) & 0xFF;
+  if (current_world_ == 0) {
+    overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y] = low_byte;
+    overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y + 1] =
+        high_byte;
+  } else if (current_world_ == 1) {
+    overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y] = low_byte;
+    overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y + 1] =
+        high_byte;
+  } else {
+    overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y] =
+        low_byte;
+    overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y + 1] =
+        high_byte;
+  }
+
+  if (flags()->kLogToConsole) {
+    std::cout << "Current Map: " << current_map_ << std::endl;
+    std::cout << "Current Tile: " << current_tile16_ << std::endl;
+    std::cout << "Mouse Position: " << mouse_position.x << ", "
+              << mouse_position.y << std::endl;
+    std::cout << "Map Position: " << map_x << ", " << map_y << std::endl;
+    std::cout << "Tile16 Position: " << x << ", " << y << std::endl;
+  }
+}
+
+void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
+                                             const Bytes &tile_data) {
+  // Calculate the tile position relative to the current active map
+  constexpr int tile_size = 16;  // Tile size is 16x16 pixels
+
+  // Calculate the tile index for x and y based on the click_position
+  int tile_index_x = (static_cast<int>(click_position.x) % 512) / tile_size;
+  int tile_index_y = (static_cast<int>(click_position.y) % 512) / tile_size;
+
+  // Calculate the pixel start position based on tile index and tile size
+  ImVec2 start_position;
+  start_position.x = tile_index_x * tile_size;
+  start_position.y = tile_index_y * tile_size;
+
+  // Get the current map's bitmap from the BitmapTable
+  gfx::Bitmap &current_bitmap = maps_bmp_[current_map_];
+
+  // Update the bitmap's pixel data based on the start_position and tile_data
+  for (int y = 0; y < tile_size; ++y) {
+    for (int x = 0; x < tile_size; ++x) {
+      int pixel_index = (start_position.y + y) * 0x200 + (start_position.x + x);
+      current_bitmap.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
+    }
+  }
+
+  current_bitmap.set_modified(true);
+
+  // // Render the updated bitmap to the canvas
+  // rom()->UpdateBitmap(&current_bitmap);
+}
+
+void OverworldEditor::CheckForOverworldEdits() {
+  if (!blockset_canvas_.points().empty() &&
+      current_mode == EditingMode::DRAW_TILE) {
+    // User has selected a tile they want to draw from the blockset.
+    int x = blockset_canvas_.points().front().x / 32;
+    int y = blockset_canvas_.points().front().y / 32;
+    current_tile16_ = x + (y * 8);
+    if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
+                                       16)) {
+      // Update the overworld map.
+      DrawOverworldEdits();
+    }
+  }
+}
+
+void OverworldEditor::CheckForCurrentMap() {
+  // 4096x4096, 512x512 maps and some are larges maps 1024x1024
+  auto mouse_position = ImGui::GetIO().MousePos;
+  constexpr int small_map_size = 512;
+  const auto large_map_size = 1024;
+  const auto canvas_zero_point = ow_map_canvas_.zero_point();
+
+  // Calculate which small map the mouse is currently over
+  int map_x = (mouse_position.x - canvas_zero_point.x) / small_map_size;
+  int map_y = (mouse_position.y - canvas_zero_point.y) / small_map_size;
+
+  // Calculate the index of the map in the `maps_bmp_` vector
+  current_map_ = map_x + map_y * 8;
+  if (current_world_ == 1) {
+    current_map_ += 0x40;
+  } else if (current_world_ == 2) {
+    current_map_ += 0x80;
+  }
+
+  // If the map has a parent, set the current_map_ to that parent map
+  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+    current_parent_ = overworld_.overworld_map(current_map_)->Parent();
+  }
+
+  auto current_map_x = current_map_ % 8;
+  auto current_map_y = current_map_ / 8;
+
+  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+    int parent_id = overworld_.overworld_map(current_map_)->Parent();
+    int parent_map_x = parent_id % 8;
+    int parent_map_y = parent_id / 8;
+    ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
+                               parent_map_x * small_map_size, large_map_size,
+                               large_map_size);
+  } else {
+    ow_map_canvas_.DrawOutline(current_map_x * small_map_size,
+                               current_map_y * small_map_size, small_map_size,
+                               small_map_size);
+  }
+
+  if (maps_bmp_[current_map_].modified()) {
+    rom()->UpdateBitmap(&maps_bmp_[current_map_]);
+    maps_bmp_[current_map_].set_modified(false);
+  }
+}
+
+void OverworldEditor::CheckForSelectRectangle() {
+  if (current_mode == EditingMode::DRAW_TILE) {
+    ow_map_canvas_.DrawSelectRect(0x10);
+    static std::vector<int> tile16_ids;
+    if (ow_map_canvas_.selected_tiles().size() != 0) {
+      // Get the tile16 IDs from the selected tile ID positions
+      if (tile16_ids.size() != 0) {
+        tile16_ids.clear();
+      }
+      for (auto &each : ow_map_canvas_.selected_tiles()) {
+        int tile16_id = overworld_.GetTile16Id(each);
+        tile16_ids.push_back(tile16_id);
+      }
+      ow_map_canvas_.mutable_selected_tiles()->clear();
+    }
+    // Create a composite image of all the tile16s selected
+    ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
+  }
+}
+
+// Overworld Editor canvas
+// Allows the user to make changes to the overworld map.
+void OverworldEditor::DrawOverworldCanvas() {
+  if (all_gfx_loaded_) {
+    DrawOverworldMapSettings();
+    Separator();
+  }
+  gui::BeginNoPadding();
+  gui::BeginChildBothScrollbars(7);
+  ow_map_canvas_.DrawBackground();
+  gui::EndNoPadding();
+  if (current_mode == EditingMode::PAN) {
+    ow_map_canvas_.DrawContextMenu();
+  } else {
+    ow_map_canvas_.set_draggable(false);
+  }
+  if (overworld_.is_loaded()) {
+    DrawOverworldMaps();
+    DrawOverworldExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
+    DrawOverworldEntrances(ow_map_canvas_.zero_point(),
+                           ow_map_canvas_.scrolling());
+    DrawOverworldItems();
+    DrawOverworldSprites();
+    if (ImGui::IsItemHovered()) CheckForCurrentMap();
+    CheckForOverworldEdits();
+  }
+  ow_map_canvas_.DrawGrid();
+  ow_map_canvas_.DrawOverlay();
+  ImGui::EndChild();
+}
+
+void OverworldEditor::DrawTile16Selector() {
+  gui::BeginPadding(3);
+  gui::BeginChildWithScrollbar(/*id=*/1);
+  blockset_canvas_.DrawBackground();
+  gui::EndNoPadding();
+  blockset_canvas_.DrawContextMenu();
+  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, /*border_offset=*/2,
+                              map_blockset_loaded_);
+  if (blockset_canvas_.DrawTileSelector(32.0f)) {
+    // Open the tile16 editor to the tile
+    auto tile_pos = blockset_canvas_.points().front();
+    int grid_x = static_cast<int>(tile_pos.x / 32);
+    int grid_y = static_cast<int>(tile_pos.y / 32);
+    int id = grid_x + grid_y * 8;
+    tile16_editor_.set_tile16(id);
+    show_tile16_editor_ = true;
+  }
+  blockset_canvas_.DrawGrid();
+  blockset_canvas_.DrawOverlay();
+  ImGui::EndChild();
+}
+
+void OverworldEditor::DrawTile8Selector() {
+  graphics_bin_canvas_.DrawBackground();
+  graphics_bin_canvas_.DrawContextMenu();
+  if (all_gfx_loaded_) {
+    for (auto &[key, value] : rom()->bitmap_manager()) {
+      int offset = 0x40 * (key + 1);
+      int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
+      if (key >= 1) {
+        top_left_y = graphics_bin_canvas_.zero_point().y + 0x40 * key;
+      }
+      auto texture = value.get()->texture();
+      graphics_bin_canvas_.draw_list()->AddImage(
+          (void *)texture,
+          ImVec2(graphics_bin_canvas_.zero_point().x + 2, top_left_y),
+          ImVec2(graphics_bin_canvas_.zero_point().x + 0x100,
+                 graphics_bin_canvas_.zero_point().y + offset));
+    }
+  }
+  graphics_bin_canvas_.DrawGrid();
+  graphics_bin_canvas_.DrawOverlay();
+}
+
+void OverworldEditor::DrawAreaGraphics() {
+  gui::BeginPadding(3);
+  gui::BeginChildWithScrollbar(/*id=*/2);
+  current_gfx_canvas_.DrawBackground();
+  gui::EndPadding();
+  current_gfx_canvas_.DrawContextMenu();
+  if (current_graphics_set_.count(current_map_) == 0) {
+    overworld_.SetCurrentMap(current_map_);
+    palette_ = overworld_.AreaPalette();
+    gfx::Bitmap bmp;
+    gui::BuildAndRenderBitmapPipeline(
+        0x80, 0x200, 0x08, overworld_.AreaGraphics(), *rom(), bmp, palette_);
+    // int area_palette =
+    // overworld_.overworld_map(current_map_)->area_palette();
+    // gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
+    //                                   overworld_.AreaGraphics(), *rom(), bmp,
+    //                                   palettesets_[area_palette].main);
+    current_graphics_set_[current_map_] = bmp;
+  }
+  current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_],
+                                 /*border_offset=*/2, overworld_.is_loaded());
+  current_gfx_canvas_.DrawTileSelector(32.0f);
+  current_gfx_canvas_.DrawGrid();
+  current_gfx_canvas_.DrawOverlay();
+  ImGui::EndChild();
+}
+
+void OverworldEditor::DrawTileSelector() {
+  if (BeginTabBar(kTileSelectorTab.data(),
+                  ImGuiTabBarFlags_FittingPolicyScroll)) {
+    if (BeginTabItem("Tile16")) {
+      DrawTile16Selector();
+      EndTabItem();
+    }
+    if (BeginTabItem("Tile8")) {
+      gui::BeginPadding(3);
+      gui::BeginChildWithScrollbar(/*id=*/2);
+      DrawTile8Selector();
+      ImGui::EndChild();
+      gui::EndNoPadding();
+      EndTabItem();
+    }
+    if (BeginTabItem("Area Graphics")) {
+      DrawAreaGraphics();
+      EndTabItem();
+    }
+    EndTabBar();
   }
 }
 
@@ -1164,319 +1498,6 @@ void OverworldEditor::DrawOverworldSprites() {
             current_sprite_;
       }
     }
-  }
-}
-
-// ----------------------------------------------------------------------------
-
-void OverworldEditor::DrawOverworldMaps() {
-  int xx = 0;
-  int yy = 0;
-  for (int i = 0; i < 0x40; i++) {
-    int world_index = i + (current_world_ * 0x40);
-    int map_x = (xx * 0x200 * ow_map_canvas_.global_scale());
-    int map_y = (yy * 0x200 * ow_map_canvas_.global_scale());
-    ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
-                              ow_map_canvas_.global_scale());
-    xx++;
-    if (xx >= 8) {
-      yy++;
-      xx = 0;
-    }
-  }
-}
-
-void OverworldEditor::DrawOverworldEdits() {
-  auto mouse_position = ow_map_canvas_.drawn_tile_position();
-
-  // Determine which overworld map the user is currently editing.
-  constexpr int small_map_size = 512;
-  int map_x = mouse_position.x / small_map_size;
-  int map_y = mouse_position.y / small_map_size;
-  current_map_ = map_x + map_y * 8;
-  if (current_world_ == 1) {
-    current_map_ += 0x40;
-  } else if (current_world_ == 2) {
-    current_map_ += 0x80;
-  }
-
-  // Render the updated map bitmap.
-  RenderUpdatedMapBitmap(mouse_position,
-                         tile16_individual_data_[current_tile16_]);
-
-  // Determine tile16 position that was updated in the 512x512 map
-  // Each map is represented as a vector inside of the overworld_.map_tiles()
-  int superY = ((current_map_ - (current_world_ * 0x40)) / 0x08);
-  int superX = current_map_ - (current_world_ * 0x40) - (superY * 0x08);
-  float x = mouse_position.x / 0x10;
-  float y = mouse_position.y / 0x10;
-  int tile16_x = static_cast<int>(x) - (superX * 0x20);
-  int tile16_y = static_cast<int>(y) - (superY * 0x20);
-
-  // Update the overworld_.map_tiles() data (word) based on tile16 ID and
-  // current world
-  uint16_t tile_value = current_tile16_;
-  uint8_t low_byte = tile_value & 0xFF;
-  uint8_t high_byte = (tile_value >> 8) & 0xFF;
-  if (current_world_ == 0) {
-    overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y] = low_byte;
-    overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y + 1] =
-        high_byte;
-  } else if (current_world_ == 1) {
-    overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y] = low_byte;
-    overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y + 1] =
-        high_byte;
-  } else {
-    overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y] =
-        low_byte;
-    overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y + 1] =
-        high_byte;
-  }
-
-  if (flags()->kLogToConsole) {
-    std::cout << "Current Map: " << current_map_ << std::endl;
-    std::cout << "Current Tile: " << current_tile16_ << std::endl;
-    std::cout << "Mouse Position: " << mouse_position.x << ", "
-              << mouse_position.y << std::endl;
-    std::cout << "Map Position: " << map_x << ", " << map_y << std::endl;
-    std::cout << "Tile16 Position: " << x << ", " << y << std::endl;
-  }
-}
-
-void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
-                                             const Bytes &tile_data) {
-  // Calculate the tile position relative to the current active map
-  constexpr int tile_size = 16;  // Tile size is 16x16 pixels
-
-  // Calculate the tile index for x and y based on the click_position
-  int tile_index_x = (static_cast<int>(click_position.x) % 512) / tile_size;
-  int tile_index_y = (static_cast<int>(click_position.y) % 512) / tile_size;
-
-  // Calculate the pixel start position based on tile index and tile size
-  ImVec2 start_position;
-  start_position.x = tile_index_x * tile_size;
-  start_position.y = tile_index_y * tile_size;
-
-  // Get the current map's bitmap from the BitmapTable
-  gfx::Bitmap &current_bitmap = maps_bmp_[current_map_];
-
-  // Update the bitmap's pixel data based on the start_position and tile_data
-  for (int y = 0; y < tile_size; ++y) {
-    for (int x = 0; x < tile_size; ++x) {
-      int pixel_index = (start_position.y + y) * 0x200 + (start_position.x + x);
-      current_bitmap.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
-    }
-  }
-
-  current_bitmap.set_modified(true);
-
-  // // Render the updated bitmap to the canvas
-  // rom()->UpdateBitmap(&current_bitmap);
-}
-
-void OverworldEditor::CheckForOverworldEdits() {
-  if (!blockset_canvas_.points().empty() &&
-      current_mode == EditingMode::DRAW_TILE) {
-    // User has selected a tile they want to draw from the blockset.
-    int x = blockset_canvas_.points().front().x / 32;
-    int y = blockset_canvas_.points().front().y / 32;
-    current_tile16_ = x + (y * 8);
-    if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
-                                       16)) {
-      // Update the overworld map.
-      DrawOverworldEdits();
-    }
-  }
-}
-
-void OverworldEditor::CheckForCurrentMap() {
-  // 4096x4096, 512x512 maps and some are larges maps 1024x1024
-  auto mouse_position = ImGui::GetIO().MousePos;
-  constexpr int small_map_size = 512;
-  const auto large_map_size = 1024;
-  const auto canvas_zero_point = ow_map_canvas_.zero_point();
-
-  // Calculate which small map the mouse is currently over
-  int map_x = (mouse_position.x - canvas_zero_point.x) / small_map_size;
-  int map_y = (mouse_position.y - canvas_zero_point.y) / small_map_size;
-
-  // Calculate the index of the map in the `maps_bmp_` vector
-  current_map_ = map_x + map_y * 8;
-  if (current_world_ == 1) {
-    current_map_ += 0x40;
-  } else if (current_world_ == 2) {
-    current_map_ += 0x80;
-  }
-
-  // If the map has a parent, set the current_map_ to that parent map
-  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
-    current_parent_ = overworld_.overworld_map(current_map_)->Parent();
-  }
-
-  auto current_map_x = current_map_ % 8;
-  auto current_map_y = current_map_ / 8;
-
-  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
-    int parent_id = overworld_.overworld_map(current_map_)->Parent();
-    int parent_map_x = parent_id % 8;
-    int parent_map_y = parent_id / 8;
-    ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
-                               parent_map_x * small_map_size, large_map_size,
-                               large_map_size);
-  } else {
-    ow_map_canvas_.DrawOutline(current_map_x * small_map_size,
-                               current_map_y * small_map_size, small_map_size,
-                               small_map_size);
-  }
-
-  if (maps_bmp_[current_map_].modified()) {
-    rom()->UpdateBitmap(&maps_bmp_[current_map_]);
-    maps_bmp_[current_map_].set_modified(false);
-  }
-}
-
-void OverworldEditor::CheckForSelectRectangle() {
-  if (current_mode == EditingMode::DRAW_TILE) {
-    ow_map_canvas_.DrawSelectRect(0x10);
-    static std::vector<int> tile16_ids;
-    if (ow_map_canvas_.selected_tiles().size() != 0) {
-      // Get the tile16 IDs from the selected tile ID positions
-      if (tile16_ids.size() != 0) {
-        tile16_ids.clear();
-      }
-      for (auto &each : ow_map_canvas_.selected_tiles()) {
-        int tile16_id = overworld_.GetTile16Id(each);
-        tile16_ids.push_back(tile16_id);
-      }
-      ow_map_canvas_.mutable_selected_tiles()->clear();
-    }
-    // Create a composite image of all the tile16s selected
-    ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
-  }
-}
-
-// Overworld Editor canvas
-// Allows the user to make changes to the overworld map.
-void OverworldEditor::DrawOverworldCanvas() {
-  if (all_gfx_loaded_) {
-    DrawOverworldMapSettings();
-    Separator();
-  }
-  gui::BeginNoPadding();
-  gui::BeginChildBothScrollbars(7);
-  ow_map_canvas_.DrawBackground();
-  gui::EndNoPadding();
-  if (current_mode == EditingMode::PAN) {
-    ow_map_canvas_.DrawContextMenu();
-  } else {
-    ow_map_canvas_.set_draggable(false);
-  }
-  if (overworld_.is_loaded()) {
-    DrawOverworldMaps();
-    DrawOverworldExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-    DrawOverworldEntrances(ow_map_canvas_.zero_point(),
-                           ow_map_canvas_.scrolling());
-    DrawOverworldItems();
-    DrawOverworldSprites();
-    if (ImGui::IsItemHovered()) CheckForCurrentMap();
-    CheckForOverworldEdits();
-  }
-  ow_map_canvas_.DrawGrid();
-  ow_map_canvas_.DrawOverlay();
-  ImGui::EndChild();
-}
-
-void OverworldEditor::DrawTile16Selector() {
-  gui::BeginPadding(3);
-  gui::BeginChildWithScrollbar(/*id=*/1);
-  blockset_canvas_.DrawBackground();
-  gui::EndNoPadding();
-  blockset_canvas_.DrawContextMenu();
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, /*border_offset=*/2,
-                              map_blockset_loaded_);
-  if (blockset_canvas_.DrawTileSelector(32.0f)) {
-    // Open the tile16 editor to the tile
-    auto tile_pos = blockset_canvas_.points().front();
-    int grid_x = static_cast<int>(tile_pos.x / 32);
-    int grid_y = static_cast<int>(tile_pos.y / 32);
-    int id = grid_x + grid_y * 8;
-    tile16_editor_.set_tile16(id);
-    show_tile16_editor_ = true;
-  }
-  blockset_canvas_.DrawGrid();
-  blockset_canvas_.DrawOverlay();
-  ImGui::EndChild();
-}
-
-void OverworldEditor::DrawTile8Selector() {
-  graphics_bin_canvas_.DrawBackground();
-  graphics_bin_canvas_.DrawContextMenu();
-  if (all_gfx_loaded_) {
-    for (auto &[key, value] : rom()->bitmap_manager()) {
-      int offset = 0x40 * (key + 1);
-      int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
-      if (key >= 1) {
-        top_left_y = graphics_bin_canvas_.zero_point().y + 0x40 * key;
-      }
-      auto texture = value.get()->texture();
-      graphics_bin_canvas_.draw_list()->AddImage(
-          (void *)texture,
-          ImVec2(graphics_bin_canvas_.zero_point().x + 2, top_left_y),
-          ImVec2(graphics_bin_canvas_.zero_point().x + 0x100,
-                 graphics_bin_canvas_.zero_point().y + offset));
-    }
-  }
-  graphics_bin_canvas_.DrawGrid();
-  graphics_bin_canvas_.DrawOverlay();
-}
-
-void OverworldEditor::DrawAreaGraphics() {
-  gui::BeginPadding(3);
-  gui::BeginChildWithScrollbar(/*id=*/2);
-  current_gfx_canvas_.DrawBackground();
-  gui::EndPadding();
-  current_gfx_canvas_.DrawContextMenu();
-  if (current_graphics_set_.count(current_map_) == 0) {
-    overworld_.SetCurrentMap(current_map_);
-    palette_ = overworld_.AreaPalette();
-    gfx::Bitmap bmp;
-    gui::BuildAndRenderBitmapPipeline(
-        0x80, 0x200, 0x08, overworld_.AreaGraphics(), *rom(), bmp, palette_);
-    // int area_palette =
-    // overworld_.overworld_map(current_map_)->area_palette();
-    // gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
-    //                                   overworld_.AreaGraphics(), *rom(), bmp,
-    //                                   palettesets_[area_palette].main);
-    current_graphics_set_[current_map_] = bmp;
-  }
-  current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_],
-                                 /*border_offset=*/2, overworld_.is_loaded());
-  current_gfx_canvas_.DrawTileSelector(32.0f);
-  current_gfx_canvas_.DrawGrid();
-  current_gfx_canvas_.DrawOverlay();
-  ImGui::EndChild();
-}
-
-void OverworldEditor::DrawTileSelector() {
-  if (BeginTabBar(kTileSelectorTab.data(),
-                  ImGuiTabBarFlags_FittingPolicyScroll)) {
-    if (BeginTabItem("Tile16")) {
-      DrawTile16Selector();
-      EndTabItem();
-    }
-    if (BeginTabItem("Tile8")) {
-      gui::BeginPadding(3);
-      gui::BeginChildWithScrollbar(/*id=*/2);
-      DrawTile8Selector();
-      ImGui::EndChild();
-      gui::EndNoPadding();
-      EndTabItem();
-    }
-    if (BeginTabItem("Area Graphics")) {
-      DrawAreaGraphics();
-      EndTabItem();
-    }
-    EndTabBar();
   }
 }
 
