@@ -372,7 +372,7 @@ void Canvas::DrawOutline(int x, int y, int w, int h) {
                 canvas_p0_.y + scrolling_.y + y);
   ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
               canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 255));
+  draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 200), 0, 0, 1.5f);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
@@ -382,6 +382,15 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
               canvas_p0_.y + scrolling_.y + y + h);
   draw_list_->AddRect(origin, size,
                       IM_COL32(color.x, color.y, color.z, color.w));
+}
+
+
+void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
+  draw_list_->AddRect(origin, size, color);
 }
 
 namespace {
@@ -403,14 +412,6 @@ std::vector<int> GetTileIDsInGrid(int start_x, int start_y, int width,
   return tile_ids;
 }
 }  // namespace
-
-void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size, color);
-}
 
 void Canvas::DrawSelectRect(int tile_size, float scale) {
   const ImGuiIO &io = ImGui::GetIO();

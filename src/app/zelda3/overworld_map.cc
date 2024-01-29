@@ -58,10 +58,15 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 }
 
 void OverworldMap::LoadAreaInfo() {
-  if (index_ != 0x80 && index_ <= 150 &&
-      rom_[overworldMapSize + (index_ & 0x3F)] != 0) {
-    large_map_ = true;
+  if (index_ != 0x80) {
+    if (index_ <= 150)
+      large_map_ = rom_[overworldMapSize + (index_ & 0x3F)] != 0;
+    else {
+      large_map_ =
+          index_ == 129 || index_ == 130 || index_ == 137 || index_ == 138;
+    }
   }
+
   if (index_ < 64) {
     area_graphics_ = rom_[mapGfx + parent_];
     area_palette_ = rom_[overworldMapPalette + parent_];
@@ -109,6 +114,9 @@ void OverworldMap::LoadAreaInfo() {
       parent_ = 0x2C;
     } else if (index_ == 0x88) {
       parent_ = 0x88;
+    } else if (index_ == 129 || index_ == 130 || index_ == 137 ||
+               index_ == 138) {
+      parent_ = 129;
     }
 
     area_palette_ = rom_[overworldSpecialPALGroup + parent_ - 0x80];

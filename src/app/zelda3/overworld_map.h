@@ -41,7 +41,6 @@ class OverworldMap : public GfxContext {
 
   void DrawAnimatedTiles();
 
-
   auto Tile16Blockset() const { return current_blockset_; }
   auto AreaGraphics() const { return current_gfx_; }
   auto AreaPalette() const { return current_palette_; }
@@ -77,6 +76,20 @@ class OverworldMap : public GfxContext {
   auto set_sprite_palette(int i, uint8_t value) { sprite_palette_[i] = value; }
   auto set_message_id(uint16_t value) { message_id_ = value; }
 
+  auto ParentIndex() const { return parent_index_; }
+
+  void SetAsLargeMap(int parent_index, int quadrant) {
+    parent_ = parent_index;
+    parent_index_ = quadrant;
+    large_map_ = true;
+  }
+
+  void SetAsSmallMap(int quadrant) {
+    parent_ = index_;
+    parent_index_ = quadrant;
+    large_map_ = false;
+  }
+
  private:
   void LoadAreaInfo();
 
@@ -96,6 +109,7 @@ class OverworldMap : public GfxContext {
 
   int parent_ = 0;
   int index_ = 0;
+  int parent_index_ = 0;
   int world_ = 0;
   int game_state_ = 0;
   int world_index_ = 0;
