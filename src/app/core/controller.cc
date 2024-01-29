@@ -29,8 +29,26 @@ void InitializeKeymap() {
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
   io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
   io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
+  io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
+  io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
+  io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
+  io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
   io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
   io.KeyMap[ImGuiKey_LeftCtrl] = SDL_GetScancodeFromKey(SDLK_LCTRL);
+  io.KeyMap[ImGuiKey_PageUp] = SDL_GetScancodeFromKey(SDLK_PAGEUP);
+  io.KeyMap[ImGuiKey_PageDown] = SDL_GetScancodeFromKey(SDLK_PAGEDOWN);
+  io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
+  io.KeyMap[ImGuiKey_Space] = SDL_GetScancodeFromKey(SDLK_SPACE);
+  io.KeyMap[ImGuiKey_1] = SDL_GetScancodeFromKey(SDLK_1);
+  io.KeyMap[ImGuiKey_2] = SDL_GetScancodeFromKey(SDLK_2);
+  io.KeyMap[ImGuiKey_3] = SDL_GetScancodeFromKey(SDLK_3);
+  io.KeyMap[ImGuiKey_4] = SDL_GetScancodeFromKey(SDLK_4);
+  io.KeyMap[ImGuiKey_5] = SDL_GetScancodeFromKey(SDLK_5);
+  io.KeyMap[ImGuiKey_6] = SDL_GetScancodeFromKey(SDLK_6);
+  io.KeyMap[ImGuiKey_7] = SDL_GetScancodeFromKey(SDLK_7);
+  io.KeyMap[ImGuiKey_8] = SDL_GetScancodeFromKey(SDLK_8);
+  io.KeyMap[ImGuiKey_9] = SDL_GetScancodeFromKey(SDLK_9);
+  io.KeyMap[ImGuiKey_0] = SDL_GetScancodeFromKey(SDLK_0);
 }
 
 void ImGui_ImplSDL2_SetClipboardText(void *user_data, const char *text) {
@@ -50,6 +68,7 @@ void InitializeClipboard() {
 
 void HandleKeyDown(SDL_Event &event) {
   ImGuiIO &io = ImGui::GetIO();
+  io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
   switch (event.key.keysym.sym) {
     case SDLK_UP:
     case SDLK_DOWN:
@@ -216,8 +235,9 @@ absl::Status Controller::CreateGuiContext() {
   ImGui::CreateContext();
 
   ImGuiIO &io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
   if (flags()->kUseNewImGuiInput) {
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
   }
 
