@@ -314,20 +314,34 @@ TileInfo WordToTileInfo(uint16_t word) {
 }
 
 ushort TileInfoToShort(TileInfo tile_info) {
-  ushort result = 0;
+  // ushort result = 0;
 
-  // Copy the id_ value
-  result |= tile_info.id_ & 0x3FF;  // ids are 10 bits
+  // // Copy the id_ value
+  // result |= tile_info.id_ & 0x3FF;  // ids are 10 bits
 
-  // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
-  result |= (tile_info.vertical_mirror_ ? 1 : 0) << 10;
-  result |= (tile_info.horizontal_mirror_ ? 1 : 0) << 11;
-  result |= (tile_info.over_ ? 1 : 0) << 12;
+  // // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
+  // result |= (tile_info.vertical_mirror_ ? 1 : 0) << 10;
+  // result |= (tile_info.horizontal_mirror_ ? 1 : 0) << 11;
+  // result |= (tile_info.over_ ? 1 : 0) << 12;
 
-  // Set the palette_
-  result |= (tile_info.palette_ & 0x07) << 13;  // palettes are 3 bits
+  // // Set the palette_
+  // result |= (tile_info.palette_ & 0x07) << 13;  // palettes are 3 bits
 
-  return result;
+  ushort value = 0;
+  // vhopppcc cccccccc
+  if (tile_info.over_) {
+    value |= core::TilePriorityBit;
+  }
+  if (tile_info.horizontal_mirror_) {
+    value |= core::TileHFlipBit;
+  }
+  if (tile_info.vertical_mirror_) {
+    value |= core::TileVFlipBit;
+  }
+  value |= (ushort)((tile_info.palette_ << 10) & 0x1C00);
+  value |= (ushort)(tile_info.id_ & core::TileNameMask);
+
+  return value;
 }
 
 TileInfo GetTilesInfo(ushort tile) {

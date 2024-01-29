@@ -322,7 +322,8 @@ void OverworldEditor::RefreshOverworldMap() {
   };
 
   int source_map_id = current_map_;
-  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+  bool is_large = overworld_.overworld_map(current_map_)->IsLargeMap();
+  if (is_large) {
     source_map_id = current_parent_;
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
@@ -340,9 +341,9 @@ void OverworldEditor::RefreshOverworldMap() {
   for (auto &each : futures) {
     each.get();
   }
-
+  int n = is_large ? 4 : 1;
   // We do texture updating on the main thread
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < n; ++i) {
     rom()->UpdateBitmap(&maps_bmp_[indices[i]]);
   }
 }
@@ -403,7 +404,8 @@ void OverworldEditor::DrawOverworldMapSettings() {
       ImGui::TableSetupColumn(name);
 
     TableNextColumn();
-    ImGui::Text("Map ID: %#x", current_map_);
+    ImGui::Text("Parent/Map ID:%#x, %#x",
+                overworld_.overworld_map(current_map_)->Parent(), current_map_);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(120.f);
@@ -500,43 +502,30 @@ void OverworldEditor::DrawOverworldEdits() {
   RenderUpdatedMapBitmap(mouse_position,
                          tile16_individual_data_[current_tile16_]);
 
-  // Determine tile16 position that was updated in the 512x512 map
-  // Each map is represented as a vector inside of the overworld_.map_tiles()
-  int superY = ((current_map_ - (current_world_ * 0x40)) / 0x08);
-  int superX = current_map_ - (current_world_ * 0x40) - (superY * 0x08);
-  float x = mouse_position.x / 0x10;
-  float y = mouse_position.y / 0x10;
-  int tile16_x = static_cast<int>(x) - (superX * 0x20);
-  int tile16_y = static_cast<int>(y) - (superY * 0x20);
+  // Calculate the correct superX and superY values
+  int superY = current_map_ / 8;
+  int superX = current_map_ % 8;
+  int mouse_x = mouse_position.x;
+  int mouse_y = mouse_position.y;
+  // Calculate the correct tile16_x and tile16_y positions
+  int tile16_x = (mouse_x % small_map_size) / (small_map_size / 32);
+  int tile16_y = (mouse_y % small_map_size) / (small_map_size / 32);
 
   // Update the overworld_.map_tiles() data (word) based on tile16 ID and
   // current world
   uint16_t tile_value = current_tile16_;
   uint8_t low_byte = tile_value & 0xFF;
   uint8_t high_byte = (tile_value >> 8) & 0xFF;
-  if (current_world_ == 0) {
-    overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y] = low_byte;
-    overworld_.mutable_map_tiles()->light_world[tile16_x][tile16_y + 1] =
-        high_byte;
-  } else if (current_world_ == 1) {
-    overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y] = low_byte;
-    overworld_.mutable_map_tiles()->dark_world[tile16_x][tile16_y + 1] =
-        high_byte;
-  } else {
-    overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y] =
-        low_byte;
-    overworld_.mutable_map_tiles()->special_world[tile16_x][tile16_y + 1] =
-        high_byte;
-  }
 
-  if (flags()->kLogToConsole) {
-    std::cout << "Current Map: " << current_map_ << std::endl;
-    std::cout << "Current Tile: " << current_tile16_ << std::endl;
-    std::cout << "Mouse Position: " << mouse_position.x << ", "
-              << mouse_position.y << std::endl;
-    std::cout << "Map Position: " << map_x << ", " << map_y << std::endl;
-    std::cout << "Tile16 Position: " << x << ", " << y << std::endl;
-  }
+  auto &selected_world =
+      (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
+      : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
+                              : overworld_.mutable_map_tiles()->special_world;
+
+  int index_x = superX * 32 + tile16_x;
+  int index_y = superY * 32 + tile16_y;
+
+  selected_world[index_x][index_y] = tile_value;
 }
 
 void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
@@ -565,9 +554,6 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
   }
 
   current_bitmap.set_modified(true);
-
-  // // Render the updated bitmap to the canvas
-  // rom()->UpdateBitmap(&current_bitmap);
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
@@ -598,6 +584,7 @@ void OverworldEditor::CheckForCurrentMap() {
 
   // Calculate the index of the map in the `maps_bmp_` vector
   current_map_ = map_x + map_y * 8;
+  int current_highlight = current_map_;
   if (current_world_ == 1) {
     current_map_ += 0x40;
   } else if (current_world_ == 2) {
@@ -612,10 +599,10 @@ void OverworldEditor::CheckForCurrentMap() {
   auto current_map_x = current_map_ % 8;
   auto current_map_y = current_map_ / 8;
 
-  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
-    int parent_id = overworld_.overworld_map(current_map_)->Parent();
-    int parent_map_x = parent_id % 8;
-    int parent_map_y = parent_id / 8;
+  if (overworld_.overworld_map(current_map_)->IsLargeMap() ||
+      overworld_.overworld_map(current_map_)->ParentIndex() != 0) {
+    auto parent_map_x = current_parent_ % 8;
+    auto parent_map_y = current_parent_ / 8;
     ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
                                parent_map_x * small_map_size, large_map_size,
                                large_map_size);
@@ -738,11 +725,6 @@ void OverworldEditor::DrawAreaGraphics() {
     gfx::Bitmap bmp;
     gui::BuildAndRenderBitmapPipeline(
         0x80, 0x200, 0x08, overworld_.AreaGraphics(), *rom(), bmp, palette_);
-    // int area_palette =
-    // overworld_.overworld_map(current_map_)->area_palette();
-    // gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
-    //                                   overworld_.AreaGraphics(), *rom(), bmp,
-    //                                   palettesets_[area_palette].main);
     current_graphics_set_[current_map_] = bmp;
   }
   current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_],
