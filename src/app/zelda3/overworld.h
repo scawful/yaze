@@ -444,10 +444,18 @@ struct MapData {
 class Overworld : public SharedROM, public core::ExperimentFlags {
  public:
   absl::Status Load(ROM &rom);
-  absl::Status Save(ROM &rom);
   OWBlockset &GetMapTiles(int world_type);
   absl::Status LoadOverworldMaps();
+  void LoadTileTypes();
+  void LoadEntrances();
 
+  absl::Status LoadExits();
+  absl::Status LoadItems();
+  absl::Status LoadSprites();
+  absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
+                                  int spriteIndex);
+
+  absl::Status Save(ROM &rom);
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
   absl::Status SaveEntrances();
@@ -459,6 +467,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
+  absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
 
   int GetTile16Id(int grid_id) const {
     return map_tiles_.light_world[game_state_][grid_id];
@@ -501,8 +510,6 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto all_tiles_types() const { return all_tiles_types_; }
   auto mutable_all_tiles_types() { return &all_tiles_types_; }
 
-  absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
-
  private:
   enum Dimension {
     map32TilesTL = 0,
@@ -511,6 +518,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
     map32TilesBR = 3
   };
 
+  void FetchLargeMaps();
   uint16_t GenerateTile32(int index, int quadrant, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
@@ -519,15 +527,8 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   void OrganizeMapTiles(Bytes &bytes, Bytes &bytes2, int i, int sx, int sy,
                         int &ttpos);
   absl::Status DecompressAllMapTiles();
+
   absl::Status DecompressProtoMapTiles(const std::string &filename);
-  void FetchLargeMaps();
-  void LoadTileTypes();
-  void LoadEntrances();
-  absl::Status LoadExits();
-  absl::Status LoadItems();
-  absl::Status LoadSprites();
-  absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
-                                  int spriteIndex);
 
   bool is_loaded_ = false;
 
