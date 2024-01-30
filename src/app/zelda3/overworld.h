@@ -462,15 +462,22 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveExits();
   absl::Status SaveItems();
 
-  bool CreateTile32Tilemap(bool onlyShow = false);
+  absl::Status CreateTile32Tilemap();
   absl::Status SaveMap16Tiles();
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
   absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
 
-  int GetTile16Id(int grid_id) const {
-    return map_tiles_.light_world[game_state_][grid_id];
+  int current_world_ = 0;
+  int GetTile16Id(ImVec2 position) const {
+    if (current_world_ == 0) {
+      return map_tiles_.light_world[position.x][position.y];
+    } else if (current_world_ == 1) {
+      return map_tiles_.dark_world[position.x][position.y];
+    } else {
+      return map_tiles_.special_world[position.x][position.y];
+    }
   }
 
   auto overworld_maps() const { return overworld_maps_; }
@@ -519,7 +526,6 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   };
 
   void FetchLargeMaps();
-  uint16_t GenerateTile32(int index, int quadrant, int dimension);
   void AssembleMap32Tiles();
   void AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,

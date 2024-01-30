@@ -107,12 +107,12 @@ class OverworldMap : public GfxContext {
   bool large_map_ = false;
   bool initialized_ = false;
 
-  int parent_ = 0;
-  int index_ = 0;
-  int parent_index_ = 0;
-  int world_ = 0;
-  int game_state_ = 0;
-  int world_index_ = 0;
+  int index_ = 0;         // Map index
+  int parent_ = 0;        // Parent map index
+  int parent_index_ = 0;  // Quadrant ID [0-3]
+  int world_ = 0;         // World ID [0-2]
+  int game_state_ = 0;    // Game state [0-2]
+  int world_index_ = 0;   // Spr Pal Modifier
 
   uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;

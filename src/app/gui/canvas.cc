@@ -384,7 +384,6 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
                       IM_COL32(color.x, color.y, color.z, color.w));
 }
 
-
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
   ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
                 canvas_p0_.y + scrolling_.y + y);
@@ -420,47 +419,81 @@ void Canvas::DrawSelectRect(int tile_size, float scale) {
 
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     // Start dragging and snap the start position to the nearest grid point
-    drag_start_pos.x =
-        std::floor(io.MousePos.x / (tile_size * scale)) * tile_size * scale;
-    drag_start_pos.y =
-        std::floor(io.MousePos.y / (tile_size * scale)) * tile_size * scale;
+    drag_start_pos = {
+        std::floor(io.MousePos.x / (tile_size * scale)) * tile_size * scale,
+        std::floor(io.MousePos.y / (tile_size * scale)) * tile_size * scale};
     dragging = true;
   }
+  if (dragging) {
+    ImVec2 current_pos = io.MousePos;
+    // Snap current position to the nearest grid point
+    ImVec2 snapped_current_pos{
+        std::floor(current_pos.x / (tile_size * scale)) * tile_size * scale,
+        std::floor(current_pos.y / (tile_size * scale)) * tile_size * scale};
 
-  ImVec2 current_pos = io.MousePos;
-  // Snap current position to the nearest grid point
-  ImVec2 snapped_current_pos;
-  snapped_current_pos.x =
-      std::floor(current_pos.x / (tile_size * scale)) * tile_size * scale;
-  snapped_current_pos.y =
-      std::floor(current_pos.y / (tile_size * scale)) * tile_size * scale;
-  // Calculate rect_min and rect_max considering the drag direction
-  ImVec2 rect_min = ImVec2(std::min(drag_start_pos.x, snapped_current_pos.x),
-                           std::min(drag_start_pos.y, snapped_current_pos.y));
-  ImVec2 rect_max = ImVec2(
-      std::max(drag_start_pos.x, snapped_current_pos.x) + tile_size * scale,
-      std::max(drag_start_pos.y, snapped_current_pos.y) + tile_size * scale);
+    // Calculate rect_min and rect_max considering the drag direction
+    ImVec2 rect_min = ImVec2(std::min(drag_start_pos.x, snapped_current_pos.x),
+                             std::min(drag_start_pos.y, snapped_current_pos.y));
+    ImVec2 rect_max = ImVec2(
+        std::max(drag_start_pos.x, snapped_current_pos.x) + tile_size * scale,
+        std::max(drag_start_pos.y, snapped_current_pos.y) + tile_size * scale);
 
-  if (dragging && ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-    draw_list_->AddRect(rect_min, rect_max, kRectangleBorder);
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+      draw_list_->AddRect(rect_min, rect_max, kRectangleBorder);
+    }
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+      dragging = false;
+      ImVec2 scaled_rect_min =
+          ImVec2(drag_start_pos.x / scale, drag_start_pos.y / scale);
+      ImVec2 scaled_rect_max = ImVec2(rect_max.x / scale, rect_max.y / scale);
+
+      // Calculate the bounds of the rectangle in terms of 16x16 tile indices
+      constexpr int tile16_size = 16;
+      int start_x = scaled_rect_min.x / tile16_size;
+      int start_y = scaled_rect_min.y / tile16_size;
+      int end_x = scaled_rect_max.x / tile16_size;
+      int end_y = scaled_rect_max.y / tile16_size;
+
+      // Loop through the tiles in the rectangle and store their positions
+      selected_tiles_.clear();
+      for (int y = start_y; y < end_y; ++y) {
+        for (int x = start_x; x < end_x; ++x) {
+          selected_tiles_.push_back(ImVec2(x * tile16_size, y * tile16_size));
+        }
+      }
+
+      // Clear and add the calculated rectangle points
+      points_.clear();
+      points_.push_back(scaled_rect_min);
+      points_.push_back(scaled_rect_max);
+    }
   }
+}
 
-  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-    dragging = false;
-    ImVec2 scaled_rect_min =
-        ImVec2(drag_start_pos.x / scale, drag_start_pos.y / scale);
-    ImVec2 scaled_rect_max = ImVec2(rect_max.x / scale, rect_max.y / scale);
+void Canvas::DrawSelectRectTile16(int current_map) {
+  const ImGuiIO &io = ImGui::GetIO();
+  const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-    // Here, calculate and store the tile16 IDs within the rectangle
-    selected_tiles_ =
-        GetTileIDsInGrid(scaled_rect_min.x, scaled_rect_min.y,
-                         scaled_rect_max.x - scaled_rect_min.x,
-                         scaled_rect_max.y - scaled_rect_min.y, tile_size);
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    // Calculate the coordinates of the mouse
+    ImVec2 painter_pos;
+    painter_pos.x = std::floor((double)mouse_pos.x / 16) * 16;
+    painter_pos.y = std::floor((double)mouse_pos.y / 16) * 16;
+    int painter_x = painter_pos.x;
+    int painter_y = painter_pos.y;
+    constexpr int small_map_size = 0x200;
 
-    // Clear and add the calculated rectangle points
-    points_.clear();
-    points_.push_back(scaled_rect_min);
-    points_.push_back(scaled_rect_max);
+    auto tile16_x = (painter_x % small_map_size) / (small_map_size / 0x20);
+    auto tile16_y = (painter_y % small_map_size) / (small_map_size / 0x20);
+
+    int superY = current_map / 8;
+    int superX = current_map % 8;
+
+    int index_x = superX * 0x20 + tile16_x;
+    int index_y = superY * 0x20 + tile16_y;
+    selected_tiles_.push_back(ImVec2(index_x, index_y));
   }
 }
 

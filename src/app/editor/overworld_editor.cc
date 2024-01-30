@@ -485,9 +485,8 @@ void OverworldEditor::DrawOverworldMaps() {
 }
 
 void OverworldEditor::DrawOverworldEdits() {
-  auto mouse_position = ow_map_canvas_.drawn_tile_position();
-
   // Determine which overworld map the user is currently editing.
+  auto mouse_position = ow_map_canvas_.drawn_tile_position();
   constexpr int small_map_size = 512;
   int map_x = mouse_position.x / small_map_size;
   int map_y = mouse_position.y / small_map_size;
@@ -511,12 +510,7 @@ void OverworldEditor::DrawOverworldEdits() {
   int tile16_x = (mouse_x % small_map_size) / (small_map_size / 32);
   int tile16_y = (mouse_y % small_map_size) / (small_map_size / 32);
 
-  // Update the overworld_.map_tiles() data (word) based on tile16 ID and
-  // current world
-  uint16_t tile_value = current_tile16_;
-  uint8_t low_byte = tile_value & 0xFF;
-  uint8_t high_byte = (tile_value >> 8) & 0xFF;
-
+  // Update the overworld_.map_tiles() based on tile16 ID and current world
   auto &selected_world =
       (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
       : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
@@ -525,7 +519,7 @@ void OverworldEditor::DrawOverworldEdits() {
   int index_x = superX * 32 + tile16_x;
   int index_y = superY * 32 + tile16_y;
 
-  selected_world[index_x][index_y] = tile_value;
+  selected_world[index_x][index_y] = current_tile16_;
 }
 
 void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
@@ -557,18 +551,42 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
+  // User has selected a tile they want to draw from the blockset.
   if (!blockset_canvas_.points().empty() &&
       current_mode == EditingMode::DRAW_TILE) {
-    // User has selected a tile they want to draw from the blockset.
-    int x = blockset_canvas_.points().front().x / 32;
-    int y = blockset_canvas_.points().front().y / 32;
-    current_tile16_ = x + (y * 8);
+    // int x = blockset_canvas_.points().front().x / 32;
+    // int y = blockset_canvas_.points().front().y / 32;
+    // current_tile16_ = x + (y * 8);
+    CheckForSelectRectangle();
+
     if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
                                        16)) {
       // Update the overworld map.
       DrawOverworldEdits();
     }
   }
+}
+
+void OverworldEditor::CheckForSelectRectangle() {
+  ow_map_canvas_.DrawSelectRectTile16(current_map_);
+
+  static std::vector<int> tile16_ids;
+  if (ow_map_canvas_.selected_tiles().size() != 0) {
+    // Get the tile16 IDs from the selected tile ID positions
+    // if (tile16_ids.size() != 0) {
+    //   tile16_ids.clear();
+    // }
+    // for (auto &each : ow_map_canvas_.selected_tiles()) {
+    //   tile16_ids.push_back(overworld_.GetTile16Id(each));
+    // }
+    if (ow_map_canvas_.selected_tiles().size() == 1) {
+      current_tile16_ =
+          overworld_.GetTile16Id(ow_map_canvas_.selected_tiles().at(0));
+    }
+    ow_map_canvas_.mutable_selected_tiles()->clear();
+  }
+  // Create a composite image of all the tile16s selected
+  // ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
 }
 
 void OverworldEditor::CheckForCurrentMap() {
@@ -615,26 +633,6 @@ void OverworldEditor::CheckForCurrentMap() {
   if (maps_bmp_[current_map_].modified()) {
     rom()->UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
-  }
-}
-
-void OverworldEditor::CheckForSelectRectangle() {
-  if (current_mode == EditingMode::DRAW_TILE) {
-    ow_map_canvas_.DrawSelectRect(0x10);
-    static std::vector<int> tile16_ids;
-    if (ow_map_canvas_.selected_tiles().size() != 0) {
-      // Get the tile16 IDs from the selected tile ID positions
-      if (tile16_ids.size() != 0) {
-        tile16_ids.clear();
-      }
-      for (auto &each : ow_map_canvas_.selected_tiles()) {
-        int tile16_id = overworld_.GetTile16Id(each);
-        tile16_ids.push_back(tile16_id);
-      }
-      ow_map_canvas_.mutable_selected_tiles()->clear();
-    }
-    // Create a composite image of all the tile16s selected
-    ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
   }
 }
 
@@ -685,6 +683,11 @@ void OverworldEditor::DrawTile16Selector() {
     int id = grid_x + grid_y * 8;
     tile16_editor_.set_tile16(id);
     show_tile16_editor_ = true;
+  }
+  if (ImGui::IsItemClicked() && !blockset_canvas_.points().empty()) {
+    int x = blockset_canvas_.points().front().x / 32;
+    int y = blockset_canvas_.points().front().y / 32;
+    current_tile16_ = x + (y * 8);
   }
   blockset_canvas_.DrawGrid();
   blockset_canvas_.DrawOverlay();
