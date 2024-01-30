@@ -554,14 +554,10 @@ void OverworldEditor::CheckForOverworldEdits() {
   // User has selected a tile they want to draw from the blockset.
   if (!blockset_canvas_.points().empty() &&
       current_mode == EditingMode::DRAW_TILE) {
-    // int x = blockset_canvas_.points().front().x / 32;
-    // int y = blockset_canvas_.points().front().y / 32;
-    // current_tile16_ = x + (y * 8);
     CheckForSelectRectangle();
 
     if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
                                        16)) {
-      // Update the overworld map.
       DrawOverworldEdits();
     }
   }
@@ -602,27 +598,26 @@ void OverworldEditor::CheckForCurrentMap() {
 
   // Calculate the index of the map in the `maps_bmp_` vector
   current_map_ = map_x + map_y * 8;
-  int current_highlight = current_map_;
+  int current_highlighted_map = current_map_;
   if (current_world_ == 1) {
     current_map_ += 0x40;
   } else if (current_world_ == 2) {
     current_map_ += 0x80;
   }
 
-  // If the map has a parent, set the current_map_ to that parent map
-  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
-    current_parent_ = overworld_.overworld_map(current_map_)->Parent();
-  }
+  current_parent_ = overworld_.overworld_map(current_map_)->Parent();
 
-  auto current_map_x = current_map_ % 8;
-  auto current_map_y = current_map_ / 8;
+  auto current_map_x = current_highlighted_map % 8;
+  auto current_map_y = current_highlighted_map / 8;
 
   if (overworld_.overworld_map(current_map_)->IsLargeMap() ||
       overworld_.overworld_map(current_map_)->ParentIndex() != 0) {
-    auto parent_map_x = current_parent_ % 8;
-    auto parent_map_y = current_parent_ / 8;
+    auto highlight_parent =
+        overworld_.overworld_map(current_highlighted_map)->Parent();
+    auto parent_map_x = highlight_parent % 8;
+    auto parent_map_y = highlight_parent / 8;
     ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
-                               parent_map_x * small_map_size, large_map_size,
+                               parent_map_y * small_map_size, large_map_size,
                                large_map_size);
   } else {
     ow_map_canvas_.DrawOutline(current_map_x * small_map_size,
