@@ -98,8 +98,12 @@ class Canvas {
   void DrawOutline(int x, int y, int w, int h);
   void DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color);
   void DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color);
+
   void DrawSelectRect(int tile_size, float scale = 1.0f);
+  void DrawSelectRectTile16(int current_map);
+
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
+
   void DrawText(std::string text, int x, int y);
   void DrawGridLines(float grid_step);
   void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
@@ -184,7 +188,7 @@ class Canvas {
   ImVec2 mouse_pos_in_canvas_;
   ImVec2 drawn_tile_pos_;
 
-  std::vector<int> selected_tiles_;
+  std::vector<ImVec2> selected_tiles_;
 };
 
 }  // namespace gui

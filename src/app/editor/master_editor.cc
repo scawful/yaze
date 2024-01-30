@@ -571,18 +571,14 @@ void MasterEditor::SaveRom() {
     RETURN_VOID_IF_ERROR(status_);
   }
   if (flags()->overworld.kSaveOverworldMaps) {
-    if (!overworld_editor_.overworld()->CreateTile32Tilemap()) {
-      status_ = overworld_editor_.overworld()->SaveMap32Tiles();
-      RETURN_VOID_IF_ERROR(status_);
-      status_ = overworld_editor_.overworld()->SaveMap16Tiles();
-      RETURN_VOID_IF_ERROR(status_);
-      status_ = overworld_editor_.overworld()->SaveOverworldMaps();
-      RETURN_VOID_IF_ERROR(status_);
-    } else {
-      status_ = absl::InternalError(
-          "Failed to save Overworld maps, aborting ROM save.");
-      return;
-    }
+    RETURN_VOID_IF_ERROR(
+        status_ = overworld_editor_.overworld()->CreateTile32Tilemap());
+    status_ = overworld_editor_.overworld()->SaveMap32Tiles();
+    RETURN_VOID_IF_ERROR(status_);
+    status_ = overworld_editor_.overworld()->SaveMap16Tiles();
+    RETURN_VOID_IF_ERROR(status_);
+    status_ = overworld_editor_.overworld()->SaveOverworldMaps();
+    RETURN_VOID_IF_ERROR(status_);
   }
   if (flags()->overworld.kSaveOverworldEntrances) {
     status_ = overworld_editor_.overworld()->SaveEntrances();
