@@ -735,6 +735,139 @@ uint8_t* Compress(uint8_t const* const src, int const oldsize, int* const size,
   return b2;
 }
 
+uint8_t* Uncompress(uint8_t const* src, int* const size,
+                    int const p_big_endian) {
+  unsigned char* b2 = (unsigned char*)malloc(1024);
+
+  int bd = 0, bs = 1024;
+
+  unsigned char a;
+  unsigned char b;
+  unsigned short c, d;
+
+  for (;;) {
+    // retrieve a uchar from the buffer.
+    a = *(src++);
+
+    // end the decompression routine if we encounter 0xff.
+    if (a == 0xff) break;
+
+    // examine the top 3 bits of a.
+    b = (a >> 5);
+
+    if (b == 7)  // i.e. 0b 111
+    {
+      // get bits 0b 0001 1100
+      b = ((a >> 2) & 7);
+
+      // get bits 0b 0000 0011, multiply by 256, OR with the next byte.
+      c = ((a & 0x0003) << 8);
+      c |= *(src++);
+    } else
+      // or get bits 0b 0001 1111
+      c = (uint16_t)(a & 31);
+
+    c++;
+
+    if ((bd + c) > (bs - 512)) {
+      // need to increase the buffer size.
+      bs += 1024;
+      b2 = (uint8_t*)realloc(b2, bs);
+    }
+
+    // 7 was handled, here we handle other decompression codes.
+
+    switch (b) {
+      case 0:  // 0b 000
+
+        // raw copy
+
+        // copy info from the src buffer to our new buffer,
+        // at offset bd (which we'll be increasing;
+        memcpy(b2 + bd, src, c);
+
+        // increment the src pointer accordingly.
+        src += c;
+
+        bd += c;
+
+        break;
+
+      case 1:  // 0b 001
+
+        // rle copy
+
+        // make c duplicates of one byte, inc the src pointer.
+        memset(b2 + bd, *(src++), c);
+
+        // increase the b2 offset.
+        bd += c;
+
+        break;
+
+      case 2:  // 0b 010
+
+        // rle 16-bit alternating copy
+
+        d = core::ldle16b(src);
+
+        src += 2;
+
+        while (c > 1) {
+          // copy that 16-bit number c/2 times into the b2 buffer.
+          core::stle16b(b2 + bd, d);
+
+          bd += 2;
+          c -= 2;  // hence c/2
+        }
+
+        if (c)  // if there's a remainder of c/2, this handles it.
+          b2[bd++] = (char)d;
+
+        break;
+
+      case 3:  // 0b 011
+
+        // incrementing copy
+
+        // get the current src byte.
+        a = *(src++);
+
+        while (c--) {
+          // increment that byte and copy to b2 in c iterations.
+          // e.g. a = 4, b2 will have 4,5,6,7,8... written to it.
+          b2[bd++] = a++;
+        }
+
+        break;
+
+      default:  // 0b 100, 101, 110
+
+        // lz copy
+
+        if (p_big_endian) {
+          d = (*src << 8) + src[1];
+        } else {
+          d = core::ldle16b(src);
+        }
+
+        while (c--) {
+          // copy from a different location in the buffer.
+          b2[bd++] = b2[d++];
+        }
+
+        src += 2;
+    }
+  }
+
+  b2 = (unsigned char*)realloc(b2, bd);
+
+  if (size) (*size) = bd;
+
+  // return the unsigned char* buffer b2, which contains the uncompressed data.
+  return b2;
+}
+
 absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
                                        const int length) {
   return CompressV2(data, pos, length, kNintendoMode2);
