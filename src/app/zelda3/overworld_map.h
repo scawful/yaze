@@ -76,17 +76,20 @@ class OverworldMap : public GfxContext {
   auto set_sprite_palette(int i, uint8_t value) { sprite_palette_[i] = value; }
   auto set_message_id(uint16_t value) { message_id_ = value; }
 
-  auto ParentIndex() const { return parent_index_; }
+  auto large_index() const { return large_index_; }
 
   void SetAsLargeMap(int parent_index, int quadrant) {
     parent_ = parent_index;
-    parent_index_ = quadrant;
+    large_index_ = quadrant;
     large_map_ = true;
   }
 
-  void SetAsSmallMap(int quadrant) {
-    parent_ = index_;
-    parent_index_ = quadrant;
+  void SetAsSmallMap(int index = -1) {
+    if (index != -1)
+      parent_ = index;
+    else
+      parent_ = index_;
+    large_index_ = 0;
     large_map_ = false;
   }
 
@@ -107,12 +110,12 @@ class OverworldMap : public GfxContext {
   bool large_map_ = false;
   bool initialized_ = false;
 
-  int index_ = 0;         // Map index
-  int parent_ = 0;        // Parent map index
-  int parent_index_ = 0;  // Quadrant ID [0-3]
-  int world_ = 0;         // World ID [0-2]
-  int game_state_ = 0;    // Game state [0-2]
-  int world_index_ = 0;   // Spr Pal Modifier
+  int index_ = 0;        // Map index
+  int parent_ = 0;       // Parent map index
+  int large_index_ = 0;  // Quadrant ID [0-3]
+  int world_ = 0;        // World ID [0-2]
+  int game_state_ = 0;   // Game state [0-2]
+  int world_index_ = 0;  // Spr Pal Modifier
 
   uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;

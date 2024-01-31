@@ -669,7 +669,7 @@ void OverworldEditor::CheckForCurrentMap() {
   auto current_map_y = current_highlighted_map / 8;
 
   if (overworld_.overworld_map(current_map_)->IsLargeMap() ||
-      overworld_.overworld_map(current_map_)->ParentIndex() != 0) {
+      overworld_.overworld_map(current_map_)->large_index() != 0) {
     auto highlight_parent =
         overworld_.overworld_map(current_highlighted_map)->Parent();
     auto parent_map_x = highlight_parent % 8;
