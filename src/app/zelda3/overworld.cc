@@ -111,12 +111,12 @@ void Overworld::FetchLargeMaps() {
   map_parent_[137] = 129;
   map_parent_[138] = 129;
   overworld_maps_[129].SetAsLargeMap(129, 0);
-  overworld_maps_[129].SetAsLargeMap(130, 1);
-  overworld_maps_[129].SetAsLargeMap(137, 2);
-  overworld_maps_[129].SetAsLargeMap(138, 3);
+  overworld_maps_[130].SetAsLargeMap(129, 1);
+  overworld_maps_[137].SetAsLargeMap(129, 2);
+  overworld_maps_[138].SetAsLargeMap(129, 3);
 
   map_parent_[136] = 136;
-  overworld_maps_[136].SetLargeMap(false);
+  overworld_maps_[136].SetAsSmallMap(0);
 
   std::vector<bool> mapChecked;
   mapChecked.reserve(0x40);
@@ -127,7 +127,7 @@ void Overworld::FetchLargeMaps() {
   int yy = 0;
   while (true) {
     if (int i = xx + (yy * 8); mapChecked[i] == false) {
-      if (overworld_maps_[i].IsLargeMap() == true) {
+      if (overworld_maps_[i].IsLargeMap()) {
         mapChecked[i] = true;
         map_parent_[i] = (uchar)i;
         map_parent_[i + 64] = (uchar)(i + 64);
@@ -777,6 +777,12 @@ absl::Status Overworld::SaveLargeMaps() {
       }
 
       // Check 5 and 6
+      RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2),
+                                        (ushort)((parentyPos * 0x200) - 0xE0)));
+      RETURN_IF_ERROR(
+          rom()->WriteShort(transition_target_west + (i * 2),
+                            (ushort)((parentxPos * 0x200) - 0x100)));
+
       RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2) + 2,
                                         (ushort)((parentyPos * 0x200) - 0xE0)));
       RETURN_IF_ERROR(
@@ -795,12 +801,12 @@ absl::Status Overworld::SaveLargeMaps() {
           rom()->WriteShort(transition_target_west + (i * 2) + 18,
                             (ushort)((parentxPos * 0x200) - 0x100)));
 
+      // Check 7 and 8
       RETURN_IF_ERROR(rom()->WriteShort(overworldTransitionPositionX + (i * 2),
                                         (parentxPos * 0x200)));
       RETURN_IF_ERROR(rom()->WriteShort(overworldTransitionPositionY + (i * 2),
                                         (parentyPos * 0x200)));
 
-      // Check 7 and 8
       RETURN_IF_ERROR(rom()->WriteShort(
           overworldTransitionPositionX + (i * 2) + 2, (parentxPos * 0x200)));
       RETURN_IF_ERROR(rom()->WriteShort(
@@ -853,14 +859,14 @@ absl::Status Overworld::SaveLargeMaps() {
 
       // Always 0x0080
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 128, 0x0080));
+          OverworldScreenTileMapChangeByScreen2 + (i * 2), 0x0080));
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 2 + 128, 0x0080));
+          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 2, 0x0080));
       // Lower always 0x1080
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 16 + 128, 0x1080));
+          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 16, 0x1080));
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 18 + 128, 0x1080));
+          OverworldScreenTileMapChangeByScreen2 + (i * 2) + 18, 0x1080));
 
       // If the area to the right is a large map, we don't need to add an offset
       // to it. otherwise leave it the same. Just to make sure where don't try
@@ -878,14 +884,14 @@ absl::Status Overworld::SaveLargeMaps() {
 
       // Always 0x1800
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 256, 0x1800));
+          OverworldScreenTileMapChangeByScreen3 + (i * 2), 0x1800));
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 16 + 256, 0x1800));
+          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 16, 0x1800));
       // Right side is always 0x1840
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 2 + 256, 0x1840));
+          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 2, 0x1840));
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 18 + 256, 0x1840));
+          OverworldScreenTileMapChangeByScreen3 + (i * 2) + 18, 0x1840));
 
       // If the area above is a large map, we don't need to add an offset to it.
       // otherwise leave it the same.
@@ -903,14 +909,14 @@ absl::Status Overworld::SaveLargeMaps() {
 
       // Always 0x2000
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 384, 0x2000));
+          OverworldScreenTileMapChangeByScreen4 + (i * 2), 0x2000));
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 16 + 384, 0x2000));
+          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 16, 0x2000));
       // Right side always 0x2040
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 2 + 384, 0x2040));
+          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 2, 0x2040));
       RETURN_IF_ERROR(rom()->WriteShort(
-          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 18 + 384, 0x2040));
+          OverworldScreenTileMapChangeByScreen4 + (i * 2) + 18, 0x2040));
 
       // If the area below is a large map, we don't need to add an offset to it.
       // otherwise leave it the same.
@@ -1018,6 +1024,18 @@ absl::Status Overworld::SaveLargeMaps() {
       checked_map.emplace(i, 1);
     }
   }
+
+  constexpr int OverworldScreenTileMapChangeMask = 0x1262C;
+
+  RETURN_IF_ERROR(
+      rom()->WriteShort(OverworldScreenTileMapChangeMask + 0, 0x1F80));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(OverworldScreenTileMapChangeMask + 2, 0x1F80));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(OverworldScreenTileMapChangeMask + 4, 0x007F));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(OverworldScreenTileMapChangeMask + 6, 0x007F));
+
   return absl::OkStatus();
 }
 

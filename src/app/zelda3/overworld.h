@@ -443,8 +443,8 @@ struct MapData {
 
 class Overworld : public SharedROM, public core::ExperimentFlags {
  public:
-  absl::Status Load(ROM &rom);
   OWBlockset &GetMapTiles(int world_type);
+  absl::Status Load(ROM &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
   void LoadEntrances();
@@ -470,7 +470,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
 
   int current_world_ = 0;
-  int GetTile16Id(ImVec2 position) const {
+  int GetTileFromPosition(ImVec2 position) const {
     if (current_world_ == 0) {
       return map_tiles_.light_world[position.x][position.y];
     } else if (current_world_ == 1) {
@@ -507,7 +507,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
     return overworld_maps_[current_map_].Tile16Blockset();
   }
   auto is_loaded() const { return is_loaded_; }
-  void SetCurrentMap(int i) { current_map_ = i; }
+  void set_current_map(int i) { current_map_ = i; }
 
   auto map_tiles() const { return map_tiles_; }
   auto mutable_map_tiles() { return &map_tiles_; }
