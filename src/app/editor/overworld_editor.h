@@ -105,6 +105,7 @@ class OverworldEditor : public Editor,
   void RefreshOverworldMap();
   void RefreshMapPalette();
   void RefreshMapProperties();
+  void RefreshTile16Blockset();
 
   void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling,
                               bool holes = false);
@@ -161,6 +162,8 @@ class OverworldEditor : public Editor,
   int game_state_ = 1;
   int current_tile16_ = 0;
   int selected_tile_ = 0;
+
+  int current_blockset_ = 0;
 
   int selected_entrance_ = 0;
   int selected_usage_map_ = 0xFFFF;
