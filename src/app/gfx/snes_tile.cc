@@ -85,7 +85,8 @@ Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
       // 2bpp format
       if (bpp >= 2) {
         output[col * 2] += (uint8_t)((color & 1) << (7 - row));
-        output[col * 2 + 1] += (uint8_t)((uint8_t)((color & 2) == 2) << (7 - row));
+        output[col * 2 + 1] +=
+            (uint8_t)((uint8_t)((color & 2) == 2) << (7 - row));
       }
 
       // 3bpp format
@@ -101,7 +102,8 @@ Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
       // 8bpp format
       if (bpp == 8) {
         output[32 + col * 2] += (uint8_t)(((color & 16) == 16) << (7 - row));
-        output[32 + col * 2 + 1] += (uint8_t)(((color & 32) == 32) << (7 - row));
+        output[32 + col * 2 + 1] +=
+            (uint8_t)(((color & 32) == 32) << (7 - row));
         output[48 + col * 2] += (uint8_t)(((color & 64) == 64) << (7 - row));
         output[48 + col * 2 + 1] +=
             (uint8_t)(((color & 128) == 128) << (7 - row));
@@ -112,7 +114,7 @@ Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
 }
 
 std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
-                              uint32_t from_bpp, uint32_t to_bpp) {
+                                uint32_t from_bpp, uint32_t to_bpp) {
   unsigned int nb_tile = tiles.size() / (from_bpp * 8);
   std::vector<uint8_t> converted(nb_tile * to_bpp * 8);
 
@@ -346,8 +348,8 @@ uint16_t TileInfoToShort(TileInfo tile_info) {
 
 TileInfo GetTilesInfo(uint16_t tile) {
   // vhopppcc cccccccc
-  auto tid = (uint16_t)(tile & core::TileNameMask);
-  auto p = (uint8_t)((tile >> 10) & 0x07);
+  uint16_t tid = (uint16_t)(tile & core::TileNameMask);
+  uint8_t p = (uint8_t)((tile >> 10) & 0x07);
 
   bool o = ((tile & core::TilePriorityBit) == core::TilePriorityBit);
   bool h = ((tile & core::TileHFlipBit) == core::TileHFlipBit);

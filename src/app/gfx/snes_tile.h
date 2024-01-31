@@ -12,7 +12,7 @@ namespace app {
 namespace gfx {
 
 constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
-                                      0x08, 0x04, 0x02, 0x01};
+                                        0x08, 0x04, 0x02, 0x01};
 
 Bytes SnesTo8bppSheet(Bytes sheet, int bpp);
 Bytes Bpp8SnesToIndexed(Bytes data, uint64_t bpp = 0);
@@ -30,7 +30,7 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
 Bytes PackBppTile(const tile8& tile, const uint32_t bpp);
 
 std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
-                              uint32_t from_bpp, uint32_t to_bpp);
+                                uint32_t from_bpp, uint32_t to_bpp);
 
 std::vector<uint8_t> Convert3bppTo4bpp(const std::vector<uint8_t>& tiles);
 std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles);
