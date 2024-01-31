@@ -422,8 +422,8 @@ constexpr int OverworldScreenTileMapChangeByScreen4 = 0x127B4;
 
 constexpr int OverworldMapDataOverflow = 0x130000;
 
-constexpr int transition_target_north = 0x13ee2;
-constexpr int transition_target_west = 0x13f62;
+constexpr int transition_target_north = 0x13EE2;
+constexpr int transition_target_west = 0x13F62;
 constexpr int overworldCustomMosaicASM = 0x1301D0;
 constexpr int overworldCustomMosaicArray = 0x1301F0;
 

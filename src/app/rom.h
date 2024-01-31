@@ -411,7 +411,7 @@ class ROM : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
-  absl::Status WriteShort(uint32_t addr, uint16_t value) {
+  absl::Status WriteShort(int addr, uint16_t value) {
     if (addr + 1 >= rom_data_.size()) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Attempt to write short %#04x value failed, address %d out of range",
