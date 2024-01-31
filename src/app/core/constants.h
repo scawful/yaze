@@ -130,9 +130,9 @@
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
-using Bytes = std::vector<uchar>;
+using Bytes = std::vector<uint8_t>;
 
-using OWBlockset = std::vector<std::vector<ushort>>;
+using OWBlockset = std::vector<std::vector<uint16_t>>;
 struct OWMapTiles {
   OWBlockset light_world;    // 64 maps
   OWBlockset dark_world;     // 64 maps

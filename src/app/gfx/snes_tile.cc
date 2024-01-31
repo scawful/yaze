@@ -28,13 +28,13 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
       bpp_pos[1] = offset + col * 2 + 1;
       char mask = 1 << (7 - row);
       tile.data[col * 8 + row] = (data[bpp_pos[0]] & mask) == mask;
-      tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[1]] & mask) == mask)
+      tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[1]] & mask) == mask)
                                   << 1;
       if (bpp == 3) {
         // When we have 3 bitplanes, the bytes for the third bitplane are after
         // the 16 bytes of the 2 bitplanes.
         bpp_pos[2] = offset + 16 + col;
-        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[2]] & mask) == mask)
+        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[2]] & mask) == mask)
                                     << 2;
       }
       if (bpp >= 4) {
@@ -42,9 +42,9 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
         // two.
         bpp_pos[2] = offset + 16 + col * 2;
         bpp_pos[3] = offset + 16 + col * 2 + 1;
-        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[2]] & mask) == mask)
+        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[2]] & mask) == mask)
                                     << 2;
-        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[3]] & mask) == mask)
+        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[3]] & mask) == mask)
                                     << 3;
       }
       if (bpp == 8) {
@@ -52,13 +52,13 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
         bpp_pos[5] = offset + 32 + col * 2 + 1;
         bpp_pos[6] = offset + 48 + col * 2;
         bpp_pos[7] = offset + 48 + col * 2 + 1;
-        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[4]] & mask) == mask)
+        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[4]] & mask) == mask)
                                     << 4;
-        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[5]] & mask) == mask)
+        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[5]] & mask) == mask)
                                     << 5;
-        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[6]] & mask) == mask)
+        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[6]] & mask) == mask)
                                     << 6;
-        tile.data[col * 8 + row] |= (uchar)((data[bpp_pos[7]] & mask) == mask)
+        tile.data[col * 8 + row] |= (uint8_t)((data[bpp_pos[7]] & mask) == mask)
                                     << 7;
       }
     }
@@ -68,68 +68,68 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
 
 Bytes PackBppTile(const tile8& tile, const uint32_t bpp) {
   // Allocate memory for output data
-  std::vector<uchar> output(bpp * 8, 0);  // initialized with 0
+  std::vector<uint8_t> output(bpp * 8, 0);  // initialized with 0
   unsigned maxcolor = 2 << bpp;
 
   // Iterate over all columns and rows of the tile
   for (unsigned int col = 0; col < 8; col++) {
     for (unsigned int row = 0; row < 8; row++) {
-      uchar color = tile.data[col * 8 + row];
+      uint8_t color = tile.data[col * 8 + row];
       if (color > maxcolor) {
         throw std::invalid_argument("Invalid color value.");
       }
 
       // 1bpp format
-      if (bpp == 1) output[col] += (uchar)((color & 1) << (7 - row));
+      if (bpp == 1) output[col] += (uint8_t)((color & 1) << (7 - row));
 
       // 2bpp format
       if (bpp >= 2) {
-        output[col * 2] += (uchar)((color & 1) << (7 - row));
-        output[col * 2 + 1] += (uchar)((uchar)((color & 2) == 2) << (7 - row));
+        output[col * 2] += (uint8_t)((color & 1) << (7 - row));
+        output[col * 2 + 1] += (uint8_t)((uint8_t)((color & 2) == 2) << (7 - row));
       }
 
       // 3bpp format
       if (bpp == 3)
-        output[16 + col] += (uchar)(((color & 4) == 4) << (7 - row));
+        output[16 + col] += (uint8_t)(((color & 4) == 4) << (7 - row));
 
       // 4bpp format
       if (bpp >= 4) {
-        output[16 + col * 2] += (uchar)(((color & 4) == 4) << (7 - row));
-        output[16 + col * 2 + 1] += (uchar)(((color & 8) == 8) << (7 - row));
+        output[16 + col * 2] += (uint8_t)(((color & 4) == 4) << (7 - row));
+        output[16 + col * 2 + 1] += (uint8_t)(((color & 8) == 8) << (7 - row));
       }
 
       // 8bpp format
       if (bpp == 8) {
-        output[32 + col * 2] += (uchar)(((color & 16) == 16) << (7 - row));
-        output[32 + col * 2 + 1] += (uchar)(((color & 32) == 32) << (7 - row));
-        output[48 + col * 2] += (uchar)(((color & 64) == 64) << (7 - row));
+        output[32 + col * 2] += (uint8_t)(((color & 16) == 16) << (7 - row));
+        output[32 + col * 2 + 1] += (uint8_t)(((color & 32) == 32) << (7 - row));
+        output[48 + col * 2] += (uint8_t)(((color & 64) == 64) << (7 - row));
         output[48 + col * 2 + 1] +=
-            (uchar)(((color & 128) == 128) << (7 - row));
+            (uint8_t)(((color & 128) == 128) << (7 - row));
       }
     }
   }
   return output;
 }
 
-std::vector<uchar> ConvertBpp(const std::vector<uchar>& tiles,
+std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
                               uint32_t from_bpp, uint32_t to_bpp) {
   unsigned int nb_tile = tiles.size() / (from_bpp * 8);
-  std::vector<uchar> converted(nb_tile * to_bpp * 8);
+  std::vector<uint8_t> converted(nb_tile * to_bpp * 8);
 
   for (unsigned int i = 0; i < nb_tile; i++) {
     tile8 tile = UnpackBppTile(tiles, i * from_bpp * 8, from_bpp);
-    std::vector<uchar> packed_tile = PackBppTile(tile, to_bpp);
+    std::vector<uint8_t> packed_tile = PackBppTile(tile, to_bpp);
     std::memcpy(converted.data() + i * to_bpp * 8, packed_tile.data(),
                 to_bpp * 8);
   }
   return converted;
 }
 
-std::vector<uchar> Convert3bppTo4bpp(const std::vector<uchar>& tiles) {
+std::vector<uint8_t> Convert3bppTo4bpp(const std::vector<uint8_t>& tiles) {
   return ConvertBpp(tiles, 3, 4);
 }
 
-std::vector<uchar> Convert4bppTo3bpp(const std::vector<uchar>& tiles) {
+std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles) {
   return ConvertBpp(tiles, 4, 3);
 }
 
@@ -313,8 +313,8 @@ TileInfo WordToTileInfo(uint16_t word) {
   return TileInfo(id, palette, vertical_mirror, horizontal_mirror, over);
 }
 
-ushort TileInfoToShort(TileInfo tile_info) {
-  // ushort result = 0;
+uint16_t TileInfoToShort(TileInfo tile_info) {
+  // uint16_t result = 0;
 
   // // Copy the id_ value
   // result |= tile_info.id_ & 0x3FF;  // ids are 10 bits
@@ -327,7 +327,7 @@ ushort TileInfoToShort(TileInfo tile_info) {
   // // Set the palette_
   // result |= (tile_info.palette_ & 0x07) << 13;  // palettes are 3 bits
 
-  ushort value = 0;
+  uint16_t value = 0;
   // vhopppcc cccccccc
   if (tile_info.over_) {
     value |= core::TilePriorityBit;
@@ -338,23 +338,20 @@ ushort TileInfoToShort(TileInfo tile_info) {
   if (tile_info.vertical_mirror_) {
     value |= core::TileVFlipBit;
   }
-  value |= (ushort)((tile_info.palette_ << 10) & 0x1C00);
-  value |= (ushort)(tile_info.id_ & core::TileNameMask);
+  value |= (uint16_t)((tile_info.palette_ << 10) & 0x1C00);
+  value |= (uint16_t)(tile_info.id_ & core::TileNameMask);
 
   return value;
 }
 
-TileInfo GetTilesInfo(ushort tile) {
+TileInfo GetTilesInfo(uint16_t tile) {
   // vhopppcc cccccccc
-  bool o = false;
-  bool v = false;
-  bool h = false;
-  auto tid = (ushort)(tile & core::TileNameMask);
-  auto p = (uchar)((tile >> 10) & 0x07);
+  auto tid = (uint16_t)(tile & core::TileNameMask);
+  auto p = (uint8_t)((tile >> 10) & 0x07);
 
-  o = ((tile & core::TilePriorityBit) == core::TilePriorityBit);
-  h = ((tile & core::TileHFlipBit) == core::TileHFlipBit);
-  v = ((tile & core::TileVFlipBit) == core::TileVFlipBit);
+  bool o = ((tile & core::TilePriorityBit) == core::TilePriorityBit);
+  bool h = ((tile & core::TileHFlipBit) == core::TileHFlipBit);
+  bool v = ((tile & core::TileVFlipBit) == core::TileVFlipBit);
 
   return TileInfo(tid, p, v, h, o);
 }

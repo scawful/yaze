@@ -322,12 +322,12 @@ void OverworldEditor::RefreshOverworldMap() {
   };
 
   int source_map_id = current_map_;
-  bool is_large = overworld_.overworld_map(current_map_)->IsLargeMap();
+  bool is_large = overworld_.overworld_map(current_map_)->is_large_map();
   if (is_large) {
     source_map_id = current_parent_;
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
-      int sibling_index = overworld_.overworld_map(source_map_id)->Parent() + i;
+      int sibling_index = overworld_.overworld_map(source_map_id)->parent() + i;
       if (i >= 2) sibling_index += 6;
       futures.push_back(
           std::async(std::launch::async, refresh_map_async, sibling_index));
@@ -358,10 +358,10 @@ void OverworldEditor::RefreshMapPalette() {
              ->mutable_current_palette());
   };
 
-  if (overworld_.overworld_map(current_map_)->IsLargeMap()) {
+  if (overworld_.overworld_map(current_map_)->is_large_map()) {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
-      int sibling_index = overworld_.overworld_map(current_map_)->Parent() + i;
+      int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
       if (i >= 2) sibling_index += 6;
       futures.push_back(
           std::async(std::launch::async, refresh_palette_async, sibling_index));
@@ -377,10 +377,10 @@ void OverworldEditor::RefreshMapPalette() {
 
 void OverworldEditor::RefreshMapProperties() {
   auto &current_ow_map = *overworld_.mutable_overworld_map(current_map_);
-  if (current_ow_map.IsLargeMap()) {
+  if (current_ow_map.is_large_map()) {
     // We need to copy the properties from the parent map to the children
     for (int i = 1; i < 4; i++) {
-      int sibling_index = current_ow_map.Parent() + i;
+      int sibling_index = current_ow_map.parent() + i;
       if (i >= 2) {
         sibling_index += 6;
       }
@@ -405,7 +405,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
     TableNextColumn();
     ImGui::Text("Parent/Map ID:%#x, %#x",
-                overworld_.overworld_map(current_map_)->Parent(), current_map_);
+                overworld_.overworld_map(current_map_)->parent(), current_map_);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(120.f);
@@ -663,15 +663,15 @@ void OverworldEditor::CheckForCurrentMap() {
     current_map_ += 0x80;
   }
 
-  current_parent_ = overworld_.overworld_map(current_map_)->Parent();
+  current_parent_ = overworld_.overworld_map(current_map_)->parent();
 
   auto current_map_x = current_highlighted_map % 8;
   auto current_map_y = current_highlighted_map / 8;
 
-  if (overworld_.overworld_map(current_map_)->IsLargeMap() ||
+  if (overworld_.overworld_map(current_map_)->is_large_map() ||
       overworld_.overworld_map(current_map_)->large_index() != 0) {
     auto highlight_parent =
-        overworld_.overworld_map(current_highlighted_map)->Parent();
+        overworld_.overworld_map(current_highlighted_map)->parent();
     auto parent_map_x = highlight_parent % 8;
     auto parent_map_y = highlight_parent / 8;
     ow_map_canvas_.DrawOutline(parent_map_x * small_map_size,
@@ -1576,7 +1576,7 @@ absl::Status OverworldEditor::LoadGraphics() {
     for (int ty = 0; ty < 16; ty++) {
       for (int tx = 0; tx < 16; tx++) {
         int position = tx + (ty * 0x10);
-        uchar value =
+        uint8_t value =
             tile16_data[(i % 8 * 16) + (i / 8 * 16 * 0x80) + (ty * 0x80) + tx];
         tile_data[position] = value;
       }
@@ -1640,7 +1640,7 @@ void OverworldEditor::RefreshTile16Blockset() {
           for (int ty = 0; ty < 16; ty++) {
             for (int tx = 0; tx < 16; tx++) {
               int position = tx + (ty * 0x10);
-              uchar value =
+              uint8_t value =
                   tile16_data[(index % 8 * 16) + (index / 8 * 16 * 0x80) +
                               (ty * 0x80) + tx];
               tile_data[position] = value;

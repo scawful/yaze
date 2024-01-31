@@ -11,7 +11,7 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
-constexpr uchar kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
+constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                       0x08, 0x04, 0x02, 0x01};
 
 Bytes SnesTo8bppSheet(Bytes sheet, int bpp);
@@ -29,24 +29,24 @@ tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
 
 Bytes PackBppTile(const tile8& tile, const uint32_t bpp);
 
-std::vector<uchar> ConvertBpp(const std::vector<uchar>& tiles,
+std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
                               uint32_t from_bpp, uint32_t to_bpp);
 
-std::vector<uchar> Convert3bppTo4bpp(const std::vector<uchar>& tiles);
-std::vector<uchar> Convert4bppTo3bpp(const std::vector<uchar>& tiles);
+std::vector<uint8_t> Convert3bppTo4bpp(const std::vector<uint8_t>& tiles);
+std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles);
 
 // vhopppcc cccccccc
 // [0, 1]
 // [2, 3]
 class TileInfo {
  public:
-  ushort id_;
+  uint16_t id_;
+  uint8_t palette_;
   bool over_;
   bool vertical_mirror_;
   bool horizontal_mirror_;
-  uchar palette_;
   TileInfo() = default;
-  TileInfo(ushort id, uchar palette, bool v, bool h, bool o)
+  TileInfo(uint16_t id, uint8_t palette, bool v, bool h, bool o)
       : id_(id),
         over_(o),
         vertical_mirror_(v),
@@ -63,9 +63,9 @@ class TileInfo {
 
 uint16_t TileInfoToWord(TileInfo tile_info);
 TileInfo WordToTileInfo(uint16_t word);
-ushort TileInfoToShort(TileInfo tile_info);
+uint16_t TileInfoToShort(TileInfo tile_info);
 
-TileInfo GetTilesInfo(ushort tile);
+TileInfo GetTilesInfo(uint16_t tile);
 
 class Tile32 {
  public:
@@ -90,10 +90,10 @@ class Tile32 {
 
   // Constructor from packed value
   Tile32(uint64_t packedVal) {
-    tile0_ = (ushort)packedVal;
-    tile1_ = (ushort)(packedVal >> 16);
-    tile2_ = (ushort)(packedVal >> 32);
-    tile3_ = (ushort)(packedVal >> 48);
+    tile0_ = (uint16_t)packedVal;
+    tile1_ = (uint16_t)(packedVal >> 16);
+    tile2_ = (uint16_t)(packedVal >> 32);
+    tile3_ = (uint16_t)(packedVal >> 48);
   }
 
   // Get packed uint64_t representation
@@ -145,15 +145,15 @@ class OAMTile {
   int mx_;
   int my_;
   int pal_;
-  ushort tile_;
+  uint16_t tile_;
   OAMTile() = default;
-  OAMTile(int x, int y, ushort tile, int pal, bool upper = false, int mx = 0,
+  OAMTile(int x, int y, uint16_t tile, int pal, bool upper = false, int mx = 0,
           int my = 0)
       : x_(x), y_(y), mx_(mx), my_(my), pal_(pal) {
     if (upper) {
-      tile_ = (ushort)(tile + 512);
+      tile_ = (uint16_t)(tile + 512);
     } else {
-      tile_ = (ushort)(tile + 256 + 512);
+      tile_ = (uint16_t)(tile + 256 + 512);
     }
   }
 };

@@ -43,23 +43,19 @@ uint32_t SnesToPc(uint32_t addr) {
 }
 
 uint32_t PcToSnes(uint32_t addr) {
-  // Impl1
-  // if (addr >= 0x400000) return -1;
-  // addr = ((addr << 1) & 0x7F0000) | (addr & 0x7FFF) | 0x8000;
+  std::bitset<24> addr_bits(addr);
+  std::bitset<24> result_bits;
 
-  // Impl2
-  // return (addr & 0x7FFF) | 0x8000 | ((addr & 0x7F8000) << 1);
+  // Shift the address left by 1 bit
+  addr_bits <<= 1;
 
-  uint8_t *b = reinterpret_cast<uint8_t *>(&addr);
-  b[2] = static_cast<uint8_t>(b[2] * 2);
+  // Set the most significant bit of the second byte
+  addr_bits.set(15, true);
 
-  if (b[1] >= 0x80) {
-    b[2] += 1;
-  } else {
-    b[1] += 0x80;
-  }
+  // Convert the modified bitset back to an integer
+  uint32_t result = static_cast<uint32_t>(addr_bits.to_ulong());
 
-  return addr;
+  return result;
 }
 
 uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) {

@@ -109,10 +109,10 @@ struct SNESColor {
   bool transparent = false;
 };
 
-gfx::SNESColor ReadColorFromROM(int offset, const uchar* rom);
+gfx::SNESColor ReadColorFromROM(int offset, const uint8_t* rom);
 
 SNESColor GetCgxColor(uint16_t color);
-std::vector<SNESColor> GetColFileData(uchar* data);
+std::vector<SNESColor> GetColFileData(uint8_t* data);
 
 class SNESPalette {
  public:
@@ -202,7 +202,7 @@ class SNESPalette {
   std::vector<SNESColor> colors; /**< The colors in the palette. */
 };
 
-SNESPalette ReadPaletteFromROM(int offset, int num_colors, const uchar* rom);
+SNESPalette ReadPaletteFromROM(int offset, int num_colors, const uint8_t* rom);
 uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);
 std::array<float, 4> ToFloatArray(const SNESColor& color);
