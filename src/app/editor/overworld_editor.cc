@@ -551,38 +551,96 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
-  // User has selected a tile they want to draw from the blockset.
-  if (!blockset_canvas_.points().empty() &&
-      current_mode == EditingMode::DRAW_TILE) {
+  if (current_mode == EditingMode::DRAW_TILE) {
     CheckForSelectRectangle();
 
-    if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
-                                       16)) {
-      DrawOverworldEdits();
+    // User has selected a tile they want to draw from the blockset.
+    if (!blockset_canvas_.points().empty() &&
+        !ow_map_canvas_.select_rect_active()) {
+      // Left click is pressed
+      if (ow_map_canvas_.DrawTilePainter(tile16_individual_[current_tile16_],
+                                         16)) {
+        DrawOverworldEdits();
+      }
+    }
+
+    if (ow_map_canvas_.select_rect_active()) {
+      if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+          ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        auto &selected_world =
+            (current_world_ == 0) ? overworld_.mutable_map_tiles()->light_world
+            : (current_world_ == 1)
+                ? overworld_.mutable_map_tiles()->dark_world
+                : overworld_.mutable_map_tiles()->special_world;
+        // new_start_pos and new_end_pos
+        auto start = ow_map_canvas_.selected_points()[0];
+        auto end = ow_map_canvas_.selected_points()[1];
+
+        // Calculate the bounds of the rectangle in terms of 16x16 tile indices
+        constexpr int tile16_size = 16;
+        int start_x = std::floor(start.x / tile16_size) * tile16_size;
+        int start_y = std::floor(start.y / tile16_size) * tile16_size;
+        int end_x = std::floor(end.x / tile16_size) * tile16_size;
+        int end_y = std::floor(end.y / tile16_size) * tile16_size;
+
+        if (start_x > end_x) std::swap(start_x, end_x);
+        if (start_y > end_y) std::swap(start_y, end_y);
+
+        constexpr int local_map_size = 512;  // Size of each local map
+        // Number of tiles per local map (since each tile is 16x16)
+        constexpr int tiles_per_local_map = local_map_size / 16;
+
+        for (int y = start_y, i = 0; y <= end_y; y += tile16_size) {
+          for (int x = start_x; x <= end_x; x += tile16_size, ++i) {
+            // Determine which local map (512x512) the tile is in
+            int local_map_x = x / local_map_size;
+            int local_map_y = y / local_map_size;
+
+            // Calculate the tile's position within its local map
+            int tile16_x = (x % local_map_size) / tile16_size;
+            int tile16_y = (y % local_map_size) / tile16_size;
+
+            // Calculate the index within the overall map structure
+            int index_x = local_map_x * tiles_per_local_map + tile16_x;
+            int index_y = local_map_y * tiles_per_local_map + tile16_y;
+            int tile16_id = overworld_.GetTileFromPosition(
+                ow_map_canvas_.selected_tiles()[i]);
+            selected_world[index_x][index_y] = tile16_id;
+          }
+        }
+
+        RefreshOverworldMap();
+      }
     }
   }
 }
 
 void OverworldEditor::CheckForSelectRectangle() {
-  ow_map_canvas_.DrawSelectRectTile16(current_map_);
+  ow_map_canvas_.DrawSelectRect(current_map_);
+
+  // Single tile case
+  if (ow_map_canvas_.selected_tile_pos().x != -1) {
+    current_tile16_ =
+        overworld_.GetTileFromPosition(ow_map_canvas_.selected_tile_pos());
+    ow_map_canvas_.set_selected_tile_pos(ImVec2(-1, -1));
+  }
 
   static std::vector<int> tile16_ids;
-  if (ow_map_canvas_.selected_tiles().size() != 0) {
+  if (ow_map_canvas_.select_rect_active()) {
     // Get the tile16 IDs from the selected tile ID positions
-    // if (tile16_ids.size() != 0) {
-    //   tile16_ids.clear();
-    // }
-    // for (auto &each : ow_map_canvas_.selected_tiles()) {
-    //   tile16_ids.push_back(overworld_.GetTile16Id(each));
-    // }
-    if (ow_map_canvas_.selected_tiles().size() == 1) {
-      current_tile16_ =
-          overworld_.GetTile16Id(ow_map_canvas_.selected_tiles().at(0));
+    if (tile16_ids.size() != 0) {
+      tile16_ids.clear();
     }
-    ow_map_canvas_.mutable_selected_tiles()->clear();
+
+    if (ow_map_canvas_.selected_tiles().size() > 0) {
+      for (auto &each : ow_map_canvas_.selected_tiles()) {
+        tile16_ids.push_back(overworld_.GetTileFromPosition(each));
+      }
+    }
+    // ow_map_canvas_.mutable_selected_tiles()->clear();
   }
   // Create a composite image of all the tile16s selected
-  // ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
+  ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
 }
 
 void OverworldEditor::CheckForCurrentMap() {
@@ -625,7 +683,10 @@ void OverworldEditor::CheckForCurrentMap() {
                                small_map_size);
   }
 
-  if (maps_bmp_[current_map_].modified()) {
+  if (maps_bmp_[current_map_].modified() ||
+      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    RefreshOverworldMap();
+    RefreshTile16Blockset();
     rom()->UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }
@@ -654,8 +715,8 @@ void OverworldEditor::DrawOverworldCanvas() {
                            ow_map_canvas_.scrolling());
     DrawOverworldItems();
     DrawOverworldSprites();
-    if (ImGui::IsItemHovered()) CheckForCurrentMap();
     CheckForOverworldEdits();
+    if (ImGui::IsItemHovered()) CheckForCurrentMap();
   }
   ow_map_canvas_.DrawGrid();
   ow_map_canvas_.DrawOverlay();
@@ -718,7 +779,7 @@ void OverworldEditor::DrawAreaGraphics() {
   gui::EndPadding();
   current_gfx_canvas_.DrawContextMenu();
   if (current_graphics_set_.count(current_map_) == 0) {
-    overworld_.SetCurrentMap(current_map_);
+    overworld_.set_current_map(current_map_);
     palette_ = overworld_.AreaPalette();
     gfx::Bitmap bmp;
     gui::BuildAndRenderBitmapPipeline(
@@ -1535,7 +1596,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Render the overworld maps loaded from the ROM.
   for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
-    overworld_.SetCurrentMap(i);
+    overworld_.set_current_map(i);
     auto palette = overworld_.AreaPalette();
     gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,
                                       overworld_.BitmapData(), *rom(),
@@ -1547,6 +1608,61 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
 
   return absl::OkStatus();
+}
+
+void OverworldEditor::RefreshTile16Blockset() {
+  if (current_blockset_ ==
+      overworld_.overworld_map(current_map_)->area_graphics()) {
+    return;
+  }
+  current_blockset_ = overworld_.overworld_map(current_map_)->area_graphics();
+
+  overworld_.set_current_map(current_map_);
+  palette_ = overworld_.AreaPalette();
+  // Create the tile16 blockset image
+  gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x08,
+                                    overworld_.Tile16Blockset(), *rom(),
+                                    tile16_blockset_bmp_, palette_);
+
+  // Copy the tile16 data into individual tiles.
+  auto tile16_data = overworld_.Tile16Blockset();
+
+  std::vector<std::future<void>> futures;
+  // Loop through the tiles and copy their pixel data into separate vectors
+  for (int i = 0; i < 4096; i++) {
+    futures.push_back(std::async(
+        std::launch::async,
+        [&](int index) {
+          // Create a new vector for the pixel data of the current tile
+          Bytes tile_data(16 * 16, 0x00);  // More efficient initialization
+
+          // Copy the pixel data for the current tile into the vector
+          for (int ty = 0; ty < 16; ty++) {
+            for (int tx = 0; tx < 16; tx++) {
+              int position = tx + (ty * 0x10);
+              uchar value =
+                  tile16_data[(index % 8 * 16) + (index / 8 * 16 * 0x80) +
+                              (ty * 0x80) + tx];
+              tile_data[position] = value;
+            }
+          }
+
+          // Add the vector for the current tile to the vector of tile pixel
+          // data
+          tile16_individual_[index].set_data(tile_data);
+        },
+        i));
+  }
+
+  for (auto &future : futures) {
+    future.get();
+  }
+
+  // Render the bitmaps of each tile.
+  for (int id = 0; id < 4096; id++) {
+    tile16_individual_[id].ApplyPalette(palette_);
+    rom()->UpdateBitmap(&tile16_individual_[id]);
+  }
 }
 
 absl::Status OverworldEditor::LoadSpriteGraphics() {
