@@ -77,21 +77,15 @@ class Canvas {
   // in the canvas window. Represented and split apart into a grid of tiles.
   bool DrawTileSelector(int size);
 
-  bool HandleTileEdits(Canvas& blockset_canvas,
-                       std::vector<gfx::Bitmap>& source_blockset,
-                       int& current_tile, float scale = 1.0f,
-                       int tile_painter_size = 16, int tiles_per_row = 8);
-
   // Draws the contents of the Bitmap image to the Canvas
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
   void DrawBitmap(const Bitmap& bitmap, int border_offset, float scale);
   void DrawBitmap(const Bitmap& bitmap, int x_offset = 0, int y_offset = 0,
-                  float scale = 1.0f);
-
+                  float scale = 1.0f, int alpha = 255);
   void DrawBitmapTable(const BitmapTable& gfx_bin);
 
-  void DrawBitmapGroup(std::vector<int> &group,
+  void DrawBitmapGroup(std::vector<int>& group,
                        std::vector<gfx::Bitmap>& tile16_individual_,
                        int tile_size, float scale = 1.0f);
 
@@ -99,7 +93,8 @@ class Canvas {
   void DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color);
   void DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color);
 
-  void DrawSelectRect(int tile_size, float scale = 1.0f);
+  void DrawSelectRect(int current_map, int tile_size = 0x10,
+                      float scale = 1.0f);
   void DrawSelectRectTile16(int current_map);
 
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
@@ -113,8 +108,8 @@ class Canvas {
     custom_canvas_size_ = true;
   }
   bool IsMouseHovering() const { return is_hovered_; }
-  void ZoomIn() { global_scale_ += 0.1f; }
-  void ZoomOut() { global_scale_ -= 0.1f; }
+  void ZoomIn() { global_scale_ += 0.25f; }
+  void ZoomOut() { global_scale_ -= 0.25f; }
 
   auto points() const { return points_; }
   auto mutable_points() { return &points_; }
@@ -130,6 +125,7 @@ class Canvas {
   auto custom_step() const { return custom_step_; }
   auto width() const { return canvas_sz_.x; }
   auto height() const { return canvas_sz_.y; }
+  auto set_draggable(bool value) { draggable_ = value; }
 
   auto labels(int i) {
     if (i >= labels_.size()) {
@@ -158,10 +154,14 @@ class Canvas {
 
   auto set_current_labels(int i) { current_labels_ = i; }
   auto set_highlight_tile_id(int i) { highlight_tile_id = i; }
-  auto set_draggable(bool value) { draggable_ = value; }
 
   auto selected_tiles() const { return selected_tiles_; }
   auto mutable_selected_tiles() { return &selected_tiles_; }
+
+  auto selected_tile_pos() const { return selected_tile_pos_; }
+  auto set_selected_tile_pos(ImVec2 pos) { selected_tile_pos_ = pos; }
+  bool select_rect_active() const { return select_rect_active_; }
+  auto selected_points() const { return selected_points_; }
 
  private:
   bool draggable_ = false;
@@ -188,6 +188,9 @@ class Canvas {
   ImVec2 mouse_pos_in_canvas_;
   ImVec2 drawn_tile_pos_;
 
+  bool select_rect_active_ = false;
+  ImVec2 selected_tile_pos_ = ImVec2(-1, -1);
+  ImVector<ImVec2> selected_points_;
   std::vector<ImVec2> selected_tiles_;
 };
 
