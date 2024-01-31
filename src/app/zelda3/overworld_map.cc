@@ -59,7 +59,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 
 void OverworldMap::LoadAreaInfo() {
   if (index_ != 0x80) {
-    if (index_ <= 150)
+    if (index_ <= 128)
       large_map_ = (rom_[overworldMapSize + (index_ & 0x3F)] != 0);
     else {
       large_map_ =
@@ -67,7 +67,7 @@ void OverworldMap::LoadAreaInfo() {
     }
   }
 
-  if (index_ < 64) {
+  if (index_ < 0x40) {
     area_graphics_ = rom_[mapGfx + parent_];
     area_palette_ = rom_[overworldMapPalette + parent_];
 

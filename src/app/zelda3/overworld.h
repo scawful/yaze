@@ -110,11 +110,6 @@ class OverworldItem : public OverworldEntity {
               << " X: " << static_cast<int>(this->game_x)
               << " Y: " << static_cast<int>(this->game_y) << std::endl;
   }
-
-  OverworldItem Copy() {
-    return OverworldItem(this->id, this->room_map_id, this->x_, this->y_,
-                         this->bg2);
-  }
 };
 
 constexpr int OWExitRoomId = 0x15D8A;  // 0x15E07 Credits sequences
@@ -381,16 +376,18 @@ constexpr int overworldMapPaletteGroup = 0x75504;
 constexpr int overworldSpritePaletteGroup = 0x75580;
 constexpr int overworldSpriteset = 0x7A41;
 constexpr int overworldSpecialGFXGroup = 0x16821;
-constexpr int OverworldMapDataOverflow = 0x130000;
 constexpr int overworldSpecialPALGroup = 0x16831;
 constexpr int overworldSpritesBegining = 0x4C881;
 constexpr int overworldSpritesAgahnim = 0x4CA21;
 constexpr int overworldSpritesZelda = 0x4C901;
+
 constexpr int mapGfx = 0x7C9C;
 constexpr int overlayPointers = 0x77664;
 constexpr int overlayPointersBank = 0x0E;
+
 constexpr int overworldTilesType = 0x71459;
 constexpr int overworldMessages = 0x3F51D;
+
 constexpr int overworldMusicBegining = 0x14303;
 constexpr int overworldMusicZelda = 0x14303 + 0x40;
 constexpr int overworldMusicMasterSword = 0x14303 + 0x80;
@@ -423,10 +420,40 @@ constexpr int OverworldScreenTileMapChangeByScreen2 = 0x126B4;
 constexpr int OverworldScreenTileMapChangeByScreen3 = 0x12734;
 constexpr int OverworldScreenTileMapChangeByScreen4 = 0x127B4;
 
+constexpr int OverworldMapDataOverflow = 0x130000;
+
 constexpr int transition_target_north = 0x13ee2;
 constexpr int transition_target_west = 0x13f62;
 constexpr int overworldCustomMosaicASM = 0x1301D0;
 constexpr int overworldCustomMosaicArray = 0x1301F0;
+
+constexpr int OverworldCustomASMHasBeenApplied =
+    0x140145;  // 1 byte, not 0 if enabled
+
+constexpr int OverworldCustomAreaSpecificBGPalette =
+    0x140000;  // 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomAreaSpecificBGEnabled =
+    0x140140;  // 1 byte, not 0 if enabled
+
+constexpr int OverworldCustomMainPaletteArray =
+    0x140160;  // 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMainPaletteEnabled =
+    0x140141;  // 1 byte, not 0 if enabled
+
+constexpr int OverworldCustomMosaicArray =
+    0x140200;  // 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMosaicEnabled =
+    0x140142;  // 1 byte, not 0 if enabled
+
+constexpr int OverworldCustomAnimatedGFXArray =
+    0x1402A0;  // 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomAnimatedGFXEnabled =
+    0x140143;  // 1 byte, not 0 if enabled
+
+constexpr int OverworldCustomSubscreenOverlayArray =
+    0x140340;  // 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomSubscreenOverlayEnabled =
+    0x140144;  // 1 byte, not 0 if enabled
 
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;

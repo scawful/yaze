@@ -160,9 +160,6 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
   // Draw the Tile8 to the correct position within the Tile16
   for (int y = 0; y < tile8_size; ++y) {
     for (int x = 0; x < tile8_size; ++x) {
-      // int write_x = (x + tile_index_x % 4 * tile8_size);
-      // int write_y = (y + tile_index_y % 4 * tile8_size);
-      // int pixel_index = write_y * tile16_size + write_x;
       int pixel_index =
           (start_position.y + y) * tile16_size + ((start_position.x) + x);
       int gfx_pixel_index = y * tile8_size + x;
@@ -278,7 +275,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
 
     // Load the Link to the Past overworld.
     PRINT_IF_ERROR(transfer_overworld_.Load(transfer_rom_))
-    transfer_overworld_.SetCurrentMap(0);
+    transfer_overworld_.set_current_map(0);
     palette_ = transfer_overworld_.AreaPalette();
 
     // Create the tile16 blockset image
