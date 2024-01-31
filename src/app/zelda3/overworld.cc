@@ -565,7 +565,7 @@ absl::Status Overworld::SaveOverworldMaps() {
     // Compress single_map_1 and single_map_2
     auto a_char = gfx::lc_lz2::Compress(single_map_1.data(), 256, &size_a, 1);
     auto b_char = gfx::lc_lz2::Compress(single_map_2.data(), 256, &size_b, 1);
-    if (a.empty() || b.empty()) {
+    if (a_char == nullptr || b_char == nullptr) {
       return absl::AbortedError("Error compressing map gfx.");
     }
     // Copy the compressed data to a and b
