@@ -388,8 +388,6 @@ void MasterEditor::DrawFileMenu() {
         Checkbox("Save With Change Queue",
                  &mutable_flags()->kSaveWithChangeQueue);
         Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
-        Checkbox("Use Classic Compression",
-                 &mutable_flags()->kUseClassicCompression);
         ImGui::EndMenu();
       }
 

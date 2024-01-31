@@ -57,16 +57,13 @@ class ExperimentFlags {
     // Log to the console.
     bool kLogToConsole = false;
 
-    // use the classic compression algorithm
-    bool kUseClassicCompression = false;
-
     // Overworld flags
     struct Overworld {
       // Load and render overworld sprites to the screen. Unstable.
       bool kDrawOverworldSprites = false;
 
       // Save overworld map edits to the ROM.
-      bool kSaveOverworldMaps = false;
+      bool kSaveOverworldMaps = true;
 
       // Save overworld entrances to the ROM.
       bool kSaveOverworldEntrances = true;
