@@ -2,6 +2,7 @@
 
 #include <imgui/imgui.h>
 
+#include <bitset>
 #include <chrono>
 #include <cstdint>
 #include <functional>
