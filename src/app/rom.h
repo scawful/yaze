@@ -318,6 +318,10 @@ class ROM : public core::ExperimentFlags {
     return result;
   }
 
+  uint16_t toint16(int offset) {
+    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
+  }
+
   absl::StatusOr<uint32_t> ReadLong(int offset) {
     if (offset + 2 >= rom_data_.size()) {
       return absl::InvalidArgumentError("Offset out of range");
@@ -527,7 +531,7 @@ class ROM : public core::ExperimentFlags {
   auto is_loaded() const { return is_loaded_; }
   auto version() const { return version_; }
 
-  uchar& operator[](int i) {
+  uint8_t& operator[](int i) {
     if (i > size_) {
       std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
                 << std::endl;
@@ -535,7 +539,7 @@ class ROM : public core::ExperimentFlags {
     }
     return rom_data_[i];
   }
-  uchar& operator+(int i) {
+  uint8_t& operator+(int i) {
     if (i > size_) {
       std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
                 << std::endl;
@@ -543,12 +547,7 @@ class ROM : public core::ExperimentFlags {
     }
     return rom_data_[i];
   }
-  const uchar* operator&() { return rom_data_.data(); }
-
-  ushort toint16(int offset) {
-    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
-    // return (ushort)((rom_data_[offset + 1]) << 8) | rom_data_[offset];
-  }
+  const uint8_t* operator&() { return rom_data_.data(); }
 
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;

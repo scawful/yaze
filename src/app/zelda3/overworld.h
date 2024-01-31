@@ -143,18 +143,18 @@ constexpr int OWWhirlpoolPosition = 0x16CF8;     //    JP = ;016F94
 
 class OverworldExit : public OverworldEntity {
  public:
-  ushort y_scroll_;
-  ushort x_scroll_;
+  uint16_t y_scroll_;
+  uint16_t x_scroll_;
   uchar y_player_;
   uchar x_player_;
   uchar y_camera_;
   uchar x_camera_;
   uchar scroll_mod_y_;
   uchar scroll_mod_x_;
-  ushort door_type_1_;
-  ushort door_type_2_;
-  ushort room_id_;
-  ushort map_pos_;  // Position in the vram
+  uint16_t door_type_1_;
+  uint16_t door_type_2_;
+  uint16_t room_id_;
+  uint16_t map_pos_;  // Position in the vram
   uchar entrance_id_;
   uchar area_x_;
   uchar area_y_;
@@ -164,11 +164,11 @@ class OverworldExit : public OverworldEntity {
   bool large_map_ = false;
 
   OverworldExit() = default;
-  OverworldExit(ushort room_id, uchar map_id, ushort vram_location,
-                ushort y_scroll, ushort x_scroll, ushort player_y,
-                ushort player_x, ushort camera_y, ushort camera_x,
-                uchar scroll_mod_y, uchar scroll_mod_x, ushort door_type_1,
-                ushort door_type_2, bool deleted = false)
+  OverworldExit(uint16_t room_id, uchar map_id, uint16_t vram_location,
+                uint16_t y_scroll, uint16_t x_scroll, uint16_t player_y,
+                uint16_t player_x, uint16_t camera_y, uint16_t camera_x,
+                uchar scroll_mod_y, uchar scroll_mod_x, uint16_t door_type_1,
+                uint16_t door_type_2, bool deleted = false)
       : map_pos_(vram_location),
         entrance_id_(0),
         area_x_(0),
@@ -220,7 +220,7 @@ class OverworldExit : public OverworldEntity {
     area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
     area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
 
-    map_pos_ = (ushort)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
+    map_pos_ = (uint16_t)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
   }
 
   // Overworld overworld
@@ -293,8 +293,8 @@ class OverworldExit : public OverworldEntity {
     short vram_x_scroll = (short)(x_ - mapx);
     short vram_y_scroll = (short)(y_ - mapy);
 
-    map_pos_ = (ushort)(((vram_y_scroll & 0xFFF0) << 3) |
-                        ((vram_x_scroll & 0xFFF0) >> 3));
+    map_pos_ = (uint16_t)(((vram_y_scroll & 0xFFF0) << 3) |
+                          ((vram_x_scroll & 0xFFF0) >> 3));
 
     std::cout << "Exit:      " << room_id_ << " MapId: " << std::hex << mapid
               << " X: " << static_cast<int>(area_x_)
@@ -319,7 +319,7 @@ constexpr int OWHoleEntrance = 0xDB84C;
 
 class OverworldEntrance : public OverworldEntity {
  public:
-  ushort map_pos_;
+  uint16_t map_pos_;
   uchar entrance_id_;
   uchar area_x_;
   uchar area_y_;
@@ -328,7 +328,7 @@ class OverworldEntrance : public OverworldEntity {
 
   OverworldEntrance() = default;
   OverworldEntrance(int x, int y, uchar entrance_id, short map_id,
-                    ushort map_pos, bool hole)
+                    uint16_t map_pos, bool hole)
       : map_pos_(map_pos), entrance_id_(entrance_id), is_hole_(hole) {
     x_ = x;
     y_ = y;
@@ -360,7 +360,7 @@ class OverworldEntrance : public OverworldEntity {
     area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
     area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
 
-    map_pos_ = (ushort)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
+    map_pos_ = (uint16_t)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
   }
 };
 
@@ -576,7 +576,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
 
   std::vector<gfx::Tile16> tiles16_;
   std::vector<gfx::Tile32> tiles32_;
-  std::vector<ushort> tiles32_list_;
+  std::vector<uint16_t> tiles32_list_;
   std::vector<gfx::Tile32> tiles32_unique_;
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;

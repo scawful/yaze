@@ -30,7 +30,7 @@ class OverworldMap : public GfxContext {
   OverworldMap() = default;
   OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16>& tiles16);
 
-  absl::Status BuildMap(int count, int game_state, int world, uchar* map_parent,
+  absl::Status BuildMap(int count, int game_state, int world,
                         OWBlockset& world_blockset);
 
   void LoadAreaGraphics();
@@ -46,9 +46,9 @@ class OverworldMap : public GfxContext {
   auto AreaPalette() const { return current_palette_; }
   auto BitmapData() const { return bitmap_data_; }
   auto SetLargeMap(bool is_set) { large_map_ = is_set; }
-  auto IsLargeMap() const { return large_map_; }
+  auto is_large_map() const { return large_map_; }
   auto IsInitialized() const { return initialized_; }
-  auto Parent() const { return parent_; }
+  auto parent() const { return parent_; }
 
   auto mutable_current_palette() { return &current_palette_; }
 

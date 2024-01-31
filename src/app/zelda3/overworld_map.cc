@@ -26,11 +26,9 @@ OverworldMap::OverworldMap(int index, ROM& rom,
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
-                                    uchar* map_parent,
                                     OWBlockset& world_blockset) {
   game_state_ = game_state;
   world_ = world;
-  parent_ = map_parent[index_];
   if (large_map_) {
     if (parent_ != index_ && !initialized_) {
       if (index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) {
@@ -122,7 +120,8 @@ void OverworldMap::LoadAreaInfo() {
     message_id_ = rom_[overworldMessages + parent_];
 
     area_palette_ = rom_[overworldSpecialPALGroup + parent_ - 0x80];
-    if ((index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) || index_ == 0x94) {
+    if ((index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) ||
+        index_ == 0x94) {
       area_graphics_ = rom_[overworldSpecialGFXGroup + (parent_ - 0x80)];
       area_palette_ = rom_[overworldSpecialPALGroup + 1];
     } else if (index_ == 0x88) {

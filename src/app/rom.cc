@@ -423,14 +423,6 @@ absl::Status ROM::SaveToFile(bool backup, bool save_new, std::string filename) {
     SaveAllPalettes();
   }
 
-  if (flags()->kSaveWithChangeQueue) {
-    while (!changes_.empty()) {
-      auto change = changes_.top();
-      change();
-      changes_.pop();
-    }
-  }
-
   if (save_new) {
     // Create a file of the same name and append the date between the filename
     // and file extension
