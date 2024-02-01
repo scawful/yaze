@@ -329,7 +329,7 @@ void Bitmap::ApplyPalette(const SnesPalette &palette) {
   palette_ = palette;
   SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette.size(); ++i) {
-    if (palette.GetColor(i).IsTransparent()) {
+    if (palette.GetColor(i).is_transparent()) {
       surface_->format->palette->colors[i].r = 0;
       surface_->format->palette->colors[i].g = 0;
       surface_->format->palette->colors[i].b = 0;
@@ -350,7 +350,7 @@ void Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
   palette_ = palette.sub_palette(start_index, start_index + 8);
   SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette_.size(); ++i) {
-    if (palette_.GetColor(i).IsTransparent()) {
+    if (palette_.GetColor(i).is_transparent()) {
       surface_->format->palette->colors[i].r = 0;
       surface_->format->palette->colors[i].g = 0;
       surface_->format->palette->colors[i].b = 0;

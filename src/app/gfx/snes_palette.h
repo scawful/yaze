@@ -104,7 +104,7 @@ class SnesPalette {
       throw std::out_of_range("SNESPalette: Index out of bounds");
     }
     colors[i].set_rgb(color);
-    colors[i].SetModified(true);
+    colors[i].set_modified(true);
   }
 
   SnesPalette sub_palette(int start, int end) const {

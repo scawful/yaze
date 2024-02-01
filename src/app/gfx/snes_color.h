@@ -56,10 +56,6 @@ class SnesColor {
     snes_ = ConvertRGBtoSNES(color);
     modified = true;
   }
-
-  snes_color rom_color() const { return rom_color_; }
-
-  uint16_t snes() const { return snes_; }
   void set_snes(uint16_t val) {
     snes_ = val;
     snes_color col = ConvertSNEStoRGB(val);
@@ -67,10 +63,12 @@ class SnesColor {
     modified = true;
   }
 
-  bool IsModified() const { return modified; }
-  bool IsTransparent() const { return transparent; }
-  void SetTransparent(bool t) { transparent = t; }
-  void SetModified(bool m) { modified = m; }
+  snes_color rom_color() const { return rom_color_; }
+  uint16_t snes() const { return snes_; }
+  bool is_modified() const { return modified; }
+  bool is_transparent() const { return transparent; }
+  void set_transparent(bool t) { transparent = t; }
+  void set_modified(bool m) { modified = m; }
 
  private:
   ImVec4 rgb_;
