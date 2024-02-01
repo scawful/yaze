@@ -91,6 +91,13 @@ class OverworldMap : public GfxContext {
     large_map_ = false;
   }
 
+  void Destroy() {
+    current_blockset_.clear();
+    current_gfx_.clear();
+    bitmap_data_.clear();
+    tiles16_.clear();
+  }
+
  private:
   void LoadAreaInfo();
 

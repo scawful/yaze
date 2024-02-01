@@ -343,7 +343,10 @@ void MasterEditor::DrawFileMenu() {
 
     if (rom()->is_loaded()) {
       MENU_ITEM("Reload") { status_ = rom()->Reload(); }
-      MENU_ITEM("Close") { status_ = rom()->Close(); }
+      MENU_ITEM("Close") {
+        status_ = rom()->Close();
+        rom_assets_loaded_ = false;
+      }
     }
 
     ImGui::Separator();
