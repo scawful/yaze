@@ -80,6 +80,7 @@ endif()
 if (WIN32 OR MINGW OR UNIX)
   list(APPEND YAZE_APP_CORE_SRC
     app/core/platform/font_loader.cc
+    app/core/platform/clipboard.cc
   )
 endif()
 
