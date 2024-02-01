@@ -511,7 +511,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
       int realX = ((b2 & 0x3F) * 16) + mapX * 512;
       int realY = ((b1 & 0x3F) * 16) + mapY * 512;
       all_sprites_[sprite_index].emplace_back(
-          overworld_maps_[i].AreaGraphics(), (uint8_t)i, b3,
+          overworld_maps_[i].current_graphics(), (uint8_t)i, b3,
           (uint8_t)(b2 & 0x3F), (uint8_t)(b1 & 0x3F), realX, realY);
       // all_sprites_[sprite_index][i].Draw();
 

@@ -41,13 +41,12 @@ class OverworldMap : public GfxContext {
 
   void DrawAnimatedTiles();
 
-  auto Tile16Blockset() const { return current_blockset_; }
-  auto AreaGraphics() const { return current_gfx_; }
-  auto AreaPalette() const { return current_palette_; }
-  auto BitmapData() const { return bitmap_data_; }
-  auto SetLargeMap(bool is_set) { large_map_ = is_set; }
+  auto current_tile16_blockset() const { return current_blockset_; }
+  auto current_graphics() const { return current_gfx_; }
+  auto current_palette() const { return current_palette_; }
+  auto bitmap_data() const { return bitmap_data_; }
   auto is_large_map() const { return large_map_; }
-  auto IsInitialized() const { return initialized_; }
+  auto is_initialized() const { return initialized_; }
   auto parent() const { return parent_; }
 
   auto mutable_current_palette() { return &current_palette_; }
@@ -59,6 +58,7 @@ class OverworldMap : public GfxContext {
   auto message_id() const { return message_id_; }
   auto area_music(int i) const { return area_music_[i]; }
   auto static_graphics(int i) const { return static_graphics_[i]; }
+  auto large_index() const { return large_index_; }
 
   auto mutable_area_graphics() { return &area_graphics_; }
   auto mutable_area_palette() { return &area_palette_; }
@@ -75,8 +75,6 @@ class OverworldMap : public GfxContext {
   }
   auto set_sprite_palette(int i, uint8_t value) { sprite_palette_[i] = value; }
   auto set_message_id(uint16_t value) { message_id_ = value; }
-
-  auto large_index() const { return large_index_; }
 
   void SetAsLargeMap(int parent_index, int quadrant) {
     parent_ = parent_index;

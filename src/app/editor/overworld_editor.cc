@@ -322,7 +322,7 @@ void OverworldEditor::RefreshChildMap(int map_index) {
   }
   status_ = overworld_.mutable_overworld_map(map_index)->BuildBitmap(blockset);
   maps_bmp_[map_index].set_data(
-      overworld_.mutable_overworld_map(map_index)->BitmapData());
+      overworld_.mutable_overworld_map(map_index)->bitmap_data());
   maps_bmp_[map_index].set_modified(true);
   PRINT_IF_ERROR(status_);
 }
@@ -1880,7 +1880,7 @@ void OverworldEditor::LoadAnimatedMaps() {
     }
     map.BuildBitmap(blockset);
 
-    gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200, map.BitmapData(),
+    gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200, map.bitmap_data(),
                                       *rom(), animated_maps_[world_index],
                                       *map.mutable_current_palette());
 
