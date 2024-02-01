@@ -151,8 +151,8 @@ void GraphicsEditor::DrawGfxEditToolset() {
     for (int i = 0; i < 8; i++) {
       ImGui::SameLine();
       auto color =
-          ImVec4(palette[i].GetRGB().x / 255.0f, palette[i].GetRGB().y / 255.0f,
-                 palette[i].GetRGB().z / 255.0f, 255.0f);
+          ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
+                 palette[i].rgb().z / 255.0f, 255.0f);
       if (ImGui::ColorButton(absl::StrFormat("Palette Color %d", i).c_str(),
                              color)) {
         current_color_ = color;
@@ -177,43 +177,48 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
                       ImGuiWindowFlags_NoDecoration);
     ImGui::PopStyleVar();
     gui::Canvas graphics_bin_canvas_;
-    auto select_tile_event = [&]() {
-      if (value.get()->is_active()) {
-        auto texture = value.get()->texture();
-        graphics_bin_canvas_.draw_list()->AddImage(
-            (void*)texture,
-            ImVec2(graphics_bin_canvas_.zero_point().x + 2,
-                   graphics_bin_canvas_.zero_point().y + 2),
-            ImVec2(graphics_bin_canvas_.zero_point().x +
-                       value.get()->width() * sheet_scale_,
-                   graphics_bin_canvas_.zero_point().y +
-                       value.get()->height() * sheet_scale_));
+    // auto select_tile_event = [&]() {
+    // };
+    // graphics_bin_canvas_.UpdateEvent(
+    //     select_tile_event, ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
+    //     /*grid_size=*/16.0f);
 
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          current_sheet_ = key;
-          open_sheets_.insert(key);
-        }
+    graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x40 + 1));
+    graphics_bin_canvas_.DrawContextMenu();
+    if (value.get()->is_active()) {
+      auto texture = value.get()->texture();
+      graphics_bin_canvas_.draw_list()->AddImage(
+          (void*)texture,
+          ImVec2(graphics_bin_canvas_.zero_point().x + 2,
+                 graphics_bin_canvas_.zero_point().y + 2),
+          ImVec2(graphics_bin_canvas_.zero_point().x +
+                     value.get()->width() * sheet_scale_,
+                 graphics_bin_canvas_.zero_point().y +
+                     value.get()->height() * sheet_scale_));
 
-        // Add a slightly transparent rectangle behind the text
-        ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
-                        graphics_bin_canvas_.zero_point().y + 2);
-        ImVec2 text_size =
-            ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
-        ImVec2 rent_min(text_pos.x, text_pos.y);
-        ImVec2 rent_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
-
-        graphics_bin_canvas_.draw_list()->AddRectFilled(
-            rent_min, rent_max, IM_COL32(0, 125, 0, 128));
-
-        graphics_bin_canvas_.draw_list()->AddText(
-            text_pos, IM_COL32(125, 255, 125, 255),
-            absl::StrFormat("%02X", key).c_str());
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        current_sheet_ = key;
+        open_sheets_.insert(key);
       }
-    };
 
-    graphics_bin_canvas_.UpdateEvent(
-        select_tile_event, ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
-        /*grid_size=*/16.0f);
+      // Add a slightly transparent rectangle behind the text
+      ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
+                      graphics_bin_canvas_.zero_point().y + 2);
+      ImVec2 text_size =
+          ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
+      ImVec2 rent_min(text_pos.x, text_pos.y);
+      ImVec2 rent_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
+
+      graphics_bin_canvas_.draw_list()->AddRectFilled(rent_min, rent_max,
+                                                      IM_COL32(0, 125, 0, 128));
+
+      graphics_bin_canvas_.draw_list()->AddText(
+          text_pos, IM_COL32(125, 255, 125, 255),
+          absl::StrFormat("%02X", key).c_str());
+    }
+    graphics_bin_canvas_.DrawGrid(16.0f);
+    graphics_bin_canvas_.DrawOverlay();
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::EndChild();
   }
@@ -257,15 +262,14 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
             *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
 
         auto draw_tile_event = [&]() {
-          current_sheet_canvas_.DrawTileOnBitmap(tile_size_, current_bitmap,
+          current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          rom()->UpdateBitmap(&current_bitmap);
+          rom()->UpdateBitmap(&current_bitmap, true);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
             *rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
             tile_size_, current_scale_);
-
 
         ImGui::EndChild();
         ImGui::EndTabItem();
@@ -539,7 +543,11 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         if (col_file_palette_group_.size() != 0) {
           col_file_palette_group_.Clear();
         }
-        col_file_palette_group_ = gfx::CreatePaletteGroupFromColFile(col_data_);
+        auto col_file_palette_group_status =
+            gfx::CreatePaletteGroupFromColFile(col_data_);
+        if (col_file_palette_group_status.ok()) {
+          col_file_palette_group_ = col_file_palette_group_status.value();
+        }
         col_file_palette_ = gfx::SnesPalette(col_data_);
 
         // gigaleak dev format based code

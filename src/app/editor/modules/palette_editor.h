@@ -92,9 +92,9 @@ class PaletteEditor : public SharedROM {
 
   void InitializeSavedPalette(const gfx::SnesPalette& palette) {
     for (int n = 0; n < palette.size(); n++) {
-      saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
-      saved_palette_[n].y = palette.GetColor(n).GetRGB().y / 255;
-      saved_palette_[n].z = palette.GetColor(n).GetRGB().z / 255;
+      saved_palette_[n].x = palette.GetColor(n).rgb().x / 255;
+      saved_palette_[n].y = palette.GetColor(n).rgb().y / 255;
+      saved_palette_[n].z = palette.GetColor(n).rgb().z / 255;
       saved_palette_[n].w = 255;  // Alpha
     }
   }

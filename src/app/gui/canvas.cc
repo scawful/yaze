@@ -95,7 +95,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
   }
 }
 
-void Canvas::DrawContextMenu() {
+void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
   const ImGuiIO &io = ImGui::GetIO();
   auto scaled_sz =
       ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
@@ -122,10 +122,13 @@ void Canvas::DrawContextMenu() {
       ImGui::Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
       ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("Bitmap Properties")) {
-      ImGui::Text("Bitmap Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
-      ImGui::Text("Bitmap Position: %.0f x %.0f", origin.x, origin.y);
-      ImGui::EndMenu();
+    if (bitmap != nullptr) {
+      if (ImGui::BeginMenu("Bitmap Properties")) {
+        ImGui::Text("Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
+        ImGui::Text("Pitch: %s",
+                    absl::StrFormat("%d", bitmap->surface()->pitch).c_str());
+        ImGui::EndMenu();
+      }
     }
     ImGui::Separator();
     if (ImGui::BeginMenu("Grid Tile Size")) {
@@ -261,7 +264,7 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
   return false;
 }
 
-void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap &bitmap,
+void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap,
                               ImVec4 color) {
   const ImVec2 position = drawn_tile_pos_;
   int tile_index_x = static_cast<int>(position.x / global_scale_) / tile_size;
@@ -274,10 +277,10 @@ void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap &bitmap,
     for (int x = 0; x < tile_size; ++x) {
       // Calculate the actual pixel index in the bitmap
       int pixel_index =
-          (start_position.y + y) * bitmap.width() + (start_position.x + x);
+          (start_position.y + y) * bitmap->width() + (start_position.x + x);
 
       // Write the color to the pixel
-      bitmap.WriteColor(pixel_index, color);
+      bitmap->WriteColor(pixel_index, color);
     }
   }
 }
