@@ -13,6 +13,7 @@
 
 #include "absl/base/casts.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_color.h"
 
@@ -27,27 +28,8 @@ struct snes_palette {
 };
 using snes_palette = struct snes_palette;
 
-/**
- * @brief Extracts a vector of SNES colors from a data buffer.
- *
- * @param data The data buffer to extract from.
- * @param offset The offset in the buffer to start extracting from.
- * @param palette_size The size of the palette to extract.
- * @return A vector of SNES colors extracted from the buffer.
- */
-std::vector<snes_color> Extract(const char* data, unsigned int offset,
-                                unsigned int palette_size);
-
-/**
- * @brief Converts a vector of SNES colors to a vector of characters.
- *
- * @param palette The vector of SNES colors to convert.
- * @return A vector of characters representing the converted SNES colors.
- */
-std::vector<char> Convert(const std::vector<snes_color>& palette);
-
-SnesColor GetCgxColor(uint16_t color);
-std::vector<SnesColor> GetColFileData(uint8_t* data);
+uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
+                           size_t color_index);
 
 class SnesPalette {
  public:
@@ -121,7 +103,7 @@ class SnesPalette {
     if (i >= size_) {
       throw std::out_of_range("SNESPalette: Index out of bounds");
     }
-    colors[i].SetRGB(color);
+    colors[i].set_rgb(color);
     colors[i].SetModified(true);
   }
 
@@ -138,9 +120,8 @@ class SnesPalette {
   std::vector<SnesColor> colors; /**< The colors in the palette. */
 };
 
-SnesPalette ReadPaletteFromROM(int offset, int num_colors, const uint8_t* rom);
-uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
-                           size_t color_index);
+SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t* rom);
+
 std::array<float, 4> ToFloatArray(const SnesColor& color);
 
 struct PaletteGroup {
@@ -208,9 +189,11 @@ struct PaletteGroup {
   std::vector<SnesPalette> palettes;
 };
 
-PaletteGroup CreatePaletteGroupFromColFile(std::vector<SnesColor>& colors);
+absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
+    std::vector<SnesColor>& colors);
 
-PaletteGroup CreatePaletteGroupFromLargePalette(SnesPalette& palette);
+absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
+    SnesPalette& palette);
 
 struct Paletteset {
   Paletteset() = default;
