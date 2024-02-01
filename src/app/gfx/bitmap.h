@@ -17,6 +17,9 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer);
+void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
+                         SDL_Surface **outSurface);
 class Bitmap {
  public:
   Bitmap() = default;
@@ -36,7 +39,7 @@ class Bitmap {
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void CreateTexture(SDL_Renderer *renderer);
-  void UpdateTexture(SDL_Renderer *renderer);
+  void UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update = false);
 
   void SaveSurfaceToFile(std::string_view filename);
   void SetSurface(SDL_Surface *surface);
@@ -178,6 +181,8 @@ class Bitmap {
   auto mutable_pixel_data() { return pixel_data_; }
   auto surface() const { return surface_.get(); }
   auto mutable_surface() { return surface_.get(); }
+  auto converted_surface() const { return converted_surface_.get(); }
+  auto mutable_converted_surface() { return converted_surface_.get(); }
   void set_data(const Bytes &data) { data_ = data; }
 
   auto vector() const { return data_; }
