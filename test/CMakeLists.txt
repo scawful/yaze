@@ -34,6 +34,7 @@ add_executable(
   ../src/app/editor/context/gfx_context.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
+  ../src/app/gfx/snes_color.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/gfx/compression.cc
   ../src/app/core/common.cc

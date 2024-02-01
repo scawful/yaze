@@ -61,7 +61,7 @@ class ScreenEditor : public SharedROM {
 
   Bytes all_gfx_;
   zelda3::Inventory inventory_;
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   gui::Canvas screen_canvas_;
   gui::Canvas tilesheet_canvas_;
   gui::Canvas tilemap_canvas_;

@@ -103,7 +103,7 @@ class OverworldMap : public GfxContext {
   void LoadDeathMountainGFX();
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
-  gfx::SNESPalette GetPalette(const std::string& group, int index,
+  gfx::SnesPalette GetPalette(const std::string& group, int index,
                               int previousIndex, int limit);
 
   bool built_ = false;
@@ -133,7 +133,7 @@ class OverworldMap : public GfxContext {
   Bytes bitmap_data_;
   OWMapTiles map_tiles_;
 
-  gfx::SNESPalette current_palette_;
+  gfx::SnesPalette current_palette_;
   std::vector<gfx::Tile16> tiles16_;
 };
 

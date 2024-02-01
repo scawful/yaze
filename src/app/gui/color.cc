@@ -12,7 +12,7 @@ namespace yaze {
 namespace app {
 namespace gui {
 
-ImVec4 ConvertSNESColorToImVec4(const SNESColor& color) {
+ImVec4 ConvertSNESColorToImVec4(const SnesColor& color) {
   return ImVec4(static_cast<float>(color.GetRGB().x) / 255.0f,
                 static_cast<float>(color.GetRGB().y) / 255.0f,
                 static_cast<float>(color.GetRGB().z) / 255.0f,
@@ -21,7 +21,7 @@ ImVec4 ConvertSNESColorToImVec4(const SNESColor& color) {
   );
 }
 
-IMGUI_API bool SNESColorButton(absl::string_view id, SNESColor& color,
+IMGUI_API bool SNESColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags,
                                const ImVec2& size_arg) {
   // Convert the SNES color values to ImGui color values (normalized to 0-1
@@ -34,7 +34,7 @@ IMGUI_API bool SNESColorButton(absl::string_view id, SNESColor& color,
   return pressed;
 }
 
-void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
+void DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |

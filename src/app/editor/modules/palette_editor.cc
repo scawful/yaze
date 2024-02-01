@@ -64,7 +64,7 @@ absl::Status PaletteEditor::Update() {
   return absl::OkStatus();
 }
 
-void PaletteEditor::EditColorInPalette(gfx::SNESPalette& palette, int index) {
+void PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette, int index) {
   if (index >= palette.size()) {
     // Handle error: the index is out of bounds
     return;
@@ -79,8 +79,8 @@ void PaletteEditor::EditColorInPalette(gfx::SNESPalette& palette, int index) {
 }
 
 void PaletteEditor::ResetColorToOriginal(
-    gfx::SNESPalette& palette, int index,
-    const gfx::SNESPalette& originalPalette) {
+    gfx::SnesPalette& palette, int index,
+    const gfx::SnesPalette& originalPalette) {
   if (index >= palette.size() || index >= originalPalette.size()) {
     // Handle error: the index is out of bounds
     return;
@@ -136,7 +136,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   return absl::OkStatus();
 }
 
-absl::Status PaletteEditor::HandleColorPopup(gfx::SNESPalette& palette, int i,
+absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
   if (ImGui::ColorEdit4("Edit Color", col.data(), color_popup_flags)) {
@@ -167,7 +167,7 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SNESPalette& palette, int i,
   return absl::OkStatus();
 }
 
-void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
+void PaletteEditor::DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
@@ -245,7 +245,7 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
   }
 }
 
-void PaletteEditor::DrawPortablePalette(gfx::SNESPalette& palette) {
+void PaletteEditor::DrawPortablePalette(gfx::SnesPalette& palette) {
   static bool init = false;
   if (!init) {
     InitializeSavedPalette(palette);

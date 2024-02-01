@@ -229,16 +229,16 @@ void OverworldMap::LoadAreaGraphics() {
 
 namespace palette_internal {
 
-void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
-                      gfx::SNESPalette main, gfx::SNESPalette animated,
-                      gfx::SNESPalette aux1, gfx::SNESPalette aux2,
-                      gfx::SNESPalette hud, gfx::SNESColor bgrcolor,
-                      gfx::SNESPalette spr, gfx::SNESPalette spr2) {
+void SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
+                      gfx::SnesPalette main, gfx::SnesPalette animated,
+                      gfx::SnesPalette aux1, gfx::SnesPalette aux2,
+                      gfx::SnesPalette hud, gfx::SnesColor bgrcolor,
+                      gfx::SnesPalette spr, gfx::SnesPalette spr2) {
   // Palettes infos, color 0 of a palette is always transparent (the arrays
   // contains 7 colors width wide) There is 16 color per line so 16*Y
 
   // Left side of the palette - Main, Animated
-  std::vector<gfx::SNESColor> new_palette(256);
+  std::vector<gfx::SnesColor> new_palette(256);
 
   // Main Palette, Location 0,2 : 35 colors [7x5]
   int k = 0;
@@ -347,7 +347,7 @@ void SetColorsPalette(ROM& rom, int index, gfx::SNESPalette& current,
 }  // namespace palette_internal
 
 // New helper function to get a palette from the ROM.
-gfx::SNESPalette OverworldMap::GetPalette(const std::string& group, int index,
+gfx::SnesPalette OverworldMap::GetPalette(const std::string& group, int index,
                                           int previousIndex, int limit) {
   if (index == 255) {
     index = rom_[rom_.version_constants().overworldMapPaletteGroup +
@@ -382,10 +382,10 @@ void OverworldMap::LoadPalette() {
   uchar pal5 = rom_[overworldSpritePaletteGroup +
                     (sprite_palette_[game_state_] * 2) + 1];
 
-  gfx::SNESColor bgr = rom_.palette_group("grass")[0].GetColor(0);
+  gfx::SnesColor bgr = rom_.palette_group("grass")[0].GetColor(0);
 
-  gfx::SNESPalette aux1 = GetPalette("ow_aux", pal1, previousPalId, 20);
-  gfx::SNESPalette aux2 = GetPalette("ow_aux", pal2, previousPalId, 20);
+  gfx::SnesPalette aux1 = GetPalette("ow_aux", pal1, previousPalId, 20);
+  gfx::SnesPalette aux2 = GetPalette("ow_aux", pal2, previousPalId, 20);
 
   // Additional handling of `pal3` and `parent_`
   if (pal3 == 255) {
@@ -405,20 +405,22 @@ void OverworldMap::LoadPalette() {
   if (parent_ == 0x88) {
     pal0 = 4;
   }
-  gfx::SNESPalette main = GetPalette("ow_main", pal0, previousPalId, 255);
-  gfx::SNESPalette animated =
+  gfx::SnesPalette main = GetPalette("ow_main", pal0, previousPalId, 255);
+  gfx::SnesPalette animated =
       GetPalette("ow_animated", std::min((int)pal3, 13), previousPalId, 14);
-  gfx::SNESPalette hud = rom_.palette_group("hud")[0];
+  gfx::SnesPalette hud = rom_.palette_group("hud")[0];
 
-  gfx::SNESPalette spr = GetPalette("sprites_aux3", pal4, previousSprPalId, 24);
-  gfx::SNESPalette spr2 =
+  gfx::SnesPalette spr = GetPalette("sprites_aux3", pal4, previousSprPalId, 24);
+  gfx::SnesPalette spr2 =
       GetPalette("sprites_aux3", pal5, previousSprPalId, 24);
 
   palette_internal::SetColorsPalette(rom_, parent_, current_palette_, main,
                                      animated, aux1, aux2, hud, bgr, spr, spr2);
 
-  gfx::Paletteset paletteset{main, animated, aux1, aux2, bgr, hud, spr, spr2};
-  palettesets_[area_graphics_] = paletteset;
+  if (palettesets_.count(area_palette_) == 0) {
+    palettesets_[area_palette_] = gfx::Paletteset{
+        main, animated, aux1, aux2, bgr, hud, spr, spr2, current_palette_};
+  }
 }
 
 // New helper function to process graphics buffer.

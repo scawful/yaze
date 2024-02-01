@@ -22,7 +22,8 @@
 #include "app/core/constants.h"            // for Bytes, ASSIGN_OR_RETURN
 #include "app/gfx/bitmap.h"                // for Bitmap, BitmapTable
 #include "app/gfx/compression.h"           // for DecompressV2
-#include "app/gfx/snes_palette.h"          // for PaletteGroup, SNESColor
+#include "app/gfx/snes_color.h"            // for SNESColor
+#include "app/gfx/snes_palette.h"          // for PaletteGroup
 #include "app/gfx/snes_tile.h"             // for SnesTo8bppSheet
 
 namespace yaze {
@@ -156,11 +157,11 @@ absl::Status LoadDungeonMainPalettes(const Bytes& rom_data,
 absl::Status LoadGrassColors(const Bytes& rom_data,
                              PaletteGroupMap& palette_groups) {
   RETURN_IF_ERROR(palette_groups["grass"].AddColor(
-      gfx::ReadColorFromROM(core::hardcodedGrassLW, rom_data.data())))
+      gfx::ReadColorFromRom(core::hardcodedGrassLW, rom_data.data())))
   RETURN_IF_ERROR(palette_groups["grass"].AddColor(
-      gfx::ReadColorFromROM(core::hardcodedGrassDW, rom_data.data())))
+      gfx::ReadColorFromRom(core::hardcodedGrassDW, rom_data.data())))
   RETURN_IF_ERROR(palette_groups["grass"].AddColor(
-      gfx::ReadColorFromROM(core::hardcodedGrassSpecial, rom_data.data())))
+      gfx::ReadColorFromRom(core::hardcodedGrassSpecial, rom_data.data())))
   return absl::OkStatus();
 }
 
@@ -477,10 +478,10 @@ absl::Status ROM::SaveToFile(bool backup, bool save_new, std::string filename) {
 }
 
 void ROM::SavePalette(int index, const std::string& group_name,
-                      gfx::SNESPalette& palette) {
+                      gfx::SnesPalette& palette) {
   // Iterate through all colors in the palette
   for (size_t j = 0; j < palette.size(); ++j) {
-    gfx::SNESColor color = palette[j];
+    gfx::SnesColor color = palette[j];
     // If the color is modified, save the color to the ROM
     if (color.IsModified()) {
       WriteColor(gfx::GetPaletteAddress(group_name, index, j), color);
@@ -502,7 +503,7 @@ void ROM::SaveAllPalettes() {
 
 absl::Status ROM::UpdatePaletteColor(const std::string& groupName,
                                      size_t paletteIndex, size_t colorIndex,
-                                     const gfx::SNESColor& newColor) {
+                                     const gfx::SnesColor& newColor) {
   // Check if the groupName exists in the palette_groups_ map
   if (palette_groups_.find(groupName) != palette_groups_.end()) {
     // Check if the paletteIndex is within the range of available palettes in

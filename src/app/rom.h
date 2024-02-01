@@ -134,7 +134,7 @@ constexpr uint32_t gfx_groups_pointer = 0x6237;
 struct WriteAction {
   int address;
   std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
-               gfx::SNESColor, std::vector<gfx::SNESColor>>
+               gfx::SnesColor, std::vector<gfx::SnesColor>>
       value;
 };
 
@@ -157,12 +157,12 @@ class ROM : public core::ExperimentFlags {
     } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
       return WriteVector(action.address,
                          std::get<std::vector<uint8_t>>(action.value));
-    } else if (std::holds_alternative<gfx::SNESColor>(action.value)) {
-      return WriteColor(action.address, std::get<gfx::SNESColor>(action.value));
-    } else if (std::holds_alternative<std::vector<gfx::SNESColor>>(
+    } else if (std::holds_alternative<gfx::SnesColor>(action.value)) {
+      return WriteColor(action.address, std::get<gfx::SnesColor>(action.value));
+    } else if (std::holds_alternative<std::vector<gfx::SnesColor>>(
                    action.value)) {
       return absl::UnimplementedError(
-          "WriteHelper: std::vector<gfx::SNESColor>");
+          "WriteHelper: std::vector<gfx::SnesColor>");
     }
     auto error_message = absl::StrFormat("Invalid write argument type: %s",
                                          typeid(action.value).name());
@@ -271,7 +271,7 @@ class ROM : public core::ExperimentFlags {
    * @param palette The palette to save.
    */
   void SavePalette(int index, const std::string& group_name,
-                   gfx::SNESPalette& palette);
+                   gfx::SnesPalette& palette);
 
   /**
    * @brief Saves all palettes in the ROM.
@@ -300,7 +300,7 @@ class ROM : public core::ExperimentFlags {
    */
   absl::Status UpdatePaletteColor(const std::string& group_name,
                                   size_t palette_index, size_t colorIndex,
-                                  const gfx::SNESColor& newColor);
+                                  const gfx::SnesColor& newColor);
 
   // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
@@ -452,7 +452,7 @@ class ROM : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
-  absl::Status WriteColor(uint32_t address, const gfx::SNESColor& color) {
+  absl::Status WriteColor(uint32_t address, const gfx::SnesColor& color) {
     uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
                    ((color.GetSNES() & 0x1F) << 10) |
                    (color.GetSNES() & 0x7C00);
@@ -663,7 +663,7 @@ class ROM : public core::ExperimentFlags {
   gfx::BitmapTable graphics_bin_;
   gfx::BitmapManager graphics_manager_;
   gfx::BitmapTable link_graphics_;
-  gfx::SNESPalette link_palette_;
+  gfx::SnesPalette link_palette_;
   PaletteGroupMap palette_groups_;
   core::ResourceLabelManager resource_label_manager_;
 

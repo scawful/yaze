@@ -176,9 +176,9 @@ class GraphicsEditor : public SharedROM {
   gfx::BitmapTable clipboard_graphics_bin_;
   gfx::BitmapTable link_graphics_;
   gfx::PaletteGroup col_file_palette_group_;
-  gfx::SNESPalette z3_rom_palette_;
-  gfx::SNESPalette col_file_palette_;
-  gfx::SNESPalette link_palette_;
+  gfx::SnesPalette z3_rom_palette_;
+  gfx::SnesPalette col_file_palette_;
+  gfx::SnesPalette link_palette_;
   gui::Canvas import_canvas_;
   gui::Canvas scr_canvas_;
   gui::Canvas super_donkey_canvas_;

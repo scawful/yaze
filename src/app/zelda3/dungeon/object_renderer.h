@@ -22,7 +22,7 @@ class DungeonObjectRenderer : public SharedROM {
  public:
   struct PseudoVram {
     std::array<uint8_t, 16> sheets;
-    std::vector<gfx::SNESPalette> palettes;
+    std::vector<gfx::SnesPalette> palettes;
   };
 
   DungeonObjectRenderer() = default;

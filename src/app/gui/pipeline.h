@@ -21,7 +21,7 @@ namespace app {
 namespace gui {
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
-                               gfx::SNESPalette& palette);
+                               gfx::SnesPalette& palette);
 
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
                                int num_sheets_to_load, int canvas_id,
@@ -40,7 +40,7 @@ void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
 
 void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
                                   ROM& z3_rom, gfx::Bitmap& bitmap,
-                                  gfx::SNESPalette& palette);
+                                  gfx::SnesPalette& palette);
 
 void FileDialogPipeline(absl::string_view display_key,
                         absl::string_view file_extensions,

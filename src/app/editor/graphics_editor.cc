@@ -540,7 +540,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
           col_file_palette_group_.Clear();
         }
         col_file_palette_group_ = gfx::CreatePaletteGroupFromColFile(col_data_);
-        col_file_palette_ = gfx::SNESPalette(col_data_);
+        col_file_palette_ = gfx::SnesPalette(col_data_);
 
         // gigaleak dev format based code
         decoded_col_ = gfx::DecodeColFile(col_file_path_);

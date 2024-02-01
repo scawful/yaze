@@ -350,29 +350,20 @@ void OverworldEditor::RefreshOverworldMap() {
 
 // TODO: Palette throws out of bounds error unexpectedly.
 void OverworldEditor::RefreshMapPalette() {
-  std::vector<std::future<void>> futures;
-  auto refresh_palette_async = [this](int map_index) {
-    overworld_.mutable_overworld_map(map_index)->LoadPalette();
-    maps_bmp_[map_index].ApplyPalette(
-        *overworld_.mutable_overworld_map(map_index)
-             ->mutable_current_palette());
-  };
-
   if (overworld_.overworld_map(current_map_)->is_large_map()) {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
       if (i >= 2) sibling_index += 6;
-      futures.push_back(
-          std::async(std::launch::async, refresh_palette_async, sibling_index));
+      overworld_.mutable_overworld_map(sibling_index)->LoadPalette();
+      maps_bmp_[sibling_index].ApplyPalette(
+          *overworld_.mutable_overworld_map(sibling_index)
+               ->mutable_current_palette());
     }
   }
-  futures.push_back(
-      std::async(std::launch::async, refresh_palette_async, current_map_));
-
-  for (auto &each : futures) {
-    each.get();
-  }
+  maps_bmp_[current_map_].ApplyPalette(
+      *overworld_.mutable_overworld_map(current_map_)
+           ->mutable_current_palette());
 }
 
 void OverworldEditor::RefreshMapProperties() {
@@ -725,7 +716,8 @@ void OverworldEditor::DrawOverworldCanvas() {
 
 void OverworldEditor::DrawTile16Selector() {
   gui::BeginPadding(3);
-  gui::BeginChildWithScrollbar(/*id=*/1);
+  ImGui::BeginGroup();
+  gui::BeginChildWithScrollbar("##Tile16SelectorScrollRegion");
   blockset_canvas_.DrawBackground();
   gui::EndNoPadding();
   blockset_canvas_.DrawContextMenu();
@@ -748,6 +740,7 @@ void OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawGrid();
   blockset_canvas_.DrawOverlay();
   ImGui::EndChild();
+  ImGui::EndGroup();
 }
 
 void OverworldEditor::DrawTile8Selector() {
@@ -773,25 +766,30 @@ void OverworldEditor::DrawTile8Selector() {
 }
 
 void OverworldEditor::DrawAreaGraphics() {
+  if (overworld_.is_loaded()) {
+    if (current_graphics_set_.count(current_map_) == 0) {
+      overworld_.set_current_map(current_map_);
+      palette_ = overworld_.AreaPalette();
+      gfx::Bitmap bmp;
+      gui::BuildAndRenderBitmapPipeline(
+          0x80, 0x200, 0x08, overworld_.AreaGraphics(), *rom(), bmp, palette_);
+      current_graphics_set_[current_map_] = bmp;
+    }
+  }
+
   gui::BeginPadding(3);
-  gui::BeginChildWithScrollbar(/*id=*/2);
+  ImGui::BeginGroup();
+  gui::BeginChildWithScrollbar("##AreaGraphicsScrollRegion");
   current_gfx_canvas_.DrawBackground();
   gui::EndPadding();
   current_gfx_canvas_.DrawContextMenu();
-  if (current_graphics_set_.count(current_map_) == 0) {
-    overworld_.set_current_map(current_map_);
-    palette_ = overworld_.AreaPalette();
-    gfx::Bitmap bmp;
-    gui::BuildAndRenderBitmapPipeline(
-        0x80, 0x200, 0x08, overworld_.AreaGraphics(), *rom(), bmp, palette_);
-    current_graphics_set_[current_map_] = bmp;
-  }
   current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_],
                                  /*border_offset=*/2, overworld_.is_loaded());
   current_gfx_canvas_.DrawTileSelector(32.0f);
   current_gfx_canvas_.DrawGrid();
   current_gfx_canvas_.DrawOverlay();
   ImGui::EndChild();
+  ImGui::EndGroup();
 }
 
 void OverworldEditor::DrawTileSelector() {
@@ -803,7 +801,7 @@ void OverworldEditor::DrawTileSelector() {
     }
     if (BeginTabItem("Tile8")) {
       gui::BeginPadding(3);
-      gui::BeginChildWithScrollbar(/*id=*/2);
+      gui::BeginChildWithScrollbar("##Tile8SelectorScrollRegion");
       DrawTile8Selector();
       ImGui::EndChild();
       gui::EndNoPadding();

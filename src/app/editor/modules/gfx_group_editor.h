@@ -53,7 +53,7 @@ class GfxGroupEditor : public SharedROM {
   gui::Canvas roomset_canvas_;
   gui::Canvas spriteset_canvas_;
 
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   gfx::PaletteGroup palette_group_;
   gfx::Bitmap tile16_blockset_bmp_;
 

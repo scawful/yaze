@@ -44,10 +44,11 @@ class Bitmap {
   void LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
                        int height);
 
-  void ApplyPalette(const SNESPalette &palette);
-  void ApplyPaletteWithTransparent(const SNESPalette &palette, int index);
+  void ApplyPalette(const SnesPalette &palette);
+  void ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
+                                   int length = 7);
   void ApplyPalette(const std::vector<SDL_Color> &palette);
-  void ApplyPaletteFromPaletteGroup(const SNESPalette &palette, int palette_id);
+  void ApplyPaletteFromPaletteGroup(const SnesPalette &palette, int palette_id);
 
   void WriteToPixel(int position, uchar value) {
     if (pixel_data_ == nullptr) {
@@ -222,7 +223,7 @@ class Bitmap {
 
   std::vector<uint8_t> png_data_;
 
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   std::shared_ptr<SDL_Texture> texture_ = nullptr;
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
   std::shared_ptr<SDL_Surface> converted_surface_ = nullptr;

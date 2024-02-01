@@ -268,8 +268,14 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
   SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
                   &converted_surface_->pitch);
 
-  memcpy(texture_pixels, converted_surface_->pixels,
-         converted_surface_->h * converted_surface_->pitch);
+  try {
+    memcpy(texture_pixels, converted_surface_->pixels,
+           converted_surface_->h * converted_surface_->pitch);
+    // SDL_UpdateTexture(texture_.get(), nullptr, converted_surface_->pixels,
+    //                   converted_surface_->pitch);
+  } catch (const std::exception &e) {
+    SDL_Log("Exception: %s\n", e.what());
+  }
 
   SDL_UnlockTexture(texture_.get());
 }
@@ -313,7 +319,7 @@ void Bitmap::LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
 }
 
 // Convert SNESPalette to SDL_Palette for surface.
-void Bitmap::ApplyPalette(const SNESPalette &palette) {
+void Bitmap::ApplyPalette(const SnesPalette &palette) {
   palette_ = palette;
   SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette.size(); ++i) {
@@ -332,7 +338,7 @@ void Bitmap::ApplyPalette(const SNESPalette &palette) {
   SDL_LockSurface(surface_.get());
 }
 
-void Bitmap::ApplyPaletteFromPaletteGroup(const SNESPalette &palette,
+void Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
                                           int palette_id) {
   auto start_index = palette_id * 8;
   palette_ = palette.sub_palette(start_index, start_index + 8);
@@ -353,8 +359,8 @@ void Bitmap::ApplyPaletteFromPaletteGroup(const SNESPalette &palette,
   SDL_LockSurface(surface_.get());
 }
 
-void Bitmap::ApplyPaletteWithTransparent(const SNESPalette &palette,
-                                         int index) {
+void Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
+                                         int length) {
   auto start_index = index * 7;
   palette_ = palette.sub_palette(start_index, start_index + 7);
   std::vector<ImVec4> colors;
