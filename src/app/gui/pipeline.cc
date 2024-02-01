@@ -22,7 +22,7 @@ namespace app {
 namespace gui {
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
-                               gfx::SNESPalette& palette) {
+                               gfx::SnesPalette& palette) {
   const auto palette_row_size = 7;
   if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)100);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -160,7 +160,7 @@ void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap,
 
 void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
                                   ROM& z3_rom, gfx::Bitmap& bitmap,
-                                  gfx::SNESPalette& palette) {
+                                  gfx::SnesPalette& palette) {
   bitmap.Create(width, height, depth, data);
   bitmap.ApplyPalette(palette);
   z3_rom.RenderBitmap(&bitmap);

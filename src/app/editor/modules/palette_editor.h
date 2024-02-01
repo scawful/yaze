@@ -29,16 +29,16 @@ struct PaletteChange {
   std::string groupName;
   size_t paletteIndex;
   size_t colorIndex;
-  gfx::SNESColor originalColor;
-  gfx::SNESColor newColor;
+  gfx::SnesColor originalColor;
+  gfx::SnesColor newColor;
 };
 
 class PaletteEditorHistory {
  public:
   // Record a change in the palette editor
   void RecordChange(const std::string& groupName, size_t paletteIndex,
-                    size_t colorIndex, const gfx::SNESColor& originalColor,
-                    const gfx::SNESColor& newColor) {
+                    size_t colorIndex, const gfx::SnesColor& originalColor,
+                    const gfx::SnesColor& newColor) {
     // Check size and remove the oldest if necessary
     if (recentChanges.size() >= maxHistorySize) {
       recentChanges.pop_front();
@@ -55,7 +55,7 @@ class PaletteEditorHistory {
   }
 
   // Restore the original color
-  gfx::SNESColor GetOriginalColor(const std::string& groupName,
+  gfx::SnesColor GetOriginalColor(const std::string& groupName,
                                   size_t paletteIndex,
                                   size_t colorIndex) const {
     for (const auto& change : recentChanges) {
@@ -67,7 +67,7 @@ class PaletteEditorHistory {
     }
     // Handle error or return default (this is just an example,
     // handle as appropriate for your application)
-    return gfx::SNESColor();
+    return gfx::SnesColor();
   }
 
  private:
@@ -80,17 +80,17 @@ class PaletteEditor : public SharedROM {
   absl::Status Update();
   absl::Status DrawPaletteGroups();
 
-  void EditColorInPalette(gfx::SNESPalette& palette, int index);
-  void ResetColorToOriginal(gfx::SNESPalette& palette, int index,
-                            const gfx::SNESPalette& originalPalette);
-  void DisplayPalette(gfx::SNESPalette& palette, bool loaded);
-  void DrawPortablePalette(gfx::SNESPalette& palette);
+  void EditColorInPalette(gfx::SnesPalette& palette, int index);
+  void ResetColorToOriginal(gfx::SnesPalette& palette, int index,
+                            const gfx::SnesPalette& originalPalette);
+  void DisplayPalette(gfx::SnesPalette& palette, bool loaded);
+  void DrawPortablePalette(gfx::SnesPalette& palette);
   absl::Status DrawPaletteGroup(int category);
 
  private:
-  absl::Status HandleColorPopup(gfx::SNESPalette& palette, int i, int j, int n);
+  absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
 
-  void InitializeSavedPalette(const gfx::SNESPalette& palette) {
+  void InitializeSavedPalette(const gfx::SnesPalette& palette) {
     for (int n = 0; n < palette.size(); n++) {
       saved_palette_[n].x = palette.GetColor(n).GetRGB().x / 255;
       saved_palette_[n].y = palette.GetColor(n).GetRGB().y / 255;

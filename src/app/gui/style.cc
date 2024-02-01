@@ -44,9 +44,8 @@ void BeginNoPadding() {
 }
 void EndNoPadding() { ImGui::PopStyleVar(2); }
 
-void BeginChildWithScrollbar(int id) {
-  ImGuiID child_id = ImGui::GetID((void*)(intptr_t)id);
-  ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+void BeginChildWithScrollbar(const char* str_id) {
+  ImGui::BeginChild(str_id, ImGui::GetContentRegionAvail(), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
 }
 

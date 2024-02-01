@@ -232,7 +232,7 @@ class OverworldEditor : public Editor,
       gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
 
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   gfx::Bitmap selected_tile_bmp_;
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;

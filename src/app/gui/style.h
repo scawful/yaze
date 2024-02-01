@@ -21,7 +21,7 @@ void EndPadding();
 void BeginNoPadding();
 void EndNoPadding();
 
-void BeginChildWithScrollbar(int id);
+void BeginChildWithScrollbar(const char *str_id);
 
 void BeginChildBothScrollbars(int id);
 

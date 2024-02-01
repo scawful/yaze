@@ -123,7 +123,7 @@ class Tilesheet {
   auto num_tiles() const { return num_tiles_; }
   auto tile_width() const { return tile_width_; }
   auto tile_height() const { return tile_height_; }
-  auto set_palette(gfx::SNESPalette& palette) { palette_ = palette; }
+  auto set_palette(gfx::SnesPalette& palette) { palette_ = palette; }
   auto palette() const { return palette_; }
   auto tile_type() const { return tile_type_; }
   auto tile_info() const { return tile_info_; }
@@ -217,7 +217,7 @@ class Tilesheet {
                         tileDataOffset);
   }
 
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   std::vector<uint8_t> internal_data_;
   std::shared_ptr<Bitmap> bitmap_;
   struct InternalTile16 {

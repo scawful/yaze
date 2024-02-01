@@ -28,6 +28,7 @@ set(
   app/gfx/scad_format.cc
   app/gfx/snes_palette.cc
   app/gfx/snes_tile.cc
+  app/gfx/snes_color.cc
 )
 
 set(

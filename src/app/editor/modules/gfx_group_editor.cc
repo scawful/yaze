@@ -98,13 +98,13 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
       for (int i = 0; i < 8; i++) {
         int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
         auto &sheet = *rom()->bitmap_manager()[sheet_id];
-        if (sheet_id != last_sheet_id_) {
-          last_sheet_id_ = sheet_id;
-          auto palette_group = rom()->palette_group("ow_main");
-          auto palette = palette_group[preview_palette_id_];
-          sheet.ApplyPalette(palette);
-          rom()->UpdateBitmap(&sheet);
-        }
+        // if (sheet_id != last_sheet_id_) {
+        //   last_sheet_id_ = sheet_id;
+        //   auto palette_group = rom()->palette_group("ow_main");
+        //   auto palette = palette_group[preview_palette_id_];
+        //   sheet.ApplyPalette(palette);
+        //   rom()->UpdateBitmap(&sheet);
+        // }
         gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 22);
       }
@@ -186,7 +186,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
 }
 
 namespace {
-void DrawPaletteFromPaletteGroup(gfx::SNESPalette &palette) {
+void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
   for (int n = 0; n < palette.size(); n++) {
     ImGui::PushID(n);
     if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);

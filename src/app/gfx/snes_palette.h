@@ -14,17 +14,11 @@
 #include "absl/base/casts.h"
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/gfx/snes_color.h"
 
 namespace yaze {
 namespace app {
 namespace gfx {
-
-struct snes_color {
-  uint16_t red;   /**< Red component of the color. */
-  uint16_t blue;  /**< Blue component of the color. */
-  uint16_t green; /**< Green component of the color. */
-};
-using snes_color = struct snes_color;
 
 struct snes_palette {
   uint id;            /**< ID of the palette. */
@@ -32,10 +26,6 @@ struct snes_palette {
   snes_color* colors; /**< Pointer to the colors in the palette. */
 };
 using snes_palette = struct snes_palette;
-
-uint16_t ConvertRGBtoSNES(const snes_color& color);
-uint16_t ConvertRGBtoSNES(const ImVec4& color);
-snes_color ConvertSNEStoRGB(uint16_t snes_color);
 
 /**
  * @brief Extracts a vector of SNES colors from a data buffer.
@@ -56,92 +46,38 @@ std::vector<snes_color> Extract(const char* data, unsigned int offset,
  */
 std::vector<char> Convert(const std::vector<snes_color>& palette);
 
-struct SNESColor {
-  SNESColor() : rgb(0.f, 0.f, 0.f, 0.f), snes(0) {}
+SnesColor GetCgxColor(uint16_t color);
+std::vector<SnesColor> GetColFileData(uint8_t* data);
 
-  explicit SNESColor(const ImVec4 val) : rgb(val) {
-    snes_color color;
-    color.red = val.x / 255;
-    color.green = val.y / 255;
-    color.blue = val.z / 255;
-    snes = ConvertRGBtoSNES(color);
-  }
-
-  explicit SNESColor(const snes_color val)
-      : rgb(val.red, val.green, val.blue, 255.f),
-        snes(ConvertRGBtoSNES(val)),
-        rom_color(val) {}
-
-  ImVec4 GetRGB() const { return rgb; }
-  void SetRGB(const ImVec4 val) {
-    rgb.x = val.x / 255;
-    rgb.y = val.y / 255;
-    rgb.z = val.z / 255;
-    snes_color color;
-    color.red = val.x;
-    color.green = val.y;
-    color.blue = val.z;
-    rom_color = color;
-    snes = ConvertRGBtoSNES(color);
-    modified = true;
-  }
-
-  snes_color GetRomRGB() const { return rom_color; }
-
-  uint16_t GetSNES() const { return snes; }
-  void SetSNES(uint16_t val) {
-    snes = val;
-    snes_color col = ConvertSNEStoRGB(val);
-    rgb = ImVec4(col.red, col.green, col.blue, 0.f);
-    modified = true;
-  }
-
-  bool IsModified() const { return modified; }
-  bool IsTransparent() const { return transparent; }
-  void SetTransparent(bool t) { transparent = t; }
-  void SetModified(bool m) { modified = m; }
-
- private:
-  ImVec4 rgb;
-  uint16_t snes;
-  snes_color rom_color;
-  bool modified = false;
-  bool transparent = false;
-};
-
-gfx::SNESColor ReadColorFromROM(int offset, const uint8_t* rom);
-
-SNESColor GetCgxColor(uint16_t color);
-std::vector<SNESColor> GetColFileData(uint8_t* data);
-
-class SNESPalette {
+class SnesPalette {
  public:
   template <typename T>
-  explicit SNESPalette(const std::vector<T>& data) {
+  explicit SnesPalette(const std::vector<T>& data) {
     for (const auto& item : data) {
-      colors.push_back(SNESColor(item));
+      colors.push_back(SnesColor(item));
     }
+    size_ = data.size();
   }
 
-  SNESPalette() = default;
+  SnesPalette() = default;
 
-  explicit SNESPalette(uint8_t mSize);
-  explicit SNESPalette(char* snesPal);
-  explicit SNESPalette(const unsigned char* snes_pal);
-  explicit SNESPalette(const std::vector<ImVec4>&);
-  explicit SNESPalette(const std::vector<snes_color>&);
-  explicit SNESPalette(const std::vector<SNESColor>&);
+  explicit SnesPalette(uint8_t mSize);
+  explicit SnesPalette(char* snesPal);
+  explicit SnesPalette(const unsigned char* snes_pal);
+  explicit SnesPalette(const std::vector<ImVec4>&);
+  explicit SnesPalette(const std::vector<snes_color>&);
+  explicit SnesPalette(const std::vector<SnesColor>&);
 
   SDL_Palette* GetSDL_Palette();
 
-  void Create(const std::vector<SNESColor>& cols) {
+  void Create(const std::vector<SnesColor>& cols) {
     for (const auto& each : cols) {
       colors.push_back(each);
     }
     size_ = cols.size();
   }
 
-  void AddColor(SNESColor color) {
+  void AddColor(SnesColor color) {
     colors.push_back(color);
     size_++;
   }
@@ -166,7 +102,7 @@ class SNESPalette {
 
   auto size() const { return colors.size(); }
 
-  SNESColor& operator[](int i) {
+  SnesColor& operator[](int i) {
     if (i > size_) {
       std::cout << "SNESPalette: Index out of bounds" << std::endl;
       return colors[0];
@@ -174,7 +110,7 @@ class SNESPalette {
     return colors[i];
   }
 
-  void operator()(int i, const SNESColor& color) {
+  void operator()(int i, const SnesColor& color) {
     if (i >= size_) {
       throw std::out_of_range("SNESPalette: Index out of bounds");
     }
@@ -189,8 +125,8 @@ class SNESPalette {
     colors[i].SetModified(true);
   }
 
-  SNESPalette sub_palette(int start, int end) const {
-    SNESPalette pal;
+  SnesPalette sub_palette(int start, int end) const {
+    SnesPalette pal;
     for (int i = start; i < end; i++) {
       pal.AddColor(colors[i]);
     }
@@ -199,13 +135,13 @@ class SNESPalette {
 
  private:
   int size_ = 0;                 /**< The size of the palette. */
-  std::vector<SNESColor> colors; /**< The colors in the palette. */
+  std::vector<SnesColor> colors; /**< The colors in the palette. */
 };
 
-SNESPalette ReadPaletteFromROM(int offset, int num_colors, const uint8_t* rom);
+SnesPalette ReadPaletteFromROM(int offset, int num_colors, const uint8_t* rom);
 uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);
-std::array<float, 4> ToFloatArray(const SNESColor& color);
+std::array<float, 4> ToFloatArray(const SnesColor& color);
 
 struct PaletteGroup {
   PaletteGroup() = default;
@@ -214,13 +150,13 @@ struct PaletteGroup {
 
   auto mutable_palette(int i) { return &palettes[i]; }
 
-  absl::Status AddPalette(SNESPalette pal) {
+  absl::Status AddPalette(SnesPalette pal) {
     palettes.emplace_back(pal);
     size_ = palettes.size();
     return absl::OkStatus();
   }
 
-  absl::Status AddColor(SNESColor color) {
+  absl::Status AddColor(SnesColor color) {
     if (size_ == 0) {
       palettes.emplace_back();
     }
@@ -235,7 +171,7 @@ struct PaletteGroup {
 
   auto size() const { return palettes.size(); }
 
-  SNESPalette operator[](int i) {
+  SnesPalette operator[](int i) {
     if (i > size_) {
       std::cout << "PaletteGroup: Index out of bounds" << std::endl;
       return palettes[0];
@@ -243,7 +179,7 @@ struct PaletteGroup {
     return palettes[i];
   }
 
-  const SNESPalette& operator[](int i) const {
+  const SnesPalette& operator[](int i) const {
     if (i > size_) {
       std::cout << "PaletteGroup: Index out of bounds" << std::endl;
       return palettes[0];
@@ -251,7 +187,7 @@ struct PaletteGroup {
     return palettes[i];
   }
 
-  absl::Status operator()(int i, const SNESColor& color) {
+  absl::Status operator()(int i, const SnesColor& color) {
     if (i >= size_) {
       return absl::InvalidArgumentError("PaletteGroup: Index out of bounds");
     }
@@ -269,19 +205,19 @@ struct PaletteGroup {
 
  private:
   int size_ = 0;
-  std::vector<SNESPalette> palettes;
+  std::vector<SnesPalette> palettes;
 };
 
-PaletteGroup CreatePaletteGroupFromColFile(std::vector<SNESColor>& colors);
+PaletteGroup CreatePaletteGroupFromColFile(std::vector<SnesColor>& colors);
 
-PaletteGroup CreatePaletteGroupFromLargePalette(SNESPalette& palette);
+PaletteGroup CreatePaletteGroupFromLargePalette(SnesPalette& palette);
 
 struct Paletteset {
   Paletteset() = default;
-  Paletteset(gfx::SNESPalette main, gfx::SNESPalette animated,
-             gfx::SNESPalette aux1, gfx::SNESPalette aux2,
-             gfx::SNESColor background, gfx::SNESPalette hud,
-             gfx::SNESPalette spr, gfx::SNESPalette spr2)
+  Paletteset(gfx::SnesPalette main, gfx::SnesPalette animated,
+             gfx::SnesPalette aux1, gfx::SnesPalette aux2,
+             gfx::SnesColor background, gfx::SnesPalette hud,
+             gfx::SnesPalette spr, gfx::SnesPalette spr2, gfx::SnesPalette comp)
       : main(main),
         animated(animated),
         aux1(aux1),
@@ -289,15 +225,17 @@ struct Paletteset {
         background(background),
         hud(hud),
         spr(spr),
-        spr2(spr2) {}
-  gfx::SNESPalette main;
-  gfx::SNESPalette animated;
-  gfx::SNESPalette aux1;
-  gfx::SNESPalette aux2;
-  gfx::SNESColor background;
-  gfx::SNESPalette hud;
-  gfx::SNESPalette spr;
-  gfx::SNESPalette spr2;
+        spr2(spr2),
+        composite(comp) {}
+  gfx::SnesPalette main;
+  gfx::SnesPalette animated;
+  gfx::SnesPalette aux1;
+  gfx::SnesPalette aux2;
+  gfx::SnesColor background;
+  gfx::SnesPalette hud;
+  gfx::SnesPalette spr;
+  gfx::SnesPalette spr2;
+  gfx::SnesPalette composite;
 };
 
 }  // namespace gfx

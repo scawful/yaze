@@ -110,7 +110,7 @@ absl::Status Tile16Editor::UpdateTile16Transfer() {
 
 absl::Status Tile16Editor::UpdateBlockset() {
   gui::BeginPadding(2);
-  gui::BeginChildWithScrollbar(55);
+  gui::BeginChildWithScrollbar("##Tile16EditorBlocksetScrollRegion");
   blockset_canvas_.DrawBackground();
   gui::EndPadding();
   blockset_canvas_.DrawContextMenu();

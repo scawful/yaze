@@ -109,7 +109,7 @@ class Tile16Editor : public GfxContext, public SharedROM {
 
   PaletteEditor palette_editor_;
 
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   zelda3::Overworld transfer_overworld_;
 
   gfx::BitmapTable graphics_bin_;

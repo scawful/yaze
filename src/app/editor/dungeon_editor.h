@@ -90,8 +90,8 @@ class DungeonEditor : public Editor,
 
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
-  gfx::SNESPalette current_palette_;
-  gfx::SNESPalette full_palette_;
+  gfx::SnesPalette current_palette_;
+  gfx::SnesPalette full_palette_;
   gfx::PaletteGroup current_palette_group_;
 
   gui::Canvas canvas_;
