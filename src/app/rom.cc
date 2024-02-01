@@ -35,7 +35,7 @@ absl::Status LoadOverworldMainPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 6; i++) {
     RETURN_IF_ERROR(palette_groups["ow_main"].AddPalette(
-        gfx::ReadPaletteFromROM(core::overworldPaletteMain + (i * (35 * 2)),
+        gfx::ReadPaletteFromRom(core::overworldPaletteMain + (i * (35 * 2)),
                                 /*num_colors*/ 35, data)))
   }
   return absl::OkStatus();
@@ -45,7 +45,7 @@ absl::Status LoadOverworldAuxiliaryPalettes(const Bytes& rom_data,
                                             PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
-    RETURN_IF_ERROR(palette_groups["ow_aux"].AddPalette(gfx::ReadPaletteFromROM(
+    RETURN_IF_ERROR(palette_groups["ow_aux"].AddPalette(gfx::ReadPaletteFromRom(
         core::overworldPaletteAuxialiary + (i * (21 * 2)),
         /*num_colors*/ 21, data)))
   }
@@ -57,7 +57,7 @@ absl::Status LoadOverworldAnimatedPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 14; i++) {
     RETURN_IF_ERROR(
-        palette_groups["ow_animated"].AddPalette(gfx::ReadPaletteFromROM(
+        palette_groups["ow_animated"].AddPalette(gfx::ReadPaletteFromRom(
             core::overworldPaletteAnimated + (i * (7 * 2)), 7, data)))
   }
   return absl::OkStatus();
@@ -68,7 +68,7 @@ absl::Status LoadHUDPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
     RETURN_IF_ERROR(palette_groups["hud"].AddPalette(
-        gfx::ReadPaletteFromROM(core::hudPalettes + (i * 64), 32, data)))
+        gfx::ReadPaletteFromRom(core::hudPalettes + (i * 64), 32, data)))
   }
   return absl::OkStatus();
 }
@@ -77,9 +77,9 @@ absl::Status LoadGlobalSpritePalettes(const Bytes& rom_data,
                                       PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   RETURN_IF_ERROR(palette_groups["global_sprites"].AddPalette(
-      gfx::ReadPaletteFromROM(core::globalSpritePalettesLW, 60, data)))
+      gfx::ReadPaletteFromRom(core::globalSpritePalettesLW, 60, data)))
   RETURN_IF_ERROR(palette_groups["global_sprites"].AddPalette(
-      gfx::ReadPaletteFromROM(core::globalSpritePalettesDW, 60, data)))
+      gfx::ReadPaletteFromRom(core::globalSpritePalettesDW, 60, data)))
   return absl::OkStatus();
 }
 
@@ -88,7 +88,7 @@ absl::Status LoadArmorPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 5; i++) {
     RETURN_IF_ERROR(palette_groups["armors"].AddPalette(
-        gfx::ReadPaletteFromROM(core::armorPalettes + (i * 30), 15, data)))
+        gfx::ReadPaletteFromRom(core::armorPalettes + (i * 30), 15, data)))
   }
   return absl::OkStatus();
 }
@@ -98,7 +98,7 @@ absl::Status LoadSwordPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 4; i++) {
     RETURN_IF_ERROR(palette_groups["swords"].AddPalette(
-        gfx::ReadPaletteFromROM(core::swordPalettes + (i * 6), 3, data)))
+        gfx::ReadPaletteFromRom(core::swordPalettes + (i * 6), 3, data)))
   }
   return absl::OkStatus();
 }
@@ -108,7 +108,7 @@ absl::Status LoadShieldPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 3; i++) {
     RETURN_IF_ERROR(palette_groups["shields"].AddPalette(
-        gfx::ReadPaletteFromROM(core::shieldPalettes + (i * 8), 4, data)))
+        gfx::ReadPaletteFromRom(core::shieldPalettes + (i * 8), 4, data)))
   }
   return absl::OkStatus();
 }
@@ -118,7 +118,7 @@ absl::Status LoadSpriteAux1Palettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 12; i++) {
     RETURN_IF_ERROR(palette_groups["sprites_aux1"].AddPalette(
-        gfx::ReadPaletteFromROM(core::spritePalettesAux1 + (i * 14), 7, data)))
+        gfx::ReadPaletteFromRom(core::spritePalettesAux1 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
@@ -128,7 +128,7 @@ absl::Status LoadSpriteAux2Palettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 11; i++) {
     RETURN_IF_ERROR(palette_groups["sprites_aux2"].AddPalette(
-        gfx::ReadPaletteFromROM(core::spritePalettesAux2 + (i * 14), 7, data)))
+        gfx::ReadPaletteFromRom(core::spritePalettesAux2 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
@@ -138,7 +138,7 @@ absl::Status LoadSpriteAux3Palettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 24; i++) {
     RETURN_IF_ERROR(palette_groups["sprites_aux3"].AddPalette(
-        gfx::ReadPaletteFromROM(core::spritePalettesAux3 + (i * 14), 7, data)))
+        gfx::ReadPaletteFromRom(core::spritePalettesAux3 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
@@ -148,7 +148,7 @@ absl::Status LoadDungeonMainPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
     RETURN_IF_ERROR(
-        palette_groups["dungeon_main"].AddPalette(gfx::ReadPaletteFromROM(
+        palette_groups["dungeon_main"].AddPalette(gfx::ReadPaletteFromRom(
             core::dungeonMainPalettes + (i * 180), 90, data)))
   }
   return absl::OkStatus();
@@ -169,9 +169,9 @@ absl::Status Load3DObjectPalettes(const Bytes& rom_data,
                                   PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   RETURN_IF_ERROR(palette_groups["3d_object"].AddPalette(
-      gfx::ReadPaletteFromROM(core::triforcePalette, 8, data)))
+      gfx::ReadPaletteFromRom(core::triforcePalette, 8, data)))
   RETURN_IF_ERROR(palette_groups["3d_object"].AddPalette(
-      gfx::ReadPaletteFromROM(core::crystalPalette, 8, data)))
+      gfx::ReadPaletteFromRom(core::crystalPalette, 8, data)))
   return absl::OkStatus();
 }
 
@@ -180,7 +180,7 @@ absl::Status LoadOverworldMiniMapPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
     RETURN_IF_ERROR(
-        palette_groups["ow_mini_map"].AddPalette(gfx::ReadPaletteFromROM(
+        palette_groups["ow_mini_map"].AddPalette(gfx::ReadPaletteFromRom(
             core::overworldMiniMapPalettes + (i * 256), 128, data)))
   }
   return absl::OkStatus();

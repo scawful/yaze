@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/core/platform/clipboard.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -125,7 +126,7 @@ absl::Status OverworldEditor::DrawToolset() {
   static bool show_gfx_group = false;
   static bool show_properties = false;
 
-  if (BeginTable("OWToolset", 22, kToolsetTableFlags, ImVec2(0, 0))) {
+  if (BeginTable("OWToolset", 23, kToolsetTableFlags, ImVec2(0, 0))) {
     for (const auto &name : kToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
@@ -228,6 +229,19 @@ absl::Status OverworldEditor::DrawToolset() {
     HOVER_HINT("Gfx Group Editor")
 
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
+
+    TableNextColumn();
+    if (Button(ICON_MD_CONTENT_COPY)) {
+      std::vector<uint8_t> png_data;
+      if (gfx::ConvertSurfaceToPNG(maps_bmp_[current_map_].surface(),
+                                   png_data)) {
+        CopyImageToClipboard(png_data);
+      } else {
+        status_ = absl::InternalError(
+            "Failed to convert overworld map surface to PNG");
+      }
+    }
+    HOVER_HINT("Copy Map to Clipboard");
 
     TableNextColumn();  // Palette
     palette_editor_.DisplayPalette(palette_, overworld_.is_loaded());

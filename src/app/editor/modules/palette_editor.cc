@@ -71,7 +71,7 @@ void PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette, int index) {
   }
 
   // Get the current color
-  auto currentColor = palette.GetColor(index).GetRGB();
+  auto currentColor = palette.GetColor(index).rgb();
   if (ImGui::ColorPicker4("Color Picker", (float*)&palette[index])) {
     // The color was modified, update it in the palette
     palette(index, currentColor);
@@ -86,7 +86,7 @@ void PaletteEditor::ResetColorToOriginal(
     return;
   }
 
-  auto originalColor = originalPalette.GetColor(index).GetRGB();
+  auto originalColor = originalPalette.GetColor(index).rgb();
   palette(index, originalColor);
 }
 

@@ -453,9 +453,8 @@ class ROM : public core::ExperimentFlags {
   }
 
   absl::Status WriteColor(uint32_t address, const gfx::SnesColor& color) {
-    uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
-                   ((color.GetSNES() & 0x1F) << 10) |
-                   (color.GetSNES() & 0x7C00);
+    uint16_t bgr = ((color.snes() >> 10) & 0x1F) |
+                   ((color.snes() & 0x1F) << 10) | (color.snes() & 0x7C00);
 
     // Write the 16-bit color value to the ROM at the specified address
     core::Logger::log(absl::StrFormat("WriteColor: %#06X: %s", address,
@@ -561,9 +560,9 @@ class ROM : public core::ExperimentFlags {
     }
   }
 
-  void UpdateBitmap(gfx::Bitmap* bitmap) {
+  void UpdateBitmap(gfx::Bitmap* bitmap, bool use_sdl_update = false) {
     if (flags()->kLoadTexturesAsStreaming) {
-      bitmap->UpdateTexture(renderer_.get());
+      bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
     } else {
       bitmap->UpdateTexture(renderer_);
     }

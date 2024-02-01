@@ -62,7 +62,7 @@ class Canvas {
 
   // Context Menu refers to what happens when the right mouse button is pressed
   // This routine also handles the scrolling for the canvas.
-  void DrawContextMenu();
+  void DrawContextMenu(gfx::Bitmap* bitmap = nullptr);
 
   // Tile painter shows a preview of the currently selected tile
   // and allows the user to left click to paint the tile or right
@@ -71,7 +71,7 @@ class Canvas {
   bool DrawSolidTilePainter(const ImVec4& color, int size);
 
   // Draws a tile on the canvas at the specified position
-  void DrawTileOnBitmap(int tile_size, gfx::Bitmap& bitmap, ImVec4 color);
+  void DrawTileOnBitmap(int tile_size, gfx::Bitmap* bitmap, ImVec4 color);
 
   // Dictates which tile is currently selected based on what the user clicks
   // in the canvas window. Represented and split apart into a grid of tiles.

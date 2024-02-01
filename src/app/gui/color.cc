@@ -13,9 +13,9 @@ namespace app {
 namespace gui {
 
 ImVec4 ConvertSNESColorToImVec4(const SnesColor& color) {
-  return ImVec4(static_cast<float>(color.GetRGB().x) / 255.0f,
-                static_cast<float>(color.GetRGB().y) / 255.0f,
-                static_cast<float>(color.GetRGB().z) / 255.0f,
+  return ImVec4(static_cast<float>(color.rgb().x) / 255.0f,
+                static_cast<float>(color.rgb().y) / 255.0f,
+                static_cast<float>(color.rgb().z) / 255.0f,
                 1.0f  // Assuming alpha is always fully opaque for SNES colors,
                       // adjust if necessary
   );
@@ -45,9 +45,9 @@ void DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 saved_palette[32] = {};
   if (loaded && !init) {
     for (int n = 0; n < palette.size(); n++) {
-      saved_palette[n].x = palette.GetColor(n).GetRGB().x / 255;
-      saved_palette[n].y = palette.GetColor(n).GetRGB().y / 255;
-      saved_palette[n].z = palette.GetColor(n).GetRGB().z / 255;
+      saved_palette[n].x = palette.GetColor(n).rgb().x / 255;
+      saved_palette[n].y = palette.GetColor(n).rgb().y / 255;
+      saved_palette[n].z = palette.GetColor(n).rgb().z / 255;
       saved_palette[n].w = 255;  // Alpha
     }
     init = true;

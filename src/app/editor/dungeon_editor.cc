@@ -49,7 +49,7 @@ absl::Status DungeonEditor::Update() {
       int pId = paletteid / 180;
       auto color = rom()->palette_group("dungeon_main")[pId][3];
 
-      room_palette_[rooms_[i].palette] = color.GetRGB();
+      room_palette_[rooms_[i].palette] = color.rgb();
     }
 
     std::map<int, std::vector<int>> roomsByBank;
@@ -96,8 +96,11 @@ absl::Status DungeonEditor::Update() {
     graphics_bin_ = rom()->graphics_bin();
     full_palette_ =
         rom()->palette_group("dungeon_main")[current_palette_group_id_];
-    current_palette_group_ =
+    auto current_palette_group_status =
         gfx::CreatePaletteGroupFromLargePalette(full_palette_);
+    if (current_palette_group_status.ok()) {
+      current_palette_group_ = current_palette_group_status.value();
+    }
 
     // Create a vector of pointers to the current block bitmaps
     for (int block : rooms_[current_room_id_].blocks()) {
