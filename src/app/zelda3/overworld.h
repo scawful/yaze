@@ -496,6 +496,18 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveMapProperties();
   absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
 
+  void Destroy() {
+    for (auto &map : overworld_maps_) {
+      map.Destroy();
+    }
+    overworld_maps_.clear();
+    all_entrances_.clear();
+    all_exits_.clear();
+    all_items_.clear();
+    all_sprites_.clear();
+    is_loaded_ = false;
+  }
+
   int current_world_ = 0;
   int GetTileFromPosition(ImVec2 position) const {
     if (current_world_ == 0) {
@@ -516,10 +528,10 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
 
   auto Sprites(int state) const { return all_sprites_[state]; }
   auto mutable_sprites(int state) { return &all_sprites_[state]; }
-  auto AreaGraphics() const {
+  auto current_graphics() const {
     return overworld_maps_[current_map_].current_graphics();
   }
-  auto &Entrances() { return all_entrances_; }
+  auto &entrances() { return all_entrances_; }
   auto mutable_entrances() { return &all_entrances_; }
   auto &holes() { return all_holes_; }
   auto mutable_holes() { return &all_holes_; }
@@ -529,7 +541,9 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto AreaPaletteById(int id) const {
     return overworld_maps_[id].current_palette();
   }
-  auto BitmapData() const { return overworld_maps_[current_map_].bitmap_data(); }
+  auto BitmapData() const {
+    return overworld_maps_[current_map_].bitmap_data();
+  }
   auto Tile16Blockset() const {
     return overworld_maps_[current_map_].current_tile16_blockset();
   }

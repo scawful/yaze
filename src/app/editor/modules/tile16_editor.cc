@@ -293,8 +293,6 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
   return absl::OkStatus();
 }
 
-using core::TaskManager;
-
 absl::Status Tile16Editor::InitBlockset(
     const gfx::Bitmap& tile16_blockset_bmp, gfx::Bitmap current_gfx_bmp,
     const std::vector<gfx::Bitmap>& tile16_individual,
@@ -310,7 +308,6 @@ absl::Status Tile16Editor::InitBlockset(
 absl::Status Tile16Editor::LoadTile8() {
   current_gfx_individual_.reserve(1024);
 
-  // std::function<void(int)> taskFunc = [&](int index) {
   for (int index = 0; index < 1024; index++) {
     std::vector<uint8_t> tile_data(0x40, 0x00);
 
@@ -346,20 +343,8 @@ absl::Status Tile16Editor::LoadTile8() {
         rom()->palette_group("ow_main")[0], current_palette_);
     rom()->RenderBitmap(&current_gfx_individual_[index]);
   }
-  // };
 
-  // // Create the task manager
-  // static bool started = false;
-  // if (!started) {
-  //   task_manager_ = TaskManager<std::function<void(int)>>(1024, 60);
-  //   started = true;
-  // }
-  // task_manager_.ExecuteTasks(taskFunc);
-
-  // if (task_manager_.IsTaskComplete()) {
-  //   // All tasks are complete
   map_blockset_loaded_ = true;
-  // }
 
   return absl::OkStatus();
 }

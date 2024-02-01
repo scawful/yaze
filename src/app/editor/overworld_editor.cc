@@ -52,6 +52,7 @@ absl::Status OverworldEditor::Update() {
   } else if (!rom()->is_loaded() && all_gfx_loaded_) {
     // TODO: Destroy the overworld graphics canvas.
     Shutdown();
+    overworld_.Destroy();
     all_gfx_loaded_ = false;
     map_blockset_loaded_ = false;
   }
@@ -177,43 +178,37 @@ absl::Status OverworldEditor::DrawToolset() {
 
     NEXT_COLUMN()
     if (ImGui::Selectable(ICON_MD_DOOR_FRONT,
-                          current_mode == EditingMode::ENTRANCES)) {
+                          current_mode == EditingMode::ENTRANCES))
       current_mode = EditingMode::ENTRANCES;
-    }
     HOVER_HINT("Entrances")
 
     NEXT_COLUMN()
     if (ImGui::Selectable(ICON_MD_DOOR_BACK,
-                          current_mode == EditingMode::EXITS)) {
+                          current_mode == EditingMode::EXITS))
       current_mode = EditingMode::EXITS;
-    }
     HOVER_HINT("Exits")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS)) {
+    if (ImGui::Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
       current_mode = EditingMode::ITEMS;
-    }
     HOVER_HINT("Items")
 
     NEXT_COLUMN()
     if (ImGui::Selectable(ICON_MD_PEST_CONTROL_RODENT,
-                          current_mode == EditingMode::SPRITES)) {
+                          current_mode == EditingMode::SPRITES))
       current_mode = EditingMode::SPRITES;
-    }
     HOVER_HINT("Sprites")
 
     NEXT_COLUMN()
     if (ImGui::Selectable(ICON_MD_ADD_LOCATION,
-                          current_mode == EditingMode::TRANSPORTS)) {
+                          current_mode == EditingMode::TRANSPORTS))
       current_mode = EditingMode::TRANSPORTS;
-    }
     HOVER_HINT("Transports")
 
     NEXT_COLUMN()
     if (ImGui::Selectable(ICON_MD_MUSIC_NOTE,
-                          current_mode == EditingMode::MUSIC)) {
+                          current_mode == EditingMode::MUSIC))
       current_mode = EditingMode::MUSIC;
-    }
     HOVER_HINT("Music")
 
     TableNextColumn();
@@ -786,7 +781,7 @@ void OverworldEditor::DrawAreaGraphics() {
       palette_ = overworld_.AreaPalette();
       gfx::Bitmap bmp;
       gui::BuildAndRenderBitmapPipeline(
-          0x80, 0x200, 0x08, overworld_.AreaGraphics(), *rom(), bmp, palette_);
+          0x80, 0x200, 0x08, overworld_.current_graphics(), *rom(), bmp, palette_);
       current_graphics_set_[current_map_] = bmp;
     }
   }
@@ -970,7 +965,7 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
 void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
                                              bool holes) {
   int i = 0;
-  for (auto &each : overworld_.Entrances()) {
+  for (auto &each : overworld_.entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
       // Make this yellow
@@ -1017,8 +1012,8 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
       ImGui::OpenPopup("Entrance Inserter");
     } else {
       if (entrance_internal::DrawOverworldEntrancePopup(
-              overworld_.Entrances()[current_entrance_id_])) {
-        overworld_.Entrances()[current_entrance_id_] = current_entrance_;
+              overworld_.entrances()[current_entrance_id_])) {
+        overworld_.entrances()[current_entrance_id_] = current_entrance_;
       }
     }
   }
@@ -1567,7 +1562,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Create the area graphics image
   gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
-                                    overworld_.AreaGraphics(), *rom(),
+                                    overworld_.current_graphics(), *rom(),
                                     current_gfx_bmp_, palette_);
 
   // Create the tile16 blockset image
@@ -1784,11 +1779,11 @@ absl::Status OverworldEditor::UpdateUsageStats() {
     for (int i = 0; i < 0x81; i++) {
       std::string str = absl::StrFormat("%#x", i);
       if (ImGui::Selectable(str.c_str(), selected_entrance_ == i,
-                            overworld_.Entrances().at(i).deleted
+                            overworld_.entrances().at(i).deleted
                                 ? ImGuiSelectableFlags_Disabled
                                 : 0)) {
         selected_entrance_ = i;
-        selected_usage_map_ = overworld_.Entrances().at(i).map_id_;
+        selected_usage_map_ = overworld_.entrances().at(i).map_id_;
         properties_canvas_.set_highlight_tile_id(selected_usage_map_);
       }
     }
@@ -1805,7 +1800,7 @@ absl::Status OverworldEditor::UpdateUsageStats() {
 
 void OverworldEditor::CalculateUsageStats() {
   absl::flat_hash_map<uint16_t, int> entrance_usage;
-  for (auto each_entrance : overworld_.Entrances()) {
+  for (auto each_entrance : overworld_.entrances()) {
     if (each_entrance.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each_entrance.map_id_ >= (current_world_ * 0x40)) {
       entrance_usage[each_entrance.entrance_id_]++;
