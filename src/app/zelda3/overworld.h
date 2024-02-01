@@ -517,21 +517,21 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto Sprites(int state) const { return all_sprites_[state]; }
   auto mutable_sprites(int state) { return &all_sprites_[state]; }
   auto AreaGraphics() const {
-    return overworld_maps_[current_map_].AreaGraphics();
+    return overworld_maps_[current_map_].current_graphics();
   }
   auto &Entrances() { return all_entrances_; }
   auto mutable_entrances() { return &all_entrances_; }
   auto &holes() { return all_holes_; }
   auto mutable_holes() { return &all_holes_; }
   auto AreaPalette() const {
-    return overworld_maps_[current_map_].AreaPalette();
+    return overworld_maps_[current_map_].current_palette();
   }
   auto AreaPaletteById(int id) const {
-    return overworld_maps_[id].AreaPalette();
+    return overworld_maps_[id].current_palette();
   }
-  auto BitmapData() const { return overworld_maps_[current_map_].BitmapData(); }
+  auto BitmapData() const { return overworld_maps_[current_map_].bitmap_data(); }
   auto Tile16Blockset() const {
-    return overworld_maps_[current_map_].Tile16Blockset();
+    return overworld_maps_[current_map_].current_tile16_blockset();
   }
   auto is_loaded() const { return is_loaded_; }
   void set_current_map(int i) { current_map_ = i; }
