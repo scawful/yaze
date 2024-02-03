@@ -535,6 +535,8 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   auto mutable_entrances() { return &all_entrances_; }
   auto &holes() { return all_holes_; }
   auto mutable_holes() { return &all_holes_; }
+  auto deleted_entrances() const { return deleted_entrances_; }
+  auto mutable_deleted_entrances() { return &deleted_entrances_; }
   auto AreaPalette() const {
     return overworld_maps_[current_map_].current_palette();
   }
@@ -598,6 +600,8 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   std::vector<OverworldExit> all_exits_;
   std::vector<OverworldItem> all_items_;
   std::vector<std::vector<Sprite>> all_sprites_;
+
+  std::vector<uint64_t> deleted_entrances_;
 
   std::vector<std::vector<uint8_t>> map_data_p1 =
       std::vector<std::vector<uint8_t>>(kNumOverworldMaps);

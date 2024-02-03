@@ -338,7 +338,11 @@ void MasterEditor::DrawFileMenu() {
       ImGui::EndMenu();
     }
 
-    MENU_ITEM2("Save", "Ctrl+S") { SaveRom(); }
+    MENU_ITEM2("Save", "Ctrl+S") {
+      if (rom()->is_loaded()) {
+        SaveRom();
+      }
+    }
     MENU_ITEM("Save As..") { save_as_menu = true; }
 
     if (rom()->is_loaded()) {

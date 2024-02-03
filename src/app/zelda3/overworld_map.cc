@@ -65,6 +65,8 @@ void OverworldMap::LoadAreaInfo() {
     }
   }
 
+  message_id_ = rom_.toint16(overworldMessages + (parent_ * 2));
+
   if (index_ < 0x40) {
     area_graphics_ = rom_[mapGfx + parent_];
     area_palette_ = rom_[overworldMapPalette + parent_];
@@ -116,8 +118,6 @@ void OverworldMap::LoadAreaInfo() {
                index_ == 138) {
       parent_ = 129;
     }
-
-    message_id_ = rom_[overworldMessages + parent_];
 
     area_palette_ = rom_[overworldSpecialPALGroup + parent_ - 0x80];
     if ((index_ >= 0x80 && index_ <= 0x8A && index_ != 0x88) ||

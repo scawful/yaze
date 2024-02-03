@@ -194,7 +194,7 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
     auto popup_id = absl::StrCat("Palette", n);
 
     // Small icon of the color in the palette
-    if (gui::SNESColorButton(popup_id, palette[n],
+    if (gui::SnesColorButton(popup_id, palette[n],
                              ImGuiColorEditFlags_NoAlpha |
                                  ImGuiColorEditFlags_NoPicker |
                                  ImGuiColorEditFlags_NoTooltip)) {

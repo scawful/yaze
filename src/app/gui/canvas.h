@@ -163,6 +163,8 @@ class Canvas {
   bool select_rect_active() const { return select_rect_active_; }
   auto selected_points() const { return selected_points_; }
 
+  auto hover_mouse_pos() const { return mouse_pos_in_canvas_; }
+
  private:
   bool draggable_ = false;
   bool enable_grid_ = true;

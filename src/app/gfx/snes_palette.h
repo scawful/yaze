@@ -77,6 +77,8 @@ class SnesPalette {
     return colors[i];
   }
 
+  auto mutable_color(int i) { return &colors[i]; }
+
   void Clear() {
     colors.clear();
     size_ = 0;
