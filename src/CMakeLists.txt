@@ -77,7 +77,7 @@ if(WIN32 OR MINGW)
     add_definitions(-DSDL_MAIN_HANDLED)
 endif()
 
-if (WIN32 OR MINGW OR UNIX)
+if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
   list(APPEND YAZE_APP_CORE_SRC
     app/core/platform/font_loader.cc
     app/core/platform/clipboard.cc
