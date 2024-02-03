@@ -29,7 +29,6 @@ std::vector<char> Convert(const std::vector<snes_color>& palette);
 class SnesColor {
  public:
   SnesColor() : rgb_(0.f, 0.f, 0.f, 0.f), snes_(0) {}
-
   explicit SnesColor(const ImVec4 val) : rgb_(val) {
     snes_color color;
     color.red = val.x / 255;
@@ -42,6 +41,16 @@ class SnesColor {
       : rgb_(val.red, val.green, val.blue, 255.f),
         snes_(ConvertRGBtoSNES(val)),
         rom_color_(val) {}
+
+  SnesColor(uint8_t r, uint8_t g, uint8_t b) {
+    rgb_ = ImVec4(r, g, b, 255.f);
+    snes_color color;
+    color.red = r;
+    color.green = g;
+    color.blue = b;
+    snes_ = ConvertRGBtoSNES(color);
+    rom_color_ = color;
+  }
 
   ImVec4 rgb() const { return rgb_; }
   void set_rgb(const ImVec4 val) {

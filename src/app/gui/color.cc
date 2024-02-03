@@ -21,7 +21,7 @@ ImVec4 ConvertSNESColorToImVec4(const SnesColor& color) {
   );
 }
 
-IMGUI_API bool SNESColorButton(absl::string_view id, SnesColor& color,
+IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags,
                                const ImVec2& size_arg) {
   // Convert the SNES color values to ImGui color values (normalized to 0-1
@@ -30,6 +30,24 @@ IMGUI_API bool SNESColorButton(absl::string_view id, SnesColor& color,
 
   // Call the original ImGui::ColorButton with the converted color
   bool pressed = ImGui::ColorButton(id.data(), displayColor, flags, size_arg);
+
+  return pressed;
+}
+
+IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
+                              ImGuiColorEditFlags flags) {
+  // Convert the SNES color values to ImGui color values (normalized to 0-1
+  // range)
+  ImVec4 displayColor = ConvertSNESColorToImVec4(color);
+
+  // Call the original ImGui::ColorEdit4 with the converted color
+  bool pressed = ImGui::ColorEdit4(label.data(), (float*)&displayColor, flags);
+
+  // Convert the ImGui color values back to SNES color values (normalized to
+  // 0-255 range)
+  color = SnesColor(static_cast<uint8_t>(displayColor.x * 255.0f),
+                    static_cast<uint8_t>(displayColor.y * 255.0f),
+                    static_cast<uint8_t>(displayColor.z * 255.0f));
 
   return pressed;
 }

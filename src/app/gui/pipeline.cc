@@ -43,7 +43,7 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
       }
 
-      if (gui::SNESColorButton("##palette", palette[n],
+      if (gui::SnesColorButton("##palette", palette[n],
                                ImGuiColorEditFlags_NoAlpha |
                                    ImGuiColorEditFlags_NoPicker |
                                    ImGuiColorEditFlags_NoTooltip,

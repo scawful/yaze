@@ -20,9 +20,12 @@ using gfx::SnesColor;
 ImVec4 ConvertSNESColorToImVec4(const SnesColor& color);
 
 // The wrapper function for ImGui::ColorButton that takes a SnesColor reference
-IMGUI_API bool SNESColorButton(absl::string_view id, SnesColor& color,
+IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags = 0,
                                const ImVec2& size_arg = ImVec2(0, 0));
+
+IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
+                              ImGuiColorEditFlags flags = 0);
 
 void DisplayPalette(app::gfx::SnesPalette& palette, bool loaded);
 

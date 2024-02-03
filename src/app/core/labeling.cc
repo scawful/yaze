@@ -106,7 +106,7 @@ void ResourceLabelManager::SelectableLabelWithNameEdit(
   ImGui::Selectable(label.c_str(), selected,
                     ImGuiSelectableFlags_AllowDoubleClick);
   std::string label_id = type + "_" + key;
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+  if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     ImGui::OpenPopup(label_id.c_str());
   }
 
@@ -118,8 +118,6 @@ void ResourceLabelManager::SelectableLabelWithNameEdit(
     }
     ImGui::EndPopup();
   }
-
-  // ImGui::PopID();
 }
 
 std::string ResourceLabelManager::CreateOrGetLabel(
