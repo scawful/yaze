@@ -1576,6 +1576,8 @@ void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
               << static_cast<int>(DB);
     std::cout << " D:" << std::hex << std::setw(2) << std::setfill('0')
               << static_cast<int>(D);
+    std::cout << " SP:" << std::hex << std::setw(4) << std::setfill('0')
+              << SP();
 
     std::cout << std::endl;
   }

@@ -190,9 +190,9 @@ void Room::LoadRoomFromROM() {
   hpos++;
 
   // Load room objects
-  // int objectPointer = core::SnesToPc(room_object_pointer);
-  // int room_address = objectPointer + (room_id_ * 3);
-  // int objects_location = core::SnesToPc(room_address);
+  int objectPointer = core::SnesToPc(room_object_pointer);
+  int room_address = objectPointer + (room_id_ * 3);
+  int objects_location = core::SnesToPc(room_address);
 
   // Load sprites
   // int spr_ptr = 0x040000 | rooms_sprite_pointer;
@@ -423,11 +423,12 @@ void Room::LoadObjects() {
 
 void Room::LoadSprites() {
   auto rom_data = rom()->vector();
-  int spritePointer = (0x04 << 16) + (rom_data[rooms_sprite_pointer + 1] << 8) +
-                      (rom_data[rooms_sprite_pointer]);
+  int sprite_pointer = (0x04 << 16) +
+                       (rom_data[rooms_sprite_pointer + 1] << 8) +
+                       (rom_data[rooms_sprite_pointer]);
   int sprite_address_snes =
-      (0x09 << 16) + (rom_data[spritePointer + (room_id_ * 2) + 1] << 8) +
-      rom_data[spritePointer + (room_id_ * 2)];
+      (0x09 << 16) + (rom_data[sprite_pointer + (room_id_ * 2) + 1] << 8) +
+      rom_data[sprite_pointer + (room_id_ * 2)];
 
   int sprite_address = core::SnesToPc(sprite_address_snes);
   bool sortsprites = rom_data[sprite_address] == 1;

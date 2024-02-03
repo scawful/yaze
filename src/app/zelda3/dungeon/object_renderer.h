@@ -46,8 +46,7 @@ class DungeonObjectRenderer : public SharedROM {
 
   gfx::Bitmap* bitmap() { return &bitmap_; }
   auto memory() { return memory_; }
-  auto* memory_ptr() { return &memory_; }
-  auto mutable_memory() { return memory_.data(); }
+  auto mutable_memory() { return &memory_; }
 
  private:
   struct SubtypeInfo {
@@ -83,15 +82,6 @@ class DungeonObjectRenderer : public SharedROM {
         // Handle unknown subtype
         throw std::runtime_error("Unknown subtype for object ID: " +
                                  std::to_string(object_id));
-    }
-
-    // Find the RTS of the subtype routine
-    while (true) {
-      uint8_t opcode = memory_.ReadByte(info.routine_ptr);
-      if (opcode == 0x60) {
-        break;
-      }
-      info.routine_ptr++;
     }
 
     return info;
@@ -142,13 +132,21 @@ class DungeonObjectRenderer : public SharedROM {
     cpu.PB = 0x01;
     cpu.PC = cpu.ReadWord(0x01 << 16 | info.routine_ptr);
 
+    // Push an initial value to the stack we can read later to confirm we are
+    // done
+    cpu.PushLong(0x01 << 16 | info.routine_ptr);
+
     int i = 0;
     while (true) {
       uint8_t opcode = cpu.ReadByte(cpu.PB << 16 | cpu.PC);
       cpu.ExecuteInstruction(opcode);
       cpu.HandleInterrupts();
 
-      if (i > 50) {
+      if ((i != 0 && (cpu.ReadWord((0x00 << 16 | cpu.SP() + 2)) ==
+                      info.routine_ptr) ||
+           0x8b93 == cpu.PC)) {
+        std::cout << std::hex << cpu.ReadWord((0x00 << 16 | cpu.SP() + 3))
+                  << std::endl;
         break;
       }
       i++;
@@ -160,9 +158,6 @@ class DungeonObjectRenderer : public SharedROM {
   // In the underworld, this holds a copy of the entire BG tilemap for
   // Layer 1 (BG2) in TILEMAPA
   // Layer 2 (BG1) in TILEMAPB
-  //
-  // In the overworld, this holds the entire map16 space, using both blocks as a
-  // single array TILEMAPA        = $7E2000 TILEMAPB        = $7E4000
   void UpdateObjectBitmap() {
     tilemap_.reserve(0x2000);
     for (int i = 0; i < 0x2000; ++i) {
@@ -174,12 +169,13 @@ class DungeonObjectRenderer : public SharedROM {
     for (int tile_index = 0; tile_index < 512; tile_index++) {
       // Read the tile ID from memory
       int tile_id = memory_.ReadWord(0x7E2000 + tile_index);
+      std::cout << "Tile ID: " << std::hex << tile_id << std::endl;
 
       int sheet_number = tile_id / 32;
-      int local_id = tile_id % 32;
+      std::cout << "Sheet number: " << std::hex << sheet_number << std::endl;
 
-      int row = local_id / 8;
-      int column = local_id % 8;
+      int row = tile_id / 8;
+      int column = tile_id % 8;
 
       int x = column * 8;
       int y = row * 8;
@@ -190,8 +186,7 @@ class DungeonObjectRenderer : public SharedROM {
       sheet->Get8x8Tile(tile_id, x, y, tilemap_, tilemap_offset);
     }
 
-    bitmap_.mutable_data() = tilemap_;
-    bitmap_.Create(256, 256, 8, tilemap_.size());
+    bitmap_.Create(256, 256, 8, tilemap_);
   }
 
   std::vector<uint8_t> tilemap_;
