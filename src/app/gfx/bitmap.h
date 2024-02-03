@@ -72,13 +72,13 @@ class Bitmap {
 
   void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
                   int &tile_data_offset) {
-    int tile_offset = tile_index * 64;
-    int tile_x = x * 8;
-    int tile_y = y * 8;
+    int tile_offset = tile_index * (width_ * height_);
+    int tile_x = (x * 8) % width_;
+    int tile_y = (y * 8) % height_;
     for (int i = 0; i < 8; i++) {
-      int row_offset = tile_offset + (i * 8);
+      int row_offset = tile_offset + ((tile_y + i) * width_);
       for (int j = 0; j < 8; j++) {
-        int pixel_offset = row_offset + j;
+        int pixel_offset = row_offset + (tile_x + j);
         int pixel_value = data_[pixel_offset];
         tile_data[tile_data_offset] = pixel_value;
         tile_data_offset++;

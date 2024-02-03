@@ -486,8 +486,8 @@ void OverworldEditor::DrawOverworldMaps() {
 
 void OverworldEditor::DrawOverworldEdits() {
   // Determine which overworld map the user is currently editing.
-  auto mouse_position = ow_map_canvas_.drawn_tile_position();
   constexpr int small_map_size = 512;
+  auto mouse_position = ow_map_canvas_.drawn_tile_position();
   int map_x = mouse_position.x / small_map_size;
   int map_y = mouse_position.y / small_map_size;
   current_map_ = map_x + map_y * 8;
@@ -780,8 +780,9 @@ void OverworldEditor::DrawAreaGraphics() {
       overworld_.set_current_map(current_map_);
       palette_ = overworld_.AreaPalette();
       gfx::Bitmap bmp;
-      gui::BuildAndRenderBitmapPipeline(
-          0x80, 0x200, 0x08, overworld_.current_graphics(), *rom(), bmp, palette_);
+      gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x08,
+                                        overworld_.current_graphics(), *rom(),
+                                        bmp, palette_);
       current_graphics_set_[current_map_] = bmp;
     }
   }
@@ -915,12 +916,17 @@ void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
 
 namespace entrance_internal {
 
-void DrawEntranceInserterPopup() {
+bool DrawEntranceInserterPopup() {
+  bool set_done = false;
+  if (set_done) {
+    set_done = false;
+  }
   if (ImGui::BeginPopup("Entrance Inserter")) {
     static int entrance_id = 0;
     gui::InputHex("Entrance ID", &entrance_id);
 
     if (ImGui::Button(ICON_MD_DONE)) {
+      set_done = true;
       ImGui::CloseCurrentPopup();
     }
 
@@ -931,6 +937,7 @@ void DrawEntranceInserterPopup() {
 
     ImGui::EndPopup();
   }
+  return set_done;
 }
 
 bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
@@ -949,10 +956,14 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
     if (ImGui::Button(ICON_MD_DONE)) {
       ImGui::CloseCurrentPopup();
     }
-
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CANCEL)) {
       set_done = true;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DELETE)) {
+      entrance.deleted = true;
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -972,9 +983,6 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
       auto color = ImVec4(255, 255, 0, 100);
       if (each.is_hole_) {
         color = ImVec4(255, 255, 255, 200);
-      }
-      if (each.deleted) {
-        color = ImVec4(0, 0, 0, 0);
       }
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
       std::string str = core::UppercaseHexByte(each.entrance_id_);
@@ -1003,7 +1011,18 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
     i++;
   }
 
-  entrance_internal::DrawEntranceInserterPopup();
+  if (entrance_internal::DrawEntranceInserterPopup()) {
+    // Get the deleted entrance ID and insert it at the mouse position
+    auto deleted_entrance_id = overworld_.deleted_entrances().back();
+    overworld_.deleted_entrances().pop_back();
+    auto &entrance = overworld_.entrances()[deleted_entrance_id];
+    entrance.map_id_ = current_map_;
+    entrance.entrance_id_ = deleted_entrance_id;
+    entrance.x_ = ow_map_canvas_.hover_mouse_pos().x;
+    entrance.y_ = ow_map_canvas_.hover_mouse_pos().y;
+    entrance.deleted = false;
+  }
+
   if (current_mode == EditingMode::ENTRANCES) {
     const auto is_hovering = entity_internal::IsMouseHoveringOverEntity(
         current_entrance_, canvas_p0, scrolling);
@@ -1014,6 +1033,11 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
       if (entrance_internal::DrawOverworldEntrancePopup(
               overworld_.entrances()[current_entrance_id_])) {
         overworld_.entrances()[current_entrance_id_] = current_entrance_;
+      }
+
+      if (overworld_.entrances()[current_entrance_id_].deleted) {
+        overworld_.mutable_deleted_entrances()->emplace_back(
+            current_entrance_id_);
       }
     }
   }

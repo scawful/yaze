@@ -275,11 +275,13 @@ absl::Status Overworld::DecompressAllMapTiles() {
     for (int i = 0; i < size1; i++) {
       bytes[i] = decomp[i];
     }
+    free(decomp);
     decomp = gfx::lc_lz2::Uncompress(rom()->data() + p1, &size2, 1);
     bytes2.resize(size2);
     for (int i = 0; i < size2; i++) {
       bytes2[i] = decomp[i];
     }
+    free(decomp);
 
     OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);
 

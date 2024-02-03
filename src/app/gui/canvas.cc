@@ -173,6 +173,8 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
     painter_pos.y =
         std::floor((double)mouse_pos.y / (size * scale)) * (size * scale);
 
+    mouse_pos_in_canvas_ = painter_pos;
+
     auto painter_pos_end =
         ImVec2(painter_pos.x + (size * scale), painter_pos.y + (size * scale));
     points_.push_back(painter_pos);
