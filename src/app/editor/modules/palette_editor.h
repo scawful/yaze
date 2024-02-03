@@ -26,11 +26,11 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
     "ow_mini_map", "3d_object",      "3d_object"};
 
 struct PaletteChange {
-  std::string groupName;
-  size_t paletteIndex;
-  size_t colorIndex;
-  gfx::SnesColor originalColor;
-  gfx::SnesColor newColor;
+  std::string group_name;
+  size_t palette_index;
+  size_t color_index;
+  gfx::SnesColor original_color;
+  gfx::SnesColor new_color;
 };
 
 class PaletteEditorHistory {
@@ -59,10 +59,10 @@ class PaletteEditorHistory {
                                   size_t paletteIndex,
                                   size_t colorIndex) const {
     for (const auto& change : recentChanges) {
-      if (change.groupName == groupName &&
-          change.paletteIndex == paletteIndex &&
-          change.colorIndex == colorIndex) {
-        return change.originalColor;
+      if (change.group_name == groupName &&
+          change.palette_index == paletteIndex &&
+          change.color_index == colorIndex) {
+        return change.original_color;
       }
     }
     // Handle error or return default (this is just an example,
@@ -104,12 +104,11 @@ class PaletteEditor : public SharedROM {
   PaletteEditorHistory history_;
 
   ImVec4 saved_palette_[256] = {};
-  ImVec4 current_color_;
+  gfx::SnesColor current_color_;
 
   ImGuiColorEditFlags color_popup_flags =
       ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha;
-  ImGuiColorEditFlags palette_button_flags =
-      ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoTooltip;
+  ImGuiColorEditFlags palette_button_flags = ImGuiColorEditFlags_NoAlpha;
   ImGuiColorEditFlags palette_button_flags_2 = ImGuiColorEditFlags_NoAlpha |
                                                ImGuiColorEditFlags_NoPicker |
                                                ImGuiColorEditFlags_NoTooltip;

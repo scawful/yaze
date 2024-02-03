@@ -35,6 +35,8 @@ class ResourceLabelManager {
                                    const std::string& defaultValue);
   std::string CreateOrGetLabel(const std::string& type, const std::string& key,
                                const std::string& defaultValue);
+  std::string CreateOrGetLabel(const std::string& type, const std::string& key,
+                               const absl::string_view& defaultValue);
 
  private:
   bool labels_loaded_ = false;
