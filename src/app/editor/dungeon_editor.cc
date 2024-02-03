@@ -44,78 +44,45 @@ absl::Status DungeonEditor::Update() {
       }
 
       auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
-      ASSIGN_OR_RETURN(auto paletteid,
+      ASSIGN_OR_RETURN(auto palette_id,
                        rom()->ReadWord(0xDEC4B + dungeon_palette_ptr));
-      int pId = paletteid / 180;
-      auto color = rom()->palette_group("dungeon_main")[pId][3];
+      int p_id = palette_id / 180;
+      auto color = rom()->palette_group("dungeon_main")[p_id][3];
 
       room_palette_[rooms_[i].palette] = color.rgb();
     }
 
-    std::map<int, std::vector<int>> roomsByBank;
-    for (const auto& room : room_size_addresses_) {
-      int bank = room.second >> 16;
-      roomsByBank[bank].push_back(room.second);
-    }
+    LoadDungeonRoomSize();
 
-    // Process and calculate room sizes within each bank
-    for (auto& bankRooms : roomsByBank) {
-      // Sort the rooms within this bank
-      std::sort(bankRooms.second.begin(), bankRooms.second.end());
-
-      for (size_t i = 0; i < bankRooms.second.size(); ++i) {
-        int roomPtr = bankRooms.second[i];
-
-        // Identify the room ID for the current room pointer
-        int roomId = std::find_if(room_size_addresses_.begin(),
-                                  room_size_addresses_.end(),
-                                  [roomPtr](const auto& entry) {
-                                    return entry.second == roomPtr;
-                                  })
-                         ->first;
-
-        if (roomPtr != 0x0A8000) {
-          if (i < bankRooms.second.size() - 1) {
-            // Calculate size as difference between current room and next room
-            // in the same bank
-            rooms_[roomId].set_room_size(bankRooms.second[i + 1] - roomPtr);
-          } else {
-            // Calculate size for the last room in this bank
-
-            int bankEndAddress = (bankRooms.first << 16) | 0xFFFF;
-            rooms_[roomId].set_room_size(bankEndAddress - roomPtr + 1);
-          }
-          total_room_size_ += rooms_[roomId].room_size();
-        } else {
-          // Room with address 0x0A8000
-          rooms_[roomId].set_room_size(0x00);
-        }
-      }
-    }
-
-    graphics_bin_ = rom()->graphics_bin();
+    // Load the palette group and palette for the dungeon
     full_palette_ =
         rom()->palette_group("dungeon_main")[current_palette_group_id_];
-    auto current_palette_group_status =
-        gfx::CreatePaletteGroupFromLargePalette(full_palette_);
-    if (current_palette_group_status.ok()) {
-      current_palette_group_ = current_palette_group_status.value();
-    }
+    ASSIGN_OR_RETURN(current_palette_group_,
+                     gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
+    graphics_bin_ = *rom()->mutable_bitmap_manager();
     // Create a vector of pointers to the current block bitmaps
     for (int block : rooms_[current_room_id_].blocks()) {
-      room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
+      room_gfx_sheets_.emplace_back(graphics_bin_[block].get());
     }
 
     is_loaded_ = true;
   }
 
   if (refresh_graphics_) {
-    for (int block : rooms_[current_room_id_].blocks()) {
-      graphics_bin_[block].ApplyPalette(
-          current_palette_group_[current_palette_id_]);
-      rom()->UpdateBitmap(&graphics_bin_[block]);
+    for (int i = 0; i < 8; i++) {
+      int block = rooms_[current_room_id_].blocks()[i];
+      graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+          current_palette_group_[current_palette_id_], 0);
+      rom()->UpdateBitmap(graphics_bin_[block].get(), true);
     }
+    for (int i = 9; i < 16; i++) {
+      int block = rooms_[current_room_id_].blocks()[i];
+      graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+          rom()->palette_group("sprites_aux1")[current_palette_id_], 0);
+      rom()->UpdateBitmap(graphics_bin_[block].get(), true);
+    }
+
     refresh_graphics_ = false;
   }
 
@@ -136,6 +103,48 @@ absl::Status DungeonEditor::Update() {
   END_TAB_BAR()
 
   return absl::OkStatus();
+}
+
+void DungeonEditor::LoadDungeonRoomSize() {
+  std::map<int, std::vector<int>> rooms_by_bank;
+  for (const auto& room : room_size_addresses_) {
+    int bank = room.second >> 16;
+    rooms_by_bank[bank].push_back(room.second);
+  }
+
+  // Process and calculate room sizes within each bank
+  for (auto& bank_rooms : rooms_by_bank) {
+    // Sort the rooms within this bank
+    std::sort(bank_rooms.second.begin(), bank_rooms.second.end());
+
+    for (size_t i = 0; i < bank_rooms.second.size(); ++i) {
+      int room_ptr = bank_rooms.second[i];
+
+      // Identify the room ID for the current room pointer
+      int room_id =
+          std::find_if(room_size_addresses_.begin(), room_size_addresses_.end(),
+                       [room_ptr](const auto& entry) {
+                         return entry.second == room_ptr;
+                       })
+              ->first;
+
+      if (room_ptr != 0x0A8000) {
+        if (i < bank_rooms.second.size() - 1) {
+          // Calculate size as difference between current room and next room
+          // in the same bank
+          rooms_[room_id].set_room_size(bank_rooms.second[i + 1] - room_ptr);
+        } else {
+          // Calculate size for the last room in this bank
+          int bank_end_address = (bank_rooms.first << 16) | 0xFFFF;
+          rooms_[room_id].set_room_size(bank_end_address - room_ptr + 1);
+        }
+        total_room_size_ += rooms_[room_id].room_size();
+      } else {
+        // Room with address 0x0A8000
+        rooms_[room_id].set_room_size(0x00);
+      }
+    }
+  }
 }
 
 void DungeonEditor::UpdateDungeonRoomView() {
@@ -279,13 +288,16 @@ void DungeonEditor::DrawRoomSelector() {
                           ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
       int i = 0;
       for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
-        // ImGui::Selectable(each_room_name.data(), current_room_id_ == i,
-        //                   ImGuiSelectableFlags_AllowDoubleClick);
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_room_id_ == i, "Dungeon Room Names", each_room_name.data(),
             zelda3::dungeon::kRoomNames[i].data());
         if (ImGui::IsItemClicked()) {
-          active_rooms_.push_back(i);
+          if (active_rooms_.contains(i)) {
+            current_room_id_ = i;
+          } else {
+            active_rooms_.push_back(i);
+            current_room_id_ = i;
+          }
         }
         i += 1;
       }
@@ -298,7 +310,6 @@ void DungeonEditor::DrawDungeonTabView() {
   static int next_tab_id = 0;
 
   if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
-    // TODO: Manage the room that is being added to the tab bar.
     if (ImGui::TabItemButton("+", kDungeonTabFlags)) {
       if (std::find(active_rooms_.begin(), active_rooms_.end(),
                     current_room_id_) != active_rooms_.end()) {
@@ -384,7 +395,7 @@ void DungeonEditor::DrawRoomGraphics() {
         top_left_y = room_gfx_canvas_.zero_point().y + height * current_block;
       }
       room_gfx_canvas_.draw_list()->AddImage(
-          (void*)graphics_bin_[block].texture(),
+          (void*)graphics_bin_[block].get()->texture(),
           ImVec2(room_gfx_canvas_.zero_point().x + 2, top_left_y),
           ImVec2(room_gfx_canvas_.zero_point().x + 0x100,
                  room_gfx_canvas_.zero_point().y + offset));
@@ -459,14 +470,13 @@ void DungeonEditor::DrawObjectRenderer() {
     ImGui::EndTable();
   }
 
-  // if (object_loaded_) {
-  //   ImGui::Begin("Memory Viewer", &object_loaded_, 0);
-  //   auto memory = object_renderer_.memory();
-  //   static MemoryEditor mem_edit;
-  //   mem_edit.DrawContents((void*)object_renderer_.memory_ptr(),
-  //                         memory.size());
-  //   ImGui::End();
-  // }
+  if (object_loaded_) {
+    ImGui::Begin("Memory Viewer", &object_loaded_, 0);
+    static MemoryEditor mem_edit;
+    mem_edit.DrawContents((void*)object_renderer_.mutable_memory(),
+                          object_renderer_.mutable_memory()->size());
+    ImGui::End();
+  }
 }
 
 void DungeonEditor::CalculateUsageStats() {
