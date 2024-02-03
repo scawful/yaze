@@ -45,6 +45,8 @@ class DungeonEditor : public Editor,
   void add_room(int i) { active_rooms_.push_back(i); }
 
  private:
+  void LoadDungeonRoomSize();
+
   void UpdateDungeonRoomView();
 
   void DrawToolset();
@@ -99,7 +101,7 @@ class DungeonEditor : public Editor,
   gui::Canvas object_canvas_;
 
   gfx::Bitmap room_gfx_bmp_;
-  gfx::BitmapTable graphics_bin_;
+  gfx::BitmapManager graphics_bin_;
 
   std::vector<gfx::Bitmap*> room_gfx_sheets_;
   std::vector<zelda3::dungeon::Room> rooms_;
