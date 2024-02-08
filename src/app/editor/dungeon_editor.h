@@ -12,6 +12,7 @@
 #include "app/gui/icons.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -51,6 +52,7 @@ class DungeonEditor : public Editor,
 
   void DrawToolset();
   void DrawRoomSelector();
+  void DrawEntranceSelector();
 
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
@@ -58,6 +60,8 @@ class DungeonEditor : public Editor,
   void DrawRoomGraphics();
   void DrawTileSelector();
   void DrawObjectRenderer();
+
+  void LoadRoomEntrances();
 
   void CalculateUsageStats();
   void DrawUsageStats();
@@ -84,6 +88,7 @@ class DungeonEditor : public Editor,
   bool refresh_graphics_ = false;
   bool show_object_render_ = false;
 
+  uint16_t current_entrance_id_ = 0;
   uint16_t current_room_id_ = 0;
   uint64_t current_palette_id_ = 0;
   uint64_t current_palette_group_id_ = 0;
@@ -105,6 +110,7 @@ class DungeonEditor : public Editor,
 
   std::vector<gfx::Bitmap*> room_gfx_sheets_;
   std::vector<zelda3::dungeon::Room> rooms_;
+  std::vector<zelda3::dungeon::RoomEntrance> entrances_;
   std::vector<gfx::BitmapManager> room_graphics_;
   zelda3::dungeon::DungeonObjectRenderer object_renderer_;
 
