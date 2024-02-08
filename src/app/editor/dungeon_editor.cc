@@ -53,6 +53,7 @@ absl::Status DungeonEditor::Update() {
     }
 
     LoadDungeonRoomSize();
+    LoadRoomEntrances();
 
     // Load the palette group and palette for the dungeon
     full_palette_ =
@@ -169,7 +170,14 @@ void DungeonEditor::UpdateDungeonRoomView() {
     TableNextRow();
 
     TableNextColumn();
+    TAB_BAR("##DungeonRoomTabBar");
+    TAB_ITEM("Rooms");
     DrawRoomSelector();
+    END_TAB_ITEM();
+    TAB_ITEM("Entrances");
+    DrawEntranceSelector();
+    END_TAB_ITEM();
+    END_TAB_BAR();
 
     TableNextColumn();
     DrawDungeonTabView();
@@ -289,17 +297,110 @@ void DungeonEditor::DrawRoomSelector() {
       int i = 0;
       for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
-            current_room_id_ == i, "Dungeon Room Names", each_room_name.data(),
-            zelda3::dungeon::kRoomNames[i].data());
+            current_room_id_ == i, "Dungeon Room Names",
+            core::UppercaseHexByte(i), zelda3::dungeon::kRoomNames[i].data());
         if (ImGui::IsItemClicked()) {
-          if (active_rooms_.contains(i)) {
-            current_room_id_ = i;
-          } else {
+          // TODO: Jump to tab if room is already open
+          current_room_id_ = i;
+          if (!active_rooms_.contains(i)) {
             active_rooms_.push_back(i);
-            current_room_id_ = i;
           }
         }
         i += 1;
+      }
+    }
+    ImGui::EndChild();
+  }
+}
+
+void DungeonEditor::DrawEntranceSelector() {
+  if (rom()->is_loaded()) {
+    gui::InputHexWord("Entrance ID",
+                      &entrances_[current_entrance_id_].entrance_id_);
+
+    gui::InputHexWord("Room ID", &entrances_[current_entrance_id_].room_, 50.f,
+                      true);
+    ImGui::SameLine();
+    gui::InputHexByte("Dungeon ID",
+                      &entrances_[current_entrance_id_].dungeon_id_, 50.f,
+                      true);
+
+    gui::InputHexByte("Blockset", &entrances_[current_entrance_id_].blockset_,
+                      50.f, true);
+    ImGui::SameLine();
+
+    gui::InputHexByte("Music", &entrances_[current_entrance_id_].music_, 50.f,
+                      true);
+    ImGui::SameLine();
+    gui::InputHexByte("Floor", &entrances_[current_entrance_id_].floor_);
+
+    ImGui::Separator();
+
+    gui::InputHexWord("Player X   ",
+                      &entrances_[current_entrance_id_].x_position_);
+    ImGui::SameLine();
+    gui::InputHexWord("Player Y   ",
+                      &entrances_[current_entrance_id_].y_position_);
+
+    gui::InputHexWord("Camera X",
+                      &entrances_[current_entrance_id_].camera_trigger_x_);
+    ImGui::SameLine();
+    gui::InputHexWord("Camera Y",
+                      &entrances_[current_entrance_id_].camera_trigger_y_);
+
+    gui::InputHexWord("Scroll X    ",
+                      &entrances_[current_entrance_id_].camera_x_);
+    ImGui::SameLine();
+    gui::InputHexWord("Scroll Y    ",
+                      &entrances_[current_entrance_id_].camera_y_);
+
+    gui::InputHexWord("Exit", &entrances_[current_entrance_id_].exit_, 50.f,
+                      true);
+
+    ImGui::Separator();
+    ImGui::Text("Camera Boundaries");
+    ImGui::Separator();
+    ImGui::Text("\t\t\t\t\tNorth         East         South         West");
+    gui::InputHexByte("Quadrant",
+                      &entrances_[current_entrance_id_].camera_boundary_qn_,
+                      50.f, true);
+    ImGui::SameLine();
+    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qe_,
+                      50.f, true);
+    ImGui::SameLine();
+    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qs_,
+                      50.f, true);
+    ImGui::SameLine();
+    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qw_,
+                      50.f, true);
+
+    gui::InputHexByte("Full room",
+                      &entrances_[current_entrance_id_].camera_boundary_fn_,
+                      50.f, true);
+    ImGui::SameLine();
+    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fe_,
+                      50.f, true);
+    ImGui::SameLine();
+    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fs_,
+                      50.f, true);
+    ImGui::SameLine();
+    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fw_,
+                      50.f, true);
+
+    if (ImGui::BeginChild("EntranceSelector", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      for (int i = 0; i < 0x85 + 7; i++) {
+        rom()->resource_label()->SelectableLabelWithNameEdit(
+            current_entrance_id_ == i, "Dungeon Entrance Names",
+            core::UppercaseHexByte(i),
+            zelda3::dungeon::kEntranceNames[i].data());
+
+        if (ImGui::IsItemClicked()) {
+          current_entrance_id_ = i;
+          if (!active_rooms_.contains(i)) {
+            active_rooms_.push_back(entrances_[i].room_);
+          }
+        }
       }
     }
     ImGui::EndChild();
@@ -478,6 +579,18 @@ void DungeonEditor::DrawObjectRenderer() {
     ImGui::End();
   }
 }
+
+void DungeonEditor::LoadRoomEntrances() {
+  for (int i = 0; i < 0x07; ++i) {
+    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, true));
+  }
+
+  for (int i = 0; i < 0x85; ++i) {
+    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, false));
+  }
+}
+
+// ============================================================================
 
 void DungeonEditor::CalculateUsageStats() {
   // Create a hash map of the usage for elements of each Dungeon Room such as
