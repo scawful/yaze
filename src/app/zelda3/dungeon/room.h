@@ -39,7 +39,6 @@ namespace dungeon {
 constexpr int room_object_layout_pointer = 0x882D;
 constexpr int room_object_pointer = 0x874C;  // Long pointer
 
-constexpr int entrance_gfx_group = 0x5D97;
 constexpr int dungeons_main_bg_palette_pointers = 0xDEC4B;  // JP Same
 constexpr int dungeons_palettes = 0xDD734;
 constexpr int room_items_pointers = 0xDB69;     // JP 0xDB67
