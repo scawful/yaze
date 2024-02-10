@@ -2,6 +2,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 
 #include "absl/strings/string_view.h"
 
@@ -16,11 +17,10 @@ static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(
              ? ImGuiInputTextFlags_CharsHexadecimal
              : ImGuiInputTextFlags_CharsDecimal;
 }
-
 bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                      const void* p_step, const void* p_step_fast,
                      const char* format, float input_width,
-                     ImGuiInputTextFlags flags) {
+                     ImGuiInputTextFlags flags, bool no_step = false) {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
   if (window->SkipItems) return false;
 
@@ -39,37 +39,59 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   flags |= ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoMarkEdited;
 
   bool value_changed = false;
-  if (p_step == NULL) {
-    ImGui::SetNextItemWidth(input_width);
-    if (InputText(label, buf, IM_ARRAYSIZE(buf), flags))
-      value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
-  } else {
-    const float button_size = GetFrameHeight();
+  // if (p_step == NULL) {
+  //   ImGui::SetNextItemWidth(input_width);
+  //   if (InputText("", buf, IM_ARRAYSIZE(buf), flags))
+  //     value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
+  // } else {
+  const float button_size = GetFrameHeight();
+  ImGui::AlignTextToFramePadding();
+  ImGui::Text("%s", label);
+  ImGui::SameLine();
+  BeginGroup();  // The only purpose of the group here is to allow the caller
+                 // to query item data e.g. IsItemActive()
+  PushID(label);
+  SetNextItemWidth(ImMax(
+      1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
 
-    BeginGroup();  // The only purpose of the group here is to allow the caller
-                   // to query item data e.g. IsItemActive()
-    PushID(label);
-    SetNextItemWidth(ImMax(
-        1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
+  // Place the label on the left of the input field
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                      ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                      ImVec2{style.FramePadding.x, style.FramePadding.y});
 
-    // Place the label on the left of the input field
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                        ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2{style.FramePadding.x, style.FramePadding.y});
-    ImGui::AlignTextToFramePadding();
-    ImGui::Text("%s", label);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(input_width);
-    if (InputText("", buf, IM_ARRAYSIZE(buf),
-                  flags))  // PushId(label) + "" gives us the expected ID
-                           // from outside point of view
-      value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
-    IMGUI_TEST_ENGINE_ITEM_INFO(
-        g.LastItemData.ID, label,
-        g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Inputable);
+  ImGui::SetNextItemWidth(input_width);
+  if (InputText("", buf, IM_ARRAYSIZE(buf),
+                flags))  // PushId(label) + "" gives us the expected ID
+                         // from outside point of view
+    value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
+  IMGUI_TEST_ENGINE_ITEM_INFO(
+      g.LastItemData.ID, label,
+      g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Inputable);
 
-    // Step buttons
+  // Mouse wheel support
+  if (IsItemHovered() && g.IO.MouseWheel != 0.0f) {
+    float scroll_amount = g.IO.MouseWheel;
+    float scroll_speed = 0.25f;  // Adjust the scroll speed as needed
+
+    if (g.IO.KeyCtrl && p_step_fast)
+      scroll_amount *= *(const float*)p_step_fast;
+    else
+      scroll_amount *= *(const float*)p_step;
+
+    if (scroll_amount > 0.0f) {
+      scroll_amount *= scroll_speed;  // Adjust the scroll speed as needed
+      DataTypeApplyOp(data_type, '+', p_data, p_data, &scroll_amount);
+      value_changed = true;
+    } else if (scroll_amount < 0.0f) {
+      scroll_amount *= -scroll_speed;  // Adjust the scroll speed as needed
+      DataTypeApplyOp(data_type, '-', p_data, p_data, &scroll_amount);
+      value_changed = true;
+    }
+  }
+
+  // Step buttons
+  if (!no_step) {
     const ImVec2 backup_frame_padding = style.FramePadding;
     style.FramePadding.x = style.FramePadding.y;
     ImGuiButtonFlags button_flags =
@@ -87,14 +109,15 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                       g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
       value_changed = true;
     }
+
     if (flags & ImGuiInputTextFlags_ReadOnly) EndDisabled();
 
     style.FramePadding = backup_frame_padding;
-
-    PopID();
-    EndGroup();
-    ImGui::PopStyleVar(2);
   }
+  PopID();
+  EndGroup();
+  ImGui::PopStyleVar(2);
+
   if (value_changed) MarkItemEdited(g.LastItemData.ID);
 
   return value_changed;
@@ -114,23 +137,38 @@ bool InputHex(const char* label, uint64_t* data) {
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
+bool InputHex(const char* label, int* data, int num_digits, float input_width) {
+  const std::string format = "%0" + std::to_string(num_digits) + "X";
+  return ImGui::InputScalarLeft(label, ImGuiDataType_S32, data, &kStepOneHex,
+                                &kStepFastHex, format.c_str(), input_width,
+                                ImGuiInputTextFlags_CharsHexadecimal);
+}
+
 bool InputHexShort(const char* label, uint32_t* data) {
   return ImGui::InputScalar(label, ImGuiDataType_U32, data, &kStepOneHex,
                             &kStepFastHex, "%06X",
                             ImGuiInputTextFlags_CharsHexadecimal);
 }
 
-bool InputHexWord(const char* label, uint16_t* data, float input_width) {
+bool InputHexWord(const char* label, uint16_t* data, float input_width,
+                  bool no_step) {
   return ImGui::InputScalarLeft(label, ImGuiDataType_U16, data, &kStepOneHex,
                                 &kStepFastHex, "%04X", input_width,
-                                ImGuiInputTextFlags_CharsHexadecimal);
+                                ImGuiInputTextFlags_CharsHexadecimal, no_step);
 }
 
-bool InputHexByte(const char* label, uint8_t* data, uint8_t step,
-                  float input_width) {
-  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &step,
+bool InputHexWord(const char* label, int16_t* data, float input_width,
+                  bool no_step) {
+  return ImGui::InputScalarLeft(label, ImGuiDataType_S16, data, &kStepOneHex,
+                                &kStepFastHex, "%04X", input_width,
+                                ImGuiInputTextFlags_CharsHexadecimal, no_step);
+}
+
+bool InputHexByte(const char* label, uint8_t* data, float input_width,
+                  bool no_step) {
+  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
                                 &kStepFastHex, "%02X", input_width,
-                                ImGuiInputTextFlags_CharsHexadecimal);
+                                ImGuiInputTextFlags_CharsHexadecimal, no_step);
 }
 
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
@@ -174,6 +212,18 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
     ImGui::SameLine();
   } else if (flags & ItemLabelFlag::Right)
     ImGui::SetCursorScreenPos(lineStart);
+}
+
+bool ListBox(const char* label, int* current_item,
+             const std::vector<std::string>& items, int height_in_items) {
+  std::vector<const char*> items_ptr;
+  items_ptr.reserve(items.size());
+  for (const auto& item : items) {
+    items_ptr.push_back(item.c_str());
+  }
+  int items_count = static_cast<int>(items.size());
+  return ImGui::ListBox(label, current_item, items_ptr.data(), items_count,
+                        height_in_items);
 }
 
 }  // namespace gui

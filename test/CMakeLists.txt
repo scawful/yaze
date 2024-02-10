@@ -31,11 +31,14 @@ add_executable(
   ../src/app/emu/video/ppu.cc
   ../src/app/emu/audio/dsp.cc
   ../src/app/emu/audio/spc700.cc
+  ../src/app/editor/context/gfx_context.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
+  ../src/app/gfx/snes_color.cc
   ../src/app/gfx/snes_palette.cc
   ../src/app/gfx/compression.cc
   ../src/app/core/common.cc
+  ../src/app/core/labeling.cc
   # ${ASAR_STATIC_SRC}
 )
 

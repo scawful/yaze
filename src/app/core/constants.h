@@ -68,6 +68,15 @@
     }                                             \
   }
 
+#define RETURN_VOID_IF_ERROR(expression)          \
+  {                                               \
+    auto error = expression;                      \
+    if (!error.ok()) {                            \
+      std::cout << error.ToString() << std::endl; \
+      return;                                     \
+    }                                             \
+  }
+
 #define RETURN_IF_ERROR(expression) \
   {                                 \
     auto error = expression;        \
@@ -121,9 +130,9 @@
 using ushort = unsigned short;
 using uint = unsigned int;
 using uchar = unsigned char;
-using Bytes = std::vector<uchar>;
+using Bytes = std::vector<uint8_t>;
 
-using OWBlockset = std::vector<std::vector<ushort>>;
+using OWBlockset = std::vector<std::vector<uint16_t>>;
 struct OWMapTiles {
   OWBlockset light_world;    // 64 maps
   OWBlockset dark_world;     // 64 maps
@@ -135,7 +144,8 @@ namespace yaze {
 namespace app {
 namespace core {
 
-constexpr float kYazeVersion = 0.05;
+constexpr uint32_t kRedPen = 0xFF0000FF;
+constexpr float kYazeVersion = 0.07;
 
 // ============================================================================
 // Magic numbers
@@ -185,96 +195,7 @@ constexpr int text_data2 = 0x75F40;
 constexpr int pointers_dictionaries = 0x74703;
 constexpr int characters_width = 0x74ADF;
 
-// ============================================================================
-// Dungeon Entrances Related Variables
-// ============================================================================
-
-// 0x14577 word value for each room
-constexpr int entrance_room = 0x14813;
-
-// 8 bytes per room, HU, FU, HD, FD, HL, FL, HR, FR
-constexpr int entrance_scrolledge = 0x1491D;       // 0x14681
-constexpr int entrance_yscroll = 0x14D45;          // 0x14AA9 2 bytes each room
-constexpr int entrance_xscroll = 0x14E4F;          // 0x14BB3 2 bytes
-constexpr int entrance_yposition = 0x14F59;        // 0x14CBD 2bytes
-constexpr int entrance_xposition = 0x15063;        // 0x14DC7 2bytes
-constexpr int entrance_camerayposition = 0x1516D;  // 0x14ED1 2bytes
-constexpr int entrance_cameraxposition = 0x15277;  // 0x14FDB 2bytes
-
 constexpr int entrance_gfx_group = 0x5D97;
-constexpr int entrance_blockset = 0x15381;  // 0x150E5 1byte
-constexpr int entrance_floor = 0x15406;     // 0x1516A 1byte
-constexpr int entrance_dungeon = 0x1548B;   // 0x151EF 1byte (dungeon id)
-constexpr int entrance_door = 0x15510;      // 0x15274 1byte
-
-// 1 byte, ---b ---a b = bg2, a = need to check
-constexpr int entrance_ladderbg = 0x15595;        // 0x152F9
-constexpr int entrance_scrolling = 0x1561A;       // 0x1537E 1byte --h- --v-
-constexpr int entrance_scrollquadrant = 0x1569F;  // 0x15403 1byte
-constexpr int entrance_exit = 0x15724;            // 0x15488 2byte word
-constexpr int entrance_music = 0x1582E;           // 0x15592
-
-// word value for each room
-constexpr int startingentrance_room = 0x15B6E;  // 0x158D2
-
-// 8 bytes per room, HU, FU, HD, FD, HL, FL, HR, FR
-constexpr int startingentrance_scrolledge = 0x15B7C;  // 0x158E0
-constexpr int startingentrance_yscroll = 0x15BB4;  // 0x14AA9 //2bytes each room
-constexpr int startingentrance_xscroll = 0x15BC2;  // 0x14BB3 //2bytes
-constexpr int startingentrance_yposition = 0x15BD0;        // 0x14CBD 2bytes
-constexpr int startingentrance_xposition = 0x15BDE;        // 0x14DC7 2bytes
-constexpr int startingentrance_camerayposition = 0x15BEC;  // 0x14ED1 2bytes
-constexpr int startingentrance_cameraxposition = 0x15BFA;  // 0x14FDB 2bytes
-
-constexpr int startingentrance_blockset = 0x15C08;  // 0x150E5 1byte
-constexpr int startingentrance_floor = 0x15C0F;     // 0x1516A 1byte
-constexpr int startingentrance_dungeon = 0x15C16;  // 0x151EF 1byte (dungeon id)
-
-constexpr int startingentrance_door = 0x15C2B;  // 0x15274 1byte
-
-// 1 byte, ---b ---a b = bg2, a = need to check
-constexpr int startingentrance_ladderbg = 0x15C1D;  // 0x152F9
-// 1byte --h- --v-
-constexpr int startingentrance_scrolling = 0x15C24;       // 0x1537E
-constexpr int startingentrance_scrollquadrant = 0x15C2B;  // 0x15403 1byte
-constexpr int startingentrance_exit = 0x15C32;   // 0x15488 //2byte word
-constexpr int startingentrance_music = 0x15C4E;  // 0x15592
-constexpr int startingentrance_entrance = 0x15C40;
-
-constexpr int items_data_start = 0xDDE9;  // save purpose
-constexpr int items_data_end = 0xE6B2;    // save purpose
-constexpr int initial_equipement = 0x271A6;
-constexpr int messages_id_dungeon = 0x3F61D;
-
-// item id you get instead if you already have that item
-constexpr int chests_backupitems = 0x3B528;
-constexpr int chests_yoffset = 0x4836C;
-constexpr int chests_xoffset = 0x4836C + (76 * 1);
-constexpr int chests_itemsgfx = 0x4836C + (76 * 2);
-constexpr int chests_itemswide = 0x4836C + (76 * 3);
-constexpr int chests_itemsproperties = 0x4836C + (76 * 4);
-constexpr int chests_sramaddress = 0x4836C + (76 * 5);
-constexpr int chests_sramvalue = 0x4836C + (76 * 7);
-constexpr int chests_msgid = 0x442DD;
-
-constexpr int dungeons_startrooms = 0x7939;
-constexpr int dungeons_endrooms = 0x792D;
-constexpr int dungeons_bossrooms = 0x10954;  // short value
-
-// Bed Related Values (Starting location)
-constexpr int bedPositionX = 0x039A37;  // short value
-constexpr int bedPositionY = 0x039A32;  // short value
-
-// short value (on 2 different bytes)
-constexpr int bedPositionResetXLow = 0x02DE53;
-constexpr int bedPositionResetXHigh = 0x02DE58;
-
-// short value (on 2 different bytes)
-constexpr int bedPositionResetYLow = 0x02DE5D;
-constexpr int bedPositionResetYHigh = 0x02DE62;
-
-constexpr int bedSheetPositionX = 0x0480BD;  // short value
-constexpr int bedSheetPositionY = 0x0480B8;  // short value
 
 // ============================================================================
 // Gravestones related variables
@@ -323,30 +244,6 @@ constexpr int customAreaSpecificBGPalette =
 constexpr int customAreaSpecificBGASM = 0x140150;
 constexpr int customAreaSpecificBGEnabled =
     0x140140;  // 1 byte, not 0 if enabled
-
-// ============================================================================
-// Dungeon Map Related Variables
-// ============================================================================
-
-constexpr int dungeonMap_rooms_ptr = 0x57605;  // 14 pointers of map data
-constexpr int dungeonMap_floors = 0x575D9;     // 14 words values
-
-constexpr int dungeonMap_gfx_ptr = 0x57BE4;  // 14 pointers of gfx data
-
-// data start for floors/gfx MUST skip 575D9 to 57621 (pointers)
-constexpr int dungeonMap_datastart = 0x57039;
-
-// IF Byte = 0xB9 dungeon maps are not expanded
-constexpr int dungeonMap_expCheck = 0x56652;
-constexpr int dungeonMap_tile16 = 0x57009;
-constexpr int dungeonMap_tile16Exp = 0x109010;
-
-// 14 words values 0x000F = no boss
-constexpr int dungeonMap_bossrooms = 0x56807;
-constexpr int triforceVertices = 0x04FFD2;  // group of 3, X, Y ,Z
-constexpr int TriforceFaces = 0x04FFE4;     // group of 5
-
-constexpr int crystalVertices = 0x04FF98;
 
 // ============================================================================
 // Names

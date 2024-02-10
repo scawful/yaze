@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_MASTER_EDITOR_H
 #define YAZE_APP_EDITOR_MASTER_EDITOR_H
 
+#define IMGUI_DEFINE_MATH_OPERATORS 1
+
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui/imgui.h>
@@ -55,9 +57,12 @@ class MasterEditor : public SharedROM,
   void DrawViewMenu();
   void DrawHelpMenu();
 
+  void SaveRom();
+
   bool about_ = false;
   bool rom_info_ = false;
-  bool backup_rom_ = true;
+  bool backup_rom_ = false;
+  bool save_new_auto_ = true;
   bool show_status_ = false;
   bool rom_assets_loaded_ = false;
 

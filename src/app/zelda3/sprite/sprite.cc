@@ -4,39 +4,40 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
-Sprite::Sprite() {
-  preview_gfx_.reserve(64 * 64);
-  for (int i = 0; i < 64 * 64; i++) {
-    preview_gfx_.push_back(0xFF);
-  }
-}
-
 void Sprite::InitSprite(const Bytes& src, uchar mapid, uchar id, uchar x,
                         uchar y, int map_x, int map_y) {
   current_gfx_ = src;
   overworld_ = true;
-  map_id_ = mapid;
+  map_id_ = static_cast<int>(mapid);
   id_ = id;
-  x_ = x;
-  y_ = y;
+  this->type_ = zelda3::OverworldEntity::EntityType::kSprite;
+  this->entity_id_ = id;
+  this->x_ = map_x_;
+  this->y_ = map_y_;
   nx_ = x;
   ny_ = y;
   name_ = core::kSpriteDefaultNames[id];
   map_x_ = map_x;
   map_y_ = map_y;
+  preview_gfx_.reserve(64 * 64);
+  for (int i = 0; i < 64 * 64; i++) {
+    preview_gfx_.push_back(0xFF);
+  }
 }
 
 Sprite::Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
                int map_y)
     : current_gfx_(src),
-      map_id_(mapid),
+      map_id_(static_cast<int>(mapid)),
       id_(id),
-      x_(x),
-      y_(y),
       nx_(x),
       ny_(y),
       map_x_(map_x),
       map_y_(map_y) {
+  this->type_ = zelda3::OverworldEntity::EntityType::kSprite;
+  this->entity_id_ = id;
+  this->x_ = map_x_;
+  this->y_ = map_y_;
   current_gfx_ = src;
   overworld_ = true;
 
@@ -45,6 +46,12 @@ Sprite::Sprite(Bytes src, uchar mapid, uchar id, uchar x, uchar y, int map_x,
   for (int i = 0; i < 64 * 64; i++) {
     preview_gfx_.push_back(0xFF);
   }
+}
+
+void Sprite::UpdateMapProperties(short map_id) {
+  map_x_ = x_;
+  map_y_ = y_;
+  name_ = core::kSpriteDefaultNames[id_];
 }
 
 void Sprite::updateCoordinates(int map_x, int map_y) {

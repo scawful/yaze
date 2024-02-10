@@ -2,6 +2,7 @@ set(
   YAZE_APP_CORE_SRC
   app/core/common.cc
   app/core/controller.cc
+  app/core/labeling.cc
 )
 
 set(
@@ -27,6 +28,7 @@ set(
   app/gfx/scad_format.cc
   app/gfx/snes_palette.cc
   app/gfx/snes_tile.cc
+  app/gfx/snes_color.cc
 )
 
 set(
@@ -39,6 +41,7 @@ set(
   app/zelda3/music/tracker.cc
   app/zelda3/dungeon/room.cc
   app/zelda3/dungeon/room_object.cc
+  app/zelda3/dungeon/object_renderer.cc
 )
 
 set(
@@ -75,9 +78,10 @@ if(WIN32 OR MINGW)
     add_definitions(-DSDL_MAIN_HANDLED)
 endif()
 
-if (WIN32 OR MINGW OR UNIX)
+if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
   list(APPEND YAZE_APP_CORE_SRC
     app/core/platform/font_loader.cc
+    app/core/platform/clipboard.cc
   )
 endif()
 

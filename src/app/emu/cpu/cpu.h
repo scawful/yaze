@@ -394,6 +394,13 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
     }
   }
 
+  void PushByte(uint8_t value) override { memory.PushByte(value); }
+  void PushWord(uint16_t value) override { memory.PushWord(value); }
+  uint8_t PopByte() override { return memory.PopByte(); }
+  uint16_t PopWord() override { return memory.PopWord(); }
+  void PushLong(uint32_t value) override { memory.PushLong(value); }
+  uint32_t PopLong() override { return memory.PopLong(); }
+
   // ======================================================
   // Instructions
 
@@ -702,12 +709,6 @@ class CPU : public Memory, public Loggable, public core::ExperimentFlags {
   }
 
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
-  void PushByte(uint8_t value) override { memory.PushByte(value); }
-  void PushWord(uint16_t value) override { memory.PushWord(value); }
-  uint8_t PopByte() override { return memory.PopByte(); }
-  uint16_t PopWord() override { return memory.PopWord(); }
-  void PushLong(uint32_t value) override { memory.PushLong(value); }
-  uint32_t PopLong() override { return memory.PopLong(); }
   void ClearMemory() override { memory.ClearMemory(); }
   uint8_t operator[](int i) const override { return 0; }
   uint8_t at(int i) const override { return 0; }

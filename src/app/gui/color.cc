@@ -12,16 +12,16 @@ namespace yaze {
 namespace app {
 namespace gui {
 
-ImVec4 ConvertSNESColorToImVec4(const SNESColor& color) {
-  return ImVec4(static_cast<float>(color.GetRGB().x) / 255.0f,
-                static_cast<float>(color.GetRGB().y) / 255.0f,
-                static_cast<float>(color.GetRGB().z) / 255.0f,
+ImVec4 ConvertSNESColorToImVec4(const SnesColor& color) {
+  return ImVec4(static_cast<float>(color.rgb().x) / 255.0f,
+                static_cast<float>(color.rgb().y) / 255.0f,
+                static_cast<float>(color.rgb().z) / 255.0f,
                 1.0f  // Assuming alpha is always fully opaque for SNES colors,
                       // adjust if necessary
   );
 }
 
-IMGUI_API bool SNESColorButton(absl::string_view id, SNESColor& color,
+IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags,
                                const ImVec2& size_arg) {
   // Convert the SNES color values to ImGui color values (normalized to 0-1
@@ -34,7 +34,25 @@ IMGUI_API bool SNESColorButton(absl::string_view id, SNESColor& color,
   return pressed;
 }
 
-void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
+IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
+                              ImGuiColorEditFlags flags) {
+  // Convert the SNES color values to ImGui color values (normalized to 0-1
+  // range)
+  ImVec4 displayColor = ConvertSNESColorToImVec4(color);
+
+  // Call the original ImGui::ColorEdit4 with the converted color
+  bool pressed = ImGui::ColorEdit4(label.data(), (float*)&displayColor, flags);
+
+  // Convert the ImGui color values back to SNES color values (normalized to
+  // 0-255 range)
+  color = SnesColor(static_cast<uint8_t>(displayColor.x * 255.0f),
+                    static_cast<uint8_t>(displayColor.y * 255.0f),
+                    static_cast<uint8_t>(displayColor.z * 255.0f));
+
+  return pressed;
+}
+
+void DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
@@ -45,9 +63,9 @@ void DisplayPalette(app::gfx::SNESPalette& palette, bool loaded) {
   static ImVec4 saved_palette[32] = {};
   if (loaded && !init) {
     for (int n = 0; n < palette.size(); n++) {
-      saved_palette[n].x = palette.GetColor(n).GetRGB().x / 255;
-      saved_palette[n].y = palette.GetColor(n).GetRGB().y / 255;
-      saved_palette[n].z = palette.GetColor(n).GetRGB().z / 255;
+      saved_palette[n].x = palette.GetColor(n).rgb().x / 255;
+      saved_palette[n].y = palette.GetColor(n).rgb().y / 255;
+      saved_palette[n].z = palette.GetColor(n).rgb().z / 255;
       saved_palette[n].w = 255;  // Alpha
     }
     init = true;

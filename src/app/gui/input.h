@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 #include "absl/strings/string_view.h"
 
@@ -15,12 +16,24 @@ namespace gui {
 constexpr ImVec2 kDefaultModalSize = ImVec2(200, 0);
 constexpr ImVec2 kZeroPos = ImVec2(0, 0);
 
+IMGUI_API bool InputHexWithScrollwheel(const char* label, uint32_t* data,
+                                       uint32_t step = 0x01,
+                                       float input_width = 50.f);
+
 IMGUI_API bool InputHex(const char* label, uint64_t* data);
+IMGUI_API bool InputHex(const char* label, int* data, int num_digits = 4,
+                        float input_width = 50.f);
 IMGUI_API bool InputHexShort(const char* label, uint32_t* data);
 IMGUI_API bool InputHexWord(const char* label, uint16_t* data,
-                            float input_width = 50.f);
-IMGUI_API bool InputHexByte(const char* label, uint8_t* data, uint8_t step = 0x01,
-                            float input_width = 50.f);
+                            float input_width = 50.f, bool no_step = false);
+IMGUI_API bool InputHexWord(const char* label, int16_t* data,
+                            float input_width = 50.f, bool no_step = false);
+IMGUI_API bool InputHexByte(const char* label, uint8_t* data,
+                            float input_width = 50.f, bool no_step = false);
+
+IMGUI_API bool ListBox(const char* label, int* current_item,
+                       const std::vector<std::string>& items,
+                       int height_in_items = -1);
 
 using ItemLabelFlags = enum ItemLabelFlag {
   Left = 1u << 0u,

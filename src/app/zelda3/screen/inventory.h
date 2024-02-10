@@ -31,7 +31,7 @@ class Inventory : public SharedROM {
   Bytes tilesheets_;
   Bytes test_;
   gfx::Bitmap tilesheets_bmp_;
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
 
   gui::Canvas canvas_;
   std::vector<gfx::TileInfo> tiles_;

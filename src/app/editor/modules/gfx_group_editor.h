@@ -8,13 +8,13 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/core/editor.h"
-#include "app/gui/pipeline.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
+#include "app/gui/pipeline.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld.h"
@@ -27,6 +27,17 @@ class GfxGroupEditor : public SharedROM {
  public:
   absl::Status Update();
 
+  void DrawBlocksetViewer(bool sheet_only = false);
+  void DrawRoomsetViewer();
+  void DrawSpritesetViewer(bool sheet_only = false);
+  void DrawPaletteViewer();
+
+  void SetSelectedBlockset(uint8_t blockset) { selected_blockset_ = blockset; }
+  void SetSelectedRoomset(uint8_t roomset) { selected_roomset_ = roomset; }
+  void SetSelectedSpriteset(uint8_t spriteset) {
+    selected_spriteset_ = spriteset;
+  }
+
   void InitBlockset(gfx::Bitmap tile16_blockset);
 
  private:
@@ -36,11 +47,13 @@ class GfxGroupEditor : public SharedROM {
   uint8_t selected_roomset_ = 0;
   uint8_t selected_spriteset_ = 0;
 
+  PaletteEditor palette_editor_;
+
   gui::Canvas blockset_canvas_;
   gui::Canvas roomset_canvas_;
   gui::Canvas spriteset_canvas_;
 
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   gfx::PaletteGroup palette_group_;
   gfx::Bitmap tile16_blockset_bmp_;
 

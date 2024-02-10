@@ -17,6 +17,9 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer);
+void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
+                         SDL_Surface **outSurface);
 class Bitmap {
  public:
   Bitmap() = default;
@@ -36,7 +39,7 @@ class Bitmap {
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void CreateTexture(SDL_Renderer *renderer);
-  void UpdateTexture(SDL_Renderer *renderer);
+  void UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update = false);
 
   void SaveSurfaceToFile(std::string_view filename);
   void SetSurface(SDL_Surface *surface);
@@ -44,9 +47,11 @@ class Bitmap {
   void LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
                        int height);
 
-  void ApplyPalette(const SNESPalette &palette);
-  void ApplyPaletteWithTransparent(const SNESPalette &palette, int index);
+  void ApplyPalette(const SnesPalette &palette);
+  void ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
+                                   int length = 7);
   void ApplyPalette(const std::vector<SDL_Color> &palette);
+  void ApplyPaletteFromPaletteGroup(const SnesPalette &palette, int palette_id);
 
   void WriteToPixel(int position, uchar value) {
     if (pixel_data_ == nullptr) {
@@ -67,16 +72,51 @@ class Bitmap {
 
   void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
                   int &tile_data_offset) {
-    int tile_offset = tile_index * 64;
-    int tile_x = x * 8;
-    int tile_y = y * 8;
+    int tile_offset = tile_index * (width_ * height_);
+    int tile_x = (x * 8) % width_;
+    int tile_y = (y * 8) % height_;
     for (int i = 0; i < 8; i++) {
-      int row_offset = tile_offset + (i * 8);
+      int row_offset = tile_offset + ((tile_y + i) * width_);
       for (int j = 0; j < 8; j++) {
-        int pixel_offset = row_offset + j;
+        int pixel_offset = row_offset + (tile_x + j);
         int pixel_value = data_[pixel_offset];
         tile_data[tile_data_offset] = pixel_value;
         tile_data_offset++;
+      }
+    }
+  }
+
+  void Get16x16Tile(int tile_index, int x, int y,
+                    std::vector<uint8_t> &tile_data, int &tile_data_offset) {
+    int tile_offset = tile_index * (width_ * height_);
+    int tile_x = x * 16;
+    int tile_y = y * 16;
+    for (int i = 0; i < 16; i++) {
+      int row_offset = tile_offset + ((i / 8) * (width_ * 8));
+      for (int j = 0; j < 16; j++) {
+        int pixel_offset =
+            row_offset + ((j / 8) * 8) + ((i % 8) * width_) + (j % 8);
+        int pixel_value = data_[pixel_offset];
+        tile_data[tile_data_offset] = pixel_value;
+        tile_data_offset++;
+      }
+    }
+  }
+
+  void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
+                    int &tile_data_offset) {
+    // Assuming 'width_' and 'height_' are the dimensions of the bitmap
+    // and 'data_' is the bitmap data.
+    for (int ty = 0; ty < 16; ty++) {
+      for (int tx = 0; tx < 16; tx++) {
+        // Calculate the pixel position in the bitmap
+        int pixel_x = tile_x + tx;
+        int pixel_y = tile_y + ty;
+        int pixel_offset = pixel_y * width_ + pixel_x;
+        int pixel_value = data_[pixel_offset];
+
+        // Store the pixel value in the tile data
+        tile_data[tile_data_offset++] = pixel_value;
       }
     }
   }
@@ -141,6 +181,8 @@ class Bitmap {
   auto mutable_pixel_data() { return pixel_data_; }
   auto surface() const { return surface_.get(); }
   auto mutable_surface() { return surface_.get(); }
+  auto converted_surface() const { return converted_surface_.get(); }
+  auto mutable_converted_surface() { return converted_surface_.get(); }
   void set_data(const Bytes &data) { data_ = data; }
 
   auto vector() const { return data_; }
@@ -148,8 +190,8 @@ class Bitmap {
   auto texture() const { return texture_.get(); }
   auto modified() const { return modified_; }
   void set_modified(bool modified) { modified_ = modified; }
-  auto IsActive() const { return active_; }
-  auto SetActive(bool active) { active_ = active; }
+  auto is_active() const { return active_; }
+  auto set_active(bool active) { active_ = active; }
 
  private:
   struct SDL_Texture_Deleter {
@@ -186,7 +228,7 @@ class Bitmap {
 
   std::vector<uint8_t> png_data_;
 
-  gfx::SNESPalette palette_;
+  gfx::SnesPalette palette_;
   std::shared_ptr<SDL_Texture> texture_ = nullptr;
   std::shared_ptr<SDL_Surface> surface_ = nullptr;
   std::shared_ptr<SDL_Surface> converted_surface_ = nullptr;
@@ -204,23 +246,24 @@ class BitmapManager {
         std::make_shared<gfx::Bitmap>(width, height, depth, data);
   }
 
-  std::shared_ptr<gfx::Bitmap> const &CopyBitmap(const gfx::Bitmap &bitmap,
-                                                 int id) {
-    auto new_bitmap = std::make_shared<gfx::Bitmap>(
-        bitmap.width(), bitmap.height(), bitmap.depth(), bitmap.vector());
-    bitmap_cache_[id] = new_bitmap;
-    return new_bitmap;
-  }
-
   std::shared_ptr<gfx::Bitmap> const &operator[](int id) {
     auto it = bitmap_cache_.find(id);
     if (it != bitmap_cache_.end()) {
       return it->second;
     }
-    return nullptr;
+    throw std::runtime_error(
+        absl::StrCat("Bitmap with id ", id, " not found."));
   }
-
+  std::shared_ptr<gfx::Bitmap> const &shared_bitmap(int id) {
+    auto it = bitmap_cache_.find(id);
+    if (it != bitmap_cache_.end()) {
+      return it->second;
+    }
+    throw std::runtime_error(
+        absl::StrCat("Bitmap with id ", id, " not found."));
+  }
   auto mutable_bitmap(int id) { return bitmap_cache_[id]; }
+  void clear_cache() { bitmap_cache_.clear(); }
 
   using value_type = std::pair<const int, std::shared_ptr<gfx::Bitmap>>;
   using iterator =
@@ -234,16 +277,6 @@ class BitmapManager {
   const_iterator end() const noexcept { return bitmap_cache_.end(); }
   const_iterator cbegin() const noexcept { return bitmap_cache_.cbegin(); }
   const_iterator cend() const noexcept { return bitmap_cache_.cend(); }
-
-  std::shared_ptr<gfx::Bitmap> const &GetBitmap(int id) {
-    auto it = bitmap_cache_.find(id);
-    if (it != bitmap_cache_.end()) {
-      return it->second;
-    }
-    return nullptr;  // or handle the error accordingly
-  }
-
-  void ClearCache() { bitmap_cache_.clear(); }
 };
 
 }  // namespace gfx

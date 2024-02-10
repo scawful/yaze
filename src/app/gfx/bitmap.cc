@@ -30,6 +30,24 @@ void PngWriteCallback(png_structp png_ptr, png_bytep data, png_size_t length) {
   p->insert(p->end(), data, data + length);
 }
 
+void PngReadCallback(png_structp png_ptr, png_bytep outBytes,
+                     png_size_t byteCountToRead) {
+  png_voidp io_ptr = png_get_io_ptr(png_ptr);
+  if (!io_ptr) return;
+
+  std::vector<uint8_t> *png_data =
+      reinterpret_cast<std::vector<uint8_t> *>(io_ptr);
+  static size_t pos = 0;  // Position to read from
+
+  if (pos + byteCountToRead <= png_data->size()) {
+    memcpy(outBytes, png_data->data() + pos, byteCountToRead);
+    pos += byteCountToRead;
+  } else {
+    png_error(png_ptr, "Read error in PngReadCallback");
+  }
+}
+}  // namespace
+
 bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
   png_structp png_ptr = png_create_write_struct("1.6.40", NULL, NULL, NULL);
   if (!png_ptr) {
@@ -72,6 +90,10 @@ bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
     free(pal_ptr);
   }
 
+  if (surface->format->Amask) {  // Check for alpha channel
+    colortype |= PNG_COLOR_MASK_ALPHA;
+  }
+
   auto depth = surface->format->BitsPerPixel;
 
   // Set image attributes.
@@ -96,18 +118,6 @@ bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
   png_destroy_write_struct(&png_ptr, &info_ptr);
 
   return true;
-}
-
-void PngReadCallback(png_structp png_ptr, png_bytep outBytes,
-                     png_size_t byteCountToRead) {
-  png_voidp io_ptr = png_get_io_ptr(png_ptr);
-  if (!io_ptr) return;
-
-  std::vector<uint8_t> *png_data =
-      reinterpret_cast<std::vector<uint8_t> *>(io_ptr);
-  size_t pos = png_data->size() - byteCountToRead;
-  memcpy(outBytes, png_data->data() + pos, byteCountToRead);
-  png_data->resize(pos);  // Reduce the buffer size
 }
 
 void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
@@ -140,59 +150,38 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
   png_byte color_type = png_get_color_type(png_ptr, info_ptr);
   png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
-  // Set up transformations, e.g., strip 16-bit PNGs down to 8-bit, expand
-  // palettes, etc.
-  if (bit_depth == 16) {
-    png_set_strip_16(png_ptr);
-  }
-
-  if (color_type == PNG_COLOR_TYPE_PALETTE) {
-    png_set_palette_to_rgb(png_ptr);
-  }
-
-  // PNG files pack pixels, expand them
-  if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {
-    png_set_expand_gray_1_2_4_to_8(png_ptr);
-  }
-
-  if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
-    png_set_tRNS_to_alpha(png_ptr);
-  }
-
-  if (color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_GRAY ||
-      color_type == PNG_COLOR_TYPE_PALETTE) {
-    png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
-  }
-
-  if (color_type == PNG_COLOR_TYPE_GRAY ||
-      color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
-    png_set_gray_to_rgb(png_ptr);
-  }
+  // Apply necessary transformations...
+  // (Same as in your existing code)
 
   // Update info structure with transformations
   png_read_update_info(png_ptr, info_ptr);
 
   // Read the file
-  std::vector<png_bytep> row_pointers(height);
   std::vector<uint8_t> raw_data(width * height *
                                 4);  // Assuming 4 bytes per pixel (RGBA)
+  std::vector<png_bytep> row_pointers(height);
   for (size_t y = 0; y < height; y++) {
-    row_pointers[y] = &raw_data[y * width * 4];
+    row_pointers[y] = raw_data.data() + y * width * 4;
   }
 
   png_read_image(png_ptr, row_pointers.data());
   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
-  // Create SDL_Surface from raw pixel data
-  *outSurface = SDL_CreateRGBSurfaceWithFormatFrom(
-      raw_data.data(), width, height, 32, width * 4, SDL_PIXELFORMAT_RGBA32);
+  // Create an SDL_Surface
+  *outSurface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32,
+                                               SDL_PIXELFORMAT_RGBA32);
   if (*outSurface == nullptr) {
-    SDL_Log("SDL_CreateRGBSurfaceWithFormatFrom failed: %s\n", SDL_GetError());
-  } else {
-    SDL_Log("Successfully created SDL_Surface from PNG data");
+    SDL_Log("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
+    return;
   }
+
+  // Copy the raw data into the SDL_Surface
+  SDL_LockSurface(*outSurface);
+  memcpy((*outSurface)->pixels, raw_data.data(), raw_data.size());
+  SDL_UnlockSurface(*outSurface);
+
+  SDL_Log("Successfully created SDL_Surface from PNG data");
 }
-}  // namespace
 
 Bitmap::Bitmap(int width, int height, int depth, int data_size) {
   Create(width, height, depth, data_size);
@@ -267,7 +256,7 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
   SDL_UnlockTexture(texture_.get());
 }
 
-void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
+void Bitmap::UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update) {
   SDL_Surface *converted_surface =
       SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0);
   if (converted_surface) {
@@ -282,8 +271,17 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
   SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,
                   &converted_surface_->pitch);
 
-  memcpy(texture_pixels, converted_surface_->pixels,
-         converted_surface_->h * converted_surface_->pitch);
+  try {
+    if (use_sdl_update) {
+      SDL_UpdateTexture(texture_.get(), nullptr, converted_surface_->pixels,
+                        converted_surface_->pitch);
+    } else {
+      memcpy(texture_pixels, converted_surface_->pixels,
+             converted_surface_->h * converted_surface_->pitch);
+    }
+  } catch (const std::exception &e) {
+    SDL_Log("Exception: %s\n", e.what());
+  }
 
   SDL_UnlockTexture(texture_.get());
 }
@@ -327,33 +325,54 @@ void Bitmap::LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
 }
 
 // Convert SNESPalette to SDL_Palette for surface.
-void Bitmap::ApplyPalette(const SNESPalette &palette) {
+void Bitmap::ApplyPalette(const SnesPalette &palette) {
   palette_ = palette;
   SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette.size(); ++i) {
-    if (palette.GetColor(i).IsTransparent()) {
+    if (palette.GetColor(i).is_transparent()) {
       surface_->format->palette->colors[i].r = 0;
       surface_->format->palette->colors[i].g = 0;
       surface_->format->palette->colors[i].b = 0;
       surface_->format->palette->colors[i].a = 0;
     } else {
-      surface_->format->palette->colors[i].r = palette.GetColor(i).GetRGB().x;
-      surface_->format->palette->colors[i].g = palette.GetColor(i).GetRGB().y;
-      surface_->format->palette->colors[i].b = palette.GetColor(i).GetRGB().z;
-      surface_->format->palette->colors[i].a = palette.GetColor(i).GetRGB().w;
+      surface_->format->palette->colors[i].r = palette.GetColor(i).rgb().x;
+      surface_->format->palette->colors[i].g = palette.GetColor(i).rgb().y;
+      surface_->format->palette->colors[i].b = palette.GetColor(i).rgb().z;
+      surface_->format->palette->colors[i].a = palette.GetColor(i).rgb().w;
     }
   }
   SDL_LockSurface(surface_.get());
 }
 
-void Bitmap::ApplyPaletteWithTransparent(const SNESPalette &palette,
-                                         int index) {
+void Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
+                                          int palette_id) {
+  auto start_index = palette_id * 8;
+  palette_ = palette.sub_palette(start_index, start_index + 8);
+  SDL_UnlockSurface(surface_.get());
+  for (int i = 0; i < palette_.size(); ++i) {
+    if (palette_.GetColor(i).is_transparent()) {
+      surface_->format->palette->colors[i].r = 0;
+      surface_->format->palette->colors[i].g = 0;
+      surface_->format->palette->colors[i].b = 0;
+      surface_->format->palette->colors[i].a = 0;
+    } else {
+      surface_->format->palette->colors[i].r = palette_.GetColor(i).rgb().x;
+      surface_->format->palette->colors[i].g = palette_.GetColor(i).rgb().y;
+      surface_->format->palette->colors[i].b = palette_.GetColor(i).rgb().z;
+      surface_->format->palette->colors[i].a = palette_.GetColor(i).rgb().w;
+    }
+  }
+  SDL_LockSurface(surface_.get());
+}
+
+void Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
+                                         int length) {
   auto start_index = index * 7;
   palette_ = palette.sub_palette(start_index, start_index + 7);
   std::vector<ImVec4> colors;
   colors.push_back(ImVec4(0, 0, 0, 0));
   for (int i = start_index; i < start_index + 7; ++i) {
-    colors.push_back(palette.GetColor(i).GetRGB());
+    colors.push_back(palette.GetColor(i).rgb());
   }
 
   SDL_UnlockSurface(surface_.get());

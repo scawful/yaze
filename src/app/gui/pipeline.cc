@@ -22,7 +22,7 @@ namespace app {
 namespace gui {
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
-                               gfx::SNESPalette& palette) {
+                               gfx::SnesPalette& palette) {
   const auto palette_row_size = 7;
   if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)100);
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
@@ -43,7 +43,7 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
       }
 
-      if (gui::SNESColorButton("##palette", palette[n],
+      if (gui::SnesColorButton("##palette", palette[n],
                                ImGuiColorEditFlags_NoAlpha |
                                    ImGuiColorEditFlags_NoPicker |
                                    ImGuiColorEditFlags_NoTooltip,
@@ -81,7 +81,7 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
         if (key >= 1) {
           top_left_y = canvas.zero_point().y + height * key;
         }
-        canvas.GetDrawList()->AddImage(
+        canvas.draw_list()->AddImage(
             (void*)value.texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,
@@ -113,7 +113,7 @@ void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
         if (key >= 1) {
           top_left_y = canvas.zero_point().y + height * key;
         }
-        canvas.GetDrawList()->AddImage(
+        canvas.draw_list()->AddImage(
             (void*)value->texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,
@@ -160,7 +160,7 @@ void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap,
 
 void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
                                   ROM& z3_rom, gfx::Bitmap& bitmap,
-                                  gfx::SNESPalette& palette) {
+                                  gfx::SnesPalette& palette) {
   bitmap.Create(width, height, depth, data);
   bitmap.ApplyPalette(palette);
   z3_rom.RenderBitmap(&bitmap);

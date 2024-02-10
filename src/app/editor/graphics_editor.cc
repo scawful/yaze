@@ -28,6 +28,7 @@ using ImGui::Button;
 using ImGui::InputInt;
 using ImGui::InputText;
 using ImGui::SameLine;
+using ImGui::TableNextColumn;
 
 constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
@@ -63,13 +64,13 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
     status_ = UpdateGfxSheetList();
 
     NEXT_COLUMN();
-    if (rom()->isLoaded()) {
+    if (rom()->is_loaded()) {
       DrawGfxEditToolset();
       status_ = UpdateGfxTabView();
     }
 
     NEXT_COLUMN();
-    if (rom()->isLoaded()) {
+    if (rom()->is_loaded()) {
       status_ = UpdatePaletteColumn();
     }
   }
@@ -87,38 +88,41 @@ void GraphicsEditor::DrawGfxEditToolset() {
           "Zoom In", "Current Color", "Tile Size"})
       ImGui::TableSetupColumn(name);
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_SELECT_ALL)) {
       gfx_edit_mode_ = GfxEditMode::kSelect;
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_DRAW)) {
       gfx_edit_mode_ = GfxEditMode::kPencil;
     }
+    HOVER_HINT("Draw with current color");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_FORMAT_COLOR_FILL)) {
       gfx_edit_mode_ = GfxEditMode::kFill;
     }
+    HOVER_HINT("Fill with current color");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data =
-          rom()->bitmap_manager().GetBitmap(current_sheet_)->GetPngData();
+          rom()->bitmap_manager().shared_bitmap(current_sheet_)->GetPngData();
       CopyImageToClipboard(png_data);
     }
+    HOVER_HINT("Copy to Clipboard");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_CONTENT_PASTE)) {
       std::vector<uint8_t> png_data;
       int width, height;
       GetImageFromClipboard(png_data, width, height);
       if (png_data.size() > 0) {
         rom()
-            ->bitmap_manager()
-            .GetBitmap(current_sheet_)
-            ->LoadFromPngData(png_data, width, height);
+            ->mutable_bitmap_manager()
+            ->mutable_bitmap(current_sheet_)
+            ->Create(width, height, 8, png_data);
         rom()->UpdateBitmap(rom()
                                 ->mutable_bitmap_manager()
                                 ->mutable_bitmap(current_sheet_)
@@ -127,35 +131,35 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
     HOVER_HINT("Paste from Clipboard");
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_ZOOM_OUT)) {
       if (current_scale_ >= 0.0f) {
         current_scale_ -= 1.0f;
       }
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_ZOOM_IN)) {
       if (current_scale_ <= 16.0f) {
         current_scale_ += 1.0f;
       }
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     auto bitmap = rom()->bitmap_manager()[current_sheet_];
     auto palette = bitmap->palette();
     for (int i = 0; i < 8; i++) {
       ImGui::SameLine();
       auto color =
-          ImVec4(palette[i].GetRGB().x / 255.0f, palette[i].GetRGB().y / 255.0f,
-                 palette[i].GetRGB().z / 255.0f, 255.0f);
+          ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
+                 palette[i].rgb().z / 255.0f, 255.0f);
       if (ImGui::ColorButton(absl::StrFormat("Palette Color %d", i).c_str(),
                              color)) {
         current_color_ = color;
       }
     }
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     gui::InputHexByte("Tile Size", &tile_size_, 0x01);
 
     ImGui::EndTable();
@@ -173,43 +177,48 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
                       ImGuiWindowFlags_NoDecoration);
     ImGui::PopStyleVar();
     gui::Canvas graphics_bin_canvas_;
-    auto select_tile_event = [&]() {
-      if (value.get()->IsActive()) {
-        auto texture = value.get()->texture();
-        graphics_bin_canvas_.GetDrawList()->AddImage(
-            (void*)texture,
-            ImVec2(graphics_bin_canvas_.zero_point().x + 2,
-                   graphics_bin_canvas_.zero_point().y + 2),
-            ImVec2(graphics_bin_canvas_.zero_point().x +
-                       value.get()->width() * sheet_scale_,
-                   graphics_bin_canvas_.zero_point().y +
-                       value.get()->height() * sheet_scale_));
+    // auto select_tile_event = [&]() {
+    // };
+    // graphics_bin_canvas_.UpdateEvent(
+    //     select_tile_event, ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
+    //     /*grid_size=*/16.0f);
 
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          current_sheet_ = key;
-          open_sheets_.insert(key);
-        }
+    graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x40 + 1));
+    graphics_bin_canvas_.DrawContextMenu();
+    if (value.get()->is_active()) {
+      auto texture = value.get()->texture();
+      graphics_bin_canvas_.draw_list()->AddImage(
+          (void*)texture,
+          ImVec2(graphics_bin_canvas_.zero_point().x + 2,
+                 graphics_bin_canvas_.zero_point().y + 2),
+          ImVec2(graphics_bin_canvas_.zero_point().x +
+                     value.get()->width() * sheet_scale_,
+                 graphics_bin_canvas_.zero_point().y +
+                     value.get()->height() * sheet_scale_));
 
-        // Add a slightly transparent rectangle behind the text
-        ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
-                        graphics_bin_canvas_.zero_point().y + 2);
-        ImVec2 text_size =
-            ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
-        ImVec2 rent_min(text_pos.x, text_pos.y);
-        ImVec2 rent_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
-
-        graphics_bin_canvas_.GetDrawList()->AddRectFilled(
-            rent_min, rent_max, IM_COL32(0, 125, 0, 128));
-
-        graphics_bin_canvas_.GetDrawList()->AddText(
-            text_pos, IM_COL32(125, 255, 125, 255),
-            absl::StrFormat("%02X", key).c_str());
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        current_sheet_ = key;
+        open_sheets_.insert(key);
       }
-    };
 
-    graphics_bin_canvas_.UpdateEvent(
-        select_tile_event, ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
-        /*grid_size=*/16.0f);
+      // Add a slightly transparent rectangle behind the text
+      ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
+                      graphics_bin_canvas_.zero_point().y + 2);
+      ImVec2 text_size =
+          ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
+      ImVec2 rent_min(text_pos.x, text_pos.y);
+      ImVec2 rent_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
+
+      graphics_bin_canvas_.draw_list()->AddRectFilled(rent_min, rent_max,
+                                                      IM_COL32(0, 125, 0, 128));
+
+      graphics_bin_canvas_.draw_list()->AddText(
+          text_pos, IM_COL32(125, 255, 125, 255),
+          absl::StrFormat("%02X", key).c_str());
+    }
+    graphics_bin_canvas_.DrawGrid(16.0f);
+    graphics_bin_canvas_.DrawOverlay();
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::EndChild();
   }
@@ -249,18 +258,19 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
                               ImGuiWindowFlags_AlwaysVerticalScrollbar |
                               ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
+        gfx::Bitmap& current_bitmap =
+            *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
+
         auto draw_tile_event = [&]() {
-          gfx::Bitmap& current_bitmap =
-              *rom()->mutable_bitmap_manager()->mutable_bitmap(sheet_id);
-          current_sheet_canvas_.DrawTileOnBitmap(tile_size_, current_bitmap,
+          current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          rom()->UpdateBitmap(&current_bitmap);
+          rom()->UpdateBitmap(&current_bitmap, true);
         };
 
-        auto size = ImVec2(0x80, 0x20);
         current_sheet_canvas_.UpdateColorPainter(
             *rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
-            size, tile_size_, current_scale_, 8.0f);
+            tile_size_, current_scale_);
+
         ImGui::EndChild();
         ImGui::EndTabItem();
       }
@@ -289,12 +299,13 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       ImGui::Begin(absl::StrFormat("##GfxEditPaletteChildWindow%d", id).c_str(),
                    &active, ImGuiWindowFlags_AlwaysUseWindowPadding);
       current_sheet_ = id;
+      //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
           *rom()->bitmap_manager()[id], current_color_,
           [&]() {
 
           },
-          ImVec2(0x100, 0x40), tile_size_, current_scale_, 8.0f);
+          tile_size_, current_scale_);
       ImGui::End();
 
       if (active == false) {
@@ -315,7 +326,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 
   auto palette = palette_group[edit_palette_index_];
 
-  if (rom()->isLoaded()) {
+  if (rom()->is_loaded()) {
     gui::TextWithSeparators("ROM Palette");
     ImGui::SetNextItemWidth(100.f);
     ImGui::Combo("Palette Group", (int*)&edit_palette_group_name_index_,
@@ -345,14 +356,19 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
   const auto link_gfx_offset = 0x80000;
   const auto link_gfx_length = 0x7000;
 
-  // Load Links graphics from the ROM
-  RETURN_IF_ERROR(rom()->LoadLinkGraphics());
+  // TODO: Finish Rom::LoadLinkGraphics and implement this
+  if (ImGui::Button("Load Link Graphics (Experimental)")) {
+    if (rom()->is_loaded()) {
+      // Load Links graphics from the ROM
+      rom()->LoadLinkGraphics();
 
-  // Split it into the pose data frames
-  // Create an animation step display for the poses
-  // Allow the user to modify the frames used in an anim step
-  // LinkOAM_AnimationSteps:
-  // #_0D85FB
+      // Split it into the pose data frames
+      // Create an animation step display for the poses
+      // Allow the user to modify the frames used in an anim step
+      // LinkOAM_AnimationSteps:
+      // #_0D85FB
+    }
+  }
 
   END_TAB_ITEM()
   return absl::OkStatus();
@@ -424,7 +440,7 @@ absl::Status GraphicsEditor::DrawToolset() {
     for (const auto& name : kGfxToolsetColumnNames)
       ImGui::TableSetupColumn(name.data());
 
-    ImGui::TableNextColumn();
+    TableNextColumn();
     if (Button(ICON_MD_MEMORY)) {
       if (!open_memory_editor_) {
         open_memory_editor_ = true;
@@ -527,8 +543,12 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         if (col_file_palette_group_.size() != 0) {
           col_file_palette_group_.Clear();
         }
-        col_file_palette_group_ = gfx::CreatePaletteGroupFromColFile(col_data_);
-        col_file_palette_ = gfx::SNESPalette(col_data_);
+        auto col_file_palette_group_status =
+            gfx::CreatePaletteGroupFromColFile(col_data_);
+        if (col_file_palette_group_status.ok()) {
+          col_file_palette_group_ = col_file_palette_group_status.value();
+        }
+        col_file_palette_ = gfx::SnesPalette(col_data_);
 
         // gigaleak dev format based code
         decoded_col_ = gfx::DecodeColFile(col_file_path_);
@@ -539,7 +559,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   gui::ButtonPipe("Copy COL Path",
                   [this]() { ImGui::SetClipboardText(col_file_path_); });
 
-  if (rom()->isLoaded()) {
+  if (rom()->is_loaded()) {
     gui::TextWithSeparators("ROM Palette");
     gui::InputHex("Palette Index", &current_palette_index_);
     ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
@@ -644,7 +664,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::InputHex("Num Sheets", &num_sheets_to_load_);
 
   gui::ButtonPipe("Decompress Clipboard Data", [this]() {
-    if (temp_rom_.isLoaded()) {
+    if (temp_rom_.is_loaded()) {
       status_ = DecompressImportData(0x40000);
     } else {
       status_ = absl::InvalidArgumentError(
@@ -690,7 +710,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
   bin_bitmap_.Create(core::kTilesheetWidth, 0x2000, core::kTilesheetDepth,
                      converted_sheet);
 
-  if (rom()->isLoaded()) {
+  if (rom()->is_loaded()) {
     auto palette_group = rom()->palette_group("ow_main");
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {

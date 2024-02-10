@@ -15,7 +15,28 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+const int D_NINTENDO_C_MODE1 = 0;
+const int D_NINTENDO_C_MODE2 = 1;
+
+const int D_CMD_COPY = 0;
+const int D_CMD_BYTE_REPEAT = 1;
+const int D_CMD_WORD_REPEAT = 2;
+const int D_CMD_BYTE_INC = 3;
+const int D_CMD_COPY_EXISTING = 4;
+
+const int D_MAX_NORMAL_LENGTH = 32;
+const int D_MAX_LENGTH = 1024;
+
+const int INITIAL_ALLOC_SIZE = 1024;
+
 namespace lc_lz2 {
+
+absl::StatusOr<Bytes> ZS_Compress(const std::vector<uint8_t>& data,
+                                  const int start, const int length,
+                                  int mode = 1, bool check = false);
+
+absl::StatusOr<Bytes> ZS_CompressOverworld(const std::vector<uint8_t> data,
+                                           const int pos, const int length);
 
 constexpr int kCommandDirectCopy = 0;
 constexpr int kCommandByteFill = 1;
@@ -128,6 +149,8 @@ absl::StatusOr<Bytes> CompressGraphics(const uchar* data, const int pos,
                                        const int length);
 absl::StatusOr<Bytes> CompressOverworld(const uchar* data, const int pos,
                                         const int length);
+absl::StatusOr<Bytes> CompressOverworld(const std::vector<uint8_t> data,
+                                        const int pos, const int length);
 
 absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
     CompressionPiecePointer& piece, int mode);
@@ -185,9 +208,16 @@ absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
     CompressionPiece& piece, int mode);
 void FinalizeCompression(CompressionContext& context);
 
-absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t> data,
+absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
                                  const int start, const int length,
                                  int mode = 1, bool check = false);
+
+// Hyrule Magic
+uint8_t* Compress(uint8_t const* const src, int const oldsize, int* const size,
+                  int const flag);
+
+uint8_t* Uncompress(uint8_t const* src, int* const size,
+                    int const p_big_endian);
 
 // Decompression
 

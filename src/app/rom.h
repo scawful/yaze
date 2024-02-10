@@ -31,7 +31,8 @@
 #include "absl/strings/string_view.h"  // for string_view
 #include "app/core/common.h"
 #include "app/core/constants.h"  // for Bytes, uchar, armorPalettes
-#include "app/gfx/bitmap.h"      // for Bitmap, BitmapTable
+#include "app/core/labeling.h"
+#include "app/gfx/bitmap.h"  // for Bitmap, BitmapTable
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"  // for PaletteGroup, SNESColor
 #include "app/gfx/snes_tile.h"
@@ -132,7 +133,8 @@ constexpr uint32_t gfx_groups_pointer = 0x6237;
 
 struct WriteAction {
   int address;
-  std::variant<int, uint8_t, uint16_t, std::vector<uint8_t>, gfx::SNESColor>
+  std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
+               gfx::SnesColor, std::vector<gfx::SnesColor>>
       value;
 };
 
@@ -147,18 +149,54 @@ class ROM : public core::ExperimentFlags {
   }
 
   absl::Status WriteHelper(const WriteAction& action) {
-    if (std::holds_alternative<uint8_t>(action.value) ||
-        std::holds_alternative<int>(action.value)) {
+    if (std::holds_alternative<uint8_t>(action.value)) {
       return Write(action.address, std::get<uint8_t>(action.value));
-    } else if (std::holds_alternative<uint16_t>(action.value)) {
+    } else if (std::holds_alternative<uint16_t>(action.value) ||
+               std::holds_alternative<short>(action.value)) {
       return WriteShort(action.address, std::get<uint16_t>(action.value));
     } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
       return WriteVector(action.address,
                          std::get<std::vector<uint8_t>>(action.value));
-    } else if (std::holds_alternative<gfx::SNESColor>(action.value)) {
-      return WriteColor(action.address, std::get<gfx::SNESColor>(action.value));
+    } else if (std::holds_alternative<gfx::SnesColor>(action.value)) {
+      return WriteColor(action.address, std::get<gfx::SnesColor>(action.value));
+    } else if (std::holds_alternative<std::vector<gfx::SnesColor>>(
+                   action.value)) {
+      return absl::UnimplementedError(
+          "WriteHelper: std::vector<gfx::SnesColor>");
     }
-    return absl::InvalidArgumentError("Invalid write argument type");
+    auto error_message = absl::StrFormat("Invalid write argument type: %s",
+                                         typeid(action.value).name());
+    throw std::runtime_error(error_message);
+    return absl::InvalidArgumentError(error_message);
+  }
+
+  template <typename T, typename... Args>
+  absl::Status ReadTransaction(T& var, int address, Args&&... args) {
+    absl::Status status = ReadHelper<T>(var, address);
+    if (!status.ok()) {
+      return status;
+    }
+
+    if constexpr (sizeof...(args) > 0) {
+      status = ReadTransaction(std::forward<Args>(args)...);
+    }
+
+    return status;
+  }
+
+  template <typename T>
+  absl::Status ReadHelper(T& var, int address) {
+    if constexpr (std::is_same_v<T, uint8_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadByte(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, uint16_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadWord(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+      ASSIGN_OR_RETURN(auto result, ReadByteVector(address, var.size()));
+      var = result;
+    }
+    return absl::OkStatus();
   }
 
   /**
@@ -222,7 +260,8 @@ class ROM : public core::ExperimentFlags {
    * @return absl::Status Returns an OK status if the save was successful,
    * otherwise returns an error status
    */
-  absl::Status SaveToFile(bool backup, absl::string_view filename = "");
+  absl::Status SaveToFile(bool backup, bool save_new = false,
+                          std::string filename = "");
 
   /**
    * Saves the given palette to the ROM if any of its colors have been modified.
@@ -232,7 +271,7 @@ class ROM : public core::ExperimentFlags {
    * @param palette The palette to save.
    */
   void SavePalette(int index, const std::string& group_name,
-                   gfx::SNESPalette& palette);
+                   gfx::SnesPalette& palette);
 
   /**
    * @brief Saves all palettes in the ROM.
@@ -261,7 +300,7 @@ class ROM : public core::ExperimentFlags {
    */
   absl::Status UpdatePaletteColor(const std::string& group_name,
                                   size_t palette_index, size_t colorIndex,
-                                  const gfx::SNESColor& newColor);
+                                  const gfx::SnesColor& newColor);
 
   // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
@@ -277,6 +316,10 @@ class ROM : public core::ExperimentFlags {
     }
     auto result = (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
     return result;
+  }
+
+  uint16_t toint16(int offset) {
+    return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
   }
 
   absl::StatusOr<uint32_t> ReadLong(int offset) {
@@ -334,37 +377,88 @@ class ROM : public core::ExperimentFlags {
   // Write functions
   absl::Status Write(int addr, int value) {
     if (addr >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Address out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write %d value failed, address %d out of range", value,
+          addr));
     }
     rom_data_[addr] = value;
     return absl::OkStatus();
   }
 
-  absl::Status WriteShort(uint32_t addr, uint16_t value) {
+  absl::Status WriteByte(int addr, uint8_t value) {
+    if (addr >= rom_data_.size()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write byte %#02x value failed, address %d out of range",
+          value, addr));
+    }
+    rom_data_[addr] = value;
+    std::string log_str = absl::StrFormat("WriteByte: %#06X: %s", addr,
+                                          core::UppercaseHexByte(value).data());
+    core::Logger::log(log_str);
+    return absl::OkStatus();
+  }
+
+  absl::Status WriteWord(int addr, uint16_t value) {
     if (addr + 1 >= rom_data_.size()) {
-      return absl::InvalidArgumentError("Address out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write word %#04x value failed, address %d out of range",
+          value, addr));
     }
     rom_data_[addr] = (uint8_t)(value & 0xFF);
     rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    core::Logger::log(absl::StrFormat("WriteWord: %#06X: %s", addr,
+                                      core::UppercaseHexWord(value)));
+    return absl::OkStatus();
+  }
+
+  absl::Status WriteShort(int addr, uint16_t value) {
+    if (addr + 1 >= rom_data_.size()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write short %#04x value failed, address %d out of range",
+          value, addr));
+    }
+    rom_data_[addr] = (uint8_t)(value & 0xFF);
+    rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    core::Logger::log(absl::StrFormat("WriteShort: %#06X: %s", addr,
+                                      core::UppercaseHexWord(value)));
+    return absl::OkStatus();
+  }
+
+  absl::Status WriteLong(uint32_t addr, uint32_t value) {
+    if (addr + 2 >= rom_data_.size()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write long %#06x value failed, address %d out of range",
+          value, addr));
+    }
+    rom_data_[addr] = (uint8_t)(value & 0xFF);
+    rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
+    rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
+    core::Logger::log(absl::StrFormat("WriteLong: %#06X: %s", addr,
+                                      core::UppercaseHexLong(value)));
     return absl::OkStatus();
   }
 
   absl::Status WriteVector(int addr, std::vector<uint8_t> data) {
     if (addr + data.size() > rom_data_.size()) {
-      return absl::InvalidArgumentError("Address and data size out of range");
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Attempt to write vector value failed, address %d out of range",
+          addr));
     }
     for (int i = 0; i < data.size(); i++) {
       rom_data_[addr + i] = data[i];
     }
+    core::Logger::log(absl::StrFormat("WriteVector: %#06X: %s", addr,
+                                      core::UppercaseHexByte(data[0])));
     return absl::OkStatus();
   }
 
-  absl::Status WriteColor(uint32_t address, const gfx::SNESColor& color) {
-    uint16_t bgr = ((color.GetSNES() >> 10) & 0x1F) |
-                   ((color.GetSNES() & 0x1F) << 10) |
-                   (color.GetSNES() & 0x7C00);
+  absl::Status WriteColor(uint32_t address, const gfx::SnesColor& color) {
+    uint16_t bgr = ((color.snes() >> 10) & 0x1F) |
+                   ((color.snes() & 0x1F) << 10) | (color.snes() & 0x7C00);
 
     // Write the 16-bit color value to the ROM at the specified address
+    core::Logger::log(absl::StrFormat("WriteColor: %#06X: %s", address,
+                                      core::UppercaseHexWord(bgr)));
     return WriteShort(address, bgr);
   }
 
@@ -409,7 +503,12 @@ class ROM : public core::ExperimentFlags {
   auto mutable_palette_group(const std::string& group) {
     return &palette_groups_[group];
   }
+  auto dungeon_palette(int i) { return palette_groups_["dungeon_main"][i]; }
+  auto mutable_dungeon_palette(int i) {
+    return palette_groups_["dungeon_main"].mutable_palette(i);
+  }
 
+  // Full graphical data for the game
   Bytes graphics_buffer() const { return graphics_buffer_; }
 
   gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
@@ -428,10 +527,10 @@ class ROM : public core::ExperimentFlags {
   auto push_back(uint8_t byte) { rom_data_.push_back(byte); }
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
-  auto isLoaded() const { return is_loaded_; }
+  auto is_loaded() const { return is_loaded_; }
   auto version() const { return version_; }
 
-  uchar& operator[](int i) {
+  uint8_t& operator[](int i) {
     if (i > size_) {
       std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
                 << std::endl;
@@ -439,7 +538,7 @@ class ROM : public core::ExperimentFlags {
     }
     return rom_data_[i];
   }
-  uchar& operator+(int i) {
+  uint8_t& operator+(int i) {
     if (i > size_) {
       std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
                 << std::endl;
@@ -447,11 +546,7 @@ class ROM : public core::ExperimentFlags {
     }
     return rom_data_[i];
   }
-  const uchar* operator&() { return rom_data_.data(); }
-
-  ushort toint16(int offset) {
-    return (ushort)((rom_data_[offset + 1]) << 8) | rom_data_[offset];
-  }
+  const uint8_t* operator&() { return rom_data_.data(); }
 
   void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
     renderer_ = renderer;
@@ -465,9 +560,9 @@ class ROM : public core::ExperimentFlags {
     }
   }
 
-  void UpdateBitmap(gfx::Bitmap* bitmap) {
+  void UpdateBitmap(gfx::Bitmap* bitmap, bool use_sdl_update = false) {
     if (flags()->kLoadTexturesAsStreaming) {
-      bitmap->UpdateTexture(renderer_.get());
+      bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
     } else {
       bitmap->UpdateTexture(renderer_);
     }
@@ -551,6 +646,8 @@ class ROM : public core::ExperimentFlags {
     return false;
   }
 
+  auto resource_label() { return &resource_label_manager_; }
+
  private:
   long size_ = 0;
   bool is_loaded_ = false;
@@ -565,8 +662,9 @@ class ROM : public core::ExperimentFlags {
   gfx::BitmapTable graphics_bin_;
   gfx::BitmapManager graphics_manager_;
   gfx::BitmapTable link_graphics_;
-  gfx::SNESPalette link_palette_;
+  gfx::SnesPalette link_palette_;
   PaletteGroupMap palette_groups_;
+  core::ResourceLabelManager resource_label_manager_;
 
   std::stack<std::function<void()>> changes_;
   std::shared_ptr<SDL_Renderer> renderer_;

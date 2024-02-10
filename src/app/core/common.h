@@ -5,7 +5,9 @@
 
 #include <chrono>
 #include <cstdint>
+#include <fstream>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <stack>
 #include <string>
@@ -17,9 +19,6 @@ namespace core {
 class ExperimentFlags {
  public:
   struct Flags {
-    // Load and render overworld sprites to the screen. Unstable.
-    bool kDrawOverworldSprites = false;
-
     // Bitmap manager abstraction to manage graphics bin of ROM.
     bool kUseBitmapManager = true;
 
@@ -49,7 +48,35 @@ class ExperimentFlags {
     // only supports macOS.
     bool kLoadSystemFonts = true;
 
-    bool kLoadTexturesAsStreaming = false;
+    // Uses texture streaming from SDL for my dynamic updates.
+    bool kLoadTexturesAsStreaming = true;
+
+    // Save dungeon map edits to the ROM.
+    bool kSaveDungeonMaps = false;
+
+    // Log to the console.
+    bool kLogToConsole = false;
+
+    // Overworld flags
+    struct Overworld {
+      // Load and render overworld sprites to the screen. Unstable.
+      bool kDrawOverworldSprites = false;
+
+      // Save overworld map edits to the ROM.
+      bool kSaveOverworldMaps = true;
+
+      // Save overworld entrances to the ROM.
+      bool kSaveOverworldEntrances = true;
+
+      // Save overworld exits to the ROM.
+      bool kSaveOverworldExits = true;
+
+      // Save overworld items to the ROM.
+      bool kSaveOverworldItems = true;
+
+      // Save overworld properties to the ROM.
+      bool kSaveOverworldProperties = true;
+    } overworld;
   };
 
   ExperimentFlags() = default;
@@ -209,6 +236,18 @@ class ImGuiIdIssuer {
   }
 };
 
+class Logger {
+ public:
+  static void log(std::string message) {
+    static std::ofstream fout("log.txt", std::ios::out | std::ios::app);
+    fout << message << std::endl;
+  }
+};
+
+std::string UppercaseHexByte(uint8_t byte, bool leading = false);
+std::string UppercaseHexWord(uint16_t word);
+std::string UppercaseHexLong(uint32_t dword);
+
 uint32_t SnesToPc(uint32_t addr);
 uint32_t PcToSnes(uint32_t addr);
 
@@ -223,6 +262,8 @@ bool StringReplace(std::string &str, const std::string &from,
 void stle16b_i(uint8_t *const p_arr, size_t const p_index,
                uint16_t const p_val);
 uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
+
+uint16_t ldle16b(uint8_t const *const p_arr);
 
 void stle16b(uint8_t *const p_arr, uint16_t const p_val);
 void stle32b(uint8_t *const p_arr, uint32_t const p_val);

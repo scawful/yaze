@@ -126,7 +126,7 @@ class Backup : public CommandHandler {
     RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
     if (arg_vec.size() == 2) {
       // Optional filename added
-      RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true, arg_vec[1]))
+      RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true, false, arg_vec[1]))
     } else {
       RETURN_IF_ERROR(rom_.SaveToFile(/*backup=*/true))
     }

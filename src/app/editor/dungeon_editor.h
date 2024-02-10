@@ -5,11 +5,14 @@
 
 #include "app/core/common.h"
 #include "app/core/editor.h"
+#include "app/core/labeling.h"
+#include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -40,9 +43,16 @@ class DungeonEditor : public Editor,
   absl::Status Undo() override { return absl::OkStatus(); }
   absl::Status Redo() override { return absl::OkStatus(); }
 
+  void add_room(int i) { active_rooms_.push_back(i); }
+
  private:
+  void LoadDungeonRoomSize();
+
+  void UpdateDungeonRoomView();
+
   void DrawToolset();
   void DrawRoomSelector();
+  void DrawEntranceSelector();
 
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
@@ -50,6 +60,14 @@ class DungeonEditor : public Editor,
   void DrawRoomGraphics();
   void DrawTileSelector();
   void DrawObjectRenderer();
+
+  void LoadRoomEntrances();
+
+  void CalculateUsageStats();
+  void DrawUsageStats();
+  void DrawUsageGrid();
+  void RenderSetUsage(const absl::flat_hash_map<uint16_t, int>& usage_map,
+                      uint16_t& selected_set, int spriteset_offset = 0x00);
 
   enum BackgroundType {
     kNoBackground,
@@ -70,15 +88,17 @@ class DungeonEditor : public Editor,
   bool refresh_graphics_ = false;
   bool show_object_render_ = false;
 
+  uint16_t current_entrance_id_ = 0;
   uint16_t current_room_id_ = 0;
   uint64_t current_palette_id_ = 0;
   uint64_t current_palette_group_id_ = 0;
 
   ImVector<int> active_rooms_;
 
+  GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
-  gfx::SNESPalette current_palette_;
-  gfx::SNESPalette full_palette_;
+  gfx::SnesPalette current_palette_;
+  gfx::SnesPalette full_palette_;
   gfx::PaletteGroup current_palette_group_;
 
   gui::Canvas canvas_;
@@ -86,12 +106,28 @@ class DungeonEditor : public Editor,
   gui::Canvas object_canvas_;
 
   gfx::Bitmap room_gfx_bmp_;
-  gfx::BitmapTable graphics_bin_;
+  gfx::BitmapManager graphics_bin_;
 
   std::vector<gfx::Bitmap*> room_gfx_sheets_;
   std::vector<zelda3::dungeon::Room> rooms_;
+  std::vector<zelda3::dungeon::RoomEntrance> entrances_;
   std::vector<gfx::BitmapManager> room_graphics_;
   zelda3::dungeon::DungeonObjectRenderer object_renderer_;
+
+  absl::flat_hash_map<uint16_t, int> spriteset_usage_;
+  absl::flat_hash_map<uint16_t, int> blockset_usage_;
+  absl::flat_hash_map<uint16_t, int> palette_usage_;
+
+  std::vector<int64_t> room_size_pointers_;
+
+  uint16_t selected_blockset_ = 0xFFFF;  // 0xFFFF indicates no selection
+  uint16_t selected_spriteset_ = 0xFFFF;
+  uint16_t selected_palette_ = 0xFFFF;
+
+  uint64_t total_room_size_ = 0;
+
+  std::unordered_map<int, int> room_size_addresses_;
+  std::unordered_map<int, ImVec4> room_palette_;
 };
 
 }  // namespace editor

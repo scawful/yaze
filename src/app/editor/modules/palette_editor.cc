@@ -35,6 +35,15 @@ namespace app {
 namespace editor {
 
 absl::Status PaletteEditor::Update() {
+  if (rom()->is_loaded()) {
+    // Initialize the labels
+    for (int i = 0; i < kNumPalettes; i++) {
+      rom()->resource_label()->CreateOrGetLabel(
+          "Palette Group Name", std::to_string(i),
+          std::string(kPaletteGroupNames[i]));
+    }
+  }
+
   if (ImGui::BeginTable("paletteEditorTable", 2,
                         ImGuiTableFlags_Reorderable |
                             ImGuiTableFlags_Resizable |
@@ -55,7 +64,9 @@ absl::Status PaletteEditor::Update() {
       }
     }
     ImGui::TableNextColumn();
-    ImGui::Text("Test Column");
+    if (gui::SnesColorEdit4("Color Picker", current_color_,
+                            ImGuiColorEditFlags_NoAlpha)) {
+    }
     ImGui::EndTable();
   }
 
@@ -64,14 +75,14 @@ absl::Status PaletteEditor::Update() {
   return absl::OkStatus();
 }
 
-void PaletteEditor::EditColorInPalette(gfx::SNESPalette& palette, int index) {
+void PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette, int index) {
   if (index >= palette.size()) {
     // Handle error: the index is out of bounds
     return;
   }
 
   // Get the current color
-  auto currentColor = palette.GetColor(index).GetRGB();
+  auto currentColor = palette.GetColor(index).rgb();
   if (ImGui::ColorPicker4("Color Picker", (float*)&palette[index])) {
     // The color was modified, update it in the palette
     palette(index, currentColor);
@@ -79,56 +90,57 @@ void PaletteEditor::EditColorInPalette(gfx::SNESPalette& palette, int index) {
 }
 
 void PaletteEditor::ResetColorToOriginal(
-    gfx::SNESPalette& palette, int index,
-    const gfx::SNESPalette& originalPalette) {
+    gfx::SnesPalette& palette, int index,
+    const gfx::SnesPalette& originalPalette) {
   if (index >= palette.size() || index >= originalPalette.size()) {
     // Handle error: the index is out of bounds
     return;
   }
 
-  auto originalColor = originalPalette.GetColor(index).GetRGB();
+  auto originalColor = originalPalette.GetColor(index).rgb();
   palette(index, originalColor);
 }
 
 absl::Status PaletteEditor::DrawPaletteGroup(int category) {
-  if (!rom()->isLoaded()) {
+  if (!rom()->is_loaded()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
 
   const auto size =
       rom()->palette_group(kPaletteGroupNames[category].data()).size();
-  auto palettes = rom()->palette_group(kPaletteGroupNames[category].data());
+  auto palettes =
+      rom()->mutable_palette_group(kPaletteGroupNames[category].data());
   static bool edit_color = false;
   for (int j = 0; j < size; j++) {
-    ImGui::Text("%d", j);
-
-    auto palette = palettes[j];
-    auto pal_size = palette.size();
+    // ImGui::Text("%d", j);
+    rom()->resource_label()->SelectableLabelWithNameEdit(
+        false, "Palette Group Name", std::to_string(j),
+        std::string(kPaletteGroupNames[category]));
+    auto palette = palettes->mutable_palette(j);
+    auto pal_size = palette->size();
 
     for (int n = 0; n < pal_size; n++) {
       ImGui::PushID(n);
-      if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+      if ((n % 7) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
       auto popup_id =
           absl::StrCat(kPaletteCategoryNames[category].data(), j, "_", n);
 
       // Small icon of the color in the palette
-      if (gui::SNESColorButton(popup_id, palette[n], palette_button_flags)) {
-        edit_color = true;
+      if (gui::SnesColorButton(popup_id, *palette->mutable_color(n),
+                               palette_button_flags)) {
+        current_color_ = palette->GetColor(n);
+        // EditColorInPalette(*palette, n);
       }
 
       if (ImGui::BeginPopupContextItem(popup_id.c_str())) {
-        RETURN_IF_ERROR(HandleColorPopup(palette, category, j, n))
+        RETURN_IF_ERROR(HandleColorPopup(*palette, category, j, n))
       }
 
-      if (edit_color) {
-        // The color button was clicked, open the popup
-        if (ImGui::ColorEdit4(popup_id.c_str(),
-                              gfx::ToFloatArray(palette[n]).data(),
-                              palette_button_flags)) {
-          EditColorInPalette(palette, n);
-        }
-      }
+      // if (gui::SnesColorEdit4(popup_id.c_str(), (*palette)[n],
+      //                         palette_button_flags)) {
+      //   EditColorInPalette(*palette, n);
+      // }
 
       ImGui::PopID();
     }
@@ -136,16 +148,15 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   return absl::OkStatus();
 }
 
-absl::Status PaletteEditor::HandleColorPopup(gfx::SNESPalette& palette, int i,
+absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
-  if (ImGui::ColorEdit4("Edit Color", col.data(), color_popup_flags)) {
+  if (gui::SnesColorEdit4("Edit Color", palette[n], color_popup_flags)) {
     RETURN_IF_ERROR(rom()->UpdatePaletteColor(kPaletteGroupNames[i].data(), j,
                                               n, palette[n]))
   }
 
   if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");
-
   if (ImGui::BeginPopup("Copy")) {
     int cr = IM_F32_TO_INT8_SAT(col[0]);
     int cg = IM_F32_TO_INT8_SAT(col[1]);
@@ -167,7 +178,7 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SNESPalette& palette, int i,
   return absl::OkStatus();
 }
 
-void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
+void PaletteEditor::DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
@@ -245,7 +256,7 @@ void PaletteEditor::DisplayPalette(gfx::SNESPalette& palette, bool loaded) {
   }
 }
 
-void PaletteEditor::DrawPortablePalette(gfx::SNESPalette& palette) {
+void PaletteEditor::DrawPortablePalette(gfx::SnesPalette& palette) {
   static bool init = false;
   if (!init) {
     InitializeSavedPalette(palette);
