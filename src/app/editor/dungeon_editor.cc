@@ -95,6 +95,7 @@ absl::Status DungeonEditor::Initialize() {
   for (int block : rooms_[current_room_id_].blocks()) {
     room_gfx_sheets_.emplace_back(graphics_bin_[block].get());
   }
+  return absl::OkStatus();
 }
 
 absl::Status DungeonEditor::RefreshGraphics() {
