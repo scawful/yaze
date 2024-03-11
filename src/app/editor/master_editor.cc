@@ -464,7 +464,43 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_memory_editor) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Memory Editor", (void*)&(*rom()), rom()->size());
+    static MemoryEditor comp_edit;
+    static bool show_compare_rom = false;
+    static ROM comparison_rom;
+    ImGui::Begin("Hex Editor", &show_memory_editor);
+    if (ImGui::Button("Compare Rom")) {
+      auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+      PRINT_IF_ERROR(comparison_rom.LoadFromFile(file_name));
+      show_compare_rom = true;
+    }
+
+    static uint64_t convert_address = 0;
+    gui::InputHex("SNES to PC", (int*)&convert_address, 6, 200.f);
+    ImGui::SameLine();
+    ImGui::Text("%x", core::SnesToPc(convert_address));
+
+    // mem_edit.DrawWindow("Memory Editor", (void*)&(*rom()), rom()->size());
+    BEGIN_TABLE("Memory Comparison", 2, ImGuiTableFlags_Resizable);
+    SETUP_COLUMN("Source")
+    SETUP_COLUMN("Dest")
+
+    NEXT_COLUMN()
+    ImGui::Text("%s", rom()->filename().data());
+    mem_edit.DrawContents((void*)&(*rom()), rom()->size());
+
+    NEXT_COLUMN()
+    if (show_compare_rom) {
+      comp_edit.SetComparisonData((void*)&(*rom()));
+      ImGui::BeginGroup();
+      ImGui::BeginChild("Comparison ROM");
+      ImGui::Text("%s", comparison_rom.filename().data());
+      comp_edit.DrawContents((void*)&(comparison_rom), comparison_rom.size());
+      ImGui::EndChild();
+      ImGui::EndGroup();
+    }
+    END_TABLE()
+
+    ImGui::End();
   }
 
   if (show_imgui_demo) {
