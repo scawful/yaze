@@ -256,7 +256,7 @@ absl::Status Controller::CreateGuiContext() {
 
   // Build a new ImGui frame
   ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame(window_.get());
+  ImGui_ImplSDL2_NewFrame();
 
   return absl::OkStatus();
 }
