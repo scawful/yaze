@@ -30,60 +30,12 @@ using ImGui::TableSetupColumn;
 
 absl::Status DungeonEditor::Update() {
   if (!is_loaded_ && rom()->is_loaded()) {
-    for (int i = 0; i < 0x100 + 40; i++) {
-      rooms_.emplace_back(zelda3::dungeon::Room(i));
-      rooms_[i].LoadHeader();
-      rooms_[i].LoadRoomFromROM();
-      if (flags()->kDrawDungeonRoomGraphics) {
-        rooms_[i].LoadRoomGraphics();
-      }
-
-      room_size_pointers_.push_back(rooms_[i].room_size_ptr());
-      if (rooms_[i].room_size_ptr() != 0x0A8000) {
-        room_size_addresses_[i] = rooms_[i].room_size_ptr();
-      }
-
-      auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
-      ASSIGN_OR_RETURN(auto palette_id,
-                       rom()->ReadWord(0xDEC4B + dungeon_palette_ptr));
-      int p_id = palette_id / 180;
-      auto color = rom()->palette_group("dungeon_main")[p_id][3];
-
-      room_palette_[rooms_[i].palette] = color.rgb();
-    }
-
-    LoadDungeonRoomSize();
-    LoadRoomEntrances();
-
-    // Load the palette group and palette for the dungeon
-    full_palette_ =
-        rom()->palette_group("dungeon_main")[current_palette_group_id_];
-    ASSIGN_OR_RETURN(current_palette_group_,
-                     gfx::CreatePaletteGroupFromLargePalette(full_palette_));
-
-    graphics_bin_ = *rom()->mutable_bitmap_manager();
-    // Create a vector of pointers to the current block bitmaps
-    for (int block : rooms_[current_room_id_].blocks()) {
-      room_gfx_sheets_.emplace_back(graphics_bin_[block].get());
-    }
-
+    RETURN_IF_ERROR(Initialize());
     is_loaded_ = true;
   }
 
   if (refresh_graphics_) {
-    for (int i = 0; i < 8; i++) {
-      int block = rooms_[current_room_id_].blocks()[i];
-      graphics_bin_[block].get()->ApplyPaletteWithTransparent(
-          current_palette_group_[current_palette_id_], 0);
-      rom()->UpdateBitmap(graphics_bin_[block].get(), true);
-    }
-    for (int i = 9; i < 16; i++) {
-      int block = rooms_[current_room_id_].blocks()[i];
-      graphics_bin_[block].get()->ApplyPaletteWithTransparent(
-          rom()->palette_group("sprites_aux1")[current_palette_id_], 0);
-      rom()->UpdateBitmap(graphics_bin_[block].get(), true);
-    }
-
+    RETURN_IF_ERROR(RefreshGraphics());
     refresh_graphics_ = false;
   }
 
@@ -103,6 +55,61 @@ absl::Status DungeonEditor::Update() {
   END_TAB_ITEM()
   END_TAB_BAR()
 
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditor::Initialize() {
+  for (int i = 0; i < 0x100 + 40; i++) {
+    rooms_.emplace_back(zelda3::dungeon::Room(i));
+    rooms_[i].LoadHeader();
+    rooms_[i].LoadRoomFromROM();
+    if (flags()->kDrawDungeonRoomGraphics) {
+      rooms_[i].LoadRoomGraphics();
+    }
+
+    room_size_pointers_.push_back(rooms_[i].room_size_ptr());
+    if (rooms_[i].room_size_ptr() != 0x0A8000) {
+      room_size_addresses_[i] = rooms_[i].room_size_ptr();
+    }
+
+    auto dungeon_palette_ptr = rom()->paletteset_ids[rooms_[i].palette][0];
+    ASSIGN_OR_RETURN(auto palette_id,
+                     rom()->ReadWord(0xDEC4B + dungeon_palette_ptr));
+    int p_id = palette_id / 180;
+    auto color = rom()->palette_group("dungeon_main")[p_id][3];
+
+    room_palette_[rooms_[i].palette] = color.rgb();
+  }
+
+  LoadDungeonRoomSize();
+  LoadRoomEntrances();
+
+  // Load the palette group and palette for the dungeon
+  full_palette_ =
+      rom()->palette_group("dungeon_main")[current_palette_group_id_];
+  ASSIGN_OR_RETURN(current_palette_group_,
+                   gfx::CreatePaletteGroupFromLargePalette(full_palette_));
+
+  graphics_bin_ = *rom()->mutable_bitmap_manager();
+  // Create a vector of pointers to the current block bitmaps
+  for (int block : rooms_[current_room_id_].blocks()) {
+    room_gfx_sheets_.emplace_back(graphics_bin_[block].get());
+  }
+}
+
+absl::Status DungeonEditor::RefreshGraphics() {
+  for (int i = 0; i < 8; i++) {
+    int block = rooms_[current_room_id_].blocks()[i];
+    graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+        current_palette_group_[current_palette_id_], 0);
+    rom()->UpdateBitmap(graphics_bin_[block].get(), true);
+  }
+  for (int i = 9; i < 16; i++) {
+    int block = rooms_[current_room_id_].blocks()[i];
+    graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+        rom()->palette_group("sprites_aux1")[current_palette_id_], 0);
+    rom()->UpdateBitmap(graphics_bin_[block].get(), true);
+  }
   return absl::OkStatus();
 }
 
@@ -483,7 +490,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
 void DungeonEditor::DrawRoomGraphics() {
   const auto height = 0x40;
-  room_gfx_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
+  room_gfx_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x10 * 0x40 + 1));
   room_gfx_canvas_.DrawContextMenu();
   room_gfx_canvas_.DrawTileSelector(32);
   if (is_loaded_) {
@@ -593,26 +600,19 @@ void DungeonEditor::LoadRoomEntrances() {
 // ============================================================================
 
 void DungeonEditor::CalculateUsageStats() {
-  // Create a hash map of the usage for elements of each Dungeon Room such as
-  // the blockset, spriteset, palette, etc. This is so we can keep track of
-  // which graphics sets and palette sets are in use and which are not.
-
   for (const auto& room : rooms_) {
-    // Blockset
     if (blockset_usage_.find(room.blockset) == blockset_usage_.end()) {
       blockset_usage_[room.blockset] = 1;
     } else {
       blockset_usage_[room.blockset] += 1;
     }
 
-    // Spriteset
     if (spriteset_usage_.find(room.spriteset) == spriteset_usage_.end()) {
       spriteset_usage_[room.spriteset] = 1;
     } else {
       spriteset_usage_[room.spriteset] += 1;
     }
 
-    // Palette
     if (palette_usage_.find(room.palette) == palette_usage_.end()) {
       palette_usage_[room.palette] = 1;
     } else {
@@ -756,22 +756,14 @@ void DungeonEditor::DrawUsageStats() {
 }
 
 void DungeonEditor::DrawUsageGrid() {
-  // Create a grid of 295 small squares which is 16 squares wide
-  // Each square represents a room in the game
-  // When you hover a square it should show a hover tooltip with the properties
-  // of the room such as the blockset, spriteset, palette, etc. Calculate the
-  // number of rows
   int totalSquares = 296;
   int squaresWide = 16;
   int squaresTall = (totalSquares + squaresWide - 1) /
                     squaresWide;  // Ceiling of totalSquares/squaresWide
 
-  // Loop through each row
   for (int row = 0; row < squaresTall; ++row) {
-    // Start a new line for each row
     ImGui::NewLine();
 
-    // Loop through each column in the row
     for (int col = 0; col < squaresWide; ++col) {
       // Check if we have reached 295 squares
       if (row * squaresWide + col >= totalSquares) {
