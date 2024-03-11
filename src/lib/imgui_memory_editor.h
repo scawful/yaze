@@ -104,6 +104,13 @@ struct MemoryEditor
     int             PreviewEndianess;
     ImGuiDataType   PreviewDataType;
 
+    // Expanded
+    ImU8*           ComparisonData;
+
+    void SetComparisonData(void* data) {
+      ComparisonData = (ImU8*)data;
+    }
+
     MemoryEditor()
     {
         // Settings
@@ -298,6 +305,24 @@ struct MemoryEditor
                                 highlight_width += s.SpacingBetweenMidCols;
                         }
                         draw_list->AddRectFilled(pos, ImVec2(pos.x + highlight_width, pos.y + s.LineHeight), HighlightColor);
+                    }
+
+                    bool comparison_rom_diff = false;
+                    if (ComparisonData != NULL) {
+                      int a = mem_data[addr];
+                      int b = ComparisonData[addr];
+                      if (a != b) {
+                        ImVec2 pos = ImGui::GetCursorScreenPos();
+                        float highlight_width = s.GlyphWidth * 2;
+                        bool is_next_byte_highlighted = (addr + 1 < mem_size) && ((HighlightMax != (size_t)-1 && addr + 1 < HighlightMax) || (HighlightFn && HighlightFn(mem_data, addr + 1)));
+                        if (is_next_byte_highlighted || (n + 1 == Cols))
+                        {
+                            highlight_width = s.HexCellWidth;
+                            if (OptMidColsCount > 0 && n > 0 && (n + 1) < Cols && ((n + 1) % OptMidColsCount) == 0)
+                                highlight_width += s.SpacingBetweenMidCols;
+                        }
+                        draw_list->AddRectFilled(pos, ImVec2(pos.x + highlight_width, pos.y + s.LineHeight), IM_COL32(255, 0, 0, 50));
+                      }
                     }
 
                     if (DataEditingAddr == addr)
