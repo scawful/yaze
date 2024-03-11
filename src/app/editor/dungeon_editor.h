@@ -46,6 +46,9 @@ class DungeonEditor : public Editor,
   void add_room(int i) { active_rooms_.push_back(i); }
 
  private:
+  absl::Status Initialize();
+  absl::Status RefreshGraphics();
+
   void LoadDungeonRoomSize();
 
   void UpdateDungeonRoomView();
