@@ -2,7 +2,7 @@
 #define YAZE_APP_ROM_H
 
 #include <SDL.h>
-#include <asar/src/asar/interface-lib.h>
+#include <asar/src/asar/interface-shared.h>
 
 #include <algorithm>
 #include <chrono>
