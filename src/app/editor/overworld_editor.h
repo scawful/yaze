@@ -118,8 +118,9 @@ class OverworldEditor : public Editor,
   void RenderUpdatedMapBitmap(const ImVec2& click_position,
                               const Bytes& tile_data);
   void CheckForOverworldEdits();
-  void CheckForCurrentMap();
   void CheckForSelectRectangle();
+  void CheckForCurrentMap();
+  void CheckForMousePan();
   void DrawOverworldCanvas();
 
   void DrawTile16Selector();
