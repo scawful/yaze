@@ -57,20 +57,6 @@ absl::Status OverworldEditor::Update() {
     map_blockset_loaded_ = false;
   }
 
-  // TODO: Setup pan tool with middle  mouse button
-  // if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
-  //   previous_mode = current_mode;
-  //   current_mode = EditingMode::PAN;
-  //   ow_map_canvas_.set_draggable(true);
-  //   middle_mouse_dragging_ = true;
-  // }
-  // if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle) &&
-  //     current_mode == EditingMode::PAN && middle_mouse_dragging_) {
-  //   current_mode = previous_mode;
-  //   ow_map_canvas_.set_draggable(false);
-  //   middle_mouse_dragging_ = false;
-  // }
-
   if (overworld_canvas_fullscreen_) {
     static bool use_work_area = true;
     static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
@@ -692,6 +678,21 @@ void OverworldEditor::CheckForCurrentMap() {
   }
 }
 
+void OverworldEditor::CheckForMousePan() {
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+    previous_mode = current_mode;
+    current_mode = EditingMode::PAN;
+    ow_map_canvas_.set_draggable(true);
+    middle_mouse_dragging_ = true;
+  }
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle) &&
+      current_mode == EditingMode::PAN && middle_mouse_dragging_) {
+    current_mode = previous_mode;
+    ow_map_canvas_.set_draggable(false);
+    middle_mouse_dragging_ = false;
+  }
+}
+
 // Overworld Editor canvas
 // Allows the user to make changes to the overworld map.
 void OverworldEditor::DrawOverworldCanvas() {
@@ -699,15 +700,19 @@ void OverworldEditor::DrawOverworldCanvas() {
     DrawOverworldMapSettings();
     Separator();
   }
+
   gui::BeginNoPadding();
   gui::BeginChildBothScrollbars(7);
   ow_map_canvas_.DrawBackground();
   gui::EndNoPadding();
+
+  CheckForMousePan();
   if (current_mode == EditingMode::PAN) {
     ow_map_canvas_.DrawContextMenu();
   } else {
     ow_map_canvas_.set_draggable(false);
   }
+
   if (overworld_.is_loaded()) {
     DrawOverworldMaps();
     DrawOverworldExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
