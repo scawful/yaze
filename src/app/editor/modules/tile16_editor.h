@@ -78,7 +78,7 @@ class Tile16Editor : public GfxContext, public SharedROM {
   bool priority_tile;
   int tile_size;
 
-  uint8_t *all_tiles_types_;
+  uint8_t* all_tiles_types_;
 
   // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_{ImVec2(0x100, 0x4000),
@@ -86,12 +86,14 @@ class Tile16Editor : public GfxContext, public SharedROM {
   gfx::Bitmap tile16_blockset_bmp_;
 
   // Canvas for editing the selected tile
-  gui::Canvas tile16_edit_canvas_;
+  gui::Canvas tile16_edit_canvas_{ImVec2(0x40, 0x40), gui::CanvasGridSize::k64x64};
   gfx::Bitmap current_tile16_bmp_;
   gfx::Bitmap current_tile8_bmp_;
 
   // Tile8 canvas to get the tile to drawing in the tile16_edit_canvas_
-  gui::Canvas tile8_source_canvas_;
+  gui::Canvas tile8_source_canvas_{
+      ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),
+      gui::CanvasGridSize::k32x32};
   gfx::Bitmap current_gfx_bmp_;
 
   gui::Canvas transfer_canvas_;
