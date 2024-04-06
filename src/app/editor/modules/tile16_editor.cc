@@ -63,7 +63,7 @@ absl::Status Tile16Editor::DrawTile16Editor() {
   if (BeginTabItem("Tile16 Editing")) {
     if (BeginTable("#Tile16EditorTable", 2, TABLE_BORDERS_RESIZABLE,
                    ImVec2(0, 0))) {
-      TableSetupColumn("Tiles", ImGuiTableColumnFlags_WidthFixed,
+      TableSetupColumn("Blockset", ImGuiTableColumnFlags_WidthFixed,
                        ImGui::GetContentRegionAvail().x);
       TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthStretch,
                        ImGui::GetContentRegionAvail().x);
@@ -83,42 +83,19 @@ absl::Status Tile16Editor::DrawTile16Editor() {
   return absl::OkStatus();
 }
 
-absl::Status Tile16Editor::UpdateTile16Transfer() {
-  if (BeginTabItem("Tile16 Transfer")) {
-    if (BeginTable("#Tile16TransferTable", 2, TABLE_BORDERS_RESIZABLE,
-                   ImVec2(0, 0))) {
-      TableSetupColumn("Current ROM Tiles", ImGuiTableColumnFlags_WidthFixed,
-                       ImGui::GetContentRegionAvail().x / 2);
-      TableSetupColumn("Transfer ROM Tiles", ImGuiTableColumnFlags_WidthFixed,
-                       ImGui::GetContentRegionAvail().x / 2);
-      TableHeadersRow();
-      TableNextRow();
-
-      TableNextColumn();
-      RETURN_IF_ERROR(UpdateBlockset());
-
-      TableNextColumn();
-      RETURN_IF_ERROR(UpdateTransferTileCanvas());
-
-      ImGui::EndTable();
-    }
-
-    ImGui::EndTabItem();
-  }
-  return absl::OkStatus();
-}
-
 absl::Status Tile16Editor::UpdateBlockset() {
   gui::BeginPadding(2);
   gui::BeginChildWithScrollbar("##Tile16EditorBlocksetScrollRegion");
   blockset_canvas_.DrawBackground();
   gui::EndPadding();
-  blockset_canvas_.DrawContextMenu();
-  blockset_canvas_.DrawTileSelector(32);
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, map_blockset_loaded_);
-  blockset_canvas_.DrawGrid();
-  blockset_canvas_.DrawOverlay();
-  ImGui::EndChild();
+  {
+    blockset_canvas_.DrawContextMenu();
+    blockset_canvas_.DrawTileSelector(32);
+    blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, map_blockset_loaded_);
+    blockset_canvas_.DrawGrid();
+    blockset_canvas_.DrawOverlay();
+    ImGui::EndChild();
+  }
 
   if (!blockset_canvas_.points().empty()) {
     uint16_t x = blockset_canvas_.points().front().x / 32;
@@ -176,8 +153,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   if (ImGui::BeginChild("Tile8 Selector",
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x175),
                         true)) {
-    tile8_source_canvas_.DrawBackground(
-        ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4));
+    tile8_source_canvas_.DrawBackground();
     tile8_source_canvas_.DrawContextMenu();
     if (tile8_source_canvas_.DrawTileSelector(32)) {
       current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
@@ -185,11 +161,12 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
     }
     tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 0, 0, 4.0f);
-    tile8_source_canvas_.DrawGrid(32.0f);
+    tile8_source_canvas_.DrawGrid();
     tile8_source_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
 
+  // The user selected a tile8
   if (!tile8_source_canvas_.points().empty()) {
     uint16_t x = tile8_source_canvas_.points().front().x / 16;
     uint16_t y = tile8_source_canvas_.points().front().y / 16;
@@ -205,7 +182,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
   if (ImGui::BeginChild("Tile16 Editor Options",
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x50), true)) {
-    tile16_edit_canvas_.DrawBackground(ImVec2(0x40, 0x40));
+    tile16_edit_canvas_.DrawBackground();
     tile16_edit_canvas_.DrawContextMenu();
     tile16_edit_canvas_.DrawBitmap(current_tile16_bmp_, 0, 0, 4.0f);
     if (!tile8_source_canvas_.points().empty()) {
@@ -216,7 +193,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         rom()->UpdateBitmap(&current_tile16_bmp_);
       }
     }
-    tile16_edit_canvas_.DrawGrid(64.0f);
+    tile16_edit_canvas_.DrawGrid();
     tile16_edit_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
@@ -252,45 +229,6 @@ void Tile16Editor::DrawTileEditControls() {
   ImGui::Checkbox("X Flip", &x_flip);
   ImGui::Checkbox("Y Flip", &y_flip);
   ImGui::Checkbox("Priority Tile", &priority_tile);
-}
-
-absl::Status Tile16Editor::UpdateTransferTileCanvas() {
-  // Create a button for loading another ROM
-  if (ImGui::Button("Load ROM")) {
-    ImGuiFileDialog::Instance()->OpenDialog(
-        "ChooseTransferFileDlgKey", "Open Transfer ROM", ".sfc,.smc", ".");
-  }
-  gui::FileDialogPipeline(
-      "ChooseTransferFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
-        std::string filePathName =
-            ImGuiFileDialog::Instance()->GetFilePathName();
-        transfer_status_ = transfer_rom_.LoadFromFile(filePathName);
-        transfer_started_ = true;
-      });
-
-  // TODO: Implement tile16 transfer
-  if (transfer_started_ && !transfer_blockset_loaded_) {
-    PRINT_IF_ERROR(transfer_rom_.LoadAllGraphicsData())
-    graphics_bin_ = transfer_rom_.graphics_bin();
-
-    // Load the Link to the Past overworld.
-    PRINT_IF_ERROR(transfer_overworld_.Load(transfer_rom_))
-    transfer_overworld_.set_current_map(0);
-    palette_ = transfer_overworld_.AreaPalette();
-
-    // Create the tile16 blockset image
-    gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
-                                      transfer_overworld_.Tile16Blockset(),
-                                      *rom(), transfer_blockset_bmp_, palette_);
-    transfer_blockset_loaded_ = true;
-  }
-
-  // Create a canvas for holding the tiles which will be exported
-  gui::BitmapCanvasPipeline(transfer_canvas_, transfer_blockset_bmp_, 0x100,
-                            (8192 * 2), 0x20, transfer_blockset_loaded_, true,
-                            3);
-
-  return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::InitBlockset(
@@ -345,6 +283,73 @@ absl::Status Tile16Editor::LoadTile8() {
   }
 
   map_blockset_loaded_ = true;
+
+  return absl::OkStatus();
+}
+
+// ============================================================================
+// Tile16 Transfer
+
+absl::Status Tile16Editor::UpdateTile16Transfer() {
+  if (BeginTabItem("Tile16 Transfer")) {
+    if (BeginTable("#Tile16TransferTable", 2, TABLE_BORDERS_RESIZABLE,
+                   ImVec2(0, 0))) {
+      TableSetupColumn("Current ROM Tiles", ImGuiTableColumnFlags_WidthFixed,
+                       ImGui::GetContentRegionAvail().x / 2);
+      TableSetupColumn("Transfer ROM Tiles", ImGuiTableColumnFlags_WidthFixed,
+                       ImGui::GetContentRegionAvail().x / 2);
+      TableHeadersRow();
+      TableNextRow();
+
+      TableNextColumn();
+      RETURN_IF_ERROR(UpdateBlockset());
+
+      TableNextColumn();
+      RETURN_IF_ERROR(UpdateTransferTileCanvas());
+
+      ImGui::EndTable();
+    }
+
+    ImGui::EndTabItem();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::UpdateTransferTileCanvas() {
+  // Create a button for loading another ROM
+  if (ImGui::Button("Load ROM")) {
+    ImGuiFileDialog::Instance()->OpenDialog(
+        "ChooseTransferFileDlgKey", "Open Transfer ROM", ".sfc,.smc", ".");
+  }
+  gui::FileDialogPipeline(
+      "ChooseTransferFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
+        std::string filePathName =
+            ImGuiFileDialog::Instance()->GetFilePathName();
+        transfer_status_ = transfer_rom_.LoadFromFile(filePathName);
+        transfer_started_ = true;
+      });
+
+  // TODO: Implement tile16 transfer
+  if (transfer_started_ && !transfer_blockset_loaded_) {
+    PRINT_IF_ERROR(transfer_rom_.LoadAllGraphicsData())
+    graphics_bin_ = transfer_rom_.graphics_bin();
+
+    // Load the Link to the Past overworld.
+    PRINT_IF_ERROR(transfer_overworld_.Load(transfer_rom_))
+    transfer_overworld_.set_current_map(0);
+    palette_ = transfer_overworld_.AreaPalette();
+
+    // Create the tile16 blockset image
+    gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
+                                      transfer_overworld_.Tile16Blockset(),
+                                      *rom(), transfer_blockset_bmp_, palette_);
+    transfer_blockset_loaded_ = true;
+  }
+
+  // Create a canvas for holding the tiles which will be exported
+  gui::BitmapCanvasPipeline(transfer_canvas_, transfer_blockset_bmp_, 0x100,
+                            (8192 * 2), 0x20, transfer_blockset_loaded_, true,
+                            3);
 
   return absl::OkStatus();
 }
