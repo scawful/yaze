@@ -1651,7 +1651,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 absl::Status OverworldEditor::RefreshTile16Blockset() {
   if (current_blockset_ ==
       overworld_.overworld_map(current_map_)->area_graphics()) {
-    return;
+    return absl::OkStatus();
   }
   current_blockset_ = overworld_.overworld_map(current_map_)->area_graphics();
 
