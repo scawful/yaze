@@ -51,7 +51,7 @@ class DungeonEditor : public Editor,
 
   void LoadDungeonRoomSize();
 
-  void UpdateDungeonRoomView();
+  absl::Status UpdateDungeonRoomView();
 
   void DrawToolset();
   void DrawRoomSelector();

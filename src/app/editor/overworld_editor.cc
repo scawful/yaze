@@ -344,21 +344,21 @@ void OverworldEditor::RefreshOverworldMap() {
 }
 
 // TODO: Palette throws out of bounds error unexpectedly.
-void OverworldEditor::RefreshMapPalette() {
+absl::Status OverworldEditor::RefreshMapPalette() {
   if (overworld_.overworld_map(current_map_)->is_large_map()) {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
       if (i >= 2) sibling_index += 6;
       overworld_.mutable_overworld_map(sibling_index)->LoadPalette();
-      maps_bmp_[sibling_index].ApplyPalette(
+      RETURN_IF_ERROR(maps_bmp_[sibling_index].ApplyPalette(
           *overworld_.mutable_overworld_map(sibling_index)
-               ->mutable_current_palette());
+               ->mutable_current_palette()));
     }
   }
-  maps_bmp_[current_map_].ApplyPalette(
+  RETURN_IF_ERROR(maps_bmp_[current_map_].ApplyPalette(
       *overworld_.mutable_overworld_map(current_map_)
-           ->mutable_current_palette());
+           ->mutable_current_palette()));
 }
 
 void OverworldEditor::RefreshMapProperties() {
@@ -415,7 +415,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
                               ->mutable_area_palette(),
                           kInputFieldSize)) {
       RefreshMapProperties();
-      RefreshMapPalette();
+      status_ = RefreshMapPalette();
     }
     ImGui::EndGroup();
 

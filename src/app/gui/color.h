@@ -6,6 +6,7 @@
 #include <cmath>
 #include <string>
 
+#include "absl/status/status.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 
@@ -27,7 +28,7 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
 IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
                               ImGuiColorEditFlags flags = 0);
 
-void DisplayPalette(app::gfx::SnesPalette& palette, bool loaded);
+absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded);
 
 }  // namespace gui
 }  // namespace app

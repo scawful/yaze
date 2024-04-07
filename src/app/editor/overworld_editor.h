@@ -103,7 +103,7 @@ class OverworldEditor : public Editor,
 
   void RefreshChildMap(int i);
   void RefreshOverworldMap();
-  void RefreshMapPalette();
+  absl::Status RefreshMapPalette();
   void RefreshMapProperties();
   void RefreshTile16Blockset();
 

@@ -80,9 +80,9 @@ class PaletteEditor : public SharedROM {
   absl::Status Update();
   absl::Status DrawPaletteGroups();
 
-  void EditColorInPalette(gfx::SnesPalette& palette, int index);
-  void ResetColorToOriginal(gfx::SnesPalette& palette, int index,
-                            const gfx::SnesPalette& originalPalette);
+  absl::Status EditColorInPalette(gfx::SnesPalette& palette, int index);
+  absl::Status ResetColorToOriginal(gfx::SnesPalette& palette, int index,
+                                    const gfx::SnesPalette& originalPalette);
   void DisplayPalette(gfx::SnesPalette& palette, bool loaded);
   void DrawPortablePalette(gfx::SnesPalette& palette);
   absl::Status DrawPaletteGroup(int category);
@@ -90,11 +90,12 @@ class PaletteEditor : public SharedROM {
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
 
-  void InitializeSavedPalette(const gfx::SnesPalette& palette) {
+  absl::Status InitializeSavedPalette(const gfx::SnesPalette& palette) {
     for (int n = 0; n < palette.size(); n++) {
-      saved_palette_[n].x = palette.GetColor(n).rgb().x / 255;
-      saved_palette_[n].y = palette.GetColor(n).rgb().y / 255;
-      saved_palette_[n].z = palette.GetColor(n).rgb().z / 255;
+      ASSIGN_OR_RETURN(auto color, palette.GetColor(n));
+      saved_palette_[n].x = color.rgb().x / 255;
+      saved_palette_[n].y = color.rgb().y / 255;
+      saved_palette_[n].z = color.rgb().z / 255;
       saved_palette_[n].w = 255;  // Alpha
     }
   }

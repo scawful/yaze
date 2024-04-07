@@ -52,7 +52,7 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
   return pressed;
 }
 
-void DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
+absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 255.f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
@@ -63,9 +63,10 @@ void DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 saved_palette[32] = {};
   if (loaded && !init) {
     for (int n = 0; n < palette.size(); n++) {
-      saved_palette[n].x = palette.GetColor(n).rgb().x / 255;
-      saved_palette[n].y = palette.GetColor(n).rgb().y / 255;
-      saved_palette[n].z = palette.GetColor(n).rgb().z / 255;
+      ASSIGN_OR_RETURN(auto color, palette.GetColor(n));
+      saved_palette[n].x = color.rgb().x / 255;
+      saved_palette[n].y = color.rgb().y / 255;
+      saved_palette[n].z = color.rgb().z / 255;
       saved_palette[n].w = 255;  // Alpha
     }
     init = true;

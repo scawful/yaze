@@ -497,7 +497,11 @@ class ROM : public core::ExperimentFlags {
     return core::SnesToPc(snes_addr);
   }
 
-  gfx::PaletteGroup palette_group(const std::string& group) {
+  absl::StatusOr<gfx::PaletteGroup> palette_group(const std::string& group) {
+    if (palette_groups_.find(group) == palette_groups_.end()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Palette group ", group, " not found"));
+    }
     return palette_groups_[group];
   }
   auto mutable_palette_group(const std::string& group) {

@@ -59,6 +59,8 @@ absl::Status DungeonEditor::Update() {
 }
 
 absl::Status DungeonEditor::Initialize() {
+  ASSIGN_OR_RETURN(auto dungeon_man_pal_group,
+                   rom()->palette_group("dungeon_main"));
   for (int i = 0; i < 0x100 + 40; i++) {
     rooms_.emplace_back(zelda3::dungeon::Room(i));
     rooms_[i].LoadHeader();
@@ -76,8 +78,7 @@ absl::Status DungeonEditor::Initialize() {
     ASSIGN_OR_RETURN(auto palette_id,
                      rom()->ReadWord(0xDEC4B + dungeon_palette_ptr));
     int p_id = palette_id / 180;
-    auto color = rom()->palette_group("dungeon_main")[p_id][3];
-
+    auto color = dungeon_man_pal_group[p_id][3];
     room_palette_[rooms_[i].palette] = color.rgb();
   }
 
@@ -85,8 +86,7 @@ absl::Status DungeonEditor::Initialize() {
   LoadRoomEntrances();
 
   // Load the palette group and palette for the dungeon
-  full_palette_ =
-      rom()->palette_group("dungeon_main")[current_palette_group_id_];
+  full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
   ASSIGN_OR_RETURN(current_palette_group_,
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
@@ -105,10 +105,12 @@ absl::Status DungeonEditor::RefreshGraphics() {
         current_palette_group_[current_palette_id_], 0);
     rom()->UpdateBitmap(graphics_bin_[block].get(), true);
   }
+  ASSIGN_OR_RETURN(auto sprites_aux1_pal_group,
+                   rom()->palette_group("sprites_aux1"));
   for (int i = 9; i < 16; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
     graphics_bin_[block].get()->ApplyPaletteWithTransparent(
-        rom()->palette_group("sprites_aux1")[current_palette_id_], 0);
+        sprites_aux1_pal_group[current_palette_id_], 0);
     rom()->UpdateBitmap(graphics_bin_[block].get(), true);
   }
   return absl::OkStatus();
@@ -156,13 +158,14 @@ void DungeonEditor::LoadDungeonRoomSize() {
   }
 }
 
-void DungeonEditor::UpdateDungeonRoomView() {
+absl::Status DungeonEditor::UpdateDungeonRoomView() {
   DrawToolset();
 
   if (palette_showing_) {
     ImGui::Begin("Palette Editor", &palette_showing_, 0);
-    current_palette_ =
-        rom()->palette_group("dungeon_main")[current_palette_group_id_];
+    ASSIGN_OR_RETURN(auto dungeon_main_pal_group,
+                     rom()->palette_group("dungeon_main"));
+    current_palette_ = dungeon_main_pal_group[current_palette_group_id_];
     gui::SelectablePalettePipeline(current_palette_id_, refresh_graphics_,
                                    current_palette_);
     ImGui::End();

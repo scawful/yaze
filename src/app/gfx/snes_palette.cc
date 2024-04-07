@@ -194,9 +194,11 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
   for (int i = 0; i < palette.size(); i += 8) {
     SnesPalette new_palette;
     if (i + 8 < palette.size()) {
+      //new_palette.AddColor(SnesColor(ImVec4(0,0,0,0)));
       for (int j = 0; j < 8; j++) {
         new_palette.AddColor(palette[i + j]);
       }
+
     }
 
     RETURN_IF_ERROR(toret.AddPalette(new_palette));
