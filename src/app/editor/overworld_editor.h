@@ -91,12 +91,17 @@ class OverworldEditor : public Editor,
     for (auto& [i, bmp] : current_graphics_set_) {
       bmp.Cleanup();
     }
+    maps_bmp_.clear();
+    overworld_.Destroy();
+    all_gfx_loaded_ = false;
+    map_blockset_loaded_ = false;
   }
 
   absl::Status LoadGraphics();
 
  private:
   absl::Status UpdateOverworldEdit();
+  absl::Status UpdateFullscreenCanvas();
 
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
@@ -123,7 +128,7 @@ class OverworldEditor : public Editor,
   void CheckForMousePan();
   void DrawOverworldCanvas();
 
-  void DrawTile16Selector();
+  absl::Status DrawTile16Selector();
   void DrawTile8Selector();
   void DrawAreaGraphics();
   void DrawTileSelector();
