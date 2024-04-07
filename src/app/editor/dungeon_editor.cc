@@ -197,6 +197,7 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     DrawTileSelector();
     ImGui::EndTable();
   }
+  return absl::OkStatus();
 }
 
 void DungeonEditor::DrawToolset() {

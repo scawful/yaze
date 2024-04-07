@@ -359,6 +359,7 @@ absl::Status OverworldEditor::RefreshMapPalette() {
   RETURN_IF_ERROR(maps_bmp_[current_map_].ApplyPalette(
       *overworld_.mutable_overworld_map(current_map_)
            ->mutable_current_palette()));
+  return absl::OkStatus();
 }
 
 void OverworldEditor::RefreshMapProperties() {
