@@ -110,7 +110,7 @@ class OverworldEditor : public Editor,
   void RefreshOverworldMap();
   absl::Status RefreshMapPalette();
   void RefreshMapProperties();
-  void RefreshTile16Blockset();
+  absl::Status RefreshTile16Blockset();
 
   void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling,
                               bool holes = false);
@@ -124,14 +124,14 @@ class OverworldEditor : public Editor,
                               const Bytes& tile_data);
   void CheckForOverworldEdits();
   void CheckForSelectRectangle();
-  void CheckForCurrentMap();
+  absl::Status CheckForCurrentMap();
   void CheckForMousePan();
   void DrawOverworldCanvas();
 
   absl::Status DrawTile16Selector();
   void DrawTile8Selector();
   void DrawAreaGraphics();
-  void DrawTileSelector();
+  absl::Status DrawTileSelector();
 
   absl::Status LoadSpriteGraphics();
 
