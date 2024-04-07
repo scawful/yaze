@@ -55,7 +55,8 @@ class Tile16Editor : public GfxContext, public SharedROM {
     current_tile16_ = id;
     current_tile16_bmp_ = tile16_individual_[id];
     ASSIGN_OR_RETURN(auto ow_main_pal_group, rom()->palette_group("ow_main"));
-    current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]);
+    RETURN_IF_ERROR(
+        current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]));
     rom()->RenderBitmap(&current_tile16_bmp_);
     return absl::OkStatus();
   }

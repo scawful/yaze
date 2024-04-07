@@ -81,7 +81,7 @@ absl::Status OverworldEditor::UpdateOverworldEdit() {
     TableNextColumn();
     DrawOverworldCanvas();
     TableNextColumn();
-    DrawTileSelector();
+    RETURN_IF_ERROR(DrawTileSelector());
     ImGui::EndTable();
   }
   return absl::OkStatus();
@@ -627,7 +627,7 @@ void OverworldEditor::CheckForSelectRectangle() {
   ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_individual_, 0x10);
 }
 
-void OverworldEditor::CheckForCurrentMap() {
+absl::Status OverworldEditor::CheckForCurrentMap() {
   // 4096x4096, 512x512 maps and some are larges maps 1024x1024
   auto mouse_position = ImGui::GetIO().MousePos;
   constexpr int small_map_size = 512;
@@ -670,10 +670,12 @@ void OverworldEditor::CheckForCurrentMap() {
   if (maps_bmp_[current_map_].modified() ||
       ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     RefreshOverworldMap();
-    RefreshTile16Blockset();
+    RETURN_IF_ERROR(RefreshTile16Blockset());
     rom()->UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }
+
+  return absl::OkStatus();
 }
 
 void OverworldEditor::CheckForMousePan() {
@@ -719,7 +721,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     DrawOverworldItems();
     DrawOverworldSprites();
     CheckForOverworldEdits();
-    if (ImGui::IsItemHovered()) CheckForCurrentMap();
+    if (ImGui::IsItemHovered()) status_ = CheckForCurrentMap();
   }
   ow_map_canvas_.DrawGrid();
   ow_map_canvas_.DrawOverlay();
@@ -806,11 +808,11 @@ void OverworldEditor::DrawAreaGraphics() {
   ImGui::EndGroup();
 }
 
-void OverworldEditor::DrawTileSelector() {
+absl::Status OverworldEditor::DrawTileSelector() {
   if (BeginTabBar(kTileSelectorTab.data(),
                   ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (BeginTabItem("Tile16")) {
-      DrawTile16Selector();
+      RETURN_IF_ERROR(DrawTile16Selector());
       EndTabItem();
     }
     if (BeginTabItem("Tile8")) {
@@ -827,6 +829,7 @@ void OverworldEditor::DrawTileSelector() {
     }
     EndTabBar();
   }
+  return absl::OkStatus();
 }
 
 // ----------------------------------------------------------------------------
@@ -1645,7 +1648,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   return absl::OkStatus();
 }
 
-void OverworldEditor::RefreshTile16Blockset() {
+absl::Status OverworldEditor::RefreshTile16Blockset() {
   if (current_blockset_ ==
       overworld_.overworld_map(current_map_)->area_graphics()) {
     return;
@@ -1695,9 +1698,11 @@ void OverworldEditor::RefreshTile16Blockset() {
 
   // Render the bitmaps of each tile.
   for (int id = 0; id < 4096; id++) {
-    tile16_individual_[id].ApplyPalette(palette_);
+    RETURN_IF_ERROR(tile16_individual_[id].ApplyPalette(palette_));
     rom()->UpdateBitmap(&tile16_individual_[id]);
   }
+
+  return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::LoadSpriteGraphics() {
