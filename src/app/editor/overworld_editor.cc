@@ -1714,7 +1714,7 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       int depth = 0x40;
       auto spr_gfx = sprite.PreviewGraphics();
       sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
-      sprite_previews_[sprite.id()].ApplyPalette(palette_);
+      RETURN_IF_ERROR(sprite_previews_[sprite.id()].ApplyPalette(palette_));
       rom()->RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
   return absl::OkStatus();
@@ -1889,15 +1889,15 @@ void OverworldEditor::DrawUsageGrid() {
   }
 }
 
-void OverworldEditor::LoadAnimatedMaps() {
+absl::Status OverworldEditor::LoadAnimatedMaps() {
   int world_index = 0;
   static std::vector<bool> animated_built(0x40, false);
   if (!animated_built[world_index]) {
     animated_maps_[world_index] = maps_bmp_[world_index];
     auto &map = *overworld_.mutable_overworld_map(world_index);
     map.DrawAnimatedTiles();
-    map.BuildTileset();
-    map.BuildTiles16Gfx(overworld_.tiles16().size());
+    RETURN_IF_ERROR(map.BuildTileset());
+    RETURN_IF_ERROR(map.BuildTiles16Gfx(overworld_.tiles16().size()));
     OWBlockset blockset;
     if (current_world_ == 0) {
       blockset = overworld_.map_tiles().light_world;
@@ -1906,7 +1906,7 @@ void OverworldEditor::LoadAnimatedMaps() {
     } else {
       blockset = overworld_.map_tiles().special_world;
     }
-    map.BuildBitmap(blockset);
+    RETURN_IF_ERROR(map.BuildBitmap(blockset));
 
     gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200, map.bitmap_data(),
                                       *rom(), animated_maps_[world_index],
@@ -1914,6 +1914,8 @@ void OverworldEditor::LoadAnimatedMaps() {
 
     animated_built[world_index] = true;
   }
+
+  return absl::OkStatus();
 }
 
 // ----------------------------------------------------------------------------
