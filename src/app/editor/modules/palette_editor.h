@@ -98,6 +98,7 @@ class PaletteEditor : public SharedROM {
       saved_palette_[n].z = color.rgb().z / 255;
       saved_palette_[n].w = 255;  // Alpha
     }
+    return absl::OkStatus();
   }
 
   absl::Status status_;
