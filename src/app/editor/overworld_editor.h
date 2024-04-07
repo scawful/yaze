@@ -143,7 +143,7 @@ class OverworldEditor : public Editor,
   void DrawUsageGrid();
   void CalculateUsageStats();
 
-  void LoadAnimatedMaps();
+  absl::Status LoadAnimatedMaps();
   void DrawDebugWindow();
 
   auto gfx_group_editor() const { return gfx_group_editor_; }
