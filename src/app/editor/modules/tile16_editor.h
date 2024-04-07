@@ -38,10 +38,16 @@ class Tile16Editor : public GfxContext, public SharedROM {
 
   absl::Status UpdateTransferTileCanvas();
 
-  absl::Status InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
-                            gfx::Bitmap current_gfx_bmp,
-                            const std::vector<gfx::Bitmap>& tile16_individual,
-                            uint8_t all_tiles_types[0x200]);
+  void InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
+                    gfx::Bitmap current_gfx_bmp,
+                    const std::vector<gfx::Bitmap>& tile16_individual,
+                    uint8_t all_tiles_types[0x200]) {
+    all_tiles_types_ = all_tiles_types;
+    tile16_blockset_bmp_ = tile16_blockset_bmp;
+    tile16_individual_ = tile16_individual;
+    current_gfx_bmp_ = current_gfx_bmp;
+    tile8_gfx_data_ = current_gfx_bmp_.vector();
+  }
 
   absl::Status LoadTile8();
 
