@@ -34,7 +34,7 @@ class OverworldMap : public GfxContext {
                         OWBlockset& world_blockset);
 
   void LoadAreaGraphics();
-  void LoadPalette();
+  absl::Status LoadPalette();
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
   absl::Status BuildBitmap(OWBlockset& world_blockset);
@@ -108,8 +108,9 @@ class OverworldMap : public GfxContext {
   void LoadDeathMountainGFX();
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
-  gfx::SnesPalette GetPalette(const std::string& group, int index,
-                              int previousIndex, int limit);
+  absl::StatusOr<gfx::SnesPalette> GetPalette(const std::string& group,
+                                              int index, int previousIndex,
+                                              int limit);
 
   bool built_ = false;
   bool large_map_ = false;

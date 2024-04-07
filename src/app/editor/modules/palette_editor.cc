@@ -75,39 +75,42 @@ absl::Status PaletteEditor::Update() {
   return absl::OkStatus();
 }
 
-void PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette, int index) {
+absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
+                                               int index) {
   if (index >= palette.size()) {
     // Handle error: the index is out of bounds
-    return;
+    return absl::InvalidArgumentError("Index out of bounds");
   }
 
   // Get the current color
-  auto currentColor = palette.GetColor(index).rgb();
+  ASSIGN_OR_RETURN(auto color, palette.GetColor(index));
+  auto currentColor = color.rgb();
   if (ImGui::ColorPicker4("Color Picker", (float*)&palette[index])) {
     // The color was modified, update it in the palette
     palette(index, currentColor);
   }
+  return absl::OkStatus();
 }
 
-void PaletteEditor::ResetColorToOriginal(
+absl::Status PaletteEditor::ResetColorToOriginal(
     gfx::SnesPalette& palette, int index,
     const gfx::SnesPalette& originalPalette) {
   if (index >= palette.size() || index >= originalPalette.size()) {
-    // Handle error: the index is out of bounds
-    return;
+    return absl::InvalidArgumentError("Index out of bounds");
   }
-
-  auto originalColor = originalPalette.GetColor(index).rgb();
+  ASSIGN_OR_RETURN(auto color, originalPalette.GetColor(index));
+  auto originalColor = color.rgb();
   palette(index, originalColor);
+  return absl::OkStatus();
 }
 
 absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   if (!rom()->is_loaded()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
-
-  const auto size =
-      rom()->palette_group(kPaletteGroupNames[category].data()).size();
+  ASSIGN_OR_RETURN(auto palette_group,
+                   rom()->palette_group(kPaletteGroupNames[category].data()));
+  const auto size = palette_group.size();
   auto palettes =
       rom()->mutable_palette_group(kPaletteGroupNames[category].data());
   static bool edit_color = false;
@@ -129,7 +132,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
       // Small icon of the color in the palette
       if (gui::SnesColorButton(popup_id, *palette->mutable_color(n),
                                palette_button_flags)) {
-        current_color_ = palette->GetColor(n);
+        ASSIGN_OR_RETURN(current_color_, palette->GetColor(n));
         // EditColorInPalette(*palette, n);
       }
 

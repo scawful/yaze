@@ -107,8 +107,8 @@ absl::Status Tile16Editor::UpdateBlockset() {
     if (notify_tile16.modified()) {
       current_tile16_ = notify_tile16.get();
       current_tile16_bmp_ = tile16_individual_[notify_tile16];
-      current_tile16_bmp_.ApplyPalette(
-          rom()->palette_group("ow_main")[current_palette_]);
+      ASSIGN_OR_RETURN(auto ow_main_pal_group, rom()->palette_group("ow_main"));
+      current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]);
       rom()->RenderBitmap(&current_tile16_bmp_);
     }
   }
@@ -150,6 +150,8 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
 }
 
 absl::Status Tile16Editor::UpdateTile16Edit() {
+  ASSIGN_OR_RETURN(auto ow_main_pal_group, rom()->palette_group("ow_main"));
+
   if (ImGui::BeginChild("Tile8 Selector",
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x175),
                         true)) {
@@ -157,7 +159,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile8_source_canvas_.DrawContextMenu();
     if (tile8_source_canvas_.DrawTileSelector(32)) {
       current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
-          rom()->palette_group("ow_main")[0], current_palette_);
+          ow_main_pal_group[0], current_palette_);
       rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
     }
     tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 0, 0, 4.0f);
@@ -173,7 +175,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     current_tile8_ = x + (y * 8);
     current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
-        rom()->palette_group("ow_main")[0], current_palette_);
+        ow_main_pal_group[0], current_palette_);
     rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
   }
 
@@ -244,6 +246,8 @@ absl::Status Tile16Editor::InitBlockset(
 }
 
 absl::Status Tile16Editor::LoadTile8() {
+  ASSIGN_OR_RETURN(auto ow_main_pal_group, rom()->palette_group("ow_main"));
+
   current_gfx_individual_.reserve(1024);
 
   for (int index = 0; index < 1024; index++) {
@@ -278,7 +282,7 @@ absl::Status Tile16Editor::LoadTile8() {
     current_gfx_individual_.emplace_back();
     current_gfx_individual_[index].Create(0x08, 0x08, 0x08, tile_data);
     current_gfx_individual_[index].ApplyPaletteWithTransparent(
-        rom()->palette_group("ow_main")[0], current_palette_);
+        ow_main_pal_group[0], current_palette_);
     rom()->RenderBitmap(&current_gfx_individual_[index]);
   }
 

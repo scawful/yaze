@@ -45,12 +45,13 @@ class Tile16Editor : public GfxContext, public SharedROM {
 
   absl::Status LoadTile8();
 
-  auto set_tile16(int id) {
+  absl::Status set_tile16(int id) {
     current_tile16_ = id;
     current_tile16_bmp_ = tile16_individual_[id];
-    current_tile16_bmp_.ApplyPalette(
-        rom()->palette_group("ow_main")[current_palette_]);
+    ASSIGN_OR_RETURN(auto ow_main_pal_group, rom()->palette_group("ow_main"));
+    current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]);
     rom()->RenderBitmap(&current_tile16_bmp_);
+    return absl::OkStatus();
   }
 
  private:
@@ -86,7 +87,8 @@ class Tile16Editor : public GfxContext, public SharedROM {
   gfx::Bitmap tile16_blockset_bmp_;
 
   // Canvas for editing the selected tile
-  gui::Canvas tile16_edit_canvas_{ImVec2(0x40, 0x40), gui::CanvasGridSize::k64x64};
+  gui::Canvas tile16_edit_canvas_{ImVec2(0x40, 0x40),
+                                  gui::CanvasGridSize::k64x64};
   gfx::Bitmap current_tile16_bmp_;
   gfx::Bitmap current_tile8_bmp_;
 

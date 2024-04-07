@@ -325,54 +325,76 @@ void Bitmap::LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
 }
 
 // Convert SNESPalette to SDL_Palette for surface.
-void Bitmap::ApplyPalette(const SnesPalette &palette) {
+absl::Status Bitmap::ApplyPalette(const SnesPalette &palette) {
+  if (surface_ == nullptr) {
+    return absl::FailedPreconditionError("Surface is null");
+  }
+
+  if (surface_->format == nullptr || surface_->format->palette == nullptr) {
+    return absl::FailedPreconditionError("Surface format or palette is null");
+  }
+
   palette_ = palette;
+
+  SDL_Palette *sdlPalette = surface_->format->palette;
+  if (sdlPalette == nullptr) {
+    return absl::InternalError("Failed to get SDL palette");
+  }
+
   SDL_UnlockSurface(surface_.get());
+
   for (int i = 0; i < palette.size(); ++i) {
-    if (palette.GetColor(i).is_transparent()) {
-      surface_->format->palette->colors[i].r = 0;
-      surface_->format->palette->colors[i].g = 0;
-      surface_->format->palette->colors[i].b = 0;
-      surface_->format->palette->colors[i].a = 0;
+    ASSIGN_OR_RETURN(gfx::SnesColor pal_color, palette.GetColor(i));
+    if (pal_color.is_transparent()) {
+      sdlPalette->colors[i].r = 0;
+      sdlPalette->colors[i].g = 0;
+      sdlPalette->colors[i].b = 0;
+      sdlPalette->colors[i].a = 0;
     } else {
-      surface_->format->palette->colors[i].r = palette.GetColor(i).rgb().x;
-      surface_->format->palette->colors[i].g = palette.GetColor(i).rgb().y;
-      surface_->format->palette->colors[i].b = palette.GetColor(i).rgb().z;
-      surface_->format->palette->colors[i].a = palette.GetColor(i).rgb().w;
+      sdlPalette->colors[i].r = pal_color.rgb().x;
+      sdlPalette->colors[i].g = pal_color.rgb().y;
+      sdlPalette->colors[i].b = pal_color.rgb().z;
+      sdlPalette->colors[i].a = pal_color.rgb().w;
     }
   }
+
   SDL_LockSurface(surface_.get());
+
+  return absl::OkStatus();
 }
 
-void Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
-                                          int palette_id) {
+absl::Status Bitmap::ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
+                                                  int palette_id) {
   auto start_index = palette_id * 8;
   palette_ = palette.sub_palette(start_index, start_index + 8);
   SDL_UnlockSurface(surface_.get());
   for (int i = 0; i < palette_.size(); ++i) {
-    if (palette_.GetColor(i).is_transparent()) {
+    ASSIGN_OR_RETURN(auto pal_color, palette_.GetColor(i));
+    if (pal_color.is_transparent()) {
       surface_->format->palette->colors[i].r = 0;
       surface_->format->palette->colors[i].g = 0;
       surface_->format->palette->colors[i].b = 0;
       surface_->format->palette->colors[i].a = 0;
     } else {
-      surface_->format->palette->colors[i].r = palette_.GetColor(i).rgb().x;
-      surface_->format->palette->colors[i].g = palette_.GetColor(i).rgb().y;
-      surface_->format->palette->colors[i].b = palette_.GetColor(i).rgb().z;
-      surface_->format->palette->colors[i].a = palette_.GetColor(i).rgb().w;
+      surface_->format->palette->colors[i].r = pal_color.rgb().x;
+      surface_->format->palette->colors[i].g = pal_color.rgb().y;
+      surface_->format->palette->colors[i].b = pal_color.rgb().z;
+      surface_->format->palette->colors[i].a = pal_color.rgb().w;
     }
   }
   SDL_LockSurface(surface_.get());
+  return absl::OkStatus();
 }
 
-void Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
-                                         int length) {
+absl::Status Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette,
+                                                 int index, int length) {
   auto start_index = index * 7;
   palette_ = palette.sub_palette(start_index, start_index + 7);
   std::vector<ImVec4> colors;
   colors.push_back(ImVec4(0, 0, 0, 0));
   for (int i = start_index; i < start_index + 7; ++i) {
-    colors.push_back(palette.GetColor(i).rgb());
+    ASSIGN_OR_RETURN(auto pal_color, palette.GetColor(i));
+    colors.push_back(pal_color.rgb());
   }
 
   SDL_UnlockSurface(surface_.get());
@@ -385,6 +407,7 @@ void Bitmap::ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
     i++;
   }
   SDL_LockSurface(surface_.get());
+  return absl::OkStatus();
 }
 
 void Bitmap::ApplyPalette(const std::vector<SDL_Color> &palette) {

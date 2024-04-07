@@ -69,10 +69,9 @@ class SnesPalette {
     size_++;
   }
 
-  auto GetColor(int i) const {
+  absl::StatusOr<SnesColor> GetColor(int i) const {
     if (i > size_) {
-      std::cout << "SNESPalette: Index out of bounds" << std::endl;
-      return colors[0];
+      return absl::InvalidArgumentError("SnesPalette: Index out of bounds");
     }
     return colors[i];
   }

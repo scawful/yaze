@@ -321,8 +321,10 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 }
 
 absl::Status GraphicsEditor::UpdatePaletteColumn() {
-  auto palette_group = rom()->palette_group(
-      kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
+  ASSIGN_OR_RETURN(
+      auto palette_group,
+      rom()->palette_group(
+          kPaletteGroupAddressesKeys[edit_palette_group_name_index_]));
 
   auto palette = palette_group[edit_palette_index_];
 
@@ -711,7 +713,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
                      converted_sheet);
 
   if (rom()->is_loaded()) {
-    auto palette_group = rom()->palette_group("ow_main");
+    ASSIGN_OR_RETURN(auto palette_group, rom()->palette_group("ow_main"));
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
       bin_bitmap_.ApplyPalette(col_file_palette_);
@@ -743,8 +745,9 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
-      auto palette_group =
-          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]);
+      ASSIGN_OR_RETURN(
+          auto palette_group,
+          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]));
       z3_rom_palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
@@ -768,8 +771,9 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
-      auto palette_group =
-          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]);
+      ASSIGN_OR_RETURN(
+          auto palette_group,
+          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]));
       z3_rom_palette_ = palette_group[current_palette_index_];
       graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
