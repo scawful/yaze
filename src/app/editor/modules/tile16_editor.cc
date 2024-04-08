@@ -59,6 +59,16 @@ absl::Status Tile16Editor::Update() {
   return absl::OkStatus();
 }
 
+absl::Status Tile16Editor::DrawMenu() {
+  if (ImGui::BeginMenu("Tile16 Editor")) {
+    ImGui::Checkbox("Show Collision Types",
+                    tile8_source_canvas_.custom_labels_enabled());
+    ImGui::EndMenu();
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status Tile16Editor::DrawTile16Editor() {
   if (BeginTabItem("Tile16 Editing")) {
     if (BeginTable("#Tile16EditorTable", 2, TABLE_BORDERS_RESIZABLE,
@@ -108,7 +118,8 @@ absl::Status Tile16Editor::UpdateBlockset() {
       current_tile16_ = notify_tile16.get();
       current_tile16_bmp_ = tile16_individual_[notify_tile16];
       ASSIGN_OR_RETURN(auto ow_main_pal_group, rom()->palette_group("ow_main"));
-      current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]);
+      RETURN_IF_ERROR(current_tile16_bmp_.ApplyPalette(
+          ow_main_pal_group[current_palette_]));
       rom()->RenderBitmap(&current_tile16_bmp_);
     }
   }
@@ -158,8 +169,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile8_source_canvas_.DrawBackground();
     tile8_source_canvas_.DrawContextMenu();
     if (tile8_source_canvas_.DrawTileSelector(32)) {
-      current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
-          ow_main_pal_group[0], current_palette_);
+      RETURN_IF_ERROR(
+          current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
+              ow_main_pal_group[0], current_palette_));
       rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
     }
     tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 0, 0, 4.0f);
@@ -174,13 +186,11 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     uint16_t y = tile8_source_canvas_.points().front().y / 16;
 
     current_tile8_ = x + (y * 8);
-    current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
-        ow_main_pal_group[0], current_palette_);
+    RETURN_IF_ERROR(
+        current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
+            ow_main_pal_group[0], current_palette_));
     rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
   }
-
-  ImGui::Text("Tile16 ID: %d", current_tile16_);
-  ImGui::Text("Tile8 ID: %d", current_tile8_);
 
   if (ImGui::BeginChild("Tile16 Editor Options",
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x50), true)) {
@@ -204,8 +214,10 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   return absl::OkStatus();
 }
 
-void Tile16Editor::DrawTileEditControls() {
+absl::Status Tile16Editor::DrawTileEditControls() {
   ImGui::Separator();
+  ImGui::Text("Tile16 ID: %d", current_tile16_);
+  ImGui::Text("Tile8 ID: %d", current_tile8_);
   ImGui::Text("Options:");
   gui::InputHexByte("Palette", &notify_palette.mutable_get());
   notify_palette.apply_changes();
@@ -221,8 +233,10 @@ void Tile16Editor::DrawTileEditControls() {
     }
 
     if (value > 0x00) {
-      current_gfx_bmp_.ApplyPaletteWithTransparent(palette, value);
-      current_tile16_bmp_.ApplyPaletteWithTransparent(palette, value);
+      RETURN_IF_ERROR(
+          current_gfx_bmp_.ApplyPaletteWithTransparent(palette, value));
+      RETURN_IF_ERROR(
+          current_tile16_bmp_.ApplyPaletteWithTransparent(palette, value));
       rom()->UpdateBitmap(&current_gfx_bmp_);
       rom()->UpdateBitmap(&current_tile16_bmp_);
     }
@@ -231,6 +245,8 @@ void Tile16Editor::DrawTileEditControls() {
   ImGui::Checkbox("X Flip", &x_flip);
   ImGui::Checkbox("Y Flip", &y_flip);
   ImGui::Checkbox("Priority Tile", &priority_tile);
+
+  return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::LoadTile8() {
@@ -269,8 +285,8 @@ absl::Status Tile16Editor::LoadTile8() {
 
     current_gfx_individual_.emplace_back();
     current_gfx_individual_[index].Create(0x08, 0x08, 0x08, tile_data);
-    current_gfx_individual_[index].ApplyPaletteWithTransparent(
-        ow_main_pal_group[0], current_palette_);
+    RETURN_IF_ERROR(current_gfx_individual_[index].ApplyPaletteWithTransparent(
+        ow_main_pal_group[0], current_palette_));
     rom()->RenderBitmap(&current_gfx_individual_[index]);
   }
 

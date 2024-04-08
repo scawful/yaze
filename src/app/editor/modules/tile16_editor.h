@@ -26,6 +26,8 @@ namespace editor {
 class Tile16Editor : public GfxContext, public SharedROM {
  public:
   absl::Status Update();
+  absl::Status DrawMenu();
+
   absl::Status DrawTile16Editor();
   absl::Status UpdateTile16Transfer();
   absl::Status UpdateBlockset();
@@ -34,7 +36,7 @@ class Tile16Editor : public GfxContext, public SharedROM {
 
   absl::Status UpdateTile16Edit();
 
-  void DrawTileEditControls();
+  absl::Status DrawTileEditControls();
 
   absl::Status UpdateTransferTileCanvas();
 
