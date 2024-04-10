@@ -50,6 +50,7 @@ absl::Status Tile16Editor::Update() {
     *tile8_source_canvas_.custom_labels_enabled() = true;
   }
 
+  RETURN_IF_ERROR(DrawMenu());
   if (BeginTabBar("Tile16 Editor Tabs")) {
     RETURN_IF_ERROR(DrawTile16Editor());
     RETURN_IF_ERROR(UpdateTile16Transfer());
@@ -60,10 +61,14 @@ absl::Status Tile16Editor::Update() {
 }
 
 absl::Status Tile16Editor::DrawMenu() {
-  if (ImGui::BeginMenu("Tile16 Editor")) {
-    ImGui::Checkbox("Show Collision Types",
-                    tile8_source_canvas_.custom_labels_enabled());
-    ImGui::EndMenu();
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("View")) {
+      ImGui::Checkbox("Show Collision Types",
+                      tile8_source_canvas_.custom_labels_enabled());
+      ImGui::EndMenu();
+    }
+
+    ImGui::EndMenuBar();
   }
 
   return absl::OkStatus();
@@ -209,8 +214,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile16_edit_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
-  DrawTileEditControls();
-
+  RETURN_IF_ERROR(DrawTileEditControls());
   return absl::OkStatus();
 }
 
