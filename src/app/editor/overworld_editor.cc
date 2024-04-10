@@ -245,7 +245,8 @@ absl::Status OverworldEditor::DrawToolset() {
 
   if (show_tile16_editor_) {
     // Create a table in ImGui for the Tile16 Editor
-    ImGui::Begin("Tile16 Editor", &show_tile16_editor_);
+    ImGui::Begin("Tile16 Editor", &show_tile16_editor_,
+                 ImGuiWindowFlags_MenuBar);
     RETURN_IF_ERROR(tile16_editor_.Update())
     ImGui::End();
   }
@@ -346,6 +347,9 @@ void OverworldEditor::RefreshOverworldMap() {
 
 // TODO: Palette throws out of bounds error unexpectedly.
 absl::Status OverworldEditor::RefreshMapPalette() {
+  const auto current_map_palette =
+      overworld_.overworld_map(current_map_)->current_palette();
+
   if (overworld_.overworld_map(current_map_)->is_large_map()) {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
@@ -353,14 +357,12 @@ absl::Status OverworldEditor::RefreshMapPalette() {
       if (i >= 2) sibling_index += 6;
       RETURN_IF_ERROR(
           overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
-      RETURN_IF_ERROR(maps_bmp_[sibling_index].ApplyPalette(
-          *overworld_.mutable_overworld_map(sibling_index)
-               ->mutable_current_palette()));
+      RETURN_IF_ERROR(
+          maps_bmp_[sibling_index].ApplyPalette(current_map_palette));
     }
   }
-  RETURN_IF_ERROR(maps_bmp_[current_map_].ApplyPalette(
-      *overworld_.mutable_overworld_map(current_map_)
-           ->mutable_current_palette()));
+
+  RETURN_IF_ERROR(maps_bmp_[current_map_].ApplyPalette(current_map_palette));
   return absl::OkStatus();
 }
 
@@ -414,6 +416,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
                           kInputFieldSize)) {
       RefreshMapProperties();
       status_ = RefreshMapPalette();
+      RefreshOverworldMap();
     }
     ImGui::EndGroup();
 
@@ -723,6 +726,7 @@ void OverworldEditor::DrawOverworldCanvas() {
     CheckForOverworldEdits();
     if (ImGui::IsItemHovered()) status_ = CheckForCurrentMap();
   }
+
   ow_map_canvas_.DrawGrid();
   ow_map_canvas_.DrawOverlay();
   ImGui::EndChild();
@@ -734,25 +738,30 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   gui::BeginChildWithScrollbar("##Tile16SelectorScrollRegion");
   blockset_canvas_.DrawBackground();
   gui::EndNoPadding();
-  blockset_canvas_.DrawContextMenu();
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, /*border_offset=*/2,
-                              map_blockset_loaded_);
-  if (blockset_canvas_.DrawTileSelector(32.0f)) {
-    // Open the tile16 editor to the tile
-    auto tile_pos = blockset_canvas_.points().front();
-    int grid_x = static_cast<int>(tile_pos.x / 32);
-    int grid_y = static_cast<int>(tile_pos.y / 32);
-    int id = grid_x + grid_y * 8;
-    RETURN_IF_ERROR(tile16_editor_.set_tile16(id));
-    show_tile16_editor_ = true;
+  {
+    blockset_canvas_.DrawContextMenu();
+    blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, /*border_offset=*/2,
+                                map_blockset_loaded_);
+
+    if (blockset_canvas_.DrawTileSelector(32.0f)) {
+      // Open the tile16 editor to the tile
+      auto tile_pos = blockset_canvas_.points().front();
+      int grid_x = static_cast<int>(tile_pos.x / 32);
+      int grid_y = static_cast<int>(tile_pos.y / 32);
+      int id = grid_x + grid_y * 8;
+      RETURN_IF_ERROR(tile16_editor_.set_tile16(id));
+      show_tile16_editor_ = true;
+    }
+
+    if (ImGui::IsItemClicked() && !blockset_canvas_.points().empty()) {
+      int x = blockset_canvas_.points().front().x / 32;
+      int y = blockset_canvas_.points().front().y / 32;
+      current_tile16_ = x + (y * 8);
+    }
+
+    blockset_canvas_.DrawGrid();
+    blockset_canvas_.DrawOverlay();
   }
-  if (ImGui::IsItemClicked() && !blockset_canvas_.points().empty()) {
-    int x = blockset_canvas_.points().front().x / 32;
-    int y = blockset_canvas_.points().front().y / 32;
-    current_tile16_ = x + (y * 8);
-  }
-  blockset_canvas_.DrawGrid();
-  blockset_canvas_.DrawOverlay();
   ImGui::EndChild();
   ImGui::EndGroup();
   return absl::OkStatus();
@@ -798,12 +807,14 @@ void OverworldEditor::DrawAreaGraphics() {
   gui::BeginChildWithScrollbar("##AreaGraphicsScrollRegion");
   current_gfx_canvas_.DrawBackground();
   gui::EndPadding();
-  current_gfx_canvas_.DrawContextMenu();
-  current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_],
-                                 /*border_offset=*/2, overworld_.is_loaded());
-  current_gfx_canvas_.DrawTileSelector(32.0f);
-  current_gfx_canvas_.DrawGrid();
-  current_gfx_canvas_.DrawOverlay();
+  {
+    current_gfx_canvas_.DrawContextMenu();
+    current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_],
+                                   /*border_offset=*/2, overworld_.is_loaded());
+    current_gfx_canvas_.DrawTileSelector(32.0f);
+    current_gfx_canvas_.DrawGrid();
+    current_gfx_canvas_.DrawOverlay();
+  }
   ImGui::EndChild();
   ImGui::EndGroup();
 }
