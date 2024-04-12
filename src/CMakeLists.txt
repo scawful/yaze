@@ -29,6 +29,7 @@ set(
   app/gfx/snes_palette.cc
   app/gfx/snes_tile.cc
   app/gfx/snes_color.cc
+  app/gfx/tilesheet.cc
 )
 
 set(
