@@ -13,6 +13,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/pipeline.h"
@@ -106,6 +107,7 @@ class Tile16Editor : public GfxContext, public SharedROM {
       ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),
       gui::CanvasGridSize::k32x32};
   gfx::Bitmap current_gfx_bmp_;
+  std::vector<gfx::Tilesheet> current_tilesheets_;
 
   gui::Canvas transfer_canvas_;
   gfx::Bitmap transfer_blockset_bmp_;
@@ -129,8 +131,6 @@ class Tile16Editor : public GfxContext, public SharedROM {
 
   ROM transfer_rom_;
   absl::Status transfer_status_;
-
-  core::TaskManager<std::function<void(int)>> task_manager_;
 };
 
 }  // namespace editor

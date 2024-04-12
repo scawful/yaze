@@ -48,10 +48,11 @@ class Bitmap {
                        int height);
 
   absl::Status ApplyPalette(const SnesPalette &palette);
-  absl::Status ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
-                                   int length = 7);
+  absl::Status ApplyPaletteWithTransparent(const SnesPalette &palette,
+                                           int index, int length = 7);
   void ApplyPalette(const std::vector<SDL_Color> &palette);
-  absl::Status ApplyPaletteFromPaletteGroup(const SnesPalette &palette, int palette_id);
+  absl::Status ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
+                                            int palette_id);
 
   void WriteToPixel(int position, uchar value) {
     if (pixel_data_ == nullptr) {

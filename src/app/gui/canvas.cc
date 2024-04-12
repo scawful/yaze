@@ -115,7 +115,7 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
       scrolling_.y = 0;
     }
     ImGui::MenuItem("Show Grid", nullptr, &enable_grid_);
-    ImGui::Selectable("Show Labels", &enable_hex_tile_labels_);
+    ImGui::Selectable("Show Position Labels", &enable_hex_tile_labels_);
     if (ImGui::BeginMenu("Canvas Properties")) {
       ImGui::Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
       ImGui::Text("Global Scale: %.1f", global_scale_);
@@ -127,6 +127,10 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
         ImGui::Text("Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
         ImGui::Text("Pitch: %s",
                     absl::StrFormat("%d", bitmap->surface()->pitch).c_str());
+        ImGui::Text("BitsPerPixel: %d",
+                    bitmap->surface()->format->BitsPerPixel);
+        ImGui::Text("BytesPerPixel: %d",
+                    bitmap->surface()->format->BytesPerPixel);
         ImGui::EndMenu();
       }
     }
