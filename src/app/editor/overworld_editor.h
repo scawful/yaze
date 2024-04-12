@@ -13,6 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
 #include "app/core/editor.h"
+#include "app/editor/context/entrance_context.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
@@ -64,6 +65,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 class OverworldEditor : public Editor,
                         public SharedROM,
                         public GfxContext,
+                        public EntranceContext,
                         public core::ExperimentFlags {
  public:
   absl::Status Update() final;

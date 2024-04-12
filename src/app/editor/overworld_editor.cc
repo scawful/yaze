@@ -48,6 +48,7 @@ absl::Status OverworldEditor::Update() {
                                 tile16_individual_,
                                 *overworld_.mutable_all_tiles_types());
     gfx_group_editor_.InitBlockset(tile16_blockset_bmp_);
+    RETURN_IF_ERROR(LoadEntranceTileTypes(*rom()));
     all_gfx_loaded_ = true;
   } else if (!rom()->is_loaded() && all_gfx_loaded_) {
     Shutdown();
