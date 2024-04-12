@@ -11,6 +11,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -89,6 +90,7 @@ absl::Status Tile16Editor::DrawTile16Editor() {
 
       TableNextColumn();
       RETURN_IF_ERROR(UpdateTile16Edit());
+      RETURN_IF_ERROR(DrawTileEditControls());
 
       ImGui::EndTable();
     }
@@ -172,7 +174,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x175),
                         true)) {
     tile8_source_canvas_.DrawBackground();
-    tile8_source_canvas_.DrawContextMenu();
+    tile8_source_canvas_.DrawContextMenu(&current_gfx_bmp_);
     if (tile8_source_canvas_.DrawTileSelector(32)) {
       RETURN_IF_ERROR(
           current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
@@ -200,7 +202,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   if (ImGui::BeginChild("Tile16 Editor Options",
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x50), true)) {
     tile16_edit_canvas_.DrawBackground();
-    tile16_edit_canvas_.DrawContextMenu();
+    tile16_edit_canvas_.DrawContextMenu(&current_tile16_bmp_);
     tile16_edit_canvas_.DrawBitmap(current_tile16_bmp_, 0, 0, 4.0f);
     if (!tile8_source_canvas_.points().empty()) {
       if (tile16_edit_canvas_.DrawTilePainter(
@@ -214,7 +216,6 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile16_edit_canvas_.DrawOverlay();
   }
   ImGui::EndChild();
-  RETURN_IF_ERROR(DrawTileEditControls());
   return absl::OkStatus();
 }
 
@@ -277,7 +278,7 @@ absl::Status Tile16Editor::LoadTile8() {
         int gfx_position = x + (y * 0x100);
 
         // Get the pixel value from the current gfx data
-        uint8_t value = tile8_gfx_data_[gfx_position];
+        uint8_t value = current_gfx_bmp_.data()[gfx_position];
 
         if (value & 0x80) {
           value -= 0x88;
