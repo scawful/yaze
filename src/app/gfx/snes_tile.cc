@@ -135,7 +135,7 @@ std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles) {
   return ConvertBpp(tiles, 4, 3);
 }
 
-Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
+Bytes SnesTo8bppSheet(const Bytes& sheet, int bpp) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
   int pos = 0;
@@ -148,6 +148,11 @@ Bytes SnesTo8bppSheet(Bytes sheet, int bpp) {
     buffer_size = 0x2000;
   } else if (bpp == 3) {
     bpp = 24;
+  } else if (bpp == 4) {
+    bpp = 32;
+    buffer_size = 0x4000;
+  } else if (bpp == 8) {
+    bpp = 64;
   }
   Bytes sheet_buffer_out(buffer_size);
 
