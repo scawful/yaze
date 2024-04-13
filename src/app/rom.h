@@ -337,7 +337,7 @@ class ROM : public core::ExperimentFlags {
       return absl::InvalidArgumentError("Offset and length out of range");
     }
     std::vector<uint8_t> result;
-    for (int i = offset; i < length; i++) {
+    for (int i = offset; i < offset + length; i++) {
       result.push_back(rom_data_[i]);
     }
     return result;
@@ -522,6 +522,7 @@ class ROM : public core::ExperimentFlags {
   }
   auto bitmap_manager() { return graphics_manager_; }
   auto mutable_bitmap_manager() { return &graphics_manager_; }
+  auto link_graphics() { return link_graphics_; }
 
   auto title() const { return title_; }
   auto size() const { return size_; }
