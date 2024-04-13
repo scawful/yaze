@@ -203,10 +203,10 @@ absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
   return sheet;
 }
 
-// TODO: Load Links graphics from the ROM
 absl::Status ROM::LoadLinkGraphics() {
-  const auto link_gfx_offset = 81920;  // $10:8000
-  const auto link_gfx_length = 0x800;
+  const auto link_gfx_offset = 0x80000;  // $10:8000
+  const auto link_gfx_length = 0x800;    // 0x4000 or 0x7000?
+  link_palette_ = palette_groups_["armors"][0];
 
   // Load Links graphics from the ROM
   for (int i = 0; i < 14; i++) {
@@ -214,10 +214,13 @@ absl::Status ROM::LoadLinkGraphics() {
         auto link_sheet_data,
         ReadByteVector(/*offset=*/link_gfx_offset + (i * link_gfx_length),
                        /*length=*/link_gfx_length))
-    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
+    // auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_data, /*bpp=*/4);
+    // Convert to 3bpp, then from 3bpp to 8bpp before creating bitmap.
+    auto link_sheet_3bpp = gfx::Convert4bppTo3bpp(link_sheet_data);
+    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_3bpp, /*bpp=*/3);
     link_graphics_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
                              core::kTilesheetDepth, link_sheet_8bpp);
-    link_graphics_[i].ApplyPalette(link_palette_);
+    RETURN_IF_ERROR(link_graphics_[i].ApplyPaletteWithTransparent(link_palette_, 0));
     RenderBitmap(&link_graphics_[i]);
   }
 
