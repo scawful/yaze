@@ -102,26 +102,26 @@ $(function(){initNavTree('md_docs_2compression.html',''); initResizable(); });
   <div class="headertitle"><div class="title">LC_LZ2 Compression</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a> The compression algorithm has multiple implementations with varying levels of quality, based primarily on the implementations made in skarsnik/sneshacking, Zarby89/ZScreamDungeon and ZCompress with optimizations made for C++.</p>
-<h1><a class="anchor" id="autotoc_md1"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md3"></a> The compression algorithm has multiple implementations with varying levels of quality, based primarily on the implementations made in skarsnik/sneshacking, Zarby89/ZScreamDungeon and ZCompress with optimizations made for C++.</p>
+<h1><a class="anchor" id="autotoc_md4"></a>
 Key Definitions</h1>
-<h2><a class="anchor" id="autotoc_md2"></a>
+<h2><a class="anchor" id="autotoc_md5"></a>
 Constants and Macros:</h2>
 <ul>
 <li><code>BUILD_HEADER(command, length)</code>: Macro to build a header from a command and a length.</li>
 <li>Command Constants: Constants to represent different commands like <code>kCommandDirectCopy</code>, <code>kCommandByteFill</code>, etc.</li>
 <li>Length and Mode Constants: Such as <code>kMaxLengthNormalHeader</code>, <code>kNintendoMode1</code>, etc.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md3"></a>
+<h2><a class="anchor" id="autotoc_md6"></a>
 Data Structures:</h2>
-<h3><a class="anchor" id="autotoc_md4"></a>
+<h3><a class="anchor" id="autotoc_md7"></a>
 1. CompressionCommand:</h3>
 <ul>
 <li><b>arguments</b>: 2D array representing the command arguments for each possible command.</li>
 <li><b>cmd_size</b>: Array storing the size of each possible command.</li>
 <li><b>data_size</b>: Array storing the size of the data processed by each possible command.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md5"></a>
+<h3><a class="anchor" id="autotoc_md8"></a>
 2. CompressionPiece:</h3>
 <ul>
 <li><b>command</b>: Represents the compression command.</li>
@@ -130,16 +130,16 @@ Data Structures:</h2>
 <li><b>argument</b>: Argument as a string.</li>
 <li><b>next</b>: Pointer to the next compression piece.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md6"></a>
+<h3><a class="anchor" id="autotoc_md9"></a>
 3. CompressionContext (for Compression V3):</h3>
 <ul>
 <li>Contains vectors to store raw and compressed data, compression pieces, and compression string.</li>
 <li>Various counters and flags for compression control.</li>
 <li>Current compression command details.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Compression Functions</h1>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md11"></a>
 Version 1:</h2>
 <ul>
 <li><b>Byte Repeat</b>: <code>CheckByteRepeat</code></li>
@@ -148,7 +148,7 @@ Version 1:</h2>
 <li><b>Intra Copy</b>: <code>CheckIntraCopy</code></li>
 <li><b>Validation and Alternatives</b>: <code>ValidateForByteGain</code> &amp; <code>CompressionCommandAlternative</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md9"></a>
+<h2><a class="anchor" id="autotoc_md12"></a>
 Version 2:</h2>
 <ul>
 <li><b>Byte Repeat</b>: <code>CheckByteRepeatV2</code></li>
@@ -157,7 +157,7 @@ Version 2:</h2>
 <li><b>Intra Copy</b>: <code>CheckIntraCopyV2</code></li>
 <li><b>Validation and Alternatives</b>: <code>ValidateForByteGainV2</code> &amp; <code>CompressionCommandAlternativeV2</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md10"></a>
+<h2><a class="anchor" id="autotoc_md13"></a>
 Version 3:</h2>
 <p>Using <code>CompressionContext</code> to handle compression.</p><ul>
 <li><b>Initialization</b>: <code>InitializeCompression</code></li>
@@ -166,14 +166,14 @@ Version 3:</h2>
 <li><b>Handling Direct Copy</b>: <code>HandleDirectCopy</code></li>
 <li><b>Adding Compression to Chain</b>: <code>AddCompressionToChain</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md14"></a>
 Decompression Functions:</h1>
 <ul>
 <li><code>SetBuffer</code>: Prepares a buffer from data.</li>
 <li><code>memfill</code>: Fills memory.</li>
 <li><b>Decompression</b>: Such as <code>DecompressV2</code>, <code>DecompressGraphics</code>, and <code>DecompressOverworld</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md12"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 Utility Functions:</h1>
 <ul>
 <li><b>Printing</b>: Such as <code>PrintCompressionPiece</code> and <code>PrintCompressionChain</code>.</li>
@@ -181,7 +181,7 @@ Utility Functions:</h1>
 <li><b>Compression Result Validation</b>: Such as <code>ValidateCompressionResult</code> and its V3 variant.</li>
 <li><b>Compression Piece Manipulation</b>: Like <code>SplitCompressionPiece</code> and its V3 variant.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md13"></a>
+<h1><a class="anchor" id="autotoc_md16"></a>
 Final Notes</h1>
 <p>The YAZE's LC_LZ2 compression scheme provides three versions of compression methodologies with comprehensive support for various commands and modes. It ensures versatility and adaptability for different compression needs. </p>
 </div></div><!-- contents -->

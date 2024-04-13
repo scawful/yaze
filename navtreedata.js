@@ -25,57 +25,54 @@
 var NAVTREE =
 [
   [ "yaze", "index.html", [
+    [ "Build Instructions", "md_docs_2build-instructions.html", [
+      [ "Windows", "md_docs_2build-instructions.html#autotoc_md1", null ],
+      [ "macOS", "md_docs_2build-instructions.html#autotoc_md2", null ]
+    ] ],
     [ "LC_LZ2 Compression", "md_docs_2compression.html", [
-      [ "Key Definitions", "md_docs_2compression.html#autotoc_md1", [
-        [ "Constants and Macros:", "md_docs_2compression.html#autotoc_md2", null ],
-        [ "Data Structures:", "md_docs_2compression.html#autotoc_md3", [
-          [ "CompressionCommand:", "md_docs_2compression.html#autotoc_md4", null ],
-          [ "CompressionPiece:", "md_docs_2compression.html#autotoc_md5", null ],
-          [ "CompressionContext (for Compression V3):", "md_docs_2compression.html#autotoc_md6", null ]
+      [ "Key Definitions", "md_docs_2compression.html#autotoc_md4", [
+        [ "Constants and Macros:", "md_docs_2compression.html#autotoc_md5", null ],
+        [ "Data Structures:", "md_docs_2compression.html#autotoc_md6", [
+          [ "CompressionCommand:", "md_docs_2compression.html#autotoc_md7", null ],
+          [ "CompressionPiece:", "md_docs_2compression.html#autotoc_md8", null ],
+          [ "CompressionContext (for Compression V3):", "md_docs_2compression.html#autotoc_md9", null ]
         ] ]
       ] ],
-      [ "Compression Functions", "md_docs_2compression.html#autotoc_md7", [
-        [ "Version 1:", "md_docs_2compression.html#autotoc_md8", null ],
-        [ "Version 2:", "md_docs_2compression.html#autotoc_md9", null ],
-        [ "Version 3:", "md_docs_2compression.html#autotoc_md10", null ]
+      [ "Compression Functions", "md_docs_2compression.html#autotoc_md10", [
+        [ "Version 1:", "md_docs_2compression.html#autotoc_md11", null ],
+        [ "Version 2:", "md_docs_2compression.html#autotoc_md12", null ],
+        [ "Version 3:", "md_docs_2compression.html#autotoc_md13", null ]
       ] ],
-      [ "Decompression Functions:", "md_docs_2compression.html#autotoc_md11", null ],
-      [ "Utility Functions:", "md_docs_2compression.html#autotoc_md12", null ],
-      [ "Final Notes", "md_docs_2compression.html#autotoc_md13", null ]
+      [ "Decompression Functions:", "md_docs_2compression.html#autotoc_md14", null ],
+      [ "Utility Functions:", "md_docs_2compression.html#autotoc_md15", null ],
+      [ "Final Notes", "md_docs_2compression.html#autotoc_md16", null ]
     ] ],
     [ "Getting Started with YAZE", "md_docs_2getting-started.html", [
-      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md15", null ],
-      [ "Installation", "md_docs_2getting-started.html#autotoc_md16", [
-        [ "Windows", "md_docs_2getting-started.html#autotoc_md17", null ],
-        [ "MacOS", "md_docs_2getting-started.html#autotoc_md18", null ],
-        [ "GNU/Linux", "md_docs_2getting-started.html#autotoc_md19", null ]
-      ] ],
-      [ "Usage", "md_docs_2getting-started.html#autotoc_md20", null ]
+      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md18", null ],
+      [ "Usage", "md_docs_2getting-started.html#autotoc_md19", null ]
     ] ],
     [ "YAZE Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md22", null ],
-      [ "App Organization", "md_docs_2infrastructure.html#autotoc_md23", [
-        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md24", null ]
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md21", null ],
+      [ "App Organization", "md_docs_2infrastructure.html#autotoc_md22", [
+        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md23", null ]
       ] ],
-      [ "ROM", "md_docs_2infrastructure.html#autotoc_md25", null ],
-      [ "app/rom.h", "md_docs_2infrastructure.html#autotoc_md26", null ],
-      [ "Overworld", "md_docs_2infrastructure.html#autotoc_md27", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md29", null ],
-      [ "app/gfx/bitmap.h", "md_docs_2infrastructure.html#autotoc_md30", [
-        [ "Key Attributes:", "md_docs_2infrastructure.html#autotoc_md31", null ],
-        [ "Main Functions:", "md_docs_2infrastructure.html#autotoc_md32", null ]
+      [ "ROM", "md_docs_2infrastructure.html#autotoc_md24", null ],
+      [ "app/rom.h", "md_docs_2infrastructure.html#autotoc_md25", null ],
+      [ "Overworld", "md_docs_2infrastructure.html#autotoc_md26", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md28", null ],
+      [ "app/gfx/bitmap.h", "md_docs_2infrastructure.html#autotoc_md29", [
+        [ "Key Attributes:", "md_docs_2infrastructure.html#autotoc_md30", null ],
+        [ "Main Functions:", "md_docs_2infrastructure.html#autotoc_md31", null ]
       ] ],
-      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md33", null ],
-      [ "Further Development Ideas", "md_docs_2infrastructure.html#autotoc_md34", null ]
+      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md32", null ],
+      [ "Further Development Ideas", "md_docs_2infrastructure.html#autotoc_md33", null ]
     ] ],
-    [ "macOS Build Settings", "md_docs_2macos-build.html", null ],
-    [ "windows-build", "md_docs_2windows-build.html", null ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md37", null ],
-      [ "Building and installation", "md_README.html#autotoc_md38", null ],
-      [ "Documentation", "md_README.html#autotoc_md39", null ],
-      [ "License", "md_README.html#autotoc_md40", null ],
-      [ "Screenshots", "md_README.html#autotoc_md41", null ]
+      [ "Description", "md_README.html#autotoc_md35", null ],
+      [ "Building and installation", "md_README.html#autotoc_md36", null ],
+      [ "Documentation", "md_README.html#autotoc_md37", null ],
+      [ "License", "md_README.html#autotoc_md38", null ],
+      [ "Screenshots", "md_README.html#autotoc_md39", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Namespaces", "namespaces.html", [
@@ -100,7 +97,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"ppu_8h_source.html"
+"room_8h_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

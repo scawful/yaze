@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['overview_0',['YAZE Infrastructure Overview',['../md_docs_2infrastructure.html',1,'']]]
+  ['started_20with_20yaze_0',['Getting Started with YAZE',['../md_docs_2getting-started.html',1,'']]]
 ];

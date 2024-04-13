@@ -1,9 +1,9 @@
 var searchData=
 [
-  ['v3_20_3a_0',['3. CompressionContext (for Compression V3):',['../md_docs_2compression.html#autotoc_md6',1,'']]],
-  ['version_201_3a_1',['Version 1:',['../md_docs_2compression.html#autotoc_md8',1,'']]],
-  ['version_202_3a_2',['Version 2:',['../md_docs_2compression.html#autotoc_md9',1,'']]],
-  ['version_203_3a_3',['Version 3:',['../md_docs_2compression.html#autotoc_md10',1,'']]],
+  ['v3_20_3a_0',['3. CompressionContext (for Compression V3):',['../md_docs_2compression.html#autotoc_md9',1,'']]],
+  ['version_201_3a_1',['Version 1:',['../md_docs_2compression.html#autotoc_md11',1,'']]],
+  ['version_202_3a_2',['Version 2:',['../md_docs_2compression.html#autotoc_md12',1,'']]],
+  ['version_203_3a_3',['Version 3:',['../md_docs_2compression.html#autotoc_md13',1,'']]],
   ['versionconstants_4',['VersionConstants',['../structyaze_1_1app_1_1VersionConstants.html',1,'yaze::app']]],
   ['videoportcontrol_5',['VideoPortControl',['../structyaze_1_1app_1_1emu_1_1VideoPortControl.html',1,'yaze::app::emu']]],
   ['vmaddh_6',['VMADDH',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMADDH.html',1,'yaze::app::emu::PpuRegisters']]],
