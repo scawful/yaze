@@ -51,12 +51,13 @@ absl::Status GraphicsEditor::Update() {
 }
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
-  TAB_ITEM("Graphics Editor")
+  TAB_ITEM("Sheet Editor")
 
   if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
                         ImVec2(0, 0))) {
-    for (const auto& name : kGfxEditColumnNames)
-      ImGui::TableSetupColumn(name.data());
+    for (const auto& name :
+         {"Tilesheets", "Current Graphics", "Palette Controls"})
+      ImGui::TableSetupColumn(name);
 
     ImGui::TableHeadersRow();
 
@@ -355,22 +356,44 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 absl::Status GraphicsEditor::UpdateLinkGfxView() {
   TAB_ITEM("Player Animations")
 
-  const auto link_gfx_offset = 0x80000;
-  const auto link_gfx_length = 0x7000;
+  if (ImGui::BeginTable("##PlayerAnimationTable", 3, kGfxEditTableFlags,
+                        ImVec2(0, 0))) {
+    for (const auto& name : {"Canvas", "Animation Steps", "Properties"})
+      ImGui::TableSetupColumn(name);
 
-  // TODO: Finish Rom::LoadLinkGraphics and implement this
-  if (ImGui::Button("Load Link Graphics (Experimental)")) {
-    if (rom()->is_loaded()) {
-      // Load Links graphics from the ROM
-      rom()->LoadLinkGraphics();
+    ImGui::TableHeadersRow();
 
-      // Split it into the pose data frames
-      // Create an animation step display for the poses
-      // Allow the user to modify the frames used in an anim step
-      // LinkOAM_AnimationSteps:
-      // #_0D85FB
+    NEXT_COLUMN();
+    link_canvas_.DrawBackground();
+    link_canvas_.DrawGrid(16.0f);
+    int i = 0;
+    for (auto [key, link_sheet] : rom()->link_graphics()) {
+      int x_offset = 0;
+      int y_offset = core::kTilesheetHeight * i * 4;
+      link_canvas_.DrawBitmap(link_sheet, x_offset, y_offset, 4);
+      i++;
+    }
+    link_canvas_.DrawOverlay();
+    link_canvas_.DrawGrid();
+
+    NEXT_COLUMN();
+
+    NEXT_COLUMN();
+
+    if (ImGui::Button("Load Link Graphics (Experimental)")) {
+      if (rom()->is_loaded()) {
+        // Load Links graphics from the ROM
+        RETURN_IF_ERROR(rom()->LoadLinkGraphics());
+
+        // Split it into the pose data frames
+        // Create an animation step display for the poses
+        // Allow the user to modify the frames used in an anim step
+        // LinkOAM_AnimationSteps:
+        // #_0D85FB
+      }
     }
   }
+  ImGui::EndTable();
 
   END_TAB_ITEM()
   return absl::OkStatus();

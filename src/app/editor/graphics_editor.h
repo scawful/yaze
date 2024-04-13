@@ -50,9 +50,6 @@ constexpr const char* kPaletteGroupAddressesKeys[] = {
     "grass",          "3d_object",    "ow_mini_map",
 };
 
-static constexpr std::string_view kGfxEditColumnNames[] = {
-    "Tilesheets", "Current Graphics", "Palette Controls"};
-
 static constexpr absl::string_view kGfxToolsetColumnNames[] = {
     "#memoryEditor",
     "##separator_gfx1",
@@ -184,6 +181,9 @@ class GraphicsEditor : public SharedROM {
   gui::Canvas super_donkey_canvas_;
   gui::Canvas current_sheet_canvas_{ImVec2(0x80, 0x20),
                                     gui::CanvasGridSize::k8x8};
+  gui::Canvas link_canvas_{
+      ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),
+      gui::CanvasGridSize::k16x16};
   absl::Status status_;
 };
 
