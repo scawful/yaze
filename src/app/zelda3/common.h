@@ -3,6 +3,10 @@
 
 namespace yaze {
 namespace app {
+/**
+ * @brief Zelda 3 specific classes and functions.
+ * @namespace zelda3
+ */
 namespace zelda3 {
 
 class OverworldEntity {
