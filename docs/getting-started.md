@@ -10,19 +10,10 @@ Before you start using YAZE, make sure you have the following:
 - A copy of "The Legend of Zelda: A Link to the Past" ROM file (US or JP)
 - Basic knowledge of hexadecimal and binary data
 
-## Installation
-To install YAZE, follow these steps based on your platform:
-
-### Windows
-
-### MacOS
-
-### GNU/Linux
-
 ## Usage
 To use the Link to the Past ROM Editor, follow these steps:
 
-Open the "ALTTP.sfc" ROM file using the "File" menu.
+Open the ROM file using the "File" menu.
 
 ...
 
