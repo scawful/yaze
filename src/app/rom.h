@@ -138,6 +138,9 @@ struct WriteAction {
       value;
 };
 
+/**
+ * @brief The ROM class is used to load, save, and modify ROM data.
+ */
 class ROM : public core::ExperimentFlags {
  public:
   template <typename... Args>
@@ -200,7 +203,7 @@ class ROM : public core::ExperimentFlags {
   }
 
   /**
-   * Loads 2bpp graphics from ROM data.
+   * @brief Loads 2bpp graphics from ROM data.
    *
    * This function loads 2bpp graphics from ROM data by iterating over a list of
    * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
@@ -209,11 +212,14 @@ class ROM : public core::ExperimentFlags {
    */
   absl::StatusOr<Bytes> Load2BppGraphics();
 
+  /**
+   * @brief Loads the players 4bpp graphics sheet from ROM data.
+   */
   absl::Status LoadLinkGraphics();
 
   /**
-   * This function iterates over all graphics sheets in the ROM and loads them
-   * into memory. Depending on the sheet's index, it may be uncompressed or
+   * @brief This function iterates over all graphics sheets in the ROM and loads
+   * them into memory. Depending on the sheet's index, it may be uncompressed or
    * compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits
    * per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics
    * data is converted to 8 BPP and stored in a bitmap.
@@ -557,6 +563,9 @@ class ROM : public core::ExperimentFlags {
     renderer_ = renderer;
   }
 
+  /**
+   * @brief Used to render a bitmap to the screen.
+   */
   void RenderBitmap(gfx::Bitmap* bitmap) {
     if (flags()->kLoadTexturesAsStreaming) {
       bitmap->CreateTexture(renderer_.get());
@@ -565,6 +574,9 @@ class ROM : public core::ExperimentFlags {
     }
   }
 
+  /**
+   * @brief Used to update a bitmap on the screen.
+   */
   void UpdateBitmap(gfx::Bitmap* bitmap, bool use_sdl_update = false) {
     if (flags()->kLoadTexturesAsStreaming) {
       bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
@@ -675,6 +687,9 @@ class ROM : public core::ExperimentFlags {
   std::shared_ptr<SDL_Renderer> renderer_;
 };
 
+/**
+ * @brief A class to hold a shared pointer to a ROM object.
+ */
 class SharedROM {
  public:
   SharedROM() = default;
