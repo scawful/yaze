@@ -31,156 +31,157 @@ namespace app {
 
 namespace {
 absl::Status LoadOverworldMainPalettes(const Bytes& rom_data,
-                                       PaletteGroupMap& palette_groups) {
+                                       gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 6; i++) {
-    RETURN_IF_ERROR(palette_groups["ow_main"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.overworld_main.AddPalette(
         gfx::ReadPaletteFromRom(core::overworldPaletteMain + (i * (35 * 2)),
                                 /*num_colors*/ 35, data)))
   }
   return absl::OkStatus();
 }
 
-absl::Status LoadOverworldAuxiliaryPalettes(const Bytes& rom_data,
-                                            PaletteGroupMap& palette_groups) {
+absl::Status LoadOverworldAuxiliaryPalettes(
+    const Bytes& rom_data, gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
-    RETURN_IF_ERROR(palette_groups["ow_aux"].AddPalette(gfx::ReadPaletteFromRom(
-        core::overworldPaletteAuxialiary + (i * (21 * 2)),
-        /*num_colors*/ 21, data)))
+    RETURN_IF_ERROR(
+        palette_groups.overworld_aux.AddPalette(gfx::ReadPaletteFromRom(
+            core::overworldPaletteAuxialiary + (i * (21 * 2)),
+            /*num_colors*/ 21, data)))
   }
   return absl::OkStatus();
 }
 
-absl::Status LoadOverworldAnimatedPalettes(const Bytes& rom_data,
-                                           PaletteGroupMap& palette_groups) {
+absl::Status LoadOverworldAnimatedPalettes(
+    const Bytes& rom_data, gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 14; i++) {
     RETURN_IF_ERROR(
-        palette_groups["ow_animated"].AddPalette(gfx::ReadPaletteFromRom(
+        palette_groups.overworld_animated.AddPalette(gfx::ReadPaletteFromRom(
             core::overworldPaletteAnimated + (i * (7 * 2)), 7, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadHUDPalettes(const Bytes& rom_data,
-                             PaletteGroupMap& palette_groups) {
+                             gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
-    RETURN_IF_ERROR(palette_groups["hud"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.hud.AddPalette(
         gfx::ReadPaletteFromRom(core::hudPalettes + (i * 64), 32, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadGlobalSpritePalettes(const Bytes& rom_data,
-                                      PaletteGroupMap& palette_groups) {
+                                      gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
-  RETURN_IF_ERROR(palette_groups["global_sprites"].AddPalette(
+  RETURN_IF_ERROR(palette_groups.global_sprites.AddPalette(
       gfx::ReadPaletteFromRom(core::globalSpritePalettesLW, 60, data)))
-  RETURN_IF_ERROR(palette_groups["global_sprites"].AddPalette(
+  RETURN_IF_ERROR(palette_groups.global_sprites.AddPalette(
       gfx::ReadPaletteFromRom(core::globalSpritePalettesDW, 60, data)))
   return absl::OkStatus();
 }
 
 absl::Status LoadArmorPalettes(const Bytes& rom_data,
-                               PaletteGroupMap& palette_groups) {
+                               gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 5; i++) {
-    RETURN_IF_ERROR(palette_groups["armors"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.armors.AddPalette(
         gfx::ReadPaletteFromRom(core::armorPalettes + (i * 30), 15, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadSwordPalettes(const Bytes& rom_data,
-                               PaletteGroupMap& palette_groups) {
+                               gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 4; i++) {
-    RETURN_IF_ERROR(palette_groups["swords"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.swords.AddPalette(
         gfx::ReadPaletteFromRom(core::swordPalettes + (i * 6), 3, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadShieldPalettes(const Bytes& rom_data,
-                                PaletteGroupMap& palette_groups) {
+                                gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 3; i++) {
-    RETURN_IF_ERROR(palette_groups["shields"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.shields.AddPalette(
         gfx::ReadPaletteFromRom(core::shieldPalettes + (i * 8), 4, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadSpriteAux1Palettes(const Bytes& rom_data,
-                                    PaletteGroupMap& palette_groups) {
+                                    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 12; i++) {
-    RETURN_IF_ERROR(palette_groups["sprites_aux1"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.sprites_aux1.AddPalette(
         gfx::ReadPaletteFromRom(core::spritePalettesAux1 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadSpriteAux2Palettes(const Bytes& rom_data,
-                                    PaletteGroupMap& palette_groups) {
+                                    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 11; i++) {
-    RETURN_IF_ERROR(palette_groups["sprites_aux2"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.sprites_aux2.AddPalette(
         gfx::ReadPaletteFromRom(core::spritePalettesAux2 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadSpriteAux3Palettes(const Bytes& rom_data,
-                                    PaletteGroupMap& palette_groups) {
+                                    gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 24; i++) {
-    RETURN_IF_ERROR(palette_groups["sprites_aux3"].AddPalette(
+    RETURN_IF_ERROR(palette_groups.sprites_aux3.AddPalette(
         gfx::ReadPaletteFromRom(core::spritePalettesAux3 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadDungeonMainPalettes(const Bytes& rom_data,
-                                     PaletteGroupMap& palette_groups) {
+                                     gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
     RETURN_IF_ERROR(
-        palette_groups["dungeon_main"].AddPalette(gfx::ReadPaletteFromRom(
+        palette_groups.dungeon_main.AddPalette(gfx::ReadPaletteFromRom(
             core::dungeonMainPalettes + (i * 180), 90, data)))
   }
   return absl::OkStatus();
 }
 
 absl::Status LoadGrassColors(const Bytes& rom_data,
-                             PaletteGroupMap& palette_groups) {
-  RETURN_IF_ERROR(palette_groups["grass"].AddColor(
+                             gfx::PaletteGroupMap& palette_groups) {
+  RETURN_IF_ERROR(palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(core::hardcodedGrassLW, rom_data.data())))
-  RETURN_IF_ERROR(palette_groups["grass"].AddColor(
+  RETURN_IF_ERROR(palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(core::hardcodedGrassDW, rom_data.data())))
-  RETURN_IF_ERROR(palette_groups["grass"].AddColor(
+  RETURN_IF_ERROR(palette_groups.grass.AddColor(
       gfx::ReadColorFromRom(core::hardcodedGrassSpecial, rom_data.data())))
   return absl::OkStatus();
 }
 
 absl::Status Load3DObjectPalettes(const Bytes& rom_data,
-                                  PaletteGroupMap& palette_groups) {
+                                  gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
-  RETURN_IF_ERROR(palette_groups["3d_object"].AddPalette(
+  RETURN_IF_ERROR(palette_groups.object_3d.AddPalette(
       gfx::ReadPaletteFromRom(core::triforcePalette, 8, data)))
-  RETURN_IF_ERROR(palette_groups["3d_object"].AddPalette(
+  RETURN_IF_ERROR(palette_groups.object_3d.AddPalette(
       gfx::ReadPaletteFromRom(core::crystalPalette, 8, data)))
   return absl::OkStatus();
 }
 
-absl::Status LoadOverworldMiniMapPalettes(const Bytes& rom_data,
-                                          PaletteGroupMap& palette_groups) {
+absl::Status LoadOverworldMiniMapPalettes(
+    const Bytes& rom_data, gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
     RETURN_IF_ERROR(
-        palette_groups["ow_mini_map"].AddPalette(gfx::ReadPaletteFromRom(
+        palette_groups.overworld_mini_map.AddPalette(gfx::ReadPaletteFromRom(
             core::overworldMiniMapPalettes + (i * 256), 128, data)))
   }
   return absl::OkStatus();
@@ -206,7 +207,7 @@ absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
 absl::Status ROM::LoadLinkGraphics() {
   const auto link_gfx_offset = 0x80000;  // $10:8000
   const auto link_gfx_length = 0x800;    // 0x4000 or 0x7000?
-  link_palette_ = palette_groups_["armors"][0];
+  link_palette_ = palette_groups_.armors[0];
 
   // Load Links graphics from the ROM
   for (int i = 0; i < 14; i++) {
@@ -258,10 +259,10 @@ absl::Status ROM::LoadAllGraphicsData() {
         if (i > 115) {
           // Apply sprites palette
           RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
-              palette_groups_["global_sprites"][0], 0));
+              palette_groups_.global_sprites[0], 0));
         } else {
           RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
-              palette_groups_["dungeon_main"][0], 0));
+              palette_groups_.dungeon_main[0], 0));
         }
         graphics_manager_[i]->CreateTexture(renderer_);
       }
@@ -484,56 +485,28 @@ absl::Status ROM::SaveToFile(bool backup, bool save_new, std::string filename) {
   return absl::OkStatus();
 }
 
-void ROM::SavePalette(int index, const std::string& group_name,
-                      gfx::SnesPalette& palette) {
+absl::Status ROM::SavePalette(int index, const std::string& group_name,
+                              gfx::SnesPalette& palette) {
   // Iterate through all colors in the palette
   for (size_t j = 0; j < palette.size(); ++j) {
     gfx::SnesColor color = palette[j];
     // If the color is modified, save the color to the ROM
     if (color.is_modified()) {
-      WriteColor(gfx::GetPaletteAddress(group_name, index, j), color);
+      RETURN_IF_ERROR(
+          WriteColor(gfx::GetPaletteAddress(group_name, index, j), color));
       color.set_modified(false);  // Reset the modified flag after saving
     }
   }
+  return absl::OkStatus();
 }
 
-void ROM::SaveAllPalettes() {
-  // Iterate through all palette_groups_
-  for (auto& [group_name, palettes] : palette_groups_) {
-    // Iterate through all palettes in the group
-    for (size_t i = 0; i < palettes.size(); ++i) {
-      auto palette = palettes[i];
-      SavePalette(i, group_name, palette);
+absl::Status ROM::SaveAllPalettes() {
+  palette_groups_.for_each([&](gfx::PaletteGroup& group) {
+    for (size_t i = 0; i < group.size(); ++i) {
+      SavePalette(i, group.name(), *group.mutable_palette(i));
     }
-  }
-}
+  });
 
-absl::Status ROM::UpdatePaletteColor(const std::string& groupName,
-                                     size_t paletteIndex, size_t colorIndex,
-                                     const gfx::SnesColor& newColor) {
-  // Check if the groupName exists in the palette_groups_ map
-  if (palette_groups_.find(groupName) != palette_groups_.end()) {
-    // Check if the paletteIndex is within the range of available palettes in
-    // the group
-    if (paletteIndex < palette_groups_[groupName].size()) {
-      // Check if the colorIndex is within the range of available colors in the
-      // palette
-      if (colorIndex < palette_groups_[groupName][paletteIndex].size()) {
-        // Update the color value in the palette
-        palette_groups_[groupName][paletteIndex][colorIndex] = newColor;
-        palette_groups_[groupName][paletteIndex][colorIndex].set_modified(true);
-      } else {
-        return absl::AbortedError(
-            "Error: Invalid color index in UpdatePaletteColor.");
-      }
-    } else {
-      return absl::AbortedError(
-          "Error: Invalid palette index in UpdatePaletteColor.");
-    }
-  } else {
-    return absl::AbortedError(
-        "Error: Invalid group name in UpdatePaletteColor");
-  }
   return absl::OkStatus();
 }
 

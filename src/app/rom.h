@@ -40,8 +40,6 @@
 namespace yaze {
 namespace app {
 
-using PaletteGroupMap = std::unordered_map<std::string, gfx::PaletteGroup>;
-
 // Define an enum class for the different versions of the game
 enum class Z3_Version {
   US = 1,     // US version
@@ -208,8 +206,8 @@ class ROM : public core::ExperimentFlags {
    * @param group_name The name of the group containing the palette.
    * @param palette The palette to save.
    */
-  void SavePalette(int index, const std::string& group_name,
-                   gfx::SnesPalette& palette);
+  absl::Status SavePalette(int index, const std::string& group_name,
+                           gfx::SnesPalette& palette);
 
   /**
    * @brief Saves all palettes in the ROM.
@@ -217,7 +215,7 @@ class ROM : public core::ExperimentFlags {
    * This function iterates through all palette groups and all palettes in each
    * group, and saves each palette using the SavePalette() function.
    */
-  void SaveAllPalettes();
+  absl::Status SaveAllPalettes();
 
   /**
    * @brief Updates a color in a specified palette group.
@@ -457,19 +455,11 @@ class ROM : public core::ExperimentFlags {
     return core::SnesToPc(snes_addr);
   }
 
-  absl::StatusOr<gfx::PaletteGroup> palette_group(const std::string& group) {
-    if (palette_groups_.find(group) == palette_groups_.end()) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Palette group ", group, " not found"));
-    }
-    return palette_groups_[group];
-  }
-  auto mutable_palette_group(const std::string& group) {
-    return &palette_groups_[group];
-  }
-  auto dungeon_palette(int i) { return palette_groups_["dungeon_main"][i]; }
+  auto palette_group() { return palette_groups_; }
+  auto mutable_palette_group() { return &palette_groups_; }
+  auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
   auto mutable_dungeon_palette(int i) {
-    return palette_groups_["dungeon_main"].mutable_palette(i);
+    return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
   // Full graphical data for the game
@@ -678,7 +668,7 @@ class ROM : public core::ExperimentFlags {
   gfx::BitmapManager graphics_manager_;
   gfx::BitmapTable link_graphics_;
   gfx::SnesPalette link_palette_;
-  PaletteGroupMap palette_groups_;
+  gfx::PaletteGroupMap palette_groups_;
   core::ResourceLabelManager resource_label_manager_;
 
   std::stack<std::function<void()>> changes_;

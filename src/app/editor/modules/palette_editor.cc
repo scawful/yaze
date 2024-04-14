@@ -78,7 +78,6 @@ absl::Status PaletteEditor::Update() {
 absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
                                                int index) {
   if (index >= palette.size()) {
-    // Handle error: the index is out of bounds
     return absl::InvalidArgumentError("Index out of bounds");
   }
 
@@ -108,18 +107,18 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   if (!rom()->is_loaded()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
-  ASSIGN_OR_RETURN(auto palette_group,
-                   rom()->palette_group(kPaletteGroupNames[category].data()));
+
+  std::string group_name = kPaletteGroupNames[category].data();
+  auto palette_group = *rom()->palette_group().get_group(group_name);
   const auto size = palette_group.size();
-  auto palettes =
-      rom()->mutable_palette_group(kPaletteGroupNames[category].data());
+
   static bool edit_color = false;
   for (int j = 0; j < size; j++) {
     // ImGui::Text("%d", j);
     rom()->resource_label()->SelectableLabelWithNameEdit(
         false, "Palette Group Name", std::to_string(j),
         std::string(kPaletteGroupNames[category]));
-    auto palette = palettes->mutable_palette(j);
+    auto palette = palette_group.mutable_palette(j);
     auto pal_size = palette->size();
 
     for (int n = 0; n < pal_size; n++) {
@@ -155,8 +154,7 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
   if (gui::SnesColorEdit4("Edit Color", palette[n], color_popup_flags)) {
-    RETURN_IF_ERROR(rom()->UpdatePaletteColor(kPaletteGroupNames[i].data(), j,
-                                              n, palette[n]))
+    // TODO: Implement new update color function
   }
 
   if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");

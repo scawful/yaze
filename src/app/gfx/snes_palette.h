@@ -145,8 +145,6 @@ struct PaletteGroup {
 
   explicit PaletteGroup(uint8_t mSize);
 
-  auto mutable_palette(int i) { return &palettes[i]; }
-
   absl::Status AddPalette(SnesPalette pal) {
     palettes.emplace_back(pal);
     size_ = palettes.size();
@@ -166,7 +164,10 @@ struct PaletteGroup {
     size_ = 0;
   }
 
+  auto name() const { return name_; }
   auto size() const { return palettes.size(); }
+  auto mutable_palette(int i) { return &palettes[i]; }
+  auto palette(int i) const { return palettes[i]; }
 
   SnesPalette operator[](int i) {
     if (i > size_) {
@@ -202,7 +203,88 @@ struct PaletteGroup {
 
  private:
   int size_ = 0;
+  std::string name_;
   std::vector<SnesPalette> palettes;
+};
+
+/**
+ * @brief Represents a mapping of palette groups.
+ *
+ * Originally, this was an actual std::unordered_map but since the palette
+ * groups supported never change, it was changed to a struct with a method to
+ * get the group by name.
+ */
+struct PaletteGroupMap {
+  PaletteGroup overworld_main;
+  PaletteGroup overworld_aux;
+  PaletteGroup overworld_animated;
+  PaletteGroup hud;
+  PaletteGroup global_sprites;
+  PaletteGroup armors;
+  PaletteGroup swords;
+  PaletteGroup shields;
+  PaletteGroup sprites_aux1;
+  PaletteGroup sprites_aux2;
+  PaletteGroup sprites_aux3;
+  PaletteGroup dungeon_main;
+  PaletteGroup grass;
+  PaletteGroup object_3d;
+  PaletteGroup overworld_mini_map;
+
+  auto get_group(const std::string& group_name) {
+    if (group_name == "ow_main") {
+      return &overworld_main;
+    } else if (group_name == "ow_aux") {
+      return &overworld_aux;
+    } else if (group_name == "ow_animated") {
+      return &overworld_animated;
+    } else if (group_name == "hud") {
+      return &hud;
+    } else if (group_name == "global_sprites") {
+      return &global_sprites;
+    } else if (group_name == "armors") {
+      return &armors;
+    } else if (group_name == "swords") {
+      return &swords;
+    } else if (group_name == "shields") {
+      return &shields;
+    } else if (group_name == "sprites_aux1") {
+      return &sprites_aux1;
+    } else if (group_name == "sprites_aux2") {
+      return &sprites_aux2;
+    } else if (group_name == "sprites_aux3") {
+      return &sprites_aux3;
+    } else if (group_name == "dungeon_main") {
+      return &dungeon_main;
+    } else if (group_name == "grass") {
+      return &grass;
+    } else if (group_name == "3d_object") {
+      return &object_3d;
+    } else if (group_name == "ow_mini_map") {
+      return &overworld_mini_map;
+    } else {
+      throw std::out_of_range("PaletteGroupMap: Group not found");
+    }
+  }
+
+  template <typename Func>
+  void for_each(Func&& func) {
+    func(overworld_main);
+    func(overworld_aux);
+    func(overworld_animated);
+    func(hud);
+    func(global_sprites);
+    func(armors);
+    func(swords);
+    func(shields);
+    func(sprites_aux1);
+    func(sprites_aux2);
+    func(sprites_aux3);
+    func(dungeon_main);
+    func(grass);
+    func(object_3d);
+    func(overworld_mini_map);
+  }
 };
 
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(

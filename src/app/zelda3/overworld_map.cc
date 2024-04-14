@@ -289,7 +289,7 @@ absl::Status SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      ASSIGN_OR_RETURN(auto pal_group, rom.palette_group("sprites_aux1"));
+      auto pal_group = rom.palette_group().sprites_aux1;
       new_palette[x + (16 * y)] = pal_group[1][k];
       k++;
     }
@@ -299,7 +299,7 @@ absl::Status SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      ASSIGN_OR_RETURN(auto pal_group, rom.palette_group("sprites_aux3"));
+      auto pal_group = rom.palette_group().sprites_aux3;
       new_palette[x + (16 * y)] = pal_group[0][k];
       k++;
     }
@@ -309,7 +309,7 @@ absl::Status SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      ASSIGN_OR_RETURN(auto pal_group, rom.palette_group("global_sprites"));
+      auto pal_group = rom.palette_group().global_sprites;
       new_palette[x + (16 * y)] = pal_group[0][k];
       k++;
     }
@@ -337,7 +337,7 @@ absl::Status SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      ASSIGN_OR_RETURN(auto pal_group, rom.palette_group("armors"));
+      auto pal_group = rom.palette_group().armors;
       new_palette[x + (16 * y)] = pal_group[0][k];
       k++;
     }
@@ -354,21 +354,16 @@ absl::Status SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
 
 // New helper function to get a palette from the ROM.
 absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
-    const std::string& group, int index, int previousIndex, int limit) {
+    const gfx::PaletteGroup& palette_group, int index, int previous_index,
+    int limit) {
   if (index == 255) {
     index = rom_[rom_.version_constants().overworldMapPaletteGroup +
-                 (previousIndex * 4)];
+                 (previous_index * 4)];
   }
-  if (index != 255) {
-    if (index >= limit) {
-      index = limit - 1;
-    }
-    ASSIGN_OR_RETURN(auto pal_group, rom_.palette_group(group));
-    return pal_group[index];
-  } else {
-    ASSIGN_OR_RETURN(auto pal_group, rom_.palette_group(group));
-    return pal_group[0];
+  if (index >= limit) {
+    index = limit - 1;
   }
+  return palette_group[index];
 }
 
 absl::Status OverworldMap::LoadPalette() {
@@ -390,13 +385,14 @@ absl::Status OverworldMap::LoadPalette() {
   uchar pal5 = rom_[overworldSpritePaletteGroup +
                     (sprite_palette_[game_state_] * 2) + 1];
 
-  ASSIGN_OR_RETURN(auto grass_pal_group, rom_.palette_group("grass"));
+  auto grass_pal_group = rom_.palette_group().grass;
   ASSIGN_OR_RETURN(gfx::SnesColor bgr, grass_pal_group[0].GetColor(0));
 
+  auto ow_aux_pal_group = rom_.palette_group().overworld_aux;
   ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
-                   GetPalette("ow_aux", pal1, previousPalId, 20));
+                   GetPalette(ow_aux_pal_group, pal1, previousPalId, 20));
   ASSIGN_OR_RETURN(gfx::SnesPalette aux2,
-                   GetPalette("ow_aux", pal2, previousPalId, 20));
+                   GetPalette(ow_aux_pal_group, pal2, previousPalId, 20));
 
   // Additional handling of `pal3` and `parent_`
   if (pal3 == 255) {
@@ -419,19 +415,23 @@ absl::Status OverworldMap::LoadPalette() {
     pal0 = 4;
   }
 
+  auto ow_main_pal_group = rom_.palette_group().overworld_main;
   ASSIGN_OR_RETURN(gfx::SnesPalette main,
-                   GetPalette("ow_main", pal0, previousPalId, 255));
-  ASSIGN_OR_RETURN(
-      gfx::SnesPalette animated,
-      GetPalette("ow_animated", std::min((int)pal3, 13), previousPalId, 14));
+                   GetPalette(ow_main_pal_group, pal0, previousPalId, 255));
+  auto ow_animated_pal_group = rom_.palette_group().overworld_animated;
+  ASSIGN_OR_RETURN(gfx::SnesPalette animated,
+                   GetPalette(ow_animated_pal_group, std::min((int)pal3, 13),
+                              previousPalId, 14));
 
-  ASSIGN_OR_RETURN(auto hud_pal_group, rom_.palette_group("hud"));
+  auto hud_pal_group = rom_.palette_group().hud;
   gfx::SnesPalette hud = hud_pal_group[0];
 
   ASSIGN_OR_RETURN(gfx::SnesPalette spr,
-                   GetPalette("sprites_aux3", pal4, previousSprPalId, 24));
+                   GetPalette(rom_.palette_group().sprites_aux3, pal4,
+                              previousSprPalId, 24));
   ASSIGN_OR_RETURN(gfx::SnesPalette spr2,
-                   GetPalette("sprites_aux3", pal5, previousSprPalId, 24));
+                   GetPalette(rom_.palette_group().sprites_aux3, pal5,
+                              previousSprPalId, 24));
 
   RETURN_IF_ERROR(palette_internal::SetColorsPalette(
       rom_, parent_, current_palette_, main, animated, aux1, aux2, hud, bgr,

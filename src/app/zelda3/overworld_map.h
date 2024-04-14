@@ -109,8 +109,8 @@ class OverworldMap : public editor::context::GfxContext {
   void LoadDeathMountainGFX();
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
-  absl::StatusOr<gfx::SnesPalette> GetPalette(const std::string& group,
-                                              int index, int previousIndex,
+  absl::StatusOr<gfx::SnesPalette> GetPalette(const gfx::PaletteGroup& group,
+                                              int index, int previous_index,
                                               int limit);
 
   bool built_ = false;
