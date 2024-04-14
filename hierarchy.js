@@ -151,6 +151,7 @@ var hierarchy =
     [ "yaze::app::editor::palette_internal::PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
     [ "yaze::app::editor::palette_internal::PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", null ],
     [ "yaze::app::gfx::PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", null ],
+    [ "yaze::app::gfx::PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", null ],
     [ "yaze::app::gfx::Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::app::emu::video::PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", [
       [ "yaze_test::emu_test::MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", null ]
@@ -246,5 +247,5 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::WOBJLOG", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::WOBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html", null ],
     [ "yaze::app::emu::video::WramAccessRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html", null ],
-    [ "yaze::app::WriteAction", "structyaze_1_1app_1_1WriteAction.html", null ]
+    [ "yaze::app::ROM::WriteAction", "structyaze_1_1app_1_1ROM_1_1WriteAction.html", null ]
 ];

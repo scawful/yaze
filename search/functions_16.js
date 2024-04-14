@@ -3,8 +3,8 @@ var searchData=
   ['wai_0',['WAI',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a40e3d5d22b135a07314814516645ea92',1,'yaze::app::emu::Cpu']]],
   ['waitforvblank_1',['WaitForVBlank',['../classyaze_1_1app_1_1emu_1_1SNES.html#aa913ca305b9b8ecee868fd89dcc261e4',1,'yaze::app::emu::SNES']]],
   ['wdm_2',['WDM',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a6f375757c2ecaac0ebf5b5b0a14a6a23',1,'yaze::app::emu::Cpu']]],
-  ['width_3',['Width',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab319db57b91ed5319e67ccbdeb1517aa',1,'yaze::app::zelda3::Sprite']]],
-  ['width_4',['width',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2',1,'yaze::app::gfx::Bitmap::width()'],['../classyaze_1_1app_1_1gui_1_1Canvas.html#a93cfd6923d614c2cf8ab79e9dc4127b7',1,'yaze::app::gui::Canvas::width()']]],
+  ['width_3',['width',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2',1,'yaze::app::gfx::Bitmap::width()'],['../classyaze_1_1app_1_1gui_1_1Canvas.html#a93cfd6923d614c2cf8ab79e9dc4127b7',1,'yaze::app::gui::Canvas::width()']]],
+  ['width_4',['Width',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab319db57b91ed5319e67ccbdeb1517aa',1,'yaze::app::zelda3::Sprite']]],
   ['wordtotileinfo_5',['WordToTileInfo',['../namespaceyaze_1_1app_1_1gfx.html#a1c0d7314890a130ceda6eec9def39c4e',1,'yaze::app::gfx']]],
   ['write_6',['Write',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a396a573a1aa0ff52d4c6b2c829b41b0e',1,'yaze::app::emu::video::PpuInterface::Write()'],['../classyaze_1_1app_1_1ROM.html#a5aba38aca657528f6e3f3033877aa8ed',1,'yaze::app::ROM::Write()']]],
   ['write_7',['write',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f',1,'yaze::app::emu::audio::AudioRam::write()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a63d23e35f646d4f76e49f3d287247447',1,'yaze::app::emu::audio::AudioRamImpl::write()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aeb4aa58dfcf19eae733a75fae64f508b',1,'yaze::app::emu::audio::Spc700::write()']]],
@@ -21,8 +21,9 @@ var searchData=
   ['writetopixel_18',['WriteToPixel',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a968fb5a195cd65700f66b82b839e3d4a',1,'yaze::app::gfx::Bitmap']]],
   ['writetoport_19',['WriteToPort',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a9953de1a3fe2bdf0614b94d216729f30',1,'yaze::app::emu::audio::Apu']]],
   ['writetoregister_20',['WriteToRegister',['../classyaze_1_1app_1_1emu_1_1SNES.html#a59eb62da7c0c6c54a309262d48793406',1,'yaze::app::emu::SNES']]],
-  ['writevector_21',['WriteVector',['../classyaze_1_1app_1_1ROM.html#a5f77ded81f09a91c34baf33b6816322b',1,'yaze::app::ROM']]],
-  ['writevoicereg_22',['WriteVoiceReg',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a153729928487c7063a985833fbea5e4a',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
-  ['writeword_23',['WriteWord',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a020ecd1b3b1d82c05f68a7d008a7d58e',1,'yaze::app::emu::Cpu::WriteWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194',1,'yaze::app::emu::memory::Memory::WriteWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a1705694867401d6ce6516038555684d1',1,'yaze::app::emu::memory::MemoryImpl::WriteWord()'],['../classyaze_1_1app_1_1ROM.html#a90c2e6422df69853c3e254f63fd3afea',1,'yaze::app::ROM::WriteWord()']]],
-  ['writewordtopixel_24',['WriteWordToPixel',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ad1c0b2278d1e5f600449165b13f26ea5',1,'yaze::app::gfx::Bitmap']]]
+  ['writetransaction_21',['WriteTransaction',['../classyaze_1_1app_1_1ROM.html#a5f846546e3a7894488a6488954d2a619',1,'yaze::app::ROM']]],
+  ['writevector_22',['WriteVector',['../classyaze_1_1app_1_1ROM.html#a5f77ded81f09a91c34baf33b6816322b',1,'yaze::app::ROM']]],
+  ['writevoicereg_23',['WriteVoiceReg',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a153729928487c7063a985833fbea5e4a',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
+  ['writeword_24',['WriteWord',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a020ecd1b3b1d82c05f68a7d008a7d58e',1,'yaze::app::emu::Cpu::WriteWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194',1,'yaze::app::emu::memory::Memory::WriteWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a1705694867401d6ce6516038555684d1',1,'yaze::app::emu::memory::MemoryImpl::WriteWord()'],['../classyaze_1_1app_1_1ROM.html#a90c2e6422df69853c3e254f63fd3afea',1,'yaze::app::ROM::WriteWord()']]],
+  ['writewordtopixel_25',['WriteWordToPixel',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ad1c0b2278d1e5f600449165b13f26ea5',1,'yaze::app::gfx::Bitmap']]]
 ];

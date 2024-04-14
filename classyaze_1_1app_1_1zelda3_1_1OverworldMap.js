@@ -47,7 +47,7 @@ var classyaze_1_1app_1_1zelda3_1_1OverworldMap =
     [ "LoadAreaGraphicsBlocksets", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#af7e34f382a5ad4f4c906242817457094", null ],
     [ "LoadDeathMountainGFX", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a61e671295b70df4cd18b6d66b5273668", null ],
     [ "ProcessGraphicsBuffer", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a85eecef9d751e73cae5e08dd6126b1b8", null ],
-    [ "GetPalette", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#ad1ec13c607bc2a8026391f9a19be2787", null ],
+    [ "GetPalette", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a6ba128d970584af6c97bc40b5b2768f7", null ],
     [ "built_", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a3964efef514dc66b0f729e0124772ef7", null ],
     [ "large_map_", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a88e6b66f625654288f79b60bdb7ba687", null ],
     [ "initialized_", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a48f8c2d9f0a31b6e908af5302235be63", null ],

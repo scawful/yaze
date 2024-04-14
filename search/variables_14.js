@@ -2,7 +2,7 @@ var searchData=
 [
   ['v_0',['V',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a9d7dbb8e9953ee5a33641b31dbee91f1',1,'yaze::app::emu::audio::Spc700::Flags']]],
   ['v_5fblank_5fflag_5f_1',['v_blank_flag_',['../classyaze_1_1app_1_1emu_1_1SNES.html#abba59cb038441757f7dbb4d25fb1e3ce',1,'yaze::app::emu::SNES']]],
-  ['value_2',['value',['../structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397',1,'yaze::app::emu::Emulator::Bookmark::value'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html#ad1e99e3a796d096a0056251a7458e9c8',1,'yaze::app::emu::video::PpuRegisters::COLDATA::value'],['../structyaze_1_1app_1_1WriteAction.html#af8c5de6ad88e6f06716f76d5cd5a6dc8',1,'yaze::app::WriteAction::value']]],
+  ['value_2',['value',['../structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397',1,'yaze::app::emu::Emulator::Bookmark::value'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html#ad1e99e3a796d096a0056251a7458e9c8',1,'yaze::app::emu::video::PpuRegisters::COLDATA::value'],['../structyaze_1_1app_1_1ROM_1_1WriteAction.html#a9a7174f67c82c105da8c02f304108dac',1,'yaze::app::ROM::WriteAction::value']]],
   ['value_5f_3',['value_',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#aefc464f5d93722683a981225ab777b73',1,'yaze::app::core::NotifyValue']]],
   ['verbose_5f_4',['verbose_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a2dd494a961c9c31c823ab2e0517f8181',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['version_5',['version',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a68327f3614c18b3f42c71314366ba61a',1,'yaze::app::emu::memory::RomInfo']]],

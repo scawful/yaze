@@ -1,9 +1,9 @@
 var searchData=
 [
   ['packbpptile_0',['PackBppTile',['../namespaceyaze_1_1app_1_1gfx.html#a552ecb78eb0a711234650adab705305c',1,'yaze::app::gfx']]],
-  ['palette_1',['palette',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8',1,'yaze::app::gfx::Bitmap::palette()'],['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a5c7f55a841675d0cfa42f83732ce9271',1,'yaze::app::gfx::Tilesheet::palette()']]],
-  ['palette_2',['Palette',['../classyaze_1_1app_1_1zelda3_1_1Inventory.html#a153e15f1e5a45e32d149e6204d0e9000',1,'yaze::app::zelda3::Inventory']]],
-  ['palette_5fgroup_3',['palette_group',['../classyaze_1_1app_1_1ROM.html#a0103f0af905cbc1e67229d9adcd22fe9',1,'yaze::app::ROM']]],
+  ['palette_1',['Palette',['../classyaze_1_1app_1_1zelda3_1_1Inventory.html#a153e15f1e5a45e32d149e6204d0e9000',1,'yaze::app::zelda3::Inventory']]],
+  ['palette_2',['palette',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8',1,'yaze::app::gfx::Bitmap::palette()'],['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#aeff3e7092775e7aca8837ba49fd12576',1,'yaze::app::gfx::PaletteGroup::palette()'],['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a5c7f55a841675d0cfa42f83732ce9271',1,'yaze::app::gfx::Tilesheet::palette()']]],
+  ['palette_5fgroup_3',['palette_group',['../classyaze_1_1app_1_1ROM.html#a49f610c4fc8c5fa105c0fc6181c93696',1,'yaze::app::ROM']]],
   ['palette_5fsize_4',['palette_size',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a38247d9a80196ab3d56b4a7c7b32010c',1,'yaze::app::gfx::Bitmap']]],
   ['palettegroup_5',['PaletteGroup',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a89de7d5a6034f58e61e8d536612680ed',1,'yaze::app::gfx::PaletteGroup::PaletteGroup()=default'],['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a83f3e12d8525d4e5017fc89244d1637f',1,'yaze::app::gfx::PaletteGroup::PaletteGroup(uint8_t mSize)']]],
   ['paletteset_6',['Paletteset',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a7ae1992dfafdcbfa463c58f873b0e368',1,'yaze::app::gfx::Paletteset::Paletteset()=default'],['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#ac72c292930f9058d5256cece0a8dc4d3',1,'yaze::app::gfx::Paletteset::Paletteset(gfx::SnesPalette main, gfx::SnesPalette animated, gfx::SnesPalette aux1, gfx::SnesPalette aux2, gfx::SnesColor background, gfx::SnesPalette hud, gfx::SnesPalette spr, gfx::SnesPalette spr2, gfx::SnesPalette comp)']]],
@@ -37,8 +37,8 @@ var searchData=
   ['popbyte_34',['PopByte',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aaee7f9f938299afdd4dd8a448393656b',1,'yaze::app::emu::Cpu::PopByte()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0',1,'yaze::app::emu::memory::Memory::PopByte()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac0347823c59999288393b7b2f90e0f0c',1,'yaze::app::emu::memory::MemoryImpl::PopByte()']]],
   ['poplong_35',['PopLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a735cbc61457c454b199daf0f4ae45e28',1,'yaze::app::emu::Cpu::PopLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c',1,'yaze::app::emu::memory::Memory::PopLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac07930d87a6defd2b0b0f3308b6f2a34',1,'yaze::app::emu::memory::MemoryImpl::PopLong()']]],
   ['popword_36',['PopWord',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a1b0ef4e23788b1f04ca72089b478c6d7',1,'yaze::app::emu::Cpu::PopWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#acfd648f90e569ced80d88a7cfab3618d',1,'yaze::app::emu::memory::Memory::PopWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a20512433b7a559b30b7b3ba2345e3438',1,'yaze::app::emu::memory::MemoryImpl::PopWord()']]],
-  ['ppu_37',['Ppu',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a15583db3cfbf44a67b6d1a76a25b7f26',1,'yaze::app::emu::video::Ppu']]],
-  ['ppu_38',['ppu',['../classyaze_1_1app_1_1emu_1_1SNES.html#a87a0cc3daa15e5158fb3779263296014',1,'yaze::app::emu::SNES']]],
+  ['ppu_37',['ppu',['../classyaze_1_1app_1_1emu_1_1SNES.html#a87a0cc3daa15e5158fb3779263296014',1,'yaze::app::emu::SNES']]],
+  ['ppu_38',['Ppu',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a15583db3cfbf44a67b6d1a76a25b7f26',1,'yaze::app::emu::video::Ppu']]],
   ['pputest_39',['PpuTest',['../classyaze__test_1_1emu__test_1_1PpuTest.html#aefe715923289ebbcd03f34bdc1599ebc',1,'yaze_test::emu_test::PpuTest']]],
   ['previewgraphics_40',['PreviewGraphics',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a865a93f22f2fd7d436e25ec927ca3c42',1,'yaze::app::zelda3::Sprite']]],
   ['printcompressionchain_41',['PrintCompressionChain',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af359788c045b9ff15f7ba20fb7b294dc',1,'yaze::app::gfx::lc_lz2']]],

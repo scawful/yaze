@@ -14,8 +14,8 @@
 <area shape="poly" id="edge56_Node000001_Node000048" title=" " alt="" coords="82,1309,94,1356,116,1417,148,1482,169,1513,193,1540,204,1550,201,1554,189,1544,165,1516,144,1485,111,1419,89,1357,77,1310"/>
 <area shape="rect" id="Node000049" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="192,1076,364,1131"/>
 <area shape="poly" id="edge58_Node000001_Node000049" title=" " alt="" coords="96,1266,233,1140,236,1144,100,1270"/>
-<area shape="rect" id="Node000106" href="$namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524" title=" " alt="" coords="191,1626,365,1667"/>
-<area shape="poly" id="edge80_Node000001_Node000106" title=" " alt="" coords="80,1309,87,1368,106,1448,121,1492,140,1535,163,1575,193,1611,196,1614,192,1618,189,1615,159,1578,135,1537,116,1494,101,1450,82,1369,74,1310"/>
+<area shape="rect" id="Node000126" href="$namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524" title=" " alt="" coords="191,1626,365,1667"/>
+<area shape="poly" id="edge80_Node000001_Node000126" title=" " alt="" coords="80,1309,87,1368,106,1448,121,1492,140,1535,163,1575,193,1611,196,1614,192,1618,189,1615,159,1578,135,1537,116,1494,101,1450,82,1369,74,1310"/>
 <area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="326,865,412,830,431,823,433,828,414,835,328,870"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8" title=" " alt="" coords="690,200,858,255"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="591,842,604,830,634,785,648,743,652,702,649,661,639,574,640,524,652,468,672,412,696,357,745,268,750,270,701,360,677,414,657,470,646,524,644,573,654,661,657,702,653,744,638,787,608,833,595,846"/>
@@ -117,10 +117,10 @@
 <area shape="poly" id="edge75_Node000050_Node000090" title=" " alt="" coords="528,1073,579,1012,614,980,653,953,664,948,666,953,656,958,617,984,583,1015,532,1077"/>
 <area shape="rect" id="Node000099" href="$classyaze_1_1app_1_1ROM.html#acce5e28564a3ef475326f8473489f48a" title=" " alt="" coords="676,968,872,994"/>
 <area shape="poly" id="edge76_Node000050_Node000099" title=" " alt="" coords="543,1073,593,1037,653,1004,675,996,677,1001,655,1009,596,1041,546,1077"/>
-<area shape="rect" id="Node000104" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a8de1bc3e20ca4dc875e74fceedfa2477" title=" " alt="" coords="682,1083,866,1124"/>
-<area shape="poly" id="edge78_Node000050_Node000104" title=" " alt="" coords="603,1101,667,1101,667,1106,603,1106"/>
-<area shape="rect" id="Node000105" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#acfc86da79a346f7bf329a42e4caddf57" title=" " alt="" coords="688,1214,860,1255"/>
-<area shape="poly" id="edge79_Node000050_Node000105" title=" " alt="" coords="547,1130,597,1165,656,1198,674,1206,672,1211,653,1203,594,1170,544,1134"/>
+<area shape="rect" id="Node000124" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a8de1bc3e20ca4dc875e74fceedfa2477" title=" " alt="" coords="682,1083,866,1124"/>
+<area shape="poly" id="edge78_Node000050_Node000124" title=" " alt="" coords="603,1101,667,1101,667,1106,603,1106"/>
+<area shape="rect" id="Node000125" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#acfc86da79a346f7bf329a42e4caddf57" title=" " alt="" coords="688,1214,860,1255"/>
+<area shape="poly" id="edge79_Node000050_Node000125" title=" " alt="" coords="547,1130,597,1165,656,1198,674,1206,672,1211,653,1203,594,1170,544,1134"/>
 <area shape="poly" id="edge63_Node000052_Node000022" title=" " alt="" coords="870,1053,895,1069,908,1084,915,1098,921,1127,926,1155,932,1168,943,1182,957,1192,954,1196,940,1185,928,1171,921,1156,915,1128,910,1100,904,1087,892,1074,867,1058"/>
 <area shape="poly" id="edge64_Node000052_Node000024" title=" " alt="" coords="870,1052,896,1070,912,1092,920,1115,921,1160,921,1204,928,1225,944,1247,957,1258,954,1262,940,1251,923,1228,916,1205,916,1160,915,1116,908,1095,892,1073,867,1056"/>
 <area shape="poly" id="edge65_Node000052_Node000028" title=" " alt="" coords="869,1052,954,1068,953,1073,868,1058"/>

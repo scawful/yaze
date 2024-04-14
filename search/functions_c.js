@@ -60,7 +60,7 @@ var searchData=
   ['mutable_5fmessage_5fid_57',['mutable_message_id',['../classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#af0314d704daedbd85457f443a3ec310b',1,'yaze::app::zelda3::OverworldMap']]],
   ['mutable_5foverworld_5fmap_58',['mutable_overworld_map',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a1c251079d8f080049d26b11a09838c8a',1,'yaze::app::zelda3::Overworld']]],
   ['mutable_5fpalette_59',['mutable_palette',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afdc639f745c60b9b9375d1f3342c1411',1,'yaze::app::gfx::PaletteGroup']]],
-  ['mutable_5fpalette_5fgroup_60',['mutable_palette_group',['../classyaze_1_1app_1_1ROM.html#ae29fefaf861dc9084e31dae2b4ce3f01',1,'yaze::app::ROM']]],
+  ['mutable_5fpalette_5fgroup_60',['mutable_palette_group',['../classyaze_1_1app_1_1ROM.html#aa0f397f9e7a1155ff8b8482beea2c45a',1,'yaze::app::ROM']]],
   ['mutable_5fpixel_5fdata_61',['mutable_pixel_data',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a69cd109c0caf4882996a817bfccec7e3',1,'yaze::app::gfx::Bitmap']]],
   ['mutable_5fpoints_62',['mutable_points',['../classyaze_1_1app_1_1gui_1_1Canvas.html#ad17173281c8bff40791005696eb67294',1,'yaze::app::gui::Canvas']]],
   ['mutable_5fread_63',['mutable_read',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a3a54c05966bf0ff2cdf022224aaf5a0a',1,'yaze::app::emu::audio::AudioRam::mutable_read()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a8ee78566ee684d86501a70fc0f1998a4',1,'yaze::app::emu::audio::AudioRamImpl::mutable_read()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a977ba28fac559682e2f1456131330d52',1,'yaze::app::emu::audio::Spc700::mutable_read(uint16_t address)']]],

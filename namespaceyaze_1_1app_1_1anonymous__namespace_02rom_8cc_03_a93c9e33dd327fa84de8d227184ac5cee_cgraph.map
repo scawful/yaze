@@ -1,8 +1,0 @@
-<map id="yaze::app::anonymous_namespace{rom::cc}::LoadGlobalSpritePalettes" name="yaze::app::anonymous_namespace{rom::cc}::LoadGlobalSpritePalettes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,175,85"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="47,29,47,19,55,10,69,5,90,3,113,5,127,12,125,17,112,10,90,8,71,10,58,15,52,21,52,29"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="223,37,397,78"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="175,55,207,55,207,60,175,60"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="445,44,668,70"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="398,55,429,55,429,60,398,60"/>
-</map>

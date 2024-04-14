@@ -1,18 +1,22 @@
 <map id="yaze::app::zelda3::OverworldMap" name="yaze::app::zelda3::OverworldMap">
-<area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="646,171,769,211"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="399,77,532,118"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="548,119,623,146,669,168,667,173,621,151,546,124"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="410,142,521,168"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="536,163,646,179,645,184,536,168"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="15,71,190,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="205,100,289,111,375,127,422,139,420,144,374,132,288,117,205,105"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="5,136,200,161"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="215,148,410,151,410,157,215,153"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="15,193,190,219"/>
-<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="205,201,532,193,645,190,645,195,532,198,205,206"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="204,193,374,170,409,164,410,169,375,175,205,198"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="19,5,186,46"/>
-<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="202,33,290,55,335,72,376,96,385,104,389,112,400,128,421,139,418,144,397,132,385,115,381,107,373,100,332,77,288,60,201,38"/>
-<area shape="rect" id="Node000008" href="$structOWMapTiles.html" title=" " alt="" coords="417,274,514,300"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="529,280,575,272,621,257,656,235,685,210,689,214,659,239,623,262,576,277,530,286"/>
+<area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="999,219,1123,259"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="752,116,885,157"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="901,158,976,187,1029,216,1026,221,974,192,899,163"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="764,181,874,207"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="890,204,999,225,998,230,889,209"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,71,539,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="554,89,643,103,687,117,729,137,738,144,743,152,754,166,775,178,772,183,750,170,738,155,734,147,727,141,685,122,641,108,554,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="354,136,548,161"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="563,156,728,175,764,181,763,186,728,180,562,161"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="364,252,538,277"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="554,257,999,239,999,244,554,263"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="550,246,727,213,763,205,765,210,729,218,551,251"/>
+<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="349,185,553,211"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="568,194,763,192,763,197,568,199"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title=" " alt="" coords="5,185,185,211"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="200,195,348,195,348,200,200,200"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="368,5,534,46"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="550,26,596,33,643,46,689,67,730,96,741,114,743,132,745,150,754,167,770,178,767,183,750,170,739,151,738,133,736,116,726,99,687,71,642,51,595,39,549,31"/>
+<area shape="rect" id="Node000010" href="$structOWMapTiles.html" title=" " alt="" coords="771,332,867,357"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="882,339,929,330,974,314,1012,288,1041,258,1045,262,1015,292,977,319,930,336,883,344"/>
 </map>

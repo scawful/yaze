@@ -159,6 +159,7 @@ var annotated_dup =
           [ "CgxHeader", "structyaze_1_1app_1_1gfx_1_1CgxHeader.html", "structyaze_1_1app_1_1gfx_1_1CgxHeader" ],
           [ "OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", "classyaze_1_1app_1_1gfx_1_1OamTile" ],
           [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroup" ],
+          [ "PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap" ],
           [ "Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", "structyaze_1_1app_1_1gfx_1_1Paletteset" ],
           [ "snes_color", "structyaze_1_1app_1_1gfx_1_1snes__color.html", "structyaze_1_1app_1_1gfx_1_1snes__color" ],
           [ "snes_palette", "structyaze_1_1app_1_1gfx_1_1snes__palette.html", "structyaze_1_1app_1_1gfx_1_1snes__palette" ],
@@ -207,8 +208,7 @@ var annotated_dup =
         ] ],
         [ "ROM", "classyaze_1_1app_1_1ROM.html", "classyaze_1_1app_1_1ROM" ],
         [ "SharedROM", "classyaze_1_1app_1_1SharedROM.html", "classyaze_1_1app_1_1SharedROM" ],
-        [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],
-        [ "WriteAction", "structyaze_1_1app_1_1WriteAction.html", "structyaze_1_1app_1_1WriteAction" ]
+        [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ]
       ] ],
       [ "cli", "namespaceyaze_1_1cli.html", [
         [ "Color", "namespaceyaze_1_1cli_1_1Color.html", [

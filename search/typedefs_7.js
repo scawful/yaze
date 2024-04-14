@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['text_5fbuf_5fty_0',['text_buf_ty',['../namespaceyaze_1_1app_1_1zelda3.html#ae6c0fc257c4fbe93261122e920f316b5',1,'yaze::app::zelda3']]],
-  ['tile8_1',['tile8',['../namespaceyaze_1_1app_1_1gfx.html#ae0f46c5ecd3ca9929d6baa039aeccbc7',1,'yaze::app::gfx']]]
+  ['uchar_0',['uchar',['../constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21',1,'constants.h']]],
+  ['uint_1',['uint',['../constants_8h.html#a69aa29b598b851b0640aa225a9e5d61d',1,'constants.h']]],
+  ['ushort_2',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]]
 ];

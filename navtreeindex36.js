@@ -1,14 +1,5 @@
 var NAVTREEINDEX36 =
 {
-"namespaceyaze__test_1_1emu__test.html#a42a5a12e52062ea97f7730bc82cfe061":[8,0,2,0,9],
-"namespaceyaze__test_1_1emu__test.html#a432ff2caf29459ff22f7bc2a58998a7f":[8,0,2,0,264],
-"namespaceyaze__test_1_1emu__test.html#a43ef57c40e57272daa6e1b35014550de":[8,0,2,0,82],
-"namespaceyaze__test_1_1emu__test.html#a4454777cbb3159c7747539b7a8d85b51":[8,0,2,0,313],
-"namespaceyaze__test_1_1emu__test.html#a4625c980dbe5f83337deadf9c5363394":[8,0,2,0,296],
-"namespaceyaze__test_1_1emu__test.html#a468b5c6009d5265f88bc4d310635eac8":[8,0,2,0,19],
-"namespaceyaze__test_1_1emu__test.html#a480c4471f06848b1f4303ff3d93cf47b":[8,0,2,0,66],
-"namespaceyaze__test_1_1emu__test.html#a4883aa29adab323496b6b84bc060f407":[8,0,2,0,84],
-"namespaceyaze__test_1_1emu__test.html#a48e0645fb05c365b9de6d8d978f6ce0d":[8,0,2,0,92],
 "namespaceyaze__test_1_1emu__test.html#a4a07c2e401b06df29c35a5691f5a6cce":[8,0,2,0,223],
 "namespaceyaze__test_1_1emu__test.html#a4a7ff2db6032cbc607ba4f04033bd0c7":[8,0,2,0,278],
 "namespaceyaze__test_1_1emu__test.html#a4cf2b77b424e8de6f2514358453acc2c":[8,0,2,0,85],
@@ -249,5 +240,14 @@ var NAVTREEINDEX36 =
 "namespaceyaze__test_1_1gfx__test.html#a553516597f84d193decd64cac53ae815":[8,0,2,1,26],
 "namespaceyaze__test_1_1gfx__test.html#a55ad5cc17a74d3f99827ad48155a58f9":[8,0,2,1,11],
 "namespaceyaze__test_1_1gfx__test.html#a6e6ea0ebe7dfee204d25102e65367771":[8,0,2,1,21],
-"namespaceyaze__test_1_1gfx__test.html#a71d98c0334f7cb91e1c31f52456a663e":[8,0,2,1,7]
+"namespaceyaze__test_1_1gfx__test.html#a71d98c0334f7cb91e1c31f52456a663e":[8,0,2,1,7],
+"namespaceyaze__test_1_1gfx__test.html#a762a704094a3b37a7ad3ab43164afd0a":[8,0,2,1,17],
+"namespaceyaze__test_1_1gfx__test.html#a7bc433fcb4d48845ad5aa57f317365af":[8,0,2,1,25],
+"namespaceyaze__test_1_1gfx__test.html#a84eaec16932ae1178ec5949fed419d34":[8,0,2,1,5],
+"namespaceyaze__test_1_1gfx__test.html#a912b8cd12060ae65e08729af021a7e1e":[8,0,2,1,15],
+"namespaceyaze__test_1_1gfx__test.html#a982e6bc9a15fd299b184f33b3beaa967":[8,0,2,1,22],
+"namespaceyaze__test_1_1gfx__test.html#aae614732019e6f806ae921acf0996a36":[8,0,2,1,29],
+"namespaceyaze__test_1_1gfx__test.html#abfbf85fed17ab61a9bc06d125bbedd93":[8,0,2,1,14],
+"namespaceyaze__test_1_1gfx__test.html#ac79465247aad16f5bf69c7bb4476eb6a":[8,0,2,1,23],
+"namespaceyaze__test_1_1gfx__test.html#add9e8679e6e2cf6c44e7b164151b9245":[8,0,2,1,20]
 };

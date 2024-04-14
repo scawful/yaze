@@ -78,10 +78,10 @@
 <area shape="poly" id="edge64_Node000031_Node000071" title=" " alt="" coords="322,1019,327,1100,334,1153,346,1211,364,1270,388,1328,420,1381,461,1428,466,1432,462,1436,457,1432,415,1385,383,1330,358,1272,341,1212,329,1154,322,1101,317,1019"/>
 <area shape="rect" id="Node000080" href="$classyaze_1_1app_1_1ROM.html#acce5e28564a3ef475326f8473489f48a" title=" " alt="" coords="481,660,677,685"/>
 <area shape="poly" id="edge65_Node000031_Node000080" title=" " alt="" coords="327,962,384,817,421,743,439,715,457,696,466,690,469,694,461,700,444,718,426,746,389,820,332,964"/>
-<area shape="rect" id="Node000085" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a8de1bc3e20ca4dc875e74fceedfa2477" title=" " alt="" coords="487,709,670,750"/>
-<area shape="poly" id="edge67_Node000031_Node000085" title=" " alt="" coords="327,962,345,918,372,863,410,808,432,783,457,761,472,752,475,756,461,765,436,787,414,811,377,866,349,920,332,964"/>
-<area shape="rect" id="Node000086" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#acfc86da79a346f7bf329a42e4caddf57" title=" " alt="" coords="493,775,665,815"/>
-<area shape="poly" id="edge68_Node000031_Node000086" title=" " alt="" coords="334,961,384,893,418,857,458,826,477,816,479,820,460,831,422,861,388,897,338,965"/>
+<area shape="rect" id="Node000105" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a8de1bc3e20ca4dc875e74fceedfa2477" title=" " alt="" coords="487,709,670,750"/>
+<area shape="poly" id="edge67_Node000031_Node000105" title=" " alt="" coords="327,962,345,918,372,863,410,808,432,783,457,761,472,752,475,756,461,765,436,787,414,811,377,866,349,920,332,964"/>
+<area shape="rect" id="Node000106" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#acfc86da79a346f7bf329a42e4caddf57" title=" " alt="" coords="493,775,665,815"/>
+<area shape="poly" id="edge68_Node000031_Node000106" title=" " alt="" coords="334,961,384,893,418,857,458,826,477,816,479,820,460,831,422,861,388,897,338,965"/>
 <area shape="poly" id="edge34_Node000033_Node000009" title=" " alt="" coords="672,840,697,825,707,814,714,802,720,778,726,753,733,740,745,728,763,715,766,720,748,732,737,743,731,755,725,779,719,804,712,817,700,829,674,845"/>
 <area shape="poly" id="edge35_Node000033_Node000011" title=" " alt="" coords="673,869,763,879,762,885,673,874"/>
 <area shape="poly" id="edge36_Node000033_Node000015" title=" " alt="" coords="665,837,697,825,721,809,745,793,763,785,765,790,748,797,724,813,700,829,667,842"/>

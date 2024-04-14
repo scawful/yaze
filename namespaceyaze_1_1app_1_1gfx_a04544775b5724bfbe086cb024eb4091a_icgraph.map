@@ -1,8 +1,8 @@
 <map id="yaze::app::gfx::GetPaletteAddress" name="yaze::app::gfx::GetPaletteAddress">
 <area shape="rect" id="Node000001" title=" " alt="" coords="932,39,1097,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#ace48019bfedaae37264d224c102de7c1" title=" " alt="" coords="696,46,884,72"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#ad4bf946a07866cf81c8575773bce665d" title=" " alt="" coords="696,46,884,72"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="916,62,884,62,884,56,916,56"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html#ac789b7c8b969a086055a13f8fb934497" title="Saves all palettes in the ROM." alt="" coords="439,46,648,72"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html#acd72eb398133f833570b0ebce5947b87" title="Saves all palettes in the ROM." alt="" coords="439,46,648,72"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="681,62,649,62,649,56,681,56"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#aad27cb4443953b12f818bb54d23d60ba" title="Saves the ROM data to a file." alt="" coords="209,46,391,72"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="423,62,391,62,391,56,423,56"/>

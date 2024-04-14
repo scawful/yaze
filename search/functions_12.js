@@ -1,7 +1,7 @@
 var searchData=
 [
   ['save_0',['Save',['../classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html#a47608a0f1ca42a511b7f2f7e06136b5a',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}::RecentFilesManager::Save()'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a4eebef18a32016700c9d4e31573c24ba',1,'yaze::app::zelda3::dungeon::RoomEntrance::Save()'],['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a3024afeb5938bb2167313f9f68018038',1,'yaze::app::zelda3::Overworld::Save()']]],
-  ['saveallpalettes_1',['SaveAllPalettes',['../classyaze_1_1app_1_1ROM.html#ac789b7c8b969a086055a13f8fb934497',1,'yaze::app::ROM']]],
+  ['saveallpalettes_1',['SaveAllPalettes',['../classyaze_1_1app_1_1ROM.html#acd72eb398133f833570b0ebce5947b87',1,'yaze::app::ROM']]],
   ['savedungeonmaps_2',['SaveDungeonMaps',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2',1,'yaze::app::editor::ScreenEditor']]],
   ['saveentrances_3',['SaveEntrances',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c',1,'yaze::app::zelda3::Overworld']]],
   ['saveexits_4',['SaveExits',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80',1,'yaze::app::zelda3::Overworld']]],
@@ -13,7 +13,7 @@ var searchData=
   ['savemap32tiles_10',['SaveMap32Tiles',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0dd3dd41a42015ff5d329afc6a2277b4',1,'yaze::app::zelda3::Overworld']]],
   ['savemapproperties_11',['SaveMapProperties',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa',1,'yaze::app::zelda3::Overworld']]],
   ['saveoverworldmaps_12',['SaveOverworldMaps',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407',1,'yaze::app::zelda3::Overworld']]],
-  ['savepalette_13',['SavePalette',['../classyaze_1_1app_1_1ROM.html#ace48019bfedaae37264d224c102de7c1',1,'yaze::app::ROM']]],
+  ['savepalette_13',['SavePalette',['../classyaze_1_1app_1_1ROM.html#ad4bf946a07866cf81c8575773bce665d',1,'yaze::app::ROM']]],
   ['saverom_14',['SaveRom',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a5778a42abd5d52e437aa22a27f6879ca',1,'yaze::app::editor::MasterEditor']]],
   ['savesongs_15',['SaveSongs',['../classyaze_1_1app_1_1zelda3_1_1Tracker.html#a6cdbc1d84d376b04a16e4faf99b06d3d',1,'yaze::app::zelda3::Tracker']]],
   ['savespccommand_16',['SaveSPCCommand',['../classyaze_1_1app_1_1zelda3_1_1Tracker.html#a95f26243319ad79adea1351adeda48c7',1,'yaze::app::zelda3::Tracker']]],

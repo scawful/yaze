@@ -1,8 +1,0 @@
-<map id="yaze::app::anonymous_namespace{rom::cc}::LoadSpriteAux1Palettes" name="yaze::app::anonymous_namespace{rom::cc}::LoadSpriteAux1Palettes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,167,85"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="43,29,44,19,52,10,66,5,86,3,109,5,123,12,120,17,107,10,86,8,67,10,55,15,49,21,49,29"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="215,37,389,78"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="167,55,199,55,199,60,167,60"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="437,44,660,70"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="390,55,421,55,421,60,390,60"/>
-</map>

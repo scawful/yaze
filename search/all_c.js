@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['i_0',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a7c1ee50463f68e8a17c0a192e5a9ef1c',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['i_1',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
+  ['i_0',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
+  ['i_1',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a7c1ee50463f68e8a17c0a192e5a9ef1c',1,'yaze::app::emu::audio::Spc700::Flags']]],
   ['i_5fpostinc_2',['i_postinc',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae6ae32cc8156adc034374664393a0fc3',1,'yaze::app::emu::audio::Spc700']]],
   ['icon_5fmax_5fmd_3',['ICON_MAX_MD',['../icons_8h.html#a1f33448153f99d7338175831c1775dc7',1,'icons.h']]],
   ['icon_5fmd_5f10k_4',['ICON_MD_10K',['../icons_8h.html#a5fda85dd85890c0e4ec00970aa4c4c10',1,'icons.h']]],

@@ -1,18 +1,18 @@
 var rom_8cc =
 [
-    [ "LoadOverworldMainPalettes", "rom_8cc.html#a2f132cb79be751a464f9df467f3d687f", null ],
-    [ "LoadOverworldAuxiliaryPalettes", "rom_8cc.html#ac585f4479549595ac382443e40516e65", null ],
-    [ "LoadOverworldAnimatedPalettes", "rom_8cc.html#a80a6687befa5d2e88e74f83bbdb03073", null ],
-    [ "LoadHUDPalettes", "rom_8cc.html#a53c3bea163814c6cc680fce907216c01", null ],
-    [ "LoadGlobalSpritePalettes", "rom_8cc.html#a93c9e33dd327fa84de8d227184ac5cee", null ],
-    [ "LoadArmorPalettes", "rom_8cc.html#af0a857fa01bfe463d3d40f2b7f9b987a", null ],
-    [ "LoadSwordPalettes", "rom_8cc.html#a5a6428802a3bb30779fc3022eb0f21f4", null ],
-    [ "LoadShieldPalettes", "rom_8cc.html#a86dfde873632100117591190add734fc", null ],
-    [ "LoadSpriteAux1Palettes", "rom_8cc.html#a3295c92f3f0beade73b68b4aa8be6477", null ],
-    [ "LoadSpriteAux2Palettes", "rom_8cc.html#a6dce05e1860c033f1144f51c57d5abcd", null ],
-    [ "LoadSpriteAux3Palettes", "rom_8cc.html#a37b46deb941fa23b9b31fdc36dbc72c7", null ],
-    [ "LoadDungeonMainPalettes", "rom_8cc.html#ae46a42311e335308122a967575dc841e", null ],
-    [ "LoadGrassColors", "rom_8cc.html#af024f5b3c7128cfa132a6f7d35116789", null ],
-    [ "Load3DObjectPalettes", "rom_8cc.html#a56ac36f63f4387faec1e07795362a771", null ],
-    [ "LoadOverworldMiniMapPalettes", "rom_8cc.html#a1546856418a8b457e7a99820c92d93b6", null ]
+    [ "LoadOverworldMainPalettes", "rom_8cc.html#a54cdd22404ff0a2817d306291ec132d2", null ],
+    [ "LoadOverworldAuxiliaryPalettes", "rom_8cc.html#a760dd678981ec54941b8001ad73b70a2", null ],
+    [ "LoadOverworldAnimatedPalettes", "rom_8cc.html#af514cf719eeeca52738d3ec72efb9b37", null ],
+    [ "LoadHUDPalettes", "rom_8cc.html#a9f3a503181102a76c71ffea6bb838516", null ],
+    [ "LoadGlobalSpritePalettes", "rom_8cc.html#a48edcd000854ae33d33e3f69bb58d845", null ],
+    [ "LoadArmorPalettes", "rom_8cc.html#aeee4b06440c1cb64b05fa8e931b79fd8", null ],
+    [ "LoadSwordPalettes", "rom_8cc.html#a0e37aae11de1710812a7c4000712fa42", null ],
+    [ "LoadShieldPalettes", "rom_8cc.html#a407b068be25c51dc0a7511fcbbdb01b4", null ],
+    [ "LoadSpriteAux1Palettes", "rom_8cc.html#ad7abd70b8b524c4b31eeaaa46400174c", null ],
+    [ "LoadSpriteAux2Palettes", "rom_8cc.html#a5b8d0a706ff112a82cecb1c84f96c3f7", null ],
+    [ "LoadSpriteAux3Palettes", "rom_8cc.html#ae5ba3e13af412ffb1824b7d9413fa14b", null ],
+    [ "LoadDungeonMainPalettes", "rom_8cc.html#a52518464f26d1c7a59e637553280264f", null ],
+    [ "LoadGrassColors", "rom_8cc.html#a8a7bc4b0721c17244da07130fce34b4e", null ],
+    [ "Load3DObjectPalettes", "rom_8cc.html#a052b2d235a04e32c6d4d7f7652c64913", null ],
+    [ "LoadOverworldMiniMapPalettes", "rom_8cc.html#a45580ea3ca7888dd8cc859eb61b12dee", null ]
 ];

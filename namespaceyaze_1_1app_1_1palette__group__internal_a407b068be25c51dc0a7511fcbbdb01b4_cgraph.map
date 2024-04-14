@@ -1,0 +1,9 @@
+<map id="yaze::app::palette_group_internal::LoadShieldPalettes" name="yaze::app::palette_group_internal::LoadShieldPalettes">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,186,87"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="234,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,43,218,38,219,44,186,48"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="236,71,411,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,69,221,74,220,79,185,74"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="461,78,684,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="411,88,445,88,445,94,411,94"/>
+</map>

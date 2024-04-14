@@ -102,7 +102,6 @@ $(function(){initNavTree('rom_8h.html',''); initResizable(); });
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">rom.h File Reference</div></div>
@@ -282,11 +281,12 @@ Include dependency graph for rom.h:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1VersionConstants.html">yaze::app::VersionConstants</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1WriteAction.html">yaze::app::WriteAction</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A struct to hold version constants for each version of the game.  <a href="structyaze_1_1app_1_1VersionConstants.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1ROM.html">yaze::app::ROM</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a> class is used to load, save, and modify <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a> data.  <a href="classyaze_1_1app_1_1ROM.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1ROM_1_1WriteAction.html">yaze::app::ROM::WriteAction</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1SharedROM.html">yaze::app::SharedROM</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class to hold a shared pointer to a <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a> object.  <a href="classyaze_1_1app_1_1SharedROM.html#details">More...</a><br /></td></tr>
@@ -299,11 +299,6 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceyaze_1_1app" id="r_namespaceyaze_1_1app"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html">yaze::app</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:aaf6c1d3693926ac91825224d9a645baf" id="r_aaf6c1d3693926ac91825224d9a645baf"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#aaf6c1d3693926ac91825224d9a645baf">yaze::app::PaletteGroupMap</a> = std::unordered_map&lt;std::string, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a>&gt;</td></tr>
-<tr class="separator:aaf6c1d3693926ac91825224d9a645baf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:a24bebdceeb59d0f451c59123c0a38d47" id="r_a24bebdceeb59d0f451c59123c0a38d47"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47">yaze::app::Z3_Version</a> { <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a> = 1
@@ -315,30 +310,14 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:aef1118ddf30f8a263ef056301551f77e" id="r_aef1118ddf30f8a263ef056301551f77e"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#aef1118ddf30f8a263ef056301551f77e">yaze::app::kOverworldGraphicsPos1</a> = 0x4F80</td></tr>
-<tr class="separator:aef1118ddf30f8a263ef056301551f77e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa453ef1eb33acc252e70b18bf490897f" id="r_aa453ef1eb33acc252e70b18bf490897f"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#aa453ef1eb33acc252e70b18bf490897f">yaze::app::kOverworldGraphicsPos2</a> = 0x505F</td></tr>
-<tr class="separator:aa453ef1eb33acc252e70b18bf490897f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b5e11463745adbfe0c00cb8f014820a" id="r_a3b5e11463745adbfe0c00cb8f014820a"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a3b5e11463745adbfe0c00cb8f014820a">yaze::app::kOverworldGraphicsPos3</a> = 0x513E</td></tr>
-<tr class="separator:a3b5e11463745adbfe0c00cb8f014820a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84a700c08c343adca26e4f1ae57a7722" id="r_a84a700c08c343adca26e4f1ae57a7722"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a84a700c08c343adca26e4f1ae57a7722">yaze::app::kTile32Num</a> = 4432</td></tr>
-<tr class="separator:a84a700c08c343adca26e4f1ae57a7722"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6468295b5525e495bd39e6255bc63b55" id="r_a6468295b5525e495bd39e6255bc63b55"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a6468295b5525e495bd39e6255bc63b55">yaze::app::kTitleStringOffset</a> = 0x7FC0</td></tr>
-<tr class="separator:a6468295b5525e495bd39e6255bc63b55"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab94232dd66ffb094891d6c7a068c747e" id="r_ab94232dd66ffb094891d6c7a068c747e"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#ab94232dd66ffb094891d6c7a068c747e">yaze::app::kTitleStringLength</a> = 20</td></tr>
-<tr class="separator:ab94232dd66ffb094891d6c7a068c747e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9bbafa7d5f1809f3d216b5082f65d1b2" id="r_a9bbafa7d5f1809f3d216b5082f65d1b2"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2">yaze::app::kNumGfxSheets</a> = 223</td></tr>
-<tr class="separator:a9bbafa7d5f1809f3d216b5082f65d1b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ef17b1c481a3e73d2d97a92e3995b04" id="r_a3ef17b1c481a3e73d2d97a92e3995b04"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a3ef17b1c481a3e73d2d97a92e3995b04">yaze::app::kNormalGfxSpaceStart</a> = 0x87000</td></tr>
 <tr class="separator:a3ef17b1c481a3e73d2d97a92e3995b04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ef7d1df5d323905102b5a1cef9d447d" id="r_a3ef7d1df5d323905102b5a1cef9d447d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a3ef7d1df5d323905102b5a1cef9d447d">yaze::app::kNormalGfxSpaceEnd</a> = 0xC4200</td></tr>
 <tr class="separator:a3ef7d1df5d323905102b5a1cef9d447d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7af78bb4695bc5b7caca032f20dea5d" id="r_af7af78bb4695bc5b7caca032f20dea5d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#af7af78bb4695bc5b7caca032f20dea5d">yaze::app::kLinkSpriteLocation</a> = 0x80000</td></tr>
-<tr class="separator:af7af78bb4695bc5b7caca032f20dea5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cba51ea80792c0f6a876549882f3778" id="r_a6cba51ea80792c0f6a876549882f3778"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a6cba51ea80792c0f6a876549882f3778">yaze::app::kFontSpriteLocation</a> = 0x70000</td></tr>
 <tr class="separator:a6cba51ea80792c0f6a876549882f3778"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4985f6eb73a6d4011150e4ef2acebd66" id="r_a4985f6eb73a6d4011150e4ef2acebd66"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#a4985f6eb73a6d4011150e4ef2acebd66">yaze::app::gfx_groups_pointer</a> = 0x6237</td></tr>
-<tr class="separator:a4985f6eb73a6d4011150e4ef2acebd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad75d3fb5bdf3b72aa19e3af3209082f" id="r_aad75d3fb5bdf3b72aa19e3af3209082f"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a> = 0x6237</td></tr>
+<tr class="separator:aad75d3fb5bdf3b72aa19e3af3209082f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
