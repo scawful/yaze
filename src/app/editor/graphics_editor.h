@@ -60,8 +60,19 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
                                           ImGuiTableFlags_SizingStretchSame;
 
 /**
- * @brief Manages the games graphical content.
-*/
+ * @class GraphicsEditor
+ * @brief Allows the user to edit graphics sheets from the game or view
+ * prototype graphics of Link to the Past from the CGX, SCR, and OBJ formats.
+ *
+ * The GraphicsEditor class is responsible for providing functionality to edit
+ * graphics sheets from the game or view prototype graphics of Link to the Past
+ * from the CGX, SCR, and OBJ formats. It provides various methods to update
+ * different components of the graphics editor, such as the graphics edit tab,
+ * link graphics view, and prototype graphics viewer. It also includes import
+ * functions for different file formats, as well as other utility functions for
+ * drawing toolsets, palette controls, clipboard imports, experimental features,
+ * and memory editor.
+ */
 class GraphicsEditor : public SharedROM {
  public:
   absl::Status Update();

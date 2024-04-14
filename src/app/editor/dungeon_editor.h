@@ -32,6 +32,16 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
     ImGuiTableFlags_BordersV;
 
+/**
+ * @brief DungeonEditor class for editing dungeons.
+ *
+ * This class is currently a work in progress and is used for editing dungeons.
+ * It provides various functions for updating, cutting, copying, pasting,
+ * undoing, and redoing. It also includes methods for drawing the toolset, room
+ * selector, entrance selector, dungeon tab view, dungeon canvas, room graphics,
+ * tile selector, and object renderer. Additionally, it handles loading room
+ * entrances, calculating usage statistics, and rendering set usage.
+ */
 class DungeonEditor : public Editor,
                       public SharedROM,
                       public core::ExperimentFlags {
