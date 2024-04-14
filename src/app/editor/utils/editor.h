@@ -7,7 +7,7 @@ namespace yaze {
 namespace app {
 
 /**
- * @namespace editor
+ * @namespace yaze::app::editor
  * @brief Editors are the view controllers for the application.
  */
 namespace editor {

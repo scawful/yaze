@@ -11,8 +11,17 @@
 
 namespace yaze {
 namespace app {
+
+/**
+ * @namespace yaze::app::emu
+ * @brief SNES Emulation and debugging tools.
+ */
 namespace emu {
 
+/**
+ * @class Emulator
+ * @brief A class for emulating and debugging SNES ROMs.
+ */
 class Emulator : public SharedROM {
  public:
   void Run();
