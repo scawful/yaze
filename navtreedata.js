@@ -148,17 +148,17 @@ var NAVTREEINDEX =
 "icons_8h.html#af167df39bfbf29d9b1bc5bf98977f74a",
 "memory_8h.html#a9a75d43d4cf258d8bc3b4901cb1ba7fe",
 "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670ba434b73359cdd84750e4da83ae7a05fc3",
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa5f36c0fbde5994c88d0a644f97aac0f",
-"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a603a4a83eb4d9dfde0c14d3acc6f42ab",
-"namespaceyaze__test_1_1emu__test.html#a4454777cbb3159c7747539b7a8d85b51",
-"namespaceyaze__test_1_1gfx__test.html#a912b8cd12060ae65e08729af021a7e1e",
-"ppu__registers_8h.html#a7e53b67263346d48e856d039574f4c93",
-"snes__color_8h.html#a9cae2d3018552dc353ffe8c1ef77cc63",
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab8452f0e53d55ed76cd1687c072a85b4",
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a3407566be0a556a2ebecf32b78d7dab9",
+"namespaceyaze__test_1_1emu__test.html#a43ef57c40e57272daa6e1b35014550de",
+"namespaceyaze__test_1_1gfx__test.html#a84eaec16932ae1178ec5949fed419d34",
+"ppu__registers_8h.html#a7d04d335a4454eeb9c470102bed49109",
+"snes__color_8h.html#a674cd542901e81be5be7fe865bf6b1b9",
 "structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html#a5f363b010406c78114a457519f46aa10",
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#af018e2b882d5daf0106bb2c75a2bdd09",
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#aa71900bfacc09de0cd70a2202703005c",
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6064abf2f10cee1ac2f2e3debce222d6",
-"tilesheet_8h.html#afe2b409c93b8b037b20a8d4ac2df3353"
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html",
+"tilesheet_8h.html#ae95a00ff98c9e69d426f80c487e2dac7af741ccc3c4a5d5202699b366e0b822a5"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

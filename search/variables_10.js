@@ -14,7 +14,7 @@ var searchData=
   ['releasetimes_11',['releaseTimes',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a3924e02a496119b1c76da2c7339fc484',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
   ['remapping_12',['remapping',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],
   ['renderer_5f_13',['renderer_',['../classyaze_1_1app_1_1core_1_1Controller.html#ae5142ea136f105c20b24cdcf98c30b9c',1,'yaze::app::core::Controller::renderer_'],['../classyaze_1_1app_1_1Rom.html#a2e058ea3ea8a945708246ad08d86e28e',1,'yaze::app::Rom::renderer_']]],
-  ['reserved_14',['reserved',['../structyaze_1_1app_1_1gfx_1_1CgxHeader.html#a9ee6cc13b74d227073025a95a1741ae8',1,'yaze::app::gfx::CgxHeader']]],
+  ['reserved_14',['reserved',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7253113d96cfb463bf1f164b35a055ae',1,'yaze::app::gfx::scad_format::CgxHeader']]],
   ['resetvector_15',['resetVector',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a2c7b18bf7fac09946df6298c9fed1fcd',1,'yaze::app::emu::memory::RomInfo']]],
   ['resource_5flabel_5fmanager_5f_16',['resource_label_manager_',['../classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27',1,'yaze::app::Rom']]],
   ['rgb_5f_17',['rgb_',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#a9ff11ccbe16ff93e088c0faa9e70fcfa',1,'yaze::app::gfx::SnesColor']]],

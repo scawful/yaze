@@ -5,7 +5,7 @@ var searchData=
   ['fil3_2',['fil3',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a3407566be0a556a2ebecf32b78d7dab9',1,'yaze::app::zelda3::music']]],
   ['file_5fis_5floaded_5f_3',['file_is_loaded_',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a86cbd9eaba3b7be06f13a56cbd9f9a37',1,'yaze::app::editor::AssemblyEditor']]],
   ['file_5fpath_5f_4',['file_path_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0b3b3a88d5795cea8aaa5a3f573ef623',1,'yaze::app::editor::GraphicsEditor']]],
-  ['file_5ftype_5',['file_type',['../structyaze_1_1app_1_1gfx_1_1CgxHeader.html#ab964b61b27f47fbcedac5b43f42920fa',1,'yaze::app::gfx::CgxHeader']]],
+  ['file_5ftype_5',['file_type',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad09af6b5547da2559e46583f2d37b4d0',1,'yaze::app::gfx::scad_format::CgxHeader']]],
   ['filename_5f_6',['filename_',['../classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa45ad7a2d16b486946224270eaeb0cec',1,'yaze::app::core::ResourceLabelManager::filename_'],['../classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html#a41cd911f7756e0e7aad2e62971e4c7e5',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}::RecentFilesManager::filename_'],['../classyaze_1_1app_1_1Rom.html#a91a162b1c152c1c602ecc1501b248989',1,'yaze::app::Rom::filename_']]],
   ['fill_7',['fill',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a3dc9d3102e442f6a14ccd34096c6b248',1,'yaze::app::emu::video::PpuRegisters::M7SEL']]],
   ['fixed_5fsubscreen_8',['fixed_subscreen',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html#aa3058f1e861c80ae82f31bac55f29ba5',1,'yaze::app::emu::video::PpuRegisters::CGWSEL']]],

@@ -7,7 +7,7 @@ var searchData=
   ['verbose_5f_4',['verbose_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a2dd494a961c9c31c823ab2e0517f8181',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['version_5',['version',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a68327f3614c18b3f42c71314366ba61a',1,'yaze::app::emu::memory::RomInfo']]],
   ['version_5f_6',['version_',['../classyaze_1_1app_1_1Rom.html#a1346fc16ff818495adbff118422a3664',1,'yaze::app::Rom']]],
-  ['version_5fnumber_7',['version_number',['../structyaze_1_1app_1_1gfx_1_1CgxHeader.html#a1da0104ba8c668bd78492ce887f0001d',1,'yaze::app::gfx::CgxHeader']]],
+  ['version_5fnumber_7',['version_number',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a625b247c1299e1ea9c6cc9803ca58db8',1,'yaze::app::gfx::scad_format::CgxHeader']]],
   ['vertical_5fcounter_5foutput_8',['vertical_counter_output',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html#ae2b956d7c80a9c20334c26407791053a',1,'yaze::app::emu::video::PpuRegisters::OPVCT']]],
   ['vertical_5fmirror_5f_9',['vertical_mirror_',['../classyaze_1_1app_1_1gfx_1_1TileInfo.html#aeb529cf294699f3923a6d6d9f7d0bf9b',1,'yaze::app::gfx::TileInfo']]],
   ['vertical_5fscroll_10',['vertical_scroll',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGVOFS.html#a6d8539bc85ba5920c436d28bae5827ea',1,'yaze::app::emu::video::PpuRegisters::BGVOFS']]],

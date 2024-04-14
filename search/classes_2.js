@@ -6,7 +6,7 @@ var searchData=
   ['cgdata_3',['CGDATA',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGDATA.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['cgdataread_4',['CGDATAREAD',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGDATAREAD.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['cgwsel_5',['CGWSEL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['cgxheader_6',['CgxHeader',['../structyaze_1_1app_1_1gfx_1_1CgxHeader.html',1,'yaze::app::gfx']]],
+  ['cgxheader_6',['CgxHeader',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html',1,'yaze::app::gfx::scad_format']]],
   ['channel_7',['Channel',['../structyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel.html',1,'yaze::app::emu::memory::DirectMemoryAccess']]],
   ['characterlocation_8',['CharacterLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1CharacterLocation.html',1,'yaze::app::emu::video']]],
   ['chestdata_9',['ChestData',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html',1,'yaze::app::zelda3::dungeon']]],
