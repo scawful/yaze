@@ -502,8 +502,8 @@ absl::Status GraphicsEditor::DrawCgxImport() {
                   [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
   gui::ButtonPipe("Load CGX Data", [this]() {
-    status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
-                           decoded_cgx_, extra_cgx_data_);
+    status_ = gfx::scad_format::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
+                                        decoded_cgx_, extra_cgx_data_);
 
     cgx_bitmap_.InitializeFromData(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
@@ -533,11 +533,12 @@ absl::Status GraphicsEditor::DrawScrImport() {
   InputInt("SCR Mod", &scr_mod_value_);
 
   gui::ButtonPipe("Load Scr Data", [this]() {
-    status_ = gfx::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
+    status_ =
+        gfx::scad_format::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
 
     decoded_scr_data_.resize(0x100 * 0x100);
-    status_ = gfx::DrawScrWithCgx(current_bpp_, scr_data_, decoded_scr_data_,
-                                  decoded_cgx_);
+    status_ = gfx::scad_format::DrawScrWithCgx(current_bpp_, scr_data_,
+                                               decoded_scr_data_, decoded_cgx_);
 
     scr_bitmap_.InitializeFromData(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
@@ -576,7 +577,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         col_file_palette_ = gfx::SnesPalette(col_data_);
 
         // gigaleak dev format based code
-        decoded_col_ = gfx::DecodeColFile(col_file_path_);
+        decoded_col_ = gfx::scad_format::DecodeColFile(col_file_path_);
         col_file_ = true;
         is_open_ = true;
       });
