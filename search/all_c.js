@@ -9,5 +9,6 @@ var searchData=
   ['installation_6',['Building and installation',['../md_README.html#autotoc_md36',1,'']]],
   ['instructionentry_7',['InstructionEntry',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html',1,'yaze::app::emu']]],
   ['instructions_8',['Build Instructions',['../md_docs_2build-instructions.html',1,'']]],
-  ['inventory_9',['Inventory',['../classyaze_1_1app_1_1zelda3_1_1Inventory.html',1,'yaze::app::zelda3']]]
+  ['internaltile16_9',['InternalTile16',['../structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16.html',1,'yaze::app::gfx::Tilesheet']]],
+  ['inventory_10',['Inventory',['../classyaze_1_1app_1_1zelda3_1_1Inventory.html',1,'yaze::app::zelda3']]]
 ];

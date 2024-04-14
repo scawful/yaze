@@ -103,6 +103,8 @@ $(function(){initNavTree('classyaze_1_1app_1_1emu_1_1CPU.html',''); initResizabl
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1emu_1_1CPU-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::emu::CPU Class Reference</div></div>
 </div><!--header-->
@@ -110,14 +112,36 @@ $(function(){initNavTree('classyaze_1_1app_1_1emu_1_1CPU.html',''); initResizabl
 <div class="dynheader">
 Inheritance diagram for yaze::app::emu::CPU:</div>
 <div class="dyncontent">
- <div class="center">
-  <img src="classyaze_1_1app_1_1emu_1_1CPU.png" usemap="#yaze::app::emu::CPU_map" alt=""/>
-  <map id="yaze::app::emu::CPU_map" name="yaze::app::emu::CPU_map">
-<area href="classyaze_1_1app_1_1emu_1_1Memory.html" alt="yaze::app::emu::Memory" shape="rect" coords="0,0,197,24"/>
-<area href="classyaze_1_1app_1_1emu_1_1Loggable.html" alt="yaze::app::emu::Loggable" shape="rect" coords="207,0,404,24"/>
-<area href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" alt="yaze::app::core::ExperimentFlags" shape="rect" coords="414,0,611,24"/>
-  </map>
-</div></div>
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1CPU__inherit__graph.png" border="0" usemap="#ayaze_1_1app_1_1emu_1_1CPU_inherit__map" alt="Inheritance graph"/></div>
+<map name="ayaze_1_1app_1_1emu_1_1CPU_inherit__map" id="ayaze_1_1app_1_1emu_1_1CPU_inherit__map">
+<area shape="rect" title=" " alt="" coords="200,94,339,120"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Memory.html" title=" " alt="" coords="5,13,163,39"/>
+<area shape="poly" title=" " alt="" coords="128,43,242,91,240,96,126,48"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="187,13,352,39"/>
+<area shape="poly" title=" " alt="" coords="272,54,272,93,267,93,267,54"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="375,5,550,46"/>
+<area shape="poly" title=" " alt="" coords="401,55,300,96,298,91,399,50"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+<div class="dynheader">
+Collaboration diagram for yaze::app::emu::CPU:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1CPU__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1emu_1_1CPU_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1app_1_1emu_1_1CPU_coll__map" id="ayaze_1_1app_1_1emu_1_1CPU_coll__map">
+<area shape="rect" title=" " alt="" coords="522,81,661,107"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Memory.html" title=" " alt="" coords="259,5,416,31"/>
+<area shape="poly" title=" " alt="" coords="432,17,466,23,499,32,543,54,577,79,574,83,540,58,497,37,465,28,431,23"/>
+<area shape="poly" title=" " alt="" coords="398,33,450,49,546,78,544,83,448,54,396,39"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="255,57,420,83"/>
+<area shape="poly" title=" " alt="" coords="436,77,522,85,521,90,435,82"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Logger.html" title=" " alt="" coords="5,57,157,83"/>
+<area shape="poly" title=" " alt="" coords="172,68,255,68,255,73,172,73"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="250,107,425,148"/>
+<area shape="poly" title=" " alt="" coords="440,111,521,101,522,106,441,117"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="265,172,410,198"/>
+<area shape="poly" title=" " alt="" coords="400,165,424,157,497,131,559,105,561,110,499,136,426,162,402,170"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -670,6 +694,39 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>E</b> = 1</td></tr
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>status</b> = 0b00110000</td></tr>
 <tr class="separator:aac601b8adedb1d9f032da90f7131b33a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:af90849b21cc86b30a65da45ffff73b81" id="r_af90849b21cc86b30a65da45ffff73b81"><td class="memItemLeft" align="right" valign="top"><a id="af90849b21cc86b30a65da45ffff73b81" name="af90849b21cc86b30a65da45ffff73b81"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>compare</b> (uint16_t register_value, uint16_t memory_value)</td></tr>
+<tr class="separator:af90849b21cc86b30a65da45ffff73b81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06e97db08aa6b0edeb636f2a2b1b2a32" id="r_a06e97db08aa6b0edeb636f2a2b1b2a32"><td class="memItemLeft" align="right" valign="top"><a id="a06e97db08aa6b0edeb636f2a2b1b2a32" name="a06e97db08aa6b0edeb636f2a2b1b2a32"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetFlag</b> (uint8_t mask, bool set)</td></tr>
+<tr class="separator:a06e97db08aa6b0edeb636f2a2b1b2a32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2e03df09974339aac8200035fcae2df" id="r_ab2e03df09974339aac8200035fcae2df"><td class="memItemLeft" align="right" valign="top"><a id="ab2e03df09974339aac8200035fcae2df" name="ab2e03df09974339aac8200035fcae2df"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFlag</b> (uint8_t mask) const</td></tr>
+<tr class="separator:ab2e03df09974339aac8200035fcae2df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab15052a66a538b8daf8ea0c7d0d01052" id="r_ab15052a66a538b8daf8ea0c7d0d01052"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab15052a66a538b8daf8ea0c7d0d01052">ClearMemory</a> () override</td></tr>
+<tr class="separator:ab15052a66a538b8daf8ea0c7d0d01052"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bdca4241269ad0364275d32ab8b68fc" id="r_a6bdca4241269ad0364275d32ab8b68fc"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6bdca4241269ad0364275d32ab8b68fc">operator[]</a> (int i) const override</td></tr>
+<tr class="separator:a6bdca4241269ad0364275d32ab8b68fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae84d02fc3ab93f52b3fa12fd1807307c" id="r_ae84d02fc3ab93f52b3fa12fd1807307c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae84d02fc3ab93f52b3fa12fd1807307c">at</a> (int i) const override</td></tr>
+<tr class="separator:ae84d02fc3ab93f52b3fa12fd1807307c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:ae2de90cd1d4fbcf5bb41305dc99974de" id="r_ae2de90cd1d4fbcf5bb41305dc99974de"><td class="memItemLeft" align="right" valign="top"><a id="ae2de90cd1d4fbcf5bb41305dc99974de" name="ae2de90cd1d4fbcf5bb41305dc99974de"></a>
+uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>last_call_frame_</b></td></tr>
+<tr class="separator:ae2de90cd1d4fbcf5bb41305dc99974de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4ebdb69770060b2a6a8b44a762449ae" id="r_ac4ebdb69770060b2a6a8b44a762449ae"><td class="memItemLeft" align="right" valign="top"><a id="ac4ebdb69770060b2a6a8b44a762449ae" name="ac4ebdb69770060b2a6a8b44a762449ae"></a>
+uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>next_pc_</b></td></tr>
+<tr class="separator:ac4ebdb69770060b2a6a8b44a762449ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa32dc632ca6af9d731857b6ce13f68bc" id="r_aa32dc632ca6af9d731857b6ce13f68bc"><td class="memItemLeft" align="right" valign="top"><a id="aa32dc632ca6af9d731857b6ce13f68bc" name="aa32dc632ca6af9d731857b6ce13f68bc"></a>
+<a class="el" href="classyaze_1_1app_1_1emu_1_1Memory.html">Memory</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>memory</b></td></tr>
+<tr class="separator:aa32dc632ca6af9d731857b6ce13f68bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee80f108d2fda4bb72893c000b68ab14" id="r_aee80f108d2fda4bb72893c000b68ab14"><td class="memItemLeft" align="right" valign="top"><a id="aee80f108d2fda4bb72893c000b68ab14" name="aee80f108d2fda4bb72893c000b68ab14"></a>
+<a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html">Clock</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>clock</b></td></tr>
+<tr class="separator:aee80f108d2fda4bb72893c000b68ab14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_classyaze_1_1app_1_1emu_1_1Loggable"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_classyaze_1_1app_1_1emu_1_1Loggable')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1emu_1_1Loggable.html">yaze::app::emu::Loggable</a></td></tr>
@@ -698,6 +755,60 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>LogMessage</b
 </div><div class="memdoc">
 <p>65816 Instruction Set</p>
 <p>TODO: STP, WDM </p>
+
+</div>
+</div>
+<a id="ae84d02fc3ab93f52b3fa12fd1807307c" name="ae84d02fc3ab93f52b3fa12fd1807307c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae84d02fc3ab93f52b3fa12fd1807307c">&#9670;&#160;</a></span>at()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::CPU::at </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">private</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1Memory.html">yaze::app::emu::Memory</a>.</p>
+
+</div>
+</div>
+<a id="ab15052a66a538b8daf8ea0c7d0d01052" name="ab15052a66a538b8daf8ea0c7d0d01052"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab15052a66a538b8daf8ea0c7d0d01052">&#9670;&#160;</a></span>ClearMemory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::CPU::ClearMemory </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">private</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1Memory.html">yaze::app::emu::Memory</a>.</p>
 
 </div>
 </div>
@@ -736,6 +847,35 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>LogMessage</b
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000021">Todo</a></b></dt><dd>: Implement 65816 interrupts. </dd></dl>
 <p>if (GetIRQFlag()) { if (GetEmulationFlag()) { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetIRQFlag(false); SetEmulationFlag(true); try { PC = memory.ReadWord(0xFFFE); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "IRQ: " &lt;&lt; e.what() &lt;&lt; std::endl; } } else { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetIRQFlag(false); SetEmulationFlag(false); try { PC = memory.ReadWord(0xFFFE); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "IRQ: " &lt;&lt; e.what() &lt;&lt; std::endl; } } }</p>
 <p>if (GetNMIFlag()) { if (GetEmulationFlag()) { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetNMIFlag(false); SetEmulationFlag(true); try { PC = memory.ReadWord(0xFFFA); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "NMI: " &lt;&lt; e.what() &lt;&lt; std::endl; } } else { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetNMIFlag(false); SetEmulationFlag(false); try { PC = memory.ReadWord(0xFFFA); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "NMI: " &lt;&lt; e.what() &lt;&lt; std::endl; } } }</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ae3bf729759c4e191972a5ad3fca4e5a7">yaze::app::zelda3::dungeon::DungeonObjectRenderer::RenderObject()</a>.</p>
+
+</div>
+</div>
+<a id="a6bdca4241269ad0364275d32ab8b68fc" name="a6bdca4241269ad0364275d32ab8b68fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6bdca4241269ad0364275d32ab8b68fc">&#9670;&#160;</a></span>operator[]()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::CPU::operator[] </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">private</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1Memory.html">yaze::app::emu::Memory</a>.</p>
 
 </div>
 </div>

@@ -102,6 +102,9 @@ $(function(){initNavTree('classyaze_1_1app_1_1zelda3_1_1Overworld.html',''); ini
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-types">Private Types</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1zelda3_1_1Overworld-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::zelda3::Overworld Class Reference</div></div>
 </div><!--header-->
@@ -109,13 +112,38 @@ $(function(){initNavTree('classyaze_1_1app_1_1zelda3_1_1Overworld.html',''); ini
 <div class="dynheader">
 Inheritance diagram for yaze::app::zelda3::Overworld:</div>
 <div class="dyncontent">
- <div class="center">
-  <img src="classyaze_1_1app_1_1zelda3_1_1Overworld.png" usemap="#yaze::app::zelda3::Overworld_map" alt=""/>
-  <map id="yaze::app::zelda3::Overworld_map" name="yaze::app::zelda3::Overworld_map">
-<area href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="yaze::app::SharedROM" shape="rect" coords="0,0,197,24"/>
-<area href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" alt="yaze::app::core::ExperimentFlags" shape="rect" coords="207,0,404,24"/>
-  </map>
-</div></div>
+<div class="center"><img src="classyaze_1_1app_1_1zelda3_1_1Overworld__inherit__graph.png" border="0" usemap="#ayaze_1_1app_1_1zelda3_1_1Overworld_inherit__map" alt="Inheritance graph"/></div>
+<map name="ayaze_1_1app_1_1zelda3_1_1Overworld_inherit__map" id="ayaze_1_1app_1_1zelda3_1_1Overworld_inherit__map">
+<area shape="rect" title=" " alt="" coords="113,94,236,135"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="5,13,157,39"/>
+<area shape="poly" title=" " alt="" coords="107,47,155,92,151,96,103,51"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="181,5,357,46"/>
+<area shape="poly" title=" " alt="" coords="238,59,198,96,194,92,234,55"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+<div class="dynheader">
+Collaboration diagram for yaze::app::zelda3::Overworld:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1zelda3_1_1Overworld__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1zelda3_1_1Overworld_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1app_1_1zelda3_1_1Overworld_coll__map" id="ayaze_1_1app_1_1zelda3_1_1Overworld_coll__map">
+<area shape="rect" title=" " alt="" coords="664,59,787,100"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="399,5,550,31"/>
+<area shape="poly" title=" " alt="" coords="566,31,641,48,668,56,667,61,639,53,565,36"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="15,53,190,93"/>
+<area shape="poly" title=" " alt="" coords="206,71,664,76,664,82,206,77"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="419,116,530,142"/>
+<area shape="poly" title=" " alt="" coords="206,86,419,118,419,123,205,91"/>
+<area shape="poly" title=" " alt="" coords="544,117,639,100,663,94,664,99,641,105,545,122"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="5,121,200,147"/>
+<area shape="poly" title=" " alt="" coords="215,134,375,133,419,131,419,136,375,138,215,140"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="15,171,190,196"/>
+<area shape="poly" title=" " alt="" coords="204,176,288,169,374,156,431,140,432,145,375,161,288,174,205,182"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="19,221,186,261"/>
+<area shape="poly" title=" " alt="" coords="201,243,244,239,289,231,333,217,373,195,381,185,384,175,388,163,397,151,417,139,420,143,400,155,393,165,390,176,386,188,376,199,335,222,291,236,245,245,202,248"/>
+<area shape="rect" href="structOWMapTiles.html" title=" " alt="" coords="426,165,523,191"/>
+<area shape="poly" title=" " alt="" coords="537,165,588,152,639,133,669,117,696,98,699,103,672,121,641,138,589,157,539,170"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -290,6 +318,118 @@ Public Attributes</h2></td></tr>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>current_world_</b> = 0</td></tr>
 <tr class="separator:a5b005cb134bcc52962d19e9302377ce4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
+Private Types</h2></td></tr>
+<tr class="memitem:ad405d327f6476a3e96cc7532c1fc1e3e" id="r_ad405d327f6476a3e96cc7532c1fc1e3e"><td class="memItemLeft" align="right" valign="top"><a id="ad405d327f6476a3e96cc7532c1fc1e3e" name="ad405d327f6476a3e96cc7532c1fc1e3e"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>Dimension</b> { <b>map32TilesTL</b> = 0
+, <b>map32TilesTR</b> = 1
+, <b>map32TilesBL</b> = 2
+, <b>map32TilesBR</b> = 3
+ }</td></tr>
+<tr class="separator:ad405d327f6476a3e96cc7532c1fc1e3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:a5b6e5c8605487ffe91a552dd51254ce2" id="r_a5b6e5c8605487ffe91a552dd51254ce2"><td class="memItemLeft" align="right" valign="top"><a id="a5b6e5c8605487ffe91a552dd51254ce2" name="a5b6e5c8605487ffe91a552dd51254ce2"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>FetchLargeMaps</b> ()</td></tr>
+<tr class="separator:a5b6e5c8605487ffe91a552dd51254ce2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8ed91104afbf43e9418ffe0029e10f6" id="r_ae8ed91104afbf43e9418ffe0029e10f6"><td class="memItemLeft" align="right" valign="top"><a id="ae8ed91104afbf43e9418ffe0029e10f6" name="ae8ed91104afbf43e9418ffe0029e10f6"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AssembleMap32Tiles</b> ()</td></tr>
+<tr class="separator:ae8ed91104afbf43e9418ffe0029e10f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade5eac8b957dba390008685b1ee9ff21" id="r_ade5eac8b957dba390008685b1ee9ff21"><td class="memItemLeft" align="right" valign="top"><a id="ade5eac8b957dba390008685b1ee9ff21" name="ade5eac8b957dba390008685b1ee9ff21"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AssembleMap16Tiles</b> ()</td></tr>
+<tr class="separator:ade5eac8b957dba390008685b1ee9ff21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e83d785a77e7abf58562810b373000b" id="r_a5e83d785a77e7abf58562810b373000b"><td class="memItemLeft" align="right" valign="top"><a id="a5e83d785a77e7abf58562810b373000b" name="a5e83d785a77e7abf58562810b373000b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AssignWorldTiles</b> (int x, int y, int sx, int sy, int tpos, OWBlockset &amp;world)</td></tr>
+<tr class="separator:a5e83d785a77e7abf58562810b373000b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3570450ee79da8db4773e7a13272d446" id="r_a3570450ee79da8db4773e7a13272d446"><td class="memItemLeft" align="right" valign="top"><a id="a3570450ee79da8db4773e7a13272d446" name="a3570450ee79da8db4773e7a13272d446"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>OrganizeMapTiles</b> (Bytes &amp;bytes, Bytes &amp;bytes2, int i, int sx, int sy, int &amp;ttpos)</td></tr>
+<tr class="separator:a3570450ee79da8db4773e7a13272d446"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23ab45e84c4371c8bb368d999c304ec5" id="r_a23ab45e84c4371c8bb368d999c304ec5"><td class="memItemLeft" align="right" valign="top"><a id="a23ab45e84c4371c8bb368d999c304ec5" name="a23ab45e84c4371c8bb368d999c304ec5"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>DecompressAllMapTiles</b> ()</td></tr>
+<tr class="separator:a23ab45e84c4371c8bb368d999c304ec5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9844a19658f31059710ac13903c75d9" id="r_ac9844a19658f31059710ac13903c75d9"><td class="memItemLeft" align="right" valign="top"><a id="ac9844a19658f31059710ac13903c75d9" name="ac9844a19658f31059710ac13903c75d9"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>DecompressProtoMapTiles</b> (const std::string &amp;filename)</td></tr>
+<tr class="separator:ac9844a19658f31059710ac13903c75d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:aecd187db9ff8cb311173635b08f5ca17" id="r_aecd187db9ff8cb311173635b08f5ca17"><td class="memItemLeft" align="right" valign="top"><a id="aecd187db9ff8cb311173635b08f5ca17" name="aecd187db9ff8cb311173635b08f5ca17"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_loaded_</b> = false</td></tr>
+<tr class="separator:aecd187db9ff8cb311173635b08f5ca17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67ec39af3ed755112d4978ee843f5792" id="r_a67ec39af3ed755112d4978ee843f5792"><td class="memItemLeft" align="right" valign="top"><a id="a67ec39af3ed755112d4978ee843f5792" name="a67ec39af3ed755112d4978ee843f5792"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>game_state_</b> = 0</td></tr>
+<tr class="separator:a67ec39af3ed755112d4978ee843f5792"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4dee7567526028ea0e79877112ba1b7" id="r_aa4dee7567526028ea0e79877112ba1b7"><td class="memItemLeft" align="right" valign="top"><a id="aa4dee7567526028ea0e79877112ba1b7" name="aa4dee7567526028ea0e79877112ba1b7"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_map_</b> = 0</td></tr>
+<tr class="separator:aa4dee7567526028ea0e79877112ba1b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae60f152f8e63346741ea50d78fa796a2" id="r_ae60f152f8e63346741ea50d78fa796a2"><td class="memItemLeft" align="right" valign="top"><a id="ae60f152f8e63346741ea50d78fa796a2" name="ae60f152f8e63346741ea50d78fa796a2"></a>
+uchar&#160;</td><td class="memItemRight" valign="bottom"><b>map_parent_</b> [160]</td></tr>
+<tr class="separator:ae60f152f8e63346741ea50d78fa796a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2dfbfa425b02612db4b204d181af29c" id="r_ad2dfbfa425b02612db4b204d181af29c"><td class="memItemLeft" align="right" valign="top"><a id="ad2dfbfa425b02612db4b204d181af29c" name="ad2dfbfa425b02612db4b204d181af29c"></a>
+<a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a>&#160;</td><td class="memItemRight" valign="bottom"><b>rom_</b></td></tr>
+<tr class="separator:ad2dfbfa425b02612db4b204d181af29c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b5a85dff1fd2ab7bd9c11499d85506e" id="r_a2b5a85dff1fd2ab7bd9c11499d85506e"><td class="memItemLeft" align="right" valign="top"><a id="a2b5a85dff1fd2ab7bd9c11499d85506e" name="a2b5a85dff1fd2ab7bd9c11499d85506e"></a>
+<a class="el" href="structOWMapTiles.html">OWMapTiles</a>&#160;</td><td class="memItemRight" valign="bottom"><b>map_tiles_</b></td></tr>
+<tr class="separator:a2b5a85dff1fd2ab7bd9c11499d85506e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d4f1071b47d855910cb9283257aa027" id="r_a7d4f1071b47d855910cb9283257aa027"><td class="memItemLeft" align="right" valign="top"><a id="a7d4f1071b47d855910cb9283257aa027" name="a7d4f1071b47d855910cb9283257aa027"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>all_tiles_types_</b> [0x200]</td></tr>
+<tr class="separator:a7d4f1071b47d855910cb9283257aa027"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a736ed5cf914a2c9659eb054fa29df053" id="r_a736ed5cf914a2c9659eb054fa29df053"><td class="memItemLeft" align="right" valign="top"><a id="a736ed5cf914a2c9659eb054fa29df053" name="a736ed5cf914a2c9659eb054fa29df053"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tiles16_</b></td></tr>
+<tr class="separator:a736ed5cf914a2c9659eb054fa29df053"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3245454c13b69449b41d89faa86f47a5" id="r_a3245454c13b69449b41d89faa86f47a5"><td class="memItemLeft" align="right" valign="top"><a id="a3245454c13b69449b41d89faa86f47a5" name="a3245454c13b69449b41d89faa86f47a5"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">gfx::Tile32</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tiles32_</b></td></tr>
+<tr class="separator:a3245454c13b69449b41d89faa86f47a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adade9de29d5ba0ae612149687a75de3e" id="r_adade9de29d5ba0ae612149687a75de3e"><td class="memItemLeft" align="right" valign="top"><a id="adade9de29d5ba0ae612149687a75de3e" name="adade9de29d5ba0ae612149687a75de3e"></a>
+std::vector&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tiles32_list_</b></td></tr>
+<tr class="separator:adade9de29d5ba0ae612149687a75de3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaad44b766b0901cd0e13296014f3f081" id="r_aaad44b766b0901cd0e13296014f3f081"><td class="memItemLeft" align="right" valign="top"><a id="aaad44b766b0901cd0e13296014f3f081" name="aaad44b766b0901cd0e13296014f3f081"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">gfx::Tile32</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tiles32_unique_</b></td></tr>
+<tr class="separator:aaad44b766b0901cd0e13296014f3f081"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f083b765e00090d46f48b779309e243" id="r_a6f083b765e00090d46f48b779309e243"><td class="memItemLeft" align="right" valign="top"><a id="a6f083b765e00090d46f48b779309e243" name="a6f083b765e00090d46f48b779309e243"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html">OverworldMap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>overworld_maps_</b></td></tr>
+<tr class="separator:a6f083b765e00090d46f48b779309e243"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5366253e3239a20da8cefb1e2264d7c" id="r_ae5366253e3239a20da8cefb1e2264d7c"><td class="memItemLeft" align="right" valign="top"><a id="ae5366253e3239a20da8cefb1e2264d7c" name="ae5366253e3239a20da8cefb1e2264d7c"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntrance.html">OverworldEntrance</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>all_entrances_</b></td></tr>
+<tr class="separator:ae5366253e3239a20da8cefb1e2264d7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a890da4f02964717c64c66e8ea1831487" id="r_a890da4f02964717c64c66e8ea1831487"><td class="memItemLeft" align="right" valign="top"><a id="a890da4f02964717c64c66e8ea1831487" name="a890da4f02964717c64c66e8ea1831487"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntrance.html">OverworldEntrance</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>all_holes_</b></td></tr>
+<tr class="separator:a890da4f02964717c64c66e8ea1831487"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a100aec360982d35902a297526d18a1b3" id="r_a100aec360982d35902a297526d18a1b3"><td class="memItemLeft" align="right" valign="top"><a id="a100aec360982d35902a297526d18a1b3" name="a100aec360982d35902a297526d18a1b3"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldExit.html">OverworldExit</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>all_exits_</b></td></tr>
+<tr class="separator:a100aec360982d35902a297526d18a1b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5218fbb8543db7e813ce590df55c5369" id="r_a5218fbb8543db7e813ce590df55c5369"><td class="memItemLeft" align="right" valign="top"><a id="a5218fbb8543db7e813ce590df55c5369" name="a5218fbb8543db7e813ce590df55c5369"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldItem.html">OverworldItem</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>all_items_</b></td></tr>
+<tr class="separator:a5218fbb8543db7e813ce590df55c5369"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb2dd97cd03535bdca6d7991ea5f3252" id="r_aeb2dd97cd03535bdca6d7991ea5f3252"><td class="memItemLeft" align="right" valign="top"><a id="aeb2dd97cd03535bdca6d7991ea5f3252" name="aeb2dd97cd03535bdca6d7991ea5f3252"></a>
+std::vector&lt; std::vector&lt; <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html">Sprite</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>all_sprites_</b></td></tr>
+<tr class="separator:aeb2dd97cd03535bdca6d7991ea5f3252"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30fc5a71a9fd55d50e96947adc147a97" id="r_a30fc5a71a9fd55d50e96947adc147a97"><td class="memItemLeft" align="right" valign="top"><a id="a30fc5a71a9fd55d50e96947adc147a97" name="a30fc5a71a9fd55d50e96947adc147a97"></a>
+std::vector&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>deleted_entrances_</b></td></tr>
+<tr class="separator:a30fc5a71a9fd55d50e96947adc147a97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa678a280711bc20de2803fb81161936" id="r_afa678a280711bc20de2803fb81161936"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afa678a280711bc20de2803fb81161936">map_data_p1</a></td></tr>
+<tr class="separator:afa678a280711bc20de2803fb81161936"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c29b88e0539171ceac7e24f5308fcc4" id="r_a3c29b88e0539171ceac7e24f5308fcc4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::vector&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c29b88e0539171ceac7e24f5308fcc4">map_data_p2</a></td></tr>
+<tr class="separator:a3c29b88e0539171ceac7e24f5308fcc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc62832a9c1dadddabaa21e557456009" id="r_abc62832a9c1dadddabaa21e557456009"><td class="memItemLeft" align="right" valign="top"><a id="abc62832a9c1dadddabaa21e557456009" name="abc62832a9c1dadddabaa21e557456009"></a>
+std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>map_pointers1_id</b> = std::vector&lt;int&gt;(kNumOverworldMaps)</td></tr>
+<tr class="separator:abc62832a9c1dadddabaa21e557456009"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8cabcfacc52fdbc6f78b739f67bb4b6" id="r_af8cabcfacc52fdbc6f78b739f67bb4b6"><td class="memItemLeft" align="right" valign="top"><a id="af8cabcfacc52fdbc6f78b739f67bb4b6" name="af8cabcfacc52fdbc6f78b739f67bb4b6"></a>
+std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>map_pointers2_id</b> = std::vector&lt;int&gt;(kNumOverworldMaps)</td></tr>
+<tr class="separator:af8cabcfacc52fdbc6f78b739f67bb4b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06184d24f5e20f7da5249f3e66323555" id="r_a06184d24f5e20f7da5249f3e66323555"><td class="memItemLeft" align="right" valign="top"><a id="a06184d24f5e20f7da5249f3e66323555" name="a06184d24f5e20f7da5249f3e66323555"></a>
+std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>map_pointers1</b> = std::vector&lt;int&gt;(kNumOverworldMaps)</td></tr>
+<tr class="separator:a06184d24f5e20f7da5249f3e66323555"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7444d6ab3b798523abab49c469908a3" id="r_ac7444d6ab3b798523abab49c469908a3"><td class="memItemLeft" align="right" valign="top"><a id="ac7444d6ab3b798523abab49c469908a3" name="ac7444d6ab3b798523abab49c469908a3"></a>
+std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>map_pointers2</b> = std::vector&lt;int&gt;(kNumOverworldMaps)</td></tr>
+<tr class="separator:ac7444d6ab3b798523abab49c469908a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab43086c408add989d66a6969abc66f50" id="r_ab43086c408add989d66a6969abc66f50"><td class="memItemLeft" align="right" valign="top"><a id="ab43086c408add989d66a6969abc66f50" name="ab43086c408add989d66a6969abc66f50"></a>
+std::vector&lt; absl::flat_hash_map&lt; uint16_t, int &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>usage_stats_</b></td></tr>
+<tr class="separator:ab43086c408add989d66a6969abc66f50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafd988eb00565c81ba27f0bf60b05285" id="r_aafd988eb00565c81ba27f0bf60b05285"><td class="memItemLeft" align="right" valign="top"><a id="aafd988eb00565c81ba27f0bf60b05285" name="aafd988eb00565c81ba27f0bf60b05285"></a>
+absl::flat_hash_map&lt; int, <a class="el" href="structyaze_1_1app_1_1zelda3_1_1MapData.html">MapData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>proto_map_data_</b></td></tr>
+<tr class="separator:aafd988eb00565c81ba27f0bf60b05285"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_static_attribs_classyaze_1_1app_1_1SharedROM"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_attribs_classyaze_1_1app_1_1SharedROM')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="classyaze_1_1app_1_1SharedROM.html">yaze::app::SharedROM</a></td></tr>
@@ -297,6 +437,55 @@ Additional Inherited Members</h2></td></tr>
 static std::shared_ptr&lt; <a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>shared_rom_</b> = nullptr</td></tr>
 <tr class="separator:a04a68e64869a37ef3ada28571dfbbc39 inherit pub_static_attribs_classyaze_1_1app_1_1SharedROM"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="afa678a280711bc20de2803fb81161936" name="afa678a280711bc20de2803fb81161936"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa678a280711bc20de2803fb81161936">&#9670;&#160;</a></span>map_data_p1</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::vector&lt;uint8_t&gt; &gt; yaze::app::zelda3::Overworld::map_data_p1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">      std::vector&lt;std::vector&lt;uint8_t&gt;&gt;(kNumOverworldMaps)</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a3c29b88e0539171ceac7e24f5308fcc4" name="a3c29b88e0539171ceac7e24f5308fcc4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c29b88e0539171ceac7e24f5308fcc4">&#9670;&#160;</a></span>map_data_p2</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::vector&lt;uint8_t&gt; &gt; yaze::app::zelda3::Overworld::map_data_p2</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">      std::vector&lt;std::vector&lt;uint8_t&gt;&gt;(kNumOverworldMaps)</div>
+</div><!-- fragment -->
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/zelda3/<a class="el" href="overworld_8h_source.html">overworld.h</a></li>
 <li>src/app/zelda3/<b>overworld.cc</b></li>

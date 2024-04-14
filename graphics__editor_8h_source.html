@@ -163,150 +163,150 @@ $(function(){initNavTree('graphics__editor_8h_source.html',''); initResizable();
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>                                          ImGuiTableFlags_Resizable |</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>                                          ImGuiTableFlags_SizingStretchSame;</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="foldopen" id="foldopen00062" data-start="{" data-end="};">
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html">   62</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html">GraphicsEditor</a> : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1SharedROM.html">SharedROM</a> {</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  absl::Status Update();</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  <span class="keyword">enum class</span> GfxEditMode {</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    kSelect,</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    kPencil,</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    kFill,</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  };</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  <span class="comment">// Graphics Editor Tab</span></div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  absl::Status UpdateGfxEdit();</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  absl::Status UpdateGfxSheetList();</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  absl::Status UpdateGfxTabView();</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  absl::Status UpdatePaletteColumn();</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <span class="keywordtype">void</span> DrawGfxEditToolset();</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  <span class="comment">// Link Graphics Edit Tab</span></div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  absl::Status UpdateLinkGfxView();</div>
+<div class="foldopen" id="foldopen00065" data-start="{" data-end="};">
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html">   65</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html">GraphicsEditor</a> : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1SharedROM.html">SharedROM</a> {</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  absl::Status Update();</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  <span class="keyword">enum class</span> GfxEditMode {</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    kSelect,</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    kPencil,</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    kFill,</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  };</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  <span class="comment">// Graphics Editor Tab</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  absl::Status UpdateGfxEdit();</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  absl::Status UpdateGfxSheetList();</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  absl::Status UpdateGfxTabView();</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  absl::Status UpdatePaletteColumn();</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <span class="keywordtype">void</span> DrawGfxEditToolset();</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  <span class="comment">// Prototype Graphics Viewer</span></div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  absl::Status UpdateScadView();</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  <span class="comment">// Link Graphics Edit Tab</span></div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  absl::Status UpdateLinkGfxView();</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  <span class="comment">// Import Functions</span></div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  absl::Status DrawCgxImport();</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  absl::Status DrawScrImport();</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  absl::Status DrawFileImport();</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  absl::Status DrawObjImport();</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  absl::Status DrawTilemapImport();</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <span class="comment">// Other Functions</span></div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  absl::Status DrawToolset();</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  absl::Status DrawPaletteControls();</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  absl::Status DrawClipboardImport();</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  absl::Status DrawExperimentalFeatures();</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  absl::Status DrawMemoryEditor();</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  absl::Status DecompressImportData(<span class="keywordtype">int</span> size);</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  absl::Status DecompressSuperDonkey();</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  <span class="comment">// Prototype Graphics Viewer</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  absl::Status UpdateScadView();</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  <span class="comment">// Import Functions</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  absl::Status DrawCgxImport();</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  absl::Status DrawScrImport();</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  absl::Status DrawFileImport();</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  absl::Status DrawObjImport();</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  absl::Status DrawTilemapImport();</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  <span class="comment">// Other Functions</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  absl::Status DrawToolset();</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  absl::Status DrawPaletteControls();</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  absl::Status DrawClipboardImport();</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  absl::Status DrawExperimentalFeatures();</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  absl::Status DrawMemoryEditor();</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  <span class="comment">// Member Variables</span></div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  ImVec4 current_color_;</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  uint16_t current_sheet_ = 0;</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  uint8_t tile_size_ = 0x01;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  std::set&lt;uint16_t&gt; open_sheets_;</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  std::set&lt;uint16_t&gt; child_window_sheets_;</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  std::stack&lt;uint16_t&gt; release_queue_;</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  uint64_t edit_palette_group_name_index_ = 0;</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  uint64_t edit_palette_group_index_ = 0;</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  uint64_t edit_palette_index_ = 0;</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  uint64_t edit_palette_sub_index_ = 0;</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  <span class="keywordtype">float</span> sheet_scale_ = 2.0f;</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keywordtype">float</span> current_scale_ = 4.0f;</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="comment">// Prototype Graphics Viewer</span></div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  <span class="keywordtype">int</span> current_palette_ = 0;</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  uint64_t current_offset_ = 0;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  uint64_t current_size_ = 0;</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  uint64_t current_palette_index_ = 0;</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  <span class="keywordtype">int</span> current_bpp_ = 0;</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <span class="keywordtype">int</span> scr_mod_value_ = 0;</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  uint64_t num_sheets_to_load_ = 1;</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  uint64_t bin_size_ = 0;</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  uint64_t clipboard_offset_ = 0;</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  uint64_t clipboard_size_ = 0;</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span> </div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  <span class="keywordtype">bool</span> refresh_graphics_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  <span class="keywordtype">bool</span> open_memory_editor_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  <span class="keywordtype">bool</span> gfx_loaded_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <span class="keywordtype">bool</span> is_open_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  <span class="keywordtype">bool</span> super_donkey_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <span class="keywordtype">bool</span> col_file_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  <span class="keywordtype">bool</span> cgx_loaded_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="keywordtype">bool</span> scr_loaded_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="keywordtype">bool</span> obj_loaded_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  <span class="keywordtype">bool</span> tilemap_loaded_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> </div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  <span class="keywordtype">char</span> file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <span class="keywordtype">char</span> col_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  <span class="keywordtype">char</span> col_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="keywordtype">char</span> cgx_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <span class="keywordtype">char</span> cgx_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <span class="keywordtype">char</span> scr_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordtype">char</span> scr_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="keywordtype">char</span> obj_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  <span class="keywordtype">char</span> tilemap_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <span class="keywordtype">char</span> tilemap_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  GfxEditMode gfx_edit_mode_ = GfxEditMode::kSelect;</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  <a class="code hl_class" href="classyaze_1_1app_1_1ROM.html">ROM</a> temp_rom_;</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  <a class="code hl_class" href="classyaze_1_1app_1_1ROM.html">ROM</a> tilemap_rom_;</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  <a class="code hl_class" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a> overworld_;</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  MemoryEditor cgx_memory_editor_;</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  MemoryEditor col_memory_editor_;</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  <a class="code hl_class" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html">PaletteEditor</a> palette_editor_;</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  Bytes import_data_;</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  Bytes graphics_buffer_;</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  std::vector&lt;uint8_t&gt; decoded_cgx_;</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  std::vector&lt;uint8_t&gt; cgx_data_;</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  std::vector&lt;uint8_t&gt; extra_cgx_data_;</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>  std::vector&lt;SDL_Color&gt; decoded_col_;</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  std::vector&lt;uint8_t&gt; scr_data_;</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  std::vector&lt;uint8_t&gt; decoded_scr_data_;</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> cgx_bitmap_;</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> scr_bitmap_;</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> bin_bitmap_;</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> link_full_sheet_;</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  gfx::BitmapTable graphics_bin_;</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  gfx::BitmapTable clipboard_graphics_bin_;</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  gfx::BitmapTable link_graphics_;</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  <a class="code hl_struct" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> col_file_palette_group_;</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> z3_rom_palette_;</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> col_file_palette_;</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> link_palette_;</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> import_canvas_;</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> scr_canvas_;</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> super_donkey_canvas_;</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> current_sheet_canvas_{ImVec2(0x80, 0x20),</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                                    gui::CanvasGridSize::k8x8};</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> link_canvas_{</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>      ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>      gui::CanvasGridSize::k16x16};</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  absl::Status status_;</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>};</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  absl::Status DecompressImportData(<span class="keywordtype">int</span> size);</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  absl::Status DecompressSuperDonkey();</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  <span class="comment">// Member Variables</span></div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  ImVec4 current_color_;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  uint16_t current_sheet_ = 0;</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  uint8_t tile_size_ = 0x01;</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  std::set&lt;uint16_t&gt; open_sheets_;</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  std::set&lt;uint16_t&gt; child_window_sheets_;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  std::stack&lt;uint16_t&gt; release_queue_;</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  uint64_t edit_palette_group_name_index_ = 0;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  uint64_t edit_palette_group_index_ = 0;</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  uint64_t edit_palette_index_ = 0;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  uint64_t edit_palette_sub_index_ = 0;</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordtype">float</span> sheet_scale_ = 2.0f;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  <span class="keywordtype">float</span> current_scale_ = 4.0f;</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <span class="comment">// Prototype Graphics Viewer</span></div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  <span class="keywordtype">int</span> current_palette_ = 0;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  uint64_t current_offset_ = 0;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  uint64_t current_size_ = 0;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  uint64_t current_palette_index_ = 0;</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <span class="keywordtype">int</span> current_bpp_ = 0;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  <span class="keywordtype">int</span> scr_mod_value_ = 0;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span> </div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  uint64_t num_sheets_to_load_ = 1;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  uint64_t bin_size_ = 0;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  uint64_t clipboard_offset_ = 0;</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  uint64_t clipboard_size_ = 0;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <span class="keywordtype">bool</span> refresh_graphics_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  <span class="keywordtype">bool</span> open_memory_editor_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <span class="keywordtype">bool</span> gfx_loaded_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  <span class="keywordtype">bool</span> is_open_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="keywordtype">bool</span> super_donkey_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="keywordtype">bool</span> col_file_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  <span class="keywordtype">bool</span> cgx_loaded_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>  <span class="keywordtype">bool</span> scr_loaded_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  <span class="keywordtype">bool</span> obj_loaded_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <span class="keywordtype">bool</span> tilemap_loaded_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="keywordtype">char</span> file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <span class="keywordtype">char</span> col_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <span class="keywordtype">char</span> col_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordtype">char</span> cgx_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="keywordtype">char</span> cgx_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  <span class="keywordtype">char</span> scr_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <span class="keywordtype">char</span> scr_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  <span class="keywordtype">char</span> obj_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  <span class="keywordtype">char</span> tilemap_file_path_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keywordtype">char</span> tilemap_file_name_[256] = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  GfxEditMode gfx_edit_mode_ = GfxEditMode::kSelect;</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span> </div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <a class="code hl_class" href="classyaze_1_1app_1_1ROM.html">ROM</a> temp_rom_;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  <a class="code hl_class" href="classyaze_1_1app_1_1ROM.html">ROM</a> tilemap_rom_;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  <a class="code hl_class" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a> overworld_;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  MemoryEditor cgx_memory_editor_;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  MemoryEditor col_memory_editor_;</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  <a class="code hl_class" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html">PaletteEditor</a> palette_editor_;</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  Bytes import_data_;</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  Bytes graphics_buffer_;</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>  std::vector&lt;uint8_t&gt; decoded_cgx_;</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  std::vector&lt;uint8_t&gt; cgx_data_;</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  std::vector&lt;uint8_t&gt; extra_cgx_data_;</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  std::vector&lt;SDL_Color&gt; decoded_col_;</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  std::vector&lt;uint8_t&gt; scr_data_;</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  std::vector&lt;uint8_t&gt; decoded_scr_data_;</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> cgx_bitmap_;</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> scr_bitmap_;</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> bin_bitmap_;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> link_full_sheet_;</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  gfx::BitmapTable graphics_bin_;</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  gfx::BitmapTable clipboard_graphics_bin_;</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  gfx::BitmapTable link_graphics_;</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <a class="code hl_struct" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> col_file_palette_group_;</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> z3_rom_palette_;</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> col_file_palette_;</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> link_palette_;</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> import_canvas_;</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> scr_canvas_;</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> super_donkey_canvas_;</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> current_sheet_canvas_{ImVec2(0x80, 0x20),</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>                                    gui::CanvasGridSize::k8x8};</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> link_canvas_{</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      gui::CanvasGridSize::k16x16};</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  absl::Status status_;</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>};</div>
 </div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span> </div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EDITOR_GRAPHICS_EDITOR_H</span></div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span> </div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EDITOR_GRAPHICS_EDITOR_H</span></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1ROM_html"><div class="ttname"><a href="classyaze_1_1app_1_1ROM.html">yaze::app::ROM</a></div><div class="ttdoc">The ROM class is used to load, save, and modify ROM data.</div><div class="ttdef"><b>Definition</b> rom.h:144</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1SharedROM_html"><div class="ttname"><a href="classyaze_1_1app_1_1SharedROM.html">yaze::app::SharedROM</a></div><div class="ttdoc">A class to hold a shared pointer to a ROM object.</div><div class="ttdef"><b>Definition</b> rom.h:693</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1GraphicsEditor_html"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html">yaze::app::editor::GraphicsEditor</a></div><div class="ttdef"><b>Definition</b> graphics_editor.h:62</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_html"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html">yaze::app::editor::PaletteEditor</a></div><div class="ttdef"><b>Definition</b> palette_editor.h:78</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Bitmap_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">yaze::app::gfx::Bitmap</a></div><div class="ttdef"><b>Definition</b> bitmap.h:23</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1SnesPalette_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">yaze::app::gfx::SnesPalette</a></div><div class="ttdef"><b>Definition</b> snes_palette.h:34</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1GraphicsEditor_html"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html">yaze::app::editor::GraphicsEditor</a></div><div class="ttdoc">Manages the games graphical content.</div><div class="ttdef"><b>Definition</b> graphics_editor.h:65</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_html"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html">yaze::app::editor::PaletteEditor</a></div><div class="ttdef"><b>Definition</b> palette_editor.h:80</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Bitmap_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">yaze::app::gfx::Bitmap</a></div><div class="ttdef"><b>Definition</b> bitmap.h:31</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1SnesPalette_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">yaze::app::gfx::SnesPalette</a></div><div class="ttdoc">SNES Palette container.</div><div class="ttdef"><b>Definition</b> snes_palette.h:40</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1gui_1_1Canvas_html"><div class="ttname"><a href="classyaze_1_1app_1_1gui_1_1Canvas.html">yaze::app::gui::Canvas</a></div><div class="ttdef"><b>Definition</b> canvas.h:23</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1zelda3_1_1Overworld_html"><div class="ttname"><a href="classyaze_1_1app_1_1zelda3_1_1Overworld.html">yaze::app::zelda3::Overworld</a></div><div class="ttdef"><b>Definition</b> overworld.h:471</div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1gfx_1_1PaletteGroup_html"><div class="ttname"><a href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">yaze::app::gfx::PaletteGroup</a></div><div class="ttdef"><b>Definition</b> snes_palette.h:128</div></div>
+<div class="ttc" id="astructyaze_1_1app_1_1gfx_1_1PaletteGroup_html"><div class="ttname"><a href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">yaze::app::gfx::PaletteGroup</a></div><div class="ttdef"><b>Definition</b> snes_palette.h:134</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

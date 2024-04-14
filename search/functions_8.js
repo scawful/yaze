@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['renderbitmap_0',['RenderBitmap',['../classyaze_1_1app_1_1ROM.html#a10b3916657949af2aa7a749708e4b005',1,'yaze::app::ROM']]]
+  ['notify_0',['Notify',['../classyaze_1_1app_1_1emu_1_1APU.html#a2e17027a1da5245dbda860a5284f5490',1,'yaze::app::emu::APU']]]
 ];

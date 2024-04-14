@@ -1,0 +1,13 @@
+<map id="yaze::app::zelda3::dungeon::Room" name="yaze::app::zelda3::dungeon::Room">
+<area shape="rect" id="Node000001" title=" " alt="" coords="623,73,746,113"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="297,5,449,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="457,32,600,65,623,71,622,77,598,70,456,37"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="285,55,461,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="476,79,623,87,622,92,476,84"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title=" " alt="" coords="301,120,445,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="460,123,599,107,622,103,623,108,599,112,461,128"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="5,120,180,146"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="195,130,300,130,300,136,195,136"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html" title=" " alt="" coords="277,195,469,236"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="484,225,542,219,571,212,598,200,623,182,643,159,672,112,676,115,648,162,626,186,600,205,573,217,543,224,484,230"/>
+</map>

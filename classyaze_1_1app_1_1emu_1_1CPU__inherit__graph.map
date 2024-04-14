@@ -1,0 +1,9 @@
+<map id="yaze::app::emu::CPU" name="yaze::app::emu::CPU">
+<area shape="rect" id="Node000001" title=" " alt="" coords="200,94,339,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Memory.html" title=" " alt="" coords="5,13,163,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,43,242,91,240,96,126,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="187,13,352,39"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,54,272,93,267,93,267,54"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="375,5,550,46"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="401,55,300,96,298,91,399,50"/>
+</map>

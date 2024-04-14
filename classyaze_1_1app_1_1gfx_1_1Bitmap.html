@@ -100,12 +100,31 @@ $(function(){initNavTree('classyaze_1_1app_1_1gfx_1_1Bitmap.html',''); initResiz
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1gfx_1_1Bitmap-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::gfx::Bitmap Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+<div class="dynheader">
+Collaboration diagram for yaze::app::gfx::Bitmap:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1gfx_1_1Bitmap__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1gfx_1_1Bitmap_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1app_1_1gfx_1_1Bitmap_coll__map" id="ayaze_1_1app_1_1gfx_1_1Bitmap_coll__map">
+<area shape="rect" title=" " alt="" coords="20,94,165,120"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="5,5,180,31"/>
+<area shape="poly" title=" " alt="" coords="95,47,95,94,90,94,90,47"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html">SDL_Surface_Deleter</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter.html">SDL_Texture_Deleter</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:afe4955e48e94c72d6ce5b39eb2a3c17d" id="r_afe4955e48e94c72d6ce5b39eb2a3c17d"><td class="memItemLeft" align="right" valign="top"><a id="afe4955e48e94c72d6ce5b39eb2a3c17d" name="afe4955e48e94c72d6ce5b39eb2a3c17d"></a>
@@ -116,18 +135,21 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9d6c809ffd9849ac5575879ac3710ca5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a900fde90ee46f9626d104999697b3fbb" id="r_a900fde90ee46f9626d104999697b3fbb"><td class="memItemLeft" align="right" valign="top"><a id="a900fde90ee46f9626d104999697b3fbb" name="a900fde90ee46f9626d104999697b3fbb"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Create</b> (int width, int height, int depth, int data_size)</td></tr>
+<tr class="memdesc:a900fde90ee46f9626d104999697b3fbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a bitmap object and reserves space for graphical data. <br /></td></tr>
 <tr class="separator:a900fde90ee46f9626d104999697b3fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2809cc0b6a95a467a182c7777b65c8ec" id="r_a2809cc0b6a95a467a182c7777b65c8ec"><td class="memItemLeft" align="right" valign="top"><a id="a2809cc0b6a95a467a182c7777b65c8ec" name="a2809cc0b6a95a467a182c7777b65c8ec"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Create</b> (int width, int height, int depth, const Bytes &amp;data)</td></tr>
+<tr class="memdesc:a2809cc0b6a95a467a182c7777b65c8ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a bitmap object with the provided graphical data. <br /></td></tr>
 <tr class="separator:a2809cc0b6a95a467a182c7777b65c8ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2ef4a193dc365a5756c8b69a43ef28d" id="r_ab2ef4a193dc365a5756c8b69a43ef28d"><td class="memItemLeft" align="right" valign="top"><a id="ab2ef4a193dc365a5756c8b69a43ef28d" name="ab2ef4a193dc365a5756c8b69a43ef28d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>InitializeFromData</b> (uint32_t width, uint32_t height, uint32_t depth, const Bytes &amp;data)</td></tr>
 <tr class="separator:ab2ef4a193dc365a5756c8b69a43ef28d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60dbb218a86c57687580ec77be457511" id="r_a60dbb218a86c57687580ec77be457511"><td class="memItemLeft" align="right" valign="top"><a id="a60dbb218a86c57687580ec77be457511" name="a60dbb218a86c57687580ec77be457511"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>CreateTexture</b> (std::shared_ptr&lt; SDL_Renderer &gt; renderer)</td></tr>
+<tr class="memitem:a60dbb218a86c57687580ec77be457511" id="r_a60dbb218a86c57687580ec77be457511"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60dbb218a86c57687580ec77be457511">CreateTexture</a> (std::shared_ptr&lt; SDL_Renderer &gt; renderer)</td></tr>
+<tr class="memdesc:a60dbb218a86c57687580ec77be457511"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the underlying SDL_Texture to be displayed.  <br /></td></tr>
 <tr class="separator:a60dbb218a86c57687580ec77be457511"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae061f9e46947eddeab58c59a2aaeaff2" id="r_ae061f9e46947eddeab58c59a2aaeaff2"><td class="memItemLeft" align="right" valign="top"><a id="ae061f9e46947eddeab58c59a2aaeaff2" name="ae061f9e46947eddeab58c59a2aaeaff2"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateTexture</b> (std::shared_ptr&lt; SDL_Renderer &gt; renderer)</td></tr>
+<tr class="memdesc:ae061f9e46947eddeab58c59a2aaeaff2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the underlying SDL_Texture when it already exists. <br /></td></tr>
 <tr class="separator:ae061f9e46947eddeab58c59a2aaeaff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac325d7d569706b4d3b5ccc450b8efff0" id="r_ac325d7d569706b4d3b5ccc450b8efff0"><td class="memItemLeft" align="right" valign="top"><a id="ac325d7d569706b4d3b5ccc450b8efff0" name="ac325d7d569706b4d3b5ccc450b8efff0"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>CreateTexture</b> (SDL_Renderer *renderer)</td></tr>
@@ -149,6 +171,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>LoadFromPngData</b> (
 <tr class="separator:aceb56456070b3d020bfa0e26866a9a46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63a3008e5953e88af8a8ed6667ab2a61" id="r_a63a3008e5953e88af8a8ed6667ab2a61"><td class="memItemLeft" align="right" valign="top"><a id="a63a3008e5953e88af8a8ed6667ab2a61" name="a63a3008e5953e88af8a8ed6667ab2a61"></a>
 absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>ApplyPalette</b> (const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette)</td></tr>
+<tr class="memdesc:a63a3008e5953e88af8a8ed6667ab2a61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy color data from the <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container.">SnesPalette</a> into the SDL_Palette. <br /></td></tr>
 <tr class="separator:a63a3008e5953e88af8a8ed6667ab2a61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24c4b7b033b5edee88e552ecc4cd1103" id="r_a24c4b7b033b5edee88e552ecc4cd1103"><td class="memItemLeft" align="right" valign="top"><a id="a24c4b7b033b5edee88e552ecc4cd1103" name="a24c4b7b033b5edee88e552ecc4cd1103"></a>
 absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>ApplyPaletteWithTransparent</b> (const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette, int index, int length=7)</td></tr>
@@ -246,7 +269,78 @@ auto&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> () cons
 <tr class="memitem:ae6c7ff58611e24e659db248206eb7c68" id="r_ae6c7ff58611e24e659db248206eb7c68"><td class="memItemLeft" align="right" valign="top"><a id="ae6c7ff58611e24e659db248206eb7c68" name="ae6c7ff58611e24e659db248206eb7c68"></a>
 auto&#160;</td><td class="memItemRight" valign="bottom"><b>set_active</b> (bool active)</td></tr>
 <tr class="separator:ae6c7ff58611e24e659db248206eb7c68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:ae40c02d0cc8214e729384df698d2039a" id="r_ae40c02d0cc8214e729384df698d2039a"><td class="memItemLeft" align="right" valign="top"><a id="ae40c02d0cc8214e729384df698d2039a" name="ae40c02d0cc8214e729384df698d2039a"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>width_</b> = 0</td></tr>
+<tr class="separator:ae40c02d0cc8214e729384df698d2039a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a353d04d8c2803b0f2e89aa6754d6e844" id="r_a353d04d8c2803b0f2e89aa6754d6e844"><td class="memItemLeft" align="right" valign="top"><a id="a353d04d8c2803b0f2e89aa6754d6e844" name="a353d04d8c2803b0f2e89aa6754d6e844"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>height_</b> = 0</td></tr>
+<tr class="separator:a353d04d8c2803b0f2e89aa6754d6e844"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a332f7bcff7b77e4e4115412f6c32f346" id="r_a332f7bcff7b77e4e4115412f6c32f346"><td class="memItemLeft" align="right" valign="top"><a id="a332f7bcff7b77e4e4115412f6c32f346" name="a332f7bcff7b77e4e4115412f6c32f346"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>depth_</b> = 0</td></tr>
+<tr class="separator:a332f7bcff7b77e4e4115412f6c32f346"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad14573421c3b2c56a145e2e44dcd1360" id="r_ad14573421c3b2c56a145e2e44dcd1360"><td class="memItemLeft" align="right" valign="top"><a id="ad14573421c3b2c56a145e2e44dcd1360" name="ad14573421c3b2c56a145e2e44dcd1360"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>data_size_</b> = 0</td></tr>
+<tr class="separator:ad14573421c3b2c56a145e2e44dcd1360"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b81fdb9c9c167a551a7147dfbe119d4" id="r_a9b81fdb9c9c167a551a7147dfbe119d4"><td class="memItemLeft" align="right" valign="top"><a id="a9b81fdb9c9c167a551a7147dfbe119d4" name="a9b81fdb9c9c167a551a7147dfbe119d4"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>freed_</b> = false</td></tr>
+<tr class="separator:a9b81fdb9c9c167a551a7147dfbe119d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7db7aa31e134803f9b89303e4af09ca" id="r_aa7db7aa31e134803f9b89303e4af09ca"><td class="memItemLeft" align="right" valign="top"><a id="aa7db7aa31e134803f9b89303e4af09ca" name="aa7db7aa31e134803f9b89303e4af09ca"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>active_</b> = false</td></tr>
+<tr class="separator:aa7db7aa31e134803f9b89303e4af09ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad77e203b98312b3add6918574fe1cd50" id="r_ad77e203b98312b3add6918574fe1cd50"><td class="memItemLeft" align="right" valign="top"><a id="ad77e203b98312b3add6918574fe1cd50" name="ad77e203b98312b3add6918574fe1cd50"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>modified_</b> = false</td></tr>
+<tr class="separator:ad77e203b98312b3add6918574fe1cd50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8dc88b98260f56685407f1e965d4c1b3" id="r_a8dc88b98260f56685407f1e965d4c1b3"><td class="memItemLeft" align="right" valign="top"><a id="a8dc88b98260f56685407f1e965d4c1b3" name="a8dc88b98260f56685407f1e965d4c1b3"></a>
+void *&#160;</td><td class="memItemRight" valign="bottom"><b>texture_pixels</b> = nullptr</td></tr>
+<tr class="separator:a8dc88b98260f56685407f1e965d4c1b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a038d02d897c665fcd2a63aa5dab44117" id="r_a038d02d897c665fcd2a63aa5dab44117"><td class="memItemLeft" align="right" valign="top"><a id="a038d02d897c665fcd2a63aa5dab44117" name="a038d02d897c665fcd2a63aa5dab44117"></a>
+uchar *&#160;</td><td class="memItemRight" valign="bottom"><b>pixel_data_</b></td></tr>
+<tr class="separator:a038d02d897c665fcd2a63aa5dab44117"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc00863f6f3c19a1757222ee3c459e32" id="r_abc00863f6f3c19a1757222ee3c459e32"><td class="memItemLeft" align="right" valign="top"><a id="abc00863f6f3c19a1757222ee3c459e32" name="abc00863f6f3c19a1757222ee3c459e32"></a>
+Bytes&#160;</td><td class="memItemRight" valign="bottom"><b>data_</b></td></tr>
+<tr class="separator:abc00863f6f3c19a1757222ee3c459e32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f75ff8d0ab0852fde867ff0495e8e14" id="r_a3f75ff8d0ab0852fde867ff0495e8e14"><td class="memItemLeft" align="right" valign="top"><a id="a3f75ff8d0ab0852fde867ff0495e8e14" name="a3f75ff8d0ab0852fde867ff0495e8e14"></a>
+std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>png_data_</b></td></tr>
+<tr class="separator:a3f75ff8d0ab0852fde867ff0495e8e14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1496544dc223845f2c358beff8cf010" id="r_ad1496544dc223845f2c358beff8cf010"><td class="memItemLeft" align="right" valign="top"><a id="ad1496544dc223845f2c358beff8cf010" name="ad1496544dc223845f2c358beff8cf010"></a>
+<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><b>palette_</b></td></tr>
+<tr class="separator:ad1496544dc223845f2c358beff8cf010"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af74570db362855f662a493a722aafa75" id="r_af74570db362855f662a493a722aafa75"><td class="memItemLeft" align="right" valign="top"><a id="af74570db362855f662a493a722aafa75" name="af74570db362855f662a493a722aafa75"></a>
+std::shared_ptr&lt; SDL_Texture &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>texture_</b> = nullptr</td></tr>
+<tr class="separator:af74570db362855f662a493a722aafa75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1bdc41c93b1cdf24763e085f79b5043d" id="r_a1bdc41c93b1cdf24763e085f79b5043d"><td class="memItemLeft" align="right" valign="top"><a id="a1bdc41c93b1cdf24763e085f79b5043d" name="a1bdc41c93b1cdf24763e085f79b5043d"></a>
+std::shared_ptr&lt; SDL_Surface &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>surface_</b> = nullptr</td></tr>
+<tr class="separator:a1bdc41c93b1cdf24763e085f79b5043d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add1fc786fb298af7d3e13a086031c90a" id="r_add1fc786fb298af7d3e13a086031c90a"><td class="memItemLeft" align="right" valign="top"><a id="add1fc786fb298af7d3e13a086031c90a" name="add1fc786fb298af7d3e13a086031c90a"></a>
+std::shared_ptr&lt; SDL_Surface &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>converted_surface_</b> = nullptr</td></tr>
+<tr class="separator:add1fc786fb298af7d3e13a086031c90a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a60dbb218a86c57687580ec77be457511" name="a60dbb218a86c57687580ec77be457511"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60dbb218a86c57687580ec77be457511">&#9670;&#160;</a></span>CreateTexture()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::gfx::Bitmap::CreateTexture </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; SDL_Renderer &gt;</td>          <td class="paramname"><span class="paramname"><em>renderer</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Creates the underlying SDL_Texture to be displayed. </p>
+<p>Converts the surface from a RGB to ARGB format. Uses SDL_TEXTUREACCESS_STREAMING to allow for live updates. </p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1ROM.html#a10b3916657949af2aa7a749708e4b005">yaze::app::ROM::RenderBitmap()</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/gfx/<a class="el" href="bitmap_8h_source.html">bitmap.h</a></li>
 <li>src/app/gfx/<b>bitmap.cc</b></li>

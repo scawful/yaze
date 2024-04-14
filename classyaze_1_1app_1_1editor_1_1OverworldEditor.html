@@ -102,6 +102,9 @@ $(function(){initNavTree('classyaze_1_1app_1_1editor_1_1OverworldEditor.html',''
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-types">Private Types</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1editor_1_1OverworldEditor-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::editor::OverworldEditor Class Reference</div></div>
 </div><!--header-->
@@ -109,16 +112,112 @@ $(function(){initNavTree('classyaze_1_1app_1_1editor_1_1OverworldEditor.html',''
 <div class="dynheader">
 Inheritance diagram for yaze::app::editor::OverworldEditor:</div>
 <div class="dyncontent">
- <div class="center">
-  <img src="classyaze_1_1app_1_1editor_1_1OverworldEditor.png" usemap="#yaze::app::editor::OverworldEditor_map" alt=""/>
-  <map id="yaze::app::editor::OverworldEditor_map" name="yaze::app::editor::OverworldEditor_map">
-<area href="classEditor.html" alt="Editor" shape="rect" coords="0,0,203,24"/>
-<area href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="yaze::app::SharedROM" shape="rect" coords="213,0,416,24"/>
-<area href="classyaze_1_1app_1_1editor_1_1GfxContext.html" alt="yaze::app::editor::GfxContext" shape="rect" coords="426,0,629,24"/>
-<area href="classyaze_1_1app_1_1editor_1_1EntranceContext.html" alt="yaze::app::editor::EntranceContext" shape="rect" coords="639,0,842,24"/>
-<area href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" alt="yaze::app::core::ExperimentFlags" shape="rect" coords="852,0,1055,24"/>
-  </map>
-</div></div>
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1OverworldEditor__inherit__graph.png" border="0" usemap="#ayaze_1_1app_1_1editor_1_1OverworldEditor_inherit__map" alt="Inheritance graph"/></div>
+<map name="ayaze_1_1app_1_1editor_1_1OverworldEditor_inherit__map" id="ayaze_1_1app_1_1editor_1_1OverworldEditor_inherit__map">
+<area shape="rect" title=" " alt="" coords="229,105,347,145"/>
+<area shape="rect" href="classEditor.html" title=" " alt="" coords="66,5,120,31"/>
+<area shape="poly" title=" " alt="" coords="136,24,182,40,229,70,267,102,263,106,226,74,179,45,134,29"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="17,55,169,80"/>
+<area shape="poly" title=" " alt="" coords="156,83,181,90,229,105,228,110,180,95,154,88"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="26,105,160,145"/>
+<area shape="poly" title=" " alt="" coords="175,122,228,122,228,128,175,128"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html" title=" " alt="" coords="11,170,175,211"/>
+<area shape="poly" title=" " alt="" coords="169,162,228,142,229,147,171,167"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="5,235,181,276"/>
+<area shape="poly" title=" " alt="" coords="169,226,179,220,228,182,267,144,270,147,232,186,182,224,172,230"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+<div class="dynheader">
+Collaboration diagram for yaze::app::editor::OverworldEditor:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1OverworldEditor__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1editor_1_1OverworldEditor_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1app_1_1editor_1_1OverworldEditor_coll__map" id="ayaze_1_1app_1_1editor_1_1OverworldEditor_coll__map">
+<area shape="rect" title=" " alt="" coords="1421,502,1539,543"/>
+<area shape="rect" href="classEditor.html" title=" " alt="" coords="1156,5,1211,31"/>
+<area shape="poly" title=" " alt="" coords="1226,12,1267,13,1313,20,1359,36,1380,49,1399,64,1420,99,1437,149,1451,210,1461,277,1475,408,1480,501,1475,502,1470,409,1456,278,1446,211,1432,151,1415,101,1395,68,1377,53,1357,41,1312,25,1267,19,1226,18"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="427,1239,579,1264"/>
+<area shape="poly" title=" " alt="" coords="594,1258,720,1267,862,1271,930,1268,991,1261,1041,1248,1076,1231,1090,1213,1092,1194,1092,1171,1099,1145,1135,1073,1171,1014,1241,920,1314,828,1353,772,1394,702,1438,614,1468,542,1473,544,1443,616,1399,705,1357,775,1318,831,1245,923,1175,1017,1140,1075,1104,1147,1098,1172,1098,1194,1094,1215,1079,1235,1042,1253,992,1266,930,1273,862,1276,719,1273,594,1264"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html" title="Popup window to edit Tile16 data." alt="" coords="1124,769,1243,809"/>
+<area shape="poly" title=" " alt="" coords="524,1225,589,1156,689,1061,811,960,878,913,947,872,982,857,1011,850,1040,845,1076,834,1139,807,1141,812,1078,839,1042,850,1012,855,984,862,950,877,881,917,814,964,692,1065,593,1159,528,1229"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title=" " alt="" coords="773,1563,891,1604"/>
+<area shape="poly" title=" " alt="" coords="527,1275,574,1329,633,1388,657,1405,678,1416,698,1429,718,1451,729,1478,729,1502,730,1524,742,1547,756,1559,774,1568,771,1573,753,1564,738,1551,725,1526,724,1502,723,1479,714,1454,695,1433,675,1421,654,1410,629,1392,570,1332,523,1278"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html" title=" " alt="" coords="771,705,894,745"/>
+<area shape="poly" title=" " alt="" coords="504,1223,513,1150,534,1051,551,996,571,941,597,888,629,839,659,807,695,780,733,759,769,743,771,748,735,764,698,785,663,811,633,842,602,891,576,943,556,998,539,1052,518,1151,509,1224"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html" title=" " alt="" coords="1124,1397,1243,1437"/>
+<area shape="poly" title=" " alt="" coords="557,1267,741,1325,844,1351,949,1373,1124,1405,1123,1410,948,1378,843,1356,739,1330,555,1272"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="766,509,899,549"/>
+<area shape="poly" title=" " alt="" coords="915,525,1420,520,1420,525,915,531"/>
+<area shape="poly" title=" " alt="" coords="915,525,955,529,998,538,1041,553,1079,576,1106,610,1134,663,1177,767,1172,769,1129,666,1102,613,1076,580,1038,558,997,543,954,535,914,530"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html" title=" " alt="" coords="1101,198,1266,239"/>
+<area shape="poly" title=" " alt="" coords="1282,220,1343,236,1373,250,1398,270,1422,296,1440,326,1464,391,1477,454,1481,501,1475,502,1471,455,1459,393,1435,328,1417,299,1395,273,1370,255,1341,241,1281,225"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="15,631,190,672"/>
+<area shape="poly" title=" " alt="" coords="140,619,204,574,291,525,341,503,393,485,447,473,501,469,1185,469,1249,472,1312,481,1421,504,1420,509,1311,486,1248,477,1185,474,502,474,448,478,395,490,343,508,294,530,207,579,143,624"/>
+<area shape="poly" title=" " alt="" coords="206,646,312,647,441,653,579,665,717,688,771,702,769,707,715,693,579,671,440,658,312,652,206,652"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="448,745,558,771"/>
+<area shape="poly" title=" " alt="" coords="206,661,290,678,376,708,388,717,400,725,448,743,446,748,397,730,385,721,373,713,289,684,205,666"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html" title=" " alt="" coords="771,263,894,304"/>
+<area shape="poly" title=" " alt="" coords="866,251,909,216,966,178,1031,143,1101,118,1188,97,1226,90,1262,86,1297,89,1330,99,1364,119,1399,148,1417,176,1432,216,1456,318,1471,424,1479,501,1474,502,1466,424,1451,319,1427,217,1412,178,1395,152,1361,123,1328,104,1296,94,1262,92,1227,95,1189,102,1102,123,1033,147,969,182,913,220,869,255"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntrance.html" title=" " alt="" coords="1118,133,1249,173"/>
+<area shape="poly" title=" " alt="" coords="903,255,1125,171,1127,176,905,260"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldExit.html" title=" " alt="" coords="1122,263,1245,304"/>
+<area shape="poly" title=" " alt="" coords="909,281,1122,281,1122,286,909,286"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldItem.html" title=" " alt="" coords="1122,329,1245,369"/>
+<area shape="poly" title=" " alt="" coords="909,295,1122,335,1121,340,909,300"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html" title=" " alt="" coords="1122,394,1245,435"/>
+<area shape="poly" title=" " alt="" coords="895,308,949,330,1122,392,1120,397,947,335,893,313"/>
+<area shape="poly" title=" " alt="" coords="1265,161,1300,170,1335,183,1369,202,1399,227,1424,260,1443,296,1458,335,1468,375,1479,447,1482,501,1476,501,1474,448,1463,376,1452,337,1438,299,1419,263,1395,231,1366,207,1333,188,1298,175,1264,166"/>
+<area shape="poly" title=" " alt="" coords="1261,285,1296,291,1332,301,1367,316,1398,338,1432,376,1455,422,1470,466,1478,501,1473,502,1465,467,1450,424,1427,379,1395,341,1364,321,1330,306,1295,296,1260,290"/>
+<area shape="poly" title=" " alt="" coords="1261,352,1331,368,1366,381,1398,400,1424,423,1445,450,1472,500,1468,503,1440,453,1420,426,1395,404,1363,386,1329,373,1260,357"/>
+<area shape="poly" title=" " alt="" coords="1261,416,1329,427,1364,437,1398,450,1433,473,1462,499,1458,503,1430,478,1395,455,1363,442,1328,432,1260,421"/>
+<area shape="poly" title=" " alt="" coords="1221,756,1302,689,1395,606,1458,541,1461,545,1399,610,1306,693,1225,760"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1NotifyValue.html" title=" " alt="" coords="743,574,921,615"/>
+<area shape="poly" title=" " alt="" coords="937,594,1009,608,1045,621,1079,639,1113,668,1141,703,1162,738,1176,767,1171,769,1157,740,1136,706,1109,671,1076,643,1043,626,1008,613,936,599"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1NotifyValue.html" title=" " alt="" coords="399,568,607,594"/>
+<area shape="poly" title=" " alt="" coords="623,583,743,588,742,593,622,588"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1NotifyValue.html" title=" " alt="" coords="743,639,921,680"/>
+<area shape="poly" title=" " alt="" coords="575,595,745,636,743,641,574,600"/>
+<area shape="poly" title=" " alt="" coords="937,658,1008,669,1044,678,1078,692,1105,708,1130,727,1168,766,1164,770,1126,731,1102,712,1076,697,1042,683,1007,674,936,663"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html" title=" " alt="" coords="759,1289,906,1315"/>
+<area shape="poly" title=" " alt="" coords="921,1299,1111,1290,1201,1280,1265,1264,1310,1242,1343,1219,1369,1188,1394,1145,1414,1092,1430,1019,1454,839,1469,662,1475,542,1480,543,1474,662,1460,839,1435,1020,1419,1094,1399,1147,1373,1192,1346,1223,1313,1246,1267,1269,1202,1285,1112,1296,921,1304"/>
+<area shape="poly" title=" " alt="" coords="833,1273,841,1214,860,1139,875,1099,894,1061,917,1025,947,993,963,982,980,976,1012,976,1043,976,1059,971,1076,962,1112,927,1140,885,1160,843,1173,809,1178,811,1165,845,1144,887,1116,930,1079,966,1061,976,1044,981,1012,981,981,982,966,987,950,998,922,1028,898,1063,880,1101,865,1140,846,1215,838,1274"/>
+<area shape="poly" title=" " alt="" coords="878,1319,949,1346,1013,1362,1078,1377,1128,1393,1126,1398,1077,1382,1012,1367,948,1351,876,1324"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html" title=" " alt="" coords="760,1511,904,1536"/>
+<area shape="poly" title=" " alt="" coords="892,1538,969,1555,1064,1566,1115,1567,1167,1563,1217,1553,1265,1536,1313,1511,1346,1483,1370,1446,1394,1396,1418,1318,1437,1212,1451,1087,1461,953,1472,703,1476,543,1481,543,1478,703,1466,954,1456,1087,1442,1213,1423,1320,1399,1398,1375,1449,1350,1486,1316,1515,1267,1541,1218,1558,1167,1568,1115,1572,1064,1571,968,1560,891,1543"/>
+<area shape="poly" title=" " alt="" coords="870,1500,899,1476,922,1446,929,1423,931,1392,929,1316,930,1242,935,1212,946,1190,962,1177,979,1172,1012,1175,1044,1178,1060,1174,1075,1164,1094,1138,1112,1098,1142,995,1164,888,1177,809,1182,810,1169,889,1147,996,1117,1100,1099,1140,1079,1168,1062,1179,1045,1183,1011,1180,979,1177,965,1182,950,1193,940,1213,935,1243,935,1316,937,1392,934,1424,927,1449,903,1480,873,1504"/>
+<area shape="poly" title=" " alt="" coords="920,1524,1011,1520,1050,1514,1076,1504,1085,1494,1088,1482,1091,1469,1099,1455,1126,1435,1129,1440,1103,1459,1096,1471,1093,1484,1090,1497,1079,1509,1051,1519,1012,1526,920,1529"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="15,1460,190,1486"/>
+<area shape="poly" title=" " alt="" coords="126,1496,184,1558,225,1595,272,1632,324,1666,380,1694,440,1713,502,1720,1185,1720,1254,1715,1282,1708,1308,1697,1330,1683,1352,1663,1394,1609,1405,1584,1415,1543,1432,1424,1446,1269,1457,1095,1470,757,1475,543,1481,543,1475,757,1462,1095,1451,1269,1437,1425,1420,1544,1410,1585,1399,1612,1356,1667,1334,1687,1310,1702,1284,1713,1255,1720,1185,1725,501,1725,439,1718,378,1698,321,1670,269,1636,222,1599,181,1561,122,1500"/>
+<area shape="poly" title=" " alt="" coords="123,1447,234,1327,320,1244,423,1153,540,1061,668,973,736,933,805,897,876,865,948,838,1040,813,1124,796,1125,801,1041,818,949,843,878,870,807,902,738,938,671,978,543,1065,427,1157,324,1248,238,1331,127,1450"/>
+<area shape="poly" title=" " alt="" coords="200,1486,224,1489,373,1503,521,1513,760,1520,759,1526,521,1518,373,1509,223,1494,199,1491"/>
+<area shape="poly" title=" " alt="" coords="103,1444,112,1317,134,1136,149,1043,169,959,193,889,207,861,222,840,251,828,311,809,452,769,453,774,313,814,253,833,225,844,211,864,198,891,174,960,155,1044,139,1137,118,1317,108,1445"/>
+<area shape="poly" title=" " alt="" coords="205,1469,526,1462,924,1445,1077,1432,1124,1425,1124,1430,1078,1437,925,1450,526,1467,205,1474"/>
+<area shape="poly" title=" " alt="" coords="907,1601,926,1614,935,1625,938,1636,941,1646,950,1655,968,1662,991,1667,1048,1668,1113,1659,1183,1643,1251,1619,1313,1592,1362,1561,1394,1530,1405,1507,1414,1470,1431,1361,1445,1218,1456,1057,1470,744,1475,543,1481,543,1475,744,1461,1058,1450,1219,1437,1362,1420,1471,1410,1509,1399,1533,1365,1565,1315,1596,1253,1624,1184,1648,1114,1665,1048,1674,991,1672,967,1667,947,1659,937,1649,933,1638,930,1627,923,1617,904,1606"/>
+<area shape="poly" title=" " alt="" coords="904,1563,922,1547,931,1526,936,1497,936,1424,935,1350,938,1319,946,1296,960,1276,976,1264,1010,1249,1044,1236,1060,1225,1075,1208,1092,1175,1109,1128,1139,1012,1162,894,1176,809,1182,810,1167,895,1144,1013,1114,1130,1097,1177,1080,1211,1064,1229,1047,1241,1012,1254,979,1268,964,1280,951,1298,943,1320,940,1350,941,1424,941,1498,937,1528,926,1550,907,1567"/>
+<area shape="poly" title=" " alt="" coords="907,1589,950,1589,995,1583,1038,1569,1076,1544,1084,1535,1088,1525,1088,1503,1088,1480,1092,1468,1099,1455,1123,1436,1126,1440,1103,1459,1097,1470,1094,1481,1094,1503,1093,1526,1088,1537,1079,1549,1040,1574,996,1588,950,1594,907,1595"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html" title=" " alt="" coords="408,1573,598,1629"/>
+<area shape="poly" title=" " alt="" coords="613,1592,773,1584,773,1589,613,1598"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="421,1760,585,1786"/>
+<area shape="poly" title=" " alt="" coords="531,1748,621,1683,679,1646,739,1613,772,1599,774,1604,741,1618,682,1651,624,1687,535,1752"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1snes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="37,1753,168,1793"/>
+<area shape="poly" title=" " alt="" coords="184,1770,421,1770,421,1776,184,1776"/>
+<area shape="poly" title=" " alt="" coords="906,703,922,690,930,678,933,666,932,641,932,616,937,603,947,591,1006,579,1136,561,1420,526,1421,532,1137,567,1007,584,950,595,941,606,937,617,938,641,939,666,935,680,926,693,909,707"/>
+<area shape="poly" title=" " alt="" coords="910,714,991,713,1035,717,1078,726,1120,744,1156,766,1154,770,1118,749,1077,731,1035,723,991,719,910,719"/>
+<area shape="poly" title=" " alt="" coords="909,744,955,763,1002,790,1046,824,1080,868,1094,908,1100,961,1097,1089,1092,1218,1095,1272,1104,1313,1115,1337,1130,1359,1161,1394,1157,1398,1126,1362,1111,1339,1099,1315,1090,1272,1087,1218,1092,1089,1094,962,1089,909,1075,870,1042,828,999,794,953,768,907,749"/>
+<area shape="poly" title=" " alt="" coords="574,760,740,769,1124,784,1124,790,740,774,574,765"/>
+<area shape="poly" title=" " alt="" coords="574,749,716,735,770,729,770,734,716,740,574,754"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="5,763,200,788"/>
+<area shape="poly" title=" " alt="" coords="215,768,375,761,447,758,447,763,375,766,215,773"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="19,698,186,739"/>
+<area shape="poly" title=" " alt="" coords="202,725,447,750,447,755,201,731"/>
+<area shape="rect" href="structOWMapTiles.html" title=" " alt="" coords="455,689,551,715"/>
+<area shape="poly" title=" " alt="" coords="566,704,771,718,770,723,566,709"/>
+<area shape="poly" title=" " alt="" coords="1257,1400,1294,1388,1331,1370,1366,1347,1394,1317,1403,1299,1411,1271,1425,1186,1450,951,1467,705,1475,543,1480,543,1472,706,1455,951,1431,1187,1416,1272,1408,1301,1399,1320,1370,1351,1334,1375,1296,1393,1258,1405"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title=" " alt="" coords="743,1409,922,1435"/>
+<area shape="poly" title=" " alt="" coords="937,1425,1077,1425,1124,1421,1124,1427,1077,1430,937,1431"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html" title=" " alt="" coords="740,1628,924,1654"/>
+<area shape="poly" title=" " alt="" coords="933,1652,971,1651,1009,1645,1045,1632,1075,1610,1089,1592,1094,1575,1090,1538,1085,1498,1088,1477,1099,1455,1122,1435,1126,1439,1103,1458,1093,1478,1090,1498,1095,1537,1099,1575,1093,1595,1079,1614,1047,1636,1010,1650,971,1657,933,1658"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -153,14 +252,14 @@ std::shared_ptr&lt; <a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &g
 <tr class="memitem:a24a8288162f7bd65ea034c23fbb5930d inherit pub_methods_classyaze_1_1app_1_1SharedROM" id="r_a24a8288162f7bd65ea034c23fbb5930d"><td class="memItemLeft" align="right" valign="top">
 auto&#160;</td><td class="memItemRight" valign="bottom"><b>rom</b> ()</td></tr>
 <tr class="separator:a24a8288162f7bd65ea034c23fbb5930d inherit pub_methods_classyaze_1_1app_1_1SharedROM"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_classyaze_1_1app_1_1editor_1_1GfxContext"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1editor_1_1GfxContext')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1editor_1_1GfxContext.html">yaze::app::editor::GfxContext</a></td></tr>
-<tr class="memitem:aedb4ae10e28edf967ff7ab33064cc92e inherit pub_methods_classyaze_1_1app_1_1editor_1_1GfxContext" id="r_aedb4ae10e28edf967ff7ab33064cc92e"><td class="memItemLeft" align="right" valign="top">
+<tr class="inherit_header pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html">yaze::app::editor::context::GfxContext</a></td></tr>
+<tr class="memitem:a338049bea1ed23baa20b1e4a97d92477 inherit pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext" id="r_a338049bea1ed23baa20b1e4a97d92477"><td class="memItemLeft" align="right" valign="top">
 absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> ()</td></tr>
-<tr class="separator:aedb4ae10e28edf967ff7ab33064cc92e inherit pub_methods_classyaze_1_1app_1_1editor_1_1GfxContext"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_classyaze_1_1app_1_1editor_1_1EntranceContext"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1editor_1_1EntranceContext')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1editor_1_1EntranceContext.html">yaze::app::editor::EntranceContext</a></td></tr>
-<tr class="memitem:a2be5fcdd5c7cba76bc6e286f1750db16 inherit pub_methods_classyaze_1_1app_1_1editor_1_1EntranceContext" id="r_a2be5fcdd5c7cba76bc6e286f1750db16"><td class="memItemLeft" align="right" valign="top">
+<tr class="separator:a338049bea1ed23baa20b1e4a97d92477 inherit pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html">yaze::app::editor::context::EntranceContext</a></td></tr>
+<tr class="memitem:ae5d16a2f1c3bcce9fbac3515d50b9119 inherit pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext" id="r_ae5d16a2f1c3bcce9fbac3515d50b9119"><td class="memItemLeft" align="right" valign="top">
 absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>LoadEntranceTileTypes</b> (<a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &amp;rom)</td></tr>
-<tr class="separator:a2be5fcdd5c7cba76bc6e286f1750db16 inherit pub_methods_classyaze_1_1app_1_1editor_1_1EntranceContext"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:ae5d16a2f1c3bcce9fbac3515d50b9119 inherit pub_methods_classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1app_1_1core_1_1ExperimentFlags"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1core_1_1ExperimentFlags')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html">yaze::app::core::ExperimentFlags</a></td></tr>
 <tr class="memitem:a3ca4ac9c1ee303eef4c43b1d59eca116 inherit pub_methods_classyaze_1_1app_1_1core_1_1ExperimentFlags" id="r_a3ca4ac9c1ee303eef4c43b1d59eca116"><td class="memItemLeft" align="right" valign="top">
 auto&#160;</td><td class="memItemRight" valign="bottom"><b>flags</b> () const</td></tr>
@@ -175,16 +274,348 @@ Public Attributes</h2></td></tr>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>jump_to_tab_</b> = -1</td></tr>
 <tr class="separator:a0ce38337ed23c201b03aa78d3ee9ae81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
+Private Types</h2></td></tr>
+<tr class="memitem:ada65fa31f9d3b0a085a5ab6d7f04422f" id="r_ada65fa31f9d3b0a085a5ab6d7f04422f"><td class="memItemLeft" align="right" valign="top"><a id="ada65fa31f9d3b0a085a5ab6d7f04422f" name="ada65fa31f9d3b0a085a5ab6d7f04422f"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><b>EditingMode</b> { <br />
+&#160;&#160;<b>DRAW_TILE</b>
+, <b>ENTRANCES</b>
+, <b>EXITS</b>
+, <b>ITEMS</b>
+, <br />
+&#160;&#160;<b>SPRITES</b>
+, <b>TRANSPORTS</b>
+, <b>MUSIC</b>
+, <b>PAN</b>
+<br />
+ }</td></tr>
+<tr class="separator:ada65fa31f9d3b0a085a5ab6d7f04422f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:a1db0fa313c2fb89b424bc604100c8718" id="r_a1db0fa313c2fb89b424bc604100c8718"><td class="memItemLeft" align="right" valign="top"><a id="a1db0fa313c2fb89b424bc604100c8718" name="a1db0fa313c2fb89b424bc604100c8718"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateOverworldEdit</b> ()</td></tr>
+<tr class="separator:a1db0fa313c2fb89b424bc604100c8718"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0b204a1b2847f231bc9de5e634fae8d" id="r_ab0b204a1b2847f231bc9de5e634fae8d"><td class="memItemLeft" align="right" valign="top"><a id="ab0b204a1b2847f231bc9de5e634fae8d" name="ab0b204a1b2847f231bc9de5e634fae8d"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateFullscreenCanvas</b> ()</td></tr>
+<tr class="separator:ab0b204a1b2847f231bc9de5e634fae8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adacc9331ba9ee4ab27e8b96526e5a096" id="r_adacc9331ba9ee4ab27e8b96526e5a096"><td class="memItemLeft" align="right" valign="top"><a id="adacc9331ba9ee4ab27e8b96526e5a096" name="adacc9331ba9ee4ab27e8b96526e5a096"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>DrawToolset</b> ()</td></tr>
+<tr class="separator:adacc9331ba9ee4ab27e8b96526e5a096"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe914f5828f45abb1b44fbe377211d2f" id="r_afe914f5828f45abb1b44fbe377211d2f"><td class="memItemLeft" align="right" valign="top"><a id="afe914f5828f45abb1b44fbe377211d2f" name="afe914f5828f45abb1b44fbe377211d2f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldMapSettings</b> ()</td></tr>
+<tr class="separator:afe914f5828f45abb1b44fbe377211d2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac01d3d837a19f3a62e0f72b42e134de6" id="r_ac01d3d837a19f3a62e0f72b42e134de6"><td class="memItemLeft" align="right" valign="top"><a id="ac01d3d837a19f3a62e0f72b42e134de6" name="ac01d3d837a19f3a62e0f72b42e134de6"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>RefreshChildMap</b> (int i)</td></tr>
+<tr class="separator:ac01d3d837a19f3a62e0f72b42e134de6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6074600cb60368e702c2b7bc2aa42fc" id="r_ae6074600cb60368e702c2b7bc2aa42fc"><td class="memItemLeft" align="right" valign="top"><a id="ae6074600cb60368e702c2b7bc2aa42fc" name="ae6074600cb60368e702c2b7bc2aa42fc"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>RefreshOverworldMap</b> ()</td></tr>
+<tr class="separator:ae6074600cb60368e702c2b7bc2aa42fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfb4edfdd1ac731feb7a284a839fdd33" id="r_abfb4edfdd1ac731feb7a284a839fdd33"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abfb4edfdd1ac731feb7a284a839fdd33">RefreshMapPalette</a> ()</td></tr>
+<tr class="separator:abfb4edfdd1ac731feb7a284a839fdd33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04034d7607a89a60e96c9cb5c0193b1b" id="r_a04034d7607a89a60e96c9cb5c0193b1b"><td class="memItemLeft" align="right" valign="top"><a id="a04034d7607a89a60e96c9cb5c0193b1b" name="a04034d7607a89a60e96c9cb5c0193b1b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>RefreshMapProperties</b> ()</td></tr>
+<tr class="separator:a04034d7607a89a60e96c9cb5c0193b1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9025199f02098f6657436cfa8155567" id="r_aa9025199f02098f6657436cfa8155567"><td class="memItemLeft" align="right" valign="top"><a id="aa9025199f02098f6657436cfa8155567" name="aa9025199f02098f6657436cfa8155567"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>RefreshTile16Blockset</b> ()</td></tr>
+<tr class="separator:aa9025199f02098f6657436cfa8155567"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e0a2d44c2238a481e67e9ca62c2f081" id="r_a5e0a2d44c2238a481e67e9ca62c2f081"><td class="memItemLeft" align="right" valign="top"><a id="a5e0a2d44c2238a481e67e9ca62c2f081" name="a5e0a2d44c2238a481e67e9ca62c2f081"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldEntrances</b> (ImVec2 canvas_p, ImVec2 scrolling, bool holes=false)</td></tr>
+<tr class="separator:a5e0a2d44c2238a481e67e9ca62c2f081"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adebe5b364cbdbddaf073491e10f0b0a3" id="r_adebe5b364cbdbddaf073491e10f0b0a3"><td class="memItemLeft" align="right" valign="top"><a id="adebe5b364cbdbddaf073491e10f0b0a3" name="adebe5b364cbdbddaf073491e10f0b0a3"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldExits</b> (ImVec2 zero, ImVec2 scrolling)</td></tr>
+<tr class="separator:adebe5b364cbdbddaf073491e10f0b0a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b7857378873b2aec27c62d0496384be" id="r_a2b7857378873b2aec27c62d0496384be"><td class="memItemLeft" align="right" valign="top"><a id="a2b7857378873b2aec27c62d0496384be" name="a2b7857378873b2aec27c62d0496384be"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldItems</b> ()</td></tr>
+<tr class="separator:a2b7857378873b2aec27c62d0496384be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5079871c340dba3d3d52a801b80fc17" id="r_ab5079871c340dba3d3d52a801b80fc17"><td class="memItemLeft" align="right" valign="top"><a id="ab5079871c340dba3d3d52a801b80fc17" name="ab5079871c340dba3d3d52a801b80fc17"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldSprites</b> ()</td></tr>
+<tr class="separator:ab5079871c340dba3d3d52a801b80fc17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85251f34b6626f2d2d930dbe65f1b318" id="r_a85251f34b6626f2d2d930dbe65f1b318"><td class="memItemLeft" align="right" valign="top"><a id="a85251f34b6626f2d2d930dbe65f1b318" name="a85251f34b6626f2d2d930dbe65f1b318"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldMaps</b> ()</td></tr>
+<tr class="separator:a85251f34b6626f2d2d930dbe65f1b318"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa31f0a5015bdd65288d569318e3bfb6e" id="r_aa31f0a5015bdd65288d569318e3bfb6e"><td class="memItemLeft" align="right" valign="top"><a id="aa31f0a5015bdd65288d569318e3bfb6e" name="aa31f0a5015bdd65288d569318e3bfb6e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldEdits</b> ()</td></tr>
+<tr class="separator:aa31f0a5015bdd65288d569318e3bfb6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a800f8b17c76d3ccca98c2b7304bb2e1b" id="r_a800f8b17c76d3ccca98c2b7304bb2e1b"><td class="memItemLeft" align="right" valign="top"><a id="a800f8b17c76d3ccca98c2b7304bb2e1b" name="a800f8b17c76d3ccca98c2b7304bb2e1b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>RenderUpdatedMapBitmap</b> (const ImVec2 &amp;click_position, const Bytes &amp;tile_data)</td></tr>
+<tr class="separator:a800f8b17c76d3ccca98c2b7304bb2e1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae73ca7eae1a17d51ddbfdd201c7abda6" id="r_ae73ca7eae1a17d51ddbfdd201c7abda6"><td class="memItemLeft" align="right" valign="top"><a id="ae73ca7eae1a17d51ddbfdd201c7abda6" name="ae73ca7eae1a17d51ddbfdd201c7abda6"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>CheckForOverworldEdits</b> ()</td></tr>
+<tr class="separator:ae73ca7eae1a17d51ddbfdd201c7abda6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a829fcdda8282268796e8b3b4e3175460" id="r_a829fcdda8282268796e8b3b4e3175460"><td class="memItemLeft" align="right" valign="top"><a id="a829fcdda8282268796e8b3b4e3175460" name="a829fcdda8282268796e8b3b4e3175460"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>CheckForSelectRectangle</b> ()</td></tr>
+<tr class="separator:a829fcdda8282268796e8b3b4e3175460"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e641aeb7780ec01f73f6af036ba0cf7" id="r_a6e641aeb7780ec01f73f6af036ba0cf7"><td class="memItemLeft" align="right" valign="top"><a id="a6e641aeb7780ec01f73f6af036ba0cf7" name="a6e641aeb7780ec01f73f6af036ba0cf7"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>CheckForCurrentMap</b> ()</td></tr>
+<tr class="separator:a6e641aeb7780ec01f73f6af036ba0cf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae39c371bfe7f8c99427f906e32871ea0" id="r_ae39c371bfe7f8c99427f906e32871ea0"><td class="memItemLeft" align="right" valign="top"><a id="ae39c371bfe7f8c99427f906e32871ea0" name="ae39c371bfe7f8c99427f906e32871ea0"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>CheckForMousePan</b> ()</td></tr>
+<tr class="separator:ae39c371bfe7f8c99427f906e32871ea0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a232d7457500c0c0521e28dbdc83ea2" id="r_a4a232d7457500c0c0521e28dbdc83ea2"><td class="memItemLeft" align="right" valign="top"><a id="a4a232d7457500c0c0521e28dbdc83ea2" name="a4a232d7457500c0c0521e28dbdc83ea2"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldCanvas</b> ()</td></tr>
+<tr class="separator:a4a232d7457500c0c0521e28dbdc83ea2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2d19a49679caaba81b92114aa77dd2f" id="r_ae2d19a49679caaba81b92114aa77dd2f"><td class="memItemLeft" align="right" valign="top"><a id="ae2d19a49679caaba81b92114aa77dd2f" name="ae2d19a49679caaba81b92114aa77dd2f"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>DrawTile16Selector</b> ()</td></tr>
+<tr class="separator:ae2d19a49679caaba81b92114aa77dd2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a096f01d94fd9f1c48d29f00693b248fc" id="r_a096f01d94fd9f1c48d29f00693b248fc"><td class="memItemLeft" align="right" valign="top"><a id="a096f01d94fd9f1c48d29f00693b248fc" name="a096f01d94fd9f1c48d29f00693b248fc"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawTile8Selector</b> ()</td></tr>
+<tr class="separator:a096f01d94fd9f1c48d29f00693b248fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b21d97c261c16f4d57c0167224759f3" id="r_a2b21d97c261c16f4d57c0167224759f3"><td class="memItemLeft" align="right" valign="top"><a id="a2b21d97c261c16f4d57c0167224759f3" name="a2b21d97c261c16f4d57c0167224759f3"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawAreaGraphics</b> ()</td></tr>
+<tr class="separator:a2b21d97c261c16f4d57c0167224759f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afccc9bb4f1f72a02f63b2e8a4dd46e8b" id="r_afccc9bb4f1f72a02f63b2e8a4dd46e8b"><td class="memItemLeft" align="right" valign="top"><a id="afccc9bb4f1f72a02f63b2e8a4dd46e8b" name="afccc9bb4f1f72a02f63b2e8a4dd46e8b"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>DrawTileSelector</b> ()</td></tr>
+<tr class="separator:afccc9bb4f1f72a02f63b2e8a4dd46e8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c91b748a56ee4e718b35a3060300bcb" id="r_a9c91b748a56ee4e718b35a3060300bcb"><td class="memItemLeft" align="right" valign="top"><a id="a9c91b748a56ee4e718b35a3060300bcb" name="a9c91b748a56ee4e718b35a3060300bcb"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>LoadSpriteGraphics</b> ()</td></tr>
+<tr class="separator:a9c91b748a56ee4e718b35a3060300bcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc6f7400a763b56561afefe58e314e16" id="r_adc6f7400a763b56561afefe58e314e16"><td class="memItemLeft" align="right" valign="top"><a id="adc6f7400a763b56561afefe58e314e16" name="adc6f7400a763b56561afefe58e314e16"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawOverworldProperties</b> ()</td></tr>
+<tr class="separator:adc6f7400a763b56561afefe58e314e16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a372c72e049a093cd4fd8e4adb61998ae" id="r_a372c72e049a093cd4fd8e4adb61998ae"><td class="memItemLeft" align="right" valign="top"><a id="a372c72e049a093cd4fd8e4adb61998ae" name="a372c72e049a093cd4fd8e4adb61998ae"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>DrawExperimentalModal</b> ()</td></tr>
+<tr class="separator:a372c72e049a093cd4fd8e4adb61998ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a938d852f2e1c94c3e8bf5ab50bac0815" id="r_a938d852f2e1c94c3e8bf5ab50bac0815"><td class="memItemLeft" align="right" valign="top"><a id="a938d852f2e1c94c3e8bf5ab50bac0815" name="a938d852f2e1c94c3e8bf5ab50bac0815"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateUsageStats</b> ()</td></tr>
+<tr class="separator:a938d852f2e1c94c3e8bf5ab50bac0815"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72af70519f52eaba9178828f2114bf5d" id="r_a72af70519f52eaba9178828f2114bf5d"><td class="memItemLeft" align="right" valign="top"><a id="a72af70519f52eaba9178828f2114bf5d" name="a72af70519f52eaba9178828f2114bf5d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawUsageGrid</b> ()</td></tr>
+<tr class="separator:a72af70519f52eaba9178828f2114bf5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdc9cc9a39a3bc56ab0385df03c270b4" id="r_acdc9cc9a39a3bc56ab0385df03c270b4"><td class="memItemLeft" align="right" valign="top"><a id="acdc9cc9a39a3bc56ab0385df03c270b4" name="acdc9cc9a39a3bc56ab0385df03c270b4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>CalculateUsageStats</b> ()</td></tr>
+<tr class="separator:acdc9cc9a39a3bc56ab0385df03c270b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35cef335c227bf8884a42760cba04d3f" id="r_a35cef335c227bf8884a42760cba04d3f"><td class="memItemLeft" align="right" valign="top"><a id="a35cef335c227bf8884a42760cba04d3f" name="a35cef335c227bf8884a42760cba04d3f"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>LoadAnimatedMaps</b> ()</td></tr>
+<tr class="separator:a35cef335c227bf8884a42760cba04d3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21db467f3863ae9454e0b4649addb06a" id="r_a21db467f3863ae9454e0b4649addb06a"><td class="memItemLeft" align="right" valign="top"><a id="a21db467f3863ae9454e0b4649addb06a" name="a21db467f3863ae9454e0b4649addb06a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DrawDebugWindow</b> ()</td></tr>
+<tr class="separator:a21db467f3863ae9454e0b4649addb06a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c0cdb0a0b7bd8693e2fa44812d7b04e" id="r_a8c0cdb0a0b7bd8693e2fa44812d7b04e"><td class="memItemLeft" align="right" valign="top"><a id="a8c0cdb0a0b7bd8693e2fa44812d7b04e" name="a8c0cdb0a0b7bd8693e2fa44812d7b04e"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><b>gfx_group_editor</b> () const</td></tr>
+<tr class="separator:a8c0cdb0a0b7bd8693e2fa44812d7b04e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a920649b8a6efcbdd471bb623910a05de" id="r_a920649b8a6efcbdd471bb623910a05de"><td class="memItemLeft" align="right" valign="top"><a id="a920649b8a6efcbdd471bb623910a05de" name="a920649b8a6efcbdd471bb623910a05de"></a>
+EditingMode&#160;</td><td class="memItemRight" valign="bottom"><b>current_mode</b> = EditingMode::DRAW_TILE</td></tr>
+<tr class="separator:a920649b8a6efcbdd471bb623910a05de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e94edf1300e890295f55011d0058481" id="r_a1e94edf1300e890295f55011d0058481"><td class="memItemLeft" align="right" valign="top"><a id="a1e94edf1300e890295f55011d0058481" name="a1e94edf1300e890295f55011d0058481"></a>
+EditingMode&#160;</td><td class="memItemRight" valign="bottom"><b>previous_mode</b> = EditingMode::DRAW_TILE</td></tr>
+<tr class="separator:a1e94edf1300e890295f55011d0058481"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd38ff038698413fcec8d1a53b4fb3ce" id="r_acd38ff038698413fcec8d1a53b4fb3ce"><td class="memItemLeft" align="right" valign="top"><a id="acd38ff038698413fcec8d1a53b4fb3ce" name="acd38ff038698413fcec8d1a53b4fb3ce"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_world_</b> = 0</td></tr>
+<tr class="separator:acd38ff038698413fcec8d1a53b4fb3ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9db1bc89b120f61994727d1501b9b812" id="r_a9db1bc89b120f61994727d1501b9b812"><td class="memItemLeft" align="right" valign="top"><a id="a9db1bc89b120f61994727d1501b9b812" name="a9db1bc89b120f61994727d1501b9b812"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_map_</b> = 0</td></tr>
+<tr class="separator:a9db1bc89b120f61994727d1501b9b812"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55cc0d9ccee1863283036f0c279c0463" id="r_a55cc0d9ccee1863283036f0c279c0463"><td class="memItemLeft" align="right" valign="top"><a id="a55cc0d9ccee1863283036f0c279c0463" name="a55cc0d9ccee1863283036f0c279c0463"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_parent_</b> = 0</td></tr>
+<tr class="separator:a55cc0d9ccee1863283036f0c279c0463"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac67c731eb5b7138c7c7f6b1f1885c46a" id="r_ac67c731eb5b7138c7c7f6b1f1885c46a"><td class="memItemLeft" align="right" valign="top"><a id="ac67c731eb5b7138c7c7f6b1f1885c46a" name="ac67c731eb5b7138c7c7f6b1f1885c46a"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>game_state_</b> = 1</td></tr>
+<tr class="separator:ac67c731eb5b7138c7c7f6b1f1885c46a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2141a39df6cd8278c31651bc0e0e00ac" id="r_a2141a39df6cd8278c31651bc0e0e00ac"><td class="memItemLeft" align="right" valign="top"><a id="a2141a39df6cd8278c31651bc0e0e00ac" name="a2141a39df6cd8278c31651bc0e0e00ac"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_tile16_</b> = 0</td></tr>
+<tr class="separator:a2141a39df6cd8278c31651bc0e0e00ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5dbf69475b4f2f456316f29b146305d" id="r_af5dbf69475b4f2f456316f29b146305d"><td class="memItemLeft" align="right" valign="top"><a id="af5dbf69475b4f2f456316f29b146305d" name="af5dbf69475b4f2f456316f29b146305d"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>selected_tile_</b> = 0</td></tr>
+<tr class="separator:af5dbf69475b4f2f456316f29b146305d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab39eb6d2a27009cfcd313fec96b450be" id="r_ab39eb6d2a27009cfcd313fec96b450be"><td class="memItemLeft" align="right" valign="top"><a id="ab39eb6d2a27009cfcd313fec96b450be" name="ab39eb6d2a27009cfcd313fec96b450be"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_blockset_</b> = 0</td></tr>
+<tr class="separator:ab39eb6d2a27009cfcd313fec96b450be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68ddc8d58f0ed6b93e24c9f2771e760c" id="r_a68ddc8d58f0ed6b93e24c9f2771e760c"><td class="memItemLeft" align="right" valign="top"><a id="a68ddc8d58f0ed6b93e24c9f2771e760c" name="a68ddc8d58f0ed6b93e24c9f2771e760c"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>selected_entrance_</b> = 0</td></tr>
+<tr class="separator:a68ddc8d58f0ed6b93e24c9f2771e760c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add759813df08b39e6e70eff9fef81ead" id="r_add759813df08b39e6e70eff9fef81ead"><td class="memItemLeft" align="right" valign="top"><a id="add759813df08b39e6e70eff9fef81ead" name="add759813df08b39e6e70eff9fef81ead"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>selected_usage_map_</b> = 0xFFFF</td></tr>
+<tr class="separator:add759813df08b39e6e70eff9fef81ead"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2803697f45b0d81418b5513653c0f91c" id="r_a2803697f45b0d81418b5513653c0f91c"><td class="memItemLeft" align="right" valign="top"><a id="a2803697f45b0d81418b5513653c0f91c" name="a2803697f45b0d81418b5513653c0f91c"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>map_gfx_</b> [3] = &quot;&quot;</td></tr>
+<tr class="separator:a2803697f45b0d81418b5513653c0f91c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97fd1f1c37532c84097d38af97974a85" id="r_a97fd1f1c37532c84097d38af97974a85"><td class="memItemLeft" align="right" valign="top"><a id="a97fd1f1c37532c84097d38af97974a85" name="a97fd1f1c37532c84097d38af97974a85"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>map_palette_</b> [3] = &quot;&quot;</td></tr>
+<tr class="separator:a97fd1f1c37532c84097d38af97974a85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf84910977821e161042442e64b299d5" id="r_aaf84910977821e161042442e64b299d5"><td class="memItemLeft" align="right" valign="top"><a id="aaf84910977821e161042442e64b299d5" name="aaf84910977821e161042442e64b299d5"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>spr_gfx_</b> [3] = &quot;&quot;</td></tr>
+<tr class="separator:aaf84910977821e161042442e64b299d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5724be9460dadba266d46e6aa2b21a6" id="r_ad5724be9460dadba266d46e6aa2b21a6"><td class="memItemLeft" align="right" valign="top"><a id="ad5724be9460dadba266d46e6aa2b21a6" name="ad5724be9460dadba266d46e6aa2b21a6"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>spr_palette_</b> [3] = &quot;&quot;</td></tr>
+<tr class="separator:ad5724be9460dadba266d46e6aa2b21a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8030d9aaceed8d612d64b2567fdd6c12" id="r_a8030d9aaceed8d612d64b2567fdd6c12"><td class="memItemLeft" align="right" valign="top"><a id="a8030d9aaceed8d612d64b2567fdd6c12" name="a8030d9aaceed8d612d64b2567fdd6c12"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>message_id_</b> [5] = &quot;&quot;</td></tr>
+<tr class="separator:a8030d9aaceed8d612d64b2567fdd6c12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad286811de6fd19191bc31071660b91d7" id="r_ad286811de6fd19191bc31071660b91d7"><td class="memItemLeft" align="right" valign="top"><a id="ad286811de6fd19191bc31071660b91d7" name="ad286811de6fd19191bc31071660b91d7"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>staticgfx</b> [16]</td></tr>
+<tr class="separator:ad286811de6fd19191bc31071660b91d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb8929d5ba09dc2e5b4e094837740f16" id="r_abb8929d5ba09dc2e5b4e094837740f16"><td class="memItemLeft" align="right" valign="top"><a id="abb8929d5ba09dc2e5b4e094837740f16" name="abb8929d5ba09dc2e5b4e094837740f16"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>tilemap_file_offset_high_</b> = 0</td></tr>
+<tr class="separator:abb8929d5ba09dc2e5b4e094837740f16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa79a2422b67958d2d0df8b345206e1e6" id="r_aa79a2422b67958d2d0df8b345206e1e6"><td class="memItemLeft" align="right" valign="top"><a id="aa79a2422b67958d2d0df8b345206e1e6" name="aa79a2422b67958d2d0df8b345206e1e6"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>tilemap_file_offset_low_</b> = 0</td></tr>
+<tr class="separator:aa79a2422b67958d2d0df8b345206e1e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5a24f68bf8ab1a9aa7f7f0c95d1dbed" id="r_ad5a24f68bf8ab1a9aa7f7f0c95d1dbed"><td class="memItemLeft" align="right" valign="top"><a id="ad5a24f68bf8ab1a9aa7f7f0c95d1dbed" name="ad5a24f68bf8ab1a9aa7f7f0c95d1dbed"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>light_maps_to_load_</b> = 0x51</td></tr>
+<tr class="separator:ad5a24f68bf8ab1a9aa7f7f0c95d1dbed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ff17360fae7af2f1af81b14d0f5334c" id="r_a2ff17360fae7af2f1af81b14d0f5334c"><td class="memItemLeft" align="right" valign="top"><a id="a2ff17360fae7af2f1af81b14d0f5334c" name="a2ff17360fae7af2f1af81b14d0f5334c"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dark_maps_to_load_</b> = 0x2A</td></tr>
+<tr class="separator:a2ff17360fae7af2f1af81b14d0f5334c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f0290213e09c8c49cb86e1a7b36f6ed" id="r_a3f0290213e09c8c49cb86e1a7b36f6ed"><td class="memItemLeft" align="right" valign="top"><a id="a3f0290213e09c8c49cb86e1a7b36f6ed" name="a3f0290213e09c8c49cb86e1a7b36f6ed"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>sp_maps_to_load_</b> = 0x07</td></tr>
+<tr class="separator:a3f0290213e09c8c49cb86e1a7b36f6ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e992beae0b3f30958670d4459d45866" id="r_a9e992beae0b3f30958670d4459d45866"><td class="memItemLeft" align="right" valign="top"><a id="a9e992beae0b3f30958670d4459d45866" name="a9e992beae0b3f30958670d4459d45866"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>opt_enable_grid</b> = true</td></tr>
+<tr class="separator:a9e992beae0b3f30958670d4459d45866"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a456f72d7d33608d4126305abeccb8eaf" id="r_a456f72d7d33608d4126305abeccb8eaf"><td class="memItemLeft" align="right" valign="top"><a id="a456f72d7d33608d4126305abeccb8eaf" name="a456f72d7d33608d4126305abeccb8eaf"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>all_gfx_loaded_</b> = false</td></tr>
+<tr class="separator:a456f72d7d33608d4126305abeccb8eaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafc4e7a6085dfa2187adb8312025d3de" id="r_aafc4e7a6085dfa2187adb8312025d3de"><td class="memItemLeft" align="right" valign="top"><a id="aafc4e7a6085dfa2187adb8312025d3de" name="aafc4e7a6085dfa2187adb8312025d3de"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>map_blockset_loaded_</b> = false</td></tr>
+<tr class="separator:aafc4e7a6085dfa2187adb8312025d3de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecb9c1d49117b95185b01a12cdfabb13" id="r_aecb9c1d49117b95185b01a12cdfabb13"><td class="memItemLeft" align="right" valign="top"><a id="aecb9c1d49117b95185b01a12cdfabb13" name="aecb9c1d49117b95185b01a12cdfabb13"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>selected_tile_loaded_</b> = false</td></tr>
+<tr class="separator:aecb9c1d49117b95185b01a12cdfabb13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab905ff3378023e38542c9defb8e9aeab" id="r_ab905ff3378023e38542c9defb8e9aeab"><td class="memItemLeft" align="right" valign="top"><a id="ab905ff3378023e38542c9defb8e9aeab" name="ab905ff3378023e38542c9defb8e9aeab"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>update_selected_tile_</b> = true</td></tr>
+<tr class="separator:ab905ff3378023e38542c9defb8e9aeab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea745186c67d0984dd80d52ecd14b7d1" id="r_aea745186c67d0984dd80d52ecd14b7d1"><td class="memItemLeft" align="right" valign="top"><a id="aea745186c67d0984dd80d52ecd14b7d1" name="aea745186c67d0984dd80d52ecd14b7d1"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_dragging_entrance_</b> = false</td></tr>
+<tr class="separator:aea745186c67d0984dd80d52ecd14b7d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a263ecc05cf2623caecd1ba30c321e6af" id="r_a263ecc05cf2623caecd1ba30c321e6af"><td class="memItemLeft" align="right" valign="top"><a id="a263ecc05cf2623caecd1ba30c321e6af" name="a263ecc05cf2623caecd1ba30c321e6af"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>show_tile16_editor_</b> = false</td></tr>
+<tr class="separator:a263ecc05cf2623caecd1ba30c321e6af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a494b7928f0221c6991dd0a67b0b5a32c" id="r_a494b7928f0221c6991dd0a67b0b5a32c"><td class="memItemLeft" align="right" valign="top"><a id="a494b7928f0221c6991dd0a67b0b5a32c" name="a494b7928f0221c6991dd0a67b0b5a32c"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>show_gfx_group_editor_</b> = false</td></tr>
+<tr class="separator:a494b7928f0221c6991dd0a67b0b5a32c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5585c043c2c6ae59e363ff07b6158fc" id="r_af5585c043c2c6ae59e363ff07b6158fc"><td class="memItemLeft" align="right" valign="top"><a id="af5585c043c2c6ae59e363ff07b6158fc" name="af5585c043c2c6ae59e363ff07b6158fc"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>overworld_canvas_fullscreen_</b> = false</td></tr>
+<tr class="separator:af5585c043c2c6ae59e363ff07b6158fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab25c3aaa5f1c50d124b538def41e0486" id="r_ab25c3aaa5f1c50d124b538def41e0486"><td class="memItemLeft" align="right" valign="top"><a id="ab25c3aaa5f1c50d124b538def41e0486" name="ab25c3aaa5f1c50d124b538def41e0486"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>middle_mouse_dragging_</b> = false</td></tr>
+<tr class="separator:ab25c3aaa5f1c50d124b538def41e0486"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c3cd3668c3e5769e1ad7196b091fc4e" id="r_a6c3cd3668c3e5769e1ad7196b091fc4e"><td class="memItemLeft" align="right" valign="top"><a id="a6c3cd3668c3e5769e1ad7196b091fc4e" name="a6c3cd3668c3e5769e1ad7196b091fc4e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_dragging_entity_</b> = false</td></tr>
+<tr class="separator:a6c3cd3668c3e5769e1ad7196b091fc4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2b83414f3578ce175d7afe7c91a3afc" id="r_ac2b83414f3578ce175d7afe7c91a3afc"><td class="memItemLeft" align="right" valign="top"><a id="ac2b83414f3578ce175d7afe7c91a3afc" name="ac2b83414f3578ce175d7afe7c91a3afc"></a>
+<a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html">zelda3::OverworldEntity</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>dragged_entity_</b></td></tr>
+<tr class="separator:ac2b83414f3578ce175d7afe7c91a3afc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa36faed1c94e825efb302dbd9a85c7ec" id="r_aa36faed1c94e825efb302dbd9a85c7ec"><td class="memItemLeft" align="right" valign="top"><a id="aa36faed1c94e825efb302dbd9a85c7ec" name="aa36faed1c94e825efb302dbd9a85c7ec"></a>
+<a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html">zelda3::OverworldEntity</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>current_entity_</b></td></tr>
+<tr class="separator:aa36faed1c94e825efb302dbd9a85c7ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2198ae4e172152af0e7329605fcaf84" id="r_aa2198ae4e172152af0e7329605fcaf84"><td class="memItemLeft" align="right" valign="top"><a id="aa2198ae4e172152af0e7329605fcaf84" name="aa2198ae4e172152af0e7329605fcaf84"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_entrance_id_</b> = 0</td></tr>
+<tr class="separator:aa2198ae4e172152af0e7329605fcaf84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb3cca0a4b35ca782ff00e7da4d11e16" id="r_abb3cca0a4b35ca782ff00e7da4d11e16"><td class="memItemLeft" align="right" valign="top"><a id="abb3cca0a4b35ca782ff00e7da4d11e16" name="abb3cca0a4b35ca782ff00e7da4d11e16"></a>
+<a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldEntrance.html">zelda3::OverworldEntrance</a>&#160;</td><td class="memItemRight" valign="bottom"><b>current_entrance_</b></td></tr>
+<tr class="separator:abb3cca0a4b35ca782ff00e7da4d11e16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5aefbbc68b50c22e61aa78c0277864ad" id="r_a5aefbbc68b50c22e61aa78c0277864ad"><td class="memItemLeft" align="right" valign="top"><a id="a5aefbbc68b50c22e61aa78c0277864ad" name="a5aefbbc68b50c22e61aa78c0277864ad"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_exit_id_</b> = 0</td></tr>
+<tr class="separator:a5aefbbc68b50c22e61aa78c0277864ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0df98e6406f73e6141f0666ffd9b910" id="r_ab0df98e6406f73e6141f0666ffd9b910"><td class="memItemLeft" align="right" valign="top"><a id="ab0df98e6406f73e6141f0666ffd9b910" name="ab0df98e6406f73e6141f0666ffd9b910"></a>
+<a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldExit.html">zelda3::OverworldExit</a>&#160;</td><td class="memItemRight" valign="bottom"><b>current_exit_</b></td></tr>
+<tr class="separator:ab0df98e6406f73e6141f0666ffd9b910"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9415ad1fcef4bc909ecd9946cf7a716" id="r_ab9415ad1fcef4bc909ecd9946cf7a716"><td class="memItemLeft" align="right" valign="top"><a id="ab9415ad1fcef4bc909ecd9946cf7a716" name="ab9415ad1fcef4bc909ecd9946cf7a716"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_item_id_</b> = 0</td></tr>
+<tr class="separator:ab9415ad1fcef4bc909ecd9946cf7a716"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfc299eefea5599ae8749a69891406bc" id="r_acfc299eefea5599ae8749a69891406bc"><td class="memItemLeft" align="right" valign="top"><a id="acfc299eefea5599ae8749a69891406bc" name="acfc299eefea5599ae8749a69891406bc"></a>
+<a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldItem.html">zelda3::OverworldItem</a>&#160;</td><td class="memItemRight" valign="bottom"><b>current_item_</b></td></tr>
+<tr class="separator:acfc299eefea5599ae8749a69891406bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a881d4b26e29e7b76c61e1de54070bc56" id="r_a881d4b26e29e7b76c61e1de54070bc56"><td class="memItemLeft" align="right" valign="top"><a id="a881d4b26e29e7b76c61e1de54070bc56" name="a881d4b26e29e7b76c61e1de54070bc56"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>current_sprite_id_</b> = 0</td></tr>
+<tr class="separator:a881d4b26e29e7b76c61e1de54070bc56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b09361afc82a5931da7a7a483a0229d" id="r_a3b09361afc82a5931da7a7a483a0229d"><td class="memItemLeft" align="right" valign="top"><a id="a3b09361afc82a5931da7a7a483a0229d" name="a3b09361afc82a5931da7a7a483a0229d"></a>
+<a class="el" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html">zelda3::Sprite</a>&#160;</td><td class="memItemRight" valign="bottom"><b>current_sprite_</b></td></tr>
+<tr class="separator:a3b09361afc82a5931da7a7a483a0229d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a7b496c6477ce3b04851ea6d287f26a" id="r_a1a7b496c6477ce3b04851ea6d287f26a"><td class="memItemLeft" align="right" valign="top"><a id="a1a7b496c6477ce3b04851ea6d287f26a" name="a1a7b496c6477ce3b04851ea6d287f26a"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>show_experimental</b> = false</td></tr>
+<tr class="separator:a1a7b496c6477ce3b04851ea6d287f26a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89120f7ab240957c5c33e58f5285b9d8" id="r_a89120f7ab240957c5c33e58f5285b9d8"><td class="memItemLeft" align="right" valign="top"><a id="a89120f7ab240957c5c33e58f5285b9d8" name="a89120f7ab240957c5c33e58f5285b9d8"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>ow_tilemap_filename_</b> = &quot;&quot;</td></tr>
+<tr class="separator:a89120f7ab240957c5c33e58f5285b9d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca48091aed81cf8836e625aabdd99e79" id="r_aca48091aed81cf8836e625aabdd99e79"><td class="memItemLeft" align="right" valign="top"><a id="aca48091aed81cf8836e625aabdd99e79" name="aca48091aed81cf8836e625aabdd99e79"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>tile32_configuration_filename_</b> = &quot;&quot;</td></tr>
+<tr class="separator:aca48091aed81cf8836e625aabdd99e79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00249d62534ff44c18c5bd82dc8e566d" id="r_a00249d62534ff44c18c5bd82dc8e566d"><td class="memItemLeft" align="right" valign="top"><a id="a00249d62534ff44c18c5bd82dc8e566d" name="a00249d62534ff44c18c5bd82dc8e566d"></a>
+Bytes&#160;</td><td class="memItemRight" valign="bottom"><b>selected_tile_data_</b></td></tr>
+<tr class="separator:a00249d62534ff44c18c5bd82dc8e566d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a557dfd9e0cd47657fa965d5263e7c17a" id="r_a557dfd9e0cd47657fa965d5263e7c17a"><td class="memItemLeft" align="right" valign="top"><a id="a557dfd9e0cd47657fa965d5263e7c17a" name="a557dfd9e0cd47657fa965d5263e7c17a"></a>
+std::vector&lt; Bytes &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tile16_individual_data_</b></td></tr>
+<tr class="separator:a557dfd9e0cd47657fa965d5263e7c17a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a246940a0d6e4a3a24a7b83d9787fbed4" id="r_a246940a0d6e4a3a24a7b83d9787fbed4"><td class="memItemLeft" align="right" valign="top"><a id="a246940a0d6e4a3a24a7b83d9787fbed4" name="a246940a0d6e4a3a24a7b83d9787fbed4"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tile16_individual_</b></td></tr>
+<tr class="separator:a246940a0d6e4a3a24a7b83d9787fbed4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe06e9f429add5782dd0470ef1f51ad7" id="r_afe06e9f429add5782dd0470ef1f51ad7"><td class="memItemLeft" align="right" valign="top"><a id="afe06e9f429add5782dd0470ef1f51ad7" name="afe06e9f429add5782dd0470ef1f51ad7"></a>
+std::vector&lt; Bytes &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tile8_individual_data_</b></td></tr>
+<tr class="separator:afe06e9f429add5782dd0470ef1f51ad7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa300e38953391ee9c34e01160d827466" id="r_aa300e38953391ee9c34e01160d827466"><td class="memItemLeft" align="right" valign="top"><a id="aa300e38953391ee9c34e01160d827466" name="aa300e38953391ee9c34e01160d827466"></a>
+std::vector&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tile8_individual_</b></td></tr>
+<tr class="separator:aa300e38953391ee9c34e01160d827466"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2eb2ba8f700eb980a2fcad1a0ae5e8a5" id="r_a2eb2ba8f700eb980a2fcad1a0ae5e8a5"><td class="memItemLeft" align="right" valign="top"><a id="a2eb2ba8f700eb980a2fcad1a0ae5e8a5" name="a2eb2ba8f700eb980a2fcad1a0ae5e8a5"></a>
+<a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html">Tile16Editor</a>&#160;</td><td class="memItemRight" valign="bottom"><b>tile16_editor_</b></td></tr>
+<tr class="separator:a2eb2ba8f700eb980a2fcad1a0ae5e8a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4025fc3909842afde57dd4a7fc43f610" id="r_a4025fc3909842afde57dd4a7fc43f610"><td class="memItemLeft" align="right" valign="top"><a id="a4025fc3909842afde57dd4a7fc43f610" name="a4025fc3909842afde57dd4a7fc43f610"></a>
+<a class="el" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html">GfxGroupEditor</a>&#160;</td><td class="memItemRight" valign="bottom"><b>gfx_group_editor_</b></td></tr>
+<tr class="separator:a4025fc3909842afde57dd4a7fc43f610"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3451962ae24fabb56f07eee721cce957" id="r_a3451962ae24fabb56f07eee721cce957"><td class="memItemLeft" align="right" valign="top"><a id="a3451962ae24fabb56f07eee721cce957" name="a3451962ae24fabb56f07eee721cce957"></a>
+<a class="el" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html">PaletteEditor</a>&#160;</td><td class="memItemRight" valign="bottom"><b>palette_editor_</b></td></tr>
+<tr class="separator:a3451962ae24fabb56f07eee721cce957"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05db3ec12fc318797a199ae85d55384c" id="r_a05db3ec12fc318797a199ae85d55384c"><td class="memItemLeft" align="right" valign="top"><a id="a05db3ec12fc318797a199ae85d55384c" name="a05db3ec12fc318797a199ae85d55384c"></a>
+<a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a>&#160;</td><td class="memItemRight" valign="bottom"><b>overworld_</b></td></tr>
+<tr class="separator:a05db3ec12fc318797a199ae85d55384c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a3b2cbce87c4b42102efa627db2d703" id="r_a7a3b2cbce87c4b42102efa627db2d703"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7a3b2cbce87c4b42102efa627db2d703">ow_map_canvas_</a></td></tr>
+<tr class="separator:a7a3b2cbce87c4b42102efa627db2d703"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86cb0d0293715bcf5e5104acec260da5" id="r_a86cb0d0293715bcf5e5104acec260da5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86cb0d0293715bcf5e5104acec260da5">current_gfx_canvas_</a></td></tr>
+<tr class="separator:a86cb0d0293715bcf5e5104acec260da5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f50189bfe369a28034f10a3dcd751ac" id="r_a0f50189bfe369a28034f10a3dcd751ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f50189bfe369a28034f10a3dcd751ac">blockset_canvas_</a></td></tr>
+<tr class="separator:a0f50189bfe369a28034f10a3dcd751ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48a8ea5b8d8ce02497cea50f42aff725" id="r_a48a8ea5b8d8ce02497cea50f42aff725"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a48a8ea5b8d8ce02497cea50f42aff725">graphics_bin_canvas_</a></td></tr>
+<tr class="separator:a48a8ea5b8d8ce02497cea50f42aff725"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac657f4be7ce2554fe29d7e008468d014" id="r_ac657f4be7ce2554fe29d7e008468d014"><td class="memItemLeft" align="right" valign="top"><a id="ac657f4be7ce2554fe29d7e008468d014" name="ac657f4be7ce2554fe29d7e008468d014"></a>
+<a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a>&#160;</td><td class="memItemRight" valign="bottom"><b>properties_canvas_</b></td></tr>
+<tr class="separator:ac657f4be7ce2554fe29d7e008468d014"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a394a3b5b8da3fb9e2745966385685572" id="r_a394a3b5b8da3fb9e2745966385685572"><td class="memItemLeft" align="right" valign="top"><a id="a394a3b5b8da3fb9e2745966385685572" name="a394a3b5b8da3fb9e2745966385685572"></a>
+<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&#160;</td><td class="memItemRight" valign="bottom"><b>palette_</b></td></tr>
+<tr class="separator:a394a3b5b8da3fb9e2745966385685572"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6dc0c0c4676400d5919c8f3a98c06d3d" id="r_a6dc0c0c4676400d5919c8f3a98c06d3d"><td class="memItemLeft" align="right" valign="top"><a id="a6dc0c0c4676400d5919c8f3a98c06d3d" name="a6dc0c0c4676400d5919c8f3a98c06d3d"></a>
+<a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><b>selected_tile_bmp_</b></td></tr>
+<tr class="separator:a6dc0c0c4676400d5919c8f3a98c06d3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af806dac0f56bbdfc8e2e63794959cae8" id="r_af806dac0f56bbdfc8e2e63794959cae8"><td class="memItemLeft" align="right" valign="top"><a id="af806dac0f56bbdfc8e2e63794959cae8" name="af806dac0f56bbdfc8e2e63794959cae8"></a>
+<a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><b>tile16_blockset_bmp_</b></td></tr>
+<tr class="separator:af806dac0f56bbdfc8e2e63794959cae8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdc57d40e84aa51832ceea9b44f2bd07" id="r_acdc57d40e84aa51832ceea9b44f2bd07"><td class="memItemLeft" align="right" valign="top"><a id="acdc57d40e84aa51832ceea9b44f2bd07" name="acdc57d40e84aa51832ceea9b44f2bd07"></a>
+<a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><b>current_gfx_bmp_</b></td></tr>
+<tr class="separator:acdc57d40e84aa51832ceea9b44f2bd07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c78bcf8317f3ec5dbb5ef62240c0a68" id="r_a6c78bcf8317f3ec5dbb5ef62240c0a68"><td class="memItemLeft" align="right" valign="top"><a id="a6c78bcf8317f3ec5dbb5ef62240c0a68" name="a6c78bcf8317f3ec5dbb5ef62240c0a68"></a>
+<a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><b>all_gfx_bmp</b></td></tr>
+<tr class="separator:a6c78bcf8317f3ec5dbb5ef62240c0a68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a943956d234068849aac0a0a9d225484c" id="r_a943956d234068849aac0a0a9d225484c"><td class="memItemLeft" align="right" valign="top"><a id="a943956d234068849aac0a0a9d225484c" name="a943956d234068849aac0a0a9d225484c"></a>
+gfx::BitmapTable&#160;</td><td class="memItemRight" valign="bottom"><b>maps_bmp_</b></td></tr>
+<tr class="separator:a943956d234068849aac0a0a9d225484c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30b8e64c0cf2963bca8c525288edd546" id="r_a30b8e64c0cf2963bca8c525288edd546"><td class="memItemLeft" align="right" valign="top"><a id="a30b8e64c0cf2963bca8c525288edd546" name="a30b8e64c0cf2963bca8c525288edd546"></a>
+gfx::BitmapTable&#160;</td><td class="memItemRight" valign="bottom"><b>graphics_bin_</b></td></tr>
+<tr class="separator:a30b8e64c0cf2963bca8c525288edd546"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b4d5ac837a2450be390e37b4c648dc1" id="r_a2b4d5ac837a2450be390e37b4c648dc1"><td class="memItemLeft" align="right" valign="top"><a id="a2b4d5ac837a2450be390e37b4c648dc1" name="a2b4d5ac837a2450be390e37b4c648dc1"></a>
+gfx::BitmapTable&#160;</td><td class="memItemRight" valign="bottom"><b>current_graphics_set_</b></td></tr>
+<tr class="separator:a2b4d5ac837a2450be390e37b4c648dc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2f9ccf2715ea7e4f64a50354fbb34d0" id="r_ad2f9ccf2715ea7e4f64a50354fbb34d0"><td class="memItemLeft" align="right" valign="top"><a id="ad2f9ccf2715ea7e4f64a50354fbb34d0" name="ad2f9ccf2715ea7e4f64a50354fbb34d0"></a>
+gfx::BitmapTable&#160;</td><td class="memItemRight" valign="bottom"><b>sprite_previews_</b></td></tr>
+<tr class="separator:ad2f9ccf2715ea7e4f64a50354fbb34d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c7747dc9ab3ae6a3f521f2c55038165" id="r_a8c7747dc9ab3ae6a3f521f2c55038165"><td class="memItemLeft" align="right" valign="top"><a id="a8c7747dc9ab3ae6a3f521f2c55038165" name="a8c7747dc9ab3ae6a3f521f2c55038165"></a>
+gfx::BitmapTable&#160;</td><td class="memItemRight" valign="bottom"><b>animated_maps_</b></td></tr>
+<tr class="separator:a8c7747dc9ab3ae6a3f521f2c55038165"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9de06aac79d57f095bf23e1c417a3640" id="r_a9de06aac79d57f095bf23e1c417a3640"><td class="memItemLeft" align="right" valign="top"><a id="a9de06aac79d57f095bf23e1c417a3640" name="a9de06aac79d57f095bf23e1c417a3640"></a>
+absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>status_</b></td></tr>
+<tr class="separator:a9de06aac79d57f095bf23e1c417a3640"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_static_attribs_classyaze_1_1app_1_1SharedROM"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_attribs_classyaze_1_1app_1_1SharedROM')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="classyaze_1_1app_1_1SharedROM.html">yaze::app::SharedROM</a></td></tr>
 <tr class="memitem:a04a68e64869a37ef3ada28571dfbbc39 inherit pub_static_attribs_classyaze_1_1app_1_1SharedROM" id="r_a04a68e64869a37ef3ada28571dfbbc39"><td class="memItemLeft" align="right" valign="top">
 static std::shared_ptr&lt; <a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>shared_rom_</b> = nullptr</td></tr>
 <tr class="separator:a04a68e64869a37ef3ada28571dfbbc39 inherit pub_static_attribs_classyaze_1_1app_1_1SharedROM"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_static_attribs_classyaze_1_1app_1_1editor_1_1GfxContext"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_static_attribs_classyaze_1_1app_1_1editor_1_1GfxContext')"><img src="closed.png" alt="-"/>&#160;Static Protected Attributes inherited from <a class="el" href="classyaze_1_1app_1_1editor_1_1GfxContext.html">yaze::app::editor::GfxContext</a></td></tr>
-<tr class="memitem:aa0d870c6ba291ee2408efd8afef0737b inherit pro_static_attribs_classyaze_1_1app_1_1editor_1_1GfxContext" id="r_aa0d870c6ba291ee2408efd8afef0737b"><td class="memItemLeft" align="right" valign="top">
+<tr class="inherit_header pro_static_attribs_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_static_attribs_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext')"><img src="closed.png" alt="-"/>&#160;Static Protected Attributes inherited from <a class="el" href="classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html">yaze::app::editor::context::GfxContext</a></td></tr>
+<tr class="memitem:a1ac3fd014c96b97454460246b20fb65c inherit pro_static_attribs_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext" id="r_a1ac3fd014c96b97454460246b20fb65c"><td class="memItemLeft" align="right" valign="top">
 static std::unordered_map&lt; uint8_t, <a class="el" href="structyaze_1_1app_1_1gfx_1_1Paletteset.html">gfx::Paletteset</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>palettesets_</b></td></tr>
-<tr class="separator:aa0d870c6ba291ee2408efd8afef0737b inherit pro_static_attribs_classyaze_1_1app_1_1editor_1_1GfxContext"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a1ac3fd014c96b97454460246b20fb65c inherit pro_static_attribs_classyaze_1_1app_1_1editor_1_1context_1_1GfxContext"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a516cf46888633c8abccd6e2a70d83940" name="a516cf46888633c8abccd6e2a70d83940"></a>
@@ -295,6 +726,32 @@ static std::unordered_map&lt; uint8_t, <a class="el" href="structyaze_1_1app_1_1
 
 </div>
 </div>
+<a id="abfb4edfdd1ac731feb7a284a839fdd33" name="abfb4edfdd1ac731feb7a284a839fdd33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abfb4edfdd1ac731feb7a284a839fdd33">&#9670;&#160;</a></span>RefreshMapPalette()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::editor::OverworldEditor::RefreshMapPalette </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000011">Todo</a></b></dt><dd>: Palette throws out of bounds error unexpectedly. </dd></dl>
+
+</div>
+</div>
 <a id="ab28e9f8c4ef4f48f71939b37f8fbd253" name="ab28e9f8c4ef4f48f71939b37f8fbd253"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab28e9f8c4ef4f48f71939b37f8fbd253">&#9670;&#160;</a></span>Undo()</h2>
 
@@ -347,6 +804,104 @@ static std::unordered_map&lt; uint8_t, <a class="el" href="structyaze_1_1app_1_1
 
 <p>Implements <a class="el" href="classEditor.html">Editor</a>.</p>
 
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a0f50189bfe369a28034f10a3dcd751ac" name="a0f50189bfe369a28034f10a3dcd751ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f50189bfe369a28034f10a3dcd751ac">&#9670;&#160;</a></span>blockset_canvas_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::OverworldEditor::blockset_canvas_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{ImVec2(0x100 + 1, 0x2000 + 1),</div>
+<div class="line">                               gui::CanvasGridSize::k32x32}</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a86cb0d0293715bcf5e5104acec260da5" name="a86cb0d0293715bcf5e5104acec260da5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86cb0d0293715bcf5e5104acec260da5">&#9670;&#160;</a></span>current_gfx_canvas_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::OverworldEditor::current_gfx_canvas_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{ImVec2(0x100 + 1, 0x10 * 0x40 + 1),</div>
+<div class="line">                                  gui::CanvasGridSize::k32x32}</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a48a8ea5b8d8ce02497cea50f42aff725" name="a48a8ea5b8d8ce02497cea50f42aff725"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48a8ea5b8d8ce02497cea50f42aff725">&#9670;&#160;</a></span>graphics_bin_canvas_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::OverworldEditor::graphics_bin_canvas_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{</div>
+<div class="line">      ImVec2(0x100 + 1, kNumSheetsToLoad * 0x40 + 1),</div>
+<div class="line">      gui::CanvasGridSize::k16x16}</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a7a3b2cbce87c4b42102efa627db2d703" name="a7a3b2cbce87c4b42102efa627db2d703"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a3b2cbce87c4b42102efa627db2d703">&#9670;&#160;</a></span>ow_map_canvas_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::OverworldEditor::ow_map_canvas_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{ImVec2(0x200 * 8, 0x200 * 8),</div>
+<div class="line">                             gui::CanvasGridSize::k64x64}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>

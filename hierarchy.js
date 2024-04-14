@@ -15,6 +15,7 @@ var hierarchy =
     [ "yaze::app::gfx::Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", null ],
     [ "yaze::app::gfx::BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", null ],
     [ "yaze::app::gui::BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", null ],
+    [ "yaze::app::emu::Emulator::Bookmark", "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html", null ],
     [ "yaze::app::gui::Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", null ],
     [ "yaze::app::emu::PpuRegisters::CGADD", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1CGADD.html", null ],
     [ "yaze::app::emu::PpuRegisters::CGADSUB", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1CGADSUB.html", null ],
@@ -63,7 +64,7 @@ var hierarchy =
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
-    [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
+    [ "yaze::app::editor::context::EntranceContext", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
     [ "yaze::app::core::ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", [
@@ -78,7 +79,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::core::ExperimentFlags::Flags", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::app::emu::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1Spc700_1_1Flags.html", null ],
-    [ "yaze::app::editor::GfxContext", "classyaze_1_1app_1_1editor_1_1GfxContext.html", [
+    [ "yaze::app::editor::context::GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", [
       [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
@@ -87,6 +88,7 @@ var hierarchy =
     [ "yaze::app::core::ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
     [ "yaze::app::emu::PpuRegisters::INIDISP", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1INIDISP.html", null ],
     [ "yaze::app::emu::InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", null ],
+    [ "yaze::app::gfx::Tilesheet::InternalTile16", "structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16.html", null ],
     [ "yaze::app::emu::JoypadRegisters", "structyaze_1_1app_1_1emu_1_1JoypadRegisters.html", null ],
     [ "yaze::app::emu::Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", [
       [ "yaze::app::emu::CPU", "classyaze_1_1app_1_1emu_1_1CPU.html", null ],
@@ -129,7 +131,7 @@ var hierarchy =
     [ "yaze::app::emu::PpuRegisters::OAMDATA", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1OAMDATA.html", null ],
     [ "yaze::app::emu::PpuRegisters::OAMDATAREAD", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1OAMDATAREAD.html", null ],
     [ "yaze::app::emu::OAMSize", "structyaze_1_1app_1_1emu_1_1OAMSize.html", null ],
-    [ "yaze::app::gfx::OAMTile", "classyaze_1_1app_1_1gfx_1_1OAMTile.html", null ],
+    [ "yaze::app::gfx::OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", null ],
     [ "yaze::app::zelda3::dungeon::object_door", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html", null ],
     [ "yaze::app::emu::PpuRegisters::OBJSEL", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1OBJSEL.html", null ],
     [ "yaze::app::emu::Observer", "classyaze_1_1app_1_1emu_1_1Observer.html", [
@@ -146,20 +148,25 @@ var hierarchy =
       [ "yaze::app::zelda3::Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", null ]
     ] ],
     [ "OWMapTiles", "structOWMapTiles.html", null ],
-    [ "yaze::app::editor::PaletteChange", "structyaze_1_1app_1_1editor_1_1PaletteChange.html", null ],
-    [ "yaze::app::editor::PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1PaletteEditorHistory.html", null ],
+    [ "yaze::app::editor::palette_internal::PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
+    [ "yaze::app::editor::palette_internal::PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", null ],
     [ "yaze::app::gfx::PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", null ],
     [ "yaze::app::gfx::Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::app::emu::PpuInterface", "classyaze_1_1app_1_1emu_1_1PpuInterface.html", [
       [ "yaze::app::emu::MockPpu", "classyaze_1_1app_1_1emu_1_1MockPpu.html", null ]
     ] ],
     [ "yaze::app::zelda3::dungeon::PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
+    [ "yaze::app::editor::anonymous_namespace{master_editor.cc}::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
+    [ "yaze::app::core::ResourceLabelManager::ResourceType", "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::app::emu::ROMInfo", "classyaze_1_1app_1_1emu_1_1ROMInfo.html", null ],
     [ "yaze::app::zelda3::dungeon::RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", null ],
     [ "yaze::app::emu::ScreenDisplay", "structyaze_1_1app_1_1emu_1_1ScreenDisplay.html", null ],
     [ "yaze::app::emu::ScreenMode", "structyaze_1_1app_1_1emu_1_1ScreenMode.html", null ],
     [ "yaze::app::emu::ScrollRegister", "structyaze_1_1app_1_1emu_1_1ScrollRegister.html", null ],
+    [ "yaze::app::core::Controller::sdl_deleter", "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter.html", null ],
+    [ "yaze::app::gfx::Bitmap::SDL_Surface_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html", null ],
+    [ "yaze::app::gfx::Bitmap::SDL_Texture_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter.html", null ],
     [ "yaze::app::emu::PpuRegisters::SETINI", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1SETINI.html", null ],
     [ "yaze::app::SharedROM", "classyaze_1_1app_1_1SharedROM.html", [
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
@@ -228,6 +235,7 @@ var hierarchy =
     [ "yaze::app::emu::PpuRegisters::VMDATA", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATA.html", null ],
     [ "yaze::app::emu::PpuRegisters::VMDATAHREAD", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATAHREAD.html", null ],
     [ "yaze::app::emu::PpuRegisters::VMDATALREAD", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATALREAD.html", null ],
+    [ "yaze::app::emu::DigitalSignalProcessor::Voice", "structyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice.html", null ],
     [ "yaze::app::emu::PpuRegisters::W12SEL", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1W12SEL.html", null ],
     [ "yaze::app::emu::PpuRegisters::W34SEL", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1W34SEL.html", null ],
     [ "yaze::app::emu::PpuRegisters::WBGLOG", "structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WBGLOG.html", null ],

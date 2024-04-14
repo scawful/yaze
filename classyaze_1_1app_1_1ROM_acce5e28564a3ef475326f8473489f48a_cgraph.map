@@ -1,0 +1,5 @@
+<map id="yaze::app::ROM::LoadFromFile" name="yaze::app::ROM::LoadFromFile">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,202,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#a92a606a412188dbd015e1949380f6eff" title="Loads all the palettes for the game." alt="" coords="250,5,458,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,16,234,16,234,21,202,21"/>
+</map>

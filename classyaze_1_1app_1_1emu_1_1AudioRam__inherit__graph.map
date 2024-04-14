@@ -1,0 +1,7 @@
+<map id="yaze::app::emu::AudioRam" name="yaze::app::emu::AudioRam">
+<area shape="rect" id="Node000001" title=" " alt="" coords="130,5,301,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1AudioRamImpl.html" title=" " alt="" coords="5,79,202,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,42,124,81,121,76,182,37"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1MockAudioRam.html" title=" " alt="" coords="226,79,429,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="249,37,310,76,307,81,246,42"/>
+</map>

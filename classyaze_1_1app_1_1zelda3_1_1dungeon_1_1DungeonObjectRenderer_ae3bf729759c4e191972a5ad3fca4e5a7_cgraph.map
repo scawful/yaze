@@ -1,0 +1,5 @@
+<map id="yaze::app::zelda3::dungeon::DungeonObjectRenderer::RenderObject" name="yaze::app::zelda3::dungeon::DungeonObjectRenderer::RenderObject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,223,61"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1CPU.html#a1e5f518fb904e8fca7e5deccacbe283b" title=" " alt="" coords="271,13,410,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,31,255,31,255,36,223,36"/>
+</map>

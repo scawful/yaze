@@ -17,7 +17,7 @@ var searchData=
   ['clockimpl_14',['ClockImpl',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html',1,'yaze::app::emu']]],
   ['coldata_15',['COLDATA',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1COLDATA.html',1,'yaze::app::emu::PpuRegisters']]],
   ['color_16',['Color',['../structyaze_1_1app_1_1emu_1_1Color.html',1,'yaze::app::emu']]],
-  ['colors_17',['colors',['../structyaze_1_1app_1_1gfx_1_1snes__palette.html#affac73ef085eaaaf92113e623ee2307d',1,'yaze::app::gfx::snes_palette']]],
+  ['colors_17',['colors',['../structyaze_1_1app_1_1gfx_1_1snes__palette.html#affac73ef085eaaaf92113e623ee2307d',1,'yaze::app::gfx::snes_palette::colors'],['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ab8bb32620706bf13950878d36c1a773c',1,'yaze::app::gfx::SnesPalette::colors']]],
   ['commandhandler_18',['CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html',1,'yaze::cli']]],
   ['commands_19',['Commands',['../structyaze_1_1cli_1_1Commands.html',1,'yaze::cli']]],
   ['compress_20',['Compress',['../classyaze_1_1cli_1_1Compress.html',1,'yaze::cli']]],
@@ -36,5 +36,7 @@ var searchData=
   ['counterirqnmiregisters_33',['CounterIrqNmiRegisters',['../structyaze_1_1app_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::app::emu']]],
   ['cpu_34',['CPU',['../classyaze_1_1app_1_1emu_1_1CPU.html',1,'yaze::app::emu']]],
   ['cputest_35',['CPUTest',['../classyaze_1_1app_1_1emu_1_1CPUTest.html',1,'yaze::app::emu']]],
-  ['createpatch_36',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['create_36',['Create',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb',1,'yaze::app::gfx::Bitmap::Create(int width, int height, int depth, int data_size)'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec',1,'yaze::app::gfx::Bitmap::Create(int width, int height, int depth, const Bytes &amp;data)']]],
+  ['createpatch_37',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]],
+  ['createtexture_38',['CreateTexture',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511',1,'yaze::app::gfx::Bitmap']]]
 ];

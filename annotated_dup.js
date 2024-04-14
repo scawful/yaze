@@ -3,32 +3,39 @@ var annotated_dup =
     [ "yaze", null, [
       [ "app", null, [
         [ "core", null, [
-          [ "Controller", "classyaze_1_1app_1_1core_1_1Controller.html", null ],
+          [ "Controller", "classyaze_1_1app_1_1core_1_1Controller.html", "classyaze_1_1app_1_1core_1_1Controller" ],
           [ "ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", "classyaze_1_1app_1_1core_1_1ExperimentFlags" ],
           [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
-          [ "ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
+          [ "ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "classyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
           [ "TaskCheckpoint", "structyaze_1_1app_1_1core_1_1TaskCheckpoint.html", null ],
           [ "TaskManager", "classyaze_1_1app_1_1core_1_1TaskManager.html", null ],
           [ "TaskTimer", "classyaze_1_1app_1_1core_1_1TaskTimer.html", null ]
         ] ],
         [ "editor", null, [
+          [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", [
+            [ "RecentFilesManager", "classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html", null ]
+          ] ],
+          [ "context", null, [
+            [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html", null ],
+            [ "GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", null ]
+          ] ],
+          [ "palette_internal", null, [
+            [ "PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
+            [ "PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", null ]
+          ] ],
           [ "sprite_internal", null, [
             [ "SpriteItem", "structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html", null ]
           ] ],
-          [ "AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", null ],
-          [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
-          [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", null ],
-          [ "GfxContext", "classyaze_1_1app_1_1editor_1_1GfxContext.html", null ],
+          [ "AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", "classyaze_1_1app_1_1editor_1_1AssemblyEditor" ],
+          [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
           [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", null ],
           [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", null ],
-          [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
+          [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
           [ "MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", null ],
-          [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
-          [ "PaletteChange", "structyaze_1_1app_1_1editor_1_1PaletteChange.html", null ],
+          [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
           [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", null ],
-          [ "PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1PaletteEditorHistory.html", null ],
           [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", null ],
           [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ],
           [ "Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", "classyaze_1_1app_1_1editor_1_1Tile16Editor" ]
@@ -102,10 +109,10 @@ var annotated_dup =
           [ "CPU", "classyaze_1_1app_1_1emu_1_1CPU.html", "classyaze_1_1app_1_1emu_1_1CPU" ],
           [ "CPUTest", "classyaze_1_1app_1_1emu_1_1CPUTest.html", null ],
           [ "Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", null ],
-          [ "DigitalSignalProcessor", "classyaze_1_1app_1_1emu_1_1DigitalSignalProcessor.html", null ],
+          [ "DigitalSignalProcessor", "classyaze_1_1app_1_1emu_1_1DigitalSignalProcessor.html", "classyaze_1_1app_1_1emu_1_1DigitalSignalProcessor" ],
           [ "DMA", "classyaze_1_1app_1_1emu_1_1DMA.html", "classyaze_1_1app_1_1emu_1_1DMA" ],
           [ "DmaRegisters", "structyaze_1_1app_1_1emu_1_1DmaRegisters.html", null ],
-          [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", null ],
+          [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", "classyaze_1_1app_1_1emu_1_1Emulator" ],
           [ "InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", null ],
           [ "JoypadRegisters", "structyaze_1_1app_1_1emu_1_1JoypadRegisters.html", null ],
           [ "Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", null ],
@@ -146,21 +153,21 @@ var annotated_dup =
             [ "CompressionContext", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html", null ],
             [ "CompressionPiece", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ]
           ] ],
-          [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", null ],
+          [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
           [ "BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", null ],
           [ "CgxHeader", "structyaze_1_1app_1_1gfx_1_1CgxHeader.html", null ],
-          [ "OAMTile", "classyaze_1_1app_1_1gfx_1_1OAMTile.html", null ],
+          [ "OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", null ],
           [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", null ],
           [ "Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", null ],
           [ "snes_color", "structyaze_1_1app_1_1gfx_1_1snes__color.html", "structyaze_1_1app_1_1gfx_1_1snes__color" ],
           [ "snes_palette", "structyaze_1_1app_1_1gfx_1_1snes__palette.html", "structyaze_1_1app_1_1gfx_1_1snes__palette" ],
           [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", null ],
-          [ "SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", null ],
+          [ "SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", "classyaze_1_1app_1_1gfx_1_1SnesPalette" ],
           [ "Tile16", "classyaze_1_1app_1_1gfx_1_1Tile16.html", null ],
           [ "Tile32", "classyaze_1_1app_1_1gfx_1_1Tile32.html", null ],
           [ "tile8", "structyaze_1_1app_1_1gfx_1_1tile8.html", null ],
           [ "TileInfo", "classyaze_1_1app_1_1gfx_1_1TileInfo.html", null ],
-          [ "Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html", null ]
+          [ "Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html", "classyaze_1_1app_1_1gfx_1_1Tilesheet" ]
         ] ],
         [ "gui", null, [
           [ "BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", null ],
@@ -171,7 +178,7 @@ var annotated_dup =
           [ "dungeon", null, [
             [ "ChestData", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html", null ],
             [ "DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", null ],
-            [ "DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", null ],
+            [ "DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer" ],
             [ "object_door", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html", null ],
             [ "PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
             [ "Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room" ],
@@ -194,7 +201,7 @@ var annotated_dup =
           [ "OverworldItem", "classyaze_1_1app_1_1zelda3_1_1OverworldItem.html", null ],
           [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html", null ],
           [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ],
-          [ "TitleScreen", "classyaze_1_1app_1_1zelda3_1_1TitleScreen.html", null ],
+          [ "TitleScreen", "classyaze_1_1app_1_1zelda3_1_1TitleScreen.html", "classyaze_1_1app_1_1zelda3_1_1TitleScreen" ],
           [ "Tracker", "classyaze_1_1app_1_1zelda3_1_1Tracker.html", null ]
         ] ],
         [ "ROM", "classyaze_1_1app_1_1ROM.html", "classyaze_1_1app_1_1ROM" ],

@@ -103,10 +103,23 @@ $(function(){initNavTree('classyaze_1_1app_1_1emu_1_1Spc700.html',''); initResiz
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1emu_1_1Spc700-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::emu::Spc700 Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+<div class="dynheader">
+Collaboration diagram for yaze::app::emu::Spc700:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1Spc700__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1emu_1_1Spc700_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1app_1_1emu_1_1Spc700_coll__map" id="ayaze_1_1app_1_1emu_1_1Spc700_coll__map">
+<area shape="rect" title=" " alt="" coords="107,109,262,135"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1AudioRam.html" title=" " alt="" coords="5,13,177,39"/>
+<area shape="poly" title=" " alt="" coords="115,47,174,107,170,110,111,51"/>
+<area shape="rect" href="structyaze_1_1app_1_1emu_1_1Spc700_1_1Flags.html" title=" " alt="" coords="201,5,357,46"/>
+<area shape="poly" title=" " alt="" coords="251,59,198,111,194,107,247,55"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -403,7 +416,48 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>SP</b> = 0x00</td>
 <tr class="memitem:a2e8f6d0b047c653db1510d69b49ce2c9" id="r_a2e8f6d0b047c653db1510d69b49ce2c9"><td class="memItemLeft" align="right" valign="top"><a id="a2e8f6d0b047c653db1510d69b49ce2c9" name="a2e8f6d0b047c653db1510d69b49ce2c9"></a>
 <a class="el" href="structyaze_1_1app_1_1emu_1_1Spc700_1_1Flags.html">Flags</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PSW</b></td></tr>
 <tr class="separator:a2e8f6d0b047c653db1510d69b49ce2c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:ad85698ef3064b8001786e62cb5688aa3" id="r_ad85698ef3064b8001786e62cb5688aa3"><td class="memItemLeft" align="right" valign="top"><a id="ad85698ef3064b8001786e62cb5688aa3" name="ad85698ef3064b8001786e62cb5688aa3"></a>
+<a class="el" href="classyaze_1_1app_1_1emu_1_1AudioRam.html">AudioRam</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>aram_</b></td></tr>
+<tr class="separator:ad85698ef3064b8001786e62cb5688aa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa24583e4e3483fbf198719818be32040" id="r_aa24583e4e3483fbf198719818be32040"><td class="memItemLeft" align="right" valign="top"><a id="aa24583e4e3483fbf198719818be32040" name="aa24583e4e3483fbf198719818be32040"></a>
+std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>log_</b></td></tr>
+<tr class="separator:aa24583e4e3483fbf198719818be32040"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfc1d5afd333dab4674c9eb8eb9575e5" id="r_adfc1d5afd333dab4674c9eb8eb9575e5"><td class="memItemLeft" align="right" valign="top">const uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfc1d5afd333dab4674c9eb8eb9575e5">ipl_rom_</a> [64]</td></tr>
+<tr class="separator:adfc1d5afd333dab4674c9eb8eb9575e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="adfc1d5afd333dab4674c9eb8eb9575e5" name="adfc1d5afd333dab4674c9eb8eb9575e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfc1d5afd333dab4674c9eb8eb9575e5">&#9670;&#160;</a></span>ipl_rom_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint8_t yaze::app::emu::Spc700::ipl_rom_[64]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{</div>
+<div class="line">      0xCD, 0xEF, 0xBD, 0xE8, 0x00, 0xC6, 0x1D, 0xD0, 0xFC, 0x8F, 0xAA,</div>
+<div class="line">      0xF4, 0x8F, 0xBB, 0xF5, 0x78, 0xCC, 0xF4, 0xD0, 0xFB, 0x2F, 0x19,</div>
+<div class="line">      0xEB, 0xF4, 0xD0, 0xFC, 0x7E, 0xF4, 0xD0, 0x0B, 0xE4, 0xF5, 0xCB,</div>
+<div class="line">      0xF4, 0xD7, 0x00, 0xFC, 0xD0, 0xF3, 0xAB, 0x01, 0x10, 0xEF, 0x7E,</div>
+<div class="line">      0xF4, 0x10, 0xEB, 0xBA, 0xF6, 0xDA, 0x00, 0xBA, 0xF4, 0xC4, 0xF4,</div>
+<div class="line">      0xDD, 0x5D, 0xD0, 0xDB, 0x1F, 0x00, 0x00, 0xC0, 0xFF}</div>
+</div><!-- fragment -->
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/emu/audio/<a class="el" href="spc700_8h_source.html">spc700.h</a></li>
 <li>src/app/emu/audio/internal/<b>addressing.cc</b></li>

@@ -10,11 +10,13 @@ var searchData=
   ['app_20organization_7',['App Organization',['../md_docs_2infrastructure.html#autotoc_md22',1,'']]],
   ['app_20rom_20h_20app_20rom_20h_20a_8',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
   ['appdelegate_9',['AppDelegate',['../interfaceAppDelegate.html',1,'']]],
-  ['applypatch_10',['ApplyPatch',['../classyaze_1_1cli_1_1ApplyPatch.html',1,'yaze::cli']]],
-  ['apu_11',['APU',['../classyaze_1_1app_1_1emu_1_1APU.html',1,'yaze::app::emu']]],
-  ['asmparser_12',['AsmParser',['../classyaze_1_1app_1_1emu_1_1AsmParser.html',1,'yaze::app::emu']]],
-  ['assemblyeditor_13',['AssemblyEditor',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html',1,'yaze::app::editor']]],
-  ['attributes_3a_14',['Key Attributes:',['../md_docs_2infrastructure.html#autotoc_md30',1,'']]],
-  ['audioram_15',['AudioRam',['../classyaze_1_1app_1_1emu_1_1AudioRam.html',1,'yaze::app::emu']]],
-  ['audioramimpl_16',['AudioRamImpl',['../classyaze_1_1app_1_1emu_1_1AudioRamImpl.html',1,'yaze::app::emu']]]
+  ['applyenvelope_10',['ApplyEnvelope',['../classyaze_1_1app_1_1emu_1_1APU.html#a2fae538809b3872aa79c812eb81a5a9b',1,'yaze::app::emu::APU']]],
+  ['applypalette_11',['ApplyPalette',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61',1,'yaze::app::gfx::Bitmap']]],
+  ['applypatch_12',['ApplyPatch',['../classyaze_1_1cli_1_1ApplyPatch.html',1,'yaze::cli']]],
+  ['apu_13',['APU',['../classyaze_1_1app_1_1emu_1_1APU.html',1,'yaze::app::emu']]],
+  ['asmparser_14',['AsmParser',['../classyaze_1_1app_1_1emu_1_1AsmParser.html',1,'yaze::app::emu']]],
+  ['assemblyeditor_15',['AssemblyEditor',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html',1,'yaze::app::editor']]],
+  ['attributes_3a_16',['Key Attributes:',['../md_docs_2infrastructure.html#autotoc_md30',1,'']]],
+  ['audioram_17',['AudioRam',['../classyaze_1_1app_1_1emu_1_1AudioRam.html',1,'yaze::app::emu']]],
+  ['audioramimpl_18',['AudioRamImpl',['../classyaze_1_1app_1_1emu_1_1AudioRamImpl.html',1,'yaze::app::emu']]]
 ];

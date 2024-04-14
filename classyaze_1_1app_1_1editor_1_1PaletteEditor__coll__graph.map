@@ -1,0 +1,11 @@
+<map id="yaze::app::editor::PaletteEditor" name="yaze::app::editor::PaletteEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="574,63,692,104"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="271,5,422,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="424,32,551,61,574,67,573,72,549,66,423,37"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html" title=" " alt="" coords="252,56,441,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="457,81,574,81,574,86,457,86"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="265,136,428,162"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="424,130,549,101,573,96,574,101,551,106,425,135"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1gfx_1_1snes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="5,129,137,169"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="153,146,264,146,264,152,153,152"/>
+</map>

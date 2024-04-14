@@ -101,6 +101,9 @@ $(function(){initNavTree('classyaze_1_1app_1_1emu_1_1AsmParser.html',''); initRe
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-types">Private Types</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1emu_1_1AsmParser-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::emu::AsmParser Class Reference</div></div>
 </div><!--header-->
@@ -114,6 +117,65 @@ std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom">
 <tr class="memitem:a3d939f3edae43a796e80acddf0e8a087" id="r_a3d939f3edae43a796e80acddf0e8a087"><td class="memItemLeft" align="right" valign="top"><a id="a3d939f3edae43a796e80acddf0e8a087" name="a3d939f3edae43a796e80acddf0e8a087"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>CreateInternalOpcodeMap</b> ()</td></tr>
 <tr class="separator:a3d939f3edae43a796e80acddf0e8a087"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
+Private Types</h2></td></tr>
+<tr class="memitem:a549c12f785b44400d0b60dc60b85ff07" id="r_a549c12f785b44400d0b60dc60b85ff07"><td class="memItemLeft" align="right" valign="top"><a id="a549c12f785b44400d0b60dc60b85ff07" name="a549c12f785b44400d0b60dc60b85ff07"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><b>AddressingMode</b> { <br />
+&#160;&#160;<b>kAbsolute</b>
+, <b>kAbsoluteLong</b>
+, <b>kAbsoluteIndexedIndirect</b>
+, <b>kAbsoluteIndexedX</b>
+, <br />
+&#160;&#160;<b>kAbsoluteIndexedY</b>
+, <b>kAbsoluteIndirect</b>
+, <b>kAbsoluteIndirectLong</b>
+, <b>kAbsoluteLongIndexedX</b>
+, <br />
+&#160;&#160;<b>kAccumulator</b>
+, <b>kBlockMove</b>
+, <b>kDirectPage</b>
+, <b>kDirectPageIndexedX</b>
+, <br />
+&#160;&#160;<b>kDirectPageIndexedY</b>
+, <b>kDirectPageIndirect</b>
+, <b>kDirectPageIndirectIndexedY</b>
+, <b>kDirectPageIndirectLong</b>
+, <br />
+&#160;&#160;<b>kDirectPageIndirectLongIndexedY</b>
+, <b>kDirectPageIndirectIndexedX</b>
+, <b>kDirectPageIndirectLongIndexedX</b>
+, <b>kImmediate</b>
+, <br />
+&#160;&#160;<b>kImplied</b>
+, <b>kProgramCounterRelative</b>
+, <b>kProgramCounterRelativeLong</b>
+, <b>kStackRelative</b>
+, <br />
+&#160;&#160;<b>kStackRelativeIndirectIndexedY</b>
+, <b>kStackRelativeIndirectIndexedYLong</b>
+, <b>kStack</b>
+, <b>kStackRelativeIndexedY</b>
+<br />
+ }</td></tr>
+<tr class="separator:a549c12f785b44400d0b60dc60b85ff07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:ad9e43fd07adb49fe4b7f556a70354f59" id="r_ad9e43fd07adb49fe4b7f556a70354f59"><td class="memItemLeft" align="right" valign="top"><a id="ad9e43fd07adb49fe4b7f556a70354f59" name="ad9e43fd07adb49fe4b7f556a70354f59"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AppendOperandBytes</b> (std::vector&lt; uint8_t &gt; &amp;bytes, const std::string &amp;operand, const std::string &amp;addressing_mode)</td></tr>
+<tr class="separator:ad9e43fd07adb49fe4b7f556a70354f59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab93a1bd4bf7da9474b99e805b5fc4077" id="r_ab93a1bd4bf7da9474b99e805b5fc4077"><td class="memItemLeft" align="right" valign="top"><a id="ab93a1bd4bf7da9474b99e805b5fc4077" name="ab93a1bd4bf7da9474b99e805b5fc4077"></a>
+AddressingMode&#160;</td><td class="memItemRight" valign="bottom"><b>InferAddressingModeFromOperand</b> (const std::string &amp;operand)</td></tr>
+<tr class="separator:ab93a1bd4bf7da9474b99e805b5fc4077"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a1e0974f01f29024d8977eecb68942bf4" id="r_a1e0974f01f29024d8977eecb68942bf4"><td class="memItemLeft" align="right" valign="top"><a id="a1e0974f01f29024d8977eecb68942bf4" name="a1e0974f01f29024d8977eecb68942bf4"></a>
+const std::regex&#160;</td><td class="memItemRight" valign="bottom"><b>instruction_regex_</b> {R&quot;((\w+)\s*(\.\w)?\s*(\$\w+|\#\w+|\w+))&quot;}</td></tr>
+<tr class="separator:a1e0974f01f29024d8977eecb68942bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f877511def63231c829767d358c2d62" id="r_a2f877511def63231c829767d358c2d62"><td class="memItemLeft" align="right" valign="top"><a id="a2f877511def63231c829767d358c2d62" name="a2f877511def63231c829767d358c2d62"></a>
+std::unordered_map&lt; std::string, uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mnemonic_to_opcode_</b></td></tr>
+<tr class="separator:a2f877511def63231c829767d358c2d62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/app/emu/debug/<a class="el" href="asm__parser_8h_source.html">asm_parser.h</a></li>

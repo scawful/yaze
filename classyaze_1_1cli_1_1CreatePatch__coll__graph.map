@@ -1,0 +1,15 @@
+<map id="yaze::cli::CreatePatch" name="yaze::cli::CreatePatch">
+<area shape="rect" id="Node000001" title=" " alt="" coords="815,96,959,121"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="589,96,765,121"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="781,106,814,106,814,111,781,111"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="399,96,509,121"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="524,106,588,106,588,111,524,111"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="15,5,190,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,34,289,48,376,70,429,92,427,97,374,75,288,53,205,39"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="5,70,200,96"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="216,88,399,102,398,107,215,94"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="15,120,190,145"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="205,133,288,132,374,125,404,119,405,124,375,130,288,137,205,138"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="19,169,186,210"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="201,185,286,176,331,167,374,154,407,138,434,120,437,124,409,143,376,159,332,172,287,181,201,191"/>
+</map>

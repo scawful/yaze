@@ -1,0 +1,5 @@
+<map id="yaze::app::gfx::Bitmap" name="yaze::app::gfx::Bitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="20,94,165,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="5,5,180,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,47,95,94,90,94,90,47"/>
+</map>

@@ -7,5 +7,6 @@ var searchData=
   ['vmain_4',['VMAIN',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMAIN.html',1,'yaze::app::emu::PpuRegisters']]],
   ['vmdata_5',['VMDATA',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATA.html',1,'yaze::app::emu::PpuRegisters']]],
   ['vmdatahread_6',['VMDATAHREAD',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATAHREAD.html',1,'yaze::app::emu::PpuRegisters']]],
-  ['vmdatalread_7',['VMDATALREAD',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATALREAD.html',1,'yaze::app::emu::PpuRegisters']]]
+  ['vmdatalread_7',['VMDATALREAD',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATALREAD.html',1,'yaze::app::emu::PpuRegisters']]],
+  ['voice_8',['Voice',['../structyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice.html',1,'yaze::app::emu::DigitalSignalProcessor']]]
 ];

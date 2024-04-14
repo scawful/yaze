@@ -9,5 +9,6 @@ var searchData=
   ['bgvofs_6',['BGVOFS',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1BGVOFS.html',1,'yaze::app::emu::PpuRegisters']]],
   ['bitmap_7',['Bitmap',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html',1,'yaze::app::gfx']]],
   ['bitmapmanager_8',['BitmapManager',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html',1,'yaze::app::gfx']]],
-  ['bitmapviewer_9',['BitmapViewer',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html',1,'yaze::app::gui']]]
+  ['bitmapviewer_9',['BitmapViewer',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html',1,'yaze::app::gui']]],
+  ['bookmark_10',['Bookmark',['../structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::app::emu::Emulator']]]
 ];

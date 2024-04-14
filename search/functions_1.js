@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['calculateaddressforvoice_0',['CalculateAddressForVoice',['../classyaze_1_1app_1_1emu_1_1APU.html#a584cdb7b025289dd877bfa43e531a43b',1,'yaze::app::emu::APU']]]
+  ['buildtileset_0',['BuildTileset',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#afa6ab15befb42ff621cb930551735489',1,'yaze::app::zelda3::TitleScreen']]]
 ];

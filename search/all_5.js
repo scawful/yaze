@@ -12,6 +12,8 @@ var searchData=
   ['bitmapmanager_9',['BitmapManager',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html',1,'yaze::app::gfx']]],
   ['bitmapviewer_10',['BitmapViewer',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html',1,'yaze::app::gui']]],
   ['blue_11',['blue',['../structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395',1,'yaze::app::gfx::snes_color']]],
-  ['build_20instructions_12',['Build Instructions',['../md_docs_2build-instructions.html',1,'']]],
-  ['building_20and_20installation_13',['Building and installation',['../md_README.html#autotoc_md36',1,'']]]
+  ['bookmark_12',['Bookmark',['../structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::app::emu::Emulator']]],
+  ['build_20instructions_13',['Build Instructions',['../md_docs_2build-instructions.html',1,'']]],
+  ['building_20and_20installation_14',['Building and installation',['../md_README.html#autotoc_md36',1,'']]],
+  ['buildtileset_15',['BuildTileset',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#afa6ab15befb42ff621cb930551735489',1,'yaze::app::zelda3::TitleScreen']]]
 ];

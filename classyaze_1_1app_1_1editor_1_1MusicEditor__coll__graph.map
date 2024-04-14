@@ -1,0 +1,9 @@
+<map id="yaze::app::editor::MusicEditor" name="yaze::app::editor::MusicEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="183,109,302,150"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="5,13,157,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,45,212,106,210,111,112,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html" title=" " alt="" coords="181,5,304,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="245,62,245,109,240,109,240,62"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html" title=" " alt="" coords="329,5,447,46"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="368,60,341,87,300,111,297,106,338,83,365,56"/>
+</map>

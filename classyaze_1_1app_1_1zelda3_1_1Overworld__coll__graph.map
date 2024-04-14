@@ -1,0 +1,18 @@
+<map id="yaze::app::zelda3::Overworld" name="yaze::app::zelda3::Overworld">
+<area shape="rect" id="Node000001" title=" " alt="" coords="664,59,787,100"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="399,5,550,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="566,31,641,48,668,56,667,61,639,53,565,36"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="15,53,190,93"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,71,664,76,664,82,206,77"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="419,116,530,142"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="206,86,419,118,419,123,205,91"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="544,117,639,100,663,94,664,99,641,105,545,122"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="5,121,200,147"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="215,134,375,133,419,131,419,136,375,138,215,140"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="15,171,190,196"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="204,176,288,169,374,156,431,140,432,145,375,161,288,174,205,182"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="19,221,186,261"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="201,243,244,239,289,231,333,217,373,195,381,185,384,175,388,163,397,151,417,139,420,143,400,155,393,165,390,176,386,188,376,199,335,222,291,236,245,245,202,248"/>
+<area shape="rect" id="Node000008" href="$structOWMapTiles.html" title=" " alt="" coords="426,165,523,191"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="537,165,588,152,639,133,669,117,696,98,699,103,672,121,641,138,589,157,539,170"/>
+</map>

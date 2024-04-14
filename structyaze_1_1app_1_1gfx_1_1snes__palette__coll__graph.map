@@ -1,0 +1,5 @@
+<map id="yaze::app::gfx::snes_palette" name="yaze::app::gfx::snes_palette">
+<area shape="rect" id="Node000001" title="Primitive of a SNES color palette." alt="" coords="5,109,137,150"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1snes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="5,5,137,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,62,74,109,68,109,68,62"/>
+</map>

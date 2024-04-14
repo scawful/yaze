@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['palettechange_0',['PaletteChange',['../structyaze_1_1app_1_1editor_1_1PaletteChange.html',1,'yaze::app::editor']]],
+  ['palettechange_0',['PaletteChange',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html',1,'yaze::app::editor::palette_internal']]],
   ['paletteeditor_1',['PaletteEditor',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html',1,'yaze::app::editor']]],
-  ['paletteeditorhistory_2',['PaletteEditorHistory',['../classyaze_1_1app_1_1editor_1_1PaletteEditorHistory.html',1,'yaze::app::editor']]],
+  ['paletteeditorhistory_2',['PaletteEditorHistory',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html',1,'yaze::app::editor::palette_internal']]],
   ['palettegroup_3',['PaletteGroup',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html',1,'yaze::app::gfx']]],
   ['paletteset_4',['Paletteset',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html',1,'yaze::app::gfx']]],
   ['pctosnes_5',['PcToSnes',['../classyaze_1_1cli_1_1PcToSnes.html',1,'yaze::cli']]],

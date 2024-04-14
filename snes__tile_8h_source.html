@@ -141,146 +141,143 @@ $(function(){initNavTree('snes__tile_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>std::vector&lt;uint8_t&gt; Convert3bppTo4bpp(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; tiles);</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>std::vector&lt;uint8_t&gt; Convert4bppTo3bpp(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; tiles);</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="comment">// vhopppcc cccccccc</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">// [0, 1]</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment">// [2, 3]</span></div>
-<div class="foldopen" id="foldopen00041" data-start="{" data-end="};">
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">   41</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> {</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  uint16_t id_;</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  uint8_t palette_;</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keywordtype">bool</span> over_;</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keywordtype">bool</span> vertical_mirror_;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordtype">bool</span> horizontal_mirror_;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>(uint16_t <span class="keywordtype">id</span>, uint8_t palette, <span class="keywordtype">bool</span> v, <span class="keywordtype">bool</span> h, <span class="keywordtype">bool</span> o)</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>      : id_(<span class="keywordtype">id</span>),</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        over_(o),</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        vertical_mirror_(v),</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        horizontal_mirror_(h),</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        palette_(palette) {}</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>&amp; other)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordflow">return</span> id_ == other.id_ &amp;&amp; over_ == other.over_ &amp;&amp;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>           vertical_mirror_ == other.vertical_mirror_ &amp;&amp;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>           horizontal_mirror_ == other.horizontal_mirror_ &amp;&amp;</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>           palette_ == other.palette_;</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  }</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>};</div>
+<div class="foldopen" id="foldopen00046" data-start="{" data-end="};">
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">   46</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> {</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  uint16_t id_;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  uint8_t palette_;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="keywordtype">bool</span> over_;</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keywordtype">bool</span> vertical_mirror_;</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="keywordtype">bool</span> horizontal_mirror_;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>(uint16_t <span class="keywordtype">id</span>, uint8_t palette, <span class="keywordtype">bool</span> v, <span class="keywordtype">bool</span> h, <span class="keywordtype">bool</span> o)</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      : id_(<span class="keywordtype">id</span>),</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        over_(o),</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        vertical_mirror_(v),</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        horizontal_mirror_(h),</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        palette_(palette) {}</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a>&amp; other)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keywordflow">return</span> id_ == other.id_ &amp;&amp; over_ == other.over_ &amp;&amp;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>           vertical_mirror_ == other.vertical_mirror_ &amp;&amp;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>           horizontal_mirror_ == other.horizontal_mirror_ &amp;&amp;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>           palette_ == other.palette_;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  }</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>};</div>
 </div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>uint16_t TileInfoToWord(<a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile_info);</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> WordToTileInfo(uint16_t word);</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>uint16_t TileInfoToShort(<a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile_info);</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> GetTilesInfo(uint16_t tile);</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
-<div class="foldopen" id="foldopen00070" data-start="{" data-end="};">
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">   70</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a> {</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  uint16_t tile0_;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  uint16_t tile1_;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  uint16_t tile2_;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  uint16_t tile3_;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="comment">// Default constructor</span></div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>() : tile0_(0), tile1_(0), tile2_(0), tile3_(0) {}</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  <span class="comment">// Parameterized constructor</span></div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>(uint16_t t0, uint16_t t1, uint16_t t2, uint16_t t3)</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {}</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  <span class="comment">// Copy constructor</span></div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>&amp; other)</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      : tile0_(other.tile0_),</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        tile1_(other.tile1_),</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>        tile2_(other.tile2_),</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        tile3_(other.tile3_) {}</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  <span class="comment">// Constructor from packed value</span></div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>(uint64_t packedVal) {</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    tile0_ = (uint16_t)packedVal;</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    tile1_ = (uint16_t)(packedVal &gt;&gt; 16);</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    tile2_ = (uint16_t)(packedVal &gt;&gt; 32);</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    tile3_ = (uint16_t)(packedVal &gt;&gt; 48);</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  }</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>uint16_t TileInfoToWord(<a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile_info);</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> WordToTileInfo(uint16_t word);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>uint16_t TileInfoToShort(<a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile_info);</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> GetTilesInfo(uint16_t tile);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="foldopen" id="foldopen00078" data-start="{" data-end="};">
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">   78</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a> {</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  uint16_t tile0_;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  uint16_t tile1_;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  uint16_t tile2_;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  uint16_t tile3_;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <span class="comment">// Default constructor</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>() : tile0_(0), tile1_(0), tile2_(0), tile3_(0) {}</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  <span class="comment">// Parameterized constructor</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>(uint16_t t0, uint16_t t1, uint16_t t2, uint16_t t3)</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {}</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  <span class="comment">// Copy constructor</span></div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>&amp; other)</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>      : tile0_(other.tile0_),</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>        tile1_(other.tile1_),</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        tile2_(other.tile2_),</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        tile3_(other.tile3_) {}</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  <span class="comment">// Get packed uint64_t representation</span></div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  uint64_t GetPackedValue()<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>uint64_t<span class="keyword">&gt;</span>(tile3_) &lt;&lt; 48 |</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>           (<span class="keyword">static_cast&lt;</span>uint64_t<span class="keyword">&gt;</span>(tile2_) &lt;&lt; 32) |</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>           (<span class="keyword">static_cast&lt;</span>uint64_t<span class="keyword">&gt;</span>(tile1_) &lt;&lt; 16) | tile0_;</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  }</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  <span class="comment">// Equality operator</span></div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>&amp; other)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordflow">return</span> tile0_ == other.tile0_ &amp;&amp; tile1_ == other.tile1_ &amp;&amp;</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>           tile2_ == other.tile2_ &amp;&amp; tile3_ == other.tile3_;</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  }</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  <span class="comment">// Inequality operator</span></div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  <span class="keywordtype">bool</span> operator!=(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>&amp; other)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> !(*<span class="keyword">this</span> == other); }</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>};</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  <span class="comment">// Constructor from packed value</span></div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>(uint64_t packedVal) {</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    tile0_ = (uint16_t)packedVal;</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    tile1_ = (uint16_t)(packedVal &gt;&gt; 16);</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    tile2_ = (uint16_t)(packedVal &gt;&gt; 32);</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    tile3_ = (uint16_t)(packedVal &gt;&gt; 48);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  }</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  <span class="comment">// Get packed uint64_t representation</span></div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  uint64_t GetPackedValue()<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>uint64_t<span class="keyword">&gt;</span>(tile3_) &lt;&lt; 48 |</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>           (<span class="keyword">static_cast&lt;</span>uint64_t<span class="keyword">&gt;</span>(tile2_) &lt;&lt; 32) |</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>           (<span class="keyword">static_cast&lt;</span>uint64_t<span class="keyword">&gt;</span>(tile1_) &lt;&lt; 16) | tile0_;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  }</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  <span class="comment">// Equality operator</span></div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>&amp; other)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    <span class="keywordflow">return</span> tile0_ == other.tile0_ &amp;&amp; tile1_ == other.tile1_ &amp;&amp;</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>           tile2_ == other.tile2_ &amp;&amp; tile3_ == other.tile3_;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  }</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <span class="comment">// Inequality operator</span></div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  <span class="keywordtype">bool</span> operator!=(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile32.html">Tile32</a>&amp; other)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> !(*<span class="keyword">this</span> == other); }</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>};</div>
 </div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
-<div class="foldopen" id="foldopen00116" data-start="{" data-end="};">
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">  116</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a> {</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile0_;</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile1_;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile2_;</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile3_;</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  std::vector&lt;TileInfo&gt; tiles_info;</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>(<a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t0, <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t1, <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t2, <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t3)</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>      : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    tiles_info.push_back(tile0_);</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    tiles_info.push_back(tile1_);</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    tiles_info.push_back(tile2_);</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    tiles_info.push_back(tile3_);</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  }</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>&amp; other)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordflow">return</span> tile0_ == other.tile0_ &amp;&amp; tile1_ == other.tile1_ &amp;&amp;</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>           tile2_ == other.tile2_ &amp;&amp; tile3_ == other.tile3_;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  }</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="keywordtype">bool</span> operator!=(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>&amp; other)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> !(*<span class="keyword">this</span> == other); }</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>};</div>
+<div class="foldopen" id="foldopen00127" data-start="{" data-end="};">
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">  127</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a> {</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile0_;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile1_;</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile2_;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> tile3_;</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  std::vector&lt;TileInfo&gt; tiles_info;</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>(<a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t0, <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t1, <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t2, <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">TileInfo</a> t3)</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      : tile0_(t0), tile1_(t1), tile2_(t2), tile3_(t3) {</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    tiles_info.push_back(tile0_);</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    tiles_info.push_back(tile1_);</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    tiles_info.push_back(tile2_);</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    tiles_info.push_back(tile3_);</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  }</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>&amp; other)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keywordflow">return</span> tile0_ == other.tile0_ &amp;&amp; tile1_ == other.tile1_ &amp;&amp;</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>           tile2_ == other.tile2_ &amp;&amp; tile3_ == other.tile3_;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  }</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  <span class="keywordtype">bool</span> operator!=(<span class="keyword">const</span> <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1Tile16.html">Tile16</a>&amp; other)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> !(*<span class="keyword">this</span> == other); }</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>};</div>
 </div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> </div>
-<div class="foldopen" id="foldopen00141" data-start="{" data-end="};">
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1OAMTile.html">  141</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1OAMTile.html">OAMTile</a> {</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  <span class="keywordtype">int</span> x_;</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="keywordtype">int</span> y_;</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <span class="keywordtype">int</span> mx_;</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <span class="keywordtype">int</span> my_;</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordtype">int</span> pal_;</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  uint16_t tile_;</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1OAMTile.html">OAMTile</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1OAMTile.html">OAMTile</a>(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, uint16_t tile, <span class="keywordtype">int</span> pal, <span class="keywordtype">bool</span> upper = <span class="keyword">false</span>, <span class="keywordtype">int</span> mx = 0,</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>          <span class="keywordtype">int</span> my = 0)</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>      : x_(x), y_(y), mx_(mx), my_(my), pal_(pal) {</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    <span class="keywordflow">if</span> (upper) {</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>      tile_ = (uint16_t)(tile + 512);</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>      tile_ = (uint16_t)(tile + 256 + 512);</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    }</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  }</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>};</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
+<div class="foldopen" id="foldopen00155" data-start="{" data-end="};">
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1gfx_1_1OamTile.html">  155</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1OamTile.html">OamTile</a> {</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <span class="keywordtype">int</span> x_;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  <span class="keywordtype">int</span> y_;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  <span class="keywordtype">int</span> mx_;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  <span class="keywordtype">int</span> my_;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  <span class="keywordtype">int</span> pal_;</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  uint16_t tile_;</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1OamTile.html">OamTile</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  <a class="code hl_class" href="classyaze_1_1app_1_1gfx_1_1OamTile.html">OamTile</a>(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, uint16_t tile, <span class="keywordtype">int</span> pal, <span class="keywordtype">bool</span> upper = <span class="keyword">false</span>, <span class="keywordtype">int</span> mx = 0,</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>          <span class="keywordtype">int</span> my = 0)</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>      : x_(x), y_(y), mx_(mx), my_(my), pal_(pal) {</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    <span class="keywordflow">if</span> (upper) {</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>      tile_ = (uint16_t)(tile + 512);</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>      tile_ = (uint16_t)(tile + 256 + 512);</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    }</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  }</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>};</div>
 </div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>}  <span class="comment">// namespace gfx</span></div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_GFX_SNES_TILE_H</span></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1OAMTile_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1OAMTile.html">yaze::app::gfx::OAMTile</a></div><div class="ttdef"><b>Definition</b> snes_tile.h:141</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Tile16_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Tile16.html">yaze::app::gfx::Tile16</a></div><div class="ttdef"><b>Definition</b> snes_tile.h:116</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Tile32_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Tile32.html">yaze::app::gfx::Tile32</a></div><div class="ttdef"><b>Definition</b> snes_tile.h:70</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1TileInfo_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">yaze::app::gfx::TileInfo</a></div><div class="ttdef"><b>Definition</b> snes_tile.h:41</div></div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span> </div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>}  <span class="comment">// namespace gfx</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_GFX_SNES_TILE_H</span></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1OamTile_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1OamTile.html">yaze::app::gfx::OamTile</a></div><div class="ttdoc">Object Attribute Memory tile abstraction container.</div><div class="ttdef"><b>Definition</b> snes_tile.h:155</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Tile16_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Tile16.html">yaze::app::gfx::Tile16</a></div><div class="ttdoc">Tile composition of four 8x8 tiles.</div><div class="ttdef"><b>Definition</b> snes_tile.h:127</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1Tile32_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1Tile32.html">yaze::app::gfx::Tile32</a></div><div class="ttdoc">Tile composition of four 16x16 tiles.</div><div class="ttdef"><b>Definition</b> snes_tile.h:78</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1gfx_1_1TileInfo_html"><div class="ttname"><a href="classyaze_1_1app_1_1gfx_1_1TileInfo.html">yaze::app::gfx::TileInfo</a></div><div class="ttdoc">SNES 16-bit tile metadata container.</div><div class="ttdef"><b>Definition</b> snes_tile.h:46</div></div>
 <div class="ttc" id="astructyaze_1_1app_1_1gfx_1_1tile8_html"><div class="ttname"><a href="structyaze_1_1app_1_1gfx_1_1tile8.html">yaze::app::gfx::tile8</a></div><div class="ttdef"><b>Definition</b> snes_tile.h:20</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

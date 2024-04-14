@@ -100,12 +100,19 @@ $(function(){initNavTree('classyaze_1_1app_1_1core_1_1ResourceLabelManager.html'
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1core_1_1ResourceLabelManager-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::core::ResourceLabelManager Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html">ResourceType</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa6c9aca968e58e66b174423eb1e7aa0a" id="r_aa6c9aca968e58e66b174423eb1e7aa0a"><td class="memItemLeft" align="right" valign="top"><a id="aa6c9aca968e58e66b174423eb1e7aa0a" name="aa6c9aca968e58e66b174423eb1e7aa0a"></a>
@@ -129,6 +136,18 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>CreateOrGetLab
 <tr class="memitem:a716f67562fe260f7efb65391494deceb" id="r_a716f67562fe260f7efb65391494deceb"><td class="memItemLeft" align="right" valign="top"><a id="a716f67562fe260f7efb65391494deceb" name="a716f67562fe260f7efb65391494deceb"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>CreateOrGetLabel</b> (const std::string &amp;type, const std::string &amp;key, const absl::string_view &amp;defaultValue)</td></tr>
 <tr class="separator:a716f67562fe260f7efb65391494deceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a701e040767f58f22b5172b6170b86c24" id="r_a701e040767f58f22b5172b6170b86c24"><td class="memItemLeft" align="right" valign="top"><a id="a701e040767f58f22b5172b6170b86c24" name="a701e040767f58f22b5172b6170b86c24"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>labels_loaded_</b> = false</td></tr>
+<tr class="separator:a701e040767f58f22b5172b6170b86c24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa45ad7a2d16b486946224270eaeb0cec" id="r_aa45ad7a2d16b486946224270eaeb0cec"><td class="memItemLeft" align="right" valign="top"><a id="aa45ad7a2d16b486946224270eaeb0cec" name="aa45ad7a2d16b486946224270eaeb0cec"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>filename_</b></td></tr>
+<tr class="separator:aa45ad7a2d16b486946224270eaeb0cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d1299cd0ebdaa2a62d145cd04203149" id="r_a1d1299cd0ebdaa2a62d145cd04203149"><td class="memItemLeft" align="right" valign="top"><a id="a1d1299cd0ebdaa2a62d145cd04203149" name="a1d1299cd0ebdaa2a62d145cd04203149"></a>
+std::unordered_map&lt; std::string, std::unordered_map&lt; std::string, std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>labels_</b></td></tr>
+<tr class="separator:a1d1299cd0ebdaa2a62d145cd04203149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/core/<a class="el" href="labeling_8h_source.html">labeling.h</a></li>

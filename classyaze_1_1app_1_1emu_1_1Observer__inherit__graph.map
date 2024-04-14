@@ -1,0 +1,7 @@
+<map id="yaze::app::emu::Observer" name="yaze::app::emu::Observer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="73,5,237,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1APU.html" title=" " alt="" coords="5,79,145,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,43,90,81,87,77,128,39"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Ppu.html" title=" " alt="" coords="169,79,304,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,39,224,77,221,81,178,43"/>
+</map>

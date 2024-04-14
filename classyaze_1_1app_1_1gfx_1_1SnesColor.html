@@ -101,10 +101,26 @@ $(function(){initNavTree('classyaze_1_1app_1_1gfx_1_1SnesColor.html',''); initRe
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classyaze_1_1app_1_1gfx_1_1SnesColor-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::app::gfx::SnesColor Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>SNES Color container.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="snes__color_8h_source.html">snes_color.h</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for yaze::app::gfx::SnesColor:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1gfx_1_1SnesColor__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1gfx_1_1SnesColor_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1app_1_1gfx_1_1SnesColor_coll__map" id="ayaze_1_1app_1_1gfx_1_1SnesColor_coll__map">
+<area shape="rect" title="SNES Color container." alt="" coords="5,109,169,135"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1snes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="21,5,153,46"/>
+<area shape="poly" title=" " alt="" coords="90,61,90,109,84,109,84,61"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -144,8 +160,33 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set_transparent</b> (
 <tr class="memitem:a67e89f6296782238ba778bbfba91de83" id="r_a67e89f6296782238ba778bbfba91de83"><td class="memItemLeft" align="right" valign="top"><a id="a67e89f6296782238ba778bbfba91de83" name="a67e89f6296782238ba778bbfba91de83"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>set_modified</b> (bool m)</td></tr>
 <tr class="separator:a67e89f6296782238ba778bbfba91de83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a9ff11ccbe16ff93e088c0faa9e70fcfa" id="r_a9ff11ccbe16ff93e088c0faa9e70fcfa"><td class="memItemLeft" align="right" valign="top"><a id="a9ff11ccbe16ff93e088c0faa9e70fcfa" name="a9ff11ccbe16ff93e088c0faa9e70fcfa"></a>
+ImVec4&#160;</td><td class="memItemRight" valign="bottom"><b>rgb_</b></td></tr>
+<tr class="separator:a9ff11ccbe16ff93e088c0faa9e70fcfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e744b22ab31142ad22076ed5b28fd56" id="r_a3e744b22ab31142ad22076ed5b28fd56"><td class="memItemLeft" align="right" valign="top"><a id="a3e744b22ab31142ad22076ed5b28fd56" name="a3e744b22ab31142ad22076ed5b28fd56"></a>
+uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>snes_</b></td></tr>
+<tr class="separator:a3e744b22ab31142ad22076ed5b28fd56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e9290764fe0cd5c3b240e500a126bc6" id="r_a5e9290764fe0cd5c3b240e500a126bc6"><td class="memItemLeft" align="right" valign="top"><a id="a5e9290764fe0cd5c3b240e500a126bc6" name="a5e9290764fe0cd5c3b240e500a126bc6"></a>
+<a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><b>rom_color_</b></td></tr>
+<tr class="separator:a5e9290764fe0cd5c3b240e500a126bc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae36f4d390882bdee941195214c450172" id="r_ae36f4d390882bdee941195214c450172"><td class="memItemLeft" align="right" valign="top"><a id="ae36f4d390882bdee941195214c450172" name="ae36f4d390882bdee941195214c450172"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>modified</b> = false</td></tr>
+<tr class="separator:ae36f4d390882bdee941195214c450172"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71f7673039d84aa7a0051f2db26f35b3" id="r_a71f7673039d84aa7a0051f2db26f35b3"><td class="memItemLeft" align="right" valign="top"><a id="a71f7673039d84aa7a0051f2db26f35b3" name="a71f7673039d84aa7a0051f2db26f35b3"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>transparent</b> = false</td></tr>
+<tr class="separator:a71f7673039d84aa7a0051f2db26f35b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>SNES Color container. </p>
+<p>Used for displaying the color to the screen and writing the color to the <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a> file in the correct format.</p>
+<p>SNES colors may be represented in one of three formats:</p><ul>
+<li>Color data from the rom in a <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html" title="Primitive of 16-bit RGB SNES color.">snes_color</a> struct</li>
+<li>Color data for displaying to the UI via ImVec4 </li>
+</ul>
+</div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/app/gfx/<a class="el" href="snes__color_8h_source.html">snes_color.h</a></li>
 </ul>
 </div><!-- contents -->

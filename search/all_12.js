@@ -6,7 +6,7 @@ var searchData=
   ['oamdata_3',['OAMDATA',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1OAMDATA.html',1,'yaze::app::emu::PpuRegisters']]],
   ['oamdataread_4',['OAMDATAREAD',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1OAMDATAREAD.html',1,'yaze::app::emu::PpuRegisters']]],
   ['oamsize_5',['OAMSize',['../structyaze_1_1app_1_1emu_1_1OAMSize.html',1,'yaze::app::emu']]],
-  ['oamtile_6',['OAMTile',['../classyaze_1_1app_1_1gfx_1_1OAMTile.html',1,'yaze::app::gfx']]],
+  ['oamtile_6',['OamTile',['../classyaze_1_1app_1_1gfx_1_1OamTile.html',1,'yaze::app::gfx']]],
   ['object_5fdoor_7',['object_door',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html',1,'yaze::app::zelda3::dungeon']]],
   ['objsel_8',['OBJSEL',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1OBJSEL.html',1,'yaze::app::emu::PpuRegisters']]],
   ['observer_9',['Observer',['../classyaze_1_1app_1_1emu_1_1Observer.html',1,'yaze::app::emu']]],

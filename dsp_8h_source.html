@@ -127,7 +127,8 @@ $(function(){initNavTree('dsp_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="keyword">enum class</span> VoiceState { OFF, ATTACK, DECAY, SUSTAIN, RELEASE };</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  <span class="keyword">struct </span>Voice {</div>
+<div class="foldopen" id="foldopen00062" data-start="{" data-end="};">
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice.html">   62</a></span>  <span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice.html">Voice</a> {</div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    int8_t vol_left;        <span class="comment">// x0</span></div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    int8_t vol_right;       <span class="comment">// x1</span></div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    uint8_t pitch_low;      <span class="comment">// x2</span></div>
@@ -143,7 +144,8 @@ $(function(){initNavTree('dsp_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    uint16_t current_amplitude = 0;  <span class="comment">// Current amplitude value used for ADSR</span></div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    uint16_t decay_level;  <span class="comment">// Calculated decay level based on ADSR settings</span></div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  };</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  Voice voices_[8];</div>
+</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <a class="code hl_struct" href="structyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice.html">Voice</a> voices_[8];</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  <span class="comment">// Global DSP registers</span></div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  uint8_t mvol_left;   <span class="comment">// 0C</span></div>
@@ -224,7 +226,7 @@ $(function(){initNavTree('dsp_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  SamplePusher sample_pusher_;</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
 <div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  <a class="code hl_class" href="classyaze_1_1app_1_1emu_1_1DigitalSignalProcessor.html">DigitalSignalProcessor</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  DigitalSignalProcessor() = <span class="keywordflow">default</span>;</div>
 <div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
 <div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  <span class="keywordtype">void</span> Reset();</div>
 <div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
@@ -383,6 +385,7 @@ $(function(){initNavTree('dsp_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span> </div>
 <div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EMU_AUDIO_S_DSP_H</span></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_html"><div class="ttname"><a href="classyaze_1_1app_1_1emu_1_1DigitalSignalProcessor.html">yaze::app::emu::DigitalSignalProcessor</a></div><div class="ttdef"><b>Definition</b> dsp.h:54</div></div>
+<div class="ttc" id="astructyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice_html"><div class="ttname"><a href="structyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice.html">yaze::app::emu::DigitalSignalProcessor::Voice</a></div><div class="ttdef"><b>Definition</b> dsp.h:62</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
