@@ -28,7 +28,7 @@ struct SubtypeInfo {
   uint32_t routine_ptr;
 };
 
-class DungeonObjectRenderer : public SharedROM {
+class DungeonObjectRenderer : public SharedRom {
  public:
   DungeonObjectRenderer() = default;
 

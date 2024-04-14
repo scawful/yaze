@@ -15,7 +15,7 @@ namespace screen {
 constexpr int kInventoryStart = 0x6564A;
 constexpr int kBowItemPos = 0x6F631;
 
-class Inventory : public SharedROM {
+class Inventory : public SharedRom {
  public:
   auto Bitmap() const { return bitmap_; }
   auto Tilesheet() const { return tilesheets_bmp_; }

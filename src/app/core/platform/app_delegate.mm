@@ -195,7 +195,7 @@
 }
 
 - (void)openFileAction:(id)sender {
-  yaze::app::SharedROM::shared_rom_->LoadFromFile(FileDialogWrapper::ShowOpenFileDialog());
+  yaze::app::SharedRom::shared_rom_->LoadFromFile(FileDialogWrapper::ShowOpenFileDialog());
 }
 
 - (void)cutAction:(id)sender {

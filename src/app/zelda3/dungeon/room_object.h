@@ -58,7 +58,7 @@ enum ObjectOption {
   Stairs = 32
 };
 
-class RoomObject : public SharedROM {
+class RoomObject : public SharedRom {
  public:
   enum LayerType { BG1 = 0, BG2 = 1, BG3 = 2 };
 

@@ -27,7 +27,7 @@ namespace editor {
 /**
  * @brief Popup window to edit Tile16 data
  */
-class Tile16Editor : public context::GfxContext, public SharedROM {
+class Tile16Editor : public context::GfxContext, public SharedRom {
  public:
   absl::Status Update();
   absl::Status DrawMenu();

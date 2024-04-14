@@ -79,7 +79,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  *
  */
 class OverworldEditor : public Editor,
-                        public SharedROM,
+                        public SharedRom,
                         public context::GfxContext,
                         public context::EntranceContext,
                         public core::ExperimentFlags {

@@ -81,7 +81,7 @@ class PaletteEditorHistory {
  * @class PaletteEditor
  * @brief Allows the user to view and edit in game palettes.
  */
-class PaletteEditor : public SharedROM {
+class PaletteEditor : public SharedRom {
  public:
   absl::Status Update();
   absl::Status DrawPaletteGroups();

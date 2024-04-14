@@ -73,7 +73,7 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
  * drawing toolsets, palette controls, clipboard imports, experimental features,
  * and memory editor.
  */
-class GraphicsEditor : public SharedROM {
+class GraphicsEditor : public SharedRom {
  public:
   absl::Status Update();
 

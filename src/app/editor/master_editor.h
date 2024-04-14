@@ -39,7 +39,7 @@ namespace editor {
  * @brief The MasterEditor class represents the main editor for a ROM in the
  * Yaze application.
  *
- * This class inherits from SharedROM, GfxContext, and ExperimentFlags, and
+ * This class inherits from SharedRom, GfxContext, and ExperimentFlags, and
  * provides functionality for setting up the screen, updating the editor, and
  * shutting down the editor. It also includes methods for drawing various menus
  * and popups, saving the ROM, and managing editor-specific flags.
@@ -52,7 +52,7 @@ namespace editor {
  * @note This class assumes the presence of an SDL_Renderer object for rendering
  * graphics.
  */
-class MasterEditor : public SharedROM,
+class MasterEditor : public SharedRom,
                      public context::GfxContext,
                      public core::ExperimentFlags {
  public:
