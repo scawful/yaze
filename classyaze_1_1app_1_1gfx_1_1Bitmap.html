@@ -107,13 +107,18 @@ $(function(){initNavTree('classyaze_1_1app_1_1gfx_1_1Bitmap.html',''); initResiz
   <div class="headertitle"><div class="title">yaze::app::gfx::Bitmap Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Represents a bitmap image.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="bitmap_8h_source.html">bitmap.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for yaze::app::gfx::Bitmap:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1gfx_1_1Bitmap__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1gfx_1_1Bitmap_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1app_1_1gfx_1_1Bitmap_coll__map" id="ayaze_1_1app_1_1gfx_1_1Bitmap_coll__map">
-<area shape="rect" title=" " alt="" coords="20,94,165,120"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="5,5,180,31"/>
+<area shape="rect" title="Represents a bitmap image." alt="" coords="20,94,165,120"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,180,31"/>
 <area shape="poly" title=" " alt="" coords="95,47,95,94,90,94,90,47"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
@@ -171,7 +176,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>LoadFromPngData</b> (
 <tr class="separator:aceb56456070b3d020bfa0e26866a9a46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63a3008e5953e88af8a8ed6667ab2a61" id="r_a63a3008e5953e88af8a8ed6667ab2a61"><td class="memItemLeft" align="right" valign="top"><a id="a63a3008e5953e88af8a8ed6667ab2a61" name="a63a3008e5953e88af8a8ed6667ab2a61"></a>
 absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>ApplyPalette</b> (const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette)</td></tr>
-<tr class="memdesc:a63a3008e5953e88af8a8ed6667ab2a61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy color data from the <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container.">SnesPalette</a> into the SDL_Palette. <br /></td></tr>
+<tr class="memdesc:a63a3008e5953e88af8a8ed6667ab2a61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy color data from the <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES).">SnesPalette</a> into the SDL_Palette. <br /></td></tr>
 <tr class="separator:a63a3008e5953e88af8a8ed6667ab2a61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24c4b7b033b5edee88e552ecc4cd1103" id="r_a24c4b7b033b5edee88e552ecc4cd1103"><td class="memItemLeft" align="right" valign="top"><a id="a24c4b7b033b5edee88e552ecc4cd1103" name="a24c4b7b033b5edee88e552ecc4cd1103"></a>
 absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>ApplyPaletteWithTransparent</b> (const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp;palette, int index, int length=7)</td></tr>
@@ -318,7 +323,10 @@ std::shared_ptr&lt; SDL_Surface &gt;&#160;</td><td class="memItemRight" valign="
 std::shared_ptr&lt; SDL_Surface &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>converted_surface_</b> = nullptr</td></tr>
 <tr class="separator:add1fc786fb298af7d3e13a086031c90a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Represents a bitmap image. </p>
+<p>The <code><a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image.">Bitmap</a></code> class provides functionality to create, manipulate, and display bitmap images. It supports various operations such as creating a bitmap object, creating and updating textures, applying palettes, and accessing pixel data. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a60dbb218a86c57687580ec77be457511" name="a60dbb218a86c57687580ec77be457511"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a60dbb218a86c57687580ec77be457511">&#9670;&#160;</a></span>CreateTexture()</h2>
 

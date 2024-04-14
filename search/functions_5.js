@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['handleinterrupts_0',['HandleInterrupts',['../classyaze_1_1app_1_1emu_1_1CPU.html#a1e5f518fb904e8fca7e5deccacbe283b',1,'yaze::app::emu::CPU']]]
+  ['handleinterrupts_0',['HandleInterrupts',['../classyaze_1_1app_1_1emu_1_1Cpu.html#abcc792f6220359761c4df2031daf2f92',1,'yaze::app::emu::Cpu']]]
 ];

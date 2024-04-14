@@ -75,6 +75,7 @@ var NAVTREE =
       [ "Screenshots", "md_README.html#autotoc_md39", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
+    [ "Test List", "test.html", null ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ]
     ] ],
@@ -97,7 +98,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"md_docs_2infrastructure.html#autotoc_md31"
+"md_docs_2infrastructure.html#autotoc_md24"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

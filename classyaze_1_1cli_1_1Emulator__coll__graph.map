@@ -1,112 +1,112 @@
 <map id="yaze::cli::Emulator" name="yaze::cli::Emulator">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1212,369,1335,395"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="957,245,1133,271"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1085,276,1249,366,1247,371,1082,281"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="685,120,796,146"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="790,149,934,209,1013,242,1011,247,932,214,787,154"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="244,235,419,276"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="434,251,525,241,572,230,617,216,667,185,721,144,724,148,670,189,619,221,573,235,526,246,434,257"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1emu_1_1CPU.html" title=" " alt="" coords="671,367,810,392"/>
-<area shape="poly" id="edge20_Node000019_Node000004" title=" " alt="" coords="435,256,543,267,589,277,620,292,631,308,633,324,635,339,644,354,672,369,669,374,641,357,630,341,628,325,626,310,617,296,587,282,542,272,434,261"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="234,120,428,146"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="444,130,685,130,685,136,444,136"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="244,5,418,31"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="434,28,525,45,619,70,673,93,718,117,716,122,671,98,617,75,524,50,433,33"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="248,55,414,96"/>
-<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="430,85,619,110,686,121,685,126,618,115,429,90"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1SNES.html" title=" " alt="" coords="971,393,1119,419"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1134,397,1188,392,1211,389,1212,394,1188,397,1134,402"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1DMA.html" title=" " alt="" coords="670,317,811,343"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="827,344,933,369,1005,390,1003,395,932,374,825,349"/>
-<area shape="rect" id="Node000010" href="$structyaze_1_1app_1_1emu_1_1DMA_1_1Channel.html" title=" " alt="" coords="261,170,401,211"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="417,190,467,196,520,209,573,228,620,258,630,270,633,282,636,294,644,304,671,318,669,323,641,308,631,296,628,283,625,272,617,261,570,233,519,214,466,202,417,195"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1emu_1_1MemoryImpl.html" title=" " alt="" coords="240,464,422,490"/>
-<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="407,458,467,448,683,429,971,409,971,414,684,435,468,453,408,463"/>
-<area shape="rect" id="Node000053" href="$classyaze_1_1app_1_1emu_1_1APU.html" title=" " alt="" coords="671,577,810,603"/>
-<area shape="poly" id="edge58_Node000053_Node000011" title=" " alt="" coords="396,492,692,574,690,579,395,497"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1emu_1_1Memory.html" title=" " alt="" coords="9,439,166,464"/>
-<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="182,459,240,465,239,470,181,464"/>
-<area shape="poly" id="edge18_Node000019_Node000012" title=" " alt="" coords="182,439,670,384,670,390,182,444"/>
-<area shape="poly" id="edge21_Node000019_Node000012" title=" " alt="" coords="135,430,218,405,342,385,467,375,580,373,671,374,670,379,580,378,467,381,343,390,220,410,137,435"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1emu_1_1Ppu.html" title=" " alt="" coords="673,1445,808,1471"/>
-<area shape="poly" id="edge26_Node000020_Node000012" title=" " alt="" coords="93,480,102,615,124,807,141,905,162,993,189,1065,204,1092,221,1113,245,1132,269,1145,293,1153,317,1157,365,1154,414,1144,464,1133,514,1128,540,1130,567,1136,593,1148,620,1165,652,1196,678,1233,699,1274,714,1315,733,1392,741,1445,736,1445,728,1393,709,1317,694,1276,674,1236,648,1200,617,1170,591,1153,565,1141,539,1135,514,1133,464,1138,415,1149,366,1159,316,1162,292,1158,267,1150,242,1136,217,1116,200,1096,184,1068,157,995,136,906,119,808,97,616,87,480"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="5,317,170,343"/>
-<area shape="poly" id="edge12_Node000011_Node000013" title=" " alt="" coords="125,349,309,461,307,466,122,354"/>
-<area shape="poly" id="edge19_Node000019_Node000013" title=" " alt="" coords="185,321,277,318,386,319,503,326,619,344,643,353,681,364,679,369,641,358,618,349,503,332,386,324,277,323,185,326"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1emu_1_1ClockImpl.html" title=" " alt="" coords="656,504,825,530"/>
-<area shape="poly" id="edge13_Node000008_Node000015" title=" " alt="" coords="819,497,875,482,932,463,980,440,1021,417,1023,422,983,445,934,468,877,487,821,502"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="259,560,403,586"/>
-<area shape="poly" id="edge14_Node000015_Node000016" title=" " alt="" coords="418,560,618,534,660,528,661,533,619,539,419,565"/>
-<area shape="poly" id="edge22_Node000019_Node000016" title=" " alt="" coords="366,549,466,494,509,476,543,464,577,451,617,430,641,409,685,390,687,395,644,414,620,434,579,456,545,469,511,481,469,499,369,554"/>
-<area shape="poly" id="edge27_Node000020_Node000016" title=" " alt="" coords="391,588,535,633,620,663,631,682,641,712,661,799,697,1041,726,1290,741,1445,735,1445,720,1290,692,1042,656,800,636,713,626,684,617,667,533,638,390,593"/>
-<area shape="poly" id="edge57_Node000053_Node000016" title=" " alt="" coords="419,582,467,587,574,590,670,589,670,595,574,595,467,592,419,587"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1emu_1_1AudioRamImpl.html" title=" " alt="" coords="642,685,839,711"/>
-<area shape="poly" id="edge15_Node000008_Node000017" title=" " alt="" coords="778,675,852,628,893,597,931,563,965,525,994,484,1034,418,1039,421,999,487,969,528,935,567,896,601,855,632,781,680"/>
-<area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1emu_1_1AudioRam.html" title=" " alt="" coords="246,680,417,706"/>
-<area shape="poly" id="edge16_Node000017_Node000018" title=" " alt="" coords="432,704,467,708,543,710,618,708,642,706,642,711,618,713,543,716,467,713,432,710"/>
-<area shape="poly" id="edge56_Node000053_Node000018" title=" " alt="" coords="432,700,524,697,572,690,617,677,650,662,680,641,725,602,728,606,683,646,653,666,619,682,573,695,524,702,432,705"/>
-<area shape="poly" id="edge17_Node000008_Node000019" title=" " alt="" coords="826,384,971,397,971,402,825,390"/>
-<area shape="poly" id="edge23_Node000008_Node000020" title=" " alt="" coords="747,1430,1037,419,1042,420,752,1431"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1emu_1_1Observer.html" title=" " alt="" coords="249,731,413,756"/>
-<area shape="poly" id="edge24_Node000020_Node000021" title=" " alt="" coords="429,738,478,743,530,755,578,776,620,808,637,831,652,860,678,937,698,1030,714,1131,734,1323,741,1445,736,1445,728,1324,709,1132,693,1031,673,939,647,863,632,834,616,812,576,781,528,760,478,748,429,743"/>
-<area shape="poly" id="edge55_Node000053_Node000021" title=" " alt="" coords="429,747,475,745,524,738,572,725,617,704,625,697,629,690,640,671,682,632,719,602,723,606,685,636,644,674,634,692,629,701,620,708,574,730,525,743,476,750,429,752"/>
-<area shape="rect" id="Node000022" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="256,1224,407,1250"/>
-<area shape="poly" id="edge25_Node000020_Node000022" title=" " alt="" coords="423,1227,470,1229,522,1236,573,1249,620,1272,644,1290,665,1312,700,1361,724,1409,737,1444,732,1446,719,1411,695,1364,661,1315,640,1294,617,1276,571,1254,521,1241,470,1234,423,1233"/>
-<area shape="rect" id="Node000023" href="$structyaze_1_1app_1_1emu_1_1OAMSize.html" title=" " alt="" coords="248,1273,414,1299"/>
-<area shape="poly" id="edge28_Node000020_Node000023" title=" " alt="" coords="430,1287,525,1302,573,1316,620,1336,656,1360,688,1390,732,1443,728,1446,684,1394,653,1364,617,1341,572,1321,523,1307,430,1292"/>
-<area shape="rect" id="Node000024" href="$structyaze_1_1app_1_1emu_1_1OAMAddress.html" title=" " alt="" coords="237,1323,426,1348"/>
-<area shape="poly" id="edge29_Node000020_Node000024" title=" " alt="" coords="442,1349,529,1367,619,1393,674,1417,719,1442,716,1447,672,1422,617,1398,528,1372,441,1354"/>
-<area shape="rect" id="Node000025" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1Mosaic.html" title=" " alt="" coords="237,1373,426,1413"/>
-<area shape="poly" id="edge30_Node000020_Node000025" title=" " alt="" coords="441,1407,619,1436,673,1444,672,1450,618,1441,441,1412"/>
-<area shape="rect" id="Node000026" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMAIN.html" title=" " alt="" coords="237,1438,426,1479"/>
-<area shape="poly" id="edge31_Node000020_Node000026" title=" " alt="" coords="441,1456,673,1456,673,1461,441,1461"/>
-<area shape="rect" id="Node000027" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMADDL.html" title=" " alt="" coords="237,1503,426,1544"/>
-<area shape="poly" id="edge32_Node000020_Node000027" title=" " alt="" coords="441,1504,618,1476,672,1467,673,1472,619,1481,441,1509"/>
-<area shape="rect" id="Node000028" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMADDH.html" title=" " alt="" coords="237,1569,426,1609"/>
-<area shape="poly" id="edge33_Node000020_Node000028" title=" " alt="" coords="441,1568,528,1548,617,1520,672,1495,717,1469,719,1474,674,1500,619,1525,530,1553,442,1573"/>
-<area shape="rect" id="Node000029" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1M7SEL.html" title=" " alt="" coords="237,1634,426,1675"/>
-<area shape="poly" id="edge34_Node000020_Node000029" title=" " alt="" coords="441,1639,530,1618,575,1602,617,1582,653,1556,685,1525,728,1470,732,1473,689,1528,656,1560,620,1586,577,1607,531,1624,442,1645"/>
-<area shape="rect" id="Node000030" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1M7A.html" title=" " alt="" coords="220,1699,442,1724"/>
-<area shape="poly" id="edge35_Node000020_Node000030" title=" " alt="" coords="458,1707,498,1700,540,1690,580,1674,617,1654,641,1634,662,1610,696,1558,719,1508,733,1470,738,1472,724,1510,701,1561,666,1614,644,1638,620,1658,582,1679,542,1695,500,1705,458,1712"/>
-<area shape="rect" id="Node000031" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1M7B.html" title=" " alt="" coords="220,1748,442,1774"/>
-<area shape="poly" id="edge36_Node000020_Node000031" title=" " alt="" coords="458,1769,499,1766,541,1759,581,1745,617,1724,647,1697,671,1664,691,1628,707,1591,726,1521,735,1471,740,1472,732,1522,712,1592,696,1630,676,1667,651,1701,620,1729,583,1750,542,1764,500,1772,458,1775"/>
-<area shape="rect" id="Node000032" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1M7C.html" title=" " alt="" coords="220,1797,442,1823"/>
-<area shape="poly" id="edge37_Node000020_Node000032" title=" " alt="" coords="408,1823,459,1828,514,1826,568,1814,593,1803,617,1788,652,1754,680,1712,701,1667,716,1619,732,1531,736,1471,742,1472,737,1532,721,1621,706,1669,685,1715,656,1757,620,1793,596,1808,570,1819,514,1831,458,1833,407,1828"/>
-<area shape="rect" id="Node000033" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1M7D.html" title=" " alt="" coords="220,1847,442,1872"/>
-<area shape="poly" id="edge38_Node000020_Node000033" title=" " alt="" coords="458,1867,553,1865,591,1859,617,1848,639,1821,660,1779,679,1725,695,1666,721,1550,735,1471,740,1472,726,1551,701,1667,684,1727,665,1781,644,1824,620,1853,593,1864,553,1871,458,1872"/>
-<area shape="rect" id="Node000034" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1M7X.html" title=" " alt="" coords="220,1896,442,1922"/>
-<area shape="poly" id="edge39_Node000020_Node000034" title=" " alt="" coords="402,1922,454,1928,511,1927,567,1915,593,1904,617,1889,641,1858,662,1810,681,1750,698,1684,722,1557,735,1471,740,1472,728,1558,703,1686,687,1752,667,1812,645,1861,620,1892,596,1909,569,1921,511,1933,454,1934,401,1928"/>
-<area shape="rect" id="Node000035" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1M7Y.html" title=" " alt="" coords="220,1945,442,1971"/>
-<area shape="poly" id="edge40_Node000020_Node000035" title=" " alt="" coords="458,1967,553,1967,591,1961,617,1950,630,1935,643,1915,667,1859,687,1790,703,1714,725,1568,735,1471,741,1472,730,1568,708,1715,692,1792,672,1861,648,1917,635,1938,620,1954,593,1966,553,1972,458,1973"/>
-<area shape="rect" id="Node000036" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1CGADD.html" title=" " alt="" coords="237,1995,426,2036"/>
-<area shape="poly" id="edge41_Node000020_Node000036" title=" " alt="" coords="442,2032,487,2033,534,2027,578,2013,617,1988,631,1972,644,1950,668,1889,688,1814,704,1732,726,1574,736,1471,741,1472,731,1574,710,1733,693,1815,673,1891,649,1952,635,1975,620,1993,580,2018,535,2032,487,2038,441,2037"/>
-<area shape="rect" id="Node000037" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1CGDATA.html" title=" " alt="" coords="237,2061,426,2101"/>
-<area shape="poly" id="edge42_Node000020_Node000037" title=" " alt="" coords="442,2098,487,2098,534,2093,578,2079,617,2054,633,2035,647,2009,673,1941,693,1856,709,1763,728,1585,736,1471,741,1471,734,1585,714,1763,698,1857,678,1942,652,2012,637,2038,620,2058,580,2084,535,2098,488,2104,442,2103"/>
-<area shape="rect" id="Node000038" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1W12SEL.html" title=" " alt="" coords="237,2126,426,2167"/>
-<area shape="poly" id="edge43_Node000020_Node000038" title=" " alt="" coords="442,2163,488,2164,534,2159,578,2144,617,2119,634,2098,650,2069,677,1992,697,1898,713,1794,730,1596,736,1471,742,1472,736,1597,718,1795,703,1899,682,1994,655,2072,638,2101,620,2123,580,2149,535,2164,488,2169,441,2169"/>
-<area shape="rect" id="Node000039" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1W34SEL.html" title=" " alt="" coords="237,2191,426,2232"/>
-<area shape="poly" id="edge44_Node000020_Node000039" title=" " alt="" coords="442,2229,488,2230,534,2224,578,2210,617,2185,636,2161,653,2129,681,2044,702,1939,717,1824,733,1606,736,1471,742,1471,738,1606,722,1824,707,1939,686,2045,658,2131,640,2164,620,2188,581,2215,535,2229,488,2235,441,2234"/>
-<area shape="rect" id="Node000040" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WOBJSEL.html" title=" " alt="" coords="237,2257,426,2297"/>
-<area shape="poly" id="edge45_Node000020_Node000040" title=" " alt="" coords="442,2294,488,2295,534,2290,578,2275,617,2250,637,2224,655,2189,671,2146,685,2096,706,1981,721,1855,730,1731,735,1618,737,1472,742,1472,740,1618,735,1731,726,1856,712,1981,690,2097,676,2147,660,2191,642,2227,620,2254,581,2280,536,2295,488,2301,442,2300"/>
-<area shape="rect" id="Node000041" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WH0.html" title=" " alt="" coords="219,2321,443,2347"/>
-<area shape="poly" id="edge46_Node000020_Node000041" title=" " alt="" coords="394,2348,448,2357,508,2358,537,2354,566,2346,593,2334,616,2317,639,2289,659,2251,676,2203,690,2149,712,2024,726,1887,734,1752,737,1629,737,1472,742,1472,742,1629,739,1752,731,1888,717,2024,695,2150,681,2205,664,2253,644,2292,620,2320,595,2339,568,2351,538,2359,508,2363,447,2362,393,2354"/>
-<area shape="rect" id="Node000042" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WH1.html" title=" " alt="" coords="219,783,443,808"/>
-<area shape="poly" id="edge47_Node000020_Node000042" title=" " alt="" coords="411,810,444,817,468,823,512,827,550,825,585,830,602,839,620,854,636,874,651,902,676,972,696,1059,712,1153,733,1331,741,1445,736,1445,727,1332,707,1153,691,1060,671,974,646,904,632,877,616,857,599,843,583,835,550,830,512,832,467,828,443,822,410,815"/>
-<area shape="rect" id="Node000043" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WH2.html" title=" " alt="" coords="219,832,443,858"/>
-<area shape="poly" id="edge48_Node000020_Node000043" title=" " alt="" coords="418,859,620,899,635,918,649,943,673,1008,693,1087,709,1174,731,1339,741,1445,736,1445,726,1339,704,1175,688,1089,668,1010,644,945,631,921,617,903,417,864"/>
-<area shape="rect" id="Node000044" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WH3.html" title=" " alt="" coords="219,881,443,907"/>
-<area shape="poly" id="edge49_Node000020_Node000044" title=" " alt="" coords="428,908,553,930,620,944,634,961,647,984,671,1043,690,1116,707,1194,730,1346,741,1444,735,1445,724,1346,701,1195,685,1117,666,1045,643,986,630,964,617,948,552,935,427,913"/>
-<area shape="rect" id="Node000045" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WBGLOG.html" title=" " alt="" coords="237,931,426,972"/>
-<area shape="poly" id="edge50_Node000020_Node000045" title=" " alt="" coords="442,957,547,973,591,985,620,1002,645,1036,667,1089,686,1152,703,1222,728,1356,740,1444,735,1445,722,1356,698,1223,681,1154,662,1090,640,1039,617,1005,589,990,546,978,441,962"/>
-<area shape="rect" id="Node000046" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1WOBJLOG.html" title=" " alt="" coords="237,997,426,1037"/>
-<area shape="poly" id="edge51_Node000020_Node000046" title=" " alt="" coords="442,1017,546,1029,590,1040,620,1055,661,1100,692,1153,714,1210,729,1268,737,1324,742,1375,742,1445,737,1445,736,1375,732,1325,723,1269,709,1212,687,1155,657,1103,617,1059,588,1045,546,1034,441,1023"/>
-<area shape="rect" id="Node000047" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1TM.html" title=" " alt="" coords="224,1061,438,1087"/>
-<area shape="poly" id="edge52_Node000020_Node000047" title=" " alt="" coords="454,1073,552,1083,592,1092,620,1105,657,1144,686,1189,708,1239,723,1289,738,1382,742,1445,737,1445,733,1383,717,1290,703,1240,681,1192,653,1147,617,1110,590,1097,551,1088,454,1078"/>
-<area shape="rect" id="Node000048" href="$structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1TS.html" title=" " alt="" coords="225,1175,437,1200"/>
-<area shape="poly" id="edge53_Node000020_Node000048" title=" " alt="" coords="453,1182,496,1187,539,1196,581,1211,620,1233,647,1257,670,1284,705,1345,727,1402,739,1444,734,1446,722,1404,700,1347,665,1287,643,1260,617,1238,579,1216,538,1201,495,1192,453,1187"/>
-<area shape="poly" id="edge54_Node000008_Node000053" title=" " alt="" coords="798,569,864,543,931,507,989,460,1030,418,1034,421,992,464,934,511,866,548,800,574"/>
-<area shape="rect" id="Node000058" href="$classyaze_1_1app_1_1emu_1_1ROMInfo.html" title=" " alt="" coords="659,219,822,244"/>
-<area shape="poly" id="edge59_Node000008_Node000058" title=" " alt="" coords="826,246,881,265,934,293,965,318,994,345,1035,391,1031,395,990,348,962,322,931,298,879,270,824,251"/>
-<area shape="rect" id="Node000059" href="$classyaze_1_1app_1_1emu_1_1Debugger.html" title=" " alt="" coords="657,268,824,294"/>
-<area shape="poly" id="edge60_Node000008_Node000059" title=" " alt="" coords="817,296,840,302,893,323,944,347,1023,390,1020,395,941,352,891,328,838,307,816,301"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="1157,384,1280,410"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="902,251,1078,276"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1028,282,1196,381,1193,386,1025,287"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="643,120,753,146"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="753,149,879,200,968,248,965,252,877,205,751,154"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="229,250,404,291"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="420,271,462,267,505,259,548,245,587,225,595,218,599,209,610,188,640,163,670,144,673,149,643,168,614,192,604,211,599,221,590,230,550,250,506,264,462,272,420,276"/>
+<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1emu_1_1Cpu.html" title=" " alt="" coords="631,381,765,407"/>
+<area shape="poly" id="edge20_Node000019_Node000004" title=" " alt="" coords="420,272,519,283,561,293,590,307,601,322,603,338,605,353,614,367,632,379,629,383,610,371,600,355,598,339,596,324,587,311,559,298,518,288,419,277"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="219,120,413,146"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="429,130,642,130,642,136,429,136"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="229,5,403,31"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="419,28,503,44,589,69,639,93,679,117,676,122,636,97,587,74,502,49,418,33"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="233,55,399,96"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="415,85,589,110,643,120,642,125,588,115,414,90"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1SNES.html" title=" " alt="" coords="916,408,1064,434"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1079,412,1133,407,1156,404,1157,409,1133,412,1079,417"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html" title=" " alt="" coords="619,317,777,357"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="793,358,878,382,949,405,948,410,877,387,791,363"/>
+<area shape="rect" id="Node000010" href="$structyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel.html" title=" " alt="" coords="238,170,395,226"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="411,207,501,230,547,248,590,272,603,288,614,303,632,314,629,318,611,307,598,291,587,276,545,253,499,235,409,212"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="238,478,395,519"/>
+<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="398,471,437,462,641,443,916,423,916,429,642,449,438,467,399,476"/>
+<area shape="rect" id="Node000053" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html" title="The Apu class represents the Audio Processing Unit (APU) of a system." alt="" coords="612,592,784,618"/>
+<area shape="poly" id="edge58_Node000053_Node000011" title=" " alt="" coords="407,521,650,589,648,594,406,526"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="9,449,166,489"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="182,478,237,485,237,491,181,484"/>
+<area shape="poly" id="edge18_Node000019_Node000012" title=" " alt="" coords="181,455,630,400,631,405,182,460"/>
+<area shape="poly" id="edge21_Node000019_Node000012" title=" " alt="" coords="154,440,218,421,331,402,444,392,547,388,630,389,630,394,547,394,444,397,331,407,220,426,156,445"/>
+<area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html" title=" " alt="" coords="612,1565,784,1591"/>
+<area shape="poly" id="edge26_Node000020_Node000012" title=" " alt="" coords="93,505,102,653,123,858,139,962,161,1057,188,1133,204,1163,221,1185,243,1203,265,1216,287,1225,309,1229,354,1228,400,1221,447,1213,494,1211,518,1215,542,1222,566,1234,590,1252,623,1288,649,1330,668,1376,682,1422,696,1507,699,1565,694,1565,691,1508,676,1423,663,1378,644,1333,619,1291,587,1256,563,1239,540,1227,517,1220,494,1217,447,1218,401,1226,355,1234,308,1234,285,1230,262,1221,240,1208,217,1188,199,1166,183,1136,156,1058,134,963,117,859,96,653,87,505"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="5,332,170,358"/>
+<area shape="poly" id="edge12_Node000011_Node000013" title=" " alt="" coords="122,364,286,475,283,479,119,369"/>
+<area shape="poly" id="edge19_Node000019_Node000013" title=" " alt="" coords="185,337,373,337,481,344,589,358,613,366,652,378,650,383,612,371,588,363,481,349,373,342,185,342"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1emu_1_1ClockImpl.html" title=" " alt="" coords="613,519,783,544"/>
+<area shape="poly" id="edge13_Node000008_Node000015" title=" " alt="" coords="771,512,877,477,925,455,965,432,968,437,927,459,879,482,772,517"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="244,575,388,600"/>
+<area shape="poly" id="edge14_Node000015_Node000016" title=" " alt="" coords="403,575,588,549,626,542,627,548,589,554,404,580"/>
+<area shape="poly" id="edge22_Node000019_Node000016" title=" " alt="" coords="353,564,412,528,436,511,478,490,512,478,546,466,587,444,611,424,652,405,654,410,614,428,590,449,549,471,514,483,480,495,439,515,415,532,355,569"/>
+<area shape="poly" id="edge27_Node000020_Node000016" title=" " alt="" coords="371,603,438,627,483,636,522,640,556,649,573,660,591,678,604,723,619,817,652,1095,698,1565,693,1565,647,1095,613,818,598,724,586,681,570,665,554,654,521,645,482,642,437,632,369,608"/>
+<area shape="poly" id="edge57_Node000053_Node000016" title=" " alt="" coords="404,598,438,601,527,605,612,605,612,610,527,610,437,606,404,603"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html" title="AudioRamImpl is an implementation of the AudioRam interface." alt="" coords="627,697,769,737"/>
+<area shape="poly" id="edge15_Node000008_Node000017" title=" " alt="" coords="744,685,809,638,876,579,909,540,939,499,979,433,984,435,943,502,913,543,880,583,813,643,747,690"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html" title="AudioRam is an interface for the Audio RAM used by the SPC700." alt="" coords="245,662,387,703"/>
+<area shape="poly" id="edge16_Node000017_Node000018" title=" " alt="" coords="394,706,414,713,438,722,479,728,512,728,588,722,626,720,626,725,589,727,513,733,479,733,437,727,412,718,392,711"/>
+<area shape="poly" id="edge56_Node000053_Node000018" title=" " alt="" coords="403,700,446,705,494,707,541,703,587,692,618,677,645,656,684,616,688,620,648,660,620,681,589,697,542,709,494,713,446,711,402,705"/>
+<area shape="poly" id="edge17_Node000008_Node000019" title=" " alt="" coords="781,399,916,411,916,417,781,404"/>
+<area shape="poly" id="edge23_Node000008_Node000020" title=" " alt="" coords="704,1550,983,433,988,435,709,1551"/>
+<area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html" title=" " alt="" coords="238,727,395,768"/>
+<area shape="poly" id="edge24_Node000020_Node000021" title=" " alt="" coords="411,747,458,754,506,768,552,790,590,823,609,850,625,885,651,976,670,1086,683,1204,697,1427,699,1565,694,1565,691,1428,678,1205,665,1087,646,977,620,887,604,853,586,827,549,795,504,773,457,759,410,752"/>
+<area shape="poly" id="edge55_Node000053_Node000021" title=" " alt="" coords="410,751,454,749,499,743,545,732,587,713,600,700,610,683,680,616,684,620,614,687,604,703,590,718,546,737,500,748,454,755,411,756"/>
+<area shape="rect" id="Node000022" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="241,1312,392,1338"/>
+<area shape="poly" id="edge25_Node000020_Node000022" title=" " alt="" coords="408,1320,453,1325,500,1334,547,1350,590,1375,614,1396,634,1420,665,1474,685,1526,696,1564,691,1565,680,1528,660,1477,629,1423,610,1399,587,1379,545,1355,499,1339,452,1330,407,1326"/>
+<area shape="rect" id="Node000023" href="$structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html" title=" " alt="" coords="245,1362,387,1403"/>
+<area shape="poly" id="edge28_Node000020_Node000023" title=" " alt="" coords="403,1387,496,1406,545,1423,590,1447,624,1474,653,1507,692,1563,687,1566,649,1510,621,1478,587,1451,543,1428,495,1412,402,1392"/>
+<area shape="rect" id="Node000024" href="$structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html" title=" " alt="" coords="245,1427,387,1468"/>
+<area shape="poly" id="edge29_Node000020_Node000024" title=" " alt="" coords="403,1459,494,1479,589,1510,640,1536,680,1563,677,1567,637,1541,587,1515,493,1484,402,1464"/>
+<area shape="rect" id="Node000025" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html" title=" " alt="" coords="240,1493,393,1533"/>
+<area shape="poly" id="edge30_Node000020_Node000025" title=" " alt="" coords="409,1525,589,1556,625,1562,625,1567,588,1561,408,1530"/>
+<area shape="rect" id="Node000026" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html" title=" " alt="" coords="239,1558,393,1599"/>
+<area shape="poly" id="edge31_Node000020_Node000026" title=" " alt="" coords="409,1576,612,1576,612,1581,409,1581"/>
+<area shape="rect" id="Node000027" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDL.html" title=" " alt="" coords="233,1623,399,1664"/>
+<area shape="poly" id="edge32_Node000020_Node000027" title=" " alt="" coords="414,1625,588,1596,626,1589,627,1594,589,1601,415,1630"/>
+<area shape="rect" id="Node000028" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDH.html" title=" " alt="" coords="232,1689,400,1729"/>
+<area shape="poly" id="edge33_Node000020_Node000028" title=" " alt="" coords="415,1690,500,1670,587,1641,637,1616,677,1589,680,1594,640,1620,589,1646,502,1676,416,1695"/>
+<area shape="rect" id="Node000029" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html" title=" " alt="" coords="239,1754,393,1795"/>
+<area shape="poly" id="edge34_Node000020_Node000029" title=" " alt="" coords="408,1763,498,1743,544,1726,587,1704,621,1678,649,1646,687,1590,692,1593,653,1649,624,1681,590,1709,546,1731,500,1748,409,1768"/>
+<area shape="rect" id="Node000030" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7A.html" title=" " alt="" coords="245,1819,387,1860"/>
+<area shape="poly" id="edge35_Node000020_Node000030" title=" " alt="" coords="402,1836,448,1831,496,1820,544,1803,587,1778,609,1757,629,1733,660,1680,680,1628,691,1591,696,1592,685,1630,665,1682,634,1736,613,1761,590,1782,546,1808,498,1825,449,1836,403,1841"/>
+<area shape="rect" id="Node000031" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7B.html" title=" " alt="" coords="245,1885,387,1925"/>
+<area shape="poly" id="edge36_Node000020_Node000031" title=" " alt="" coords="403,1906,449,1903,497,1894,545,1877,587,1851,615,1822,638,1788,656,1750,670,1712,687,1641,693,1591,698,1592,692,1642,675,1714,661,1752,643,1790,619,1825,590,1855,547,1882,499,1899,449,1908,403,1912"/>
+<area shape="rect" id="Node000032" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7C.html" title=" " alt="" coords="245,1950,387,1991"/>
+<area shape="poly" id="edge37_Node000020_Node000032" title=" " alt="" coords="403,1976,449,1974,498,1967,545,1951,587,1924,621,1886,647,1842,667,1793,680,1744,693,1653,694,1591,700,1592,698,1653,685,1745,672,1795,652,1844,625,1890,590,1929,548,1956,499,1972,450,1979,403,1981"/>
+<area shape="rect" id="Node000033" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7D.html" title=" " alt="" coords="245,2015,387,2056"/>
+<area shape="poly" id="edge38_Node000020_Node000033" title=" " alt="" coords="402,2044,449,2043,498,2037,545,2022,587,1995,609,1965,628,1918,645,1860,660,1797,682,1674,693,1591,698,1592,687,1674,665,1798,651,1862,633,1920,613,1967,590,1999,548,2026,499,2042,450,2049,402,2049"/>
+<area shape="rect" id="Node000034" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7X.html" title=" " alt="" coords="245,2081,387,2121"/>
+<area shape="poly" id="edge39_Node000020_Node000034" title=" " alt="" coords="403,2111,450,2111,499,2106,546,2091,567,2079,586,2065,599,2049,611,2029,633,1973,651,1905,665,1830,684,1686,693,1591,698,1592,690,1687,670,1831,656,1906,638,1975,616,2031,604,2052,590,2068,570,2084,548,2096,500,2111,450,2117,403,2116"/>
+<area shape="rect" id="Node000035" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7Y.html" title=" " alt="" coords="245,2146,387,2187"/>
+<area shape="poly" id="edge40_Node000020_Node000035" title=" " alt="" coords="403,2178,450,2179,499,2173,546,2159,567,2147,586,2133,601,2115,614,2091,637,2027,655,1948,670,1862,687,1698,693,1591,699,1591,692,1698,675,1863,661,1950,642,2029,619,2093,605,2118,590,2136,570,2152,548,2164,500,2179,450,2184,403,2183"/>
+<area shape="rect" id="Node000036" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADD.html" title=" " alt="" coords="238,2211,395,2252"/>
+<area shape="poly" id="edge41_Node000020_Node000036" title=" " alt="" coords="411,2244,456,2245,503,2239,548,2225,587,2199,603,2179,617,2152,642,2080,660,1991,674,1894,689,1709,694,1591,699,1591,695,1709,679,1894,665,1992,647,2081,622,2154,607,2182,590,2203,550,2230,505,2245,457,2250,411,2250"/>
+<area shape="rect" id="Node000037" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGDATA.html" title=" " alt="" coords="234,2277,399,2317"/>
+<area shape="poly" id="edge42_Node000020_Node000037" title=" " alt="" coords="415,2311,460,2311,506,2306,549,2291,587,2266,604,2244,620,2213,646,2133,665,2034,678,1926,691,1720,694,1591,699,1592,697,1721,683,1926,670,2035,651,2134,625,2215,609,2247,590,2270,551,2296,507,2311,460,2317,414,2316"/>
+<area shape="rect" id="Node000038" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html" title=" " alt="" coords="235,2342,397,2383"/>
+<area shape="poly" id="edge43_Node000020_Node000038" title=" " alt="" coords="413,2377,458,2378,505,2372,549,2358,587,2333,606,2308,623,2274,637,2233,650,2186,670,2076,682,1957,690,1839,694,1732,694,1592,700,1592,699,1732,695,1839,688,1958,675,2077,655,2187,643,2235,628,2277,610,2311,590,2336,551,2363,506,2378,459,2383,413,2382"/>
+<area shape="rect" id="Node000039" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html" title=" " alt="" coords="235,2407,397,2448"/>
+<area shape="poly" id="edge44_Node000020_Node000039" title=" " alt="" coords="413,2442,459,2443,505,2438,549,2424,569,2412,586,2398,597,2381,608,2352,627,2262,645,2144,660,2011,682,1752,693,1591,699,1592,688,1752,665,2012,650,2145,633,2263,613,2353,602,2383,590,2402,572,2417,551,2429,506,2443,459,2449,413,2447"/>
+<area shape="rect" id="Node000040" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html" title=" " alt="" coords="229,2473,403,2513"/>
+<area shape="poly" id="edge45_Node000020_Node000040" title=" " alt="" coords="419,2508,463,2509,508,2503,550,2489,586,2463,598,2445,609,2413,629,2316,647,2188,662,2043,684,1763,693,1591,699,1592,689,1764,667,2044,653,2189,635,2317,614,2414,603,2447,590,2467,553,2493,509,2508,463,2514,419,2513"/>
+<area shape="rect" id="Node000041" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH0.html" title=" " alt="" coords="245,2538,387,2579"/>
+<area shape="poly" id="edge46_Node000020_Node000041" title=" " alt="" coords="403,2572,450,2575,499,2571,547,2557,568,2545,586,2530,599,2510,610,2475,632,2371,650,2233,664,2077,685,1775,693,1592,699,1592,690,1776,670,2078,655,2233,637,2372,616,2477,604,2512,590,2534,571,2550,549,2562,500,2576,450,2580,402,2578"/>
+<area shape="rect" id="Node000042" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH1.html" title=" " alt="" coords="245,793,387,833"/>
+<area shape="poly" id="edge47_Node000020_Node000042" title=" " alt="" coords="403,830,438,837,483,841,520,839,555,844,573,853,590,868,608,893,624,926,650,1010,669,1113,683,1224,696,1434,699,1565,694,1565,691,1435,677,1224,664,1114,645,1011,619,928,604,896,586,872,570,857,553,849,520,844,482,846,437,842,402,835"/>
+<area shape="rect" id="Node000043" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH2.html" title=" " alt="" coords="245,858,387,899"/>
+<area shape="poly" id="edge48_Node000020_Node000043" title=" " alt="" coords="403,880,513,893,559,906,590,923,607,945,622,975,647,1052,666,1147,680,1249,695,1443,699,1565,694,1565,690,1443,675,1249,661,1147,642,1054,618,977,603,948,587,927,557,911,512,898,402,885"/>
+<area shape="rect" id="Node000044" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH3.html" title=" " alt="" coords="245,923,387,964"/>
+<area shape="poly" id="edge49_Node000020_Node000044" title=" " alt="" coords="403,940,512,948,559,958,590,973,607,994,621,1021,645,1091,664,1177,678,1271,694,1451,699,1565,694,1565,688,1451,672,1272,659,1178,640,1093,616,1023,602,997,587,978,557,963,511,953,403,946"/>
+<area shape="rect" id="Node000045" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WBGLOG.html" title=" " alt="" coords="231,989,401,1029"/>
+<area shape="poly" id="edge50_Node000020_Node000045" title=" " alt="" coords="417,993,461,993,508,1000,552,1016,590,1042,605,1059,618,1083,641,1145,659,1221,673,1304,691,1462,699,1565,693,1565,686,1463,668,1304,654,1222,636,1147,613,1085,600,1062,587,1045,549,1020,506,1005,461,999,416,998"/>
+<area shape="rect" id="Node000046" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html" title=" " alt="" coords="228,1054,405,1095"/>
+<area shape="poly" id="edge51_Node000020_Node000046" title=" " alt="" coords="420,1059,464,1061,509,1069,552,1084,590,1110,615,1145,636,1199,654,1264,669,1336,689,1474,698,1565,693,1565,683,1474,663,1337,649,1265,631,1200,610,1148,586,1113,550,1089,508,1074,464,1066,420,1065"/>
+<area shape="rect" id="Node000047" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TM.html" title=" " alt="" coords="245,1119,387,1160"/>
+<area shape="poly" id="edge52_Node000020_Node000047" title=" " alt="" coords="403,1127,450,1128,500,1136,548,1152,590,1179,612,1209,632,1254,649,1309,664,1369,686,1485,698,1564,692,1565,681,1486,659,1370,644,1310,627,1256,608,1211,587,1183,546,1156,498,1141,450,1134,403,1133"/>
+<area shape="rect" id="Node000048" href="$structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html" title=" " alt="" coords="245,1247,387,1288"/>
+<area shape="poly" id="edge53_Node000020_Node000048" title=" " alt="" coords="403,1267,450,1273,499,1285,547,1304,590,1332,616,1359,638,1390,670,1457,689,1520,698,1565,692,1566,684,1521,665,1459,634,1393,612,1362,587,1336,545,1309,497,1290,449,1278,403,1272"/>
+<area shape="poly" id="edge54_Node000008_Node000053" title=" " alt="" coords="751,584,813,557,876,522,934,475,975,432,979,436,937,479,879,526,815,562,753,589"/>
+<area shape="rect" id="Node000058" href="$classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html" title=" " alt="" coords="619,202,777,243"/>
+<area shape="poly" id="edge59_Node000008_Node000058" title=" " alt="" coords="784,246,833,268,879,296,912,324,940,354,981,406,977,409,936,358,908,327,876,300,830,272,782,251"/>
+<area shape="rect" id="Node000059" href="$classyaze_1_1app_1_1emu_1_1Debugger.html" title=" " alt="" coords="615,267,781,292"/>
+<area shape="poly" id="edge60_Node000008_Node000059" title=" " alt="" coords="766,295,785,302,839,328,891,356,970,405,968,410,888,361,837,333,783,307,764,300"/>
 </map>

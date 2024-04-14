@@ -1,5 +1,5 @@
 <map id="yaze::app::editor::OverworldEditor" name="yaze::app::editor::OverworldEditor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="229,105,347,145"/>
+<area shape="rect" id="Node000001" title="Represents an editor for the overworld in a game." alt="" coords="229,105,347,145"/>
 <area shape="rect" id="Node000002" href="$classEditor.html" title=" " alt="" coords="66,5,120,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,24,182,40,229,70,267,102,263,106,226,74,179,45,134,29"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="17,55,169,80"/>

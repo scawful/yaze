@@ -1,9 +1,0 @@
-<map id="yaze::app::emu::MemoryImpl" name="yaze::app::emu::MemoryImpl">
-<area shape="rect" id="Node000001" title=" " alt="" coords="9,169,191,195"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Memory.html" title=" " alt="" coords="5,94,163,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,134,100,168,95,169,87,136"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="187,94,352,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,129,129,171,127,166,226,124"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Logger.html" title=" " alt="" coords="194,5,345,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="272,47,272,94,267,94,267,47"/>
-</map>

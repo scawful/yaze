@@ -10,7 +10,7 @@ var searchData=
   ['resourcetype_7',['ResourceType',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html',1,'yaze::app::core::ResourceLabelManager']]],
   ['rom_8',['ROM',['../classyaze_1_1app_1_1ROM.html',1,'yaze::app::ROM'],['../md_docs_2infrastructure.html#autotoc_md24',1,'ROM']]],
   ['rom_20h_20app_20rom_20h_20a_9',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
-  ['rominfo_10',['ROMInfo',['../classyaze_1_1app_1_1emu_1_1ROMInfo.html',1,'yaze::app::emu']]],
+  ['rominfo_10',['RomInfo',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html',1,'yaze::app::emu::memory']]],
   ['room_11',['Room',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html',1,'yaze::app::zelda3::dungeon']]],
   ['roomentrance_12',['RoomEntrance',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html',1,'yaze::app::zelda3::dungeon']]],
   ['roomobject_13',['RoomObject',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html',1,'yaze::app::zelda3::dungeon']]]

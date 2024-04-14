@@ -6,9 +6,9 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="206,88,419,88,419,94,206,94"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="5,136,200,161"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="214,132,374,109,419,100,420,105,375,114,215,138"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="15,205,190,231"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="15,205,190,231"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="205,200,289,180,374,152,452,102,455,107,376,156,290,185,206,205"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title=" " alt="" coords="403,242,547,268"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="403,242,547,268"/>
 <area shape="poly" id="edge8_Node000008_Node000005" title=" " alt="" coords="180,231,224,238,317,247,402,251,402,256,316,252,223,243,180,236"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="19,5,186,46"/>
 <area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="202,39,375,70,420,78,419,83,374,75,201,45"/>

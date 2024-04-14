@@ -110,12 +110,12 @@ $(function(){initNavTree('dma_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">namespace </span>yaze {</div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span>app {</div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>emu {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">// Direct Memory Address</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span>memory {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="foldopen" id="foldopen00011" data-start="{" data-end="};">
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1emu_1_1DMA.html">   11</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1emu_1_1DMA.html">DMA</a> {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html">   11</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html">DirectMemoryAccess</a> {</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <a class="code hl_class" href="classyaze_1_1app_1_1emu_1_1DMA.html">DMA</a>() {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <a class="code hl_class" href="classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html">DirectMemoryAccess</a>() {</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <span class="comment">// Initialize DMA and HDMA channels</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 8; ++i) {</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>      channels[i].DMAPn = 0;</div>
@@ -132,7 +132,7 @@ $(function(){initNavTree('dma_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keyword">enum class</span> DMA_TRANSFER_TYPE {</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    OAM,</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    PPUDATA,</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <a class="code hl_struct" href="structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1CGDATA.html">CGDATA</a>,</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    CGDATA,</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    FILL_VRAM,</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    CLEAR_VRAM,</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    RESET_VRAM</div>
@@ -144,7 +144,7 @@ $(function(){initNavTree('dma_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// Structure for DMA and HDMA channel registers</span></div>
 <div class="foldopen" id="foldopen00041" data-start="{" data-end="};">
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1emu_1_1DMA_1_1Channel.html">   41</a></span>  <span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1app_1_1emu_1_1DMA_1_1Channel.html">Channel</a> {</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="structyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel.html">   41</a></span>  <span class="keyword">struct </span><a class="code hl_struct" href="structyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel.html">Channel</a> {</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    uint8_t DMAPn;    <span class="comment">// DMA/HDMA parameters</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    uint8_t BBADn;    <span class="comment">// B-bus address</span></div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    uint8_t UNUSEDn;  <span class="comment">// Unused byte</span></div>
@@ -154,20 +154,21 @@ $(function(){initNavTree('dma_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    uint8_t NLTRn;    <span class="comment">// HDMA Line-Counter</span></div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  };</div>
 </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <a class="code hl_struct" href="structyaze_1_1app_1_1emu_1_1DMA_1_1Channel.html">Channel</a> channels[8];</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <a class="code hl_struct" href="structyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel.html">Channel</a> channels[8];</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  uint8_t MDMAEN = 0;  <span class="comment">// Start DMA transfer</span></div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  uint8_t HDMAEN = 0;  <span class="comment">// Enable HDMA transfers</span></div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>};</div>
 </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>}  <span class="comment">// namespace emu</span></div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EMU_MEMORY_DMA_H</span></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1DMA_html"><div class="ttname"><a href="classyaze_1_1app_1_1emu_1_1DMA.html">yaze::app::emu::DMA</a></div><div class="ttdef"><b>Definition</b> dma.h:11</div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1emu_1_1DMA_1_1Channel_html"><div class="ttname"><a href="structyaze_1_1app_1_1emu_1_1DMA_1_1Channel.html">yaze::app::emu::DMA::Channel</a></div><div class="ttdef"><b>Definition</b> dma.h:41</div></div>
-<div class="ttc" id="astructyaze_1_1app_1_1emu_1_1PpuRegisters_1_1CGDATA_html"><div class="ttname"><a href="structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1CGDATA.html">yaze::app::emu::PpuRegisters::CGDATA</a></div><div class="ttdef"><b>Definition</b> ppu_registers.h:240</div></div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>}  <span class="comment">// namespace memory</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>}  <span class="comment">// namespace emu</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EMU_MEMORY_DMA_H</span></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_html"><div class="ttname"><a href="classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html">yaze::app::emu::memory::DirectMemoryAccess</a></div><div class="ttdef"><b>Definition</b> dma.h:11</div></div>
+<div class="ttc" id="astructyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel_html"><div class="ttname"><a href="structyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel.html">yaze::app::emu::memory::DirectMemoryAccess::Channel</a></div><div class="ttdef"><b>Definition</b> dma.h:41</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

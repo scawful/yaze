@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['colors_0',['colors',['../structyaze_1_1app_1_1gfx_1_1snes__palette.html#affac73ef085eaaaf92113e623ee2307d',1,'yaze::app::gfx::snes_palette::colors'],['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ab8bb32620706bf13950878d36c1a773c',1,'yaze::app::gfx::SnesPalette::colors']]]
+  ['background_0',['background',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a83e829e4f1a7490116c54b32c38a9e81',1,'yaze::app::gfx::Paletteset']]],
+  ['blue_1',['blue',['../structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395',1,'yaze::app::gfx::snes_color']]]
 ];

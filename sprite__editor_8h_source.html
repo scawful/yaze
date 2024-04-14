@@ -113,28 +113,37 @@ $(function(){initNavTree('sprite__editor_8h_source.html',''); initResizable(); }
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span>app {</div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>editor {</div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="foldopen" id="foldopen00012" data-start="{" data-end="};">
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html">   12</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html">SpriteEditor</a> : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1SharedROM.html">SharedROM</a> {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  absl::Status Update();</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="keywordtype">void</span> DrawEditorTable();</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keywordtype">void</span> DrawSpriteCanvas();</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keywordtype">void</span> DrawCurrentSheets();</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  uint8_t current_sheets_[8];</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordtype">bool</span> sheets_loaded_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>};</div>
+<div class="foldopen" id="foldopen00019" data-start="{" data-end="};">
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html">   19</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html">SpriteEditor</a> : <span class="keyword">public</span> <a class="code hl_class" href="classyaze_1_1app_1_1SharedROM.html">SharedROM</a> {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  absl::Status <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a96254fb13edf738255f2e1e9914fdd3f">Update</a>();</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a4f6da75d0a2ea831a8edbe6d7634fc39">DrawEditorTable</a>();</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a69286e044baddb488f8f47e51ae47a1d">DrawSpriteCanvas</a>();</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad6c19a0b9f25ff3c2e986d75ad65e886">DrawCurrentSheets</a>();</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#aebdcddf7178899f6869cd786a8ab6b22">   44</a></span>  uint8_t <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#aebdcddf7178899f6869cd786a8ab6b22">current_sheets_</a>[8]; </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad0d65a234fdec8b34c7e342060768b57">   45</a></span>  <span class="keywordtype">bool</span> <a class="code hl_variable" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad0d65a234fdec8b34c7e342060768b57">sheets_loaded_</a> =</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      <span class="keyword">false</span>; </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>};</div>
 </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>}  <span class="comment">// namespace app</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EDITOR_SPRITE_EDITOR_H</span></div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_EDITOR_SPRITE_EDITOR_H</span></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1SharedROM_html"><div class="ttname"><a href="classyaze_1_1app_1_1SharedROM.html">yaze::app::SharedROM</a></div><div class="ttdoc">A class to hold a shared pointer to a ROM object.</div><div class="ttdef"><b>Definition</b> rom.h:693</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html">yaze::app::editor::SpriteEditor</a></div><div class="ttdef"><b>Definition</b> sprite_editor.h:12</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html">yaze::app::editor::SpriteEditor</a></div><div class="ttdoc">The SpriteEditor class represents a sprite editor that inherits from SharedROM.</div><div class="ttdef"><b>Definition</b> sprite_editor.h:19</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html_a4f6da75d0a2ea831a8edbe6d7634fc39"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a4f6da75d0a2ea831a8edbe6d7634fc39">yaze::app::editor::SpriteEditor::DrawEditorTable</a></div><div class="ttdeci">void DrawEditorTable()</div><div class="ttdoc">Draws the editor table.</div><div class="ttdef"><b>Definition</b> sprite_editor.cc:42</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html_a69286e044baddb488f8f47e51ae47a1d"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a69286e044baddb488f8f47e51ae47a1d">yaze::app::editor::SpriteEditor::DrawSpriteCanvas</a></div><div class="ttdeci">void DrawSpriteCanvas()</div><div class="ttdoc">Draws the sprite canvas.</div><div class="ttdef"><b>Definition</b> sprite_editor.cc:44</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html_a96254fb13edf738255f2e1e9914fdd3f"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a96254fb13edf738255f2e1e9914fdd3f">yaze::app::editor::SpriteEditor::Update</a></div><div class="ttdeci">absl::Status Update()</div><div class="ttdoc">Updates the sprite editor.</div><div class="ttdef"><b>Definition</b> sprite_editor.cc:15</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html_ad0d65a234fdec8b34c7e342060768b57"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad0d65a234fdec8b34c7e342060768b57">yaze::app::editor::SpriteEditor::sheets_loaded_</a></div><div class="ttdeci">bool sheets_loaded_</div><div class="ttdef"><b>Definition</b> sprite_editor.h:45</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html_ad6c19a0b9f25ff3c2e986d75ad65e886"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad6c19a0b9f25ff3c2e986d75ad65e886">yaze::app::editor::SpriteEditor::DrawCurrentSheets</a></div><div class="ttdeci">void DrawCurrentSheets()</div><div class="ttdoc">Draws the current sheets.</div><div class="ttdef"><b>Definition</b> sprite_editor.cc:46</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1SpriteEditor_html_aebdcddf7178899f6869cd786a8ab6b22"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#aebdcddf7178899f6869cd786a8ab6b22">yaze::app::editor::SpriteEditor::current_sheets_</a></div><div class="ttdeci">uint8_t current_sheets_[8]</div><div class="ttdef"><b>Definition</b> sprite_editor.h:44</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

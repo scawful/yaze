@@ -13,11 +13,11 @@
 <area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="587,39,757,71,813,83,812,88,756,76,586,44"/>
 <area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1snes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="37,5,168,46"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="184,23,411,23,411,28,184,28"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title=" " alt="" coords="799,214,946,240"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="799,214,946,240"/>
 <area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="962,232,1031,243,1101,260,1146,280,1144,285,1099,266,1030,248,962,238"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="SNES Palette container." alt="" coords="15,316,190,341"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="15,316,190,341"/>
 <area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="205,314,223,312,438,300,606,296,989,294,1100,294,1124,295,1123,300,1100,299,989,299,606,301,439,306,224,318,205,319"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title=" " alt="" coords="612,341,756,367"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="612,341,756,367"/>
 <area shape="poly" id="edge11_Node000010_Node000008" title=" " alt="" coords="205,330,612,348,611,353,205,335"/>
 <area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="438,452,549,477"/>
 <area shape="poly" id="edge19_Node000014_Node000008" title=" " alt="" coords="152,345,224,370,300,388,334,394,376,407,425,428,468,449,466,453,423,433,374,412,332,400,299,393,223,375,150,350"/>

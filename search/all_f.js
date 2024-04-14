@@ -2,7 +2,7 @@ var searchData=
 [
   ['lc_5flz2_20compression_0',['LC_LZ2 Compression',['../md_docs_2compression.html',1,'']]],
   ['license_1',['License',['../md_README.html#autotoc_md38',1,'']]],
-  ['list_2',['Todo List',['../todo.html',1,'']]],
+  ['list_2',['List',['../test.html',1,'Test List'],['../todo.html',1,'Todo List']]],
   ['load2bppgraphics_3',['Load2BppGraphics',['../classyaze_1_1app_1_1ROM.html#aeebfa7942b4463cf19217c35dcad1e0c',1,'yaze::app::ROM']]],
   ['loadallgraphicsdata_4',['LoadAllGraphicsData',['../classyaze_1_1app_1_1ROM.html#ae459d71c95f87bb8a081cb6ffc98a24d',1,'yaze::app::ROM']]],
   ['loadallpalettes_5',['LoadAllPalettes',['../classyaze_1_1app_1_1ROM.html#a92a606a412188dbd015e1949380f6eff',1,'yaze::app::ROM']]],

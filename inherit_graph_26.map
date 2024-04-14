@@ -1,7 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="5,31,150,56"/>
-<area shape="rect" id="Node000001" href="$classMockClock.html" title=" " alt="" coords="239,5,326,31"/>
-<area shape="poly" id="edge50_Node000000_Node000001" title=" " alt="" coords="165,30,238,21,239,26,166,35"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1ClockImpl.html" title=" " alt="" coords="198,55,367,80"/>
-<area shape="poly" id="edge51_Node000000_Node000002" title=" " alt="" coords="165,51,198,55,197,60,165,56"/>
+<area shape="rect" id="Node000000" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html" title="The Spc700 class represents the SPC700 processor." alt="" coords="5,5,148,46"/>
 </map>

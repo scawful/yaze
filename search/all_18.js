@@ -5,12 +5,12 @@ var searchData=
   ['version_202_3a_2',['Version 2:',['../md_docs_2compression.html#autotoc_md12',1,'']]],
   ['version_203_3a_3',['Version 3:',['../md_docs_2compression.html#autotoc_md13',1,'']]],
   ['versionconstants_4',['VersionConstants',['../structyaze_1_1app_1_1VersionConstants.html',1,'yaze::app']]],
-  ['videoportcontrol_5',['VideoPortControl',['../structyaze_1_1app_1_1emu_1_1VideoPortControl.html',1,'yaze::app::emu']]],
-  ['vmaddh_6',['VMADDH',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMADDH.html',1,'yaze::app::emu::PpuRegisters']]],
-  ['vmaddl_7',['VMADDL',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMADDL.html',1,'yaze::app::emu::PpuRegisters']]],
-  ['vmain_8',['VMAIN',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMAIN.html',1,'yaze::app::emu::PpuRegisters']]],
-  ['vmdata_9',['VMDATA',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATA.html',1,'yaze::app::emu::PpuRegisters']]],
-  ['vmdatahread_10',['VMDATAHREAD',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATAHREAD.html',1,'yaze::app::emu::PpuRegisters']]],
-  ['vmdatalread_11',['VMDATALREAD',['../structyaze_1_1app_1_1emu_1_1PpuRegisters_1_1VMDATALREAD.html',1,'yaze::app::emu::PpuRegisters']]],
-  ['voice_12',['Voice',['../structyaze_1_1app_1_1emu_1_1DigitalSignalProcessor_1_1Voice.html',1,'yaze::app::emu::DigitalSignalProcessor']]]
+  ['videoportcontrol_5',['VideoPortControl',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html',1,'yaze::app::emu::video']]],
+  ['vmaddh_6',['VMADDH',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDH.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['vmaddl_7',['VMADDL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDL.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['vmain_8',['VMAIN',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['vmdata_9',['VMDATA',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATA.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['vmdatahread_10',['VMDATAHREAD',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATAHREAD.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['vmdatalread_11',['VMDATALREAD',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATALREAD.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['voice_12',['Voice',['../structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html',1,'yaze::app::emu::audio::DigitalSignalProcessor']]]
 ];

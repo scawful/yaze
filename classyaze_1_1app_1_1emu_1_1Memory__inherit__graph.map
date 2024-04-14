@@ -1,9 +1,0 @@
-<map id="yaze::app::emu::Memory" name="yaze::app::emu::Memory">
-<area shape="rect" id="Node000001" title=" " alt="" coords="120,5,278,31"/>
-<area shape="rect" id="Node000002" href="$classMockMemory.html" title=" " alt="" coords="5,79,105,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,41,81,81,78,76,160,36"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1CPU.html" title=" " alt="" coords="129,79,269,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,46,202,79,196,79,196,46"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1MemoryImpl.html" title=" " alt="" coords="293,79,476,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="245,34,354,76,352,81,244,39"/>
-</map>
