@@ -35,8 +35,17 @@ uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);
 
 /**
- * @brief SNES Palette container
-*/
+ * @brief Represents a palette of colors for the Super Nintendo Entertainment
+ * System (SNES).
+ *
+ * The `SnesPalette` class provides functionality to create, modify, and access
+ * colors in an SNES palette. It supports various constructors to initialize the
+ * palette with different types of data. The palette can be modified by adding
+ * or changing colors, and it can be cleared to remove all colors. Colors in the
+ * palette can be accessed using index-based access or through the `GetColor`
+ * method. The class also provides a method to create a sub-palette by selecting
+ * a range of colors from the original palette.
+ */
 class SnesPalette {
  public:
   template <typename T>
@@ -202,8 +211,27 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
     SnesPalette& palette);
 
+/**
+ * @brief Represents a set of palettes used in a SNES graphics system.
+ */
 struct Paletteset {
+  /**
+   * @brief Default constructor for Paletteset.
+   */
   Paletteset() = default;
+
+  /**
+   * @brief Constructor for Paletteset.
+   * @param main The main palette.
+   * @param animated The animated palette.
+   * @param aux1 The first auxiliary palette.
+   * @param aux2 The second auxiliary palette.
+   * @param background The background color.
+   * @param hud The HUD palette.
+   * @param spr The sprite palette.
+   * @param spr2 The second sprite palette.
+   * @param comp The composite palette.
+   */
   Paletteset(gfx::SnesPalette main, gfx::SnesPalette animated,
              gfx::SnesPalette aux1, gfx::SnesPalette aux2,
              gfx::SnesColor background, gfx::SnesPalette hud,
@@ -217,15 +245,16 @@ struct Paletteset {
         spr(spr),
         spr2(spr2),
         composite(comp) {}
-  gfx::SnesPalette main;
-  gfx::SnesPalette animated;
-  gfx::SnesPalette aux1;
-  gfx::SnesPalette aux2;
-  gfx::SnesColor background;
-  gfx::SnesPalette hud;
-  gfx::SnesPalette spr;
-  gfx::SnesPalette spr2;
-  gfx::SnesPalette composite;
+
+  gfx::SnesPalette main;      /**< The main palette. */
+  gfx::SnesPalette animated;  /**< The animated palette. */
+  gfx::SnesPalette aux1;      /**< The first auxiliary palette. */
+  gfx::SnesPalette aux2;      /**< The second auxiliary palette. */
+  gfx::SnesColor background;  /**< The background color. */
+  gfx::SnesPalette hud;       /**< The HUD palette. */
+  gfx::SnesPalette spr;       /**< The sprite palette. */
+  gfx::SnesPalette spr2;      /**< The second sprite palette. */
+  gfx::SnesPalette composite; /**< The composite palette. */
 };
 
 }  // namespace gfx

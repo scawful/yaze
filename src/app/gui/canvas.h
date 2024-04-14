@@ -20,6 +20,14 @@ enum class CanvasType { kTile, kBlock, kMap };
 enum class CanvasMode { kPaint, kSelect };
 enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
 
+/**
+ * @class Canvas
+ * @brief Represents a canvas for drawing and manipulating graphics.
+ *
+ * The Canvas class provides various functions for updating and drawing graphics
+ * on a canvas. It supports features such as bitmap drawing, context menu
+ * handling, tile painting, custom grid, and more.
+ */
 class Canvas {
  public:
   Canvas() = default;
