@@ -1,6 +1,7 @@
 var icons_8h =
 [
     [ "FONT_ICON_FILE_NAME_MD", "icons_8h.html#afbf738deb227afe8e9b196ba09a7c360", null ],
+    [ "ICON_MIN_MD", "icons_8h.html#a6cb0d114de0f8bb079998be79d3b001c", null ],
     [ "ICON_MAX_MD", "icons_8h.html#a1f33448153f99d7338175831c1775dc7", null ],
     [ "ICON_MD_10K", "icons_8h.html#a5fda85dd85890c0e4ec00970aa4c4c10", null ],
     [ "ICON_MD_10MP", "icons_8h.html#a9c97ca19bbf93bfbde45eed07e556150", null ],
@@ -2183,6 +2184,5 @@ var icons_8h =
     [ "ICON_MD_ZOOM_IN", "icons_8h.html#aca4ed0c7c69f9b6e0da2410d0de5fb79", null ],
     [ "ICON_MD_ZOOM_IN_MAP", "icons_8h.html#aef5e5e37c58122b5067ef6ccbed905e0", null ],
     [ "ICON_MD_ZOOM_OUT", "icons_8h.html#a5a3f2eab21905f6fc007e48141de6c86", null ],
-    [ "ICON_MD_ZOOM_OUT_MAP", "icons_8h.html#ace2817113f9d8a6274d99786716f2223", null ],
-    [ "ICON_MIN_MD", "icons_8h.html#a6cb0d114de0f8bb079998be79d3b001c", null ]
+    [ "ICON_MD_ZOOM_OUT_MAP", "icons_8h.html#ace2817113f9d8a6274d99786716f2223", null ]
 ];

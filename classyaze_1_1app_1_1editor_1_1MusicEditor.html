@@ -108,13 +108,16 @@ $(function(){initNavTree('classyaze_1_1app_1_1editor_1_1MusicEditor.html',''); i
 </div><!--header-->
 <div class="contents">
 
+<p>A class for editing music data in a <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a>.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="music__editor_8h_source.html">music_editor.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for yaze::app::editor::MusicEditor:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor__inherit__graph.png" border="0" usemap="#ayaze_1_1app_1_1editor_1_1MusicEditor_inherit__map" alt="Inheritance graph"/></div>
 <map name="ayaze_1_1app_1_1editor_1_1MusicEditor_inherit__map" id="ayaze_1_1app_1_1editor_1_1MusicEditor_inherit__map">
-<area shape="rect" title=" " alt="" coords="22,79,140,120"/>
+<area shape="rect" title="A class for editing music data in a ROM." alt="" coords="22,79,140,120"/>
 <area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="5,5,157,31"/>
 <area shape="poly" title=" " alt="" coords="84,46,84,79,78,79,78,46"/>
 </map>
@@ -124,12 +127,12 @@ Collaboration diagram for yaze::app::editor::MusicEditor:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1editor_1_1MusicEditor_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1app_1_1editor_1_1MusicEditor_coll__map" id="ayaze_1_1app_1_1editor_1_1MusicEditor_coll__map">
-<area shape="rect" title=" " alt="" coords="183,109,302,150"/>
+<area shape="rect" title="A class for editing music data in a ROM." alt="" coords="183,109,302,150"/>
 <area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="5,13,157,39"/>
 <area shape="poly" title=" " alt="" coords="114,45,212,106,210,111,112,49"/>
 <area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html" title=" " alt="" coords="181,5,304,46"/>
 <area shape="poly" title=" " alt="" coords="245,62,245,109,240,109,240,62"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html" title=" " alt="" coords="329,5,447,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html" title="Text editor for modifying assembly code." alt="" coords="329,5,447,46"/>
 <area shape="poly" title=" " alt="" coords="368,60,341,87,300,111,297,106,338,83,365,56"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
@@ -180,7 +183,92 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:a04a68e64869a37ef3ada28571dfbbc39 inherit pub_static_attribs_classyaze_1_1app_1_1SharedROM" id="r_a04a68e64869a37ef3ada28571dfbbc39"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1SharedROM.html#a04a68e64869a37ef3ada28571dfbbc39">shared_rom_</a> = nullptr</td></tr>
 <tr class="separator:a04a68e64869a37ef3ada28571dfbbc39 inherit pub_static_attribs_classyaze_1_1app_1_1SharedROM"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A class for editing music data in a <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a>. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a11d4736f5e2e29e1897ab0626b7877b1" name="a11d4736f5e2e29e1897ab0626b7877b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11d4736f5e2e29e1897ab0626b7877b1">&#9670;&#160;</a></span>Update()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::MusicEditor::Update </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a19ac93c06947b9d269f8a268e2c18c67">assembly_editor_</a>, <a class="el" href="#ab7d8289462e03bbd652b6f9a702cd3f9">DrawChannels()</a>, <a class="el" href="#a6c8ed9394191c2702187f420f00d8e0c">DrawPianoRoll()</a>, <a class="el" href="#a59ec3b063800ee679889fae51b5df1be">DrawToolset()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a9f089b67eecb6b7639f24a096b92dbc7">yaze::app::editor::AssemblyEditor::InlineUpdate()</a>, and <a class="el" href="#a72cc6d3f2c12f7fa386f180e6106da83">music_editor_flags_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16">yaze::app::editor::MasterEditor::Update()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph" id="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph">
+<area shape="rect" title=" " alt="" coords="5,104,143,145"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#ab7d8289462e03bbd652b6f9a702cd3f9" title=" " alt="" coords="196,5,376,46"/>
+<area shape="poly" title=" " alt="" coords="107,101,190,57,206,50,208,54,192,61,110,106"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#a6c8ed9394191c2702187f420f00d8e0c" title=" " alt="" coords="196,71,376,111"/>
+<area shape="poly" title=" " alt="" coords="143,111,180,105,181,110,144,116"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#a59ec3b063800ee679889fae51b5df1be" title=" " alt="" coords="202,136,370,177"/>
+<area shape="poly" title=" " alt="" coords="144,132,187,139,186,144,143,137"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a9f089b67eecb6b7639f24a096b92dbc7" title=" " alt="" coords="191,267,381,307"/>
+<area shape="poly" title=" " alt="" coords="104,143,248,255,244,259,101,147"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#ae2e02399794a3757208ef3be740d3953" title=" " alt="" coords="446,5,631,46"/>
+<area shape="poly" title=" " alt="" coords="376,23,430,23,430,28,376,28"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e" title=" " alt="" coords="458,78,619,104"/>
+<area shape="poly" title=" " alt="" coords="358,133,428,114,462,105,464,111,430,119,360,138"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#a75b9637ef2850e589179c0329c2b0175" title=" " alt="" coords="470,128,607,169"/>
+<area shape="poly" title=" " alt="" coords="370,151,454,148,454,154,371,156"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="449,217,628,243"/>
+<area shape="poly" title=" " alt="" coords="359,175,478,209,476,215,358,180"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="1133,110,1274,136"/>
+<area shape="poly" title=" " alt="" coords="607,137,696,128,890,116,1085,116,1118,117,1117,122,1085,122,891,121,697,134,608,143"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#a9c37b15f0eb7c85d84ac24633bbd6966" title=" " alt="" coords="935,131,1081,171"/>
+<area shape="poly" title=" " alt="" coords="608,146,919,148,919,153,608,151"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#abfcc1c6d122a83adfed38d455a8edf25" title=" " alt="" coords="696,209,883,250"/>
+<area shape="poly" title=" " alt="" coords="609,165,649,178,718,201,716,206,648,183,607,170"/>
+<area shape="poly" title=" " alt="" coords="1081,138,1117,133,1118,138,1082,143"/>
+<area shape="poly" title=" " alt="" coords="847,206,934,175,936,180,849,211"/>
+<area shape="poly" title=" " alt="" coords="748,209,746,199,753,190,768,185,790,183,813,185,827,191,825,196,812,190,789,188,769,190,756,195,751,201,753,208"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#a55580c3b395b5a0e688a29e779025d98" title=" " alt="" coords="931,220,1085,261"/>
+<area shape="poly" title=" " alt="" coords="883,232,915,233,915,238,883,237"/>
+<area shape="poly" title=" " alt="" coords="971,220,969,210,975,201,988,195,1008,193,1029,196,1042,202,1039,207,1028,201,1008,199,989,201,978,205,974,211,976,219"/>
+<area shape="poly" title=" " alt="" coords="497,218,489,208,494,198,511,192,539,190,570,193,585,200,583,205,568,198,539,195,512,198,498,202,494,208,501,215"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#ab54c6b6a765d2efe0e011a1d4985df61" title=" " alt="" coords="429,267,648,307"/>
+<area shape="poly" title=" " alt="" coords="381,284,413,284,413,290,381,290"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a8454aa52bbab115efca6cdba65ff791b" title=" " alt="" coords="441,332,636,373"/>
+<area shape="poly" title=" " alt="" coords="368,305,443,325,442,330,367,311"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph" id="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph">
+<area shape="rect" title=" " alt="" coords="1170,5,1308,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="ab7d8289462e03bbd652b6f9a702cd3f9" name="ab7d8289462e03bbd652b6f9a702cd3f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab7d8289462e03bbd652b6f9a702cd3f9">&#9670;&#160;</a></span>DrawChannels()</h2>
 
@@ -243,56 +331,6 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a6c8ed9394191c2702187f420f00d8e0c" name="a6c8ed9394191c2702187f420f00d8e0c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6c8ed9394191c2702187f420f00d8e0c">&#9670;&#160;</a></span>DrawPianoRoll()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::editor::MusicEditor::DrawPianoRoll </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a11d4736f5e2e29e1897ab0626b7877b1">Update()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph" id="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph">
-<area shape="rect" title=" " alt="" coords="1356,5,1536,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#a11d4736f5e2e29e1897ab0626b7877b1" title=" " alt="" coords="1170,5,1308,46"/>
-<area shape="poly" title=" " alt="" coords="1341,28,1308,28,1308,23,1341,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
-<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
-<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
-<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
-<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
-<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
-<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
-<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
-</map>
-</div>
-
-</div>
-</div>
 <a id="ae2e02399794a3757208ef3be740d3953" name="ae2e02399794a3757208ef3be740d3953"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae2e02399794a3757208ef3be740d3953">&#9670;&#160;</a></span>DrawPianoStaff()</h2>
 
@@ -327,6 +365,56 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1567,28,1536,28,1536,23,1567,23"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#a11d4736f5e2e29e1897ab0626b7877b1" title=" " alt="" coords="1170,5,1308,46"/>
 <area shape="poly" title=" " alt="" coords="1340,28,1308,28,1308,23,1340,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a6c8ed9394191c2702187f420f00d8e0c" name="a6c8ed9394191c2702187f420f00d8e0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c8ed9394191c2702187f420f00d8e0c">&#9670;&#160;</a></span>DrawPianoRoll()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::MusicEditor::DrawPianoRoll </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a11d4736f5e2e29e1897ab0626b7877b1">Update()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph" id="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a6c8ed9394191c2702187f420f00d8e0c_icgraph">
+<area shape="rect" title=" " alt="" coords="1356,5,1536,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#a11d4736f5e2e29e1897ab0626b7877b1" title=" " alt="" coords="1170,5,1308,46"/>
+<area shape="poly" title=" " alt="" coords="1341,28,1308,28,1308,23,1341,23"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
 <area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
@@ -451,90 +539,31 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a11d4736f5e2e29e1897ab0626b7877b1" name="a11d4736f5e2e29e1897ab0626b7877b1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a11d4736f5e2e29e1897ab0626b7877b1">&#9670;&#160;</a></span>Update()</h2>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a43596bf7df2ab335675192c82794576b" name="a43596bf7df2ab335675192c82794576b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43596bf7df2ab335675192c82794576b">&#9670;&#160;</a></span>music_tracker_</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::app::editor::MusicEditor::Update </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td></td>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html">zelda3::Tracker</a> yaze::app::editor::MusicEditor::music_tracker_</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a19ac93c06947b9d269f8a268e2c18c67">assembly_editor_</a>, <a class="el" href="#ab7d8289462e03bbd652b6f9a702cd3f9">DrawChannels()</a>, <a class="el" href="#a6c8ed9394191c2702187f420f00d8e0c">DrawPianoRoll()</a>, <a class="el" href="#a59ec3b063800ee679889fae51b5df1be">DrawToolset()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a9f089b67eecb6b7639f24a096b92dbc7">yaze::app::editor::AssemblyEditor::InlineUpdate()</a>, and <a class="el" href="#a72cc6d3f2c12f7fa386f180e6106da83">music_editor_flags_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16">yaze::app::editor::MasterEditor::Update()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph" id="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_cgraph">
-<area shape="rect" title=" " alt="" coords="5,104,143,145"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#ab7d8289462e03bbd652b6f9a702cd3f9" title=" " alt="" coords="196,5,376,46"/>
-<area shape="poly" title=" " alt="" coords="107,101,190,57,206,50,208,54,192,61,110,106"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#a6c8ed9394191c2702187f420f00d8e0c" title=" " alt="" coords="196,71,376,111"/>
-<area shape="poly" title=" " alt="" coords="143,111,180,105,181,110,144,116"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#a59ec3b063800ee679889fae51b5df1be" title=" " alt="" coords="202,136,370,177"/>
-<area shape="poly" title=" " alt="" coords="144,132,187,139,186,144,143,137"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a9f089b67eecb6b7639f24a096b92dbc7" title=" " alt="" coords="191,267,381,307"/>
-<area shape="poly" title=" " alt="" coords="104,143,248,255,244,259,101,147"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MusicEditor.html#ae2e02399794a3757208ef3be740d3953" title=" " alt="" coords="446,5,631,46"/>
-<area shape="poly" title=" " alt="" coords="376,23,430,23,430,28,376,28"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e" title=" " alt="" coords="458,78,619,104"/>
-<area shape="poly" title=" " alt="" coords="358,133,428,114,462,105,464,111,430,119,360,138"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#a75b9637ef2850e589179c0329c2b0175" title=" " alt="" coords="470,128,607,169"/>
-<area shape="poly" title=" " alt="" coords="370,151,454,148,454,154,371,156"/>
-<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="449,217,628,243"/>
-<area shape="poly" title=" " alt="" coords="359,175,478,209,476,215,358,180"/>
-<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="1133,110,1274,136"/>
-<area shape="poly" title=" " alt="" coords="607,137,696,128,890,116,1085,116,1118,117,1117,122,1085,122,891,121,697,134,608,143"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#a9c37b15f0eb7c85d84ac24633bbd6966" title=" " alt="" coords="935,131,1081,171"/>
-<area shape="poly" title=" " alt="" coords="608,146,919,148,919,153,608,151"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#abfcc1c6d122a83adfed38d455a8edf25" title=" " alt="" coords="696,209,883,250"/>
-<area shape="poly" title=" " alt="" coords="609,165,649,178,718,201,716,206,648,183,607,170"/>
-<area shape="poly" title=" " alt="" coords="1081,138,1117,133,1118,138,1082,143"/>
-<area shape="poly" title=" " alt="" coords="847,206,934,175,936,180,849,211"/>
-<area shape="poly" title=" " alt="" coords="748,209,746,199,753,190,768,185,790,183,813,185,827,191,825,196,812,190,789,188,769,190,756,195,751,201,753,208"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html#a55580c3b395b5a0e688a29e779025d98" title=" " alt="" coords="931,220,1085,261"/>
-<area shape="poly" title=" " alt="" coords="883,232,915,233,915,238,883,237"/>
-<area shape="poly" title=" " alt="" coords="971,220,969,210,975,201,988,195,1008,193,1029,196,1042,202,1039,207,1028,201,1008,199,989,201,978,205,974,211,976,219"/>
-<area shape="poly" title=" " alt="" coords="497,218,489,208,494,198,511,192,539,190,570,193,585,200,583,205,568,198,539,195,512,198,498,202,494,208,501,215"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#ab54c6b6a765d2efe0e011a1d4985df61" title=" " alt="" coords="429,267,648,307"/>
-<area shape="poly" title=" " alt="" coords="381,284,413,284,413,290,381,290"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a8454aa52bbab115efca6cdba65ff791b" title=" " alt="" coords="441,332,636,373"/>
-<area shape="poly" title=" " alt="" coords="368,305,443,325,442,330,367,311"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph" id="aclassyaze_1_1app_1_1editor_1_1MusicEditor_a11d4736f5e2e29e1897ab0626b7877b1_icgraph">
-<area shape="rect" title=" " alt="" coords="1170,5,1308,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
-<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
-<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
-<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
-<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
-<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
-<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
-<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="#a59ec3b063800ee679889fae51b5df1be">DrawToolset()</a>.</p>
 
 </div>
 </div>
-<h2 class="groupheader">Member Data Documentation</h2>
 <a id="a19ac93c06947b9d269f8a268e2c18c67" name="a19ac93c06947b9d269f8a268e2c18c67"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a19ac93c06947b9d269f8a268e2c18c67">&#9670;&#160;</a></span>assembly_editor_</h2>
 
@@ -555,6 +584,57 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p class="reference">Referenced by <a class="el" href="#a11d4736f5e2e29e1897ab0626b7877b1">Update()</a>.</p>
+
+</div>
+</div>
+<a id="a6a20d997c5559c2b10cf657b49f19886" name="a6a20d997c5559c2b10cf657b49f19886"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a20d997c5559c2b10cf657b49f19886">&#9670;&#160;</a></span>toolset_table_flags_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImGuiTableFlags yaze::app::editor::MusicEditor::toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a186af3eadcb185d7c32b483302ad517e">DrawSongToolset()</a>, and <a class="el" href="#a59ec3b063800ee679889fae51b5df1be">DrawToolset()</a>.</p>
+
+</div>
+</div>
+<a id="a72cc6d3f2c12f7fa386f180e6106da83" name="a72cc6d3f2c12f7fa386f180e6106da83"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72cc6d3f2c12f7fa386f180e6106da83">&#9670;&#160;</a></span>music_editor_flags_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImGuiTableFlags yaze::app::editor::MusicEditor::music_editor_flags_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= ImGuiTableFlags_SizingFixedFit |</div>
+<div class="line">                                        ImGuiTableFlags_Resizable |</div>
+<div class="line">                                        ImGuiTableFlags_Reorderable</div>
+</div><!-- fragment -->
 <p class="reference">Referenced by <a class="el" href="#a11d4736f5e2e29e1897ab0626b7877b1">Update()</a>.</p>
 
 </div>
@@ -585,81 +665,6 @@ Here is the caller graph for this function:</div>
 <div class="line">      ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |</div>
 <div class="line">      ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY</div>
 </div><!-- fragment -->
-</div>
-</div>
-<a id="a72cc6d3f2c12f7fa386f180e6106da83" name="a72cc6d3f2c12f7fa386f180e6106da83"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a72cc6d3f2c12f7fa386f180e6106da83">&#9670;&#160;</a></span>music_editor_flags_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ImGuiTableFlags yaze::app::editor::MusicEditor::music_editor_flags_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= ImGuiTableFlags_SizingFixedFit |</div>
-<div class="line">                                        ImGuiTableFlags_Resizable |</div>
-<div class="line">                                        ImGuiTableFlags_Reorderable</div>
-</div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="#a11d4736f5e2e29e1897ab0626b7877b1">Update()</a>.</p>
-
-</div>
-</div>
-<a id="a43596bf7df2ab335675192c82794576b" name="a43596bf7df2ab335675192c82794576b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a43596bf7df2ab335675192c82794576b">&#9670;&#160;</a></span>music_tracker_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1Tracker.html">zelda3::Tracker</a> yaze::app::editor::MusicEditor::music_tracker_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a59ec3b063800ee679889fae51b5df1be">DrawToolset()</a>.</p>
-
-</div>
-</div>
-<a id="a6a20d997c5559c2b10cf657b49f19886" name="a6a20d997c5559c2b10cf657b49f19886"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a20d997c5559c2b10cf657b49f19886">&#9670;&#160;</a></span>toolset_table_flags_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ImGuiTableFlags yaze::app::editor::MusicEditor::toolset_table_flags_ = ImGuiTableFlags_SizingFixedFit</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a186af3eadcb185d7c32b483302ad517e">DrawSongToolset()</a>, and <a class="el" href="#a59ec3b063800ee679889fae51b5df1be">DrawToolset()</a>.</p>
-
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>

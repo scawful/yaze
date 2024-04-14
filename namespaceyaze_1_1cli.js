@@ -19,9 +19,9 @@ var namespaceyaze_1_1cli =
     [ "ReadFromRom", "classyaze_1_1cli_1_1ReadFromRom.html", "classyaze_1_1cli_1_1ReadFromRom" ],
     [ "SnesToPc", "classyaze_1_1cli_1_1SnesToPc.html", "classyaze_1_1cli_1_1SnesToPc" ],
     [ "Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", "classyaze_1_1cli_1_1Tile16Transfer" ],
-    [ "ApplyBpsPatch", "namespaceyaze_1_1cli.html#a6b6ba4e068a728eced706c97ab89fdca", null ],
+    [ "encode", "namespaceyaze_1_1cli.html#a26d6d890fd303ab241f26ba4a4d812ee", null ],
+    [ "decode", "namespaceyaze_1_1cli.html#a720b64d1c21e254e6b99633fbe6e8e1d", null ],
     [ "crc32", "namespaceyaze_1_1cli.html#a7317ddd4c939dd0b4fc3b14f2e75baee", null ],
     [ "CreateBpsPatch", "namespaceyaze_1_1cli.html#a5fa0799ead85d171907259d27b63ac36", null ],
-    [ "decode", "namespaceyaze_1_1cli.html#a720b64d1c21e254e6b99633fbe6e8e1d", null ],
-    [ "encode", "namespaceyaze_1_1cli.html#a26d6d890fd303ab241f26ba4a4d812ee", null ]
+    [ "ApplyBpsPatch", "namespaceyaze_1_1cli.html#a6b6ba4e068a728eced706c97ab89fdca", null ]
 ];

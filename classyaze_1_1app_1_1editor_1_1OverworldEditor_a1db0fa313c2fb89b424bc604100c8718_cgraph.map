@@ -1,6 +1,6 @@
 <map id="yaze::app::editor::OverworldEditor::UpdateOverworldEdit" name="yaze::app::editor::OverworldEditor::UpdateOverworldEdit">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,1139,248,1179"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a4a232d7457500c0c0521e28dbdc83ea2" title=" " alt="" coords="301,877,509,932"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a4a232d7457500c0c0521e28dbdc83ea2" title="Allows the user to make changes to the overworld map." alt="" coords="301,877,509,932"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,1136,360,941,363,945,152,1140"/>
 <area shape="rect" id="Node000113" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#afccc9bb4f1f72a02f63b2e8a4dd46e8b" title=" " alt="" coords="296,1849,514,1890"/>
 <area shape="poly" id="edge45_Node000001_Node000113" title=" " alt="" coords="138,1179,392,1834,387,1836,133,1181"/>

@@ -1,5 +1,5 @@
 <map id="yaze::app::editor::OverworldEditor::DrawOverworldCanvas" name="yaze::app::editor::OverworldEditor::DrawOverworldCanvas">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1670,41,1878,97"/>
+<area shape="rect" id="Node000001" title="Allows the user to make changes to the overworld map." alt="" coords="1670,41,1878,97"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1654,56,1612,50,1612,45,1655,51"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>

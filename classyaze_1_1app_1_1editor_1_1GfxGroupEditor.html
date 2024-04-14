@@ -107,13 +107,16 @@ $(function(){initNavTree('classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html','')
 </div><!--header-->
 <div class="contents">
 
+<p>Manage graphics group configurations in a <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a>.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="gfx__group__editor_8h_source.html">gfx_group_editor.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for yaze::app::editor::GfxGroupEditor:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor__inherit__graph.png" border="0" usemap="#ayaze_1_1app_1_1editor_1_1GfxGroupEditor_inherit__map" alt="Inheritance graph"/></div>
 <map name="ayaze_1_1app_1_1editor_1_1GfxGroupEditor_inherit__map" id="ayaze_1_1app_1_1editor_1_1GfxGroupEditor_inherit__map">
-<area shape="rect" title=" " alt="" coords="22,79,140,120"/>
+<area shape="rect" title="Manage graphics group configurations in a ROM." alt="" coords="22,79,140,120"/>
 <area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="5,5,157,31"/>
 <area shape="poly" title=" " alt="" coords="84,46,84,79,78,79,78,46"/>
 </map>
@@ -123,10 +126,10 @@ Collaboration diagram for yaze::app::editor::GfxGroupEditor:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1editor_1_1GfxGroupEditor_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1app_1_1editor_1_1GfxGroupEditor_coll__map" id="ayaze_1_1app_1_1editor_1_1GfxGroupEditor_coll__map">
-<area shape="rect" title=" " alt="" coords="1124,283,1242,323"/>
+<area shape="rect" title="Manage graphics group configurations in a ROM." alt="" coords="1124,283,1242,323"/>
 <area shape="rect" href="classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="418,156,569,181"/>
 <area shape="poly" title=" " alt="" coords="584,159,714,153,864,152,937,154,1004,161,1059,171,1101,186,1127,206,1149,231,1176,281,1171,284,1144,234,1124,210,1098,191,1058,176,1003,166,937,160,864,157,714,158,584,164"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title=" " alt="" coords="813,79,932,119"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="813,79,932,119"/>
 <area shape="poly" title=" " alt="" coords="582,150,813,107,814,112,583,155"/>
 <area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html" title=" " alt="" coords="811,479,934,519"/>
 <area shape="poly" title=" " alt="" coords="573,183,682,214,729,234,758,256,774,284,779,311,777,337,771,363,765,388,763,414,767,439,782,465,795,477,812,486,809,491,792,482,778,469,762,441,758,414,760,387,766,362,772,336,774,311,769,286,754,259,726,239,680,219,572,188"/>
@@ -235,7 +238,118 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:a04a68e64869a37ef3ada28571dfbbc39 inherit pub_static_attribs_classyaze_1_1app_1_1SharedROM" id="r_a04a68e64869a37ef3ada28571dfbbc39"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1SharedROM.html#a04a68e64869a37ef3ada28571dfbbc39">shared_rom_</a> = nullptr</td></tr>
 <tr class="separator:a04a68e64869a37ef3ada28571dfbbc39 inherit pub_static_attribs_classyaze_1_1app_1_1SharedROM"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Manage graphics group configurations in a <a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a>. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a1bb4a54f5665e2ffd7026f1cd4f9de2b" name="a1bb4a54f5665e2ffd7026f1cd4f9de2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1bb4a54f5665e2ffd7026f1cd4f9de2b">&#9670;&#160;</a></span>Update()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::editor::GfxGroupEditor::Update </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a69210ff131957de6bbfe32ad27cddf76">DrawBlocksetViewer()</a>, <a class="el" href="#a50ab0205a08f14928a2a6bad5403c125">DrawPaletteViewer()</a>, <a class="el" href="#a48e332ac9316e8aebaa1f59575767128">DrawRoomsetViewer()</a>, <a class="el" href="#a5cf30471c1be0a7b7c6a55a3b50726a2">DrawSpritesetViewer()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb">yaze::app::gui::InputHexByte()</a>, <a class="el" href="#acc048786441ec82cbbe3a0c5c0ce7b8b">preview_palette_id_</a>, <a class="el" href="#a873632c211a1614ed840c689647aa279">selected_blockset_</a>, <a class="el" href="#ae4903d5538b4ccc1915ded516a20e012">selected_roomset_</a>, and <a class="el" href="#a935c69479cb2f4e57fddedbdd1aeab98">selected_spriteset_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096">yaze::app::editor::OverworldEditor::DrawToolset()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph">
+<area shape="rect" title=" " alt="" coords="5,313,163,354"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a69210ff131957de6bbfe32ad27cddf76" title=" " alt="" coords="211,146,408,202"/>
+<area shape="poly" title=" " alt="" coords="101,311,147,262,177,235,209,211,217,207,219,211,212,216,180,240,151,266,104,315"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="460,386,641,412"/>
+<area shape="poly" title=" " alt="" coords="101,353,146,405,176,431,212,451,251,463,291,467,333,466,373,460,448,440,508,416,510,421,450,445,374,465,333,471,291,472,250,468,210,456,173,436,142,409,97,356"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125" title=" " alt="" coords="216,386,403,442"/>
+<area shape="poly" title=" " alt="" coords="144,352,216,378,214,383,142,357"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a48e332ac9316e8aebaa1f59575767128" title=" " alt="" coords="211,226,408,282"/>
+<area shape="poly" title=" " alt="" coords="142,310,214,285,216,290,144,315"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a5cf30471c1be0a7b7c6a55a3b50726a2" title=" " alt="" coords="211,306,408,362"/>
+<area shape="poly" title=" " alt="" coords="163,331,195,331,195,336,163,336"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43" title=" " alt="" coords="456,201,644,242"/>
+<area shape="poly" title=" " alt="" coords="408,191,441,197,440,202,407,196"/>
+<area shape="poly" title=" " alt="" coords="396,200,410,212,423,229,431,247,436,280,440,313,446,329,458,347,477,364,499,377,496,382,474,368,454,350,442,332,435,314,430,280,426,248,419,232,406,216,392,204"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="461,310,640,336"/>
+<area shape="poly" title=" " alt="" coords="387,200,409,211,434,231,458,252,520,299,517,303,454,256,431,235,407,216,385,204"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="694,201,842,242"/>
+<area shape="poly" title=" " alt="" coords="645,219,679,219,679,224,645,224"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="694,267,842,307"/>
+<area shape="poly" title=" " alt="" coords="621,240,684,259,683,264,619,245"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="694,332,842,373"/>
+<area shape="poly" title=" " alt="" coords="595,240,646,272,670,295,694,317,702,322,699,326,691,321,666,299,643,276,593,245"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="694,5,842,46"/>
+<area shape="poly" title=" " alt="" coords="563,200,614,131,650,92,691,57,698,52,701,56,694,61,654,96,618,135,567,203"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="694,71,842,111"/>
+<area shape="poly" title=" " alt="" coords="577,199,629,161,691,122,702,116,704,121,694,127,632,166,580,203"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049" title=" " alt="" coords="694,136,842,177"/>
+<area shape="poly" title=" " alt="" coords="619,198,683,179,684,184,621,203"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="892,136,1039,177"/>
+<area shape="poly" title=" " alt="" coords="831,198,886,180,888,185,832,203"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="893,332,1038,373"/>
+<area shape="poly" title=" " alt="" coords="832,305,888,324,886,329,831,310"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e" title=" " alt="" coords="893,201,1038,242"/>
+<area shape="poly" title=" " alt="" coords="831,264,886,245,888,250,832,269"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="893,267,1038,307"/>
+<area shape="poly" title=" " alt="" coords="842,284,878,284,878,290,842,290"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b" title=" " alt="" coords="893,397,1038,438"/>
+<area shape="poly" title=" " alt="" coords="832,371,888,389,886,394,831,376"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="892,5,1039,46"/>
+<area shape="poly" title=" " alt="" coords="842,23,876,23,876,28,842,28"/>
+<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="692,397,844,423"/>
+<area shape="poly" title=" " alt="" coords="641,401,677,403,676,408,641,406"/>
+<area shape="poly" title=" " alt="" coords="514,311,507,302,511,292,526,286,550,284,577,286,590,293,588,298,575,291,550,289,527,291,515,296,512,301,518,308"/>
+<area shape="poly" title=" " alt="" coords="403,405,444,403,444,408,403,411"/>
+<area shape="poly" title=" " alt="" coords="384,383,498,339,500,344,386,388"/>
+<area shape="poly" title=" " alt="" coords="408,238,440,234,441,239,409,243"/>
+<area shape="poly" title=" " alt="" coords="390,280,410,292,425,306,435,319,444,332,458,346,506,377,503,381,454,350,439,336,430,322,421,309,406,296,388,284"/>
+<area shape="poly" title=" " alt="" coords="409,280,489,303,487,308,407,285"/>
+<area shape="poly" title=" " alt="" coords="381,303,407,291,496,247,498,252,409,296,383,308"/>
+<area shape="poly" title=" " alt="" coords="409,358,486,379,485,384,408,363"/>
+<area shape="poly" title=" " alt="" coords="408,327,445,325,445,330,409,332"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph">
+<area shape="rect" title=" " alt="" coords="1910,49,2068,90"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
+<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
+<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
+<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
+<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
+<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
+<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
+<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
+<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
+<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
+<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
+<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
+<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="a69210ff131957de6bbfe32ad27cddf76" name="a69210ff131957de6bbfe32ad27cddf76"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a69210ff131957de6bbfe32ad27cddf76">&#9670;&#160;</a></span>DrawBlocksetViewer()</h2>
 
@@ -330,74 +444,6 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1375,94,1332,94,1332,88,1375,88"/>
 <area shape="poly" title=" " alt="" coords="1154,78,1122,73,1123,68,1155,73"/>
 <area shape="poly" title=" " alt="" coords="1404,141,1379,134,1316,114,1318,109,1380,128,1406,136"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a50ab0205a08f14928a2a6bad5403c125" name="a50ab0205a08f14928a2a6bad5403c125"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a50ab0205a08f14928a2a6bad5403c125">&#9670;&#160;</a></span>DrawPaletteViewer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::editor::GfxGroupEditor::DrawPaletteViewer </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb">yaze::app::gui::InputHexByte()</a>, and <a class="el" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d">yaze::app::SharedROM::rom()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a1bb4a54f5665e2ffd7026f1cd4f9de2b">Update()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph">
-<area shape="rect" title=" " alt="" coords="5,28,192,83"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="240,5,421,31"/>
-<area shape="poly" title=" " alt="" coords="191,38,231,31,232,37,192,43"/>
-<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="241,79,420,104"/>
-<area shape="poly" title=" " alt="" coords="192,67,229,73,228,78,191,73"/>
-<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="469,5,620,31"/>
-<area shape="poly" title=" " alt="" coords="421,16,453,16,453,21,421,21"/>
-<area shape="poly" title=" " alt="" coords="295,80,288,70,292,60,306,54,330,52,357,55,370,62,368,66,355,60,330,57,308,59,296,64,293,69,299,77"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph">
-<area shape="rect" title=" " alt="" coords="2116,41,2302,97"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a1bb4a54f5665e2ffd7026f1cd4f9de2b" title=" " alt="" coords="1910,49,2068,90"/>
-<area shape="poly" title=" " alt="" coords="2100,72,2068,72,2068,67,2100,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
-<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
-<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
-<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
-<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
-<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
-<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
-<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
-<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
-<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
-<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
-<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
-<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
 </map>
 </div>
 
@@ -596,45 +642,69 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a36ceca63810dbcc81e774bb0ce282f96" name="a36ceca63810dbcc81e774bb0ce282f96"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36ceca63810dbcc81e774bb0ce282f96">&#9670;&#160;</a></span>InitBlockset()</h2>
+<a id="a50ab0205a08f14928a2a6bad5403c125" name="a50ab0205a08f14928a2a6bad5403c125"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50ab0205a08f14928a2a6bad5403c125">&#9670;&#160;</a></span>DrawPaletteViewer()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::app::editor::GfxGroupEditor::InitBlockset </td>
+          <td class="memname">void yaze::app::editor::GfxGroupEditor::DrawPaletteViewer </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a></td>          <td class="paramname"><span class="paramname"><em>tile16_blockset</em></span></td><td>)</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a9a1dfe86825aebfaa7b2e076f4f2ff0e">tile16_blockset_bmp_</a>.</p>
+<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb">yaze::app::gui::InputHexByte()</a>, and <a class="el" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d">yaze::app::SharedROM::rom()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff">yaze::app::editor::OverworldEditor::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a1bb4a54f5665e2ffd7026f1cd4f9de2b">Update()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_cgraph">
+<area shape="rect" title=" " alt="" coords="5,28,192,83"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="240,5,421,31"/>
+<area shape="poly" title=" " alt="" coords="191,38,231,31,232,37,192,43"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="241,79,420,104"/>
+<area shape="poly" title=" " alt="" coords="192,67,229,73,228,78,191,73"/>
+<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="469,5,620,31"/>
+<area shape="poly" title=" " alt="" coords="421,16,453,16,453,21,421,21"/>
+<area shape="poly" title=" " alt="" coords="295,80,288,70,292,60,306,54,330,52,357,55,370,62,368,66,355,60,330,57,308,59,296,64,293,69,299,77"/>
+</map>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph">
-<area shape="rect" title=" " alt="" coords="1380,5,1564,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,5,1332,46"/>
-<area shape="poly" title=" " alt="" coords="1364,28,1332,28,1332,23,1364,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
-<area shape="poly" title=" " alt="" coords="1155,28,1123,28,1123,23,1155,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
-<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
-<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
-<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
-<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
-<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
-<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a50ab0205a08f14928a2a6bad5403c125_icgraph">
+<area shape="rect" title=" " alt="" coords="2116,41,2302,97"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a1bb4a54f5665e2ffd7026f1cd4f9de2b" title=" " alt="" coords="1910,49,2068,90"/>
+<area shape="poly" title=" " alt="" coords="2100,72,2068,72,2068,67,2100,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
+<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
+<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
+<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
+<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
+<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
+<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
+<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
+<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
+<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
+<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
+<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
+<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
 </map>
 </div>
 
@@ -775,272 +845,51 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a1bb4a54f5665e2ffd7026f1cd4f9de2b" name="a1bb4a54f5665e2ffd7026f1cd4f9de2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1bb4a54f5665e2ffd7026f1cd4f9de2b">&#9670;&#160;</a></span>Update()</h2>
+<a id="a36ceca63810dbcc81e774bb0ce282f96" name="a36ceca63810dbcc81e774bb0ce282f96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36ceca63810dbcc81e774bb0ce282f96">&#9670;&#160;</a></span>InitBlockset()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::editor::GfxGroupEditor::Update </td>
+          <td class="memname">void yaze::app::editor::GfxGroupEditor::InitBlockset </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a></td>          <td class="paramname"><span class="paramname"><em>tile16_blockset</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a69210ff131957de6bbfe32ad27cddf76">DrawBlocksetViewer()</a>, <a class="el" href="#a50ab0205a08f14928a2a6bad5403c125">DrawPaletteViewer()</a>, <a class="el" href="#a48e332ac9316e8aebaa1f59575767128">DrawRoomsetViewer()</a>, <a class="el" href="#a5cf30471c1be0a7b7c6a55a3b50726a2">DrawSpritesetViewer()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb">yaze::app::gui::InputHexByte()</a>, <a class="el" href="#acc048786441ec82cbbe3a0c5c0ce7b8b">preview_palette_id_</a>, <a class="el" href="#a873632c211a1614ed840c689647aa279">selected_blockset_</a>, <a class="el" href="#ae4903d5538b4ccc1915ded516a20e012">selected_roomset_</a>, and <a class="el" href="#a935c69479cb2f4e57fddedbdd1aeab98">selected_spriteset_</a>.</p>
+<p class="reference">References <a class="el" href="#a9a1dfe86825aebfaa7b2e076f4f2ff0e">tile16_blockset_bmp_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096">yaze::app::editor::OverworldEditor::DrawToolset()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_cgraph">
-<area shape="rect" title=" " alt="" coords="5,313,163,354"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a69210ff131957de6bbfe32ad27cddf76" title=" " alt="" coords="211,146,408,202"/>
-<area shape="poly" title=" " alt="" coords="101,311,147,262,177,235,209,211,217,207,219,211,212,216,180,240,151,266,104,315"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="460,386,641,412"/>
-<area shape="poly" title=" " alt="" coords="101,353,146,405,176,431,212,451,251,463,291,467,333,466,373,460,448,440,508,416,510,421,450,445,374,465,333,471,291,472,250,468,210,456,173,436,142,409,97,356"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125" title=" " alt="" coords="216,386,403,442"/>
-<area shape="poly" title=" " alt="" coords="144,352,216,378,214,383,142,357"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a48e332ac9316e8aebaa1f59575767128" title=" " alt="" coords="211,226,408,282"/>
-<area shape="poly" title=" " alt="" coords="142,310,214,285,216,290,144,315"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a5cf30471c1be0a7b7c6a55a3b50726a2" title=" " alt="" coords="211,306,408,362"/>
-<area shape="poly" title=" " alt="" coords="163,331,195,331,195,336,163,336"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43" title=" " alt="" coords="456,201,644,242"/>
-<area shape="poly" title=" " alt="" coords="408,191,441,197,440,202,407,196"/>
-<area shape="poly" title=" " alt="" coords="396,200,410,212,423,229,431,247,436,280,440,313,446,329,458,347,477,364,499,377,496,382,474,368,454,350,442,332,435,314,430,280,426,248,419,232,406,216,392,204"/>
-<area shape="rect" href="classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="461,310,640,336"/>
-<area shape="poly" title=" " alt="" coords="387,200,409,211,434,231,458,252,520,299,517,303,454,256,431,235,407,216,385,204"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="694,201,842,242"/>
-<area shape="poly" title=" " alt="" coords="645,219,679,219,679,224,645,224"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="694,267,842,307"/>
-<area shape="poly" title=" " alt="" coords="621,240,684,259,683,264,619,245"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="694,332,842,373"/>
-<area shape="poly" title=" " alt="" coords="595,240,646,272,670,295,694,317,702,322,699,326,691,321,666,299,643,276,593,245"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="694,5,842,46"/>
-<area shape="poly" title=" " alt="" coords="563,200,614,131,650,92,691,57,698,52,701,56,694,61,654,96,618,135,567,203"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="694,71,842,111"/>
-<area shape="poly" title=" " alt="" coords="577,199,629,161,691,122,702,116,704,121,694,127,632,166,580,203"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049" title=" " alt="" coords="694,136,842,177"/>
-<area shape="poly" title=" " alt="" coords="619,198,683,179,684,184,621,203"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="892,136,1039,177"/>
-<area shape="poly" title=" " alt="" coords="831,198,886,180,888,185,832,203"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="893,332,1038,373"/>
-<area shape="poly" title=" " alt="" coords="832,305,888,324,886,329,831,310"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e" title=" " alt="" coords="893,201,1038,242"/>
-<area shape="poly" title=" " alt="" coords="831,264,886,245,888,250,832,269"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="893,267,1038,307"/>
-<area shape="poly" title=" " alt="" coords="842,284,878,284,878,290,842,290"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b" title=" " alt="" coords="893,397,1038,438"/>
-<area shape="poly" title=" " alt="" coords="832,371,888,389,886,394,831,376"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="892,5,1039,46"/>
-<area shape="poly" title=" " alt="" coords="842,23,876,23,876,28,842,28"/>
-<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="692,397,844,423"/>
-<area shape="poly" title=" " alt="" coords="641,401,677,403,676,408,641,406"/>
-<area shape="poly" title=" " alt="" coords="514,311,507,302,511,292,526,286,550,284,577,286,590,293,588,298,575,291,550,289,527,291,515,296,512,301,518,308"/>
-<area shape="poly" title=" " alt="" coords="403,405,444,403,444,408,403,411"/>
-<area shape="poly" title=" " alt="" coords="384,383,498,339,500,344,386,388"/>
-<area shape="poly" title=" " alt="" coords="408,238,440,234,441,239,409,243"/>
-<area shape="poly" title=" " alt="" coords="390,280,410,292,425,306,435,319,444,332,458,346,506,377,503,381,454,350,439,336,430,322,421,309,406,296,388,284"/>
-<area shape="poly" title=" " alt="" coords="409,280,489,303,487,308,407,285"/>
-<area shape="poly" title=" " alt="" coords="381,303,407,291,496,247,498,252,409,296,383,308"/>
-<area shape="poly" title=" " alt="" coords="409,358,486,379,485,384,408,363"/>
-<area shape="poly" title=" " alt="" coords="408,327,445,325,445,330,409,332"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff">yaze::app::editor::OverworldEditor::Update()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a1bb4a54f5665e2ffd7026f1cd4f9de2b_icgraph">
-<area shape="rect" title=" " alt="" coords="1910,49,2068,90"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
-<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
-<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
-<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
-<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
-<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
-<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
-<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
-<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
-<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
-<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
-<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
-<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph" id="aclassyaze_1_1app_1_1editor_1_1GfxGroupEditor_a36ceca63810dbcc81e774bb0ce282f96_icgraph">
+<area shape="rect" title=" " alt="" coords="1380,5,1564,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,5,1332,46"/>
+<area shape="poly" title=" " alt="" coords="1364,28,1332,28,1332,23,1364,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1155,28,1123,28,1123,23,1155,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
 </map>
 </div>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="ad62dbf0a0ece2771ded435df0f856624" name="ad62dbf0a0ece2771ded435df0f856624"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad62dbf0a0ece2771ded435df0f856624">&#9670;&#160;</a></span>blockset_canvas_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::GfxGroupEditor::blockset_canvas_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a69210ff131957de6bbfe32ad27cddf76">DrawBlocksetViewer()</a>.</p>
-
-</div>
-</div>
-<a id="aa3187fc60ffc2f53e9bc5a280122cc97" name="aa3187fc60ffc2f53e9bc5a280122cc97"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3187fc60ffc2f53e9bc5a280122cc97">&#9670;&#160;</a></span>gfx_group_viewer_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html">gui::BitmapViewer</a> yaze::app::editor::GfxGroupEditor::gfx_group_viewer_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7448a98414d8d55c19504301cc054b58" name="a7448a98414d8d55c19504301cc054b58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7448a98414d8d55c19504301cc054b58">&#9670;&#160;</a></span>last_sheet_id_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::editor::GfxGroupEditor::last_sheet_id_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a18af715f7db0da5782852174435f00ce" name="a18af715f7db0da5782852174435f00ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a18af715f7db0da5782852174435f00ce">&#9670;&#160;</a></span>overworld_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a> yaze::app::editor::GfxGroupEditor::overworld_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8d49460b11a1a2593f16b90b42317c03" name="a8d49460b11a1a2593f16b90b42317c03"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d49460b11a1a2593f16b90b42317c03">&#9670;&#160;</a></span>palette_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> yaze::app::editor::GfxGroupEditor::palette_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a315668257391c2edf6ec16a4c1e95f6d" name="a315668257391c2edf6ec16a4c1e95f6d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a315668257391c2edf6ec16a4c1e95f6d">&#9670;&#160;</a></span>palette_editor_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html">PaletteEditor</a> yaze::app::editor::GfxGroupEditor::palette_editor_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a22d0e8e6437032ab8fd3f1a1231d6c87" name="a22d0e8e6437032ab8fd3f1a1231d6c87"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a22d0e8e6437032ab8fd3f1a1231d6c87">&#9670;&#160;</a></span>palette_group_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> yaze::app::editor::GfxGroupEditor::palette_group_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="acc048786441ec82cbbe3a0c5c0ce7b8b" name="acc048786441ec82cbbe3a0c5c0ce7b8b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acc048786441ec82cbbe3a0c5c0ce7b8b">&#9670;&#160;</a></span>preview_palette_id_</h2>
 
@@ -1065,8 +914,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a78e6bc6710bb1866dba09d810ffc167a" name="a78e6bc6710bb1866dba09d810ffc167a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a78e6bc6710bb1866dba09d810ffc167a">&#9670;&#160;</a></span>roomset_canvas_</h2>
+<a id="a7448a98414d8d55c19504301cc054b58" name="a7448a98414d8d55c19504301cc054b58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7448a98414d8d55c19504301cc054b58">&#9670;&#160;</a></span>last_sheet_id_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1075,7 +924,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::GfxGroupEditor::roomset_canvas_</td>
+          <td class="memname">int yaze::app::editor::GfxGroupEditor::last_sheet_id_ = 0</td>
         </tr>
       </table>
   </td>
@@ -1084,8 +933,6 @@ Here is the caller graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a48e332ac9316e8aebaa1f59575767128">DrawRoomsetViewer()</a>.</p>
 
 </div>
 </div>
@@ -1161,6 +1008,76 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="a315668257391c2edf6ec16a4c1e95f6d" name="a315668257391c2edf6ec16a4c1e95f6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a315668257391c2edf6ec16a4c1e95f6d">&#9670;&#160;</a></span>palette_editor_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html">PaletteEditor</a> yaze::app::editor::GfxGroupEditor::palette_editor_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad62dbf0a0ece2771ded435df0f856624" name="ad62dbf0a0ece2771ded435df0f856624"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad62dbf0a0ece2771ded435df0f856624">&#9670;&#160;</a></span>blockset_canvas_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::GfxGroupEditor::blockset_canvas_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a69210ff131957de6bbfe32ad27cddf76">DrawBlocksetViewer()</a>.</p>
+
+</div>
+</div>
+<a id="a78e6bc6710bb1866dba09d810ffc167a" name="a78e6bc6710bb1866dba09d810ffc167a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78e6bc6710bb1866dba09d810ffc167a">&#9670;&#160;</a></span>roomset_canvas_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html">gui::Canvas</a> yaze::app::editor::GfxGroupEditor::roomset_canvas_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a48e332ac9316e8aebaa1f59575767128">DrawRoomsetViewer()</a>.</p>
+
+</div>
+</div>
 <a id="ac1d76f4141145027288ca43adfc37d2b" name="ac1d76f4141145027288ca43adfc37d2b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac1d76f4141145027288ca43adfc37d2b">&#9670;&#160;</a></span>spriteset_canvas_</h2>
 
@@ -1182,6 +1099,50 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#a5cf30471c1be0a7b7c6a55a3b50726a2">DrawSpritesetViewer()</a>.</p>
+
+</div>
+</div>
+<a id="a8d49460b11a1a2593f16b90b42317c03" name="a8d49460b11a1a2593f16b90b42317c03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d49460b11a1a2593f16b90b42317c03">&#9670;&#160;</a></span>palette_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> yaze::app::editor::GfxGroupEditor::palette_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a22d0e8e6437032ab8fd3f1a1231d6c87" name="a22d0e8e6437032ab8fd3f1a1231d6c87"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22d0e8e6437032ab8fd3f1a1231d6c87">&#9670;&#160;</a></span>palette_group_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> yaze::app::editor::GfxGroupEditor::palette_group_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -1209,6 +1170,28 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="afbce4491a53be650fa691fef65151008" name="afbce4491a53be650fa691fef65151008"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbce4491a53be650fa691fef65151008">&#9670;&#160;</a></span>tile16_individual_data_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a>&gt; yaze::app::editor::GfxGroupEditor::tile16_individual_data_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a913cfece5eab5d95ae98adb7f7432615" name="a913cfece5eab5d95ae98adb7f7432615"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a913cfece5eab5d95ae98adb7f7432615">&#9670;&#160;</a></span>tile16_individual_</h2>
 
@@ -1231,8 +1214,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="afbce4491a53be650fa691fef65151008" name="afbce4491a53be650fa691fef65151008"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afbce4491a53be650fa691fef65151008">&#9670;&#160;</a></span>tile16_individual_data_</h2>
+<a id="aa3187fc60ffc2f53e9bc5a280122cc97" name="aa3187fc60ffc2f53e9bc5a280122cc97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3187fc60ffc2f53e9bc5a280122cc97">&#9670;&#160;</a></span>gfx_group_viewer_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1241,7 +1224,29 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a>&gt; yaze::app::editor::GfxGroupEditor::tile16_individual_data_</td>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html">gui::BitmapViewer</a> yaze::app::editor::GfxGroupEditor::gfx_group_viewer_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a18af715f7db0da5782852174435f00ce" name="a18af715f7db0da5782852174435f00ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18af715f7db0da5782852174435f00ce">&#9670;&#160;</a></span>overworld_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a> yaze::app::editor::GfxGroupEditor::overworld_</td>
         </tr>
       </table>
   </td>

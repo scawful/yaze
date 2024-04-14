@@ -23,6 +23,6 @@ var searchData=
   ['controller_20',['Controller',['../classyaze_1_1app_1_1core_1_1Controller.html',1,'yaze::app::core']]],
   ['counterirqnmiregisters_21',['CounterIrqNmiRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html',1,'yaze::app::emu::video']]],
   ['cpu_22',['Cpu',['../classyaze_1_1app_1_1emu_1_1Cpu.html',1,'yaze::app::emu']]],
-  ['cputest_23',['CpuTest',['../classyaze_1_1app_1_1emu_1_1CpuTest.html',1,'yaze::app::emu']]],
+  ['cputest_23',['CpuTest',['../classyaze__test_1_1emu__test_1_1CpuTest.html',1,'yaze_test::emu_test']]],
   ['createpatch_24',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];

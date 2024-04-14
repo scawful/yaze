@@ -207,8 +207,8 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa2a4e853d2ab01d9b092916eabc8f437" name="aa2a4e853d2ab01d9b092916eabc8f437"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2a4e853d2ab01d9b092916eabc8f437">&#9670;&#160;</a></span>apply_changes()</h2>
+<a id="aec7ae8f7e3f78e233089d28b9688e527" name="aec7ae8f7e3f78e233089d28b9688e527"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec7ae8f7e3f78e233089d28b9688e527">&#9670;&#160;</a></span>set()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -219,9 +219,9 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::apply_changes </td>
+          <td class="memname">void <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::set </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td class="paramtype">const T &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -232,49 +232,17 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a4a6aa7feda4ee383e11addcfd9b726c4">yaze::app::core::NotifyValue&lt; T &gt;::modified_</a>, <a class="el" href="#afd5c58bcd5a264a78383a7859c2f8b55">yaze::app::core::NotifyValue&lt; T &gt;::temp_value_</a>, and <a class="el" href="#aefc464f5d93722683a981225ab777b73">yaze::app::core::NotifyValue&lt; T &gt;::value_</a>.</p>
+<p class="reference">References <a class="el" href="#a4a6aa7feda4ee383e11addcfd9b726c4">yaze::app::core::NotifyValue&lt; T &gt;::modified_</a>, and <a class="el" href="#aefc464f5d93722683a981225ab777b73">yaze::app::core::NotifyValue&lt; T &gt;::value_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8">yaze::app::editor::Tile16Editor::DrawTileEditControls()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1">yaze::app::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8272aa891a862d61645068b088141853">yaze::app::core::NotifyValue&lt; T &gt;::operator=()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph">
-<area shape="rect" title=" " alt="" coords="2573,49,2752,90"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8" title=" " alt="" coords="2347,5,2515,61"/>
-<area shape="poly" title=" " alt="" coords="2557,56,2515,49,2516,44,2558,50"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1" title=" " alt="" coords="2337,85,2525,126"/>
-<area shape="poly" title=" " alt="" coords="2558,88,2526,93,2526,88,2557,83"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a94cd1c92b4e5480f8e64d6d72723236d" title=" " alt="" coords="2096,13,2289,54"/>
-<area shape="poly" title=" " alt="" coords="2332,36,2289,36,2289,31,2332,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb" title=" " alt="" coords="1910,49,2048,90"/>
-<area shape="poly" title=" " alt="" coords="2081,55,2048,60,2047,55,2080,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
-<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
-<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
-<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
-<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
-<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
-<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
-<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
-<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
-<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
-<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
-<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
-<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
-<area shape="poly" title=" " alt="" coords="2346,82,2261,57,2263,52,2348,77"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="2106,77,2279,133"/>
-<area shape="poly" title=" " alt="" coords="2321,108,2279,108,2279,103,2321,103"/>
-<area shape="poly" title=" " alt="" coords="2090,91,2048,83,2049,78,2091,85"/>
+<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph">
+<area shape="rect" title=" " alt="" coords="232,13,434,39"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1NotifyValue.html#a8272aa891a862d61645068b088141853" title=" " alt="" coords="5,5,184,46"/>
+<area shape="poly" title=" " alt="" coords="216,28,184,28,184,23,216,23"/>
 </map>
 </div>
 
@@ -355,79 +323,6 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ab7d773c625bb92a57de3d48681d9697f" name="ab7d773c625bb92a57de3d48681d9697f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7d773c625bb92a57de3d48681d9697f">&#9670;&#160;</a></span>modified()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::modified </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a4a6aa7feda4ee383e11addcfd9b726c4">yaze::app::core::NotifyValue&lt; T &gt;::modified_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8">yaze::app::editor::Tile16Editor::DrawTileEditControls()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1">yaze::app::editor::Tile16Editor::UpdateBlockset()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph">
-<area shape="rect" title=" " alt="" coords="2573,49,2752,90"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8" title=" " alt="" coords="2347,5,2515,61"/>
-<area shape="poly" title=" " alt="" coords="2557,56,2515,49,2516,44,2558,50"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1" title=" " alt="" coords="2337,85,2525,126"/>
-<area shape="poly" title=" " alt="" coords="2558,88,2526,93,2526,88,2557,83"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a94cd1c92b4e5480f8e64d6d72723236d" title=" " alt="" coords="2096,13,2289,54"/>
-<area shape="poly" title=" " alt="" coords="2332,36,2289,36,2289,31,2332,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb" title=" " alt="" coords="1910,49,2048,90"/>
-<area shape="poly" title=" " alt="" coords="2081,55,2048,60,2047,55,2080,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
-<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
-<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
-<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
-<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
-<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
-<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
-<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
-<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
-<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
-<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
-<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
-<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
-<area shape="poly" title=" " alt="" coords="2346,82,2261,57,2263,52,2348,77"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="2106,77,2279,133"/>
-<area shape="poly" title=" " alt="" coords="2321,108,2279,108,2279,103,2321,103"/>
-<area shape="poly" title=" " alt="" coords="2090,91,2048,83,2049,78,2091,85"/>
-</map>
-</div>
-
-</div>
-</div>
 <a id="a8c1c4f83a2af9c120618feb95360c734" name="a8c1c4f83a2af9c120618feb95360c734"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8c1c4f83a2af9c120618feb95360c734">&#9670;&#160;</a></span>mutable_get()</h2>
 
@@ -501,8 +396,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a30bc0a6b388f40a9257d040c64effa2d" name="a30bc0a6b388f40a9257d040c64effa2d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30bc0a6b388f40a9257d040c64effa2d">&#9670;&#160;</a></span>operator T()</h2>
+<a id="aa2a4e853d2ab01d9b092916eabc8f437" name="aa2a4e853d2ab01d9b092916eabc8f437"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2a4e853d2ab01d9b092916eabc8f437">&#9670;&#160;</a></span>apply_changes()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -513,7 +408,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::operator T </td>
+          <td class="memname">void <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::apply_changes </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td></td>
@@ -526,15 +421,49 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a04463e5cc23e8afb393e359c2b7389d6">yaze::app::core::NotifyValue&lt; T &gt;::get()</a>.</p>
+<p class="reference">References <a class="el" href="#a4a6aa7feda4ee383e11addcfd9b726c4">yaze::app::core::NotifyValue&lt; T &gt;::modified_</a>, <a class="el" href="#afd5c58bcd5a264a78383a7859c2f8b55">yaze::app::core::NotifyValue&lt; T &gt;::temp_value_</a>, and <a class="el" href="#aefc464f5d93722683a981225ab777b73">yaze::app::core::NotifyValue&lt; T &gt;::value_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8">yaze::app::editor::Tile16Editor::DrawTileEditControls()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1">yaze::app::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 <div class="dynheader">
-Here is the call graph for this function:</div>
+Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,184,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6" title=" " alt="" coords="232,13,434,39"/>
-<area shape="poly" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_aa2a4e853d2ab01d9b092916eabc8f437_icgraph">
+<area shape="rect" title=" " alt="" coords="2573,49,2752,90"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8" title=" " alt="" coords="2347,5,2515,61"/>
+<area shape="poly" title=" " alt="" coords="2557,56,2515,49,2516,44,2558,50"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1" title=" " alt="" coords="2337,85,2525,126"/>
+<area shape="poly" title=" " alt="" coords="2558,88,2526,93,2526,88,2557,83"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a94cd1c92b4e5480f8e64d6d72723236d" title=" " alt="" coords="2096,13,2289,54"/>
+<area shape="poly" title=" " alt="" coords="2332,36,2289,36,2289,31,2332,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb" title=" " alt="" coords="1910,49,2048,90"/>
+<area shape="poly" title=" " alt="" coords="2081,55,2048,60,2047,55,2080,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
+<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
+<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
+<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
+<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
+<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
+<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
+<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
+<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
+<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
+<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
+<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
+<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
+<area shape="poly" title=" " alt="" coords="2346,82,2261,57,2263,52,2348,77"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="2106,77,2279,133"/>
+<area shape="poly" title=" " alt="" coords="2321,108,2279,108,2279,103,2321,103"/>
+<area shape="poly" title=" " alt="" coords="2090,91,2048,83,2049,78,2091,85"/>
 </map>
 </div>
 
@@ -579,8 +508,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="aec7ae8f7e3f78e233089d28b9688e527" name="aec7ae8f7e3f78e233089d28b9688e527"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec7ae8f7e3f78e233089d28b9688e527">&#9670;&#160;</a></span>set()</h2>
+<a id="a30bc0a6b388f40a9257d040c64effa2d" name="a30bc0a6b388f40a9257d040c64effa2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30bc0a6b388f40a9257d040c64effa2d">&#9670;&#160;</a></span>operator T()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -591,9 +520,9 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::set </td>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::operator T </td>
           <td>(</td>
-          <td class="paramtype">const T &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -604,23 +533,120 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a4a6aa7feda4ee383e11addcfd9b726c4">yaze::app::core::NotifyValue&lt; T &gt;::modified_</a>, and <a class="el" href="#aefc464f5d93722683a981225ab777b73">yaze::app::core::NotifyValue&lt; T &gt;::value_</a>.</p>
+<p class="reference">References <a class="el" href="#a04463e5cc23e8afb393e359c2b7389d6">yaze::app::core::NotifyValue&lt; T &gt;::get()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_a30bc0a6b388f40a9257d040c64effa2d_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,184,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6" title=" " alt="" coords="232,13,434,39"/>
+<area shape="poly" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+</map>
+</div>
 
-<p class="reference">Referenced by <a class="el" href="#a8272aa891a862d61645068b088141853">yaze::app::core::NotifyValue&lt; T &gt;::operator=()</a>.</p>
+</div>
+</div>
+<a id="ab7d773c625bb92a57de3d48681d9697f" name="ab7d773c625bb92a57de3d48681d9697f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7d773c625bb92a57de3d48681d9697f">&#9670;&#160;</a></span>modified()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::modified </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a4a6aa7feda4ee383e11addcfd9b726c4">yaze::app::core::NotifyValue&lt; T &gt;::modified_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8">yaze::app::editor::Tile16Editor::DrawTileEditControls()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1">yaze::app::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_aec7ae8f7e3f78e233089d28b9688e527_icgraph">
-<area shape="rect" title=" " alt="" coords="232,13,434,39"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1NotifyValue.html#a8272aa891a862d61645068b088141853" title=" " alt="" coords="5,5,184,46"/>
-<area shape="poly" title=" " alt="" coords="216,28,184,28,184,23,216,23"/>
+<div class="center"><img src="classyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph" id="aclassyaze_1_1app_1_1core_1_1NotifyValue_ab7d773c625bb92a57de3d48681d9697f_icgraph">
+<area shape="rect" title=" " alt="" coords="2573,49,2752,90"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afe4b0aaf110b5ff60d26d18e61b4e6c8" title=" " alt="" coords="2347,5,2515,61"/>
+<area shape="poly" title=" " alt="" coords="2557,56,2515,49,2516,44,2558,50"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1" title=" " alt="" coords="2337,85,2525,126"/>
+<area shape="poly" title=" " alt="" coords="2558,88,2526,93,2526,88,2557,83"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a94cd1c92b4e5480f8e64d6d72723236d" title=" " alt="" coords="2096,13,2289,54"/>
+<area shape="poly" title=" " alt="" coords="2332,36,2289,36,2289,31,2332,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb" title=" " alt="" coords="1910,49,2048,90"/>
+<area shape="poly" title=" " alt="" coords="2081,55,2048,60,2047,55,2080,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1670,49,1862,90"/>
+<area shape="poly" title=" " alt="" coords="1895,72,1863,72,1863,67,1895,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
+<area shape="poly" title=" " alt="" coords="1654,57,1611,51,1612,46,1655,51"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
+<area shape="poly" title=" " alt="" coords="1655,87,1623,91,1622,86,1654,82"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
+<area shape="poly" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
+<area shape="poly" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
+<area shape="poly" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,56,718,82"/>
+<area shape="poly" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
+<area shape="poly" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
+<area shape="poly" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
+<area shape="poly" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
+<area shape="poly" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
+<area shape="poly" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
+<area shape="poly" title=" " alt="" coords="2346,82,2261,57,2263,52,2348,77"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="2106,77,2279,133"/>
+<area shape="poly" title=" " alt="" coords="2321,108,2279,108,2279,103,2321,103"/>
+<area shape="poly" title=" " alt="" coords="2090,91,2048,83,2049,78,2091,85"/>
 </map>
 </div>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="aefc464f5d93722683a981225ab777b73" name="aefc464f5d93722683a981225ab777b73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefc464f5d93722683a981225ab777b73">&#9670;&#160;</a></span>value_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">T <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::value_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#aa2a4e853d2ab01d9b092916eabc8f437">yaze::app::core::NotifyValue&lt; T &gt;::apply_changes()</a>, <a class="el" href="#a04463e5cc23e8afb393e359c2b7389d6">yaze::app::core::NotifyValue&lt; T &gt;::get()</a>, <a class="el" href="#a8c1c4f83a2af9c120618feb95360c734">yaze::app::core::NotifyValue&lt; T &gt;::mutable_get()</a>, and <a class="el" href="#aec7ae8f7e3f78e233089d28b9688e527">yaze::app::core::NotifyValue&lt; T &gt;::set()</a>.</p>
+
+</div>
+</div>
 <a id="a4a6aa7feda4ee383e11addcfd9b726c4" name="a4a6aa7feda4ee383e11addcfd9b726c4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4a6aa7feda4ee383e11addcfd9b726c4">&#9670;&#160;</a></span>modified_</h2>
 
@@ -670,32 +696,6 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#aa2a4e853d2ab01d9b092916eabc8f437">yaze::app::core::NotifyValue&lt; T &gt;::apply_changes()</a>, and <a class="el" href="#a8c1c4f83a2af9c120618feb95360c734">yaze::app::core::NotifyValue&lt; T &gt;::mutable_get()</a>.</p>
-
-</div>
-</div>
-<a id="aefc464f5d93722683a981225ab777b73" name="aefc464f5d93722683a981225ab777b73"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aefc464f5d93722683a981225ab777b73">&#9670;&#160;</a></span>value_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">T <a class="el" href="classyaze_1_1app_1_1core_1_1NotifyValue.html">yaze::app::core::NotifyValue</a>&lt; T &gt;::value_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#aa2a4e853d2ab01d9b092916eabc8f437">yaze::app::core::NotifyValue&lt; T &gt;::apply_changes()</a>, <a class="el" href="#a04463e5cc23e8afb393e359c2b7389d6">yaze::app::core::NotifyValue&lt; T &gt;::get()</a>, <a class="el" href="#a8c1c4f83a2af9c120618feb95360c734">yaze::app::core::NotifyValue&lt; T &gt;::mutable_get()</a>, and <a class="el" href="#aec7ae8f7e3f78e233089d28b9688e527">yaze::app::core::NotifyValue&lt; T &gt;::set()</a>.</p>
 
 </div>
 </div>

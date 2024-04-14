@@ -30,6 +30,7 @@ var annotated_dup =
           ] ],
           [ "AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", "classyaze_1_1app_1_1editor_1_1AssemblyEditor" ],
           [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
+          [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
           [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor" ],
           [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1app_1_1editor_1_1GraphicsEditor" ],
           [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
@@ -46,9 +47,7 @@ var annotated_dup =
             [ "AudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam" ],
             [ "AudioRamImpl", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl" ],
             [ "DigitalSignalProcessor", "classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html", "classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor" ],
-            [ "MockAudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1MockAudioRam.html", "classyaze_1_1app_1_1emu_1_1audio_1_1MockAudioRam" ],
-            [ "Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700" ],
-            [ "Spc700Test", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700Test.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700Test" ]
+            [ "Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700" ]
           ] ],
           [ "memory", "namespaceyaze_1_1app_1_1emu_1_1memory.html", [
             [ "DirectMemoryAccess", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess" ],
@@ -123,12 +122,10 @@ var annotated_dup =
             [ "JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters" ],
             [ "MainSubScreenDesignation", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation" ],
             [ "MaskLogicSettings", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings" ],
-            [ "MockPpu", "classyaze_1_1app_1_1emu_1_1video_1_1MockPpu.html", "classyaze_1_1app_1_1emu_1_1video_1_1MockPpu" ],
             [ "OAMAddress", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress" ],
             [ "OAMSize", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize" ],
             [ "Ppu", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu" ],
             [ "PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface" ],
-            [ "PpuTest", "classyaze_1_1app_1_1emu_1_1video_1_1PpuTest.html", "classyaze_1_1app_1_1emu_1_1video_1_1PpuTest" ],
             [ "ScreenDisplay", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay" ],
             [ "ScreenMode", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode" ],
             [ "ScrollRegister", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister" ],
@@ -147,7 +144,6 @@ var annotated_dup =
           [ "Clock", "classyaze_1_1app_1_1emu_1_1Clock.html", "classyaze_1_1app_1_1emu_1_1Clock" ],
           [ "ClockImpl", "classyaze_1_1app_1_1emu_1_1ClockImpl.html", "classyaze_1_1app_1_1emu_1_1ClockImpl" ],
           [ "Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", "classyaze_1_1app_1_1emu_1_1Cpu" ],
-          [ "CpuTest", "classyaze_1_1app_1_1emu_1_1CpuTest.html", "classyaze_1_1app_1_1emu_1_1CpuTest" ],
           [ "Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", "classyaze_1_1app_1_1emu_1_1Debugger" ],
           [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", "classyaze_1_1app_1_1emu_1_1Emulator" ],
           [ "InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", "classyaze_1_1app_1_1emu_1_1InstructionEntry" ],
@@ -237,7 +233,15 @@ var annotated_dup =
         [ "Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", "classyaze_1_1cli_1_1Tile16Transfer" ]
       ] ]
     ] ],
+    [ "yaze_test", "namespaceyaze__test.html", [
+      [ "emu_test", "namespaceyaze__test_1_1emu__test.html", [
+        [ "CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", "classyaze__test_1_1emu__test_1_1CpuTest" ],
+        [ "MockAudioRam", "classyaze__test_1_1emu__test_1_1MockAudioRam.html", "classyaze__test_1_1emu__test_1_1MockAudioRam" ],
+        [ "MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", "classyaze__test_1_1emu__test_1_1MockPpu" ],
+        [ "PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
+        [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ]
+      ] ]
+    ] ],
     [ "AppDelegate", "interfaceAppDelegate.html", "interfaceAppDelegate" ],
-    [ "Editor", "classEditor.html", "classEditor" ],
     [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ]
 ];

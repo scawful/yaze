@@ -216,6 +216,55 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a148581625828c2a17bb0d85e67a5bede" name="a148581625828c2a17bb0d85e67a5bede"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a148581625828c2a17bb0d85e67a5bede">&#9670;&#160;</a></span>UpdateCycleCount()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::ClockImpl::UpdateCycleCount </td>
+          <td>(</td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>deltaTime</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a76d39a1a8524d2305f834262696653bc">accumulatedTime</a>, <a class="el" href="#add995744997a713a02ef9e7829661f03">Cycle()</a>, and <a class="el" href="#af8546af43797ed80f52a784d35f04689">frequency</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a234e038f9a4cba5a300899f03078b041">UpdateClock()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,175,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#add995744997a713a02ef9e7829661f03" title=" " alt="" coords="223,5,392,46"/>
+<area shape="poly" title=" " alt="" coords="175,23,207,23,207,28,175,28"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph">
+<area shape="rect" title=" " alt="" coords="223,5,392,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a234e038f9a4cba5a300899f03078b041" title=" " alt="" coords="5,5,175,46"/>
+<area shape="poly" title=" " alt="" coords="207,28,175,28,175,23,207,23"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="add995744997a713a02ef9e7829661f03" name="add995744997a713a02ef9e7829661f03"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#add995744997a713a02ef9e7829661f03">&#9670;&#160;</a></span>Cycle()</h2>
 
@@ -250,6 +299,90 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="440,5,609,46"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a148581625828c2a17bb0d85e67a5bede" title=" " alt="" coords="223,5,392,46"/>
 <area shape="poly" title=" " alt="" coords="425,28,392,28,392,23,425,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a234e038f9a4cba5a300899f03078b041" title=" " alt="" coords="5,5,175,46"/>
+<area shape="poly" title=" " alt="" coords="207,28,175,28,175,23,207,23"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a234e038f9a4cba5a300899f03078b041" name="a234e038f9a4cba5a300899f03078b041"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a234e038f9a4cba5a300899f03078b041">&#9670;&#160;</a></span>UpdateClock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::ClockImpl::UpdateClock </td>
+          <td>(</td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>delta</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#abef1cd26ecfb2e9702d6573eda4838ab">yaze::app::emu::Clock</a>.</p>
+
+<p class="reference">References <a class="el" href="#a517a1f69637e9793ad6929f10078a24d">ResetAccumulatedTime()</a>, and <a class="el" href="#a148581625828c2a17bb0d85e67a5bede">UpdateCycleCount()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,175,79"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a517a1f69637e9793ad6929f10078a24d" title=" " alt="" coords="223,5,392,46"/>
+<area shape="poly" title=" " alt="" coords="175,43,207,38,208,44,175,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a148581625828c2a17bb0d85e67a5bede" title=" " alt="" coords="223,71,392,111"/>
+<area shape="poly" title=" " alt="" coords="175,69,208,74,207,79,175,74"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#add995744997a713a02ef9e7829661f03" title=" " alt="" coords="440,71,609,111"/>
+<area shape="poly" title=" " alt="" coords="392,88,424,88,424,94,392,94"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a517a1f69637e9793ad6929f10078a24d" name="a517a1f69637e9793ad6929f10078a24d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a517a1f69637e9793ad6929f10078a24d">&#9670;&#160;</a></span>ResetAccumulatedTime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::ClockImpl::ResetAccumulatedTime </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#ae6575e0403c9f6567e6e125f13349975">yaze::app::emu::Clock</a>.</p>
+
+<p class="reference">References <a class="el" href="#a76d39a1a8524d2305f834262696653bc">accumulatedTime</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a234e038f9a4cba5a300899f03078b041">UpdateClock()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph">
+<area shape="rect" title=" " alt="" coords="223,5,392,46"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a234e038f9a4cba5a300899f03078b041" title=" " alt="" coords="5,5,175,46"/>
 <area shape="poly" title=" " alt="" coords="207,28,175,28,175,23,207,23"/>
 </map>
@@ -315,47 +448,6 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a517a1f69637e9793ad6929f10078a24d" name="a517a1f69637e9793ad6929f10078a24d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a517a1f69637e9793ad6929f10078a24d">&#9670;&#160;</a></span>ResetAccumulatedTime()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::ClockImpl::ResetAccumulatedTime </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#ae6575e0403c9f6567e6e125f13349975">yaze::app::emu::Clock</a>.</p>
-
-<p class="reference">References <a class="el" href="#a76d39a1a8524d2305f834262696653bc">accumulatedTime</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a234e038f9a4cba5a300899f03078b041">UpdateClock()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a517a1f69637e9793ad6929f10078a24d_icgraph">
-<area shape="rect" title=" " alt="" coords="223,5,392,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a234e038f9a4cba5a300899f03078b041" title=" " alt="" coords="5,5,175,46"/>
-<area shape="poly" title=" " alt="" coords="207,28,175,28,175,23,207,23"/>
-</map>
-</div>
-
-</div>
-</div>
 <a id="a5035b6f22f3f4e1b4aebd872adca25e9" name="a5035b6f22f3f4e1b4aebd872adca25e9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5035b6f22f3f4e1b4aebd872adca25e9">&#9670;&#160;</a></span>SetFrequency()</h2>
 
@@ -385,123 +477,7 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a234e038f9a4cba5a300899f03078b041" name="a234e038f9a4cba5a300899f03078b041"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a234e038f9a4cba5a300899f03078b041">&#9670;&#160;</a></span>UpdateClock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::ClockImpl::UpdateClock </td>
-          <td>(</td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>delta</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#abef1cd26ecfb2e9702d6573eda4838ab">yaze::app::emu::Clock</a>.</p>
-
-<p class="reference">References <a class="el" href="#a517a1f69637e9793ad6929f10078a24d">ResetAccumulatedTime()</a>, and <a class="el" href="#a148581625828c2a17bb0d85e67a5bede">UpdateCycleCount()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a234e038f9a4cba5a300899f03078b041_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,175,79"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a517a1f69637e9793ad6929f10078a24d" title=" " alt="" coords="223,5,392,46"/>
-<area shape="poly" title=" " alt="" coords="175,43,207,38,208,44,175,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a148581625828c2a17bb0d85e67a5bede" title=" " alt="" coords="223,71,392,111"/>
-<area shape="poly" title=" " alt="" coords="175,69,208,74,207,79,175,74"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#add995744997a713a02ef9e7829661f03" title=" " alt="" coords="440,71,609,111"/>
-<area shape="poly" title=" " alt="" coords="392,88,424,88,424,94,392,94"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a148581625828c2a17bb0d85e67a5bede" name="a148581625828c2a17bb0d85e67a5bede"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a148581625828c2a17bb0d85e67a5bede">&#9670;&#160;</a></span>UpdateCycleCount()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::ClockImpl::UpdateCycleCount </td>
-          <td>(</td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>deltaTime</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a76d39a1a8524d2305f834262696653bc">accumulatedTime</a>, <a class="el" href="#add995744997a713a02ef9e7829661f03">Cycle()</a>, and <a class="el" href="#af8546af43797ed80f52a784d35f04689">frequency</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a234e038f9a4cba5a300899f03078b041">UpdateClock()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,175,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#add995744997a713a02ef9e7829661f03" title=" " alt="" coords="223,5,392,46"/>
-<area shape="poly" title=" " alt="" coords="175,23,207,23,207,28,175,28"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph" id="aclassyaze_1_1app_1_1emu_1_1ClockImpl_a148581625828c2a17bb0d85e67a5bede_icgraph">
-<area shape="rect" title=" " alt="" coords="223,5,392,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1ClockImpl.html#a234e038f9a4cba5a300899f03078b041" title=" " alt="" coords="5,5,175,46"/>
-<area shape="poly" title=" " alt="" coords="207,28,175,28,175,23,207,23"/>
-</map>
-</div>
-
-</div>
-</div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a76d39a1a8524d2305f834262696653bc" name="a76d39a1a8524d2305f834262696653bc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a76d39a1a8524d2305f834262696653bc">&#9670;&#160;</a></span>accumulatedTime</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">double yaze::app::emu::ClockImpl::accumulatedTime = 0.0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a517a1f69637e9793ad6929f10078a24d">ResetAccumulatedTime()</a>, and <a class="el" href="#a148581625828c2a17bb0d85e67a5bede">UpdateCycleCount()</a>.</p>
-
-</div>
-</div>
 <a id="acf50c3665933611bb2730f14d5b9aaf0" name="acf50c3665933611bb2730f14d5b9aaf0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acf50c3665933611bb2730f14d5b9aaf0">&#9670;&#160;</a></span>cycle</h2>
 
@@ -523,6 +499,30 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#add995744997a713a02ef9e7829661f03">Cycle()</a>.</p>
+
+</div>
+</div>
+<a id="af8546af43797ed80f52a784d35f04689" name="af8546af43797ed80f52a784d35f04689"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8546af43797ed80f52a784d35f04689">&#9670;&#160;</a></span>frequency</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float yaze::app::emu::ClockImpl::frequency = 0.0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a0ad23ebc11f593d0fbb84a2dfe5a4963">GetFrequency()</a>, <a class="el" href="#a5035b6f22f3f4e1b4aebd872adca25e9">SetFrequency()</a>, and <a class="el" href="#a148581625828c2a17bb0d85e67a5bede">UpdateCycleCount()</a>.</p>
 
 </div>
 </div>
@@ -550,8 +550,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="af8546af43797ed80f52a784d35f04689" name="af8546af43797ed80f52a784d35f04689"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8546af43797ed80f52a784d35f04689">&#9670;&#160;</a></span>frequency</h2>
+<a id="a76d39a1a8524d2305f834262696653bc" name="a76d39a1a8524d2305f834262696653bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76d39a1a8524d2305f834262696653bc">&#9670;&#160;</a></span>accumulatedTime</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -560,7 +560,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">float yaze::app::emu::ClockImpl::frequency = 0.0</td>
+          <td class="memname">double yaze::app::emu::ClockImpl::accumulatedTime = 0.0</td>
         </tr>
       </table>
   </td>
@@ -570,7 +570,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a0ad23ebc11f593d0fbb84a2dfe5a4963">GetFrequency()</a>, <a class="el" href="#a5035b6f22f3f4e1b4aebd872adca25e9">SetFrequency()</a>, and <a class="el" href="#a148581625828c2a17bb0d85e67a5bede">UpdateCycleCount()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a517a1f69637e9793ad6929f10078a24d">ResetAccumulatedTime()</a>, and <a class="el" href="#a148581625828c2a17bb0d85e67a5bede">UpdateCycleCount()</a>.</p>
 
 </div>
 </div>

@@ -10,9 +10,9 @@ var classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess =
       [ "RESET_VRAM", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#aa9aafb990f8178acf48e322fe9da0c14a615828f72b6c6a6e5f226948069e7f27", null ]
     ] ],
     [ "DirectMemoryAccess", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#abc6edcaf02f44a33d5ecc327e0c654d2", null ],
-    [ "EnableHDMATransfers", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#a5af3d62802c4d284ed2d414595933505", null ],
     [ "StartDMATransfer", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#a6eaa658480a5094d6f499cec9c163dff", null ],
+    [ "EnableHDMATransfers", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#a5af3d62802c4d284ed2d414595933505", null ],
     [ "channels", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#add28888bfb7606de4c28ea3c5656fd16", null ],
-    [ "HDMAEN", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#a798b8aba184f52060b1eb2e2f463560f", null ],
-    [ "MDMAEN", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#aa4048b4c8efb2eb31d1cec5a1f36b339", null ]
+    [ "MDMAEN", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#aa4048b4c8efb2eb31d1cec5a1f36b339", null ],
+    [ "HDMAEN", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#a798b8aba184f52060b1eb2e2f463560f", null ]
 ];

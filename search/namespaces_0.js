@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['imgui_0',['ImGui',['../namespaceImGui.html',1,'']]]
+  ['editor_0',['editor',['../namespaceeditor.html',1,'']]]
 ];

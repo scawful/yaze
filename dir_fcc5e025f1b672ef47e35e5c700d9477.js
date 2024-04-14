@@ -6,7 +6,6 @@ var dir_fcc5e025f1b672ef47e35e5c700d9477 =
     [ "constants.h", "constants_8h.html", "constants_8h" ],
     [ "controller.cc", "controller_8cc.html", "controller_8cc" ],
     [ "controller.h", "controller_8h.html", "controller_8h" ],
-    [ "editor.h", "editor_8h.html", "editor_8h" ],
     [ "labeling.cc", "labeling_8cc.html", null ],
     [ "labeling.h", "labeling_8h.html", "labeling_8h" ]
 ];

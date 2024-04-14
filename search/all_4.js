@@ -113,7 +113,7 @@ var searchData=
   ['arguments_110',['arguments',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563',1,'yaze::app::gfx::lc_lz2::CompressionCommand']]],
   ['armorpalettes_111',['armorPalettes',['../namespaceyaze_1_1app_1_1core.html#a44151bd7ba995193dbd36f28e7b219c0',1,'yaze::app::core']]],
   ['asl_112',['ASL',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a343d3a410936f715f45e9af64c5cc3c9',1,'yaze::app::emu::audio::Spc700::ASL()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#aead768fb8db5ce03b7f974ee6d53213f',1,'yaze::app::emu::Cpu::ASL()']]],
-  ['asm_5fparser_113',['asm_parser',['../classyaze_1_1app_1_1emu_1_1CpuTest.html#a85846df08ab318f60d153a4f1bdc70df',1,'yaze::app::emu::CpuTest']]],
+  ['asm_5fparser_113',['asm_parser',['../classyaze__test_1_1emu__test_1_1CpuTest.html#a8a27ddcdb37dbb42c2ee8e2629879ffe',1,'yaze_test::emu_test::CpuTest']]],
   ['asm_5fparser_2eh_114',['asm_parser.h',['../asm__parser_8h.html',1,'']]],
   ['asmparser_115',['AsmParser',['../classyaze_1_1app_1_1emu_1_1AsmParser.html',1,'yaze::app::emu']]],
   ['assemblemap16tiles_116',['AssembleMap16Tiles',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ade5eac8b957dba390008685b1ee9ff21',1,'yaze::app::zelda3::Overworld']]],
@@ -137,7 +137,7 @@ var searchData=
   ['audio_5fram_5f_134',['audio_ram_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a747296ece896c8886ed1b79c43e9abb9',1,'yaze::app::emu::SNES']]],
   ['audio_5fsamples_5f_135',['audio_samples_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a397070b45332e11d2e8d4bf2ed149fc3',1,'yaze::app::emu::audio::Apu']]],
   ['audioram_136',['AudioRam',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html',1,'yaze::app::emu::audio']]],
-  ['audioram_137',['audioRAM',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700Test.html#a2068a38ec5e919738b133c5999136931',1,'yaze::app::emu::audio::Spc700Test']]],
+  ['audioram_137',['audioRAM',['../classyaze__test_1_1emu__test_1_1Spc700Test.html#a16e468b0d870da29cd5e1e23ca8dce79',1,'yaze_test::emu_test::Spc700Test']]],
   ['audioramimpl_138',['AudioRamImpl',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html',1,'yaze::app::emu::audio::AudioRamImpl'],['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#aa948eeb2852e719dd90c2e8a80764746',1,'yaze::app::emu::audio::AudioRamImpl::AudioRamImpl()']]],
   ['aux1_139',['aux1',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#ad0bc06ae38b4884a940bdffae0abd2e9',1,'yaze::app::gfx::Paletteset']]],
   ['aux2_140',['aux2',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a0a80e06e1afb298ef992e5d4ff92ef54',1,'yaze::app::gfx::Paletteset']]]

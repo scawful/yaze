@@ -44,12 +44,12 @@ var searchData=
   ['argument_5flength_41',['argument_length',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a44d1f5ba632d32f1a1c629a947784a3f',1,'yaze::app::gfx::lc_lz2::CompressionPiece']]],
   ['arguments_42',['arguments',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563',1,'yaze::app::gfx::lc_lz2::CompressionCommand']]],
   ['armorpalettes_43',['armorPalettes',['../namespaceyaze_1_1app_1_1core.html#a44151bd7ba995193dbd36f28e7b219c0',1,'yaze::app::core']]],
-  ['asm_5fparser_44',['asm_parser',['../classyaze_1_1app_1_1emu_1_1CpuTest.html#a85846df08ab318f60d153a4f1bdc70df',1,'yaze::app::emu::CpuTest']]],
+  ['asm_5fparser_44',['asm_parser',['../classyaze__test_1_1emu__test_1_1CpuTest.html#a8a27ddcdb37dbb42c2ee8e2629879ffe',1,'yaze_test::emu_test::CpuTest']]],
   ['assembly_5feditor_5f_45',['assembly_editor_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a7698596df9b109e73fb8abe8c2ced5a1',1,'yaze::app::editor::MasterEditor::assembly_editor_'],['../classyaze_1_1app_1_1editor_1_1MusicEditor.html#a19ac93c06947b9d269f8a268e2c18c67',1,'yaze::app::editor::MusicEditor::assembly_editor_']]],
   ['attacktimes_46',['attackTimes',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a08d08c75b084817ad8d4b0de21338f3f',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
   ['audio_5fram_5f_47',['audio_ram_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a747296ece896c8886ed1b79c43e9abb9',1,'yaze::app::emu::SNES']]],
   ['audio_5fsamples_5f_48',['audio_samples_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a397070b45332e11d2e8d4bf2ed149fc3',1,'yaze::app::emu::audio::Apu']]],
-  ['audioram_49',['audioRAM',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700Test.html#a2068a38ec5e919738b133c5999136931',1,'yaze::app::emu::audio::Spc700Test']]],
+  ['audioram_49',['audioRAM',['../classyaze__test_1_1emu__test_1_1Spc700Test.html#a16e468b0d870da29cd5e1e23ca8dce79',1,'yaze_test::emu_test::Spc700Test']]],
   ['aux1_50',['aux1',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#ad0bc06ae38b4884a940bdffae0abd2e9',1,'yaze::app::gfx::Paletteset']]],
   ['aux2_51',['aux2',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a0a80e06e1afb298ef992e5d4ff92ef54',1,'yaze::app::gfx::Paletteset']]]
 ];

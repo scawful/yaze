@@ -17,7 +17,7 @@ var searchData=
   ['snespalette_14',['SnesPalette',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html',1,'yaze::app::gfx']]],
   ['snestopc_15',['SnesToPc',['../classyaze_1_1cli_1_1SnesToPc.html',1,'yaze::cli']]],
   ['spc700_16',['Spc700',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html',1,'yaze::app::emu::audio']]],
-  ['spc700test_17',['Spc700Test',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700Test.html',1,'yaze::app::emu::audio']]],
+  ['spc700test_17',['Spc700Test',['../classyaze__test_1_1emu__test_1_1Spc700Test.html',1,'yaze_test::emu_test']]],
   ['sprite_18',['Sprite',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html',1,'yaze::app::zelda3']]],
   ['spriteattributes_19',['SpriteAttributes',['../structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html',1,'yaze::app::emu::video']]],
   ['spriteeditor_20',['SpriteEditor',['../classyaze_1_1app_1_1editor_1_1SpriteEditor.html',1,'yaze::app::editor']]],

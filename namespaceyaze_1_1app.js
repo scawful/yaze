@@ -1,21 +1,21 @@
 var namespaceyaze_1_1app =
 [
     [ "anonymous_namespace{rom.cc}", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html", [
-      [ "Load3DObjectPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a56ac36f63f4387faec1e07795362a771", null ],
-      [ "LoadArmorPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#af0a857fa01bfe463d3d40f2b7f9b987a", null ],
-      [ "LoadDungeonMainPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#ae46a42311e335308122a967575dc841e", null ],
-      [ "LoadGlobalSpritePalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a93c9e33dd327fa84de8d227184ac5cee", null ],
-      [ "LoadGrassColors", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#af024f5b3c7128cfa132a6f7d35116789", null ],
-      [ "LoadHUDPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a53c3bea163814c6cc680fce907216c01", null ],
-      [ "LoadOverworldAnimatedPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a80a6687befa5d2e88e74f83bbdb03073", null ],
-      [ "LoadOverworldAuxiliaryPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#ac585f4479549595ac382443e40516e65", null ],
       [ "LoadOverworldMainPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a2f132cb79be751a464f9df467f3d687f", null ],
-      [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a1546856418a8b457e7a99820c92d93b6", null ],
+      [ "LoadOverworldAuxiliaryPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#ac585f4479549595ac382443e40516e65", null ],
+      [ "LoadOverworldAnimatedPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a80a6687befa5d2e88e74f83bbdb03073", null ],
+      [ "LoadHUDPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a53c3bea163814c6cc680fce907216c01", null ],
+      [ "LoadGlobalSpritePalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a93c9e33dd327fa84de8d227184ac5cee", null ],
+      [ "LoadArmorPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#af0a857fa01bfe463d3d40f2b7f9b987a", null ],
+      [ "LoadSwordPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a5a6428802a3bb30779fc3022eb0f21f4", null ],
       [ "LoadShieldPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a86dfde873632100117591190add734fc", null ],
       [ "LoadSpriteAux1Palettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a3295c92f3f0beade73b68b4aa8be6477", null ],
       [ "LoadSpriteAux2Palettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a6dce05e1860c033f1144f51c57d5abcd", null ],
       [ "LoadSpriteAux3Palettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a37b46deb941fa23b9b31fdc36dbc72c7", null ],
-      [ "LoadSwordPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a5a6428802a3bb30779fc3022eb0f21f4", null ]
+      [ "LoadDungeonMainPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#ae46a42311e335308122a967575dc841e", null ],
+      [ "LoadGrassColors", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#af024f5b3c7128cfa132a6f7d35116789", null ],
+      [ "Load3DObjectPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a56ac36f63f4387faec1e07795362a771", null ],
+      [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#a1546856418a8b457e7a99820c92d93b6", null ]
     ] ],
     [ "core", "namespaceyaze_1_1app_1_1core.html", "namespaceyaze_1_1app_1_1core" ],
     [ "editor", "namespaceyaze_1_1app_1_1editor.html", "namespaceyaze_1_1app_1_1editor" ],
@@ -34,16 +34,16 @@ var namespaceyaze_1_1app =
       [ "SD", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a38f99abbc1d339c277c0669e7bc373c0", null ],
       [ "RANDO", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
-    [ "gfx_groups_pointer", "namespaceyaze_1_1app.html#a4985f6eb73a6d4011150e4ef2acebd66", null ],
-    [ "kFontSpriteLocation", "namespaceyaze_1_1app.html#a6cba51ea80792c0f6a876549882f3778", null ],
-    [ "kLinkSpriteLocation", "namespaceyaze_1_1app.html#af7af78bb4695bc5b7caca032f20dea5d", null ],
-    [ "kNormalGfxSpaceEnd", "namespaceyaze_1_1app.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
-    [ "kNormalGfxSpaceStart", "namespaceyaze_1_1app.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
-    [ "kNumGfxSheets", "namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2", null ],
     [ "kOverworldGraphicsPos1", "namespaceyaze_1_1app.html#aef1118ddf30f8a263ef056301551f77e", null ],
     [ "kOverworldGraphicsPos2", "namespaceyaze_1_1app.html#aa453ef1eb33acc252e70b18bf490897f", null ],
     [ "kOverworldGraphicsPos3", "namespaceyaze_1_1app.html#a3b5e11463745adbfe0c00cb8f014820a", null ],
     [ "kTile32Num", "namespaceyaze_1_1app.html#a84a700c08c343adca26e4f1ae57a7722", null ],
+    [ "kTitleStringOffset", "namespaceyaze_1_1app.html#a6468295b5525e495bd39e6255bc63b55", null ],
     [ "kTitleStringLength", "namespaceyaze_1_1app.html#ab94232dd66ffb094891d6c7a068c747e", null ],
-    [ "kTitleStringOffset", "namespaceyaze_1_1app.html#a6468295b5525e495bd39e6255bc63b55", null ]
+    [ "kNumGfxSheets", "namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2", null ],
+    [ "kNormalGfxSpaceStart", "namespaceyaze_1_1app.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
+    [ "kNormalGfxSpaceEnd", "namespaceyaze_1_1app.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
+    [ "kLinkSpriteLocation", "namespaceyaze_1_1app.html#af7af78bb4695bc5b7caca032f20dea5d", null ],
+    [ "kFontSpriteLocation", "namespaceyaze_1_1app.html#a6cba51ea80792c0f6a876549882f3778", null ],
+    [ "gfx_groups_pointer", "namespaceyaze_1_1app.html#a4985f6eb73a6d4011150e4ef2acebd66", null ]
 ];

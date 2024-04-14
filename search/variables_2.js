@@ -95,7 +95,7 @@ var searchData=
   ['counter_5flatch_5fvalue_92',['counter_latch_value',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#ac5ada8d72ffe62e7fcc41dcb035ddc73',1,'yaze::app::emu::video::PpuRegisters::STAT78']]],
   ['counterenable_93',['counterEnable',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad07480da6860dce6b95ce57b0f429fb1',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
   ['countrycode_94',['countryCode',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ad1145e9517891d9c5fab21d9be66e4ce',1,'yaze::app::emu::memory::RomInfo']]],
-  ['cpu_95',['cpu',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a76522f256adfbba6ec603c014450b363',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer::cpu'],['../classyaze_1_1app_1_1emu_1_1CpuTest.html#a4ba18d0a8ed903c77cf1bef940f0ebab',1,'yaze::app::emu::CpuTest::cpu']]],
+  ['cpu_95',['cpu',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a76522f256adfbba6ec603c014450b363',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer::cpu'],['../classyaze__test_1_1emu__test_1_1CpuTest.html#ac8549435729d0ed997390d9e1a3cf1e1',1,'yaze_test::emu_test::CpuTest::cpu']]],
   ['cpu_5f_96',['cpu_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ad8d5297f8875eb7fb0fb007f8926fd4c',1,'yaze::app::emu::SNES']]],
   ['cpu_5fmode_5f_97',['cpu_mode_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a264edff2dde142478a454e7c5b3d8b2f',1,'yaze::app::emu::SNES']]],
   ['crystalpalette_98',['crystalPalette',['../namespaceyaze_1_1app_1_1core.html#aed23d28dedaefc0b708150211fff7974',1,'yaze::app::core']]],

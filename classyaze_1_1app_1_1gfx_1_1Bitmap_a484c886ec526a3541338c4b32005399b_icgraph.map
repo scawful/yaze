@@ -20,7 +20,7 @@
 <area shape="poly" id="edge40_Node000002_Node000033" title=" " alt="" coords="2515,695,2513,697,2494,730,2487,761,2487,792,2491,823,2495,854,2495,885,2486,917,2465,950,2442,968,2438,964,2461,946,2481,915,2489,884,2490,854,2486,823,2482,792,2482,761,2489,728,2509,694,2511,691"/>
 <area shape="rect" id="Node000034" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab9991a4d7673044078d2c530fa3149ab" title=" " alt="" coords="2232,86,2463,127"/>
 <area shape="poly" id="edge42_Node000002_Node000034" title=" " alt="" coords="2577,627,2564,516,2540,371,2524,298,2506,232,2485,178,2461,142,2446,129,2449,125,2465,138,2489,176,2511,230,2529,297,2545,370,2569,516,2582,626"/>
-<area shape="rect" id="Node000036" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a4a232d7457500c0c0521e28dbdc83ea2" title=" " alt="" coords="1236,605,1445,661"/>
+<area shape="rect" id="Node000036" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a4a232d7457500c0c0521e28dbdc83ea2" title="Allows the user to make changes to the overworld map." alt="" coords="1236,605,1445,661"/>
 <area shape="poly" id="edge45_Node000002_Node000036" title=" " alt="" coords="2495,665,2070,665,1799,665,1611,659,1445,646,1445,641,1611,654,1799,660,2070,660,2495,660"/>
 <area shape="rect" id="Node000037" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad7d7dec042753480a8b1664c5f7ce1c4" title=" " alt="" coords="2234,152,2461,192"/>
 <area shape="poly" id="edge48_Node000002_Node000037" title=" " alt="" coords="2576,627,2561,529,2536,402,2502,283,2482,237,2461,206,2447,195,2451,191,2465,202,2487,234,2507,281,2541,401,2566,528,2581,626"/>

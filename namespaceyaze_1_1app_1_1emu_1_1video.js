@@ -9,12 +9,10 @@ var namespaceyaze_1_1app_1_1emu_1_1video =
     [ "JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters" ],
     [ "MainSubScreenDesignation", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation" ],
     [ "MaskLogicSettings", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings" ],
-    [ "MockPpu", "classyaze_1_1app_1_1emu_1_1video_1_1MockPpu.html", "classyaze_1_1app_1_1emu_1_1video_1_1MockPpu" ],
     [ "OAMAddress", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress" ],
     [ "OAMSize", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize" ],
     [ "Ppu", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu" ],
     [ "PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface" ],
-    [ "PpuTest", "classyaze_1_1app_1_1emu_1_1video_1_1PpuTest.html", "classyaze_1_1app_1_1emu_1_1video_1_1PpuTest" ],
     [ "ScreenDisplay", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay" ],
     [ "ScreenMode", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode" ],
     [ "ScrollRegister", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister" ],
@@ -44,12 +42,5 @@ var namespaceyaze_1_1app_1_1emu_1_1video =
       [ "Size32x32", "namespaceyaze_1_1app_1_1emu_1_1video.html#a55b219b70a80e3b20522da1a08cc6c0aaec579cbe3d24a02a93dad1682c20330d", null ],
       [ "Size64x64", "namespaceyaze_1_1app_1_1emu_1_1video.html#a55b219b70a80e3b20522da1a08cc6c0aa8816d701dd08fb573f43ab49d6fc32e3", null ]
     ] ],
-    [ "TEST_F", "namespaceyaze_1_1app_1_1emu_1_1video.html#aa4248a68254c7a38c7ffa96b5ceef657", null ],
-    [ "TEST_F", "namespaceyaze_1_1app_1_1emu_1_1video.html#a51da9d481200ab37529b14c76d7afc70", null ],
-    [ "TEST_F", "namespaceyaze_1_1app_1_1emu_1_1video.html#acf49abe162fcf3c50c8657e861eed31f", null ],
-    [ "TEST_F", "namespaceyaze_1_1app_1_1emu_1_1video.html#a57858e9df7b55666a30de72895c1540d", null ],
-    [ "TEST_F", "namespaceyaze_1_1app_1_1emu_1_1video.html#a4e768f5d61b6a6a406226b1252273394", null ],
-    [ "TEST_F", "namespaceyaze_1_1app_1_1emu_1_1video.html#ad8f231b9c9bd55aa7c2adcdcb4b1c2d0", null ],
-    [ "TEST_F", "namespaceyaze_1_1app_1_1emu_1_1video.html#ad64e7873df99504282c338fb69eca528", null ],
     [ "kPpuClockSpeed", "namespaceyaze_1_1app_1_1emu_1_1video.html#a7207ceb50d735dbd3330beacba6a946f", null ]
 ];

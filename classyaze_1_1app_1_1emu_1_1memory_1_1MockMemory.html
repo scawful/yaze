@@ -235,185 +235,8 @@ Public Attributes</h2></td></tr>
 <p>The mock memory is represented by a vector of uint8_t values, where each element represents a byte of memory. The memory can be accessed using the [] operator, and its contents can be set using the <a class="el" href="#a259eb37eba4c2a535ace1cc35b9ca851">SetMemoryContents()</a> method.</p>
 <dl class="section note"><dt>Note</dt><dd>This class is intended for testing purposes only and should not be used in production code. </dd></dl>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ae648f002afec4d24c153a88b744c26c0" name="ae648f002afec4d24c153a88b744c26c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae648f002afec4d24c153a88b744c26c0">&#9670;&#160;</a></span>Init()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::memory::MockMemory::Init </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00">yaze::app::emu::memory::Memory::ClearMemory()</a>, <a class="el" href="#a0545bc82a7ba06810b7f34c4d641d8f8">memory_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0">yaze::app::emu::memory::Memory::PopByte()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c">yaze::app::emu::memory::Memory::PopLong()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#acfd648f90e569ced80d88a7cfab3618d">yaze::app::emu::memory::Memory::PopWord()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7">yaze::app::emu::memory::Memory::PushByte()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a096c6a0d0f6fe092b3810105f3c9a8ea">yaze::app::emu::memory::Memory::PushLong()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278">yaze::app::emu::memory::Memory::PushWord()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df">yaze::app::emu::memory::Memory::ReadByte()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a016122f34fc7c2bb79ccf7eaebcd7338">yaze::app::emu::memory::Memory::ReadByteVector()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846">yaze::app::emu::memory::Memory::ReadWord()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a9f59df78b125409f323bc8bb924a5edc">yaze::app::emu::memory::Memory::ReadWordLong()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3">yaze::app::emu::memory::Memory::SetSP()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d">yaze::app::emu::memory::Memory::SP()</a>, <a class="el" href="#a2fd95d602806c412f6b5fd94b245964c">SP_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3">yaze::app::emu::memory::Memory::WriteByte()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194">yaze::app::emu::memory::Memory::WriteWord()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1CpuTest.html#af01ec9ce8c4ba868739ec14d7b11a575">yaze::app::emu::CpuTest::SetUp()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph">
-<area shape="rect" title=" " alt="" coords="5,463,163,503"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00" title=" " alt="" coords="219,5,376,46"/>
-<area shape="poly" title=" " alt="" coords="83,462,87,388,104,280,120,221,142,162,171,107,209,57,212,54,216,57,213,61,176,110,147,165,125,223,109,281,93,388,88,462"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0" title=" " alt="" coords="219,71,376,111"/>
-<area shape="poly" title=" " alt="" coords="84,462,92,397,112,307,128,258,149,209,176,163,209,123,212,119,216,123,213,126,180,166,154,212,133,260,117,309,97,398,89,462"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c" title=" " alt="" coords="219,136,376,177"/>
-<area shape="poly" title=" " alt="" coords="86,462,98,408,120,335,156,257,180,220,209,188,213,184,217,188,213,192,185,224,161,259,125,337,103,409,91,463"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#acfd648f90e569ced80d88a7cfab3618d" title=" " alt="" coords="219,201,376,242"/>
-<area shape="poly" title=" " alt="" coords="89,461,104,419,129,363,163,305,185,277,209,253,214,249,218,253,212,257,189,281,168,308,133,365,109,421,94,463"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7" title=" " alt="" coords="219,267,376,307"/>
-<area shape="poly" title=" " alt="" coords="94,461,139,392,171,353,209,318,216,313,219,318,212,322,175,356,143,395,99,464"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a096c6a0d0f6fe092b3810105f3c9a8ea" title=" " alt="" coords="219,332,376,373"/>
-<area shape="poly" title=" " alt="" coords="106,460,152,422,209,383,221,377,223,382,212,388,155,426,110,464"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278" title=" " alt="" coords="219,397,376,438"/>
-<area shape="poly" title=" " alt="" coords="152,460,213,441,215,446,153,465"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="219,463,376,503"/>
-<area shape="poly" title=" " alt="" coords="163,480,203,480,203,486,163,486"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a016122f34fc7c2bb79ccf7eaebcd7338" title=" " alt="" coords="211,528,384,569"/>
-<area shape="poly" title=" " alt="" coords="153,501,215,520,213,525,152,506"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="219,593,376,634"/>
-<area shape="poly" title=" " alt="" coords="110,502,155,540,212,578,223,584,221,589,209,583,152,544,106,506"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a9f59df78b125409f323bc8bb924a5edc" title=" " alt="" coords="213,659,382,699"/>
-<area shape="poly" title=" " alt="" coords="99,502,143,571,175,610,212,644,219,648,216,653,209,648,171,613,139,574,94,505"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3" title=" " alt="" coords="219,724,376,765"/>
-<area shape="poly" title=" " alt="" coords="94,503,109,545,133,601,168,658,189,685,212,709,218,713,214,717,209,713,185,689,163,661,129,603,104,547,89,505"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d" title=" " alt="" coords="219,789,376,830"/>
-<area shape="poly" title=" " alt="" coords="91,503,103,557,125,629,161,707,185,742,213,774,217,778,213,782,209,778,180,746,156,709,120,631,98,558,86,504"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3" title=" " alt="" coords="219,855,376,895"/>
-<area shape="poly" title=" " alt="" coords="89,504,97,568,117,657,133,706,154,754,180,800,213,840,216,843,212,847,209,843,176,803,149,757,128,708,112,659,92,569,84,504"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194" title=" " alt="" coords="219,920,376,961"/>
-<area shape="poly" title=" " alt="" coords="88,504,93,578,109,685,125,743,147,801,176,856,213,905,216,909,212,912,209,909,171,859,142,804,120,745,104,686,87,578,83,504"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph">
-<area shape="rect" title=" " alt="" coords="214,5,371,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1CpuTest.html#af01ec9ce8c4ba868739ec14d7b11a575" title=" " alt="" coords="5,5,166,46"/>
-<area shape="poly" title=" " alt="" coords="198,28,166,28,166,23,198,23"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a9443af73596f2c973a8c69332e214bb7" name="a9443af73596f2c973a8c69332e214bb7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9443af73596f2c973a8c69332e214bb7">&#9670;&#160;</a></span>Initialize()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::memory::MockMemory::Initialize </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>romData</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a0545bc82a7ba06810b7f34c4d641d8f8">memory_</a>.</p>
-
-</div>
-</div>
-<a id="ae438b464cf0f93df524449ecc2badfb9" name="ae438b464cf0f93df524449ecc2badfb9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae438b464cf0f93df524449ecc2badfb9">&#9670;&#160;</a></span>InsertMemory()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::memory::MockMemory::InsertMemory </td>
-          <td>(</td>
-          <td class="paramtype">const uint64_t</td>          <td class="paramname"><span class="paramname"><em>address</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a0545bc82a7ba06810b7f34c4d641d8f8">memory_</a>.</p>
-
-</div>
-</div>
-<a id="ab9c295cf51100b241398ac0e5c86f715" name="ab9c295cf51100b241398ac0e5c86f715"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9c295cf51100b241398ac0e5c86f715">&#9670;&#160;</a></span>MOCK_CONST_METHOD0()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_CONST_METHOD0 </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d">SP</a></td>          <td class="paramname"><span class="paramname">, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t()</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a37bd855ce74c383f34df6e17965a2db5" name="a37bd855ce74c383f34df6e17965a2db5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a37bd855ce74c383f34df6e17965a2db5">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[1/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_CONST_METHOD1 </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a6e38e8d8c2fc4af04786e855069b5b6e">at</a></td>          <td class="paramname"><span class="paramname">, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t(int i)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="af02b37cf961f809e2ab9770603d9cccc" name="af02b37cf961f809e2ab9770603d9cccc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af02b37cf961f809e2ab9770603d9cccc">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af02b37cf961f809e2ab9770603d9cccc">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -434,7 +257,7 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <a id="a9d5d97ef711d1f9d79ccd4f78bd50497" name="a9d5d97ef711d1f9d79ccd4f78bd50497"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9d5d97ef711d1f9d79ccd4f78bd50497">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[3/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d5d97ef711d1f9d79ccd4f78bd50497">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -455,7 +278,7 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <a id="aaa48b002fb3001f8ce0ce6e09d61dcc1" name="aaa48b002fb3001f8ce0ce6e09d61dcc1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa48b002fb3001f8ce0ce6e09d61dcc1">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[4/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa48b002fb3001f8ce0ce6e09d61dcc1">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -506,21 +329,84 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="af00b115e1bf664462fefdeef3ff8427b" name="af00b115e1bf664462fefdeef3ff8427b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af00b115e1bf664462fefdeef3ff8427b">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[1/4]</span></h2>
+<a id="a96caab18b52946d6eedaed8c7be423b7" name="a96caab18b52946d6eedaed8c7be423b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96caab18b52946d6eedaed8c7be423b7">&#9670;&#160;</a></span>MOCK_METHOD2() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD0 </td>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD2 </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00">ClearMemory</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3">WriteByte</a></td>          <td class="paramname"><span class="paramname">, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void()</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+          <td class="paramtype">void(uint32_t address, uint8_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2795ba480c04276ccb5e9db7f092980b" name="a2795ba480c04276ccb5e9db7f092980b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2795ba480c04276ccb5e9db7f092980b">&#9670;&#160;</a></span>MOCK_METHOD2() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD2 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194">WriteWord</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void(uint32_t address, uint16_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a47a917942efa05671cb3fb222ade7a6e" name="a47a917942efa05671cb3fb222ade7a6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47a917942efa05671cb3fb222ade7a6e">&#9670;&#160;</a></span>MOCK_METHOD2() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD2 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a1233d122f27e85f5decf925b560dfd65">WriteLong</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void(uint32_t address, uint32_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad93b30da2f9a45a69ac81e7603b50da8" name="ad93b30da2f9a45a69ac81e7603b50da8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad93b30da2f9a45a69ac81e7603b50da8">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[1/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD1 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7">PushByte</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void(uint8_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -528,7 +414,7 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <a id="a0b701e9aee588e4f1519e8925ea648c7" name="a0b701e9aee588e4f1519e8925ea648c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b701e9aee588e4f1519e8925ea648c7">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b701e9aee588e4f1519e8925ea648c7">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -548,21 +434,21 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a127571b5c67a21cc319ae580f189a9ee" name="a127571b5c67a21cc319ae580f189a9ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a127571b5c67a21cc319ae580f189a9ee">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[3/4]</span></h2>
+<a id="a53b5abe8c07bdd94c114b9784f236377" name="a53b5abe8c07bdd94c114b9784f236377"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53b5abe8c07bdd94c114b9784f236377">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[2/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD0 </td>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD1 </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c">PopLong</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278">PushWord</a></td>          <td class="paramname"><span class="paramname">, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint32_t()</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+          <td class="paramtype">void(uint16_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -570,7 +456,7 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <a id="ab7ccd682137c18518ac5596c8466ab77" name="ab7ccd682137c18518ac5596c8466ab77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7ccd682137c18518ac5596c8466ab77">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[4/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7ccd682137c18518ac5596c8466ab77">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -584,48 +470,6 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">uint16_t()</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a4ccf16a04d53964873b6030659647f22" name="a4ccf16a04d53964873b6030659647f22"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ccf16a04d53964873b6030659647f22">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[1/6]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD1 </td>
-          <td>(</td>
-          <td class="paramtype">LoadData</td>          <td class="paramname"><span class="paramname">, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void(const std::vector&lt; uint8_t &gt; &amp;data)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad93b30da2f9a45a69ac81e7603b50da8" name="ad93b30da2f9a45a69ac81e7603b50da8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad93b30da2f9a45a69ac81e7603b50da8">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[2/6]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD1 </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7">PushByte</a></td>          <td class="paramname"><span class="paramname">, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void(uint8_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -653,8 +497,50 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a53b5abe8c07bdd94c114b9784f236377" name="a53b5abe8c07bdd94c114b9784f236377"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53b5abe8c07bdd94c114b9784f236377">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[4/6]</span></h2>
+<a id="a127571b5c67a21cc319ae580f189a9ee" name="a127571b5c67a21cc319ae580f189a9ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a127571b5c67a21cc319ae580f189a9ee">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD0 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c">PopLong</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t()</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab9c295cf51100b241398ac0e5c86f715" name="ab9c295cf51100b241398ac0e5c86f715"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9c295cf51100b241398ac0e5c86f715">&#9670;&#160;</a></span>MOCK_CONST_METHOD0()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_CONST_METHOD0 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d">SP</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t()</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abdaeb704d9fe54f91dbd5a7638953ee4" name="abdaeb704d9fe54f91dbd5a7638953ee4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdaeb704d9fe54f91dbd5a7638953ee4">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[4/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -662,7 +548,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD1 </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278">PushWord</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3">SetSP</a></td>          <td class="paramname"><span class="paramname">, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -695,8 +581,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="abdaeb704d9fe54f91dbd5a7638953ee4" name="abdaeb704d9fe54f91dbd5a7638953ee4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abdaeb704d9fe54f91dbd5a7638953ee4">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[6/6]</span></h2>
+<a id="a4ccf16a04d53964873b6030659647f22" name="a4ccf16a04d53964873b6030659647f22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ccf16a04d53964873b6030659647f22">&#9670;&#160;</a></span>MOCK_METHOD1() <span class="overload">[6/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -704,75 +590,54 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD1 </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3">SetSP</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+          <td class="paramtype">LoadData</td>          <td class="paramname"><span class="paramname">, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void(uint16_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+          <td class="paramtype">void(const std::vector&lt; uint8_t &gt; &amp;data)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a96caab18b52946d6eedaed8c7be423b7" name="a96caab18b52946d6eedaed8c7be423b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96caab18b52946d6eedaed8c7be423b7">&#9670;&#160;</a></span>MOCK_METHOD2() <span class="overload">[1/3]</span></h2>
+<a id="af00b115e1bf664462fefdeef3ff8427b" name="af00b115e1bf664462fefdeef3ff8427b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af00b115e1bf664462fefdeef3ff8427b">&#9670;&#160;</a></span>MOCK_METHOD0() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD2 </td>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD0 </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3">WriteByte</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00">ClearMemory</a></td>          <td class="paramname"><span class="paramname">, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void(uint32_t address, uint8_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+          <td class="paramtype">void()</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a47a917942efa05671cb3fb222ade7a6e" name="a47a917942efa05671cb3fb222ade7a6e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47a917942efa05671cb3fb222ade7a6e">&#9670;&#160;</a></span>MOCK_METHOD2() <span class="overload">[2/3]</span></h2>
+<a id="a37bd855ce74c383f34df6e17965a2db5" name="a37bd855ce74c383f34df6e17965a2db5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37bd855ce74c383f34df6e17965a2db5">&#9670;&#160;</a></span>MOCK_CONST_METHOD1() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD2 </td>
+          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_CONST_METHOD1 </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a1233d122f27e85f5decf925b560dfd65">WriteLong</a></td>          <td class="paramname"><span class="paramname">, </span></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a6e38e8d8c2fc4af04786e855069b5b6e">at</a></td>          <td class="paramname"><span class="paramname">, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void(uint32_t address, uint32_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a2795ba480c04276ccb5e9db7f092980b" name="a2795ba480c04276ccb5e9db7f092980b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2795ba480c04276ccb5e9db7f092980b">&#9670;&#160;</a></span>MOCK_METHOD2() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::app::emu::memory::MockMemory::MOCK_METHOD2 </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194">WriteWord</a></td>          <td class="paramname"><span class="paramname">, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void(uint32_t address, uint16_t value)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
+          <td class="paramtype">uint8_t(int i)</td>          <td class="paramname"><span class="paramname"></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -808,8 +673,47 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="a259eb37eba4c2a535ace1cc35b9ca851" name="a259eb37eba4c2a535ace1cc35b9ca851"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a259eb37eba4c2a535ace1cc35b9ca851">&#9670;&#160;</a></span>SetMemoryContents() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MockMemory::SetMemoryContents </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a0545bc82a7ba06810b7f34c4d641d8f8">memory_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze__test_1_1emu__test.html#adbd1b273e9bfee848333cb81b2e39265">yaze_test::emu_test::TEST_F()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph">
+<area shape="rect" title=" " alt="" coords="190,5,419,46"/>
+<area shape="rect" href="namespaceyaze__test_1_1emu__test.html#adbd1b273e9bfee848333cb81b2e39265" title=" " alt="" coords="5,5,142,46"/>
+<area shape="poly" title=" " alt="" coords="174,28,142,28,142,23,174,23"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="a5645dd4cf8f238e9d96b424310570f48" name="a5645dd4cf8f238e9d96b424310570f48"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5645dd4cf8f238e9d96b424310570f48">&#9670;&#160;</a></span>SetMemoryContents() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5645dd4cf8f238e9d96b424310570f48">&#9670;&#160;</a></span>SetMemoryContents() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -835,8 +739,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a259eb37eba4c2a535ace1cc35b9ca851" name="a259eb37eba4c2a535ace1cc35b9ca851"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a259eb37eba4c2a535ace1cc35b9ca851">&#9670;&#160;</a></span>SetMemoryContents() <span class="overload">[2/2]</span></h2>
+<a id="ae438b464cf0f93df524449ecc2badfb9" name="ae438b464cf0f93df524449ecc2badfb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae438b464cf0f93df524449ecc2badfb9">&#9670;&#160;</a></span>InsertMemory()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -845,9 +749,40 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::app::emu::memory::MockMemory::SetMemoryContents </td>
+          <td class="memname">void yaze::app::emu::memory::MockMemory::InsertMemory </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
+          <td class="paramtype">const uint64_t</td>          <td class="paramname"><span class="paramname"><em>address</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a0545bc82a7ba06810b7f34c4d641d8f8">memory_</a>.</p>
+
+</div>
+</div>
+<a id="a9443af73596f2c973a8c69332e214bb7" name="a9443af73596f2c973a8c69332e214bb7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9443af73596f2c973a8c69332e214bb7">&#9670;&#160;</a></span>Initialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MockMemory::Initialize </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>romData</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -860,15 +795,80 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a0545bc82a7ba06810b7f34c4d641d8f8">memory_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a71eb1ea17c5cbd12c8f9bffd1bde78a4">yaze::app::emu::TEST_F()</a>.</p>
+</div>
+</div>
+<a id="ae648f002afec4d24c153a88b744c26c0" name="ae648f002afec4d24c153a88b744c26c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae648f002afec4d24c153a88b744c26c0">&#9670;&#160;</a></span>Init()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MockMemory::Init </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00">yaze::app::emu::memory::Memory::ClearMemory()</a>, <a class="el" href="#a0545bc82a7ba06810b7f34c4d641d8f8">memory_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0">yaze::app::emu::memory::Memory::PopByte()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c">yaze::app::emu::memory::Memory::PopLong()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#acfd648f90e569ced80d88a7cfab3618d">yaze::app::emu::memory::Memory::PopWord()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7">yaze::app::emu::memory::Memory::PushByte()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a096c6a0d0f6fe092b3810105f3c9a8ea">yaze::app::emu::memory::Memory::PushLong()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278">yaze::app::emu::memory::Memory::PushWord()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df">yaze::app::emu::memory::Memory::ReadByte()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a016122f34fc7c2bb79ccf7eaebcd7338">yaze::app::emu::memory::Memory::ReadByteVector()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846">yaze::app::emu::memory::Memory::ReadWord()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a9f59df78b125409f323bc8bb924a5edc">yaze::app::emu::memory::Memory::ReadWordLong()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3">yaze::app::emu::memory::Memory::SetSP()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d">yaze::app::emu::memory::Memory::SP()</a>, <a class="el" href="#a2fd95d602806c412f6b5fd94b245964c">SP_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3">yaze::app::emu::memory::Memory::WriteByte()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194">yaze::app::emu::memory::Memory::WriteWord()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze__test_1_1emu__test_1_1CpuTest.html#adc39581559a3921822adaa22c77d7926">yaze_test::emu_test::CpuTest::SetUp()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_cgraph">
+<area shape="rect" title=" " alt="" coords="5,463,163,503"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00" title=" " alt="" coords="219,5,376,46"/>
+<area shape="poly" title=" " alt="" coords="83,462,87,388,104,280,120,221,142,162,171,107,209,57,212,54,216,57,213,61,176,110,147,165,125,223,109,281,93,388,88,462"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0" title=" " alt="" coords="219,71,376,111"/>
+<area shape="poly" title=" " alt="" coords="84,462,92,397,112,307,128,258,149,209,176,163,209,123,212,119,216,123,213,126,180,166,154,212,133,260,117,309,97,398,89,462"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c" title=" " alt="" coords="219,136,376,177"/>
+<area shape="poly" title=" " alt="" coords="86,462,98,408,120,335,156,257,180,220,209,188,213,184,217,188,213,192,185,224,161,259,125,337,103,409,91,463"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#acfd648f90e569ced80d88a7cfab3618d" title=" " alt="" coords="219,201,376,242"/>
+<area shape="poly" title=" " alt="" coords="89,461,104,419,129,363,163,305,185,277,209,253,214,249,218,253,212,257,189,281,168,308,133,365,109,421,94,463"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7" title=" " alt="" coords="219,267,376,307"/>
+<area shape="poly" title=" " alt="" coords="94,461,139,392,171,353,209,318,216,313,219,318,212,322,175,356,143,395,99,464"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a096c6a0d0f6fe092b3810105f3c9a8ea" title=" " alt="" coords="219,332,376,373"/>
+<area shape="poly" title=" " alt="" coords="106,460,152,422,209,383,221,377,223,382,212,388,155,426,110,464"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278" title=" " alt="" coords="219,397,376,438"/>
+<area shape="poly" title=" " alt="" coords="152,460,213,441,215,446,153,465"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="219,463,376,503"/>
+<area shape="poly" title=" " alt="" coords="163,480,203,480,203,486,163,486"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a016122f34fc7c2bb79ccf7eaebcd7338" title=" " alt="" coords="211,528,384,569"/>
+<area shape="poly" title=" " alt="" coords="153,501,215,520,213,525,152,506"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="219,593,376,634"/>
+<area shape="poly" title=" " alt="" coords="110,502,155,540,212,578,223,584,221,589,209,583,152,544,106,506"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a9f59df78b125409f323bc8bb924a5edc" title=" " alt="" coords="213,659,382,699"/>
+<area shape="poly" title=" " alt="" coords="99,502,143,571,175,610,212,644,219,648,216,653,209,648,171,613,139,574,94,505"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3" title=" " alt="" coords="219,724,376,765"/>
+<area shape="poly" title=" " alt="" coords="94,503,109,545,133,601,168,658,189,685,212,709,218,713,214,717,209,713,185,689,163,661,129,603,104,547,89,505"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d" title=" " alt="" coords="219,789,376,830"/>
+<area shape="poly" title=" " alt="" coords="91,503,103,557,125,629,161,707,185,742,213,774,217,778,213,782,209,778,180,746,156,709,120,631,98,558,86,504"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3" title=" " alt="" coords="219,855,376,895"/>
+<area shape="poly" title=" " alt="" coords="89,504,97,568,117,657,133,706,154,754,180,800,213,840,216,843,212,847,209,843,176,803,149,757,128,708,112,659,92,569,84,504"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194" title=" " alt="" coords="219,920,376,961"/>
+<area shape="poly" title=" " alt="" coords="88,504,93,578,109,685,125,743,147,801,176,856,213,905,216,909,212,912,209,909,171,859,142,804,120,745,104,686,87,578,83,504"/>
+</map>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_a259eb37eba4c2a535ace1cc35b9ca851_icgraph">
-<area shape="rect" title=" " alt="" coords="213,5,442,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1emu.html#a71eb1ea17c5cbd12c8f9bffd1bde78a4" title=" " alt="" coords="5,13,165,39"/>
-<area shape="poly" title=" " alt="" coords="197,28,165,28,165,23,197,23"/>
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MockMemory_ae648f002afec4d24c153a88b744c26c0_icgraph">
+<area shape="rect" title=" " alt="" coords="190,5,347,46"/>
+<area shape="rect" href="classyaze__test_1_1emu__test_1_1CpuTest.html#adc39581559a3921822adaa22c77d7926" title=" " alt="" coords="5,5,142,46"/>
+<area shape="poly" title=" " alt="" coords="174,28,142,28,142,23,174,23"/>
 </map>
 </div>
 

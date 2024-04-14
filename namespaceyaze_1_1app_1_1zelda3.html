@@ -410,6 +410,139 @@ Variables</h2></td></tr>
 <tr class="separator:adc66d34b3e89d0c4c21ed4b8042fc6e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="ae6c0fc257c4fbe93261122e920f316b5" name="ae6c0fc257c4fbe93261122e920f316b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6c0fc257c4fbe93261122e920f316b5">&#9670;&#160;</a></span>text_buf_ty</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ae6c0fc257c4fbe93261122e920f316b5">yaze::app::zelda3::text_buf_ty</a> = char[512]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a665a62b9cb10fd490c97164bd7e47045" name="a665a62b9cb10fd490c97164bd7e47045"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a665a62b9cb10fd490c97164bd7e47045">&#9670;&#160;</a></span>SongSPCBlock</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a665a62b9cb10fd490c97164bd7e47045">yaze::app::zelda3::SongSPCBlock</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> start;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> len;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> relnum;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> relsz;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> *relocs;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> bank;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buf;</div>
+<div class="line">  <span class="keywordtype">int</span> flag;</div>
+<div class="line">}</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ac3e382f0b753469cbf0db9a2c014539d" name="ac3e382f0b753469cbf0db9a2c014539d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3e382f0b753469cbf0db9a2c014539d">&#9670;&#160;</a></span>SongRange</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ac3e382f0b753469cbf0db9a2c014539d">yaze::app::zelda3::SongRange</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> start;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> end;</div>
+<div class="line"> </div>
+<div class="line">  <span class="keywordtype">short</span> first;</div>
+<div class="line">  <span class="keywordtype">short</span> inst;</div>
+<div class="line">  <span class="keywordtype">short</span> bank;</div>
+<div class="line"> </div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> endtime;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> filler;</div>
+<div class="line"> </div>
+<div class="line">  <span class="keywordtype">int</span> <a class="code hl_namespace" href="namespaceeditor.html">editor</a>;</div>
+<div class="line">}</div>
+<div class="ttc" id="anamespaceeditor_html"><div class="ttname"><a href="namespaceeditor.html">editor</a></div><div class="ttdoc">Editors are the view controllers for the application.</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ad8b872a78b6ba766aab3ec2eb1c4fd8f" name="ad8b872a78b6ba766aab3ec2eb1c4fd8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">&#9670;&#160;</a></span>SongPart</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">yaze::app::zelda3::SongPart</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
+<div class="line">  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> flag;</div>
+<div class="line">  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> inst;</div>
+<div class="line">  <span class="keywordtype">short</span> tbl[8];</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
+<div class="line">}</div>
+<div class="ttc" id="aconstants_8h_html_ae48ac2456c5ad6c956fef86e7bef3a21"><div class="ttname"><a href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a></div><div class="ttdeci">unsigned char uchar</div><div class="ttdef"><b>Definition</b> constants.h:132</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ab6cb7f898bf27c4b3e0199b28fec13dd" name="ab6cb7f898bf27c4b3e0199b28fec13dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6cb7f898bf27c4b3e0199b28fec13dd">&#9670;&#160;</a></span>Song</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ab6cb7f898bf27c4b3e0199b28fec13dd">yaze::app::zelda3::Song</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> flag;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> inst;</div>
+<div class="line">  <a class="code hl_typedef" href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">SongPart</a> **tbl;</div>
+<div class="line">  <span class="keywordtype">short</span> numparts;</div>
+<div class="line">  <span class="keywordtype">short</span> lopst;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
+<div class="line">  <span class="keywordtype">bool</span> in_use; </div>
+<div class="line">}</div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1zelda3_html_ad8b872a78b6ba766aab3ec2eb1c4fd8f"><div class="ttname"><a href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">yaze::app::zelda3::SongPart</a></div><div class="ttdeci">struct { uchar flag; uchar inst; short tbl[8]; unsigned short addr;} SongPart</div><div class="ttdef"><b>Definition</b> tracker.h:71</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a5c682c356e9e760f7a129cee9f664e92" name="a5c682c356e9e760f7a129cee9f664e92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c682c356e9e760f7a129cee9f664e92">&#9670;&#160;</a></span>ZeldaWave</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a5c682c356e9e760f7a129cee9f664e92">yaze::app::zelda3::ZeldaWave</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
+<div class="line">  <span class="keywordtype">int</span> lopst;</div>
+<div class="line">  <span class="keywordtype">int</span> end;</div>
+<div class="line">  <span class="keywordtype">short</span> lflag;</div>
+<div class="line">  <span class="keywordtype">short</span> copy;</div>
+<div class="line">  <span class="keywordtype">short</span> *buf;</div>
+<div class="line">}</div>
+</div><!-- fragment -->
+</div>
+</div>
 <a id="adae05b4291ec7dc7448b47b7ed9498a6" name="adae05b4291ec7dc7448b47b7ed9498a6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adae05b4291ec7dc7448b47b7ed9498a6">&#9670;&#160;</a></span>SampleEdit</h2>
 
@@ -445,145 +578,6 @@ Variables</h2></td></tr>
 <div class="line">}</div>
 <div class="ttc" id="anamespaceyaze_1_1app_1_1zelda3_html_a5c682c356e9e760f7a129cee9f664e92"><div class="ttname"><a href="#a5c682c356e9e760f7a129cee9f664e92">yaze::app::zelda3::ZeldaWave</a></div><div class="ttdeci">struct { int lopst; int end; short lflag; short copy; short *buf;} ZeldaWave</div><div class="ttdef"><b>Definition</b> tracker.h:91</div></div>
 </div><!-- fragment -->
-</div>
-</div>
-<a id="ab6cb7f898bf27c4b3e0199b28fec13dd" name="ab6cb7f898bf27c4b3e0199b28fec13dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab6cb7f898bf27c4b3e0199b28fec13dd">&#9670;&#160;</a></span>Song</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#ab6cb7f898bf27c4b3e0199b28fec13dd">yaze::app::zelda3::Song</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> flag;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> inst;</div>
-<div class="line">  <a class="code hl_typedef" href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">SongPart</a> **tbl;</div>
-<div class="line">  <span class="keywordtype">short</span> numparts;</div>
-<div class="line">  <span class="keywordtype">short</span> lopst;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
-<div class="line">  <span class="keywordtype">bool</span> in_use; </div>
-<div class="line">}</div>
-<div class="ttc" id="anamespaceyaze_1_1app_1_1zelda3_html_ad8b872a78b6ba766aab3ec2eb1c4fd8f"><div class="ttname"><a href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">yaze::app::zelda3::SongPart</a></div><div class="ttdeci">struct { uchar flag; uchar inst; short tbl[8]; unsigned short addr;} SongPart</div><div class="ttdef"><b>Definition</b> tracker.h:71</div></div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="ad8b872a78b6ba766aab3ec2eb1c4fd8f" name="ad8b872a78b6ba766aab3ec2eb1c4fd8f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">&#9670;&#160;</a></span>SongPart</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#ad8b872a78b6ba766aab3ec2eb1c4fd8f">yaze::app::zelda3::SongPart</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
-<div class="line">  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> flag;</div>
-<div class="line">  <a class="code hl_typedef" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> inst;</div>
-<div class="line">  <span class="keywordtype">short</span> tbl[8];</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
-<div class="line">}</div>
-<div class="ttc" id="aconstants_8h_html_ae48ac2456c5ad6c956fef86e7bef3a21"><div class="ttname"><a href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a></div><div class="ttdeci">unsigned char uchar</div><div class="ttdef"><b>Definition</b> constants.h:132</div></div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="ac3e382f0b753469cbf0db9a2c014539d" name="ac3e382f0b753469cbf0db9a2c014539d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3e382f0b753469cbf0db9a2c014539d">&#9670;&#160;</a></span>SongRange</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#ac3e382f0b753469cbf0db9a2c014539d">yaze::app::zelda3::SongRange</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> start;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> end;</div>
-<div class="line"> </div>
-<div class="line">  <span class="keywordtype">short</span> first;</div>
-<div class="line">  <span class="keywordtype">short</span> inst;</div>
-<div class="line">  <span class="keywordtype">short</span> bank;</div>
-<div class="line"> </div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> endtime;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> filler;</div>
-<div class="line"> </div>
-<div class="line">  <span class="keywordtype">int</span> editor;</div>
-<div class="line">}</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a665a62b9cb10fd490c97164bd7e47045" name="a665a62b9cb10fd490c97164bd7e47045"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a665a62b9cb10fd490c97164bd7e47045">&#9670;&#160;</a></span>SongSPCBlock</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#a665a62b9cb10fd490c97164bd7e47045">yaze::app::zelda3::SongSPCBlock</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> start;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> len;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> relnum;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> relsz;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> *relocs;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> bank;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buf;</div>
-<div class="line">  <span class="keywordtype">int</span> flag;</div>
-<div class="line">}</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a5a7436c730490e386b3d9dca6b9b61b0" name="a5a7436c730490e386b3d9dca6b9b61b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5a7436c730490e386b3d9dca6b9b61b0">&#9670;&#160;</a></span>SPCCommand</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#a5a7436c730490e386b3d9dca6b9b61b0">yaze::app::zelda3::SPCCommand</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
-<div class="line">  <span class="keywordtype">short</span> next;</div>
-<div class="line">  <span class="keywordtype">short</span> prev;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> flag;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> cmd;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> p1;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> p2;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> p3;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b1;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b2;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tim2;</div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> tim;</div>
-<div class="line">}</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="ae6c0fc257c4fbe93261122e920f316b5" name="ae6c0fc257c4fbe93261122e920f316b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6c0fc257c4fbe93261122e920f316b5">&#9670;&#160;</a></span>text_buf_ty</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#ae6c0fc257c4fbe93261122e920f316b5">yaze::app::zelda3::text_buf_ty</a> = char[512]</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
 </div>
 </div>
 <a id="aa681c3e9cf31a20243e084adb921628e" name="aa681c3e9cf31a20243e084adb921628e"></a>
@@ -632,30 +626,37 @@ Variables</h2></td></tr>
 </div><!-- fragment -->
 </div>
 </div>
-<a id="a5c682c356e9e760f7a129cee9f664e92" name="a5c682c356e9e760f7a129cee9f664e92"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5c682c356e9e760f7a129cee9f664e92">&#9670;&#160;</a></span>ZeldaWave</h2>
+<a id="a5a7436c730490e386b3d9dca6b9b61b0" name="a5a7436c730490e386b3d9dca6b9b61b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a7436c730490e386b3d9dca6b9b61b0">&#9670;&#160;</a></span>SPCCommand</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#a5c682c356e9e760f7a129cee9f664e92">yaze::app::zelda3::ZeldaWave</a></td>
+          <td class="memname">using <a class="el" href="#a5a7436c730490e386b3d9dca6b9b61b0">yaze::app::zelda3::SPCCommand</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line"> <span class="keyword">struct </span>{</div>
-<div class="line">  <span class="keywordtype">int</span> lopst;</div>
-<div class="line">  <span class="keywordtype">int</span> end;</div>
-<div class="line">  <span class="keywordtype">short</span> lflag;</div>
-<div class="line">  <span class="keywordtype">short</span> copy;</div>
-<div class="line">  <span class="keywordtype">short</span> *buf;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> addr;</div>
+<div class="line">  <span class="keywordtype">short</span> next;</div>
+<div class="line">  <span class="keywordtype">short</span> prev;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> flag;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> cmd;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> p1;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> p2;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> p3;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b1;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b2;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tim2;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> tim;</div>
 <div class="line">}</div>
 </div><!-- fragment -->
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
-<a id="aedc154347eb94ffd4d62f4428826d0ee" name="aedc154347eb94ffd4d62f4428826d0ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aedc154347eb94ffd4d62f4428826d0ee">&#9670;&#160;</a></span>crystalVertices</h2>
+<a id="a6cf5e6f00146ff2d9118b01cfb498aa3" name="a6cf5e6f00146ff2d9118b01cfb498aa3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cf5e6f00146ff2d9118b01cfb498aa3">&#9670;&#160;</a></span>op_len</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -664,7 +665,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::crystalVertices = 0x04FF98</td>
+          <td class="memname">constexpr char yaze::app::zelda3::op_len[32]</td>
         </tr>
       </table>
   </td>
@@ -673,7 +674,9 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
+<b>Initial value:</b><div class="fragment"><div class="line">= {1, 1, 2, 3, 0, 1, 2, 1, 2, 1, 1, 3, 0, 1, 2, 3,</div>
+<div class="line">                             1, 3, 3, 0, 1, 3, 0, 3, 3, 3, 1, 2, 0, 0, 0, 0}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="aaa7dc6678695ccf3af2b560178c110e3" name="aaa7dc6678695ccf3af2b560178c110e3"></a>
@@ -748,8 +751,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="adc66d34b3e89d0c4c21ed4b8042fc6e3" name="adc66d34b3e89d0c4c21ed4b8042fc6e3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc66d34b3e89d0c4c21ed4b8042fc6e3">&#9670;&#160;</a></span>kBowItemPos</h2>
+<a id="a960e4e18738c7b031ab231b9cc0b2e55" name="a960e4e18738c7b031ab231b9cc0b2e55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a960e4e18738c7b031ab231b9cc0b2e55">&#9670;&#160;</a></span>kOverworldMusicBank</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -758,7 +761,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kBowItemPos = 0x6F631</td>
+          <td class="memname">constexpr int yaze::app::zelda3::kOverworldMusicBank = 0x0D0000</td>
         </tr>
       </table>
   </td>
@@ -767,246 +770,6 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Inventory.html#aa5360216f06837456ded60f402109474">yaze::app::zelda3::Inventory::Create()</a>.</p>
-
-</div>
-</div>
-<a id="a30ee178a0210fc44336895c5267a3cca" name="a30ee178a0210fc44336895c5267a3cca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30ee178a0210fc44336895c5267a3cca">&#9670;&#160;</a></span>kCompressedAllMap32PointersHigh</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kCompressedAllMap32PointersHigh = 0x1794D</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a23ab45e84c4371c8bb368d999c304ec5">yaze::app::zelda3::Overworld::DecompressAllMapTiles()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407">yaze::app::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
-
-</div>
-</div>
-<a id="a2af870e8af758ab7bad23d9d96273f28" name="a2af870e8af758ab7bad23d9d96273f28"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2af870e8af758ab7bad23d9d96273f28">&#9670;&#160;</a></span>kCompressedAllMap32PointersLow</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kCompressedAllMap32PointersLow = 0x17B2D</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a23ab45e84c4371c8bb368d999c304ec5">yaze::app::zelda3::Overworld::DecompressAllMapTiles()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407">yaze::app::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
-
-</div>
-</div>
-<a id="ab87c8dae0520114529255ae1de2ee221" name="ab87c8dae0520114529255ae1de2ee221"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab87c8dae0520114529255ae1de2ee221">&#9670;&#160;</a></span>kDungeonMapBossRooms</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapBossRooms = 0x56807</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>.</p>
-
-</div>
-</div>
-<a id="a3faf64d2fad7fcbfeb89769a57873728" name="a3faf64d2fad7fcbfeb89769a57873728"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3faf64d2fad7fcbfeb89769a57873728">&#9670;&#160;</a></span>kDungeonMapDataStart</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapDataStart = 0x57039</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7f8d5e31340dd7254d0924b29f7dc7ba" name="a7f8d5e31340dd7254d0924b29f7dc7ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f8d5e31340dd7254d0924b29f7dc7ba">&#9670;&#160;</a></span>kDungeonMapExpCheck</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapExpCheck = 0x56652</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>.</p>
-
-</div>
-</div>
-<a id="a7afcf71531df084770ca183769845ba6" name="a7afcf71531df084770ca183769845ba6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7afcf71531df084770ca183769845ba6">&#9670;&#160;</a></span>kDungeonMapFloors</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapFloors = 0x575D9</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>.</p>
-
-</div>
-</div>
-<a id="afd45ac0d6d779abdcbb7fffe4e39c400" name="afd45ac0d6d779abdcbb7fffe4e39c400"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afd45ac0d6d779abdcbb7fffe4e39c400">&#9670;&#160;</a></span>kDungeonMapGfxPtr</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapGfxPtr = 0x57BE4</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>.</p>
-
-</div>
-</div>
-<a id="a8d827d220f5bdaa6f5b47b0cb84d23f8" name="a8d827d220f5bdaa6f5b47b0cb84d23f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d827d220f5bdaa6f5b47b0cb84d23f8">&#9670;&#160;</a></span>kDungeonMapRoomsPtr</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapRoomsPtr = 0x57605</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>.</p>
-
-</div>
-</div>
-<a id="a8eee48ae6550ba1b85f720c33d065dcb" name="a8eee48ae6550ba1b85f720c33d065dcb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8eee48ae6550ba1b85f720c33d065dcb">&#9670;&#160;</a></span>kDungeonMapTile16</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapTile16 = 0x57009</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>.</p>
-
-</div>
-</div>
-<a id="a32ed18aaa8cea428875cbdd7589e3b8a" name="a32ed18aaa8cea428875cbdd7589e3b8a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32ed18aaa8cea428875cbdd7589e3b8a">&#9670;&#160;</a></span>kDungeonMapTile16Expanded</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapTile16Expanded = 0x109010</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>.</p>
 
 </div>
 </div>
@@ -1021,98 +784,6 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">constexpr int yaze::app::zelda3::kDungeonMusicBank = 0x0D8000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a12736abe10709d6e8c3a95742eea3410" name="a12736abe10709d6e8c3a95742eea3410"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a12736abe10709d6e8c3a95742eea3410">&#9670;&#160;</a></span>kInventoryStart</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kInventoryStart = 0x6564A</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a167ef97663e02b60e573cab6cefe8d91" name="a167ef97663e02b60e573cab6cefe8d91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a167ef97663e02b60e573cab6cefe8d91">&#9670;&#160;</a></span>kMap16Tiles</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kMap16Tiles = 0x78000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ade5eac8b957dba390008685b1ee9ff21">yaze::app::zelda3::Overworld::AssembleMap16Tiles()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a90efb2c6d865533a6a5fff3225c24054">yaze::app::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
-
-</div>
-</div>
-<a id="a88c3599b1de3a68b36fedebffe054885" name="a88c3599b1de3a68b36fedebffe054885"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a88c3599b1de3a68b36fedebffe054885">&#9670;&#160;</a></span>kNumOverworldMaps</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kNumOverworldMaps = 160</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a04efb3ccc56060c44c6781c1fd619ff2">yaze::app::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#af486107ff3548f6d66cd17ea08815224">yaze::app::zelda3::Overworld::Load()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390">yaze::app::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a33d1c0d9741912cbc35e5cc512cb4562">yaze::app::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ac061846a7800d6918d36c58ac1cc9b08">yaze::app::zelda3::Overworld::LoadPrototype()</a>.</p>
-
-</div>
-</div>
-<a id="a960e4e18738c7b031ab231b9cc0b2e55" name="a960e4e18738c7b031ab231b9cc0b2e55"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a960e4e18738c7b031ab231b9cc0b2e55">&#9670;&#160;</a></span>kOverworldMusicBank</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kOverworldMusicBank = 0x0D0000</td>
         </tr>
       </table>
   </td>
@@ -1170,8 +841,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a2f0a88643cef19f9ce6ae8ec279c0ad3" name="a2f0a88643cef19f9ce6ae8ec279c0ad3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f0a88643cef19f9ce6ae8ec279c0ad3">&#9670;&#160;</a></span>kTriforceVertices</h2>
+<a id="a3a80751d79168b59b2926dcc06edfe3f" name="a3a80751d79168b59b2926dcc06edfe3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a80751d79168b59b2926dcc06edfe3f">&#9670;&#160;</a></span>overworldItemsPointers</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1180,7 +851,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::kTriforceVertices = 0x04FFD2</td>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldItemsPointers = 0xDC2F9</td>
         </tr>
       </table>
   </td>
@@ -1190,587 +861,7 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-</div>
-</div>
-<a id="a4024e6fb4355af69a169c0239ac4bea4" name="a4024e6fb4355af69a169c0239ac4bea4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4024e6fb4355af69a169c0239ac4bea4">&#9670;&#160;</a></span>LimitOfMap32</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::LimitOfMap32 = 8864</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a927082f4a7105fa85d40c91f4a7ad0a8">yaze::app::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
-
-</div>
-</div>
-<a id="ac103162c954a23db18ff32b905f1011e" name="ac103162c954a23db18ff32b905f1011e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac103162c954a23db18ff32b905f1011e">&#9670;&#160;</a></span>Map32PerScreen</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::Map32PerScreen = 256</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a520b99847de3517cf25bd9d63b0c19bc" name="a520b99847de3517cf25bd9d63b0c19bc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a520b99847de3517cf25bd9d63b0c19bc">&#9670;&#160;</a></span>mapGfx</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::mapGfx = 0x7C9C</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
-
-</div>
-</div>
-<a id="aa59f1fb816e3fe06d06f4437e82c1107" name="aa59f1fb816e3fe06d06f4437e82c1107"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa59f1fb816e3fe06d06f4437e82c1107">&#9670;&#160;</a></span>NumberOfMap16</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::NumberOfMap16 = 3752</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a90efb2c6d865533a6a5fff3225c24054">yaze::app::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
-
-</div>
-</div>
-<a id="a7204dbfdafd8a8b066b9b0bbdc5f2fe8" name="a7204dbfdafd8a8b066b9b0bbdc5f2fe8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7204dbfdafd8a8b066b9b0bbdc5f2fe8">&#9670;&#160;</a></span>NumberOfMap32</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::NumberOfMap32 = <a class="el" href="#ac103162c954a23db18ff32b905f1011e">Map32PerScreen</a> * <a class="el" href="#a88c3599b1de3a68b36fedebffe054885">kNumOverworldMaps</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a927082f4a7105fa85d40c91f4a7ad0a8">yaze::app::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
-
-</div>
-</div>
-<a id="a010ffe97f1c5a37eea04f86a167f1dd3" name="a010ffe97f1c5a37eea04f86a167f1dd3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a010ffe97f1c5a37eea04f86a167f1dd3">&#9670;&#160;</a></span>NumberOfOWSprites</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::NumberOfOWSprites = 352</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6cf5e6f00146ff2d9118b01cfb498aa3" name="a6cf5e6f00146ff2d9118b01cfb498aa3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6cf5e6f00146ff2d9118b01cfb498aa3">&#9670;&#160;</a></span>op_len</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr char yaze::app::zelda3::op_len[32]</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= {1, 1, 2, 3, 0, 1, 2, 1, 2, 1, 1, 3, 0, 1, 2, 3,</div>
-<div class="line">                             1, 3, 3, 0, 1, 3, 0, 3, 3, 3, 1, 2, 0, 0, 0, 0}</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a7549e5de63646b289a1fc5960132845b" name="a7549e5de63646b289a1fc5960132845b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7549e5de63646b289a1fc5960132845b">&#9670;&#160;</a></span>overlayPointers</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overlayPointers = 0x77664</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a38013467c495af9dfe2c68d0a6a4d0be" name="a38013467c495af9dfe2c68d0a6a4d0be"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a38013467c495af9dfe2c68d0a6a4d0be">&#9670;&#160;</a></span>overlayPointersBank</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overlayPointersBank = 0x0E</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="acace2027f1d47ca581bf0713c28bcc39" name="acace2027f1d47ca581bf0713c28bcc39"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acace2027f1d47ca581bf0713c28bcc39">&#9670;&#160;</a></span>OverworldCustomAnimatedGFXArray</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAnimatedGFXArray</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x1402A0</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a14ce69fd75da5d8f1e2880a08baba13f" name="a14ce69fd75da5d8f1e2880a08baba13f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a14ce69fd75da5d8f1e2880a08baba13f">&#9670;&#160;</a></span>OverworldCustomAnimatedGFXEnabled</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAnimatedGFXEnabled</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140143</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a67f0295805789c7b15b3abde84def250" name="a67f0295805789c7b15b3abde84def250"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a67f0295805789c7b15b3abde84def250">&#9670;&#160;</a></span>OverworldCustomAreaSpecificBGEnabled</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAreaSpecificBGEnabled</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140140</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a8af9f0f8fc75bd0301eb1f5e2270c559" name="a8af9f0f8fc75bd0301eb1f5e2270c559"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8af9f0f8fc75bd0301eb1f5e2270c559">&#9670;&#160;</a></span>OverworldCustomAreaSpecificBGPalette</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAreaSpecificBGPalette</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140000</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a3aa4da7b1920b29c1d3b0f64dc353d2c" name="a3aa4da7b1920b29c1d3b0f64dc353d2c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3aa4da7b1920b29c1d3b0f64dc353d2c">&#9670;&#160;</a></span>OverworldCustomASMHasBeenApplied</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomASMHasBeenApplied</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140145</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="ac76d3583b903613ad97440ea4700afe7" name="ac76d3583b903613ad97440ea4700afe7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac76d3583b903613ad97440ea4700afe7">&#9670;&#160;</a></span>OverworldCustomMainPaletteArray</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMainPaletteArray</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140160</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="ab359437342b4a80d02507dc7e1c346d5" name="ab359437342b4a80d02507dc7e1c346d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab359437342b4a80d02507dc7e1c346d5">&#9670;&#160;</a></span>OverworldCustomMainPaletteEnabled</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMainPaletteEnabled</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140141</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a2efabea71c5ff5fcbdbbccace79567b8" name="a2efabea71c5ff5fcbdbbccace79567b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2efabea71c5ff5fcbdbbccace79567b8">&#9670;&#160;</a></span>overworldCustomMosaicArray</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldCustomMosaicArray = 0x1301F0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac372a612fbf55c3e3bda92473f2d6a89" name="ac372a612fbf55c3e3bda92473f2d6a89"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac372a612fbf55c3e3bda92473f2d6a89">&#9670;&#160;</a></span>OverworldCustomMosaicArray</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMosaicArray</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140200</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a1f2b9064c8ebb1052494bf6c7256fac5" name="a1f2b9064c8ebb1052494bf6c7256fac5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f2b9064c8ebb1052494bf6c7256fac5">&#9670;&#160;</a></span>overworldCustomMosaicASM</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldCustomMosaicASM = 0x1301D0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a94b4df881cc0a93e86976ab5fd82b215" name="a94b4df881cc0a93e86976ab5fd82b215"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94b4df881cc0a93e86976ab5fd82b215">&#9670;&#160;</a></span>OverworldCustomMosaicEnabled</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMosaicEnabled</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140142</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="aec0cb4dad51cf26b01e46c7422e61d01" name="aec0cb4dad51cf26b01e46c7422e61d01"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec0cb4dad51cf26b01e46c7422e61d01">&#9670;&#160;</a></span>OverworldCustomSubscreenOverlayArray</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomSubscreenOverlayArray</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140340</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a72de55f656aae614337a117bf3bda983" name="a72de55f656aae614337a117bf3bda983"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a72de55f656aae614337a117bf3bda983">&#9670;&#160;</a></span>OverworldCustomSubscreenOverlayEnabled</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomSubscreenOverlayEnabled</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    0x140144</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a5d0534268deaadf1ec8c42f1495d8168" name="a5d0534268deaadf1ec8c42f1495d8168"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d0534268deaadf1ec8c42f1495d8168">&#9670;&#160;</a></span>overworldEntranceAllowedTilesLeft</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldEntranceAllowedTilesLeft = 0xDB8C1</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af9770aff7103e333a184cfefc4c7c2d9" name="af9770aff7103e333a184cfefc4c7c2d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af9770aff7103e333a184cfefc4c7c2d9">&#9670;&#160;</a></span>overworldEntranceAllowedTilesRight</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldEntranceAllowedTilesRight = 0xDB917</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad80057e9e8a19add7cca83763a226e3f" name="ad80057e9e8a19add7cca83763a226e3f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad80057e9e8a19add7cca83763a226e3f">&#9670;&#160;</a></span>overworldgfxGroups</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldgfxGroups = 0x05D97</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ac8d205742d4140ce8cf8614ddbb23fed">yaze::app::zelda3::Overworld::SaveItems()</a>.</p>
 
 </div>
 </div>
@@ -1844,8 +935,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a3a80751d79168b59b2926dcc06edfe3f" name="a3a80751d79168b59b2926dcc06edfe3f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a80751d79168b59b2926dcc06edfe3f">&#9670;&#160;</a></span>overworldItemsPointers</h2>
+<a id="a69f1022d72e0d03be889b06b87c57371" name="a69f1022d72e0d03be889b06b87c57371"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69f1022d72e0d03be889b06b87c57371">&#9670;&#160;</a></span>OWExitRoomId</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1854,7 +945,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldItemsPointers = 0xDC2F9</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitRoomId = 0x15D8A</td>
         </tr>
       </table>
   </td>
@@ -1864,12 +955,12 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ac8d205742d4140ce8cf8614ddbb23fed">yaze::app::zelda3::Overworld::SaveItems()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
-<a id="a108ab1f8c3bfc37029cd56bd3565ef81" name="a108ab1f8c3bfc37029cd56bd3565ef81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a108ab1f8c3bfc37029cd56bd3565ef81">&#9670;&#160;</a></span>OverworldMapDataOverflow</h2>
+<a id="aea598998dfbc848779b2944debbf0ae2" name="aea598998dfbc848779b2944debbf0ae2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea598998dfbc848779b2944debbf0ae2">&#9670;&#160;</a></span>OWExitMapId</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1878,7 +969,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OverworldMapDataOverflow = 0x130000</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitMapId = 0x15E28</td>
         </tr>
       </table>
   </td>
@@ -1888,12 +979,12 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407">yaze::app::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
-<a id="a648a6f0fc8d8a42141f6ec8a98881027" name="a648a6f0fc8d8a42141f6ec8a98881027"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a648a6f0fc8d8a42141f6ec8a98881027">&#9670;&#160;</a></span>overworldMapPalette</h2>
+<a id="ad20af6c8f78dc0d43e5c6417fdd2a998" name="ad20af6c8f78dc0d43e5c6417fdd2a998"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad20af6c8f78dc0d43e5c6417fdd2a998">&#9670;&#160;</a></span>OWExitVram</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1902,7 +993,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMapPalette = 0x7D1C</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitVram = 0x15E77</td>
         </tr>
       </table>
   </td>
@@ -1912,12 +1003,12 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
-<a id="af10816f5db8003a54a6858e9d8ce1c50" name="af10816f5db8003a54a6858e9d8ce1c50"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af10816f5db8003a54a6858e9d8ce1c50">&#9670;&#160;</a></span>overworldMapPaletteGroup</h2>
+<a id="a793208a5297031b3215667de9401b409" name="a793208a5297031b3215667de9401b409"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a793208a5297031b3215667de9401b409">&#9670;&#160;</a></span>OWExitYScroll</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1926,7 +1017,151 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMapPaletteGroup = 0x75504</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitYScroll = 0x15F15</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
+
+</div>
+</div>
+<a id="adf37571a44700cb48d1350115204e457" name="adf37571a44700cb48d1350115204e457"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf37571a44700cb48d1350115204e457">&#9670;&#160;</a></span>OWExitXScroll</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitXScroll = 0x15FB3</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
+
+</div>
+</div>
+<a id="a993470594c73f6d08d5362470c40f20d" name="a993470594c73f6d08d5362470c40f20d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a993470594c73f6d08d5362470c40f20d">&#9670;&#160;</a></span>OWExitYPlayer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitYPlayer = 0x16051</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
+
+</div>
+</div>
+<a id="a49011858444d4ea4be859cdd96a1c136" name="a49011858444d4ea4be859cdd96a1c136"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49011858444d4ea4be859cdd96a1c136">&#9670;&#160;</a></span>OWExitXPlayer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitXPlayer = 0x160EF</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
+
+</div>
+</div>
+<a id="a2a07e8f7c455d64f4c65d77b00fb6bfe" name="a2a07e8f7c455d64f4c65d77b00fb6bfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a07e8f7c455d64f4c65d77b00fb6bfe">&#9670;&#160;</a></span>OWExitYCamera</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitYCamera = 0x1618D</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
+
+</div>
+</div>
+<a id="a680423283fd15044796574d783ab03a8" name="a680423283fd15044796574d783ab03a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a680423283fd15044796574d783ab03a8">&#9670;&#160;</a></span>OWExitXCamera</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitXCamera = 0x1622B</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
+
+</div>
+</div>
+<a id="ad1936d3710eb8b71a9b32cbf58233d4e" name="ad1936d3710eb8b71a9b32cbf58233d4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1936d3710eb8b71a9b32cbf58233d4e">&#9670;&#160;</a></span>OWExitDoorPosition</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitDoorPosition = 0x15724</td>
         </tr>
       </table>
   </td>
@@ -1938,8 +1173,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="aa8419c34befe000c80133fe6597bb213" name="aa8419c34befe000c80133fe6597bb213"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8419c34befe000c80133fe6597bb213">&#9670;&#160;</a></span>overworldMapParentId</h2>
+<a id="a269db64ca627c4025561f8b5d66f2339" name="a269db64ca627c4025561f8b5d66f2339"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a269db64ca627c4025561f8b5d66f2339">&#9670;&#160;</a></span>OWExitUnk1</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1948,7 +1183,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMapParentId = 0x125EC</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk1 = 0x162C9</td>
         </tr>
       </table>
   </td>
@@ -1958,12 +1193,12 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
-<a id="a55a66debbd6d5038f6135e3bf529d570" name="a55a66debbd6d5038f6135e3bf529d570"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a55a66debbd6d5038f6135e3bf529d570">&#9670;&#160;</a></span>overworldMapSize</h2>
+<a id="a388382efa97253dfa199a5dfdac035f4" name="a388382efa97253dfa199a5dfdac035f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a388382efa97253dfa199a5dfdac035f4">&#9670;&#160;</a></span>OWExitUnk2</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1972,7 +1207,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMapSize = 0x12844</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk2 = 0x16318</td>
         </tr>
       </table>
   </td>
@@ -1982,12 +1217,12 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
-<a id="a5d895fa9806fcb593a53de1d8379c8cd" name="a5d895fa9806fcb593a53de1d8379c8cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d895fa9806fcb593a53de1d8379c8cd">&#9670;&#160;</a></span>overworldMapSizeHighByte</h2>
+<a id="ad5eab517e750908f4f602674a7b19a1d" name="ad5eab517e750908f4f602674a7b19a1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5eab517e750908f4f602674a7b19a1d">&#9670;&#160;</a></span>OWExitDoorType1</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1996,7 +1231,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMapSizeHighByte = 0x12884</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitDoorType1 = 0x16367</td>
         </tr>
       </table>
   </td>
@@ -2006,12 +1241,12 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
-<a id="a71d33b88202202ee789127b3cd9890d5" name="a71d33b88202202ee789127b3cd9890d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71d33b88202202ee789127b3cd9890d5">&#9670;&#160;</a></span>overworldMessages</h2>
+<a id="a0d85e8d8e0d30eacb9c44bc42d964c04" name="a0d85e8d8e0d30eacb9c44bc42d964c04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d85e8d8e0d30eacb9c44bc42d964c04">&#9670;&#160;</a></span>OWExitDoorType2</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2020,7 +1255,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMessages = 0x3F51D</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitDoorType2 = 0x16405</td>
         </tr>
       </table>
   </td>
@@ -2030,12 +1265,12 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
 
 </div>
 </div>
-<a id="a52d82adea9ed943faeef33c284ef32be" name="a52d82adea9ed943faeef33c284ef32be"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a52d82adea9ed943faeef33c284ef32be">&#9670;&#160;</a></span>overworldMusicAgahim</h2>
+<a id="a5847ed5e9e47fd01cce009a4e996cc84" name="a5847ed5e9e47fd01cce009a4e996cc84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5847ed5e9e47fd01cce009a4e996cc84">&#9670;&#160;</a></span>OWExitMapIdWhirlpool</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2044,7 +1279,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicAgahim = 0x14303 + 0xC0</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitMapIdWhirlpool = 0x16AE5</td>
         </tr>
       </table>
   </td>
@@ -2054,12 +1289,10 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
-
 </div>
 </div>
-<a id="a5d41131bfd542b4b21bc921565d2f7a7" name="a5d41131bfd542b4b21bc921565d2f7a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d41131bfd542b4b21bc921565d2f7a7">&#9670;&#160;</a></span>overworldMusicBegining</h2>
+<a id="a0e801728a393d1a4a2d0e5978ea1d1f7" name="a0e801728a393d1a4a2d0e5978ea1d1f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e801728a393d1a4a2d0e5978ea1d1f7">&#9670;&#160;</a></span>OWExitVramWhirlpool</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2068,7 +1301,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicBegining = 0x14303</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitVramWhirlpool = 0x16B07</td>
         </tr>
       </table>
   </td>
@@ -2078,12 +1311,10 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
-
 </div>
 </div>
-<a id="aa9605b39ce801c57bd6c4caf1fa2170c" name="aa9605b39ce801c57bd6c4caf1fa2170c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9605b39ce801c57bd6c4caf1fa2170c">&#9670;&#160;</a></span>overworldMusicDW</h2>
+<a id="a515196fbb01338ac6612845b72deefcf" name="a515196fbb01338ac6612845b72deefcf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a515196fbb01338ac6612845b72deefcf">&#9670;&#160;</a></span>OWExitYScrollWhirlpool</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2092,7 +1323,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicDW = 0x14403</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitYScrollWhirlpool = 0x16B29</td>
         </tr>
       </table>
   </td>
@@ -2102,12 +1333,10 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
-
 </div>
 </div>
-<a id="aba4989e8f66b40a7817cf2092ff0fb5e" name="aba4989e8f66b40a7817cf2092ff0fb5e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba4989e8f66b40a7817cf2092ff0fb5e">&#9670;&#160;</a></span>overworldMusicMasterSword</h2>
+<a id="a323fa4629d4a2882aac8fffce8150e68" name="a323fa4629d4a2882aac8fffce8150e68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a323fa4629d4a2882aac8fffce8150e68">&#9670;&#160;</a></span>OWExitXScrollWhirlpool</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2116,7 +1345,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicMasterSword = 0x14303 + 0x80</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitXScrollWhirlpool = 0x16B4B</td>
         </tr>
       </table>
   </td>
@@ -2126,12 +1355,10 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
-
 </div>
 </div>
-<a id="a26408b3acf43dfda53405b6f20c8ceaf" name="a26408b3acf43dfda53405b6f20c8ceaf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a26408b3acf43dfda53405b6f20c8ceaf">&#9670;&#160;</a></span>overworldMusicZelda</h2>
+<a id="a62b95e711d48917853e614ee01f688ac" name="a62b95e711d48917853e614ee01f688ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62b95e711d48917853e614ee01f688ac">&#9670;&#160;</a></span>OWExitYPlayerWhirlpool</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2140,7 +1367,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicZelda = 0x14303 + 0x40</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitYPlayerWhirlpool = 0x16B6D</td>
         </tr>
       </table>
   </td>
@@ -2150,7 +1377,351 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+</div>
+</div>
+<a id="ada620a57116104ffae0378b4f451dae7" name="ada620a57116104ffae0378b4f451dae7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada620a57116104ffae0378b4f451dae7">&#9670;&#160;</a></span>OWExitXPlayerWhirlpool</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitXPlayerWhirlpool = 0x16B8F</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac9096304eaaaeaf8813644c449383782" name="ac9096304eaaaeaf8813644c449383782"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9096304eaaaeaf8813644c449383782">&#9670;&#160;</a></span>OWExitYCameraWhirlpool</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitYCameraWhirlpool = 0x16BB1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac3e777edc67fd4de20a16bf2ea2153f2" name="ac3e777edc67fd4de20a16bf2ea2153f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3e777edc67fd4de20a16bf2ea2153f2">&#9670;&#160;</a></span>OWExitXCameraWhirlpool</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitXCameraWhirlpool = 0x16BD3</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4d26a2d0929541154d1d99db4a76c67e" name="a4d26a2d0929541154d1d99db4a76c67e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d26a2d0929541154d1d99db4a76c67e">&#9670;&#160;</a></span>OWExitUnk1Whirlpool</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk1Whirlpool = 0x16BF5</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a042db9658072791c3cdf0d512ed83b03" name="a042db9658072791c3cdf0d512ed83b03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a042db9658072791c3cdf0d512ed83b03">&#9670;&#160;</a></span>OWExitUnk2Whirlpool</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk2Whirlpool = 0x16C17</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acb7e05d918530c605bfdd79c779bd2df" name="acb7e05d918530c605bfdd79c779bd2df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb7e05d918530c605bfdd79c779bd2df">&#9670;&#160;</a></span>OWWhirlpoolPosition</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWWhirlpoolPosition = 0x16CF8</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9ac52c7f2ad52825c9b70a44dbf42a5a" name="a9ac52c7f2ad52825c9b70a44dbf42a5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ac52c7f2ad52825c9b70a44dbf42a5a">&#9670;&#160;</a></span>OWEntranceMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWEntranceMap = 0xDB96F</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
+
+</div>
+</div>
+<a id="a636aa58709eadc5ea0ee41fe8d96a3e0" name="a636aa58709eadc5ea0ee41fe8d96a3e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a636aa58709eadc5ea0ee41fe8d96a3e0">&#9670;&#160;</a></span>OWEntrancePos</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWEntrancePos = 0xDBA71</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
+
+</div>
+</div>
+<a id="a6b1597b5244c93e2b83f91bbc4711ae3" name="a6b1597b5244c93e2b83f91bbc4711ae3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b1597b5244c93e2b83f91bbc4711ae3">&#9670;&#160;</a></span>OWEntranceEntranceId</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWEntranceEntranceId = 0xDBB73</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
+
+</div>
+</div>
+<a id="ad876ebfd1071be52b6f5fe10ad531a2e" name="ad876ebfd1071be52b6f5fe10ad531a2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad876ebfd1071be52b6f5fe10ad531a2e">&#9670;&#160;</a></span>OWHolePos</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWHolePos = 0xDB800</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
+
+</div>
+</div>
+<a id="a0e004b1d264be995bcfd58794516eeee" name="a0e004b1d264be995bcfd58794516eeee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e004b1d264be995bcfd58794516eeee">&#9670;&#160;</a></span>OWHoleArea</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWHoleArea = 0xDB826</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
+
+</div>
+</div>
+<a id="affde33f83372f1866f6c20598184d971" name="affde33f83372f1866f6c20598184d971"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affde33f83372f1866f6c20598184d971">&#9670;&#160;</a></span>OWHoleEntrance</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OWHoleEntrance = 0xDB84C</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
+
+</div>
+</div>
+<a id="a30ee178a0210fc44336895c5267a3cca" name="a30ee178a0210fc44336895c5267a3cca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30ee178a0210fc44336895c5267a3cca">&#9670;&#160;</a></span>kCompressedAllMap32PointersHigh</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kCompressedAllMap32PointersHigh = 0x1794D</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a23ab45e84c4371c8bb368d999c304ec5">yaze::app::zelda3::Overworld::DecompressAllMapTiles()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407">yaze::app::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a2af870e8af758ab7bad23d9d96273f28" name="a2af870e8af758ab7bad23d9d96273f28"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2af870e8af758ab7bad23d9d96273f28">&#9670;&#160;</a></span>kCompressedAllMap32PointersLow</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kCompressedAllMap32PointersLow = 0x17B2D</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a23ab45e84c4371c8bb368d999c304ec5">yaze::app::zelda3::Overworld::DecompressAllMapTiles()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407">yaze::app::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
+
+</div>
+</div>
+<a id="ad80057e9e8a19add7cca83763a226e3f" name="ad80057e9e8a19add7cca83763a226e3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad80057e9e8a19add7cca83763a226e3f">&#9670;&#160;</a></span>overworldgfxGroups</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldgfxGroups = 0x05D97</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -2217,6 +1788,644 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a648a6f0fc8d8a42141f6ec8a98881027" name="a648a6f0fc8d8a42141f6ec8a98881027"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a648a6f0fc8d8a42141f6ec8a98881027">&#9670;&#160;</a></span>overworldMapPalette</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMapPalette = 0x7D1C</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
+
+</div>
+</div>
+<a id="a1a1751db66013b249fbf1791fb66e929" name="a1a1751db66013b249fbf1791fb66e929"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a1751db66013b249fbf1791fb66e929">&#9670;&#160;</a></span>overworldSpritePalette</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritePalette = 0x7B41</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
+
+</div>
+</div>
+<a id="af10816f5db8003a54a6858e9d8ce1c50" name="af10816f5db8003a54a6858e9d8ce1c50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af10816f5db8003a54a6858e9d8ce1c50">&#9670;&#160;</a></span>overworldMapPaletteGroup</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMapPaletteGroup = 0x75504</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a901a157fd96a213922d22df29130e865" name="a901a157fd96a213922d22df29130e865"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a901a157fd96a213922d22df29130e865">&#9670;&#160;</a></span>overworldSpritePaletteGroup</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritePaletteGroup = 0x75580</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>.</p>
+
+</div>
+</div>
+<a id="af5c00b76a30d708c48a1bf472cf9fb9d" name="af5c00b76a30d708c48a1bf472cf9fb9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5c00b76a30d708c48a1bf472cf9fb9d">&#9670;&#160;</a></span>overworldSpriteset</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpriteset = 0x7A41</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
+
+</div>
+</div>
+<a id="af1b43c88a786a10ab172f0bc0a3f1c88" name="af1b43c88a786a10ab172f0bc0a3f1c88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1b43c88a786a10ab172f0bc0a3f1c88">&#9670;&#160;</a></span>overworldSpecialGFXGroup</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpecialGFXGroup = 0x16821</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="a6e474979df405c4ddf99bb492f461338" name="a6e474979df405c4ddf99bb492f461338"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e474979df405c4ddf99bb492f461338">&#9670;&#160;</a></span>overworldSpecialPALGroup</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpecialPALGroup = 0x16831</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="a495e6bacc77cf9d75970737be0f1f401" name="a495e6bacc77cf9d75970737be0f1f401"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a495e6bacc77cf9d75970737be0f1f401">&#9670;&#160;</a></span>overworldSpritesBegining</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritesBegining = 0x4C881</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a304f5ca0b301410d691109a0c444e09c">yaze::app::zelda3::Overworld::LoadSprites()</a>.</p>
+
+</div>
+</div>
+<a id="a32c603812d98f6f538959bb31e0fd9ac" name="a32c603812d98f6f538959bb31e0fd9ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32c603812d98f6f538959bb31e0fd9ac">&#9670;&#160;</a></span>overworldSpritesAgahnim</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritesAgahnim = 0x4CA21</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a304f5ca0b301410d691109a0c444e09c">yaze::app::zelda3::Overworld::LoadSprites()</a>.</p>
+
+</div>
+</div>
+<a id="ab7eed3cdc1ea170fe8ed3ca83296ef0a" name="ab7eed3cdc1ea170fe8ed3ca83296ef0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7eed3cdc1ea170fe8ed3ca83296ef0a">&#9670;&#160;</a></span>overworldSpritesZelda</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritesZelda = 0x4C901</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a304f5ca0b301410d691109a0c444e09c">yaze::app::zelda3::Overworld::LoadSprites()</a>.</p>
+
+</div>
+</div>
+<a id="a520b99847de3517cf25bd9d63b0c19bc" name="a520b99847de3517cf25bd9d63b0c19bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a520b99847de3517cf25bd9d63b0c19bc">&#9670;&#160;</a></span>mapGfx</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::mapGfx = 0x7C9C</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
+
+</div>
+</div>
+<a id="a7549e5de63646b289a1fc5960132845b" name="a7549e5de63646b289a1fc5960132845b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7549e5de63646b289a1fc5960132845b">&#9670;&#160;</a></span>overlayPointers</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overlayPointers = 0x77664</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a38013467c495af9dfe2c68d0a6a4d0be" name="a38013467c495af9dfe2c68d0a6a4d0be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38013467c495af9dfe2c68d0a6a4d0be">&#9670;&#160;</a></span>overlayPointersBank</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overlayPointersBank = 0x0E</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adc68c0ff64bb67075fcbd76b309c3335" name="adc68c0ff64bb67075fcbd76b309c3335"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc68c0ff64bb67075fcbd76b309c3335">&#9670;&#160;</a></span>overworldTilesType</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldTilesType = 0x71459</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#af8353a8038926fa90f00e33821beefb3">yaze::app::zelda3::Overworld::LoadTileTypes()</a>.</p>
+
+</div>
+</div>
+<a id="a71d33b88202202ee789127b3cd9890d5" name="a71d33b88202202ee789127b3cd9890d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71d33b88202202ee789127b3cd9890d5">&#9670;&#160;</a></span>overworldMessages</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMessages = 0x3F51D</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="a5d41131bfd542b4b21bc921565d2f7a7" name="a5d41131bfd542b4b21bc921565d2f7a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d41131bfd542b4b21bc921565d2f7a7">&#9670;&#160;</a></span>overworldMusicBegining</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicBegining = 0x14303</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="a26408b3acf43dfda53405b6f20c8ceaf" name="a26408b3acf43dfda53405b6f20c8ceaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26408b3acf43dfda53405b6f20c8ceaf">&#9670;&#160;</a></span>overworldMusicZelda</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicZelda = 0x14303 + 0x40</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="aba4989e8f66b40a7817cf2092ff0fb5e" name="aba4989e8f66b40a7817cf2092ff0fb5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba4989e8f66b40a7817cf2092ff0fb5e">&#9670;&#160;</a></span>overworldMusicMasterSword</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicMasterSword = 0x14303 + 0x80</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="a52d82adea9ed943faeef33c284ef32be" name="a52d82adea9ed943faeef33c284ef32be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52d82adea9ed943faeef33c284ef32be">&#9670;&#160;</a></span>overworldMusicAgahim</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicAgahim = 0x14303 + 0xC0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="aa9605b39ce801c57bd6c4caf1fa2170c" name="aa9605b39ce801c57bd6c4caf1fa2170c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9605b39ce801c57bd6c4caf1fa2170c">&#9670;&#160;</a></span>overworldMusicDW</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMusicDW = 0x14403</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
+
+</div>
+</div>
+<a id="a5d0534268deaadf1ec8c42f1495d8168" name="a5d0534268deaadf1ec8c42f1495d8168"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d0534268deaadf1ec8c42f1495d8168">&#9670;&#160;</a></span>overworldEntranceAllowedTilesLeft</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldEntranceAllowedTilesLeft = 0xDB8C1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af9770aff7103e333a184cfefc4c7c2d9" name="af9770aff7103e333a184cfefc4c7c2d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9770aff7103e333a184cfefc4c7c2d9">&#9670;&#160;</a></span>overworldEntranceAllowedTilesRight</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldEntranceAllowedTilesRight = 0xDB917</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a55a66debbd6d5038f6135e3bf529d570" name="a55a66debbd6d5038f6135e3bf529d570"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55a66debbd6d5038f6135e3bf529d570">&#9670;&#160;</a></span>overworldMapSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMapSize = 0x12844</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a5d895fa9806fcb593a53de1d8379c8cd" name="a5d895fa9806fcb593a53de1d8379c8cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d895fa9806fcb593a53de1d8379c8cd">&#9670;&#160;</a></span>overworldMapSizeHighByte</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMapSizeHighByte = 0x12884</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+
+</div>
+</div>
+<a id="aa8419c34befe000c80133fe6597bb213" name="aa8419c34befe000c80133fe6597bb213"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8419c34befe000c80133fe6597bb213">&#9670;&#160;</a></span>overworldMapParentId</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldMapParentId = 0x125EC</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a8f5609bc5f054740739099a3a7f7d81f" name="a8f5609bc5f054740739099a3a7f7d81f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f5609bc5f054740739099a3a7f7d81f">&#9670;&#160;</a></span>overworldTransitionPositionY</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldTransitionPositionY = 0x128C4</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a3160482ba4f017faeeef117f5dc89c0a" name="a3160482ba4f017faeeef117f5dc89c0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3160482ba4f017faeeef117f5dc89c0a">&#9670;&#160;</a></span>overworldTransitionPositionX</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldTransitionPositionX = 0x12944</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
 
 </div>
 </div>
@@ -2364,8 +2573,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="af1b43c88a786a10ab172f0bc0a3f1c88" name="af1b43c88a786a10ab172f0bc0a3f1c88"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1b43c88a786a10ab172f0bc0a3f1c88">&#9670;&#160;</a></span>overworldSpecialGFXGroup</h2>
+<a id="a108ab1f8c3bfc37029cd56bd3565ef81" name="a108ab1f8c3bfc37029cd56bd3565ef81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a108ab1f8c3bfc37029cd56bd3565ef81">&#9670;&#160;</a></span>OverworldMapDataOverflow</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2374,7 +2583,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpecialGFXGroup = 0x16821</td>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldMapDataOverflow = 0x130000</td>
         </tr>
       </table>
   </td>
@@ -2384,967 +2593,7 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
-
-</div>
-</div>
-<a id="a6e474979df405c4ddf99bb492f461338" name="a6e474979df405c4ddf99bb492f461338"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e474979df405c4ddf99bb492f461338">&#9670;&#160;</a></span>overworldSpecialPALGroup</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpecialPALGroup = 0x16831</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339">yaze::app::zelda3::OverworldMap::BuildMap()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>.</p>
-
-</div>
-</div>
-<a id="a1a1751db66013b249fbf1791fb66e929" name="a1a1751db66013b249fbf1791fb66e929"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a1751db66013b249fbf1791fb66e929">&#9670;&#160;</a></span>overworldSpritePalette</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritePalette = 0x7B41</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
-
-</div>
-</div>
-<a id="a901a157fd96a213922d22df29130e865" name="a901a157fd96a213922d22df29130e865"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a901a157fd96a213922d22df29130e865">&#9670;&#160;</a></span>overworldSpritePaletteGroup</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritePaletteGroup = 0x75580</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>.</p>
-
-</div>
-</div>
-<a id="a32c603812d98f6f538959bb31e0fd9ac" name="a32c603812d98f6f538959bb31e0fd9ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32c603812d98f6f538959bb31e0fd9ac">&#9670;&#160;</a></span>overworldSpritesAgahnim</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritesAgahnim = 0x4CA21</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a304f5ca0b301410d691109a0c444e09c">yaze::app::zelda3::Overworld::LoadSprites()</a>.</p>
-
-</div>
-</div>
-<a id="a495e6bacc77cf9d75970737be0f1f401" name="a495e6bacc77cf9d75970737be0f1f401"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a495e6bacc77cf9d75970737be0f1f401">&#9670;&#160;</a></span>overworldSpritesBegining</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritesBegining = 0x4C881</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a304f5ca0b301410d691109a0c444e09c">yaze::app::zelda3::Overworld::LoadSprites()</a>.</p>
-
-</div>
-</div>
-<a id="af5c00b76a30d708c48a1bf472cf9fb9d" name="af5c00b76a30d708c48a1bf472cf9fb9d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af5c00b76a30d708c48a1bf472cf9fb9d">&#9670;&#160;</a></span>overworldSpriteset</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpriteset = 0x7A41</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#aed1d404e308f0820200c28dd236113ba">yaze::app::zelda3::OverworldMap::LoadAreaInfo()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae3d8257ffdd6ecffec7e0165575f7caa">yaze::app::zelda3::Overworld::SaveMapProperties()</a>.</p>
-
-</div>
-</div>
-<a id="ab7eed3cdc1ea170fe8ed3ca83296ef0a" name="ab7eed3cdc1ea170fe8ed3ca83296ef0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7eed3cdc1ea170fe8ed3ca83296ef0a">&#9670;&#160;</a></span>overworldSpritesZelda</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldSpritesZelda = 0x4C901</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a304f5ca0b301410d691109a0c444e09c">yaze::app::zelda3::Overworld::LoadSprites()</a>.</p>
-
-</div>
-</div>
-<a id="adc68c0ff64bb67075fcbd76b309c3335" name="adc68c0ff64bb67075fcbd76b309c3335"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc68c0ff64bb67075fcbd76b309c3335">&#9670;&#160;</a></span>overworldTilesType</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldTilesType = 0x71459</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#af8353a8038926fa90f00e33821beefb3">yaze::app::zelda3::Overworld::LoadTileTypes()</a>.</p>
-
-</div>
-</div>
-<a id="a3160482ba4f017faeeef117f5dc89c0a" name="a3160482ba4f017faeeef117f5dc89c0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3160482ba4f017faeeef117f5dc89c0a">&#9670;&#160;</a></span>overworldTransitionPositionX</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldTransitionPositionX = 0x12944</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
-
-</div>
-</div>
-<a id="a8f5609bc5f054740739099a3a7f7d81f" name="a8f5609bc5f054740739099a3a7f7d81f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8f5609bc5f054740739099a3a7f7d81f">&#9670;&#160;</a></span>overworldTransitionPositionY</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::overworldTransitionPositionY = 0x128C4</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5f9779aae29d10e668df823b4033d235">yaze::app::zelda3::Overworld::SaveLargeMaps()</a>.</p>
-
-</div>
-</div>
-<a id="a6b1597b5244c93e2b83f91bbc4711ae3" name="a6b1597b5244c93e2b83f91bbc4711ae3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b1597b5244c93e2b83f91bbc4711ae3">&#9670;&#160;</a></span>OWEntranceEntranceId</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWEntranceEntranceId = 0xDBB73</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
-
-</div>
-</div>
-<a id="a9ac52c7f2ad52825c9b70a44dbf42a5a" name="a9ac52c7f2ad52825c9b70a44dbf42a5a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ac52c7f2ad52825c9b70a44dbf42a5a">&#9670;&#160;</a></span>OWEntranceMap</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWEntranceMap = 0xDB96F</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
-
-</div>
-</div>
-<a id="a636aa58709eadc5ea0ee41fe8d96a3e0" name="a636aa58709eadc5ea0ee41fe8d96a3e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a636aa58709eadc5ea0ee41fe8d96a3e0">&#9670;&#160;</a></span>OWEntrancePos</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWEntrancePos = 0xDBA71</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
-
-</div>
-</div>
-<a id="ad1936d3710eb8b71a9b32cbf58233d4e" name="ad1936d3710eb8b71a9b32cbf58233d4e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1936d3710eb8b71a9b32cbf58233d4e">&#9670;&#160;</a></span>OWExitDoorPosition</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitDoorPosition = 0x15724</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad5eab517e750908f4f602674a7b19a1d" name="ad5eab517e750908f4f602674a7b19a1d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5eab517e750908f4f602674a7b19a1d">&#9670;&#160;</a></span>OWExitDoorType1</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitDoorType1 = 0x16367</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a0d85e8d8e0d30eacb9c44bc42d964c04" name="a0d85e8d8e0d30eacb9c44bc42d964c04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d85e8d8e0d30eacb9c44bc42d964c04">&#9670;&#160;</a></span>OWExitDoorType2</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitDoorType2 = 0x16405</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="aea598998dfbc848779b2944debbf0ae2" name="aea598998dfbc848779b2944debbf0ae2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea598998dfbc848779b2944debbf0ae2">&#9670;&#160;</a></span>OWExitMapId</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitMapId = 0x15E28</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a5847ed5e9e47fd01cce009a4e996cc84" name="a5847ed5e9e47fd01cce009a4e996cc84"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5847ed5e9e47fd01cce009a4e996cc84">&#9670;&#160;</a></span>OWExitMapIdWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitMapIdWhirlpool = 0x16AE5</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a69f1022d72e0d03be889b06b87c57371" name="a69f1022d72e0d03be889b06b87c57371"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69f1022d72e0d03be889b06b87c57371">&#9670;&#160;</a></span>OWExitRoomId</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitRoomId = 0x15D8A</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a269db64ca627c4025561f8b5d66f2339" name="a269db64ca627c4025561f8b5d66f2339"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a269db64ca627c4025561f8b5d66f2339">&#9670;&#160;</a></span>OWExitUnk1</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk1 = 0x162C9</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a4d26a2d0929541154d1d99db4a76c67e" name="a4d26a2d0929541154d1d99db4a76c67e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4d26a2d0929541154d1d99db4a76c67e">&#9670;&#160;</a></span>OWExitUnk1Whirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk1Whirlpool = 0x16BF5</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a388382efa97253dfa199a5dfdac035f4" name="a388382efa97253dfa199a5dfdac035f4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a388382efa97253dfa199a5dfdac035f4">&#9670;&#160;</a></span>OWExitUnk2</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk2 = 0x16318</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a042db9658072791c3cdf0d512ed83b03" name="a042db9658072791c3cdf0d512ed83b03"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a042db9658072791c3cdf0d512ed83b03">&#9670;&#160;</a></span>OWExitUnk2Whirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitUnk2Whirlpool = 0x16C17</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad20af6c8f78dc0d43e5c6417fdd2a998" name="ad20af6c8f78dc0d43e5c6417fdd2a998"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad20af6c8f78dc0d43e5c6417fdd2a998">&#9670;&#160;</a></span>OWExitVram</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitVram = 0x15E77</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a0e801728a393d1a4a2d0e5978ea1d1f7" name="a0e801728a393d1a4a2d0e5978ea1d1f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0e801728a393d1a4a2d0e5978ea1d1f7">&#9670;&#160;</a></span>OWExitVramWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitVramWhirlpool = 0x16B07</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a680423283fd15044796574d783ab03a8" name="a680423283fd15044796574d783ab03a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a680423283fd15044796574d783ab03a8">&#9670;&#160;</a></span>OWExitXCamera</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitXCamera = 0x1622B</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="ac3e777edc67fd4de20a16bf2ea2153f2" name="ac3e777edc67fd4de20a16bf2ea2153f2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3e777edc67fd4de20a16bf2ea2153f2">&#9670;&#160;</a></span>OWExitXCameraWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitXCameraWhirlpool = 0x16BD3</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a49011858444d4ea4be859cdd96a1c136" name="a49011858444d4ea4be859cdd96a1c136"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a49011858444d4ea4be859cdd96a1c136">&#9670;&#160;</a></span>OWExitXPlayer</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitXPlayer = 0x160EF</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="ada620a57116104ffae0378b4f451dae7" name="ada620a57116104ffae0378b4f451dae7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada620a57116104ffae0378b4f451dae7">&#9670;&#160;</a></span>OWExitXPlayerWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitXPlayerWhirlpool = 0x16B8F</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="adf37571a44700cb48d1350115204e457" name="adf37571a44700cb48d1350115204e457"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adf37571a44700cb48d1350115204e457">&#9670;&#160;</a></span>OWExitXScroll</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitXScroll = 0x15FB3</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a323fa4629d4a2882aac8fffce8150e68" name="a323fa4629d4a2882aac8fffce8150e68"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a323fa4629d4a2882aac8fffce8150e68">&#9670;&#160;</a></span>OWExitXScrollWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitXScrollWhirlpool = 0x16B4B</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a2a07e8f7c455d64f4c65d77b00fb6bfe" name="a2a07e8f7c455d64f4c65d77b00fb6bfe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2a07e8f7c455d64f4c65d77b00fb6bfe">&#9670;&#160;</a></span>OWExitYCamera</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitYCamera = 0x1618D</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="ac9096304eaaaeaf8813644c449383782" name="ac9096304eaaaeaf8813644c449383782"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9096304eaaaeaf8813644c449383782">&#9670;&#160;</a></span>OWExitYCameraWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitYCameraWhirlpool = 0x16BB1</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a993470594c73f6d08d5362470c40f20d" name="a993470594c73f6d08d5362470c40f20d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a993470594c73f6d08d5362470c40f20d">&#9670;&#160;</a></span>OWExitYPlayer</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitYPlayer = 0x16051</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a62b95e711d48917853e614ee01f688ac" name="a62b95e711d48917853e614ee01f688ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a62b95e711d48917853e614ee01f688ac">&#9670;&#160;</a></span>OWExitYPlayerWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitYPlayerWhirlpool = 0x16B6D</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a793208a5297031b3215667de9401b409" name="a793208a5297031b3215667de9401b409"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a793208a5297031b3215667de9401b409">&#9670;&#160;</a></span>OWExitYScroll</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitYScroll = 0x15F15</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a234ba989651b9c797af007ffe650621c">yaze::app::zelda3::Overworld::LoadExits()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7126dc850915a712c0ae8a4a99881f80">yaze::app::zelda3::Overworld::SaveExits()</a>.</p>
-
-</div>
-</div>
-<a id="a515196fbb01338ac6612845b72deefcf" name="a515196fbb01338ac6612845b72deefcf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a515196fbb01338ac6612845b72deefcf">&#9670;&#160;</a></span>OWExitYScrollWhirlpool</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWExitYScrollWhirlpool = 0x16B29</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a0e004b1d264be995bcfd58794516eeee" name="a0e004b1d264be995bcfd58794516eeee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0e004b1d264be995bcfd58794516eeee">&#9670;&#160;</a></span>OWHoleArea</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWHoleArea = 0xDB826</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
-
-</div>
-</div>
-<a id="affde33f83372f1866f6c20598184d971" name="affde33f83372f1866f6c20598184d971"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#affde33f83372f1866f6c20598184d971">&#9670;&#160;</a></span>OWHoleEntrance</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWHoleEntrance = 0xDB84C</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
-
-</div>
-</div>
-<a id="ad876ebfd1071be52b6f5fe10ad531a2e" name="ad876ebfd1071be52b6f5fe10ad531a2e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad876ebfd1071be52b6f5fe10ad531a2e">&#9670;&#160;</a></span>OWHolePos</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWHolePos = 0xDB800</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a2251bd818db0bae88cba26a6ebb3d5e7">yaze::app::zelda3::Overworld::LoadEntrances()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a0800fb661afd5cb3241aef410bf7740c">yaze::app::zelda3::Overworld::SaveEntrances()</a>.</p>
-
-</div>
-</div>
-<a id="acb7e05d918530c605bfdd79c779bd2df" name="acb7e05d918530c605bfdd79c779bd2df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb7e05d918530c605bfdd79c779bd2df">&#9670;&#160;</a></span>OWWhirlpoolPosition</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr int yaze::app::zelda3::OWWhirlpoolPosition = 0x16CF8</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407">yaze::app::zelda3::Overworld::SaveOverworldMaps()</a>.</p>
 
 </div>
 </div>
@@ -3396,6 +2645,690 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a1f2b9064c8ebb1052494bf6c7256fac5" name="a1f2b9064c8ebb1052494bf6c7256fac5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f2b9064c8ebb1052494bf6c7256fac5">&#9670;&#160;</a></span>overworldCustomMosaicASM</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldCustomMosaicASM = 0x1301D0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2efabea71c5ff5fcbdbbccace79567b8" name="a2efabea71c5ff5fcbdbbccace79567b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2efabea71c5ff5fcbdbbccace79567b8">&#9670;&#160;</a></span>overworldCustomMosaicArray</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::overworldCustomMosaicArray = 0x1301F0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3aa4da7b1920b29c1d3b0f64dc353d2c" name="a3aa4da7b1920b29c1d3b0f64dc353d2c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3aa4da7b1920b29c1d3b0f64dc353d2c">&#9670;&#160;</a></span>OverworldCustomASMHasBeenApplied</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomASMHasBeenApplied</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140145</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a8af9f0f8fc75bd0301eb1f5e2270c559" name="a8af9f0f8fc75bd0301eb1f5e2270c559"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8af9f0f8fc75bd0301eb1f5e2270c559">&#9670;&#160;</a></span>OverworldCustomAreaSpecificBGPalette</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAreaSpecificBGPalette</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140000</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a67f0295805789c7b15b3abde84def250" name="a67f0295805789c7b15b3abde84def250"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67f0295805789c7b15b3abde84def250">&#9670;&#160;</a></span>OverworldCustomAreaSpecificBGEnabled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAreaSpecificBGEnabled</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140140</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ac76d3583b903613ad97440ea4700afe7" name="ac76d3583b903613ad97440ea4700afe7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac76d3583b903613ad97440ea4700afe7">&#9670;&#160;</a></span>OverworldCustomMainPaletteArray</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMainPaletteArray</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140160</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ab359437342b4a80d02507dc7e1c346d5" name="ab359437342b4a80d02507dc7e1c346d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab359437342b4a80d02507dc7e1c346d5">&#9670;&#160;</a></span>OverworldCustomMainPaletteEnabled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMainPaletteEnabled</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140141</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ac372a612fbf55c3e3bda92473f2d6a89" name="ac372a612fbf55c3e3bda92473f2d6a89"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac372a612fbf55c3e3bda92473f2d6a89">&#9670;&#160;</a></span>OverworldCustomMosaicArray</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMosaicArray</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140200</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a94b4df881cc0a93e86976ab5fd82b215" name="a94b4df881cc0a93e86976ab5fd82b215"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94b4df881cc0a93e86976ab5fd82b215">&#9670;&#160;</a></span>OverworldCustomMosaicEnabled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomMosaicEnabled</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140142</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="acace2027f1d47ca581bf0713c28bcc39" name="acace2027f1d47ca581bf0713c28bcc39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acace2027f1d47ca581bf0713c28bcc39">&#9670;&#160;</a></span>OverworldCustomAnimatedGFXArray</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAnimatedGFXArray</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x1402A0</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a14ce69fd75da5d8f1e2880a08baba13f" name="a14ce69fd75da5d8f1e2880a08baba13f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14ce69fd75da5d8f1e2880a08baba13f">&#9670;&#160;</a></span>OverworldCustomAnimatedGFXEnabled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomAnimatedGFXEnabled</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140143</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="aec0cb4dad51cf26b01e46c7422e61d01" name="aec0cb4dad51cf26b01e46c7422e61d01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec0cb4dad51cf26b01e46c7422e61d01">&#9670;&#160;</a></span>OverworldCustomSubscreenOverlayArray</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomSubscreenOverlayArray</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140340</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a72de55f656aae614337a117bf3bda983" name="a72de55f656aae614337a117bf3bda983"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72de55f656aae614337a117bf3bda983">&#9670;&#160;</a></span>OverworldCustomSubscreenOverlayEnabled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::OverworldCustomSubscreenOverlayEnabled</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    0x140144</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a167ef97663e02b60e573cab6cefe8d91" name="a167ef97663e02b60e573cab6cefe8d91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a167ef97663e02b60e573cab6cefe8d91">&#9670;&#160;</a></span>kMap16Tiles</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kMap16Tiles = 0x78000</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ade5eac8b957dba390008685b1ee9ff21">yaze::app::zelda3::Overworld::AssembleMap16Tiles()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a90efb2c6d865533a6a5fff3225c24054">yaze::app::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
+
+</div>
+</div>
+<a id="a88c3599b1de3a68b36fedebffe054885" name="a88c3599b1de3a68b36fedebffe054885"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88c3599b1de3a68b36fedebffe054885">&#9670;&#160;</a></span>kNumOverworldMaps</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kNumOverworldMaps = 160</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a04efb3ccc56060c44c6781c1fd619ff2">yaze::app::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#af486107ff3548f6d66cd17ea08815224">yaze::app::zelda3::Overworld::Load()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390">yaze::app::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a33d1c0d9741912cbc35e5cc512cb4562">yaze::app::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed">yaze::app::zelda3::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ac061846a7800d6918d36c58ac1cc9b08">yaze::app::zelda3::Overworld::LoadPrototype()</a>.</p>
+
+</div>
+</div>
+<a id="ac103162c954a23db18ff32b905f1011e" name="ac103162c954a23db18ff32b905f1011e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac103162c954a23db18ff32b905f1011e">&#9670;&#160;</a></span>Map32PerScreen</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::Map32PerScreen = 256</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa59f1fb816e3fe06d06f4437e82c1107" name="aa59f1fb816e3fe06d06f4437e82c1107"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa59f1fb816e3fe06d06f4437e82c1107">&#9670;&#160;</a></span>NumberOfMap16</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::NumberOfMap16 = 3752</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a90efb2c6d865533a6a5fff3225c24054">yaze::app::zelda3::Overworld::SaveMap16Tiles()</a>.</p>
+
+</div>
+</div>
+<a id="a4024e6fb4355af69a169c0239ac4bea4" name="a4024e6fb4355af69a169c0239ac4bea4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4024e6fb4355af69a169c0239ac4bea4">&#9670;&#160;</a></span>LimitOfMap32</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::LimitOfMap32 = 8864</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a927082f4a7105fa85d40c91f4a7ad0a8">yaze::app::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
+
+</div>
+</div>
+<a id="a010ffe97f1c5a37eea04f86a167f1dd3" name="a010ffe97f1c5a37eea04f86a167f1dd3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a010ffe97f1c5a37eea04f86a167f1dd3">&#9670;&#160;</a></span>NumberOfOWSprites</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::NumberOfOWSprites = 352</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7204dbfdafd8a8b066b9b0bbdc5f2fe8" name="a7204dbfdafd8a8b066b9b0bbdc5f2fe8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7204dbfdafd8a8b066b9b0bbdc5f2fe8">&#9670;&#160;</a></span>NumberOfMap32</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::NumberOfMap32 = <a class="el" href="#ac103162c954a23db18ff32b905f1011e">Map32PerScreen</a> * <a class="el" href="#a88c3599b1de3a68b36fedebffe054885">kNumOverworldMaps</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#a927082f4a7105fa85d40c91f4a7ad0a8">yaze::app::zelda3::Overworld::CreateTile32Tilemap()</a>.</p>
+
+</div>
+</div>
+<a id="a8d827d220f5bdaa6f5b47b0cb84d23f8" name="a8d827d220f5bdaa6f5b47b0cb84d23f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d827d220f5bdaa6f5b47b0cb84d23f8">&#9670;&#160;</a></span>kDungeonMapRoomsPtr</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapRoomsPtr = 0x57605</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a7afcf71531df084770ca183769845ba6" name="a7afcf71531df084770ca183769845ba6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7afcf71531df084770ca183769845ba6">&#9670;&#160;</a></span>kDungeonMapFloors</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapFloors = 0x575D9</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>.</p>
+
+</div>
+</div>
+<a id="afd45ac0d6d779abdcbb7fffe4e39c400" name="afd45ac0d6d779abdcbb7fffe4e39c400"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd45ac0d6d779abdcbb7fffe4e39c400">&#9670;&#160;</a></span>kDungeonMapGfxPtr</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapGfxPtr = 0x57BE4</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a3faf64d2fad7fcbfeb89769a57873728" name="a3faf64d2fad7fcbfeb89769a57873728"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3faf64d2fad7fcbfeb89769a57873728">&#9670;&#160;</a></span>kDungeonMapDataStart</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapDataStart = 0x57039</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7f8d5e31340dd7254d0924b29f7dc7ba" name="a7f8d5e31340dd7254d0924b29f7dc7ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f8d5e31340dd7254d0924b29f7dc7ba">&#9670;&#160;</a></span>kDungeonMapExpCheck</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapExpCheck = 0x56652</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>.</p>
+
+</div>
+</div>
+<a id="a8eee48ae6550ba1b85f720c33d065dcb" name="a8eee48ae6550ba1b85f720c33d065dcb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8eee48ae6550ba1b85f720c33d065dcb">&#9670;&#160;</a></span>kDungeonMapTile16</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapTile16 = 0x57009</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>.</p>
+
+</div>
+</div>
+<a id="a32ed18aaa8cea428875cbdd7589e3b8a" name="a32ed18aaa8cea428875cbdd7589e3b8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32ed18aaa8cea428875cbdd7589e3b8a">&#9670;&#160;</a></span>kDungeonMapTile16Expanded</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapTile16Expanded = 0x109010</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0">yaze::app::editor::ScreenEditor::LoadDungeonMapTile16()</a>.</p>
+
+</div>
+</div>
+<a id="ab87c8dae0520114529255ae1de2ee221" name="ab87c8dae0520114529255ae1de2ee221"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab87c8dae0520114529255ae1de2ee221">&#9670;&#160;</a></span>kDungeonMapBossRooms</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kDungeonMapBossRooms = 0x56807</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a2f0a88643cef19f9ce6ae8ec279c0ad3" name="a2f0a88643cef19f9ce6ae8ec279c0ad3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f0a88643cef19f9ce6ae8ec279c0ad3">&#9670;&#160;</a></span>kTriforceVertices</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kTriforceVertices = 0x04FFD2</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a37e47df235f94485bffe3dc03a95d81e" name="a37e47df235f94485bffe3dc03a95d81e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a37e47df235f94485bffe3dc03a95d81e">&#9670;&#160;</a></span>TriforceFaces</h2>
 
@@ -3415,6 +3348,74 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="aedc154347eb94ffd4d62f4428826d0ee" name="aedc154347eb94ffd4d62f4428826d0ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aedc154347eb94ffd4d62f4428826d0ee">&#9670;&#160;</a></span>crystalVertices</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::crystalVertices = 0x04FF98</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a12736abe10709d6e8c3a95742eea3410" name="a12736abe10709d6e8c3a95742eea3410"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12736abe10709d6e8c3a95742eea3410">&#9670;&#160;</a></span>kInventoryStart</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kInventoryStart = 0x6564A</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adc66d34b3e89d0c4c21ed4b8042fc6e3" name="adc66d34b3e89d0c4c21ed4b8042fc6e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc66d34b3e89d0c4c21ed4b8042fc6e3">&#9670;&#160;</a></span>kBowItemPos</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int yaze::app::zelda3::kBowItemPos = 0x6F631</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Inventory.html#aa5360216f06837456ded60f402109474">yaze::app::zelda3::Inventory::Create()</a>.</p>
 
 </div>
 </div>

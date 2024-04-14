@@ -7,7 +7,7 @@ var searchData=
   ['_7eclockimpl_4',['~ClockImpl',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#abd403283deecc011d41dcd1ff5002282',1,'yaze::app::emu::ClockImpl']]],
   ['_7ecommandhandler_5',['~CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html#a99057b6c5780d96e56c6be9c9e109eb0',1,'yaze::cli::CommandHandler']]],
   ['_7edungeondestination_6',['~DungeonDestination',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#ae59bcd100add5fe458788a35f514cb30',1,'yaze::app::zelda3::dungeon::DungeonDestination']]],
-  ['_7eeditor_7',['~Editor',['../classEditor.html#a192c911dff4ebca89d0b1bb3aa482253',1,'Editor']]],
+  ['_7eeditor_7',['~Editor',['../classyaze_1_1app_1_1editor_1_1Editor.html#ad1a9644209f22c3631d6baba7bbcaa94',1,'yaze::app::editor::Editor']]],
   ['_7eexperimentflags_8',['~ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0',1,'yaze::app::core::ExperimentFlags']]],
   ['_7eloggable_9',['~Loggable',['../classyaze_1_1app_1_1emu_1_1Loggable.html#ac1992031c82978c638f01bec91f86ea7',1,'yaze::app::emu::Loggable']]],
   ['_7ememory_10',['~Memory',['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#afbc68b5ef89712aaacd126de63d832b7',1,'yaze::app::emu::memory::Memory']]],

@@ -2,7 +2,7 @@ var searchData=
 [
   ['editcolorinpalette_0',['EditColorInPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da',1,'yaze::app::editor::PaletteEditor']]],
   ['editlabel_1',['EditLabel',['../classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
-  ['editor_2',['Editor',['../classEditor.html#a011f961f9281ccf3619ec6a41ec962f4',1,'Editor']]],
+  ['editor_2',['Editor',['../classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653',1,'yaze::app::editor::Editor']]],
   ['edittrack_3',['EditTrack',['../classyaze_1_1app_1_1zelda3_1_1Tracker.html#a1ffbfcace743b2423d3e208608432092',1,'yaze::app::zelda3::Tracker']]],
   ['ei_4',['EI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af98ae59887dca4d31d5c3e214650b379',1,'yaze::app::emu::audio::Spc700']]],
   ['enablehdmatransfers_5',['EnableHDMATransfers',['../classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#a5af3d62802c4d284ed2d414595933505',1,'yaze::app::emu::memory::DirectMemoryAccess']]],

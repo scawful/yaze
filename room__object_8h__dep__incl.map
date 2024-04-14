@@ -8,8 +8,8 @@
 <area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="540,58,489,96,486,91,537,53"/>
 <area shape="rect" id="Node000013" href="$room__object_8cc.html" title=" " alt="" coords="614,94,773,135"/>
 <area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="618,53,669,91,666,96,615,58"/>
-<area shape="rect" id="Node000014" href="$room__object__test_8cc.html" title=" " alt="" coords="797,102,961,127"/>
-<area shape="poly" id="edge18_Node000001_Node000014" title=" " alt="" coords="661,48,837,98,836,103,660,53"/>
+<area shape="rect" id="Node000014" href="$room__object__test_8cc.html" title=" " alt="" coords="797,94,956,135"/>
+<area shape="poly" id="edge18_Node000001_Node000014" title=" " alt="" coords="661,48,809,91,808,96,660,53"/>
 <area shape="rect" id="Node000003" href="$dungeon__editor_8cc.html" title=" " alt="" coords="333,271,486,312"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="312,229,378,269,376,273,310,234"/>
 <area shape="rect" id="Node000004" href="$master__editor_8cc.html" title=" " alt="" coords="5,360,150,401"/>

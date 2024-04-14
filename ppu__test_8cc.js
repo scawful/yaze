@@ -1,12 +1,12 @@
 var ppu__test_8cc =
 [
-    [ "yaze::app::emu::video::MockPpu", "classyaze_1_1app_1_1emu_1_1video_1_1MockPpu.html", "classyaze_1_1app_1_1emu_1_1video_1_1MockPpu" ],
-    [ "yaze::app::emu::video::PpuTest", "classyaze_1_1app_1_1emu_1_1video_1_1PpuTest.html", "classyaze_1_1app_1_1emu_1_1video_1_1PpuTest" ],
-    [ "TEST_F", "ppu__test_8cc.html#aa4248a68254c7a38c7ffa96b5ceef657", null ],
-    [ "TEST_F", "ppu__test_8cc.html#a51da9d481200ab37529b14c76d7afc70", null ],
-    [ "TEST_F", "ppu__test_8cc.html#acf49abe162fcf3c50c8657e861eed31f", null ],
-    [ "TEST_F", "ppu__test_8cc.html#a57858e9df7b55666a30de72895c1540d", null ],
-    [ "TEST_F", "ppu__test_8cc.html#a4e768f5d61b6a6a406226b1252273394", null ],
-    [ "TEST_F", "ppu__test_8cc.html#ad8f231b9c9bd55aa7c2adcdcb4b1c2d0", null ],
-    [ "TEST_F", "ppu__test_8cc.html#ad64e7873df99504282c338fb69eca528", null ]
+    [ "yaze_test::emu_test::MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", "classyaze__test_1_1emu__test_1_1MockPpu" ],
+    [ "yaze_test::emu_test::PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
+    [ "TEST_F", "ppu__test_8cc.html#a861c5b95a0e93b13fbe1a6e08f4434e1", null ],
+    [ "TEST_F", "ppu__test_8cc.html#a282d2406b43ad6d7c7157660ab32f6c6", null ],
+    [ "TEST_F", "ppu__test_8cc.html#ae907a3f5c65266af498e391b5e6bb4c4", null ],
+    [ "TEST_F", "ppu__test_8cc.html#aa902a13ce604a0bb30705336b7336d8b", null ],
+    [ "TEST_F", "ppu__test_8cc.html#a708f793586acfee0ae064e1737b69837", null ],
+    [ "TEST_F", "ppu__test_8cc.html#a67381d3c0ca3f8b0b77c59951227a620", null ],
+    [ "TEST_F", "ppu__test_8cc.html#a79793b7f1c3f9b4b0089e8559c1a8a62", null ]
 ];

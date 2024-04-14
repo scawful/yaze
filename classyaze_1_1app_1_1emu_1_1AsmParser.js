@@ -30,10 +30,10 @@ var classyaze_1_1app_1_1emu_1_1AsmParser =
       [ "kStack", "classyaze_1_1app_1_1emu_1_1AsmParser.html#a549c12f785b44400d0b60dc60b85ff07a5f4930a7bc3cf140a4d53f44f47ed789", null ],
       [ "kStackRelativeIndexedY", "classyaze_1_1app_1_1emu_1_1AsmParser.html#a549c12f785b44400d0b60dc60b85ff07ad43bb7d5a33aec2376fcec383643161c", null ]
     ] ],
-    [ "AppendOperandBytes", "classyaze_1_1app_1_1emu_1_1AsmParser.html#ad9e43fd07adb49fe4b7f556a70354f59", null ],
-    [ "CreateInternalOpcodeMap", "classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087", null ],
-    [ "InferAddressingModeFromOperand", "classyaze_1_1app_1_1emu_1_1AsmParser.html#ab93a1bd4bf7da9474b99e805b5fc4077", null ],
     [ "Parse", "classyaze_1_1app_1_1emu_1_1AsmParser.html#acacbf8f1812521947ac88fd188f85219", null ],
+    [ "CreateInternalOpcodeMap", "classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087", null ],
+    [ "AppendOperandBytes", "classyaze_1_1app_1_1emu_1_1AsmParser.html#ad9e43fd07adb49fe4b7f556a70354f59", null ],
+    [ "InferAddressingModeFromOperand", "classyaze_1_1app_1_1emu_1_1AsmParser.html#ab93a1bd4bf7da9474b99e805b5fc4077", null ],
     [ "instruction_regex_", "classyaze_1_1app_1_1emu_1_1AsmParser.html#a1e0974f01f29024d8977eecb68942bf4", null ],
     [ "mnemonic_to_opcode_", "classyaze_1_1app_1_1emu_1_1AsmParser.html#a2f877511def63231c829767d358c2d62", null ]
 ];

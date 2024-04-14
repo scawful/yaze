@@ -12,8 +12,8 @@
 <area shape="poly" id="edge14_Node000003_Node000013" title=" " alt="" coords="540,146,489,184,486,180,537,142"/>
 <area shape="rect" id="Node000015" href="$room__object_8cc.html" title=" " alt="" coords="614,183,773,223"/>
 <area shape="poly" id="edge19_Node000003_Node000015" title=" " alt="" coords="618,142,669,180,666,184,615,146"/>
-<area shape="rect" id="Node000016" href="$room__object__test_8cc.html" title=" " alt="" coords="797,190,961,216"/>
-<area shape="poly" id="edge20_Node000003_Node000016" title=" " alt="" coords="661,137,837,187,836,192,660,142"/>
+<area shape="rect" id="Node000016" href="$room__object__test_8cc.html" title=" " alt="" coords="797,183,956,223"/>
+<area shape="poly" id="edge20_Node000003_Node000016" title=" " alt="" coords="661,137,809,180,808,185,660,142"/>
 <area shape="rect" id="Node000005" href="$dungeon__editor_8cc.html" title=" " alt="" coords="333,360,486,401"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="312,318,378,357,376,362,310,322"/>
 <area shape="rect" id="Node000006" href="$master__editor_8cc.html" title=" " alt="" coords="5,449,150,489"/>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.10.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/editor.h Source File</title>
+<title>yaze: src/app/editor/utils/editor.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -107,39 +107,50 @@ $(function(){initNavTree('editor_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="foldopen" id="foldopen00006" data-start="{" data-end="};">
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno"><a class="line" href="classEditor.html">    6</a></span><span class="keyword">class </span><a class="code hl_class" href="classEditor.html">Editor</a> {</div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno"><a class="line" href="classEditor.html#a011f961f9281ccf3619ec6a41ec962f4">    8</a></span>  <a class="code hl_function" href="classEditor.html#a011f961f9281ccf3619ec6a41ec962f4">Editor</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="classEditor.html#a192c911dff4ebca89d0b1bb3aa482253">    9</a></span>  <span class="keyword">virtual</span> <a class="code hl_function" href="classEditor.html#a192c911dff4ebca89d0b1bb3aa482253">~Editor</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classEditor.html#a34e68c6a178a8094f43d548db8b4b6e6">   11</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classEditor.html#a34e68c6a178a8094f43d548db8b4b6e6">Cut</a>() = 0;</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="classEditor.html#a8da61d6032e684384562b11701c27fdc">   12</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classEditor.html#a8da61d6032e684384562b11701c27fdc">Copy</a>() = 0;</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="classEditor.html#a3248ddd9353d6ed84a8166d95cc0db35">   13</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classEditor.html#a3248ddd9353d6ed84a8166d95cc0db35">Paste</a>() = 0;</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span>app {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceeditor.html">editor</a> {</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="classEditor.html#a50e0495bfce4f105769d70ca50cd4743">   15</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classEditor.html#a50e0495bfce4f105769d70ca50cd4743">Undo</a>() = 0;</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classEditor.html#ac66d48b3e8d8906a4c718c3664ad8b82">   16</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classEditor.html#ac66d48b3e8d8906a4c718c3664ad8b82">Redo</a>() = 0;</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="classEditor.html#af9d47ba1ecfbef16cd86a9da02597314">   18</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classEditor.html#af9d47ba1ecfbef16cd86a9da02597314">Update</a>() = 0;</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>};</div>
+<div class="foldopen" id="foldopen00021" data-start="{" data-end="};">
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html">   21</a></span><span class="keyword">class </span><a class="code hl_class" href="classyaze_1_1app_1_1editor_1_1Editor.html">Editor</a> {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653">   23</a></span>  <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653">Editor</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#ad1a9644209f22c3631d6baba7bbcaa94">   24</a></span>  <span class="keyword">virtual</span> <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#ad1a9644209f22c3631d6baba7bbcaa94">~Editor</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#a0a6a8763609479556beea5fcdfbe9256">   26</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#a0a6a8763609479556beea5fcdfbe9256">Cut</a>() = 0;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#ab30eea7bb6fd2bc6dd5d7e2678a92596">   27</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#ab30eea7bb6fd2bc6dd5d7e2678a92596">Copy</a>() = 0;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#acbcad60f025a80c9f1477ffe34dd1cba">   28</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#acbcad60f025a80c9f1477ffe34dd1cba">Paste</a>() = 0;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#a1b7f92efb9dd39fd68eae2363c108b1f">   30</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#a1b7f92efb9dd39fd68eae2363c108b1f">Undo</a>() = 0;</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#aaa80459a0949a512973a71cc6d9cad57">   31</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#aaa80459a0949a512973a71cc6d9cad57">Redo</a>() = 0;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">   33</a></span>  <span class="keyword">virtual</span> absl::Status <a class="code hl_function" href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">Update</a>() = 0;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>};</div>
 </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_EDITOR_H</span></div>
-<div class="ttc" id="aclassEditor_html"><div class="ttname"><a href="classEditor.html">Editor</a></div><div class="ttdef"><b>Definition</b> editor.h:6</div></div>
-<div class="ttc" id="aclassEditor_html_a011f961f9281ccf3619ec6a41ec962f4"><div class="ttname"><a href="classEditor.html#a011f961f9281ccf3619ec6a41ec962f4">Editor::Editor</a></div><div class="ttdeci">Editor()=default</div></div>
-<div class="ttc" id="aclassEditor_html_a192c911dff4ebca89d0b1bb3aa482253"><div class="ttname"><a href="classEditor.html#a192c911dff4ebca89d0b1bb3aa482253">Editor::~Editor</a></div><div class="ttdeci">virtual ~Editor()=default</div></div>
-<div class="ttc" id="aclassEditor_html_a3248ddd9353d6ed84a8166d95cc0db35"><div class="ttname"><a href="classEditor.html#a3248ddd9353d6ed84a8166d95cc0db35">Editor::Paste</a></div><div class="ttdeci">virtual absl::Status Paste()=0</div></div>
-<div class="ttc" id="aclassEditor_html_a34e68c6a178a8094f43d548db8b4b6e6"><div class="ttname"><a href="classEditor.html#a34e68c6a178a8094f43d548db8b4b6e6">Editor::Cut</a></div><div class="ttdeci">virtual absl::Status Cut()=0</div></div>
-<div class="ttc" id="aclassEditor_html_a50e0495bfce4f105769d70ca50cd4743"><div class="ttname"><a href="classEditor.html#a50e0495bfce4f105769d70ca50cd4743">Editor::Undo</a></div><div class="ttdeci">virtual absl::Status Undo()=0</div></div>
-<div class="ttc" id="aclassEditor_html_a8da61d6032e684384562b11701c27fdc"><div class="ttname"><a href="classEditor.html#a8da61d6032e684384562b11701c27fdc">Editor::Copy</a></div><div class="ttdeci">virtual absl::Status Copy()=0</div></div>
-<div class="ttc" id="aclassEditor_html_ac66d48b3e8d8906a4c718c3664ad8b82"><div class="ttname"><a href="classEditor.html#ac66d48b3e8d8906a4c718c3664ad8b82">Editor::Redo</a></div><div class="ttdeci">virtual absl::Status Redo()=0</div></div>
-<div class="ttc" id="aclassEditor_html_af9d47ba1ecfbef16cd86a9da02597314"><div class="ttname"><a href="classEditor.html#af9d47ba1ecfbef16cd86a9da02597314">Editor::Update</a></div><div class="ttdeci">virtual absl::Status Update()=0</div></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_EDITOR_H</span></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html">yaze::app::editor::Editor</a></div><div class="ttdoc">Interface for editor classes.</div><div class="ttdef"><b>Definition</b> editor.h:21</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_a0a6a8763609479556beea5fcdfbe9256"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#a0a6a8763609479556beea5fcdfbe9256">yaze::app::editor::Editor::Cut</a></div><div class="ttdeci">virtual absl::Status Cut()=0</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_a1b7f92efb9dd39fd68eae2363c108b1f"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#a1b7f92efb9dd39fd68eae2363c108b1f">yaze::app::editor::Editor::Undo</a></div><div class="ttdeci">virtual absl::Status Undo()=0</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_a27212f7c8f641e429a7c8e4613e48653"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653">yaze::app::editor::Editor::Editor</a></div><div class="ttdeci">Editor()=default</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_a6221b25a61099137266cede698ecbfd7"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">yaze::app::editor::Editor::Update</a></div><div class="ttdeci">virtual absl::Status Update()=0</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_aaa80459a0949a512973a71cc6d9cad57"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#aaa80459a0949a512973a71cc6d9cad57">yaze::app::editor::Editor::Redo</a></div><div class="ttdeci">virtual absl::Status Redo()=0</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_ab30eea7bb6fd2bc6dd5d7e2678a92596"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#ab30eea7bb6fd2bc6dd5d7e2678a92596">yaze::app::editor::Editor::Copy</a></div><div class="ttdeci">virtual absl::Status Copy()=0</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_acbcad60f025a80c9f1477ffe34dd1cba"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#acbcad60f025a80c9f1477ffe34dd1cba">yaze::app::editor::Editor::Paste</a></div><div class="ttdeci">virtual absl::Status Paste()=0</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1editor_1_1Editor_html_ad1a9644209f22c3631d6baba7bbcaa94"><div class="ttname"><a href="classyaze_1_1app_1_1editor_1_1Editor.html#ad1a9644209f22c3631d6baba7bbcaa94">yaze::app::editor::Editor::~Editor</a></div><div class="ttdeci">virtual ~Editor()=default</div></div>
+<div class="ttc" id="anamespaceeditor_html"><div class="ttname"><a href="namespaceeditor.html">editor</a></div><div class="ttdoc">Editors are the view controllers for the application.</div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> common.cc:14</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="editor_8h.html">editor.h</a></li>
+    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_767a2d6ce89f966c317c25dc7e3aed5d.html">editor</a></li><li class="navelem"><a class="el" href="dir_eee38b1326d1deb5c23215757340cf7d.html">utils</a></li><li class="navelem"><a class="el" href="editor_8h.html">editor.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>

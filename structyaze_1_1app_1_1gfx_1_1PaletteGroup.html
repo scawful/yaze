@@ -193,8 +193,8 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a6e10d3183951dbf8901440b4f5389808" name="a6e10d3183951dbf8901440b4f5389808"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e10d3183951dbf8901440b4f5389808">&#9670;&#160;</a></span>AddColor()</h2>
+<a id="afdc639f745c60b9b9375d1f3342c1411" name="afdc639f745c60b9b9375d1f3342c1411"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdc639f745c60b9b9375d1f3342c1411">&#9670;&#160;</a></span>mutable_palette()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -203,9 +203,9 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::gfx::PaletteGroup::AddColor </td>
+          <td class="memname">auto yaze::app::gfx::PaletteGroup::mutable_palette </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">SnesColor</a></td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -216,7 +216,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
+<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>.</p>
 
 </div>
 </div>
@@ -285,6 +285,33 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="a6e10d3183951dbf8901440b4f5389808" name="a6e10d3183951dbf8901440b4f5389808"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e10d3183951dbf8901440b4f5389808">&#9670;&#160;</a></span>AddColor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::gfx::PaletteGroup::AddColor </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">SnesColor</a></td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
+
+</div>
+</div>
 <a id="a14d4ec1a5d5b648a98b68478412393cf" name="a14d4ec1a5d5b648a98b68478412393cf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a14d4ec1a5d5b648a98b68478412393cf">&#9670;&#160;</a></span>Clear()</h2>
 
@@ -338,149 +365,6 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="432,53,400,49,401,43,433,48"/>
 </map>
 </div>
-
-</div>
-</div>
-<a id="afdc639f745c60b9b9375d1f3342c1411" name="afdc639f745c60b9b9375d1f3342c1411"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afdc639f745c60b9b9375d1f3342c1411">&#9670;&#160;</a></span>mutable_palette()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto yaze::app::gfx::PaletteGroup::mutable_palette </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>.</p>
-
-</div>
-</div>
-<a id="a35119ad1fdc113fc46f9c0bc50336830" name="a35119ad1fdc113fc46f9c0bc50336830"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35119ad1fdc113fc46f9c0bc50336830">&#9670;&#160;</a></span>operator()() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::app::gfx::PaletteGroup::operator() </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const ImVec4 &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
-
-</div>
-</div>
-<a id="a6064abf2f10cee1ac2f2e3debce222d6" name="a6064abf2f10cee1ac2f2e3debce222d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6064abf2f10cee1ac2f2e3debce222d6">&#9670;&#160;</a></span>operator()() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::app::gfx::PaletteGroup::operator() </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
-
-</div>
-</div>
-<a id="afd46f19d35a6100f024935b9f553a24d" name="afd46f19d35a6100f024935b9f553a24d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afd46f19d35a6100f024935b9f553a24d">&#9670;&#160;</a></span>operator[]() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> yaze::app::gfx::PaletteGroup::operator[] </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
-
-</div>
-</div>
-<a id="a68529380eb9cb3e20d82d8f2be4a09b1" name="a68529380eb9cb3e20d82d8f2be4a09b1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68529380eb9cb3e20d82d8f2be4a09b1">&#9670;&#160;</a></span>operator[]() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp; yaze::app::gfx::PaletteGroup::operator[] </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
 
 </div>
 </div>
@@ -540,9 +424,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a id="a23c182ac5b0f1b2b78e14b26c6c3abf5" name="a23c182ac5b0f1b2b78e14b26c6c3abf5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">&#9670;&#160;</a></span>palettes</h2>
+<a id="afd46f19d35a6100f024935b9f553a24d" name="afd46f19d35a6100f024935b9f553a24d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd46f19d35a6100f024935b9f553a24d">&#9670;&#160;</a></span>operator[]() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -551,20 +434,113 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a>&gt; yaze::app::gfx::PaletteGroup::palettes</td>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> yaze::app::gfx::PaletteGroup::operator[] </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a6e10d3183951dbf8901440b4f5389808">AddColor()</a>, <a class="el" href="#a1ddc8e3e0f2e6379693670a5accd0b3b">AddPalette()</a>, <a class="el" href="#a14d4ec1a5d5b648a98b68478412393cf">Clear()</a>, <a class="el" href="#afdc639f745c60b9b9375d1f3342c1411">mutable_palette()</a>, <a class="el" href="#a35119ad1fdc113fc46f9c0bc50336830">operator()()</a>, <a class="el" href="#a6064abf2f10cee1ac2f2e3debce222d6">operator()()</a>, <a class="el" href="#afd46f19d35a6100f024935b9f553a24d">operator[]()</a>, <a class="el" href="#a68529380eb9cb3e20d82d8f2be4a09b1">operator[]()</a>, and <a class="el" href="#a1e809967b23511be48bc9e034dabb98d">size()</a>.</p>
+<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
 
 </div>
 </div>
+<a id="a68529380eb9cb3e20d82d8f2be4a09b1" name="a68529380eb9cb3e20d82d8f2be4a09b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68529380eb9cb3e20d82d8f2be4a09b1">&#9670;&#160;</a></span>operator[]() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a> &amp; yaze::app::gfx::PaletteGroup::operator[] </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
+
+</div>
+</div>
+<a id="a6064abf2f10cee1ac2f2e3debce222d6" name="a6064abf2f10cee1ac2f2e3debce222d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6064abf2f10cee1ac2f2e3debce222d6">&#9670;&#160;</a></span>operator()() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::gfx::PaletteGroup::operator() </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
+
+</div>
+</div>
+<a id="a35119ad1fdc113fc46f9c0bc50336830" name="a35119ad1fdc113fc46f9c0bc50336830"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35119ad1fdc113fc46f9c0bc50336830">&#9670;&#160;</a></span>operator()() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::gfx::PaletteGroup::operator() </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>i</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ImVec4 &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">palettes</a>, and <a class="el" href="#a357474efcc958defd4e0fa4d57007c12">size_</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
 <a id="a357474efcc958defd4e0fa4d57007c12" name="a357474efcc958defd4e0fa4d57007c12"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a357474efcc958defd4e0fa4d57007c12">&#9670;&#160;</a></span>size_</h2>
 
@@ -586,6 +562,30 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#a6e10d3183951dbf8901440b4f5389808">AddColor()</a>, <a class="el" href="#a1ddc8e3e0f2e6379693670a5accd0b3b">AddPalette()</a>, <a class="el" href="#a14d4ec1a5d5b648a98b68478412393cf">Clear()</a>, <a class="el" href="#a35119ad1fdc113fc46f9c0bc50336830">operator()()</a>, <a class="el" href="#a6064abf2f10cee1ac2f2e3debce222d6">operator()()</a>, <a class="el" href="#afd46f19d35a6100f024935b9f553a24d">operator[]()</a>, and <a class="el" href="#a68529380eb9cb3e20d82d8f2be4a09b1">operator[]()</a>.</p>
+
+</div>
+</div>
+<a id="a23c182ac5b0f1b2b78e14b26c6c3abf5" name="a23c182ac5b0f1b2b78e14b26c6c3abf5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23c182ac5b0f1b2b78e14b26c6c3abf5">&#9670;&#160;</a></span>palettes</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">SnesPalette</a>&gt; yaze::app::gfx::PaletteGroup::palettes</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a6e10d3183951dbf8901440b4f5389808">AddColor()</a>, <a class="el" href="#a1ddc8e3e0f2e6379693670a5accd0b3b">AddPalette()</a>, <a class="el" href="#a14d4ec1a5d5b648a98b68478412393cf">Clear()</a>, <a class="el" href="#afdc639f745c60b9b9375d1f3342c1411">mutable_palette()</a>, <a class="el" href="#a35119ad1fdc113fc46f9c0bc50336830">operator()()</a>, <a class="el" href="#a6064abf2f10cee1ac2f2e3debce222d6">operator()()</a>, <a class="el" href="#afd46f19d35a6100f024935b9f553a24d">operator[]()</a>, <a class="el" href="#a68529380eb9cb3e20d82d8f2be4a09b1">operator[]()</a>, and <a class="el" href="#a1e809967b23511be48bc9e034dabb98d">size()</a>.</p>
 
 </div>
 </div>

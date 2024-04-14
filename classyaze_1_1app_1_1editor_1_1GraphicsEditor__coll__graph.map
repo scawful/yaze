@@ -1,10 +1,10 @@
 <map id="yaze::app::editor::GraphicsEditor" name="yaze::app::editor::GraphicsEditor">
-<area shape="rect" id="Node000001" title="Allows the user to edit graphics sheets from the game or view prototype graphics of Link to the Past ..." alt="" coords="1144,353,1262,393"/>
+<area shape="rect" id="Node000001" title="Allows the user to edit graphics sheets from the game or view prototype graphics." alt="" coords="1144,353,1262,393"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="418,223,569,248"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="585,230,666,230,760,234,861,245,960,264,1019,281,1075,304,1166,350,1164,354,1073,309,1017,286,959,269,860,250,760,240,665,235,585,235"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html" title=" " alt="" coords="808,149,932,189"/>
 <area shape="poly" id="edge8_Node000008_Node000002" title=" " alt="" coords="584,217,808,177,809,182,585,222"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title=" " alt="" coords="811,441,929,481"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="811,441,929,481"/>
 <area shape="poly" id="edge13_Node000010_Node000002" title=" " alt="" coords="578,250,682,277,728,294,758,312,769,327,773,341,776,355,783,370,813,407,845,438,841,442,809,411,778,373,770,356,768,342,764,329,755,316,725,299,681,282,576,255"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="438,56,549,82"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="564,52,682,38,754,36,831,39,909,49,985,69,1057,101,1090,121,1121,146,1143,169,1160,195,1184,253,1198,309,1203,352,1198,352,1192,309,1179,254,1156,198,1139,172,1118,149,1087,126,1055,105,984,74,908,54,830,44,754,41,682,44,564,58"/>
