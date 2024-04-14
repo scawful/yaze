@@ -257,7 +257,7 @@ void SNES::Run() {
 void SNES::StepRun() {
   // Update the CPU
   cpu_.UpdateClock(0.0);
-  cpu_.Update(CPU::UpdateMode::Step);
+  cpu_.Update(Cpu::UpdateMode::Step);
 
   // Update the PPU
   ppu_.UpdateClock(0.0);

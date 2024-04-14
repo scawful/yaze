@@ -9,7 +9,7 @@
 #include "app/emu/memory/memory.h"
 
 using yaze::app::emu::Clock;
-using yaze::app::emu::CPU;
+using yaze::app::emu::Cpu;
 using yaze::app::emu::Memory;
 
 class MockClock : public Clock {

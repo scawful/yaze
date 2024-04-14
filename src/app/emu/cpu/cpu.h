@@ -38,9 +38,9 @@ class InstructionEntry {
 
 const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
 
-class CPU : public Memory, public Loggable, public core::ExperimentFlags {
+class Cpu : public Memory, public Loggable, public core::ExperimentFlags {
  public:
-  explicit CPU(Memory& mem, Clock& vclock) : memory(mem), clock(vclock) {}
+  explicit Cpu(Memory& mem, Clock& vclock) : memory(mem), clock(vclock) {}
   enum class UpdateMode { Run, Step, Pause };
 
   void Init(bool verbose = false) { clock.SetFrequency(kCpuClockSpeed); }

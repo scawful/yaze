@@ -14,7 +14,7 @@ namespace emu {
  * TODO: STP, WDM
  */
 
-void CPU::ADC(uint16_t operand) {
+void Cpu::ADC(uint16_t operand) {
   bool C = GetCarryFlag();
   if (GetAccumulatorSize()) {  // 8-bit mode
     uint16_t result = static_cast<uint16_t>(A & 0xFF) +
@@ -47,7 +47,7 @@ void CPU::ADC(uint16_t operand) {
   }
 }
 
-void CPU::AND(uint32_t value, bool isImmediate) {
+void Cpu::AND(uint32_t value, bool isImmediate) {
   uint16_t operand;
   if (GetAccumulatorSize()) {  // 8-bit mode
     operand = isImmediate ? value : memory.ReadByte(value);
@@ -63,14 +63,14 @@ void CPU::AND(uint32_t value, bool isImmediate) {
 }
 
 // New function for absolute long addressing mode
-void CPU::ANDAbsoluteLong(uint32_t address) {
+void Cpu::ANDAbsoluteLong(uint32_t address) {
   uint32_t operand32 = memory.ReadWordLong(address);
   A &= operand32;
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x8000);
 }
 
-void CPU::ASL(uint16_t address) {
+void Cpu::ASL(uint16_t address) {
   uint8_t value = memory.ReadByte(address);
   SetCarryFlag(!(value & 0x80));  // Set carry flag if bit 7 is set
   value <<= 1;                    // Shift left
@@ -80,53 +80,53 @@ void CPU::ASL(uint16_t address) {
   SetZeroFlag(value);
 }
 
-void CPU::BCC(int8_t offset) {
+void Cpu::BCC(int8_t offset) {
   if (!GetCarryFlag()) {  // If the carry flag is clear
     next_pc_ = offset;
   }
 }
 
-void CPU::BCS(int8_t offset) {
+void Cpu::BCS(int8_t offset) {
   if (GetCarryFlag()) {  // If the carry flag is set
     next_pc_ = offset;
   }
 }
 
-void CPU::BEQ(int8_t offset) {
+void Cpu::BEQ(int8_t offset) {
   if (GetZeroFlag()) {  // If the zero flag is set
     next_pc_ = offset;
   }
 }
 
-void CPU::BIT(uint16_t address) {
+void Cpu::BIT(uint16_t address) {
   uint8_t value = memory.ReadByte(address);
   SetNegativeFlag(value & 0x80);
   SetOverflowFlag(value & 0x40);
   SetZeroFlag((A & value) == 0);
 }
 
-void CPU::BMI(int8_t offset) {
+void Cpu::BMI(int8_t offset) {
   if (GetNegativeFlag()) {  // If the negative flag is set
     next_pc_ = offset;
   }
 }
 
-void CPU::BNE(int8_t offset) {
+void Cpu::BNE(int8_t offset) {
   if (!GetZeroFlag()) {  // If the zero flag is clear
     // PC += offset;
     next_pc_ = offset;
   }
 }
 
-void CPU::BPL(int8_t offset) {
+void Cpu::BPL(int8_t offset) {
   if (!GetNegativeFlag()) {  // If the negative flag is clear
     next_pc_ = offset;
   }
 }
 
-void CPU::BRA(int8_t offset) { next_pc_ = offset; }
+void Cpu::BRA(int8_t offset) { next_pc_ = offset; }
 
-void CPU::BRK() {
+void Cpu::BRK() {
   next_pc_ = PC + 2;  // Increment the program counter by 2
   memory.PushWord(next_pc_);
   memory.PushByte(status);
@@ -138,32 +138,32 @@ void CPU::BRK() {
   }
 }
 
-void CPU::BRL(int16_t offset) { next_pc_ = offset; }
+void Cpu::BRL(int16_t offset) { next_pc_ = offset; }
 
-void CPU::BVC(int8_t offset) {
+void Cpu::BVC(int8_t offset) {
   if (!GetOverflowFlag()) {  // If the overflow flag is clear
     next_pc_ = offset;
   }
 }
 
-void CPU::BVS(int8_t offset) {
+void Cpu::BVS(int8_t offset) {
   if (GetOverflowFlag()) {  // If the overflow flag is set
     next_pc_ = offset;
   }
 }
 
-void CPU::CLC() { status &= ~0x01; }
+void Cpu::CLC() { status &= ~0x01; }
 
-void CPU::CLD() { status &= ~0x08; }
+void Cpu::CLD() { status &= ~0x08; }
 
-void CPU::CLI() { status &= ~0x04; }
+void Cpu::CLI() { status &= ~0x04; }
 
-void CPU::CLV() { status &= ~0x40; }
+void Cpu::CLV() { status &= ~0x40; }
 
 // n Set if MSB of result is set; else cleared
 // z Set if result is zero; else cleared
 // c Set if no borrow; else cleared
-void CPU::CMP(uint32_t value, bool isImmediate) {
+void Cpu::CMP(uint32_t value, bool isImmediate) {
   if (GetAccumulatorSize()) {  // 8-bit
     uint8_t result;
     if (isImmediate) {
@@ -189,7 +189,7 @@ void CPU::CMP(uint32_t value, bool isImmediate) {
   }
 }
 
-void CPU::COP() {
+void Cpu::COP() {
   next_pc_ += 2;  // Increment the program counter by 2
   memory.PushWord(next_pc_);
   memory.PushByte(status);
@@ -202,7 +202,7 @@ void CPU::COP() {
   SetDecimalFlag(false);
 }
 
-void CPU::CPX(uint32_t value, bool isImmediate) {
+void Cpu::CPX(uint32_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
     uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
     compare(X, memory_value);
@@ -212,7 +212,7 @@ void CPU::CPX(uint32_t value, bool isImmediate) {
   }
 }
 
-void CPU::CPY(uint32_t value, bool isImmediate) {
+void Cpu::CPY(uint32_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
     uint8_t memory_value = isImmediate ? value : memory.ReadByte(value);
     compare(Y, memory_value);
@@ -222,7 +222,7 @@ void CPU::CPY(uint32_t value, bool isImmediate) {
   }
 }
 
-void CPU::DEC(uint32_t address, bool accumulator) {
+void Cpu::DEC(uint32_t address, bool accumulator) {
   if (accumulator) {
     if (GetAccumulatorSize()) {  // 8-bit
       A = (A - 1) & 0xFF;
@@ -251,7 +251,7 @@ void CPU::DEC(uint32_t address, bool accumulator) {
   }
 }
 
-void CPU::DEX() {
+void Cpu::DEX() {
   if (GetIndexSize()) {  // 8-bit
     X = static_cast<uint8_t>(X - 1);
     SetZeroFlag(X == 0);
@@ -263,7 +263,7 @@ void CPU::DEX() {
   }
 }
 
-void CPU::DEY() {
+void Cpu::DEY() {
   if (GetIndexSize()) {  // 8-bit
     Y = static_cast<uint8_t>(Y - 1);
     SetZeroFlag(Y == 0);
@@ -275,7 +275,7 @@ void CPU::DEY() {
   }
 }
 
-void CPU::EOR(uint32_t address, bool isImmediate) {
+void Cpu::EOR(uint32_t address, bool isImmediate) {
   if (GetAccumulatorSize()) {
     A ^= isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(A == 0);
@@ -287,7 +287,7 @@ void CPU::EOR(uint32_t address, bool isImmediate) {
   }
 }
 
-void CPU::INC(uint32_t address, bool accumulator) {
+void Cpu::INC(uint32_t address, bool accumulator) {
   if (accumulator) {
     if (GetAccumulatorSize()) {  // 8-bit
       A = (A + 1) & 0xFF;
@@ -316,7 +316,7 @@ void CPU::INC(uint32_t address, bool accumulator) {
   }
 }
 
-void CPU::INX() {
+void Cpu::INX() {
   if (GetIndexSize()) {  // 8-bit
     X = static_cast<uint8_t>(X + 1);
     SetZeroFlag(X == 0);
@@ -328,7 +328,7 @@ void CPU::INX() {
   }
 }
 
-void CPU::INY() {
+void Cpu::INY() {
   if (GetIndexSize()) {  // 8-bit
     Y = static_cast<uint8_t>(Y + 1);
     SetZeroFlag(Y == 0);
@@ -340,28 +340,28 @@ void CPU::INY() {
   }
 }
 
-void CPU::JMP(uint16_t address) {
+void Cpu::JMP(uint16_t address) {
   next_pc_ = address;  // Set program counter to the new address
 }
 
-void CPU::JML(uint32_t address) {
+void Cpu::JML(uint32_t address) {
   next_pc_ = static_cast<uint16_t>(address & 0xFFFF);
   // Set the PBR to the upper 8 bits of the address
   PB = static_cast<uint8_t>((address >> 16) & 0xFF);
 }
 
-void CPU::JSR(uint16_t address) {
+void Cpu::JSR(uint16_t address) {
   memory.PushWord(PC);  // Push the program counter onto the stack
   next_pc_ = address;   // Set program counter to the new address
 }
 
-void CPU::JSL(uint32_t address) {
+void Cpu::JSL(uint32_t address) {
   memory.PushLong(PC);  // Push the program counter onto the stack as a long
                         // value (24 bits)
   next_pc_ = address;   // Set program counter to the new address
 }
 
-void CPU::LDA(uint16_t address, bool isImmediate, bool direct_page, bool data_bank) {
+void Cpu::LDA(uint16_t address, bool isImmediate, bool direct_page, bool data_bank) {
   uint8_t bank = PB;
   if (direct_page) {
     bank = 0;
@@ -377,7 +377,7 @@ void CPU::LDA(uint16_t address, bool isImmediate, bool direct_page, bool data_ba
   }
 }
 
-void CPU::LDX(uint16_t address, bool isImmediate) {
+void Cpu::LDX(uint16_t address, bool isImmediate) {
   if (GetIndexSize()) {
     X = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(X == 0);
@@ -389,7 +389,7 @@ void CPU::LDX(uint16_t address, bool isImmediate) {
   }
 }
 
-void CPU::LDY(uint16_t address, bool isImmediate) {
+void Cpu::LDY(uint16_t address, bool isImmediate) {
   if (GetIndexSize()) {
     Y = isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(Y == 0);
@@ -401,7 +401,7 @@ void CPU::LDY(uint16_t address, bool isImmediate) {
   }
 }
 
-void CPU::LSR(uint16_t address, bool accumulator) {
+void Cpu::LSR(uint16_t address, bool accumulator) {
   if (accumulator) {
     if (GetAccumulatorSize()) {  // 8-bit
       SetCarryFlag(A & 0x01);
@@ -424,7 +424,7 @@ void CPU::LSR(uint16_t address, bool accumulator) {
   SetZeroFlag(value == 0);
 }
 
-void CPU::MVN(uint16_t source, uint16_t dest, uint16_t length) {
+void Cpu::MVN(uint16_t source, uint16_t dest, uint16_t length) {
   for (uint16_t i = 0; i < length; i++) {
     memory.WriteByte(dest, memory.ReadByte(source));
     source++;
@@ -432,7 +432,7 @@ void CPU::MVN(uint16_t source, uint16_t dest, uint16_t length) {
   }
 }
 
-void CPU::MVP(uint16_t source, uint16_t dest, uint16_t length) {
+void Cpu::MVP(uint16_t source, uint16_t dest, uint16_t length) {
   for (uint16_t i = 0; i < length; i++) {
     memory.WriteByte(dest, memory.ReadByte(source));
     source--;
@@ -440,11 +440,11 @@ void CPU::MVP(uint16_t source, uint16_t dest, uint16_t length) {
   }
 }
 
-void CPU::NOP() {
+void Cpu::NOP() {
   // Do nothing
 }
 
-void CPU::ORA(uint16_t address, bool isImmediate) {
+void Cpu::ORA(uint16_t address, bool isImmediate) {
   if (GetAccumulatorSize()) {
     A |= isImmediate ? address : memory.ReadByte(address);
     SetZeroFlag(A == 0);
@@ -456,22 +456,22 @@ void CPU::ORA(uint16_t address, bool isImmediate) {
   }
 }
 
-void CPU::PEA() {
+void Cpu::PEA() {
   uint16_t address = FetchWord();
   memory.PushWord(address);
 }
 
-void CPU::PEI() {
+void Cpu::PEI() {
   uint16_t address = FetchWord();
   memory.PushWord(memory.ReadWord(address));
 }
 
-void CPU::PER() {
+void Cpu::PER() {
   uint16_t address = FetchWord();
   memory.PushWord(PC + address);
 }
 
-void CPU::PHA() {
+void Cpu::PHA() {
   if (GetAccumulatorSize()) {
     memory.PushByte(static_cast<uint8_t>(A));
   } else {
@@ -479,15 +479,15 @@ void CPU::PHA() {
   }
 }
 
-void CPU::PHB() { memory.PushByte(DB); }
+void Cpu::PHB() { memory.PushByte(DB); }
 
-void CPU::PHD() { memory.PushWord(D); }
+void Cpu::PHD() { memory.PushWord(D); }
 
-void CPU::PHK() { memory.PushByte(PB); }
+void Cpu::PHK() { memory.PushByte(PB); }
 
-void CPU::PHP() { memory.PushByte(status); }
+void Cpu::PHP() { memory.PushByte(status); }
 
-void CPU::PHX() {
+void Cpu::PHX() {
   if (GetIndexSize()) {
     memory.PushByte(static_cast<uint8_t>(X));
   } else {
@@ -495,7 +495,7 @@ void CPU::PHX() {
   }
 }
 
-void CPU::PHY() {
+void Cpu::PHY() {
   if (GetIndexSize()) {
     memory.PushByte(static_cast<uint8_t>(Y));
   } else {
@@ -503,7 +503,7 @@ void CPU::PHY() {
   }
 }
 
-void CPU::PLA() {
+void Cpu::PLA() {
   if (GetAccumulatorSize()) {
     A = memory.PopByte();
     SetNegativeFlag((A & 0x80) != 0);
@@ -514,23 +514,23 @@ void CPU::PLA() {
   SetZeroFlag(A == 0);
 }
 
-void CPU::PLB() {
+void Cpu::PLB() {
   DB = memory.PopByte();
   SetNegativeFlag((DB & 0x80) != 0);
   SetZeroFlag(DB == 0);
 }
 
 // Pull Direct Page Register from Stack
-void CPU::PLD() {
+void Cpu::PLD() {
   D = memory.PopWord();
   SetNegativeFlag((D & 0x8000) != 0);
   SetZeroFlag(D == 0);
 }
 
 // Pull Processor Status Register from Stack
-void CPU::PLP() { status = memory.PopByte(); }
+void Cpu::PLP() { status = memory.PopByte(); }
 
-void CPU::PLX() {
+void Cpu::PLX() {
   if (GetIndexSize()) {
     X = memory.PopByte();
     SetNegativeFlag((A & 0x80) != 0);
@@ -542,7 +542,7 @@ void CPU::PLX() {
   SetZeroFlag(X == 0);
 }
 
-void CPU::PLY() {
+void Cpu::PLY() {
   if (GetIndexSize()) {
     Y = memory.PopByte();
     SetNegativeFlag((A & 0x80) != 0);
@@ -553,12 +553,12 @@ void CPU::PLY() {
   SetZeroFlag(Y == 0);
 }
 
-void CPU::REP() {
+void Cpu::REP() {
   auto byte = FetchByte();
   status &= ~byte;
 }
 
-void CPU::ROL(uint32_t address, bool accumulator) {
+void Cpu::ROL(uint32_t address, bool accumulator) {
   if (accumulator) {
     if (GetAccumulatorSize()) {  // 8-bit
       uint8_t carry = GetCarryFlag() ? 0x01 : 0x00;
@@ -588,7 +588,7 @@ void CPU::ROL(uint32_t address, bool accumulator) {
   SetZeroFlag(value == 0);
 }
 
-void CPU::ROR(uint32_t address, bool accumulator) {
+void Cpu::ROR(uint32_t address, bool accumulator) {
   if (accumulator) {
     if (GetAccumulatorSize()) {  // 8-bit
       uint8_t carry = GetCarryFlag() ? 0x80 : 0x00;
@@ -618,21 +618,21 @@ void CPU::ROR(uint32_t address, bool accumulator) {
   SetZeroFlag(value == 0);
 }
 
-void CPU::RTI() {
+void Cpu::RTI() {
   status = memory.PopByte();
   PC = memory.PopWord();
 }
 
-void CPU::RTL() {
+void Cpu::RTL() {
   next_pc_ = memory.PopWord();
   PB = memory.PopByte();
 }
 
-void CPU::RTS() { 
+void Cpu::RTS() { 
   last_call_frame_ = memory.PopWord();
 }
 
-void CPU::SBC(uint32_t value, bool isImmediate) {
+void Cpu::SBC(uint32_t value, bool isImmediate) {
   uint16_t operand;
   if (!GetAccumulatorSize()) {  // 16-bit mode
     operand = isImmediate ? value : memory.ReadWord(value);
@@ -665,18 +665,18 @@ void CPU::SBC(uint32_t value, bool isImmediate) {
   }
 }
 
-void CPU::SEC() { status |= 0x01; }
+void Cpu::SEC() { status |= 0x01; }
 
-void CPU::SED() { status |= 0x08; }
+void Cpu::SED() { status |= 0x08; }
 
-void CPU::SEI() { status |= 0x04; }
+void Cpu::SEI() { status |= 0x04; }
 
-void CPU::SEP() {
+void Cpu::SEP() {
   auto byte = FetchByte();
   status |= byte;
 }
 
-void CPU::STA(uint32_t address) {
+void Cpu::STA(uint32_t address) {
   if (GetAccumulatorSize()) {
     memory.WriteByte(address, static_cast<uint8_t>(A));
   } else {
@@ -686,12 +686,12 @@ void CPU::STA(uint32_t address) {
 
 // TODO: Make this work with the Clock class of the CPU
 
-void CPU::STP() {
+void Cpu::STP() {
   // During the next phase 2 clock cycle, stop the processors oscillator input
   // The processor is effectively shut down until a reset occurs (RES` pin).
 }
 
-void CPU::STX(uint16_t address) {
+void Cpu::STX(uint16_t address) {
   if (GetIndexSize()) {
     memory.WriteByte(address, static_cast<uint8_t>(X));
   } else {
@@ -699,7 +699,7 @@ void CPU::STX(uint16_t address) {
   }
 }
 
-void CPU::STY(uint16_t address) {
+void Cpu::STY(uint16_t address) {
   if (GetIndexSize()) {
     memory.WriteByte(address, static_cast<uint8_t>(Y));
   } else {
@@ -707,7 +707,7 @@ void CPU::STY(uint16_t address) {
   }
 }
 
-void CPU::STZ(uint16_t address) {
+void Cpu::STZ(uint16_t address) {
   if (GetAccumulatorSize()) {
     memory.WriteByte(address, 0x00);
   } else {
@@ -715,79 +715,79 @@ void CPU::STZ(uint16_t address) {
   }
 }
 
-void CPU::TAX() {
+void Cpu::TAX() {
   X = A;
   SetZeroFlag(X == 0);
   SetNegativeFlag(X & 0x80);
 }
 
-void CPU::TAY() {
+void Cpu::TAY() {
   Y = A;
   SetZeroFlag(Y == 0);
   SetNegativeFlag(Y & 0x80);
 }
 
-void CPU::TCD() {
+void Cpu::TCD() {
   D = A;
   SetZeroFlag(D == 0);
   SetNegativeFlag(D & 0x80);
 }
 
-void CPU::TCS() { memory.SetSP(A); }
+void Cpu::TCS() { memory.SetSP(A); }
 
-void CPU::TDC() {
+void Cpu::TDC() {
   A = D;
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
 }
 
-void CPU::TRB(uint16_t address) {
+void Cpu::TRB(uint16_t address) {
   uint8_t value = memory.ReadByte(address);
   SetZeroFlag((A & value) == 0);
   value &= ~A;
   memory.WriteByte(address, value);
 }
 
-void CPU::TSB(uint16_t address) {
+void Cpu::TSB(uint16_t address) {
   uint8_t value = memory.ReadByte(address);
   SetZeroFlag((A & value) == 0);
   value |= A;
   memory.WriteByte(address, value);
 }
 
-void CPU::TSC() {
+void Cpu::TSC() {
   A = SP();
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
 }
 
-void CPU::TSX() {
+void Cpu::TSX() {
   X = SP();
   SetZeroFlag(X == 0);
   SetNegativeFlag(X & 0x80);
 }
 
-void CPU::TXA() {
+void Cpu::TXA() {
   A = X;
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
 }
 
-void CPU::TXS() { memory.SetSP(X); }
+void Cpu::TXS() { memory.SetSP(X); }
 
-void CPU::TXY() {
+void Cpu::TXY() {
   Y = X;
   SetZeroFlag(X == 0);
   SetNegativeFlag(X & 0x80);
 }
 
-void CPU::TYA() {
+void Cpu::TYA() {
   A = Y;
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
 }
 
-void CPU::TYX() {
+void Cpu::TYX() {
   X = Y;
   SetZeroFlag(Y == 0);
   SetNegativeFlag(Y & 0x80);
@@ -795,20 +795,20 @@ void CPU::TYX() {
 
 // TODO: Make this communicate with the SNES class
 
-void CPU::WAI() {
+void Cpu::WAI() {
   // Pull the RDY pin low
   // Power consumption is reduced(?)
   // RDY remains low until an external hardware interupt
   // (NMI, IRQ, ABORT, or RESET) is received from the SNES class
 }
 
-void CPU::XBA() {
+void Cpu::XBA() {
   uint8_t lowByte = A & 0xFF;
   uint8_t highByte = (A >> 8) & 0xFF;
   A = (lowByte << 8) | highByte;
 }
 
-void CPU::XCE() {
+void Cpu::XCE() {
   uint8_t carry = status & 0x01;
   status &= ~0x01;
   status |= E;

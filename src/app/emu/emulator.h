@@ -24,7 +24,7 @@ class Emulator : public SharedROM {
   void RenderEmulator();
   void RenderSnesPpu();
   void RenderBreakpointList();
-  void RenderCpuState(CPU& cpu);
+  void RenderCpuState(Cpu& cpu);
   void RenderMemoryViewer();
 
   struct Bookmark {
