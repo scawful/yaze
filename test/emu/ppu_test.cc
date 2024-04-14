@@ -6,10 +6,17 @@
 #include "app/emu/memory/memory.h"
 #include "app/emu/memory/mock_memory.h"
 
-namespace yaze {
-namespace app {
-namespace emu {
-namespace video {
+namespace yaze_test {
+namespace emu_test {
+
+using yaze::app::emu::Clock;
+using yaze::app::emu::memory::MockClock;
+using yaze::app::emu::memory::MockMemory;
+using yaze::app::emu::video::BackgroundMode;
+using yaze::app::emu::video::PpuInterface;
+using yaze::app::emu::video::SpriteAttributes;
+using yaze::app::emu::video::Tilemap;
+using yaze::app::gfx::Bitmap;
 
 /**
  * @brief Mock Ppu class for testing
@@ -32,7 +39,7 @@ class MockPpu : public PpuInterface {
 
   MOCK_METHOD(const std::vector<uint8_t>&, GetFrameBuffer, (),
               (const, override));
-  MOCK_METHOD(std::shared_ptr<gfx::Bitmap>, GetScreen, (), (const, override));
+  MOCK_METHOD(std::shared_ptr<Bitmap>, GetScreen, (), (const, override));
 
   MOCK_METHOD(void, UpdateModeSettings, (), (override));
   MOCK_METHOD(void, UpdateTileData, (), (override));
@@ -148,7 +155,5 @@ TEST_F(PpuTest, FrameComposition) {
   // buffer
 }
 
-}  // namespace video
-}  // namespace emu
-}  // namespace app
-}  // namespace yaze
+}  // namespace emu_test
+}  // namespace yaze_test
