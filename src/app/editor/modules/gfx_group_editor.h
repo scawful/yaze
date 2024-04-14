@@ -25,7 +25,7 @@ namespace editor {
 
 /**
  * @class GfxGroupEditor
- * @brief Manage graphics group configurations in a ROM.
+ * @brief Manage graphics group configurations in a Rom.
  */
 class GfxGroupEditor : public SharedRom {
  public:

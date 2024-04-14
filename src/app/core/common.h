@@ -28,7 +28,7 @@ namespace core {
 class ExperimentFlags {
  public:
   struct Flags {
-    // Bitmap manager abstraction to manage graphics bin of ROM.
+    // Bitmap manager abstraction to manage graphics bin of Rom.
     bool kUseBitmapManager = true;
 
     // Log instructions to the GUI debugger.
@@ -39,11 +39,11 @@ class ExperimentFlags {
     // ported away from that eventually.
     bool kUseNewImGuiInput = false;
 
-    // Flag to enable the saving of all palettes to the ROM.
+    // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
 
     // Flag to enable the change queue, which could have any anonymous
-    // save routine for the ROM. In practice, just the overworld tilemap
+    // save routine for the Rom. In practice, just the overworld tilemap
     // and tile32 save.
     bool kSaveWithChangeQueue = false;
 
@@ -60,7 +60,7 @@ class ExperimentFlags {
     // Uses texture streaming from SDL for my dynamic updates.
     bool kLoadTexturesAsStreaming = true;
 
-    // Save dungeon map edits to the ROM.
+    // Save dungeon map edits to the Rom.
     bool kSaveDungeonMaps = false;
 
     // Log to the console.
@@ -71,19 +71,19 @@ class ExperimentFlags {
       // Load and render overworld sprites to the screen. Unstable.
       bool kDrawOverworldSprites = false;
 
-      // Save overworld map edits to the ROM.
+      // Save overworld map edits to the Rom.
       bool kSaveOverworldMaps = true;
 
-      // Save overworld entrances to the ROM.
+      // Save overworld entrances to the Rom.
       bool kSaveOverworldEntrances = true;
 
-      // Save overworld exits to the ROM.
+      // Save overworld exits to the Rom.
       bool kSaveOverworldExits = true;
 
-      // Save overworld items to the ROM.
+      // Save overworld items to the Rom.
       bool kSaveOverworldItems = true;
 
-      // Save overworld properties to the ROM.
+      // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
     } overworld;
   };
