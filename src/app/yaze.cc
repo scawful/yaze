@@ -8,6 +8,15 @@
 #include "absl/debugging/symbolize.h"
 #include "app/core/controller.h"
 
+/**
+ * @namespace yaze::app
+ * @brief Main namespace for the ImGui application.
+ */
+using namespace yaze::app;
+
+/**
+ * @brief Main entry point for the application.
+ */
 int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
 
@@ -16,7 +25,7 @@ int main(int argc, char** argv) {
   options.alarm_on_failure_secs = true;
   absl::InstallFailureSignalHandler(options);
 
-  yaze::app::core::Controller controller;
+  core::Controller controller;
   EXIT_IF_ERROR(controller.OnEntry())
 
 #ifdef __APPLE__

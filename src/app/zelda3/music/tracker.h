@@ -17,6 +17,14 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+  
+/**
+ * @namespace yaze::app::zelda3::music
+ * @brief Contains classes and functions for handling music data in Zelda 3.
+ *
+ * Based off of the HyruleMagic tracker code.
+ */
+namespace music {
 
 // bank 19, 1A, 1B
 // iirc 1A is OW, 1B is dungeon
@@ -84,7 +92,7 @@ using Song = struct {
   short numparts;
   short lopst;
   unsigned short addr;
-  bool in_use; // true
+  bool in_use;  // true
 };
 // =============================================================================
 
@@ -252,6 +260,7 @@ class Tracker {
 
 // =============================================================================
 
+}  // namespace music
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

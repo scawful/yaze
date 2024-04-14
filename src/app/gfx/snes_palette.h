@@ -140,6 +140,12 @@ SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t* rom);
 
 std::array<float, 4> ToFloatArray(const SnesColor& color);
 
+/**
+ * @brief Represents a group of palettes.
+ *
+ * Supports adding palettes and colors, clearing the group, and accessing
+ * palettes and colors by index.
+ */
 struct PaletteGroup {
   PaletteGroup() = default;
 
