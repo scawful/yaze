@@ -8,7 +8,7 @@ var searchData=
   ['sdl_5fsurface_5fdeleter_5',['SDL_Surface_Deleter',['../structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html',1,'yaze::app::gfx::Bitmap']]],
   ['sdl_5ftexture_5fdeleter_6',['SDL_Texture_Deleter',['../structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter.html',1,'yaze::app::gfx::Bitmap']]],
   ['setini_7',['SETINI',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['sharedrom_8',['SharedROM',['../classyaze_1_1app_1_1SharedROM.html',1,'yaze::app']]],
+  ['sharedrom_8',['SharedRom',['../classyaze_1_1app_1_1SharedRom.html',1,'yaze::app']]],
   ['slhv_9',['SLHV',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['snes_10',['SNES',['../classyaze_1_1app_1_1emu_1_1SNES.html',1,'yaze::app::emu']]],
   ['snes_5fcolor_11',['snes_color',['../structyaze_1_1app_1_1gfx_1_1snes__color.html',1,'yaze::app::gfx']]],

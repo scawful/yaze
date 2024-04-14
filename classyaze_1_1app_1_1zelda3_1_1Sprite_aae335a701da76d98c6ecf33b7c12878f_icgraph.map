@@ -1,29 +1,29 @@
 <map id="yaze::app::zelda3::Sprite::UpdateMapProperties" name="yaze::app::zelda3::Sprite::UpdateMapProperties">
-<area shape="rect" id="Node000001" title=" " alt="" coords="2403,49,2590,90"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a97b1247be06a5454f1f03978608a7ecd" title=" " alt="" coords="2183,41,2355,97"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2387,72,2356,72,2356,67,2387,67"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab5079871c340dba3d3d52a801b80fc17" title=" " alt="" coords="1926,41,2135,97"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2167,72,2135,72,2135,67,2167,67"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a4a232d7457500c0c0521e28dbdc83ea2" title="Allows the user to make changes to the overworld map." alt="" coords="1670,41,1878,97"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1911,72,1879,72,1879,67,1911,67"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1390,5,1612,61"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1654,56,1612,50,1612,45,1655,51"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1380,85,1622,126"/>
-<area shape="poly" id="edge13_Node000004_Node000013" title=" " alt="" coords="1655,88,1623,92,1622,87,1654,82"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,49,1332,90"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1375,54,1333,60,1332,55,1374,49"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,49,1122,90"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1155,72,1123,72,1123,67,1155,67"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,49,932,90"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="964,72,933,72,933,67,964,67"/>
-<area shape="rect" id="Node000009" href="$yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="668,56,718,82"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="750,72,718,72,718,67,750,67"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,49,400,90"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="653,67,620,64,506,62,401,66,400,60,506,57,620,59,653,61"/>
-<area shape="rect" id="Node000012" href="$namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,73,620,129"/>
-<area shape="poly" id="edge11_Node000009_Node000012" title=" " alt="" coords="654,80,622,86,620,81,653,74"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,49,171,90"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="203,72,171,72,171,67,203,67"/>
-<area shape="poly" id="edge12_Node000012_Node000010" title=" " alt="" coords="432,89,400,85,401,79,433,84"/>
-<area shape="poly" id="edge14_Node000013_Node000006" title=" " alt="" coords="1364,88,1332,83,1333,78,1365,83"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="2390,49,2577,90"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a97b1247be06a5454f1f03978608a7ecd" title=" " alt="" coords="2170,41,2342,97"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2374,72,2343,72,2343,67,2374,67"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab5079871c340dba3d3d52a801b80fc17" title=" " alt="" coords="1913,41,2122,97"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2154,72,2122,72,2122,67,2154,67"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a4a232d7457500c0c0521e28dbdc83ea2" title="Allows the user to make changes to the overworld map." alt="" coords="1657,41,1865,97"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1898,72,1866,72,1866,67,1898,67"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1377,5,1599,61"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1641,56,1599,50,1599,45,1642,51"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1367,85,1609,126"/>
+<area shape="poly" id="edge13_Node000004_Node000013" title=" " alt="" coords="1642,88,1610,92,1609,87,1641,82"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1157,49,1319,90"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1362,54,1320,60,1319,55,1361,49"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,49,1109,90"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1142,72,1110,72,1110,67,1142,67"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,49,919,90"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="951,72,920,72,920,67,951,67"/>
+<area shape="rect" id="Node000009" href="$yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,56,705,82"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="737,72,705,72,705,67,737,67"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,41,388,97"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="640,67,607,64,493,62,388,66,388,61,493,57,607,59,640,61"/>
+<area shape="rect" id="Node000012" href="$namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,73,607,129"/>
+<area shape="poly" id="edge11_Node000009_Node000012" title=" " alt="" coords="640,80,608,86,607,81,639,75"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,41,173,97"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="205,72,173,72,173,67,205,67"/>
+<area shape="poly" id="edge12_Node000012_Node000010" title=" " alt="" coords="420,89,388,84,389,79,421,84"/>
+<area shape="poly" id="edge14_Node000013_Node000006" title=" " alt="" coords="1351,88,1319,83,1320,78,1352,83"/>
 </map>

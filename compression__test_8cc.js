@@ -1,9 +1,9 @@
 var compression__test_8cc =
 [
     [ "BUILD_HEADER", "compression__test_8cc.html#aca48128a724010a9277720f53bde1a5a", null ],
-    [ "ExpectCompressOk", "compression__test_8cc.html#a92f2b315ed7730d448df213c7a2eed61", null ],
-    [ "ExpectDecompressBytesOk", "compression__test_8cc.html#a296ca867a6694b5187414dba06b1db74", null ],
-    [ "ExpectDecompressOk", "compression__test_8cc.html#a97a906c38b43306c5b937d6590b19d3d", null ],
+    [ "ExpectCompressOk", "compression__test_8cc.html#a459125f1e224d2a45277b3df62809a21", null ],
+    [ "ExpectDecompressBytesOk", "compression__test_8cc.html#a3c947699f1339a039d54e26a7733f959", null ],
+    [ "ExpectDecompressOk", "compression__test_8cc.html#a9a4b5c91e8f06dcd94d036e9e7935c09", null ],
     [ "ExpectNewCompressionPieceOk", "compression__test_8cc.html#ad321fb3042ea69a672c2435bd7440db7", null ],
     [ "AssertCompressionQuality", "compression__test_8cc.html#af7d97bb47668a484667bf3236ff487d4", null ],
     [ "ExpectCompressV3Ok", "compression__test_8cc.html#a6d3877d903d4a73f31adf0e7c136aa3b", null ],

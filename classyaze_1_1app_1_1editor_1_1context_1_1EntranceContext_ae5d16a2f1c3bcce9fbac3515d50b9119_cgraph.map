@@ -1,7 +1,0 @@
-<map id="yaze::app::editor::context::EntranceContext::LoadEntranceTileTypes" name="yaze::app::editor::context::EntranceContext::LoadEntranceTileTypes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,170,61"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#af511a1391f318983eafc7770c5a36633" title=" " alt="" coords="218,20,394,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,31,202,31,202,36,170,36"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html#a91ce377dbd0f774e6b54c6a24adac094" title=" " alt="" coords="442,20,594,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,31,427,31,427,36,394,36"/>
-</map>

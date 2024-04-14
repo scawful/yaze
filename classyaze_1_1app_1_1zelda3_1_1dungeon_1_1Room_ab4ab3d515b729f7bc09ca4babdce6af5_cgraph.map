@@ -1,8 +1,8 @@
 <map id="yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics" name="yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,40,206,95"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="254,29,433,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,54,238,51,238,56,207,59"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="257,79,430,104"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="206,75,242,79,241,84,206,80"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="304,31,296,21,301,11,317,5,343,3,373,6,388,13,385,17,371,11,343,8,318,10,304,15,302,20,308,27"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="254,29,430,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,54,238,51,239,56,207,59"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="256,79,428,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="207,75,240,79,240,84,206,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,31,295,21,300,11,316,5,342,3,371,5,385,12,383,17,369,11,342,8,317,10,303,15,300,20,307,27"/>
 </map>

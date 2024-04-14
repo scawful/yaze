@@ -23,8 +23,8 @@ var namespaceyaze_1_1app =
       [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1app_1_1palette__group__internal.html#a45580ea3ca7888dd8cc859eb61b12dee", null ]
     ] ],
     [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", "namespaceyaze_1_1app_1_1zelda3" ],
-    [ "ROM", "classyaze_1_1app_1_1ROM.html", "classyaze_1_1app_1_1ROM" ],
-    [ "SharedROM", "classyaze_1_1app_1_1SharedROM.html", "classyaze_1_1app_1_1SharedROM" ],
+    [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
+    [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
     [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],
     [ "Z3_Version", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47", [
       [ "US", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2", null ],

@@ -1,0 +1,7 @@
+<map id="yaze::app::Rom::toint16" name="yaze::app::Rom::toint16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="436,20,588,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5be8dc8fb831b61a7d729401f9c9495b" title=" " alt="" coords="221,5,388,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="420,36,389,36,389,31,420,31"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a899b506e4aa8da2909369bbdaa20af8b" title=" " alt="" coords="5,5,173,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="205,36,173,36,173,31,205,31"/>
+</map>

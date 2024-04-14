@@ -1,0 +1,9 @@
+<map id="yaze::app::Rom::LoadGfxGroups" name="yaze::app::Rom::LoadGfxGroups">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,210,80"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="258,5,430,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,51,263,32,265,37,173,57"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="269,55,419,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,65,254,65,254,70,210,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="266,105,422,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="164,78,251,100,250,105,163,84"/>
+</map>

@@ -68,14 +68,14 @@ var hierarchy =
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
     [ "yaze::app::core::ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", [
-      [ "yaze::app::ROM", "classyaze_1_1app_1_1ROM.html", null ],
+      [ "yaze::app::Rom", "classyaze_1_1app_1_1Rom.html", null ],
       [ "yaze::app::core::Controller", "classyaze_1_1app_1_1core_1_1Controller.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
       [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::emu::Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", null ],
-      [ "yaze::app::zelda3::Overworld", "classyaze_1_1app_1_1zelda3_1_1Overworld.html", null ],
-      [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ]
+      [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ],
+      [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", null ]
     ] ],
     [ "yaze::app::core::ExperimentFlags::Flags", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::app::emu::audio::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
@@ -83,7 +83,7 @@ var hierarchy =
       [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
-      [ "yaze::app::zelda3::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html", null ]
+      [ "yaze::app::zelda3::overworld::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", null ]
     ] ],
     [ "yaze::app::core::ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::INIDISP", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html", null ],
@@ -104,7 +104,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::M7X", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7X.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::M7Y", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7Y.html", null ],
     [ "yaze::app::emu::video::MainSubScreenDesignation", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html", null ],
-    [ "yaze::app::zelda3::MapData", "structyaze_1_1app_1_1zelda3_1_1MapData.html", null ],
+    [ "yaze::app::zelda3::overworld::MapData", "structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html", null ],
     [ "yaze::app::emu::video::MaskLogicSettings", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html", null ],
     [ "yaze::app::emu::memory::Memory", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html", [
       [ "yaze::app::emu::Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", null ],
@@ -142,10 +142,10 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::OPVCT", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html", null ],
     [ "yaze::app::core::ExperimentFlags::Flags::Overworld", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html", null ],
     [ "yaze::app::zelda3::OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", [
-      [ "yaze::app::zelda3::OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1OverworldEntrance.html", null ],
-      [ "yaze::app::zelda3::OverworldExit", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html", null ],
-      [ "yaze::app::zelda3::OverworldItem", "classyaze_1_1app_1_1zelda3_1_1OverworldItem.html", null ],
-      [ "yaze::app::zelda3::Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", null ]
+      [ "yaze::app::zelda3::Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", null ],
+      [ "yaze::app::zelda3::overworld::OverworldEntrance", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html", null ],
+      [ "yaze::app::zelda3::overworld::OverworldExit", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html", null ],
+      [ "yaze::app::zelda3::overworld::OverworldItem", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html", null ]
     ] ],
     [ "OWMapTiles", "structOWMapTiles.html", null ],
     [ "yaze::app::editor::palette_internal::PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
@@ -169,7 +169,7 @@ var hierarchy =
     [ "yaze::app::gfx::Bitmap::SDL_Surface_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::app::gfx::Bitmap::SDL_Texture_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::SETINI", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html", null ],
-    [ "yaze::app::SharedROM", "classyaze_1_1app_1_1SharedROM.html", [
+    [ "yaze::app::SharedRom", "classyaze_1_1app_1_1SharedRom.html", [
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
       [ "yaze::app::editor::GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", null ],
       [ "yaze::app::editor::GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", null ],
@@ -182,7 +182,6 @@ var hierarchy =
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::app::emu::Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", null ],
       [ "yaze::app::emu::video::Ppu", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html", null ],
-      [ "yaze::app::zelda3::Overworld", "classyaze_1_1app_1_1zelda3_1_1Overworld.html", null ],
       [ "yaze::app::zelda3::dungeon::DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", null ],
       [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ],
       [ "yaze::app::zelda3::dungeon::RoomObject", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html", [
@@ -190,6 +189,7 @@ var hierarchy =
         [ "yaze::app::zelda3::dungeon::Subtype2", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html", null ],
         [ "yaze::app::zelda3::dungeon::Subtype3", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html", null ]
       ] ],
+      [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", null ],
       [ "yaze::app::zelda3::screen::Inventory", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html", null ]
     ] ],
     [ "yaze::app::emu::video::PpuRegisters::SLHV", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html", null ],
@@ -247,5 +247,5 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::WOBJLOG", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::WOBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html", null ],
     [ "yaze::app::emu::video::WramAccessRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html", null ],
-    [ "yaze::app::ROM::WriteAction", "structyaze_1_1app_1_1ROM_1_1WriteAction.html", null ]
+    [ "yaze::app::Rom::WriteAction", "structyaze_1_1app_1_1Rom_1_1WriteAction.html", null ]
 ];

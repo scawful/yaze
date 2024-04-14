@@ -13,12 +13,12 @@ var searchData=
   ['open_10',['Open',['../classyaze_1_1cli_1_1Open.html',1,'yaze::cli']]],
   ['ophct_11',['OPHCT',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['opvct_12',['OPVCT',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['overworld_13',['Overworld',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html',1,'yaze::app::core::ExperimentFlags::Flags::Overworld'],['../classyaze_1_1app_1_1zelda3_1_1Overworld.html',1,'yaze::app::zelda3::Overworld']]],
+  ['overworld_13',['Overworld',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html',1,'yaze::app::core::ExperimentFlags::Flags::Overworld'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['overworldeditor_14',['OverworldEditor',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html',1,'yaze::app::editor']]],
   ['overworldentity_15',['OverworldEntity',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html',1,'yaze::app::zelda3']]],
-  ['overworldentrance_16',['OverworldEntrance',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntrance.html',1,'yaze::app::zelda3']]],
-  ['overworldexit_17',['OverworldExit',['../classyaze_1_1app_1_1zelda3_1_1OverworldExit.html',1,'yaze::app::zelda3']]],
-  ['overworlditem_18',['OverworldItem',['../classyaze_1_1app_1_1zelda3_1_1OverworldItem.html',1,'yaze::app::zelda3']]],
-  ['overworldmap_19',['OverworldMap',['../classyaze_1_1app_1_1zelda3_1_1OverworldMap.html',1,'yaze::app::zelda3']]],
+  ['overworldentrance_16',['OverworldEntrance',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html',1,'yaze::app::zelda3::overworld']]],
+  ['overworldexit_17',['OverworldExit',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html',1,'yaze::app::zelda3::overworld']]],
+  ['overworlditem_18',['OverworldItem',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html',1,'yaze::app::zelda3::overworld']]],
+  ['overworldmap_19',['OverworldMap',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html',1,'yaze::app::zelda3::overworld']]],
   ['owmaptiles_20',['OWMapTiles',['../structOWMapTiles.html',1,'']]]
 ];

@@ -2,8 +2,8 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="319,1060,490,1085"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html" title=" " alt="" coords="15,5,173,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,27,218,34,247,44,274,59,297,80,309,103,321,141,342,251,359,396,374,558,396,870,405,1059,400,1059,390,870,369,558,354,396,336,252,316,142,304,105,293,83,271,64,245,49,217,39,188,32"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="18,70,170,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,75,215,79,245,86,273,99,297,119,309,140,321,176,342,282,360,420,375,575,396,876,405,1059,400,1059,390,876,369,576,354,420,337,282,316,178,304,143,293,122,270,104,243,91,214,84,185,80"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="20,70,168,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,75,214,78,244,86,272,99,297,119,309,140,321,176,342,282,360,420,375,575,396,876,405,1059,400,1059,390,876,369,576,354,420,337,282,316,178,304,143,293,122,270,104,242,91,213,84,183,80"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="15,120,173,161"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="188,135,218,139,247,147,274,161,297,180,309,200,320,234,340,332,357,461,372,606,395,887,405,1059,400,1059,389,887,367,607,352,462,334,333,314,235,304,203,293,183,271,165,245,152,216,144,188,140"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1Clock.html" title=" " alt="" coords="22,185,166,211"/>

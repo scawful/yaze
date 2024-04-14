@@ -1,9 +1,0 @@
-<map id="yaze::app::ROM::ReadByteVector" name="yaze::app::ROM::ReadByteVector">
-<area shape="rect" id="Node000001" title=" " alt="" coords="238,71,410,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3" title=" " alt="" coords="18,5,177,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,69,170,49,171,44,238,63"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html#a3e92932daab38ad0816d05d69fb31a92" title="Loads the players 4bpp graphics sheet from ROM data." alt="" coords="12,71,183,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,94,183,94,183,88,222,88"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#a3dec5993609ce99865f07babfe68851d" title=" " alt="" coords="5,136,190,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="227,118,152,137,151,132,226,113"/>
-</map>

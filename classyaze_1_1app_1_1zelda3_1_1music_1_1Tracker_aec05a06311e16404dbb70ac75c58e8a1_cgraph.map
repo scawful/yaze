@@ -1,7 +1,0 @@
-<map id="yaze::app::zelda3::music::Tracker::NewSR" name="yaze::app::zelda3::music::Tracker::NewSR">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,163,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aa80ffac247436d2cd1217e82301e5898" title=" " alt="" coords="211,5,438,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,45,195,41,196,46,164,51"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a91d4b4942dbdb1ae3ac12b7720aa3e82" title=" " alt="" coords="241,71,408,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,67,226,75,225,80,163,72"/>
-</map>

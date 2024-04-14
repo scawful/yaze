@@ -1,0 +1,9 @@
+<map id="yaze::app::emu::SNES::SetupMemory" name="yaze::app::emu::SNES::SetupMemory">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,153,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a20767f056967ac7e8aed8b45bfcbb96d" title=" " alt="" coords="201,5,381,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,68,207,49,209,54,148,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#aa642c0cb44257a313d5ce349edb363df" title=" " alt="" coords="212,71,370,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,88,197,88,197,94,153,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="216,136,366,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,108,227,128,225,134,152,113"/>
+</map>

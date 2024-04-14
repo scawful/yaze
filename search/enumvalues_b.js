@@ -1,9 +1,9 @@
 var searchData=
 [
-  ['map32tilesbl_0',['map32TilesBL',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ad405d327f6476a3e96cc7532c1fc1e3ea7ad3dff89f1601f6a9004405b26583af',1,'yaze::app::zelda3::Overworld']]],
-  ['map32tilesbr_1',['map32TilesBR',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ad405d327f6476a3e96cc7532c1fc1e3ea0b3ea0a44f9fe42840ec3ca49c928074',1,'yaze::app::zelda3::Overworld']]],
-  ['map32tilestl_2',['map32TilesTL',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ad405d327f6476a3e96cc7532c1fc1e3eac72f1c95ba4e554f39b41d86883ecbc3',1,'yaze::app::zelda3::Overworld']]],
-  ['map32tilestr_3',['map32TilesTR',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ad405d327f6476a3e96cc7532c1fc1e3ea582d9d6a7d33ecf9aebdfbe5b0cbbd52',1,'yaze::app::zelda3::Overworld']]],
+  ['map32tilesbl_0',['map32TilesBL',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#aea2948feee1b3c64223ba46292e45e53ae2f6599ab07cb24ceeb8983c4d11a45f',1,'yaze::app::zelda3::overworld::Overworld']]],
+  ['map32tilesbr_1',['map32TilesBR',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#aea2948feee1b3c64223ba46292e45e53a53c54870513de3a5468316e8acb0d047',1,'yaze::app::zelda3::overworld::Overworld']]],
+  ['map32tilestl_2',['map32TilesTL',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#aea2948feee1b3c64223ba46292e45e53a99f19d6bff63356c627ac5c8a877229d',1,'yaze::app::zelda3::overworld::Overworld']]],
+  ['map32tilestr_3',['map32TilesTR',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#aea2948feee1b3c64223ba46292e45e53ad7a6558b8aa41456c8659ff477792557',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['mode0_4',['Mode0',['../namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a315436bae0e85636381fc939db06aee5',1,'yaze::app::emu::video']]],
   ['mode1_5',['Mode1',['../namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a7a2ea225a084605104f8c39b3ae9657c',1,'yaze::app::emu::video']]],
   ['mode2_6',['Mode2',['../namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a04c542f260d16590ec60c594f67a30e7',1,'yaze::app::emu::video']]],

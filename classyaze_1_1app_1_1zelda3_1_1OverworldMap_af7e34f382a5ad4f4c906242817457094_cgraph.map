@@ -1,5 +1,0 @@
-<map id="yaze::app::zelda3::OverworldMap::LoadAreaGraphicsBlocksets" name="yaze::app::zelda3::OverworldMap::LoadAreaGraphicsBlocksets">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,61"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#a622f1ce127397eb27548536521ce0b99" title=" " alt="" coords="273,13,431,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,31,257,31,257,36,225,36"/>
-</map>

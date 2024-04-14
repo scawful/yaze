@@ -1,9 +1,9 @@
 <map id="yaze::app::core::UppercaseHexLong" name="yaze::app::core::UppercaseHexLong">
-<area shape="rect" id="Node000001" title=" " alt="" coords="432,35,606,75"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407" title=" " alt="" coords="177,5,384,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="416,45,384,41,385,36,417,40"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#a4df0a25f6f029844ce7232f25ccbaf23" title=" " alt="" coords="193,70,368,96"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="417,70,369,75,368,70,416,64"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a3024afeb5938bb2167313f9f68018038" title=" " alt="" coords="5,5,129,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="161,28,129,28,129,23,161,23"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="452,46,626,87"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a49556e3a62a2ec33a3edfcbd2b25a1fc" title=" " alt="" coords="244,5,392,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="436,54,392,47,393,42,437,48"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a1dc9f6b0f774b6deec84663fea3add80" title=" " alt="" coords="232,86,404,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="437,84,405,89,404,83,436,79"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#acf44b7aad64bf4ffa153a3477635df03" title=" " alt="" coords="5,13,184,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="228,36,184,36,184,31,228,31"/>
 </map>

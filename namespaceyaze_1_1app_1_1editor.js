@@ -18,15 +18,15 @@ var namespaceyaze_1_1app_1_1editor =
     ] ],
     [ "entrance_internal", "namespaceyaze_1_1app_1_1editor_1_1entrance__internal.html", [
       [ "DrawEntranceInserterPopup", "namespaceyaze_1_1app_1_1editor_1_1entrance__internal.html#ae2ac93c3dedd86cdd8c95e86a72f6e77", null ],
-      [ "DrawOverworldEntrancePopup", "namespaceyaze_1_1app_1_1editor_1_1entrance__internal.html#a7af9f2797bfe3d92791c6fa66ad64505", null ]
+      [ "DrawOverworldEntrancePopup", "namespaceyaze_1_1app_1_1editor_1_1entrance__internal.html#a9a8ede8b62343402f0356f7975f1ed52", null ]
     ] ],
     [ "exit_internal", "namespaceyaze_1_1app_1_1editor_1_1exit__internal.html", [
       [ "DrawExitInserterPopup", "namespaceyaze_1_1app_1_1editor_1_1exit__internal.html#a70069e9738092194678dac366ddd2eb4", null ],
-      [ "DrawExitEditorPopup", "namespaceyaze_1_1app_1_1editor_1_1exit__internal.html#a84158e04594fc461285b9bc785ede404", null ]
+      [ "DrawExitEditorPopup", "namespaceyaze_1_1app_1_1editor_1_1exit__internal.html#ab17f34d0ead5344a22c8153fa8e524f8", null ]
     ] ],
     [ "item_internal", "namespaceyaze_1_1app_1_1editor_1_1item__internal.html", [
       [ "DrawItemInsertPopup", "namespaceyaze_1_1app_1_1editor_1_1item__internal.html#ab2c9f1e52d63636be5c038668a23e697", null ],
-      [ "DrawItemEditorPopup", "namespaceyaze_1_1app_1_1editor_1_1item__internal.html#a657c09d5a6a1e633a36d5cf82f1714dd", null ]
+      [ "DrawItemEditorPopup", "namespaceyaze_1_1app_1_1editor_1_1item__internal.html#a105839b6c5f7fa977dda27bca447e966", null ]
     ] ],
     [ "palette_internal", "namespaceyaze_1_1app_1_1editor_1_1palette__internal.html", "namespaceyaze_1_1app_1_1editor_1_1palette__internal" ],
     [ "sprite_internal", "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html", "namespaceyaze_1_1app_1_1editor_1_1sprite__internal" ],

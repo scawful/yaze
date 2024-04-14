@@ -1,0 +1,10 @@
+<map id="yaze::app::Rom::palette_group" name="yaze::app::Rom::palette_group">
+<area shape="rect" id="Node000001" title=" " alt="" coords="655,13,808,54"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,5,388,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="639,29,607,28,436,28,388,30,388,25,436,23,607,23,640,24"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,37,607,93"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="640,50,608,55,607,49,639,44"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,5,173,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="205,36,173,36,173,31,205,31"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="420,53,388,48,389,43,421,48"/>
+</map>

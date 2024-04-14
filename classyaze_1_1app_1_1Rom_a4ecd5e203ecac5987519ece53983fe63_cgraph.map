@@ -1,0 +1,21 @@
+<map id="yaze::app::Rom::SavePalette" name="yaze::app::Rom::SavePalette">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,108,190,133"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a04544775b5724bfbe086cb024eb4091a" title=" " alt="" coords="242,5,408,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,105,237,57,253,50,255,55,239,61,129,109"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="238,71,412,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,106,222,102,223,107,191,111"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="695,186,844,212"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="190,128,680,186,679,191,190,134"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#a892dc139b8513e79b81096fa9b832aea" title=" " alt="" coords="238,237,412,263"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="123,131,289,227,286,231,121,136"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="389,234,460,222,574,209,679,201,679,206,574,214,460,227,390,239"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb" title=" " alt="" coords="682,329,857,355"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="376,261,461,282,673,323,672,328,459,287,374,266"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38" title=" " alt="" coords="682,245,857,286"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="385,261,460,272,567,276,667,272,667,278,567,282,460,278,384,266"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1Rom.html#a85ea52c315f6f5c8445bad7885e42d23" title=" " alt="" coords="460,237,634,263"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="412,247,444,247,444,252,412,252"/>
+<area shape="poly" id="edge11_Node000008_Node000004" title=" " alt="" coords="606,234,695,213,696,218,607,239"/>
+<area shape="poly" id="edge9_Node000008_Node000006" title=" " alt="" coords="581,261,723,320,721,325,579,266"/>
+<area shape="poly" id="edge10_Node000008_Node000007" title=" " alt="" coords="635,253,667,256,667,261,634,259"/>
+</map>

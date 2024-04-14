@@ -1,0 +1,12 @@
+<map id="yaze::app::Rom::UpdateBitmap" name="yaze::app::Rom::UpdateBitmap">
+<area shape="rect" id="Node000001" title="Used to update a bitmap on the screen." alt="" coords="5,102,202,128"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="250,29,425,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,99,247,72,248,77,153,104"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="265,95,410,135"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="202,112,250,112,250,118,202,118"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="263,160,412,185"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="160,126,268,153,266,158,158,131"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="298,29,296,19,302,10,316,5,337,3,360,5,373,11,371,16,358,10,337,8,318,10,306,15,301,20,303,28"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="473,95,617,135"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="410,112,457,112,457,118,410,118"/>
+</map>

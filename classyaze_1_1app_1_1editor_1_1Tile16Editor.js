@@ -46,8 +46,8 @@ var classyaze_1_1app_1_1editor_1_1Tile16Editor =
     [ "tile8_gfx_data_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a38c161d01fbd8cd4e35045ded49f2dc2", null ],
     [ "palette_editor_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a4e4aba9137fa52d64b51857a36bcdb4a", null ],
     [ "palette_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#aeb1777662a4a0f658013c5d572738597", null ],
-    [ "transfer_overworld_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#aa9dbfa225bd0d6fca0c274613d0f2b7e", null ],
+    [ "transfer_overworld_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a947d8a2b941872b74d462ff2ab6b35c1", null ],
     [ "graphics_bin_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#ae9352faebbea08be0bdf84cddd0bae9a", null ],
-    [ "transfer_rom_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#aae986ecd64f30398a1665d2f01549a09", null ],
+    [ "transfer_rom_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#aeb17e791df154a736308bc315f3fe06e", null ],
     [ "transfer_status_", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a6a9190d69d0478136a819365c74ad2c0", null ]
 ];

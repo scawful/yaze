@@ -40,7 +40,7 @@ var classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen =
     [ "editedFromEditor", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#acd8b4977f977916542cc3acb0a09de49", null ],
     [ "mouseDown", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a01acc36e96a39a48b28bff01ac7943a9", null ],
     [ "mdown", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a40e6a9050966057c243cd605f0aae9e6", null ],
-    [ "rom_", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a2f1c62a478579b7cd8b7d1d796307aa7", null ],
+    [ "rom_", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a0e6d93b602130becb262c173930e0b56", null ],
     [ "oam_data", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a1d6c6f26ae488661a07b535e4d2c468d", null ],
     [ "selected_oam_tile", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ab916fdd20cb73b758930e11c6193b609", null ],
     [ "last_selected_oam_tile", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ab70a66cead4d06fa29d78122782a7622", null ],

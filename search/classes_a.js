@@ -8,7 +8,7 @@ var searchData=
   ['m7x_5',['M7X',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7X.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['m7y_6',['M7Y',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7Y.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['mainsubscreendesignation_7',['MainSubScreenDesignation',['../structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html',1,'yaze::app::emu::video']]],
-  ['mapdata_8',['MapData',['../structyaze_1_1app_1_1zelda3_1_1MapData.html',1,'yaze::app::zelda3']]],
+  ['mapdata_8',['MapData',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html',1,'yaze::app::zelda3::overworld']]],
   ['masklogicsettings_9',['MaskLogicSettings',['../structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html',1,'yaze::app::emu::video']]],
   ['mastereditor_10',['MasterEditor',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html',1,'yaze::app::editor']]],
   ['memory_11',['Memory',['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html',1,'yaze::app::emu::memory']]],

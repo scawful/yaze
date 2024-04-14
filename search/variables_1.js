@@ -32,7 +32,7 @@ var searchData=
   ['bg1hofs_29',['BG1HOFS',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a3e3a5057c6eebc4bf5fb4a245f59d78a',1,'yaze::app::emu::video::PpuRegisters']]],
   ['bg1sc_30',['BG1SC',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac7b568a201cf964b594b159e7afb97e2',1,'yaze::app::emu::video::PpuRegisters']]],
   ['bg1vofs_31',['BG1VOFS',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac3c2ca2b9a617cff519aa17ad2165d5e',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['bg2_32',['bg2',['../classyaze_1_1app_1_1zelda3_1_1OverworldItem.html#a2979a72b23ed37940120b85aadb46349',1,'yaze::app::zelda3::OverworldItem']]],
+  ['bg2_32',['bg2',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html#a89ca86d01da440c97c781c6999bf4cd5',1,'yaze::app::zelda3::overworld::OverworldItem']]],
   ['bg2_5f_33',['bg2_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a5011cc76787fe4af3de5272dc2a51ff4',1,'yaze::app::zelda3::dungeon::Room']]],
   ['bg2_5faddress_34',['BG2_address',['../structyaze_1_1app_1_1emu_1_1video_1_1CharacterLocation.html#a78870b4fdde67e5aad0626bf751fc24b',1,'yaze::app::emu::video::CharacterLocation']]],
   ['bg2_5fbuffer_5f_35',['bg2_buffer_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a47c095f856ce901434c504169343cc61',1,'yaze::app::zelda3::dungeon::Room']]],
@@ -78,7 +78,7 @@ var searchData=
   ['bit_5fmode_75',['bit_mode',['../structyaze_1_1app_1_1gfx_1_1CgxHeader.html#af73216f8760f41c94d382529ab3c8afd',1,'yaze::app::gfx::CgxHeader']]],
   ['bitmap_5f_76',['bitmap_',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#af7f2d997f7b6e73b0d0e390483f86356',1,'yaze::app::gfx::Tilesheet::bitmap_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a26e90a33ede9c0bef764301dab59c2ae',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer::bitmap_'],['../classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a365d3b08fb94b877387f6492d87e9023',1,'yaze::app::zelda3::screen::Inventory::bitmap_']]],
   ['bitmap_5fcache_5f_77',['bitmap_cache_',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a0df41412659914b8e372e02bc918a503',1,'yaze::app::gfx::BitmapManager']]],
-  ['bitmap_5fdata_5f_78',['bitmap_data_',['../classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a4db73f95fdfdb575a7ef587528136a85',1,'yaze::app::zelda3::OverworldMap']]],
+  ['bitmap_5fdata_5f_78',['bitmap_data_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5999feb740d3aecfd75c7123dfb76bb2',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['blocks_5f_79',['blocks_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a7f4066ace207c98a6a69bc5e6a5160c4',1,'yaze::app::zelda3::dungeon::Room']]],
   ['blocks_5flength_80',['blocks_length',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a23e14f92cbee2d45e7a316ae645bd210',1,'yaze::app::zelda3::dungeon']]],
   ['blocks_5fpointer1_81',['blocks_pointer1',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac6aa590edb0bc82e72c2068a532aae75',1,'yaze::app::zelda3::dungeon']]],
@@ -96,6 +96,6 @@ var searchData=
   ['bounding_5fbox_5f_93',['bounding_box_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a12171c6fe266c831122d3eedb6920aea',1,'yaze::app::zelda3::Sprite']]],
   ['breakpoints_5f_94',['breakpoints_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7556a2435a81b35b6d6289f741da167e',1,'yaze::app::emu::Cpu']]],
   ['brightness_95',['brightness',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html#a0bba8e5a7a285e6faa7201e5246fd539',1,'yaze::app::emu::video::ScreenDisplay::brightness'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a53762bbf78c8d04ffd255ef245d3cccb',1,'yaze::app::emu::video::PpuRegisters::INIDISP::brightness']]],
-  ['built_5f_96',['built_',['../classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a3964efef514dc66b0f729e0124772ef7',1,'yaze::app::zelda3::OverworldMap']]],
+  ['built_5f_96',['built_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36e352c4704510da5c38f1af045cf0a3',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['bytestotransfer_97',['bytesToTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de',1,'yaze::app::emu::video::DmaRegisters']]]
 ];

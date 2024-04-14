@@ -1,11 +1,11 @@
 <map id="yaze::app::gfx::SnesPalette::Create" name="yaze::app::gfx::SnesPalette::Create">
-<area shape="rect" id="Node000001" title=" " alt="" coords="668,49,843,90"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,5,620,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="652,55,621,50,621,45,653,50"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze__test_1_1gfx__test.html#a1a263e0ae5ef8848f9ab4910765f1db3" title=" " alt="" coords="470,85,598,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="653,88,599,97,598,92,653,83"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,13,400,54"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="433,36,400,36,400,31,433,31"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,13,171,54"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="203,36,171,36,171,31,203,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="655,49,830,90"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,5,607,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="639,55,607,50,608,45,640,50"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze__test_1_1gfx__test.html#a1a263e0ae5ef8848f9ab4910765f1db3" title=" " alt="" coords="458,85,586,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="641,88,587,97,586,92,640,83"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,5,388,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="420,36,388,36,388,31,420,31"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,5,173,61"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="205,36,173,36,173,31,205,31"/>
 </map>

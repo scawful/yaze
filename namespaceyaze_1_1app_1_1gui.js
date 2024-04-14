@@ -40,7 +40,6 @@ var namespaceyaze_1_1app_1_1gui =
     [ "GraphicsManagerCanvasPipeline", "namespaceyaze_1_1app_1_1gui.html#a34609a02f8c4abef89d99a65d59cdeb5", null ],
     [ "ButtonPipe", "namespaceyaze_1_1app_1_1gui.html#a21cf03d73a6f5ee2e9bf2baa76c1a2dc", null ],
     [ "BitmapCanvasPipeline", "namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43", null ],
-    [ "BuildAndRenderBitmapPipeline", "namespaceyaze_1_1app_1_1gui.html#a026bfbf959e86dcacdc224d3b028a94a", null ],
     [ "FileDialogPipeline", "namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50", null ],
     [ "BeginWindowWithDisplaySettings", "namespaceyaze_1_1app_1_1gui.html#a69040af6cbf02bd16c9e22e4bff2b99e", null ],
     [ "EndWindowWithDisplaySettings", "namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d", null ],

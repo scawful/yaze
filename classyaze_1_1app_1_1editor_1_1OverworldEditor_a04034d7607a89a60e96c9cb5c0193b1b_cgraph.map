@@ -1,5 +1,5 @@
 <map id="yaze::app::editor::OverworldEditor::RefreshMapProperties" name="yaze::app::editor::OverworldEditor::RefreshMapProperties">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,195,61"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a1c251079d8f080049d26b11a09838c8a" title=" " alt="" coords="243,13,470,54"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a714f3591d4c0f7de91af53a00b37432b" title=" " alt="" coords="243,5,411,61"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,31,227,31,227,36,195,36"/>
 </map>

@@ -23,6 +23,6 @@ var searchData=
   ['wobjlog_5f_20',['wobjlog_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5444df1780fe59bd620136121aa52e1f',1,'yaze::app::emu::video::Ppu']]],
   ['wobjsel_21',['WOBJSEL',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac0943e4703e990b0a88f8485466c0dbe',1,'yaze::app::emu::video::PpuRegisters']]],
   ['wobjsel_5f_22',['wobjsel_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab0ff0e7120afbf9609670af425f17e70',1,'yaze::app::emu::video::Ppu']]],
-  ['world_5f_23',['world_',['../classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a7fb0901f62f2f8bffe75780adec2a63d',1,'yaze::app::zelda3::OverworldMap']]],
-  ['world_5findex_5f_24',['world_index_',['../classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a5b3b60e65df21c454136792589a6ef39',1,'yaze::app::zelda3::OverworldMap']]]
+  ['world_5f_23',['world_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0de6457335b63777689847f182867900',1,'yaze::app::zelda3::overworld::OverworldMap']]],
+  ['world_5findex_5f_24',['world_index_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a4e8049b1c990fef37c08f2f30e606672',1,'yaze::app::zelda3::overworld::OverworldMap']]]
 ];

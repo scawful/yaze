@@ -1,5 +1,10 @@
 var NAVTREEINDEX33 =
 {
+"namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html":[8,0,1,0,1,10],
+"namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670b":[8,0,1,0,1,10,1],
+"namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670ba434b73359cdd84750e4da83ae7a05fc3":[8,0,1,0,1,10,1,3],
+"namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670ba477a850cd41a13cdabc79352a6c0aaa5":[8,0,1,0,1,10,1,0],
+"namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670ba7026d3d49a000cffe5ac638eee80aacc":[8,0,1,0,1,10,1,4],
 "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670ba88cf6a24823a8793a47de4581fda509b":[8,0,1,0,1,10,1,1],
 "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670baa822031cd75d0fff217dc53b3c0d6612":[8,0,1,0,1,10,1,2],
 "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a97b1247be06a5454f1f03978608a7ecd":[8,0,1,0,1,10,4],
@@ -244,10 +249,5 @@ var NAVTREEINDEX33 =
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9768d31ade99cfac5c730a47fd9bd944":[8,0,1,0,3,1,47],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99a3331f6a6866bb8a694c1d828154fc":[8,0,1,0,3,1,23],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a99f113d574564e9fb02470d77369b435":[8,0,1,0,3,1,17],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81":[8,0,1,0,3,1,31],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9aac5b62ca1178803afc6b1c6b42b7e0":[8,0,1,0,3,1,72],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa5f36c0fbde5994c88d0a644f97aac0f":[8,0,1,0,3,1,68],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785":[8,0,1,0,3,1,48],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa8bcf90e524970ee34af92030ea7066f":[8,0,1,0,3,1,77],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab029bf3391b9f450789088d69ee7d08f":[8,0,1,0,3,1,29]
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81":[8,0,1,0,3,1,31]
 };

@@ -1,0 +1,9 @@
+<map id="yaze::app::Rom::LoadFromPointer" name="yaze::app::Rom::LoadFromPointer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="221,104,393,145"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a459125f1e224d2a45277b3df62809a21" title=" " alt="" coords="5,29,173,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,102,173,90,174,85,216,97"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09" title=" " alt="" coords="5,148,173,219"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="215,152,174,163,172,158,214,147"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="122,17,109,10,89,8,71,10,59,14,53,21,51,29,46,28,48,18,56,10,70,5,89,3,111,5,125,12"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="122,136,109,129,89,127,71,128,59,133,53,140,51,148,46,147,48,137,56,129,70,123,89,121,111,124,125,131"/>
+</map>

@@ -5,6 +5,7 @@ var classyaze_1_1app_1_1gfx_1_1Bitmap =
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a632826783c32f69f3cadd272d5ccbe49", null ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#afe4955e48e94c72d6ce5b39eb2a3c17d", null ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a9d6c809ffd9849ac5575879ac3710ca5", null ],
+    [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a87cf19397188c2833d41e468055e8c0d", null ],
     [ "Create", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb", null ],
     [ "Create", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec", null ],
     [ "InitializeFromData", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#ab2ef4a193dc365a5756c8b69a43ef28d", null ],
