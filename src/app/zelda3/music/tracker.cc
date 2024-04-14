@@ -28,7 +28,7 @@ namespace zelda3 {
 
 namespace {
 
-void AddSPCReloc(SongSPCBlock *sbl, short addr) {
+void AddSPCReloc(music::SongSPCBlock *sbl, short addr) {
   sbl->relocs[sbl->relnum++] = addr;
   if (sbl->relnum == sbl->relsz) {
     sbl->relsz += 16;
@@ -38,8 +38,7 @@ void AddSPCReloc(SongSPCBlock *sbl, short addr) {
 
 }  // namespace
 
-// =============================================================================
-
+namespace music {
 SongSPCBlock *Tracker::AllocSPCBlock(int len, int bank) {
   SongSPCBlock *sbl;
   if (!len) {
@@ -1337,8 +1336,7 @@ void Tracker::NewSR(ROM &rom, int bank) {
   EditTrack(rom, sr->first);
 }
 
-// =============================================================================
-
+}  // namespace music
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

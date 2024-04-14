@@ -11,8 +11,8 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
-#include "app/editor/utils/editor.h"
 #include "app/editor/master_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
 
@@ -22,6 +22,12 @@ namespace yaze {
 namespace app {
 namespace core {
 
+/**
+ * @brief Main controller for the application.
+ *
+ * This class is responsible for managing the main window and the
+ * main editor. It is the main entry point for the application.
+ */
 class Controller : public ExperimentFlags {
  public:
   bool IsActive() const { return active_; }

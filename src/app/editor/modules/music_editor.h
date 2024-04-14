@@ -70,7 +70,7 @@ class MusicEditor : public SharedROM {
   void DrawSongToolset();
   void DrawToolset();
 
-  zelda3::Tracker music_tracker_;
+  zelda3::music::Tracker music_tracker_;
 
   // Mix_Music* current_song_ = NULL;
 

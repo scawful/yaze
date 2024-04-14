@@ -104,6 +104,9 @@ class CreatePatch : public CommandHandler {
   }
 };
 
+/**
+ * @brief Open a ROM file and display information about it.
+ */
 class Open : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -119,7 +122,9 @@ class Open : public CommandHandler {
   }
 };
 
-// Backup ROM
+/**
+ * @brief Backup a ROM file.
+ */
 class Backup : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -185,8 +190,12 @@ class Decompress : public CommandHandler {
   }
 };
 
-// SnesToPc Conversion
-// -s <address>
+/**
+ * @brief Convert a SNES address to a PC address.
+
+  * @param arg_vec `-s <address>`
+  * @return absl::Status
+*/
 class SnesToPc : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -200,6 +209,12 @@ class SnesToPc : public CommandHandler {
   }
 };
 
+/**
+ * @brief Convert a PC address to a SNES address.
+
+  * @param arg_vec `-p <address>`
+  * @return absl::Status
+*/
 class PcToSnes : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -216,7 +231,12 @@ class PcToSnes : public CommandHandler {
   }
 };
 
-// -r <rom_file> <address> <optional:length, default: 0x01>
+/**
+ * @brief Read from a ROM file.
+
+  * @param arg_vec `-r <rom_file> <address> <optional:length, default: 0x01>`
+  * @return absl::Status
+*/
 class ReadFromRom : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -249,13 +269,23 @@ class ReadFromRom : public CommandHandler {
   }
 };
 
-// Transfer tile 16 data from one rom to another
-// -t <src_rom> <dest_rom> "<tile32_id_list:csv>"
+/**
+ * @brief Transfer tile 16 data from one ROM to another.
+
+  * @param arg_vec `-t <src_rom> <dest_rom> "<tile32_id_list:csv>"`
+  * @return absl::Status
+*/
 class Tile16Transfer : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override;
 };
 
+/**
+ * @brief Expand a ROM file.
+
+  * @param arg_vec `-x <rom_file> <file_size>`
+  * @return absl::Status
+*/
 class Expand : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -274,8 +304,12 @@ class Expand : public CommandHandler {
   }
 };
 
-// Start Emulator on a SNES rom file
-// -emu <rom_file> <optional:num_cpu_cycles>
+/**
+ * @brief Start the emulator on a SNES ROM file.
+
+  * @param arg_vec `-emu <rom_file> <optional:num_cpu_cycles>`
+  * @return absl::Status
+*/
 class Emulator : public CommandHandler {
  public:
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
@@ -321,6 +355,9 @@ class Emulator : public CommandHandler {
   app::emu::SNES snes;
 };
 
+/**
+ * @brief Command handler for the CLI.
+ */
 struct Commands {
   std::unordered_map<std::string, std::shared_ptr<CommandHandler>> handlers = {
       {"-emu", std::make_shared<Emulator>()},

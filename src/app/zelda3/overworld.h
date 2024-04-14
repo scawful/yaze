@@ -468,6 +468,12 @@ struct MapData {
   std::vector<uint8_t> lowData;
 };
 
+/**
+ * @brief Represents the full Overworld data, light and dark world.
+ *
+ * This class is responsible for loading and saving the overworld data,
+ * as well as creating the tilesets and tilemaps for the overworld.
+ */
 class Overworld : public SharedROM, public core::ExperimentFlags {
  public:
   OWBlockset &GetMapTiles(int world_type);
