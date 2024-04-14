@@ -92,7 +92,7 @@ class SNES : public DMA {
 
   CPU cpu_{memory_, clock_};
   Ppu ppu_{memory_, clock_};
-  APU apu_{memory_, audio_ram_, clock_};
+  Apu apu_{memory_, audio_ram_, clock_};
 
   // Helper classes
   ROMInfo rom_info_;

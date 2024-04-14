@@ -13,7 +13,7 @@ class Debugger {
  public:
   Debugger() = default;
   // Attach the debugger to the emulator
-  // Debugger(CPU &cpu, PPU &ppu, APU &apu);
+  // Debugger(CPU &cpu, PPU &ppu, Apu &apu);
 
   // Set a breakpoint
   void SetBreakpoint(uint16_t address);
@@ -43,7 +43,7 @@ class Debugger {
   // References to the emulator's components
   // CPU &cpu;
   // PPU &ppu;
-  // APU &apu;
+  // Apu &apu;
 
   // Breakpoints, watchpoints, etc.
   // ...
