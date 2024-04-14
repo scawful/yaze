@@ -165,17 +165,6 @@ class Rom : public core::ExperimentFlags {
   absl::Status LoadAllGraphicsData();
 
   /**
-   * @brief Loads all the palettes for the game.
-   *
-   * This function loads all the palettes for the game, including overworld,
-   * HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object
-   * palettes. It also adds the loaded palettes to their respective palette
-   * groups.
-   *
-   */
-  absl::Status LoadAllPalettes();
-
-  /**
    * Load Rom data from a file.
    *
    * @param filename The name of the file to load.
