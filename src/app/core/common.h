@@ -14,8 +14,16 @@
 
 namespace yaze {
 namespace app {
+/**
+ * @namespace yaze::app::core
+ * @brief Core application logic and utilities.
+ */
 namespace core {
 
+/**
+ * @class ExperimentFlags
+ * @brief A class to manage experimental feature flags.
+ */
 class ExperimentFlags {
  public:
   struct Flags {
@@ -99,6 +107,11 @@ class ExperimentFlags {
   static std::shared_ptr<Flags> flags_;
 };
 
+/**
+ * @class NotifyValue
+ * @brief A class to manage a value that can be modified and notify when it
+ * changes.
+ */
 template <typename T>
 class NotifyValue {
  public:
