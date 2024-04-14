@@ -15,6 +15,11 @@
 
 namespace yaze {
 namespace app {
+
+/**
+ * @namespace yaze::app::gfx
+ * @brief Contains classes for handling graphical data.
+ */
 namespace gfx {
 
 /**
