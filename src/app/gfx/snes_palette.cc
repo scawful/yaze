@@ -18,9 +18,10 @@
 
 namespace yaze {
 namespace app {
+namespace gfx {
 
 /**
- * @namespace yaze::app::palette_group_internal
+ * @namespace yaze::app::gfx::palette_group_internal
  * @brief Internal functions for loading palettes by group.
  */
 namespace palette_group_internal {
@@ -181,8 +182,6 @@ absl::Status LoadOverworldMiniMapPalettes(
   return absl::OkStatus();
 }
 }  // namespace palette_group_internal
-
-namespace gfx {
 
 const absl::flat_hash_map<std::string, uint32_t> kPaletteGroupAddressMap = {
     {"ow_main", core::overworldPaletteMain},
