@@ -20,6 +20,10 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    # Delete the html directory if it exists
+    - name: Delete html directory
+      run: rm -rf html
+
     # Installs graphviz for DOT graphs
     - name: Install graphviz
       run: sudo apt-get install graphviz
