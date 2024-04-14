@@ -9,9 +9,13 @@
 #include "app/emu/memory/memory.h"
 #include "app/emu/memory/mock_memory.h"
 
-namespace yaze {
-namespace app {
-namespace emu {
+namespace yaze_test {
+namespace emu_test {
+
+using yaze::app::emu::AsmParser;
+using yaze::app::emu::Cpu;
+using yaze::app::emu::memory::MockClock;
+using yaze::app::emu::memory::MockMemory;
 
 /**
  * \test Test fixture for CPU unit tests
@@ -26,8 +30,8 @@ class CpuTest : public ::testing::Test {
   }
 
   AsmParser asm_parser;
-  memory::MockMemory mock_memory;
-  memory::MockClock mock_clock;
+  MockMemory mock_memory;
+  MockClock mock_clock;
   Cpu cpu{mock_memory, mock_clock};
 };
 
@@ -39,7 +43,7 @@ using ::testing::Return;
 // ============================================================================
 
 TEST_F(CpuTest, CheckMemoryContents) {
-  memory::MockMemory memory;
+  MockMemory memory;
   std::vector<uint8_t> data = {0x00, 0x01, 0x02, 0x03, 0x04};
   memory.SetMemoryContents(data);
 
@@ -4167,6 +4171,5 @@ TEST_F(CpuTest, XCESwitchBackAndForth) {
   EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
 }
 
-}  // namespace emu
-}  // namespace app
-}  // namespace yaze
+}  // namespace emu_test
+}  // namespace yaze_test

@@ -10,8 +10,8 @@
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
 
-namespace yaze {
-namespace test {
+namespace yaze_test {
+namespace zelda3_test {
 
 TEST(DungeonObjectTest, RenderObjectsAsBitmaps) {
   app::ROM rom;
@@ -21,5 +21,5 @@ TEST(DungeonObjectTest, RenderObjectsAsBitmaps) {
   app::zelda3::dungeon::DungeonObjectRenderer renderer;
 }
 
-}  // namespace test
-}  // namespace yaze
+}  // namespace zelda3_test
+}  // namespace yaze_test

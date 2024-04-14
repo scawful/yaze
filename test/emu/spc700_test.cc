@@ -4,13 +4,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace yaze {
-namespace app {
-namespace emu {
-namespace audio {
+namespace yaze_test {
+namespace emu_test {
 
 using testing::_;
 using testing::Return;
+using yaze::app::emu::audio::AudioRam;
+using yaze::app::emu::audio::Spc700;
 
 /**
  * @brief MockAudioRam is a mock class for the AudioRam class.
@@ -468,7 +468,5 @@ TEST_F(Spc700Test, BootIplRomOk) {
   // EXPECT_EQ(spc700.PC, 0xFFC1 + 0x3F);
 }
 
-}  // namespace audio
-}  // namespace emu
-}  // namespace app
-}  // namespace yaze
+}  // namespace emu_test
+}  // namespace yaze_test
