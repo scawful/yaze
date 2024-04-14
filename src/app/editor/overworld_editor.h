@@ -162,7 +162,7 @@ class OverworldEditor : public Editor,
 
   absl::Status DrawTile16Selector();
   void DrawTile8Selector();
-  void DrawAreaGraphics();
+  absl::Status DrawAreaGraphics();
   absl::Status DrawTileSelector();
 
   absl::Status LoadSpriteGraphics();

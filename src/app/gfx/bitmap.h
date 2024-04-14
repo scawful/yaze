@@ -22,8 +22,6 @@ namespace app {
  */
 namespace gfx {
 
-
-
 /**
  * @brief Convert SDL_Surface to PNG image data.
  */
@@ -51,6 +49,16 @@ class Bitmap {
   Bitmap(int width, int height, int depth, const Bytes &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
     InitializeFromData(width, height, depth, data);
+  }
+  Bitmap(int width, int height, int depth, const Bytes &data,
+         const SnesPalette &palette)
+      : width_(width),
+        height_(height),
+        depth_(depth),
+        data_(data),
+        palette_(palette) {
+    InitializeFromData(width, height, depth, data);
+    ApplyPalette(palette);
   }
 
   /**

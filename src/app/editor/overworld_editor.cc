@@ -790,15 +790,14 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawOverlay();
 }
 
-void OverworldEditor::DrawAreaGraphics() {
+absl::Status OverworldEditor::DrawAreaGraphics() {
   if (overworld_.is_loaded()) {
     if (current_graphics_set_.count(current_map_) == 0) {
       overworld_.set_current_map(current_map_);
       palette_ = overworld_.AreaPalette();
       gfx::Bitmap bmp;
-      gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x08,
-                                        overworld_.current_graphics(), *rom(),
-                                        bmp, palette_);
+      RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+          0x80, 0x200, 0x08, overworld_.current_graphics(), bmp, palette_));
       current_graphics_set_[current_map_] = bmp;
     }
   }
@@ -818,6 +817,7 @@ void OverworldEditor::DrawAreaGraphics() {
   }
   ImGui::EndChild();
   ImGui::EndGroup();
+  return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::DrawTileSelector() {
@@ -863,9 +863,8 @@ bool IsMouseHoveringOverEntity(const zelda3::OverworldEntity &entity,
   return false;
 }
 
-void MoveEntityOnGrid(zelda3::OverworldEntity *entity,
-                      ImVec2 canvas_p0, ImVec2 scrolling,
-                      bool free_movement = false) {
+void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+                      ImVec2 scrolling, bool free_movement = false) {
   // Get the mouse position relative to the canvas
   const ImGuiIO &io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
@@ -884,9 +883,8 @@ void MoveEntityOnGrid(zelda3::OverworldEntity *entity,
   entity->set_y(new_y);
 }
 
-void HandleEntityDragging(zelda3::OverworldEntity *entity,
-                          ImVec2 canvas_p0, ImVec2 scrolling,
-                          bool &is_dragging_entity,
+void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
+                          ImVec2 scrolling, bool &is_dragging_entity,
                           zelda3::OverworldEntity *&dragged_entity,
                           zelda3::OverworldEntity *&current_entity,
                           bool free_movement = false) {
@@ -1609,14 +1607,12 @@ absl::Status OverworldEditor::LoadGraphics() {
   palette_ = overworld_.AreaPalette();
 
   // Create the area graphics image
-  gui::BuildAndRenderBitmapPipeline(0x80, 0x200, 0x40,
-                                    overworld_.current_graphics(), *rom(),
-                                    current_gfx_bmp_, palette_);
+  rom()->CreateAndRenderBitmap(0x80, 0x200, 0x40, overworld_.current_graphics(),
+                               current_gfx_bmp_, palette_);
 
   // Create the tile16 blockset image
-  gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x08,
-                                    overworld_.Tile16Blockset(), *rom(),
-                                    tile16_blockset_bmp_, palette_);
+  rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x08, overworld_.Tile16Blockset(),
+                               tile16_blockset_bmp_, palette_);
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
@@ -1644,18 +1640,17 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Render the bitmaps of each tile.
   for (int id = 0; id < 4096; id++) {
     tile16_individual_.emplace_back();
-    gui::BuildAndRenderBitmapPipeline(0x10, 0x10, 0x80,
-                                      tile16_individual_data_[id], *rom(),
-                                      tile16_individual_[id], palette_);
+    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+        0x10, 0x10, 0x80, tile16_individual_data_[id], tile16_individual_[id],
+        palette_));
   }
 
   // Render the overworld maps loaded from the ROM.
   for (int i = 0; i < zelda3::overworld::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
     auto palette = overworld_.AreaPalette();
-    gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,
-                                      overworld_.BitmapData(), *rom(),
-                                      maps_bmp_[i], palette);
+    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+        0x200, 0x200, 0x200, overworld_.BitmapData(), maps_bmp_[i], palette));
   }
 
   if (flags()->overworld.kDrawOverworldSprites) {
@@ -1675,9 +1670,9 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   overworld_.set_current_map(current_map_);
   palette_ = overworld_.AreaPalette();
   // Create the tile16 blockset image
-  gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x08,
-                                    overworld_.Tile16Blockset(), *rom(),
-                                    tile16_blockset_bmp_, palette_);
+  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x08,
+                                               overworld_.Tile16Blockset(),
+                                               tile16_blockset_bmp_, palette_));
 
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.Tile16Blockset();
@@ -1925,9 +1920,9 @@ absl::Status OverworldEditor::LoadAnimatedMaps() {
     }
     RETURN_IF_ERROR(map.BuildBitmap(blockset));
 
-    gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200, map.bitmap_data(),
-                                      *rom(), animated_maps_[world_index],
-                                      *map.mutable_current_palette());
+    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+        0x200, 0x200, 0x200, map.bitmap_data(), animated_maps_[world_index],
+        *map.mutable_current_palette()));
 
     animated_built[world_index] = true;
   }

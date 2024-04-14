@@ -14,7 +14,6 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
-#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -37,10 +36,6 @@ void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
                                    int num_sheets, int canvas_id,
                                    bool is_loaded,
                                    const gfx::BitmapManager& graphics_manager);
-
-void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
-                                  Rom& z3_rom, gfx::Bitmap& bitmap,
-                                  gfx::SnesPalette& palette);
 
 void FileDialogPipeline(absl::string_view display_key,
                         absl::string_view file_extensions,
