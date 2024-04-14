@@ -1,5 +1,5 @@
 <map id="yaze::app::Rom::LoadAllGraphicsData" name="yaze::app::Rom::LoadAllGraphicsData">
-<area shape="rect" id="Node000001" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="2536,56,2773,82"/>
+<area shape="rect" id="Node000001" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="2536,56,2773,82"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2303,41,2488,97"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2521,72,2489,72,2489,67,2521,67"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="2083,41,2255,97"/>

@@ -39,7 +39,7 @@
 <area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html" title=" " alt="" coords="267,662,424,703"/>
 <area shape="poly" id="edge17_Node000014_Node000015" title=" " alt="" coords="440,684,536,696,576,707,602,722,614,742,625,773,645,867,662,991,678,1130,700,1399,711,1565,705,1566,695,1400,672,1130,657,991,640,868,620,775,609,744,598,726,574,711,535,701,440,689"/>
 <area shape="poly" id="edge52_Node000047_Node000015" title=" " alt="" coords="439,674,519,661,560,649,599,635,628,619,654,600,694,564,698,568,657,604,631,624,601,640,562,655,520,666,440,679"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="271,1508,420,1534"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="271,1508,420,1534"/>
 <area shape="poly" id="edge18_Node000014_Node000016" title=" " alt="" coords="435,1531,601,1556,638,1562,637,1568,600,1561,434,1536"/>
 <area shape="rect" id="Node000017" href="$structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html" title=" " alt="" coords="274,1558,417,1599"/>
 <area shape="poly" id="edge21_Node000014_Node000017" title=" " alt="" coords="432,1576,624,1576,624,1581,432,1581"/>

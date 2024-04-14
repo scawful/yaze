@@ -1,5 +1,5 @@
 <map id="yaze::app::Rom::LoadLinkGraphics" name="yaze::app::Rom::LoadLinkGraphics">
-<area shape="rect" id="Node000001" title="Loads the players 4bpp graphics sheet from ROM data." alt="" coords="5,145,173,185"/>
+<area shape="rect" id="Node000001" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="5,145,173,185"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a12666f7bb6b6dcacbb721b16eded9000" title=" " alt="" coords="230,22,407,63"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,142,162,108,219,73,234,66,236,71,222,78,165,112,118,146"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1Rom.html#ae28fce4a12087576eb7ff35ec2a31a36" title=" " alt="" coords="234,87,403,128"/>

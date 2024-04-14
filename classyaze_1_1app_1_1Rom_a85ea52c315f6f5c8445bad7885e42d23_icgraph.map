@@ -11,9 +11,9 @@
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a4ecd5e203ecac5987519ece53983fe63" title=" " alt="" coords="695,72,880,97"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="924,86,880,86,880,81,924,81"/>
 <area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="948,102,852,123,851,118,947,97"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the ROM." alt="" coords="439,72,645,97"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="439,72,645,97"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="680,87,645,87,645,82,680,82"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="209,77,388,103"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="209,77,388,103"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="423,90,388,90,388,85,423,84"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="22,69,144,110"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="193,92,145,92,145,87,193,87"/>

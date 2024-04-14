@@ -1,5 +1,5 @@
-<map id="yaze::app::Rom::LoadAllPalettes" name="yaze::app::Rom::LoadAllPalettes">
-<area shape="rect" id="Node000001" title="Loads all the palettes for the game." alt="" coords="2834,454,3039,480"/>
+<map id="yaze::app::gfx::LoadAllPalettes" name="yaze::app::gfx::LoadAllPalettes">
+<area shape="rect" id="Node000001" title="Loads all the palettes for the game." alt="" coords="2834,454,3029,480"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a" title=" " alt="" coords="2592,454,2786,480"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2818,470,2786,470,2786,464,2818,464"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a49317ce814b909b9c3c9919b8c7a7f2c" title=" " alt="" coords="2344,5,2544,46"/>

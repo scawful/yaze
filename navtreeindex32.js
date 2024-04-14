@@ -1,7 +1,5 @@
 var NAVTREEINDEX32 =
 {
-"memory_8h.html#a8746750561338b2f964f81499005963caf5832fe9f67c4fbf468137c4dbb7e7eb":[10,0,1,0,2,3,3,7,4],
-"memory_8h.html#a8746750561338b2f964f81499005963cafbd4a06eb42228b5b3c3e7f660406ed3":[10,0,1,0,2,3,3,7,0],
 "memory_8h.html#a9a75d43d4cf258d8bc3b4901cb1ba7fe":[10,0,1,0,2,3,3,11],
 "memory_8h.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea49edc1f4f9189339cb9eaaae608be17a":[10,0,1,0,2,3,3,11,1],
 "memory_8h.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea64e15c21526b420626337cdf8e902c3c":[10,0,1,0,2,3,3,11,0],
@@ -37,8 +35,8 @@ var NAVTREEINDEX32 =
 "namespacemembers_enum.html":[8,1,4],
 "namespacemembers_eval.html":[8,1,5],
 "namespacemembers_f.html":[8,1,0,5],
-"namespacemembers_func.html":[8,1,1],
 "namespacemembers_func.html":[8,1,1,0],
+"namespacemembers_func.html":[8,1,1],
 "namespacemembers_func_b.html":[8,1,1,1],
 "namespacemembers_func_c.html":[8,1,1,2],
 "namespacemembers_func_d.html":[8,1,1,3],
@@ -73,8 +71,8 @@ var NAVTREEINDEX32 =
 "namespacemembers_type.html":[8,1,3],
 "namespacemembers_u.html":[8,1,0,19],
 "namespacemembers_v.html":[8,1,0,20],
-"namespacemembers_vars.html":[8,1,2],
 "namespacemembers_vars.html":[8,1,2,0],
+"namespacemembers_vars.html":[8,1,2],
 "namespacemembers_vars_b.html":[8,1,2,1],
 "namespacemembers_vars_c.html":[8,1,2,2],
 "namespacemembers_vars_d.html":[8,1,2,3],
@@ -249,5 +247,7 @@ var NAVTREEINDEX32 =
 "namespaceyaze_1_1app_1_1editor_1_1item__internal.html":[8,0,1,0,1,8],
 "namespaceyaze_1_1app_1_1editor_1_1item__internal.html#a105839b6c5f7fa977dda27bca447e966":[8,0,1,0,1,8,1],
 "namespaceyaze_1_1app_1_1editor_1_1item__internal.html#ab2c9f1e52d63636be5c038668a23e697":[8,0,1,0,1,8,0],
-"namespaceyaze_1_1app_1_1editor_1_1palette__internal.html":[8,0,1,0,1,9]
+"namespaceyaze_1_1app_1_1editor_1_1palette__internal.html":[8,0,1,0,1,9],
+"namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html":[8,0,1,0,1,10],
+"namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670b":[8,0,1,0,1,10,1]
 };

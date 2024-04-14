@@ -1,10 +1,10 @@
 <map id="yaze::app::zelda3::overworld::Overworld" name="yaze::app::zelda3::overworld::Overworld">
 <area shape="rect" id="Node000001" title="Represents the full Overworld data, light and dark world." alt="" coords="1014,67,1157,108"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="752,5,900,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="752,5,900,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="916,30,991,48,1037,64,1036,69,990,53,915,35"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,51,539,92"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="554,71,1014,83,1014,88,554,77"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="773,124,880,150"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="773,124,880,150"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="554,87,773,125,772,130,553,92"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="894,121,1013,98,1014,104,895,127"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="354,120,548,146"/>

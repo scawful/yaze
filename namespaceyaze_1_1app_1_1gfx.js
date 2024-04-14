@@ -51,6 +51,7 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "ToFloatArray", "namespaceyaze_1_1app_1_1gfx.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef", null ],
     [ "CreatePaletteGroupFromColFile", "namespaceyaze_1_1app_1_1gfx.html#abdc15a02218fe29002585f61230af828", null ],
     [ "CreatePaletteGroupFromLargePalette", "namespaceyaze_1_1app_1_1gfx.html#ae5807cdf64ba8eed9e0b94335c514674", null ],
+    [ "LoadAllPalettes", "namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180", null ],
     [ "ReadPaletteFromRom", "namespaceyaze_1_1app_1_1gfx.html#a770b616b1a09b80f72fdd549ec6a7f34", null ],
     [ "UnpackBppTile", "namespaceyaze_1_1app_1_1gfx.html#a4ec1226f327e64dcc4a789f6d21f4a24", null ],
     [ "PackBppTile", "namespaceyaze_1_1app_1_1gfx.html#a552ecb78eb0a711234650adab705305c", null ],

@@ -1,8 +1,8 @@
 <map id="yaze::app::Rom::GetGraphicsAddress" name="yaze::app::Rom::GetGraphicsAddress">
 <area shape="rect" id="Node000001" title=" " alt="" coords="2821,35,3007,75"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from ROM data." alt="" coords="2568,5,2741,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from Rom data." alt="" coords="2568,5,2741,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2805,45,2741,38,2742,33,2806,40"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="2536,70,2773,96"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="2536,70,2773,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="2805,69,2774,73,2773,68,2805,64"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2303,55,2488,111"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="2521,86,2489,86,2489,80,2521,80"/>

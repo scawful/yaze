@@ -2,11 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,1398,128,1439"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a" title=" " alt="" coords="176,1327,369,1353"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,1395,222,1356,224,1361,123,1400"/>
-<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="183,1456,362,1482"/>
+<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="183,1456,362,1482"/>
 <area shape="poly" id="edge56_Node000001_Node000030" title=" " alt="" coords="129,1431,203,1449,202,1455,128,1436"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="440,1406,601,1431"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="315,1351,418,1384,462,1398,460,1403,416,1389,314,1356"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a79d926917316341fc0566b989b78d03f" title="Loads all the palettes for the game." alt="" coords="418,604,623,630"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="423,604,618,630"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="276,1326,507,644,512,646,281,1328"/>
 <area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="418,1240,622,1266"/>
 <area shape="poly" id="edge50_Node000002_Node000025" title=" " alt="" coords="300,1324,353,1300,416,1276,443,1268,445,1273,418,1281,355,1305,302,1329"/>
@@ -89,7 +89,7 @@
 <area shape="poly" id="edge75_Node000030_Node000027" title=" " alt="" coords="363,1467,781,1467,1032,1467,1212,1467,1291,1473,1392,1485,1465,1500,1464,1505,1391,1490,1291,1478,1212,1473,1032,1472,781,1472,363,1472"/>
 <area shape="rect" id="Node000031" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="433,1530,608,1571"/>
 <area shape="poly" id="edge58_Node000030_Node000031" title=" " alt="" coords="315,1480,442,1522,440,1527,313,1485"/>
-<area shape="rect" id="Node000032" href="$classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the ROM." alt="" coords="417,1595,623,1621"/>
+<area shape="rect" id="Node000032" href="$classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="417,1595,623,1621"/>
 <area shape="poly" id="edge60_Node000030_Node000032" title=" " alt="" coords="288,1481,342,1529,379,1557,418,1580,435,1587,433,1592,416,1585,376,1561,339,1534,285,1485"/>
 <area shape="poly" id="edge59_Node000031_Node000031" title=" " alt="" coords="474,1530,471,1520,479,1511,495,1506,520,1504,547,1506,563,1512,561,1517,546,1511,520,1509,496,1511,482,1516,477,1521,479,1529"/>
 <area shape="poly" id="edge74_Node000032_Node000027" title=" " alt="" coords="583,1592,622,1580,646,1568,671,1557,775,1535,883,1520,991,1510,1097,1504,1289,1504,1436,1510,1436,1515,1289,1509,1097,1510,992,1515,884,1525,776,1541,672,1562,648,1573,624,1585,585,1597"/>

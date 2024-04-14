@@ -1,5 +1,5 @@
 <map id="yaze::app::Rom" name="yaze::app::Rom">
-<area shape="rect" id="Node000001" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="752,123,859,149"/>
+<area shape="rect" id="Node000001" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="752,123,859,149"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,9,539,50"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="555,33,641,47,686,59,729,75,765,97,793,121,790,125,762,101,727,80,685,64,640,52,554,38"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="354,74,548,100"/>

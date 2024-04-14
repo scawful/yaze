@@ -110,7 +110,7 @@ $(function(){initNavTree('classyaze_1_1app_1_1Rom.html',''); initResizable(); })
 </div><!--header-->
 <div class="contents">
 
-<p>The ROM class is used to load, save, and modify ROM data.  
+<p>The <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> class is used to load, save, and modify <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="rom_8h_source.html">rom.h</a>&gt;</code></p>
@@ -119,7 +119,7 @@ Inheritance diagram for yaze::app::Rom:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom__inherit__graph.png" border="0" usemap="#ayaze_1_1app_1_1Rom_inherit__map" alt="Inheritance graph"/></div>
 <map name="ayaze_1_1app_1_1Rom_inherit__map" id="ayaze_1_1app_1_1Rom_inherit__map">
-<area shape="rect" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="39,94,147,120"/>
+<area shape="rect" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="39,94,147,120"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,181,46"/>
 <area shape="poly" title=" " alt="" coords="96,62,96,93,90,93,90,62"/>
 </map>
@@ -129,7 +129,7 @@ Collaboration diagram for yaze::app::Rom:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1Rom_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1app_1_1Rom_coll__map" id="ayaze_1_1app_1_1Rom_coll__map">
-<area shape="rect" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="752,123,859,149"/>
+<area shape="rect" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="752,123,859,149"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,9,539,50"/>
 <area shape="poly" title=" " alt="" coords="555,33,641,47,686,59,729,75,765,97,793,121,790,125,762,101,727,80,685,64,640,52,554,38"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="354,74,548,100"/>
@@ -153,17 +153,14 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:afc14270a29bc65dd89edd86823dbd605" id="r_afc14270a29bc65dd89edd86823dbd605"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics</a> ()</td></tr>
-<tr class="memdesc:afc14270a29bc65dd89edd86823dbd605"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads 2bpp graphics from ROM data.  <br /></td></tr>
+<tr class="memdesc:afc14270a29bc65dd89edd86823dbd605"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
 <tr class="separator:afc14270a29bc65dd89edd86823dbd605"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84a0ad99e1136f93397504493d644624" id="r_a84a0ad99e1136f93397504493d644624"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics</a> ()</td></tr>
-<tr class="memdesc:a84a0ad99e1136f93397504493d644624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the players 4bpp graphics sheet from ROM data.  <br /></td></tr>
+<tr class="memdesc:a84a0ad99e1136f93397504493d644624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the players 4bpp graphics sheet from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
 <tr class="separator:a84a0ad99e1136f93397504493d644624"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8afecbb24f3daf7a1df52586be587d82" id="r_a8afecbb24f3daf7a1df52586be587d82"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData</a> ()</td></tr>
-<tr class="memdesc:a8afecbb24f3daf7a1df52586be587d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the ROM and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
+<tr class="memdesc:a8afecbb24f3daf7a1df52586be587d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
 <tr class="separator:a8afecbb24f3daf7a1df52586be587d82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a79d926917316341fc0566b989b78d03f" id="r_a79d926917316341fc0566b989b78d03f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a79d926917316341fc0566b989b78d03f">LoadAllPalettes</a> ()</td></tr>
-<tr class="memdesc:a79d926917316341fc0566b989b78d03f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads all the palettes for the game.  <br /></td></tr>
-<tr class="separator:a79d926917316341fc0566b989b78d03f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a4bdcc9210cab7916c5f6138908431a" id="r_a2a4bdcc9210cab7916c5f6138908431a"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile</a> (<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">const</a> absl::string_view &amp;<a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">bool</a> <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">z3_load</a>=<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">true</a>)</td></tr>
 <tr class="separator:a2a4bdcc9210cab7916c5f6138908431a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36712f23f472fdf5e25c85096463082b" id="r_a36712f23f472fdf5e25c85096463082b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer</a> (<a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">size_t</a> length)</td></tr>
@@ -171,12 +168,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a651c07af2317f9c3206738506cad01e0" id="r_a651c07af2317f9c3206738506cad01e0"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes</a> (<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">const</a> <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>)</td></tr>
 <tr class="separator:a651c07af2317f9c3206738506cad01e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a372a28056ae2edc74a0342b1e05ffc9f" id="r_a372a28056ae2edc74a0342b1e05ffc9f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile</a> (<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">bool</a> <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">backup</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">bool</a> <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">save_new</a>=<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">false</a>, std::string <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>=&quot;&quot;)</td></tr>
-<tr class="memdesc:a372a28056ae2edc74a0342b1e05ffc9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves the ROM data to a file.  <br /></td></tr>
+<tr class="memdesc:a372a28056ae2edc74a0342b1e05ffc9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to a file.  <br /></td></tr>
 <tr class="separator:a372a28056ae2edc74a0342b1e05ffc9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ecd5e203ecac5987519ece53983fe63" id="r_a4ecd5e203ecac5987519ece53983fe63"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette</a> (<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">int</a> index, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">const</a> std::string &amp;group_name, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a4ecd5e203ecac5987519ece53983fe63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c470124716e2b4bb08f9b4ed1a19dd3" id="r_a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes</a> ()</td></tr>
-<tr class="memdesc:a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves all palettes in the ROM.  <br /></td></tr>
+<tr class="memdesc:a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves all palettes in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>.  <br /></td></tr>
 <tr class="separator:a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d7f8049f2dee1b02a03dca7c2f9f126" id="r_a3d7f8049f2dee1b02a03dca7c2f9f126"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d7f8049f2dee1b02a03dca7c2f9f126">UpdatePaletteColor</a> (<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">const</a> std::string &amp;group_name, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">size_t</a> palette_index, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">size_t</a> <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">colorIndex</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">const</a> <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;<a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">newColor</a>)</td></tr>
 <tr class="memdesc:a3d7f8049f2dee1b02a03dca7c2f9f126"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates a color in a specified palette group.  <br /></td></tr>
@@ -285,8 +282,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a210de65569d0b088013280d1e45f5c6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a789d5d8105c88938c104fecb53f70bfe" id="r_a789d5d8105c88938c104fecb53f70bfe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups</a> ()</td></tr>
 <tr class="separator:a789d5d8105c88938c104fecb53f70bfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a810f3f230cf53ee312691c35a4ec6071" id="r_a810f3f230cf53ee312691c35a4ec6071"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM</a> ()</td></tr>
-<tr class="separator:a810f3f230cf53ee312691c35a4ec6071"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ff502f2d01d7181e9b6260dca4e3819" id="r_a1ff502f2d01d7181e9b6260dca4e3819"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom</a> ()</td></tr>
+<tr class="separator:a1ff502f2d01d7181e9b6260dca4e3819"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ab5edcc4038c88025b8d852909b9876" id="r_a0ab5edcc4038c88025b8d852909b9876"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ab5edcc4038c88025b8d852909b9876">resource_label</a> ()</td></tr>
 <tr class="separator:a0ab5edcc4038c88025b8d852909b9876"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1app_1_1core_1_1ExperimentFlags"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1core_1_1ExperimentFlags')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html">yaze::app::core::ExperimentFlags</a></td></tr>
@@ -354,7 +351,7 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a2e058ea3ea8a945708246ad08d86e28e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The ROM class is used to load, save, and modify ROM data. </p>
+<div class="textblock"><p>The <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> class is used to load, save, and modify <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="afc14270a29bc65dd89edd86823dbd605" name="afc14270a29bc65dd89edd86823dbd605"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afc14270a29bc65dd89edd86823dbd605">&#9670;&#160;</a></span>Load2BppGraphics()</h2>
@@ -371,8 +368,8 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Loads 2bpp graphics from ROM data. </p>
-<p>This function loads 2bpp graphics from ROM data by iterating over a list of sheet IDs, decompressing the sheet data, converting it to 8bpp format, and appending the converted sheet data to a byte vector. </p>
+<p>Loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
+<p>This function loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data by iterating over a list of sheet IDs, decompressing the sheet data, converting it to 8bpp format, and appending the converted sheet data to a byte vector. </p>
 
 <p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>.</p>
 <div class="dynheader">
@@ -380,7 +377,7 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph" id="aclassyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph">
-<area shape="rect" title="Loads 2bpp graphics from ROM data." alt="" coords="5,120,178,161"/>
+<area shape="rect" title="Loads 2bpp graphics from Rom data." alt="" coords="5,120,178,161"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="477,70,615,96"/>
 <area shape="poly" title=" " alt="" coords="170,117,225,106,349,91,461,83,462,89,349,96,226,111,171,122"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="249,5,389,46"/>
@@ -419,7 +416,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Loads the players 4bpp graphics sheet from ROM data. </p>
+<p>Loads the players 4bpp graphics sheet from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ae8ed03533649af573e16611c86ea532f">yaze::app::gfx::PaletteGroupMap::armors</a>, <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a12666f7bb6b6dcacbb721b16eded9000">yaze::app::gfx::Convert4bppTo3bpp()</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#adeee2f15a01705bd473a4324309d828e">yaze::app::core::kTilesheetDepth</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a31f53a26cadeced84ab6ba6020a4c5f8">yaze::app::core::kTilesheetHeight</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a46743e1a4aa5c38b9bbb84a67d95916e">yaze::app::core::kTilesheetWidth</a>, <a class="el" href="#a90e78f8cf6ca86e02e476443336408c0">link_graphics_</a>, <a class="el" href="#ac44e734fa63168aba69b5177318445d4">link_palette_</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a8c77151f22c9c57fcdab28502aa1255f">RenderBitmap()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>.</p>
 <div class="dynheader">
@@ -427,7 +424,7 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph" id="aclassyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph">
-<area shape="rect" title="Loads the players 4bpp graphics sheet from ROM data." alt="" coords="5,145,173,185"/>
+<area shape="rect" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="5,145,173,185"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a12666f7bb6b6dcacbb721b16eded9000" title=" " alt="" coords="230,22,407,63"/>
 <area shape="poly" title=" " alt="" coords="114,142,162,108,219,73,234,66,236,71,222,78,165,112,118,146"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#ae28fce4a12087576eb7ff35ec2a31a36" title=" " alt="" coords="234,87,403,128"/>
@@ -472,7 +469,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>This function iterates over all graphics sheets in the ROM and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap. </p>
+<p>This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap. </p>
 <p>The graphics sheets are divided into the following ranges:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -497,7 +494,7 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph" id="aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph">
-<area shape="rect" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="5,246,242,272"/>
+<area shape="rect" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="5,246,242,272"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="549,88,687,113"/>
 <area shape="poly" title=" " alt="" coords="132,244,156,213,191,174,236,136,289,106,351,88,415,80,478,80,534,84,534,89,478,85,416,86,352,93,291,111,239,140,195,178,160,217,136,247"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="317,5,457,46"/>
@@ -530,7 +527,7 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_icgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_icgraph" id="aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_icgraph">
-<area shape="rect" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="2536,56,2773,82"/>
+<area shape="rect" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="2536,56,2773,82"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2303,41,2488,97"/>
 <area shape="poly" title=" " alt="" coords="2521,72,2489,72,2489,67,2521,67"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="2083,41,2255,97"/>
@@ -564,177 +561,6 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a79d926917316341fc0566b989b78d03f" name="a79d926917316341fc0566b989b78d03f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a79d926917316341fc0566b989b78d03f">&#9670;&#160;</a></span>LoadAllPalettes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::app::Rom::LoadAllPalettes </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Loads all the palettes for the game. </p>
-<p>This function loads all the palettes for the game, including overworld, HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object palettes. It also adds the loaded palettes to their respective palette groups. </p>
-
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a052b2d235a04e32c6d4d7f7652c64913">yaze::app::palette_group_internal::Load3DObjectPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#aeee4b06440c1cb64b05fa8e931b79fd8">yaze::app::palette_group_internal::LoadArmorPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a52518464f26d1c7a59e637553280264f">yaze::app::palette_group_internal::LoadDungeonMainPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a48edcd000854ae33d33e3f69bb58d845">yaze::app::palette_group_internal::LoadGlobalSpritePalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a8a7bc4b0721c17244da07130fce34b4e">yaze::app::palette_group_internal::LoadGrassColors()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a9f3a503181102a76c71ffea6bb838516">yaze::app::palette_group_internal::LoadHUDPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#af514cf719eeeca52738d3ec72efb9b37">yaze::app::palette_group_internal::LoadOverworldAnimatedPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a760dd678981ec54941b8001ad73b70a2">yaze::app::palette_group_internal::LoadOverworldAuxiliaryPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a54cdd22404ff0a2817d306291ec132d2">yaze::app::palette_group_internal::LoadOverworldMainPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a45580ea3ca7888dd8cc859eb61b12dee">yaze::app::palette_group_internal::LoadOverworldMiniMapPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a407b068be25c51dc0a7511fcbbdb01b4">yaze::app::palette_group_internal::LoadShieldPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ad7abd70b8b524c4b31eeaaa46400174c">yaze::app::palette_group_internal::LoadSpriteAux1Palettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a5b8d0a706ff112a82cecb1c84f96c3f7">yaze::app::palette_group_internal::LoadSpriteAux2Palettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ae5ba3e13af412ffb1824b7d9413fa14b">yaze::app::palette_group_internal::LoadSpriteAux3Palettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a0e37aae11de1710812a7c4000712fa42">yaze::app::palette_group_internal::LoadSwordPalettes()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, and <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_cgraph" id="aclassyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_cgraph">
-<area shape="rect" title="Loads all the palettes for the game." alt="" coords="5,580,211,606"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a052b2d235a04e32c6d4d7f7652c64913" title=" " alt="" coords="270,725,469,781"/>
-<area shape="poly" title=" " alt="" coords="124,604,181,655,219,685,260,711,270,716,267,721,257,715,216,689,178,659,121,608"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#aeee4b06440c1cb64b05fa8e931b79fd8" title=" " alt="" coords="280,805,459,861"/>
-<area shape="poly" title=" " alt="" coords="118,605,138,642,169,691,210,745,260,791,268,796,265,800,257,795,207,748,165,695,133,644,113,608"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a52518464f26d1c7a59e637553280264f" title=" " alt="" coords="272,885,467,941"/>
-<area shape="poly" title=" " alt="" coords="115,606,131,655,159,726,202,803,229,839,260,871,264,874,261,878,257,875,225,843,198,806,154,728,125,657,110,607"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a48edcd000854ae33d33e3f69bb58d845" title=" " alt="" coords="279,965,460,1021"/>
-<area shape="poly" title=" " alt="" coords="114,606,125,667,150,760,169,811,194,862,224,909,261,951,268,958,264,962,257,955,220,912,189,864,164,813,145,761,119,669,108,607"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a8a7bc4b0721c17244da07130fce34b4e" title=" " alt="" coords="280,1109,459,1165"/>
-<area shape="poly" title=" " alt="" coords="112,606,115,689,122,750,134,819,152,892,178,965,214,1034,261,1095,269,1103,265,1107,257,1099,210,1037,173,967,147,894,128,820,117,751,110,689,107,607"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a9f3a503181102a76c71ffea6bb838516" title=" " alt="" coords="259,1045,480,1086"/>
-<area shape="poly" title=" " alt="" coords="112,606,118,681,126,734,139,795,157,858,183,921,217,980,261,1031,263,1034,259,1037,257,1035,213,983,178,923,152,860,134,796,121,735,113,681,107,607"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#af514cf719eeeca52738d3ec72efb9b37" title=" " alt="" coords="268,5,471,61"/>
-<area shape="poly" title=" " alt="" coords="106,580,109,495,115,432,127,360,145,284,172,208,208,136,231,102,257,71,259,69,262,73,261,75,235,105,213,138,177,210,150,285,132,361,121,432,114,495,112,580"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a760dd678981ec54941b8001ad73b70a2" title=" " alt="" coords="268,85,471,141"/>
-<area shape="poly" title=" " alt="" coords="107,580,114,506,136,392,154,329,180,265,214,205,257,151,259,149,263,153,261,155,218,208,185,267,160,330,141,394,119,507,113,580"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a54cdd22404ff0a2817d306291ec132d2" title=" " alt="" coords="268,165,471,221"/>
-<area shape="poly" title=" " alt="" coords="108,579,119,518,145,425,164,373,189,322,220,274,257,231,260,228,264,232,261,235,224,277,194,325,169,376,150,427,125,519,114,580"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a45580ea3ca7888dd8cc859eb61b12dee" title=" " alt="" coords="268,245,471,301"/>
-<area shape="poly" title=" " alt="" coords="110,579,125,530,154,458,198,380,225,343,257,311,261,308,264,312,260,315,229,347,202,383,159,460,131,531,115,581"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a407b068be25c51dc0a7511fcbbdb01b4" title=" " alt="" coords="279,325,460,381"/>
-<area shape="poly" title=" " alt="" coords="113,579,133,542,165,492,207,438,257,391,264,386,267,390,260,395,210,442,169,495,138,545,118,581"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ad7abd70b8b524c4b31eeaaa46400174c" title=" " alt="" coords="280,405,459,461"/>
-<area shape="poly" title=" " alt="" coords="121,578,178,527,216,497,257,471,267,466,270,470,260,475,219,502,181,531,124,582"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a5b8d0a706ff112a82cecb1c84f96c3f7" title=" " alt="" coords="280,485,459,541"/>
-<area shape="poly" title=" " alt="" coords="152,577,265,542,266,547,153,582"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ae5ba3e13af412ffb1824b7d9413fa14b" title=" " alt="" coords="280,565,459,621"/>
-<area shape="poly" title=" " alt="" coords="211,591,264,591,264,596,211,596"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a0e37aae11de1710812a7c4000712fa42" title=" " alt="" coords="279,645,460,701"/>
-<area shape="poly" title=" " alt="" coords="153,604,265,639,263,644,152,609"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="528,497,707,538"/>
-<area shape="poly" title=" " alt="" coords="464,723,478,711,492,692,499,674,502,636,505,597,512,576,526,555,538,544,542,548,530,559,517,579,510,598,507,636,504,675,497,695,482,715,468,727"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="531,569,705,610"/>
-<area shape="poly" title=" " alt="" coords="457,722,479,711,538,666,586,619,590,623,542,670,481,715,459,727"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="755,576,979,602"/>
-<area shape="poly" title=" " alt="" coords="705,587,740,587,740,592,705,592"/>
-<area shape="poly" title=" " alt="" coords="458,808,478,791,497,762,505,733,506,705,503,676,499,647,500,618,507,587,526,556,537,545,540,548,530,559,512,589,505,618,505,647,508,676,511,705,510,734,502,764,482,795,461,812"/>
-<area shape="poly" title=" " alt="" coords="458,804,478,791,519,752,553,706,580,661,599,622,604,625,584,664,557,709,523,755,482,795,461,809"/>
-<area shape="poly" title=" " alt="" coords="466,883,478,872,502,832,511,793,509,755,503,717,496,678,494,639,502,598,526,556,536,545,540,549,530,559,508,600,500,639,501,678,508,716,515,754,516,794,507,834,482,875,469,887"/>
-<area shape="poly" title=" " alt="" coords="463,883,478,871,505,843,528,812,565,744,590,678,606,624,611,625,595,680,570,747,532,815,509,847,482,875,466,887"/>
-<area shape="poly" title=" " alt="" coords="459,968,478,951,495,926,507,901,514,877,517,853,513,805,503,757,493,709,489,660,491,634,498,609,509,582,526,556,535,545,539,549,530,559,514,585,503,610,497,635,494,660,498,708,509,756,519,804,522,853,519,878,512,903,500,929,482,955,462,972"/>
-<area shape="poly" title=" " alt="" coords="459,966,478,951,510,914,537,872,558,827,576,781,599,693,610,625,615,626,604,694,581,782,563,829,541,874,514,917,482,955,462,970"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808" title=" " alt="" coords="528,1084,707,1124"/>
-<area shape="poly" title=" " alt="" coords="459,1122,512,1115,513,1121,460,1128"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a276da0ce346e9b3837ef0483e04eedd4" title=" " alt="" coords="536,1149,699,1190"/>
-<area shape="poly" title=" " alt="" coords="460,1146,521,1154,520,1159,459,1151"/>
-<area shape="poly" title=" " alt="" coords="466,1042,478,1031,499,1001,513,972,522,943,525,914,520,857,506,799,491,741,485,681,487,651,493,620,506,588,526,556,536,545,540,548,530,559,511,590,498,621,492,652,490,681,497,740,511,798,525,856,530,914,527,944,518,974,504,1004,482,1035,470,1046"/>
-<area shape="poly" title=" " alt="" coords="464,1042,478,1031,517,985,547,932,571,875,588,817,600,760,608,707,614,625,619,625,613,708,605,761,593,818,576,877,552,934,521,988,482,1035,467,1047"/>
-<area shape="poly" title=" " alt="" coords="468,59,482,71,520,120,550,174,574,231,591,290,611,399,618,481,613,482,606,400,586,291,569,233,545,176,516,123,478,75,464,63"/>
-<area shape="poly" title=" " alt="" coords="470,60,482,71,503,103,517,134,525,164,528,194,522,252,509,310,495,367,489,426,491,455,498,485,511,516,530,548,540,558,536,562,526,551,506,518,493,487,486,456,484,426,490,367,504,309,517,252,522,194,520,165,512,136,498,106,478,75,467,63"/>
-<area shape="poly" title=" " alt="" coords="467,140,482,151,514,189,541,232,563,278,581,324,604,412,615,481,610,482,599,413,576,326,558,280,537,235,510,193,478,155,464,144"/>
-<area shape="poly" title=" " alt="" coords="470,140,482,151,500,178,512,203,519,229,522,253,519,302,509,350,498,398,494,447,497,471,503,496,514,521,530,548,539,558,535,561,526,551,509,524,498,498,491,472,489,447,493,397,503,349,513,301,517,254,514,230,507,205,495,180,478,155,467,144"/>
-<area shape="poly" title=" " alt="" coords="466,219,482,231,509,259,532,291,570,360,595,427,611,481,606,482,590,428,565,362,528,294,505,263,478,235,463,224"/>
-<area shape="poly" title=" " alt="" coords="470,219,482,232,507,273,516,313,515,352,508,390,501,429,500,467,508,507,530,548,540,558,536,561,526,551,502,509,494,468,496,428,503,389,509,351,511,313,502,275,478,235,466,223"/>
-<area shape="poly" title=" " alt="" coords="464,299,482,311,523,351,557,397,584,443,604,482,599,484,580,445,553,400,519,355,478,315,461,304"/>
-<area shape="poly" title=" " alt="" coords="469,300,482,311,502,342,510,372,511,402,508,431,505,459,505,488,512,517,530,548,540,558,537,562,526,551,507,519,500,489,499,459,503,430,506,401,505,373,497,344,478,315,466,304"/>
-<area shape="poly" title=" " alt="" coords="459,379,481,391,542,436,590,484,586,487,538,441,479,395,457,384"/>
-<area shape="poly" title=" " alt="" coords="462,375,482,391,497,411,504,432,507,470,510,509,517,528,530,547,542,558,538,562,526,551,512,530,505,510,502,471,499,433,492,414,478,395,458,379"/>
-<area shape="poly" title=" " alt="" coords="455,459,541,489,540,494,453,464"/>
-<area shape="poly" title=" " alt="" coords="460,457,482,471,499,491,507,510,514,528,530,547,546,559,543,563,526,551,510,531,502,512,494,493,478,475,457,462"/>
-<area shape="poly" title=" " alt="" coords="459,512,513,513,513,518,459,517"/>
-<area shape="poly" title=" " alt="" coords="460,538,535,561,534,566,458,543"/>
-<area shape="poly" title=" " alt="" coords="458,563,534,540,535,545,460,568"/>
-<area shape="poly" title=" " alt="" coords="459,589,515,588,515,593,459,594"/>
-<area shape="poly" title=" " alt="" coords="459,644,478,631,494,613,502,595,510,575,526,555,543,543,546,547,530,559,514,578,507,597,499,616,482,635,462,648"/>
-<area shape="poly" title=" " alt="" coords="453,642,540,613,541,618,455,647"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_icgraph" id="aclassyaze_1_1app_1_1Rom_a79d926917316341fc0566b989b78d03f_icgraph">
-<area shape="rect" title="Loads all the palettes for the game." alt="" coords="2834,454,3039,480"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a" title=" " alt="" coords="2592,454,2786,480"/>
-<area shape="poly" title=" " alt="" coords="2818,470,2786,470,2786,464,2818,464"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a49317ce814b909b9c3c9919b8c7a7f2c" title=" " alt="" coords="2344,5,2544,46"/>
-<area shape="poly" title=" " alt="" coords="2683,439,2674,364,2652,262,2633,208,2610,155,2580,105,2542,61,2526,49,2529,44,2546,57,2584,102,2614,152,2638,206,2657,261,2679,363,2689,438"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a59fd3f95621df3f8fa555849f694885c" title=" " alt="" coords="2345,71,2544,111"/>
-<area shape="poly" title=" " alt="" coords="2681,439,2669,375,2644,290,2625,245,2603,202,2575,161,2543,125,2527,114,2530,110,2546,121,2579,158,2607,199,2630,243,2649,288,2674,373,2687,438"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06" title=" " alt="" coords="2353,135,2536,191"/>
-<area shape="poly" title=" " alt="" coords="2677,440,2660,391,2632,328,2593,262,2569,232,2543,205,2527,193,2530,189,2546,201,2573,229,2597,259,2636,325,2665,389,2682,439"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a" title=" " alt="" coords="2350,215,2538,271"/>
-<area shape="poly" title=" " alt="" coords="2671,442,2620,365,2584,323,2543,285,2525,274,2528,269,2546,281,2588,319,2624,362,2676,439"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0" title=" " alt="" coords="2349,295,2540,335"/>
-<area shape="poly" title=" " alt="" coords="2663,445,2610,398,2578,373,2543,351,2516,338,2519,333,2546,346,2581,368,2614,394,2666,441"/>
-<area shape="rect" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6" title=" " alt="" coords="2375,360,2513,401"/>
-<area shape="poly" title=" " alt="" coords="2639,451,2543,415,2511,404,2512,399,2545,410,2641,446"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Open.html#a93ec2d9f81970f0fba889a94fe92b9f5" title=" " alt="" coords="2371,425,2518,451"/>
-<area shape="poly" title=" " alt="" coords="2577,456,2518,449,2519,444,2577,451"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="2383,475,2505,515"/>
-<area shape="poly" title=" " alt="" coords="2577,482,2506,491,2505,485,2577,477"/>
-<area shape="rect" href="classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3" title=" " alt="" coords="2365,540,2524,581"/>
-<area shape="poly" title=" " alt="" coords="2645,489,2545,529,2510,542,2509,537,2543,525,2643,484"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3" title=" " alt="" coords="2367,605,2522,646"/>
-<area shape="poly" title=" " alt="" coords="2667,493,2615,544,2581,571,2546,595,2519,607,2517,602,2543,590,2578,567,2611,540,2664,489"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Expand.html#abf197e6e18a4d8ecd1a7a551f2e7d995" title=" " alt="" coords="2384,671,2504,711"/>
-<area shape="poly" title=" " alt="" coords="2677,495,2656,532,2627,576,2590,621,2546,660,2506,680,2504,675,2543,655,2586,617,2622,573,2651,529,2672,492"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057" title=" " alt="" coords="2383,736,2506,777"/>
-<area shape="poly" title=" " alt="" coords="2682,496,2664,545,2636,606,2597,670,2573,699,2546,725,2527,737,2507,746,2505,741,2525,733,2543,721,2569,696,2593,667,2632,604,2660,543,2677,494"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92a9aaae6d5d567853724ea5ab42e54b" title=" " alt="" coords="2368,801,2521,827"/>
-<area shape="poly" title=" " alt="" coords="2686,496,2673,557,2647,637,2629,679,2606,720,2579,757,2546,790,2523,804,2520,800,2543,786,2575,754,2602,717,2624,676,2642,635,2668,556,2681,495"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2352,851,2537,907"/>
-<area shape="poly" title=" " alt="" coords="2687,496,2675,564,2651,656,2632,705,2609,754,2580,800,2546,841,2532,853,2528,849,2542,837,2576,797,2604,751,2627,703,2645,654,2670,563,2682,495"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a9dcbf951a287a6fde9097f42c93be063" title=" " alt="" coords="2083,143,2296,183"/>
-<area shape="poly" title=" " alt="" coords="2360,55,2345,61,2275,103,2218,144,2215,140,2272,99,2343,57,2357,50"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2f438dd3f05d0df648ed38bf56c4381a" title=" " alt="" coords="1161,191,1315,231"/>
-<area shape="poly" title=" " alt="" coords="2067,172,1316,210,1315,204,2067,166"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,295,1109,335"/>
-<area shape="poly" title=" " alt="" coords="1185,241,1080,296,1078,292,1182,237"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,295,919,335"/>
-<area shape="poly" title=" " alt="" coords="951,318,920,318,920,312,951,312"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,302,705,328"/>
-<area shape="poly" title=" " alt="" coords="737,318,705,318,705,312,737,312"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,287,388,343"/>
-<area shape="poly" title=" " alt="" coords="640,313,607,310,493,308,388,312,388,306,493,303,607,304,640,307"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,319,607,375"/>
-<area shape="poly" title=" " alt="" coords="640,326,608,332,607,327,639,320"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,287,173,343"/>
-<area shape="poly" title=" " alt="" coords="205,318,173,318,173,312,205,312"/>
-<area shape="poly" title=" " alt="" coords="420,335,388,330,389,325,421,329"/>
-<area shape="poly" title=" " alt="" coords="2337,166,2296,166,2296,160,2337,160"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1658,295,1849,335"/>
-<area shape="poly" title=" " alt="" coords="2333,318,1849,318,1849,312,2333,312"/>
-<area shape="poly" title=" " alt="" coords="1642,318,1110,318,1110,312,1642,312"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a75b389ccc2d6afb6d900f0898beee59d" title=" " alt="" coords="2103,798,2276,854"/>
-<area shape="poly" title=" " alt="" coords="2336,859,2276,846,2277,841,2337,854"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb" title=" " alt="" coords="1897,592,2035,633"/>
-<area shape="poly" title=" " alt="" coords="2146,789,1987,635,1991,631,2150,785"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096" title=" " alt="" coords="1657,485,1849,526"/>
-<area shape="poly" title=" " alt="" coords="1909,587,1795,529,1797,524,1911,582"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d" title=" " alt="" coords="1377,406,1599,462"/>
-<area shape="poly" title=" " alt="" coords="1661,483,1592,465,1594,460,1662,478"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718" title=" " alt="" coords="1367,485,1609,526"/>
-<area shape="poly" title=" " alt="" coords="1641,508,1610,508,1610,503,1641,503"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1157,413,1319,454"/>
-<area shape="poly" title=" " alt="" coords="1362,436,1319,436,1319,431,1362,431"/>
-<area shape="poly" title=" " alt="" coords="1188,407,1073,338,1075,333,1190,403"/>
-<area shape="poly" title=" " alt="" coords="1391,483,1366,476,1303,457,1305,452,1367,471,1393,478"/>
-</map>
-</div>
-
-</div>
-</div>
 <a id="a2a4bdcc9210cab7916c5f6138908431a" name="a2a4bdcc9210cab7916c5f6138908431a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2a4bdcc9210cab7916c5f6138908431a">&#9670;&#160;</a></span>LoadFromFile()</h2>
 
@@ -753,7 +579,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Load ROM data from a file.</p>
+<p>Load <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data from a file.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">filename</td><td>The name of the file to load. </td></tr>
@@ -762,7 +588,7 @@ Here is the caller graph for this function:</div>
   </dd>
 </dl>
 
-<p class="reference">References <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, <a class="el" href="#afcf31cdd3de12148c02881c93d24bc1a">has_header_</a>, <a class="el" href="#ab720ccf07dc591f330c0ea037a147efa">is_loaded_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="#a79d926917316341fc0566b989b78d03f">LoadAllPalettes()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a">yaze::app::core::ResourceLabelManager::LoadLabels()</a>, <a class="el" href="#aeed1d79aa226ead085fab4a997396f27">resource_label_manager_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a0de46f110cfc769f2dcf3508a9dee3dd">size_</a>, <a class="el" href="#a3998f6405edbf671bb52692c83d670cd">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, and <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
+<p class="reference">References <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, <a class="el" href="#afcf31cdd3de12148c02881c93d24bc1a">has_header_</a>, <a class="el" href="#ab720ccf07dc591f330c0ea037a147efa">is_loaded_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180">yaze::app::gfx::LoadAllPalettes()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a">yaze::app::core::ResourceLabelManager::LoadLabels()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#aeed1d79aa226ead085fab4a997396f27">resource_label_manager_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a0de46f110cfc769f2dcf3508a9dee3dd">size_</a>, <a class="el" href="#a3998f6405edbf671bb52692c83d670cd">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, and <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a49317ce814b909b9c3c9919b8c7a7f2c">yaze::app::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a59fd3f95621df3f8fa555849f694885c">yaze::app::editor::GraphicsEditor::DrawObjImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0">yaze::app::editor::MasterEditor::DrawViewMenu()</a>, <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Open.html#a93ec2d9f81970f0fba889a94fe92b9f5">yaze::cli::Open::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498">yaze::cli::Backup::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3">yaze::cli::Tile16Transfer::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Expand.html#abf197e6e18a4d8ecd1a7a551f2e7d995">yaze::cli::Expand::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057">yaze::cli::Emulator::handle()</a>, <a class="el" href="#a92a9aaae6d5d567853724ea5ab42e54b">Reload()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 <div class="dynheader">
@@ -771,87 +597,87 @@ Here is the call graph for this function:</div>
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph" id="aclassyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph">
 <area shape="rect" title=" " alt="" coords="5,1244,199,1269"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="269,620,430,645"/>
-<area shape="poly" title=" " alt="" coords="102,1243,115,1130,143,952,163,859,186,773,213,702,228,675,245,654,254,647,257,651,249,658,233,678,218,705,191,775,168,860,148,953,121,1131,107,1244"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a79d926917316341fc0566b989b78d03f" title="Loads all the palettes for the game." alt="" coords="247,669,452,695"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="268,620,430,645"/>
+<area shape="poly" title=" " alt="" coords="102,1243,115,1130,143,952,163,859,186,773,213,702,228,675,245,654,253,648,256,652,249,658,233,678,218,705,191,775,168,860,148,953,121,1131,107,1244"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="251,669,447,695"/>
 <area shape="poly" title=" " alt="" coords="106,1242,334,707,339,710,111,1244"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="247,1244,452,1269"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="247,1244,451,1269"/>
 <area shape="poly" title=" " alt="" coords="199,1254,231,1254,231,1259,199,1259"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="536,1329,685,1355"/>
-<area shape="poly" title=" " alt="" coords="179,1267,247,1279,521,1325,520,1330,246,1284,178,1272"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="261,1344,438,1385"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="535,1329,684,1355"/>
+<area shape="poly" title=" " alt="" coords="179,1267,247,1279,520,1325,519,1330,246,1284,178,1272"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="260,1344,438,1385"/>
 <area shape="poly" title=" " alt="" coords="131,1267,248,1323,278,1336,276,1340,246,1328,128,1272"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a052b2d235a04e32c6d4d7f7652c64913" title=" " alt="" coords="512,1054,710,1110"/>
-<area shape="poly" title=" " alt="" coords="355,694,366,756,391,848,410,899,435,950,465,998,502,1040,505,1042,501,1046,498,1044,461,1001,430,953,405,901,386,850,361,757,350,695"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#aeee4b06440c1cb64b05fa8e931b79fd8" title=" " alt="" coords="521,1134,700,1190"/>
-<area shape="poly" title=" " alt="" coords="354,695,361,768,382,881,401,945,426,1008,460,1067,502,1120,510,1127,507,1131,498,1124,455,1070,422,1010,396,946,377,883,355,769,349,695"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a52518464f26d1c7a59e637553280264f" title=" " alt="" coords="513,110,708,166"/>
-<area shape="poly" title=" " alt="" coords="438,666,450,656,461,639,469,617,477,560,478,493,475,419,472,346,472,277,479,219,487,195,498,176,499,174,503,178,502,179,492,197,485,220,477,277,477,345,480,419,484,493,483,561,474,618,466,641,454,659,441,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a48edcd000854ae33d33e3f69bb58d845" title=" " alt="" coords="520,190,701,246"/>
-<area shape="poly" title=" " alt="" coords="438,666,450,656,469,631,481,607,489,583,492,559,488,510,476,461,465,411,460,361,462,335,468,309,480,283,498,256,506,248,510,251,502,259,485,285,473,311,467,336,465,361,470,410,482,460,493,509,497,559,494,584,486,609,473,634,454,660,441,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a8a7bc4b0721c17244da07130fce34b4e" title=" " alt="" coords="521,30,700,86"/>
-<area shape="poly" title=" " alt="" coords="438,666,450,656,463,636,472,610,481,544,480,465,475,380,470,294,469,214,477,146,485,118,498,96,507,86,511,90,502,99,490,120,482,147,475,214,476,293,481,379,486,465,486,544,477,611,468,638,454,659,442,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a9f3a503181102a76c71ffea6bb838516" title=" " alt="" coords="500,269,721,310"/>
-<area shape="poly" title=" " alt="" coords="437,666,450,656,466,635,477,615,486,574,483,533,474,491,466,449,462,406,471,363,482,342,498,320,499,319,503,322,502,323,487,344,476,365,468,407,471,448,480,490,488,532,491,574,482,617,470,638,454,660,441,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#af514cf719eeeca52738d3ec72efb9b37" title=" " alt="" coords="509,334,712,390"/>
-<area shape="poly" title=" " alt="" coords="437,666,450,656,472,625,480,594,480,563,475,532,470,500,470,467,477,434,498,400,499,398,503,402,502,403,482,436,475,467,476,499,481,531,485,563,485,595,476,627,454,659,440,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a760dd678981ec54941b8001ad73b70a2" title=" " alt="" coords="509,414,712,470"/>
-<area shape="poly" title=" " alt="" coords="436,666,450,656,466,635,474,614,475,571,475,526,482,503,498,480,500,478,504,482,502,483,487,505,480,527,480,571,479,615,471,638,454,660,439,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a54cdd22404ff0a2817d306291ec132d2" title=" " alt="" coords="509,494,712,550"/>
-<area shape="poly" title=" " alt="" coords="433,666,450,656,461,645,468,634,474,610,480,585,498,560,502,557,505,561,502,563,485,587,479,611,473,636,465,648,454,660,436,671"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a45580ea3ca7888dd8cc859eb61b12dee" title=" " alt="" coords="509,574,712,630"/>
-<area shape="poly" title=" " alt="" coords="411,666,451,655,517,633,518,638,453,660,413,671"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a407b068be25c51dc0a7511fcbbdb01b4" title=" " alt="" coords="521,654,701,710"/>
-<area shape="poly" title=" " alt="" coords="453,679,505,679,505,684,453,684"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ad7abd70b8b524c4b31eeaaa46400174c" title=" " alt="" coords="522,734,700,790"/>
-<area shape="poly" title=" " alt="" coords="395,693,508,727,506,733,393,698"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a5b8d0a706ff112a82cecb1c84f96c3f7" title=" " alt="" coords="522,814,700,870"/>
-<area shape="poly" title=" " alt="" coords="366,693,422,744,460,773,501,799,511,804,508,809,499,804,457,777,419,748,362,697"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ae5ba3e13af412ffb1824b7d9413fa14b" title=" " alt="" coords="522,894,700,950"/>
-<area shape="poly" title=" " alt="" coords="359,694,379,730,410,780,452,833,502,880,510,885,507,889,498,884,448,837,406,783,374,733,355,696"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a0e37aae11de1710812a7c4000712fa42" title=" " alt="" coords="520,974,701,1030"/>
-<area shape="poly" title=" " alt="" coords="357,694,372,743,400,815,443,892,471,928,502,960,509,965,505,969,498,964,467,931,439,895,396,817,367,745,352,696"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="769,588,949,629"/>
-<area shape="poly" title=" " alt="" coords="708,1051,719,1040,737,1015,748,990,755,965,758,941,754,893,744,845,734,797,730,748,732,722,739,697,750,671,767,644,773,637,777,641,771,647,755,673,744,699,737,723,735,748,739,796,749,844,759,892,763,941,760,966,753,991,741,1017,723,1043,712,1055"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="772,657,946,698"/>
-<area shape="poly" title=" " alt="" coords="705,1051,719,1040,751,1002,778,960,800,915,817,869,840,782,851,713,857,714,845,783,822,871,805,917,783,963,756,1005,723,1044,709,1055"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="997,665,1220,691"/>
-<area shape="poly" title=" " alt="" coords="947,675,981,675,981,680,947,680"/>
-<area shape="poly" title=" " alt="" coords="699,1138,719,1120,740,1089,753,1059,761,1030,763,1001,758,943,744,885,730,828,724,769,727,738,734,708,747,676,767,644,773,637,777,641,771,647,752,679,739,709,732,739,730,769,736,827,749,884,763,942,769,1000,766,1030,758,1061,744,1092,723,1123,702,1142"/>
-<area shape="poly" title=" " alt="" coords="699,1136,719,1120,757,1072,787,1019,810,962,827,904,847,795,854,713,860,714,853,796,832,905,815,963,792,1021,761,1075,723,1124,702,1140"/>
-<area shape="poly" title=" " alt="" coords="709,164,723,176,760,222,790,275,813,330,831,387,852,492,859,572,854,573,846,493,826,388,808,332,785,277,756,225,719,180,706,168"/>
-<area shape="poly" title=" " alt="" coords="711,163,723,176,744,207,757,237,765,266,768,295,763,352,749,408,736,464,730,521,733,549,740,579,752,608,771,639,777,645,773,649,767,642,748,611,735,580,727,550,725,521,731,463,744,407,757,351,762,295,760,267,752,238,739,209,719,179,707,167"/>
-<area shape="poly" title=" " alt="" coords="703,241,723,256,755,292,781,333,803,377,820,421,844,506,856,572,851,573,839,507,815,423,798,379,777,336,751,295,720,260,700,245"/>
-<area shape="poly" title=" " alt="" coords="704,239,723,256,741,281,752,306,759,331,762,355,759,402,749,449,739,495,736,542,738,565,744,589,755,614,771,639,777,645,773,649,767,642,751,616,739,591,733,566,731,542,734,494,744,447,754,401,757,355,754,332,747,308,736,284,719,259,700,243"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808" title=" " alt="" coords="769,5,949,46"/>
-<area shape="poly" title=" " alt="" coords="700,43,754,37,754,42,701,49"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a276da0ce346e9b3837ef0483e04eedd4" title=" " alt="" coords="777,71,941,111"/>
-<area shape="poly" title=" " alt="" coords="701,67,762,75,761,81,700,72"/>
-<area shape="poly" title=" " alt="" coords="707,308,723,320,751,348,775,379,813,449,838,517,853,572,848,573,833,518,808,451,771,382,747,351,720,324,704,313"/>
-<area shape="poly" title=" " alt="" coords="710,308,723,320,739,340,749,361,759,401,757,440,750,480,743,519,741,558,748,598,771,639,778,646,774,650,767,642,743,600,735,558,738,518,745,479,752,440,754,401,744,363,734,343,719,323,707,312"/>
-<area shape="poly" title=" " alt="" coords="705,388,723,400,765,440,799,487,826,533,846,573,841,575,822,536,795,490,761,444,720,404,702,392"/>
-<area shape="poly" title=" " alt="" coords="711,388,723,400,743,431,752,461,752,491,749,521,745,550,746,579,753,608,771,639,778,646,775,650,767,642,748,610,740,580,740,549,743,520,747,491,746,462,738,433,719,403,707,392"/>
-<area shape="poly" title=" " alt="" coords="701,468,723,479,784,526,832,575,828,578,780,530,720,484,698,472"/>
-<area shape="poly" title=" " alt="" coords="709,468,723,480,738,500,746,521,748,560,751,599,758,619,771,639,780,646,776,650,767,642,753,621,746,600,743,561,741,522,734,503,719,483,706,472"/>
-<area shape="poly" title=" " alt="" coords="694,548,785,580,783,585,692,553"/>
-<area shape="poly" title=" " alt="" coords="706,548,723,560,740,580,748,600,756,619,771,638,783,647,780,651,767,642,751,622,743,602,736,583,720,564,703,552"/>
-<area shape="poly" title=" " alt="" coords="713,602,754,603,754,608,713,607"/>
-<area shape="poly" title=" " alt="" coords="705,628,777,650,775,655,703,633"/>
-<area shape="poly" title=" " alt="" coords="701,652,773,631,774,636,702,658"/>
-<area shape="poly" title=" " alt="" coords="701,678,756,677,756,682,701,683"/>
-<area shape="poly" title=" " alt="" coords="699,733,720,720,735,701,743,683,751,664,768,644,780,634,784,639,771,648,756,666,748,685,740,704,723,724,702,738"/>
-<area shape="poly" title=" " alt="" coords="694,731,781,701,783,706,696,736"/>
-<area shape="poly" title=" " alt="" coords="699,816,719,800,733,781,740,762,743,724,746,685,753,664,767,644,776,636,780,640,771,647,758,667,751,686,748,724,746,763,738,783,723,804,702,820"/>
-<area shape="poly" title=" " alt="" coords="698,811,720,799,780,754,828,707,831,711,783,758,723,804,701,816"/>
-<area shape="poly" title=" " alt="" coords="699,897,719,880,738,851,746,822,747,793,743,765,740,735,740,706,748,675,767,644,775,636,778,640,771,647,753,677,746,706,745,735,749,764,752,793,751,823,743,853,723,883,702,901"/>
-<area shape="poly" title=" " alt="" coords="699,893,720,880,760,840,794,795,821,750,841,711,845,713,826,752,799,798,764,844,723,884,701,898"/>
-<area shape="poly" title=" " alt="" coords="700,977,719,960,743,920,752,881,750,843,744,805,737,766,735,727,743,686,767,644,774,636,778,640,771,647,748,688,740,727,742,766,749,804,756,843,757,882,748,922,723,963,703,981"/>
-<area shape="poly" title=" " alt="" coords="700,973,720,960,746,932,769,901,806,833,832,767,847,712,852,714,837,768,811,835,774,904,750,935,723,964,703,978"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="525,1214,697,1240"/>
-<area shape="poly" title=" " alt="" coords="452,1242,509,1236,510,1241,452,1247"/>
-<area shape="poly" title=" " alt="" coords="402,1267,453,1286,477,1300,501,1314,524,1322,522,1327,499,1319,475,1305,451,1291,400,1272"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="533,1264,688,1305"/>
-<area shape="poly" title=" " alt="" coords="452,1265,518,1272,517,1277,452,1270"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a052b2d235a04e32c6d4d7f7652c64913" title=" " alt="" coords="511,1054,709,1110"/>
+<area shape="poly" title=" " alt="" coords="354,694,365,756,390,848,410,899,434,950,464,998,501,1040,504,1042,500,1046,497,1044,460,1001,429,953,405,901,385,850,360,757,349,695"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#aeee4b06440c1cb64b05fa8e931b79fd8" title=" " alt="" coords="520,1134,699,1190"/>
+<area shape="poly" title=" " alt="" coords="353,695,360,768,381,881,400,945,426,1008,459,1067,501,1120,509,1127,506,1131,497,1123,454,1070,421,1010,395,946,376,883,355,769,348,695"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a52518464f26d1c7a59e637553280264f" title=" " alt="" coords="512,110,707,166"/>
+<area shape="poly" title=" " alt="" coords="437,666,449,656,460,639,468,617,476,560,477,493,474,419,471,346,471,277,478,219,486,195,497,176,498,174,502,178,501,179,491,197,484,220,476,277,476,345,479,419,483,493,482,561,473,618,465,641,453,659,440,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a48edcd000854ae33d33e3f69bb58d845" title=" " alt="" coords="519,190,700,246"/>
+<area shape="poly" title=" " alt="" coords="437,666,449,656,468,631,480,607,488,583,490,558,487,510,475,461,464,411,459,361,461,335,467,309,479,283,497,256,505,248,509,251,501,259,484,285,472,311,466,336,464,361,469,410,481,460,492,509,496,559,493,584,485,609,472,634,453,660,440,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a8a7bc4b0721c17244da07130fce34b4e" title=" " alt="" coords="520,30,699,86"/>
+<area shape="poly" title=" " alt="" coords="437,666,449,656,462,636,471,610,480,544,479,465,474,380,469,294,468,214,476,146,484,118,497,96,506,86,510,90,501,99,489,120,481,147,474,214,475,293,480,379,485,465,485,544,476,611,467,638,453,659,440,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a9f3a503181102a76c71ffea6bb838516" title=" " alt="" coords="499,269,720,310"/>
+<area shape="poly" title=" " alt="" coords="437,666,449,656,465,635,476,615,485,574,482,533,473,491,465,449,461,406,470,363,481,342,497,320,498,319,502,322,501,323,486,344,475,365,467,407,470,448,479,490,487,532,490,574,481,617,469,638,453,660,440,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#af514cf719eeeca52738d3ec72efb9b37" title=" " alt="" coords="508,334,711,390"/>
+<area shape="poly" title=" " alt="" coords="436,666,449,656,471,625,479,594,479,563,474,532,469,500,469,467,476,434,497,400,498,398,502,402,501,403,481,436,474,467,475,499,480,531,484,563,484,595,475,627,453,659,439,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a760dd678981ec54941b8001ad73b70a2" title=" " alt="" coords="508,414,711,470"/>
+<area shape="poly" title=" " alt="" coords="435,666,449,656,465,635,473,614,474,571,474,526,481,503,497,480,499,478,503,482,501,483,486,505,479,527,479,571,478,615,470,638,453,660,438,671"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a54cdd22404ff0a2817d306291ec132d2" title=" " alt="" coords="508,494,711,550"/>
+<area shape="poly" title=" " alt="" coords="432,666,449,656,460,645,467,634,473,610,479,585,497,560,501,557,504,561,501,563,484,587,478,611,472,636,464,648,453,660,435,671"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a45580ea3ca7888dd8cc859eb61b12dee" title=" " alt="" coords="508,574,711,630"/>
+<area shape="poly" title=" " alt="" coords="411,666,450,655,516,633,517,638,452,660,412,671"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a407b068be25c51dc0a7511fcbbdb01b4" title=" " alt="" coords="520,654,700,710"/>
+<area shape="poly" title=" " alt="" coords="447,679,504,679,504,684,447,684"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ad7abd70b8b524c4b31eeaaa46400174c" title=" " alt="" coords="521,734,699,790"/>
+<area shape="poly" title=" " alt="" coords="394,693,507,727,505,732,393,698"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a5b8d0a706ff112a82cecb1c84f96c3f7" title=" " alt="" coords="521,814,699,870"/>
+<area shape="poly" title=" " alt="" coords="365,693,421,744,460,773,500,799,510,804,507,809,498,804,456,777,418,748,362,697"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ae5ba3e13af412ffb1824b7d9413fa14b" title=" " alt="" coords="521,894,699,950"/>
+<area shape="poly" title=" " alt="" coords="359,694,378,730,410,780,451,833,501,880,509,885,506,889,497,884,447,837,405,783,374,733,354,696"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a0e37aae11de1710812a7c4000712fa42" title=" " alt="" coords="519,974,700,1030"/>
+<area shape="poly" title=" " alt="" coords="356,694,371,743,400,815,443,892,470,928,501,960,508,965,504,969,497,964,466,931,438,895,395,817,366,745,351,696"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="768,588,948,629"/>
+<area shape="poly" title=" " alt="" coords="707,1051,718,1040,736,1015,747,990,754,965,757,941,753,893,743,845,733,797,729,748,731,722,738,697,749,671,766,644,772,637,776,641,770,647,754,673,743,699,736,723,734,748,738,796,748,844,758,892,762,941,759,966,752,991,740,1017,722,1043,711,1055"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="771,657,945,698"/>
+<area shape="poly" title=" " alt="" coords="704,1051,718,1040,750,1002,777,960,799,915,816,869,839,782,850,713,856,714,844,783,821,871,804,917,782,963,755,1005,722,1044,708,1055"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="996,665,1219,691"/>
+<area shape="poly" title=" " alt="" coords="946,675,980,675,980,680,946,680"/>
+<area shape="poly" title=" " alt="" coords="698,1138,718,1120,739,1089,752,1059,760,1030,762,1001,757,943,743,885,729,828,723,769,726,738,733,708,746,676,766,644,772,637,776,641,770,647,751,679,738,709,731,739,729,769,735,827,748,884,762,942,768,1000,765,1030,757,1061,743,1092,722,1123,701,1142"/>
+<area shape="poly" title=" " alt="" coords="698,1136,718,1120,756,1072,786,1019,809,962,826,904,846,795,853,713,859,714,852,796,831,905,814,963,791,1021,760,1075,722,1124,701,1140"/>
+<area shape="poly" title=" " alt="" coords="708,164,722,176,759,222,789,275,812,330,830,387,851,492,858,572,853,573,845,493,825,388,807,332,784,277,755,225,718,180,705,168"/>
+<area shape="poly" title=" " alt="" coords="710,163,722,176,743,207,756,237,764,266,767,295,762,352,748,408,735,464,729,521,732,549,739,579,751,608,770,639,776,645,772,649,766,642,747,611,734,580,726,550,724,521,730,463,743,407,756,351,761,295,759,267,751,238,738,209,718,179,706,167"/>
+<area shape="poly" title=" " alt="" coords="702,241,722,256,754,292,780,333,802,377,819,421,843,506,855,572,850,573,838,507,814,423,797,379,776,336,750,295,719,260,699,245"/>
+<area shape="poly" title=" " alt="" coords="703,239,722,256,740,281,751,306,758,331,761,355,758,402,748,449,738,495,735,542,737,565,743,589,754,614,770,639,776,645,772,649,766,642,750,616,738,591,732,566,730,542,733,494,743,447,753,401,756,355,753,332,746,308,735,284,718,259,699,243"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808" title=" " alt="" coords="768,5,948,46"/>
+<area shape="poly" title=" " alt="" coords="699,43,753,37,753,42,700,49"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a276da0ce346e9b3837ef0483e04eedd4" title=" " alt="" coords="776,71,940,111"/>
+<area shape="poly" title=" " alt="" coords="700,67,761,75,760,81,699,72"/>
+<area shape="poly" title=" " alt="" coords="706,308,722,320,750,348,774,379,812,449,837,517,852,572,847,573,832,518,807,451,770,382,746,351,719,324,703,313"/>
+<area shape="poly" title=" " alt="" coords="709,308,722,320,738,340,748,361,758,401,756,440,749,480,742,519,740,558,747,598,770,639,777,646,773,650,766,642,742,600,734,558,737,518,744,479,751,440,753,401,743,363,733,343,718,323,706,312"/>
+<area shape="poly" title=" " alt="" coords="704,388,722,400,764,440,798,487,825,533,845,573,840,575,821,536,794,490,760,444,719,404,701,392"/>
+<area shape="poly" title=" " alt="" coords="710,388,722,400,742,431,751,461,751,491,748,521,744,550,745,579,752,608,770,639,777,646,774,650,766,642,747,610,739,580,739,549,742,520,746,491,745,462,737,433,718,403,706,392"/>
+<area shape="poly" title=" " alt="" coords="700,468,722,479,783,526,831,575,827,578,779,530,719,484,697,472"/>
+<area shape="poly" title=" " alt="" coords="708,468,722,480,737,500,745,521,747,560,750,599,757,619,770,639,779,646,775,650,766,642,752,621,745,600,742,561,740,522,733,503,718,483,705,472"/>
+<area shape="poly" title=" " alt="" coords="693,548,784,580,782,585,691,553"/>
+<area shape="poly" title=" " alt="" coords="705,548,722,560,739,580,747,600,755,619,770,638,782,647,779,651,766,642,750,622,742,602,735,583,719,564,702,552"/>
+<area shape="poly" title=" " alt="" coords="712,602,753,603,753,608,712,607"/>
+<area shape="poly" title=" " alt="" coords="704,628,776,650,774,655,702,633"/>
+<area shape="poly" title=" " alt="" coords="700,652,772,631,773,636,701,658"/>
+<area shape="poly" title=" " alt="" coords="700,678,755,677,755,682,700,683"/>
+<area shape="poly" title=" " alt="" coords="698,733,719,720,734,701,742,683,750,664,767,644,779,634,783,639,770,648,755,666,747,685,739,704,722,724,701,738"/>
+<area shape="poly" title=" " alt="" coords="693,731,780,701,782,706,695,736"/>
+<area shape="poly" title=" " alt="" coords="698,816,718,800,732,781,739,762,742,724,745,685,752,664,766,644,775,636,779,640,770,647,757,667,750,686,747,724,745,763,737,783,722,804,701,820"/>
+<area shape="poly" title=" " alt="" coords="697,811,719,799,779,754,827,707,830,711,782,758,722,804,700,816"/>
+<area shape="poly" title=" " alt="" coords="698,897,718,880,737,851,745,822,746,793,742,765,739,735,739,706,747,675,766,644,774,636,777,640,770,647,752,677,745,706,744,735,748,764,751,793,750,823,742,853,722,883,701,901"/>
+<area shape="poly" title=" " alt="" coords="698,893,719,880,759,840,793,795,820,750,840,711,844,713,825,752,798,798,763,844,722,884,700,898"/>
+<area shape="poly" title=" " alt="" coords="699,977,718,960,742,920,751,881,749,843,743,805,736,766,734,727,742,686,766,644,773,636,777,640,770,647,747,688,739,727,741,766,748,804,755,843,756,882,747,922,722,963,702,981"/>
+<area shape="poly" title=" " alt="" coords="699,973,719,960,745,932,768,901,805,833,831,767,846,712,851,714,836,768,810,835,773,904,749,935,722,964,702,978"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="524,1214,696,1240"/>
+<area shape="poly" title=" " alt="" coords="451,1242,508,1236,509,1241,452,1247"/>
+<area shape="poly" title=" " alt="" coords="401,1267,452,1286,476,1300,500,1314,523,1322,521,1327,498,1319,474,1305,450,1291,399,1272"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="532,1264,687,1305"/>
+<area shape="poly" title=" " alt="" coords="452,1265,517,1272,516,1277,451,1270"/>
 </map>
 </div>
 <div class="dynheader">
@@ -1076,11 +902,11 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Saves the ROM data to a file. </p>
+<p>Saves the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to a file. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">backup</td><td>If true, creates a backup file with timestamp in its name </td></tr>
-    <tr><td class="paramname">filename</td><td>The name of the file to save the ROM data to</td></tr>
+    <tr><td class="paramname">filename</td><td>The name of the file to save the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to</td></tr>
   </table>
   </dd>
 </dl>
@@ -1094,12 +920,12 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph" id="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph">
-<area shape="rect" title="Saves the ROM data to a file." alt="" coords="5,116,185,142"/>
+<area shape="rect" title="Saves the Rom data to a file." alt="" coords="5,116,185,142"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="255,5,417,31"/>
 <area shape="poly" title=" " alt="" coords="112,113,164,78,232,41,252,33,254,38,234,46,167,82,115,118"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="248,79,424,120"/>
 <area shape="poly" title=" " alt="" coords="185,115,232,109,233,115,185,121"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the ROM." alt="" coords="233,259,439,284"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="233,259,439,284"/>
 <area shape="poly" title=" " alt="" coords="120,140,300,248,298,253,117,145"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="1177,375,1326,400"/>
 <area shape="poly" title=" " alt="" coords="185,134,366,147,578,154,808,154,900,160,937,168,971,178,1037,211,1117,259,1151,282,1183,309,1231,361,1227,364,1179,313,1148,286,1115,263,1035,215,969,183,936,173,899,165,808,159,578,159,366,153,185,140"/>
@@ -1133,7 +959,7 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_icgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_icgraph" id="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_icgraph">
-<area shape="rect" title="Saves the ROM data to a file." alt="" coords="209,46,388,72"/>
+<area shape="rect" title="Saves the Rom data to a file." alt="" coords="209,46,388,72"/>
 <area shape="rect" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="22,5,144,46"/>
 <area shape="poly" title=" " alt="" coords="196,46,144,38,145,32,197,41"/>
 <area shape="rect" href="classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3" title=" " alt="" coords="5,71,161,111"/>
@@ -1166,7 +992,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Saves the given palette to the ROM if any of its colors have been modified.</p>
+<p>Saves the given palette to the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> if any of its colors have been modified.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">index</td><td>The index of the palette to save. </td></tr>
@@ -1211,9 +1037,9 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_icgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_icgraph" id="aclassyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_icgraph">
 <area shape="rect" title=" " alt="" coords="690,46,875,72"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the ROM." alt="" coords="436,46,642,72"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="436,46,642,72"/>
 <area shape="poly" title=" " alt="" coords="675,62,643,62,643,56,675,56"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="209,46,388,72"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="209,46,388,72"/>
 <area shape="poly" title=" " alt="" coords="420,62,388,62,388,56,420,56"/>
 <area shape="rect" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="22,5,144,46"/>
 <area shape="poly" title=" " alt="" coords="196,46,144,38,145,32,197,41"/>
@@ -1239,7 +1065,7 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Saves all palettes in the ROM. </p>
+<p>Saves all palettes in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>. </p>
 <p>This function iterates through all palette groups and all palettes in each group, and saves each palette using the <a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette()</a> function. </p>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a68ceafdc2a8f70e468c0c4ff2d7dbd46">yaze::app::gfx::PaletteGroupMap::for_each()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette()</a>, and <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>.</p>
@@ -1250,7 +1076,7 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph" id="aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph">
-<area shape="rect" title="Saves all palettes in the ROM." alt="" coords="5,70,212,96"/>
+<area shape="rect" title="Saves all palettes in the Rom." alt="" coords="5,70,212,96"/>
 <area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a68ceafdc2a8f70e468c0c4ff2d7dbd46" title=" " alt="" coords="262,5,442,46"/>
 <area shape="poly" title=" " alt="" coords="166,67,247,48,248,53,167,72"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4ecd5e203ecac5987519ece53983fe63" title=" " alt="" coords="260,178,444,204"/>
@@ -1281,8 +1107,8 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_icgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_icgraph" id="aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_icgraph">
-<area shape="rect" title="Saves all palettes in the ROM." alt="" coords="436,46,642,72"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="209,46,388,72"/>
+<area shape="rect" title="Saves all palettes in the Rom." alt="" coords="436,46,642,72"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="209,46,388,72"/>
 <area shape="poly" title=" " alt="" coords="420,62,388,62,388,56,420,56"/>
 <area shape="rect" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="22,5,144,46"/>
 <area shape="poly" title=" " alt="" coords="196,46,144,38,145,32,197,41"/>
@@ -1584,7 +1410,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="235,71,404,111"/>
 <area shape="rect" href="classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3" title=" " alt="" coords="16,5,176,46"/>
 <area shape="poly" title=" " alt="" coords="232,68,167,49,169,44,234,63"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from ROM data." alt="" coords="12,71,180,111"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="12,71,180,111"/>
 <area shape="poly" title=" " alt="" coords="219,94,180,94,180,88,219,88"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a99dae24153d271a7feab7740b8f752a7" title=" " alt="" coords="5,136,187,161"/>
 <area shape="poly" title=" " alt="" coords="224,118,150,137,148,132,222,113"/>
@@ -1919,9 +1745,9 @@ Here is the caller graph for this function:</div>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4ecd5e203ecac5987519ece53983fe63" title=" " alt="" coords="695,72,880,97"/>
 <area shape="poly" title=" " alt="" coords="924,86,880,86,880,81,924,81"/>
 <area shape="poly" title=" " alt="" coords="948,102,852,123,851,118,947,97"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the ROM." alt="" coords="439,72,645,97"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="439,72,645,97"/>
 <area shape="poly" title=" " alt="" coords="680,87,645,87,645,82,680,82"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="209,77,388,103"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="209,77,388,103"/>
 <area shape="poly" title=" " alt="" coords="423,90,388,90,388,85,423,84"/>
 <area shape="rect" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="22,69,144,110"/>
 <area shape="poly" title=" " alt="" coords="193,92,145,92,145,87,193,87"/>
@@ -2100,9 +1926,9 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="912,76,880,72,881,67,913,70"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a25138516f1c68cb74a5e0905c8a89669" title=" " alt="" coords="697,96,878,121"/>
 <area shape="poly" title=" " alt="" coords="913,98,879,101,879,96,912,92"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the ROM." alt="" coords="439,46,645,72"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="439,46,645,72"/>
 <area shape="poly" title=" " alt="" coords="680,62,645,62,645,56,680,56"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="209,46,388,72"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="209,46,388,72"/>
 <area shape="poly" title=" " alt="" coords="423,62,388,62,388,56,423,56"/>
 <area shape="rect" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="22,5,144,46"/>
 <area shape="poly" title=" " alt="" coords="196,46,144,38,145,32,197,41"/>
@@ -2323,86 +2149,86 @@ Here is the call graph for this function:</div>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a" title=" " alt="" coords="207,1244,400,1269"/>
 <area shape="poly" title=" " alt="" coords="159,1254,191,1254,191,1259,159,1259"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="470,620,631,645"/>
-<area shape="poly" title=" " alt="" coords="303,1243,317,1130,344,952,364,859,387,773,415,702,430,675,446,654,455,647,458,651,450,658,434,678,419,705,392,775,369,860,350,953,322,1131,309,1244"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a79d926917316341fc0566b989b78d03f" title="Loads all the palettes for the game." alt="" coords="448,669,653,695"/>
+<area shape="poly" title=" " alt="" coords="303,1243,317,1130,344,952,364,859,387,773,415,702,430,675,446,654,454,648,458,652,450,658,434,678,419,705,392,775,369,860,350,953,322,1131,309,1244"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="453,669,648,695"/>
 <area shape="poly" title=" " alt="" coords="308,1242,535,707,540,710,313,1244"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="449,1244,653,1269"/>
-<area shape="poly" title=" " alt="" coords="401,1254,433,1254,433,1259,401,1259"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="737,1329,887,1355"/>
-<area shape="poly" title=" " alt="" coords="380,1267,448,1279,722,1325,721,1330,448,1284,379,1272"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="448,1244,652,1269"/>
+<area shape="poly" title=" " alt="" coords="400,1254,433,1254,433,1259,400,1259"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="736,1329,886,1355"/>
+<area shape="poly" title=" " alt="" coords="381,1267,448,1279,721,1325,720,1330,448,1284,380,1272"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="462,1344,639,1385"/>
 <area shape="poly" title=" " alt="" coords="332,1267,449,1323,479,1336,477,1340,447,1328,330,1272"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a052b2d235a04e32c6d4d7f7652c64913" title=" " alt="" coords="713,1054,911,1110"/>
-<area shape="poly" title=" " alt="" coords="556,694,567,756,592,848,612,899,636,950,667,998,703,1040,706,1042,703,1046,699,1044,662,1001,632,953,607,901,587,850,562,757,551,695"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#aeee4b06440c1cb64b05fa8e931b79fd8" title=" " alt="" coords="722,1134,902,1190"/>
-<area shape="poly" title=" " alt="" coords="555,695,562,768,583,881,602,945,628,1008,661,1067,703,1120,712,1127,708,1131,699,1124,657,1070,623,1010,597,946,578,883,557,769,550,695"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a52518464f26d1c7a59e637553280264f" title=" " alt="" coords="714,110,910,166"/>
-<area shape="poly" title=" " alt="" coords="639,666,651,656,662,639,670,617,679,560,680,493,677,419,673,346,673,277,681,219,688,195,699,176,701,174,705,178,704,179,693,197,686,220,679,277,679,345,682,419,685,493,684,561,676,618,667,641,655,659,642,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a48edcd000854ae33d33e3f69bb58d845" title=" " alt="" coords="721,190,903,246"/>
-<area shape="poly" title=" " alt="" coords="639,666,651,656,670,631,683,607,690,583,693,559,689,510,678,461,666,411,661,361,663,335,670,309,681,283,699,256,707,248,711,251,703,259,686,285,675,311,668,336,666,361,671,410,683,460,694,509,698,559,695,584,688,609,675,634,655,660,642,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a8a7bc4b0721c17244da07130fce34b4e" title=" " alt="" coords="722,30,902,86"/>
-<area shape="poly" title=" " alt="" coords="639,666,651,656,664,636,673,610,682,544,682,465,677,380,672,294,671,214,678,146,687,118,699,96,708,86,712,90,703,99,692,120,683,147,676,214,677,293,682,379,687,465,687,544,678,611,669,638,655,659,643,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a9f3a503181102a76c71ffea6bb838516" title=" " alt="" coords="701,269,923,310"/>
-<area shape="poly" title=" " alt="" coords="639,666,651,656,667,635,678,615,687,574,685,533,676,491,667,449,664,406,673,363,683,342,699,320,700,319,704,322,703,323,688,344,678,365,669,407,672,448,681,490,690,532,693,574,683,617,672,638,655,660,642,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#af514cf719eeeca52738d3ec72efb9b37" title=" " alt="" coords="710,334,914,390"/>
-<area shape="poly" title=" " alt="" coords="638,666,651,656,673,625,681,594,681,563,677,532,672,500,671,467,679,434,699,400,701,398,705,402,703,403,684,436,676,467,677,499,682,531,687,563,687,595,678,627,655,659,641,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a760dd678981ec54941b8001ad73b70a2" title=" " alt="" coords="710,414,914,470"/>
-<area shape="poly" title=" " alt="" coords="637,666,651,656,668,635,675,614,676,571,676,526,684,503,699,480,701,478,705,482,703,483,688,505,682,527,681,571,680,615,672,638,655,660,641,670"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a54cdd22404ff0a2817d306291ec132d2" title=" " alt="" coords="710,494,914,550"/>
-<area shape="poly" title=" " alt="" coords="634,666,652,656,663,645,669,634,675,610,682,585,699,560,703,557,706,561,703,563,687,587,681,611,674,636,667,648,655,660,637,671"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a45580ea3ca7888dd8cc859eb61b12dee" title=" " alt="" coords="710,574,914,630"/>
-<area shape="poly" title=" " alt="" coords="613,666,653,655,718,633,720,638,654,660,614,671"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a407b068be25c51dc0a7511fcbbdb01b4" title=" " alt="" coords="722,654,902,710"/>
-<area shape="poly" title=" " alt="" coords="654,679,706,679,706,684,654,684"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ad7abd70b8b524c4b31eeaaa46400174c" title=" " alt="" coords="723,734,901,790"/>
-<area shape="poly" title=" " alt="" coords="596,693,709,727,708,733,595,698"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a5b8d0a706ff112a82cecb1c84f96c3f7" title=" " alt="" coords="723,814,901,870"/>
-<area shape="poly" title=" " alt="" coords="567,693,624,744,662,773,703,799,712,804,710,809,700,804,659,777,620,748,564,697"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ae5ba3e13af412ffb1824b7d9413fa14b" title=" " alt="" coords="723,894,901,950"/>
-<area shape="poly" title=" " alt="" coords="561,694,580,730,612,780,653,833,703,880,711,885,708,889,700,884,649,837,607,783,576,733,556,696"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a0e37aae11de1710812a7c4000712fa42" title=" " alt="" coords="721,974,903,1030"/>
-<area shape="poly" title=" " alt="" coords="558,694,573,743,602,815,645,892,672,928,703,960,710,965,707,969,700,964,668,931,640,895,597,817,568,745,553,696"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="971,588,1150,629"/>
-<area shape="poly" title=" " alt="" coords="909,1051,921,1040,938,1015,949,990,956,965,959,941,955,893,945,845,935,797,931,748,933,722,940,697,951,671,969,644,975,637,979,641,973,647,956,673,945,699,939,723,936,748,940,796,951,844,961,892,964,941,961,966,954,991,943,1017,925,1043,913,1055"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="973,657,1148,698"/>
-<area shape="poly" title=" " alt="" coords="907,1051,921,1040,953,1002,979,960,1001,915,1018,869,1041,782,1053,713,1058,714,1047,783,1023,871,1006,917,984,963,957,1005,925,1044,910,1055"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="1198,665,1421,691"/>
-<area shape="poly" title=" " alt="" coords="1148,675,1182,675,1182,680,1148,680"/>
-<area shape="poly" title=" " alt="" coords="900,1138,921,1120,941,1089,954,1059,962,1030,965,1001,959,943,946,885,932,828,926,769,928,738,935,708,948,676,969,644,975,637,979,641,973,647,953,679,940,709,933,739,931,769,937,827,951,884,965,942,970,1000,967,1030,960,1061,946,1092,925,1123,904,1142"/>
-<area shape="poly" title=" " alt="" coords="900,1136,921,1120,958,1072,988,1019,1011,962,1029,904,1049,795,1056,713,1061,714,1054,796,1034,905,1016,963,993,1021,963,1075,925,1124,904,1140"/>
-<area shape="poly" title=" " alt="" coords="910,164,925,176,962,222,991,275,1015,330,1032,387,1053,492,1061,572,1055,573,1048,493,1027,388,1010,332,987,277,957,225,921,180,907,168"/>
-<area shape="poly" title=" " alt="" coords="912,163,925,176,945,207,959,237,966,266,969,295,964,352,951,408,938,464,932,521,934,549,941,579,954,608,973,639,979,645,975,649,969,642,949,611,936,580,929,550,926,521,932,463,946,407,959,351,964,295,961,267,954,238,940,209,921,179,908,167"/>
-<area shape="poly" title=" " alt="" coords="905,241,924,256,956,292,983,333,1004,377,1022,421,1045,506,1057,572,1052,573,1040,507,1017,423,999,379,978,336,952,295,921,260,902,245"/>
-<area shape="poly" title=" " alt="" coords="905,239,925,256,942,281,954,306,960,331,963,355,960,402,951,449,941,495,937,542,940,565,946,589,957,614,973,639,979,645,975,649,969,642,952,616,941,591,934,566,932,542,936,494,945,447,955,401,958,355,955,332,949,308,937,284,921,259,901,243"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808" title=" " alt="" coords="971,5,1150,46"/>
-<area shape="poly" title=" " alt="" coords="902,43,955,37,956,42,902,49"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a276da0ce346e9b3837ef0483e04eedd4" title=" " alt="" coords="979,71,1142,111"/>
-<area shape="poly" title=" " alt="" coords="902,67,963,75,963,81,902,72"/>
-<area shape="poly" title=" " alt="" coords="908,308,924,320,952,348,976,379,1014,449,1040,517,1055,572,1049,573,1035,518,1009,451,972,382,948,351,921,324,905,313"/>
-<area shape="poly" title=" " alt="" coords="912,308,925,320,940,340,951,361,960,401,959,440,952,480,944,519,942,558,950,598,973,639,979,646,976,650,969,642,945,600,937,558,939,518,946,479,953,440,955,401,946,363,936,343,921,323,908,312"/>
-<area shape="poly" title=" " alt="" coords="907,388,924,400,966,440,1000,487,1028,533,1047,573,1042,575,1023,536,996,490,962,444,921,404,904,392"/>
-<area shape="poly" title=" " alt="" coords="912,388,925,400,945,431,953,461,953,491,950,521,947,550,947,579,954,608,973,639,980,646,976,650,969,642,949,610,942,580,941,549,945,520,948,491,948,462,940,433,921,403,908,392"/>
-<area shape="poly" title=" " alt="" coords="902,468,924,479,985,526,1033,575,1030,578,982,530,921,484,900,472"/>
-<area shape="poly" title=" " alt="" coords="911,468,925,480,940,500,947,521,950,560,952,599,959,619,973,639,981,646,977,650,969,642,954,621,947,600,945,561,942,522,935,503,921,483,907,472"/>
-<area shape="poly" title=" " alt="" coords="895,548,986,580,985,585,893,553"/>
-<area shape="poly" title=" " alt="" coords="907,548,924,560,941,580,949,600,957,619,973,638,984,647,981,651,969,642,952,622,944,602,937,583,921,564,904,552"/>
-<area shape="poly" title=" " alt="" coords="914,602,955,603,955,608,914,607"/>
-<area shape="poly" title=" " alt="" coords="906,628,978,650,977,655,904,633"/>
-<area shape="poly" title=" " alt="" coords="902,652,974,631,976,636,903,658"/>
-<area shape="poly" title=" " alt="" coords="903,678,957,677,958,682,903,683"/>
-<area shape="poly" title=" " alt="" coords="900,733,921,720,937,701,944,683,952,664,969,644,982,634,985,639,972,648,957,666,949,685,941,704,924,724,903,738"/>
-<area shape="poly" title=" " alt="" coords="896,731,982,701,984,706,897,736"/>
-<area shape="poly" title=" " alt="" coords="900,816,921,800,935,781,942,762,944,724,947,685,954,664,969,644,977,636,981,640,973,647,959,667,952,686,950,724,947,763,939,783,925,804,903,820"/>
-<area shape="poly" title=" " alt="" coords="899,811,921,799,981,754,1029,707,1033,711,985,758,924,804,902,816"/>
-<area shape="poly" title=" " alt="" coords="900,897,921,880,940,851,947,822,948,793,945,765,941,735,942,706,950,675,969,644,976,636,980,640,973,647,954,677,947,706,947,735,950,764,953,793,953,823,944,853,925,883,903,901"/>
-<area shape="poly" title=" " alt="" coords="900,893,921,880,962,840,995,795,1022,750,1042,711,1047,713,1027,752,1000,798,966,844,924,884,903,898"/>
-<area shape="poly" title=" " alt="" coords="901,977,921,960,944,920,953,881,952,843,945,805,938,766,936,727,945,686,969,644,976,636,979,640,973,647,950,688,942,727,944,766,950,804,957,843,958,882,949,922,925,963,905,981"/>
-<area shape="poly" title=" " alt="" coords="902,973,921,960,947,932,970,901,1007,833,1033,767,1049,712,1054,714,1038,768,1012,835,975,904,951,935,924,964,905,978"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="726,1214,898,1240"/>
-<area shape="poly" title=" " alt="" coords="653,1242,710,1236,711,1241,654,1247"/>
-<area shape="poly" title=" " alt="" coords="603,1267,654,1286,679,1300,702,1314,725,1322,723,1327,700,1319,676,1305,652,1291,601,1272"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="734,1264,890,1305"/>
-<area shape="poly" title=" " alt="" coords="654,1265,719,1272,718,1277,653,1270"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a052b2d235a04e32c6d4d7f7652c64913" title=" " alt="" coords="712,1054,910,1110"/>
+<area shape="poly" title=" " alt="" coords="556,694,567,756,592,848,611,899,635,950,666,998,702,1040,705,1042,702,1046,698,1044,661,1001,631,953,606,901,587,850,561,757,551,695"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#aeee4b06440c1cb64b05fa8e931b79fd8" title=" " alt="" coords="721,1134,901,1190"/>
+<area shape="poly" title=" " alt="" coords="555,695,561,768,583,881,601,945,627,1008,660,1067,702,1120,711,1127,707,1131,698,1123,656,1070,622,1010,596,946,577,883,556,769,549,695"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a52518464f26d1c7a59e637553280264f" title=" " alt="" coords="713,110,909,166"/>
+<area shape="poly" title=" " alt="" coords="638,666,650,656,661,639,669,617,678,560,679,493,675,419,672,346,672,277,680,219,687,195,698,176,700,174,704,178,703,179,692,197,685,220,678,277,678,345,681,419,684,493,683,561,675,618,666,641,654,659,641,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a48edcd000854ae33d33e3f69bb58d845" title=" " alt="" coords="720,190,902,246"/>
+<area shape="poly" title=" " alt="" coords="638,666,650,656,669,631,682,607,689,583,692,558,688,510,677,461,665,411,660,361,662,335,669,309,680,283,698,256,706,248,710,251,702,259,685,285,674,311,667,336,665,361,670,410,682,460,693,509,697,559,694,584,687,609,674,634,654,660,641,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a8a7bc4b0721c17244da07130fce34b4e" title=" " alt="" coords="721,30,901,86"/>
+<area shape="poly" title=" " alt="" coords="638,666,650,656,663,636,672,610,681,544,681,465,676,380,671,294,670,214,677,146,686,118,698,96,707,86,711,90,702,99,691,120,682,147,675,214,676,293,681,379,686,465,686,544,677,611,668,638,654,659,642,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a9f3a503181102a76c71ffea6bb838516" title=" " alt="" coords="700,269,922,310"/>
+<area shape="poly" title=" " alt="" coords="638,666,650,656,666,635,677,615,686,574,684,533,675,491,666,449,663,406,672,363,682,342,698,320,699,319,703,322,702,323,687,344,677,365,668,407,671,448,680,490,689,532,691,574,682,617,671,638,654,660,641,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#af514cf719eeeca52738d3ec72efb9b37" title=" " alt="" coords="709,334,913,390"/>
+<area shape="poly" title=" " alt="" coords="637,666,650,656,672,625,680,594,680,563,676,532,671,500,670,467,678,434,698,400,700,398,704,402,702,403,683,436,675,467,676,499,681,531,686,563,686,595,677,627,654,659,641,670"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a760dd678981ec54941b8001ad73b70a2" title=" " alt="" coords="709,414,913,470"/>
+<area shape="poly" title=" " alt="" coords="636,666,650,656,667,635,674,614,675,571,675,526,683,503,698,480,700,478,704,482,702,483,687,505,681,527,680,571,679,615,671,638,654,660,639,671"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a54cdd22404ff0a2817d306291ec132d2" title=" " alt="" coords="709,494,913,550"/>
+<area shape="poly" title=" " alt="" coords="633,666,651,656,662,645,668,634,674,610,681,585,698,560,702,557,705,561,702,563,686,587,680,611,673,636,666,648,654,660,636,671"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a45580ea3ca7888dd8cc859eb61b12dee" title=" " alt="" coords="709,574,913,630"/>
+<area shape="poly" title=" " alt="" coords="612,666,652,655,717,633,719,638,653,660,613,671"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a407b068be25c51dc0a7511fcbbdb01b4" title=" " alt="" coords="721,654,901,710"/>
+<area shape="poly" title=" " alt="" coords="648,679,705,679,705,684,648,684"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ad7abd70b8b524c4b31eeaaa46400174c" title=" " alt="" coords="722,734,900,790"/>
+<area shape="poly" title=" " alt="" coords="596,693,708,727,706,732,594,698"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a5b8d0a706ff112a82cecb1c84f96c3f7" title=" " alt="" coords="722,814,900,870"/>
+<area shape="poly" title=" " alt="" coords="567,693,623,744,661,773,702,799,711,804,709,809,699,804,658,777,619,748,563,697"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#ae5ba3e13af412ffb1824b7d9413fa14b" title=" " alt="" coords="722,894,900,950"/>
+<area shape="poly" title=" " alt="" coords="560,694,580,730,611,780,652,833,702,880,710,885,707,889,699,884,648,837,607,783,575,733,556,696"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1palette__group__internal.html#a0e37aae11de1710812a7c4000712fa42" title=" " alt="" coords="720,974,902,1030"/>
+<area shape="poly" title=" " alt="" coords="557,694,573,743,601,815,644,892,671,928,702,960,709,965,706,969,699,964,667,931,639,895,596,817,568,745,552,696"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="970,588,1149,629"/>
+<area shape="poly" title=" " alt="" coords="908,1051,920,1040,937,1015,948,990,955,965,958,941,954,893,944,845,934,797,930,748,932,722,939,697,950,671,968,644,974,637,978,641,972,647,955,673,944,699,938,723,935,748,939,796,950,844,960,892,963,941,960,966,953,991,942,1017,924,1043,912,1055"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="972,657,1147,698"/>
+<area shape="poly" title=" " alt="" coords="906,1051,920,1040,952,1002,978,960,1000,915,1017,869,1040,782,1052,713,1057,714,1046,783,1022,871,1005,917,983,963,956,1005,924,1044,909,1055"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="1197,665,1420,691"/>
+<area shape="poly" title=" " alt="" coords="1147,675,1181,675,1181,680,1147,680"/>
+<area shape="poly" title=" " alt="" coords="899,1138,920,1120,940,1089,953,1059,961,1030,964,1001,958,943,945,885,931,828,925,769,927,738,934,708,947,676,968,644,974,637,978,641,972,647,952,679,939,709,932,739,930,769,936,827,950,884,964,942,969,1000,966,1030,959,1061,945,1092,924,1123,903,1142"/>
+<area shape="poly" title=" " alt="" coords="899,1136,920,1120,957,1072,987,1019,1010,962,1028,904,1048,795,1055,713,1060,714,1053,796,1033,905,1015,963,992,1021,962,1075,924,1124,903,1140"/>
+<area shape="poly" title=" " alt="" coords="909,164,924,176,961,222,990,275,1014,330,1031,387,1052,492,1060,572,1054,573,1047,493,1026,388,1009,332,986,277,956,225,920,180,906,168"/>
+<area shape="poly" title=" " alt="" coords="911,163,924,176,944,207,958,237,965,266,968,295,963,352,950,408,937,464,931,521,933,549,940,579,953,608,972,639,978,645,974,649,968,642,948,611,935,580,928,550,925,521,931,463,945,407,958,351,963,295,960,267,953,238,939,209,920,179,907,167"/>
+<area shape="poly" title=" " alt="" coords="904,241,923,256,955,292,982,333,1003,377,1021,421,1044,506,1056,572,1051,573,1039,507,1016,423,998,379,977,336,951,295,920,260,901,245"/>
+<area shape="poly" title=" " alt="" coords="904,239,924,256,941,281,953,306,959,331,962,355,959,402,950,449,940,495,936,542,939,565,945,589,956,614,972,639,978,645,974,649,968,642,951,616,940,591,933,566,931,542,935,494,944,447,954,401,957,355,954,332,948,308,936,284,920,259,900,243"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808" title=" " alt="" coords="970,5,1149,46"/>
+<area shape="poly" title=" " alt="" coords="901,43,954,37,955,42,901,49"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a276da0ce346e9b3837ef0483e04eedd4" title=" " alt="" coords="978,71,1141,111"/>
+<area shape="poly" title=" " alt="" coords="901,67,962,75,962,81,901,72"/>
+<area shape="poly" title=" " alt="" coords="907,308,923,320,951,348,975,379,1013,449,1039,517,1054,572,1048,573,1034,518,1008,451,971,382,947,351,920,324,904,313"/>
+<area shape="poly" title=" " alt="" coords="911,308,924,320,939,340,950,361,959,401,958,440,951,480,943,519,941,558,949,598,972,639,978,646,975,650,968,642,944,600,936,558,938,518,945,479,952,440,954,401,945,363,935,343,920,323,907,312"/>
+<area shape="poly" title=" " alt="" coords="906,388,923,400,965,440,999,487,1027,533,1046,573,1041,575,1022,536,995,490,961,444,920,404,903,392"/>
+<area shape="poly" title=" " alt="" coords="911,388,924,400,944,431,952,461,952,491,949,521,946,550,946,579,953,608,972,639,979,646,975,650,968,642,948,610,941,580,940,549,944,520,947,491,947,462,939,433,920,403,907,392"/>
+<area shape="poly" title=" " alt="" coords="901,468,923,479,984,526,1032,575,1029,578,981,530,920,484,899,472"/>
+<area shape="poly" title=" " alt="" coords="910,468,924,480,939,500,946,521,949,560,951,599,958,619,972,639,980,646,976,650,968,642,953,621,946,600,944,561,941,522,934,503,920,483,906,472"/>
+<area shape="poly" title=" " alt="" coords="894,548,985,580,984,585,892,553"/>
+<area shape="poly" title=" " alt="" coords="906,548,923,560,940,580,948,600,956,619,972,638,983,647,980,651,968,642,951,622,943,602,936,583,920,564,903,552"/>
+<area shape="poly" title=" " alt="" coords="913,602,954,603,954,608,913,607"/>
+<area shape="poly" title=" " alt="" coords="905,628,977,650,976,655,903,633"/>
+<area shape="poly" title=" " alt="" coords="901,652,973,631,975,636,902,658"/>
+<area shape="poly" title=" " alt="" coords="902,678,956,677,957,682,902,683"/>
+<area shape="poly" title=" " alt="" coords="899,733,920,720,936,701,943,683,951,664,968,644,981,634,984,639,971,648,956,666,948,685,940,704,923,724,902,738"/>
+<area shape="poly" title=" " alt="" coords="895,731,981,701,983,706,896,736"/>
+<area shape="poly" title=" " alt="" coords="899,816,920,800,934,781,941,762,943,724,946,685,953,664,968,644,976,636,980,640,972,647,958,667,951,686,949,724,946,763,938,783,924,804,902,820"/>
+<area shape="poly" title=" " alt="" coords="898,811,920,799,980,754,1028,707,1032,711,984,758,923,804,901,816"/>
+<area shape="poly" title=" " alt="" coords="899,897,920,880,939,851,946,822,947,793,944,765,940,735,941,706,949,675,968,644,975,636,979,640,972,647,953,677,946,706,946,735,949,764,952,793,952,823,943,853,924,883,902,901"/>
+<area shape="poly" title=" " alt="" coords="899,893,920,880,961,840,994,795,1021,750,1041,711,1046,713,1026,752,999,798,965,844,923,884,902,898"/>
+<area shape="poly" title=" " alt="" coords="900,977,920,960,943,920,952,881,951,843,944,805,937,766,935,727,944,686,968,644,975,636,978,640,972,647,949,688,941,727,943,766,949,804,956,843,957,882,948,922,924,963,904,981"/>
+<area shape="poly" title=" " alt="" coords="901,973,920,960,946,932,969,901,1006,833,1032,767,1048,712,1053,714,1037,768,1011,835,974,904,950,935,923,964,904,978"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="725,1214,897,1240"/>
+<area shape="poly" title=" " alt="" coords="652,1242,709,1236,710,1241,653,1247"/>
+<area shape="poly" title=" " alt="" coords="602,1267,653,1286,678,1300,701,1314,724,1322,722,1327,699,1319,675,1305,651,1291,601,1272"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="733,1264,889,1305"/>
+<area shape="poly" title=" " alt="" coords="653,1265,718,1272,718,1277,653,1270"/>
 </map>
 </div>
 
@@ -2497,7 +2323,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa13df126e85f7968f40c45b49f22b214">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8344a067db046a552dc13563d1525bca">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>, and <a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa13df126e85f7968f40c45b49f22b214">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8344a067db046a552dc13563d1525bca">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>, and <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -2518,11 +2344,11 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="3234,1036,3191,1096,3162,1128,3130,1155,3111,1167,3108,1163,3126,1151,3158,1124,3187,1093,3230,1033"/>
 <area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea" title=" " alt="" coords="2942,1006,3110,1061"/>
 <area shape="poly" title=" " alt="" coords="3161,1017,3110,1024,3109,1019,3160,1012"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a810f3f230cf53ee312691c35a4ec6071" title=" " alt="" coords="2933,1245,3119,1286"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a1ff502f2d01d7181e9b6260dca4e3819" title=" " alt="" coords="2933,1245,3119,1286"/>
 <area shape="poly" title=" " alt="" coords="3245,1037,3230,1082,3206,1135,3173,1189,3152,1214,3130,1235,3113,1247,3110,1242,3126,1231,3149,1210,3168,1186,3201,1133,3225,1080,3240,1035"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from ROM data." alt="" coords="2671,222,2844,263"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from Rom data." alt="" coords="2671,222,2844,263"/>
 <area shape="poly" title=" " alt="" coords="2917,279,2844,264,2845,258,2918,274"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="2639,287,2876,313"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="2639,287,2876,313"/>
 <area shape="poly" title=" " alt="" coords="2917,303,2876,303,2876,297,2917,297"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2399,43,2584,99"/>
 <area shape="poly" title=" " alt="" coords="2642,281,2637,277,2621,256,2613,236,2611,194,2610,153,2603,133,2589,112,2576,101,2580,97,2593,109,2608,131,2615,152,2616,194,2618,235,2626,254,2641,273,2646,277"/>
@@ -2652,9 +2478,9 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_icgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_icgraph" id="aclassyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_icgraph">
 <area shape="rect" title=" " alt="" coords="2821,35,3007,75"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from ROM data." alt="" coords="2568,5,2741,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from Rom data." alt="" coords="2568,5,2741,46"/>
 <area shape="poly" title=" " alt="" coords="2805,45,2741,38,2742,33,2806,40"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="2536,70,2773,96"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="2536,70,2773,96"/>
 <area shape="poly" title=" " alt="" coords="2805,69,2774,73,2773,68,2805,64"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2303,55,2488,111"/>
 <area shape="poly" title=" " alt="" coords="2521,86,2489,86,2489,80,2521,80"/>
@@ -3129,7 +2955,7 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="2887,241,2806,231,2807,226,2888,236"/>
 <area shape="rect" href="classyaze_1_1cli_1_1Open.html#a93ec2d9f81970f0fba889a94fe92b9f5" title=" " alt="" coords="2663,264,2810,290"/>
 <area shape="poly" title=" " alt="" coords="2888,262,2811,271,2810,266,2887,256"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="2618,314,2855,339"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="2618,314,2855,339"/>
 <area shape="poly" title=" " alt="" coords="2933,272,2856,305,2817,316,2815,311,2854,300,2931,267"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4" title=" " alt="" coords="2631,364,2842,404"/>
 <area shape="poly" title=" " alt="" coords="2950,276,2909,316,2856,354,2831,365,2829,361,2853,350,2906,312,2947,272"/>
@@ -3316,9 +3142,9 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1991,782,1983,840,1965,915,1950,953,1931,990,1906,1024,1876,1052,1855,1063,1826,1071,1754,1080,1672,1084,1596,1083,1596,1077,1672,1078,1753,1075,1825,1065,1853,1058,1872,1047,1902,1020,1926,987,1945,951,1960,913,1978,839,1986,781"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012" title=" " alt="" coords="1683,651,1869,691"/>
 <area shape="poly" title=" " alt="" coords="1940,737,1830,694,1832,689,1942,732"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from ROM data." alt="" coords="1425,575,1598,615"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from Rom data." alt="" coords="1425,575,1598,615"/>
 <area shape="poly" title=" " alt="" coords="1970,730,1929,683,1903,660,1873,641,1804,616,1731,601,1661,594,1598,593,1598,588,1661,589,1732,596,1806,611,1875,637,1906,655,1933,679,1974,726"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="1393,640,1630,665"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="1393,640,1630,665"/>
 <area shape="poly" title=" " alt="" coords="1906,751,1796,736,1735,723,1677,705,1652,692,1629,679,1593,668,1595,663,1631,674,1655,688,1679,701,1737,718,1797,730,1907,745"/>
 <area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7fe5a6e628d17d6468ffe79ac422c97b" title=" " alt="" coords="1682,136,1870,177"/>
 <area shape="poly" title=" " alt="" coords="1985,725,1974,610,1952,449,1937,367,1919,293,1897,232,1872,190,1859,179,1863,175,1876,187,1902,229,1924,291,1942,366,1958,448,1979,609,1990,725"/>
@@ -3474,7 +3300,7 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a459125f1e224d2a45277b3df62809a21">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectCompressOk()</a>, <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, <a class="el" href="#ac84dc904001c32fe4679722aabaad86a">QueueChanges()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a99dae24153d271a7feab7740b8f752a7">ReadHelper()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a46623661861b99b7ddee15fae0d774d8">ReadTile16()</a>, <a class="el" href="#a3407620def35f4549495332e6e302898">ReadTransaction()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>, <a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM()</a>, <a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a0f18d16f8f7b3925e664e77604caac27">yaze::app::emu::SNES::SetupMemory()</a>, <a class="el" href="#ae6c98f3218b2df9263371c7646b780fe">SetupRenderer()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a210de65569d0b088013280d1e45f5c6a">UpdateBitmap()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a892dc139b8513e79b81096fa9b832aea">WriteColor()</a>, <a class="el" href="#a25138516f1c68cb74a5e0905c8a89669">WriteHelper()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#a6da6c886a28136780cbf47c1cdbd87f1">WriteTile16()</a>, <a class="el" href="#a106f6554e1e26cecc886b8d4fd83309f">WriteTransaction()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a459125f1e224d2a45277b3df62809a21">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectCompressOk()</a>, <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, <a class="el" href="#ac84dc904001c32fe4679722aabaad86a">QueueChanges()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a99dae24153d271a7feab7740b8f752a7">ReadHelper()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a46623661861b99b7ddee15fae0d774d8">ReadTile16()</a>, <a class="el" href="#a3407620def35f4549495332e6e302898">ReadTransaction()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>, <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>, <a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a0f18d16f8f7b3925e664e77604caac27">yaze::app::emu::SNES::SetupMemory()</a>, <a class="el" href="#ae6c98f3218b2df9263371c7646b780fe">SetupRenderer()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a210de65569d0b088013280d1e45f5c6a">UpdateBitmap()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a892dc139b8513e79b81096fa9b832aea">WriteColor()</a>, <a class="el" href="#a25138516f1c68cb74a5e0905c8a89669">WriteHelper()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#a6da6c886a28136780cbf47c1cdbd87f1">WriteTile16()</a>, <a class="el" href="#a106f6554e1e26cecc886b8d4fd83309f">WriteTransaction()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -3485,9 +3311,9 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1557,1201,1550,1038,1532,796,1516,670,1496,553,1469,456,1454,418,1437,388,1416,367,1420,363,1441,385,1459,415,1474,454,1501,552,1521,669,1537,795,1556,1037,1563,1201"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012" title=" " alt="" coords="1241,442,1427,483"/>
 <area shape="poly" title=" " alt="" coords="1557,1201,1549,1056,1529,847,1513,739,1493,641,1468,559,1453,527,1437,503,1416,485,1420,481,1441,499,1458,525,1473,557,1498,639,1519,739,1534,847,1554,1056,1562,1201"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from ROM data." alt="" coords="976,385,1148,426"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605" title="Loads 2bpp graphics from Rom data." alt="" coords="976,385,1148,426"/>
 <area shape="poly" title=" " alt="" coords="1558,1201,1556,1041,1550,929,1541,808,1526,688,1505,578,1491,531,1475,490,1458,457,1438,433,1418,421,1390,412,1315,401,1230,399,1149,402,1148,396,1230,394,1316,396,1391,406,1420,416,1441,428,1462,454,1480,488,1496,529,1510,577,1531,687,1546,807,1556,928,1561,1041,1564,1201"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="944,450,1180,475"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="944,450,1180,475"/>
 <area shape="poly" title=" " alt="" coords="1557,1201,1549,1065,1529,869,1513,769,1493,678,1468,604,1453,575,1438,554,1400,541,1318,520,1127,479,1129,473,1320,515,1402,536,1441,550,1458,572,1473,602,1498,677,1519,769,1534,869,1554,1064,1562,1201"/>
 <area shape="rect" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6" title=" " alt="" coords="726,85,865,126"/>
 <area shape="poly" title=" " alt="" coords="1557,1201,1547,1073,1526,893,1510,801,1490,717,1466,649,1452,623,1438,603,1412,594,1356,580,1191,547,1026,514,969,500,942,490,925,468,913,446,903,403,905,361,914,318,923,276,926,233,918,190,908,168,894,146,880,133,864,123,866,118,883,128,898,142,913,165,923,188,932,233,928,276,919,319,910,361,908,403,918,444,929,465,945,486,970,495,1027,509,1192,542,1357,575,1414,589,1441,599,1457,620,1471,647,1496,716,1516,800,1531,892,1552,1073,1562,1201"/>
@@ -3495,7 +3321,7 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1555,1201,1541,1098,1516,959,1500,888,1481,824,1460,772,1437,736,1422,727,1392,714,1305,686,1115,633,1117,628,1307,680,1394,709,1424,722,1441,733,1465,769,1486,822,1505,887,1521,957,1546,1097,1560,1200"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="1232,614,1436,639"/>
 <area shape="poly" title=" " alt="" coords="1555,1201,1542,1086,1518,928,1502,847,1483,774,1462,713,1437,671,1418,654,1394,642,1396,637,1420,650,1441,667,1466,710,1488,772,1507,846,1524,927,1548,1086,1561,1200"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from ROM data." alt="" coords="978,1345,1146,1386"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="978,1345,1146,1386"/>
 <area shape="poly" title=" " alt="" coords="1539,1255,1495,1290,1469,1307,1440,1321,1365,1345,1287,1359,1212,1367,1146,1369,1146,1364,1211,1361,1286,1354,1364,1339,1438,1316,1466,1302,1492,1286,1535,1250"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#ac84dc904001c32fe4679722aabaad86a" title=" " alt="" coords="1233,1584,1435,1610"/>
 <area shape="poly" title=" " alt="" coords="1561,1258,1553,1321,1533,1404,1518,1448,1498,1491,1472,1532,1441,1567,1411,1586,1408,1582,1438,1563,1468,1528,1493,1489,1513,1446,1528,1402,1548,1320,1556,1257"/>
@@ -3511,11 +3337,11 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1563,1258,1559,1337,1542,1447,1527,1507,1506,1566,1477,1622,1441,1674,1416,1695,1387,1709,1385,1704,1413,1690,1437,1670,1473,1620,1501,1564,1522,1505,1537,1446,1554,1337,1558,1258"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a997bfee0f4d228a4d9f30166647f8b37" title=" " alt="" coords="1247,1166,1420,1191"/>
 <area shape="poly" title=" " alt="" coords="1486,1215,1394,1195,1395,1189,1487,1210"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the ROM." alt="" coords="439,886,645,911"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="439,886,645,911"/>
 <area shape="poly" title=" " alt="" coords="1558,1201,1554,1131,1538,1039,1523,991,1501,946,1473,904,1438,870,1410,854,1374,842,1331,833,1282,827,1171,824,1049,830,924,842,805,857,615,888,614,882,804,852,924,836,1049,825,1171,819,1283,822,1332,828,1375,837,1412,849,1441,866,1478,901,1506,943,1527,989,1543,1038,1559,1130,1564,1201"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="209,926,388,951"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="209,926,388,951"/>
 <area shape="poly" title=" " alt="" coords="1555,1202,1544,1149,1523,1083,1508,1050,1489,1018,1466,990,1438,966,1415,956,1379,948,1274,936,1136,929,977,927,647,930,389,938,388,932,647,925,977,921,1136,924,1275,931,1380,943,1417,951,1441,962,1470,986,1493,1015,1513,1047,1528,1081,1549,1148,1560,1201"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a810f3f230cf53ee312691c35a4ec6071" title=" " alt="" coords="1241,1757,1426,1798"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a1ff502f2d01d7181e9b6260dca4e3819" title=" " alt="" coords="1241,1757,1426,1798"/>
 <area shape="poly" title=" " alt="" coords="1560,1258,1547,1365,1523,1511,1506,1585,1487,1653,1466,1709,1441,1747,1428,1758,1424,1754,1437,1743,1461,1706,1482,1651,1501,1584,1517,1510,1542,1364,1555,1257"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4ecd5e203ecac5987519ece53983fe63" title=" " alt="" coords="703,886,888,911"/>
 <area shape="poly" title=" " alt="" coords="1557,1201,1551,1138,1533,1056,1518,1014,1497,974,1471,938,1438,909,1396,890,1338,878,1268,872,1190,871,1028,877,888,890,888,885,1028,872,1190,865,1268,867,1339,873,1398,885,1441,904,1475,935,1502,971,1522,1012,1538,1055,1556,1137,1563,1201"/>
@@ -3648,7 +3474,7 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="2894,437,2843,363,2763,261,2714,207,2661,154,2603,104,2543,60,2522,49,2525,44,2546,55,2607,100,2665,150,2718,203,2767,258,2847,360,2898,434"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a" title=" " alt="" coords="2592,449,2786,475"/>
 <area shape="poly" title=" " alt="" coords="2818,464,2786,464,2786,459,2818,459"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the ROM data to a file." alt="" coords="2599,805,2779,831"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f" title="Saves the Rom data to a file." alt="" coords="2599,805,2779,831"/>
 <area shape="poly" title=" " alt="" coords="2899,489,2701,806,2696,803,2895,486"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1658,9,1849,50"/>
 <area shape="poly" title=" " alt="" coords="2333,29,1849,32,1849,26,2333,24"/>
@@ -4057,7 +3883,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title="Used to render a bitmap to the screen." alt="" coords="228,46,423,72"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#aa72443cf6bb48f5c0a08d6e16a90748d" title=" " alt="" coords="5,5,180,46"/>
 <area shape="poly" title=" " alt="" coords="216,46,180,41,180,36,216,41"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from ROM data." alt="" coords="9,71,176,111"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="9,71,176,111"/>
 <area shape="poly" title=" " alt="" coords="212,77,177,82,176,77,212,72"/>
 </map>
 </div>
@@ -4230,8 +4056,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a810f3f230cf53ee312691c35a4ec6071" name="a810f3f230cf53ee312691c35a4ec6071"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a810f3f230cf53ee312691c35a4ec6071">&#9670;&#160;</a></span>SaveGroupsToROM()</h2>
+<a id="a1ff502f2d01d7181e9b6260dca4e3819" name="a1ff502f2d01d7181e9b6260dca4e3819"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ff502f2d01d7181e9b6260dca4e3819">&#9670;&#160;</a></span>SaveGroupsToRom()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4240,7 +4066,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">bool</a> yaze::app::Rom::SaveGroupsToROM </td>
+          <td class="memname"><a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">bool</a> yaze::app::Rom::SaveGroupsToRom </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td></td>
@@ -4257,8 +4083,8 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a810f3f230cf53ee312691c35a4ec6071_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a810f3f230cf53ee312691c35a4ec6071_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a810f3f230cf53ee312691c35a4ec6071_cgraph" id="aclassyaze_1_1app_1_1Rom_a810f3f230cf53ee312691c35a4ec6071_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a1ff502f2d01d7181e9b6260dca4e3819_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a1ff502f2d01d7181e9b6260dca4e3819_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a1ff502f2d01d7181e9b6260dca4e3819_cgraph" id="aclassyaze_1_1app_1_1Rom_a1ff502f2d01d7181e9b6260dca4e3819_cgraph">
 <area shape="rect" title=" " alt="" coords="5,47,191,88"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="239,5,411,31"/>
 <area shape="poly" title=" " alt="" coords="191,45,247,32,248,38,192,50"/>
@@ -4435,7 +4261,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -4451,7 +4277,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -4467,7 +4293,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -4483,7 +4309,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, and <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>.</p>
 
 </div>
 </div>
@@ -4627,7 +4453,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a189bdc638fc1fd968f10498325c300d9">begin()</a>, <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#a9d41a050bde62f6868d5ef92547c0b73">end()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a79d926917316341fc0566b989b78d03f">LoadAllPalettes()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="#a5f6c2e2348b481f499fa9bdf3c2e9464">operator&amp;()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, <a class="el" href="#a4c39a9d08fcf5864affdbf85aac1c181">push_back()</a>, <a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a810f3f230cf53ee312691c35a4ec6071">SaveGroupsToROM()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a189bdc638fc1fd968f10498325c300d9">begin()</a>, <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#a9d41a050bde62f6868d5ef92547c0b73">end()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="#a5f6c2e2348b481f499fa9bdf3c2e9464">operator&amp;()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, <a class="el" href="#a4c39a9d08fcf5864affdbf85aac1c181">push_back()</a>, <a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
 
 </div>
 </div>
@@ -4795,7 +4621,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abc79426dc768d8d43bd9bab55ef11660">dungeon_palette()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a79d926917316341fc0566b989b78d03f">LoadAllPalettes()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, <a class="el" href="#a9f00106cd357c95213ff5bd8cbaba9c5">mutable_dungeon_palette()</a>, <a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group()</a>, <a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group()</a>, and <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#abc79426dc768d8d43bd9bab55ef11660">dungeon_palette()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, <a class="el" href="#a9f00106cd357c95213ff5bd8cbaba9c5">mutable_dungeon_palette()</a>, <a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group()</a>, <a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group()</a>, and <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>.</p>
 
 </div>
 </div>

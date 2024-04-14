@@ -1,5 +1,5 @@
 <map id="yaze::app::gfx::Convert4bppTo3bpp" name="yaze::app::gfx::Convert4bppTo3bpp">
 <area shape="rect" id="Node000001" title=" " alt="" coords="221,5,397,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from ROM data." alt="" coords="5,5,173,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="5,5,173,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,28,173,28,173,23,205,23"/>
 </map>

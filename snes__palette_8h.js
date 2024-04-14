@@ -10,5 +10,6 @@ var snes__palette_8h =
     [ "ReadPaletteFromRom", "snes__palette_8h.html#a770b616b1a09b80f72fdd549ec6a7f34", null ],
     [ "ToFloatArray", "snes__palette_8h.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef", null ],
     [ "CreatePaletteGroupFromColFile", "snes__palette_8h.html#abdc15a02218fe29002585f61230af828", null ],
-    [ "CreatePaletteGroupFromLargePalette", "snes__palette_8h.html#ae5807cdf64ba8eed9e0b94335c514674", null ]
+    [ "CreatePaletteGroupFromLargePalette", "snes__palette_8h.html#ae5807cdf64ba8eed9e0b94335c514674", null ],
+    [ "LoadAllPalettes", "snes__palette_8h.html#a54b0c20ee2f3df0fb9a988b215754180", null ]
 ];

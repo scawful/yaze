@@ -1,10 +1,26 @@
 var snes__palette_8cc =
 [
+    [ "LoadOverworldMainPalettes", "snes__palette_8cc.html#a54cdd22404ff0a2817d306291ec132d2", null ],
+    [ "LoadOverworldAuxiliaryPalettes", "snes__palette_8cc.html#a760dd678981ec54941b8001ad73b70a2", null ],
+    [ "LoadOverworldAnimatedPalettes", "snes__palette_8cc.html#af514cf719eeeca52738d3ec72efb9b37", null ],
+    [ "LoadHUDPalettes", "snes__palette_8cc.html#a9f3a503181102a76c71ffea6bb838516", null ],
+    [ "LoadGlobalSpritePalettes", "snes__palette_8cc.html#a48edcd000854ae33d33e3f69bb58d845", null ],
+    [ "LoadArmorPalettes", "snes__palette_8cc.html#aeee4b06440c1cb64b05fa8e931b79fd8", null ],
+    [ "LoadSwordPalettes", "snes__palette_8cc.html#a0e37aae11de1710812a7c4000712fa42", null ],
+    [ "LoadShieldPalettes", "snes__palette_8cc.html#a407b068be25c51dc0a7511fcbbdb01b4", null ],
+    [ "LoadSpriteAux1Palettes", "snes__palette_8cc.html#ad7abd70b8b524c4b31eeaaa46400174c", null ],
+    [ "LoadSpriteAux2Palettes", "snes__palette_8cc.html#a5b8d0a706ff112a82cecb1c84f96c3f7", null ],
+    [ "LoadSpriteAux3Palettes", "snes__palette_8cc.html#ae5ba3e13af412ffb1824b7d9413fa14b", null ],
+    [ "LoadDungeonMainPalettes", "snes__palette_8cc.html#a52518464f26d1c7a59e637553280264f", null ],
+    [ "LoadGrassColors", "snes__palette_8cc.html#a8a7bc4b0721c17244da07130fce34b4e", null ],
+    [ "Load3DObjectPalettes", "snes__palette_8cc.html#a052b2d235a04e32c6d4d7f7652c64913", null ],
+    [ "LoadOverworldMiniMapPalettes", "snes__palette_8cc.html#a45580ea3ca7888dd8cc859eb61b12dee", null ],
     [ "GetPaletteAddress", "snes__palette_8cc.html#a04544775b5724bfbe086cb024eb4091a", null ],
     [ "ReadPaletteFromRom", "snes__palette_8cc.html#a03f22b0abee97bf4bcb4d226a7148f96", null ],
     [ "ToFloatArray", "snes__palette_8cc.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef", null ],
     [ "CreatePaletteGroupFromColFile", "snes__palette_8cc.html#abdc15a02218fe29002585f61230af828", null ],
     [ "CreatePaletteGroupFromLargePalette", "snes__palette_8cc.html#ae5807cdf64ba8eed9e0b94335c514674", null ],
+    [ "LoadAllPalettes", "snes__palette_8cc.html#a54b0c20ee2f3df0fb9a988b215754180", null ],
     [ "kPaletteGroupAddressMap", "snes__palette_8cc.html#a0b33005e899a93e458f6b70f359f047b", null ],
     [ "kPaletteGroupColorCounts", "snes__palette_8cc.html#a5cad6a1e7078e7d8717fcaae95411535", null ]
 ];

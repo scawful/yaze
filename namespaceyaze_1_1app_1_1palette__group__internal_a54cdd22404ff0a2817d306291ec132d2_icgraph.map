@@ -1,7 +1,7 @@
 <map id="yaze::app::palette_group_internal::LoadOverworldMainPalettes" name="yaze::app::palette_group_internal::LoadOverworldMainPalettes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="3087,439,3290,495"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a79d926917316341fc0566b989b78d03f" title="Loads all the palettes for the game." alt="" coords="2834,454,3039,480"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="3071,470,3039,470,3039,464,3071,464"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="3077,439,3280,495"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="2834,454,3029,480"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="3061,470,3029,470,3029,464,3061,464"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a" title=" " alt="" coords="2592,454,2786,480"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2818,470,2786,470,2786,464,2818,464"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a49317ce814b909b9c3c9919b8c7a7f2c" title=" " alt="" coords="2344,5,2544,46"/>

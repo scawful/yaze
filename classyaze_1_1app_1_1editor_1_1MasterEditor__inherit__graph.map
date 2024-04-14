@@ -1,6 +1,6 @@
 <map id="yaze::app::editor::MasterEditor" name="yaze::app::editor::MasterEditor">
-<area shape="rect" id="Node000001" title="The MasterEditor class represents the main editor for a ROM in the Yaze application." alt="" coords="229,55,347,96"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="19,5,167,31"/>
+<area shape="rect" id="Node000001" title="The MasterEditor class represents the main editor for a Rom in the Yaze application." alt="" coords="229,55,347,96"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="19,5,167,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,33,181,41,229,55,228,60,180,46,154,38"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="26,55,160,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,73,228,73,228,78,175,78"/>

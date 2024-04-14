@@ -57,7 +57,7 @@
 <area shape="rect" id="Node000337" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#aff935d0a2c1548e18cec6f5a76312dc5" title=" " alt="" coords="501,1735,660,1775"/>
 <area shape="poly" id="edge61_Node000018_Node000337" title=" " alt="" coords="425,953,438,965,458,1004,470,1057,476,1119,479,1187,480,1320,482,1377,487,1421,506,1506,528,1589,570,1719,565,1721,523,1590,501,1507,481,1422,476,1377,475,1320,474,1187,471,1120,465,1058,453,1006,434,969,421,957"/>
 <area shape="poly" id="edge27_Node000021_Node000019" title=" " alt="" coords="644,1101,676,1082,686,1070,693,1058,698,1033,704,1007,712,995,724,982,736,974,739,978,727,986,716,998,709,1009,703,1034,698,1060,691,1073,679,1086,647,1105"/>
-<area shape="rect" id="Node000022" href="$classyaze_1_1app_1_1Rom.html#a79d926917316341fc0566b989b78d03f" title="Loads all the palettes for the game." alt="" coords="730,1277,935,1303"/>
+<area shape="rect" id="Node000022" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="735,1277,930,1303"/>
 <area shape="poly" id="edge28_Node000021_Node000022" title=" " alt="" coords="593,1128,644,1193,683,1230,727,1262,740,1269,738,1273,724,1267,679,1234,640,1196,589,1131"/>
 <area shape="rect" id="Node000043" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="730,1112,935,1137"/>
 <area shape="poly" id="edge38_Node000021_Node000043" title=" " alt="" coords="678,1117,715,1118,715,1123,678,1122"/>
@@ -74,9 +74,9 @@
 <area shape="rect" id="Node000029" href="$namespaceyaze_1_1app_1_1palette__group__internal.html#a48edcd000854ae33d33e3f69bb58d845" title=" " alt="" coords="1008,1146,1189,1202"/>
 <area shape="poly" id="edge32_Node000022_Node000029" title=" " alt="" coords="912,1274,938,1262,953,1250,962,1238,971,1225,986,1212,994,1207,996,1211,989,1216,975,1228,966,1241,957,1254,941,1267,914,1279"/>
 <area shape="rect" id="Node000030" href="$namespaceyaze_1_1app_1_1palette__group__internal.html#a8a7bc4b0721c17244da07130fce34b4e" title=" " alt="" coords="1009,1226,1188,1282"/>
-<area shape="poly" id="edge33_Node000022_Node000030" title=" " alt="" coords="932,1274,993,1265,994,1271,933,1279"/>
+<area shape="poly" id="edge33_Node000022_Node000030" title=" " alt="" coords="930,1274,993,1265,994,1270,931,1279"/>
 <area shape="rect" id="Node000033" href="$namespaceyaze_1_1app_1_1palette__group__internal.html#a9f3a503181102a76c71ffea6bb838516" title=" " alt="" coords="988,1305,1209,1346"/>
-<area shape="poly" id="edge34_Node000022_Node000033" title=" " alt="" coords="933,1300,973,1306,972,1311,932,1306"/>
+<area shape="poly" id="edge34_Node000022_Node000033" title=" " alt="" coords="931,1300,972,1306,972,1311,930,1306"/>
 <area shape="rect" id="Node000034" href="$namespaceyaze_1_1app_1_1palette__group__internal.html#af514cf719eeeca52738d3ec72efb9b37" title=" " alt="" coords="997,1370,1200,1426"/>
 <area shape="poly" id="edge35_Node000022_Node000034" title=" " alt="" coords="915,1301,941,1311,956,1322,966,1333,975,1344,989,1355,997,1360,995,1365,986,1360,971,1348,962,1337,953,1326,938,1316,913,1306"/>
 <area shape="rect" id="Node000035" href="$namespaceyaze_1_1app_1_1palette__group__internal.html#a760dd678981ec54941b8001ad73b70a2" title=" " alt="" coords="997,1450,1200,1506"/>

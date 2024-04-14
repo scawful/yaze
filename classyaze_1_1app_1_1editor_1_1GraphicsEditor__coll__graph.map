@@ -1,12 +1,12 @@
 <map id="yaze::app::editor::GraphicsEditor" name="yaze::app::editor::GraphicsEditor">
 <area shape="rect" id="Node000001" title="Allows the user to edit graphics sheets from the game or view prototype graphics." alt="" coords="1465,321,1583,362"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="773,192,921,217"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="773,192,921,217"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="936,199,1011,200,1098,205,1191,215,1282,232,1340,250,1396,273,1488,318,1485,323,1394,278,1338,255,1280,238,1190,220,1098,210,1011,205,936,204"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="1136,43,1279,83"/>
 <area shape="poly" id="edge10_Node000010_Node000002" title=" " alt="" coords="916,184,1009,156,1108,115,1132,99,1164,82,1166,86,1135,104,1111,120,1011,161,918,190"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="1148,461,1267,502"/>
 <area shape="poly" id="edge15_Node000012_Node000002" title=" " alt="" coords="931,218,1036,246,1081,263,1111,281,1123,295,1128,308,1136,339,1197,460,1192,462,1131,341,1122,310,1118,298,1108,285,1079,268,1034,251,930,224"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="793,125,900,151"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="793,125,900,151"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="916,133,1024,136,1160,151,1233,166,1306,186,1376,214,1443,249,1482,283,1511,319,1507,323,1479,287,1439,253,1374,218,1304,191,1232,171,1159,156,1024,141,916,138"/>
 <area shape="poly" id="edge12_Node000010_Node000003" title=" " alt="" coords="915,121,1135,75,1136,80,916,126"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,5,539,46"/>

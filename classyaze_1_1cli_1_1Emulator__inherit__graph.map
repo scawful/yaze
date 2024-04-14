@@ -1,5 +1,5 @@
 <map id="yaze::cli::Emulator" name="yaze::cli::Emulator">
-<area shape="rect" id="Node000001" title="Start the emulator on a SNES ROM file." alt="" coords="32,79,155,105"/>
+<area shape="rect" id="Node000001" title="Start the emulator on a SNES Rom file." alt="" coords="32,79,155,105"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="5,5,182,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,46,96,79,91,79,91,46"/>
 </map>

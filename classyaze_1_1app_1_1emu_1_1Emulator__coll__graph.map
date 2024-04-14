@@ -1,6 +1,6 @@
 <map id="yaze::app::emu::Emulator" name="yaze::app::emu::Emulator">
-<area shape="rect" id="Node000001" title="A class for emulating and debugging SNES ROMs." alt="" coords="1055,2688,1217,2714"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="234,2710,382,2735"/>
+<area shape="rect" id="Node000001" title="A class for emulating and debugging SNES games." alt="" coords="1055,2688,1217,2714"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="234,2710,382,2735"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="397,2718,1054,2701,1055,2706,397,2723"/>
 <area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html" title=" " alt="" coords="532,1607,704,1633"/>
 <area shape="poly" id="edge20_Node000016_Node000002" title=" " alt="" coords="396,2705,464,2688,490,2677,506,2665,519,2641,530,2602,552,2486,569,2333,584,2162,605,1831,614,1633,619,1633,610,1832,590,2162,575,2334,557,2487,536,2604,524,2643,510,2668,492,2681,465,2693,398,2710"/>

@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Popup window to edit Tile16 data." alt="" coords="1498,457,1616,498"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="1175,5,1309,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1325,29,1364,37,1405,50,1443,70,1476,97,1494,126,1509,167,1533,271,1548,378,1557,456,1551,457,1543,379,1527,272,1504,168,1489,128,1472,101,1440,74,1402,55,1363,42,1323,34"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="782,630,930,656"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="782,630,930,656"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="946,647,1057,649,1193,640,1265,629,1337,612,1407,589,1473,559,1511,530,1539,497,1544,500,1515,534,1475,564,1409,594,1338,617,1266,634,1194,645,1058,654,946,653"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="1183,536,1301,577"/>
 <area shape="poly" id="edge11_Node000010_Node000003" title=" " alt="" coords="931,624,1182,567,1183,572,932,629"/>
@@ -22,7 +22,7 @@
 <area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="364,449,538,475"/>
 <area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="553,461,1355,474,1497,475,1497,480,1355,479,553,466"/>
 <area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="553,444,577,440,983,388,984,393,577,446,553,449"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1Rom.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="803,688,910,713"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="803,688,910,713"/>
 <area shape="poly" id="edge22_Node000016_Node000009" title=" " alt="" coords="514,476,577,493,622,497,660,495,694,500,712,509,730,524,743,542,747,560,744,596,739,632,743,649,754,667,776,683,803,693,801,698,774,688,750,670,738,651,734,632,738,596,742,561,738,544,726,527,709,513,693,505,660,501,622,502,577,498,512,482"/>
 <area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="1316,555,1393,549,1434,542,1473,530,1504,515,1530,496,1533,501,1506,520,1475,535,1435,547,1394,554,1317,560"/>
 <area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html" title=" " alt="" coords="762,550,951,606"/>

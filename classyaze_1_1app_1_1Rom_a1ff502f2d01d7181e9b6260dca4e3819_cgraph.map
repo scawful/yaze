@@ -1,4 +1,4 @@
-<map id="yaze::app::Rom::SaveGroupsToROM" name="yaze::app::Rom::SaveGroupsToROM">
+<map id="yaze::app::Rom::SaveGroupsToRom" name="yaze::app::Rom::SaveGroupsToRom">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,47,191,88"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="239,5,411,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,45,247,32,248,38,192,50"/>

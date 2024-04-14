@@ -1,6 +1,6 @@
 <map id="yaze::app::editor::GfxGroupEditor" name="yaze::app::editor::GfxGroupEditor">
-<area shape="rect" id="Node000001" title="Manage graphics group configurations in a ROM." alt="" coords="1477,273,1595,314"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="773,152,921,178"/>
+<area shape="rect" id="Node000001" title="Manage graphics group configurations in a Rom." alt="" coords="1477,273,1595,314"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="773,152,921,178"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="936,157,1044,157,1176,165,1246,174,1317,188,1387,206,1454,231,1487,249,1514,270,1511,275,1484,254,1452,236,1386,212,1316,193,1245,180,1175,170,1044,162,936,162"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="1167,78,1285,119"/>
 <area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="936,147,1166,106,1166,111,937,152"/>
@@ -19,7 +19,7 @@
 <area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="553,263,1477,289,1477,294,553,268"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="965,219,1110,245"/>
 <area shape="poly" id="edge11_Node000010_Node000008" title=" " alt="" coords="553,247,577,245,788,234,965,230,965,235,789,239,577,250,554,253"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1Rom.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="793,362,900,387"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="793,362,900,387"/>
 <area shape="poly" id="edge19_Node000014_Node000008" title=" " alt="" coords="514,277,578,294,653,307,729,324,818,359,816,364,727,329,652,312,576,299,512,282"/>
 <area shape="rect" id="Node000009" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="5,518,185,543"/>
 <area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="200,537,320,545,450,549,1227,549,1280,542,1330,521,1375,491,1416,454,1451,414,1481,375,1521,312,1526,315,1485,378,1455,418,1419,458,1378,495,1332,526,1282,547,1227,554,449,554,320,551,200,543"/>

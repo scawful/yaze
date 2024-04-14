@@ -1,6 +1,6 @@
 <map id="yaze::app::gfx::BitmapManager::LoadBitmap" name="yaze::app::gfx::BitmapManager::LoadBitmap">
 <area shape="rect" id="Node000001" title=" " alt="" coords="2821,49,3015,90"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the ROM and loads them into memory...." alt="" coords="2536,56,2773,82"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="2536,56,2773,82"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2805,72,2773,72,2773,67,2805,67"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2303,41,2488,97"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2521,72,2489,72,2489,67,2521,67"/>

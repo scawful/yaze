@@ -1,5 +1,5 @@
 <map id="yaze::app::Rom::SaveAllPalettes" name="yaze::app::Rom::SaveAllPalettes">
-<area shape="rect" id="Node000001" title="Saves all palettes in the ROM." alt="" coords="5,70,212,96"/>
+<area shape="rect" id="Node000001" title="Saves all palettes in the Rom." alt="" coords="5,70,212,96"/>
 <area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a68ceafdc2a8f70e468c0c4ff2d7dbd46" title=" " alt="" coords="262,5,442,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,67,247,48,248,53,167,72"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a4ecd5e203ecac5987519ece53983fe63" title=" " alt="" coords="260,178,444,204"/>
