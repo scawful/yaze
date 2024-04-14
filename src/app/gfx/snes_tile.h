@@ -35,9 +35,14 @@ std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
 std::vector<uint8_t> Convert3bppTo4bpp(const std::vector<uint8_t>& tiles);
 std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles);
 
-// vhopppcc cccccccc
-// [0, 1]
-// [2, 3]
+/**
+ * @brief SNES 16-bit tile metadata container
+ *
+ * Format:
+ *  vhopppcc cccccccc
+ *     [0, 1]
+ *     [2, 3]
+ */
 class TileInfo {
  public:
   uint16_t id_;
@@ -67,6 +72,9 @@ uint16_t TileInfoToShort(TileInfo tile_info);
 
 TileInfo GetTilesInfo(uint16_t tile);
 
+/**
+ * @brief Tile composition of four 16x16 tiles.
+ */
 class Tile32 {
  public:
   uint16_t tile0_;
@@ -113,6 +121,9 @@ class Tile32 {
   bool operator!=(const Tile32& other) const { return !(*this == other); }
 };
 
+/**
+ * @brief Tile composition of four 8x8 tiles.
+ */
 class Tile16 {
  public:
   TileInfo tile0_;
@@ -138,7 +149,10 @@ class Tile16 {
   bool operator!=(const Tile16& other) const { return !(*this == other); }
 };
 
-class OAMTile {
+/**
+ * @brief Object Attribute Memory tile abstraction container
+*/
+class OamTile {
  public:
   int x_;
   int y_;
@@ -146,8 +160,8 @@ class OAMTile {
   int my_;
   int pal_;
   uint16_t tile_;
-  OAMTile() = default;
-  OAMTile(int x, int y, uint16_t tile, int pal, bool upper = false, int mx = 0,
+  OamTile() = default;
+  OamTile(int x, int y, uint16_t tile, int pal, bool upper = false, int mx = 0,
           int my = 0)
       : x_(x), y_(y), mx_(mx), my_(my), pal_(pal) {
     if (upper) {

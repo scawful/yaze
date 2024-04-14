@@ -64,9 +64,9 @@ class TitleScreen {
 
   ROM rom_;
 
-  gfx::OAMTile oam_data[10];
-  gfx::OAMTile selected_oam_tile;
-  gfx::OAMTile last_selected_oam_tile;
+  gfx::OamTile oam_data[10];
+  gfx::OamTile selected_oam_tile;
+  gfx::OamTile last_selected_oam_tile;
 
   gfx::Bitmap tilesBG1Bitmap;  // 0x80000
   gfx::Bitmap tilesBG2Bitmap;  // 0x80000

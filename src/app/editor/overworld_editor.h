@@ -64,8 +64,8 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
 class OverworldEditor : public Editor,
                         public SharedROM,
-                        public GfxContext,
-                        public EntranceContext,
+                        public context::GfxContext,
+                        public context::EntranceContext,
                         public core::ExperimentFlags {
  public:
   absl::Status Update() final;

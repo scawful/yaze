@@ -25,6 +25,7 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
     "ow_aux",      "global_sprites", "dungeon_main", "ow_mini_map",
     "ow_mini_map", "3d_object",      "3d_object"};
 
+namespace palette_internal {
 struct PaletteChange {
   std::string group_name;
   size_t palette_index;
@@ -74,6 +75,7 @@ class PaletteEditorHistory {
   std::deque<PaletteChange> recentChanges;
   static const size_t maxHistorySize = 50;  // or any other number you deem fit
 };
+}  // namespace palette_internal
 
 class PaletteEditor : public SharedROM {
  public:
@@ -103,7 +105,7 @@ class PaletteEditor : public SharedROM {
 
   absl::Status status_;
 
-  PaletteEditorHistory history_;
+  palette_internal::PaletteEditorHistory history_;
 
   ImVec4 saved_palette_[256] = {};
   gfx::SnesColor current_color_;
