@@ -14,12 +14,21 @@
 
 namespace yaze {
 namespace app {
+
+/**
+ * @namespace yaze::app::core
+ * @brief Core application logic and utilities.
+ */
 namespace core {
 
+/**
+ * @class ExperimentFlags
+ * @brief A class to manage experimental feature flags.
+ */
 class ExperimentFlags {
  public:
   struct Flags {
-    // Bitmap manager abstraction to manage graphics bin of ROM.
+    // Bitmap manager abstraction to manage graphics bin of Rom.
     bool kUseBitmapManager = true;
 
     // Log instructions to the GUI debugger.
@@ -30,11 +39,11 @@ class ExperimentFlags {
     // ported away from that eventually.
     bool kUseNewImGuiInput = false;
 
-    // Flag to enable the saving of all palettes to the ROM.
+    // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
 
     // Flag to enable the change queue, which could have any anonymous
-    // save routine for the ROM. In practice, just the overworld tilemap
+    // save routine for the Rom. In practice, just the overworld tilemap
     // and tile32 save.
     bool kSaveWithChangeQueue = false;
 
@@ -51,7 +60,7 @@ class ExperimentFlags {
     // Uses texture streaming from SDL for my dynamic updates.
     bool kLoadTexturesAsStreaming = true;
 
-    // Save dungeon map edits to the ROM.
+    // Save dungeon map edits to the Rom.
     bool kSaveDungeonMaps = false;
 
     // Log to the console.
@@ -62,19 +71,19 @@ class ExperimentFlags {
       // Load and render overworld sprites to the screen. Unstable.
       bool kDrawOverworldSprites = false;
 
-      // Save overworld map edits to the ROM.
+      // Save overworld map edits to the Rom.
       bool kSaveOverworldMaps = true;
 
-      // Save overworld entrances to the ROM.
+      // Save overworld entrances to the Rom.
       bool kSaveOverworldEntrances = true;
 
-      // Save overworld exits to the ROM.
+      // Save overworld exits to the Rom.
       bool kSaveOverworldExits = true;
 
-      // Save overworld items to the ROM.
+      // Save overworld items to the Rom.
       bool kSaveOverworldItems = true;
 
-      // Save overworld properties to the ROM.
+      // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
     } overworld;
   };
@@ -99,6 +108,11 @@ class ExperimentFlags {
   static std::shared_ptr<Flags> flags_;
 };
 
+/**
+ * @class NotifyValue
+ * @brief A class to manage a value that can be modified and notify when it
+ * changes.
+ */
 template <typename T>
 class NotifyValue {
  public:
@@ -138,81 +152,6 @@ class NotifyValue {
   T value_;
   bool modified_;
   T temp_value_;
-};
-
-struct TaskCheckpoint {
-  int task_index = 0;
-  bool complete = false;
-  // You can add more internal data or state-related variables here as needed
-};
-
-class TaskTimer {
- public:
-  // Starts the timer
-  void StartTimer() { start_time_ = std::chrono::steady_clock::now(); }
-
-  // Checks if the task should finish based on the given timeout in seconds
-  bool ShouldFinishTask(int timeout_seconds) {
-    auto current_time = std::chrono::steady_clock::now();
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(
-        current_time - start_time_);
-    return elapsed_time.count() >= timeout_seconds;
-  }
-
- private:
-  std::chrono::steady_clock::time_point start_time_;
-};
-
-template <typename TFunc>
-class TaskManager {
- public:
-  TaskManager() = default;
-  ~TaskManager() = default;
-
-  TaskManager(int totalTasks, int timeoutSeconds)
-      : total_tasks_(totalTasks),
-        timeout_seconds_(timeoutSeconds),
-        task_index_(0),
-        task_complete_(false) {}
-
-  void ExecuteTasks(const TFunc &taskFunc) {
-    if (task_complete_) {
-      return;
-    }
-
-    StartTimer();
-
-    for (; task_index_ < total_tasks_; ++task_index_) {
-      taskFunc(task_index_);
-
-      if (ShouldFinishTask()) {
-        break;
-      }
-    }
-
-    if (task_index_ == total_tasks_) {
-      task_complete_ = true;
-    }
-  }
-
-  bool IsTaskComplete() const { return task_complete_; }
-  void SetTimeout(int timeout) { timeout_seconds_ = timeout; }
-
- private:
-  int total_tasks_;
-  int timeout_seconds_;
-  int task_index_;
-  bool task_complete_;
-  std::chrono::steady_clock::time_point start_time_;
-
-  void StartTimer() { start_time_ = std::chrono::steady_clock::now(); }
-
-  bool ShouldFinishTask() {
-    auto current_time = std::chrono::steady_clock::now();
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(
-        current_time - start_time_);
-    return elapsed_time.count() >= timeout_seconds_;
-  }
 };
 
 class ImGuiIdIssuer {

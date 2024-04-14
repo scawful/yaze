@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -17,13 +17,17 @@
 #include "app/gui/pipeline.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
 
-class GfxGroupEditor : public SharedROM {
+/**
+ * @class GfxGroupEditor
+ * @brief Manage graphics group configurations in a Rom.
+ */
+class GfxGroupEditor : public SharedRom {
  public:
   absl::Status Update();
 
@@ -61,7 +65,7 @@ class GfxGroupEditor : public SharedROM {
   std::vector<gfx::Bitmap> tile16_individual_;
 
   gui::BitmapViewer gfx_group_viewer_;
-  zelda3::Overworld overworld_;
+  zelda3::overworld::Overworld overworld_;
 };
 
 }  // namespace editor

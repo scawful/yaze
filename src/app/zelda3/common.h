@@ -3,8 +3,16 @@
 
 namespace yaze {
 namespace app {
+/**
+ * @namespace yaze::app::zelda3
+ * @brief Zelda 3 specific classes and functions.
+ */
 namespace zelda3 {
 
+/**
+ * @class OverworldEntity
+ * @brief Base class for all overworld entities.
+ */
 class OverworldEntity {
  public:
   enum EntityType {

@@ -20,15 +20,17 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class SNES : public DMA {
+using namespace memory;
+
+class SNES : public DirectMemoryAccess {
  public:
   SNES() = default;
   ~SNES() = default;
 
-  ROMInfo ReadRomHeader(uint32_t offset);
+  RomInfo ReadRomHeader(uint32_t offset);
 
   // Initialization
-  void Init(ROM& rom);
+  void Init(Rom& rom);
 
   // Main emulation loop
   void Run();
@@ -61,16 +63,16 @@ class SNES : public DMA {
 
   bool running() const { return running_; }
 
-  auto cpu() -> CPU& { return cpu_; }
-  auto ppu() -> Ppu& { return ppu_; }
+  auto cpu() -> Cpu& { return cpu_; }
+  auto ppu() -> video::Ppu& { return ppu_; }
   auto Memory() -> MemoryImpl* { return &memory_; }
 
   void SetCpuMode(int mode) { cpu_mode_ = mode; }
-  CPU::UpdateMode GetCpuMode() const {
-    return static_cast<CPU::UpdateMode>(cpu_mode_);
+  Cpu::UpdateMode GetCpuMode() const {
+    return static_cast<Cpu::UpdateMode>(cpu_mode_);
   }
 
-  void SetupMemory(ROM& rom) {
+  void SetupMemory(Rom& rom) {
     // Setup observers for the memory space
     memory_.AddObserver(&apu_);
     memory_.AddObserver(&ppu_);
@@ -88,14 +90,14 @@ class SNES : public DMA {
   // Components of the SNES
   MemoryImpl memory_;
   ClockImpl clock_;
-  AudioRamImpl audio_ram_;
+  audio::AudioRamImpl audio_ram_;
 
-  CPU cpu_{memory_, clock_};
-  Ppu ppu_{memory_, clock_};
-  APU apu_{memory_, audio_ram_, clock_};
+  Cpu cpu_{memory_, clock_};
+  video::Ppu ppu_{memory_, clock_};
+  audio::Apu apu_{memory_, audio_ram_, clock_};
 
   // Helper classes
-  ROMInfo rom_info_;
+  RomInfo rom_info_;
   Debugger debugger;
 
   // Currently loaded ROM

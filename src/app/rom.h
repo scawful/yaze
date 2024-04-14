@@ -2,7 +2,7 @@
 #define YAZE_APP_ROM_H
 
 #include <SDL.h>
-#include <asar/src/asar/interface-lib.h>
+#include <asar/src/asar/interface-shared.h>
 
 #include <algorithm>
 #include <chrono>
@@ -40,17 +40,17 @@
 namespace yaze {
 namespace app {
 
-using PaletteGroupMap = std::unordered_map<std::string, gfx::PaletteGroup>;
-
 // Define an enum class for the different versions of the game
 enum class Z3_Version {
-  US = 1,
-  JP = 2,
-  SD = 3,
-  RANDO = 4,
+  US = 1,     // US version
+  JP = 2,     // JP version
+  SD = 3,     // Super Donkey Proto (Experimental)
+  RANDO = 4,  // Randomizer (Unimplemented)
 };
 
-// Define a struct to hold the version-specific constants
+/**
+ * @brief A struct to hold version constants for each version of the game.
+ */
 struct VersionConstants {
   uint32_t kGfxAnimatedPointer;
   uint32_t kOverworldGfxGroups1;
@@ -72,7 +72,9 @@ struct VersionConstants {
   uint32_t kDungeonPalettesGroups;
 };
 
-// Define a map to hold the version constants for each version
+/**
+ * @brief A map of version constants for each version of the game.
+ */
 static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::US,
      {
@@ -117,130 +119,53 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x67DD0,  // kDungeonPalettesGroups
      }}};
 
-// Define some constants used throughout the ROM class
-constexpr uint32_t kOverworldGraphicsPos1 = 0x4F80;
-constexpr uint32_t kOverworldGraphicsPos2 = 0x505F;
-constexpr uint32_t kOverworldGraphicsPos3 = 0x513E;
-constexpr uint32_t kTile32Num = 4432;
-constexpr uint32_t kTitleStringOffset = 0x7FC0;
-constexpr uint32_t kTitleStringLength = 20;
-constexpr uint32_t kNumGfxSheets = 223;
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
-constexpr uint32_t kLinkSpriteLocation = 0x80000;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
-constexpr uint32_t gfx_groups_pointer = 0x6237;
+constexpr uint32_t kGfxGroupsPointer = 0x6237;
 
-struct WriteAction {
-  int address;
-  std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
-               gfx::SnesColor, std::vector<gfx::SnesColor>>
-      value;
-};
-
-class ROM : public core::ExperimentFlags {
+/**
+ * @brief The Rom class is used to load, save, and modify Rom data.
+ */
+class Rom : public core::ExperimentFlags {
  public:
-  template <typename... Args>
-  absl::Status RunTransaction(Args... args) {
-    absl::Status status;
-    // Fold expression to apply the Write function on each argument
-    ((status = WriteHelper(args)), ...);
-    return status;
-  }
-
-  absl::Status WriteHelper(const WriteAction& action) {
-    if (std::holds_alternative<uint8_t>(action.value)) {
-      return Write(action.address, std::get<uint8_t>(action.value));
-    } else if (std::holds_alternative<uint16_t>(action.value) ||
-               std::holds_alternative<short>(action.value)) {
-      return WriteShort(action.address, std::get<uint16_t>(action.value));
-    } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
-      return WriteVector(action.address,
-                         std::get<std::vector<uint8_t>>(action.value));
-    } else if (std::holds_alternative<gfx::SnesColor>(action.value)) {
-      return WriteColor(action.address, std::get<gfx::SnesColor>(action.value));
-    } else if (std::holds_alternative<std::vector<gfx::SnesColor>>(
-                   action.value)) {
-      return absl::UnimplementedError(
-          "WriteHelper: std::vector<gfx::SnesColor>");
-    }
-    auto error_message = absl::StrFormat("Invalid write argument type: %s",
-                                         typeid(action.value).name());
-    throw std::runtime_error(error_message);
-    return absl::InvalidArgumentError(error_message);
-  }
-
-  template <typename T, typename... Args>
-  absl::Status ReadTransaction(T& var, int address, Args&&... args) {
-    absl::Status status = ReadHelper<T>(var, address);
-    if (!status.ok()) {
-      return status;
-    }
-
-    if constexpr (sizeof...(args) > 0) {
-      status = ReadTransaction(std::forward<Args>(args)...);
-    }
-
-    return status;
-  }
-
-  template <typename T>
-  absl::Status ReadHelper(T& var, int address) {
-    if constexpr (std::is_same_v<T, uint8_t>) {
-      ASSIGN_OR_RETURN(auto result, ReadByte(address));
-      var = result;
-    } else if constexpr (std::is_same_v<T, uint16_t>) {
-      ASSIGN_OR_RETURN(auto result, ReadWord(address));
-      var = result;
-    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
-      ASSIGN_OR_RETURN(auto result, ReadByteVector(address, var.size()));
-      var = result;
-    }
-    return absl::OkStatus();
-  }
-
   /**
-   * Loads 2bpp graphics from ROM data.
+   * @brief Loads 2bpp graphics from Rom data.
    *
-   * This function loads 2bpp graphics from ROM data by iterating over a list of
+   * This function loads 2bpp graphics from Rom data by iterating over a list of
    * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
    * appending the converted sheet data to a byte vector.
    *
    */
   absl::StatusOr<Bytes> Load2BppGraphics();
 
+  /**
+   * @brief Loads the players 4bpp graphics sheet from Rom data.
+   */
   absl::Status LoadLinkGraphics();
 
   /**
-   * This function iterates over all graphics sheets in the ROM and loads them
-   * into memory. Depending on the sheet's index, it may be uncompressed or
+   * @brief This function iterates over all graphics sheets in the Rom and loads
+   * them into memory. Depending on the sheet's index, it may be uncompressed or
    * compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits
    * per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics
    * data is converted to 8 BPP and stored in a bitmap.
    *
    * The graphics sheets are divided into the following ranges:
-   * 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
-   * 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
-   * 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
-   * 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
-   * 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
+   *
+   * | Range   | Compression Type | Decompressed Size | Number of Chars |
+   * |---------|------------------|------------------|-----------------|
+   * | 0-112   | Compressed 3bpp BGR | 0x600 chars | Decompressed each |
+   * | 113-114 | Compressed 2bpp | 0x800 chars | Decompressed each |
+   * | 115-126 | Uncompressed 3bpp sprites | 0x600 chars | Each |
+   * | 127-217 | Compressed 3bpp sprites | 0x600 chars | Decompressed each |
+   * | 218-222 | Compressed 2bpp | 0x800 chars | Decompressed each |
    *
    */
   absl::Status LoadAllGraphicsData();
 
   /**
-   * @brief Loads all the palettes for the game.
-   *
-   * This function loads all the palettes for the game, including overworld,
-   * HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object
-   * palettes. It also adds the loaded palettes to their respective palette
-   * groups.
-   *
-   */
-  absl::Status LoadAllPalettes();
-
-  /**
-   * Load ROM data from a file.
+   * Load Rom data from a file.
    *
    * @param filename The name of the file to load.
    * @param z3_load Whether to load data specific to Zelda 3.
@@ -252,10 +177,10 @@ class ROM : public core::ExperimentFlags {
   absl::Status LoadFromBytes(const Bytes& data);
 
   /**
-   * @brief Saves the ROM data to a file
+   * @brief Saves the Rom data to a file
    *
    * @param backup If true, creates a backup file with timestamp in its name
-   * @param filename The name of the file to save the ROM data to
+   * @param filename The name of the file to save the Rom data to
    *
    * @return absl::Status Returns an OK status if the save was successful,
    * otherwise returns an error status
@@ -264,22 +189,22 @@ class ROM : public core::ExperimentFlags {
                           std::string filename = "");
 
   /**
-   * Saves the given palette to the ROM if any of its colors have been modified.
+   * Saves the given palette to the Rom if any of its colors have been modified.
    *
    * @param index The index of the palette to save.
    * @param group_name The name of the group containing the palette.
    * @param palette The palette to save.
    */
-  void SavePalette(int index, const std::string& group_name,
-                   gfx::SnesPalette& palette);
+  absl::Status SavePalette(int index, const std::string& group_name,
+                           gfx::SnesPalette& palette);
 
   /**
-   * @brief Saves all palettes in the ROM.
+   * @brief Saves all palettes in the Rom.
    *
    * This function iterates through all palette groups and all palettes in each
    * group, and saves each palette using the SavePalette() function.
    */
-  void SaveAllPalettes();
+  absl::Status SaveAllPalettes();
 
   /**
    * @brief Updates a color in a specified palette group.
@@ -337,7 +262,7 @@ class ROM : public core::ExperimentFlags {
       return absl::InvalidArgumentError("Offset and length out of range");
     }
     std::vector<uint8_t> result;
-    for (int i = offset; i < length; i++) {
+    for (int i = offset; i < offset + length; i++) {
       result.push_back(rom_data_[i]);
     }
     return result;
@@ -462,6 +387,28 @@ class ROM : public core::ExperimentFlags {
     return WriteShort(address, bgr);
   }
 
+  template <typename... Args>
+  absl::Status WriteTransaction(Args... args) {
+    absl::Status status;
+    // Fold expression to apply the Write function on each argument
+    ((status = WriteHelper(args)), ...);
+    return status;
+  }
+
+  template <typename T, typename... Args>
+  absl::Status ReadTransaction(T& var, int address, Args&&... args) {
+    absl::Status status = ReadHelper<T>(var, address);
+    if (!status.ok()) {
+      return status;
+    }
+
+    if constexpr (sizeof...(args) > 0) {
+      status = ReadTransaction(std::forward<Args>(args)...);
+    }
+
+    return status;
+  }
+
   void Expand(int size) {
     rom_data_.resize(size);
     size_ = size;
@@ -497,15 +444,11 @@ class ROM : public core::ExperimentFlags {
     return core::SnesToPc(snes_addr);
   }
 
-  gfx::PaletteGroup palette_group(const std::string& group) {
-    return palette_groups_[group];
-  }
-  auto mutable_palette_group(const std::string& group) {
-    return &palette_groups_[group];
-  }
-  auto dungeon_palette(int i) { return palette_groups_["dungeon_main"][i]; }
+  auto palette_group() { return palette_groups_; }
+  auto mutable_palette_group() { return &palette_groups_; }
+  auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
   auto mutable_dungeon_palette(int i) {
-    return palette_groups_["dungeon_main"].mutable_palette(i);
+    return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
   // Full graphical data for the game
@@ -518,6 +461,7 @@ class ROM : public core::ExperimentFlags {
   }
   auto bitmap_manager() { return graphics_manager_; }
   auto mutable_bitmap_manager() { return &graphics_manager_; }
+  auto link_graphics() { return link_graphics_; }
 
   auto title() const { return title_; }
   auto size() const { return size_; }
@@ -552,6 +496,18 @@ class ROM : public core::ExperimentFlags {
     renderer_ = renderer;
   }
 
+  absl::Status CreateAndRenderBitmap(int width, int height, int depth,
+                                     const Bytes& data, gfx::Bitmap& bitmap,
+                                     gfx::SnesPalette& palette) {
+    bitmap.Create(width, height, depth, data);
+    RETURN_IF_ERROR(bitmap.ApplyPalette(palette));
+    RenderBitmap(&bitmap);
+    return absl::OkStatus();
+  }
+
+  /**
+   * @brief Used to render a bitmap to the screen.
+   */
   void RenderBitmap(gfx::Bitmap* bitmap) {
     if (flags()->kLoadTexturesAsStreaming) {
       bitmap->CreateTexture(renderer_.get());
@@ -560,6 +516,9 @@ class ROM : public core::ExperimentFlags {
     }
   }
 
+  /**
+   * @brief Used to update a bitmap on the screen.
+   */
   void UpdateBitmap(gfx::Bitmap* bitmap, bool use_sdl_update = false) {
     if (flags()->kLoadTexturesAsStreaming) {
       bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
@@ -579,8 +538,8 @@ class ROM : public core::ExperimentFlags {
     spriteset_ids.resize(144, std::vector<uint8_t>(4));
     paletteset_ids.resize(72, std::vector<uint8_t>(4));
 
-    int gfxPointer = (rom_data_[gfx_groups_pointer + 1] << 8) +
-                     rom_data_[gfx_groups_pointer];
+    int gfxPointer =
+        (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
     gfxPointer = core::SnesToPc(gfxPointer);
 
     for (int i = 0; i < 37; i++) {
@@ -611,9 +570,9 @@ class ROM : public core::ExperimentFlags {
     }
   }
 
-  bool SaveGroupsToROM() {
-    int gfxPointer = (rom_data_[gfx_groups_pointer + 1] << 8) +
-                     rom_data_[gfx_groups_pointer];
+  bool SaveGroupsToRom() {
+    int gfxPointer =
+        (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
     gfxPointer = core::SnesToPc(gfxPointer);
 
     for (int i = 0; i < 37; i++) {
@@ -649,6 +608,50 @@ class ROM : public core::ExperimentFlags {
   auto resource_label() { return &resource_label_manager_; }
 
  private:
+  struct WriteAction {
+    int address;
+    std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
+                 gfx::SnesColor, std::vector<gfx::SnesColor>>
+        value;
+  };
+
+  absl::Status WriteHelper(const WriteAction& action) {
+    if (std::holds_alternative<uint8_t>(action.value)) {
+      return Write(action.address, std::get<uint8_t>(action.value));
+    } else if (std::holds_alternative<uint16_t>(action.value) ||
+               std::holds_alternative<short>(action.value)) {
+      return WriteShort(action.address, std::get<uint16_t>(action.value));
+    } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
+      return WriteVector(action.address,
+                         std::get<std::vector<uint8_t>>(action.value));
+    } else if (std::holds_alternative<gfx::SnesColor>(action.value)) {
+      return WriteColor(action.address, std::get<gfx::SnesColor>(action.value));
+    } else if (std::holds_alternative<std::vector<gfx::SnesColor>>(
+                   action.value)) {
+      return absl::UnimplementedError(
+          "WriteHelper: std::vector<gfx::SnesColor>");
+    }
+    auto error_message = absl::StrFormat("Invalid write argument type: %s",
+                                         typeid(action.value).name());
+    throw std::runtime_error(error_message);
+    return absl::InvalidArgumentError(error_message);
+  }
+
+  template <typename T>
+  absl::Status ReadHelper(T& var, int address) {
+    if constexpr (std::is_same_v<T, uint8_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadByte(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, uint16_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadWord(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+      ASSIGN_OR_RETURN(auto result, ReadByteVector(address, var.size()));
+      var = result;
+    }
+    return absl::OkStatus();
+  }
+
   long size_ = 0;
   bool is_loaded_ = false;
   bool has_header_ = false;
@@ -663,35 +666,38 @@ class ROM : public core::ExperimentFlags {
   gfx::BitmapManager graphics_manager_;
   gfx::BitmapTable link_graphics_;
   gfx::SnesPalette link_palette_;
-  PaletteGroupMap palette_groups_;
+  gfx::PaletteGroupMap palette_groups_;
   core::ResourceLabelManager resource_label_manager_;
 
   std::stack<std::function<void()>> changes_;
   std::shared_ptr<SDL_Renderer> renderer_;
 };
 
-class SharedROM {
+/**
+ * @brief A class to hold a shared pointer to a Rom object.
+ */
+class SharedRom {
  public:
-  SharedROM() = default;
-  virtual ~SharedROM() = default;
+  SharedRom() = default;
+  virtual ~SharedRom() = default;
 
-  std::shared_ptr<ROM> shared_rom() {
+  std::shared_ptr<Rom> shared_rom() {
     if (!shared_rom_) {
-      shared_rom_ = std::make_shared<ROM>();
+      shared_rom_ = std::make_shared<Rom>();
     }
     return shared_rom_;
   }
 
   auto rom() {
     if (!shared_rom_) {
-      shared_rom_ = std::make_shared<ROM>();
+      shared_rom_ = std::make_shared<Rom>();
     }
-    ROM* rom = shared_rom_.get();
+    Rom* rom = shared_rom_.get();
     return rom;
   }
 
   // private:
-  static std::shared_ptr<ROM> shared_rom_;
+  static std::shared_ptr<Rom> shared_rom_;
 };
 
 }  // namespace app

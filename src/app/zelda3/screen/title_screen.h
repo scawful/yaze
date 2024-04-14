@@ -11,6 +11,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace screen {
 
 class TitleScreen {
  public:
@@ -62,11 +63,11 @@ class TitleScreen {
   bool mouseDown = false;
   bool mdown = false;
 
-  ROM rom_;
+  Rom rom_;
 
-  gfx::OAMTile oam_data[10];
-  gfx::OAMTile selected_oam_tile;
-  gfx::OAMTile last_selected_oam_tile;
+  gfx::OamTile oam_data[10];
+  gfx::OamTile selected_oam_tile;
+  gfx::OamTile last_selected_oam_tile;
 
   gfx::Bitmap tilesBG1Bitmap;  // 0x80000
   gfx::Bitmap tilesBG2Bitmap;  // 0x80000
@@ -74,8 +75,9 @@ class TitleScreen {
   gfx::Bitmap tiles8Bitmap;    // 0x20000
 };
 
+}  // namespace screen
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_APP_ZELDA3_SCREEN_H

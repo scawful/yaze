@@ -6,11 +6,11 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace memory {
 
-// Direct Memory Address
-class DMA {
+class DirectMemoryAccess {
  public:
-  DMA() {
+  DirectMemoryAccess() {
     // Initialize DMA and HDMA channels
     for (int i = 0; i < 8; ++i) {
       channels[i].DMAPn = 0;
@@ -52,6 +52,8 @@ class DMA {
   uint8_t MDMAEN = 0;  // Start DMA transfer
   uint8_t HDMAEN = 0;  // Enable HDMA transfers
 };
+
+}  // namespace memory
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

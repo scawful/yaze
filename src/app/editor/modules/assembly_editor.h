@@ -12,6 +12,10 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+/**
+ * @class AssemblyEditor
+ * @brief Text editor for modifying assembly code.
+ */
 class AssemblyEditor {
  public:
   AssemblyEditor();

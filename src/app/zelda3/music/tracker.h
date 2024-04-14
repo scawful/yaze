@@ -18,6 +18,14 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
+/**
+ * @namespace yaze::app::zelda3::music
+ * @brief Contains classes and functions for handling music data in Zelda 3.
+ *
+ * Based off of the HyruleMagic tracker code.
+ */
+namespace music {
+
 // bank 19, 1A, 1B
 // iirc 1A is OW, 1B is dungeon
 // 19 is general spc stuff like samples, ects
@@ -84,7 +92,7 @@ using Song = struct {
   short numparts;
   short lopst;
   unsigned short addr;
-  bool in_use; // true
+  bool in_use;  // true
 };
 // =============================================================================
 
@@ -168,24 +176,24 @@ class Tracker {
  public:
   SongSPCBlock *AllocSPCBlock(int len, int bank);
 
-  unsigned char *GetSPCAddr(ROM &rom, unsigned short addr, short bank);
+  unsigned char *GetSPCAddr(Rom &rom, unsigned short addr, short bank);
 
   short AllocSPCCommand();
 
-  short GetBlockTime(ROM &rom, short num, short prevtime);
+  short GetBlockTime(Rom &rom, short num, short prevtime);
 
-  short SaveSPCCommand(ROM &rom, short num, short songtime, short endtr);
-  short LoadSPCCommand(ROM &rom, unsigned short addr, short bank, int t);
+  short SaveSPCCommand(Rom &rom, short num, short songtime, short endtr);
+  short LoadSPCCommand(Rom &rom, unsigned short addr, short bank, int t);
 
-  void SaveSongs(ROM &rom);
+  void SaveSongs(Rom &rom);
 
-  void LoadSongs(ROM &rom);
+  void LoadSongs(Rom &rom);
 
-  int WriteSPCData(ROM &rom, void *buf, int len, int addr, int spc, int limit);
+  int WriteSPCData(Rom &rom, void *buf, int len, int addr, int spc, int limit);
 
-  void EditTrack(ROM &rom, short i);
+  void EditTrack(Rom &rom, short i);
 
-  void NewSR(ROM &rom, int bank);
+  void NewSR(Rom &rom, int bank);
 
  private:
   // A "modified" flag
@@ -252,6 +260,7 @@ class Tracker {
 
 // =============================================================================
 
+}  // namespace music
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

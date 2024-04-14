@@ -4,13 +4,17 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace yaze {
-namespace app {
-namespace emu {
+namespace yaze_test {
+namespace emu_test {
 
 using testing::_;
 using testing::Return;
+using yaze::app::emu::audio::AudioRam;
+using yaze::app::emu::audio::Spc700;
 
+/**
+ * @brief MockAudioRam is a mock class for the AudioRam class.
+ */
 class MockAudioRam : public AudioRam {
  public:
   MOCK_METHOD(void, reset, (), (override));
@@ -51,6 +55,9 @@ class MockAudioRam : public AudioRam {
   std::vector<uint8_t> internal_audio_ram_ = std::vector<uint8_t>(0x10000, 0);
 };
 
+/**
+ * \test Spc700Test is a test fixture for the Spc700 class.
+ */
 class Spc700Test : public ::testing::Test {
  public:
   Spc700Test() = default;
@@ -461,6 +468,5 @@ TEST_F(Spc700Test, BootIplRomOk) {
   // EXPECT_EQ(spc700.PC, 0xFFC1 + 0x3F);
 }
 
-}  // namespace emu
-}  // namespace app
-}  // namespace yaze
+}  // namespace emu_test
+}  // namespace yaze_test

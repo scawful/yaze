@@ -19,6 +19,10 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
+/**
+ * @class Sprite
+ * @brief A class for managing sprites in the overworld and underworld.
+ */
 class Sprite : public OverworldEntity {
  public:
   Sprite() = default;

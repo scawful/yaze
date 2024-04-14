@@ -21,6 +21,9 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+/**
+ * @brief Primitive of a SNES color palette.
+ */
 struct snes_palette {
   uint id;            /**< ID of the palette. */
   uint size;          /**< Size of the palette. */
@@ -31,6 +34,18 @@ using snes_palette = struct snes_palette;
 uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);
 
+/**
+ * @brief Represents a palette of colors for the Super Nintendo Entertainment
+ * System (SNES).
+ *
+ * The `SnesPalette` class provides functionality to create, modify, and access
+ * colors in an SNES palette. It supports various constructors to initialize the
+ * palette with different types of data. The palette can be modified by adding
+ * or changing colors, and it can be cleared to remove all colors. Colors in the
+ * palette can be accessed using index-based access or through the `GetColor`
+ * method. The class also provides a method to create a sub-palette by selecting
+ * a range of colors from the original palette.
+ */
 class SnesPalette {
  public:
   template <typename T>
@@ -69,10 +84,9 @@ class SnesPalette {
     size_++;
   }
 
-  auto GetColor(int i) const {
+  absl::StatusOr<SnesColor> GetColor(int i) const {
     if (i > size_) {
-      std::cout << "SNESPalette: Index out of bounds" << std::endl;
-      return colors[0];
+      return absl::InvalidArgumentError("SnesPalette: Index out of bounds");
     }
     return colors[i];
   }
@@ -126,12 +140,16 @@ SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uint8_t* rom);
 
 std::array<float, 4> ToFloatArray(const SnesColor& color);
 
+/**
+ * @brief Represents a group of palettes.
+ *
+ * Supports adding palettes and colors, clearing the group, and accessing
+ * palettes and colors by index.
+ */
 struct PaletteGroup {
   PaletteGroup() = default;
 
   explicit PaletteGroup(uint8_t mSize);
-
-  auto mutable_palette(int i) { return &palettes[i]; }
 
   absl::Status AddPalette(SnesPalette pal) {
     palettes.emplace_back(pal);
@@ -152,7 +170,10 @@ struct PaletteGroup {
     size_ = 0;
   }
 
+  auto name() const { return name_; }
   auto size() const { return palettes.size(); }
+  auto mutable_palette(int i) { return &palettes[i]; }
+  auto palette(int i) const { return palettes[i]; }
 
   SnesPalette operator[](int i) {
     if (i > size_) {
@@ -188,7 +209,88 @@ struct PaletteGroup {
 
  private:
   int size_ = 0;
+  std::string name_;
   std::vector<SnesPalette> palettes;
+};
+
+/**
+ * @brief Represents a mapping of palette groups.
+ *
+ * Originally, this was an actual std::unordered_map but since the palette
+ * groups supported never change, it was changed to a struct with a method to
+ * get the group by name.
+ */
+struct PaletteGroupMap {
+  PaletteGroup overworld_main;
+  PaletteGroup overworld_aux;
+  PaletteGroup overworld_animated;
+  PaletteGroup hud;
+  PaletteGroup global_sprites;
+  PaletteGroup armors;
+  PaletteGroup swords;
+  PaletteGroup shields;
+  PaletteGroup sprites_aux1;
+  PaletteGroup sprites_aux2;
+  PaletteGroup sprites_aux3;
+  PaletteGroup dungeon_main;
+  PaletteGroup grass;
+  PaletteGroup object_3d;
+  PaletteGroup overworld_mini_map;
+
+  auto get_group(const std::string& group_name) {
+    if (group_name == "ow_main") {
+      return &overworld_main;
+    } else if (group_name == "ow_aux") {
+      return &overworld_aux;
+    } else if (group_name == "ow_animated") {
+      return &overworld_animated;
+    } else if (group_name == "hud") {
+      return &hud;
+    } else if (group_name == "global_sprites") {
+      return &global_sprites;
+    } else if (group_name == "armors") {
+      return &armors;
+    } else if (group_name == "swords") {
+      return &swords;
+    } else if (group_name == "shields") {
+      return &shields;
+    } else if (group_name == "sprites_aux1") {
+      return &sprites_aux1;
+    } else if (group_name == "sprites_aux2") {
+      return &sprites_aux2;
+    } else if (group_name == "sprites_aux3") {
+      return &sprites_aux3;
+    } else if (group_name == "dungeon_main") {
+      return &dungeon_main;
+    } else if (group_name == "grass") {
+      return &grass;
+    } else if (group_name == "3d_object") {
+      return &object_3d;
+    } else if (group_name == "ow_mini_map") {
+      return &overworld_mini_map;
+    } else {
+      throw std::out_of_range("PaletteGroupMap: Group not found");
+    }
+  }
+
+  template <typename Func>
+  void for_each(Func&& func) {
+    func(overworld_main);
+    func(overworld_aux);
+    func(overworld_animated);
+    func(hud);
+    func(global_sprites);
+    func(armors);
+    func(swords);
+    func(shields);
+    func(sprites_aux1);
+    func(sprites_aux2);
+    func(sprites_aux3);
+    func(dungeon_main);
+    func(grass);
+    func(object_3d);
+    func(overworld_mini_map);
+  }
 };
 
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
@@ -197,8 +299,38 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromColFile(
 absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
     SnesPalette& palette);
 
+/**
+ * @brief Loads all the palettes for the game.
+ *
+ * This function loads all the palettes for the game, including overworld,
+ * HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object
+ * palettes. It also adds the loaded palettes to their respective palette
+ * groups.
+ *
+ */
+absl::Status LoadAllPalettes(const Bytes& rom_data, PaletteGroupMap& groups);
+
+/**
+ * @brief Represents a set of palettes used in a SNES graphics system.
+ */
 struct Paletteset {
+  /**
+   * @brief Default constructor for Paletteset.
+   */
   Paletteset() = default;
+
+  /**
+   * @brief Constructor for Paletteset.
+   * @param main The main palette.
+   * @param animated The animated palette.
+   * @param aux1 The first auxiliary palette.
+   * @param aux2 The second auxiliary palette.
+   * @param background The background color.
+   * @param hud The HUD palette.
+   * @param spr The sprite palette.
+   * @param spr2 The second sprite palette.
+   * @param comp The composite palette.
+   */
   Paletteset(gfx::SnesPalette main, gfx::SnesPalette animated,
              gfx::SnesPalette aux1, gfx::SnesPalette aux2,
              gfx::SnesColor background, gfx::SnesPalette hud,
@@ -212,15 +344,16 @@ struct Paletteset {
         spr(spr),
         spr2(spr2),
         composite(comp) {}
-  gfx::SnesPalette main;
-  gfx::SnesPalette animated;
-  gfx::SnesPalette aux1;
-  gfx::SnesPalette aux2;
-  gfx::SnesColor background;
-  gfx::SnesPalette hud;
-  gfx::SnesPalette spr;
-  gfx::SnesPalette spr2;
-  gfx::SnesPalette composite;
+
+  gfx::SnesPalette main;      /**< The main palette. */
+  gfx::SnesPalette animated;  /**< The animated palette. */
+  gfx::SnesPalette aux1;      /**< The first auxiliary palette. */
+  gfx::SnesPalette aux2;      /**< The second auxiliary palette. */
+  gfx::SnesColor background;  /**< The background color. */
+  gfx::SnesPalette hud;       /**< The HUD palette. */
+  gfx::SnesPalette spr;       /**< The sprite palette. */
+  gfx::SnesPalette spr2;      /**< The second sprite palette. */
+  gfx::SnesPalette composite; /**< The composite palette. */
 };
 
 }  // namespace gfx

@@ -17,12 +17,13 @@
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld_map.h"
+#include "app/zelda3/overworld/overworld_map.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace overworld {
 
 namespace {
 
@@ -79,7 +80,7 @@ absl::flat_hash_map<int, MapData> parseFile(const std::string &filename) {
 
 }  // namespace
 
-absl::Status Overworld::Load(ROM &rom) {
+absl::Status Overworld::Load(Rom &rom) {
   rom_ = rom;
 
   AssembleMap32Tiles();
@@ -311,11 +312,11 @@ absl::Status Overworld::LoadOverworldMaps() {
     } else if (i >= 0x80) {
       world_type = 2;
     }
-    futures.emplace_back(
-        std::async(std::launch::async, [this, i, size, world_type]() {
-          return overworld_maps_[i].BuildMap(size, game_state_, world_type,
-                                             GetMapTiles(world_type));
-        }));
+    auto task_function = [this, i, size, world_type]() {
+      return overworld_maps_[i].BuildMap(size, game_state_, world_type,
+                                         GetMapTiles(world_type));
+    };
+    futures.emplace_back(std::async(std::launch::async, task_function));
   }
 
   // Wait for all tasks to complete and check their results
@@ -427,7 +428,7 @@ absl::Status Overworld::LoadExits() {
 
 absl::Status Overworld::LoadItems() {
   ASSIGN_OR_RETURN(uint32_t pointer,
-                   rom()->ReadLong(zelda3::overworldItemsAddress));
+                   rom()->ReadLong(zelda3::overworld::kOverworldItemsAddress));
   uint32_t pointer_pc = core::SnesToPc(pointer);  // 1BC2F9 -> 0DC2F9
   for (int i = 0; i < 128; i++) {
     ASSIGN_OR_RETURN(uint16_t word_address,
@@ -526,7 +527,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
 
 // ---------------------------------------------------------------------------
 
-absl::Status Overworld::Save(ROM &rom) {
+absl::Status Overworld::Save(Rom &rom) {
   rom_ = rom;
 
   RETURN_IF_ERROR(SaveMap16Tiles())
@@ -1512,7 +1513,7 @@ absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
   return absl::OkStatus();
 }
 
-absl::Status Overworld::LoadPrototype(ROM &rom,
+absl::Status Overworld::LoadPrototype(Rom &rom,
                                       const std::string &tilemap_filename) {
   rom_ = rom;
 
@@ -1568,6 +1569,7 @@ OWBlockset &Overworld::GetMapTiles(int world_type) {
   }
 }
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

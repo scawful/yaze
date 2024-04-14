@@ -2,19 +2,20 @@
 #define YAZE_APP_ZELDA3_INVENTORY_H
 
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
 #include "app/gfx/snes_palette.h"
-#include "app/rom.h"
+#include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace screen {
 
 constexpr int kInventoryStart = 0x6564A;
 constexpr int kBowItemPos = 0x6F631;
 
-class Inventory : public SharedROM {
+class Inventory : public SharedRom {
  public:
   auto Bitmap() const { return bitmap_; }
   auto Tilesheet() const { return tilesheets_bmp_; }
@@ -37,8 +38,9 @@ class Inventory : public SharedROM {
   std::vector<gfx::TileInfo> tiles_;
 };
 
+}  // namespace screen
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_APP_ZELDA3_INVENTORY_H

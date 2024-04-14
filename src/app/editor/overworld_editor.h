@@ -12,11 +12,12 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
-#include "app/core/editor.h"
+#include "app/editor/context/entrance_context.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/editor/modules/tile16_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -24,7 +25,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/pipeline.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -61,9 +62,26 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
+/**
+ * @class OverworldEditor
+ * @brief Manipulates the Overworld and OverworldMap data in a Rom.
+ *
+ * The `OverworldEditor` class is responsible for managing the editing and
+ * manipulation of the overworld in a game. The user can drag and drop tiles,
+ * modify OverworldEntrance, OverworldExit, Sprite, and OverworldItem
+ * as well as change the gfx and palettes used in each overworld map.
+ *
+ * The Overworld itself is a series of bitmap images which exist inside each
+ * OverworldMap object. The drawing of the overworld is done using the Canvas
+ * class in conjunction with these underlying Bitmap objects.
+ *
+ * Provides access to the GfxGroupEditor and Tile16Editor through popup windows.
+ *
+ */
 class OverworldEditor : public Editor,
-                        public SharedROM,
-                        public GfxContext,
+                        public SharedRom,
+                        public context::GfxContext,
+                        public context::EntranceContext,
                         public core::ExperimentFlags {
  public:
   absl::Status Update() final;
@@ -75,6 +93,9 @@ class OverworldEditor : public Editor,
 
   auto overworld() { return &overworld_; }
 
+  /**
+   * @brief
+   */
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
@@ -91,21 +112,33 @@ class OverworldEditor : public Editor,
     for (auto& [i, bmp] : current_graphics_set_) {
       bmp.Cleanup();
     }
+    maps_bmp_.clear();
+    overworld_.Destroy();
+    all_gfx_loaded_ = false;
+    map_blockset_loaded_ = false;
   }
 
+  /**
+   * @brief Load the Bitmap objects for each OverworldMap.
+   *
+   * Calls the Overworld class to load the image data and palettes from the Rom,
+   * then renders the area graphics and tile16 blockset Bitmap objects before
+   * assembling the OverworldMap Bitmap objects.
+   */
   absl::Status LoadGraphics();
 
  private:
   absl::Status UpdateOverworldEdit();
+  absl::Status UpdateFullscreenCanvas();
 
   absl::Status DrawToolset();
   void DrawOverworldMapSettings();
 
   void RefreshChildMap(int i);
   void RefreshOverworldMap();
-  void RefreshMapPalette();
+  absl::Status RefreshMapPalette();
   void RefreshMapProperties();
-  void RefreshTile16Blockset();
+  absl::Status RefreshTile16Blockset();
 
   void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling,
                               bool holes = false);
@@ -118,14 +151,19 @@ class OverworldEditor : public Editor,
   void RenderUpdatedMapBitmap(const ImVec2& click_position,
                               const Bytes& tile_data);
   void CheckForOverworldEdits();
-  void CheckForCurrentMap();
   void CheckForSelectRectangle();
+  absl::Status CheckForCurrentMap();
+  void CheckForMousePan();
+
+  /**
+   * @brief Allows the user to make changes to the overworld map.
+   */
   void DrawOverworldCanvas();
 
-  void DrawTile16Selector();
+  absl::Status DrawTile16Selector();
   void DrawTile8Selector();
-  void DrawAreaGraphics();
-  void DrawTileSelector();
+  absl::Status DrawAreaGraphics();
+  absl::Status DrawTileSelector();
 
   absl::Status LoadSpriteGraphics();
 
@@ -137,7 +175,7 @@ class OverworldEditor : public Editor,
   void DrawUsageGrid();
   void CalculateUsageStats();
 
-  void LoadAnimatedMaps();
+  absl::Status LoadAnimatedMaps();
   void DrawDebugWindow();
 
   auto gfx_group_editor() const { return gfx_group_editor_; }
@@ -197,11 +235,11 @@ class OverworldEditor : public Editor,
   zelda3::OverworldEntity* current_entity_;
 
   int current_entrance_id_ = 0;
-  zelda3::OverworldEntrance current_entrance_;
+  zelda3::overworld::OverworldEntrance current_entrance_;
   int current_exit_id_ = 0;
-  zelda3::OverworldExit current_exit_;
+  zelda3::overworld::OverworldExit current_exit_;
   int current_item_id_ = 0;
-  zelda3::OverworldItem current_item_;
+  zelda3::overworld::OverworldItem current_item_;
   int current_sprite_id_ = 0;
   zelda3::Sprite current_sprite_;
 
@@ -219,7 +257,7 @@ class OverworldEditor : public Editor,
   Tile16Editor tile16_editor_;
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
-  zelda3::Overworld overworld_;
+  zelda3::overworld::Overworld overworld_;
 
   gui::Canvas ow_map_canvas_{ImVec2(0x200 * 8, 0x200 * 8),
                              gui::CanvasGridSize::k64x64};

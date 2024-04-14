@@ -20,21 +20,23 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace overworld {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
-using editor::GfxContext;
-
-class OverworldMap : public GfxContext {
+/**
+ * @brief Represents a single Overworld map screen.
+ */
+class OverworldMap : public editor::context::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16>& tiles16);
+  OverworldMap(int index, Rom& rom, std::vector<gfx::Tile16>& tiles16);
 
   absl::Status BuildMap(int count, int game_state, int world,
                         OWBlockset& world_blockset);
 
   void LoadAreaGraphics();
-  void LoadPalette();
+  absl::Status LoadPalette();
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(int count);
   absl::Status BuildBitmap(OWBlockset& world_blockset);
@@ -108,8 +110,9 @@ class OverworldMap : public GfxContext {
   void LoadDeathMountainGFX();
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size);
-  gfx::SnesPalette GetPalette(const std::string& group, int index,
-                              int previousIndex, int limit);
+  absl::StatusOr<gfx::SnesPalette> GetPalette(const gfx::PaletteGroup& group,
+                                              int index, int previous_index,
+                                              int limit);
 
   bool built_ = false;
   bool large_map_ = false;
@@ -131,7 +134,7 @@ class OverworldMap : public GfxContext {
   uchar area_music_[4];
   uchar static_graphics_[16];
 
-  ROM rom_;
+  Rom rom_;
   Bytes all_gfx_;
   Bytes current_blockset_;
   Bytes current_gfx_;
@@ -142,6 +145,7 @@ class OverworldMap : public GfxContext {
   std::vector<gfx::Tile16> tiles16_;
 };
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

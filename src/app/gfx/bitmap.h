@@ -15,11 +15,32 @@
 
 namespace yaze {
 namespace app {
+
+/**
+ * @namespace yaze::app::gfx
+ * @brief Contains classes for handling graphical data.
+ */
 namespace gfx {
 
+/**
+ * @brief Convert SDL_Surface to PNG image data.
+ */
 bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer);
+
+/**
+ * @brief Convert PNG image data to SDL_Surface.
+ */
 void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
                          SDL_Surface **outSurface);
+
+/**
+ * @brief Represents a bitmap image.
+ *
+ * The `Bitmap` class provides functionality to create, manipulate, and display
+ * bitmap images. It supports various operations such as creating a bitmap
+ * object, creating and updating textures, applying palettes, and accessing
+ * pixel data.
+ */
 class Bitmap {
  public:
   Bitmap() = default;
@@ -29,14 +50,41 @@ class Bitmap {
       : width_(width), height_(height), depth_(depth), data_(data) {
     InitializeFromData(width, height, depth, data);
   }
+  Bitmap(int width, int height, int depth, const Bytes &data,
+         const SnesPalette &palette)
+      : width_(width),
+        height_(height),
+        depth_(depth),
+        data_(data),
+        palette_(palette) {
+    InitializeFromData(width, height, depth, data);
+    ApplyPalette(palette);
+  }
 
+  /**
+   * @brief Creates a bitmap object and reserves space for graphical data.
+   */
   void Create(int width, int height, int depth, int data_size);
+
+  /**
+   * @brief Creates a bitmap object with the provided graphical data.
+   */
   void Create(int width, int height, int depth, const Bytes &data);
 
   void InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
                           const Bytes &data);
 
+  /**
+   * @brief Creates the underlying SDL_Texture to be displayed.
+   *
+   * Converts the surface from a RGB to ARGB format.
+   * Uses SDL_TEXTUREACCESS_STREAMING to allow for live updates.
+   */
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
+
+  /**
+   * @brief Updates the underlying SDL_Texture when it already exists.
+   */
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void CreateTexture(SDL_Renderer *renderer);
   void UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update = false);
@@ -47,11 +95,15 @@ class Bitmap {
   void LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
                        int height);
 
-  void ApplyPalette(const SnesPalette &palette);
-  void ApplyPaletteWithTransparent(const SnesPalette &palette, int index,
-                                   int length = 7);
+  /**
+   * @brief Copy color data from the SnesPalette into the SDL_Palette
+   */
+  absl::Status ApplyPalette(const SnesPalette &palette);
+  absl::Status ApplyPaletteWithTransparent(const SnesPalette &palette,
+                                           int index, int length = 7);
   void ApplyPalette(const std::vector<SDL_Color> &palette);
-  void ApplyPaletteFromPaletteGroup(const SnesPalette &palette, int palette_id);
+  absl::Status ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
+                                            int palette_id);
 
   void WriteToPixel(int position, uchar value) {
     if (pixel_data_ == nullptr) {
@@ -236,6 +288,9 @@ class Bitmap {
 
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
 
+/**
+ * @brief Hash map container of shared pointers to Bitmaps.
+ */
 class BitmapManager {
  private:
   std::unordered_map<int, std::shared_ptr<gfx::Bitmap>> bitmap_cache_;

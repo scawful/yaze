@@ -4,7 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "app/core/common.h"
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/core/labeling.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
@@ -32,8 +32,18 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
     ImGuiTableFlags_BordersV;
 
+/**
+ * @brief DungeonEditor class for editing dungeons.
+ *
+ * This class is currently a work in progress and is used for editing dungeons.
+ * It provides various functions for updating, cutting, copying, pasting,
+ * undoing, and redoing. It also includes methods for drawing the toolset, room
+ * selector, entrance selector, dungeon tab view, dungeon canvas, room graphics,
+ * tile selector, and object renderer. Additionally, it handles loading room
+ * entrances, calculating usage statistics, and rendering set usage.
+ */
 class DungeonEditor : public Editor,
-                      public SharedROM,
+                      public SharedRom,
                       public core::ExperimentFlags {
  public:
   absl::Status Update() override;
@@ -46,9 +56,12 @@ class DungeonEditor : public Editor,
   void add_room(int i) { active_rooms_.push_back(i); }
 
  private:
+  absl::Status Initialize();
+  absl::Status RefreshGraphics();
+
   void LoadDungeonRoomSize();
 
-  void UpdateDungeonRoomView();
+  absl::Status UpdateDungeonRoomView();
 
   void DrawToolset();
   void DrawRoomSelector();

@@ -15,12 +15,18 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
-#include "app/zelda3/overworld_map.h"
+#include "app/zelda3/overworld/overworld_map.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+
+/**
+ * @namespace yaze::app::zelda3::overworld
+ * @brief Represents the Overworld data.
+ */
+namespace overworld {
 
 // List of secret item names
 const std::vector<std::string> kSecretItemNames = {
@@ -55,7 +61,7 @@ const std::vector<std::string> kSecretItemNames = {
 };
 
 constexpr int overworldItemsPointers = 0xDC2F9;
-constexpr int overworldItemsAddress = 0xDC8B9;  // 1BC2F9
+constexpr int kOverworldItemsAddress = 0xDC8B9;  // 1BC2F9
 constexpr int overworldItemsBank = 0xDC8BF;
 constexpr int overworldItemsEndData = 0xDC89C;  // 0DC89E
 
@@ -468,10 +474,16 @@ struct MapData {
   std::vector<uint8_t> lowData;
 };
 
-class Overworld : public SharedROM, public core::ExperimentFlags {
+/**
+ * @brief Represents the full Overworld data, light and dark world.
+ *
+ * This class is responsible for loading and saving the overworld data,
+ * as well as creating the tilesets and tilemaps for the overworld.
+ */
+class Overworld : public SharedRom, public core::ExperimentFlags {
  public:
   OWBlockset &GetMapTiles(int world_type);
-  absl::Status Load(ROM &rom);
+  absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
   void LoadEntrances();
@@ -482,7 +494,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
                                   int spriteIndex);
 
-  absl::Status Save(ROM &rom);
+  absl::Status Save(Rom &rom);
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
   absl::Status SaveEntrances();
@@ -494,7 +506,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
-  absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
+  absl::Status LoadPrototype(Rom &rom_, const std::string &tilemap_filename);
 
   void Destroy() {
     for (auto &map : overworld_maps_) {
@@ -585,7 +597,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   int current_map_ = 0;
   uchar map_parent_[160];
 
-  ROM rom_;
+  Rom rom_;
   OWMapTiles map_tiles_;
 
   uint8_t all_tiles_types_[0x200];
@@ -618,6 +630,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::flat_hash_map<int, MapData> proto_map_data_;
 };
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

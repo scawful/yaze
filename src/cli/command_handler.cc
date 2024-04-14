@@ -18,7 +18,7 @@ absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
   RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
 
   // Load the destination rom
-  ROM dest_rom;
+  Rom dest_rom;
   RETURN_IF_ERROR(dest_rom.LoadFromFile(arg_vec[1]))
 
   std::vector<uint32_t> tileIDs;

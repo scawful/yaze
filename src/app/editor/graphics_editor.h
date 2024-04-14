@@ -15,7 +15,7 @@
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -50,9 +50,6 @@ constexpr const char* kPaletteGroupAddressesKeys[] = {
     "grass",          "3d_object",    "ow_mini_map",
 };
 
-static constexpr std::string_view kGfxEditColumnNames[] = {
-    "Tilesheets", "Current Graphics", "Palette Controls"};
-
 static constexpr absl::string_view kGfxToolsetColumnNames[] = {
     "#memoryEditor",
     "##separator_gfx1",
@@ -62,7 +59,21 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
                                           ImGuiTableFlags_Resizable |
                                           ImGuiTableFlags_SizingStretchSame;
 
-class GraphicsEditor : public SharedROM {
+/**
+ * @class GraphicsEditor
+ * @brief Allows the user to edit graphics sheets from the game or view
+ * prototype graphics.
+ *
+ * The GraphicsEditor class is responsible for providing functionality to edit
+ * graphics sheets from the game or view prototype graphics of Link to the Past
+ * from the CGX, SCR, and OBJ formats. It provides various methods to update
+ * different components of the graphics editor, such as the graphics edit tab,
+ * link graphics view, and prototype graphics viewer. It also includes import
+ * functions for different file formats, as well as other utility functions for
+ * drawing toolsets, palette controls, clipboard imports, experimental features,
+ * and memory editor.
+ */
+class GraphicsEditor : public SharedRom {
  public:
   absl::Status Update();
 
@@ -154,9 +165,9 @@ class GraphicsEditor : public SharedROM {
 
   GfxEditMode gfx_edit_mode_ = GfxEditMode::kSelect;
 
-  ROM temp_rom_;
-  ROM tilemap_rom_;
-  zelda3::Overworld overworld_;
+  Rom temp_rom_;
+  Rom tilemap_rom_;
+  zelda3::overworld::Overworld overworld_;
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
   PaletteEditor palette_editor_;
@@ -184,6 +195,9 @@ class GraphicsEditor : public SharedROM {
   gui::Canvas super_donkey_canvas_;
   gui::Canvas current_sheet_canvas_{ImVec2(0x80, 0x20),
                                     gui::CanvasGridSize::k8x8};
+  gui::Canvas link_canvas_{
+      ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),
+      gui::CanvasGridSize::k16x16};
   absl::Status status_;
 };
 

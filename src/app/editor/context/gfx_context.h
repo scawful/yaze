@@ -6,7 +6,7 @@
 #include <cmath>
 #include <vector>
 
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -19,7 +19,11 @@
 namespace yaze {
 namespace app {
 namespace editor {
+namespace context {
 
+/**
+ * @brief Shared graphical context across editors.
+ */
 class GfxContext {
  public:
   absl::Status Update();
@@ -29,6 +33,7 @@ class GfxContext {
   static std::unordered_map<uint8_t, gfx::Paletteset> palettesets_;
 };
 
+}  // namespace context
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze

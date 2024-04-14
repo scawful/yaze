@@ -2,6 +2,8 @@
 
 The compression algorithm has multiple implementations with varying levels of quality, based primarily on the implementations made in skarsnik/sneshacking, Zarby89/ZScreamDungeon and ZCompress with optimizations made for C++.
 
+Currently, the Compress and Uncompress methods from Hyrule Magic are used and all other compression methods are considered deprecated.
+
 ## Key Definitions
 
 ### Constants and Macros:
@@ -62,6 +64,3 @@ Using `CompressionContext` to handle compression.
 - **Compression String Creation**: `CreateCompressionString`
 - **Compression Result Validation**: Such as `ValidateCompressionResult` and its V3 variant.
 - **Compression Piece Manipulation**: Like `SplitCompressionPiece` and its V3 variant.
-
-## Final Notes
-The YAZE's LC_LZ2 compression scheme provides three versions of compression methodologies with comprehensive support for various commands and modes. It ensures versatility and adaptability for different compression needs.

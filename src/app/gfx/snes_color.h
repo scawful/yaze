@@ -10,6 +10,9 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+/**
+ * @brief Primitive of 16-bit RGB SNES color.
+ */
 struct snes_color {
   uint16_t red;   /**< Red component of the color. */
   uint16_t blue;  /**< Blue component of the color. */
@@ -26,6 +29,16 @@ std::vector<snes_color> Extract(const char* data, unsigned int offset,
 
 std::vector<char> Convert(const std::vector<snes_color>& palette);
 
+/**
+ * @brief SNES Color container
+ * 
+ * Used for displaying the color to the screen and writing 
+ * the color to the Rom file in the correct format.
+ * 
+ * SNES colors may be represented in one of three formats:
+ *  - Color data from the rom in a snes_color struct
+ *  - Color data for displaying to the UI via ImVec4
+ */
 class SnesColor {
  public:
   SnesColor() : rgb_(0.f, 0.f, 0.f, 0.f), snes_(0) {}
@@ -53,6 +66,7 @@ class SnesColor {
   }
 
   ImVec4 rgb() const { return rgb_; }
+
   void set_rgb(const ImVec4 val) {
     rgb_.x = val.x / 255;
     rgb_.y = val.y / 255;
@@ -65,6 +79,7 @@ class SnesColor {
     snes_ = ConvertRGBtoSNES(color);
     modified = true;
   }
+
   void set_snes(uint16_t val) {
     snes_ = val;
     snes_color col = ConvertSNEStoRGB(val);

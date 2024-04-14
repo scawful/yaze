@@ -8,10 +8,14 @@
 #include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/memory.h"
 
-using yaze::app::emu::Clock;
-using yaze::app::emu::CPU;
-using yaze::app::emu::Memory;
+namespace yaze {
+namespace app {
+namespace emu {
+namespace memory {
 
+/**
+ * @brief Mock CPU class for testing
+ */
 class MockClock : public Clock {
  public:
   MOCK_METHOD(void, UpdateClock, (double delta), (override));
@@ -21,9 +25,23 @@ class MockClock : public Clock {
   MOCK_METHOD(float, GetFrequency, (), (const, override));
 };
 
-// 0x1000000 is 16 MB, simplifying the memory layout for testing
-// 2 MB is = 0x200000
-
+/**
+ * @class MockMemory
+ * @brief A mock implementation of the Memory class.
+ *
+ * This class is used for testing purposes and provides a mock implementation of
+ * the Memory class. It allows for reading and writing bytes, words, and longs
+ * to memory, as well as pushing and popping values onto and from the stack. It
+ * also provides methods for setting and getting the stack pointer, initializing
+ * memory with ROM data, and clearing memory.
+ *
+ * The mock memory is represented by a vector of uint8_t values, where each
+ * element represents a byte of memory. The memory can be accessed using the []
+ * operator, and its contents can be set using the SetMemoryContents() method.
+ *
+ * @note This class is intended for testing purposes only and should not be used
+ * in production code.
+ */
 class MockMemory : public Memory {
  public:
   MOCK_CONST_METHOD1(ReadByte, uint8_t(uint32_t address));
@@ -85,6 +103,8 @@ class MockMemory : public Memory {
     }
   }
 
+  // 16MB = 0x1000000
+  // 02MB = 0x200000
   void Initialize(const std::vector<uint8_t>& romData) {
     // 16 MB, simplifying the memory layout for testing
     memory_.resize(0x1000000);
@@ -185,5 +205,10 @@ class MockMemory : public Memory {
   std::vector<uint8_t> memory_;
   uint16_t SP_ = 0x01FF;
 };
+
+}  // namespace memory
+}  // namespace emu
+}  // namespace app
+}  // namespace yaze
 
 #endif  // YAZE_TEST_MOCK_MOCK_MEMORY_H

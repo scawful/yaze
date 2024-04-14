@@ -9,7 +9,11 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
+/**
+ * @brief AudioRam is an interface for the Audio RAM used by the SPC700.
+ */
 class AudioRam {
  public:
   virtual ~AudioRam() = default;
@@ -19,6 +23,9 @@ class AudioRam {
   virtual void write(uint16_t address, uint8_t value) = 0;
 };
 
+/**
+ * @brief AudioRamImpl is an implementation of the AudioRam interface.
+ */
 class AudioRamImpl : public AudioRam {
   static const int ARAM_SIZE = 0x10000;
   std::vector<uint8_t> ram = std::vector<uint8_t>(ARAM_SIZE, 0);
@@ -40,6 +47,17 @@ class AudioRamImpl : public AudioRam {
   }
 };
 
+/**
+ * @class Spc700
+ * @brief The Spc700 class represents the SPC700 processor.
+ *
+ * The Spc700 class provides the functionality to execute instructions, read and
+ * write memory, and handle various addressing modes. It also contains registers
+ * and flags specific to the SPC700.
+ *
+ * @note This class assumes the existence of an `AudioRam` object for memory
+ * access.
+ */
 class Spc700 {
  private:
   AudioRam& aram_;
@@ -261,6 +279,7 @@ class Spc700 {
   // CBNE DBNZ
 };
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

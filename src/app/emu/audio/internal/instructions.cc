@@ -3,6 +3,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 void Spc700::MOV(uint8_t& dest, uint8_t operand) {
   dest = operand;
@@ -356,6 +357,7 @@ void Spc700::SLEEP() {}
 
 void Spc700::STOP() {}
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

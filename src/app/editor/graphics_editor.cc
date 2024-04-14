@@ -51,12 +51,13 @@ absl::Status GraphicsEditor::Update() {
 }
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
-  TAB_ITEM("Graphics Editor")
+  TAB_ITEM("Sheet Editor")
 
   if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
                         ImVec2(0, 0))) {
-    for (const auto& name : kGfxEditColumnNames)
-      ImGui::TableSetupColumn(name.data());
+    for (const auto& name :
+         {"Tilesheets", "Current Graphics", "Palette Controls"})
+      ImGui::TableSetupColumn(name);
 
     ImGui::TableHeadersRow();
 
@@ -321,10 +322,10 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 }
 
 absl::Status GraphicsEditor::UpdatePaletteColumn() {
-  auto palette_group = rom()->palette_group(
+  auto palette_group = *rom()->palette_group().get_group(
       kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
 
-  auto palette = palette_group[edit_palette_index_];
+  auto palette = palette_group.palette(edit_palette_index_);
 
   if (rom()->is_loaded()) {
     gui::TextWithSeparators("ROM Palette");
@@ -339,11 +340,13 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
   gui::SelectablePalettePipeline(edit_palette_sub_index_, refresh_graphics_,
                                  palette);
 
-  if (refresh_graphics_) {
-    rom()->bitmap_manager()[current_sheet_]->ApplyPaletteWithTransparent(
-        palette, edit_palette_sub_index_);
+  if (refresh_graphics_ && !open_sheets_.empty()) {
+    RETURN_IF_ERROR(
+        rom()->bitmap_manager()[current_sheet_]->ApplyPaletteWithTransparent(
+            palette, edit_palette_sub_index_));
     rom()->UpdateBitmap(
-        rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_).get());
+        rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_).get(),
+        true);
     refresh_graphics_ = false;
   }
 
@@ -353,22 +356,44 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 absl::Status GraphicsEditor::UpdateLinkGfxView() {
   TAB_ITEM("Player Animations")
 
-  const auto link_gfx_offset = 0x80000;
-  const auto link_gfx_length = 0x7000;
+  if (ImGui::BeginTable("##PlayerAnimationTable", 3, kGfxEditTableFlags,
+                        ImVec2(0, 0))) {
+    for (const auto& name : {"Canvas", "Animation Steps", "Properties"})
+      ImGui::TableSetupColumn(name);
 
-  // TODO: Finish Rom::LoadLinkGraphics and implement this
-  if (ImGui::Button("Load Link Graphics (Experimental)")) {
-    if (rom()->is_loaded()) {
-      // Load Links graphics from the ROM
-      rom()->LoadLinkGraphics();
+    ImGui::TableHeadersRow();
 
-      // Split it into the pose data frames
-      // Create an animation step display for the poses
-      // Allow the user to modify the frames used in an anim step
-      // LinkOAM_AnimationSteps:
-      // #_0D85FB
+    NEXT_COLUMN();
+    link_canvas_.DrawBackground();
+    link_canvas_.DrawGrid(16.0f);
+    int i = 0;
+    for (auto [key, link_sheet] : rom()->link_graphics()) {
+      int x_offset = 0;
+      int y_offset = core::kTilesheetHeight * i * 4;
+      link_canvas_.DrawBitmap(link_sheet, x_offset, y_offset, 4);
+      i++;
+    }
+    link_canvas_.DrawOverlay();
+    link_canvas_.DrawGrid();
+
+    NEXT_COLUMN();
+    ImGui::Text("Placeholder");
+
+    NEXT_COLUMN();
+    if (ImGui::Button("Load Link Graphics (Experimental)")) {
+      if (rom()->is_loaded()) {
+        // Load Links graphics from the ROM
+        RETURN_IF_ERROR(rom()->LoadLinkGraphics());
+
+        // Split it into the pose data frames
+        // Create an animation step display for the poses
+        // Allow the user to modify the frames used in an anim step
+        // LinkOAM_AnimationSteps:
+        // #_0D85FB
+      }
     }
   }
+  ImGui::EndTable();
 
   END_TAB_ITEM()
   return absl::OkStatus();
@@ -477,8 +502,8 @@ absl::Status GraphicsEditor::DrawCgxImport() {
                   [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
   gui::ButtonPipe("Load CGX Data", [this]() {
-    status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
-                           decoded_cgx_, extra_cgx_data_);
+    status_ = gfx::scad_format::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
+                                        decoded_cgx_, extra_cgx_data_);
 
     cgx_bitmap_.InitializeFromData(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
@@ -508,11 +533,12 @@ absl::Status GraphicsEditor::DrawScrImport() {
   InputInt("SCR Mod", &scr_mod_value_);
 
   gui::ButtonPipe("Load Scr Data", [this]() {
-    status_ = gfx::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
+    status_ =
+        gfx::scad_format::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
 
     decoded_scr_data_.resize(0x100 * 0x100);
-    status_ = gfx::DrawScrWithCgx(current_bpp_, scr_data_, decoded_scr_data_,
-                                  decoded_cgx_);
+    status_ = gfx::scad_format::DrawScrWithCgx(current_bpp_, scr_data_,
+                                               decoded_scr_data_, decoded_cgx_);
 
     scr_bitmap_.InitializeFromData(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
@@ -551,7 +577,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         col_file_palette_ = gfx::SnesPalette(col_data_);
 
         // gigaleak dev format based code
-        decoded_col_ = gfx::DecodeColFile(col_file_path_);
+        decoded_col_ = gfx::scad_format::DecodeColFile(col_file_path_);
         col_file_ = true;
         is_open_ = true;
       });
@@ -711,7 +737,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
                      converted_sheet);
 
   if (rom()->is_loaded()) {
-    auto palette_group = rom()->palette_group("ow_main");
+    auto palette_group = rom()->palette_group().overworld_animated;
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
       bin_bitmap_.ApplyPalette(col_file_palette_);
@@ -743,9 +769,10 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
-      auto palette_group =
-          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]);
-      z3_rom_palette_ = palette_group[current_palette_index_];
+
+      auto palette_group = rom()->palette_group().get_group(
+          kPaletteGroupAddressesKeys[current_palette_]);
+      z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
       graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 
@@ -768,9 +795,9 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
-      auto palette_group =
-          rom()->palette_group(kPaletteGroupAddressesKeys[current_palette_]);
-      z3_rom_palette_ = palette_group[current_palette_index_];
+      auto palette_group = rom()->palette_group().get_group(
+          kPaletteGroupAddressesKeys[current_palette_]);
+      z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
       graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 

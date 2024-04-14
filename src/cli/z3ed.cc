@@ -16,6 +16,11 @@
 #include "cli/patch.h"
 
 namespace yaze {
+
+/**
+ * @namespace yaze::cli
+ * @brief Namespace for the command line interface.
+ */
 namespace cli {
 namespace {
 

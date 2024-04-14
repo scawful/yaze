@@ -8,6 +8,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace screen {
 
 void Inventory::Create() {
   data_.reserve(256 * 256);
@@ -79,12 +80,14 @@ absl::Status Inventory::BuildTileset() {
     test_.push_back(tilesheets_[i]);
   }
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
-  palette_ = rom()->palette_group("hud")[0];
-  tilesheets_bmp_.ApplyPalette(palette_);
+  auto hud_pal_group = rom()->palette_group().hud;
+  palette_ = hud_pal_group[0];
+  RETURN_IF_ERROR(tilesheets_bmp_.ApplyPalette(palette_))
   rom()->RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();
 }
 
+}  // namespace screen
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

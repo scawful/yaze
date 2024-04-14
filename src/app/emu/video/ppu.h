@@ -13,8 +13,10 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace video {
 
-using namespace yaze::app::emu::PpuRegisters;
+using namespace PpuRegisters;
+using namespace memory;
 
 class PpuInterface {
  public:
@@ -263,10 +265,10 @@ struct BackgroundLayer {
 
 const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 
-class Ppu : public Observer, public SharedROM {
+class Ppu : public Observer, public SharedRom {
  public:
   // Initializes the PPU with the necessary resources and dependencies
-  Ppu(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
+  Ppu(memory::Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
 
   // Initialize the frame buffer
   void Init() {
@@ -386,6 +388,7 @@ class Ppu : public Observer, public SharedROM {
   const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 };
 
+}  // namespace video
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

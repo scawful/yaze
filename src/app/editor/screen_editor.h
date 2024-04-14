@@ -22,7 +22,21 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class ScreenEditor : public SharedROM {
+/**
+ * @brief The ScreenEditor class allows the user to edit a variety of screens in
+ * the game or create a custom menu.
+ *
+ * This class is currently a work in progress (WIP) and provides functionality
+ * for updating the screens, saving dungeon maps, drawing different types of
+ * screens, loading dungeon maps, and managing various properties related to the
+ * editor.
+ *
+ * The screens that can be edited include the title screen, naming screen,
+ * overworld map, inventory menu, and more.
+ *
+ * The class inherits from the SharedRom class.
+ */
+class ScreenEditor : public SharedRom {
  public:
   ScreenEditor();
   void Update();
@@ -43,7 +57,7 @@ class ScreenEditor : public SharedROM {
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
 
-  std::vector<zelda3::DungeonMap> dungeon_maps_;
+  std::vector<zelda3::screen::DungeonMap> dungeon_maps_;
   std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
 
   std::unordered_map<int, gfx::Bitmap> tile16_individual_;
@@ -60,7 +74,7 @@ class ScreenEditor : public SharedROM {
   bool paste_button_pressed = false;
 
   Bytes all_gfx_;
-  zelda3::Inventory inventory_;
+  zelda3::screen::Inventory inventory_;
   gfx::SnesPalette palette_;
   gui::Canvas screen_canvas_;
   gui::Canvas tilesheet_canvas_;

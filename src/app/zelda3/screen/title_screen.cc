@@ -10,6 +10,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace screen {
 
 void TitleScreen::Create() {
   tiles8Bitmap.Create(128, 512, 8, 0x20000);
@@ -124,6 +125,7 @@ void TitleScreen::LoadTitleScreen() {
   pal_selected_ = 2;
 }
 
+}  // namespace screen
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

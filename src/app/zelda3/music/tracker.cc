@@ -28,7 +28,7 @@ namespace zelda3 {
 
 namespace {
 
-void AddSPCReloc(SongSPCBlock *sbl, short addr) {
+void AddSPCReloc(music::SongSPCBlock *sbl, short addr) {
   sbl->relocs[sbl->relnum++] = addr;
   if (sbl->relnum == sbl->relsz) {
     sbl->relsz += 16;
@@ -38,8 +38,7 @@ void AddSPCReloc(SongSPCBlock *sbl, short addr) {
 
 }  // namespace
 
-// =============================================================================
-
+namespace music {
 SongSPCBlock *Tracker::AllocSPCBlock(int len, int bank) {
   SongSPCBlock *sbl;
   if (!len) {
@@ -65,7 +64,7 @@ SongSPCBlock *Tracker::AllocSPCBlock(int len, int bank) {
 
 // =============================================================================
 
-unsigned char *Tracker::GetSPCAddr(ROM &rom, unsigned short addr, short bank) {
+unsigned char *Tracker::GetSPCAddr(Rom &rom, unsigned short addr, short bank) {
   unsigned char *rom_ptr;
   unsigned short a;
   unsigned short b;
@@ -127,7 +126,7 @@ short Tracker::AllocSPCCommand() {
 
 // =============================================================================
 
-short Tracker::GetBlockTime(ROM &rom, short num, short prevtime) {
+short Tracker::GetBlockTime(Rom &rom, short num, short prevtime) {
   SPCCommand *spc_command = current_spc_command_;
   SPCCommand *spc_command2;
 
@@ -221,7 +220,7 @@ short Tracker::GetBlockTime(ROM &rom, short num, short prevtime) {
 
 // =============================================================================
 
-short Tracker::LoadSPCCommand(ROM &rom, unsigned short addr, short bank,
+short Tracker::LoadSPCCommand(Rom &rom, unsigned short addr, short bank,
                               int t) {
   int b = 0;
   int c = 0;
@@ -392,7 +391,7 @@ short Tracker::LoadSPCCommand(ROM &rom, unsigned short addr, short bank,
 
 // =============================================================================
 
-void Tracker::LoadSongs(ROM &rom) {
+void Tracker::LoadSongs(Rom &rom) {
   unsigned char *b;
   unsigned char *c;
   unsigned char *d;
@@ -662,7 +661,7 @@ void Tracker::LoadSongs(ROM &rom) {
   w_modf = 0;
 }
 
-short Tracker::SaveSPCCommand(ROM &rom, short num, short songtime,
+short Tracker::SaveSPCCommand(Rom &rom, short num, short songtime,
                               short endtr) {
   SPCCommand *spc_command = current_spc_command_;
   SPCCommand *spc_command2;
@@ -785,7 +784,7 @@ short Tracker::SaveSPCCommand(ROM &rom, short num, short songtime,
 
 // =============================================================================
 
-int Tracker::WriteSPCData(ROM &rom, void *buf, int len, int addr, int spc,
+int Tracker::WriteSPCData(Rom &rom, void *buf, int len, int addr, int spc,
                           int limit) {
   unsigned char *rom_data = rom.data();
 
@@ -815,7 +814,7 @@ int Tracker::WriteSPCData(ROM &rom, void *buf, int len, int addr, int spc,
 
 // =============================================================================
 
-void Tracker::SaveSongs(ROM &rom) {
+void Tracker::SaveSongs(Rom &rom) {
   int i;
   int j;
   int k;
@@ -1265,7 +1264,7 @@ void Tracker::SaveSongs(ROM &rom) {
 
 // =============================================================================
 
-void Tracker::EditTrack(ROM &rom, short i) {
+void Tracker::EditTrack(Rom &rom, short i) {
   int j, k, l;
   SongRange *sr = song_range_;
   SPCCommand *spc_command;
@@ -1315,7 +1314,7 @@ void Tracker::EditTrack(ROM &rom, short i) {
 // CRITICAL_SECTION cs_song;
 //  =============================================================================
 
-void Tracker::NewSR(ROM &rom, int bank) {
+void Tracker::NewSR(Rom &rom, int bank) {
   SPCCommand *spc_command;
   SongRange *sr;
 
@@ -1337,8 +1336,7 @@ void Tracker::NewSR(ROM &rom, int bank) {
   EditTrack(rom, sr->first);
 }
 
-// =============================================================================
-
+}  // namespace music
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

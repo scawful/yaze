@@ -13,13 +13,14 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace overworld {
 
-OverworldMap::OverworldMap(int index, ROM& rom,
+OverworldMap::OverworldMap(int index, Rom& rom,
                            std::vector<gfx::Tile16>& tiles16)
     : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
   LoadAreaInfo();
@@ -49,7 +50,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
   LoadAreaGraphics();
   RETURN_IF_ERROR(BuildTileset())
   RETURN_IF_ERROR(BuildTiles16Gfx(count))
-  LoadPalette();
+  RETURN_IF_ERROR(LoadPalette());
   RETURN_IF_ERROR(BuildBitmap(world_blockset))
   built_ = true;
   return absl::OkStatus();
@@ -229,11 +230,11 @@ void OverworldMap::LoadAreaGraphics() {
 
 namespace palette_internal {
 
-void SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
-                      gfx::SnesPalette main, gfx::SnesPalette animated,
-                      gfx::SnesPalette aux1, gfx::SnesPalette aux2,
-                      gfx::SnesPalette hud, gfx::SnesColor bgrcolor,
-                      gfx::SnesPalette spr, gfx::SnesPalette spr2) {
+absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
+                              gfx::SnesPalette main, gfx::SnesPalette animated,
+                              gfx::SnesPalette aux1, gfx::SnesPalette aux2,
+                              gfx::SnesPalette hud, gfx::SnesColor bgrcolor,
+                              gfx::SnesPalette spr, gfx::SnesPalette spr2) {
   // Palettes infos, color 0 of a palette is always transparent (the arrays
   // contains 7 colors width wide) There is 16 color per line so 16*Y
 
@@ -289,7 +290,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 1; x < 8; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux1")[1][k];
+      auto pal_group = rom.palette_group().sprites_aux1;
+      new_palette[x + (16 * y)] = pal_group[1][k];
       k++;
     }
   }
@@ -298,7 +300,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 8; y < 9; y++) {
     for (int x = 9; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("sprites_aux3")[0][k];
+      auto pal_group = rom.palette_group().sprites_aux3;
+      new_palette[x + (16 * y)] = pal_group[0][k];
       k++;
     }
   }
@@ -307,7 +310,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("global_sprites")[0][k];
+      auto pal_group = rom.palette_group().global_sprites;
+      new_palette[x + (16 * y)] = pal_group[0][k];
       k++;
     }
   }
@@ -334,7 +338,8 @@ void SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   k = 0;
   for (int y = 15; y < 16; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = rom.palette_group("armors")[0][k];
+      auto pal_group = rom.palette_group().armors;
+      new_palette[x + (16 * y)] = pal_group[0][k];
       k++;
     }
   }
@@ -343,27 +348,26 @@ void SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
   for (int i = 0; i < 256; i++) {
     current[(i / 16) * 16].set_transparent(true);
   }
+
+  return absl::OkStatus();
 }
 }  // namespace palette_internal
 
-// New helper function to get a palette from the ROM.
-gfx::SnesPalette OverworldMap::GetPalette(const std::string& group, int index,
-                                          int previousIndex, int limit) {
+// New helper function to get a palette from the Rom.
+absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
+    const gfx::PaletteGroup& palette_group, int index, int previous_index,
+    int limit) {
   if (index == 255) {
     index = rom_[rom_.version_constants().overworldMapPaletteGroup +
-                 (previousIndex * 4)];
+                 (previous_index * 4)];
   }
-  if (index != 255) {
-    if (index >= limit) {
-      index = limit - 1;
-    }
-    return rom_.palette_group(group)[index];
-  } else {
-    return rom_.palette_group(group)[0];
+  if (index >= limit) {
+    index = limit - 1;
   }
+  return palette_group[index];
 }
 
-void OverworldMap::LoadPalette() {
+absl::Status OverworldMap::LoadPalette() {
   int previousPalId = index_ > 0 ? rom_[overworldMapPalette + parent_ - 1] : 0;
   int previousSprPalId =
       index_ > 0 ? rom_[overworldSpritePalette + parent_ - 1] : 0;
@@ -382,45 +386,64 @@ void OverworldMap::LoadPalette() {
   uchar pal5 = rom_[overworldSpritePaletteGroup +
                     (sprite_palette_[game_state_] * 2) + 1];
 
-  gfx::SnesColor bgr = rom_.palette_group("grass")[0].GetColor(0);
+  auto grass_pal_group = rom_.palette_group().grass;
+  ASSIGN_OR_RETURN(gfx::SnesColor bgr, grass_pal_group[0].GetColor(0));
 
-  gfx::SnesPalette aux1 = GetPalette("ow_aux", pal1, previousPalId, 20);
-  gfx::SnesPalette aux2 = GetPalette("ow_aux", pal2, previousPalId, 20);
+  auto ow_aux_pal_group = rom_.palette_group().overworld_aux;
+  ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
+                   GetPalette(ow_aux_pal_group, pal1, previousPalId, 20));
+  ASSIGN_OR_RETURN(gfx::SnesPalette aux2,
+                   GetPalette(ow_aux_pal_group, pal2, previousPalId, 20));
 
   // Additional handling of `pal3` and `parent_`
   if (pal3 == 255) {
     pal3 = rom_[rom_.version_constants().overworldMapPaletteGroup +
                 (previousPalId * 4) + 2];
   }
+
   if (parent_ < 0x40) {
     pal0 = parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ? 2 : 0;
-    bgr = rom_.palette_group("grass")[0].GetColor(0);
+    ASSIGN_OR_RETURN(bgr, grass_pal_group[0].GetColor(0));
   } else if (parent_ >= 0x40 && parent_ < 0x80) {
     pal0 = parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47 ? 3 : 1;
-    bgr = rom_.palette_group("grass")[0].GetColor(1);
+    ASSIGN_OR_RETURN(bgr, grass_pal_group[0].GetColor(1));
   } else if (parent_ >= 128 && parent_ < kNumOverworldMaps) {
     pal0 = 0;
-    bgr = rom_.palette_group("grass")[0].GetColor(2);
+    ASSIGN_OR_RETURN(bgr, grass_pal_group[0].GetColor(2));
   }
+
   if (parent_ == 0x88) {
     pal0 = 4;
   }
-  gfx::SnesPalette main = GetPalette("ow_main", pal0, previousPalId, 255);
-  gfx::SnesPalette animated =
-      GetPalette("ow_animated", std::min((int)pal3, 13), previousPalId, 14);
-  gfx::SnesPalette hud = rom_.palette_group("hud")[0];
 
-  gfx::SnesPalette spr = GetPalette("sprites_aux3", pal4, previousSprPalId, 24);
-  gfx::SnesPalette spr2 =
-      GetPalette("sprites_aux3", pal5, previousSprPalId, 24);
+  auto ow_main_pal_group = rom_.palette_group().overworld_main;
+  ASSIGN_OR_RETURN(gfx::SnesPalette main,
+                   GetPalette(ow_main_pal_group, pal0, previousPalId, 255));
+  auto ow_animated_pal_group = rom_.palette_group().overworld_animated;
+  ASSIGN_OR_RETURN(gfx::SnesPalette animated,
+                   GetPalette(ow_animated_pal_group, std::min((int)pal3, 13),
+                              previousPalId, 14));
 
-  palette_internal::SetColorsPalette(rom_, parent_, current_palette_, main,
-                                     animated, aux1, aux2, hud, bgr, spr, spr2);
+  auto hud_pal_group = rom_.palette_group().hud;
+  gfx::SnesPalette hud = hud_pal_group[0];
+
+  ASSIGN_OR_RETURN(gfx::SnesPalette spr,
+                   GetPalette(rom_.palette_group().sprites_aux3, pal4,
+                              previousSprPalId, 24));
+  ASSIGN_OR_RETURN(gfx::SnesPalette spr2,
+                   GetPalette(rom_.palette_group().sprites_aux3, pal5,
+                              previousSprPalId, 24));
+
+  RETURN_IF_ERROR(palette_internal::SetColorsPalette(
+      rom_, parent_, current_palette_, main, animated, aux1, aux2, hud, bgr,
+      spr, spr2));
 
   if (palettesets_.count(area_palette_) == 0) {
     palettesets_[area_palette_] = gfx::Paletteset{
         main, animated, aux1, aux2, bgr, hud, spr, spr2, current_palette_};
   }
+
+  return absl::OkStatus();
 }
 
 // New helper function to process graphics buffer.
@@ -535,6 +558,7 @@ absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
   return absl::OkStatus();
 }
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

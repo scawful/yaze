@@ -10,16 +10,19 @@
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
 
-namespace yaze {
-namespace test {
+namespace yaze_test {
+namespace zelda3_test {
+
+using yaze::app::Rom;
+using yaze::app::zelda3::dungeon::DungeonObjectRenderer;
 
 TEST(DungeonObjectTest, RenderObjectsAsBitmaps) {
-  app::ROM rom;
+  Rom rom;
   //     rom.LoadFromFile("/Users/scawful/Code/yaze/build/bin/zelda3.sfc"));
   // EXPECT_EQ(rom_status, absl::Status::ok());
 
-  app::zelda3::dungeon::DungeonObjectRenderer renderer;
+  DungeonObjectRenderer renderer;
 }
 
-}  // namespace test
-}  // namespace yaze
+}  // namespace zelda3_test
+}  // namespace yaze_test

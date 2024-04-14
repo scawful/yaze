@@ -3,6 +3,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 // Immediate
 uint8_t Spc700::imm() {
@@ -89,6 +90,7 @@ uint16_t Spc700::addr_plus_i_indexed() {
   return read(addr) | (read(addr + 1) << 8);
 }
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

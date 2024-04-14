@@ -13,8 +13,9 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
-void APU::Init() {
+void Apu::Init() {
   // Set the clock frequency
   clock_.SetFrequency(kApuClockSpeed);
 
@@ -27,17 +28,17 @@ void APU::Init() {
       [this](int16_t sample) { this->PushToAudioBuffer(sample); });
 }
 
-void APU::Reset() {
+void Apu::Reset() {
   clock_.ResetAccumulatedTime();
   spc700_.Reset();
   dsp_.Reset();
 }
 
-void APU::Update() {
+void Apu::Update() {
   auto cycles_to_run = clock_.GetCycleCount();
 
   for (auto i = 0; i < cycles_to_run; ++i) {
-    // Update the APU
+    // Update the Apu
     UpdateChannelSettings();
 
     // Update the SPC700
@@ -49,14 +50,14 @@ void APU::Update() {
   ProcessSamples();
 }
 
-void APU::Notify(uint32_t address, uint8_t data) {
+void Apu::Notify(uint32_t address, uint8_t data) {
   if (address < 0x2140 || address > 0x2143) {
     return;
   }
   auto offset = address - 0x2140;
   spc700_.write(offset, data);
 
-  // HACK - This is a temporary solution to get the APU to play audio
+  // HACK - This is a temporary solution to get the Apu to play audio
   ports_[address - 0x2140] = data;
   switch (address) {
     case 0x2140:
@@ -76,7 +77,7 @@ void APU::Notify(uint32_t address, uint8_t data) {
   }
 }
 
-void APU::ProcessSamples() {
+void Apu::ProcessSamples() {
   // Fetch sample data from AudioRam
   // Iterate over all voices
   for (uint8_t voice_num = 0; voice_num < 8; voice_num++) {
@@ -91,17 +92,17 @@ void APU::ProcessSamples() {
   }
 }
 
-uint8_t APU::FetchSampleForVoice(uint8_t voice_num) {
+uint8_t Apu::FetchSampleForVoice(uint8_t voice_num) {
   uint16_t address = CalculateAddressForVoice(voice_num);
   return aram_.read(address);
 }
 
-uint16_t APU::CalculateAddressForVoice(uint8_t voice_num) {
+uint16_t Apu::CalculateAddressForVoice(uint8_t voice_num) {
   // TODO: Calculate the address for the specified voice
   return voice_num;
 }
 
-int16_t APU::GetNextSample() {
+int16_t Apu::GetNextSample() {
   if (!audio_samples_.empty()) {
     int16_t sample = audio_samples_.front();
     audio_samples_.erase(audio_samples_.begin());
@@ -110,30 +111,31 @@ int16_t APU::GetNextSample() {
   return 0;  // TODO: Return the last sample instead of 0.
 }
 
-const std::vector<int16_t>& APU::GetAudioSamples() const {
+const std::vector<int16_t>& Apu::GetAudioSamples() const {
   return audio_samples_;
 }
 
-void APU::UpdateChannelSettings() {
+void Apu::UpdateChannelSettings() {
   // TODO: Implement this method to update the channel settings.
 }
 
-int16_t APU::GenerateSample(int channel) {
+int16_t Apu::GenerateSample(int channel) {
   // TODO: Implement this method to generate a sample for the specified channel.
 }
 
-void APU::ApplyEnvelope(int channel) {
+void Apu::ApplyEnvelope(int channel) {
   // TODO: Implement this method to apply an envelope to the specified channel.
 }
 
-uint8_t APU::ReadDspMemory(uint16_t address) {
+uint8_t Apu::ReadDspMemory(uint16_t address) {
   return dsp_.ReadGlobalReg(address);
 }
 
-void APU::WriteDspMemory(uint16_t address, uint8_t value) {
+void Apu::WriteDspMemory(uint16_t address, uint8_t value) {
   dsp_.WriteGlobalReg(address, value);
 }
 
+} // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze
