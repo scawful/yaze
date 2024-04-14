@@ -4,7 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "app/core/common.h"
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/core/labeling.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"

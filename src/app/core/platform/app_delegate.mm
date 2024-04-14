@@ -2,7 +2,7 @@
 #import <Cocoa/Cocoa.h>
 
 #import "app/core/controller.h"
-#import "app/core/editor.h"
+#import "app/editor/utils/editor.h"
 #import "app/core/platform/app_delegate.h"
 #import "app/core/platform/file_dialog.h"
 #import "app/rom.h"

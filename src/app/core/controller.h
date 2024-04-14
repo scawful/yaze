@@ -11,7 +11,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/editor/master_editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"

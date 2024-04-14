@@ -77,6 +77,10 @@ class PaletteEditorHistory {
 };
 }  // namespace palette_internal
 
+/**
+ * @class PaletteEditor
+ * @brief Allows the user to view and edit in game palettes.
+ */
 class PaletteEditor : public SharedROM {
  public:
   absl::Status Update();

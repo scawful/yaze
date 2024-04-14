@@ -54,6 +54,11 @@ static const char* kGameSongs[] = {"Title",
 static constexpr absl::string_view kSongNotes[] = {
     "C",  "C#", "D",  "D#", "E", "F",  "F#", "G",  "G#", "A",  "A#", "B", "C",
     "C#", "D",  "D#", "E",  "F", "F#", "G",  "G#", "A",  "A#", "B",  "C"};
+
+/**
+ * @class MusicEditor
+ * @brief A class for editing music data in a ROM.
+ */
 class MusicEditor : public SharedROM {
  public:
   void Update();

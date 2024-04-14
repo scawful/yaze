@@ -3,6 +3,21 @@
 
 #include "absl/status/status.h"
 
+namespace yaze {
+namespace app {
+
+/**
+ * @namespace editor
+ * @brief Editors are the view controllers for the application.
+ */
+namespace editor {
+
+/**
+ * @class Editor
+ * @brief Interface for editor classes.
+ *
+ * Provides basic editing operations that each editor should implement.
+ */
 class Editor {
  public:
   Editor() = default;
@@ -17,5 +32,9 @@ class Editor {
 
   virtual absl::Status Update() = 0;
 };
+
+}  // namespace editor
+}  // namespace app
+}  // namespace yaze
 
 #endif  // YAZE_APP_CORE_EDITOR_H

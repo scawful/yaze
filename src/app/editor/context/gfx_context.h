@@ -6,7 +6,7 @@
 #include <cmath>
 #include <vector>
 
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
