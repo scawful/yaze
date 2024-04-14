@@ -300,6 +300,17 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
     SnesPalette& palette);
 
 /**
+ * @brief Loads all the palettes for the game.
+ *
+ * This function loads all the palettes for the game, including overworld,
+ * HUD, armor, swords, shields, sprites, dungeon, grass, and 3D object
+ * palettes. It also adds the loaded palettes to their respective palette
+ * groups.
+ *
+ */
+absl::Status LoadAllPalettes(const Bytes& rom_data, PaletteGroupMap& groups);
+
+/**
  * @brief Represents a set of palettes used in a SNES graphics system.
  */
 struct Paletteset {
