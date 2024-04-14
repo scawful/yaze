@@ -19,6 +19,10 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+
+    # Installs graphviz for DOT graphs
+    - name: Install graphviz
+      run: sudo apt-get install graphviz
         
     - name: Doxygen Action
       uses: mattnotmitt/doxygen-action@v1.1.0
