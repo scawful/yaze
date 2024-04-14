@@ -38,7 +38,9 @@ class InstructionEntry {
 
 const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
 
-class Cpu : public Memory, public Loggable, public core::ExperimentFlags {
+class Cpu : public memory::Memory,
+            public Loggable,
+            public core::ExperimentFlags {
  public:
   explicit Cpu(Memory& mem, Clock& vclock) : memory(mem), clock(vclock) {}
   enum class UpdateMode { Run, Step, Pause };

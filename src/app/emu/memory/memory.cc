@@ -12,6 +12,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace memory {
 
 void DrawSnesMemoryMapping(const MemoryImpl& memory) {
   // Using those as a base value to create width/height that are factor of the
@@ -77,6 +78,7 @@ void DrawSnesMemoryMapping(const MemoryImpl& memory) {
   }
 }
 
+}  // namespace memory
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

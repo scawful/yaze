@@ -16,6 +16,7 @@ namespace emu {
 namespace video {
 
 using namespace PpuRegisters;
+using namespace memory;
 
 class PpuInterface {
  public:
@@ -267,7 +268,7 @@ const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 class Ppu : public Observer, public SharedROM {
  public:
   // Initializes the PPU with the necessary resources and dependencies
-  Ppu(Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
+  Ppu(memory::Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
 
   // Initialize the frame buffer
   void Init() {

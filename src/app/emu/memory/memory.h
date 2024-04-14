@@ -28,12 +28,13 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace memory {
 
-enum ROMSpeed { SLOW_ROM = 0x00, FAST_ROM = 0x07 };
+enum RomSpeed { SLOW_ROM = 0x00, FAST_ROM = 0x07 };
 
 enum BankSize { LOW_ROM = 0x00, HI_ROM = 0x01 };
 
-enum ROMType {
+enum RomType {
   ROM_DEFAULT = 0x00,
   ROM_RAM = 0x01,
   ROM_SRAM = 0x02,
@@ -43,7 +44,7 @@ enum ROMType {
   FX = 0x06
 };
 
-enum ROMSize {
+enum RomSize {
   SIZE_2_MBIT = 0x08,
   SIZE_4_MBIT = 0x09,
   SIZE_8_MBIT = 0x0A,
@@ -51,7 +52,7 @@ enum ROMSize {
   SIZE_32_MBIT = 0x0C
 };
 
-enum SRAMSize {
+enum SramSize {
   NO_SRAM = 0x00,
   SRAM_16_KBIT = 0x01,
   SRAM_32_KBIT = 0x02,
@@ -73,14 +74,14 @@ enum License {
   // ... and other licenses
 };
 
-class ROMInfo {
+class RomInfo {
  public:
   std::string title;
-  ROMSpeed romSpeed;
+  RomSpeed romSpeed;
   BankSize bankSize;
-  ROMType romType;
-  ROMSize romSize;
-  SRAMSize sramSize;
+  RomType romType;
+  RomSize romSize;
+  SramSize sramSize;
   CountryCode countryCode;
   License license;
   uint8_t version;
@@ -105,7 +106,9 @@ constexpr uint32_t kVRAMSize = 0x10000;
 constexpr uint32_t kOAMStart = 0x218000;
 constexpr uint32_t kOAMSize = 0x220;
 
-// memory.h
+/**
+ * @brief Memory interface
+ */
 class Memory {
  public:
   virtual ~Memory() = default;
@@ -137,6 +140,29 @@ class Memory {
 
 enum class MemoryMapping { SNES_LOROM = 0, PC_ADDRESS = 1 };
 
+/**
+ * @class MemoryImpl
+ * @brief Implementation of the Memory interface for emulating memory in a SNES
+ * system.
+ *
+ * The MemoryImpl class provides methods for initializing and accessing memory
+ * in a SNES system. It implements the Memory interface and inherits from the
+ * Loggable class.
+ *
+ * The class supports different memory mappings, including LoROM and PC_ADDRESS
+ * mappings. It provides methods for reading and writing bytes, words, and longs
+ * from/to memory. It also supports stack operations for pushing and popping
+ * values.
+ *
+ * The class maintains separate vectors for ROM, RAM, VRAM, and OAM memory
+ * regions. It provides methods for accessing these memory regions and
+ * retrieving their sizes.
+ *
+ * The class also allows adding observers to be notified when memory is read or
+ * written.
+ *
+ * @note This class assumes a 16-bit address space.
+ */
 class MemoryImpl : public Memory, public Loggable {
  public:
   void Initialize(const std::vector<uint8_t>& romData, bool verbose = false,
@@ -396,6 +422,7 @@ class MemoryImpl : public Memory, public Loggable {
 
 void DrawSnesMemoryMapping(const MemoryImpl& memory);
 
+}  // namespace memory
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

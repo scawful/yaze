@@ -20,12 +20,14 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class SNES : public DMA {
+using namespace memory;
+
+class SNES : public DirectMemoryAccess {
  public:
   SNES() = default;
   ~SNES() = default;
 
-  ROMInfo ReadRomHeader(uint32_t offset);
+  RomInfo ReadRomHeader(uint32_t offset);
 
   // Initialization
   void Init(ROM& rom);
@@ -95,7 +97,7 @@ class SNES : public DMA {
   audio::Apu apu_{memory_, audio_ram_, clock_};
 
   // Helper classes
-  ROMInfo rom_info_;
+  RomInfo rom_info_;
   Debugger debugger;
 
   // Currently loaded ROM

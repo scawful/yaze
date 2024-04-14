@@ -16,7 +16,6 @@ using SampleFetcher = std::function<uint8_t(uint16_t)>;
 using SamplePusher = std::function<void(int16_t)>;
 
 /**
- *
  * The S-DSP is a digital signal processor generating the sound data.
  *
  * A DSP register can be selected with $F2, after which it can be read or
@@ -35,21 +34,19 @@ using SamplePusher = std::function<void(int16_t)>;
  * There are 8 voices, numbered 0 to 7.
  * Each voice X has 10 registers in the range $X0-$X9.
  *
- * Name 	  Address 	Bits 	Notes
- * VOL (L) 	$X0 	SVVV VVVV 	Left channel volume, signed.
- * VOL (R) 	$X1 	SVVV VVVV 	Right channel volume, signed.
- * P (L) 	  $X2 	LLLL LLLL 	Low 8 bits of sample pitch.
- * P (H) 	  $X3 	--HH HHHH 	High 6 bits of sample pitch.
- * SCRN 	  $X4 	SSSS SSSS 	Selects a sample source entry from the
- * directory ADSR (1) $X5 	EDDD AAAA 	ADSR enable (E), decay rate (D),
- * attack rate (A).
- * ADSR (2) $X6 	SSSR RRRR 	Sustain level (S), release rate (R).
- * GAIN 	  $X7 	0VVV VVVV   1MMV VVVV 	Mode (M), value (V).
- * ENVX 	  $X8 	0VVV VVVV 	Reads current 7-bit value of ADSR/GAIN
- * envelope.
- * OUTX 	  $X9 	SVVV VVVV 	Reads signed 8-bit value of current
- * sample wave multiplied by ENVX, before applying VOL.
- *
+ * | Name    | Address | Bits      | Notes                                                  |
+ * |---------|---------|-----------|--------------------------------------------------------|
+ * | VOL (L) | $X0     | SVVV VVVV | Left channel volume, signed.                           |
+ * | VOL (R) | $X1     | SVVV VVVV | Right channel volume, signed.                          |
+ * | P (L)   | $X2     | LLLL LLLL | Low 8 bits of sample pitch.                            |
+ * | P (H)   | $X3     | --HH HHHH | High 6 bits of sample pitch.                           |
+ * | SCRN    | $X4     | SSSS SSSS | Selects a sample source entry from the directory.      |
+ * | ADSR (1)| $X5     | EDDD AAAA | ADSR enable (E), decay rate (D), attack rate (A).      |
+ * | ADSR (2)| $X6     | SSSR RRRR | Sustain level (S), release rate (R).                   |
+ * | GAIN    | $X7     | 0VVV VVVV 1MMV VVVV | Mode (M), value (V).                         |
+ * | ENVX    | $X8     | 0VVV VVVV | Reads current 7-bit value of ADSR/GAIN envelope.       |
+ * | OUTX    | $X9     | SVVV VVVV | Reads signed 8-bit value of current sample wave        |
+ * |         |         |           | multiplied by ENVX, before applying VOL.               |
  */
 
 class DigitalSignalProcessor {
