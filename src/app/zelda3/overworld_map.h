@@ -23,9 +23,10 @@ namespace zelda3 {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
-using editor::GfxContext;
-
-class OverworldMap : public GfxContext {
+/**
+ * @brief Represents a single Overworld map screen.
+ */
+class OverworldMap : public editor::context::GfxContext {
  public:
   OverworldMap() = default;
   OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16>& tiles16);

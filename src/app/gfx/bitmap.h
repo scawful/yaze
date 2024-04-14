@@ -17,9 +17,17 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+/**
+ * @brief Convert SDL_Surface to PNG image data.
+ */
 bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer);
+
+/**
+ * @brief Convert PNG image data to SDL_Surface.
+ */
 void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
                          SDL_Surface **outSurface);
+
 class Bitmap {
  public:
   Bitmap() = default;
@@ -30,13 +38,30 @@ class Bitmap {
     InitializeFromData(width, height, depth, data);
   }
 
+  /**
+   * @brief Creates a bitmap object and reserves space for graphical data.
+   */
   void Create(int width, int height, int depth, int data_size);
+
+  /**
+   * @brief Creates a bitmap object with the provided graphical data.
+   */
   void Create(int width, int height, int depth, const Bytes &data);
 
   void InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
                           const Bytes &data);
 
+  /**
+   * @brief Creates the underlying SDL_Texture to be displayed.
+   *
+   * Converts the surface from a RGB to ARGB format.
+   * Uses SDL_TEXTUREACCESS_STREAMING to allow for live updates.
+   */
   void CreateTexture(std::shared_ptr<SDL_Renderer> renderer);
+
+  /**
+   * @brief Updates the underlying SDL_Texture when it already exists.
+   */
   void UpdateTexture(std::shared_ptr<SDL_Renderer> renderer);
   void CreateTexture(SDL_Renderer *renderer);
   void UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update = false);
@@ -47,6 +72,9 @@ class Bitmap {
   void LoadFromPngData(const std::vector<uint8_t> &png_data, int width,
                        int height);
 
+  /**
+   * @brief Copy color data from the SnesPalette into the SDL_Palette
+   */
   absl::Status ApplyPalette(const SnesPalette &palette);
   absl::Status ApplyPaletteWithTransparent(const SnesPalette &palette,
                                            int index, int length = 7);
@@ -237,6 +265,9 @@ class Bitmap {
 
 using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
 
+/**
+ * @brief Hash map container of shared pointers to Bitmaps.
+ */
 class BitmapManager {
  private:
   std::unordered_map<int, std::shared_ptr<gfx::Bitmap>> bitmap_cache_;

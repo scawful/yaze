@@ -10,6 +10,7 @@
 namespace yaze {
 namespace app {
 namespace editor {
+namespace context {
 
 class EntranceContext {
  public:
@@ -33,6 +34,7 @@ class EntranceContext {
   std::vector<uint16_t> entrance_tile_types_high_;
 };
 
+}  // namespace context
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze

@@ -59,6 +59,9 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
                                           ImGuiTableFlags_Resizable |
                                           ImGuiTableFlags_SizingStretchSame;
 
+/**
+ * @brief Manages the games graphical content.
+*/
 class GraphicsEditor : public SharedROM {
  public:
   absl::Status Update();

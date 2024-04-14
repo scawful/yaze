@@ -35,7 +35,7 @@ namespace app {
 namespace editor {
 
 class MasterEditor : public SharedROM,
-                     public GfxContext,
+                     public context::GfxContext,
                      public core::ExperimentFlags {
  public:
   MasterEditor() { current_editor_ = &overworld_editor_; }

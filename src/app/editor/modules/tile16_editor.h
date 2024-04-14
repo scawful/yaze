@@ -24,7 +24,10 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-class Tile16Editor : public GfxContext, public SharedROM {
+/**
+ * @brief Popup window to edit Tile16 data
+ */
+class Tile16Editor : public context::GfxContext, public SharedROM {
  public:
   absl::Status Update();
   absl::Status DrawMenu();

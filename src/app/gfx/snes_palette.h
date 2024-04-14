@@ -21,6 +21,9 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+/**
+ * @brief Primitive of a SNES color palette.
+ */
 struct snes_palette {
   uint id;            /**< ID of the palette. */
   uint size;          /**< Size of the palette. */
@@ -31,6 +34,9 @@ using snes_palette = struct snes_palette;
 uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);
 
+/**
+ * @brief SNES Palette container
+*/
 class SnesPalette {
  public:
   template <typename T>
