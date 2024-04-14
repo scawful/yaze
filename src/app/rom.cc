@@ -220,7 +220,8 @@ absl::Status ROM::LoadLinkGraphics() {
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(link_sheet_3bpp, /*bpp=*/3);
     link_graphics_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
                              core::kTilesheetDepth, link_sheet_8bpp);
-    RETURN_IF_ERROR(link_graphics_[i].ApplyPaletteWithTransparent(link_palette_, 0));
+    RETURN_IF_ERROR(
+        link_graphics_[i].ApplyPaletteWithTransparent(link_palette_, 0));
     RenderBitmap(&link_graphics_[i]);
   }
 
@@ -228,6 +229,7 @@ absl::Status ROM::LoadLinkGraphics() {
 }
 
 absl::Status ROM::LoadAllGraphicsData() {
+  constexpr uint32_t kNumGfxSheets = 223;
   Bytes sheet;
   bool bpp3 = false;
 
@@ -255,11 +257,11 @@ absl::Status ROM::LoadAllGraphicsData() {
                                      core::kTilesheetDepth);
         if (i > 115) {
           // Apply sprites palette
-          graphics_manager_[i]->ApplyPaletteWithTransparent(
-              palette_groups_["global_sprites"][0], 0);
+          RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
+              palette_groups_["global_sprites"][0], 0));
         } else {
-          graphics_manager_[i]->ApplyPaletteWithTransparent(
-              palette_groups_["dungeon_main"][0], 0);
+          RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
+              palette_groups_["dungeon_main"][0], 0));
         }
         graphics_manager_[i]->CreateTexture(renderer_);
       }
@@ -341,6 +343,8 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
   // Load Zelda 3 specific data if requested
   if (z3_load) {
     // Copy ROM title
+    constexpr uint32_t kTitleStringOffset = 0x7FC0;
+    constexpr uint32_t kTitleStringLength = 20;
     memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
     if (rom_data_[kTitleStringOffset + 0x19] == 0) {
       version_ = Z3_Version::JP;
