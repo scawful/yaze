@@ -44,13 +44,15 @@ using PaletteGroupMap = std::unordered_map<std::string, gfx::PaletteGroup>;
 
 // Define an enum class for the different versions of the game
 enum class Z3_Version {
-  US = 1,
-  JP = 2,
-  SD = 3,
-  RANDO = 4,
+  US = 1,     // US version
+  JP = 2,     // JP version
+  SD = 3,     // Super Donkey Proto (Experimental)
+  RANDO = 4,  // Randomizer (Unimplemented)
 };
 
-// Define a struct to hold the version-specific constants
+/**
+ * @brief A struct to hold version constants for each version of the game.
+ */
 struct VersionConstants {
   uint32_t kGfxAnimatedPointer;
   uint32_t kOverworldGfxGroups1;
@@ -72,7 +74,9 @@ struct VersionConstants {
   uint32_t kDungeonPalettesGroups;
 };
 
-// Define a map to hold the version constants for each version
+/**
+ * @brief A map of version constants for each version of the game.
+ */
 static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
     {Z3_Version::US,
      {
@@ -117,91 +121,16 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x67DD0,  // kDungeonPalettesGroups
      }}};
 
-// Define some constants used throughout the ROM class
-constexpr uint32_t kOverworldGraphicsPos1 = 0x4F80;
-constexpr uint32_t kOverworldGraphicsPos2 = 0x505F;
-constexpr uint32_t kOverworldGraphicsPos3 = 0x513E;
-constexpr uint32_t kTile32Num = 4432;
-constexpr uint32_t kTitleStringOffset = 0x7FC0;
-constexpr uint32_t kTitleStringLength = 20;
-constexpr uint32_t kNumGfxSheets = 223;
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
-constexpr uint32_t kLinkSpriteLocation = 0x80000;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
-constexpr uint32_t gfx_groups_pointer = 0x6237;
-
-struct WriteAction {
-  int address;
-  std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
-               gfx::SnesColor, std::vector<gfx::SnesColor>>
-      value;
-};
+constexpr uint32_t kGfxGroupsPointer = 0x6237;
 
 /**
  * @brief The ROM class is used to load, save, and modify ROM data.
  */
 class ROM : public core::ExperimentFlags {
  public:
-  template <typename... Args>
-  absl::Status RunTransaction(Args... args) {
-    absl::Status status;
-    // Fold expression to apply the Write function on each argument
-    ((status = WriteHelper(args)), ...);
-    return status;
-  }
-
-  absl::Status WriteHelper(const WriteAction& action) {
-    if (std::holds_alternative<uint8_t>(action.value)) {
-      return Write(action.address, std::get<uint8_t>(action.value));
-    } else if (std::holds_alternative<uint16_t>(action.value) ||
-               std::holds_alternative<short>(action.value)) {
-      return WriteShort(action.address, std::get<uint16_t>(action.value));
-    } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
-      return WriteVector(action.address,
-                         std::get<std::vector<uint8_t>>(action.value));
-    } else if (std::holds_alternative<gfx::SnesColor>(action.value)) {
-      return WriteColor(action.address, std::get<gfx::SnesColor>(action.value));
-    } else if (std::holds_alternative<std::vector<gfx::SnesColor>>(
-                   action.value)) {
-      return absl::UnimplementedError(
-          "WriteHelper: std::vector<gfx::SnesColor>");
-    }
-    auto error_message = absl::StrFormat("Invalid write argument type: %s",
-                                         typeid(action.value).name());
-    throw std::runtime_error(error_message);
-    return absl::InvalidArgumentError(error_message);
-  }
-
-  template <typename T, typename... Args>
-  absl::Status ReadTransaction(T& var, int address, Args&&... args) {
-    absl::Status status = ReadHelper<T>(var, address);
-    if (!status.ok()) {
-      return status;
-    }
-
-    if constexpr (sizeof...(args) > 0) {
-      status = ReadTransaction(std::forward<Args>(args)...);
-    }
-
-    return status;
-  }
-
-  template <typename T>
-  absl::Status ReadHelper(T& var, int address) {
-    if constexpr (std::is_same_v<T, uint8_t>) {
-      ASSIGN_OR_RETURN(auto result, ReadByte(address));
-      var = result;
-    } else if constexpr (std::is_same_v<T, uint16_t>) {
-      ASSIGN_OR_RETURN(auto result, ReadWord(address));
-      var = result;
-    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
-      ASSIGN_OR_RETURN(auto result, ReadByteVector(address, var.size()));
-      var = result;
-    }
-    return absl::OkStatus();
-  }
-
   /**
    * @brief Loads 2bpp graphics from ROM data.
    *
@@ -225,11 +154,14 @@ class ROM : public core::ExperimentFlags {
    * data is converted to 8 BPP and stored in a bitmap.
    *
    * The graphics sheets are divided into the following ranges:
-   * 0-112 -> compressed 3bpp bgr -> (decompressed each) 0x600 chars
-   * 113-114 -> compressed 2bpp -> (decompressed each) 0x800 chars
-   * 115-126 -> uncompressed 3bpp sprites -> (each) 0x600 chars
-   * 127-217 -> compressed 3bpp sprites -> (decompressed each) 0x600 chars
-   * 218-222 -> compressed 2bpp -> (decompressed each) 0x800 chars
+   *
+   * | Range   | Compression Type | Decompressed Size | Number of Chars |
+   * |---------|------------------|------------------|-----------------|
+   * | 0-112   | Compressed 3bpp BGR | 0x600 chars | Decompressed each |
+   * | 113-114 | Compressed 2bpp | 0x800 chars | Decompressed each |
+   * | 115-126 | Uncompressed 3bpp sprites | 0x600 chars | Each |
+   * | 127-217 | Compressed 3bpp sprites | 0x600 chars | Decompressed each |
+   * | 218-222 | Compressed 2bpp | 0x800 chars | Decompressed each |
    *
    */
   absl::Status LoadAllGraphicsData();
@@ -468,6 +400,28 @@ class ROM : public core::ExperimentFlags {
     return WriteShort(address, bgr);
   }
 
+  template <typename... Args>
+  absl::Status WriteTransaction(Args... args) {
+    absl::Status status;
+    // Fold expression to apply the Write function on each argument
+    ((status = WriteHelper(args)), ...);
+    return status;
+  }
+
+  template <typename T, typename... Args>
+  absl::Status ReadTransaction(T& var, int address, Args&&... args) {
+    absl::Status status = ReadHelper<T>(var, address);
+    if (!status.ok()) {
+      return status;
+    }
+
+    if constexpr (sizeof...(args) > 0) {
+      status = ReadTransaction(std::forward<Args>(args)...);
+    }
+
+    return status;
+  }
+
   void Expand(int size) {
     rom_data_.resize(size);
     size_ = size;
@@ -596,8 +550,8 @@ class ROM : public core::ExperimentFlags {
     spriteset_ids.resize(144, std::vector<uint8_t>(4));
     paletteset_ids.resize(72, std::vector<uint8_t>(4));
 
-    int gfxPointer = (rom_data_[gfx_groups_pointer + 1] << 8) +
-                     rom_data_[gfx_groups_pointer];
+    int gfxPointer =
+        (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
     gfxPointer = core::SnesToPc(gfxPointer);
 
     for (int i = 0; i < 37; i++) {
@@ -629,8 +583,8 @@ class ROM : public core::ExperimentFlags {
   }
 
   bool SaveGroupsToROM() {
-    int gfxPointer = (rom_data_[gfx_groups_pointer + 1] << 8) +
-                     rom_data_[gfx_groups_pointer];
+    int gfxPointer =
+        (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
     gfxPointer = core::SnesToPc(gfxPointer);
 
     for (int i = 0; i < 37; i++) {
@@ -666,6 +620,50 @@ class ROM : public core::ExperimentFlags {
   auto resource_label() { return &resource_label_manager_; }
 
  private:
+  struct WriteAction {
+    int address;
+    std::variant<int, uint8_t, uint16_t, short, std::vector<uint8_t>,
+                 gfx::SnesColor, std::vector<gfx::SnesColor>>
+        value;
+  };
+
+  absl::Status WriteHelper(const WriteAction& action) {
+    if (std::holds_alternative<uint8_t>(action.value)) {
+      return Write(action.address, std::get<uint8_t>(action.value));
+    } else if (std::holds_alternative<uint16_t>(action.value) ||
+               std::holds_alternative<short>(action.value)) {
+      return WriteShort(action.address, std::get<uint16_t>(action.value));
+    } else if (std::holds_alternative<std::vector<uint8_t>>(action.value)) {
+      return WriteVector(action.address,
+                         std::get<std::vector<uint8_t>>(action.value));
+    } else if (std::holds_alternative<gfx::SnesColor>(action.value)) {
+      return WriteColor(action.address, std::get<gfx::SnesColor>(action.value));
+    } else if (std::holds_alternative<std::vector<gfx::SnesColor>>(
+                   action.value)) {
+      return absl::UnimplementedError(
+          "WriteHelper: std::vector<gfx::SnesColor>");
+    }
+    auto error_message = absl::StrFormat("Invalid write argument type: %s",
+                                         typeid(action.value).name());
+    throw std::runtime_error(error_message);
+    return absl::InvalidArgumentError(error_message);
+  }
+
+  template <typename T>
+  absl::Status ReadHelper(T& var, int address) {
+    if constexpr (std::is_same_v<T, uint8_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadByte(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, uint16_t>) {
+      ASSIGN_OR_RETURN(auto result, ReadWord(address));
+      var = result;
+    } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+      ASSIGN_OR_RETURN(auto result, ReadByteVector(address, var.size()));
+      var = result;
+    }
+    return absl::OkStatus();
+  }
+
   long size_ = 0;
   bool is_loaded_ = false;
   bool has_header_ = false;
