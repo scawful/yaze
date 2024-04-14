@@ -10,8 +10,8 @@ namespace app {
 namespace editor {
 
 /**
- * @brief The SpriteEditor class represents a sprite editor that inherits from
- * SharedROM.
+ * @class SpriteEditor
+ * @brief Allows the user to edit sprites.
  *
  * This class provides functionality for updating the sprite editor, drawing the
  * editor table, drawing the sprite canvas, and drawing the current sheets.

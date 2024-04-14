@@ -12,12 +12,12 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
-#include "app/editor/utils/editor.h"
 #include "app/editor/context/entrance_context.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/editor/modules/tile16_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -64,13 +64,18 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
 /**
  * @class OverworldEditor
- * @brief Represents an editor for the overworld in a game.
+ * @brief Manipulates the Overworld and OverworldMap data in a ROM.
  *
  * The `OverworldEditor` class is responsible for managing the editing and
- * manipulation of the overworld in a game. It inherits from various base
- * classes and provides functionality for updating, drawing, and handling user
- * interactions with the overworld. It also includes methods for loading
- * graphics, refreshing map data, and performing various editing operations.
+ * manipulation of the overworld in a game. The user can drag and drop tiles,
+ * modify OverworldEntrance, OverworldExit, Sprite, and OverworldItem
+ * as well as change the gfx and palettes used in each overworld map.
+ *
+ * The Overworld itself is a series of bitmap images which exist inside each
+ * OverworldMap object. The drawing of the overworld is done using the Canvas
+ * class in conjunction with these underlying Bitmap objects.
+ *
+ * Provides access to the GfxGroupEditor and Tile16Editor through popup windows.
  *
  */
 class OverworldEditor : public Editor,
