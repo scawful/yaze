@@ -13,11 +13,12 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace overworld {
 
 OverworldMap::OverworldMap(int index, ROM& rom,
                            std::vector<gfx::Tile16>& tiles16)
@@ -557,6 +558,7 @@ absl::Status OverworldMap::BuildBitmap(OWBlockset& world_blockset) {
   return absl::OkStatus();
 }
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

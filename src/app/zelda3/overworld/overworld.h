@@ -15,12 +15,18 @@
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
-#include "app/zelda3/overworld_map.h"
+#include "app/zelda3/overworld/overworld_map.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+
+/**
+ * @namespace yaze::app::zelda3::overworld
+ * @brief Represents the Overworld data.
+ */
+namespace overworld {
 
 // List of secret item names
 const std::vector<std::string> kSecretItemNames = {
@@ -55,7 +61,7 @@ const std::vector<std::string> kSecretItemNames = {
 };
 
 constexpr int overworldItemsPointers = 0xDC2F9;
-constexpr int overworldItemsAddress = 0xDC8B9;  // 1BC2F9
+constexpr int kOverworldItemsAddress = 0xDC8B9;  // 1BC2F9
 constexpr int overworldItemsBank = 0xDC8BF;
 constexpr int overworldItemsEndData = 0xDC89C;  // 0DC89E
 
@@ -624,6 +630,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::flat_hash_map<int, MapData> proto_map_data_;
 };
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

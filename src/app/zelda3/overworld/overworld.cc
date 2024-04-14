@@ -17,12 +17,13 @@
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld_map.h"
+#include "app/zelda3/overworld/overworld_map.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace overworld {
 
 namespace {
 
@@ -427,7 +428,7 @@ absl::Status Overworld::LoadExits() {
 
 absl::Status Overworld::LoadItems() {
   ASSIGN_OR_RETURN(uint32_t pointer,
-                   rom()->ReadLong(zelda3::overworldItemsAddress));
+                   rom()->ReadLong(zelda3::overworld::kOverworldItemsAddress));
   uint32_t pointer_pc = core::SnesToPc(pointer);  // 1BC2F9 -> 0DC2F9
   for (int i = 0; i < 128; i++) {
     ASSIGN_OR_RETURN(uint16_t word_address,
@@ -1568,6 +1569,7 @@ OWBlockset &Overworld::GetMapTiles(int world_type) {
   }
 }
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

@@ -15,7 +15,7 @@
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -167,7 +167,7 @@ class GraphicsEditor : public SharedROM {
 
   ROM temp_rom_;
   ROM tilemap_rom_;
-  zelda3::Overworld overworld_;
+  zelda3::overworld::Overworld overworld_;
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;
   PaletteEditor palette_editor_;

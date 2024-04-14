@@ -19,7 +19,7 @@
 #include "app/gui/style.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {

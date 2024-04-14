@@ -17,7 +17,7 @@
 #include "app/gui/pipeline.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -65,7 +65,7 @@ class GfxGroupEditor : public SharedROM {
   std::vector<gfx::Bitmap> tile16_individual_;
 
   gui::BitmapViewer gfx_group_viewer_;
-  zelda3::Overworld overworld_;
+  zelda3::overworld::Overworld overworld_;
 };
 
 }  // namespace editor
