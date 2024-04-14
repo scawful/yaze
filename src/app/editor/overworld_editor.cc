@@ -388,6 +388,7 @@ void OverworldEditor::RefreshMapProperties() {
   }
 }
 
+// TODO: Add @JaredBrian per map mosaic feature
 void OverworldEditor::DrawOverworldMapSettings() {
   if (BeginTable(kOWMapTable.data(), 7, kOWMapFlags, ImVec2(0, 0), -1)) {
     for (const auto &name : {"##1stCol", "##gfxCol", "##palCol", "##sprgfxCol",
@@ -697,6 +698,7 @@ void OverworldEditor::CheckForMousePan() {
   }
 }
 
+// TODO: Add @JaredBrian ZSCustomOverworld features to OverworldEditor
 void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
     DrawOverworldMapSettings();
@@ -957,6 +959,7 @@ bool DrawEntranceInserterPopup() {
   return set_done;
 }
 
+// TODO: Implement deleting OverworldEntrance objects, currently only hides them
 bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
   static bool set_done = false;
   if (set_done) {
@@ -1062,6 +1065,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
 
 namespace exit_internal {
 
+// TODO: Implement deleting OverworldExit objects
 void DrawExitInserterPopup() {
   if (ImGui::BeginPopup("Exit Inserter")) {
     static int exit_id = 0;
@@ -1299,6 +1303,7 @@ void DrawItemInsertPopup() {
   }
 }
 
+// TODO: Implement deleting OverworldItem objects, currently only hides them
 bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
   static bool set_done = false;
   if (set_done) {
@@ -1478,6 +1483,7 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   }
 }
 
+// TODO: Implement deleting OverworldSprite objects
 void DrawSpriteInserterPopup() {
   if (ImGui::BeginPopup("Sprite Inserter")) {
     static int new_sprite_id = 0;
