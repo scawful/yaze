@@ -1,6 +1,6 @@
 <map id="yaze::app::zelda3::Overworld::Load" name="yaze::app::zelda3::Overworld::Load">
 <area shape="rect" id="Node000001" title=" " alt="" coords="2663,88,2787,129"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390" title=" " alt="" coords="2182,51,2382,91"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390" title="Load the Bitmap objects for each OverworldMap." alt="" coords="2182,51,2382,91"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2648,105,2382,82,2383,77,2648,99"/>
 <area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="2430,113,2615,168"/>
 <area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="2648,123,2616,128,2615,123,2647,118"/>

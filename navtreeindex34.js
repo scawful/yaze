@@ -1,8 +1,5 @@
 var NAVTREEINDEX34 =
 {
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4638043665972c959c63261d3fcb8257":[8,0,1,0,4,1,35],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a47224238ea7d6995a94ebf9d11daf31d":[8,0,1,0,4,1,18],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4b1476409f2916209e518e660b34cc4e":[8,0,1,0,4,1,57],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e":[8,0,1,0,4,1,41],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4f20b93f15588bc2c13d40ae62e0940f":[8,0,1,0,4,1,8],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a59144c3685cd10bc358b440293e7c82d":[8,0,1,0,4,1,37],
@@ -249,5 +246,8 @@ var NAVTREEINDEX34 =
 "namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02overworld__map_8cc_03.html":[8,0,1,0,6,1],
 "namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02overworld__map_8cc_03.html#abe3e8ded57bc506b26df4ca4a1e86746":[8,0,1,0,6,1,0],
 "namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html":[8,0,1,0,6,2],
-"namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a5e69a70792db46a506738e12282916bf":[8,0,1,0,6,2,0]
+"namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a5e69a70792db46a506738e12282916bf":[8,0,1,0,6,2,0],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html":[8,0,1,0,6,3],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a0ddf57fc7d43fd83a994a477baae932a":[8,0,1,0,6,3,101],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a0eff0760bb739dd2a9d95551ddee00c2":[8,0,1,0,6,3,84]
 };

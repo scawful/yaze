@@ -39,7 +39,7 @@ var searchData=
   ['left_5fposition_36',['left_position',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH0.html#a07ba4f12e9c6cea693bdcfba04611aab',1,'yaze::app::emu::video::PpuRegisters::WH0::left_position'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH2.html#a74b3bfbbe98a0d4a39acce158e9b313b',1,'yaze::app::emu::video::PpuRegisters::WH2::left_position']]],
   ['length_37',['length',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#acb65024fd97259b45d718e1823e70db2',1,'yaze::app::gfx::lc_lz2::CompressionPiece']]],
   ['license_38',['license',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a4a7c7461ce733f7d969949f32aefe9f4',1,'yaze::app::emu::memory::RomInfo']]],
-  ['license_39',['License',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decd',1,'yaze::app::emu::memory::License'],['../md_README.html#autotoc_md38',1,'License']]],
+  ['license_39',['License',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decd',1,'yaze::app::emu::memory::License'],['../md_README.html#autotoc_md34',1,'License']]],
   ['light_5fmaps_5fto_5fload_5f_40',['light_maps_to_load_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad5a24f68bf8ab1a9aa7f7f0c95d1dbed',1,'yaze::app::editor::OverworldEditor']]],
   ['light_5fworld_41',['light_world',['../structOWMapTiles.html#af41cf1a83e7d8684f4360e79eb1c4ec1',1,'OWMapTiles']]],
   ['limitofmap32_42',['LimitOfMap32',['../namespaceyaze_1_1app_1_1zelda3.html#a4024e6fb4355af69a169c0239ac4bea4',1,'yaze::app::zelda3']]],

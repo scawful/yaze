@@ -1,8 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"widgets_8cc.html#a374f2b642919cc9fed20c7fa82c5fab7":[10,0,1,0,4,11,1],
-"widgets_8cc.html#a6102acd483c1a081fdb3aa350d8a0827":[10,0,1,0,4,11,0],
-"widgets_8h.html":[10,0,1,0,4,12],
 "widgets_8h.html#a374f2b642919cc9fed20c7fa82c5fab7":[10,0,1,0,4,12,2],
 "widgets_8h.html#a6102acd483c1a081fdb3aa350d8a0827":[10,0,1,0,4,12,3],
 "widgets_8h_source.html":[10,0,1,0,4,12],

@@ -23,7 +23,7 @@ var searchData=
   ['macos_20',['macOS',['../md_docs_2build-instructions.html#autotoc_md2',1,'']]],
   ['macros_3a_21',['Constants and Macros:',['../md_docs_2compression.html#autotoc_md5',1,'']]],
   ['main_22',['main',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a00ca88ba48070f05c0b514f431f84e05',1,'yaze::app::gfx::Paletteset::main'],['../controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;yaze.cc'],['../yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main(int argc, char **argv):&#160;yaze.cc'],['../z3ed_8cc.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;z3ed.cc'],['../yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;yaze_test.cc']]],
-  ['main_20functions_3a_23',['Main Functions:',['../md_docs_2infrastructure.html#autotoc_md31',1,'']]],
+  ['main_20functions_3a_23',['Main Functions:',['../md_docs_2infrastructure.html#autotoc_md27',1,'']]],
   ['main_5fblockset_5fids_24',['main_blockset_ids',['../classyaze_1_1app_1_1ROM.html#a6ee2925c7ee9a6c9e6e4198b11c818ee',1,'yaze::app::ROM']]],
   ['main_5fcolor_5fwindow_25',['main_color_window',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html#a3bc28c3ab1a7e94f174a2a3ff37be48d',1,'yaze::app::emu::video::PpuRegisters::CGWSEL']]],
   ['mainsubscreendesignation_26',['MainSubScreenDesignation',['../structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html',1,'yaze::app::emu::video']]],

@@ -1,8 +1,5 @@
 var NAVTREEINDEX39 =
 {
-"scad__format_8h.html#ac6a35f4cd4a958fae03d6a171e7c2954":[10,0,1,0,3,5,5],
-"scad__format_8h.html#acbb065216469871484e74cc1ef3023f5":[10,0,1,0,3,5,1],
-"scad__format_8h.html#afcfd7179de5a28d94c78ab51c1a61d5f":[10,0,1,0,3,5,4],
 "scad__format_8h_source.html":[10,0,1,0,3,5],
 "screen__editor_8cc.html":[10,0,1,0,1,11],
 "screen__editor_8h.html":[10,0,1,0,1,12],
@@ -249,5 +246,8 @@ var NAVTREEINDEX39 =
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[8,0,1,0,3,10,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[9,0,0,0,2,8,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[8,0,1,0,3,10,0,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[9,0,0,0,2,8,0,0]
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[9,0,0,0,2,8,0,0],
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[8,0,1,0,3,10,0,1],
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[9,0,0,0,2,8,0,1],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html":[9,0,0,0,2,0,3,0]
 };

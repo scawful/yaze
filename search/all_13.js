@@ -98,7 +98,7 @@ var searchData=
   ['ppudata_95',['PPUDATA',['../classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#aa9aafb990f8178acf48e322fe9da0c14aed3fc1743e1f6027b36e7c4ade36d0a5',1,'yaze::app::emu::memory::DirectMemoryAccess']]],
   ['ppuinterface_96',['PpuInterface',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html',1,'yaze::app::emu::video']]],
   ['pputest_97',['PpuTest',['../classyaze__test_1_1emu__test_1_1PpuTest.html',1,'yaze_test::emu_test::PpuTest'],['../classyaze__test_1_1emu__test_1_1PpuTest.html#aefe715923289ebbcd03f34bdc1599ebc',1,'yaze_test::emu_test::PpuTest::PpuTest()']]],
-  ['prerequisites_98',['Prerequisites',['../md_docs_2getting-started.html#autotoc_md18',1,'']]],
+  ['prerequisites_98',['Prerequisites',['../md_docs_2getting-started.html#autotoc_md17',1,'']]],
   ['prev_5fstatus_5f_99',['prev_status_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ad46300254acb8642a4b08f737d8bbb99',1,'yaze::app::editor::MasterEditor']]],
   ['preview_5fgfx_5f_100',['preview_gfx_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a58564852af4d78e4ecf2cccc4b426bc5',1,'yaze::app::zelda3::Sprite']]],
   ['preview_5fid_5f_101',['preview_id_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ac3eb9753b6821b1c216a36322fc64ecb',1,'yaze::app::zelda3::dungeon::RoomObject']]],

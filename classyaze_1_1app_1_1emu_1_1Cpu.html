@@ -1179,7 +1179,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000020">Todo</a></b></dt><dd>Handle JMPs in logging. </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000026">Todo</a></b></dt><dd>Handle JMPs in logging. </dd></dl>
 
 <p class="reference">References <a class="el" href="#a4e5ba113200a9712892064a68e558caa">GetAccumulatorSize()</a>, <a class="el" href="#a9d720287fbec0abd79133bc2b663f8cd">GetCarryFlag()</a>, <a class="el" href="#a5adc7eff4a215152b75e0e81c60358c6">GetIndexSize()</a>, <a class="el" href="#a21e560b5e3c6a9986f6030c168598b10">GetNegativeFlag()</a>, <a class="el" href="#a0228f96836fbbc86f4e2d3b47842a622">GetOverflowFlag()</a>, <a class="el" href="#a78ab4a43929b6149cadd3c39483f94c9">GetZeroFlag()</a>, <a class="el" href="#a90425ffc735f9f12b9b03a67980e1d2e">last_call_frame_</a>, <a class="el" href="#aaee5a1c497c9b9deb5ae028b0c5a543f">next_pc_</a>, <a class="el" href="cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd">opcode_to_mnemonic</a>, and <a class="el" href="#a619571cc34fec5105f208162139c1391">PC</a>.</p>
 
@@ -1709,7 +1709,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000021">Todo</a></b></dt><dd>Implement 65816 interrupts. </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000027">Todo</a></b></dt><dd>Implement 65816 interrupts. </dd></dl>
 <p>if (GetIRQFlag()) { if (GetEmulationFlag()) { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetIRQFlag(false); SetEmulationFlag(true); try { PC = memory.ReadWord(0xFFFE); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "IRQ: " &lt;&lt; e.what() &lt;&lt; std::endl; } } else { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetIRQFlag(false); SetEmulationFlag(false); try { PC = memory.ReadWord(0xFFFE); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "IRQ: " &lt;&lt; e.what() &lt;&lt; std::endl; } } }</p>
 <p>if (GetNMIFlag()) { if (GetEmulationFlag()) { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetNMIFlag(false); SetEmulationFlag(true); try { PC = memory.ReadWord(0xFFFA); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "NMI: " &lt;&lt; e.what() &lt;&lt; std::endl; } } else { PushWord(PC); PushByte(status); SetInterruptFlag(true); SetDecimalFlag(false); SetNMIFlag(false); SetEmulationFlag(false); try { PC = memory.ReadWord(0xFFFA); } catch (const std::exception&amp; e) { std::cout &lt;&lt; "NMI: " &lt;&lt; e.what() &lt;&lt; std::endl; } } }</p>
 
@@ -13178,7 +13178,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000022">Todo</a></b></dt><dd>Make this work with the <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html">Clock</a> class of the CPU </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000028">Todo</a></b></dt><dd>Make this work with the <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html">Clock</a> class of the CPU </dd></dl>
 
 <p class="reference">Referenced by <a class="el" href="#ae5f8a8d0e5f8f1a72c4475ac402acda0">ExecuteInstruction()</a>.</p>
 <div class="dynheader">
@@ -14779,7 +14779,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000023">Todo</a></b></dt><dd>Make this communicate with the <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> class </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000029">Todo</a></b></dt><dd>Make this communicate with the <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> class </dd></dl>
 
 <p class="reference">Referenced by <a class="el" href="#ae5f8a8d0e5f8f1a72c4475ac402acda0">ExecuteInstruction()</a>.</p>
 <div class="dynheader">

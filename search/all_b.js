@@ -1,8 +1,8 @@
 var searchData=
 [
   ['h_0',['H',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#aabc70522cdcca1973369bcb7e30d1c53',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['h_20a_1',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md29',1,'']]],
-  ['h_20app_20rom_20h_20a_2',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
+  ['h_20a_1',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
+  ['h_20app_20rom_20h_20a_2',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
   ['half_3',['half',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a361505ecd66826e2bc01f8eb0a7384e6',1,'yaze::app::emu::video::PpuRegisters::CGADSUB']]],
   ['handle_4',['handle',['../classyaze_1_1cli_1_1CommandHandler.html#acf0d674fc4b4f8bfc1536c4b317ef831',1,'yaze::cli::CommandHandler::handle()'],['../classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6',1,'yaze::cli::ApplyPatch::handle()'],['../classyaze_1_1cli_1_1CreatePatch.html#ad8379b3639cb96421e3d023cf7022063',1,'yaze::cli::CreatePatch::handle()'],['../classyaze_1_1cli_1_1Open.html#a93ec2d9f81970f0fba889a94fe92b9f5',1,'yaze::cli::Open::handle()'],['../classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498',1,'yaze::cli::Backup::handle()'],['../classyaze_1_1cli_1_1Compress.html#afebd02efe70bf393274285b1a460cf20',1,'yaze::cli::Compress::handle()'],['../classyaze_1_1cli_1_1Decompress.html#a10b8074f386c89687b8270a792513197',1,'yaze::cli::Decompress::handle()'],['../classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0',1,'yaze::cli::SnesToPc::handle()'],['../classyaze_1_1cli_1_1PcToSnes.html#ad709da89bda8d90180739f3bc135408f',1,'yaze::cli::PcToSnes::handle()'],['../classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3',1,'yaze::cli::ReadFromRom::handle()'],['../classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3',1,'yaze::cli::Tile16Transfer::handle()'],['../classyaze_1_1cli_1_1Expand.html#abf197e6e18a4d8ecd1a7a551f2e7d995',1,'yaze::cli::Expand::handle()'],['../classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057',1,'yaze::cli::Emulator::handle()']]],
   ['handlecolorpopup_5',['HandleColorPopup',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1',1,'yaze::app::editor::PaletteEditor']]],
@@ -48,8 +48,8 @@ var searchData=
   ['horizontalscanlocation_45',['horizontalScanLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
   ['hover_5fhint_46',['HOVER_HINT',['../constants_8h.html#ae341b584a47fc74d82c009e929269df9',1,'constants.h']]],
   ['hover_5fmouse_5fpos_47',['hover_mouse_pos',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3ea711829b4d116e65c82eb5687c8f0b',1,'yaze::app::gui::Canvas']]],
-  ['href_20src_20app_20gfx_20bitmap_20cc_20app_20gfx_20bitmap_20h_20a_48',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md29',1,'']]],
-  ['href_20src_20app_20rom_20h_20app_20rom_20h_20a_49',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
+  ['href_20src_20app_20gfx_20bitmap_20cc_20app_20gfx_20bitmap_20h_20a_48',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
+  ['href_20src_20app_20rom_20h_20app_20rom_20h_20a_49',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
   ['hud_50',['hud',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c',1,'yaze::app::gfx::Paletteset']]],
   ['hud_5fpalettes_51',['hud_palettes',['../namespaceyaze_1_1app_1_1core.html#aca9765be2c114fb95a5a3724fad4b994',1,'yaze::app::core']]],
   ['hudpalettes_52',['hudPalettes',['../namespaceyaze_1_1app_1_1core.html#a19360ea7880ac7db60489144e464520a',1,'yaze::app::core']]]

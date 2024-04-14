@@ -65,7 +65,7 @@ var searchData=
   ['kexit_62',['kExit',['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a4c5e288c97ff2884a282a11b6f7e16b5a35cd62360aff8dc2c39521574f56217b',1,'yaze::app::zelda3::OverworldEntity']]],
   ['kexpandedlengthmod_63',['kExpandedLengthMod',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa8bcf90e524970ee34af92030ea7066f',1,'yaze::app::gfx::lc_lz2']]],
   ['kexpandedmod_64',['kExpandedMod',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a10759b617f42c78708923c70558ad3c3',1,'yaze::app::gfx::lc_lz2']]],
-  ['key_20attributes_3a_65',['Key Attributes:',['../md_docs_2infrastructure.html#autotoc_md30',1,'']]],
+  ['key_20attributes_3a_65',['Key Attributes:',['../md_docs_2infrastructure.html#autotoc_md26',1,'']]],
   ['key_20definitions_66',['Key Definitions',['../md_docs_2compression.html#autotoc_md4',1,'']]],
   ['key_5fdrop_5f_67',['key_drop_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ade74bb1d0bb3940e2ee4582be99facc6',1,'yaze::app::zelda3::Sprite']]],
   ['key_5fname_68',['key_name',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a',1,'yaze::app::core::ResourceLabelManager::ResourceType']]],

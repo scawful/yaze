@@ -69,7 +69,7 @@ var searchData=
   ['getting_20started_20with_20yaze_66',['Getting Started with YAZE',['../md_docs_2getting-started.html',1,'']]],
   ['getting_2dstarted_2emd_67',['getting-started.md',['../getting-started_8md.html',1,'']]],
   ['getzeroflag_68',['GetZeroFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a78ab4a43929b6149cadd3c39483f94c9',1,'yaze::app::emu::Cpu']]],
-  ['gfx_20bitmap_20cc_20app_20gfx_20bitmap_20h_20a_69',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md29',1,'']]],
+  ['gfx_20bitmap_20cc_20app_20gfx_20bitmap_20h_20a_69',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
   ['gfx_5fanimated_5fpointer_70',['gfx_animated_pointer',['../namespaceyaze_1_1app_1_1core.html#a00498c7676bbf36c6d1fadbf7f6c1061',1,'yaze::app::core']]],
   ['gfx_5fcontext_2ecc_71',['gfx_context.cc',['../gfx__context_8cc.html',1,'']]],
   ['gfx_5fcontext_2eh_72',['gfx_context.h',['../gfx__context_8h.html',1,'']]],

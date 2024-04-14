@@ -36,7 +36,7 @@
 <area shape="poly" id="edge59_Node000001_Node000059" title=" " alt="" coords="1685,574,1668,676,1640,813,1622,883,1602,946,1580,998,1555,1034,1530,1052,1527,1047,1551,1030,1575,995,1597,944,1617,881,1635,812,1663,675,1680,573"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#af486107ff3548f6d66cd17ea08815224" title=" " alt="" coords="817,113,940,154"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1031,124,941,131,940,126,1031,119"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390" title=" " alt="" coords="524,113,724,154"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390" title="Load the Bitmap objects for each OverworldMap." alt="" coords="524,113,724,154"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="802,136,724,136,724,131,802,131"/>
 <area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae" title=" " alt="" coords="531,293,716,349"/>
 <area shape="poly" id="edge8_Node000003_Node000016" title=" " alt="" coords="804,155,780,169,764,183,755,198,746,214,732,232,664,295,660,291,728,229,742,211,750,195,760,180,777,164,801,150"/>

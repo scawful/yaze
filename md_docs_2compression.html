@@ -103,6 +103,7 @@ $(function(){initNavTree('md_docs_2compression.html',''); initResizable(); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md3"></a> The compression algorithm has multiple implementations with varying levels of quality, based primarily on the implementations made in skarsnik/sneshacking, Zarby89/ZScreamDungeon and ZCompress with optimizations made for C++.</p>
+<p>Currently, the Compress and Uncompress methods from Hyrule Magic are used and all other compression methods are considered deprecated.</p>
 <h1><a class="anchor" id="autotoc_md4"></a>
 Key Definitions</h1>
 <h2><a class="anchor" id="autotoc_md5"></a>
@@ -179,11 +180,8 @@ Utility Functions:</h1>
 <li><b>Printing</b>: Such as <code>PrintCompressionPiece</code> and <code>PrintCompressionChain</code>.</li>
 <li><b>Compression String Creation</b>: <code>CreateCompressionString</code></li>
 <li><b>Compression Result Validation</b>: Such as <code>ValidateCompressionResult</code> and its V3 variant.</li>
-<li><b>Compression Piece Manipulation</b>: Like <code>SplitCompressionPiece</code> and its V3 variant.</li>
+<li><b>Compression Piece Manipulation</b>: Like <code>SplitCompressionPiece</code> and its V3 variant. </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md16"></a>
-Final Notes</h1>
-<p>The YAZE's LC_LZ2 compression scheme provides three versions of compression methodologies with comprehensive support for various commands and modes. It ensures versatility and adaptability for different compression needs. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

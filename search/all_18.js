@@ -55,7 +55,7 @@ var searchData=
   ['uppercasehexword_52',['UppercaseHexWord',['../namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38',1,'yaze::app::core']]],
   ['us_53',['US',['../namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2',1,'yaze::app']]],
   ['usa_54',['USA',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a1288179b503be9fd3d0ec42cb345a794',1,'yaze::app::emu::memory']]],
-  ['usage_55',['Usage',['../md_docs_2getting-started.html#autotoc_md19',1,'']]],
+  ['usage_55',['Usage',['../md_docs_2getting-started.html#autotoc_md18',1,'']]],
   ['usage_5fstats_5f_56',['usage_stats_',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ab43086c408add989d66a6969abc66f50',1,'yaze::app::zelda3::Overworld']]],
   ['ushort_57',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]],
   ['utility_20functions_3a_58',['Utility Functions:',['../md_docs_2compression.html#autotoc_md15',1,'']]]

@@ -44,35 +44,32 @@ var NAVTREE =
         [ "Version 3:", "md_docs_2compression.html#autotoc_md13", null ]
       ] ],
       [ "Decompression Functions:", "md_docs_2compression.html#autotoc_md14", null ],
-      [ "Utility Functions:", "md_docs_2compression.html#autotoc_md15", null ],
-      [ "Final Notes", "md_docs_2compression.html#autotoc_md16", null ]
+      [ "Utility Functions:", "md_docs_2compression.html#autotoc_md15", null ]
     ] ],
     [ "Getting Started with YAZE", "md_docs_2getting-started.html", [
-      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md18", null ],
-      [ "Usage", "md_docs_2getting-started.html#autotoc_md19", null ]
+      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md17", null ],
+      [ "Usage", "md_docs_2getting-started.html#autotoc_md18", null ]
     ] ],
     [ "YAZE Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md21", null ],
-      [ "App Organization", "md_docs_2infrastructure.html#autotoc_md22", [
-        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md23", null ]
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md20", [
+        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md21", null ]
       ] ],
-      [ "ROM", "md_docs_2infrastructure.html#autotoc_md24", null ],
-      [ "app/rom.h", "md_docs_2infrastructure.html#autotoc_md25", null ],
-      [ "Overworld", "md_docs_2infrastructure.html#autotoc_md26", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md28", null ],
-      [ "app/gfx/bitmap.h", "md_docs_2infrastructure.html#autotoc_md29", [
-        [ "Key Attributes:", "md_docs_2infrastructure.html#autotoc_md30", null ],
-        [ "Main Functions:", "md_docs_2infrastructure.html#autotoc_md31", null ]
+      [ "ROM", "md_docs_2infrastructure.html#autotoc_md22", null ],
+      [ "app/rom.h", "md_docs_2infrastructure.html#autotoc_md23", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md24", null ],
+      [ "app/gfx/bitmap.h", "md_docs_2infrastructure.html#autotoc_md25", [
+        [ "Key Attributes:", "md_docs_2infrastructure.html#autotoc_md26", null ],
+        [ "Main Functions:", "md_docs_2infrastructure.html#autotoc_md27", null ]
       ] ],
-      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md32", null ],
-      [ "Further Development Ideas", "md_docs_2infrastructure.html#autotoc_md33", null ]
+      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md28", null ],
+      [ "Further Development Ideas", "md_docs_2infrastructure.html#autotoc_md29", null ]
     ] ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md35", null ],
-      [ "Building and installation", "md_README.html#autotoc_md36", null ],
-      [ "Documentation", "md_README.html#autotoc_md37", null ],
-      [ "License", "md_README.html#autotoc_md38", null ],
-      [ "Screenshots", "md_README.html#autotoc_md39", null ]
+      [ "Description", "md_README.html#autotoc_md31", null ],
+      [ "Building and installation", "md_README.html#autotoc_md32", null ],
+      [ "Documentation", "md_README.html#autotoc_md33", null ],
+      [ "License", "md_README.html#autotoc_md34", null ],
+      [ "Screenshots", "md_README.html#autotoc_md35", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Deprecated List", "deprecated.html", null ],
@@ -149,19 +146,19 @@ var NAVTREEINDEX =
 "icons_8h.html#abb0ba61fb9e6ea6e514ec64537a6e3b1",
 "icons_8h.html#ad7201a5160ac43c7f133748cad3b2fc5",
 "icons_8h.html#af1d29a817fd1b030010c96a291672973",
-"memory_8h.html#a9a75d43d4cf258d8bc3b4901cb1ba7fe",
-"namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#a77edb703f6d7539411087a40d6ddd01f",
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4638043665972c959c63261d3fcb8257",
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html",
-"namespaceyaze__test_1_1emu__test.html#a409bdd6079e38a0c793b99de151c6013",
-"namespaceyaze__test_1_1gfx__test.html#a55ad5cc17a74d3f99827ad48155a58f9",
-"ppu__registers_8h.html#a69b2d88962ee3c4b60118ec31ff72842",
-"scad__format_8h.html#ac6a35f4cd4a958fae03d6a171e7c2954",
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGVOFS.html#ac5f5951adfbb52dde94e6094e5cb8d0a",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATALREAD.html#a5fab0bdf4875a88e5d759bbf48ae57b8",
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html",
-"widgets_8cc.html#a374f2b642919cc9fed20c7fa82c5fab7"
+"memory_8h.html#aa8d809bc6229536975b18e7eea4fd0a9",
+"namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a5035b7f9e50f6d99047aeb532d90b142",
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e",
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a0f77f770ccfbbdff838b4ff12cb07957",
+"namespaceyaze__test_1_1emu__test.html#a42a5a12e52062ea97f7730bc82cfe061",
+"namespaceyaze__test_1_1gfx__test.html#a762a704094a3b37a7ad3ab43164afd0a",
+"ppu__registers_8h.html#a6dec80a913c3fbd6a80081ae5b12f3ca",
+"scad__format_8h_source.html",
+"structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADD.html",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html",
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a14d4ec1a5d5b648a98b68478412393cf",
+"widgets_8h.html#a374f2b642919cc9fed20c7fa82c5fab7"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
