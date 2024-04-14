@@ -20,7 +20,7 @@ namespace emu {
 
 /**
  * @class Emulator
- * @brief A class for emulating and debugging SNES ROMs.
+ * @brief A class for emulating and debugging SNES games.
  */
 class Emulator : public SharedRom {
  public:

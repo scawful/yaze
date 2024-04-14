@@ -353,7 +353,7 @@ absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
 }
 }  // namespace palette_internal
 
-// New helper function to get a palette from the ROM.
+// New helper function to get a palette from the Rom.
 absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
     const gfx::PaletteGroup& palette_group, int index, int previous_index,
     int limit) {

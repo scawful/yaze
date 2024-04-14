@@ -21,7 +21,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/pipeline.h"
-#include "app/rom.h"  // for ROM
+#include "app/rom.h"  // for Rom
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/patch.h"  // for ApplyBpsPatch, CreateBpsPatch
 
@@ -105,7 +105,7 @@ class CreatePatch : public CommandHandler {
 };
 
 /**
- * @brief Open a ROM file and display information about it.
+ * @brief Open a Rom file and display information about it.
  */
 class Open : public CommandHandler {
  public:
@@ -123,7 +123,7 @@ class Open : public CommandHandler {
 };
 
 /**
- * @brief Backup a ROM file.
+ * @brief Backup a Rom file.
  */
 class Backup : public CommandHandler {
  public:
@@ -232,7 +232,7 @@ class PcToSnes : public CommandHandler {
 };
 
 /**
- * @brief Read from a ROM file.
+ * @brief Read from a Rom file.
 
   * @param arg_vec `-r <rom_file> <address> <optional:length, default: 0x01>`
   * @return absl::Status
@@ -270,7 +270,7 @@ class ReadFromRom : public CommandHandler {
 };
 
 /**
- * @brief Transfer tile 16 data from one ROM to another.
+ * @brief Transfer tile 16 data from one Rom to another.
 
   * @param arg_vec `-t <src_rom> <dest_rom> "<tile32_id_list:csv>"`
   * @return absl::Status
@@ -281,7 +281,7 @@ class Tile16Transfer : public CommandHandler {
 };
 
 /**
- * @brief Expand a ROM file.
+ * @brief Expand a Rom file.
 
   * @param arg_vec `-x <rom_file> <file_size>`
   * @return absl::Status
@@ -305,7 +305,7 @@ class Expand : public CommandHandler {
 };
 
 /**
- * @brief Start the emulator on a SNES ROM file.
+ * @brief Start the emulator on a SNES Rom file.
 
   * @param arg_vec `-emu <rom_file> <optional:num_cpu_cycles>`
   * @return absl::Status
@@ -371,7 +371,7 @@ struct Commands {
       {"-s", std::make_shared<SnesToPc>()},
       {"-p", std::make_shared<PcToSnes>()},
       {"-t", std::make_shared<Tile16Transfer>()},
-      {"-r", std::make_shared<ReadFromRom>()}  // Read from ROM
+      {"-r", std::make_shared<ReadFromRom>()}  // Read from Rom
   };
 };
 

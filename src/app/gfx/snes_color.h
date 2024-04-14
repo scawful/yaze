@@ -33,7 +33,7 @@ std::vector<char> Convert(const std::vector<snes_color>& palette);
  * @brief SNES Color container
  * 
  * Used for displaying the color to the screen and writing 
- * the color to the ROM file in the correct format.
+ * the color to the Rom file in the correct format.
  * 
  * SNES colors may be represented in one of three formats:
  *  - Color data from the rom in a snes_color struct

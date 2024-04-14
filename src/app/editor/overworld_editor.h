@@ -64,7 +64,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
 /**
  * @class OverworldEditor
- * @brief Manipulates the Overworld and OverworldMap data in a ROM.
+ * @brief Manipulates the Overworld and OverworldMap data in a Rom.
  *
  * The `OverworldEditor` class is responsible for managing the editing and
  * manipulation of the overworld in a game. The user can drag and drop tiles,
@@ -121,7 +121,7 @@ class OverworldEditor : public Editor,
   /**
    * @brief Load the Bitmap objects for each OverworldMap.
    *
-   * Calls the Overworld class to load the image data and palettes from the ROM,
+   * Calls the Overworld class to load the image data and palettes from the Rom,
    * then renders the area graphics and tile16 blockset Bitmap objects before
    * assembling the OverworldMap Bitmap objects.
    */

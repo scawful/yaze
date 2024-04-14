@@ -125,14 +125,14 @@ constexpr uint32_t kFontSpriteLocation = 0x70000;
 constexpr uint32_t kGfxGroupsPointer = 0x6237;
 
 /**
- * @brief The ROM class is used to load, save, and modify ROM data.
+ * @brief The Rom class is used to load, save, and modify Rom data.
  */
 class Rom : public core::ExperimentFlags {
  public:
   /**
-   * @brief Loads 2bpp graphics from ROM data.
+   * @brief Loads 2bpp graphics from Rom data.
    *
-   * This function loads 2bpp graphics from ROM data by iterating over a list of
+   * This function loads 2bpp graphics from Rom data by iterating over a list of
    * sheet IDs, decompressing the sheet data, converting it to 8bpp format, and
    * appending the converted sheet data to a byte vector.
    *
@@ -140,12 +140,12 @@ class Rom : public core::ExperimentFlags {
   absl::StatusOr<Bytes> Load2BppGraphics();
 
   /**
-   * @brief Loads the players 4bpp graphics sheet from ROM data.
+   * @brief Loads the players 4bpp graphics sheet from Rom data.
    */
   absl::Status LoadLinkGraphics();
 
   /**
-   * @brief This function iterates over all graphics sheets in the ROM and loads
+   * @brief This function iterates over all graphics sheets in the Rom and loads
    * them into memory. Depending on the sheet's index, it may be uncompressed or
    * compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits
    * per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics
@@ -176,7 +176,7 @@ class Rom : public core::ExperimentFlags {
   absl::Status LoadAllPalettes();
 
   /**
-   * Load ROM data from a file.
+   * Load Rom data from a file.
    *
    * @param filename The name of the file to load.
    * @param z3_load Whether to load data specific to Zelda 3.
@@ -188,10 +188,10 @@ class Rom : public core::ExperimentFlags {
   absl::Status LoadFromBytes(const Bytes& data);
 
   /**
-   * @brief Saves the ROM data to a file
+   * @brief Saves the Rom data to a file
    *
    * @param backup If true, creates a backup file with timestamp in its name
-   * @param filename The name of the file to save the ROM data to
+   * @param filename The name of the file to save the Rom data to
    *
    * @return absl::Status Returns an OK status if the save was successful,
    * otherwise returns an error status
@@ -200,7 +200,7 @@ class Rom : public core::ExperimentFlags {
                           std::string filename = "");
 
   /**
-   * Saves the given palette to the ROM if any of its colors have been modified.
+   * Saves the given palette to the Rom if any of its colors have been modified.
    *
    * @param index The index of the palette to save.
    * @param group_name The name of the group containing the palette.
@@ -210,7 +210,7 @@ class Rom : public core::ExperimentFlags {
                            gfx::SnesPalette& palette);
 
   /**
-   * @brief Saves all palettes in the ROM.
+   * @brief Saves all palettes in the Rom.
    *
    * This function iterates through all palette groups and all palettes in each
    * group, and saves each palette using the SavePalette() function.
@@ -581,7 +581,7 @@ class Rom : public core::ExperimentFlags {
     }
   }
 
-  bool SaveGroupsToROM() {
+  bool SaveGroupsToRom() {
     int gfxPointer =
         (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
     gfxPointer = core::SnesToPc(gfxPointer);
@@ -685,7 +685,7 @@ class Rom : public core::ExperimentFlags {
 };
 
 /**
- * @brief A class to hold a shared pointer to a ROM object.
+ * @brief A class to hold a shared pointer to a Rom object.
  */
 class SharedRom {
  public:
