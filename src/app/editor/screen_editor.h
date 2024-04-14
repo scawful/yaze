@@ -22,6 +22,20 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+/**
+ * @brief The ScreenEditor class allows the user to edit a variety of screens in
+ * the game or create a custom menu.
+ *
+ * This class is currently a work in progress (WIP) and provides functionality
+ * for updating the screens, saving dungeon maps, drawing different types of
+ * screens, loading dungeon maps, and managing various properties related to the
+ * editor.
+ *
+ * The screens that can be edited include the title screen, naming screen,
+ * overworld map, inventory menu, and more.
+ *
+ * The class inherits from the SharedROM class.
+ */
 class ScreenEditor : public SharedROM {
  public:
   ScreenEditor();

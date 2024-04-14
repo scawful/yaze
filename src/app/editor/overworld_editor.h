@@ -62,6 +62,17 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
+/**
+ * @class OverworldEditor
+ * @brief Represents an editor for the overworld in a game.
+ *
+ * The `OverworldEditor` class is responsible for managing the editing and
+ * manipulation of the overworld in a game. It inherits from various base
+ * classes and provides functionality for updating, drawing, and handling user
+ * interactions with the overworld. It also includes methods for loading
+ * graphics, refreshing map data, and performing various editing operations.
+ *
+ */
 class OverworldEditor : public Editor,
                         public SharedROM,
                         public context::GfxContext,
