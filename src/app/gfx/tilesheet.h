@@ -15,6 +15,14 @@ namespace gfx {
 
 enum class TileType { Tile8, Tile16 };
 
+/**
+ * @class Tilesheet
+ * @brief Represents a tilesheet, which is a collection of tiles stored in a
+ * bitmap.
+ *
+ * The Tilesheet class provides methods to manipulate and extract tiles from the
+ * tilesheet. It also supports copying and mirroring tiles within the tilesheet.
+ */
 class Tilesheet {
  public:
   Tilesheet() = default;

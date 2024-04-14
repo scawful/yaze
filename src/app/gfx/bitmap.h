@@ -28,6 +28,14 @@ bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer);
 void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
                          SDL_Surface **outSurface);
 
+/**
+ * @brief Represents a bitmap image.
+ *
+ * The `Bitmap` class provides functionality to create, manipulate, and display
+ * bitmap images. It supports various operations such as creating a bitmap
+ * object, creating and updating textures, applying palettes, and accessing
+ * pixel data.
+ */
 class Bitmap {
  public:
   Bitmap() = default;
