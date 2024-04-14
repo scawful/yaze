@@ -22,6 +22,8 @@ namespace app {
  */
 namespace gfx {
 
+
+
 /**
  * @brief Convert SDL_Surface to PNG image data.
  */

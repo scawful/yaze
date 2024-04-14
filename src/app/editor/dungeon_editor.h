@@ -43,7 +43,7 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
  * entrances, calculating usage statistics, and rendering set usage.
  */
 class DungeonEditor : public Editor,
-                      public SharedROM,
+                      public SharedRom,
                       public core::ExperimentFlags {
  public:
   absl::Status Update() override;

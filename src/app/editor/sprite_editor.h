@@ -16,7 +16,7 @@ namespace editor {
  * This class provides functionality for updating the sprite editor, drawing the
  * editor table, drawing the sprite canvas, and drawing the current sheets.
  */
-class SpriteEditor : public SharedROM {
+class SpriteEditor : public SharedRom {
  public:
   /**
    * @brief Updates the sprite editor.

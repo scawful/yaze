@@ -265,7 +265,7 @@ struct BackgroundLayer {
 
 const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
 
-class Ppu : public Observer, public SharedROM {
+class Ppu : public Observer, public SharedRom {
  public:
   // Initializes the PPU with the necessary resources and dependencies
   Ppu(memory::Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}

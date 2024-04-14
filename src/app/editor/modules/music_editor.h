@@ -59,7 +59,7 @@ static constexpr absl::string_view kSongNotes[] = {
  * @class MusicEditor
  * @brief A class for editing music data in a ROM.
  */
-class MusicEditor : public SharedROM {
+class MusicEditor : public SharedRom {
  public:
   void Update();
 

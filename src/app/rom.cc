@@ -516,7 +516,7 @@ absl::Status Rom::SaveAllPalettes() {
   return absl::OkStatus();
 }
 
-std::shared_ptr<Rom> SharedROM::shared_rom_ = nullptr;
+std::shared_ptr<Rom> SharedRom::shared_rom_ = nullptr;
 
 }  // namespace app
 }  // namespace yaze

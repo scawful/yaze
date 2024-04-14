@@ -678,10 +678,10 @@ class Rom : public core::ExperimentFlags {
 /**
  * @brief A class to hold a shared pointer to a ROM object.
  */
-class SharedROM {
+class SharedRom {
  public:
-  SharedROM() = default;
-  virtual ~SharedROM() = default;
+  SharedRom() = default;
+  virtual ~SharedRom() = default;
 
   std::shared_ptr<Rom> shared_rom() {
     if (!shared_rom_) {

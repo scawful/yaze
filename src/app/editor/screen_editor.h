@@ -34,9 +34,9 @@ namespace editor {
  * The screens that can be edited include the title screen, naming screen,
  * overworld map, inventory menu, and more.
  *
- * The class inherits from the SharedROM class.
+ * The class inherits from the SharedRom class.
  */
-class ScreenEditor : public SharedROM {
+class ScreenEditor : public SharedRom {
  public:
   ScreenEditor();
   void Update();
