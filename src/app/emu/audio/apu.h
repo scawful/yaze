@@ -15,12 +15,32 @@ namespace app {
 namespace emu {
 namespace audio {
 
+using namespace memory;
+
 /**
  *
+
+ *
+ */
+
+const int kApuClockSpeed = 1024000;  // 1.024 MHz
+const int apuSampleRate = 32000;     // 32 KHz
+const int apuClocksPerSample = 64;   // 64 clocks per sample
+
+/**
+ * @class Apu
+ * @brief The Apu class represents the Audio Processing Unit (APU) of a system.
+ *
+ * The Apu class is responsible for generating audio samples and managing the
+ * APU state. It interacts with the Memory, AudioRam, and Clock classes to
+ * read/write data and update the clock. The class also implements the Observer
+ * interface to receive notifications from the system.
+ *
+ * @par IPL ROM Info
  * 64 kilobytes of RAM are mapped across the 16-bit memory space of the SPC-700.
  * Some regions of this space are overlaid with special hardware functions.
  *
- * Range 	      Note
+ * @par Range 	      Note
  * $0000-00EF 	Zero Page RAM
  * $00F0-00FF 	Sound CPU Registers
  * $0100-01FF 	Stack Page RAM
@@ -31,13 +51,7 @@ namespace audio {
  * underlying RAM can always be written to, and the high bit of the Control
  * register $F1 can be cleared to unmap the IPL ROM and allow read access to
  * this RAM.
- *
  */
-
-const int kApuClockSpeed = 1024000;  // 1.024 MHz
-const int apuSampleRate = 32000;     // 32 KHz
-const int apuClocksPerSample = 64;   // 64 clocks per sample
-
 class Apu : public Observer {
  public:
   Apu(MemoryImpl &memory, AudioRam &aram, Clock &clock)

@@ -26,8 +26,8 @@ class CpuTest : public ::testing::Test {
   }
 
   AsmParser asm_parser;
-  MockMemory mock_memory;
-  MockClock mock_clock;
+  memory::MockMemory mock_memory;
+  memory::MockClock mock_clock;
   Cpu cpu{mock_memory, mock_clock};
 };
 
@@ -39,7 +39,7 @@ using ::testing::Return;
 // ============================================================================
 
 TEST_F(CpuTest, CheckMemoryContents) {
-  MockMemory memory;
+  memory::MockMemory memory;
   std::vector<uint8_t> data = {0x00, 0x01, 0x02, 0x03, 0x04};
   memory.SetMemoryContents(data);
 

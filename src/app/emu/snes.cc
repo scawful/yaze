@@ -57,8 +57,8 @@ void audio_callback(void* userdata, uint8_t* stream, int len) {
 
 }  // namespace
 
-ROMInfo SNES::ReadRomHeader(uint32_t offset) {
-  ROMInfo romInfo;
+RomInfo SNES::ReadRomHeader(uint32_t offset) {
+  RomInfo romInfo;
 
   // Read cartridge title
   char title[22];
@@ -70,17 +70,17 @@ ROMInfo SNES::ReadRomHeader(uint32_t offset) {
 
   // Read ROM speed and memory map mode
   uint8_t romSpeedAndMapMode = cpu_.ReadByte(offset + 0x15);
-  romInfo.romSpeed = (ROMSpeed)(romSpeedAndMapMode & 0x07);
+  romInfo.romSpeed = (RomSpeed)(romSpeedAndMapMode & 0x07);
   romInfo.bankSize = (BankSize)((romSpeedAndMapMode >> 5) & 0x01);
 
   // Read ROM type
-  romInfo.romType = (ROMType)cpu_.ReadByte(offset + 0x16);
+  romInfo.romType = (RomType)cpu_.ReadByte(offset + 0x16);
 
   // Read ROM size
-  romInfo.romSize = (ROMSize)cpu_.ReadByte(offset + 0x17);
+  romInfo.romSize = (RomSize)cpu_.ReadByte(offset + 0x17);
 
   // Read RAM size
-  romInfo.sramSize = (SRAMSize)cpu_.ReadByte(offset + 0x18);
+  romInfo.sramSize = (SramSize)cpu_.ReadByte(offset + 0x18);
 
   // Read country code
   romInfo.countryCode = (CountryCode)cpu_.ReadByte(offset + 0x19);

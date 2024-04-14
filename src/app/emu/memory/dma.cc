@@ -5,8 +5,9 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace memory {
 
-void DMA::StartDMATransfer(uint8_t channelMask) {
+void DirectMemoryAccess::StartDMATransfer(uint8_t channelMask) {
   for (int i = 0; i < 8; ++i) {
     if ((channelMask & (1 << i)) != 0) {
       Channel& ch = channels[i];
@@ -20,8 +21,9 @@ void DMA::StartDMATransfer(uint8_t channelMask) {
       // Determine the transfer size based on the DMAPn register
       bool transferTwoBytes = (ch.DMAPn & 0x40) != 0;
 
-      // Perform the DMA transfer based on the channel parameters
-      std::cout << "Starting DMA transfer for channel " << i << std::endl;
+      // Perform the DirectMemoryAccess transfer based on the channel parameters
+      std::cout << "Starting DirectMemoryAccess transfer for channel " << i
+                << std::endl;
 
       for (uint16_t j = 0; j < ch.DASn; ++j) {
         // Read a byte or two bytes from memory based on the transfer size
@@ -46,7 +48,7 @@ void DMA::StartDMATransfer(uint8_t channelMask) {
   MDMAEN = channelMask;  // Set the MDMAEN register to the channel mask
 }
 
-void DMA::EnableHDMATransfers(uint8_t channelMask) {
+void DirectMemoryAccess::EnableHDMATransfers(uint8_t channelMask) {
   for (int i = 0; i < 8; ++i) {
     if ((channelMask & (1 << i)) != 0) {
       Channel& ch = channels[i];
@@ -70,6 +72,7 @@ void DMA::EnableHDMATransfers(uint8_t channelMask) {
   HDMAEN = channelMask;  // Set the HDMAEN register to the channel mask
 }
 
+}  // namespace memory
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze
