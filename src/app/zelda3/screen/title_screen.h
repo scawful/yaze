@@ -11,6 +11,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace screen {
 
 class TitleScreen {
  public:
@@ -74,8 +75,9 @@ class TitleScreen {
   gfx::Bitmap tiles8Bitmap;    // 0x20000
 };
 
+}  // namespace screen
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_APP_ZELDA3_SCREEN_H

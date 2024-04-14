@@ -117,25 +117,30 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
   for (int d = 0; d < 14; d++) {
     current_floor_rooms_d.clear();
     current_floor_gfx_d.clear();
-    ASSIGN_OR_RETURN(int ptr,
-                     rom()->ReadWord(zelda3::kDungeonMapRoomsPtr + (d * 2)));
-    ASSIGN_OR_RETURN(int ptrGFX,
-                     rom()->ReadWord(zelda3::kDungeonMapRoomsPtr + (d * 2)));
+    ASSIGN_OR_RETURN(
+        int ptr,
+        rom()->ReadWord(zelda3::screen::kDungeonMapRoomsPtr + (d * 2)));
+    ASSIGN_OR_RETURN(
+        int ptrGFX,
+        rom()->ReadWord(zelda3::screen::kDungeonMapRoomsPtr + (d * 2)));
     ptr |= 0x0A0000;                  // Add bank to the short ptr
     ptrGFX |= 0x0A0000;               // Add bank to the short ptr
     int pcPtr = core::SnesToPc(ptr);  // Contains data for the next 25 rooms
     int pcPtrGFX =
         core::SnesToPc(ptrGFX);  // Contains data for the next 25 rooms
 
-    ASSIGN_OR_RETURN(ushort bossRoomD,
-                     rom()->ReadWord(zelda3::kDungeonMapBossRooms + (d * 2)));
+    ASSIGN_OR_RETURN(
+        ushort bossRoomD,
+        rom()->ReadWord(zelda3::screen::kDungeonMapBossRooms + (d * 2)));
 
-    ASSIGN_OR_RETURN(nbr_basement_d,
-                     rom()->ReadByte(zelda3::kDungeonMapFloors + (d * 2)));
+    ASSIGN_OR_RETURN(
+        nbr_basement_d,
+        rom()->ReadByte(zelda3::screen::kDungeonMapFloors + (d * 2)));
     nbr_basement_d &= 0x0F;
 
-    ASSIGN_OR_RETURN(nbr_floor_d,
-                     rom()->ReadByte(zelda3::kDungeonMapFloors + (d * 2)));
+    ASSIGN_OR_RETURN(
+        nbr_floor_d,
+        rom()->ReadByte(zelda3::screen::kDungeonMapFloors + (d * 2)));
     nbr_floor_d &= 0xF0;
     nbr_floor_d = nbr_floor_d >> 4;
 
@@ -179,8 +184,8 @@ absl::Status ScreenEditor::LoadDungeonMaps() {
 
 absl::Status ScreenEditor::SaveDungeonMaps() {
   for (int d = 0; d < 14; d++) {
-    int ptr = zelda3::kDungeonMapRoomsPtr + (d * 2);
-    int ptrGFX = zelda3::kDungeonMapGfxPtr + (d * 2);
+    int ptr = zelda3::screen::kDungeonMapRoomsPtr + (d * 2);
+    int ptrGFX = zelda3::screen::kDungeonMapGfxPtr + (d * 2);
     int pcPtr = core::SnesToPc(ptr);
     int pcPtrGFX = core::SnesToPc(ptrGFX);
 
@@ -208,9 +213,9 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
   tile16_sheet_.Init(256, 192, gfx::TileType::Tile16);
 
   for (int i = 0; i < 186; i++) {
-    int addr = zelda3::kDungeonMapTile16;
-    if (rom()->data()[zelda3::kDungeonMapExpCheck] != 0xB9) {
-      addr = zelda3::kDungeonMapTile16Expanded;
+    int addr = zelda3::screen::kDungeonMapTile16;
+    if (rom()->data()[zelda3::screen::kDungeonMapExpCheck] != 0xB9) {
+      addr = zelda3::screen::kDungeonMapTile16Expanded;
     }
 
     ASSIGN_OR_RETURN(auto tl, rom()->ReadWord(addr + (i * 8)));
