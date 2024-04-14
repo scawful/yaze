@@ -1,0 +1,8 @@
+<map id="yaze::app::anonymous_namespace{rom::cc}::LoadOverworldMiniMapPalettes" name="yaze::app::anonymous_namespace{rom::cc}::LoadOverworldMiniMapPalettes">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,212,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="62,29,62,19,71,10,86,5,109,3,134,5,149,12,147,17,132,10,108,8,87,10,74,15,67,21,67,29"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="260,37,434,78"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="212,55,244,55,244,60,212,60"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="482,44,705,70"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="435,55,466,55,466,60,435,60"/>
+</map>

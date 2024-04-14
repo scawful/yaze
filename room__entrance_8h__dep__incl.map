@@ -1,0 +1,21 @@
+<map id="src/app/zelda3/dungeon/room_entrance.h" name="src/app/zelda3/dungeon/room_entrance.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="118,5,276,46"/>
+<area shape="rect" id="Node000002" href="$dungeon__editor_8h.html" title=" " alt="" coords="120,94,273,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,62,199,94,194,94,194,62"/>
+<area shape="rect" id="Node000003" href="$dungeon__editor_8cc.html" title=" " alt="" coords="5,183,159,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="160,146,110,184,106,180,157,142"/>
+<area shape="rect" id="Node000004" href="$master__editor_8cc.html" title=" " alt="" coords="125,271,269,312"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="199,150,199,271,194,271,194,150"/>
+<area shape="rect" id="Node000005" href="$master__editor_8h.html" title=" " alt="" coords="234,183,378,223"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="235,143,283,180,280,184,232,147"/>
+<area shape="poly" id="edge10_Node000005_Node000004" title=" " alt="" coords="271,235,223,273,220,269,268,231"/>
+<area shape="rect" id="Node000006" href="$controller_8cc.html" title=" " alt="" coords="206,368,374,393"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="306,239,294,367,288,367,300,238"/>
+<area shape="rect" id="Node000007" href="$controller_8h.html" title=" " alt="" coords="374,279,534,305"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="354,229,435,276,432,281,351,234"/>
+<area shape="poly" id="edge7_Node000007_Node000006" title=" " alt="" coords="419,314,314,369,312,365,416,310"/>
+<area shape="rect" id="Node000008" href="$app__delegate_8mm.html" title=" " alt="" coords="398,360,542,401"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="462,319,469,359,464,360,456,320"/>
+<area shape="rect" id="Node000009" href="$yaze_8cc.html" title=" " alt="" coords="566,368,678,393"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="492,310,600,365,597,369,490,314"/>
+</map>

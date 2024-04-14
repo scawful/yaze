@@ -1,0 +1,9 @@
+<map id="yaze::app::zelda3::Tracker::SaveSPCCommand" name="yaze::app::zelda3::Tracker::SaveSPCCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,193,91"/>
+<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="57,51,55,41,62,32,77,26,99,24,123,26,137,33,135,38,122,32,99,29,78,31,65,36,60,42,62,49"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#af1b2eb58389245c79e8bfd818d2e459e" title=" " alt="" coords="241,5,401,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,49,225,43,226,48,194,54"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a55580c3b395b5a0e688a29e779025d98" title=" " alt="" coords="244,95,398,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,87,229,94,228,99,193,92"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="279,95,277,85,284,76,299,70,321,68,345,70,359,77,357,82,343,76,321,73,300,75,287,80,282,86,284,93"/>
+</map>

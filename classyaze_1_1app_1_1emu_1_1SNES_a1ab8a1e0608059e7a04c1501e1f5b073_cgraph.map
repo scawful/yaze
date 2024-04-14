@@ -1,0 +1,11 @@
+<map id="yaze::app::emu::SNES::ReadRomHeader" name="yaze::app::emu::SNES::ReadRomHeader">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,153,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a373f755c1344a9e0eaf0da94939adc5f" title=" " alt="" coords="201,5,335,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,43,185,37,186,43,153,49"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#af1184d356f86ed2c4616150765aa2d50" title=" " alt="" coords="201,71,335,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="153,69,186,74,185,80,152,74"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="383,5,540,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="335,23,368,23,368,28,335,28"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="383,71,540,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="335,88,368,88,368,94,335,94"/>
+</map>

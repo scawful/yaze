@@ -1,0 +1,24 @@
+<map id="yaze::cli::Expand::handle" name="yaze::cli::Expand::handle">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,98,126,139"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#ae16658cf5801bfa4c2b0c6b691d407cf" title=" " alt="" coords="193,43,351,68"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,97,212,71,213,76,127,102"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#acce5e28564a3ef475326f8473489f48a" title=" " alt="" coords="174,129,370,155"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="127,123,158,126,158,132,126,128"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html#a747ddab70fbf9f63d7424e0f44b9cd75" title=" " alt="" coords="453,5,592,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,41,437,28,438,33,352,46"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1ROM.html#afbd5d72224ad18b7fabf5471c146068e" title=" " alt="" coords="440,55,604,80"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="307,126,417,89,443,82,445,87,419,94,309,131"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1ROM.html#a92a606a412188dbd015e1949380f6eff" title="Loads all the palettes for the game." alt="" coords="418,104,626,130"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="370,130,402,126,403,132,371,135"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1ROM.html#a55b4985127ce92c7d476d9bb5b1cbb8f" title=" " alt="" coords="419,153,626,179"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="371,149,404,152,403,157,370,154"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1ROM.html#a91ce377dbd0f774e6b54c6a24adac094" title=" " alt="" coords="684,207,837,232"/>
+<area shape="poly" id="edge11_Node000004_Node000009" title=" " alt="" coords="306,153,358,172,419,189,549,208,669,215,668,221,549,213,417,194,356,177,304,158"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="434,254,611,295"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="293,153,348,191,419,233,446,245,444,250,417,238,345,196,290,158"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="674,92,847,118"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="582,150,626,140,698,120,700,125,627,145,584,155"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="584,177,686,200,684,205,582,182"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1ROM.html#a622f1ce127397eb27548536521ce0b99" title=" " alt="" coords="681,142,840,183"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="626,162,666,161,666,166,626,167"/>
+</map>

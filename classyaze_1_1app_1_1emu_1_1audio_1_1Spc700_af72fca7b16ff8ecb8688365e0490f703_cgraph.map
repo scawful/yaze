@@ -1,0 +1,8 @@
+<map id="yaze::app::emu::audio::Spc700::get_dp_addr" name="yaze::app::emu::audio::Spc700::get_dp_addr">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,154,70"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017" title=" " alt="" coords="202,29,344,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,47,186,47,186,52,154,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="236,29,235,19,241,10,254,5,273,3,294,5,306,11,304,16,292,10,273,8,255,10,244,15,240,20,242,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46" title=" " alt="" coords="392,29,534,70"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="345,47,377,47,377,52,345,52"/>
+</map>

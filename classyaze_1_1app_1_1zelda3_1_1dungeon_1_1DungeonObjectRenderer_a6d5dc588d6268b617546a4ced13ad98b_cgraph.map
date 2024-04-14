@@ -1,0 +1,26 @@
+<map id="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap" name="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,325,223,380"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb" title="Creates a bitmap object and reserves space for graphical data." alt="" coords="288,169,433,210"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,322,314,217,317,221,159,326"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="278,332,443,373"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="223,350,263,350,263,355,223,355"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="271,421,450,447"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="201,378,305,413,303,418,200,383"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="536,5,680,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="376,167,426,112,460,83,497,57,519,45,522,50,499,61,463,87,430,116,380,171"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="536,71,680,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="400,167,497,122,520,113,522,118,499,127,402,171"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#af3b83bf650d6acc73d46543367b944c1" title=" " alt="" coords="536,136,680,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="433,177,520,165,521,171,433,183"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="536,201,680,242"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="433,196,521,208,520,213,433,202"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="536,267,680,307"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="403,208,499,251,522,260,520,265,497,256,401,213"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="498,332,717,373"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="443,350,482,350,482,355,443,355"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a45b4fd8bed7fd1157789492fdc97717c" title=" " alt="" coords="509,397,707,438"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="441,371,514,390,512,395,439,376"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="765,397,923,438"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="707,415,750,415,750,420,707,420"/>
+<area shape="poly" id="edge12_Node000012_Node000012" title=" " alt="" coords="320,422,312,412,316,402,333,396,360,394,391,397,406,404,404,409,390,402,360,399,334,402,320,406,317,412,324,419"/>
+</map>

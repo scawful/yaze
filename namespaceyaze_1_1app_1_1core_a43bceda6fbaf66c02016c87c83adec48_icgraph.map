@@ -1,0 +1,11 @@
+<map id="yaze::app::core::PcToSnes" name="yaze::app::core::PcToSnes">
+<area shape="rect" id="Node000001" title=" " alt="" coords="432,78,604,104"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1PcToSnes.html#ad709da89bda8d90180739f3bc135408f" title=" " alt="" coords="214,5,347,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="453,76,347,47,348,41,455,71"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#ac8d205742d4140ce8cf8614ddbb23fed" title=" " alt="" coords="206,71,355,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="417,94,356,94,356,88,417,88"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407" title=" " alt="" coords="177,136,384,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="455,111,358,138,356,133,453,106"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a3024afeb5938bb2167313f9f68018038" title=" " alt="" coords="5,136,129,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="161,159,129,159,129,154,161,154"/>
+</map>

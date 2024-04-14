@@ -102,7 +102,7 @@ $(function(){initNavTree('pipeline_8h_source.html',''); initResizable(); });
   <div class="headertitle"><div class="title">pipeline.h</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_PIPELINE_H</span></div>
+<a href="pipeline_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_PIPELINE_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_PIPELINE_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;ImGuiFileDialog/ImGuiFileDialog.h&gt;</span></div>
@@ -114,39 +114,39 @@ $(function(){initNavTree('pipeline_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;optional&gt;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;app/core/constants.h&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;app/gfx/bitmap.h&quot;</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;app/gfx/snes_palette.h&quot;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;app/gui/canvas.h&quot;</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;app/rom.h&quot;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="constants_8h.html">app/core/constants.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="bitmap_8h.html">app/gfx/bitmap.h</a>&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="snes__palette_8h.html">app/gfx/snes_palette.h</a>&quot;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="canvas_8h.html">app/gui/canvas.h</a>&quot;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="rom_8h.html">app/rom.h</a>&quot;</span></div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">namespace </span>yaze {</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="keyword">namespace </span>app {</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">namespace </span>gui {</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keywordtype">void</span> SelectablePalettePipeline(uint64_t&amp; palette_id, <span class="keywordtype">bool</span>&amp; refresh_graphics,</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a3e37a9d87a9c3d7669d67fc7873f7c65">SelectablePalettePipeline</a>(uint64_t&amp; palette_id, <span class="keywordtype">bool</span>&amp; refresh_graphics,</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>                               gfx::SnesPalette&amp; palette);</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keywordtype">void</span> GraphicsBinCanvasPipeline(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> tile_size,</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006">GraphicsBinCanvasPipeline</a>(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> tile_size,</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                               <span class="keywordtype">int</span> num_sheets_to_load, <span class="keywordtype">int</span> canvas_id,</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                               <span class="keywordtype">bool</span> is_loaded, gfx::BitmapTable&amp; graphics_bin);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                               <span class="keywordtype">bool</span> is_loaded, <a class="code hl_typedef" href="namespaceyaze_1_1app_1_1gfx.html#a858420796068f9283ed3cb7dd88f9138">gfx::BitmapTable</a>&amp; graphics_bin);</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keywordtype">void</span> ButtonPipe(absl::string_view button_text, std::function&lt;<span class="keywordtype">void</span>()&gt; callback);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a21cf03d73a6f5ee2e9bf2baa76c1a2dc">ButtonPipe</a>(absl::string_view button_text, std::function&lt;<span class="keywordtype">void</span>()&gt; callback);</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keywordtype">void</span> BitmapCanvasPipeline(gui::Canvas&amp; canvas, <span class="keyword">const</span> gfx::Bitmap&amp; bitmap,</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43">BitmapCanvasPipeline</a>(gui::Canvas&amp; canvas, <span class="keyword">const</span> gfx::Bitmap&amp; bitmap,</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>                          <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> tile_size, <span class="keywordtype">bool</span> is_loaded,</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>                          <span class="keywordtype">bool</span> scrollbar, <span class="keywordtype">int</span> canvas_id);</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keywordtype">void</span> GraphicsManagerCanvasPipeline(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> tile_size,</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a34609a02f8c4abef89d99a65d59cdeb5">GraphicsManagerCanvasPipeline</a>(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> tile_size,</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>                                   <span class="keywordtype">int</span> num_sheets, <span class="keywordtype">int</span> canvas_id,</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>                                   <span class="keywordtype">bool</span> is_loaded,</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>                                   <span class="keyword">const</span> gfx::BitmapManager&amp; graphics_manager);</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keywordtype">void</span> BuildAndRenderBitmapPipeline(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> depth, Bytes data,</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a026bfbf959e86dcacdc224d3b028a94a">BuildAndRenderBitmapPipeline</a>(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> depth, <a class="code hl_typedef" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> data,</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                                  ROM&amp; z3_rom, gfx::Bitmap&amp; bitmap,</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>                                  gfx::SnesPalette&amp; palette);</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="keywordtype">void</span> FileDialogPipeline(absl::string_view display_key,</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50">FileDialogPipeline</a>(absl::string_view display_key,</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                        absl::string_view file_extensions,</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>                        std::optional&lt;absl::string_view&gt; button_text,</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>                        std::function&lt;<span class="keywordtype">void</span>()&gt; callback);</div>
@@ -156,12 +156,27 @@ $(function(){initNavTree('pipeline_8h_source.html',''); initResizable(); });
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="abitmap_8h_html"><div class="ttname"><a href="bitmap_8h.html">bitmap.h</a></div></div>
+<div class="ttc" id="acanvas_8h_html"><div class="ttname"><a href="canvas_8h.html">canvas.h</a></div></div>
+<div class="ttc" id="aconstants_8h_html"><div class="ttname"><a href="constants_8h.html">constants.h</a></div></div>
+<div class="ttc" id="aconstants_8h_html_a2640b748d10e1cbab1f408f43c52449d"><div class="ttname"><a href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; Bytes</div><div class="ttdef"><b>Definition</b> constants.h:133</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gfx_html_a858420796068f9283ed3cb7dd88f9138"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gfx.html#a858420796068f9283ed3cb7dd88f9138">yaze::app::gfx::BitmapTable</a></div><div class="ttdeci">std::unordered_map&lt; int, gfx::Bitmap &gt; BitmapTable</div><div class="ttdef"><b>Definition</b> bitmap.h:274</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a026bfbf959e86dcacdc224d3b028a94a"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a026bfbf959e86dcacdc224d3b028a94a">yaze::app::gui::BuildAndRenderBitmapPipeline</a></div><div class="ttdeci">void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data, ROM &amp;z3_rom, gfx::Bitmap &amp;bitmap, gfx::SnesPalette &amp;palette)</div><div class="ttdef"><b>Definition</b> pipeline.cc:161</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a21cf03d73a6f5ee2e9bf2baa76c1a2dc"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a21cf03d73a6f5ee2e9bf2baa76c1a2dc">yaze::app::gui::ButtonPipe</a></div><div class="ttdeci">void ButtonPipe(absl::string_view button_text, std::function&lt; void()&gt; callback)</div><div class="ttdef"><b>Definition</b> pipeline.cc:130</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a34609a02f8c4abef89d99a65d59cdeb5"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a34609a02f8c4abef89d99a65d59cdeb5">yaze::app::gui::GraphicsManagerCanvasPipeline</a></div><div class="ttdeci">void GraphicsManagerCanvasPipeline(int width, int height, int tile_size, int num_sheets, int canvas_id, bool is_loaded, const gfx::BitmapManager &amp;graphics_manager)</div><div class="ttdef"><b>Definition</b> pipeline.cc:98</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a3e37a9d87a9c3d7669d67fc7873f7c65"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a3e37a9d87a9c3d7669d67fc7873f7c65">yaze::app::gui::SelectablePalettePipeline</a></div><div class="ttdeci">void SelectablePalettePipeline(uint64_t &amp;palette_id, bool &amp;refresh_graphics, gfx::SnesPalette &amp;palette)</div><div class="ttdef"><b>Definition</b> pipeline.cc:24</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a574b5072f4f467f12dbdb9ea2eb41e50"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50">yaze::app::gui::FileDialogPipeline</a></div><div class="ttdeci">void FileDialogPipeline(absl::string_view display_key, absl::string_view file_extensions, std::optional&lt; absl::string_view &gt; button_text, std::function&lt; void()&gt; callback)</div><div class="ttdef"><b>Definition</b> pipeline.cc:169</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_ac8855b43699a5fdc16812db22be8cc43"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43">yaze::app::gui::BitmapCanvasPipeline</a></div><div class="ttdeci">void BitmapCanvasPipeline(gui::Canvas &amp;canvas, const gfx::Bitmap &amp;bitmap, int width, int height, int tile_size, bool is_loaded, bool scrollbar, int canvas_id)</div><div class="ttdef"><b>Definition</b> pipeline.cc:136</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_af3842eaca5095da067d7248aeda9d006"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006">yaze::app::gui::GraphicsBinCanvasPipeline</a></div><div class="ttdeci">void GraphicsBinCanvasPipeline(int width, int height, int tile_size, int num_sheets_to_load, int canvas_id, bool is_loaded, gfx::BitmapTable &amp;graphics_bin)</div><div class="ttdef"><b>Definition</b> pipeline.cc:67</div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> common.cc:14</div></div>
+<div class="ttc" id="arom_8h_html"><div class="ttname"><a href="rom_8h.html">rom.h</a></div></div>
+<div class="ttc" id="asnes__palette_8h_html"><div class="ttname"><a href="snes__palette_8h.html">snes_palette.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><b>pipeline.h</b></li>
+    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><a class="el" href="pipeline_8h.html">pipeline.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>

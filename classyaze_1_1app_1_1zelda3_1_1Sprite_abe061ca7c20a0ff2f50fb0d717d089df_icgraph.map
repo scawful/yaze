@@ -1,0 +1,12 @@
+<map id="yaze::app::zelda3::Sprite::x" name="yaze::app::zelda3::Sprite::x">
+<area shape="rect" id="Node000001" title=" " alt="" coords="411,67,534,107"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7aff276963041b1940a655f03058f487" title=" " alt="" coords="5,5,129,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="432,60,399,39,362,24,301,13,239,10,180,12,129,18,129,12,180,7,239,4,302,8,364,19,402,35,435,55"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae952503a9ee84414beb369002187bc5e" title=" " alt="" coords="197,33,343,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="396,77,343,68,344,63,396,72"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae77c70bfc485e5c09932b29a4698385d" title=" " alt="" coords="208,99,332,139"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="396,102,332,112,331,107,395,96"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#af807491d98c8cfe17d907c5deff0af7f" title=" " alt="" coords="177,164,363,205"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="428,118,364,153,335,166,333,161,362,149,426,113"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="181,44,129,37,130,32,181,39"/>
+</map>

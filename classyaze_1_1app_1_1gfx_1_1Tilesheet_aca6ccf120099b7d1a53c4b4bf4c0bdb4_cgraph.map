@@ -1,0 +1,13 @@
+<map id="yaze::app::gfx::Tilesheet::ComposeTile16" name="yaze::app::gfx::Tilesheet::ComposeTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,162,145"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87" title=" " alt="" coords="210,104,393,145"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,122,194,122,194,127,162,127"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2598482c94f8c510c9d833b84b513f5a" title=" " alt="" coords="441,5,665,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="341,101,440,57,462,49,464,54,442,61,344,106"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a61f010cd4b88db7e27e0ab3685f09b18" title=" " alt="" coords="466,71,641,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="393,110,450,102,450,107,394,115"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a7ef8ac2c3b08b4ba0d0985e1cb86dfa5" title=" " alt="" coords="473,136,634,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="394,133,457,142,457,147,393,139"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#ae43b92c154580e306ff29ce8248e32e8" title=" " alt="" coords="475,201,631,242"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="345,143,442,186,464,194,462,199,440,191,343,148"/>
+</map>

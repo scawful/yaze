@@ -1,0 +1,17 @@
+<map id="yaze::app::emu::Cpu::ASL" name="yaze::app::emu::Cpu::ASL">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,144,172,169"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="220,5,377,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,141,153,101,218,57,229,51,232,56,221,61,156,105,107,145"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a2e830ffe28c82a74677c6daef2297c66" title=" " alt="" coords="231,71,366,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="131,140,215,114,217,119,133,145"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#af90740ac26ee90c4f9d39d96d01e116b" title=" " alt="" coords="231,136,366,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="172,154,216,154,216,159,172,159"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a035ff1f28283ec6d08e3bb4900779f79" title=" " alt="" coords="231,201,366,242"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="133,167,217,194,215,199,131,172"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3" title=" " alt="" coords="220,267,377,307"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="107,168,156,207,221,251,232,257,229,262,218,256,153,212,103,172"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#ae31d0d071f8797bc81228af1bb519a5d" title=" " alt="" coords="425,136,559,177"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="362,109,416,128,415,133,360,114"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="366,154,410,154,410,159,366,159"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="360,198,415,180,416,185,362,203"/>
+</map>

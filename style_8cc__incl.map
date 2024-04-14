@@ -1,0 +1,12 @@
+<map id="src/app/gui/style.cc" name="src/app/gui/style.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,5,187,31"/>
+<area shape="rect" id="Node000002" href="$style_8h.html" title=" " alt="" coords="92,79,150,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,31,123,63,118,63,118,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,160,103,186"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="113,33,97,54,82,80,69,114,61,146,56,145,64,112,77,78,92,51,108,30"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="174,79,321,105"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="143,29,214,69,211,73,141,34"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,107,76,150,72,147,109,103"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="127,153,251,193"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="133,103,164,139,160,143,129,107"/>
+</map>

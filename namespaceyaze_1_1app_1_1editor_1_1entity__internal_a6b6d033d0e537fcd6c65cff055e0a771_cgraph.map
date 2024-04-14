@@ -1,0 +1,15 @@
+<map id="yaze::app::editor::entity_internal::HandleEntityDragging" name="yaze::app::editor::entity_internal::HandleEntityDragging">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,125,186,181"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95" title=" " alt="" coords="234,5,443,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,123,232,71,245,65,247,70,235,76,142,127"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#a58dc7249a61156c04451e80d470c598b" title=" " alt="" coords="253,85,424,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,136,237,127,238,132,187,141"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#ad756d842139061f376bb6c8ae11404b2" title=" " alt="" coords="246,165,431,221"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="187,165,230,173,230,178,186,171"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524" title=" " alt="" coords="251,245,426,286"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="141,179,185,206,235,231,249,237,247,242,233,236,183,210,138,184"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#ab0ab5da42fad67882c894e85eba32e7f" title=" " alt="" coords="491,61,640,102"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="424,98,475,91,476,96,425,104"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a039476bc5127718f110382ca6d160095" title=" " alt="" coords="491,126,640,167"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="425,123,476,131,475,136,424,128"/>
+</map>

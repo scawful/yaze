@@ -108,75 +108,301 @@ $(function(){initNavTree('classyaze_1_1app_1_1emu_1_1AsmParser.html',''); initRe
   <div class="headertitle"><div class="title">yaze::app::emu::AsmParser Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="asm__parser_8h_source.html">asm_parser.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:acacbf8f1812521947ac88fd188f85219" id="r_acacbf8f1812521947ac88fd188f85219"><td class="memItemLeft" align="right" valign="top"><a id="acacbf8f1812521947ac88fd188f85219" name="acacbf8f1812521947ac88fd188f85219"></a>
-std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Parse</b> (const std::string &amp;instruction)</td></tr>
+<tr class="memitem:acacbf8f1812521947ac88fd188f85219" id="r_acacbf8f1812521947ac88fd188f85219"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acacbf8f1812521947ac88fd188f85219">Parse</a> (const std::string &amp;instruction)</td></tr>
 <tr class="separator:acacbf8f1812521947ac88fd188f85219"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d939f3edae43a796e80acddf0e8a087" id="r_a3d939f3edae43a796e80acddf0e8a087"><td class="memItemLeft" align="right" valign="top"><a id="a3d939f3edae43a796e80acddf0e8a087" name="a3d939f3edae43a796e80acddf0e8a087"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>CreateInternalOpcodeMap</b> ()</td></tr>
+<tr class="memitem:a3d939f3edae43a796e80acddf0e8a087" id="r_a3d939f3edae43a796e80acddf0e8a087"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d939f3edae43a796e80acddf0e8a087">CreateInternalOpcodeMap</a> ()</td></tr>
 <tr class="separator:a3d939f3edae43a796e80acddf0e8a087"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
 Private Types</h2></td></tr>
-<tr class="memitem:a549c12f785b44400d0b60dc60b85ff07" id="r_a549c12f785b44400d0b60dc60b85ff07"><td class="memItemLeft" align="right" valign="top"><a id="a549c12f785b44400d0b60dc60b85ff07" name="a549c12f785b44400d0b60dc60b85ff07"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><b>AddressingMode</b> { <br />
-&#160;&#160;<b>kAbsolute</b>
-, <b>kAbsoluteLong</b>
-, <b>kAbsoluteIndexedIndirect</b>
-, <b>kAbsoluteIndexedX</b>
+<tr class="memitem:a549c12f785b44400d0b60dc60b85ff07" id="r_a549c12f785b44400d0b60dc60b85ff07"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a549c12f785b44400d0b60dc60b85ff07">AddressingMode</a> { <br />
+&#160;&#160;<a class="el" href="#a549c12f785b44400d0b60dc60b85ff07abab0767e88027de9944aa55c24c8387a">kAbsolute</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a9571d99922a257fa1a743541848f52be">kAbsoluteLong</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07afc6adf17891a646ee32f03f3da175e7d">kAbsoluteIndexedIndirect</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a584a5c33178ee320c2cf6328acc4ee82">kAbsoluteIndexedX</a>
 , <br />
-&#160;&#160;<b>kAbsoluteIndexedY</b>
-, <b>kAbsoluteIndirect</b>
-, <b>kAbsoluteIndirectLong</b>
-, <b>kAbsoluteLongIndexedX</b>
+&#160;&#160;<a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a6880f138a8145739ce9e9d5b2094d476">kAbsoluteIndexedY</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a71b09cdcff04b4aee920d11304a35d6d">kAbsoluteIndirect</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a1f281027847722032cfa2f78bba6ab96">kAbsoluteIndirectLong</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a161ef922130f9d368c4a73085eccf0ee">kAbsoluteLongIndexedX</a>
 , <br />
-&#160;&#160;<b>kAccumulator</b>
-, <b>kBlockMove</b>
-, <b>kDirectPage</b>
-, <b>kDirectPageIndexedX</b>
+&#160;&#160;<a class="el" href="#a549c12f785b44400d0b60dc60b85ff07ac1b745637d21e826ddc70aed14d3ff1d">kAccumulator</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a3cbe906b3a7baaa1bc5a961d076fc7e5">kBlockMove</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a8cfaea86c9ddc57ad751e8c0aafa36cd">kDirectPage</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07ad1e184db8889c39a379adbf7f3494217">kDirectPageIndexedX</a>
 , <br />
-&#160;&#160;<b>kDirectPageIndexedY</b>
-, <b>kDirectPageIndirect</b>
-, <b>kDirectPageIndirectIndexedY</b>
-, <b>kDirectPageIndirectLong</b>
+&#160;&#160;<a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a6437ad76ebbb0d4b37fba17038144b56">kDirectPageIndexedY</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07ad1f75ae076ac2ea547ef047ad1358346">kDirectPageIndirect</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a0c6022a8e3ab650748bd313f1c01bf3b">kDirectPageIndirectIndexedY</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a850b00e69e8676a29001df09f13d7d32">kDirectPageIndirectLong</a>
 , <br />
-&#160;&#160;<b>kDirectPageIndirectLongIndexedY</b>
-, <b>kDirectPageIndirectIndexedX</b>
-, <b>kDirectPageIndirectLongIndexedX</b>
-, <b>kImmediate</b>
+&#160;&#160;<a class="el" href="#a549c12f785b44400d0b60dc60b85ff07aa34cce27b1feb9a9ad46067f5d5b9bc3">kDirectPageIndirectLongIndexedY</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07ad44ed864e421867b99c29a0c6391083b">kDirectPageIndirectIndexedX</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a51aba12b39be2f7ed6bace42c077184f">kDirectPageIndirectLongIndexedX</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a9d5396915e9c40be7d43f985aa8e5ae0">kImmediate</a>
 , <br />
-&#160;&#160;<b>kImplied</b>
-, <b>kProgramCounterRelative</b>
-, <b>kProgramCounterRelativeLong</b>
-, <b>kStackRelative</b>
+&#160;&#160;<a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a66a9ac70decf5309e8706a0dedc4c3c8">kImplied</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a843f1f4d2c53a5041922ffb5cfd68e33">kProgramCounterRelative</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07af3bc1bce25569418c897b2e9b215af92">kProgramCounterRelativeLong</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a88b7469580b8bc21f14fb1f591333c44">kStackRelative</a>
 , <br />
-&#160;&#160;<b>kStackRelativeIndirectIndexedY</b>
-, <b>kStackRelativeIndirectIndexedYLong</b>
-, <b>kStack</b>
-, <b>kStackRelativeIndexedY</b>
+&#160;&#160;<a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a4aa601cf14d34696e777daadac4d992e">kStackRelativeIndirectIndexedY</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a4fb43c0a77502c0cd46f01c14787fa75">kStackRelativeIndirectIndexedYLong</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a5f4930a7bc3cf140a4d53f44f47ed789">kStack</a>
+, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07ad43bb7d5a33aec2376fcec383643161c">kStackRelativeIndexedY</a>
 <br />
  }</td></tr>
 <tr class="separator:a549c12f785b44400d0b60dc60b85ff07"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:ad9e43fd07adb49fe4b7f556a70354f59" id="r_ad9e43fd07adb49fe4b7f556a70354f59"><td class="memItemLeft" align="right" valign="top"><a id="ad9e43fd07adb49fe4b7f556a70354f59" name="ad9e43fd07adb49fe4b7f556a70354f59"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>AppendOperandBytes</b> (std::vector&lt; uint8_t &gt; &amp;bytes, const std::string &amp;operand, const std::string &amp;addressing_mode)</td></tr>
+<tr class="memitem:ad9e43fd07adb49fe4b7f556a70354f59" id="r_ad9e43fd07adb49fe4b7f556a70354f59"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad9e43fd07adb49fe4b7f556a70354f59">AppendOperandBytes</a> (std::vector&lt; uint8_t &gt; &amp;bytes, const std::string &amp;operand, const std::string &amp;addressing_mode)</td></tr>
 <tr class="separator:ad9e43fd07adb49fe4b7f556a70354f59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab93a1bd4bf7da9474b99e805b5fc4077" id="r_ab93a1bd4bf7da9474b99e805b5fc4077"><td class="memItemLeft" align="right" valign="top"><a id="ab93a1bd4bf7da9474b99e805b5fc4077" name="ab93a1bd4bf7da9474b99e805b5fc4077"></a>
-AddressingMode&#160;</td><td class="memItemRight" valign="bottom"><b>InferAddressingModeFromOperand</b> (const std::string &amp;operand)</td></tr>
+<tr class="memitem:ab93a1bd4bf7da9474b99e805b5fc4077" id="r_ab93a1bd4bf7da9474b99e805b5fc4077"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a549c12f785b44400d0b60dc60b85ff07">AddressingMode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab93a1bd4bf7da9474b99e805b5fc4077">InferAddressingModeFromOperand</a> (const std::string &amp;operand)</td></tr>
 <tr class="separator:ab93a1bd4bf7da9474b99e805b5fc4077"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a1e0974f01f29024d8977eecb68942bf4" id="r_a1e0974f01f29024d8977eecb68942bf4"><td class="memItemLeft" align="right" valign="top"><a id="a1e0974f01f29024d8977eecb68942bf4" name="a1e0974f01f29024d8977eecb68942bf4"></a>
-const std::regex&#160;</td><td class="memItemRight" valign="bottom"><b>instruction_regex_</b> {R&quot;((\w+)\s*(\.\w)?\s*(\$\w+|\#\w+|\w+))&quot;}</td></tr>
+<tr class="memitem:a1e0974f01f29024d8977eecb68942bf4" id="r_a1e0974f01f29024d8977eecb68942bf4"><td class="memItemLeft" align="right" valign="top">const std::regex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1e0974f01f29024d8977eecb68942bf4">instruction_regex_</a> {R&quot;((\w+)\s*(\.\w)?\s*(\$\w+|\#\w+|\w+))&quot;}</td></tr>
 <tr class="separator:a1e0974f01f29024d8977eecb68942bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f877511def63231c829767d358c2d62" id="r_a2f877511def63231c829767d358c2d62"><td class="memItemLeft" align="right" valign="top"><a id="a2f877511def63231c829767d358c2d62" name="a2f877511def63231c829767d358c2d62"></a>
-std::unordered_map&lt; std::string, uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mnemonic_to_opcode_</b></td></tr>
+<tr class="memitem:a2f877511def63231c829767d358c2d62" id="r_a2f877511def63231c829767d358c2d62"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2f877511def63231c829767d358c2d62">mnemonic_to_opcode_</a></td></tr>
 <tr class="separator:a2f877511def63231c829767d358c2d62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="a549c12f785b44400d0b60dc60b85ff07" name="a549c12f785b44400d0b60dc60b85ff07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a549c12f785b44400d0b60dc60b85ff07">&#9670;&#160;</a></span>AddressingMode</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07">yaze::app::emu::AsmParser::AddressingMode</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07abab0767e88027de9944aa55c24c8387a" name="a549c12f785b44400d0b60dc60b85ff07abab0767e88027de9944aa55c24c8387a"></a>kAbsolute&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a9571d99922a257fa1a743541848f52be" name="a549c12f785b44400d0b60dc60b85ff07a9571d99922a257fa1a743541848f52be"></a>kAbsoluteLong&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07afc6adf17891a646ee32f03f3da175e7d" name="a549c12f785b44400d0b60dc60b85ff07afc6adf17891a646ee32f03f3da175e7d"></a>kAbsoluteIndexedIndirect&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a584a5c33178ee320c2cf6328acc4ee82" name="a549c12f785b44400d0b60dc60b85ff07a584a5c33178ee320c2cf6328acc4ee82"></a>kAbsoluteIndexedX&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a6880f138a8145739ce9e9d5b2094d476" name="a549c12f785b44400d0b60dc60b85ff07a6880f138a8145739ce9e9d5b2094d476"></a>kAbsoluteIndexedY&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a71b09cdcff04b4aee920d11304a35d6d" name="a549c12f785b44400d0b60dc60b85ff07a71b09cdcff04b4aee920d11304a35d6d"></a>kAbsoluteIndirect&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a1f281027847722032cfa2f78bba6ab96" name="a549c12f785b44400d0b60dc60b85ff07a1f281027847722032cfa2f78bba6ab96"></a>kAbsoluteIndirectLong&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a161ef922130f9d368c4a73085eccf0ee" name="a549c12f785b44400d0b60dc60b85ff07a161ef922130f9d368c4a73085eccf0ee"></a>kAbsoluteLongIndexedX&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07ac1b745637d21e826ddc70aed14d3ff1d" name="a549c12f785b44400d0b60dc60b85ff07ac1b745637d21e826ddc70aed14d3ff1d"></a>kAccumulator&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a3cbe906b3a7baaa1bc5a961d076fc7e5" name="a549c12f785b44400d0b60dc60b85ff07a3cbe906b3a7baaa1bc5a961d076fc7e5"></a>kBlockMove&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a8cfaea86c9ddc57ad751e8c0aafa36cd" name="a549c12f785b44400d0b60dc60b85ff07a8cfaea86c9ddc57ad751e8c0aafa36cd"></a>kDirectPage&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07ad1e184db8889c39a379adbf7f3494217" name="a549c12f785b44400d0b60dc60b85ff07ad1e184db8889c39a379adbf7f3494217"></a>kDirectPageIndexedX&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a6437ad76ebbb0d4b37fba17038144b56" name="a549c12f785b44400d0b60dc60b85ff07a6437ad76ebbb0d4b37fba17038144b56"></a>kDirectPageIndexedY&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07ad1f75ae076ac2ea547ef047ad1358346" name="a549c12f785b44400d0b60dc60b85ff07ad1f75ae076ac2ea547ef047ad1358346"></a>kDirectPageIndirect&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a0c6022a8e3ab650748bd313f1c01bf3b" name="a549c12f785b44400d0b60dc60b85ff07a0c6022a8e3ab650748bd313f1c01bf3b"></a>kDirectPageIndirectIndexedY&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a850b00e69e8676a29001df09f13d7d32" name="a549c12f785b44400d0b60dc60b85ff07a850b00e69e8676a29001df09f13d7d32"></a>kDirectPageIndirectLong&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07aa34cce27b1feb9a9ad46067f5d5b9bc3" name="a549c12f785b44400d0b60dc60b85ff07aa34cce27b1feb9a9ad46067f5d5b9bc3"></a>kDirectPageIndirectLongIndexedY&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07ad44ed864e421867b99c29a0c6391083b" name="a549c12f785b44400d0b60dc60b85ff07ad44ed864e421867b99c29a0c6391083b"></a>kDirectPageIndirectIndexedX&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a51aba12b39be2f7ed6bace42c077184f" name="a549c12f785b44400d0b60dc60b85ff07a51aba12b39be2f7ed6bace42c077184f"></a>kDirectPageIndirectLongIndexedX&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a9d5396915e9c40be7d43f985aa8e5ae0" name="a549c12f785b44400d0b60dc60b85ff07a9d5396915e9c40be7d43f985aa8e5ae0"></a>kImmediate&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a66a9ac70decf5309e8706a0dedc4c3c8" name="a549c12f785b44400d0b60dc60b85ff07a66a9ac70decf5309e8706a0dedc4c3c8"></a>kImplied&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a843f1f4d2c53a5041922ffb5cfd68e33" name="a549c12f785b44400d0b60dc60b85ff07a843f1f4d2c53a5041922ffb5cfd68e33"></a>kProgramCounterRelative&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07af3bc1bce25569418c897b2e9b215af92" name="a549c12f785b44400d0b60dc60b85ff07af3bc1bce25569418c897b2e9b215af92"></a>kProgramCounterRelativeLong&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a88b7469580b8bc21f14fb1f591333c44" name="a549c12f785b44400d0b60dc60b85ff07a88b7469580b8bc21f14fb1f591333c44"></a>kStackRelative&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a4aa601cf14d34696e777daadac4d992e" name="a549c12f785b44400d0b60dc60b85ff07a4aa601cf14d34696e777daadac4d992e"></a>kStackRelativeIndirectIndexedY&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a4fb43c0a77502c0cd46f01c14787fa75" name="a549c12f785b44400d0b60dc60b85ff07a4fb43c0a77502c0cd46f01c14787fa75"></a>kStackRelativeIndirectIndexedYLong&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07a5f4930a7bc3cf140a4d53f44f47ed789" name="a549c12f785b44400d0b60dc60b85ff07a5f4930a7bc3cf140a4d53f44f47ed789"></a>kStack&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a549c12f785b44400d0b60dc60b85ff07ad43bb7d5a33aec2376fcec383643161c" name="a549c12f785b44400d0b60dc60b85ff07ad43bb7d5a33aec2376fcec383643161c"></a>kStackRelativeIndexedY&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="ad9e43fd07adb49fe4b7f556a70354f59" name="ad9e43fd07adb49fe4b7f556a70354f59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9e43fd07adb49fe4b7f556a70354f59">&#9670;&#160;</a></span>AppendOperandBytes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::AsmParser::AppendOperandBytes </td>
+          <td>(</td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>bytes</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>operand</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>addressing_mode</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3d939f3edae43a796e80acddf0e8a087" name="a3d939f3edae43a796e80acddf0e8a087"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d939f3edae43a796e80acddf0e8a087">&#9670;&#160;</a></span>CreateInternalOpcodeMap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::AsmParser::CreateInternalOpcodeMap </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a2f877511def63231c829767d358c2d62">mnemonic_to_opcode_</a>, and <a class="el" href="cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd">opcode_to_mnemonic</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1CpuTest.html#af01ec9ce8c4ba868739ec14d7b11a575">yaze::app::emu::CpuTest::SetUp()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1AsmParser_a3d939f3edae43a796e80acddf0e8a087_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1AsmParser_a3d939f3edae43a796e80acddf0e8a087_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1AsmParser_a3d939f3edae43a796e80acddf0e8a087_icgraph" id="aclassyaze_1_1app_1_1emu_1_1AsmParser_a3d939f3edae43a796e80acddf0e8a087_icgraph">
+<area shape="rect" title=" " alt="" coords="214,5,392,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1CpuTest.html#af01ec9ce8c4ba868739ec14d7b11a575" title=" " alt="" coords="5,5,166,46"/>
+<area shape="poly" title=" " alt="" coords="198,28,166,28,166,23,198,23"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ab93a1bd4bf7da9474b99e805b5fc4077" name="ab93a1bd4bf7da9474b99e805b5fc4077"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab93a1bd4bf7da9474b99e805b5fc4077">&#9670;&#160;</a></span>InferAddressingModeFromOperand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a549c12f785b44400d0b60dc60b85ff07">AddressingMode</a> yaze::app::emu::AsmParser::InferAddressingModeFromOperand </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>operand</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07abab0767e88027de9944aa55c24c8387a">kAbsolute</a>, <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a9d5396915e9c40be7d43f985aa8e5ae0">kImmediate</a>, and <a class="el" href="#a549c12f785b44400d0b60dc60b85ff07a66a9ac70decf5309e8706a0dedc4c3c8">kImplied</a>.</p>
+
+</div>
+</div>
+<a id="acacbf8f1812521947ac88fd188f85219" name="acacbf8f1812521947ac88fd188f85219"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acacbf8f1812521947ac88fd188f85219">&#9670;&#160;</a></span>Parse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; uint8_t &gt; yaze::app::emu::AsmParser::Parse </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>instruction</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a1e0974f01f29024d8977eecb68942bf4">instruction_regex_</a>, and <a class="el" href="#a2f877511def63231c829767d358c2d62">mnemonic_to_opcode_</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a1e0974f01f29024d8977eecb68942bf4" name="a1e0974f01f29024d8977eecb68942bf4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e0974f01f29024d8977eecb68942bf4">&#9670;&#160;</a></span>instruction_regex_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::regex yaze::app::emu::AsmParser::instruction_regex_ {R&quot;((\w+)\s*(\.\w)?\s*(\$\w+|\#\w+|\w+))&quot;}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#acacbf8f1812521947ac88fd188f85219">Parse()</a>.</p>
+
+</div>
+</div>
+<a id="a2f877511def63231c829767d358c2d62" name="a2f877511def63231c829767d358c2d62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f877511def63231c829767d358c2d62">&#9670;&#160;</a></span>mnemonic_to_opcode_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;std::string, uint8_t&gt; yaze::app::emu::AsmParser::mnemonic_to_opcode_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a3d939f3edae43a796e80acddf0e8a087">CreateInternalOpcodeMap()</a>, and <a class="el" href="#acacbf8f1812521947ac88fd188f85219">Parse()</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/app/emu/debug/<a class="el" href="asm__parser_8h_source.html">asm_parser.h</a></li>
 </ul>
@@ -185,7 +411,7 @@ std::unordered_map&lt; std::string, uint8_t &gt;&#160;</td><td class="memItemRig
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>yaze</b></li><li class="navelem"><b>app</b></li><li class="navelem"><b>emu</b></li><li class="navelem"><a class="el" href="classyaze_1_1app_1_1emu_1_1AsmParser.html">AsmParser</a></li>
+    <li class="navelem"><a class="el" href="namespaceyaze.html">yaze</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app.html">app</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app_1_1emu.html">emu</a></li><li class="navelem"><a class="el" href="classyaze_1_1app_1_1emu_1_1AsmParser.html">AsmParser</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>

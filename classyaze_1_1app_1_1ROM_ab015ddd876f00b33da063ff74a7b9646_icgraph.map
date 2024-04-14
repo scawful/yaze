@@ -1,0 +1,17 @@
+<map id="yaze::app::ROM::WriteColor" name="yaze::app::ROM::WriteColor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="932,72,1108,97"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#ace48019bfedaae37264d224c102de7c1" title=" " alt="" coords="696,46,884,72"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="916,76,884,72,885,67,917,70"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1ROM.html#a0ec76a9ee5dd04c46e78729168ac593e" title=" " alt="" coords="698,96,882,121"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="917,98,883,101,883,96,916,92"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html#ac789b7c8b969a086055a13f8fb934497" title="Saves all palettes in the ROM." alt="" coords="439,46,648,72"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="681,62,649,62,649,56,681,56"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#aad27cb4443953b12f818bb54d23d60ba" title="Saves the ROM data to a file." alt="" coords="209,46,391,72"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="423,62,391,62,391,56,423,56"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498" title=" " alt="" coords="22,5,144,46"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="197,46,144,38,145,32,197,41"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3" title=" " alt="" coords="5,71,161,111"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="194,77,162,82,161,77,193,72"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1ROM.html#ade7c4ba363154f96ef47af0d01e0aa4f" title=" " alt="" coords="440,96,647,121"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="682,111,648,111,648,106,682,106"/>
+</map>

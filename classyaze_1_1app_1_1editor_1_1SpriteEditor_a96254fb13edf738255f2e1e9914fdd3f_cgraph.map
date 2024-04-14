@@ -1,0 +1,6 @@
+<map id="yaze::app::editor::SpriteEditor::Update" name="yaze::app::editor::SpriteEditor::Update">
+<area shape="rect" id="Node000001" title="Updates the sprite editor." alt="" coords="5,22,142,63"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="190,29,369,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,40,174,40,174,45,142,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="245,31,238,21,242,11,256,5,279,3,305,5,318,12,315,17,303,10,279,8,258,10,246,15,244,20,249,27"/>
+</map>

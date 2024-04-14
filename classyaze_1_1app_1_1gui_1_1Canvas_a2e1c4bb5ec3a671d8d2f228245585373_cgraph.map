@@ -1,0 +1,11 @@
+<map id="yaze::app::gui::Canvas::DrawBitmapGroup" name="yaze::app::gui::Canvas::DrawBitmapGroup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,153,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="201,71,348,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,88,185,88,185,94,153,94"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="396,5,540,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="336,68,391,49,392,54,338,73"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e" title=" " alt="" coords="396,71,540,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="348,88,380,88,380,94,348,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="396,136,540,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="338,109,392,128,391,133,336,114"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="yaze::app::emu::SNES::StartApuDataTransfer" name="yaze::app::emu::SNES::StartApuDataTransfer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,159,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a614807d9ebf35a042c0fb71f0282c8fb" title=" " alt="" coords="207,71,367,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,68,192,73,191,79,159,74"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#aaed81ca4639961fe4c29074eba6fe0fe" title=" " alt="" coords="207,5,367,46"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="159,44,191,39,192,44,160,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="415,5,634,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="363,68,433,48,434,53,364,73"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a45b4fd8bed7fd1157789492fdc97717c" title=" " alt="" coords="426,71,624,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="367,88,410,88,410,94,367,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="682,71,840,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="624,88,667,88,667,94,624,94"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="367,23,399,23,399,28,367,28"/>
+</map>

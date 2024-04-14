@@ -1,0 +1,15 @@
+<map id="src/cli/patch.h" name="src/cli/patch.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="186,5,288,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,56,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,34,71,79,69,74,201,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="80,79,141,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,34,146,73,144,69,214,29"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="164,79,225,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="232,33,212,67,207,64,228,30"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="249,79,314,105"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="247,30,268,64,263,67,242,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="338,79,409,105"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="261,29,338,69,335,74,259,34"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="433,79,490,105"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="276,29,418,74,417,79,274,34"/>
+</map>

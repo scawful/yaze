@@ -1,4 +1,20 @@
 var searchData=
 [
-  ['handleinterrupts_0',['HandleInterrupts',['../classyaze_1_1app_1_1emu_1_1Cpu.html#abcc792f6220359761c4df2031daf2f92',1,'yaze::app::emu::Cpu']]]
+  ['fetchbyte_0',['FetchByte',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a435a90cac96c6883ddbc475c18e50055',1,'yaze::app::emu::Cpu']]],
+  ['fetchbytedirectpage_1',['FetchByteDirectPage',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5a4026eb2159fe49bdb927451ffcd9ac',1,'yaze::app::emu::Cpu']]],
+  ['fetchlargemaps_2',['FetchLargeMaps',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5b6e5c8605487ffe91a552dd51254ce2',1,'yaze::app::zelda3::Overworld']]],
+  ['fetchlong_3',['FetchLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5485851bc733a059fcca1295de3b647e',1,'yaze::app::emu::Cpu']]],
+  ['fetchsampleforvoice_4',['FetchSampleForVoice',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a1ed94512007f013a0a981e016aa50164',1,'yaze::app::emu::audio::Apu']]],
+  ['fetchsamplefromram_5',['FetchSampleFromRam',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a20793dddc4e6607abc38d7f831e78ce8',1,'yaze::app::emu::audio::Apu']]],
+  ['fetchsignedbyte_6',['FetchSignedByte',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a62466af19ce382b324efb44c1ed65f71',1,'yaze::app::emu::Cpu']]],
+  ['fetchsignedword_7',['FetchSignedWord',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a0faa2f9a61dcaa2dc89b8b64d984fcaa',1,'yaze::app::emu::Cpu']]],
+  ['fetchsubtypeinfo_8',['FetchSubtypeInfo',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a362da1288267fc7ce4ca6db3d141156a',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
+  ['fetchtiledatafromgraphicsbuffer_9',['FetchTileDataFromGraphicsBuffer',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2598482c94f8c510c9d833b84b513f5a',1,'yaze::app::gfx::Tilesheet']]],
+  ['fetchword_10',['FetchWord',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a27de1fe5e045ecb58943d4375699b1af',1,'yaze::app::emu::Cpu']]],
+  ['filedialogpipeline_11',['FileDialogPipeline',['../namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50',1,'yaze::app::gui']]],
+  ['filename_12',['filename',['../classyaze_1_1app_1_1ROM.html#afbd5d72224ad18b7fabf5471c146068e',1,'yaze::app::ROM']]],
+  ['finalizecompression_13',['FinalizeCompression',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af33da6d271bc83cd2ad741dccccccbd3',1,'yaze::app::gfx::lc_lz2']]],
+  ['findmetastamp_14',['FindMetastamp',['../namespaceyaze_1_1app_1_1gfx.html#acbb065216469871484e74cc1ef3023f5',1,'yaze::app::gfx']]],
+  ['flags_15',['flags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116',1,'yaze::app::core::ExperimentFlags']]],
+  ['flagstobyte_16',['FlagsToByte',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f',1,'yaze::app::emu::audio::Spc700']]]
 ];

@@ -1,0 +1,9 @@
+<map id="yaze::app::zelda3::dungeon::RoomObject::GetObjectSize" name="yaze::app::zelda3::dungeon::RoomObject::GetObjectSize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,85,154,141"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a894011db4a1890dd5293884a1b44539f" title=" " alt="" coords="202,5,350,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,82,191,65,193,70,151,87"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a72c0a79ec2c2309ae2649c0924f96a6f" title=" " alt="" coords="202,85,350,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,111,186,111,186,116,154,116"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a56ed10efb9d156ee1a4b0e96664c093d" title=" " alt="" coords="202,165,350,221"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="151,139,193,157,191,162,149,144"/>
+</map>

@@ -1,0 +1,25 @@
+var classyaze_1_1app_1_1zelda3_1_1OverworldExit =
+[
+    [ "OverworldExit", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a32b5a94d9bc2c72217ffd729d1b155fa", null ],
+    [ "OverworldExit", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a7e6d2f1e8c53695985eeec3c2cee96a6", null ],
+    [ "UpdateMapProperties", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a111d14f5700f54ae83e9cac8aa19ea45", null ],
+    [ "area_x_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#ae552f5f4ac4bed600aa0251d0c9d6151", null ],
+    [ "area_y_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a9bf189ea63a4b53c56a0285b311bed0d", null ],
+    [ "deleted_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#accde7db7d21ce4c00f5e4ea4f718bd8c", null ],
+    [ "door_type_1_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a4633d24f0425600aba384e65940ae842", null ],
+    [ "door_type_2_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#aa87272f6855543e1e043297178ff7a87", null ],
+    [ "entrance_id_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#abe0eace5f903da117d020dbe5f1b94df", null ],
+    [ "is_automatic_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a6b83d19ec57cf0981ffec54865f899f3", null ],
+    [ "is_hole_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#ac6c370be67f05e99c3fb6d8467a0ec1a", null ],
+    [ "large_map_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a3a58c695dc13ec78e8f75f952b65c860", null ],
+    [ "map_pos_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a37db4f7a521e8d4d928fb2b0ef885d62", null ],
+    [ "room_id_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a34e47e5bd344306e977b08b5ed729882", null ],
+    [ "scroll_mod_x_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a9efb3a84185447566b1172255581a837", null ],
+    [ "scroll_mod_y_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a87ede757f76f28a2b7c6f5a25f168cd3", null ],
+    [ "x_camera_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#ac29f9f6fbbac7962e0ecdcbd36a74087", null ],
+    [ "x_player_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#ac054075df4aaf7c2492eb5f3c63f0254", null ],
+    [ "x_scroll_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a2fd9842022646dc4675ed867c497d157", null ],
+    [ "y_camera_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#ad7afc45fa19518d31d974f5b6d8894f1", null ],
+    [ "y_player_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#a01a4564b413802b587cd7f7d45bc03ae", null ],
+    [ "y_scroll_", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html#abd5d1196bf9ab6345f953c88f271de94", null ]
+];

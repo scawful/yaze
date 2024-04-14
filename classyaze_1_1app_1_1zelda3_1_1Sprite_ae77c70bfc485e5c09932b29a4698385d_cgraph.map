@@ -1,0 +1,13 @@
+<map id="yaze::app::zelda3::Sprite::InitSprite" name="yaze::app::zelda3::Sprite::InitSprite">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,136,129,177"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae35b8ea7765e1fefd6ebe2e7ef2810b5" title=" " alt="" coords="177,5,300,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,133,126,96,175,57,182,52,185,56,178,61,130,100,91,137"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a09c91782771ad5f4134d7bd32801f50b" title=" " alt="" coords="177,71,300,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="121,133,168,115,170,120,123,138"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa464a960f30fbda89b7534b22126d34c" title=" " alt="" coords="177,136,300,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="129,154,161,154,161,159,129,159"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#abe061ca7c20a0ff2f50fb0d717d089df" title=" " alt="" coords="177,201,300,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="123,175,170,193,168,198,121,180"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab63d0ebfbaf09520434422d51ad24449" title=" " alt="" coords="177,267,300,307"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="91,175,130,212,178,252,185,256,182,261,175,256,126,216,87,179"/>
+</map>

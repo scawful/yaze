@@ -1,0 +1,45 @@
+var ppu_8h =
+[
+    [ "yaze::app::emu::video::PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface" ],
+    [ "yaze::app::emu::video::SpriteAttributes", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes" ],
+    [ "yaze::app::emu::video::TilemapEntry", "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html", "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry" ],
+    [ "yaze::app::emu::video::Tilemap", "structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html", "structyaze_1_1app_1_1emu_1_1video_1_1Tilemap" ],
+    [ "yaze::app::emu::video::Color", "structyaze_1_1app_1_1emu_1_1video_1_1Color.html", "structyaze_1_1app_1_1emu_1_1video_1_1Color" ],
+    [ "yaze::app::emu::video::OAMSize", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize" ],
+    [ "yaze::app::emu::video::OAMAddress", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress" ],
+    [ "yaze::app::emu::video::TileMapLocation", "structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation.html", "structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation" ],
+    [ "yaze::app::emu::video::CharacterLocation", "structyaze_1_1app_1_1emu_1_1video_1_1CharacterLocation.html", "structyaze_1_1app_1_1emu_1_1video_1_1CharacterLocation" ],
+    [ "yaze::app::emu::video::VideoPortControl", "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html", "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl" ],
+    [ "yaze::app::emu::video::ScreenDisplay", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay" ],
+    [ "yaze::app::emu::video::ScreenMode", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode" ],
+    [ "yaze::app::emu::video::ScrollRegister", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister" ],
+    [ "yaze::app::emu::video::MainSubScreenDesignation", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation" ],
+    [ "yaze::app::emu::video::WindowMaskSettings", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings" ],
+    [ "yaze::app::emu::video::WindowMaskSettings2", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2" ],
+    [ "yaze::app::emu::video::WindowPosition", "structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html", "structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition" ],
+    [ "yaze::app::emu::video::MaskLogicSettings", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings" ],
+    [ "yaze::app::emu::video::CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters" ],
+    [ "yaze::app::emu::video::JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters" ],
+    [ "yaze::app::emu::video::DmaRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters" ],
+    [ "yaze::app::emu::video::WramAccessRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters" ],
+    [ "yaze::app::emu::video::Tile", "structyaze_1_1app_1_1emu_1_1video_1_1Tile.html", "structyaze_1_1app_1_1emu_1_1video_1_1Tile" ],
+    [ "yaze::app::emu::video::BackgroundLayer", "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html", "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer" ],
+    [ "yaze::app::emu::video::Ppu", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu" ],
+    [ "BackgroundMode", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499", [
+      [ "Mode0", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499a315436bae0e85636381fc939db06aee5", null ],
+      [ "Mode1", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499a7a2ea225a084605104f8c39b3ae9657c", null ],
+      [ "Mode2", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499a04c542f260d16590ec60c594f67a30e7", null ],
+      [ "Mode3", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499ab68fa4884da8d22e83f37b4f209295f1", null ],
+      [ "Mode4", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499af84b2e944a3acf91240a6c08d9c32b5e", null ],
+      [ "Mode5", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499afb18b5da29e7e7098a82fe478934ce8b", null ],
+      [ "Mode6", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499a5baea5488eacdf0684fbad674206d40d", null ],
+      [ "Mode7", "ppu_8h.html#a427e9200555ca4f3514cbdc4f560e499a8cfe262c5049539f1662dabd1a8e45ba", null ]
+    ] ],
+    [ "SpriteSize", "ppu_8h.html#a55b219b70a80e3b20522da1a08cc6c0a", [
+      [ "Size8x8", "ppu_8h.html#a55b219b70a80e3b20522da1a08cc6c0aaac337b90c27b4bfb1fef8c470fce8723", null ],
+      [ "Size16x16", "ppu_8h.html#a55b219b70a80e3b20522da1a08cc6c0aa407a174c98babc11c9f5c5967857ee29", null ],
+      [ "Size32x32", "ppu_8h.html#a55b219b70a80e3b20522da1a08cc6c0aaec579cbe3d24a02a93dad1682c20330d", null ],
+      [ "Size64x64", "ppu_8h.html#a55b219b70a80e3b20522da1a08cc6c0aa8816d701dd08fb573f43ab49d6fc32e3", null ]
+    ] ],
+    [ "kPpuClockSpeed", "ppu_8h.html#a7207ceb50d735dbd3330beacba6a946f", null ]
+];

@@ -1,0 +1,9 @@
+<map id="yaze::app::emu::memory::MemoryImpl::ReadWordLong" name="yaze::app::emu::memory::MemoryImpl::ReadWordLong">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,199,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="247,5,466,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,44,231,39,232,45,200,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a45b4fd8bed7fd1157789492fdc97717c" title=" " alt="" coords="257,71,456,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,69,242,74,242,79,199,74"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="514,71,671,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="456,88,499,88,499,94,456,94"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="yaze::app::emu::Cpu::AbsoluteIndirectLong" name="yaze::app::emu::Cpu::AbsoluteIndirectLong">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,156,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a27de1fe5e045ecb58943d4375699b1af" title=" " alt="" coords="221,5,355,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,44,205,36,206,41,157,50"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a9f59df78b125409f323bc8bb924a5edc" title=" " alt="" coords="204,71,372,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="157,68,188,73,188,78,156,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="420,5,577,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="356,23,405,23,405,28,356,28"/>
+</map>

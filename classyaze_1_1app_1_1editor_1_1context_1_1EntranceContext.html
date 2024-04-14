@@ -106,6 +106,8 @@ $(function(){initNavTree('classyaze_1_1app_1_1editor_1_1context_1_1EntranceConte
   <div class="headertitle"><div class="title">yaze::app::editor::context::EntranceContext Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="entrance__context_8h_source.html">entrance_context.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for yaze::app::editor::context::EntranceContext:</div>
 <div class="dyncontent">
@@ -119,19 +121,128 @@ Inheritance diagram for yaze::app::editor::context::EntranceContext:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae5d16a2f1c3bcce9fbac3515d50b9119" id="r_ae5d16a2f1c3bcce9fbac3515d50b9119"><td class="memItemLeft" align="right" valign="top"><a id="ae5d16a2f1c3bcce9fbac3515d50b9119" name="ae5d16a2f1c3bcce9fbac3515d50b9119"></a>
-absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>LoadEntranceTileTypes</b> (<a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &amp;rom)</td></tr>
+<tr class="memitem:ae5d16a2f1c3bcce9fbac3515d50b9119" id="r_ae5d16a2f1c3bcce9fbac3515d50b9119"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae5d16a2f1c3bcce9fbac3515d50b9119">LoadEntranceTileTypes</a> (<a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &amp;rom)</td></tr>
 <tr class="separator:ae5d16a2f1c3bcce9fbac3515d50b9119"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a4d05195decc5c05a10ae178c0971cb5a" id="r_a4d05195decc5c05a10ae178c0971cb5a"><td class="memItemLeft" align="right" valign="top"><a id="a4d05195decc5c05a10ae178c0971cb5a" name="a4d05195decc5c05a10ae178c0971cb5a"></a>
-std::vector&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>entrance_tile_types_low_</b></td></tr>
+<tr class="memitem:a4d05195decc5c05a10ae178c0971cb5a" id="r_a4d05195decc5c05a10ae178c0971cb5a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4d05195decc5c05a10ae178c0971cb5a">entrance_tile_types_low_</a></td></tr>
 <tr class="separator:a4d05195decc5c05a10ae178c0971cb5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa00bf46dd592715a868cba61f5793a0d" id="r_aa00bf46dd592715a868cba61f5793a0d"><td class="memItemLeft" align="right" valign="top"><a id="aa00bf46dd592715a868cba61f5793a0d" name="aa00bf46dd592715a868cba61f5793a0d"></a>
-std::vector&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>entrance_tile_types_high_</b></td></tr>
+<tr class="memitem:aa00bf46dd592715a868cba61f5793a0d" id="r_aa00bf46dd592715a868cba61f5793a0d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa00bf46dd592715a868cba61f5793a0d">entrance_tile_types_high_</a></td></tr>
 <tr class="separator:aa00bf46dd592715a868cba61f5793a0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="ae5d16a2f1c3bcce9fbac3515d50b9119" name="ae5d16a2f1c3bcce9fbac3515d50b9119"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5d16a2f1c3bcce9fbac3515d50b9119">&#9670;&#160;</a></span>LoadEntranceTileTypes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::editor::context::EntranceContext::LoadEntranceTileTypes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1ROM.html">ROM</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a4d05195decc5c05a10ae178c0971cb5a">entrance_tile_types_low_</a>, and <a class="el" href="classyaze_1_1app_1_1ROM.html#af511a1391f318983eafc7770c5a36633">yaze::app::ROM::ReadWord()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff">yaze::app::editor::OverworldEditor::Update()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_cgraph" id="aclassyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,170,61"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#af511a1391f318983eafc7770c5a36633" title=" " alt="" coords="218,20,394,46"/>
+<area shape="poly" title=" " alt="" coords="170,31,202,31,202,36,170,36"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a91ce377dbd0f774e6b54c6a24adac094" title=" " alt="" coords="442,20,594,46"/>
+<area shape="poly" title=" " alt="" coords="394,31,427,31,427,36,394,36"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_icgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_icgraph" id="aclassyaze_1_1app_1_1editor_1_1context_1_1EntranceContext_ae5d16a2f1c3bcce9fbac3515d50b9119_icgraph">
+<area shape="rect" title=" " alt="" coords="1380,5,1544,61"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff" title=" " alt="" coords="1170,13,1332,54"/>
+<area shape="poly" title=" " alt="" coords="1364,36,1332,36,1332,31,1364,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,13,1122,54"/>
+<area shape="poly" title=" " alt="" coords="1155,36,1123,36,1123,31,1155,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,13,932,54"/>
+<area shape="poly" title=" " alt="" coords="964,36,933,36,933,31,964,31"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,20,718,46"/>
+<area shape="poly" title=" " alt="" coords="750,36,718,36,718,31,750,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,13,400,54"/>
+<area shape="poly" title=" " alt="" coords="653,31,620,28,506,26,401,30,400,24,506,21,620,23,653,25"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,37,620,93"/>
+<area shape="poly" title=" " alt="" coords="654,44,622,50,620,45,653,38"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,13,171,54"/>
+<area shape="poly" title=" " alt="" coords="203,36,171,36,171,31,203,31"/>
+<area shape="poly" title=" " alt="" coords="432,53,400,49,401,43,433,48"/>
+</map>
+</div>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="aa00bf46dd592715a868cba61f5793a0d" name="aa00bf46dd592715a868cba61f5793a0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa00bf46dd592715a868cba61f5793a0d">&#9670;&#160;</a></span>entrance_tile_types_high_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint16_t&gt; yaze::app::editor::context::EntranceContext::entrance_tile_types_high_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4d05195decc5c05a10ae178c0971cb5a" name="a4d05195decc5c05a10ae178c0971cb5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d05195decc5c05a10ae178c0971cb5a">&#9670;&#160;</a></span>entrance_tile_types_low_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint16_t&gt; yaze::app::editor::context::EntranceContext::entrance_tile_types_low_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#ae5d16a2f1c3bcce9fbac3515d50b9119">LoadEntranceTileTypes()</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/app/editor/context/<a class="el" href="entrance__context_8h_source.html">entrance_context.h</a></li>
 </ul>
@@ -140,7 +251,7 @@ std::vector&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>yaze</b></li><li class="navelem"><b>app</b></li><li class="navelem"><b>editor</b></li><li class="navelem"><b>context</b></li><li class="navelem"><a class="el" href="classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html">EntranceContext</a></li>
+    <li class="navelem"><a class="el" href="namespaceyaze.html">yaze</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app.html">app</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app_1_1editor.html">editor</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app_1_1editor_1_1context.html">context</a></li><li class="navelem"><a class="el" href="classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html">EntranceContext</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>

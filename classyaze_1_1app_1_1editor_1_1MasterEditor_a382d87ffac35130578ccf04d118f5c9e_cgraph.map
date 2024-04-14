@@ -1,0 +1,6 @@
+<map id="yaze::app::editor::MasterEditor::SetupScreen" name="yaze::app::editor::MasterEditor::SetupScreen">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,181,63"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="229,29,408,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,40,213,40,213,45,181,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="281,31,274,21,278,11,293,5,318,3,346,5,360,12,358,17,344,10,318,8,294,10,282,15,279,20,285,27"/>
+</map>

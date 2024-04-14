@@ -1,0 +1,5 @@
+<map id="yaze::app::zelda3::OverworldMap::BuildTileset" name="yaze::app::zelda3::OverworldMap::BuildTileset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="219,5,398,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="yaze::app::core::stle16b_i" name="yaze::app::core::stle16b_i">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,169,56"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a58dc78cb3c691e3d7fa277549bc9bed3" title=" " alt="" coords="217,31,370,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,41,201,41,201,46,169,46"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a11f4840fb6dbe5e90fe675f3f59b3364" title=" " alt="" coords="418,5,557,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,31,402,27,403,32,371,36"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1core.html#a1ef21dd0482060a5eea9383b32bf5715" title=" " alt="" coords="418,55,557,80"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="371,50,403,54,402,60,370,56"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1core.html#a57423a3f6c1ec89535f5e836dc1406fe" title=" " alt="" coords="605,31,738,56"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="558,25,590,30,590,35,557,30"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="557,56,590,51,590,57,558,61"/>
+</map>

@@ -1,10 +1,19 @@
 var searchData=
 [
-  ['load2bppgraphics_0',['Load2BppGraphics',['../classyaze_1_1app_1_1ROM.html#aeebfa7942b4463cf19217c35dcad1e0c',1,'yaze::app::ROM']]],
-  ['loadallgraphicsdata_1',['LoadAllGraphicsData',['../classyaze_1_1app_1_1ROM.html#ae459d71c95f87bb8a081cb6ffc98a24d',1,'yaze::app::ROM']]],
-  ['loadallpalettes_2',['LoadAllPalettes',['../classyaze_1_1app_1_1ROM.html#a92a606a412188dbd015e1949380f6eff',1,'yaze::app::ROM']]],
-  ['loadfromfile_3',['LoadFromFile',['../classyaze_1_1app_1_1ROM.html#acce5e28564a3ef475326f8473489f48a',1,'yaze::app::ROM']]],
-  ['loadlinkgraphics_4',['LoadLinkGraphics',['../classyaze_1_1app_1_1ROM.html#a3e92932daab38ad0816d05d69fb31a92',1,'yaze::app::ROM']]],
-  ['loadobjects_5',['LoadObjects',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a4d7405ccb2a91afb5149e9803befe544',1,'yaze::app::zelda3::dungeon::Room']]],
-  ['loadroomfromrom_6',['LoadRoomFromROM',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#abec4b139db7e26fb07c5260a12037d4f',1,'yaze::app::zelda3::dungeon::Room']]]
+  ['handle_0',['handle',['../classyaze_1_1cli_1_1CommandHandler.html#acf0d674fc4b4f8bfc1536c4b317ef831',1,'yaze::cli::CommandHandler::handle()'],['../classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6',1,'yaze::cli::ApplyPatch::handle()'],['../classyaze_1_1cli_1_1CreatePatch.html#ad8379b3639cb96421e3d023cf7022063',1,'yaze::cli::CreatePatch::handle()'],['../classyaze_1_1cli_1_1Open.html#a93ec2d9f81970f0fba889a94fe92b9f5',1,'yaze::cli::Open::handle()'],['../classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498',1,'yaze::cli::Backup::handle()'],['../classyaze_1_1cli_1_1Compress.html#afebd02efe70bf393274285b1a460cf20',1,'yaze::cli::Compress::handle()'],['../classyaze_1_1cli_1_1Decompress.html#a10b8074f386c89687b8270a792513197',1,'yaze::cli::Decompress::handle()'],['../classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0',1,'yaze::cli::SnesToPc::handle()'],['../classyaze_1_1cli_1_1PcToSnes.html#ad709da89bda8d90180739f3bc135408f',1,'yaze::cli::PcToSnes::handle()'],['../classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3',1,'yaze::cli::ReadFromRom::handle()'],['../classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3',1,'yaze::cli::Tile16Transfer::handle()'],['../classyaze_1_1cli_1_1Expand.html#abf197e6e18a4d8ecd1a7a551f2e7d995',1,'yaze::cli::Expand::handle()'],['../classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057',1,'yaze::cli::Emulator::handle()']]],
+  ['handlecolorpopup_1',['HandleColorPopup',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1',1,'yaze::app::editor::PaletteEditor']]],
+  ['handledirectcopy_2',['HandleDirectCopy',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#adcd462db6909fae4d82eab4a06ab3298',1,'yaze::app::gfx::lc_lz2']]],
+  ['handleentitydragging_3',['HandleEntityDragging',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#a6b6d033d0e537fcd6c65cff055e0a771',1,'yaze::app::editor::entity_internal']]],
+  ['handleevents_4',['HandleEvents',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a9aeb81c9f12eed58ac6834998239d5df',1,'yaze::app::emu::Emulator']]],
+  ['handleinput_5',['HandleInput',['../classyaze_1_1app_1_1emu_1_1SNES.html#a6e0577ca69eb03193f5abd9f44723968',1,'yaze::app::emu::SNES']]],
+  ['handleinterrupts_6',['HandleInterrupts',['../classyaze_1_1app_1_1emu_1_1Cpu.html#abcc792f6220359761c4df2031daf2f92',1,'yaze::app::emu::Cpu']]],
+  ['handlekeydown_7',['HandleKeyDown',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6d772d7ba79028976cef503b5f467e18',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
+  ['handlekeyup_8',['HandleKeyUp',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6942369617757efc84f4717df31ceebf',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
+  ['handlemousemovement_9',['HandleMouseMovement',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a46122ee7395b7ce3cee8e8d45bc83a8d',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
+  ['height_10',['height',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775',1,'yaze::app::gfx::Bitmap::height()'],['../classyaze_1_1app_1_1gui_1_1Canvas.html#ac80c9ccda6a62e85e9ef64733120ac92',1,'yaze::app::gui::Canvas::height()']]],
+  ['height_11',['Height',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a5e626f0aaf77ff65b663b8d85453d947',1,'yaze::app::zelda3::Sprite']]],
+  ['helpcommand_12',['HelpCommand',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html#a2ce01552171fe2c443f90b424ffdd398',1,'yaze::cli::anonymous_namespace{z3ed.cc}']]],
+  ['hextodec_13',['HexToDec',['../namespaceyaze_1_1app_1_1core.html#aa38d793eae97bd4f5a931de9a1fffa1d',1,'yaze::app::core']]],
+  ['holes_14',['holes',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#a850fcea591507e44d81df8759267ea36',1,'yaze::app::zelda3::Overworld']]],
+  ['hover_5fmouse_5fpos_15',['hover_mouse_pos',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3ea711829b4d116e65c82eb5687c8f0b',1,'yaze::app::gui::Canvas']]]
 ];

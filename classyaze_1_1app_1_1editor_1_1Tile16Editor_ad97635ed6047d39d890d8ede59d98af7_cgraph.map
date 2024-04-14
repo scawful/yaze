@@ -1,0 +1,5 @@
+<map id="yaze::app::editor::Tile16Editor::InitBlockset" name="yaze::app::editor::Tile16Editor::InitBlockset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,170,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="218,5,362,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,23,203,23,203,28,170,28"/>
+</map>

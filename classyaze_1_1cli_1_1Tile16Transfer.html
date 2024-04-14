@@ -105,6 +105,8 @@ $(function(){initNavTree('classyaze_1_1cli_1_1Tile16Transfer.html',''); initResi
   <div class="headertitle"><div class="title">yaze::cli::Tile16Transfer Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="command__handler_8h_source.html">command_handler.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for yaze::cli::Tile16Transfer:</div>
 <div class="dyncontent">
@@ -140,12 +142,16 @@ Collaboration diagram for yaze::cli::Tile16Transfer:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a6e8c74f608ec900a390e9f94ca4868a3" id="r_a6e8c74f608ec900a390e9f94ca4868a3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6e8c74f608ec900a390e9f94ca4868a3">handle</a> (const std::vector&lt; std::string &gt; &amp;arg_vec) override</td></tr>
 <tr class="separator:a6e8c74f608ec900a390e9f94ca4868a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classyaze_1_1cli_1_1CommandHandler"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1cli_1_1CommandHandler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1cli_1_1CommandHandler.html">yaze::cli::CommandHandler</a></td></tr>
+<tr class="memitem:a5a563d425d0ee2d3779983ca83b35c3a inherit pub_methods_classyaze_1_1cli_1_1CommandHandler" id="r_a5a563d425d0ee2d3779983ca83b35c3a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1CommandHandler.html#a5a563d425d0ee2d3779983ca83b35c3a">CommandHandler</a> ()=default</td></tr>
+<tr class="separator:a5a563d425d0ee2d3779983ca83b35c3a inherit pub_methods_classyaze_1_1cli_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99057b6c5780d96e56c6be9c9e109eb0 inherit pub_methods_classyaze_1_1cli_1_1CommandHandler" id="r_a99057b6c5780d96e56c6be9c9e109eb0"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1CommandHandler.html#a99057b6c5780d96e56c6be9c9e109eb0">~CommandHandler</a> ()=default</td></tr>
+<tr class="separator:a99057b6c5780d96e56c6be9c9e109eb0 inherit pub_methods_classyaze_1_1cli_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_attribs_classyaze_1_1cli_1_1CommandHandler"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_attribs_classyaze_1_1cli_1_1CommandHandler')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="classyaze_1_1cli_1_1CommandHandler.html">yaze::cli::CommandHandler</a></td></tr>
-<tr class="memitem:a8615f0d81842193458ff2ffbffdd4b1f inherit pub_attribs_classyaze_1_1cli_1_1CommandHandler" id="r_a8615f0d81842193458ff2ffbffdd4b1f"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="classyaze_1_1app_1_1ROM.html">app::ROM</a>&#160;</td><td class="memItemRight" valign="bottom"><b>rom_</b></td></tr>
+<tr class="memitem:a8615f0d81842193458ff2ffbffdd4b1f inherit pub_attribs_classyaze_1_1cli_1_1CommandHandler" id="r_a8615f0d81842193458ff2ffbffdd4b1f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1ROM.html">app::ROM</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1CommandHandler.html#a8615f0d81842193458ff2ffbffdd4b1f">rom_</a></td></tr>
 <tr class="separator:a8615f0d81842193458ff2ffbffdd4b1f inherit pub_attribs_classyaze_1_1cli_1_1CommandHandler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -172,20 +178,89 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classyaze_1_1cli_1_1CommandHandler.html">yaze::cli::CommandHandler</a>.</p>
+<p>Implements <a class="el" href="classyaze_1_1cli_1_1CommandHandler.html#acf0d674fc4b4f8bfc1536c4b317ef831">yaze::cli::CommandHandler</a>.</p>
+
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#acce5e28564a3ef475326f8473489f48a">yaze::app::ROM::LoadFromFile()</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a7127cd6567557be3c783955516e1755c">yaze::app::ROM::ReadTile16()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1cli_1_1CommandHandler.html#a8615f0d81842193458ff2ffbffdd4b1f">yaze::cli::CommandHandler::rom_</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#aad27cb4443953b12f818bb54d23d60ba">yaze::app::ROM::SaveToFile()</a>, and <a class="el" href="classyaze_1_1app_1_1ROM.html#a76fc2bedfc1c9819859efcdb326260e5">yaze::app::ROM::WriteTile16()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1cli_1_1Tile16Transfer_a6e8c74f608ec900a390e9f94ca4868a3_cgraph.png" border="0" usemap="#aclassyaze_1_1cli_1_1Tile16Transfer_a6e8c74f608ec900a390e9f94ca4868a3_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1cli_1_1Tile16Transfer_a6e8c74f608ec900a390e9f94ca4868a3_cgraph" id="aclassyaze_1_1cli_1_1Tile16Transfer_a6e8c74f608ec900a390e9f94ca4868a3_cgraph">
+<area shape="rect" title=" " alt="" coords="5,251,161,292"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#acce5e28564a3ef475326f8473489f48a" title=" " alt="" coords="209,183,405,209"/>
+<area shape="poly" title=" " alt="" coords="144,248,251,212,253,217,146,253"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a7127cd6567557be3c783955516e1755c" title=" " alt="" coords="946,32,1127,58"/>
+<area shape="poly" title=" " alt="" coords="103,249,159,199,241,135,289,103,341,73,396,48,452,29,519,15,588,7,657,3,725,3,851,12,953,27,953,32,851,18,725,9,657,8,588,12,520,20,454,34,398,53,344,78,292,108,244,139,162,203,107,253"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#aad27cb4443953b12f818bb54d23d60ba" title="Saves the ROM data to a file." alt="" coords="216,310,398,335"/>
+<area shape="poly" title=" " alt="" coords="162,287,233,303,231,308,160,292"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a76fc2bedfc1c9819859efcdb326260e5" title=" " alt="" coords="946,540,1127,566"/>
+<area shape="poly" title=" " alt="" coords="112,290,170,333,252,387,350,441,402,464,454,484,516,502,579,516,708,536,828,547,930,551,930,556,828,552,707,542,578,521,514,507,452,489,400,469,347,446,250,391,167,337,109,295"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#afbd5d72224ad18b7fabf5471c146068e" title=" " alt="" coords="476,259,640,285"/>
+<area shape="poly" title=" " alt="" coords="353,207,499,251,497,256,351,212"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a92a606a412188dbd015e1949380f6eff" title="Loads all the palettes for the game." alt="" coords="454,108,662,134"/>
+<area shape="poly" title=" " alt="" coords="342,180,452,143,478,136,480,141,454,148,344,185"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a55b4985127ce92c7d476d9bb5b1cbb8f" title=" " alt="" coords="454,158,661,183"/>
+<area shape="poly" title=" " alt="" coords="405,183,438,180,439,185,406,189"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a91ce377dbd0f774e6b54c6a24adac094" title=" " alt="" coords="1425,260,1578,286"/>
+<area shape="poly" title=" " alt="" coords="406,199,1367,261,1410,264,1410,269,1366,266,405,205"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="469,43,646,84"/>
+<area shape="poly" title=" " alt="" coords="322,180,378,138,452,93,465,88,467,93,454,98,381,143,326,184"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="718,108,890,134"/>
+<area shape="poly" title=" " alt="" coords="625,154,721,135,722,140,626,160"/>
+<area shape="poly" title=" " alt="" coords="662,158,803,151,980,151,1076,156,1175,165,1272,180,1367,201,1422,223,1469,249,1467,254,1420,228,1366,206,1271,185,1174,170,1076,161,980,156,803,156,662,163"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#a622f1ce127397eb27548536521ce0b99" title=" " alt="" coords="725,43,883,84"/>
+<area shape="poly" title=" " alt="" coords="638,155,661,144,676,133,684,120,694,107,709,94,716,89,719,94,712,98,698,110,689,123,679,136,664,149,640,159"/>
+<area shape="poly" title=" " alt="" coords="1073,56,1176,93,1230,108,1274,116,1317,127,1368,151,1401,173,1432,198,1481,247,1477,251,1429,202,1398,177,1365,155,1315,132,1273,121,1229,113,1174,98,1071,61"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#af511a1391f318983eafc7770c5a36633" title=" " alt="" coords="1183,8,1359,34"/>
+<area shape="poly" title=" " alt="" coords="1127,33,1167,29,1167,34,1128,38"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1c0d7314890a130ceda6eec9def39c4e" title=" " alt="" coords="1175,58,1366,83"/>
+<area shape="poly" title=" " alt="" coords="1128,52,1160,56,1159,61,1127,58"/>
+<area shape="poly" title=" " alt="" coords="1349,32,1368,43,1393,65,1415,90,1451,146,1478,200,1494,245,1489,247,1473,202,1447,148,1411,93,1389,69,1365,47,1346,37"/>
+<area shape="poly" title=" " alt="" coords="373,306,475,286,476,291,375,312"/>
+<area shape="poly" title=" " alt="" coords="398,316,1410,274,1410,280,398,321"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="470,434,645,475"/>
+<area shape="poly" title=" " alt="" coords="335,333,505,424,502,429,332,338"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#ac789b7c8b969a086055a13f8fb934497" title="Saves all palettes in the ROM." alt="" coords="453,360,662,386"/>
+<area shape="poly" title=" " alt="" coords="375,333,476,354,475,359,373,339"/>
+<area shape="poly" title=" " alt="" coords="511,434,509,424,517,415,533,409,558,407,584,410,600,416,598,421,583,415,558,413,534,415,520,419,514,425,517,433"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#ace48019bfedaae37264d224c102de7c1" title=" " alt="" coords="710,368,898,394"/>
+<area shape="poly" title=" " alt="" coords="663,374,695,375,695,380,663,379"/>
+<area shape="poly" title=" " alt="" coords="859,365,945,347,1063,327,1155,315,1366,289,1409,283,1410,288,1367,294,1156,320,1064,332,946,352,860,370"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a04544775b5724bfbe086cb024eb4091a" title=" " alt="" coords="954,361,1119,401"/>
+<area shape="poly" title=" " alt="" coords="898,378,938,378,938,384,898,384"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="949,426,1124,467"/>
+<area shape="poly" title=" " alt="" coords="853,392,948,419,946,424,852,397"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#ab015ddd876f00b33da063ff74a7b9646" title=" " alt="" coords="948,491,1125,517"/>
+<area shape="poly" title=" " alt="" coords="822,392,876,433,910,456,947,476,963,483,961,488,945,481,907,461,872,438,819,396"/>
+<area shape="poly" title=" " alt="" coords="1092,488,1126,476,1226,430,1322,379,1466,292,1469,297,1324,384,1228,435,1128,481,1094,493"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb" title=" " alt="" coords="1414,539,1589,565"/>
+<area shape="poly" title=" " alt="" coords="1095,515,1128,525,1152,539,1176,549,1232,559,1290,563,1398,561,1399,566,1290,569,1231,564,1174,554,1149,543,1126,530,1094,520"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38" title=" " alt="" coords="1414,439,1589,480"/>
+<area shape="poly" title=" " alt="" coords="1124,493,1399,467,1399,472,1125,498"/>
+<area shape="rect" href="classyaze_1_1app_1_1ROM.html#af12ae78759a4576e0f0f86f54f01089c" title=" " alt="" coords="1182,514,1359,539"/>
+<area shape="poly" title=" " alt="" coords="1125,510,1167,514,1166,519,1124,515"/>
+<area shape="poly" title=" " alt="" coords="1331,511,1365,492,1386,464,1418,411,1483,298,1488,301,1423,414,1390,467,1368,496,1333,515"/>
+<area shape="poly" title=" " alt="" coords="1360,534,1399,538,1398,543,1359,539"/>
+<area shape="poly" title=" " alt="" coords="1317,510,1413,482,1415,488,1319,516"/>
+<area shape="poly" title=" " alt="" coords="1096,537,1126,527,1150,513,1174,499,1203,489,1229,485,1274,482,1317,477,1339,469,1365,455,1406,420,1440,377,1467,335,1486,299,1491,301,1472,337,1445,380,1410,423,1368,459,1342,474,1318,482,1274,488,1229,490,1204,495,1176,504,1152,517,1128,532,1097,542"/>
+<area shape="poly" title=" " alt="" coords="1127,540,1166,536,1167,541,1128,545"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#ad8ba19f73c435e3e5527673d5b0cc096" title=" " alt="" coords="1198,614,1344,655"/>
+<area shape="poly" title=" " alt="" coords="1077,564,1196,606,1195,611,1075,569"/>
+</map>
+</div>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/cli/<a class="el" href="command__handler_8h_source.html">command_handler.h</a></li>
-<li>src/cli/<b>command_handler.cc</b></li>
+<li>src/cli/<a class="el" href="command__handler_8cc.html">command_handler.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>yaze</b></li><li class="navelem"><b>cli</b></li><li class="navelem"><a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html">Tile16Transfer</a></li>
+    <li class="navelem"><a class="el" href="namespaceyaze.html">yaze</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1cli.html">cli</a></li><li class="navelem"><a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html">Tile16Transfer</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>

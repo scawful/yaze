@@ -1,0 +1,5 @@
+<map id="yaze::app::editor::OverworldEditor::CalculateUsageStats" name="yaze::app::editor::OverworldEditor::CalculateUsageStats">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,179,61"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#ab30da6a4ee9e2dfeb5da22594996f6db" title=" " alt="" coords="227,13,370,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,31,211,31,211,36,179,36"/>
+</map>

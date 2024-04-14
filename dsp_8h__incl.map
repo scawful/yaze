@@ -1,0 +1,21 @@
+<map id="src/app/emu/audio/dsp.h" name="src/app/emu/audio/dsp.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="69,5,232,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,153,66,178"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,33,57,142,52,139,139,30"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="329,79,406,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,29,317,71,315,76,186,34"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="90,153,147,178"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="141,33,126,54,114,80,111,109,114,137,109,138,105,109,109,78,122,51,137,30"/>
+<area shape="rect" id="Node000005" href="$memory_8h.html" title=" " alt="" coords="124,79,305,105"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="163,29,195,66,191,69,159,33"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="185,108,81,149,79,144,183,103"/>
+<area shape="poly" id="edge8_Node000005_Node000004" title=" " alt="" coords="199,107,148,146,145,141,196,103"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="305,226,377,252"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="303,103,344,121,363,134,378,151,384,167,381,185,365,216,360,213,376,183,378,168,373,154,359,138,342,125,301,108"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="217,226,270,252"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="214,105,210,138,213,178,228,212,224,214,208,179,204,138,209,105"/>
+<area shape="rect" id="Node000008" href="$log_8h.html" title=" " alt="" coords="222,153,364,178"/>
+<area shape="poly" id="edge9_Node000005_Node000008" title=" " alt="" coords="229,103,270,140,267,144,226,107"/>
+<area shape="poly" id="edge10_Node000008_Node000006" title=" " alt="" coords="303,177,326,212,322,215,299,180"/>
+<area shape="poly" id="edge11_Node000008_Node000007" title=" " alt="" coords="287,180,263,215,258,212,282,177"/>
+</map>

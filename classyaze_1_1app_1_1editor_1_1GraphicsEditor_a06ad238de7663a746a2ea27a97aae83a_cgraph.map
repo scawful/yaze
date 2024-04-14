@@ -1,0 +1,30 @@
+<map id="yaze::app::editor::GraphicsEditor::DrawTilemapImport" name="yaze::app::editor::GraphicsEditor::DrawTilemapImport">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,113,194,169"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="269,5,411,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,110,182,74,241,41,259,34,261,39,243,46,185,79,136,115"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="270,55,410,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,113,254,96,256,101,195,118"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50" title=" " alt="" coords="260,121,420,161"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="194,138,244,138,244,144,194,144"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1ROM.html#acce5e28564a3ef475326f8473489f48a" title=" " alt="" coords="242,185,438,211"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="195,161,268,179,267,184,193,166"/>
+<area shape="rect" id="Node000014" href="$namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173" title=" " alt="" coords="263,235,417,276"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="145,167,191,195,243,221,256,227,254,232,241,226,189,199,142,171"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="534,38,647,79"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="410,68,518,60,518,66,410,73"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1ROM.html#afbd5d72224ad18b7fabf5471c146068e" title=" " alt="" coords="508,103,672,128"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="404,182,437,170,460,154,485,137,501,131,502,136,487,142,463,158,439,175,406,187"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1ROM.html#a92a606a412188dbd015e1949380f6eff" title="Loads all the palettes for the game." alt="" coords="486,152,694,178"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="438,182,473,178,474,183,439,188"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1ROM.html#a55b4985127ce92c7d476d9bb5b1cbb8f" title=" " alt="" coords="487,201,694,227"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="439,202,471,204,471,209,438,207"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1ROM.html#a91ce377dbd0f774e6b54c6a24adac094" title=" " alt="" coords="752,255,905,280"/>
+<area shape="poly" id="edge13_Node000006_Node000011" title=" " alt="" coords="396,209,439,221,463,230,487,237,617,256,737,263,737,269,617,261,485,242,461,235,437,226,394,214"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="502,302,679,343"/>
+<area shape="poly" id="edge12_Node000006_Node000013" title=" " alt="" coords="415,209,440,221,456,236,465,252,473,267,488,281,506,292,503,297,484,286,469,270,460,254,452,240,436,226,413,214"/>
+<area shape="rect" id="Node000010" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="742,140,915,166"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="650,198,694,188,766,168,768,173,695,193,652,203"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="652,225,754,248,752,253,650,230"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1ROM.html#a622f1ce127397eb27548536521ce0b99" title=" " alt="" coords="749,190,908,231"/>
+<area shape="poly" id="edge11_Node000009_Node000012" title=" " alt="" coords="694,210,734,209,734,214,694,215"/>
+</map>

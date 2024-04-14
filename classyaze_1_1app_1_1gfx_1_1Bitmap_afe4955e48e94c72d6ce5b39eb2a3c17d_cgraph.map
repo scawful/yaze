@@ -1,0 +1,18 @@
+<map id="yaze::app::gfx::Bitmap::Bitmap" name="yaze::app::gfx::Bitmap::Bitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,150,147"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb" title="Creates a bitmap object and reserves space for graphical data." alt="" coords="198,135,342,175"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,135,183,140,182,145,150,140"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="390,5,534,46"/>
+<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="145,103,197,88,374,43,376,48,198,94,147,109"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="390,71,534,111"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="150,118,375,96,375,102,150,123"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="390,267,534,307"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="119,145,199,185,296,225,387,258,385,263,294,230,197,189,116,150"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="292,132,335,95,389,57,397,51,400,56,391,61,339,99,295,136"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="332,132,384,114,386,119,334,137"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#af3b83bf650d6acc73d46543367b944c1" title=" " alt="" coords="390,201,534,242"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="332,173,388,193,387,198,330,178"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="390,136,534,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="342,153,375,153,375,158,342,158"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="294,174,338,212,391,251,400,257,397,261,389,256,334,216,291,178"/>
+</map>

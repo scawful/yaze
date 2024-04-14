@@ -1,0 +1,11 @@
+<map id="yaze::app::zelda3::Overworld::SaveItems" name="yaze::app::zelda3::Overworld::SaveItems">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,87,155,127"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="205,29,380,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,84,199,72,201,77,156,89"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48" title=" " alt="" coords="206,94,379,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="155,104,191,104,191,110,155,110"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="203,168,382,193"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="142,125,239,159,237,164,140,130"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="252,29,250,19,257,10,271,5,292,3,315,5,329,11,327,16,314,10,292,8,272,10,260,15,255,20,257,28"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="257,169,250,159,254,149,269,143,292,141,318,144,332,150,329,155,317,149,292,146,270,148,258,153,255,158,261,166"/>
+</map>

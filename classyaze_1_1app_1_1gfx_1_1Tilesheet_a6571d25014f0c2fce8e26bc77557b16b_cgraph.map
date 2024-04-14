@@ -1,0 +1,5 @@
+<map id="yaze::app::gfx::Tilesheet::Init" name="yaze::app::gfx::Tilesheet::Init">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,162,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a1beb3a44fde850be423e8eb502af383f" title=" " alt="" coords="210,5,366,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,23,195,23,195,28,162,28"/>
+</map>

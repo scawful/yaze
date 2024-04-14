@@ -1,0 +1,5 @@
+<map id="yaze::app::zelda3::TitleScreen::LoadTitleScreen" name="yaze::app::zelda3::TitleScreen::LoadTitleScreen">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,194,46"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="242,13,414,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,23,226,23,226,28,194,28"/>
+</map>

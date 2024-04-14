@@ -1,0 +1,8 @@
+<map id="yaze::app::gfx::Tile32::GetPackedValue" name="yaze::app::gfx::Tile32::GetPackedValue">
+<area shape="rect" id="Node000001" title=" " alt="" coords="259,53,397,94"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a927082f4a7105fa85d40c91f4a7ad0a8" title=" " alt="" coords="5,5,211,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,58,204,49,205,44,244,53"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a04efb3ccc56060c44c6781c1fd619ff2" title=" " alt="" coords="17,94,199,150"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="244,95,200,104,199,99,243,89"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="143,81,130,75,108,72,89,74,76,79,70,85,70,94,65,93,65,83,73,75,87,69,108,67,131,70,145,77"/>
+</map>

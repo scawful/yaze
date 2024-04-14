@@ -1,0 +1,15 @@
+<map id="src/app/emu/memory/memory.h" name="src/app/emu/memory/memory.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="140,5,283,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,66,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,49,77,90,75,85,166,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="127,168,198,193"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,49,151,69,131,95,128,110,130,125,145,154,140,157,125,127,123,110,126,93,147,65,173,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="233,168,286,193"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="284,35,336,55,360,71,379,93,385,106,383,119,376,131,365,141,335,158,302,171,300,166,333,153,362,137,372,127,378,117,379,107,375,95,356,75,334,60,283,40"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="307,94,364,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="244,44,305,83,302,88,241,49"/>
+<area shape="rect" id="Node000006" href="$log_8h.html" title=" " alt="" coords="141,94,282,120"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="214,46,214,78,209,78,209,46"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="206,121,181,156,177,153,201,118"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="222,118,245,153,241,156,217,121"/>
+</map>

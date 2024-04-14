@@ -1,0 +1,9 @@
+<map id="yaze::app::ROM::WriteShort" name="yaze::app::ROM::WriteShort">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,183,88"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb" title=" " alt="" coords="231,5,405,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,59,249,33,251,38,148,65"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38" title=" " alt="" coords="231,55,405,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,73,215,73,215,78,183,78"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#a91ce377dbd0f774e6b54c6a24adac094" title=" " alt="" coords="242,120,394,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,86,251,113,249,118,147,92"/>
+</map>

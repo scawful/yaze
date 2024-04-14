@@ -1,0 +1,6 @@
+<map id="yaze::app::emu::audio::Spc700::read" name="yaze::app::emu::audio::Spc700::read">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,148,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="40,29,38,19,44,10,57,5,77,3,97,5,110,11,107,16,96,10,76,8,59,10,48,15,44,20,45,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46" title=" " alt="" coords="196,29,338,70"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="148,47,180,47,180,52,148,52"/>
+</map>

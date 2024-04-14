@@ -1,0 +1,41 @@
+<map id="yaze::app::editor::OverworldEditor::RefreshTile16Blockset" name="yaze::app::editor::OverworldEditor::RefreshTile16Blockset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,335,205,391"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a7935607973f457da28964875198bda70" title=" " alt="" coords="267,171,422,211"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,333,181,278,215,248,251,222,262,216,265,221,254,227,218,252,185,282,132,337"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#a026bfbf959e86dcacdc224d3b028a94a" title=" " alt="" coords="267,236,422,277"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,332,252,287,268,280,270,285,254,292,161,337"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a82eaa79cae3faae7bbe5d9712bda02ff" title=" " alt="" coords="257,301,432,342"/>
+<area shape="poly" id="edge17_Node000001_Node000015" title=" " alt="" coords="205,343,241,337,242,342,206,348"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="255,390,434,416"/>
+<area shape="poly" id="edge18_Node000001_Node000016" title=" " alt="" coords="206,377,249,384,248,390,205,382"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a8de1bc3e20ca4dc875e74fceedfa2477" title=" " alt="" coords="253,440,436,481"/>
+<area shape="poly" id="edge20_Node000001_Node000017" title=" " alt="" coords="168,389,254,426,269,432,267,437,252,431,166,394"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#acfc86da79a346f7bf329a42e4caddf57" title=" " alt="" coords="258,505,431,546"/>
+<area shape="poly" id="edge21_Node000001_Node000018" title=" " alt="" coords="134,389,187,440,219,467,254,490,265,496,262,501,251,495,216,471,183,444,130,393"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61" title="Copy color data from the SnesPalette into the SDL_Palette." alt="" coords="511,63,655,103"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="411,233,435,221,469,196,501,168,553,114,557,117,505,172,472,200,437,225,414,238"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb" title="Creates a bitmap object and reserves space for graphical data." alt="" coords="511,236,655,277"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="422,254,495,254,495,259,422,259"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1ROM.html#a10b3916657949af2aa7a749708e4b005" title="Used to render a bitmap to the screen." alt="" coords="484,440,682,465"/>
+<area shape="poly" id="edge12_Node000003_Node000012" title=" " alt="" coords="415,275,437,287,478,320,514,357,567,425,563,428,510,361,474,324,435,292,412,280"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aeb279f4bb0cb3d5771ae33177d660de8" title=" " alt="" coords="746,5,890,46"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="655,63,730,44,731,49,656,68"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="954,113,1098,154"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="656,86,906,112,939,117,938,122,905,118,655,92"/>
+<area shape="poly" id="edge10_Node000007_Node000006" title=" " alt="" coords="606,234,659,193,693,172,729,156,782,142,837,133,938,127,938,133,837,138,783,147,731,162,696,177,662,197,609,238"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="746,171,890,211"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="655,234,730,213,731,218,656,239"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="746,236,890,277"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="655,254,730,254,730,259,655,259"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#af3b83bf650d6acc73d46543367b944c1" title=" " alt="" coords="746,301,890,342"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="656,274,731,295,730,300,655,279"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="746,367,890,407"/>
+<area shape="poly" id="edge11_Node000007_Node000011" title=" " alt="" coords="613,275,667,313,732,351,745,358,742,363,729,356,664,317,610,279"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="746,432,890,473"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="683,450,730,450,730,455,683,455"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="730,521,906,562"/>
+<area shape="poly" id="edge15_Node000012_Node000014" title=" " alt="" coords="620,463,749,513,747,518,618,468"/>
+<area shape="poly" id="edge14_Node000013_Node000006" title=" " alt="" coords="887,429,904,417,929,389,950,357,983,289,1004,223,1016,169,1022,170,1009,224,988,291,955,360,933,392,907,421,890,434"/>
+<area shape="poly" id="edge16_Node000014_Node000014" title=" " alt="" coords="779,521,777,511,783,502,797,497,818,495,841,497,854,503,852,508,839,502,818,500,798,502,786,507,782,512,784,520"/>
+<area shape="poly" id="edge19_Node000016_Node000016" title=" " alt="" coords="305,392,297,382,302,372,318,366,344,364,374,366,389,373,386,378,373,371,344,369,319,371,305,376,302,381,309,388"/>
+</map>

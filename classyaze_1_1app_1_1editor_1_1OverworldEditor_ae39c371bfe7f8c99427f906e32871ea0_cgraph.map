@@ -1,0 +1,5 @@
+<map id="yaze::app::editor::OverworldEditor::CheckForMousePan" name="yaze::app::editor::OverworldEditor::CheckForMousePan">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,243,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a560ee5aaf124e18fa2f3a3517172a816" title=" " alt="" coords="291,5,438,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,23,275,23,275,28,243,28"/>
+</map>

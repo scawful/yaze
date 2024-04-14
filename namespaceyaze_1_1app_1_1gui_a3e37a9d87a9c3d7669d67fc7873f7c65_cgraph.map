@@ -1,0 +1,11 @@
+<map id="yaze::app::gui::SelectablePalettePipeline" name="yaze::app::gui::SelectablePalettePipeline">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,170,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="218,5,392,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,44,202,39,203,44,170,49"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#af99fa533aa6eae061b9b4d583010e85d" title=" " alt="" coords="223,71,387,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,68,208,74,207,79,170,74"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui.html#a4223ea51fab06e8518219cf81049db0f" title=" " alt="" coords="440,71,654,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="387,88,424,88,424,94,387,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="702,78,890,104"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="655,88,687,88,687,94,655,94"/>
+</map>

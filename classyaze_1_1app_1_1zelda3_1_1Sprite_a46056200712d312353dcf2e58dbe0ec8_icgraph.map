@@ -1,0 +1,5 @@
+<map id="yaze::app::zelda3::Sprite::layer" name="yaze::app::zelda3::Sprite::layer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="240,5,363,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#af807491d98c8cfe17d907c5deff0af7f" title=" " alt="" coords="5,5,192,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,28,192,28,192,23,224,23"/>
+</map>

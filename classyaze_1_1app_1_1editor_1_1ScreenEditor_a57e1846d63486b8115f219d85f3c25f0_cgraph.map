@@ -1,0 +1,7 @@
+<map id="yaze::app::editor::ScreenEditor::ScreenEditor" name="yaze::app::editor::ScreenEditor::ScreenEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,181,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a0ace1c816323fe05d96cdba7aa89d6d9" title=" " alt="" coords="229,5,376,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,23,213,23,213,28,181,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="424,5,571,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="377,23,408,23,408,28,377,28"/>
+</map>

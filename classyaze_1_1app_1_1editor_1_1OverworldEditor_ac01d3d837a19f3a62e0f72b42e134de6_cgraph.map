@@ -1,0 +1,9 @@
+<map id="yaze::app::editor::OverworldEditor::RefreshChildMap" name="yaze::app::editor::OverworldEditor::RefreshChildMap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,224,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6950517e4870d2561bcb0f4c1502d7ba" title=" " alt="" coords="314,5,457,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,67,298,44,300,49,202,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a1c251079d8f080049d26b11a09838c8a" title=" " alt="" coords="272,71,499,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="224,88,256,88,256,94,224,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a8b747f5c03ffcfd8890699de597d1bf2" title=" " alt="" coords="323,136,448,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="202,109,309,135,307,140,201,115"/>
+</map>

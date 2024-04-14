@@ -1,0 +1,12 @@
+<map id="yaze::app::editor::Tile16Editor::LoadTile8" name="yaze::app::editor::Tile16Editor::LoadTile8">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,112,158,153"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aae636e8223b7a47a961526120b85cd90" title=" " alt="" coords="223,5,368,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,109,204,57,219,50,221,55,207,61,116,114"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="223,71,368,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,115,207,105,208,110,158,120"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="206,160,385,185"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,144,208,153,207,159,157,149"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="223,209,368,250"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="120,151,207,195,220,201,218,206,205,200,117,156"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="260,161,253,151,257,141,271,135,295,133,322,136,335,142,332,147,320,141,295,138,273,140,261,145,258,150,264,158"/>
+</map>

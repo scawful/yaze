@@ -1,0 +1,9 @@
+<map id="yaze::app::emu::Cpu::ReadByteOrWord" name="yaze::app::emu::Cpu::ReadByteOrWord">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,140,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a4e5ba113200a9712892064a68e558caa" title=" " alt="" coords="193,5,340,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,68,189,49,190,54,136,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="188,71,345,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,88,172,88,172,94,140,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="188,136,345,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="136,109,190,128,189,133,134,114"/>
+</map>

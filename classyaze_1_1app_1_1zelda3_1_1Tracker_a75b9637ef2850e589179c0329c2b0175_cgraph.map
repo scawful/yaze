@@ -1,0 +1,15 @@
+<map id="yaze::app::zelda3::Tracker::LoadSongs" name="yaze::app::zelda3::Tracker::LoadSongs">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,143,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="627,5,769,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,30,190,24,385,10,579,12,612,12,612,18,579,17,385,15,191,29,143,35"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a9c37b15f0eb7c85d84ac24633bbd6966" title=" " alt="" coords="429,26,575,67"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="143,41,414,43,414,48,143,47"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#abfcc1c6d122a83adfed38d455a8edf25" title=" " alt="" coords="191,105,377,145"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="130,62,216,96,214,101,128,67"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="576,33,612,28,612,33,576,38"/>
+<area shape="poly" id="edge7_Node000004_Node000003" title=" " alt="" coords="341,101,428,70,430,75,343,106"/>
+<area shape="poly" id="edge8_Node000004_Node000004" title=" " alt="" coords="244,104,242,95,249,86,263,80,284,78,307,80,320,86,318,91,305,85,284,83,264,85,252,90,247,96,249,103"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a55580c3b395b5a0e688a29e779025d98" title=" " alt="" coords="425,115,579,156"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="377,127,410,128,410,134,377,132"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="465,115,463,105,469,96,482,91,502,89,524,91,536,97,534,102,522,96,502,94,484,96,473,100,468,106,470,114"/>
+</map>

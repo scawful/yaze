@@ -1,0 +1,7 @@
+<map id="yaze::app::zelda3::OverworldMap::GetPalette" name="yaze::app::zelda3::OverworldMap::GetPalette">
+<area shape="rect" id="Node000001" title=" " alt="" coords="448,5,621,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="433,28,400,28,400,23,433,23"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+</map>

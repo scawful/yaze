@@ -102,39 +102,41 @@ $(function(){initNavTree('clipboard_8h_source.html',''); initResizable(); });
   <div class="headertitle"><div class="title">clipboard.h</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_PLATFORM_CLIPBOARD_H</span></div>
+<a href="clipboard_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_PLATFORM_CLIPBOARD_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_PLATFORM_CLIPBOARD_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#ifdef _WIN32</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keywordtype">void</span> CopyImageToClipboard(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; data);</div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keywordtype">void</span> GetImageFromClipboard(std::vector&lt;uint8_t&gt;&amp; data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height);</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#a4119d0ecf1e8258e0383d1f120c7e0bd">CopyImageToClipboard</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; data);</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a">GetImageFromClipboard</a>(std::vector&lt;uint8_t&gt;&amp; data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height);</div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#elif defined(__APPLE__)</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keywordtype">void</span> CopyImageToClipboard(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; data);</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keywordtype">void</span> GetImageFromClipboard(std::vector&lt;uint8_t&gt;&amp; data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height);</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#a4119d0ecf1e8258e0383d1f120c7e0bd">CopyImageToClipboard</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; data);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a">GetImageFromClipboard</a>(std::vector&lt;uint8_t&gt;&amp; data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height);</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#elif defined(__linux__)</span></div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keywordtype">void</span> CopyImageToClipboard(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; data);</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keywordtype">void</span> GetImageFromClipboard(std::vector&lt;uint8_t&gt;&amp; data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#a4119d0ecf1e8258e0383d1f120c7e0bd">CopyImageToClipboard</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; data);</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keywordtype">void</span> <a class="code hl_function" href="clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a">GetImageFromClipboard</a>(std::vector&lt;uint8_t&gt;&amp; data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height);</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_PLATFORM_CLIPBOARD_H</span></div>
+<div class="ttc" id="aclipboard_8cc_html_a4119d0ecf1e8258e0383d1f120c7e0bd"><div class="ttname"><a href="clipboard_8cc.html#a4119d0ecf1e8258e0383d1f120c7e0bd">CopyImageToClipboard</a></div><div class="ttdeci">void CopyImageToClipboard(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> clipboard.cc:6</div></div>
+<div class="ttc" id="aclipboard_8cc_html_af06810f16d07fa41a0345dfa0f61769a"><div class="ttname"><a href="clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a">GetImageFromClipboard</a></div><div class="ttdeci">void GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</div><div class="ttdef"><b>Definition</b> clipboard.cc:7</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="dir_f454b90621a5a35d9d5ef5e042a20159.html">platform</a></li><li class="navelem"><b>clipboard.h</b></li>
+    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="dir_f454b90621a5a35d9d5ef5e042a20159.html">platform</a></li><li class="navelem"><a class="el" href="clipboard_8h.html">clipboard.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>

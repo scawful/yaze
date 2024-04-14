@@ -1,0 +1,28 @@
+var classyaze_1_1app_1_1editor_1_1GfxGroupEditor =
+[
+    [ "DrawBlocksetViewer", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a69210ff131957de6bbfe32ad27cddf76", null ],
+    [ "DrawPaletteViewer", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125", null ],
+    [ "DrawRoomsetViewer", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a48e332ac9316e8aebaa1f59575767128", null ],
+    [ "DrawSpritesetViewer", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a5cf30471c1be0a7b7c6a55a3b50726a2", null ],
+    [ "InitBlockset", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a36ceca63810dbcc81e774bb0ce282f96", null ],
+    [ "SetSelectedBlockset", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a52a2abc35c1e150c5a03ea6591a0d10b", null ],
+    [ "SetSelectedRoomset", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a55d84bf80d8b1515bb2ee3874f382ace", null ],
+    [ "SetSelectedSpriteset", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a913ff298d2042d7a842e484c68c844d3", null ],
+    [ "Update", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a1bb4a54f5665e2ffd7026f1cd4f9de2b", null ],
+    [ "blockset_canvas_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#ad62dbf0a0ece2771ded435df0f856624", null ],
+    [ "gfx_group_viewer_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#aa3187fc60ffc2f53e9bc5a280122cc97", null ],
+    [ "last_sheet_id_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a7448a98414d8d55c19504301cc054b58", null ],
+    [ "overworld_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a18af715f7db0da5782852174435f00ce", null ],
+    [ "palette_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a8d49460b11a1a2593f16b90b42317c03", null ],
+    [ "palette_editor_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a315668257391c2edf6ec16a4c1e95f6d", null ],
+    [ "palette_group_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a22d0e8e6437032ab8fd3f1a1231d6c87", null ],
+    [ "preview_palette_id_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#acc048786441ec82cbbe3a0c5c0ce7b8b", null ],
+    [ "roomset_canvas_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a78e6bc6710bb1866dba09d810ffc167a", null ],
+    [ "selected_blockset_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a873632c211a1614ed840c689647aa279", null ],
+    [ "selected_roomset_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#ae4903d5538b4ccc1915ded516a20e012", null ],
+    [ "selected_spriteset_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a935c69479cb2f4e57fddedbdd1aeab98", null ],
+    [ "spriteset_canvas_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#ac1d76f4141145027288ca43adfc37d2b", null ],
+    [ "tile16_blockset_bmp_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a9a1dfe86825aebfaa7b2e076f4f2ff0e", null ],
+    [ "tile16_individual_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a913cfece5eab5d95ae98adb7f7432615", null ],
+    [ "tile16_individual_data_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#afbce4491a53be650fa691fef65151008", null ]
+];

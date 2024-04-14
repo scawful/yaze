@@ -1,0 +1,21 @@
+<map id="src/app/editor/context/entrance_context.h" name="src/app/editor/context/entrance_context.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="114,5,260,46"/>
+<area shape="rect" id="Node000002" href="$overworld__editor_8h.html" title=" " alt="" coords="107,94,267,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,62,190,94,184,94,184,62"/>
+<area shape="rect" id="Node000003" href="$master__editor_8cc.html" title=" " alt="" coords="5,271,150,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="142,146,122,163,105,184,94,206,87,229,81,271,76,271,82,228,89,204,101,181,118,160,139,142"/>
+<area shape="rect" id="Node000004" href="$master__editor_8h.html" title=" " alt="" coords="115,183,259,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="190,150,190,182,184,182,184,150"/>
+<area shape="rect" id="Node000009" href="$overworld__editor_8cc.html" title=" " alt="" coords="283,183,443,223"/>
+<area shape="poly" id="edge10_Node000002_Node000009" title=" " alt="" coords="242,140,324,180,322,185,239,144"/>
+<area shape="poly" id="edge9_Node000004_Node000003" title=" " alt="" coords="152,235,104,273,101,269,148,231"/>
+<area shape="rect" id="Node000005" href="$controller_8cc.html" title=" " alt="" coords="87,368,255,393"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="186,239,175,367,169,367,181,238"/>
+<area shape="rect" id="Node000006" href="$controller_8h.html" title=" " alt="" coords="255,279,415,305"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="235,229,315,276,313,281,232,234"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="300,314,195,369,193,365,297,310"/>
+<area shape="rect" id="Node000007" href="$app__delegate_8mm.html" title=" " alt="" coords="279,360,423,401"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="342,319,350,359,345,360,337,320"/>
+<area shape="rect" id="Node000008" href="$yaze_8cc.html" title=" " alt="" coords="447,368,559,393"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="373,310,480,365,478,369,371,314"/>
+</map>

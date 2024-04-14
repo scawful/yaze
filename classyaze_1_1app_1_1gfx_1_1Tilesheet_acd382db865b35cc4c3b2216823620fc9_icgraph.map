@@ -1,0 +1,10 @@
+<map id="yaze::app::gfx::Tilesheet::CalculateTileIndex" name="yaze::app::gfx::Tilesheet::CalculateTileIndex">
+<area shape="rect" id="Node000001" title=" " alt="" coords="414,39,570,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#acd099c85a36170ed6df6d1b6f1016748" title=" " alt="" coords="210,5,366,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="398,46,366,41,366,36,399,41"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a61bcc0eed32b7bb87cd82bb2a99b4af7" title=" " alt="" coords="210,71,366,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="399,76,366,81,366,76,398,71"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html#af513551f2d84293d9581cd61b352ae94" title=" " alt="" coords="5,39,162,79"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="194,44,162,49,161,44,194,38"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="194,79,161,74,162,69,194,74"/>
+</map>

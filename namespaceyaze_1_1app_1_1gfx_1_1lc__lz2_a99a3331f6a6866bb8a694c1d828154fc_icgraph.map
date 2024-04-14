@@ -1,0 +1,14 @@
+<map id="yaze::app::gfx::lc_lz2::SplitCompressionPiece" name="yaze::app::gfx::lc_lz2::SplitCompressionPiece">
+<area shape="rect" id="Node000001" title=" " alt="" coords="900,39,1085,79"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab84de3d8297ed4cef2d90c0a925cda6f" title=" " alt="" coords="653,39,852,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="884,62,852,62,852,56,884,56"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="637,58,605,58,395,58,348,59,347,54,395,52,605,52,637,53"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4" title=" " alt="" coords="395,67,605,107"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="638,74,606,78,606,73,638,69"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="5,71,174,111"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="207,74,175,80,174,74,206,69"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="380,74,347,70,348,64,380,69"/>
+</map>

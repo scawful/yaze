@@ -1,0 +1,12 @@
+<map id="yaze::app::editor::anonymous_namespace{gfx_group_editor::cc}::DrawPaletteFromPaletteGroup" name="yaze::app::editor::anonymous_namespace{gfx_group_editor::cc}::DrawPaletteFromPaletteGroup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,210,100"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="60,28,63,18,72,10,87,5,108,3,132,5,147,13,145,18,130,11,107,8,88,10,75,14,68,21,66,29"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="258,11,432,52"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="210,48,242,43,243,48,210,53"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#af99fa533aa6eae061b9b4d583010e85d" title=" " alt="" coords="263,76,427,117"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="210,76,248,81,247,86,210,81"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui.html#a4223ea51fab06e8518219cf81049db0f" title=" " alt="" coords="480,76,694,117"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="427,94,464,94,464,99,427,99"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="742,84,930,110"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="695,94,727,94,727,99,695,99"/>
+</map>

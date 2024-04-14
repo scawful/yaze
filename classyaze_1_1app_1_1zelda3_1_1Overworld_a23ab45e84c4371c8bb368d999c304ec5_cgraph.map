@@ -1,0 +1,32 @@
+<map id="yaze::app::zelda3::Overworld::DecompressAllMapTiles" name="yaze::app::zelda3::Overworld::DecompressAllMapTiles">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,105,205,160"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a3570450ee79da8db4773e7a13272d446" title=" " alt="" coords="253,5,443,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,101,252,55,266,49,268,54,254,60,159,106"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="258,94,438,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="205,119,242,115,243,121,205,125"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="262,144,434,169"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="205,140,246,144,246,149,205,145"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab029bf3391b9f450789088d69ee7d08f" title=" " alt="" coords="286,193,410,234"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="191,158,272,186,270,191,189,163"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a5e83d785a77e7abf58562810b373000b" title=" " alt="" coords="491,5,678,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="443,23,475,23,475,28,443,28"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="309,96,301,86,306,76,322,70,348,68,377,70,391,77,389,82,375,75,348,73,323,75,309,80,306,85,313,92"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1core.html#a65eee6b161b17a7cd555ae70cf65717a" title=" " alt="" coords="509,176,661,201"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="410,204,493,195,493,201,410,210"/>
+<area shape="rect" id="Node000011" href="$namespaceyaze_1_1app_1_1core.html#a58dc78cb3c691e3d7fa277549bc9bed3" title=" " alt="" coords="508,225,661,251"/>
+<area shape="poly" id="edge12_Node000006_Node000011" title=" " alt="" coords="410,217,493,226,492,231,410,223"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1core.html#ad9d7f8c3a344e69cdb20c165a893b9b8" title=" " alt="" coords="727,126,865,152"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="642,172,723,153,724,159,644,177"/>
+<area shape="rect" id="Node000010" href="$namespaceyaze_1_1app_1_1core.html#ac31ff6426029e67c6488639438f319b1" title=" " alt="" coords="727,176,865,201"/>
+<area shape="poly" id="edge10_Node000007_Node000010" title=" " alt="" coords="661,186,711,186,711,191,661,191"/>
+<area shape="rect" id="Node000009" href="$namespaceyaze_1_1app_1_1core.html#acd96e8461287964a49ff0a4311e51567" title=" " alt="" coords="914,164,1046,189"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="863,150,900,157,899,163,862,155"/>
+<area shape="poly" id="edge11_Node000010_Node000009" title=" " alt="" coords="866,181,898,179,899,184,866,186"/>
+<area shape="rect" id="Node000012" href="$namespaceyaze_1_1app_1_1core.html#a11f4840fb6dbe5e90fe675f3f59b3364" title=" " alt="" coords="726,225,866,251"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="662,235,711,235,711,240,662,240"/>
+<area shape="rect" id="Node000014" href="$namespaceyaze_1_1app_1_1core.html#a1ef21dd0482060a5eea9383b32bf5715" title=" " alt="" coords="726,274,866,300"/>
+<area shape="poly" id="edge15_Node000011_Node000014" title=" " alt="" coords="644,249,724,267,723,273,642,254"/>
+<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1core.html#a57423a3f6c1ec89535f5e836dc1406fe" title=" " alt="" coords="914,237,1046,263"/>
+<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="866,240,899,242,898,247,866,245"/>
+<area shape="poly" id="edge16_Node000014_Node000013" title=" " alt="" coords="862,271,898,264,899,269,863,276"/>
+</map>

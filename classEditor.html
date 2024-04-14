@@ -105,6 +105,8 @@ $(function(){initNavTree('classEditor.html',''); initResizable(); });
   <div class="headertitle"><div class="title">Editor Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="editor_8h_source.html">editor.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for Editor:</div>
 <div class="dyncontent">
@@ -120,25 +122,372 @@ Inheritance diagram for Editor:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a34e68c6a178a8094f43d548db8b4b6e6" id="r_a34e68c6a178a8094f43d548db8b4b6e6"><td class="memItemLeft" align="right" valign="top"><a id="a34e68c6a178a8094f43d548db8b4b6e6" name="a34e68c6a178a8094f43d548db8b4b6e6"></a>
-virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>Cut</b> ()=0</td></tr>
+<tr class="memitem:a011f961f9281ccf3619ec6a41ec962f4" id="r_a011f961f9281ccf3619ec6a41ec962f4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a011f961f9281ccf3619ec6a41ec962f4">Editor</a> ()=default</td></tr>
+<tr class="separator:a011f961f9281ccf3619ec6a41ec962f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a192c911dff4ebca89d0b1bb3aa482253" id="r_a192c911dff4ebca89d0b1bb3aa482253"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a192c911dff4ebca89d0b1bb3aa482253">~Editor</a> ()=default</td></tr>
+<tr class="separator:a192c911dff4ebca89d0b1bb3aa482253"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34e68c6a178a8094f43d548db8b4b6e6" id="r_a34e68c6a178a8094f43d548db8b4b6e6"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a34e68c6a178a8094f43d548db8b4b6e6">Cut</a> ()=0</td></tr>
 <tr class="separator:a34e68c6a178a8094f43d548db8b4b6e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8da61d6032e684384562b11701c27fdc" id="r_a8da61d6032e684384562b11701c27fdc"><td class="memItemLeft" align="right" valign="top"><a id="a8da61d6032e684384562b11701c27fdc" name="a8da61d6032e684384562b11701c27fdc"></a>
-virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>Copy</b> ()=0</td></tr>
+<tr class="memitem:a8da61d6032e684384562b11701c27fdc" id="r_a8da61d6032e684384562b11701c27fdc"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8da61d6032e684384562b11701c27fdc">Copy</a> ()=0</td></tr>
 <tr class="separator:a8da61d6032e684384562b11701c27fdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3248ddd9353d6ed84a8166d95cc0db35" id="r_a3248ddd9353d6ed84a8166d95cc0db35"><td class="memItemLeft" align="right" valign="top"><a id="a3248ddd9353d6ed84a8166d95cc0db35" name="a3248ddd9353d6ed84a8166d95cc0db35"></a>
-virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>Paste</b> ()=0</td></tr>
+<tr class="memitem:a3248ddd9353d6ed84a8166d95cc0db35" id="r_a3248ddd9353d6ed84a8166d95cc0db35"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3248ddd9353d6ed84a8166d95cc0db35">Paste</a> ()=0</td></tr>
 <tr class="separator:a3248ddd9353d6ed84a8166d95cc0db35"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50e0495bfce4f105769d70ca50cd4743" id="r_a50e0495bfce4f105769d70ca50cd4743"><td class="memItemLeft" align="right" valign="top"><a id="a50e0495bfce4f105769d70ca50cd4743" name="a50e0495bfce4f105769d70ca50cd4743"></a>
-virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>Undo</b> ()=0</td></tr>
+<tr class="memitem:a50e0495bfce4f105769d70ca50cd4743" id="r_a50e0495bfce4f105769d70ca50cd4743"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a50e0495bfce4f105769d70ca50cd4743">Undo</a> ()=0</td></tr>
 <tr class="separator:a50e0495bfce4f105769d70ca50cd4743"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac66d48b3e8d8906a4c718c3664ad8b82" id="r_ac66d48b3e8d8906a4c718c3664ad8b82"><td class="memItemLeft" align="right" valign="top"><a id="ac66d48b3e8d8906a4c718c3664ad8b82" name="ac66d48b3e8d8906a4c718c3664ad8b82"></a>
-virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>Redo</b> ()=0</td></tr>
+<tr class="memitem:ac66d48b3e8d8906a4c718c3664ad8b82" id="r_ac66d48b3e8d8906a4c718c3664ad8b82"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac66d48b3e8d8906a4c718c3664ad8b82">Redo</a> ()=0</td></tr>
 <tr class="separator:ac66d48b3e8d8906a4c718c3664ad8b82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9d47ba1ecfbef16cd86a9da02597314" id="r_af9d47ba1ecfbef16cd86a9da02597314"><td class="memItemLeft" align="right" valign="top"><a id="af9d47ba1ecfbef16cd86a9da02597314" name="af9d47ba1ecfbef16cd86a9da02597314"></a>
-virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> ()=0</td></tr>
+<tr class="memitem:af9d47ba1ecfbef16cd86a9da02597314" id="r_af9d47ba1ecfbef16cd86a9da02597314"><td class="memItemLeft" align="right" valign="top">virtual absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af9d47ba1ecfbef16cd86a9da02597314">Update</a> ()=0</td></tr>
 <tr class="separator:af9d47ba1ecfbef16cd86a9da02597314"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a011f961f9281ccf3619ec6a41ec962f4" name="a011f961f9281ccf3619ec6a41ec962f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a011f961f9281ccf3619ec6a41ec962f4">&#9670;&#160;</a></span>Editor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Editor::Editor </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a192c911dff4ebca89d0b1bb3aa482253" name="a192c911dff4ebca89d0b1bb3aa482253"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a192c911dff4ebca89d0b1bb3aa482253">&#9670;&#160;</a></span>~Editor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Editor::~Editor </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a8da61d6032e684384562b11701c27fdc" name="a8da61d6032e684384562b11701c27fdc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8da61d6032e684384562b11701c27fdc">&#9670;&#160;</a></span>Copy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual absl::Status Editor::Copy </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a516cf46888633c8abccd6e2a70d83940">yaze::app::editor::OverworldEditor</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a6b52880e6db70e1f7739e43bd31cd940">yaze::app::editor::DungeonEditor</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245">yaze::app::editor::MasterEditor::DrawEditMenu()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classEditor_a8da61d6032e684384562b11701c27fdc_icgraph.png" border="0" usemap="#aclassEditor_a8da61d6032e684384562b11701c27fdc_icgraph" alt=""/></div>
+<map name="aclassEditor_a8da61d6032e684384562b11701c27fdc_icgraph" id="aclassEditor_a8da61d6032e684384562b11701c27fdc_icgraph">
+<area shape="rect" title=" " alt="" coords="1642,13,1731,39"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245" title=" " alt="" coords="1410,5,1594,46"/>
+<area shape="poly" title=" " alt="" coords="1627,28,1594,28,1594,23,1627,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1170,5,1362,46"/>
+<area shape="poly" title=" " alt="" coords="1394,28,1362,28,1362,23,1394,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a34e68c6a178a8094f43d548db8b4b6e6" name="a34e68c6a178a8094f43d548db8b4b6e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a34e68c6a178a8094f43d548db8b4b6e6">&#9670;&#160;</a></span>Cut()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual absl::Status Editor::Cut </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad9584b2d18fb38325fa925fd8a7d83cc">yaze::app::editor::OverworldEditor</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d60f7e1e149769068acee4838a90474">yaze::app::editor::DungeonEditor</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245">yaze::app::editor::MasterEditor::DrawEditMenu()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classEditor_a34e68c6a178a8094f43d548db8b4b6e6_icgraph.png" border="0" usemap="#aclassEditor_a34e68c6a178a8094f43d548db8b4b6e6_icgraph" alt=""/></div>
+<map name="aclassEditor_a34e68c6a178a8094f43d548db8b4b6e6_icgraph" id="aclassEditor_a34e68c6a178a8094f43d548db8b4b6e6_icgraph">
+<area shape="rect" title=" " alt="" coords="1642,13,1722,39"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245" title=" " alt="" coords="1410,5,1594,46"/>
+<area shape="poly" title=" " alt="" coords="1626,28,1594,28,1594,23,1626,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1170,5,1362,46"/>
+<area shape="poly" title=" " alt="" coords="1394,28,1362,28,1362,23,1394,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a3248ddd9353d6ed84a8166d95cc0db35" name="a3248ddd9353d6ed84a8166d95cc0db35"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3248ddd9353d6ed84a8166d95cc0db35">&#9670;&#160;</a></span>Paste()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual absl::Status Editor::Paste </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#abcff420d847ce60d7e59332ba47d3dc9">yaze::app::editor::OverworldEditor</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a70df684e4c053f38d159dcfd2fa72122">yaze::app::editor::DungeonEditor</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245">yaze::app::editor::MasterEditor::DrawEditMenu()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classEditor_a3248ddd9353d6ed84a8166d95cc0db35_icgraph.png" border="0" usemap="#aclassEditor_a3248ddd9353d6ed84a8166d95cc0db35_icgraph" alt=""/></div>
+<map name="aclassEditor_a3248ddd9353d6ed84a8166d95cc0db35_icgraph" id="aclassEditor_a3248ddd9353d6ed84a8166d95cc0db35_icgraph">
+<area shape="rect" title=" " alt="" coords="1642,13,1736,39"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245" title=" " alt="" coords="1410,5,1594,46"/>
+<area shape="poly" title=" " alt="" coords="1627,28,1594,28,1594,23,1627,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1170,5,1362,46"/>
+<area shape="poly" title=" " alt="" coords="1394,28,1362,28,1362,23,1394,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ac66d48b3e8d8906a4c718c3664ad8b82" name="ac66d48b3e8d8906a4c718c3664ad8b82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac66d48b3e8d8906a4c718c3664ad8b82">&#9670;&#160;</a></span>Redo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual absl::Status Editor::Redo </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a9da2bf1af30884cf96c1f9bfc93df353">yaze::app::editor::OverworldEditor</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a30618f13aab0352d115037b9079b7abe">yaze::app::editor::DungeonEditor</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245">yaze::app::editor::MasterEditor::DrawEditMenu()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classEditor_ac66d48b3e8d8906a4c718c3664ad8b82_icgraph.png" border="0" usemap="#aclassEditor_ac66d48b3e8d8906a4c718c3664ad8b82_icgraph" alt=""/></div>
+<map name="aclassEditor_ac66d48b3e8d8906a4c718c3664ad8b82_icgraph" id="aclassEditor_ac66d48b3e8d8906a4c718c3664ad8b82_icgraph">
+<area shape="rect" title=" " alt="" coords="1642,13,1732,39"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245" title=" " alt="" coords="1410,5,1594,46"/>
+<area shape="poly" title=" " alt="" coords="1627,28,1595,28,1595,23,1627,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1170,5,1362,46"/>
+<area shape="poly" title=" " alt="" coords="1394,28,1362,28,1362,23,1394,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a50e0495bfce4f105769d70ca50cd4743" name="a50e0495bfce4f105769d70ca50cd4743"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50e0495bfce4f105769d70ca50cd4743">&#9670;&#160;</a></span>Undo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual absl::Status Editor::Undo </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab28e9f8c4ef4f48f71939b37f8fbd253">yaze::app::editor::OverworldEditor</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4f14f9916e234f23265f3e4917f43dd2">yaze::app::editor::DungeonEditor</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245">yaze::app::editor::MasterEditor::DrawEditMenu()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classEditor_a50e0495bfce4f105769d70ca50cd4743_icgraph.png" border="0" usemap="#aclassEditor_a50e0495bfce4f105769d70ca50cd4743_icgraph" alt=""/></div>
+<map name="aclassEditor_a50e0495bfce4f105769d70ca50cd4743_icgraph" id="aclassEditor_a50e0495bfce4f105769d70ca50cd4743_icgraph">
+<area shape="rect" title=" " alt="" coords="1642,13,1733,39"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245" title=" " alt="" coords="1410,5,1594,46"/>
+<area shape="poly" title=" " alt="" coords="1626,28,1594,28,1594,23,1626,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1170,5,1362,46"/>
+<area shape="poly" title=" " alt="" coords="1394,28,1362,28,1362,23,1394,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="980,5,1122,46"/>
+<area shape="poly" title=" " alt="" coords="1154,28,1123,28,1123,23,1154,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,5,932,46"/>
+<area shape="poly" title=" " alt="" coords="964,28,933,28,933,23,964,23"/>
+<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,13,718,39"/>
+<area shape="poly" title=" " alt="" coords="750,28,718,28,718,23,750,23"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
+<area shape="poly" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>
+<area shape="poly" title=" " alt="" coords="654,36,622,43,620,38,653,31"/>
+<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a71480dc3dc3f0e962df77046106ac339" title=" " alt="" coords="5,5,171,46"/>
+<area shape="poly" title=" " alt="" coords="203,28,171,28,171,23,203,23"/>
+<area shape="poly" title=" " alt="" coords="432,46,400,41,401,36,433,41"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="af9d47ba1ecfbef16cd86a9da02597314" name="af9d47ba1ecfbef16cd86a9da02597314"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9d47ba1ecfbef16cd86a9da02597314">&#9670;&#160;</a></span>Update()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual absl::Status Editor::Update </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff">yaze::app::editor::OverworldEditor</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa1996432de42e435b2aebfda3d7346b6">yaze::app::editor::DungeonEditor</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/app/core/<a class="el" href="editor_8h_source.html">editor.h</a></li>
 </ul>

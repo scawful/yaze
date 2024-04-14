@@ -1,0 +1,7 @@
+<map id="yaze::app::gui::Canvas::GetTileIdFromMousePos" name="yaze::app::gui::Canvas::GetTileIdFromMousePos">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,178,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#ac80c9ccda6a62e85e9ef64733120ac92" title=" " alt="" coords="226,5,373,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,43,210,37,211,43,178,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a93cfd6923d614c2cf8ab79e9dc4127b7" title=" " alt="" coords="226,71,373,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,70,211,75,210,80,178,75"/>
+</map>

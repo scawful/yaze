@@ -1,0 +1,13 @@
+<map id="yaze::app::zelda3::dungeon::Room::LoadHeader" name="yaze::app::zelda3::dungeon::Room::LoadHeader">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,140,193,181"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="243,29,418,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,137,182,108,240,79,252,74,254,79,242,84,185,113,135,142"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="241,118,420,144"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="192,146,225,142,225,147,193,151"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a6a8f7991f324a866e03c9f35156cf5b8" title=" " alt="" coords="243,168,418,209"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="193,169,228,173,227,179,192,174"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="244,233,417,259"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="146,179,242,218,265,226,263,231,240,223,144,184"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="287,29,285,19,292,10,307,5,330,3,355,5,370,11,368,16,354,10,330,8,308,10,295,15,290,21,292,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="292,119,284,110,289,100,305,94,330,92,359,94,373,101,371,106,357,99,330,97,306,99,293,104,290,109,296,116"/>
+</map>

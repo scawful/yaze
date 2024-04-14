@@ -1,0 +1,14 @@
+<map id="yaze::app::zelda3::dungeon::DungeonObjectRenderer::ConfigureObject" name="yaze::app::zelda3::dungeon::DungeonObjectRenderer::ConfigureObject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,223,119"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#aba413cdf70b73fca66fcb6cacdcb0e1b" title=" " alt="" coords="271,5,416,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,60,255,48,256,53,215,65"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#ab3fbc129c28f757af7260bb961d2e136" title=" " alt="" coords="276,71,411,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="223,88,260,88,260,94,223,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a608053678792cda7d850704364041d16" title=" " alt="" coords="276,136,411,177"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="215,117,262,130,260,136,213,122"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#ae31d0d071f8797bc81228af1bb519a5d" title=" " alt="" coords="476,39,610,79"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="417,35,461,43,460,48,416,40"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="410,78,460,70,461,75,411,83"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a1233d122f27e85f5decf925b560dfd65" title=" " alt="" coords="464,136,621,177"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="411,154,448,154,448,159,411,159"/>
+</map>

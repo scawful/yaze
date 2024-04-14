@@ -1,0 +1,19 @@
+<map id="src/app/emu/emulator.h" name="src/app/emu/emulator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="108,5,266,31"/>
+<area shape="rect" id="Node000002" href="$master__editor_8cc.html" title=" " alt="" coords="5,168,150,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,41,125,59,105,81,94,102,87,125,81,168,75,167,82,124,89,100,101,77,122,55,146,37"/>
+<area shape="rect" id="Node000003" href="$master__editor_8h.html" title=" " alt="" coords="115,79,259,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,46,190,79,184,79,184,46"/>
+<area shape="rect" id="Node000008" href="$emulator_8cc.html" title=" " alt="" coords="283,87,448,112"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="229,35,339,84,337,88,227,40"/>
+<area shape="poly" id="edge8_Node000003_Node000002" title=" " alt="" coords="152,132,104,169,101,165,148,128"/>
+<area shape="rect" id="Node000004" href="$controller_8cc.html" title=" " alt="" coords="87,264,255,290"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="186,135,175,263,169,263,181,135"/>
+<area shape="rect" id="Node000005" href="$controller_8h.html" title=" " alt="" coords="255,175,415,201"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="235,126,315,172,313,177,232,130"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="300,211,195,266,193,261,297,206"/>
+<area shape="rect" id="Node000006" href="$app__delegate_8mm.html" title=" " alt="" coords="279,256,423,297"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="342,216,350,256,345,257,337,217"/>
+<area shape="rect" id="Node000007" href="$yaze_8cc.html" title=" " alt="" coords="447,264,559,290"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="373,206,480,261,478,266,371,211"/>
+</map>

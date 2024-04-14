@@ -102,50 +102,62 @@ $(function(){initNavTree('style_8h_source.html',''); initResizable(); });
   <div class="headertitle"><div class="title">style.h</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_STYLE_H</span></div>
+<a href="style_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_STYLE_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_STYLE_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;imgui/imgui.h&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>yaze {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span>app {</div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>gui {</div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keywordtype">void</span> BeginWindowWithDisplaySettings(<span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keywordtype">id</span>, <span class="keywordtype">bool</span>* active,</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a69040af6cbf02bd16c9e22e4bff2b99e">BeginWindowWithDisplaySettings</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keywordtype">id</span>, <span class="keywordtype">bool</span>* active,</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>                                    <span class="keyword">const</span> ImVec2&amp; size = ImVec2(0, 0),</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>                                    ImGuiWindowFlags flags = 0);</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keywordtype">void</span> EndWindowWithDisplaySettings();</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d">EndWindowWithDisplaySettings</a>();</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keywordtype">void</span> BeginPadding(<span class="keywordtype">int</span> i);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keywordtype">void</span> EndPadding();</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c">BeginPadding</a>(<span class="keywordtype">int</span> i);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530">EndPadding</a>();</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keywordtype">void</span> BeginNoPadding();</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keywordtype">void</span> EndNoPadding();</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#aee42933abcb7b6e0718502229a20d060">BeginNoPadding</a>();</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188">EndNoPadding</a>();</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keywordtype">void</span> BeginChildWithScrollbar(<span class="keyword">const</span> <span class="keywordtype">char</span> *str_id);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a607720b784682d3ef9edce3bc2801a0f">BeginChildWithScrollbar</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *str_id);</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keywordtype">void</span> BeginChildBothScrollbars(<span class="keywordtype">int</span> <span class="keywordtype">id</span>);</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a6b927b57b8d59997654118efa468b53e">BeginChildBothScrollbars</a>(<span class="keywordtype">int</span> <span class="keywordtype">id</span>);</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keywordtype">void</span> DrawDisplaySettings(ImGuiStyle* ref = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a1ea1d6c7891279ea571030df8a323fd6">DrawDisplaySettings</a>(ImGuiStyle* ref = <span class="keyword">nullptr</span>);</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keywordtype">void</span> TextWithSeparators(<span class="keyword">const</span> absl::string_view&amp; text);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173">TextWithSeparators</a>(<span class="keyword">const</span> absl::string_view&amp; text);</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keywordtype">void</span> ColorsYaze();</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1app_1_1gui.html#a977a7571691d73f9f4ab817427cae497">ColorsYaze</a>();</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>}  <span class="comment">// namespace gui</span></div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>}  <span class="comment">// namespace app</span></div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a1ea1d6c7891279ea571030df8a323fd6"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a1ea1d6c7891279ea571030df8a323fd6">yaze::app::gui::DrawDisplaySettings</a></div><div class="ttdeci">void DrawDisplaySettings(ImGuiStyle *ref)</div><div class="ttdef"><b>Definition</b> style.cc:59</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a4e98334d8cfb28352cebdd857eb52530"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530">yaze::app::gui::EndPadding</a></div><div class="ttdeci">void EndPadding()</div><div class="ttdef"><b>Definition</b> style.cc:39</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a607720b784682d3ef9edce3bc2801a0f"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a607720b784682d3ef9edce3bc2801a0f">yaze::app::gui::BeginChildWithScrollbar</a></div><div class="ttdeci">void BeginChildWithScrollbar(const char *str_id)</div><div class="ttdef"><b>Definition</b> style.cc:47</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a65f49225270284b6353e95334659788c"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c">yaze::app::gui::BeginPadding</a></div><div class="ttdeci">void BeginPadding(int i)</div><div class="ttdef"><b>Definition</b> style.cc:35</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a69040af6cbf02bd16c9e22e4bff2b99e"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a69040af6cbf02bd16c9e22e4bff2b99e">yaze::app::gui::BeginWindowWithDisplaySettings</a></div><div class="ttdeci">void BeginWindowWithDisplaySettings(const char *id, bool *active, const ImVec2 &amp;size, ImGuiWindowFlags flags)</div><div class="ttdef"><b>Definition</b> style.cc:10</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a6b927b57b8d59997654118efa468b53e"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a6b927b57b8d59997654118efa468b53e">yaze::app::gui::BeginChildBothScrollbars</a></div><div class="ttdeci">void BeginChildBothScrollbars(int id)</div><div class="ttdef"><b>Definition</b> style.cc:52</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_a977a7571691d73f9f4ab817427cae497"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#a977a7571691d73f9f4ab817427cae497">yaze::app::gui::ColorsYaze</a></div><div class="ttdeci">void ColorsYaze()</div><div class="ttdef"><b>Definition</b> style.cc:426</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_aa6e68e729a3c4a16fda2ff2409097188"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188">yaze::app::gui::EndNoPadding</a></div><div class="ttdeci">void EndNoPadding()</div><div class="ttdef"><b>Definition</b> style.cc:45</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_ab6367acf830417f141068389444b7173"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173">yaze::app::gui::TextWithSeparators</a></div><div class="ttdeci">void TextWithSeparators(const absl::string_view &amp;text)</div><div class="ttdef"><b>Definition</b> style.cc:420</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_aee42933abcb7b6e0718502229a20d060"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#aee42933abcb7b6e0718502229a20d060">yaze::app::gui::BeginNoPadding</a></div><div class="ttdeci">void BeginNoPadding()</div><div class="ttdef"><b>Definition</b> style.cc:41</div></div>
+<div class="ttc" id="anamespaceyaze_1_1app_1_1gui_html_afa54cc8c1238cb1d0bef794cbd947b7d"><div class="ttname"><a href="namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d">yaze::app::gui::EndWindowWithDisplaySettings</a></div><div class="ttdeci">void EndWindowWithDisplaySettings()</div><div class="ttdef"><b>Definition</b> style.cc:30</div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdef"><b>Definition</b> common.cc:14</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><b>style.h</b></li>
+    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="dir_8fca90320bcc7393a52982c8dc104a2a.html">gui</a></li><li class="navelem"><a class="el" href="style_8h.html">style.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0 </li>
   </ul>
 </div>

@@ -1,9 +1,32 @@
 var classyaze_1_1app_1_1emu_1_1audio_1_1Apu =
 [
+    [ "Apu", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ad53afd65f689d36e52a95ccf6757b346", null ],
     [ "ApplyEnvelope", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a93ca0f747b24dda0426b95b16b250ac7", null ],
     [ "CalculateAddressForVoice", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ad1eb48cb8e08562d6b4b50d406b30c63", null ],
+    [ "FetchSampleForVoice", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a1ed94512007f013a0a981e016aa50164", null ],
+    [ "FetchSampleFromRam", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a20793dddc4e6607abc38d7f831e78ce8", null ],
     [ "GenerateSample", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ab35d862ac09fcd001e9058cdc6353afb", null ],
+    [ "GetAudioSamples", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a563c67992979169b5d8b459c9895faf6", null ],
     [ "GetNextSample", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a258f28db89b3bdd08374bd93bedd316e", null ],
+    [ "Init", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a683c5e94e45d1336df9be9ccf9660d9f", null ],
+    [ "Initialize", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a9ea4272b11e022785545d73d6f1a9423", null ],
     [ "Notify", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a253cd04f0ebdf2ed595ae77ad17dc083", null ],
-    [ "UpdateChannelSettings", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a75a7f496828d04133bb59d291e4329c0", null ]
+    [ "ProcessSamples", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a87872e79698d26e30eb99b98af9d4f87", null ],
+    [ "PushToAudioBuffer", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#af4ff2713fb2e5004a280e315dbe7c8e0", null ],
+    [ "ReadDspMemory", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a61b08b7ec38cc1defea93ab5d620f2f8", null ],
+    [ "Reset", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c", null ],
+    [ "SignalReady", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a5e25512e78d359ea3a93a6d45fc461e0", null ],
+    [ "Update", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#aaa440775d5fed5dc7d2229ece9fdd013", null ],
+    [ "UpdateChannelSettings", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a75a7f496828d04133bb59d291e4329c0", null ],
+    [ "UpdateClock", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a1870359980e286ec3a879d5edc12571f", null ],
+    [ "WriteDspMemory", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a0481e8b8e9b45d6353114171f4d293dc", null ],
+    [ "WriteToPort", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a9953de1a3fe2bdf0614b94d216729f30", null ],
+    [ "aram_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ae65a9567d2392f99f22551815259325c", null ],
+    [ "audio_samples_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a397070b45332e11d2e8d4bf2ed149fc3", null ],
+    [ "clock_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a19fee22809eb075bf0974a4f54ce20a8", null ],
+    [ "dsp_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#afe7b4b1692f39aa80415b6c00a4a13ea", null ],
+    [ "memory_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a0aa509cadc3a6021bd1e1e74e454b10b", null ],
+    [ "ports_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a33d8ec3c2027c2218a42864a38f546d1", null ],
+    [ "ready_callback_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#af24fc7d0f7b14917e704b48452a329bf", null ],
+    [ "spc700_", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a2b1179dcfc9b246035ef6ec97c9ea7bb", null ]
 ];

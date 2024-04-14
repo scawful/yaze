@@ -1,0 +1,23 @@
+<map id="yaze::app::zelda3::TitleScreen::Create" name="yaze::app::zelda3::TitleScreen::Create">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,201,137,242"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#afa6ab15befb42ff621cb930551735489" title=" " alt="" coords="198,71,360,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,198,230,118,233,122,107,203"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb" title="Creates a bitmap object and reserves space for graphical data." alt="" coords="207,201,351,242"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="137,219,191,219,191,224,137,224"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#a2cc8fde77303e4202d0ba838f818076c" title=" " alt="" coords="185,328,373,369"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="108,240,232,317,229,322,105,245"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae50d84bd88d181d2c1dae099c046e653" title=" " alt="" coords="435,5,579,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,68,419,48,421,53,353,73"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="435,71,579,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="305,199,357,161,420,122,432,116,435,120,422,127,360,165,308,203"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="435,136,579,177"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="351,198,419,179,421,184,352,204"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#af3b83bf650d6acc73d46543367b944c1" title=" " alt="" coords="435,201,579,242"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="352,219,419,219,419,224,352,224"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="435,267,579,307"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="352,240,421,260,419,265,351,245"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="435,332,579,373"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="308,240,360,278,422,317,435,323,432,328,420,321,357,283,305,245"/>
+<area shape="rect" id="Node000011" href="$namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d" title=" " alt="" coords="421,397,593,423"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="358,367,443,390,441,395,356,372"/>
+</map>

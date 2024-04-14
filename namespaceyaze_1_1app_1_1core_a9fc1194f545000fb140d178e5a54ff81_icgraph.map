@@ -1,0 +1,9 @@
+<map id="yaze::app::core::UppercaseHexLong" name="yaze::app::core::UppercaseHexLong">
+<area shape="rect" id="Node000001" title=" " alt="" coords="432,35,606,75"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a6239ab1dbd4284e14f9081f8060a8407" title=" " alt="" coords="177,5,384,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="416,45,384,41,385,36,417,40"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#a4df0a25f6f029844ce7232f25ccbaf23" title=" " alt="" coords="193,70,368,96"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="417,70,369,75,368,70,416,64"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html#a3024afeb5938bb2167313f9f68018038" title=" " alt="" coords="5,5,129,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="161,28,129,28,129,23,161,23"/>
+</map>

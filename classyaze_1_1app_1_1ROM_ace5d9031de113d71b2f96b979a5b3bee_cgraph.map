@@ -1,0 +1,6 @@
+<map id="yaze::app::ROM::ReadTransaction" name="yaze::app::ROM::ReadTransaction">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,220,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="74,31,67,21,71,11,87,5,113,3,141,5,155,12,153,17,139,10,112,8,88,10,75,15,72,20,78,27"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#a91ce377dbd0f774e6b54c6a24adac094" title=" " alt="" coords="268,29,420,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="220,40,252,40,252,45,220,45"/>
+</map>

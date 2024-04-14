@@ -1,0 +1,9 @@
+<map id="yaze::app::ROM::Write" name="yaze::app::ROM::Write">
+<area shape="rect" id="Node000001" title=" " alt="" coords="506,42,652,68"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a4eebef18a32016700c9d4e31573c24ba" title=" " alt="" coords="261,5,458,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="490,46,458,42,459,36,491,41"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html#a0ec76a9ee5dd04c46e78729168ac593e" title=" " alt="" coords="267,70,452,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="491,69,452,74,452,69,490,64"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#ade7c4ba363154f96ef47af0d01e0aa4f" title=" " alt="" coords="5,70,213,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="252,86,213,86,213,80,252,80"/>
+</map>

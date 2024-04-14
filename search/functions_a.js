@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['refreshmappalette_0',['RefreshMapPalette',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#abfb4edfdd1ac731feb7a284a839fdd33',1,'yaze::app::editor::OverworldEditor']]],
-  ['renderbitmap_1',['RenderBitmap',['../classyaze_1_1app_1_1ROM.html#a10b3916657949af2aa7a749708e4b005',1,'yaze::app::ROM']]],
-  ['renderobject_2',['RenderObject',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ae3bf729759c4e191972a5ad3fca4e5a7',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]]
+  ['key_5foff_0',['key_off',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a98cba99e6368978b1fa2ce733d210170',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
+  ['key_5fon_1',['key_on',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a002126aa5475d7231b9e1ec578a8995f',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
+  ['keydrop_2',['keyDrop',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab39b6fe560fc64d1997e2e2c3740b4aa',1,'yaze::app::zelda3::Sprite']]]
 ];

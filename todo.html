@@ -132,8 +132,8 @@ $(function(){initNavTree('todo.html',''); initResizable(); });
 <dd><a class="anchor" id="_todo000016"></a>: Return the last sample instead of 0.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a253cd04f0ebdf2ed595ae77ad17dc083">yaze::app::emu::audio::Apu::Notify</a>  (uint32_t address, uint8_t data) override</dt>
 <dd><p class="startdd"><a class="anchor" id="_todo000014"></a>: Handle additional communication/commands </p>
-<p class="interdd"><a class="anchor" id="_todo000013"></a>: Handle the setup of destination address </p>
-<p class="enddd"><a class="anchor" id="_todo000012"></a>: Handle data byte transfer here  </p>
+<p class="interdd"><a class="anchor" id="_todo000012"></a>: Handle data byte transfer here </p>
+<p class="enddd"><a class="anchor" id="_todo000013"></a>: Handle the setup of destination address  </p>
 </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a75a7f496828d04133bb59d291e4329c0">yaze::app::emu::audio::Apu::UpdateChannelSettings</a>  ()</dt>
 <dd><a class="anchor" id="_todo000017"></a>: Implement this method to update the channel settings.  </dd>
@@ -147,10 +147,20 @@ $(function(){initNavTree('todo.html',''); initResizable(); });
 <dd><a class="anchor" id="_todo000023"></a>: Make this communicate with the <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> class  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ac252c1d80bdd0e4e72c705d3f72085d5">yaze::app::emu::SNES::Init</a>  (<a class="el" href="classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data.">ROM</a> &amp;rom)</dt>
 <dd><a class="anchor" id="_todo000024"></a>: Make this load from work ram, potentially in Memory class  </dd>
+<dt>Member <a class="el" href="namespaceyaze_1_1app_1_1emu.html#add7db98ddbf6f90d85d49e5964cc6630">yaze::app::emu::TEST_F</a>  (<a class="el" href="classyaze_1_1app_1_1emu_1_1CpuTest.html">CpuTest</a>, COP)</dt>
+<dd><a class="anchor" id="_todo000036"></a>: FIX COP TEST  </dd>
+<dt>Member <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73">yaze::app::gfx::lc_lz2::CompressV2</a>  (const uchar *data, const int start, const int length, int mode, bool check)</dt>
+<dd><a class="anchor" id="_todo000027"></a>TEST compressed data border for each cmd  </dd>
+<dt>Member <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a22ebd13aa91befebc4f342e86b3c04f7">yaze::app::gfx::lc_lz2::ValidateForByteGain</a>  (const DataSizeArray &amp;data_size_taken, const CommandSizeArray &amp;cmd_size, uint &amp;max_win, uint &amp;cmd_with_max)</dt>
+<dd><a class="anchor" id="_todo000025"></a>(@scawful): Replace conditional with table of command sizes  </dd>
+<dt>Member <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#acde9fcb657ba406859dd8fe3a17b721b">yaze::app::gfx::lc_lz2::ValidateForByteGainV2</a>  (const <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html">CompressionCommand</a> &amp;cmd, uint &amp;max_win, uint &amp;cmd_with_max)</dt>
+<dd><a class="anchor" id="_todo000026"></a>(@scawful): TEST ME  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a9c0b8b1e13396a4c0ea677208f27f749">yaze::app::gui::Canvas::DrawBitmapTable</a>  (const BitmapTable &amp;gfx_bin)</dt>
 <dd><a class="anchor" id="_todo000029"></a>: Add parameters for sizing and positioning  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59">yaze::app::gui::Canvas::DrawContextMenu</a>  (<a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image.">gfx::Bitmap</a> *bitmap=nullptr)</dt>
 <dd><a class="anchor" id="_todo000028"></a>: Add a menu item for selecting the palette  </dd>
+<dt>Member <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ad9e1fb3111d9a8d704400749c4badbc7">yaze::app::zelda3::dungeon::DarkRoom</a>  </dt>
+<dd><a class="anchor" id="_todo000032"></a>: Determine if DarkRoom will stay there or not  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#abec4b139db7e26fb07c5260a12037d4f">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM</a>  ()</dt>
 <dd><a class="anchor" id="_todo000030"></a>(@scawful): Make LayerMerging object.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#adcc5f8115da5732c0f08a780bc2166fa">yaze::app::zelda3::dungeon::RoomObject::DrawTile</a>  (<a class="el" href="structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html">Tile</a> t, int xx, int yy, std::vector&lt; uint8_t &gt; &amp;current_gfx16, std::vector&lt; uint8_t &gt; &amp;tiles_bg1_buffer, std::vector&lt; uint8_t &gt; &amp;tiles_bg2_buffer, ushort tile_under=0xFFFF)</dt>
@@ -158,7 +168,11 @@ $(function(){initNavTree('todo.html',''); initResizable(); });
 <dt>Member <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7aff276963041b1940a655f03058f487">yaze::app::zelda3::Sprite::Draw</a>  ()</dt>
 <dd><a class="anchor" id="_todo000034"></a>: Add something here?  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#afa6ab15befb42ff621cb930551735489">yaze::app::zelda3::TitleScreen::BuildTileset</a>  ()</dt>
-<dd><a class="anchor" id="_todo000033"></a>: get the gfx from the GFX class rather than the rom. </dd>
+<dd><a class="anchor" id="_todo000033"></a>: get the gfx from the GFX class rather than the rom.  </dd>
+<dt>Member <a class="el" href="namespaceyaze__test_1_1gfx__test.html#af40e0d4f10bb4b9ad27af81907a9426b">yaze_test::gfx_test::TEST</a>  (LC_LZ2_CompressionTest, CompressionSingleSet)</dt>
+<dd><a class="anchor" id="_todo000035"></a>: Check why header built is off by one  </dd>
+<dt>Member <a class="el" href="namespaceyaze__test_1_1gfx__test.html#a1a263e0ae5ef8848f9ab4910765f1db3">yaze_test::gfx_test::TEST</a>  (SNESPaletteTest, GetColorOutOfBounds)</dt>
+<dd><a class="anchor" id="_todo000037"></a>: Fix this test, behavior has changed since the original </dd>
 </dl>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

@@ -1,0 +1,19 @@
+<map id="yaze::app::emu::audio::DigitalSignalProcessor::process_envelopes" name="yaze::app::emu::audio::DigitalSignalProcessor::process_envelopes">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,85,164,141"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a0df5f277f02f52840874a976de279af3" title=" " alt="" coords="212,85,370,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,111,196,111,196,116,164,116"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#aee1dc765121595642f1ba70cd99f0719" title=" " alt="" coords="418,5,595,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,82,414,65,416,69,369,87"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a2f0d37907ebe05b12801c1ffb1fdcd77" title=" " alt="" coords="419,85,595,141"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="370,111,403,111,403,116,370,116"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#af1fc2a11c67f3a8e86381835792bb7c2" title=" " alt="" coords="428,165,586,221"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="369,139,416,157,414,162,367,144"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a66f67f310e9fde31efb21292482d5213" title=" " alt="" coords="643,45,802,101"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="573,163,594,151,618,131,642,111,648,107,651,111,645,115,621,135,597,155,576,167"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#ac989a03436afe67711559c60318c078d" title=" " alt="" coords="643,125,802,181"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="586,176,628,168,629,173,587,181"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a3c2f4525bb3aec37b9bedf89451a0a85" title=" " alt="" coords="643,205,802,261"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="587,205,629,213,628,218,586,210"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a7eaac1e56df44e0a0bf4575b719cbd5e" title=" " alt="" coords="643,285,802,341"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="556,219,645,271,653,275,650,280,642,275,553,224"/>
+</map>

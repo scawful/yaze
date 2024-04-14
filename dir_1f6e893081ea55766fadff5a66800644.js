@@ -5,6 +5,8 @@ var dir_1f6e893081ea55766fadff5a66800644 =
     [ "debug", "dir_c1473f55b0a1d048d00ce031b1d35655.html", "dir_c1473f55b0a1d048d00ce031b1d35655" ],
     [ "memory", "dir_64878442d2f9c4453080996f299a5b19.html", "dir_64878442d2f9c4453080996f299a5b19" ],
     [ "video", "dir_fc1c506276a10f7ba5357dc78cded377.html", "dir_fc1c506276a10f7ba5357dc78cded377" ],
-    [ "emulator.h", "emulator_8h_source.html", null ],
-    [ "snes.h", "snes_8h_source.html", null ]
+    [ "emulator.cc", "emulator_8cc.html", "emulator_8cc" ],
+    [ "emulator.h", "emulator_8h.html", "emulator_8h" ],
+    [ "snes.cc", "snes_8cc.html", "snes_8cc" ],
+    [ "snes.h", "snes_8h.html", "snes_8h" ]
 ];

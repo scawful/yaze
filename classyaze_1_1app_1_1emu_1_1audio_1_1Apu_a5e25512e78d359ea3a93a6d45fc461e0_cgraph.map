@@ -1,0 +1,7 @@
+<map id="yaze::app::emu::audio::Apu::SignalReady" name="yaze::app::emu::audio::Apu::SignalReady">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,148,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#aaed81ca4639961fe4c29074eba6fe0fe" title=" " alt="" coords="196,5,356,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,23,180,23,180,28,148,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="404,5,623,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="356,23,388,23,388,28,356,28"/>
+</map>

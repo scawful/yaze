@@ -1,6 +1,30 @@
 var searchData=
 [
-  ['generatesample_0',['GenerateSample',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ab35d862ac09fcd001e9058cdc6353afb',1,'yaze::app::emu::audio::Apu']]],
-  ['getinstructionlength_1',['GetInstructionLength',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a1cae58175cf9b0e07a365d4e411748e8',1,'yaze::app::emu::Cpu']]],
-  ['getnextsample_2',['GetNextSample',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a258f28db89b3bdd08374bd93bedd316e',1,'yaze::app::emu::audio::Apu']]]
+  ['editcolorinpalette_0',['EditColorInPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da',1,'yaze::app::editor::PaletteEditor']]],
+  ['editlabel_1',['EditLabel',['../classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
+  ['editor_2',['Editor',['../classEditor.html#a011f961f9281ccf3619ec6a41ec962f4',1,'Editor']]],
+  ['edittrack_3',['EditTrack',['../classyaze_1_1app_1_1zelda3_1_1Tracker.html#a1ffbfcace743b2423d3e208608432092',1,'yaze::app::zelda3::Tracker']]],
+  ['ei_4',['EI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af98ae59887dca4d31d5c3e214650b379',1,'yaze::app::emu::audio::Spc700']]],
+  ['enablehdmatransfers_5',['EnableHDMATransfers',['../classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#a5af3d62802c4d284ed2d414595933505',1,'yaze::app::emu::memory::DirectMemoryAccess']]],
+  ['enablevblankinterrupts_6',['EnableVBlankInterrupts',['../classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303',1,'yaze::app::emu::SNES']]],
+  ['encode_7',['encode',['../namespaceyaze_1_1cli.html#a26d6d890fd303ab241f26ba4a4d812ee',1,'yaze::cli']]],
+  ['end_8',['end',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a46132400c7395ec5cbfbe8d548edc508',1,'yaze::app::emu::memory::MemoryImpl::end()'],['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a0e8e8ea7d962ed66975a7b99aaf96dc0',1,'yaze::app::gfx::BitmapManager::end() noexcept'],['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3f077a387ea3246d24f0b837427aed8d',1,'yaze::app::gfx::BitmapManager::end() const noexcept'],['../classyaze_1_1app_1_1ROM.html#aa8621675512906ec33f637519c93c0b0',1,'yaze::app::ROM::end()']]],
+  ['endnopadding_9',['EndNoPadding',['../namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188',1,'yaze::app::gui']]],
+  ['endpadding_10',['EndPadding',['../namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530',1,'yaze::app::gui']]],
+  ['endwindowwithdisplaysettings_11',['EndWindowWithDisplaySettings',['../namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d',1,'yaze::app::gui']]],
+  ['entrances_12',['entrances',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ab30da6a4ee9e2dfeb5da22594996f6db',1,'yaze::app::zelda3::Overworld']]],
+  ['eor_13',['EOR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a1c2f981683535d362dc99f6116da5aad',1,'yaze::app::emu::audio::Spc700::EOR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a57ce32a4a7bf832cabe969cf5a6d4286',1,'yaze::app::emu::Cpu::EOR()']]],
+  ['eor1_14',['EOR1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a9ca3e76df5c7aa03c1fb1f9f750883d6',1,'yaze::app::emu::audio::Spc700']]],
+  ['executeinstruction_15',['ExecuteInstruction',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ae5f8a8d0e5f8f1a72c4475ac402acda0',1,'yaze::app::emu::Cpu']]],
+  ['executeinstructions_16',['ExecuteInstructions',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a51e282a3d4d7ac88639072b6158fe95f',1,'yaze::app::emu::audio::Spc700']]],
+  ['executetasks_17',['ExecuteTasks',['../classyaze_1_1app_1_1core_1_1TaskManager.html#a88a5f57b24adc29452202569602660b8',1,'yaze::app::core::TaskManager']]],
+  ['exits_18',['exits',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae7503ba360585dfd0db4ddf307c6420a',1,'yaze::app::zelda3::Overworld']]],
+  ['expand_19',['Expand',['../classyaze_1_1app_1_1ROM.html#ae16658cf5801bfa4c2b0c6b691d407cf',1,'yaze::app::ROM']]],
+  ['expectcompressok_20',['ExpectCompressOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a92f2b315ed7730d448df213c7a2eed61',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectcompressv3ok_21',['ExpectCompressV3Ok',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a6d3877d903d4a73f31adf0e7c136aa3b',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectdecompressbytesok_22',['ExpectDecompressBytesOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a296ca867a6694b5187414dba06b1db74',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectdecompressok_23',['ExpectDecompressOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a97a906c38b43306c5b937d6590b19d3d',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectnewcompressionpieceok_24',['ExpectNewCompressionPieceOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['experimentflags_25',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd',1,'yaze::app::core::ExperimentFlags']]],
+  ['extract_26',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
 ];
