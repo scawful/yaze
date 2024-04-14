@@ -9,6 +9,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 class AudioRam {
  public:
@@ -261,6 +262,7 @@ class Spc700 {
   // CBNE DBNZ
 };
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

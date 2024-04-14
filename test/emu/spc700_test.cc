@@ -7,6 +7,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 using testing::_;
 using testing::Return;
@@ -461,6 +462,7 @@ TEST_F(Spc700Test, BootIplRomOk) {
   // EXPECT_EQ(spc700.PC, 0xFFC1 + 0x3F);
 }
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

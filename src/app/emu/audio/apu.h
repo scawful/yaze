@@ -13,6 +13,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 /**
  *
@@ -130,6 +131,7 @@ class Apu : public Observer {
   std::function<void()> ready_callback_;
 };
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

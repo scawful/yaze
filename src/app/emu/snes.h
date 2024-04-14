@@ -88,11 +88,11 @@ class SNES : public DMA {
   // Components of the SNES
   MemoryImpl memory_;
   ClockImpl clock_;
-  AudioRamImpl audio_ram_;
+  audio::AudioRamImpl audio_ram_;
 
   CPU cpu_{memory_, clock_};
   Ppu ppu_{memory_, clock_};
-  Apu apu_{memory_, audio_ram_, clock_};
+  audio::Apu apu_{memory_, audio_ram_, clock_};
 
   // Helper classes
   ROMInfo rom_info_;
