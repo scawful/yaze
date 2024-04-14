@@ -11,6 +11,11 @@
 
 namespace yaze {
 namespace app {
+
+/**
+ * @namespace yaze::app::gui
+ * @brief Graphical User Interface (GUI) components for the application.
+ */
 namespace gui {
 
 using app::gfx::Bitmap;
