@@ -10,7 +10,7 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-void CPU::Update(UpdateMode mode, int stepCount) {
+void Cpu::Update(UpdateMode mode, int stepCount) {
   int cycles = (mode == UpdateMode::Run) ? clock.GetCycleCount() : stepCount;
 
   // Execute the calculated number of cycles
@@ -31,7 +31,7 @@ void CPU::Update(UpdateMode mode, int stepCount) {
   }
 }
 
-void CPU::ExecuteInstruction(uint8_t opcode) {
+void Cpu::ExecuteInstruction(uint8_t opcode) {
   uint8_t cycles = 0;
   uint8_t instruction_length = 0;
   uint32_t operand = 0;
@@ -1475,7 +1475,7 @@ void CPU::ExecuteInstruction(uint8_t opcode) {
   UpdatePC(instruction_length);
 }
 
-void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
+void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
                           bool immediate, bool accumulator_mode) {
   if (flags()->kLogInstructions) {
     std::ostringstream oss;
@@ -1583,7 +1583,7 @@ void CPU::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
   }
 }
 
-uint8_t CPU::GetInstructionLength(uint8_t opcode) {
+uint8_t Cpu::GetInstructionLength(uint8_t opcode) {
   switch (opcode) {
     case 0x00:  // BRK
     case 0x02:  // COP
@@ -1928,7 +1928,7 @@ uint8_t CPU::GetInstructionLength(uint8_t opcode) {
 }
 
 // TODO: Implement 65816 interrupts.
-void CPU::HandleInterrupts() {
+void Cpu::HandleInterrupts() {
   if (GetInterruptFlag()) {
     return;
   }

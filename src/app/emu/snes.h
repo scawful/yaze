@@ -61,13 +61,13 @@ class SNES : public DMA {
 
   bool running() const { return running_; }
 
-  auto cpu() -> CPU& { return cpu_; }
+  auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
   auto Memory() -> MemoryImpl* { return &memory_; }
 
   void SetCpuMode(int mode) { cpu_mode_ = mode; }
-  CPU::UpdateMode GetCpuMode() const {
-    return static_cast<CPU::UpdateMode>(cpu_mode_);
+  Cpu::UpdateMode GetCpuMode() const {
+    return static_cast<Cpu::UpdateMode>(cpu_mode_);
   }
 
   void SetupMemory(ROM& rom) {
@@ -90,7 +90,7 @@ class SNES : public DMA {
   ClockImpl clock_;
   audio::AudioRamImpl audio_ram_;
 
-  CPU cpu_{memory_, clock_};
+  Cpu cpu_{memory_, clock_};
   Ppu ppu_{memory_, clock_};
   audio::Apu apu_{memory_, audio_ram_, clock_};
 

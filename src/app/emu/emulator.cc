@@ -259,7 +259,7 @@ void Emulator::RenderBreakpointList() {
   }
 }
 
-void Emulator::RenderCpuState(CPU& cpu) {
+void Emulator::RenderCpuState(Cpu& cpu) {
   if (ImGui::CollapsingHeader("Register Values",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Columns(2, "RegistersColumns");
