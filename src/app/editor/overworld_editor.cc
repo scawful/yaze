@@ -1599,8 +1599,6 @@ void OverworldEditor::DrawOverworldSprites() {
 // ----------------------------------------------------------------------------
 
 absl::Status OverworldEditor::LoadGraphics() {
-  // Load all of the graphics data from the game.
-  PRINT_IF_ERROR(rom()->LoadAllGraphicsData())
   graphics_bin_ = rom()->graphics_bin();
 
   // Load the Link to the Past overworld.
