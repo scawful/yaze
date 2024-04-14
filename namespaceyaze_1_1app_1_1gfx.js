@@ -6,6 +6,23 @@ var namespaceyaze_1_1app_1_1gfx =
       [ "PngReadCallback", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#aaf33c2cd8ed6392cfebc1bfa9f23c9b2", null ]
     ] ],
     [ "lc_lz2", "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html", "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2" ],
+    [ "palette_group_internal", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html", [
+      [ "LoadOverworldMainPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a885356ec4a36e5ef64119ca676b14257", null ],
+      [ "LoadOverworldAuxiliaryPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#adef88d8d1e48d1cdad625fce5064f75f", null ],
+      [ "LoadOverworldAnimatedPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a575aaf027a43b460824e247cb5c9baec", null ],
+      [ "LoadHUDPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a3942163d8d3f295042c5ec0cdb06d8b7", null ],
+      [ "LoadGlobalSpritePalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a6fcba58c441d2a0e28155df84118c907", null ],
+      [ "LoadArmorPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abd54b5c15508a816b7235ea37997e045", null ],
+      [ "LoadSwordPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#ae251945cd53721f7e2d027ebc3cec6c9", null ],
+      [ "LoadShieldPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#acf3dcbf9595622efea530ea4afed87b7", null ],
+      [ "LoadSpriteAux1Palettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a1c8f4a993ae8fb87c07f714b41a5991d", null ],
+      [ "LoadSpriteAux2Palettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a2d6fee08ea00e55402ef8758ca853b76", null ],
+      [ "LoadSpriteAux3Palettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aee28ac501ff95be94bc01b0fbbcb0545", null ],
+      [ "LoadDungeonMainPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aab4790ba080edc4104f90e2a7cc0a989", null ],
+      [ "LoadGrassColors", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a484ece2a9dfd0fc5a61543db155b5754", null ],
+      [ "Load3DObjectPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247", null ],
+      [ "LoadOverworldMiniMapPalettes", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#af624df2438c3def1da9a3c82ab7e58ee", null ]
+    ] ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html", "classyaze_1_1app_1_1gfx_1_1Bitmap" ],
     [ "BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", "classyaze_1_1app_1_1gfx_1_1BitmapManager" ],
     [ "CgxHeader", "structyaze_1_1app_1_1gfx_1_1CgxHeader.html", "structyaze_1_1app_1_1gfx_1_1CgxHeader" ],
