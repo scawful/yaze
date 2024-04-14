@@ -29,7 +29,11 @@
 namespace yaze {
 namespace app {
 
-namespace {
+/**
+ * @namespace yaze::app::palette_group_internal
+ * @brief Internal functions for loading palettes by group.
+ */
+namespace palette_group_internal {
 absl::Status LoadOverworldMainPalettes(const Bytes& rom_data,
                                        gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
@@ -186,7 +190,7 @@ absl::Status LoadOverworldMiniMapPalettes(
   }
   return absl::OkStatus();
 }
-}  // namespace
+}  // namespace palette_group_internal
 
 absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
   Bytes sheet;
@@ -284,6 +288,8 @@ absl::Status ROM::LoadAllGraphicsData() {
   }
   return absl::OkStatus();
 }
+
+using namespace palette_group_internal;
 
 absl::Status ROM::LoadAllPalettes() {
   RETURN_IF_ERROR(LoadOverworldMainPalettes(rom_data_, palette_groups_))
