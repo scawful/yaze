@@ -39,7 +39,7 @@ void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
                                    const gfx::BitmapManager& graphics_manager);
 
 void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
-                                  ROM& z3_rom, gfx::Bitmap& bitmap,
+                                  Rom& z3_rom, gfx::Bitmap& bitmap,
                                   gfx::SnesPalette& palette);
 
 void FileDialogPipeline(absl::string_view display_key,

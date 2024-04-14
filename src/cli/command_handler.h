@@ -60,7 +60,7 @@ class CommandHandler {
   virtual ~CommandHandler() = default;
   virtual absl::Status handle(const std::vector<std::string>& arg_vec) = 0;
 
-  app::ROM rom_;
+  app::Rom rom_;
 };
 
 class ApplyPatch : public CommandHandler {

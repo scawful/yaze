@@ -165,8 +165,8 @@ class GraphicsEditor : public SharedROM {
 
   GfxEditMode gfx_edit_mode_ = GfxEditMode::kSelect;
 
-  ROM temp_rom_;
-  ROM tilemap_rom_;
+  Rom temp_rom_;
+  Rom tilemap_rom_;
   zelda3::overworld::Overworld overworld_;
   MemoryEditor cgx_memory_editor_;
   MemoryEditor col_memory_editor_;

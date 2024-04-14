@@ -63,7 +63,7 @@ class TitleScreen {
   bool mouseDown = false;
   bool mdown = false;
 
-  ROM rom_;
+  Rom rom_;
 
   gfx::OamTile oam_data[10];
   gfx::OamTile selected_oam_tile;

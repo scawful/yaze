@@ -103,7 +103,7 @@ class RoomEntrance {
  public:
   RoomEntrance() = default;
 
-  RoomEntrance(ROM& rom, uint8_t entrance_id, bool is_spawn_point = false)
+  RoomEntrance(Rom& rom, uint8_t entrance_id, bool is_spawn_point = false)
       : entrance_id_(entrance_id) {
     room_ =
         static_cast<short>((rom[entrance_room + (entrance_id * 2) + 1] << 8) +
@@ -209,7 +209,7 @@ class RoomEntrance {
     }
   }
 
-  void Save(ROM& rom, int entrance_id, bool is_spawn_point = false) {
+  void Save(Rom& rom, int entrance_id, bool is_spawn_point = false) {
     if (!is_spawn_point) {
       rom.WriteShort(entrance_room + (entrance_id * 2), room_);
       rom.WriteShort(entrance_yposition + (entrance_id * 2), y_position_);

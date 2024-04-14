@@ -13,11 +13,11 @@
 namespace yaze_test {
 namespace zelda3_test {
 
-using yaze::app::ROM;
+using yaze::app::Rom;
 using yaze::app::zelda3::dungeon::DungeonObjectRenderer;
 
 TEST(DungeonObjectTest, RenderObjectsAsBitmaps) {
-  ROM rom;
+  Rom rom;
   //     rom.LoadFromFile("/Users/scawful/Code/yaze/build/bin/zelda3.sfc"));
   // EXPECT_EQ(rom_status, absl::Status::ok());
 

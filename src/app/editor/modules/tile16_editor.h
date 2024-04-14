@@ -132,7 +132,7 @@ class Tile16Editor : public context::GfxContext, public SharedROM {
 
   gfx::BitmapTable graphics_bin_;
 
-  ROM transfer_rom_;
+  Rom transfer_rom_;
   absl::Status transfer_status_;
 };
 

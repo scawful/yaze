@@ -14,7 +14,7 @@ namespace context {
 
 class EntranceContext {
  public:
-  absl::Status LoadEntranceTileTypes(ROM& rom) {
+  absl::Status LoadEntranceTileTypes(Rom& rom) {
     int offset_low = 0xDB8BF;
     int offset_high = 0xDB917;
 

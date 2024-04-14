@@ -30,7 +30,7 @@ class SNES : public DirectMemoryAccess {
   RomInfo ReadRomHeader(uint32_t offset);
 
   // Initialization
-  void Init(ROM& rom);
+  void Init(Rom& rom);
 
   // Main emulation loop
   void Run();
@@ -72,7 +72,7 @@ class SNES : public DirectMemoryAccess {
     return static_cast<Cpu::UpdateMode>(cpu_mode_);
   }
 
-  void SetupMemory(ROM& rom) {
+  void SetupMemory(Rom& rom) {
     // Setup observers for the memory space
     memory_.AddObserver(&apu_);
     memory_.AddObserver(&ppu_);

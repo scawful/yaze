@@ -106,7 +106,7 @@ RomInfo SNES::ReadRomHeader(uint32_t offset) {
   return romInfo;
 }
 
-void SNES::Init(ROM& rom) {
+void SNES::Init(Rom& rom) {
   // Perform a long jump into a FastROM bank (if the ROM speed is FastROM)
   // Disable the emulation flag (switch to 65816 native mode)
   cpu_.E = 0;

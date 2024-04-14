@@ -20,7 +20,7 @@ namespace app {
 namespace zelda3 {
 namespace overworld {
 
-OverworldMap::OverworldMap(int index, ROM& rom,
+OverworldMap::OverworldMap(int index, Rom& rom,
                            std::vector<gfx::Tile16>& tiles16)
     : parent_(index), index_(index), rom_(rom), tiles16_(tiles16) {
   LoadAreaInfo();
@@ -230,7 +230,7 @@ void OverworldMap::LoadAreaGraphics() {
 
 namespace palette_internal {
 
-absl::Status SetColorsPalette(ROM& rom, int index, gfx::SnesPalette& current,
+absl::Status SetColorsPalette(Rom& rom, int index, gfx::SnesPalette& current,
                               gfx::SnesPalette main, gfx::SnesPalette animated,
                               gfx::SnesPalette aux1, gfx::SnesPalette aux2,
                               gfx::SnesPalette hud, gfx::SnesColor bgrcolor,
