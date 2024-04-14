@@ -15,6 +15,12 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+/**
+ * @namespace yaze::app::gfx::lc_lz2
+ * @brief Contains the LC_LZ2 compression algorithm.
+ */
+namespace lc_lz2 {
+
 const int D_NINTENDO_C_MODE1 = 0;
 const int D_NINTENDO_C_MODE2 = 1;
 
@@ -28,15 +34,6 @@ const int D_MAX_NORMAL_LENGTH = 32;
 const int D_MAX_LENGTH = 1024;
 
 const int INITIAL_ALLOC_SIZE = 1024;
-
-namespace lc_lz2 {
-
-absl::StatusOr<Bytes> ZS_Compress(const std::vector<uint8_t>& data,
-                                  const int start, const int length,
-                                  int mode = 1, bool check = false);
-
-absl::StatusOr<Bytes> ZS_CompressOverworld(const std::vector<uint8_t> data,
-                                           const int pos, const int length);
 
 constexpr int kCommandDirectCopy = 0;
 constexpr int kCommandByteFill = 1;
@@ -141,6 +138,10 @@ void CompressionCommandAlternativeV2(const uchar* data,
                                      uint& src_pos, uint& comp_accumulator,
                                      uint& cmd_with_max, uint& max_win);
 
+/**
+ * @brief Compresses a buffer of data using the LC_LZ2 algorithm.
+ * \deprecated Use Compress and Uncompress instead.
+ */
 absl::StatusOr<Bytes> CompressV2(const uchar* data, const int start,
                                  const int length, int mode = 1,
                                  bool check = false);
@@ -208,6 +209,10 @@ absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
     CompressionPiece& piece, int mode);
 void FinalizeCompression(CompressionContext& context);
 
+/**
+ * @brief Compresses a buffer of data using the LC_LZ2 algorithm.
+ * \deprecated Use Compress and Uncompress instead.
+ */
 absl::StatusOr<Bytes> CompressV3(const std::vector<uint8_t>& data,
                                  const int start, const int length,
                                  int mode = 1, bool check = false);
@@ -227,6 +232,10 @@ std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator);
 void memfill(const uchar* data, Bytes& buffer, int buffer_pos, int offset,
              int length);
 
+/**
+ * @brief Decompresses a buffer of data using the LC_LZ2 algorithm.
+ * \deprecated Use Compress and Uncompress instead.
+ */
 absl::StatusOr<Bytes> DecompressV2(const uchar* data, int offset,
                                    int size = 0x800, int mode = 1);
 absl::StatusOr<Bytes> DecompressGraphics(const uchar* data, int pos, int size);
