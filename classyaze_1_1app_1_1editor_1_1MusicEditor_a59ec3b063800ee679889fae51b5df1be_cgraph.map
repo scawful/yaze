@@ -2,21 +2,21 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,174,96"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e" title=" " alt="" coords="231,5,392,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,52,243,33,245,38,171,57"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a75b9637ef2850e589179c0329c2b0175" title=" " alt="" coords="243,55,380,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,73,227,73,227,78,174,78"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a67fd9087bd6ecc5145f1624d192bb2f5" title=" " alt="" coords="222,55,401,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,73,206,73,206,78,174,78"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="222,144,401,170"/>
 <area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="148,94,260,136,259,141,146,99"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="886,37,1027,63"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="380,64,449,57,643,43,838,44,870,44,870,50,838,49,643,49,449,62,381,69"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a9c37b15f0eb7c85d84ac24633bbd6966" title=" " alt="" coords="687,58,834,99"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="380,73,672,75,672,80,380,79"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#abfcc1c6d122a83adfed38d455a8edf25" title=" " alt="" coords="449,137,635,177"/>
-<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="372,94,469,128,467,133,371,99"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="834,65,870,60,871,65,835,70"/>
-<area shape="poly" id="edge9_Node000006_Node000005" title=" " alt="" coords="600,133,686,102,688,107,602,138"/>
-<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="501,136,499,127,506,118,520,112,542,110,566,112,580,118,578,123,564,117,542,115,521,117,509,122,504,128,506,135"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a55580c3b395b5a0e688a29e779025d98" title=" " alt="" coords="683,147,838,188"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="636,159,668,160,668,166,635,164"/>
-<area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="723,147,721,137,727,128,741,123,761,121,782,123,795,129,792,134,780,128,760,126,742,128,731,132,727,138,728,146"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="968,37,1109,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="401,61,449,56,581,46,684,42,920,44,952,44,952,50,920,49,684,47,581,51,449,61,401,66"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adb95eae89e3406f901e26f4bc05e05be" title=" " alt="" coords="728,58,916,99"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="401,73,713,75,713,80,401,79"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a739b89af3d1e889d6cb2097a2a5909e3" title=" " alt="" coords="449,137,676,177"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="378,94,484,129,482,134,376,99"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="915,63,952,59,953,64,916,69"/>
+<area shape="poly" id="edge9_Node000006_Node000005" title=" " alt="" coords="632,133,737,101,739,106,633,138"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="516,137,513,126,521,117,538,112,563,110,590,112,606,118,604,123,589,117,563,115,539,117,524,122,518,128,521,135"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a570f267d40c9bd7ae463e8bdbb2fba2b" title=" " alt="" coords="724,147,920,188"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="677,159,709,160,708,166,677,164"/>
+<area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="781,147,779,137,786,128,800,123,822,121,845,123,859,129,857,134,844,128,822,126,801,128,789,132,784,138,786,146"/>
 <area shape="poly" id="edge12_Node000008_Node000008" title=" " alt="" coords="275,145,267,135,272,126,287,119,311,117,338,120,352,127,350,132,337,125,311,123,288,125,275,129,273,135,279,142"/>
 </map>

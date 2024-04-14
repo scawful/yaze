@@ -58,7 +58,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::emu::video::DmaRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html", null ],
     [ "yaze::app::zelda3::dungeon::DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", null ],
-    [ "yaze::app::zelda3::DungeonMap", "classyaze_1_1app_1_1zelda3_1_1DungeonMap.html", null ],
+    [ "yaze::app::zelda3::screen::DungeonMap", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", null ],
     [ "yaze::app::gui::DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ],
     [ "yaze::app::editor::Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", [
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
@@ -182,7 +182,6 @@ var hierarchy =
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::app::emu::Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", null ],
       [ "yaze::app::emu::video::Ppu", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html", null ],
-      [ "yaze::app::zelda3::Inventory", "classyaze_1_1app_1_1zelda3_1_1Inventory.html", null ],
       [ "yaze::app::zelda3::Overworld", "classyaze_1_1app_1_1zelda3_1_1Overworld.html", null ],
       [ "yaze::app::zelda3::dungeon::DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", null ],
       [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ],
@@ -190,7 +189,8 @@ var hierarchy =
         [ "yaze::app::zelda3::dungeon::Subtype1", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html", null ],
         [ "yaze::app::zelda3::dungeon::Subtype2", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html", null ],
         [ "yaze::app::zelda3::dungeon::Subtype3", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html", null ]
-      ] ]
+      ] ],
+      [ "yaze::app::zelda3::screen::Inventory", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html", null ]
     ] ],
     [ "yaze::app::emu::video::PpuRegisters::SLHV", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html", null ],
     [ "yaze::app::gfx::snes_color", "structyaze_1_1app_1_1gfx_1_1snes__color.html", null ],
@@ -219,10 +219,10 @@ var hierarchy =
     [ "yaze::app::emu::video::TilemapEntry", "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html", null ],
     [ "yaze::app::emu::video::TileMapLocation", "structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation.html", null ],
     [ "yaze::app::gfx::Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html", null ],
-    [ "yaze::app::zelda3::TitleScreen", "classyaze_1_1app_1_1zelda3_1_1TitleScreen.html", null ],
+    [ "yaze::app::zelda3::screen::TitleScreen", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TM", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TM.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TMW", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TMW.html", null ],
-    [ "yaze::app::zelda3::Tracker", "classyaze_1_1app_1_1zelda3_1_1Tracker.html", null ],
+    [ "yaze::app::zelda3::music::Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TS", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TSW", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TSW.html", null ],
     [ "yaze::app::VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", null ],

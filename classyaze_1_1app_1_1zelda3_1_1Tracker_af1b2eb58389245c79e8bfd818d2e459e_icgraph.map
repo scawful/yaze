@@ -1,9 +1,0 @@
-<map id="yaze::app::zelda3::Tracker::AllocSPCBlock" name="yaze::app::zelda3::Tracker::AllocSPCBlock">
-<area shape="rect" id="Node000001" title=" " alt="" coords="427,5,587,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a6cdbc1d84d376b04a16e4faf99b06d3d" title=" " alt="" coords="5,5,144,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="411,15,379,12,285,8,192,12,145,17,144,12,191,7,285,3,379,7,411,10"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a95f26243319ad79adea1351adeda48c7" title=" " alt="" coords="192,45,379,86"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="412,45,380,51,379,46,411,40"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="176,48,144,41,145,36,177,42"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="320,32,307,26,285,24,265,26,253,31,249,36,251,44,245,45,243,35,250,26,264,21,285,19,308,21,322,27"/>
-</map>

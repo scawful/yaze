@@ -5,7 +5,7 @@ var searchData=
   ['edit_5fpalette_5fgroup_5fname_5findex_5f_2',['edit_palette_group_name_index_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ad41f4f73d94aee39941c453172f59281',1,'yaze::app::editor::GraphicsEditor']]],
   ['edit_5fpalette_5findex_5f_3',['edit_palette_index_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a3c2b5c7217a9932cea7ebaf06efe9eda',1,'yaze::app::editor::GraphicsEditor']]],
   ['edit_5fpalette_5fsub_5findex_5f_4',['edit_palette_sub_index_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a05534d48990ca3d2dee3efdd0897943e',1,'yaze::app::editor::GraphicsEditor']]],
-  ['editedfromeditor_5',['editedFromEditor',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#ac226cb23795405cd6d4b266b7f5b4add',1,'yaze::app::zelda3::TitleScreen']]],
+  ['editedfromeditor_5',['editedFromEditor',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#acd8b4977f977916542cc3acb0a09de49',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['emulator_5f_6',['emulator_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a2333f055ab8e2a7d55eee1bb9437e507',1,'yaze::app::editor::MasterEditor']]],
   ['enable_5fbg1_5fa_7',['enable_bg1_a',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a979926365886a090a07fb67c713a6cbc',1,'yaze::app::emu::video::PpuRegisters::W12SEL']]],
   ['enable_5fbg1_5fb_8',['enable_bg1_b',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#adca2cc0aecf325978df32d989972b4b4',1,'yaze::app::emu::video::PpuRegisters::W12SEL']]],

@@ -152,6 +152,6 @@ var searchData=
   ['drawyazemenu_149',['DrawYazeMenu',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33',1,'yaze::app::editor::MasterEditor']]],
   ['dungeon_5fpalette_150',['dungeon_palette',['../classyaze_1_1app_1_1ROM.html#a79f2848799026205824b1566cd33570c',1,'yaze::app::ROM']]],
   ['dungeondestination_151',['DungeonDestination',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#aace78add8628287108e3edaa2a67ef84',1,'yaze::app::zelda3::dungeon::DungeonDestination::DungeonDestination()=default'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a29d26e1faa76a57861a99e64cd2f70d5',1,'yaze::app::zelda3::dungeon::DungeonDestination::DungeonDestination(uint8_t i)']]],
-  ['dungeonmap_152',['DungeonMap',['../classyaze_1_1app_1_1zelda3_1_1DungeonMap.html#af416c687580bfbe75420cdaa05fe37b7',1,'yaze::app::zelda3::DungeonMap']]],
+  ['dungeonmap_152',['DungeonMap',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#adaa5bd3da06245604ea263d36b387613',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['dungeonobjectrenderer_153',['DungeonObjectRenderer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ac5e185af4c95f27977661aa6b3efd575',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]]
 ];

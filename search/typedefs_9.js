@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['zeldainstrument_0',['ZeldaInstrument',['../namespaceyaze_1_1app_1_1zelda3.html#aa681c3e9cf31a20243e084adb921628e',1,'yaze::app::zelda3']]],
-  ['zeldasfxinstrument_1',['ZeldaSfxInstrument',['../namespaceyaze_1_1app_1_1zelda3.html#ad108dd0f8e4edc4f8fc63941030b102e',1,'yaze::app::zelda3']]],
-  ['zeldawave_2',['ZeldaWave',['../namespaceyaze_1_1app_1_1zelda3.html#a5c682c356e9e760f7a129cee9f664e92',1,'yaze::app::zelda3']]]
+  ['zeldainstrument_0',['ZeldaInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#ae7b18fa864b8ce743eb6dde1dd35520f',1,'yaze::app::zelda3::music']]],
+  ['zeldasfxinstrument_1',['ZeldaSfxInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd',1,'yaze::app::zelda3::music']]],
+  ['zeldawave_2',['ZeldaWave',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a2b3c427473083d084492da3958e03e63',1,'yaze::app::zelda3::music']]]
 ];

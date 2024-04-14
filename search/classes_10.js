@@ -11,10 +11,10 @@ var searchData=
   ['tilemapentry_8',['TilemapEntry',['../structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html',1,'yaze::app::emu::video']]],
   ['tilemaplocation_9',['TileMapLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation.html',1,'yaze::app::emu::video']]],
   ['tilesheet_10',['Tilesheet',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html',1,'yaze::app::gfx']]],
-  ['titlescreen_11',['TitleScreen',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html',1,'yaze::app::zelda3']]],
+  ['titlescreen_11',['TitleScreen',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html',1,'yaze::app::zelda3::screen']]],
   ['tm_12',['TM',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TM.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['tmw_13',['TMW',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TMW.html',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['tracker_14',['Tracker',['../classyaze_1_1app_1_1zelda3_1_1Tracker.html',1,'yaze::app::zelda3']]],
+  ['tracker_14',['Tracker',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::app::zelda3::music']]],
   ['ts_15',['TS',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['tsw_16',['TSW',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TSW.html',1,'yaze::app::emu::video::PpuRegisters']]]
 ];

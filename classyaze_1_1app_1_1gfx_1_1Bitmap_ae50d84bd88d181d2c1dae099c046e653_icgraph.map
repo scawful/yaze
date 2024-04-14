@@ -1,7 +1,7 @@
 <map id="yaze::app::gfx::Bitmap::mutable_data" name="yaze::app::gfx::Bitmap::mutable_data">
-<area shape="rect" id="Node000001" title=" " alt="" coords="394,5,538,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#afa6ab15befb42ff621cb930551735489" title=" " alt="" coords="185,5,346,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#a209591be95e9484e4fcbda9960664de0" title=" " alt="" coords="5,5,137,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="169,28,137,28,137,23,169,23"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="366,13,510,54"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc" title=" " alt="" coords="186,5,318,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="351,36,319,36,319,31,351,31"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ac1ca5ea93e859a413ed7b8a316b524de" title=" " alt="" coords="5,5,138,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="170,36,138,36,138,31,170,31"/>
 </map>

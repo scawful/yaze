@@ -10,7 +10,7 @@
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="553,133,751,133,751,139,553,139"/>
 <area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="349,173,553,198"/>
 <area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="568,174,647,166,728,154,759,147,760,152,728,159,648,171,569,180"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title=" " alt="" coords="5,173,185,198"/>
+<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="5,173,185,198"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="200,183,348,183,348,188,200,188"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="368,222,534,263"/>
 <area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="549,236,637,223,683,211,727,195,764,172,792,147,795,151,767,177,729,200,685,216,639,228,550,241"/>

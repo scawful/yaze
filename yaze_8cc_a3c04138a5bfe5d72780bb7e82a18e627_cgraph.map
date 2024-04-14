@@ -1,5 +1,5 @@
 <map id="main" name="main">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,252,55,278"/>
+<area shape="rect" id="Node000001" title="Main entry point for the application." alt="" coords="5,252,55,278"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00" title=" " alt="" coords="103,73,269,113"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="32,251,54,190,74,155,101,123,104,120,108,124,105,127,78,158,59,193,37,253"/>
 <area shape="rect" id="Node000003" href="$app__delegate_8h.html#a63178312678c917d0e3a8fbe9ca77b57" title=" " alt="" coords="133,137,239,163"/>

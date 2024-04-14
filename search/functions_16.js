@@ -15,7 +15,7 @@ var searchData=
   ['writehelper_12',['WriteHelper',['../classyaze_1_1app_1_1ROM.html#a0ec76a9ee5dd04c46e78729168ac593e',1,'yaze::app::ROM']]],
   ['writelong_13',['WriteLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a608053678792cda7d850704364041d16',1,'yaze::app::emu::Cpu::WriteLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a1233d122f27e85f5decf925b560dfd65',1,'yaze::app::emu::memory::Memory::WriteLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a17da21b3ebc14c7561835497c351d43b',1,'yaze::app::emu::memory::MemoryImpl::WriteLong()'],['../classyaze_1_1app_1_1ROM.html#a4df0a25f6f029844ce7232f25ccbaf23',1,'yaze::app::ROM::WriteLong(uint32_t addr, uint32_t value)']]],
   ['writeshort_14',['WriteShort',['../classyaze_1_1app_1_1ROM.html#af12ae78759a4576e0f0f86f54f01089c',1,'yaze::app::ROM']]],
-  ['writespcdata_15',['WriteSPCData',['../classyaze_1_1app_1_1zelda3_1_1Tracker.html#a591817d6ed65007c26785a9558df4b56',1,'yaze::app::zelda3::Tracker']]],
+  ['writespcdata_15',['WriteSPCData',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a05ae5f96fdaa441a558abf47778b03c9',1,'yaze::app::zelda3::music::Tracker']]],
   ['writetile_16',['WriteTile',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a61bcc0eed32b7bb87cd82bb2a99b4af7',1,'yaze::app::gfx::Tilesheet']]],
   ['writetile16_17',['WriteTile16',['../classyaze_1_1app_1_1ROM.html#a76fc2bedfc1c9819859efcdb326260e5',1,'yaze::app::ROM']]],
   ['writetopixel_18',['WriteToPixel',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a968fb5a195cd65700f66b82b839e3d4a',1,'yaze::app::gfx::Bitmap']]],

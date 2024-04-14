@@ -1,5 +1,7 @@
 var NAVTREEINDEX43 =
 {
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808":[8,0,1,0,3,6,3],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a83f3e12d8525d4e5017fc89244d1637f":[9,0,0,0,3,5,1],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a83f3e12d8525d4e5017fc89244d1637f":[8,0,1,0,3,6,1],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a89de7d5a6034f58e61e8d536612680ed":[9,0,0,0,3,5,0],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a89de7d5a6034f58e61e8d536612680ed":[8,0,1,0,3,6,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX43 =
 "tilesheet_8h.html#afe2b409c93b8b037b20a8d4ac2df3353":[10,0,1,0,3,13,3],
 "tilesheet_8h_source.html":[10,0,1,0,3,13],
 "title__screen_8cc.html":[10,0,1,0,5,2,3],
-"title__screen_8h.html":[10,0,1,0,5,2,4],
-"title__screen_8h_source.html":[10,0,1,0,5,2,4],
-"todo.html":[5]
+"title__screen_8h.html":[10,0,1,0,5,2,4]
 };

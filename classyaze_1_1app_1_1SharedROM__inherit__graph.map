@@ -24,20 +24,20 @@
 <area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="107,570,151,608,206,643,237,655,235,660,203,648,148,612,104,574"/>
 <area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html" title=" " alt="" coords="228,708,399,733"/>
 <area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="99,573,142,635,171,667,206,694,228,705,226,709,203,699,168,671,137,638,94,576"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1zelda3_1_1Inventory.html" title=" " alt="" coords="252,757,375,798"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="252,757,375,798"/>
 <area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="95,575,111,613,135,659,167,704,206,744,228,756,252,765,251,770,226,761,203,748,163,708,130,661,106,615,90,577"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1zelda3_1_1Overworld.html" title=" " alt="" coords="252,823,375,863"/>
-<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="90,576,103,626,126,688,160,752,181,782,206,808,228,822,252,831,250,836,225,826,203,812,177,785,155,755,121,690,98,627,85,577"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html" title=" " alt="" coords="205,888,422,929"/>
-<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="87,576,97,638,117,718,132,760,152,801,177,839,206,873,223,885,220,890,203,877,172,843,147,804,127,762,112,719,91,639,82,577"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html" title=" " alt="" coords="252,953,375,994"/>
-<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="85,577,91,649,108,746,124,798,145,849,172,897,206,938,228,953,252,963,250,968,225,958,203,942,168,900,140,851,119,800,103,747,86,650,80,577"/>
-<area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html" title=" " alt="" coords="239,1019,388,1059"/>
-<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="89,576,104,672,130,800,165,924,185,971,207,1004,222,1016,240,1025,238,1030,219,1020,203,1007,180,974,160,925,125,802,99,673,84,577"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html" title=" " alt="" coords="470,953,600,994"/>
-<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="398,1011,469,990,470,995,400,1016"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html" title=" " alt="" coords="470,1019,600,1059"/>
-<area shape="poly" id="edge19_Node000018_Node000020" title=" " alt="" coords="403,1036,470,1036,470,1042,403,1042"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html" title=" " alt="" coords="470,1084,600,1125"/>
-<area shape="poly" id="edge20_Node000018_Node000021" title=" " alt="" coords="400,1062,470,1083,469,1088,398,1067"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html" title=" " alt="" coords="205,823,422,863"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="90,576,103,626,126,688,160,752,181,782,206,808,225,820,222,824,203,812,177,785,155,755,121,690,98,627,85,577"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html" title=" " alt="" coords="252,888,375,929"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="87,576,97,638,117,718,132,760,152,801,177,839,206,873,228,888,252,897,250,902,225,892,203,877,172,843,147,804,127,762,112,719,91,639,82,577"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html" title=" " alt="" coords="239,953,388,994"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="85,577,91,649,108,746,124,798,145,849,172,897,207,938,222,950,240,959,237,964,219,955,203,942,168,900,140,851,119,800,103,747,86,650,80,577"/>
+<area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html" title=" " alt="" coords="252,1019,375,1059"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="89,576,104,672,130,800,165,924,185,971,207,1004,227,1019,252,1029,250,1034,225,1024,203,1008,180,974,160,925,125,802,99,673,84,577"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html" title=" " alt="" coords="470,888,600,929"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="398,946,469,925,470,930,400,951"/>
+<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html" title=" " alt="" coords="470,953,600,994"/>
+<area shape="poly" id="edge18_Node000017_Node000019" title=" " alt="" coords="403,971,470,971,470,976,403,976"/>
+<area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html" title=" " alt="" coords="470,1019,600,1059"/>
+<area shape="poly" id="edge19_Node000017_Node000020" title=" " alt="" coords="400,996,470,1017,469,1022,398,1001"/>
 </map>

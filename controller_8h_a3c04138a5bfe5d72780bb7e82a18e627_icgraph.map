@@ -1,5 +1,5 @@
 <map id="main" name="main">
-<area shape="rect" id="Node000001" title=" " alt="" coords="668,13,718,39"/>
+<area shape="rect" id="Node000001" title="Main entry point for the application." alt="" coords="668,13,718,39"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,5,400,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="653,23,620,20,506,18,401,22,400,17,506,13,620,15,653,18"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4" title=" " alt="" coords="448,30,620,86"/>

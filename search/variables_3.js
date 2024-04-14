@@ -12,10 +12,10 @@ var searchData=
   ['d_5fnintendo_5fc_5fmode2_9',['D_NINTENDO_C_MODE2',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af7bda5a6d0bb6318c337c03ab8ba8a1e',1,'yaze::app::gfx::lc_lz2']]],
   ['dark_5fmaps_5fto_5fload_5f_10',['dark_maps_to_load_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a2ff17360fae7af2f1af81b14d0f5334c',1,'yaze::app::editor::OverworldEditor']]],
   ['dark_5fworld_11',['dark_world',['../structOWMapTiles.html#ae6d5aad2dd4e800c413cbbb47a22fae3',1,'OWMapTiles']]],
-  ['darkworld_12',['darkWorld',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#a292b3bff8a823e6c9743b5347075f981',1,'yaze::app::zelda3::TitleScreen']]],
+  ['darkworld_12',['darkWorld',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae09803203f46716ffc481b4d2a384cc1',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['dasn_13',['DASn',['../structyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess_1_1Channel.html#a23770b6c9037cca1d896748874684713',1,'yaze::app::emu::memory::DirectMemoryAccess::Channel']]],
   ['data_14',['data',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATA.html#a819f4879418d365b165167835bc5b970',1,'yaze::app::emu::video::PpuRegisters::OAMDATA::data'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATA.html#a626a82d8d0b2ee5ff981256cee238b84',1,'yaze::app::emu::video::PpuRegisters::VMDATA::data'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGDATA.html#a6232e2dac7c6183127aa46429aeff86a',1,'yaze::app::emu::video::PpuRegisters::CGDATA::data'],['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a844167fc2c55b198f5426356cbf057e7',1,'yaze::app::gfx::lc_lz2::CompressionContext::data'],['../structyaze_1_1app_1_1gfx_1_1tile8.html#a35952d1a5775988e0a00dcd1b865a43f',1,'yaze::app::gfx::tile8::data']]],
-  ['data_5f_15',['data_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#abc00863f6f3c19a1757222ee3c459e32',1,'yaze::app::gfx::Bitmap::data_'],['../classyaze_1_1app_1_1zelda3_1_1Inventory.html#a17ad8e64fb0a5c691395db60bb1c6e45',1,'yaze::app::zelda3::Inventory::data_']]],
+  ['data_5f_15',['data_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#abc00863f6f3c19a1757222ee3c459e32',1,'yaze::app::gfx::Bitmap::data_'],['../classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ac95abe6cfdfd32f15bec41b1319b4fc5',1,'yaze::app::zelda3::screen::Inventory::data_']]],
   ['data_5fsize_16',['data_size',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3',1,'yaze::app::gfx::lc_lz2::CompressionCommand']]],
   ['data_5fsize_5f_17',['data_size_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ad14573421c3b2c56a145e2e44dcd1360',1,'yaze::app::gfx::Bitmap']]],
   ['databyte_18',['dataByte',['../structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a75bddc21e55c0b57f3649bf319ca64dc',1,'yaze::app::emu::video::WramAccessRegisters']]],
@@ -62,7 +62,7 @@ var searchData=
   ['dungeon_5fid_5f_59',['dungeon_id_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a51ada21816954675ede08de48329d14f',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
   ['dungeon_5fmain_60',['dungeon_main',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['dungeon_5fmap_5flabels_5f_61',['dungeon_map_labels_',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a0dd4b026b50d09f54e24404ec9d7bb39',1,'yaze::app::editor::ScreenEditor']]],
-  ['dungeon_5fmaps_5f_62',['dungeon_maps_',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a765162586f38070224e9b8d13c75f90b',1,'yaze::app::editor::ScreenEditor']]],
+  ['dungeon_5fmaps_5f_62',['dungeon_maps_',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ae0ed2f4361b29e64f37bb68cd24a583a',1,'yaze::app::editor::ScreenEditor']]],
   ['dungeon_5fmaps_5floaded_5f_63',['dungeon_maps_loaded_',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a54cd7324648ecd704eada38906eb8b8f',1,'yaze::app::editor::ScreenEditor']]],
   ['dungeon_5fspr_5fptrs_64',['dungeon_spr_ptrs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#af3b336bda353741f109a7ecec96ce2b5',1,'yaze::app::zelda3::dungeon']]],
   ['dungeonmainpalettes_65',['dungeonMainPalettes',['../namespaceyaze_1_1app_1_1core.html#a68fe3c8c67245859f173365cd0698c14',1,'yaze::app::core']]],
@@ -73,7 +73,7 @@ var searchData=
   ['dungeons_5fmain_5fbg_5fpalette_5fpointers_70',['dungeons_main_bg_palette_pointers',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a797db1c43527a918035a9662c3c0f88a',1,'yaze::app::zelda3::dungeon']]],
   ['dungeons_5fpalettes_71',['dungeons_palettes',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aa1a97e196edeeb0623079d954a112f8a',1,'yaze::app::zelda3::dungeon']]],
   ['dungeons_5fstartrooms_72',['dungeons_startrooms',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aebf1a9703c178e34de564ce0ca3ea7ee',1,'yaze::app::zelda3::dungeon']]],
-  ['dungmap_5fselected_5f_73',['dungmap_selected_',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#a992323debf0c9911abd8089e7357b7a2',1,'yaze::app::zelda3::TitleScreen']]],
-  ['dungmap_5fselected_5ftile_5f_74',['dungmap_selected_tile_',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#a168aad893cad41fe51ed49571290716c',1,'yaze::app::zelda3::TitleScreen']]],
-  ['dwmapdata_75',['dwmapdata',['../classyaze_1_1app_1_1zelda3_1_1TitleScreen.html#a780beccc737f0b2eac62413947ed25da',1,'yaze::app::zelda3::TitleScreen']]]
+  ['dungmap_5fselected_5f_73',['dungmap_selected_',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#af4db8c06e4092f2187f538150f405f88',1,'yaze::app::zelda3::screen::TitleScreen']]],
+  ['dungmap_5fselected_5ftile_5f_74',['dungmap_selected_tile_',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a47e912dcc1c85fffdef87a24904cfcc8',1,'yaze::app::zelda3::screen::TitleScreen']]],
+  ['dwmapdata_75',['dwmapdata',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a56935ed61bc47613e2155e0f49e47cae',1,'yaze::app::zelda3::screen::TitleScreen']]]
 ];

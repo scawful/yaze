@@ -193,8 +193,14 @@ var annotated_dup =
             [ "SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo" ],
             [ "Tile", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html", null ]
           ] ],
-          [ "DungeonMap", "classyaze_1_1app_1_1zelda3_1_1DungeonMap.html", "classyaze_1_1app_1_1zelda3_1_1DungeonMap" ],
-          [ "Inventory", "classyaze_1_1app_1_1zelda3_1_1Inventory.html", "classyaze_1_1app_1_1zelda3_1_1Inventory" ],
+          [ "music", "namespaceyaze_1_1app_1_1zelda3_1_1music.html", [
+            [ "Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker" ]
+          ] ],
+          [ "screen", "namespaceyaze_1_1app_1_1zelda3_1_1screen.html", [
+            [ "DungeonMap", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap" ],
+            [ "Inventory", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html", "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory" ],
+            [ "TitleScreen", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen" ]
+          ] ],
           [ "MapData", "structyaze_1_1app_1_1zelda3_1_1MapData.html", "structyaze_1_1app_1_1zelda3_1_1MapData" ],
           [ "Overworld", "classyaze_1_1app_1_1zelda3_1_1Overworld.html", "classyaze_1_1app_1_1zelda3_1_1Overworld" ],
           [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
@@ -202,9 +208,7 @@ var annotated_dup =
           [ "OverworldExit", "classyaze_1_1app_1_1zelda3_1_1OverworldExit.html", "classyaze_1_1app_1_1zelda3_1_1OverworldExit" ],
           [ "OverworldItem", "classyaze_1_1app_1_1zelda3_1_1OverworldItem.html", "classyaze_1_1app_1_1zelda3_1_1OverworldItem" ],
           [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1app_1_1zelda3_1_1OverworldMap" ],
-          [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ],
-          [ "TitleScreen", "classyaze_1_1app_1_1zelda3_1_1TitleScreen.html", "classyaze_1_1app_1_1zelda3_1_1TitleScreen" ],
-          [ "Tracker", "classyaze_1_1app_1_1zelda3_1_1Tracker.html", "classyaze_1_1app_1_1zelda3_1_1Tracker" ]
+          [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ]
         ] ],
         [ "ROM", "classyaze_1_1app_1_1ROM.html", "classyaze_1_1app_1_1ROM" ],
         [ "SharedROM", "classyaze_1_1app_1_1SharedROM.html", "classyaze_1_1app_1_1SharedROM" ],

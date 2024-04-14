@@ -1,7 +1,0 @@
-<map id="yaze::app::zelda3::Tracker::NewSR" name="yaze::app::zelda3::Tracker::NewSR">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,129,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#aeaa340bbe14ef1fbdebf8261ac4a9127" title=" " alt="" coords="177,5,363,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,46,161,41,162,46,129,52"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Tracker.html#a1ffbfcace743b2423d3e208608432092" title=" " alt="" coords="207,71,333,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,66,192,76,191,81,129,71"/>
-</map>

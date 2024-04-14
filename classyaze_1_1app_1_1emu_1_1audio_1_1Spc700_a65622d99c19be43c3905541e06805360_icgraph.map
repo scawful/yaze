@@ -26,7 +26,7 @@
 <area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1154,163,1123,163,1123,158,1154,158"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="766,140,932,181"/>
 <area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="964,163,933,163,933,158,964,158"/>
-<area shape="rect" id="Node000013" href="$yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="668,148,718,173"/>
+<area shape="rect" id="Node000013" href="$yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="668,148,718,173"/>
 <area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="750,163,718,163,718,158,750,158"/>
 <area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a8b299c900d0164ceb5747b1794d970ed" title=" " alt="" coords="219,140,400,181"/>
 <area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="653,158,620,155,506,153,401,157,400,151,506,148,620,150,653,153"/>

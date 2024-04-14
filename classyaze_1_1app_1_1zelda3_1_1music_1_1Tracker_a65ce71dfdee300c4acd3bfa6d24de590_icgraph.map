@@ -1,0 +1,9 @@
+<map id="yaze::app::zelda3::music::Tracker::AllocSPCBlock" name="yaze::app::zelda3::music::Tracker::AllocSPCBlock">
+<area shape="rect" id="Node000001" title=" " alt="" coords="509,5,710,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a666c81d4374b22835e5607b82e02b723" title=" " alt="" coords="5,5,185,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="493,15,461,12,347,8,233,12,186,16,185,11,233,7,347,3,461,7,494,9"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a16b90ed85155f8008e5051926f7d926f" title=" " alt="" coords="233,45,461,86"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="494,46,462,51,461,46,493,41"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="217,48,185,43,185,37,218,42"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="388,32,373,26,347,24,323,26,308,31,302,37,305,44,300,45,297,35,305,26,322,21,347,19,374,21,390,27"/>
+</map>

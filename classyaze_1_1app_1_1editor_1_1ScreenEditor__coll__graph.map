@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me..." alt="" coords="866,136,984,177"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedROM.html" title="A class to hold a shared pointer to a ROM object." alt="" coords="277,58,428,84"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="444,69,524,72,609,80,675,91,726,103,842,134,866,139,865,145,841,139,725,108,674,97,608,86,524,77,443,74"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Inventory.html" title=" " alt="" coords="632,136,756,177"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html" title=" " alt="" coords="632,136,756,177"/>
 <area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="444,78,525,92,609,114,655,133,653,138,607,119,524,97,443,84"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="771,154,865,154,865,159,771,159"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="280,179,425,205"/>

@@ -9,14 +9,14 @@ var namespaceyaze_1_1app_1_1zelda3 =
       [ "CopyTile8bpp16", "namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02overworld__map_8cc_03.html#abe3e8ded57bc506b26df4ca4a1e86746", null ]
     ] ],
     [ "anonymous_namespace{tracker.cc}", "namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html", [
-      [ "AddSPCReloc", "namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a5e69a70792db46a506738e12282916bf", null ]
+      [ "AddSPCReloc", "namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a472bdd7d0f3ed081e6559215b39cdf55", null ]
     ] ],
     [ "dungeon", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon" ],
+    [ "music", "namespaceyaze_1_1app_1_1zelda3_1_1music.html", "namespaceyaze_1_1app_1_1zelda3_1_1music" ],
     [ "palette_internal", "namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html", [
       [ "SetColorsPalette", "namespaceyaze_1_1app_1_1zelda3_1_1palette__internal.html#aec7069c3a77d62e2caff1022e6a124f4", null ]
     ] ],
-    [ "DungeonMap", "classyaze_1_1app_1_1zelda3_1_1DungeonMap.html", "classyaze_1_1app_1_1zelda3_1_1DungeonMap" ],
-    [ "Inventory", "classyaze_1_1app_1_1zelda3_1_1Inventory.html", "classyaze_1_1app_1_1zelda3_1_1Inventory" ],
+    [ "screen", "namespaceyaze_1_1app_1_1zelda3_1_1screen.html", "namespaceyaze_1_1app_1_1zelda3_1_1screen" ],
     [ "MapData", "structyaze_1_1app_1_1zelda3_1_1MapData.html", "structyaze_1_1app_1_1zelda3_1_1MapData" ],
     [ "Overworld", "classyaze_1_1app_1_1zelda3_1_1Overworld.html", "classyaze_1_1app_1_1zelda3_1_1Overworld" ],
     [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
@@ -25,24 +25,6 @@ var namespaceyaze_1_1app_1_1zelda3 =
     [ "OverworldItem", "classyaze_1_1app_1_1zelda3_1_1OverworldItem.html", "classyaze_1_1app_1_1zelda3_1_1OverworldItem" ],
     [ "OverworldMap", "classyaze_1_1app_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1app_1_1zelda3_1_1OverworldMap" ],
     [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ],
-    [ "TitleScreen", "classyaze_1_1app_1_1zelda3_1_1TitleScreen.html", "classyaze_1_1app_1_1zelda3_1_1TitleScreen" ],
-    [ "Tracker", "classyaze_1_1app_1_1zelda3_1_1Tracker.html", "classyaze_1_1app_1_1zelda3_1_1Tracker" ],
-    [ "text_buf_ty", "namespaceyaze_1_1app_1_1zelda3.html#ae6c0fc257c4fbe93261122e920f316b5", null ],
-    [ "SongSPCBlock", "namespaceyaze_1_1app_1_1zelda3.html#a665a62b9cb10fd490c97164bd7e47045", null ],
-    [ "SongRange", "namespaceyaze_1_1app_1_1zelda3.html#ac3e382f0b753469cbf0db9a2c014539d", null ],
-    [ "SongPart", "namespaceyaze_1_1app_1_1zelda3.html#ad8b872a78b6ba766aab3ec2eb1c4fd8f", null ],
-    [ "Song", "namespaceyaze_1_1app_1_1zelda3.html#ab6cb7f898bf27c4b3e0199b28fec13dd", null ],
-    [ "ZeldaWave", "namespaceyaze_1_1app_1_1zelda3.html#a5c682c356e9e760f7a129cee9f664e92", null ],
-    [ "SampleEdit", "namespaceyaze_1_1app_1_1zelda3.html#adae05b4291ec7dc7448b47b7ed9498a6", null ],
-    [ "ZeldaInstrument", "namespaceyaze_1_1app_1_1zelda3.html#aa681c3e9cf31a20243e084adb921628e", null ],
-    [ "ZeldaSfxInstrument", "namespaceyaze_1_1app_1_1zelda3.html#ad108dd0f8e4edc4f8fc63941030b102e", null ],
-    [ "SPCCommand", "namespaceyaze_1_1app_1_1zelda3.html#a5a7436c730490e386b3d9dca6b9b61b0", null ],
-    [ "op_len", "namespaceyaze_1_1app_1_1zelda3.html#a6cf5e6f00146ff2d9118b01cfb498aa3", null ],
-    [ "fil1", "namespaceyaze_1_1app_1_1zelda3.html#aaa7dc6678695ccf3af2b560178c110e3", null ],
-    [ "fil2", "namespaceyaze_1_1app_1_1zelda3.html#a85af092eabfe158dc5a12966b177c7f9", null ],
-    [ "fil3", "namespaceyaze_1_1app_1_1zelda3.html#ae4acfc7d2fce936c4beeb8ce183b2a6d", null ],
-    [ "kOverworldMusicBank", "namespaceyaze_1_1app_1_1zelda3.html#a960e4e18738c7b031ab231b9cc0b2e55", null ],
-    [ "kDungeonMusicBank", "namespaceyaze_1_1app_1_1zelda3.html#a40911494fbb0f38314d5c1de02ab4ad1", null ],
     [ "kSecretItemNames", "namespaceyaze_1_1app_1_1zelda3.html#a002306c5f6498fb8fcad3d934913656f", null ],
     [ "overworldItemsPointers", "namespaceyaze_1_1app_1_1zelda3.html#a3a80751d79168b59b2926dcc06edfe3f", null ],
     [ "overworldItemsAddress", "namespaceyaze_1_1app_1_1zelda3.html#a518f23d77dc9a6bb0df940f2a6c73c57", null ],
@@ -140,18 +122,5 @@ var namespaceyaze_1_1app_1_1zelda3 =
     [ "NumberOfMap16", "namespaceyaze_1_1app_1_1zelda3.html#aa59f1fb816e3fe06d06f4437e82c1107", null ],
     [ "LimitOfMap32", "namespaceyaze_1_1app_1_1zelda3.html#a4024e6fb4355af69a169c0239ac4bea4", null ],
     [ "NumberOfOWSprites", "namespaceyaze_1_1app_1_1zelda3.html#a010ffe97f1c5a37eea04f86a167f1dd3", null ],
-    [ "NumberOfMap32", "namespaceyaze_1_1app_1_1zelda3.html#a7204dbfdafd8a8b066b9b0bbdc5f2fe8", null ],
-    [ "kDungeonMapRoomsPtr", "namespaceyaze_1_1app_1_1zelda3.html#a8d827d220f5bdaa6f5b47b0cb84d23f8", null ],
-    [ "kDungeonMapFloors", "namespaceyaze_1_1app_1_1zelda3.html#a7afcf71531df084770ca183769845ba6", null ],
-    [ "kDungeonMapGfxPtr", "namespaceyaze_1_1app_1_1zelda3.html#afd45ac0d6d779abdcbb7fffe4e39c400", null ],
-    [ "kDungeonMapDataStart", "namespaceyaze_1_1app_1_1zelda3.html#a3faf64d2fad7fcbfeb89769a57873728", null ],
-    [ "kDungeonMapExpCheck", "namespaceyaze_1_1app_1_1zelda3.html#a7f8d5e31340dd7254d0924b29f7dc7ba", null ],
-    [ "kDungeonMapTile16", "namespaceyaze_1_1app_1_1zelda3.html#a8eee48ae6550ba1b85f720c33d065dcb", null ],
-    [ "kDungeonMapTile16Expanded", "namespaceyaze_1_1app_1_1zelda3.html#a32ed18aaa8cea428875cbdd7589e3b8a", null ],
-    [ "kDungeonMapBossRooms", "namespaceyaze_1_1app_1_1zelda3.html#ab87c8dae0520114529255ae1de2ee221", null ],
-    [ "kTriforceVertices", "namespaceyaze_1_1app_1_1zelda3.html#a2f0a88643cef19f9ce6ae8ec279c0ad3", null ],
-    [ "TriforceFaces", "namespaceyaze_1_1app_1_1zelda3.html#a37e47df235f94485bffe3dc03a95d81e", null ],
-    [ "crystalVertices", "namespaceyaze_1_1app_1_1zelda3.html#aedc154347eb94ffd4d62f4428826d0ee", null ],
-    [ "kInventoryStart", "namespaceyaze_1_1app_1_1zelda3.html#a12736abe10709d6e8c3a95742eea3410", null ],
-    [ "kBowItemPos", "namespaceyaze_1_1app_1_1zelda3.html#adc66d34b3e89d0c4c21ed4b8042fc6e3", null ]
+    [ "NumberOfMap32", "namespaceyaze_1_1app_1_1zelda3.html#a7204dbfdafd8a8b066b9b0bbdc5f2fe8", null ]
 ];

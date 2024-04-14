@@ -8,9 +8,9 @@ var searchData=
   ['z_5f_5',['z_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aafefb9b7ab557cf772fe2262f9e32ed9',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['zamuse_6',['ZAMUSE',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a3d6e17d3d4cb495fc71fa77c41b0decda51125cf8d2949e70d4ad3c5ce7e53fe7',1,'yaze::app::emu::memory']]],
   ['zelda3_20editor_7',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
-  ['zeldainstrument_8',['ZeldaInstrument',['../namespaceyaze_1_1app_1_1zelda3.html#aa681c3e9cf31a20243e084adb921628e',1,'yaze::app::zelda3']]],
-  ['zeldasfxinstrument_9',['ZeldaSfxInstrument',['../namespaceyaze_1_1app_1_1zelda3.html#ad108dd0f8e4edc4f8fc63941030b102e',1,'yaze::app::zelda3']]],
-  ['zeldawave_10',['ZeldaWave',['../namespaceyaze_1_1app_1_1zelda3.html#a5c682c356e9e760f7a129cee9f664e92',1,'yaze::app::zelda3']]],
+  ['zeldainstrument_8',['ZeldaInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#ae7b18fa864b8ce743eb6dde1dd35520f',1,'yaze::app::zelda3::music']]],
+  ['zeldasfxinstrument_9',['ZeldaSfxInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd',1,'yaze::app::zelda3::music']]],
+  ['zeldawave_10',['ZeldaWave',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a2b3c427473083d084492da3958e03e63',1,'yaze::app::zelda3::music']]],
   ['zero_5fpoint_11',['zero_point',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a725cdd037008035c36f62b7108c588d2',1,'yaze::app::gui::Canvas']]],
   ['zoomin_12',['ZoomIn',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3d245d538658062773a8972c57d43eae',1,'yaze::app::gui::Canvas']]],
   ['zoomout_13',['ZoomOut',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aaf4f7f9d8a94909686f2db38550df2f3',1,'yaze::app::gui::Canvas']]]

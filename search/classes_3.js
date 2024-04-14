@@ -7,7 +7,7 @@ var searchData=
   ['dmaregisters_4',['DmaRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html',1,'yaze::app::emu::video']]],
   ['dungeondestination_5',['DungeonDestination',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html',1,'yaze::app::zelda3::dungeon']]],
   ['dungeoneditor_6',['DungeonEditor',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html',1,'yaze::app::editor']]],
-  ['dungeonmap_7',['DungeonMap',['../classyaze_1_1app_1_1zelda3_1_1DungeonMap.html',1,'yaze::app::zelda3']]],
+  ['dungeonmap_7',['DungeonMap',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html',1,'yaze::app::zelda3::screen']]],
   ['dungeonobjectrenderer_8',['DungeonObjectRenderer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html',1,'yaze::app::zelda3::dungeon']]],
   ['dynamiclayout_9',['DynamicLayout',['../classyaze_1_1app_1_1gui_1_1DynamicLayout.html',1,'yaze::app::gui']]]
 ];
