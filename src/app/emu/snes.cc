@@ -46,7 +46,7 @@ uint16_t GetHeaderOffset(const Memory& memory) {
 }
 
 void audio_callback(void* userdata, uint8_t* stream, int len) {
-  auto* apu = static_cast<Apu*>(userdata);
+  auto* apu = static_cast<audio::Apu*>(userdata);
   auto* buffer = reinterpret_cast<int16_t*>(stream);
 
   for (int i = 0; i < len / 2; i++) {  // Assuming 16-bit samples

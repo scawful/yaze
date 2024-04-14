@@ -5,6 +5,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 void DigitalSignalProcessor::Reset() {}
 
@@ -37,7 +38,8 @@ uint8_t DigitalSignalProcessor::ReadVoiceReg(uint8_t voice, uint8_t reg) const {
   }
 }
 
-void DigitalSignalProcessor::WriteVoiceReg(uint8_t voice, uint8_t reg, uint8_t value) {
+void DigitalSignalProcessor::WriteVoiceReg(uint8_t voice, uint8_t reg,
+                                           uint8_t value) {
   voice %= kNumVoices;
   switch (reg % kNumVoiceRegs) {
     case 0:
@@ -69,9 +71,13 @@ void DigitalSignalProcessor::WriteVoiceReg(uint8_t voice, uint8_t reg, uint8_t v
 }
 
 // Set the callbacks
-void DigitalSignalProcessor::SetSampleFetcher(SampleFetcher fetcher) { sample_fetcher_ = fetcher; }
+void DigitalSignalProcessor::SetSampleFetcher(SampleFetcher fetcher) {
+  sample_fetcher_ = fetcher;
+}
 
-void DigitalSignalProcessor::SetSamplePusher(SamplePusher pusher) { sample_pusher_ = pusher; }
+void DigitalSignalProcessor::SetSamplePusher(SamplePusher pusher) {
+  sample_pusher_ = pusher;
+}
 
 int16_t DigitalSignalProcessor::DecodeSample(uint8_t voice_num) {
   Voice const& voice = voices_[voice_num];
@@ -82,7 +88,8 @@ int16_t DigitalSignalProcessor::DecodeSample(uint8_t voice_num) {
   return sample;
 }
 
-int16_t DigitalSignalProcessor::ProcessSample(uint8_t voice_num, int16_t sample) {
+int16_t DigitalSignalProcessor::ProcessSample(uint8_t voice_num,
+                                              int16_t sample) {
   Voice const& voice = voices_[voice_num];
 
   // Adjust the pitch (for simplicity, we're just adjusting the sample value)
@@ -276,6 +283,7 @@ void DigitalSignalProcessor::process_envelope(uint8_t voice_num) {
   apply_envelope_to_output(voice_num);
 }
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

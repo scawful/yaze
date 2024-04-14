@@ -10,6 +10,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 using SampleFetcher = std::function<uint8_t(uint16_t)>;
 using SamplePusher = std::function<void(int16_t)>;
@@ -308,6 +309,8 @@ class DigitalSignalProcessor {
   // and apply the envelope to the audio output.
   void process_envelope(uint8_t voice_num);
 };
+
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

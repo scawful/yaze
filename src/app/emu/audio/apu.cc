@@ -13,6 +13,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 void Apu::Init() {
   // Set the clock frequency
@@ -134,6 +135,7 @@ void Apu::WriteDspMemory(uint16_t address, uint8_t value) {
   dsp_.WriteGlobalReg(address, value);
 }
 
+} // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

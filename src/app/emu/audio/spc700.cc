@@ -11,6 +11,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace audio {
 
 void Spc700::Reset() {
   PC = 0;
@@ -952,6 +953,7 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
   log_.push_back(log_entry);
 }
 
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze
