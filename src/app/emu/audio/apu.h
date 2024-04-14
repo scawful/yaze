@@ -37,9 +37,9 @@ const int kApuClockSpeed = 1024000;  // 1.024 MHz
 const int apuSampleRate = 32000;     // 32 KHz
 const int apuClocksPerSample = 64;   // 64 clocks per sample
 
-class APU : public Observer {
+class Apu : public Observer {
  public:
-  APU(MemoryImpl &memory, AudioRam &aram, Clock &clock)
+  Apu(MemoryImpl &memory, AudioRam &aram, Clock &clock)
       : aram_(aram), clock_(clock), memory_(memory) {}
 
   void Init();
