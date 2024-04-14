@@ -353,9 +353,9 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
     palette_ = transfer_overworld_.AreaPalette();
 
     // Create the tile16 blockset image
-    gui::BuildAndRenderBitmapPipeline(0x80, 0x2000, 0x80,
-                                      transfer_overworld_.Tile16Blockset(),
-                                      *rom(), transfer_blockset_bmp_, palette_);
+    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x80,
+                                 transfer_overworld_.Tile16Blockset(),
+                                 transfer_blockset_bmp_, palette_));
     transfer_blockset_loaded_ = true;
   }
 

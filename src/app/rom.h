@@ -507,6 +507,15 @@ class Rom : public core::ExperimentFlags {
     renderer_ = renderer;
   }
 
+  absl::Status CreateAndRenderBitmap(int width, int height, int depth,
+                                     const Bytes& data, gfx::Bitmap& bitmap,
+                                     gfx::SnesPalette& palette) {
+    bitmap.Create(width, height, depth, data);
+    RETURN_IF_ERROR(bitmap.ApplyPalette(palette));
+    RenderBitmap(&bitmap);
+    return absl::OkStatus();
+  }
+
   /**
    * @brief Used to render a bitmap to the screen.
    */

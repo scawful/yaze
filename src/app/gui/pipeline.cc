@@ -15,7 +15,6 @@
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/input.h"
-#include "app/rom.h"
 
 namespace yaze {
 namespace app {
@@ -156,14 +155,6 @@ void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap,
   } else {
     draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
   }
-}
-
-void BuildAndRenderBitmapPipeline(int width, int height, int depth, Bytes data,
-                                  Rom& z3_rom, gfx::Bitmap& bitmap,
-                                  gfx::SnesPalette& palette) {
-  bitmap.Create(width, height, depth, data);
-  bitmap.ApplyPalette(palette);
-  z3_rom.RenderBitmap(&bitmap);
 }
 
 void FileDialogPipeline(absl::string_view display_key,
