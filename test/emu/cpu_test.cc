@@ -13,7 +13,10 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-class CPUTest : public ::testing::Test {
+/**
+ * \test Test fixture for CPU unit tests
+ */
+class CpuTest : public ::testing::Test {
  public:
   void SetUp() override {
     mock_memory.Init();
@@ -22,10 +25,10 @@ class CPUTest : public ::testing::Test {
     asm_parser.CreateInternalOpcodeMap();
   }
 
+  AsmParser asm_parser;
   MockMemory mock_memory;
   MockClock mock_clock;
-  CPU cpu{mock_memory, mock_clock};
-  AsmParser asm_parser;
+  Cpu cpu{mock_memory, mock_clock};
 };
 
 using ::testing::_;
@@ -35,7 +38,7 @@ using ::testing::Return;
 // Infrastructure
 // ============================================================================
 
-TEST_F(CPUTest, CheckMemoryContents) {
+TEST_F(CpuTest, CheckMemoryContents) {
   MockMemory memory;
   std::vector<uint8_t> data = {0x00, 0x01, 0x02, 0x03, 0x04};
   memory.SetMemoryContents(data);
@@ -58,7 +61,7 @@ TEST_F(CPUTest, CheckMemoryContents) {
 // ============================================================================
 // ADC - Add with Carry
 
-TEST_F(CPUTest, ADC_CheckCarryFlag) {
+TEST_F(CpuTest, ADC_CheckCarryFlag) {
   cpu.A = 0xFF;
   cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0x15, 0x01};  // Operand at address 0x15
@@ -72,7 +75,7 @@ TEST_F(CPUTest, ADC_CheckCarryFlag) {
   EXPECT_TRUE(cpu.GetCarryFlag());
 }
 
-TEST_F(CPUTest, ADC_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, ADC_DirectPageIndexedIndirectX) {
   cpu.A = 0x03;
   cpu.D = 0x2000;  // Setting Direct Page register to 0x2000
   std::vector<uint8_t> data = {0x61, 0x10};  // ADC (dp, X)
@@ -89,7 +92,7 @@ TEST_F(CPUTest, ADC_DirectPageIndexedIndirectX) {
   EXPECT_EQ(cpu.A, 0x09);        // 0x03 + 0x06 = 0x09
 }
 
-TEST_F(CPUTest, ADC_StackRelative) {
+TEST_F(CpuTest, ADC_StackRelative) {
   cpu.A = 0x03;
   std::vector<uint8_t> data = {0x63, 0x02};  // ADC sr
   mock_memory.SetMemoryContents(data);
@@ -103,7 +106,7 @@ TEST_F(CPUTest, ADC_StackRelative) {
   EXPECT_EQ(cpu.A, 0x09);        // 0x03 + 0x06 = 0x09
 }
 
-TEST_F(CPUTest, ADC_DirectPage) {
+TEST_F(CpuTest, ADC_DirectPage) {
   cpu.A = 0x01;
   cpu.D = 0x2000;  // Setting Direct Page register to 0x2000
   std::vector<uint8_t> data = {0x65, 0x10};  // ADC dp
@@ -117,7 +120,7 @@ TEST_F(CPUTest, ADC_DirectPage) {
   EXPECT_EQ(cpu.A, 0x06);
 }
 
-TEST_F(CPUTest, ADC_DirectPageIndirectLong) {
+TEST_F(CpuTest, ADC_DirectPageIndirectLong) {
   cpu.A = 0x03;
   cpu.D = 0x2000;
   std::vector<uint8_t> data = {0x67, 0x10};
@@ -133,7 +136,7 @@ TEST_F(CPUTest, ADC_DirectPageIndirectLong) {
   EXPECT_EQ(cpu.A, 0x09);
 }
 
-TEST_F(CPUTest, ADC_Immediate_TwoPositiveNumbers) {
+TEST_F(CpuTest, ADC_Immediate_TwoPositiveNumbers) {
   cpu.A = 0x01;
   cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0x01};
@@ -145,7 +148,7 @@ TEST_F(CPUTest, ADC_Immediate_TwoPositiveNumbers) {
   EXPECT_EQ(cpu.A, 0x02);
 }
 
-TEST_F(CPUTest, ADC_Immediate_PositiveAndNegativeNumbers) {
+TEST_F(CpuTest, ADC_Immediate_PositiveAndNegativeNumbers) {
   cpu.A = 10;
   cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0x69, static_cast<uint8_t>(-20)};
@@ -157,7 +160,7 @@ TEST_F(CPUTest, ADC_Immediate_PositiveAndNegativeNumbers) {
   EXPECT_EQ(cpu.A, static_cast<uint8_t>(-10));
 }
 
-TEST_F(CPUTest, ADC_Absolute) {
+TEST_F(CpuTest, ADC_Absolute) {
   cpu.A = 0x01;
   cpu.status = 0x00;  // 16-bit mode
   std::vector<uint8_t> data = {0x6D, 0x03, 0x00, 0x05, 0x00};
@@ -171,7 +174,7 @@ TEST_F(CPUTest, ADC_Absolute) {
   EXPECT_EQ(cpu.A, 0x06);
 }
 
-TEST_F(CPUTest, ADC_AbsoluteLong) {
+TEST_F(CpuTest, ADC_AbsoluteLong) {
   cpu.A = 0x01;
   cpu.SetAccumulatorSize(false);  // 16-bit mode
   cpu.SetCarryFlag(false);
@@ -185,7 +188,7 @@ TEST_F(CPUTest, ADC_AbsoluteLong) {
   EXPECT_EQ(cpu.A, 0x06);
 }
 
-TEST_F(CPUTest, ADC_DirectPageIndirectIndexedY) {
+TEST_F(CpuTest, ADC_DirectPageIndirectIndexedY) {
   cpu.A = 0x03;
   cpu.Y = 0x02;
   cpu.D = 0x2000;
@@ -202,7 +205,7 @@ TEST_F(CPUTest, ADC_DirectPageIndirectIndexedY) {
   EXPECT_EQ(cpu.A, 0x09);        // 0x03 + 0x06 = 0x09
 }
 
-TEST_F(CPUTest, ADC_DirectPageIndirect) {
+TEST_F(CpuTest, ADC_DirectPageIndirect) {
   cpu.A = 0x02;
   cpu.D = 0x2000;  // Setting Direct Page register to 0x2000
   std::vector<uint8_t> data = {0x72, 0x10};  // ADC (dp)
@@ -218,7 +221,7 @@ TEST_F(CPUTest, ADC_DirectPageIndirect) {
   EXPECT_EQ(cpu.A, 0x07);        // 0x02 + 0x05 = 0x07
 }
 
-TEST_F(CPUTest, ADC_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, ADC_StackRelativeIndirectIndexedY) {
   cpu.A = 0x03;   // A register
   cpu.Y = 0x02;   // Y register
   cpu.DB = 0x10;  // Setting Data Bank register to 0x20
@@ -235,7 +238,7 @@ TEST_F(CPUTest, ADC_StackRelativeIndirectIndexedY) {
   EXPECT_EQ(cpu.A, 0x09);        // 0x03 + 0x06 = 0x09
 }
 
-TEST_F(CPUTest, ADC_DirectPageIndexedX) {
+TEST_F(CpuTest, ADC_DirectPageIndexedX) {
   cpu.A = 0x03;
   cpu.X = 0x02;
   cpu.D = 0x2000;
@@ -250,7 +253,7 @@ TEST_F(CPUTest, ADC_DirectPageIndexedX) {
   EXPECT_EQ(cpu.A, 0x09);        // 0x03 + 0x06 = 0x09
 }
 
-TEST_F(CPUTest, ADC_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, ADC_DirectPageIndirectLongIndexedY) {
   cpu.A = 0x03;
   cpu.Y = 0x02;
   cpu.D = 0x2000;
@@ -267,7 +270,7 @@ TEST_F(CPUTest, ADC_DirectPageIndirectLongIndexedY) {
   EXPECT_EQ(cpu.A, 0x09);
 }
 
-TEST_F(CPUTest, ADC_AbsoluteIndexedY) {
+TEST_F(CpuTest, ADC_AbsoluteIndexedY) {
   cpu.A = 0x03;
   cpu.Y = 0x02;   // Y register
   cpu.DB = 0x20;  // Setting Data Bank register to 0x20
@@ -283,7 +286,7 @@ TEST_F(CPUTest, ADC_AbsoluteIndexedY) {
   EXPECT_EQ(cpu.A, 0x08);
 }
 
-TEST_F(CPUTest, ADC_AbsoluteIndexedX) {
+TEST_F(CpuTest, ADC_AbsoluteIndexedX) {
   cpu.A = 0x03;
   cpu.X = 0x02;   // X register
   cpu.DB = 0x20;  // Setting Data Bank register to 0x20
@@ -301,7 +304,7 @@ TEST_F(CPUTest, ADC_AbsoluteIndexedX) {
   EXPECT_EQ(cpu.A, 0x08);
 }
 
-TEST_F(CPUTest, ADC_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, ADC_AbsoluteLongIndexedX) {
   cpu.A = 0x03;
   cpu.X = 0x02;  // X register
   cpu.SetCarryFlag(false);
@@ -320,7 +323,7 @@ TEST_F(CPUTest, ADC_AbsoluteLongIndexedX) {
 // ============================================================================
 // AND - Logical AND
 
-TEST_F(CPUTest, AND_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, AND_DirectPageIndexedIndirectX) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   cpu.X = 0x02;        // X register
@@ -344,7 +347,7 @@ TEST_F(CPUTest, AND_DirectPageIndexedIndirectX) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_StackRelative) {
+TEST_F(CpuTest, AND_StackRelative) {
   cpu.A = 0b11110000;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   std::vector<uint8_t> data = {0x23, 0x02};
@@ -361,7 +364,7 @@ TEST_F(CPUTest, AND_StackRelative) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_DirectPage) {
+TEST_F(CpuTest, AND_DirectPage) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   std::vector<uint8_t> data = {0x25, 0x10};
@@ -379,7 +382,7 @@ TEST_F(CPUTest, AND_DirectPage) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_DirectPageIndirectLong) {
+TEST_F(CpuTest, AND_DirectPageIndirectLong) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   cpu.status = 0xFF;   // 8-bit mode
@@ -402,7 +405,7 @@ TEST_F(CPUTest, AND_DirectPageIndirectLong) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_Immediate) {
+TEST_F(CpuTest, AND_Immediate) {
   cpu.A = 0b11110000;                              // A register
   std::vector<uint8_t> data = {0x29, 0b10101010};  // AND #0b10101010
   mock_memory.SetMemoryContents(data);
@@ -411,7 +414,7 @@ TEST_F(CPUTest, AND_Immediate) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_Absolute_16BitMode) {
+TEST_F(CpuTest, AND_Absolute_16BitMode) {
   cpu.A = 0b11111111;  // A register
   cpu.E = 0;           // 16-bit mode
   cpu.status = 0x00;   // Clear status flags
@@ -430,7 +433,7 @@ TEST_F(CPUTest, AND_Absolute_16BitMode) {
   EXPECT_EQ(cpu.A, 0b10101010);  // A register should now be 0b10101010
 }
 
-TEST_F(CPUTest, AND_AbsoluteLong) {
+TEST_F(CpuTest, AND_AbsoluteLong) {
   cpu.A = 0x01;
   cpu.status = 0x00;  // 16-bit mode
   std::vector<uint8_t> data = {0x2F, 0x04, 0x00, 0x00, 0x05, 0x00};
@@ -444,7 +447,7 @@ TEST_F(CPUTest, AND_AbsoluteLong) {
   EXPECT_EQ(cpu.A, 0x01);
 }
 
-TEST_F(CPUTest, AND_DirectPageIndirectIndexedY) {
+TEST_F(CpuTest, AND_DirectPageIndirectIndexedY) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   cpu.Y = 0x02;        // Y register
@@ -461,7 +464,7 @@ TEST_F(CPUTest, AND_DirectPageIndirectIndexedY) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_DirectPageIndirect) {
+TEST_F(CpuTest, AND_DirectPageIndirect) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   std::vector<uint8_t> data = {0x32, 0x10};
@@ -477,7 +480,7 @@ TEST_F(CPUTest, AND_DirectPageIndirect) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, AND_StackRelativeIndirectIndexedY) {
   cpu.A = 0b11110000;  // A register
   cpu.Y = 0x02;        // Y register
   cpu.DB = 0x10;       // Setting Data Bank register to 0x20
@@ -496,7 +499,7 @@ TEST_F(CPUTest, AND_StackRelativeIndirectIndexedY) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_DirectPageIndexedX) {
+TEST_F(CpuTest, AND_DirectPageIndexedX) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   cpu.X = 0x02;        // X register
@@ -513,7 +516,7 @@ TEST_F(CPUTest, AND_DirectPageIndexedX) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, AND_DirectPageIndirectLongIndexedY) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   cpu.Y = 0x02;        // Y register
@@ -531,7 +534,7 @@ TEST_F(CPUTest, AND_DirectPageIndirectLongIndexedY) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_AbsoluteIndexedY) {
+TEST_F(CpuTest, AND_AbsoluteIndexedY) {
   cpu.A = 0b11110000;  // A register
   cpu.Y = 0x02;        // Y register
   std::vector<uint8_t> data = {0x39,       0x03,       0x00,
@@ -553,7 +556,7 @@ TEST_F(CPUTest, AND_AbsoluteIndexedY) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_AbsoluteIndexedX) {
+TEST_F(CpuTest, AND_AbsoluteIndexedX) {
   cpu.A = 0b11110000;  // A register
   cpu.X = 0x02;        // X register
   std::vector<uint8_t> data = {0x3D,       0x03,       0x00,
@@ -576,7 +579,7 @@ TEST_F(CPUTest, AND_AbsoluteIndexedX) {
   EXPECT_EQ(cpu.A, 0b10100000);  // A register should now be 0b10100000
 }
 
-TEST_F(CPUTest, AND_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, AND_AbsoluteLongIndexedX) {
   cpu.A = 0b11110000;  // A register
   cpu.X = 0x02;        // X register
   cpu.status = 0xFF;   // 8-bit mode
@@ -602,7 +605,7 @@ TEST_F(CPUTest, AND_AbsoluteLongIndexedX) {
 // ============================================================================
 // ASL - Arithmetic Shift Left
 
-TEST_F(CPUTest, ASL_DirectPage) {
+TEST_F(CpuTest, ASL_DirectPage) {
   cpu.D = 0x1000;  // Setting Direct Page register to 0x1000
   cpu.PC = 0x1000;
   std::vector<uint8_t> data = {0x06, 0x10};  // ASL dp
@@ -615,7 +618,7 @@ TEST_F(CPUTest, ASL_DirectPage) {
   EXPECT_TRUE(cpu.GetNegativeFlag());
 }
 
-TEST_F(CPUTest, ASL_Accumulator) {
+TEST_F(CpuTest, ASL_Accumulator) {
   cpu.status = 0xFF;  // 8-bit mode
   cpu.A = 0x40;
   std::vector<uint8_t> data = {0x0A};  // ASL A
@@ -628,7 +631,7 @@ TEST_F(CPUTest, ASL_Accumulator) {
   EXPECT_TRUE(cpu.GetNegativeFlag());
 }
 
-TEST_F(CPUTest, ASL_Absolute) {
+TEST_F(CpuTest, ASL_Absolute) {
   std::vector<uint8_t> data = {0x0E, 0x10, 0x20};  // ASL abs
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x2010, {0x40});  // [0x2010] = 0x40
@@ -642,7 +645,7 @@ TEST_F(CPUTest, ASL_Absolute) {
   EXPECT_FALSE(cpu.GetNegativeFlag());
 }
 
-TEST_F(CPUTest, ASL_DirectPageIndexedX) {
+TEST_F(CpuTest, ASL_DirectPageIndexedX) {
   cpu.D = 0x1000;  // Setting Direct Page register to 0x1000
   cpu.X = 0x02;    // Setting X register to 0x02
   std::vector<uint8_t> data = {0x16, 0x10};  // ASL dp,X
@@ -655,7 +658,7 @@ TEST_F(CPUTest, ASL_DirectPageIndexedX) {
   EXPECT_TRUE(cpu.GetNegativeFlag());
 }
 
-TEST_F(CPUTest, ASL_AbsoluteIndexedX) {
+TEST_F(CpuTest, ASL_AbsoluteIndexedX) {
   cpu.X = 0x02;                                    // Setting X register to 0x02
   std::vector<uint8_t> data = {0x1E, 0x10, 0x20};  // ASL abs,X
   mock_memory.SetMemoryContents(data);
@@ -673,7 +676,7 @@ TEST_F(CPUTest, ASL_AbsoluteIndexedX) {
 // ============================================================================
 // BCC - Branch if Carry Clear
 
-TEST_F(CPUTest, BCC_WhenCarryFlagClear) {
+TEST_F(CpuTest, BCC_WhenCarryFlagClear) {
   cpu.SetCarryFlag(false);
   std::vector<uint8_t> data = {0x90, 0x05, 0x01};  // Operand at address 0x1001
   mock_memory.SetMemoryContents(data);
@@ -684,7 +687,7 @@ TEST_F(CPUTest, BCC_WhenCarryFlagClear) {
   EXPECT_EQ(cpu.PC, 0x05);
 }
 
-TEST_F(CPUTest, BCC_WhenCarryFlagSet) {
+TEST_F(CpuTest, BCC_WhenCarryFlagSet) {
   cpu.SetCarryFlag(true);
   std::vector<uint8_t> data = {0x90, 0x02, 0x01};
   mock_memory.SetMemoryContents(data);
@@ -699,7 +702,7 @@ TEST_F(CPUTest, BCC_WhenCarryFlagSet) {
 // ============================================================================
 // BCS - Branch if Carry Set
 
-TEST_F(CPUTest, BCS_WhenCarryFlagSet) {
+TEST_F(CpuTest, BCS_WhenCarryFlagSet) {
   cpu.SetCarryFlag(true);
   std::vector<uint8_t> data = {0xB0, 0x07, 0x02};  // Operand at address 0x1001
   mock_memory.SetMemoryContents(data);
@@ -710,7 +713,7 @@ TEST_F(CPUTest, BCS_WhenCarryFlagSet) {
   EXPECT_EQ(cpu.PC, 0x07);
 }
 
-TEST_F(CPUTest, BCS_WhenCarryFlagClear) {
+TEST_F(CpuTest, BCS_WhenCarryFlagClear) {
   cpu.SetCarryFlag(false);
   std::vector<uint8_t> data = {0x10, 0x02, 0x01};
   mock_memory.SetMemoryContents(data);
@@ -722,7 +725,7 @@ TEST_F(CPUTest, BCS_WhenCarryFlagClear) {
 // ============================================================================
 // BEQ - Branch if Equal
 
-TEST_F(CPUTest, BEQ_Immediate_ZeroFlagSet) {
+TEST_F(CpuTest, BEQ_Immediate_ZeroFlagSet) {
   cpu.PB = 0x00;
   cpu.SetZeroFlag(true);
   std::vector<uint8_t> data = {0xF0, 0x09};  // Operand at address 0x1001
@@ -733,7 +736,7 @@ TEST_F(CPUTest, BEQ_Immediate_ZeroFlagSet) {
   EXPECT_EQ(cpu.PC, 0x09);
 }
 
-TEST_F(CPUTest, BEQ_Immediate_ZeroFlagClear) {
+TEST_F(CpuTest, BEQ_Immediate_ZeroFlagClear) {
   cpu.SetZeroFlag(false);
   std::vector<uint8_t> data = {0xF0, 0x03};  // Operand at address 0x1001
   mock_memory.SetMemoryContents(data);
@@ -745,7 +748,7 @@ TEST_F(CPUTest, BEQ_Immediate_ZeroFlagClear) {
   EXPECT_EQ(cpu.PC, 0x02);
 }
 
-TEST_F(CPUTest, BEQ_Immediate_ZeroFlagSet_OverflowFlagSet) {
+TEST_F(CpuTest, BEQ_Immediate_ZeroFlagSet_OverflowFlagSet) {
   cpu.SetZeroFlag(true);
   cpu.SetOverflowFlag(true);
   std::vector<uint8_t> data = {0xF0, 0x03};  // Operand at address 0x1001
@@ -758,7 +761,7 @@ TEST_F(CPUTest, BEQ_Immediate_ZeroFlagSet_OverflowFlagSet) {
   EXPECT_EQ(cpu.PC, 0x03);
 }
 
-TEST_F(CPUTest, BEQ_Immediate_ZeroFlagClear_OverflowFlagSet) {
+TEST_F(CpuTest, BEQ_Immediate_ZeroFlagClear_OverflowFlagSet) {
   cpu.SetZeroFlag(false);
   cpu.SetOverflowFlag(true);
   std::vector<uint8_t> data = {0xF0, 0x03, 0x02};  // Operand at address 0x1001
@@ -774,7 +777,7 @@ TEST_F(CPUTest, BEQ_Immediate_ZeroFlagClear_OverflowFlagSet) {
 // ============================================================================
 // BIT - Bit Test
 
-TEST_F(CPUTest, BIT_DirectPage) {
+TEST_F(CpuTest, BIT_DirectPage) {
   cpu.A = 0x01;
   cpu.D = 0x1000;  // Setting Direct Page register to 0x1000
   cpu.status = 0xFF;
@@ -794,7 +797,7 @@ TEST_F(CPUTest, BIT_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, BIT_Absolute) {
+TEST_F(CpuTest, BIT_Absolute) {
   cpu.A = 0x01;
   cpu.status = 0xFF;
   std::vector<uint8_t> data = {0x00, 0x10};  // BIT
@@ -813,7 +816,7 @@ TEST_F(CPUTest, BIT_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, BIT_DirectPageIndexedX) {
+TEST_F(CpuTest, BIT_DirectPageIndexedX) {
   cpu.A = 0x01;
   cpu.X = 0x02;
   cpu.D = 0x1000;  // Setting Direct Page register to 0x1000
@@ -834,7 +837,7 @@ TEST_F(CPUTest, BIT_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, BIT_AbsoluteIndexedX) {
+TEST_F(CpuTest, BIT_AbsoluteIndexedX) {
   cpu.A = 0x01;
   cpu.X = 0x02;
   cpu.status = 0xFF;
@@ -854,7 +857,7 @@ TEST_F(CPUTest, BIT_AbsoluteIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, BIT_Immediate) {
+TEST_F(CpuTest, BIT_Immediate) {
   cpu.A = 0x01;
   cpu.status = 0xFF;
   std::vector<uint8_t> data = {0x24, 0x00, 0x10};  // BIT
@@ -876,7 +879,7 @@ TEST_F(CPUTest, BIT_Immediate) {
 // ============================================================================
 // BMI - Branch if Minus
 
-TEST_F(CPUTest, BMI_BranchTaken) {
+TEST_F(CpuTest, BMI_BranchTaken) {
   cpu.SetNegativeFlag(true);
   std::vector<uint8_t> data = {0x30, 0x05};  // BMI
   mock_memory.SetMemoryContents(data);
@@ -885,7 +888,7 @@ TEST_F(CPUTest, BMI_BranchTaken) {
   EXPECT_EQ(cpu.PC, 0x0005);
 }
 
-TEST_F(CPUTest, BMI_BranchNotTaken) {
+TEST_F(CpuTest, BMI_BranchNotTaken) {
   cpu.SetNegativeFlag(false);
   std::vector<uint8_t> data = {0x30, 0x02};  // BMI
   mock_memory.SetMemoryContents(data);
@@ -897,7 +900,7 @@ TEST_F(CPUTest, BMI_BranchNotTaken) {
 // ============================================================================
 // BNE - Branch if Not Equal
 
-TEST_F(CPUTest, BNE_BranchTaken) {
+TEST_F(CpuTest, BNE_BranchTaken) {
   cpu.SetZeroFlag(false);
   std::vector<uint8_t> data = {0xD0, 0x05};  // BNE
   mock_memory.SetMemoryContents(data);
@@ -906,7 +909,7 @@ TEST_F(CPUTest, BNE_BranchTaken) {
   EXPECT_EQ(cpu.PC, 0x0007);
 }
 
-TEST_F(CPUTest, BNE_BranchNotTaken) {
+TEST_F(CpuTest, BNE_BranchNotTaken) {
   cpu.SetZeroFlag(true);
   std::vector<uint8_t> data = {0xD0, 0x05};  // BNE
   mock_memory.SetMemoryContents(data);
@@ -918,7 +921,7 @@ TEST_F(CPUTest, BNE_BranchNotTaken) {
 // ============================================================================
 // BPL - Branch if Positive
 
-TEST_F(CPUTest, BPL_BranchTaken) {
+TEST_F(CpuTest, BPL_BranchTaken) {
   cpu.SetNegativeFlag(false);
   std::vector<uint8_t> data = {0x10, 0x07};  // BPL
   mock_memory.SetMemoryContents(data);
@@ -927,7 +930,7 @@ TEST_F(CPUTest, BPL_BranchTaken) {
   EXPECT_EQ(cpu.PC, 0x0007);
 }
 
-TEST_F(CPUTest, BPL_BranchNotTaken) {
+TEST_F(CpuTest, BPL_BranchNotTaken) {
   cpu.SetNegativeFlag(true);
   std::vector<uint8_t> data = {0x10, 0x02};  // BPL
   mock_memory.SetMemoryContents(data);
@@ -939,7 +942,7 @@ TEST_F(CPUTest, BPL_BranchNotTaken) {
 // ============================================================================
 // BRA - Branch Always
 
-TEST_F(CPUTest, BRA) {
+TEST_F(CpuTest, BRA) {
   std::vector<uint8_t> data = {0x80, 0x02};  // BRA
   mock_memory.SetMemoryContents(data);
 
@@ -949,7 +952,7 @@ TEST_F(CPUTest, BRA) {
 
 // ============================================================================
 
-TEST_F(CPUTest, BRK) {
+TEST_F(CpuTest, BRK) {
   std::vector<uint8_t> data = {0x00};  // BRK
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0xFFFE, {0x10, 0x20});  // [0xFFFE] = 0x2010
@@ -964,7 +967,7 @@ TEST_F(CPUTest, BRK) {
 // ============================================================================
 // BRL - Branch Long
 
-TEST_F(CPUTest, BRL) {
+TEST_F(CpuTest, BRL) {
   std::vector<uint8_t> data = {0x82, 0x10, 0x20};  // BRL
   mock_memory.SetMemoryContents(data);
 
@@ -977,7 +980,7 @@ TEST_F(CPUTest, BRL) {
 // ============================================================================
 // BVC - Branch if Overflow Clear
 
-TEST_F(CPUTest, BVC_BranchTaken) {
+TEST_F(CpuTest, BVC_BranchTaken) {
   cpu.SetOverflowFlag(false);
   std::vector<uint8_t> data = {0x50, 0x02};  // BVC
   mock_memory.SetMemoryContents(data);
@@ -989,7 +992,7 @@ TEST_F(CPUTest, BVC_BranchTaken) {
 // ============================================================================
 // BVS - Branch if Overflow Set
 
-TEST_F(CPUTest, BVS_BranchTaken) {
+TEST_F(CpuTest, BVS_BranchTaken) {
   cpu.SetOverflowFlag(true);
   std::vector<uint8_t> data = {0x70, 0x02};  // BVS
   mock_memory.SetMemoryContents(data);
@@ -1001,7 +1004,7 @@ TEST_F(CPUTest, BVS_BranchTaken) {
 // ============================================================================
 // CLC - Clear Carry Flag
 
-TEST_F(CPUTest, CLC) {
+TEST_F(CpuTest, CLC) {
   cpu.SetCarryFlag(true);
   cpu.PC = 0x0000;
   std::vector<uint8_t> data = {0x18};  // CLC
@@ -1014,7 +1017,7 @@ TEST_F(CPUTest, CLC) {
 // ============================================================================
 // CLD - Clear Decimal Mode Flag
 
-TEST_F(CPUTest, CLD) {
+TEST_F(CpuTest, CLD) {
   cpu.SetDecimalFlag(true);
   cpu.PC = 0x0000;
   std::vector<uint8_t> data = {0xD8};  // CLD
@@ -1027,7 +1030,7 @@ TEST_F(CPUTest, CLD) {
 // ============================================================================
 // CLI - Clear Interrupt Disable Flag
 
-TEST_F(CPUTest, CLI) {
+TEST_F(CpuTest, CLI) {
   cpu.SetInterruptFlag(true);
   cpu.PC = 0x0000;
   std::vector<uint8_t> data = {0x58};  // CLI
@@ -1040,7 +1043,7 @@ TEST_F(CPUTest, CLI) {
 // ============================================================================
 // CLV - Clear Overflow Flag
 
-TEST_F(CPUTest, CLV) {
+TEST_F(CpuTest, CLV) {
   cpu.SetOverflowFlag(true);
   cpu.PC = 0x0000;
   std::vector<uint8_t> data = {0xB8};  // CLV
@@ -1053,7 +1056,7 @@ TEST_F(CPUTest, CLV) {
 // ============================================================================
 // CMP - Compare Accumulator
 
-TEST_F(CPUTest, CMP_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, CMP_DirectPageIndexedIndirectX) {
   cpu.status = 0x00;
   cpu.SetAccumulatorSize(true);
   cpu.A = 0x80;
@@ -1072,7 +1075,7 @@ TEST_F(CPUTest, CMP_DirectPageIndexedIndirectX) {
   EXPECT_TRUE(cpu.GetNegativeFlag());
 }
 
-TEST_F(CPUTest, CMP_StackRelative) {
+TEST_F(CpuTest, CMP_StackRelative) {
   cpu.A = 0x80;
   cpu.SetSP(0x01FF);
   std::vector<uint8_t> data = {0xC3, 0x02};
@@ -1104,7 +1107,7 @@ TEST_F(CPUTest, CMP_StackRelative) {
   EXPECT_TRUE(cpu.GetNegativeFlag());
 }
 
-TEST_F(CPUTest, CMP_DirectPage) {
+TEST_F(CpuTest, CMP_DirectPage) {
   // Set the accumulator to 8-bit mode
   cpu.status = 0x00;
   cpu.SetAccumulatorSize(true);
@@ -1120,7 +1123,7 @@ TEST_F(CPUTest, CMP_DirectPage) {
   EXPECT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_DirectPageIndirectLong) {
+TEST_F(CpuTest, CMP_DirectPageIndirectLong) {
   // Set the accumulator to 8-bit mode
   cpu.status = 0x00;
   cpu.SetAccumulatorSize(true);
@@ -1143,7 +1146,7 @@ TEST_F(CPUTest, CMP_DirectPageIndirectLong) {
   EXPECT_FALSE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_Immediate_8Bit) {
+TEST_F(CpuTest, CMP_Immediate_8Bit) {
   // Set the accumulator to 8-bit mode
   cpu.status = 0x00;
   cpu.SetAccumulatorSize(true);
@@ -1162,7 +1165,7 @@ TEST_F(CPUTest, CMP_Immediate_8Bit) {
   EXPECT_FALSE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_Absolute_16Bit) {
+TEST_F(CpuTest, CMP_Absolute_16Bit) {
   // Set the accumulator to 16-bit mode
   cpu.SetAccumulatorSize(false);
   cpu.A = 0x8000;  // Set the accumulator to 0x8000
@@ -1177,7 +1180,7 @@ TEST_F(CPUTest, CMP_Absolute_16Bit) {
   EXPECT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_AbsoluteLong) {
+TEST_F(CpuTest, CMP_AbsoluteLong) {
   cpu.A = 0x01;
   cpu.status = 0b00000001;  // 16-bit mode
   std::vector<uint8_t> data = {0xCF, 0x04, 0x00, 0x00, 0x05, 0x00};
@@ -1194,7 +1197,7 @@ TEST_F(CPUTest, CMP_AbsoluteLong) {
   EXPECT_TRUE(cpu.GetNegativeFlag());
 }
 
-TEST_F(CPUTest, CMP_DirectPageIndirect) {
+TEST_F(CpuTest, CMP_DirectPageIndirect) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0200;
   std::vector<uint8_t> data = {0xD1, 0x3C};
@@ -1215,7 +1218,7 @@ TEST_F(CPUTest, CMP_DirectPageIndirect) {
   EXPECT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, CMP_StackRelativeIndirectIndexedY) {
   cpu.A = 0x03;       // A register
   cpu.Y = 0x02;       // Y register
   cpu.DB = 0x10;      // Setting Data Bank register to 0x20
@@ -1239,7 +1242,7 @@ TEST_F(CPUTest, CMP_StackRelativeIndirectIndexedY) {
   EXPECT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_DirectPageIndexedX) {
+TEST_F(CpuTest, CMP_DirectPageIndexedX) {
   // Set the accumulator to 8-bit mode
   cpu.status = 0x00;
   cpu.SetAccumulatorSize(true);
@@ -1261,7 +1264,7 @@ TEST_F(CPUTest, CMP_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, CMP_DirectPageIndirectLongIndexedY) {
   cpu.A = 0b11110000;  // A register
   cpu.D = 0x2000;      // Setting Direct Page register to 0x2000
   cpu.Y = 0x02;        // Y register
@@ -1283,7 +1286,7 @@ TEST_F(CPUTest, CMP_DirectPageIndirectLongIndexedY) {
   EXPECT_FALSE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_AbsoluteIndexedY) {
+TEST_F(CpuTest, CMP_AbsoluteIndexedY) {
   // Set the accumulator to 16-bit mode
   cpu.SetAccumulatorSize(false);
   cpu.A = 0x8000;  // Set the accumulator to 0x8000
@@ -1299,7 +1302,7 @@ TEST_F(CPUTest, CMP_AbsoluteIndexedY) {
   EXPECT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_AbsoluteIndexedX) {
+TEST_F(CpuTest, CMP_AbsoluteIndexedX) {
   // Set the accumulator to 16-bit mode
   cpu.SetAccumulatorSize(false);
   cpu.A = 0x8000;  // Set the accumulator to 0x8000
@@ -1315,7 +1318,7 @@ TEST_F(CPUTest, CMP_AbsoluteIndexedX) {
   EXPECT_TRUE(cpu.GetNegativeFlag());  // Negative flag should be set
 }
 
-TEST_F(CPUTest, CMP_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, CMP_AbsoluteLongIndexedX) {
   // Set the accumulator to 16-bit mode
   cpu.SetAccumulatorSize(false);
   cpu.A = 0x8000;  // Set the accumulator to 0x8000
@@ -1334,7 +1337,7 @@ TEST_F(CPUTest, CMP_AbsoluteLongIndexedX) {
 // ============================================================================
 
 // TODO: FIX COP TEST
-TEST_F(CPUTest, COP) {
+TEST_F(CpuTest, COP) {
   // mock_memory.SetSP(0x01FF);
   // std::vector<uint8_t> data = {0x02};  // COP
   // mock_memory.SetMemoryContents(data);
@@ -1353,7 +1356,7 @@ TEST_F(CPUTest, COP) {
 // ============================================================================
 // Test for CPX instruction
 
-TEST_F(CPUTest, CPX_Immediate_ZeroFlagSet) {
+TEST_F(CpuTest, CPX_Immediate_ZeroFlagSet) {
   cpu.SetIndexSize(false);  // Set X register to 16-bit mode
   cpu.SetAccumulatorSize(false);
   cpu.X = 0x1234;
@@ -1363,7 +1366,7 @@ TEST_F(CPUTest, CPX_Immediate_ZeroFlagSet) {
   ASSERT_TRUE(cpu.GetZeroFlag());  // Zero flag should be set
 }
 
-TEST_F(CPUTest, CPX_Immediate_NegativeFlagSet) {
+TEST_F(CpuTest, CPX_Immediate_NegativeFlagSet) {
   cpu.SetIndexSize(false);  // Set X register to 16-bit mode
   cpu.PC = 0;
   cpu.X = 0x9000;
@@ -1374,7 +1377,7 @@ TEST_F(CPUTest, CPX_Immediate_NegativeFlagSet) {
 }
 
 // Test for CPX instruction
-TEST_F(CPUTest, CPX_DirectPage) {
+TEST_F(CpuTest, CPX_DirectPage) {
   cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
   cpu.PC = 0;
   cpu.X = 0x1234;
@@ -1384,7 +1387,7 @@ TEST_F(CPUTest, CPX_DirectPage) {
   ASSERT_TRUE(cpu.GetCarryFlag());  // Carry flag should be set
 }
 
-TEST_F(CPUTest, CPX_Absolute) {
+TEST_F(CpuTest, CPX_Absolute) {
   cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
   cpu.PC = 0;
   cpu.X = 0x1234;
@@ -1394,7 +1397,7 @@ TEST_F(CPUTest, CPX_Absolute) {
   ASSERT_TRUE(cpu.GetCarryFlag());  // Carry flag should be set
 }
 
-TEST_F(CPUTest, CPY_Immediate_ZeroFlagSet) {
+TEST_F(CpuTest, CPY_Immediate_ZeroFlagSet) {
   cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
   cpu.SetAccumulatorSize(false);
   cpu.Y = 0x5678;
@@ -1404,7 +1407,7 @@ TEST_F(CPUTest, CPY_Immediate_ZeroFlagSet) {
   ASSERT_TRUE(cpu.GetZeroFlag());  // Zero flag should be set
 }
 
-TEST_F(CPUTest, CPY_Immediate_NegativeFlagSet) {
+TEST_F(CpuTest, CPY_Immediate_NegativeFlagSet) {
   cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
   cpu.PC = 0;
   cpu.Y = 0x9000;
@@ -1415,7 +1418,7 @@ TEST_F(CPUTest, CPY_Immediate_NegativeFlagSet) {
 }
 
 // Test for CPY instruction
-TEST_F(CPUTest, CPY_DirectPage) {
+TEST_F(CpuTest, CPY_DirectPage) {
   cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
   cpu.PC = 0;
   cpu.Y = 0x1234;
@@ -1425,7 +1428,7 @@ TEST_F(CPUTest, CPY_DirectPage) {
   ASSERT_TRUE(cpu.GetCarryFlag());  // Carry flag should be set
 }
 
-TEST_F(CPUTest, CPY_Absolute) {
+TEST_F(CpuTest, CPY_Absolute) {
   cpu.SetIndexSize(false);  // Set Y register to 16-bit mode
   cpu.PC = 0;
   cpu.Y = 0x1234;
@@ -1438,7 +1441,7 @@ TEST_F(CPUTest, CPY_Absolute) {
 // ============================================================================
 // DEC - Decrement Memory
 
-TEST_F(CPUTest, DEC_Accumulator) {
+TEST_F(CpuTest, DEC_Accumulator) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x02;                  // Set A register to 2
   cpu.ExecuteInstruction(0x3A);  // Execute DEC instruction
@@ -1453,7 +1456,7 @@ TEST_F(CPUTest, DEC_Accumulator) {
   EXPECT_EQ(0x7F, cpu.A);  // Expected value of A register after decrementing
 }
 
-TEST_F(CPUTest, DEC_DirectPage) {
+TEST_F(CpuTest, DEC_DirectPage) {
   cpu.status = 0xFF;  // Set A register to 8-bit mode
   cpu.D = 0x1000;     // Set Direct Page register to 0x1000
   std::vector<uint8_t> data = {0xC6, 0x7F};
@@ -1465,7 +1468,7 @@ TEST_F(CPUTest, DEC_DirectPage) {
                                                   // location after decrementing
 }
 
-TEST_F(CPUTest, DEC_Absolute) {
+TEST_F(CpuTest, DEC_Absolute) {
   cpu.status = 0xFF;  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0xCE, 0x00, 0x10};
   mock_memory.SetMemoryContents(data);
@@ -1476,7 +1479,7 @@ TEST_F(CPUTest, DEC_Absolute) {
                                                   // location after decrementing
 }
 
-TEST_F(CPUTest, DEC_DirectPageIndexedX) {
+TEST_F(CpuTest, DEC_DirectPageIndexedX) {
   cpu.status = 0xFF;  // Set A register to 8-bit mode
   cpu.D = 0x1000;     // Set Direct Page register to 0x1000
   cpu.X = 0x02;       // Set X register to 0x02
@@ -1489,7 +1492,7 @@ TEST_F(CPUTest, DEC_DirectPageIndexedX) {
                                                   // location after decrementing
 }
 
-TEST_F(CPUTest, DEC_AbsoluteIndexedX) {
+TEST_F(CpuTest, DEC_AbsoluteIndexedX) {
   cpu.status = 0xFF;  // Set A register to 8-bit mode
   cpu.X = 0x02;       // Set X register to 0x02
   std::vector<uint8_t> data = {0xDE, 0x00, 0x10};
@@ -1504,7 +1507,7 @@ TEST_F(CPUTest, DEC_AbsoluteIndexedX) {
 // ============================================================================
 // Test for DEX instruction
 
-TEST_F(CPUTest, DEX) {
+TEST_F(CpuTest, DEX) {
   cpu.SetIndexSize(true);        // Set X register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 2
   cpu.ExecuteInstruction(0xCA);  // Execute DEX instruction
@@ -1522,7 +1525,7 @@ TEST_F(CPUTest, DEX) {
 // ============================================================================
 // Test for DEY instruction
 
-TEST_F(CPUTest, DEY) {
+TEST_F(CpuTest, DEY) {
   cpu.SetIndexSize(true);        // Set Y register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 2
   cpu.ExecuteInstruction(0x88);  // Execute DEY instruction
@@ -1540,7 +1543,7 @@ TEST_F(CPUTest, DEY) {
 // ============================================================================
 // EOR
 
-TEST_F(CPUTest, EOR_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, EOR_DirectPageIndexedIndirectX) {
   cpu.A = 0b10101010;  // A register
   cpu.X = 0x02;        // X register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1553,7 +1556,7 @@ TEST_F(CPUTest, EOR_DirectPageIndexedIndirectX) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_StackRelative) {
+TEST_F(CpuTest, EOR_StackRelative) {
   cpu.A = 0b10101010;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   cpu.SetSP(0x01FF);   // Set Stack Pointer to 0x01FF
@@ -1569,7 +1572,7 @@ TEST_F(CPUTest, EOR_StackRelative) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_DirectPage) {
+TEST_F(CpuTest, EOR_DirectPage) {
   cpu.A = 0b10101010;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   std::vector<uint8_t> data = {0x45, 0x7F};
@@ -1580,7 +1583,7 @@ TEST_F(CPUTest, EOR_DirectPage) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_DirectPageIndirectLong) {
+TEST_F(CpuTest, EOR_DirectPageIndirectLong) {
   cpu.A = 0b10101010;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   std::vector<uint8_t> data = {0x47, 0x7F};
@@ -1592,7 +1595,7 @@ TEST_F(CPUTest, EOR_DirectPageIndirectLong) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_Immediate_8bit) {
+TEST_F(CpuTest, EOR_Immediate_8bit) {
   cpu.A = 0b10101010;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   std::vector<uint8_t> data = {0x49, 0b01010101};
@@ -1602,7 +1605,7 @@ TEST_F(CPUTest, EOR_Immediate_8bit) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_Absolute) {
+TEST_F(CpuTest, EOR_Absolute) {
   cpu.A = 0b10101010;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   std::vector<uint8_t> data = {0x4D, 0x00, 0x10};
@@ -1613,7 +1616,7 @@ TEST_F(CPUTest, EOR_Absolute) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_AbsoluteLong) {
+TEST_F(CpuTest, EOR_AbsoluteLong) {
   cpu.A = 0b10101010;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   std::vector<uint8_t> data = {0x4F, 0x00, 0x10, 0x00};
@@ -1624,7 +1627,7 @@ TEST_F(CPUTest, EOR_AbsoluteLong) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_DirectPageIndirectIndexedY) {
+TEST_F(CpuTest, EOR_DirectPageIndirectIndexedY) {
   cpu.A = 0b10101010;  // A register
   cpu.Y = 0x02;        // Y register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1637,7 +1640,7 @@ TEST_F(CPUTest, EOR_DirectPageIndirectIndexedY) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_DirectPageIndirect) {
+TEST_F(CpuTest, EOR_DirectPageIndirect) {
   cpu.A = 0b10101010;  // A register
   cpu.status = 0xFF;   // 8-bit mode
   std::vector<uint8_t> data = {0x52, 0x7E};
@@ -1649,7 +1652,7 @@ TEST_F(CPUTest, EOR_DirectPageIndirect) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, EOR_StackRelativeIndirectIndexedY) {
   cpu.A = 0b10101010;  // A register
   cpu.Y = 0x02;        // Y register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1667,7 +1670,7 @@ TEST_F(CPUTest, EOR_StackRelativeIndirectIndexedY) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_DirectPageIndexedX) {
+TEST_F(CpuTest, EOR_DirectPageIndexedX) {
   cpu.A = 0b10101010;  // A register
   cpu.X = 0x02;        // X register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1679,7 +1682,7 @@ TEST_F(CPUTest, EOR_DirectPageIndexedX) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, EOR_DirectPageIndirectLongIndexedY) {
   cpu.A = 0b10101010;  // A register
   cpu.Y = 0x02;        // Y register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1692,7 +1695,7 @@ TEST_F(CPUTest, EOR_DirectPageIndirectLongIndexedY) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_AbsoluteIndexedY) {
+TEST_F(CpuTest, EOR_AbsoluteIndexedY) {
   cpu.A = 0b10101010;  // A register
   cpu.Y = 0x02;        // Y register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1705,7 +1708,7 @@ TEST_F(CPUTest, EOR_AbsoluteIndexedY) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_AbsoluteIndexedX) {
+TEST_F(CpuTest, EOR_AbsoluteIndexedX) {
   cpu.A = 0b10101010;  // A register
   cpu.X = 0x02;        // X register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1718,7 +1721,7 @@ TEST_F(CPUTest, EOR_AbsoluteIndexedX) {
   EXPECT_EQ(cpu.A, 0b11111111);  // A register should now be 0b11111111
 }
 
-TEST_F(CPUTest, EOR_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, EOR_AbsoluteLongIndexedX) {
   cpu.A = 0b10101010;  // A register
   cpu.X = 0x02;        // X register
   cpu.status = 0xFF;   // 8-bit mode
@@ -1734,7 +1737,7 @@ TEST_F(CPUTest, EOR_AbsoluteLongIndexedX) {
 // ============================================================================
 // INC - Increment Memory
 
-TEST_F(CPUTest, INC_Accumulator) {
+TEST_F(CpuTest, INC_Accumulator) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x02;                  // Set A register to 2
   cpu.ExecuteInstruction(0x1A);  // Execute INC instruction
@@ -1749,7 +1752,7 @@ TEST_F(CPUTest, INC_Accumulator) {
   EXPECT_EQ(0x80, cpu.A);  // Expected value of A register after incrementing
 }
 
-TEST_F(CPUTest, INC_DirectPage_8bit) {
+TEST_F(CpuTest, INC_DirectPage_8bit) {
   cpu.SetAccumulatorSize(true);
   cpu.D = 0x0200;  // Setting Direct Page register to 0x0200
   std::vector<uint8_t> data = {0xE6, 0x20};
@@ -1765,7 +1768,7 @@ TEST_F(CPUTest, INC_DirectPage_8bit) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INC_Absolute_16bit) {
+TEST_F(CpuTest, INC_Absolute_16bit) {
   std::vector<uint8_t> data = {0xEE, 0x00, 0x10};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x1000, {0x40});  // [0x1000] = 0x40
@@ -1777,7 +1780,7 @@ TEST_F(CPUTest, INC_Absolute_16bit) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INC_DirectPage_ZeroResult_8bit) {
+TEST_F(CpuTest, INC_DirectPage_ZeroResult_8bit) {
   cpu.D = 0x0200;  // Setting Direct Page register to 0x0200
   std::vector<uint8_t> data = {0xE6, 0x20};
   mock_memory.SetMemoryContents(data);
@@ -1789,7 +1792,7 @@ TEST_F(CPUTest, INC_DirectPage_ZeroResult_8bit) {
   EXPECT_TRUE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INC_Absolute_ZeroResult_16bit) {
+TEST_F(CpuTest, INC_Absolute_ZeroResult_16bit) {
   std::vector<uint8_t> data = {0xEE, 0x00, 0x10};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x1000, {0xFF});  // [0x1000] = 0xFF
@@ -1800,7 +1803,7 @@ TEST_F(CPUTest, INC_Absolute_ZeroResult_16bit) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INC_DirectPage_8bit_Overflow) {
+TEST_F(CpuTest, INC_DirectPage_8bit_Overflow) {
   std::vector<uint8_t> data = {0xE6, 0x80};
   mock_memory.SetMemoryContents(data);
 
@@ -1810,7 +1813,7 @@ TEST_F(CPUTest, INC_DirectPage_8bit_Overflow) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INC_DirectPageIndexedX_8bit) {
+TEST_F(CpuTest, INC_DirectPageIndexedX_8bit) {
   cpu.X = 0x01;
   cpu.D = 0x0200;  // Setting Direct Page register to 0x0200
   std::vector<uint8_t> data = {0xF6, 0x20};
@@ -1826,7 +1829,7 @@ TEST_F(CPUTest, INC_DirectPageIndexedX_8bit) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INC_AbsoluteIndexedX_16bit) {
+TEST_F(CpuTest, INC_AbsoluteIndexedX_16bit) {
   cpu.X = 0x01;
   std::vector<uint8_t> data = {0xFE, 0x00, 0x10};
   mock_memory.SetMemoryContents(data);
@@ -1839,7 +1842,7 @@ TEST_F(CPUTest, INC_AbsoluteIndexedX_16bit) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INX) {
+TEST_F(CpuTest, INX) {
   cpu.SetIndexSize(true);  // Set X register to 8-bit mode
   cpu.X = 0x7F;
   cpu.INX();
@@ -1854,7 +1857,7 @@ TEST_F(CPUTest, INX) {
   EXPECT_TRUE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, INY) {
+TEST_F(CpuTest, INY) {
   cpu.SetIndexSize(true);  // Set Y register to 8-bit mode
   cpu.Y = 0x7F;
   cpu.INY();
@@ -1872,7 +1875,7 @@ TEST_F(CPUTest, INY) {
 // ============================================================================
 // JMP - Jump to new location
 
-TEST_F(CPUTest, JMP_Absolute) {
+TEST_F(CpuTest, JMP_Absolute) {
   std::vector<uint8_t> data = {0x4C, 0x05, 0x20};  // JMP $2005
   mock_memory.SetMemoryContents(data);
 
@@ -1884,7 +1887,7 @@ TEST_F(CPUTest, JMP_Absolute) {
   EXPECT_EQ(cpu.PC, 0x2006);
 }
 
-TEST_F(CPUTest, JMP_Indirect) {
+TEST_F(CpuTest, JMP_Indirect) {
   std::vector<uint8_t> data = {0x6C, 0x03, 0x20, 0x05, 0x30};  // JMP ($2003)
   mock_memory.SetMemoryContents(data);
 
@@ -1898,7 +1901,7 @@ TEST_F(CPUTest, JMP_Indirect) {
 // ============================================================================
 // JML - Jump Long
 
-TEST_F(CPUTest, JML_AbsoluteLong) {
+TEST_F(CpuTest, JML_AbsoluteLong) {
   cpu.E = 0;
 
   std::vector<uint8_t> data = {0x5C, 0x05, 0x00, 0x03};  // JML $030005
@@ -1912,7 +1915,7 @@ TEST_F(CPUTest, JML_AbsoluteLong) {
   EXPECT_EQ(cpu.PB, 0x03);  // The PBR should be updated to 0x03
 }
 
-TEST_F(CPUTest, JMP_AbsoluteIndexedIndirectX) {
+TEST_F(CpuTest, JMP_AbsoluteIndexedIndirectX) {
   cpu.X = 0x02;
   std::vector<uint8_t> data = {0x7C, 0x05, 0x20, 0x00};  // JMP ($2005, X)
   mock_memory.SetMemoryContents(data);
@@ -1925,7 +1928,7 @@ TEST_F(CPUTest, JMP_AbsoluteIndexedIndirectX) {
   EXPECT_EQ(cpu.PC, 0x3005);
 }
 
-TEST_F(CPUTest, JMP_AbsoluteIndirectLong) {
+TEST_F(CpuTest, JMP_AbsoluteIndirectLong) {
   std::vector<uint8_t> data = {0xDC, 0x05, 0x20, 0x00};  // JMP [$2005]
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x2005, {0x01, 0x30, 0x05});  // [0x2005] = 0x0530
@@ -1941,7 +1944,7 @@ TEST_F(CPUTest, JMP_AbsoluteIndirectLong) {
 // ============================================================================
 // JSR - Jump to Subroutine
 
-TEST_F(CPUTest, JSR_Absolute) {
+TEST_F(CpuTest, JSR_Absolute) {
   std::vector<uint8_t> data = {0x20, 0x05, 0x20};  // JSR $2005
   mock_memory.SetMemoryContents(data);
 
@@ -1959,7 +1962,7 @@ TEST_F(CPUTest, JSR_Absolute) {
 // ============================================================================
 // JSL - Jump to Subroutine Long
 
-TEST_F(CPUTest, JSL_AbsoluteLong) {
+TEST_F(CpuTest, JSL_AbsoluteLong) {
   std::vector<uint8_t> data = {0x22, 0x05, 0x20, 0x00};  // JSL $002005
   mock_memory.SetMemoryContents(data);
 
@@ -1970,7 +1973,7 @@ TEST_F(CPUTest, JSL_AbsoluteLong) {
   EXPECT_EQ(cpu.PC, 0x002005);
 }
 
-TEST_F(CPUTest, JSL_AbsoluteIndexedIndirect) {
+TEST_F(CpuTest, JSL_AbsoluteIndexedIndirect) {
   cpu.X = 0x02;
   std::vector<uint8_t> data = {0xFC, 0x05, 0x20, 0x00};  // JSL $002005
   mock_memory.SetMemoryContents(data);
@@ -1986,7 +1989,7 @@ TEST_F(CPUTest, JSL_AbsoluteIndexedIndirect) {
 // ============================================================================
 // LDA - Load Accumulator
 
-TEST_F(CPUTest, LDA_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, LDA_DirectPageIndexedIndirectX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2005,7 +2008,7 @@ TEST_F(CPUTest, LDA_DirectPageIndexedIndirectX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_StackRelative) {
+TEST_F(CpuTest, LDA_StackRelative) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
   cpu.SetSP(0x01FF);             // Set Stack Pointer to 0x01FF
@@ -2023,7 +2026,7 @@ TEST_F(CPUTest, LDA_StackRelative) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_DirectPage) {
+TEST_F(CpuTest, LDA_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0200;
   std::vector<uint8_t> data = {0xA5, 0x3C, 0x00};
@@ -2039,7 +2042,7 @@ TEST_F(CPUTest, LDA_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_DirectPageIndirectLong) {
+TEST_F(CpuTest, LDA_DirectPageIndirectLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0200;
   std::vector<uint8_t> data = {0xA7, 0x3C, 0x00};
@@ -2057,7 +2060,7 @@ TEST_F(CPUTest, LDA_DirectPageIndirectLong) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_Immediate_8bit) {
+TEST_F(CpuTest, LDA_Immediate_8bit) {
   cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0xA9, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2068,7 +2071,7 @@ TEST_F(CPUTest, LDA_Immediate_8bit) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_Immediate_16bit) {
+TEST_F(CpuTest, LDA_Immediate_16bit) {
   std::vector<uint8_t> data = {0xA9, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
 
@@ -2079,7 +2082,7 @@ TEST_F(CPUTest, LDA_Immediate_16bit) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_Absolute) {
+TEST_F(CpuTest, LDA_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0xAD, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2095,7 +2098,7 @@ TEST_F(CPUTest, LDA_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_AbsoluteLong) {
+TEST_F(CpuTest, LDA_AbsoluteLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0xAF, 0x7F, 0xFF, 0x00};
   mock_memory.SetMemoryContents(data);
@@ -2111,7 +2114,7 @@ TEST_F(CPUTest, LDA_AbsoluteLong) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_DirectPageIndirectIndexedY) {
+TEST_F(CpuTest, LDA_DirectPageIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2131,7 +2134,7 @@ TEST_F(CPUTest, LDA_DirectPageIndirectIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_DirectPageIndirect) {
+TEST_F(CpuTest, LDA_DirectPageIndirect) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0200;
   std::vector<uint8_t> data = {0xA1, 0x3C};
@@ -2148,7 +2151,7 @@ TEST_F(CPUTest, LDA_DirectPageIndirect) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, LDA_StackRelativeIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.status = 0xFF;             // 8-bit mode
@@ -2168,7 +2171,7 @@ TEST_F(CPUTest, LDA_StackRelativeIndirectIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_DirectPageIndexedX) {
+TEST_F(CpuTest, LDA_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2185,7 +2188,7 @@ TEST_F(CPUTest, LDA_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, LDA_DirectPageIndirectLongIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2204,7 +2207,7 @@ TEST_F(CPUTest, LDA_DirectPageIndirectLongIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_AbsoluteIndexedY) {
+TEST_F(CpuTest, LDA_AbsoluteIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   std::vector<uint8_t> data = {0xB9, 0x7F, 0xFF};
@@ -2220,7 +2223,7 @@ TEST_F(CPUTest, LDA_AbsoluteIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_AbsoluteIndexedX) {
+TEST_F(CpuTest, LDA_AbsoluteIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0xBD, 0x7F, 0xFF};
@@ -2236,7 +2239,7 @@ TEST_F(CPUTest, LDA_AbsoluteIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDA_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, LDA_AbsoluteLongIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0xBF, 0x7F, 0xFF, 0x00};
@@ -2254,7 +2257,7 @@ TEST_F(CPUTest, LDA_AbsoluteLongIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, LDX_Immediate) {
+TEST_F(CpuTest, LDX_Immediate) {
   cpu.SetIndexSize(true);  // Set X register to 8-bit mode
   std::vector<uint8_t> data = {0xA2, 0x42};
   mock_memory.SetMemoryContents(data);
@@ -2264,7 +2267,7 @@ TEST_F(CPUTest, LDX_Immediate) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDX_DirectPage) {
+TEST_F(CpuTest, LDX_DirectPage) {
   cpu.SetIndexSize(true);  // Set X register to 8-bit mode
   std::vector<uint8_t> data = {0xA6, 0x80};
   mock_memory.SetMemoryContents(data);
@@ -2275,7 +2278,7 @@ TEST_F(CPUTest, LDX_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDX_Absolute) {
+TEST_F(CpuTest, LDX_Absolute) {
   cpu.SetIndexSize(true);  // Set X register to 8-bit mode
   std::vector<uint8_t> data = {0xAE, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2288,7 +2291,7 @@ TEST_F(CPUTest, LDX_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDX_DirectPageIndexedY) {
+TEST_F(CpuTest, LDX_DirectPageIndexedY) {
   cpu.SetIndexSize(true);  // Set X register to 8-bit mode
   cpu.Y = 0x02;            // Set Y register to 0x02
   std::vector<uint8_t> data = {0xB6, 0x80};
@@ -2300,7 +2303,7 @@ TEST_F(CPUTest, LDX_DirectPageIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDX_AbsoluteIndexedY) {
+TEST_F(CpuTest, LDX_AbsoluteIndexedY) {
   cpu.SetIndexSize(true);  // Set X register to 8-bit mode
   cpu.Y = 0x02;            // Set Y register to 0x02
   std::vector<uint8_t> data = {0xBE, 0x7F, 0xFF};
@@ -2316,7 +2319,7 @@ TEST_F(CPUTest, LDX_AbsoluteIndexedY) {
 
 // ============================================================================
 
-TEST_F(CPUTest, LDY_Immediate) {
+TEST_F(CpuTest, LDY_Immediate) {
   cpu.SetIndexSize(true);  // Set Y register to 8-bit mode
   std::vector<uint8_t> data = {0xA0, 0x42};
   mock_memory.SetMemoryContents(data);
@@ -2326,7 +2329,7 @@ TEST_F(CPUTest, LDY_Immediate) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDY_DirectPage) {
+TEST_F(CpuTest, LDY_DirectPage) {
   cpu.SetIndexSize(true);  // Set Y register to 8-bit mode
   std::vector<uint8_t> data = {0xA4, 0x80};
   mock_memory.SetMemoryContents(data);
@@ -2337,7 +2340,7 @@ TEST_F(CPUTest, LDY_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDY_Absolute) {
+TEST_F(CpuTest, LDY_Absolute) {
   cpu.SetIndexSize(true);  // Set Y register to 8-bit mode
   std::vector<uint8_t> data = {0xAC, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2350,7 +2353,7 @@ TEST_F(CPUTest, LDY_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDY_DirectPageIndexedX) {
+TEST_F(CpuTest, LDY_DirectPageIndexedX) {
   cpu.SetIndexSize(true);  // Set Y register to 8-bit mode
   cpu.X = 0x02;            // Set X register to 0x02
   std::vector<uint8_t> data = {0xB4, 0x80};
@@ -2362,7 +2365,7 @@ TEST_F(CPUTest, LDY_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LDY_AbsoluteIndexedX) {
+TEST_F(CpuTest, LDY_AbsoluteIndexedX) {
   cpu.SetIndexSize(true);  // Set Y register to 8-bit mode
   cpu.X = 0x02;            // Set X register to 0x02
   std::vector<uint8_t> data = {0xBC, 0x7F, 0xFF};
@@ -2378,7 +2381,7 @@ TEST_F(CPUTest, LDY_AbsoluteIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, LSR_DirectPage) {
+TEST_F(CpuTest, LSR_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x46, 0x80};
   mock_memory.SetMemoryContents(data);
@@ -2390,7 +2393,7 @@ TEST_F(CPUTest, LSR_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LSR_Accumulator) {
+TEST_F(CpuTest, LSR_Accumulator) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.ExecuteInstruction(0x4A);  // LSR Accumulator
@@ -2399,7 +2402,7 @@ TEST_F(CPUTest, LSR_Accumulator) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LSR_Absolute) {
+TEST_F(CpuTest, LSR_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x4E, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2413,7 +2416,7 @@ TEST_F(CPUTest, LSR_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LSR_DirectPageIndexedX) {
+TEST_F(CpuTest, LSR_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x56, 0x80};
@@ -2426,7 +2429,7 @@ TEST_F(CPUTest, LSR_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, LSR_AbsoluteIndexedX) {
+TEST_F(CpuTest, LSR_AbsoluteIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x5E, 0x7F, 0xFF};
@@ -2444,7 +2447,7 @@ TEST_F(CPUTest, LSR_AbsoluteIndexedX) {
 // ============================================================================
 // Stack Tests
 
-TEST_F(CPUTest, ORA_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, ORA_DirectPageIndexedIndirectX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2463,7 +2466,7 @@ TEST_F(CPUTest, ORA_DirectPageIndexedIndirectX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_StackRelative) {
+TEST_F(CpuTest, ORA_StackRelative) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
   cpu.SetSP(0x01FF);             // Set Stack Pointer to 0x01FF
@@ -2481,7 +2484,7 @@ TEST_F(CPUTest, ORA_StackRelative) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_DirectPage) {
+TEST_F(CpuTest, ORA_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0200;
   std::vector<uint8_t> data = {0x05, 0x3C, 0x00};
@@ -2497,7 +2500,7 @@ TEST_F(CPUTest, ORA_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_DirectPageIndirectLong) {
+TEST_F(CpuTest, ORA_DirectPageIndirectLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0200;
   std::vector<uint8_t> data = {0x07, 0x3C, 0x00};
@@ -2515,7 +2518,7 @@ TEST_F(CPUTest, ORA_DirectPageIndirectLong) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_Immediate) {
+TEST_F(CpuTest, ORA_Immediate) {
   cpu.SetAccumulatorSize(true);
   std::vector<uint8_t> data = {0x09, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2526,7 +2529,7 @@ TEST_F(CPUTest, ORA_Immediate) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_Absolute) {
+TEST_F(CpuTest, ORA_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x0D, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2542,7 +2545,7 @@ TEST_F(CPUTest, ORA_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_AbsoluteLong) {
+TEST_F(CpuTest, ORA_AbsoluteLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x0F, 0x7F, 0xFF, 0x00};
   mock_memory.SetMemoryContents(data);
@@ -2558,7 +2561,7 @@ TEST_F(CPUTest, ORA_AbsoluteLong) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_DirectPageIndirectIndexedY) {
+TEST_F(CpuTest, ORA_DirectPageIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2578,7 +2581,7 @@ TEST_F(CPUTest, ORA_DirectPageIndirectIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_DirectPageIndirect) {
+TEST_F(CpuTest, ORA_DirectPageIndirect) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0200;
   std::vector<uint8_t> data = {0x12, 0x3C};
@@ -2595,7 +2598,7 @@ TEST_F(CPUTest, ORA_DirectPageIndirect) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, ORA_StackRelativeIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.status = 0xFF;             // 8-bit mode
@@ -2615,7 +2618,7 @@ TEST_F(CPUTest, ORA_StackRelativeIndirectIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_DirectPageIndexedX) {
+TEST_F(CpuTest, ORA_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2632,7 +2635,7 @@ TEST_F(CPUTest, ORA_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, ORA_DirectPageIndirectLongIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -2651,7 +2654,7 @@ TEST_F(CPUTest, ORA_DirectPageIndirectLongIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_AbsoluteIndexedY) {
+TEST_F(CpuTest, ORA_AbsoluteIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   std::vector<uint8_t> data = {0x19, 0x7F, 0xFF};
@@ -2667,7 +2670,7 @@ TEST_F(CPUTest, ORA_AbsoluteIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_AbsoluteIndexedX) {
+TEST_F(CpuTest, ORA_AbsoluteIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x1D, 0x7F, 0xFF};
@@ -2683,7 +2686,7 @@ TEST_F(CPUTest, ORA_AbsoluteIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ORA_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, ORA_AbsoluteLongIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x1F, 0x7F, 0xFF, 0x00};
@@ -2701,7 +2704,7 @@ TEST_F(CPUTest, ORA_AbsoluteLongIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, PEA) {
+TEST_F(CpuTest, PEA) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0xF4, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2712,7 +2715,7 @@ TEST_F(CPUTest, PEA) {
   cpu.ExecuteInstruction(0xF4);  // PEA
 }
 
-TEST_F(CPUTest, PEI) {
+TEST_F(CpuTest, PEI) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0xD4, 0x3C, 0x00};
   mock_memory.SetMemoryContents(data);
@@ -2726,7 +2729,7 @@ TEST_F(CPUTest, PEI) {
   cpu.ExecuteInstruction(0xD4);  // PEI
 }
 
-TEST_F(CPUTest, PER) {
+TEST_F(CpuTest, PER) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x62, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -2737,7 +2740,7 @@ TEST_F(CPUTest, PER) {
   cpu.ExecuteInstruction(0x62);  // PER
 }
 
-TEST_F(CPUTest, PHD) {
+TEST_F(CpuTest, PHD) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x7FFF;
   std::vector<uint8_t> data = {0x0B};
@@ -2748,7 +2751,7 @@ TEST_F(CPUTest, PHD) {
   cpu.ExecuteInstruction(0x0B);  // PHD
 }
 
-TEST_F(CPUTest, PHK) {
+TEST_F(CpuTest, PHK) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.PB = 0x7F;
   std::vector<uint8_t> data = {0x4B};
@@ -2759,7 +2762,7 @@ TEST_F(CPUTest, PHK) {
   cpu.ExecuteInstruction(0x4B);  // PHK
 }
 
-TEST_F(CPUTest, PHP) {
+TEST_F(CpuTest, PHP) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0x7F;
   std::vector<uint8_t> data = {0x08};
@@ -2770,7 +2773,7 @@ TEST_F(CPUTest, PHP) {
   cpu.ExecuteInstruction(0x08);  // PHP
 }
 
-TEST_F(CPUTest, PHX) {
+TEST_F(CpuTest, PHX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x7F;
   std::vector<uint8_t> data = {0xDA};
@@ -2781,7 +2784,7 @@ TEST_F(CPUTest, PHX) {
   cpu.ExecuteInstruction(0xDA);  // PHX
 }
 
-TEST_F(CPUTest, PHY) {
+TEST_F(CpuTest, PHY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x7F;
   std::vector<uint8_t> data = {0x5A};
@@ -2792,7 +2795,7 @@ TEST_F(CPUTest, PHY) {
   cpu.ExecuteInstruction(0x5A);  // PHY
 }
 
-TEST_F(CPUTest, PHB) {
+TEST_F(CpuTest, PHB) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.DB = 0x7F;
   std::vector<uint8_t> data = {0x8B};
@@ -2803,7 +2806,7 @@ TEST_F(CPUTest, PHB) {
   cpu.ExecuteInstruction(0x8B);  // PHB
 }
 
-TEST_F(CPUTest, PHA) {
+TEST_F(CpuTest, PHA) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x7F;
   std::vector<uint8_t> data = {0x48};
@@ -2814,7 +2817,7 @@ TEST_F(CPUTest, PHA) {
   cpu.ExecuteInstruction(0x48);  // PHA
 }
 
-TEST_F(CPUTest, PHA_16Bit) {
+TEST_F(CpuTest, PHA_16Bit) {
   cpu.SetAccumulatorSize(false);  // Set A register to 16-bit mode
   cpu.A = 0x7FFF;
   std::vector<uint8_t> data = {0x48};
@@ -2825,7 +2828,7 @@ TEST_F(CPUTest, PHA_16Bit) {
   cpu.ExecuteInstruction(0x48);  // PHA
 }
 
-TEST_F(CPUTest, PLA) {
+TEST_F(CpuTest, PLA) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x00;
   std::vector<uint8_t> data = {0x68};
@@ -2838,7 +2841,7 @@ TEST_F(CPUTest, PLA) {
   EXPECT_EQ(cpu.A, 0x7F);
 }
 
-TEST_F(CPUTest, PLA_16Bit) {
+TEST_F(CpuTest, PLA_16Bit) {
   cpu.SetAccumulatorSize(false);  // Set A register to 16-bit mode
   cpu.A = 0x0000;
   std::vector<uint8_t> data = {0x68};
@@ -2851,7 +2854,7 @@ TEST_F(CPUTest, PLA_16Bit) {
   EXPECT_EQ(cpu.A, 0x7FFF);
 }
 
-TEST_F(CPUTest, PLB) {
+TEST_F(CpuTest, PLB) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.DB = 0x00;
   std::vector<uint8_t> data = {0xAB};
@@ -2864,7 +2867,7 @@ TEST_F(CPUTest, PLB) {
   EXPECT_EQ(cpu.DB, 0x7F);
 }
 
-TEST_F(CPUTest, PLD) {
+TEST_F(CpuTest, PLD) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x0000;
   std::vector<uint8_t> data = {0x2B};
@@ -2877,7 +2880,7 @@ TEST_F(CPUTest, PLD) {
   EXPECT_EQ(cpu.D, 0x7FFF);
 }
 
-TEST_F(CPUTest, PLP) {
+TEST_F(CpuTest, PLP) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0x00;
   std::vector<uint8_t> data = {0x28};
@@ -2890,7 +2893,7 @@ TEST_F(CPUTest, PLP) {
   EXPECT_EQ(cpu.status, 0x7F);
 }
 
-TEST_F(CPUTest, PLX) {
+TEST_F(CpuTest, PLX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x00;
   std::vector<uint8_t> data = {0xFA};
@@ -2903,7 +2906,7 @@ TEST_F(CPUTest, PLX) {
   EXPECT_EQ(cpu.X, 0x7F);
 }
 
-TEST_F(CPUTest, PLX_16Bit) {
+TEST_F(CpuTest, PLX_16Bit) {
   cpu.SetIndexSize(false);  // Set A register to 16-bit mode
   cpu.X = 0x0000;
 
@@ -2917,7 +2920,7 @@ TEST_F(CPUTest, PLX_16Bit) {
   EXPECT_EQ(cpu.X, 0x7FFF);
 }
 
-TEST_F(CPUTest, PLY) {
+TEST_F(CpuTest, PLY) {
   cpu.SetIndexSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x00;
   std::vector<uint8_t> data = {0x7A};
@@ -2930,7 +2933,7 @@ TEST_F(CPUTest, PLY) {
   EXPECT_EQ(cpu.Y, 0x7F);
 }
 
-TEST_F(CPUTest, PLY_16Bit) {
+TEST_F(CpuTest, PLY_16Bit) {
   cpu.SetIndexSize(false);  // Set A register to 16-bit mode
   cpu.Y = 0x0000;
   std::vector<uint8_t> data = {0x7A};
@@ -2946,7 +2949,7 @@ TEST_F(CPUTest, PLY_16Bit) {
 // ============================================================================
 // REP - Reset Processor Status Bits
 
-TEST_F(CPUTest, REP) {
+TEST_F(CpuTest, REP) {
   cpu.status = 0xFF;
   std::vector<uint8_t> data = {0xC2, 0x30};
   mock_memory.SetMemoryContents(data);
@@ -2955,7 +2958,7 @@ TEST_F(CPUTest, REP) {
   EXPECT_EQ(cpu.status, 0xCF);   // 11001111
 }
 
-TEST_F(CPUTest, REP_16Bit) {
+TEST_F(CpuTest, REP_16Bit) {
   cpu.status = 0xFF;
   std::vector<uint8_t> data = {0xC2, 0x30};
   mock_memory.SetMemoryContents(data);
@@ -2964,7 +2967,7 @@ TEST_F(CPUTest, REP_16Bit) {
   EXPECT_EQ(cpu.status, 0xCF);   // 00111111
 }
 
-TEST_F(CPUTest, PHA_PLA_Ok) {
+TEST_F(CpuTest, PHA_PLA_Ok) {
   cpu.A = 0x42;
   EXPECT_CALL(mock_memory, PushByte(0x42)).WillOnce(Return());
   cpu.PHA();
@@ -2974,7 +2977,7 @@ TEST_F(CPUTest, PHA_PLA_Ok) {
   EXPECT_EQ(cpu.A, 0x42);
 }
 
-TEST_F(CPUTest, PHP_PLP_Ok) {
+TEST_F(CpuTest, PHP_PLP_Ok) {
   // Set some status flags
   cpu.status = 0;
   cpu.SetNegativeFlag(true);
@@ -3002,43 +3005,43 @@ TEST_F(CPUTest, PHP_PLP_Ok) {
 // PHA, PHP, PHX, PHY, PHB, PHD, PHK
 // ============================================================================
 
-TEST_F(CPUTest, PHA_PushAccumulator) {
+TEST_F(CpuTest, PHA_PushAccumulator) {
   cpu.A = 0x12;
   EXPECT_CALL(mock_memory, PushByte(0x12));
   cpu.ExecuteInstruction(0x48);  // PHA
 }
 
-TEST_F(CPUTest, PHP_PushProcessorStatusRegister) {
+TEST_F(CpuTest, PHP_PushProcessorStatusRegister) {
   cpu.status = 0x34;
   EXPECT_CALL(mock_memory, PushByte(0x34));
   cpu.ExecuteInstruction(0x08);  // PHP
 }
 
-TEST_F(CPUTest, PHX_PushXRegister) {
+TEST_F(CpuTest, PHX_PushXRegister) {
   cpu.X = 0x56;
   EXPECT_CALL(mock_memory, PushByte(0x56));
   cpu.ExecuteInstruction(0xDA);  // PHX
 }
 
-TEST_F(CPUTest, PHY_PushYRegister) {
+TEST_F(CpuTest, PHY_PushYRegister) {
   cpu.Y = 0x78;
   EXPECT_CALL(mock_memory, PushByte(0x78));
   cpu.ExecuteInstruction(0x5A);  // PHY
 }
 
-TEST_F(CPUTest, PHB_PushDataBankRegister) {
+TEST_F(CpuTest, PHB_PushDataBankRegister) {
   cpu.DB = 0x9A;
   EXPECT_CALL(mock_memory, PushByte(0x9A));
   cpu.ExecuteInstruction(0x8B);  // PHB
 }
 
-TEST_F(CPUTest, PHD_PushDirectPageRegister) {
+TEST_F(CpuTest, PHD_PushDirectPageRegister) {
   cpu.D = 0xBC;
   EXPECT_CALL(mock_memory, PushWord(0xBC));
   cpu.ExecuteInstruction(0x0B);  // PHD
 }
 
-TEST_F(CPUTest, PHK_PushProgramBankRegister) {
+TEST_F(CpuTest, PHK_PushProgramBankRegister) {
   cpu.PB = 0xDE;
   EXPECT_CALL(mock_memory, PushByte(0xDE));
   cpu.ExecuteInstruction(0x4B);  // PHK
@@ -3048,37 +3051,37 @@ TEST_F(CPUTest, PHK_PushProgramBankRegister) {
 // PLA, PLP, PLX, PLY, PLB, PLD
 // ============================================================================
 
-TEST_F(CPUTest, PLA_PullAccumulator) {
+TEST_F(CpuTest, PLA_PullAccumulator) {
   EXPECT_CALL(mock_memory, PopByte()).WillOnce(Return(0x12));
   cpu.ExecuteInstruction(0x68);  // PLA
   EXPECT_EQ(cpu.A, 0x12);
 }
 
-TEST_F(CPUTest, PLP_PullProcessorStatusRegister) {
+TEST_F(CpuTest, PLP_PullProcessorStatusRegister) {
   EXPECT_CALL(mock_memory, PopByte()).WillOnce(Return(0x34));
   cpu.ExecuteInstruction(0x28);  // PLP
   EXPECT_EQ(cpu.status, 0x34);
 }
 
-TEST_F(CPUTest, PLX_PullXRegister) {
+TEST_F(CpuTest, PLX_PullXRegister) {
   EXPECT_CALL(mock_memory, PopByte()).WillOnce(Return(0x56));
   cpu.ExecuteInstruction(0xFA);  // PLX
   EXPECT_EQ(cpu.X, 0x56);
 }
 
-TEST_F(CPUTest, PLY_PullYRegister) {
+TEST_F(CpuTest, PLY_PullYRegister) {
   EXPECT_CALL(mock_memory, PopByte()).WillOnce(Return(0x78));
   cpu.ExecuteInstruction(0x7A);  // PLY
   EXPECT_EQ(cpu.Y, 0x78);
 }
 
-TEST_F(CPUTest, PLB_PullDataBankRegister) {
+TEST_F(CpuTest, PLB_PullDataBankRegister) {
   EXPECT_CALL(mock_memory, PopByte()).WillOnce(Return(0x9A));
   cpu.ExecuteInstruction(0xAB);  // PLB
   EXPECT_EQ(cpu.DB, 0x9A);
 }
 
-TEST_F(CPUTest, PLD_PullDirectPageRegister) {
+TEST_F(CpuTest, PLD_PullDirectPageRegister) {
   EXPECT_CALL(mock_memory, PopWord()).WillOnce(Return(0xBC));
   cpu.ExecuteInstruction(0x2B);  // PLD
   EXPECT_EQ(cpu.D, 0xBC);
@@ -3087,7 +3090,7 @@ TEST_F(CPUTest, PLD_PullDirectPageRegister) {
 // ============================================================================
 // SEP - Set Processor Status Bits
 
-TEST_F(CPUTest, SEP) {
+TEST_F(CpuTest, SEP) {
   cpu.status = 0x00;  // All flags cleared
   std::vector<uint8_t> data = {0xE2, 0x30,
                                0x00};  // SEP #0x30 (set N & Z flags)
@@ -3099,7 +3102,7 @@ TEST_F(CPUTest, SEP) {
 
 // ============================================================================
 
-TEST_F(CPUTest, ROL_DirectPage) {
+TEST_F(CpuTest, ROL_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x26, 0x80};
   mock_memory.SetMemoryContents(data);
@@ -3111,7 +3114,7 @@ TEST_F(CPUTest, ROL_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROL_Accumulator) {
+TEST_F(CpuTest, ROL_Accumulator) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.ExecuteInstruction(0x2A);  // ROL Accumulator
@@ -3120,7 +3123,7 @@ TEST_F(CPUTest, ROL_Accumulator) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROL_Absolute) {
+TEST_F(CpuTest, ROL_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x2E, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -3134,7 +3137,7 @@ TEST_F(CPUTest, ROL_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROL_DirectPageIndexedX) {
+TEST_F(CpuTest, ROL_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x36, 0x80};
@@ -3147,7 +3150,7 @@ TEST_F(CPUTest, ROL_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROL_AbsoluteIndexedX) {
+TEST_F(CpuTest, ROL_AbsoluteIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x3E, 0x7F, 0xFF};
@@ -3164,7 +3167,7 @@ TEST_F(CPUTest, ROL_AbsoluteIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, ROR_DirectPage) {
+TEST_F(CpuTest, ROR_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x66, 0x80};
   mock_memory.SetMemoryContents(data);
@@ -3176,7 +3179,7 @@ TEST_F(CPUTest, ROR_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROR_Accumulator) {
+TEST_F(CpuTest, ROR_Accumulator) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.ExecuteInstruction(0x6A);  // ROR Accumulator
@@ -3185,7 +3188,7 @@ TEST_F(CPUTest, ROR_Accumulator) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROR_Absolute) {
+TEST_F(CpuTest, ROR_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x6E, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -3199,7 +3202,7 @@ TEST_F(CPUTest, ROR_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROR_DirectPageIndexedX) {
+TEST_F(CpuTest, ROR_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x76, 0x80};
@@ -3212,7 +3215,7 @@ TEST_F(CPUTest, ROR_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, ROR_AbsoluteIndexedX) {
+TEST_F(CpuTest, ROR_AbsoluteIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x7E, 0x7F, 0xFF};
@@ -3229,7 +3232,7 @@ TEST_F(CPUTest, ROR_AbsoluteIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, RTI) {
+TEST_F(CpuTest, RTI) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0x00;
   std::vector<uint8_t> data = {0x40};
@@ -3244,7 +3247,7 @@ TEST_F(CPUTest, RTI) {
 
 // ============================================================================
 
-TEST_F(CPUTest, RTL) {
+TEST_F(CpuTest, RTL) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.PC = 0x0000;
   std::vector<uint8_t> data = {0x6B};
@@ -3259,7 +3262,7 @@ TEST_F(CPUTest, RTL) {
 
 // ============================================================================
 
-TEST_F(CPUTest, RTS) {
+TEST_F(CpuTest, RTS) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.PC = 0x0000;
   std::vector<uint8_t> data = {0x60};
@@ -3274,7 +3277,7 @@ TEST_F(CPUTest, RTS) {
 
 // ============================================================================
 
-TEST_F(CPUTest, SBC_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, SBC_DirectPageIndexedIndirectX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -3295,7 +3298,7 @@ TEST_F(CPUTest, SBC_DirectPageIndexedIndirectX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_StackRelative) {
+TEST_F(CpuTest, SBC_StackRelative) {
   std::vector<uint8_t> data = {0xE3, 0x3C};
   mock_memory.SetMemoryContents(data);
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
@@ -3313,7 +3316,7 @@ TEST_F(CPUTest, SBC_StackRelative) {
   EXPECT_TRUE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_DirectPage) {
+TEST_F(CpuTest, SBC_DirectPage) {
   std::vector<uint8_t> data = {0xE5, 0x80};
   mock_memory.SetMemoryContents(data);
   cpu.D = 0x0100;  // Set Direct Page register to 0x0100
@@ -3330,7 +3333,7 @@ TEST_F(CPUTest, SBC_DirectPage) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_DirectPageIndirectLong) {
+TEST_F(CpuTest, SBC_DirectPageIndirectLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
   cpu.A = 0x80;                  // Set A register to 0x80
@@ -3350,7 +3353,7 @@ TEST_F(CPUTest, SBC_DirectPageIndirectLong) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_Immediate) {
+TEST_F(CpuTest, SBC_Immediate) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
   cpu.A = 0x80;                  // Set A register to 0x80
@@ -3363,7 +3366,7 @@ TEST_F(CPUTest, SBC_Immediate) {
   EXPECT_TRUE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_Absolute) {
+TEST_F(CpuTest, SBC_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
   cpu.A = 0xFF;                  // Set A register to 0x80
@@ -3379,7 +3382,7 @@ TEST_F(CPUTest, SBC_Absolute) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_AbsoluteLong) {
+TEST_F(CpuTest, SBC_AbsoluteLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
   cpu.A = 0xFF;                  // Set A register to 0x80
@@ -3395,7 +3398,7 @@ TEST_F(CPUTest, SBC_AbsoluteLong) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_DirectPageIndirectIndexedY) {
+TEST_F(CpuTest, SBC_DirectPageIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.A = 0xFF;                  // Set A register to 0x80
@@ -3415,7 +3418,7 @@ TEST_F(CPUTest, SBC_DirectPageIndirectIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_DirectPageIndirect) {
+TEST_F(CpuTest, SBC_DirectPageIndirect) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
   cpu.D = 0x0200;                // Set Direct Page register to 0x0200
@@ -3437,7 +3440,7 @@ TEST_F(CPUTest, SBC_DirectPageIndirect) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, SBC_StackRelativeIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.A = 0xFF;                  // Set A register to 0x80
@@ -3459,7 +3462,7 @@ TEST_F(CPUTest, SBC_StackRelativeIndirectIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_DirectPageIndexedX) {
+TEST_F(CpuTest, SBC_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.A = 0x01;
@@ -3473,7 +3476,7 @@ TEST_F(CPUTest, SBC_DirectPageIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, SBC_DirectPageIndirectLongIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.status = 0xFF;             // 8-bit mode
@@ -3493,7 +3496,7 @@ TEST_F(CPUTest, SBC_DirectPageIndirectLongIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_AbsoluteIndexedY) {
+TEST_F(CpuTest, SBC_AbsoluteIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.status = 0xFF;             // 8-bit mode
@@ -3510,7 +3513,7 @@ TEST_F(CPUTest, SBC_AbsoluteIndexedY) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_AbsoluteIndexedX) {
+TEST_F(CpuTest, SBC_AbsoluteIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.status = 0xFF;             // 8-bit mode
@@ -3527,7 +3530,7 @@ TEST_F(CPUTest, SBC_AbsoluteIndexedX) {
   EXPECT_FALSE(cpu.GetZeroFlag());
 }
 
-TEST_F(CPUTest, SBC_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, SBC_AbsoluteLongIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   cpu.A = 0xFF;
@@ -3546,14 +3549,14 @@ TEST_F(CPUTest, SBC_AbsoluteLongIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, SEC) {
+TEST_F(CpuTest, SEC) {
   cpu.ExecuteInstruction(0x38);  // SEC
   EXPECT_TRUE(cpu.GetCarryFlag());
 }
 
 // ============================================================================
 
-TEST_F(CPUTest, SED) {
+TEST_F(CpuTest, SED) {
   cpu.ExecuteInstruction(0xF8);  // SED
   EXPECT_TRUE(cpu.GetDecimalFlag());
 }
@@ -3562,14 +3565,14 @@ TEST_F(CPUTest, SED) {
 
 // SEI - Set Interrupt Disable Status Flag
 
-TEST_F(CPUTest, SEI) {
+TEST_F(CpuTest, SEI) {
   cpu.ExecuteInstruction(0x78);  // SEI
   // EXPECT_TRUE(cpu.GetInterruptDisableFlag());
 }
 
 // ============================================================================
 
-TEST_F(CPUTest, SEP_8Bit) {
+TEST_F(CpuTest, SEP_8Bit) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0x00;
   std::vector<uint8_t> data = {0xE2, 0x30};
@@ -3579,7 +3582,7 @@ TEST_F(CPUTest, SEP_8Bit) {
   EXPECT_EQ(cpu.status, 0x30);   // 00110000
 }
 
-TEST_F(CPUTest, SEP_16Bit) {
+TEST_F(CpuTest, SEP_16Bit) {
   cpu.SetAccumulatorSize(false);  // Set A register to 16-bit mode
   cpu.status = 0x00;
   std::vector<uint8_t> data = {0xE2, 0x30};
@@ -3591,7 +3594,7 @@ TEST_F(CPUTest, SEP_16Bit) {
 
 // ============================================================================
 
-TEST_F(CPUTest, STA_DirectPageIndexedIndirectX) {
+TEST_F(CpuTest, STA_DirectPageIndexedIndirectX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.X = 0x02;  // Set X register to 0x02
@@ -3608,7 +3611,7 @@ TEST_F(CPUTest, STA_DirectPageIndexedIndirectX) {
   EXPECT_EQ(cpu.A, 0x42);
 }
 
-TEST_F(CPUTest, STA_StackRelative) {
+TEST_F(CpuTest, STA_StackRelative) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.SetSP(0x01FF);  // Set Stack Pointer to 0x01FF
@@ -3622,7 +3625,7 @@ TEST_F(CPUTest, STA_StackRelative) {
   cpu.ExecuteInstruction(0x83);  // STA Stack Relative
 }
 
-TEST_F(CPUTest, STA_DirectPage) {
+TEST_F(CpuTest, STA_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x85, 0x80};
@@ -3633,7 +3636,7 @@ TEST_F(CPUTest, STA_DirectPage) {
   cpu.ExecuteInstruction(0x85);  // STA Direct Page
 }
 
-TEST_F(CPUTest, STA_DirectPageIndirectLong) {
+TEST_F(CpuTest, STA_DirectPageIndirectLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x87, 0x3C};
@@ -3648,7 +3651,7 @@ TEST_F(CPUTest, STA_DirectPageIndirectLong) {
   cpu.ExecuteInstruction(0x87);  // STA Direct Page Indirect Long
 }
 
-TEST_F(CPUTest, STA_Absolute) {
+TEST_F(CpuTest, STA_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x8D, 0xFF, 0x7F};
@@ -3659,7 +3662,7 @@ TEST_F(CPUTest, STA_Absolute) {
   cpu.ExecuteInstruction(0x8D);  // STA Absolute
 }
 
-TEST_F(CPUTest, STA_AbsoluteLong) {
+TEST_F(CpuTest, STA_AbsoluteLong) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x8F, 0xFF, 0x7F};
@@ -3670,7 +3673,7 @@ TEST_F(CPUTest, STA_AbsoluteLong) {
   cpu.ExecuteInstruction(0x8F);  // STA Absolute Long
 }
 
-TEST_F(CPUTest, STA_DirectPageIndirectIndexedY) {
+TEST_F(CpuTest, STA_DirectPageIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.Y = 0x02;  // Set Y register to 0x02
@@ -3686,7 +3689,7 @@ TEST_F(CPUTest, STA_DirectPageIndirectIndexedY) {
   cpu.ExecuteInstruction(0x91);  // STA Direct Page Indirect Indexed, Y
 }
 
-TEST_F(CPUTest, STA_DirectPageIndirect) {
+TEST_F(CpuTest, STA_DirectPageIndirect) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.Y = 0x02;  // Set Y register to 0x02
@@ -3702,7 +3705,7 @@ TEST_F(CPUTest, STA_DirectPageIndirect) {
   cpu.ExecuteInstruction(0x92);  // STA Direct Page Indirect
 }
 
-TEST_F(CPUTest, STA_StackRelativeIndirectIndexedY) {
+TEST_F(CpuTest, STA_StackRelativeIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.Y = 0x02;       // Set Y register to 0x02
@@ -3719,7 +3722,7 @@ TEST_F(CPUTest, STA_StackRelativeIndirectIndexedY) {
   cpu.ExecuteInstruction(0x93);  // STA Stack Relative Indirect Indexed, Y
 }
 
-TEST_F(CPUTest, STA_DirectPageIndexedX) {
+TEST_F(CpuTest, STA_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.X = 0x02;  // Set X register to 0x02
@@ -3731,7 +3734,7 @@ TEST_F(CPUTest, STA_DirectPageIndexedX) {
   cpu.ExecuteInstruction(0x95);  // STA Direct Page Indexed, X
 }
 
-TEST_F(CPUTest, STA_DirectPageIndirectLongIndexedY) {
+TEST_F(CpuTest, STA_DirectPageIndirectLongIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.Y = 0x02;  // Set Y register to 0x02
@@ -3747,7 +3750,7 @@ TEST_F(CPUTest, STA_DirectPageIndirectLongIndexedY) {
   cpu.ExecuteInstruction(0x97);  // STA Direct Page Indirect Long Indexed, Y
 }
 
-TEST_F(CPUTest, STA_AbsoluteIndexedY) {
+TEST_F(CpuTest, STA_AbsoluteIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.Y = 0x02;  // Set Y register to 0x02
@@ -3760,7 +3763,7 @@ TEST_F(CPUTest, STA_AbsoluteIndexedY) {
   cpu.ExecuteInstruction(0x99);  // STA Absolute Indexed, Y
 }
 
-TEST_F(CPUTest, STA_AbsoluteIndexedX) {
+TEST_F(CpuTest, STA_AbsoluteIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.X = 0x02;  // Set X register to 0x02
@@ -3773,7 +3776,7 @@ TEST_F(CPUTest, STA_AbsoluteIndexedX) {
   cpu.ExecuteInstruction(0x9D);  // STA Absolute Indexed, X
 }
 
-TEST_F(CPUTest, STA_AbsoluteLongIndexedX) {
+TEST_F(CpuTest, STA_AbsoluteLongIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   cpu.X = 0x02;  // Set X register to 0x02
@@ -3788,14 +3791,14 @@ TEST_F(CPUTest, STA_AbsoluteLongIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, STP) {
+TEST_F(CpuTest, STP) {
   cpu.ExecuteInstruction(0xDB);  // STP
   // EXPECT_TRUE(cpu.GetStoppedFlag());
 }
 
 // ============================================================================
 
-TEST_F(CPUTest, STX_DirectPage) {
+TEST_F(CpuTest, STX_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x42;
   std::vector<uint8_t> data = {0x86, 0x80};
@@ -3806,7 +3809,7 @@ TEST_F(CPUTest, STX_DirectPage) {
   cpu.ExecuteInstruction(0x86);  // STX Direct Page
 }
 
-TEST_F(CPUTest, STX_Absolute) {
+TEST_F(CpuTest, STX_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x42;
   std::vector<uint8_t> data = {0x8E, 0x7F, 0xFF};
@@ -3818,7 +3821,7 @@ TEST_F(CPUTest, STX_Absolute) {
   cpu.ExecuteInstruction(0x8E);  // STX Absolute
 }
 
-TEST_F(CPUTest, STX_DirectPageIndexedY) {
+TEST_F(CpuTest, STX_DirectPageIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x42;
   cpu.Y = 0x02;  // Set Y register to 0x02
@@ -3832,7 +3835,7 @@ TEST_F(CPUTest, STX_DirectPageIndexedY) {
 
 // ============================================================================
 
-TEST_F(CPUTest, STY_DirectPage) {
+TEST_F(CpuTest, STY_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x42;
   std::vector<uint8_t> data = {0x84, 0x80};
@@ -3843,7 +3846,7 @@ TEST_F(CPUTest, STY_DirectPage) {
   cpu.ExecuteInstruction(0x84);  // STY Direct Page
 }
 
-TEST_F(CPUTest, STY_Absolute) {
+TEST_F(CpuTest, STY_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x42;
   std::vector<uint8_t> data = {0x8C, 0x7F, 0xFF};
@@ -3855,7 +3858,7 @@ TEST_F(CPUTest, STY_Absolute) {
   cpu.ExecuteInstruction(0x8C);  // STY Absolute
 }
 
-TEST_F(CPUTest, STY_DirectPageIndexedX) {
+TEST_F(CpuTest, STY_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.Y = 0x42;
   cpu.X = 0x02;  // Set X register to 0x02
@@ -3869,7 +3872,7 @@ TEST_F(CPUTest, STY_DirectPageIndexedX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, STZ_DirectPage) {
+TEST_F(CpuTest, STZ_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x64, 0x80};
   mock_memory.SetMemoryContents(data);
@@ -3879,7 +3882,7 @@ TEST_F(CPUTest, STZ_DirectPage) {
   cpu.ExecuteInstruction(0x64);  // STZ Direct Page
 }
 
-TEST_F(CPUTest, STZ_DirectPageIndexedX) {
+TEST_F(CpuTest, STZ_DirectPageIndexedX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x02;                  // Set X register to 0x02
   std::vector<uint8_t> data = {0x74, 0x80};
@@ -3890,7 +3893,7 @@ TEST_F(CPUTest, STZ_DirectPageIndexedX) {
   cpu.ExecuteInstruction(0x74);  // STZ Direct Page Indexed, X
 }
 
-TEST_F(CPUTest, STZ_Absolute) {
+TEST_F(CpuTest, STZ_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   std::vector<uint8_t> data = {0x9C, 0x7F, 0xFF};
   mock_memory.SetMemoryContents(data);
@@ -3904,7 +3907,7 @@ TEST_F(CPUTest, STZ_Absolute) {
 // ============================================================================
 // TAX - Transfer Accumulator to Index X
 
-TEST_F(CPUTest, TAX) {
+TEST_F(CpuTest, TAX) {
   cpu.A = 0xBC;                        // A register
   std::vector<uint8_t> data = {0xAA};  // TAX
   mock_memory.SetMemoryContents(data);
@@ -3916,7 +3919,7 @@ TEST_F(CPUTest, TAX) {
 // ============================================================================
 // TAY - Transfer Accumulator to Index Y
 
-TEST_F(CPUTest, TAY) {
+TEST_F(CpuTest, TAY) {
   cpu.A = 0xDE;                        // A register
   std::vector<uint8_t> data = {0xA8};  // TAY
   mock_memory.SetMemoryContents(data);
@@ -3927,7 +3930,7 @@ TEST_F(CPUTest, TAY) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TCD) {
+TEST_F(CpuTest, TCD) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x5B};
@@ -3939,7 +3942,7 @@ TEST_F(CPUTest, TCD) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TCS) {
+TEST_F(CpuTest, TCS) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x1B};
@@ -3953,7 +3956,7 @@ TEST_F(CPUTest, TCS) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TDC) {
+TEST_F(CpuTest, TDC) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.D = 0x42;
   std::vector<uint8_t> data = {0x7B};
@@ -3965,7 +3968,7 @@ TEST_F(CPUTest, TDC) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TRB_DirectPage) {
+TEST_F(CpuTest, TRB_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x14, 0x80};
@@ -3979,7 +3982,7 @@ TEST_F(CPUTest, TRB_DirectPage) {
   cpu.ExecuteInstruction(0x14);  // TRB Direct Page
 }
 
-TEST_F(CPUTest, TRB_Absolute) {
+TEST_F(CpuTest, TRB_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
   std::vector<uint8_t> data = {0x1C, 0xFF, 0x7F};
@@ -3995,7 +3998,7 @@ TEST_F(CPUTest, TRB_Absolute) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TSB_DirectPage) {
+TEST_F(CpuTest, TSB_DirectPage) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x00;
   std::vector<uint8_t> data = {0x04, 0x80};
@@ -4009,7 +4012,7 @@ TEST_F(CPUTest, TSB_DirectPage) {
   cpu.ExecuteInstruction(0x04);  // TSB Direct Page
 }
 
-TEST_F(CPUTest, TSB_Absolute) {
+TEST_F(CpuTest, TSB_Absolute) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x00;
   std::vector<uint8_t> data = {0x0C, 0xFF, 0x7F};
@@ -4025,7 +4028,7 @@ TEST_F(CPUTest, TSB_Absolute) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TSC) {
+TEST_F(CpuTest, TSC) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.SetSP(0x42);
   std::vector<uint8_t> data = {0x3B};
@@ -4037,7 +4040,7 @@ TEST_F(CPUTest, TSC) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TSX) {
+TEST_F(CpuTest, TSX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.SetSP(0x42);
   std::vector<uint8_t> data = {0xBA};
@@ -4050,7 +4053,7 @@ TEST_F(CPUTest, TSX) {
 // ============================================================================
 // TXA - Transfer Index X to Accumulator
 
-TEST_F(CPUTest, TXA) {
+TEST_F(CpuTest, TXA) {
   cpu.X = 0xAB;                        // X register
   std::vector<uint8_t> data = {0x8A};  // TXA
   mock_memory.SetMemoryContents(data);
@@ -4061,7 +4064,7 @@ TEST_F(CPUTest, TXA) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TXS) {
+TEST_F(CpuTest, TXS) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x42;
   std::vector<uint8_t> data = {0x9A};
@@ -4073,7 +4076,7 @@ TEST_F(CPUTest, TXS) {
 
 // ============================================================================
 
-TEST_F(CPUTest, TXY) {
+TEST_F(CpuTest, TXY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.X = 0x42;
   std::vector<uint8_t> data = {0x9B};
@@ -4086,7 +4089,7 @@ TEST_F(CPUTest, TXY) {
 // ============================================================================
 // TYA - Transfer Index Y to Accumulator
 
-TEST_F(CPUTest, TYA) {
+TEST_F(CpuTest, TYA) {
   cpu.Y = 0xCD;                        // Y register
   std::vector<uint8_t> data = {0x98};  // TYA
   mock_memory.SetMemoryContents(data);
@@ -4098,7 +4101,7 @@ TEST_F(CPUTest, TYA) {
 // ============================================================================
 // TYX - Transfer Index Y to Index X
 
-TEST_F(CPUTest, TYX) {
+TEST_F(CpuTest, TYX) {
   cpu.Y = 0xCD;                        // Y register
   std::vector<uint8_t> data = {0xBB};  // TYX
   mock_memory.SetMemoryContents(data);
@@ -4109,14 +4112,14 @@ TEST_F(CPUTest, TYX) {
 
 // ============================================================================
 
-TEST_F(CPUTest, WAI) {
+TEST_F(CpuTest, WAI) {
   cpu.ExecuteInstruction(0xCB);  // WAI
   // EXPECT_TRUE(cpu.GetWaitingFlag());
 }
 
 // ============================================================================
 
-TEST_F(CPUTest, WDM) {
+TEST_F(CpuTest, WDM) {
   std::vector<uint8_t> data = {0x42};
   mock_memory.SetMemoryContents(data);
 
@@ -4125,7 +4128,7 @@ TEST_F(CPUTest, WDM) {
 
 // ============================================================================
 
-TEST_F(CPUTest, XBA) {
+TEST_F(CpuTest, XBA) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x4002;
   std::vector<uint8_t> data = {0xEB};
@@ -4138,19 +4141,19 @@ TEST_F(CPUTest, XBA) {
 // ============================================================================
 // XCE - Exchange Carry and Emulation Flags
 
-TEST_F(CPUTest, XCESwitchToNativeMode) {
+TEST_F(CpuTest, XCESwitchToNativeMode) {
   cpu.ExecuteInstruction(0x18);  // Clear carry flag
   cpu.ExecuteInstruction(0xFB);  // Switch to native mode
   EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
 }
 
-TEST_F(CPUTest, XCESwitchToEmulationMode) {
+TEST_F(CpuTest, XCESwitchToEmulationMode) {
   cpu.ExecuteInstruction(0x38);  // Set carry flag
   cpu.ExecuteInstruction(0xFB);  // Switch to emulation mode
   EXPECT_TRUE(cpu.E);            // Emulation mode flag should be set
 }
 
-TEST_F(CPUTest, XCESwitchBackAndForth) {
+TEST_F(CpuTest, XCESwitchBackAndForth) {
   cpu.ExecuteInstruction(0x18);  // Clear carry flag
   cpu.ExecuteInstruction(0xFB);  // Switch to native mode
   EXPECT_FALSE(cpu.E);           // Emulation mode flag should be cleared
