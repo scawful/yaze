@@ -57,7 +57,7 @@ class ScreenEditor : public SharedROM {
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
 
-  std::vector<zelda3::DungeonMap> dungeon_maps_;
+  std::vector<zelda3::screen::DungeonMap> dungeon_maps_;
   std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
 
   std::unordered_map<int, gfx::Bitmap> tile16_individual_;
@@ -74,7 +74,7 @@ class ScreenEditor : public SharedROM {
   bool paste_button_pressed = false;
 
   Bytes all_gfx_;
-  zelda3::Inventory inventory_;
+  zelda3::screen::Inventory inventory_;
   gfx::SnesPalette palette_;
   gui::Canvas screen_canvas_;
   gui::Canvas tilesheet_canvas_;

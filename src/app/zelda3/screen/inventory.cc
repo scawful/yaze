@@ -8,6 +8,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace screen {
 
 void Inventory::Create() {
   data_.reserve(256 * 256);
@@ -86,6 +87,7 @@ absl::Status Inventory::BuildTileset() {
   return absl::OkStatus();
 }
 
+}  // namespace screen
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

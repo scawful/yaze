@@ -7,6 +7,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace screen {
 
 constexpr int kDungeonMapRoomsPtr = 0x57605;  // 14 pointers of map data
 constexpr int kDungeonMapFloors = 0x575D9;    // 14 words values
@@ -47,6 +48,7 @@ class DungeonMap {
         floor_gfx(floor_gfx) {}
 };
 
+}  // namespace screen
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
