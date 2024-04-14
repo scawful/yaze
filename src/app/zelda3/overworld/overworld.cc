@@ -80,7 +80,7 @@ absl::flat_hash_map<int, MapData> parseFile(const std::string &filename) {
 
 }  // namespace
 
-absl::Status Overworld::Load(ROM &rom) {
+absl::Status Overworld::Load(Rom &rom) {
   rom_ = rom;
 
   AssembleMap32Tiles();
@@ -527,7 +527,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprite_start, int sprite_count,
 
 // ---------------------------------------------------------------------------
 
-absl::Status Overworld::Save(ROM &rom) {
+absl::Status Overworld::Save(Rom &rom) {
   rom_ = rom;
 
   RETURN_IF_ERROR(SaveMap16Tiles())
@@ -1513,7 +1513,7 @@ absl::Status Overworld::DecompressProtoMapTiles(const std::string &filename) {
   return absl::OkStatus();
 }
 
-absl::Status Overworld::LoadPrototype(ROM &rom,
+absl::Status Overworld::LoadPrototype(Rom &rom,
                                       const std::string &tilemap_filename) {
   rom_ = rom;
 

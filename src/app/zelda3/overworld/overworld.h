@@ -483,7 +483,7 @@ struct MapData {
 class Overworld : public SharedROM, public core::ExperimentFlags {
  public:
   OWBlockset &GetMapTiles(int world_type);
-  absl::Status Load(ROM &rom);
+  absl::Status Load(Rom &rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
   void LoadEntrances();
@@ -494,7 +494,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
                                   int spriteIndex);
 
-  absl::Status Save(ROM &rom);
+  absl::Status Save(Rom &rom);
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
   absl::Status SaveEntrances();
@@ -506,7 +506,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
-  absl::Status LoadPrototype(ROM &rom_, const std::string &tilemap_filename);
+  absl::Status LoadPrototype(Rom &rom_, const std::string &tilemap_filename);
 
   void Destroy() {
     for (auto &map : overworld_maps_) {
@@ -597,7 +597,7 @@ class Overworld : public SharedROM, public core::ExperimentFlags {
   int current_map_ = 0;
   uchar map_parent_[160];
 
-  ROM rom_;
+  Rom rom_;
   OWMapTiles map_tiles_;
 
   uint8_t all_tiles_types_[0x200];

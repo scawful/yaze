@@ -468,7 +468,7 @@ void MasterEditor::DrawViewMenu() {
     static MemoryEditor mem_edit;
     static MemoryEditor comp_edit;
     static bool show_compare_rom = false;
-    static ROM comparison_rom;
+    static Rom comparison_rom;
     ImGui::Begin("Hex Editor", &show_memory_editor);
     if (ImGui::Button("Compare Rom")) {
       auto file_name = FileDialogWrapper::ShowOpenFileDialog();

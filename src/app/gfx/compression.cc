@@ -474,7 +474,7 @@ Bytes CreateCompressionString(CompressionPiecePointer& start, int mode) {
 absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
                                        int mode, int start, int src_data_pos) {
   if (chain_head->next != nullptr) {
-    ROM temp_rom;
+    Rom temp_rom;
     RETURN_IF_ERROR(
         temp_rom.LoadFromBytes(CreateCompressionString(chain_head->next, mode)))
     ASSIGN_OR_RETURN(auto decomp_data,
@@ -1173,7 +1173,7 @@ void AddCompressionToChain(CompressionContext& context) {
 
 absl::Status ValidateCompressionResultV3(const CompressionContext& context) {
   if (!context.compressed_data.empty()) {
-    ROM temp_rom;
+    Rom temp_rom;
     RETURN_IF_ERROR(temp_rom.LoadFromBytes(context.compressed_data));
     ASSIGN_OR_RETURN(auto decomp_data,
                      DecompressV2(temp_rom.data(), 0, temp_rom.size()))

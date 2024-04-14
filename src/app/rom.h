@@ -127,7 +127,7 @@ constexpr uint32_t kGfxGroupsPointer = 0x6237;
 /**
  * @brief The ROM class is used to load, save, and modify ROM data.
  */
-class ROM : public core::ExperimentFlags {
+class Rom : public core::ExperimentFlags {
  public:
   /**
    * @brief Loads 2bpp graphics from ROM data.
@@ -683,23 +683,23 @@ class SharedROM {
   SharedROM() = default;
   virtual ~SharedROM() = default;
 
-  std::shared_ptr<ROM> shared_rom() {
+  std::shared_ptr<Rom> shared_rom() {
     if (!shared_rom_) {
-      shared_rom_ = std::make_shared<ROM>();
+      shared_rom_ = std::make_shared<Rom>();
     }
     return shared_rom_;
   }
 
   auto rom() {
     if (!shared_rom_) {
-      shared_rom_ = std::make_shared<ROM>();
+      shared_rom_ = std::make_shared<Rom>();
     }
-    ROM* rom = shared_rom_.get();
+    Rom* rom = shared_rom_.get();
     return rom;
   }
 
   // private:
-  static std::shared_ptr<ROM> shared_rom_;
+  static std::shared_ptr<Rom> shared_rom_;
 };
 
 }  // namespace app

@@ -30,7 +30,7 @@ static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 class OverworldMap : public editor::context::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, ROM& rom, std::vector<gfx::Tile16>& tiles16);
+  OverworldMap(int index, Rom& rom, std::vector<gfx::Tile16>& tiles16);
 
   absl::Status BuildMap(int count, int game_state, int world,
                         OWBlockset& world_blockset);
@@ -134,7 +134,7 @@ class OverworldMap : public editor::context::GfxContext {
   uchar area_music_[4];
   uchar static_graphics_[16];
 
-  ROM rom_;
+  Rom rom_;
   Bytes all_gfx_;
   Bytes current_blockset_;
   Bytes current_gfx_;

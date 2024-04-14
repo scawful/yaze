@@ -13,7 +13,7 @@
 namespace yaze_test {
 namespace gfx_test {
 
-using yaze::app::ROM;
+using yaze::app::Rom;
 using yaze::app::gfx::lc_lz2::CompressionContext;
 using yaze::app::gfx::lc_lz2::CompressionPiece;
 using yaze::app::gfx::lc_lz2::CompressV2;
@@ -32,7 +32,7 @@ using ::testing::TypedEq;
 
 namespace {
 
-Bytes ExpectCompressOk(ROM& rom, uchar* in, int in_size) {
+Bytes ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
   auto load_status = rom.LoadFromPointer(in, in_size);
   EXPECT_TRUE(load_status.ok());
   auto compression_status = CompressV3(rom.vector(), 0, in_size);
@@ -41,7 +41,7 @@ Bytes ExpectCompressOk(ROM& rom, uchar* in, int in_size) {
   return compressed_bytes;
 }
 
-Bytes ExpectDecompressBytesOk(ROM& rom, Bytes& in) {
+Bytes ExpectDecompressBytesOk(Rom& rom, Bytes& in) {
   auto load_status = rom.LoadFromBytes(in);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in.size());
@@ -50,7 +50,7 @@ Bytes ExpectDecompressBytesOk(ROM& rom, Bytes& in) {
   return decompressed_bytes;
 }
 
-Bytes ExpectDecompressOk(ROM& rom, uchar* in, int in_size) {
+Bytes ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
   auto load_status = rom.LoadFromPointer(in, in_size);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in_size);
@@ -130,7 +130,7 @@ TEST(LC_LZ2_CompressionTest, RepeatedBytesBeforeUncompressableRepeated) {
 }
 
 TEST(LC_LZ2_CompressionTest, CompressionDecompressionEmptyData) {
-  ROM rom;
+  Rom rom;
   uchar empty_input[0] = {};
   auto comp_result = ExpectCompressOk(rom, empty_input, 0);
   EXPECT_EQ(0, comp_result.size());
@@ -164,7 +164,7 @@ TEST(LC_LZ2_CompressionTest, NewDecompressionPieceOk) {
 // TODO: Check why header built is off by one
 // 0x25 instead of 0x24
 TEST(LC_LZ2_CompressionTest, CompressionSingleSet) {
-  ROM rom;
+  Rom rom;
   uchar single_set[5] = {0x2A, 0x2A, 0x2A, 0x2A, 0x2A};
   uchar single_set_expected[3] = {BUILD_HEADER(1, 5), 0x2A, 0xFF};
 
@@ -173,7 +173,7 @@ TEST(LC_LZ2_CompressionTest, CompressionSingleSet) {
 }
 
 TEST(LC_LZ2_CompressionTest, CompressionSingleWord) {
-  ROM rom;
+  Rom rom;
   uchar single_word[6] = {0x2A, 0x01, 0x2A, 0x01, 0x2A, 0x01};
   uchar single_word_expected[4] = {BUILD_HEADER(0x02, 0x06), 0x2A, 0x01, 0xFF};
 
@@ -182,7 +182,7 @@ TEST(LC_LZ2_CompressionTest, CompressionSingleWord) {
 }
 
 TEST(LC_LZ2_CompressionTest, CompressionSingleIncrement) {
-  ROM rom;
+  Rom rom;
   uchar single_inc[3] = {0x01, 0x02, 0x03};
   uchar single_inc_expected[3] = {BUILD_HEADER(0x03, 0x03), 0x01, 0xFF};
   auto comp_result = ExpectCompressOk(rom, single_inc, 3);
@@ -190,7 +190,7 @@ TEST(LC_LZ2_CompressionTest, CompressionSingleIncrement) {
 }
 
 TEST(LC_LZ2_CompressionTest, CompressionSingleCopy) {
-  ROM rom;
+  Rom rom;
   uchar single_copy[4] = {0x03, 0x0A, 0x07, 0x14};
   uchar single_copy_expected[6] = {
       BUILD_HEADER(0x00, 0x04), 0x03, 0x0A, 0x07, 0x14, 0xFF};
@@ -404,7 +404,7 @@ TEST(CheckIncByteV3Test, NotAnIncreasingSequence) {
 }
 
 TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
-  ROM rom;
+  Rom rom;
   Bytes simple_copy_input = {BUILD_HEADER(0x00, 0x02), 0x2A, 0x45, 0xFF};
   uchar simple_copy_output[2] = {0x2A, 0x45};
   auto decomp_result = ExpectDecompressBytesOk(rom, simple_copy_input);
@@ -412,7 +412,7 @@ TEST(LC_LZ2_CompressionTest, DecompressionValidCommand) {
 }
 
 TEST(LC_LZ2_CompressionTest, DecompressionMixingCommand) {
-  ROM rom;
+  Rom rom;
   uchar random1_i[11] = {BUILD_HEADER(0x01, 0x03),
                          0x2A,
                          BUILD_HEADER(0x00, 0x04),

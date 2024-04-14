@@ -192,7 +192,7 @@ absl::Status LoadOverworldMiniMapPalettes(
 }
 }  // namespace palette_group_internal
 
-absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
+absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
   Bytes sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
@@ -208,7 +208,7 @@ absl::StatusOr<Bytes> ROM::Load2BppGraphics() {
   return sheet;
 }
 
-absl::Status ROM::LoadLinkGraphics() {
+absl::Status Rom::LoadLinkGraphics() {
   const auto link_gfx_offset = 0x80000;  // $10:8000
   const auto link_gfx_length = 0x800;    // 0x4000 or 0x7000?
   link_palette_ = palette_groups_.armors[0];
@@ -233,7 +233,7 @@ absl::Status ROM::LoadLinkGraphics() {
   return absl::OkStatus();
 }
 
-absl::Status ROM::LoadAllGraphicsData() {
+absl::Status Rom::LoadAllGraphicsData() {
   constexpr uint32_t kNumGfxSheets = 223;
   Bytes sheet;
   bool bpp3 = false;
@@ -291,7 +291,7 @@ absl::Status ROM::LoadAllGraphicsData() {
 
 using namespace palette_group_internal;
 
-absl::Status ROM::LoadAllPalettes() {
+absl::Status Rom::LoadAllPalettes() {
   RETURN_IF_ERROR(LoadOverworldMainPalettes(rom_data_, palette_groups_))
   RETURN_IF_ERROR(LoadOverworldAuxiliaryPalettes(rom_data_, palette_groups_))
   RETURN_IF_ERROR(LoadOverworldAnimatedPalettes(rom_data_, palette_groups_))
@@ -310,7 +310,7 @@ absl::Status ROM::LoadAllPalettes() {
   return absl::OkStatus();
 }
 
-absl::Status ROM::LoadFromFile(const absl::string_view& filename,
+absl::Status Rom::LoadFromFile(const absl::string_view& filename,
                                bool z3_load) {
   // Set filename
   filename_ = filename;
@@ -375,7 +375,7 @@ absl::Status ROM::LoadFromFile(const absl::string_view& filename,
   return absl::OkStatus();
 }
 
-absl::Status ROM::LoadFromPointer(uchar* data, size_t length) {
+absl::Status Rom::LoadFromPointer(uchar* data, size_t length) {
   if (!data)
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
@@ -385,7 +385,7 @@ absl::Status ROM::LoadFromPointer(uchar* data, size_t length) {
   return absl::OkStatus();
 }
 
-absl::Status ROM::LoadFromBytes(const Bytes& data) {
+absl::Status Rom::LoadFromBytes(const Bytes& data) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
@@ -396,7 +396,7 @@ absl::Status ROM::LoadFromBytes(const Bytes& data) {
   return absl::OkStatus();
 }
 
-absl::Status ROM::SaveToFile(bool backup, bool save_new, std::string filename) {
+absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
   absl::Status non_firing_status;
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
@@ -491,7 +491,7 @@ absl::Status ROM::SaveToFile(bool backup, bool save_new, std::string filename) {
   return absl::OkStatus();
 }
 
-absl::Status ROM::SavePalette(int index, const std::string& group_name,
+absl::Status Rom::SavePalette(int index, const std::string& group_name,
                               gfx::SnesPalette& palette) {
   // Iterate through all colors in the palette
   for (size_t j = 0; j < palette.size(); ++j) {
@@ -506,7 +506,7 @@ absl::Status ROM::SavePalette(int index, const std::string& group_name,
   return absl::OkStatus();
 }
 
-absl::Status ROM::SaveAllPalettes() {
+absl::Status Rom::SaveAllPalettes() {
   palette_groups_.for_each([&](gfx::PaletteGroup& group) {
     for (size_t i = 0; i < group.size(); ++i) {
       SavePalette(i, group.name(), *group.mutable_palette(i));
@@ -516,7 +516,7 @@ absl::Status ROM::SaveAllPalettes() {
   return absl::OkStatus();
 }
 
-std::shared_ptr<ROM> SharedROM::shared_rom_ = nullptr;
+std::shared_ptr<Rom> SharedROM::shared_rom_ = nullptr;
 
 }  // namespace app
 }  // namespace yaze
