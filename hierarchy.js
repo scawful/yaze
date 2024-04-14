@@ -203,9 +203,6 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::STAT77", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::STAT78", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html", null ],
     [ "yaze::app::zelda3::dungeon::SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", null ],
-    [ "yaze::app::core::TaskCheckpoint", "structyaze_1_1app_1_1core_1_1TaskCheckpoint.html", null ],
-    [ "yaze::app::core::TaskManager< TFunc >", "classyaze_1_1app_1_1core_1_1TaskManager.html", null ],
-    [ "yaze::app::core::TaskTimer", "classyaze_1_1app_1_1core_1_1TaskTimer.html", null ],
     [ "testing::Test", null, [
       [ "yaze_test::emu_test::CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", null ],
       [ "yaze_test::emu_test::PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", null ],

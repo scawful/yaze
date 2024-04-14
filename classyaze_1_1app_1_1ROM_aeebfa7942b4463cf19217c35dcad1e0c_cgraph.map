@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Loads 2bpp graphics from ROM data." alt="" coords="5,120,181,161"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="482,70,623,96"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,117,228,106,353,91,466,83,466,89,353,96,229,111,174,122"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="254,5,393,46"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="254,5,393,46"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="127,117,227,62,253,50,256,55,230,67,130,122"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1ROM.html#a0e9e5f055e4f67ae58d29b0cf63e7784" title=" " alt="" coords="229,120,418,161"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="181,138,213,138,213,143,181,143"/>

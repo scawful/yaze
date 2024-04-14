@@ -21,6 +21,6 @@
 <area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="416,220,545,193,546,198,417,226"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1Logger.html" title=" " alt="" coords="5,227,157,252"/>
 <area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="172,237,255,237,255,242,172,242"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="250,162,425,203"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="250,162,425,203"/>
 <area shape="poly" id="edge11_Node000008_Node000011" title=" " alt="" coords="441,180,543,180,543,185,441,185"/>
 </map>

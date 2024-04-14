@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Shared graphical context across editors." alt="" coords="5,104,139,145"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html" title="The MasterEditor class represents the main editor for a ROM in the Yaze application." alt="" coords="189,5,308,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,94,185,57,208,44,211,49,188,61,123,98"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html" title="Represents an editor for the overworld in a game." alt="" coords="189,71,308,111"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a ROM." alt="" coords="189,71,308,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,106,188,100,189,105,154,112"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html" title="Popup window to edit Tile16 data." alt="" coords="189,136,308,177"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,137,189,143,188,148,153,142"/>

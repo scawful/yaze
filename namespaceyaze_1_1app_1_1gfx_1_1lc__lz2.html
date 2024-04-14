@@ -107,6 +107,9 @@ $(function(){initNavTree('namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html',''); init
   <div class="headertitle"><div class="title">yaze::app::gfx::lc_lz2 Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Contains the LC_LZ2 compression algorithm.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -170,8 +173,9 @@ Functions</h2></td></tr>
 <tr class="separator:a77887f1e77391d7c90c5019790041ff4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a876aa4cf19da24112d3d66afd49eb8f2" id="r_a876aa4cf19da24112d3d66afd49eb8f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a876aa4cf19da24112d3d66afd49eb8f2">MergeCopy</a> (<a class="el" href="#afb7d2a47f4d56fbe2ccabff51923533d">CompressionPiecePointer</a> &amp;start)</td></tr>
 <tr class="separator:a876aa4cf19da24112d3d66afd49eb8f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b2c7f643980f1ce88cdc09ac06b8f73" id="r_a2b2c7f643980f1ce88cdc09ac06b8f73"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int start, const int length, int mode, bool check)</td></tr>
-<tr class="separator:a2b2c7f643980f1ce88cdc09ac06b8f73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1490ab6482040dde33225a8985b57c3" id="r_ad1490ab6482040dde33225a8985b57c3"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, const int start, const int length, int mode=1, bool check=false)</td></tr>
+<tr class="memdesc:ad1490ab6482040dde33225a8985b57c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:ad1490ab6482040dde33225a8985b57c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8" id="r_ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8">Compress</a> (uint8_t const *const src, int const oldsize, int *const size, int const flag)</td></tr>
 <tr class="separator:ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab029bf3391b9f450789088d69ee7d08f" id="r_ab029bf3391b9f450789088d69ee7d08f"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab029bf3391b9f450789088d69ee7d08f">Uncompress</a> (uint8_t const *src, int *const size, int const p_big_endian)</td></tr>
@@ -206,31 +210,49 @@ Functions</h2></td></tr>
 <tr class="separator:aca37c4a4f8c6a88dd487cc2cc7fff58a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af33da6d271bc83cd2ad741dccccccbd3" id="r_af33da6d271bc83cd2ad741dccccccbd3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af33da6d271bc83cd2ad741dccccccbd3">FinalizeCompression</a> (<a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html">CompressionContext</a> &amp;context)</td></tr>
 <tr class="separator:af33da6d271bc83cd2ad741dccccccbd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6aaf9e81ccacb9962676ecddfce72efa" id="r_a6aaf9e81ccacb9962676ecddfce72efa"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3</a> (const std::vector&lt; uint8_t &gt; &amp;data, const int start, const int length, int mode, bool check)</td></tr>
-<tr class="separator:a6aaf9e81ccacb9962676ecddfce72efa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a370541438805cc97a0dbae2789d8fa7b" id="r_a370541438805cc97a0dbae2789d8fa7b"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3</a> (const std::vector&lt; uint8_t &gt; &amp;data, const int start, const int length, int mode=1, bool check=false)</td></tr>
+<tr class="memdesc:a370541438805cc97a0dbae2789d8fa7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:a370541438805cc97a0dbae2789d8fa7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3ec60f2320d38749874e8d518182498" id="r_ae3ec60f2320d38749874e8d518182498"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae3ec60f2320d38749874e8d518182498">SetBuffer</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int src_pos, int comp_accumulator)</td></tr>
 <tr class="separator:ae3ec60f2320d38749874e8d518182498"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9768d31ade99cfac5c730a47fd9bd944" id="r_a9768d31ade99cfac5c730a47fd9bd944"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9768d31ade99cfac5c730a47fd9bd944">SetBuffer</a> (const std::vector&lt; uint8_t &gt; &amp;data, int src_pos, int comp_accumulator)</td></tr>
 <tr class="separator:a9768d31ade99cfac5c730a47fd9bd944"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa7583d0d15778f0286acdb9425628785" id="r_aa7583d0d15778f0286acdb9425628785"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7583d0d15778f0286acdb9425628785">memfill</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;buffer, int buffer_pos, int offset, int length)</td></tr>
 <tr class="separator:aa7583d0d15778f0286acdb9425628785"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ea9587c113ad6e6268549036a78c717" id="r_a5ea9587c113ad6e6268549036a78c717"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int offset, int size, int mode)</td></tr>
-<tr class="separator:a5ea9587c113ad6e6268549036a78c717"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a5cd746989bba5ac64eef034b664a92" id="r_a8a5cd746989bba5ac64eef034b664a92"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int offset, int size=0x800, int mode=1)</td></tr>
+<tr class="memdesc:a8a5cd746989bba5ac64eef034b664a92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompresses a buffer of data using the LC_LZ2 algorithm.  <br /></td></tr>
+<tr class="separator:a8a5cd746989bba5ac64eef034b664a92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd3f236eb012d461ff376a3ac70ef4ca" id="r_acd3f236eb012d461ff376a3ac70ef4ca"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd3f236eb012d461ff376a3ac70ef4ca">DecompressGraphics</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int pos, int size)</td></tr>
 <tr class="separator:acd3f236eb012d461ff376a3ac70ef4ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe1d582fab6d08efe1544cdccb882830" id="r_afe1d582fab6d08efe1544cdccb882830"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afe1d582fab6d08efe1544cdccb882830">DecompressOverworld</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *data, int pos, int size)</td></tr>
 <tr class="separator:afe1d582fab6d08efe1544cdccb882830"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2106a455fd14b9093a5c1b8eeef23b00" id="r_a2106a455fd14b9093a5c1b8eeef23b00"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2106a455fd14b9093a5c1b8eeef23b00">DecompressOverworld</a> (const std::vector&lt; uint8_t &gt; data, int pos, int size)</td></tr>
 <tr class="separator:a2106a455fd14b9093a5c1b8eeef23b00"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa05a974992ad85f921edadd149a77d7b" id="r_aa05a974992ad85f921edadd149a77d7b"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa05a974992ad85f921edadd149a77d7b">ZS_Compress</a> (const std::vector&lt; uint8_t &gt; &amp;data, const int start, const int length, int mode=1, bool check=false)</td></tr>
-<tr class="separator:aa05a974992ad85f921edadd149a77d7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55a15aeabda7c43e7946df7f1c8732a3" id="r_a55a15aeabda7c43e7946df7f1c8732a3"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a55a15aeabda7c43e7946df7f1c8732a3">ZS_CompressOverworld</a> (const std::vector&lt; uint8_t &gt; data, const int pos, const int length)</td></tr>
-<tr class="separator:a55a15aeabda7c43e7946df7f1c8732a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:aea91722b752712f1238250e235daef34" id="r_aea91722b752712f1238250e235daef34"><td class="memItemLeft" align="right" valign="top">const std::array&lt; int, 5 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea91722b752712f1238250e235daef34">kCommandSizes</a> = {1, 2, 2, 2, 3}</td></tr>
 <tr class="separator:aea91722b752712f1238250e235daef34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae033dbab83c816712c3b170c3c243833" id="r_ae033dbab83c816712c3b170c3c243833"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae033dbab83c816712c3b170c3c243833">D_NINTENDO_C_MODE1</a> = 0</td></tr>
+<tr class="separator:ae033dbab83c816712c3b170c3c243833"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7bda5a6d0bb6318c337c03ab8ba8a1e" id="r_af7bda5a6d0bb6318c337c03ab8ba8a1e"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af7bda5a6d0bb6318c337c03ab8ba8a1e">D_NINTENDO_C_MODE2</a> = 1</td></tr>
+<tr class="separator:af7bda5a6d0bb6318c337c03ab8ba8a1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d61902eb23a861e0aece6310f7324e1" id="r_a2d61902eb23a861e0aece6310f7324e1"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2d61902eb23a861e0aece6310f7324e1">D_CMD_COPY</a> = 0</td></tr>
+<tr class="separator:a2d61902eb23a861e0aece6310f7324e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b1476409f2916209e518e660b34cc4e" id="r_a4b1476409f2916209e518e660b34cc4e"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b1476409f2916209e518e660b34cc4e">D_CMD_BYTE_REPEAT</a> = 1</td></tr>
+<tr class="separator:a4b1476409f2916209e518e660b34cc4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb6b82911e2f443fd4634e5a11179345" id="r_acb6b82911e2f443fd4634e5a11179345"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb6b82911e2f443fd4634e5a11179345">D_CMD_WORD_REPEAT</a> = 2</td></tr>
+<tr class="separator:acb6b82911e2f443fd4634e5a11179345"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26f3c869a2317daeb337871e4911fdff" id="r_a26f3c869a2317daeb337871e4911fdff"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a26f3c869a2317daeb337871e4911fdff">D_CMD_BYTE_INC</a> = 3</td></tr>
+<tr class="separator:a26f3c869a2317daeb337871e4911fdff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31a36d73591e50828e43a0335fb5e5d9" id="r_a31a36d73591e50828e43a0335fb5e5d9"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a31a36d73591e50828e43a0335fb5e5d9">D_CMD_COPY_EXISTING</a> = 4</td></tr>
+<tr class="separator:a31a36d73591e50828e43a0335fb5e5d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a767f193a16c49b5f65dbc9c0beeb422f" id="r_a767f193a16c49b5f65dbc9c0beeb422f"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a767f193a16c49b5f65dbc9c0beeb422f">D_MAX_NORMAL_LENGTH</a> = 32</td></tr>
+<tr class="separator:a767f193a16c49b5f65dbc9c0beeb422f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8cf51b7ca53e4f6f629f313babd061a" id="r_af8cf51b7ca53e4f6f629f313babd061a"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8cf51b7ca53e4f6f629f313babd061a">D_MAX_LENGTH</a> = 1024</td></tr>
+<tr class="separator:af8cf51b7ca53e4f6f629f313babd061a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace40cf24cf8f92d193c9d6758acca741" id="r_ace40cf24cf8f92d193c9d6758acca741"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ace40cf24cf8f92d193c9d6758acca741">INITIAL_ALLOC_SIZE</a> = 1024</td></tr>
+<tr class="separator:ace40cf24cf8f92d193c9d6758acca741"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f07065a9c2fb78b8df4f326aa9152ca" id="r_a5f07065a9c2fb78b8df4f326aa9152ca"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f07065a9c2fb78b8df4f326aa9152ca">kCommandDirectCopy</a> = 0</td></tr>
 <tr class="separator:a5f07065a9c2fb78b8df4f326aa9152ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e7301bb5cccde044e318d0bbdf47d3a" id="r_a2e7301bb5cccde044e318d0bbdf47d3a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e7301bb5cccde044e318d0bbdf47d3a">kCommandByteFill</a> = 1</td></tr>
@@ -264,7 +286,9 @@ Variables</h2></td></tr>
 <tr class="memitem:a3404a20706c71f45e314625d333f4573" id="r_a3404a20706c71f45e314625d333f4573"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3404a20706c71f45e314625d333f4573">kCompressionStringMod</a> = 7 &lt;&lt; 5</td></tr>
 <tr class="separator:a3404a20706c71f45e314625d333f4573"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Contains the LC_LZ2 compression algorithm. </p>
+</div><h2 class="groupheader">Typedef Documentation</h2>
 <a id="a88255058fe586bfb7eda1c2a847bd2c8" name="a88255058fe586bfb7eda1c2a847bd2c8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a88255058fe586bfb7eda1c2a847bd2c8">&#9670;&#160;</a></span>CommandArgumentArray</h2>
 
@@ -370,7 +394,7 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1009,196,966,216,918,232,821,250,722,259,631,262,559,261,559,255,631,256,721,254,820,245,917,227,964,211,1007,191"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af359788c045b9ff15f7ba20fb7b294dc" title=" " alt="" coords="408,300,594,341"/>
 <area shape="poly" title=" " alt="" coords="1026,198,977,235,919,267,835,293,749,309,667,319,594,323,594,318,666,314,748,304,834,288,917,262,974,231,1022,194"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,169,347,210"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,169,347,210"/>
 <area shape="poly" title=" " alt="" coords="448,78,317,171,314,166,445,74"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,136,170,177"/>
 <area shape="poly" title=" " alt="" coords="206,179,170,173,171,167,207,174"/>
@@ -404,7 +428,7 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a4f20b93f15588bc2c13d40ae62e0940f">PrintCompressionPiece()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -421,7 +445,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af359788c045b9ff15f7ba20fb7b294dc_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af359788c045b9ff15f7ba20fb7b294dc_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af359788c045b9ff15f7ba20fb7b294dc_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af359788c045b9ff15f7ba20fb7b294dc_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,581,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,348,62,348,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -618,14 +642,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a22ebd13aa91befebc4f342e86b3c04f7_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a22ebd13aa91befebc4f342e86b3c04f7_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a22ebd13aa91befebc4f342e86b3c04f7_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a22ebd13aa91befebc4f342e86b3c04f7_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,564,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,347,62,347,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -730,14 +754,14 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, and <a class="el" href="#a2e7301bb5cccde044e318d0bbdf47d3a">kCommandByteFill</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab8452f0e53d55ed76cd1687c072a85b4_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab8452f0e53d55ed76cd1687c072a85b4_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab8452f0e53d55ed76cd1687c072a85b4_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab8452f0e53d55ed76cd1687c072a85b4_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,565,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,347,62,347,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -779,14 +803,14 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, and <a class="el" href="#ab1a2b7e8919a316888cef2f9dd30318b">kCommandWordFill</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a99f113d574564e9fb02470d77369b435_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a99f113d574564e9fb02470d77369b435_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a99f113d574564e9fb02470d77369b435_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a99f113d574564e9fb02470d77369b435_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,569,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="380,62,347,62,347,56,380,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -828,14 +852,14 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, and <a class="el" href="#a5be3958ac1fbf3bd0b6de3485a96b74d">kCommandIncreasingFill</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a47224238ea7d6995a94ebf9d11daf31d_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a47224238ea7d6995a94ebf9d11daf31d_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a47224238ea7d6995a94ebf9d11daf31d_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a47224238ea7d6995a94ebf9d11daf31d_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,542,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,347,62,347,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -882,14 +906,14 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="#aa5f36c0fbde5994c88d0a644f97aac0f">kCommandRepeatingBytes</a>, and <a class="el" href="#a2d55693286fcf77b88504da648eb4830">kSnesByteMax</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2df55e67298266c8e63a33fd7aec0e40_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2df55e67298266c8e63a33fd7aec0e40_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2df55e67298266c8e63a33fd7aec0e40_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2df55e67298266c8e63a33fd7aec0e40_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,553,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,347,62,347,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -1032,7 +1056,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff8a41f0d6d8832e56617f2479e9a7dd">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, and <a class="el" href="#a4f20b93f15588bc2c13d40ae62e0940f">PrintCompressionPiece()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1049,7 +1073,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7c322d88e059c6e52031a46badfa23c4_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7c322d88e059c6e52031a46badfa23c4_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7c322d88e059c6e52031a46badfa23c4_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a7c322d88e059c6e52031a46badfa23c4_icgraph">
 <area shape="rect" title=" " alt="" coords="395,31,606,87"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,348,62,348,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -1090,7 +1114,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="900,39,1085,79"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab84de3d8297ed4cef2d90c0a925cda6f" title=" " alt="" coords="653,39,852,79"/>
 <area shape="poly" title=" " alt="" coords="884,62,852,62,852,56,884,56"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="637,58,605,58,395,58,348,59,347,54,395,52,605,52,637,53"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4" title=" " alt="" coords="395,67,605,107"/>
 <area shape="poly" title=" " alt="" coords="638,74,606,78,606,73,638,69"/>
@@ -1125,7 +1149,7 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="compression_8h.html#aca48128a724010a9277720f53bde1a5a">BUILD_HEADER</a>, <a class="el" href="#a3404a20706c71f45e314625d333f4573">kCompressionStringMod</a>, <a class="el" href="#ab489a08c731f0c501bc54a64a7a95554">kMaxLengthCompression</a>, <a class="el" href="#a64c9eccb0e6bde5044cfd0b85126a423">kMaxLengthNormalHeader</a>, <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>, <a class="el" href="#a2d55693286fcf77b88504da648eb4830">kSnesByteMax</a>, <a class="el" href="#a4f20b93f15588bc2c13d40ae62e0940f">PrintCompressionPiece()</a>, and <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>, and <a class="el" href="#a77887f1e77391d7c90c5019790041ff4">ValidateCompressionResult()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>, and <a class="el" href="#a77887f1e77391d7c90c5019790041ff4">ValidateCompressionResult()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1144,7 +1168,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab84de3d8297ed4cef2d90c0a925cda6f_icgraph">
 <area shape="rect" title=" " alt="" coords="653,39,852,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="637,58,605,58,395,58,348,59,347,54,395,52,605,52,637,53"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4" title=" " alt="" coords="395,67,605,107"/>
 <area shape="poly" title=" " alt="" coords="638,74,606,78,606,73,638,69"/>
@@ -1187,9 +1211,9 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#adb68ae2e7cc16be8f6ff9c1f9027e0ad">yaze::app::ROM::begin()</a>, <a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString()</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a">yaze::app::ROM::data()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef">yaze::app::ROM::LoadFromBytes()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, and <a class="el" href="classyaze_1_1app_1_1ROM.html#a747ddab70fbf9f63d7424e0f44b9cd75">yaze::app::ROM::size()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#adb68ae2e7cc16be8f6ff9c1f9027e0ad">yaze::app::ROM::begin()</a>, <a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString()</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a">yaze::app::ROM::data()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef">yaze::app::ROM::LoadFromBytes()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, and <a class="el" href="classyaze_1_1app_1_1ROM.html#a747ddab70fbf9f63d7424e0f44b9cd75">yaze::app::ROM::size()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1202,7 +1226,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="171,140,286,100,288,105,173,145"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="533,164,674,189"/>
 <area shape="poly" title=" " alt="" coords="216,155,334,153,462,156,517,161,517,167,462,162,334,158,216,160"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="293,236,433,277"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="293,236,433,277"/>
 <area shape="poly" title=" " alt="" coords="164,181,265,221,285,228,283,233,263,225,162,186"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="275,171,451,211"/>
 <area shape="poly" title=" " alt="" coords="217,172,260,177,260,182,216,177"/>
@@ -1223,7 +1247,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a77887f1e77391d7c90c5019790041ff4_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a77887f1e77391d7c90c5019790041ff4_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a77887f1e77391d7c90c5019790041ff4_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a77887f1e77391d7c90c5019790041ff4_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,605,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="380,62,347,62,347,56,380,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -1251,7 +1275,7 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#ab489a08c731f0c501bc54a64a7a95554">kMaxLengthCompression</a>, and <a class="el" href="#a4f20b93f15588bc2c13d40ae62e0940f">PrintCompressionPiece()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1268,7 +1292,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a876aa4cf19da24112d3d66afd49eb8f2_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a876aa4cf19da24112d3d66afd49eb8f2_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a876aa4cf19da24112d3d66afd49eb8f2_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a876aa4cf19da24112d3d66afd49eb8f2_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,510,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,348,62,348,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -1279,8 +1303,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a2b2c7f643980f1ce88cdc09ac06b8f73" name="a2b2c7f643980f1ce88cdc09ac06b8f73"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2b2c7f643980f1ce88cdc09ac06b8f73">&#9670;&#160;</a></span>CompressV2()</h2>
+<a id="ad1490ab6482040dde33225a8985b57c3" name="ad1490ab6482040dde33225a8985b57c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1490ab6482040dde33225a8985b57c3">&#9670;&#160;</a></span>CompressV2()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1303,15 +1327,18 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>mode</em>, </span></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>mode</em><span class="paramdefsep"> = </span><span class="paramdefval">1</span>, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>check</em></span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>check</em><span class="paramdefsep"> = </span><span class="paramdefval">false</span></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Compresses a buffer of data using the LC_LZ2 algorithm. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000001">Deprecated</a></b></dt><dd>Use Compress and Uncompress instead. </dd></dl>
 
 <p class="reference">References <a class="el" href="#a7c322d88e059c6e52031a46badfa23c4">AddAlternativeCompressionCommand()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="#ab8452f0e53d55ed76cd1687c072a85b4">CheckByteRepeatV2()</a>, <a class="el" href="#a47224238ea7d6995a94ebf9d11daf31d">CheckIncByteV2()</a>, <a class="el" href="#a2df55e67298266c8e63a33fd7aec0e40">CheckIntraCopyV2()</a>, <a class="el" href="#a99f113d574564e9fb02470d77369b435">CheckWordRepeatV2()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff8a41f0d6d8832e56617f2479e9a7dd">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, <a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="#a5f07065a9c2fb78b8df4f326aa9152ca">kCommandDirectCopy</a>, <a class="el" href="#a876aa4cf19da24112d3d66afd49eb8f2">MergeCopy()</a>, <a class="el" href="#af359788c045b9ff15f7ba20fb7b294dc">PrintCompressionChain()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#ae3ec60f2320d38749874e8d518182498">SetBuffer()</a>, <a class="el" href="#a77887f1e77391d7c90c5019790041ff4">ValidateCompressionResult()</a>, and <a class="el" href="#a22ebd13aa91befebc4f342e86b3c04f7">ValidateForByteGain()</a>.</p>
 
@@ -1319,9 +1346,9 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_cgraph">
-<area shape="rect" title=" " alt="" coords="5,298,131,339"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_cgraph">
+<area shape="rect" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,298,131,339"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4" title=" " alt="" coords="437,92,648,147"/>
 <area shape="poly" title=" " alt="" coords="67,297,73,241,89,167,103,128,122,91,146,58,177,31,216,12,257,4,299,5,342,13,384,27,423,44,490,81,488,85,421,49,382,32,341,18,299,10,257,9,217,17,180,35,150,62,126,94,108,130,94,169,78,242,73,298"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab8452f0e53d55ed76cd1687c072a85b4" title=" " alt="" coords="199,45,369,85"/>
@@ -1356,7 +1383,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="376,519,467,498,468,503,377,524"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="719,551,860,576"/>
 <area shape="poly" title=" " alt="" coords="390,544,703,557,703,563,389,549"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="473,637,612,677"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="473,637,612,677"/>
 <area shape="poly" title=" " alt="" coords="365,561,390,573,406,586,415,598,424,610,438,621,460,632,458,637,436,626,420,614,411,601,402,589,388,578,363,565"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="455,571,630,612"/>
 <area shape="poly" title=" " alt="" coords="390,560,440,569,439,575,389,565"/>
@@ -1370,9 +1397,9 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_icgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2b2c7f643980f1ce88cdc09ac06b8f73_icgraph">
-<area shape="rect" title=" " alt="" coords="222,39,347,79"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_icgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1490ab6482040dde33225a8985b57c3_icgraph">
+<area shape="rect" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="5,71,174,111"/>
@@ -1553,14 +1580,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>, and <a class="el" href="#a22ee52306a365c19d960b4bbbeb401f8">kNintendoMode2</a>.</p>
+<p class="reference">References <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>, and <a class="el" href="#a22ee52306a365c19d960b4bbbeb401f8">kNintendoMode2</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a405e942bb0f4f03896a275fb2bdf0623_cgraph">
 <area shape="rect" title=" " alt="" coords="5,298,167,339"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="215,298,340,339"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="215,298,340,339"/>
 <area shape="poly" title=" " alt="" coords="167,316,199,316,199,321,167,321"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4" title=" " alt="" coords="646,92,858,147"/>
 <area shape="poly" title=" " alt="" coords="277,297,282,241,298,167,312,128,331,91,356,58,387,31,425,12,466,4,509,5,551,13,593,27,633,44,699,81,697,85,630,49,591,32,550,18,508,10,466,9,427,17,389,35,359,62,336,94,317,130,303,169,287,242,282,298"/>
@@ -1596,7 +1623,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="585,519,677,498,678,503,586,524"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="928,551,1070,576"/>
 <area shape="poly" title=" " alt="" coords="599,544,913,557,913,563,599,549"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="682,637,822,677"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="682,637,822,677"/>
 <area shape="poly" title=" " alt="" coords="575,561,600,573,615,586,624,598,633,610,648,621,669,632,667,637,645,626,630,614,620,601,611,589,597,578,572,565"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="664,571,840,612"/>
 <area shape="poly" title=" " alt="" coords="599,560,649,569,648,575,598,565"/>
@@ -1634,14 +1661,14 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
+<p class="reference">References <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a9a7ac42c7d62b423375d6a2670250d81_cgraph">
 <area shape="rect" title=" " alt="" coords="5,298,174,339"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,298,347,339"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,298,347,339"/>
 <area shape="poly" title=" " alt="" coords="174,316,206,316,206,321,174,321"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4" title=" " alt="" coords="653,92,865,147"/>
 <area shape="poly" title=" " alt="" coords="284,297,289,241,305,167,319,128,338,91,363,58,394,31,432,12,473,4,516,5,558,13,600,27,640,44,706,81,704,85,637,49,598,32,557,18,515,10,473,9,434,17,396,35,366,62,343,94,324,130,310,169,294,242,289,298"/>
@@ -1677,7 +1704,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="592,519,684,498,685,503,593,524"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="935,551,1077,576"/>
 <area shape="poly" title=" " alt="" coords="606,544,920,557,920,563,606,549"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="689,637,829,677"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="689,637,829,677"/>
 <area shape="poly" title=" " alt="" coords="582,561,607,573,622,586,631,598,640,610,655,621,676,632,674,637,652,626,637,614,627,601,618,589,604,578,579,565"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="671,571,847,612"/>
 <area shape="poly" title=" " alt="" coords="606,560,656,569,655,575,605,565"/>
@@ -1715,14 +1742,14 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
+<p class="reference">References <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ad1775e9e8b6c900303716aa064635aeb_cgraph">
 <area shape="rect" title=" " alt="" coords="5,271,174,311"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,271,347,311"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,271,347,311"/>
 <area shape="poly" title=" " alt="" coords="174,288,206,288,206,294,174,294"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e" title=" " alt="" coords="410,61,607,102"/>
 <area shape="poly" title=" " alt="" coords="290,270,304,235,326,193,356,149,393,112,399,108,402,112,397,116,360,152,331,195,309,237,295,272"/>
@@ -1752,7 +1779,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="593,464,620,451,634,441,643,431,653,420,668,409,698,395,700,400,671,413,657,424,647,434,638,445,623,456,595,469"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="919,446,1060,472"/>
 <area shape="poly" title=" " alt="" coords="598,463,669,452,726,448,770,448,871,452,903,453,903,458,871,458,770,454,726,454,670,458,599,469"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="700,532,840,573"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="700,532,840,573"/>
 <area shape="poly" title=" " alt="" coords="593,505,686,529,685,534,592,511"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="682,467,858,507"/>
 <area shape="poly" title=" " alt="" coords="622,484,667,484,667,490,622,490"/>
@@ -1792,7 +1819,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="659,13,830,54"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9" title=" " alt="" coords="395,5,611,61"/>
 <area shape="poly" title=" " alt="" coords="644,36,612,36,612,31,644,31"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,13,347,54"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,13,347,54"/>
 <area shape="poly" title=" " alt="" coords="379,36,347,36,347,31,379,31"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,13,174,54"/>
 <area shape="poly" title=" " alt="" coords="206,36,174,36,174,31,206,31"/>
@@ -1827,7 +1854,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="659,13,834,54"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9" title=" " alt="" coords="395,5,611,61"/>
 <area shape="poly" title=" " alt="" coords="644,36,612,36,612,31,644,31"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,13,347,54"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,13,347,54"/>
 <area shape="poly" title=" " alt="" coords="379,36,347,36,347,31,379,31"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,13,174,54"/>
 <area shape="poly" title=" " alt="" coords="206,36,174,36,174,31,206,31"/>
@@ -1862,7 +1889,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="659,13,807,54"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9" title=" " alt="" coords="395,5,611,61"/>
 <area shape="poly" title=" " alt="" coords="644,36,612,36,612,31,644,31"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,13,347,54"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,13,347,54"/>
 <area shape="poly" title=" " alt="" coords="379,36,347,36,347,31,379,31"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,13,174,54"/>
 <area shape="poly" title=" " alt="" coords="206,36,174,36,174,31,206,31"/>
@@ -1897,7 +1924,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="659,13,818,54"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9" title=" " alt="" coords="395,5,611,61"/>
 <area shape="poly" title=" " alt="" coords="644,36,612,36,612,31,644,31"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,13,347,54"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,13,347,54"/>
 <area shape="poly" title=" " alt="" coords="379,36,347,36,347,31,379,31"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,13,174,54"/>
 <area shape="poly" title=" " alt="" coords="206,36,174,36,174,31,206,31"/>
@@ -1923,14 +1950,14 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a1c43a9a22946d989c3e132fff0ab86de">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a59144c3685cd10bc358b440293e7c82d_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a59144c3685cd10bc358b440293e7c82d_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a59144c3685cd10bc358b440293e7c82d_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a59144c3685cd10bc358b440293e7c82d_icgraph">
 <area shape="rect" title=" " alt="" coords="395,5,568,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,5,347,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="poly" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
@@ -1956,7 +1983,7 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="#afa7d04d790a9cbfc4b08bdd51d4aa7f7">CheckByteRepeatV3()</a>, <a class="el" href="#a4638043665972c959c63261d3fcb8257">CheckIncByteV3()</a>, <a class="el" href="#a6704a0d05d04ae6217e4cf143d5862be">CheckIntraCopyV3()</a>, <a class="el" href="#a457de785dbca08488422a649e1c5e1c6">CheckWordRepeatV3()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a1c43a9a22946d989c3e132fff0ab86de">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06">DEBUG_LOG</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1979,7 +2006,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab38fd85b5bab43edf01facb52cfcf3a9_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab38fd85b5bab43edf01facb52cfcf3a9_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab38fd85b5bab43edf01facb52cfcf3a9_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ab38fd85b5bab43edf01facb52cfcf3a9_icgraph">
 <area shape="rect" title=" " alt="" coords="395,5,611,61"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,13,347,54"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,13,347,54"/>
 <area shape="poly" title=" " alt="" coords="379,36,347,36,347,31,379,31"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,13,174,54"/>
 <area shape="poly" title=" " alt="" coords="206,36,174,36,174,31,206,31"/>
@@ -2005,14 +2032,14 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff8a41f0d6d8832e56617f2479e9a7dd">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a1c43a9a22946d989c3e132fff0ab86de">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a844167fc2c55b198f5426356cbf057e7">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06">DEBUG_LOG</a>, <a class="el" href="#a5f07065a9c2fb78b8df4f326aa9152ca">kCommandDirectCopy</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a11694c65d1aa9358f9d4e5d041630a5e_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a11694c65d1aa9358f9d4e5d041630a5e_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a11694c65d1aa9358f9d4e5d041630a5e_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a11694c65d1aa9358f9d4e5d041630a5e_icgraph">
 <area shape="rect" title=" " alt="" coords="395,5,607,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,5,347,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="poly" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
@@ -2038,14 +2065,14 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="compression_8h.html#aca48128a724010a9277720f53bde1a5a">BUILD_HEADER</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a4a0bd6ba685beb8f050badd58f7f8f6a">yaze::app::gfx::lc_lz2::CompressionContext::comp_accumulator</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a943dcf9ec619e6cc94501db903aca6a3">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a844167fc2c55b198f5426356cbf057e7">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06">DEBUG_LOG</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_adcd462db6909fae4d82eab4a06ab3298_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_adcd462db6909fae4d82eab4a06ab3298_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_adcd462db6909fae4d82eab4a06ab3298_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_adcd462db6909fae4d82eab4a06ab3298_icgraph">
 <area shape="rect" title=" " alt="" coords="395,5,549,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,5,347,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="poly" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
@@ -2071,14 +2098,14 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#a191339c910aeff07973e7da2ef9d4563">yaze::app::gfx::lc_lz2::CompressionCommand::arguments</a>, <a class="el" href="compression_8h.html#aca48128a724010a9277720f53bde1a5a">BUILD_HEADER</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff8a41f0d6d8832e56617f2479e9a7dd">yaze::app::gfx::lc_lz2::CompressionCommand::cmd_size</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a4a0bd6ba685beb8f050badd58f7f8f6a">yaze::app::gfx::lc_lz2::CompressionContext::comp_accumulator</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a943dcf9ec619e6cc94501db903aca6a3">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a1c43a9a22946d989c3e132fff0ab86de">yaze::app::gfx::lc_lz2::CompressionContext::current_cmd</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a844167fc2c55b198f5426356cbf057e7">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html#aff59760a5edb0028d8db97ca643a12a3">yaze::app::gfx::lc_lz2::CompressionCommand::data_size</a>, <a class="el" href="compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06">DEBUG_LOG</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a4bb15ea4d4366ad87a5f64081ad9de4e_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a4bb15ea4d4366ad87a5f64081ad9de4e_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a4bb15ea4d4366ad87a5f64081ad9de4e_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a4bb15ea4d4366ad87a5f64081ad9de4e_icgraph">
 <area shape="rect" title=" " alt="" coords="395,5,592,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,5,347,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="poly" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
@@ -2102,9 +2129,9 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#adb68ae2e7cc16be8f6ff9c1f9027e0ad">yaze::app::ROM::begin()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a943dcf9ec619e6cc94501db903aca6a3">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a">yaze::app::ROM::data()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef">yaze::app::ROM::LoadFromBytes()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a747ddab70fbf9f63d7424e0f44b9cd75">yaze::app::ROM::size()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a95750045285413be80ea99ae294f2e38">yaze::app::gfx::lc_lz2::CompressionContext::start</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#adb68ae2e7cc16be8f6ff9c1f9027e0ad">yaze::app::ROM::begin()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a943dcf9ec619e6cc94501db903aca6a3">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a">yaze::app::ROM::data()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef">yaze::app::ROM::LoadFromBytes()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1app_1_1ROM.html#a747ddab70fbf9f63d7424e0f44b9cd75">yaze::app::ROM::size()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a95750045285413be80ea99ae294f2e38">yaze::app::gfx::lc_lz2::CompressionContext::start</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2115,7 +2142,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="160,103,279,48,312,34,314,39,281,53,162,108"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="503,85,644,111"/>
 <area shape="poly" title=" " alt="" coords="208,103,279,92,367,88,455,92,488,92,487,98,455,97,367,93,280,97,209,108"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="298,171,437,212"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="298,171,437,212"/>
 <area shape="poly" title=" " alt="" coords="199,145,283,167,282,172,198,150"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="280,106,455,147"/>
 <area shape="poly" title=" " alt="" coords="232,124,264,124,264,129,232,129"/>
@@ -2132,7 +2159,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afd53022c82e6fb4377ab72b823f6d6cf_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afd53022c82e6fb4377ab72b823f6d6cf_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afd53022c82e6fb4377ab72b823f6d6cf_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afd53022c82e6fb4377ab72b823f6d6cf_icgraph">
 <area shape="rect" title=" " alt="" coords="395,5,621,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,5,347,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="poly" title=" " alt="" coords="380,28,348,28,348,23,380,23"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
@@ -2171,7 +2198,7 @@ Here is the caller graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="613,5,815,46"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af33da6d271bc83cd2ad741dccccccbd3" title=" " alt="" coords="395,5,565,46"/>
 <area shape="poly" title=" " alt="" coords="598,28,566,28,566,23,598,23"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,5,347,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="poly" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
@@ -2197,7 +2224,7 @@ Here is the caller graph for this function:</div>
 
 <p class="reference">References <a class="el" href="compression_8h.html#aca48128a724010a9277720f53bde1a5a">BUILD_HEADER</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a4a0bd6ba685beb8f050badd58f7f8f6a">yaze::app::gfx::lc_lz2::CompressionContext::comp_accumulator</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a943dcf9ec619e6cc94501db903aca6a3">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae75528fc689654968586b3863d94692d">yaze::app::gfx::lc_lz2::CompressionContext::compression_pieces</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ada885d11cc579116d21c5acb7b4e8356">yaze::app::gfx::lc_lz2::CompressionContext::compression_string</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a844167fc2c55b198f5426356cbf057e7">yaze::app::gfx::lc_lz2::CompressionContext::data</a>, <a class="el" href="compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06">DEBUG_LOG</a>, <a class="el" href="#a3404a20706c71f45e314625d333f4573">kCompressionStringMod</a>, <a class="el" href="#ab489a08c731f0c501bc54a64a7a95554">kMaxLengthCompression</a>, <a class="el" href="#a64c9eccb0e6bde5044cfd0b85126a423">kMaxLengthNormalHeader</a>, <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>, <a class="el" href="#a2d55693286fcf77b88504da648eb4830">kSnesByteMax</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#af4106f923d69298648b4d5c165adc29d">yaze::app::gfx::lc_lz2::CompressionContext::mode</a>, <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a6aaf9e81ccacb9962676ecddfce72efa">CompressV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a370541438805cc97a0dbae2789d8fa7b">CompressV3()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2214,7 +2241,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af33da6d271bc83cd2ad741dccccccbd3_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af33da6d271bc83cd2ad741dccccccbd3_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af33da6d271bc83cd2ad741dccccccbd3_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_af33da6d271bc83cd2ad741dccccccbd3_icgraph">
 <area shape="rect" title=" " alt="" coords="395,5,565,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,5,347,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="poly" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
@@ -2223,8 +2250,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a6aaf9e81ccacb9962676ecddfce72efa" name="a6aaf9e81ccacb9962676ecddfce72efa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6aaf9e81ccacb9962676ecddfce72efa">&#9670;&#160;</a></span>CompressV3()</h2>
+<a id="a370541438805cc97a0dbae2789d8fa7b" name="a370541438805cc97a0dbae2789d8fa7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a370541438805cc97a0dbae2789d8fa7b">&#9670;&#160;</a></span>CompressV3()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2247,15 +2274,18 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>mode</em>, </span></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>mode</em><span class="paramdefsep"> = </span><span class="paramdefval">1</span>, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>check</em></span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>check</em><span class="paramdefsep"> = </span><span class="paramdefval">false</span></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Compresses a buffer of data using the LC_LZ2 algorithm. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000002">Deprecated</a></b></dt><dd>Use Compress and Uncompress instead. </dd></dl>
 
 <p class="reference">References <a class="el" href="#a4bb15ea4d4366ad87a5f64081ad9de4e">AddCompressionToChain()</a>, <a class="el" href="#ab38fd85b5bab43edf01facb52cfcf3a9">CheckAvailableCompressionCommands()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#aa5c637582cb2b8c609d14c660eb80584">yaze::app::gfx::lc_lz2::CompressionContext::cmd_with_max</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a943dcf9ec619e6cc94501db903aca6a3">yaze::app::gfx::lc_lz2::CompressionContext::compressed_data</a>, <a class="el" href="compression_8cc.html#a5d2f30bd1cbcf49f829a7e8eb6173c06">DEBUG_LOG</a>, <a class="el" href="#a11694c65d1aa9358f9d4e5d041630a5e">DetermineBestCompression()</a>, <a class="el" href="#af33da6d271bc83cd2ad741dccccccbd3">FinalizeCompression()</a>, <a class="el" href="#adcd462db6909fae4d82eab4a06ab3298">HandleDirectCopy()</a>, <a class="el" href="#a59144c3685cd10bc358b440293e7c82d">InitializeCompression()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#ae11cfcee0de7150ad5128529d10bb186">yaze::app::gfx::lc_lz2::CompressionContext::last_pos</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a87923266c1515cfcab0989ff2fed00a3">yaze::app::gfx::lc_lz2::CompressionContext::src_pos</a>, and <a class="el" href="#afd53022c82e6fb4377ab72b823f6d6cf">ValidateCompressionResultV3()</a>.</p>
 
@@ -2263,9 +2293,9 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_cgraph">
-<area shape="rect" title=" " alt="" coords="5,271,131,311"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_cgraph">
+<area shape="rect" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,271,131,311"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e" title=" " alt="" coords="193,61,391,102"/>
 <area shape="poly" title=" " alt="" coords="74,270,88,235,110,193,139,149,177,112,183,108,186,112,180,116,143,152,114,195,93,237,79,272"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9" title=" " alt="" coords="184,126,400,182"/>
@@ -2294,7 +2324,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="377,464,404,451,418,441,427,431,437,420,452,409,481,395,484,400,454,413,440,424,431,434,421,445,406,456,379,469"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="702,446,844,472"/>
 <area shape="poly" title=" " alt="" coords="381,463,453,452,509,448,554,448,654,452,687,453,687,458,654,458,553,454,510,454,453,458,382,469"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="484,532,623,573"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="484,532,623,573"/>
 <area shape="poly" title=" " alt="" coords="377,505,470,529,468,534,376,511"/>
 <area shape="rect" href="classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="466,467,641,507"/>
 <area shape="poly" title=" " alt="" coords="405,484,450,484,450,490,405,490"/>
@@ -2308,9 +2338,9 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_icgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a6aaf9e81ccacb9962676ecddfce72efa_icgraph">
-<area shape="rect" title=" " alt="" coords="222,5,347,46"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_icgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a370541438805cc97a0dbae2789d8fa7b_icgraph">
+<area shape="rect" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
 <area shape="poly" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
 </map>
@@ -2342,14 +2372,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ae3ec60f2320d38749874e8d518182498_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ae3ec60f2320d38749874e8d518182498_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ae3ec60f2320d38749874e8d518182498_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_ae3ec60f2320d38749874e8d518182498_icgraph">
 <area shape="rect" title=" " alt="" coords="395,39,508,79"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="poly" title=" " alt="" coords="379,62,348,62,348,56,379,56"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
@@ -2420,14 +2450,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_aa7583d0d15778f0286acdb9425628785_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_aa7583d0d15778f0286acdb9425628785_icgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_aa7583d0d15778f0286acdb9425628785_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_aa7583d0d15778f0286acdb9425628785_icgraph">
 <area shape="rect" title=" " alt="" coords="3096,329,3209,370"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="2909,329,3048,370"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2909,329,3048,370"/>
 <area shape="poly" title=" " alt="" coords="3080,352,3048,352,3048,347,3080,347"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#acd3f236eb012d461ff376a3ac70ef4ca" title=" " alt="" coords="2653,5,2829,46"/>
 <area shape="poly" title=" " alt="" coords="2970,314,2960,258,2940,189,2925,154,2907,119,2885,87,2859,60,2828,41,2831,37,2862,56,2889,84,2912,117,2930,151,2945,187,2965,257,2976,313"/>
@@ -2491,13 +2521,13 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1375,315,1332,315,1332,310,1375,310"/>
 <area shape="poly" title=" " alt="" coords="1154,300,1122,294,1123,289,1155,294"/>
 <area shape="poly" title=" " alt="" coords="1404,362,1379,355,1316,336,1318,331,1380,350,1406,357"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="2403,552,2528,593"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2403,552,2528,593"/>
 <area shape="poly" title=" " alt="" coords="2620,575,2528,575,2528,570,2620,570"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="2122,487,2283,527"/>
 <area shape="poly" title=" " alt="" coords="2387,556,2283,530,2284,524,2388,551"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="2118,552,2287,593"/>
 <area shape="poly" title=" " alt="" coords="2387,575,2287,575,2287,570,2387,570"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="2403,617,2528,658"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2403,617,2528,658"/>
 <area shape="poly" title=" " alt="" coords="2612,640,2528,640,2528,635,2612,635"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="2118,617,2287,658"/>
 <area shape="poly" title=" " alt="" coords="2387,640,2287,640,2287,635,2387,635"/>
@@ -2506,8 +2536,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a5ea9587c113ad6e6268549036a78c717" name="a5ea9587c113ad6e6268549036a78c717"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5ea9587c113ad6e6268549036a78c717">&#9670;&#160;</a></span>DecompressV2()</h2>
+<a id="a8a5cd746989bba5ac64eef034b664a92" name="a8a5cd746989bba5ac64eef034b664a92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a5cd746989bba5ac64eef034b664a92">&#9670;&#160;</a></span>DecompressV2()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2525,15 +2555,18 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>size</em>, </span></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>size</em><span class="paramdefsep"> = </span><span class="paramdefval">0x800</span>, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>mode</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>mode</em><span class="paramdefsep"> = </span><span class="paramdefval">1</span></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Decompresses a buffer of data using the LC_LZ2 algorithm. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000003">Deprecated</a></b></dt><dd>Use Compress and Uncompress instead. </dd></dl>
 
 <p class="reference">References <a class="el" href="#a2e7301bb5cccde044e318d0bbdf47d3a">kCommandByteFill</a>, <a class="el" href="#a5f07065a9c2fb78b8df4f326aa9152ca">kCommandDirectCopy</a>, <a class="el" href="#a5be3958ac1fbf3bd0b6de3485a96b74d">kCommandIncreasingFill</a>, <a class="el" href="#a010e2733baa0608e0113b3cc3494b587">kCommandMod</a>, <a class="el" href="#aa5f36c0fbde5994c88d0a644f97aac0f">kCommandRepeatingBytes</a>, <a class="el" href="#ab1a2b7e8919a316888cef2f9dd30318b">kCommandWordFill</a>, <a class="el" href="#aa8bcf90e524970ee34af92030ea7066f">kExpandedLengthMod</a>, <a class="el" href="#a10759b617f42c78708923c70558ad3c3">kExpandedMod</a>, <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>, <a class="el" href="#a2eb01c3eaf0d33c2f5289400a00f548b">kNormalLengthMod</a>, <a class="el" href="#a2d55693286fcf77b88504da648eb4830">kSnesByteMax</a>, and <a class="el" href="#aa7583d0d15778f0286acdb9425628785">memfill()</a>.</p>
 
@@ -2541,9 +2574,9 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,145,46"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_cgraph">
+<area shape="rect" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,5,145,46"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="193,5,306,46"/>
 <area shape="poly" title=" " alt="" coords="145,23,177,23,177,28,145,28"/>
 </map>
@@ -2551,9 +2584,9 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_icgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a5ea9587c113ad6e6268549036a78c717_icgraph">
-<area shape="rect" title=" " alt="" coords="2909,329,3048,370"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_icgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_icgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a8a5cd746989bba5ac64eef034b664a92_icgraph">
+<area shape="rect" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2909,329,3048,370"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#acd3f236eb012d461ff376a3ac70ef4ca" title=" " alt="" coords="2653,5,2829,46"/>
 <area shape="poly" title=" " alt="" coords="2970,314,2960,258,2940,189,2925,154,2907,119,2885,87,2859,60,2828,41,2831,37,2862,56,2889,84,2912,117,2930,151,2945,187,2965,257,2976,313"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398" title=" " alt="" coords="2648,70,2834,126"/>
@@ -2616,13 +2649,13 @@ Here is the caller graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="1375,315,1332,315,1332,310,1375,310"/>
 <area shape="poly" title=" " alt="" coords="1154,300,1122,294,1123,289,1155,294"/>
 <area shape="poly" title=" " alt="" coords="1404,362,1379,355,1316,336,1318,331,1380,350,1406,357"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="2403,552,2528,593"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2403,552,2528,593"/>
 <area shape="poly" title=" " alt="" coords="2620,575,2528,575,2528,570,2620,570"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="2122,487,2283,527"/>
 <area shape="poly" title=" " alt="" coords="2387,556,2283,530,2284,524,2388,551"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="2118,552,2287,593"/>
 <area shape="poly" title=" " alt="" coords="2387,575,2287,575,2287,570,2387,570"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="2403,617,2528,658"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2403,617,2528,658"/>
 <area shape="poly" title=" " alt="" coords="2612,640,2528,640,2528,635,2612,635"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="2118,617,2287,658"/>
 <area shape="poly" title=" " alt="" coords="2387,640,2287,640,2287,635,2387,635"/>
@@ -2655,14 +2688,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, and <a class="el" href="#a22ee52306a365c19d960b4bbbeb401f8">kNintendoMode2</a>.</p>
+<p class="reference">References <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, and <a class="el" href="#a22ee52306a365c19d960b4bbbeb401f8">kNintendoMode2</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_acd3f236eb012d461ff376a3ac70ef4ca_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,181,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="229,5,368,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="229,5,368,46"/>
 <area shape="poly" title=" " alt="" coords="181,23,214,23,214,28,181,28"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="416,5,529,46"/>
 <area shape="poly" title=" " alt="" coords="369,23,400,23,400,28,369,28"/>
@@ -2695,7 +2728,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
+<p class="reference">References <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Overworld.html#ac9844a19658f31059710ac13903c75d9">yaze::app::zelda3::Overworld::DecompressProtoMapTiles()</a>.</p>
 <div class="dynheader">
@@ -2704,7 +2737,7 @@ Here is the call graph for this function:</div>
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_afe1d582fab6d08efe1544cdccb882830_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,188,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="236,5,375,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="236,5,375,46"/>
 <area shape="poly" title=" " alt="" coords="188,23,220,23,220,28,188,28"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="423,5,536,46"/>
 <area shape="poly" title=" " alt="" coords="376,23,407,23,407,28,376,28"/>
@@ -2749,81 +2782,19 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
+<p class="reference">References <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, and <a class="el" href="#a9aac5b62ca1178803afc6b1c6b42b7e0">kNintendoMode1</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph" id="anamespaceyaze_1_1app_1_1gfx_1_1lc__lz2_a2106a455fd14b9093a5c1b8eeef23b00_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,188,46"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="236,5,375,46"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="236,5,375,46"/>
 <area shape="poly" title=" " alt="" coords="188,23,220,23,220,28,188,28"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="423,5,536,46"/>
 <area shape="poly" title=" " alt="" coords="376,23,407,23,407,28,376,28"/>
 </map>
 </div>
-
-</div>
-</div>
-<a id="aa05a974992ad85f921edadd149a77d7b" name="aa05a974992ad85f921edadd149a77d7b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa05a974992ad85f921edadd149a77d7b">&#9670;&#160;</a></span>ZS_Compress()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::ZS_Compress </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int</td>          <td class="paramname"><span class="paramname"><em>start</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int</td>          <td class="paramname"><span class="paramname"><em>length</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>mode</em><span class="paramdefsep"> = </span><span class="paramdefval">1</span>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>check</em><span class="paramdefsep"> = </span><span class="paramdefval">false</span></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a55a15aeabda7c43e7946df7f1c8732a3" name="a55a15aeabda7c43e7946df7f1c8732a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a55a15aeabda7c43e7946df7f1c8732a3">&#9670;&#160;</a></span>ZS_CompressOverworld()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::gfx::lc_lz2::ZS_CompressOverworld </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>data</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int</td>          <td class="paramname"><span class="paramname"><em>pos</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int</td>          <td class="paramname"><span class="paramname"><em>length</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
 
 </div>
 </div>
@@ -2841,6 +2812,146 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#acde9fcb657ba406859dd8fe3a17b721b">ValidateForByteGainV2()</a>.</p>
+
+</div>
+</div>
+<a id="ae033dbab83c816712c3b170c3c243833" name="ae033dbab83c816712c3b170c3c243833"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae033dbab83c816712c3b170c3c243833">&#9670;&#160;</a></span>D_NINTENDO_C_MODE1</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_NINTENDO_C_MODE1 = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af7bda5a6d0bb6318c337c03ab8ba8a1e" name="af7bda5a6d0bb6318c337c03ab8ba8a1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7bda5a6d0bb6318c337c03ab8ba8a1e">&#9670;&#160;</a></span>D_NINTENDO_C_MODE2</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_NINTENDO_C_MODE2 = 1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2d61902eb23a861e0aece6310f7324e1" name="a2d61902eb23a861e0aece6310f7324e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d61902eb23a861e0aece6310f7324e1">&#9670;&#160;</a></span>D_CMD_COPY</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_CMD_COPY = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4b1476409f2916209e518e660b34cc4e" name="a4b1476409f2916209e518e660b34cc4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b1476409f2916209e518e660b34cc4e">&#9670;&#160;</a></span>D_CMD_BYTE_REPEAT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_CMD_BYTE_REPEAT = 1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acb6b82911e2f443fd4634e5a11179345" name="acb6b82911e2f443fd4634e5a11179345"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb6b82911e2f443fd4634e5a11179345">&#9670;&#160;</a></span>D_CMD_WORD_REPEAT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_CMD_WORD_REPEAT = 2</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a26f3c869a2317daeb337871e4911fdff" name="a26f3c869a2317daeb337871e4911fdff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26f3c869a2317daeb337871e4911fdff">&#9670;&#160;</a></span>D_CMD_BYTE_INC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_CMD_BYTE_INC = 3</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a31a36d73591e50828e43a0335fb5e5d9" name="a31a36d73591e50828e43a0335fb5e5d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31a36d73591e50828e43a0335fb5e5d9">&#9670;&#160;</a></span>D_CMD_COPY_EXISTING</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_CMD_COPY_EXISTING = 4</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a767f193a16c49b5f65dbc9c0beeb422f" name="a767f193a16c49b5f65dbc9c0beeb422f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a767f193a16c49b5f65dbc9c0beeb422f">&#9670;&#160;</a></span>D_MAX_NORMAL_LENGTH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_MAX_NORMAL_LENGTH = 32</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af8cf51b7ca53e4f6f629f313babd061a" name="af8cf51b7ca53e4f6f629f313babd061a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8cf51b7ca53e4f6f629f313babd061a">&#9670;&#160;</a></span>D_MAX_LENGTH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::D_MAX_LENGTH = 1024</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ace40cf24cf8f92d193c9d6758acca741" name="ace40cf24cf8f92d193c9d6758acca741"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace40cf24cf8f92d193c9d6758acca741">&#9670;&#160;</a></span>INITIAL_ALLOC_SIZE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int yaze::app::gfx::lc_lz2::INITIAL_ALLOC_SIZE = 1024</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -2864,7 +2975,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2b2c7f643980f1ce88cdc09ac06b8f73">CompressV2()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="#a11694c65d1aa9358f9d4e5d041630a5e">DetermineBestCompression()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1490ab6482040dde33225a8985b57c3">CompressV2()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="#a11694c65d1aa9358f9d4e5d041630a5e">DetermineBestCompression()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2888,7 +2999,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a88ed0cde94f8737eec02a9ee0536dad3">CheckByteRepeat()</a>, <a class="el" href="#ab8452f0e53d55ed76cd1687c072a85b4">CheckByteRepeatV2()</a>, <a class="el" href="#afa7d04d790a9cbfc4b08bdd51d4aa7f7">CheckByteRepeatV3()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a88ed0cde94f8737eec02a9ee0536dad3">CheckByteRepeat()</a>, <a class="el" href="#ab8452f0e53d55ed76cd1687c072a85b4">CheckByteRepeatV2()</a>, <a class="el" href="#afa7d04d790a9cbfc4b08bdd51d4aa7f7">CheckByteRepeatV3()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2912,7 +3023,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a6d13ac7649343808451edc35c4b9d74f">CheckWordRepeat()</a>, <a class="el" href="#a99f113d574564e9fb02470d77369b435">CheckWordRepeatV2()</a>, <a class="el" href="#a457de785dbca08488422a649e1c5e1c6">CheckWordRepeatV3()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a6d13ac7649343808451edc35c4b9d74f">CheckWordRepeat()</a>, <a class="el" href="#a99f113d574564e9fb02470d77369b435">CheckWordRepeatV2()</a>, <a class="el" href="#a457de785dbca08488422a649e1c5e1c6">CheckWordRepeatV3()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2936,7 +3047,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#acea89d0e6b3ff8f6c314beb57d39d5da">CheckIncByte()</a>, <a class="el" href="#a47224238ea7d6995a94ebf9d11daf31d">CheckIncByteV2()</a>, <a class="el" href="#a4638043665972c959c63261d3fcb8257">CheckIncByteV3()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acea89d0e6b3ff8f6c314beb57d39d5da">CheckIncByte()</a>, <a class="el" href="#a47224238ea7d6995a94ebf9d11daf31d">CheckIncByteV2()</a>, <a class="el" href="#a4638043665972c959c63261d3fcb8257">CheckIncByteV3()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -2960,7 +3071,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a4150de73a73b9ec42e0fda9cd4f5bb50">CheckIntraCopy()</a>, <a class="el" href="#a2df55e67298266c8e63a33fd7aec0e40">CheckIntraCopyV2()</a>, <a class="el" href="#a6704a0d05d04ae6217e4cf143d5862be">CheckIntraCopyV3()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a4150de73a73b9ec42e0fda9cd4f5bb50">CheckIntraCopy()</a>, <a class="el" href="#a2df55e67298266c8e63a33fd7aec0e40">CheckIntraCopyV2()</a>, <a class="el" href="#a6704a0d05d04ae6217e4cf143d5862be">CheckIntraCopyV3()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -3054,7 +3165,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad1775e9e8b6c900303716aa064635aeb">CompressOverworld()</a>, <a class="el" href="#a9a7ac42c7d62b423375d6a2670250d81">CompressOverworld()</a>, <a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString()</a>, <a class="el" href="#a2106a455fd14b9093a5c1b8eeef23b00">DecompressOverworld()</a>, <a class="el" href="#afe1d582fab6d08efe1544cdccb882830">DecompressOverworld()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="#af33da6d271bc83cd2ad741dccccccbd3">FinalizeCompression()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad1775e9e8b6c900303716aa064635aeb">CompressOverworld()</a>, <a class="el" href="#a9a7ac42c7d62b423375d6a2670250d81">CompressOverworld()</a>, <a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString()</a>, <a class="el" href="#a2106a455fd14b9093a5c1b8eeef23b00">DecompressOverworld()</a>, <a class="el" href="#afe1d582fab6d08efe1544cdccb882830">DecompressOverworld()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="#af33da6d271bc83cd2ad741dccccccbd3">FinalizeCompression()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -3102,7 +3213,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a4150de73a73b9ec42e0fda9cd4f5bb50">CheckIntraCopy()</a>, <a class="el" href="#a2df55e67298266c8e63a33fd7aec0e40">CheckIntraCopyV2()</a>, <a class="el" href="#a6704a0d05d04ae6217e4cf143d5862be">CheckIntraCopyV3()</a>, <a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString()</a>, <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>, <a class="el" href="#af33da6d271bc83cd2ad741dccccccbd3">FinalizeCompression()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a4150de73a73b9ec42e0fda9cd4f5bb50">CheckIntraCopy()</a>, <a class="el" href="#a2df55e67298266c8e63a33fd7aec0e40">CheckIntraCopyV2()</a>, <a class="el" href="#a6704a0d05d04ae6217e4cf143d5862be">CheckIntraCopyV3()</a>, <a class="el" href="#ab84de3d8297ed4cef2d90c0a925cda6f">CreateCompressionString()</a>, <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>, <a class="el" href="#af33da6d271bc83cd2ad741dccccccbd3">FinalizeCompression()</a>, <a class="el" href="#a99a3331f6a6866bb8a694c1d828154fc">SplitCompressionPiece()</a>, and <a class="el" href="#aca37c4a4f8c6a88dd487cc2cc7fff58a">SplitCompressionPieceV3()</a>.</p>
 
 </div>
 </div>
@@ -3126,7 +3237,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>.</p>
 
 </div>
 </div>
@@ -3150,7 +3261,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>.</p>
 
 </div>
 </div>
@@ -3174,7 +3285,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>.</p>
 
 </div>
 </div>
@@ -3198,7 +3309,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5ea9587c113ad6e6268549036a78c717">DecompressV2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8a5cd746989bba5ac64eef034b664a92">DecompressV2()</a>.</p>
 
 </div>
 </div>

@@ -17,14 +17,13 @@ var searchData=
   ['eor1_14',['EOR1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a9ca3e76df5c7aa03c1fb1f9f750883d6',1,'yaze::app::emu::audio::Spc700']]],
   ['executeinstruction_15',['ExecuteInstruction',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ae5f8a8d0e5f8f1a72c4475ac402acda0',1,'yaze::app::emu::Cpu']]],
   ['executeinstructions_16',['ExecuteInstructions',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a51e282a3d4d7ac88639072b6158fe95f',1,'yaze::app::emu::audio::Spc700']]],
-  ['executetasks_17',['ExecuteTasks',['../classyaze_1_1app_1_1core_1_1TaskManager.html#a88a5f57b24adc29452202569602660b8',1,'yaze::app::core::TaskManager']]],
-  ['exits_18',['exits',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae7503ba360585dfd0db4ddf307c6420a',1,'yaze::app::zelda3::Overworld']]],
-  ['expand_19',['Expand',['../classyaze_1_1app_1_1ROM.html#ae16658cf5801bfa4c2b0c6b691d407cf',1,'yaze::app::ROM']]],
-  ['expectcompressok_20',['ExpectCompressOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a92f2b315ed7730d448df213c7a2eed61',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
-  ['expectcompressv3ok_21',['ExpectCompressV3Ok',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a6d3877d903d4a73f31adf0e7c136aa3b',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
-  ['expectdecompressbytesok_22',['ExpectDecompressBytesOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a296ca867a6694b5187414dba06b1db74',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
-  ['expectdecompressok_23',['ExpectDecompressOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a97a906c38b43306c5b937d6590b19d3d',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
-  ['expectnewcompressionpieceok_24',['ExpectNewCompressionPieceOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
-  ['experimentflags_25',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd',1,'yaze::app::core::ExperimentFlags']]],
-  ['extract_26',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
+  ['exits_17',['exits',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ae7503ba360585dfd0db4ddf307c6420a',1,'yaze::app::zelda3::Overworld']]],
+  ['expand_18',['Expand',['../classyaze_1_1app_1_1ROM.html#ae16658cf5801bfa4c2b0c6b691d407cf',1,'yaze::app::ROM']]],
+  ['expectcompressok_19',['ExpectCompressOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a92f2b315ed7730d448df213c7a2eed61',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectcompressv3ok_20',['ExpectCompressV3Ok',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a6d3877d903d4a73f31adf0e7c136aa3b',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectdecompressbytesok_21',['ExpectDecompressBytesOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a296ca867a6694b5187414dba06b1db74',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectdecompressok_22',['ExpectDecompressOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a97a906c38b43306c5b937d6590b19d3d',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['expectnewcompressionpieceok_23',['ExpectNewCompressionPieceOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
+  ['experimentflags_24',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd',1,'yaze::app::core::ExperimentFlags']]],
+  ['extract_25',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
 ];

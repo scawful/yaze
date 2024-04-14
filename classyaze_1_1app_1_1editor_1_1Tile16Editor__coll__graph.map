@@ -10,7 +10,7 @@
 <area shape="poly" id="edge17_Node000014_Node000003" title=" " alt="" coords="585,605,678,631,777,669,801,685,837,702,835,707,798,689,774,673,677,636,584,611"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1NotifyValue.html" title=" " alt="" coords="799,136,978,177"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="994,150,1027,154,1061,162,1093,174,1122,193,1142,212,1159,235,1183,285,1197,335,1203,374,1198,375,1191,336,1178,287,1154,238,1138,216,1119,197,1091,179,1059,167,1026,159,993,155"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1core_1_1NotifyValue.html" title=" " alt="" coords="399,116,607,141"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1core_1_1NotifyValue.html" title="A class to manage a value that can be modified and notify when it changes." alt="" coords="399,116,607,141"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="623,137,631,138,799,149,799,154,631,143,622,143"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1NotifyValue.html" title=" " alt="" coords="799,71,978,111"/>
 <area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="622,114,799,97,799,102,623,119"/>
@@ -32,7 +32,7 @@
 <area shape="rect" id="Node000013" href="$structyaze_1_1app_1_1gfx_1_1snes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="37,453,168,494"/>
 <area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="184,474,275,474,374,470,423,465,424,470,375,475,275,479,184,479"/>
 <area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="965,731,1005,731,1045,725,1085,711,1119,689,1134,670,1147,640,1170,562,1187,479,1197,415,1202,416,1192,480,1175,563,1152,642,1138,673,1122,693,1087,716,1047,730,1005,736,965,737"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="15,709,190,750"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="15,709,190,750"/>
 <area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="206,726,826,723,826,729,206,732"/>
 <area shape="poly" id="edge20_Node000016_Node000015" title=" " alt="" coords="205,709,447,666,448,671,206,714"/>
 <area shape="poly" id="edge25_Node000001_Node000016" title=" " alt="" coords="573,660,709,662,872,657,951,650,1022,638,1080,620,1102,609,1119,597,1137,577,1153,553,1176,503,1190,454,1197,415,1203,416,1195,455,1181,505,1158,556,1142,580,1122,601,1105,614,1082,625,1023,643,952,655,872,663,709,668,573,665"/>

@@ -1,6 +1,6 @@
 <map id="yaze::app::gfx::lc_lz2::memfill" name="yaze::app::gfx::lc_lz2::memfill">
 <area shape="rect" id="Node000001" title=" " alt="" coords="3096,329,3209,370"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="2909,329,3048,370"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2909,329,3048,370"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="3080,352,3048,352,3048,347,3080,347"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#acd3f236eb012d461ff376a3ac70ef4ca" title=" " alt="" coords="2653,5,2829,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2970,314,2960,258,2940,189,2925,154,2907,119,2885,87,2859,60,2828,41,2831,37,2862,56,2889,84,2912,117,2930,151,2945,187,2965,257,2976,313"/>
@@ -64,13 +64,13 @@
 <area shape="poly" id="edge29_Node000027_Node000028" title=" " alt="" coords="1375,315,1332,315,1332,310,1375,310"/>
 <area shape="poly" id="edge30_Node000028_Node000008" title=" " alt="" coords="1154,300,1122,294,1123,289,1155,294"/>
 <area shape="poly" id="edge32_Node000029_Node000028" title=" " alt="" coords="1404,362,1379,355,1316,336,1318,331,1380,350,1406,357"/>
-<area shape="rect" id="Node000031" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="2403,552,2528,593"/>
+<area shape="rect" id="Node000031" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2403,552,2528,593"/>
 <area shape="poly" id="edge34_Node000030_Node000031" title=" " alt="" coords="2620,575,2528,575,2528,570,2620,570"/>
 <area shape="rect" id="Node000032" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="2122,487,2283,527"/>
 <area shape="poly" id="edge35_Node000031_Node000032" title=" " alt="" coords="2387,556,2283,530,2284,524,2388,551"/>
 <area shape="rect" id="Node000033" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="2118,552,2287,593"/>
 <area shape="poly" id="edge36_Node000031_Node000033" title=" " alt="" coords="2387,575,2287,575,2287,570,2387,570"/>
-<area shape="rect" id="Node000035" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="2403,617,2528,658"/>
+<area shape="rect" id="Node000035" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="2403,617,2528,658"/>
 <area shape="poly" id="edge38_Node000034_Node000035" title=" " alt="" coords="2612,640,2528,640,2528,635,2612,635"/>
 <area shape="rect" id="Node000036" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="2118,617,2287,658"/>
 <area shape="poly" id="edge39_Node000035_Node000036" title=" " alt="" coords="2387,640,2287,640,2287,635,2387,635"/>

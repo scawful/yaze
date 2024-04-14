@@ -18,7 +18,7 @@
 <area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="430,323,448,312,463,297,471,282,480,267,496,252,514,241,517,246,500,256,485,270,476,285,467,300,452,316,433,328"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="532,266,673,292"/>
 <area shape="poly" id="edge12_Node000003_Node000012" title=" " alt="" coords="432,323,497,302,527,294,529,299,499,307,433,328"/>
-<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="533,316,672,357"/>
+<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="533,316,672,357"/>
 <area shape="poly" id="edge13_Node000003_Node000013" title=" " alt="" coords="445,345,517,340,517,345,445,350"/>
 <area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1SharedROM.html#a24a8288162f7bd65ea034c23fbb5930d" title=" " alt="" coords="513,405,692,431"/>
 <area shape="poly" id="edge15_Node000003_Node000015" title=" " alt="" coords="446,375,535,398,533,403,444,380"/>

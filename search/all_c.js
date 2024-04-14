@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['i_0',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
-  ['i_1',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a7c1ee50463f68e8a17c0a192e5a9ef1c',1,'yaze::app::emu::audio::Spc700::Flags']]],
+  ['i_0',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a7c1ee50463f68e8a17c0a192e5a9ef1c',1,'yaze::app::emu::audio::Spc700::Flags']]],
+  ['i_1',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
   ['i_5fpostinc_2',['i_postinc',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae6ae32cc8156adc034374664393a0fc3',1,'yaze::app::emu::audio::Spc700']]],
   ['icon_5fmax_5fmd_3',['ICON_MAX_MD',['../icons_8h.html#a1f33448153f99d7338175831c1775dc7',1,'icons.h']]],
   ['icon_5fmd_5f10k_4',['ICON_MD_10K',['../icons_8h.html#a5fda85dd85890c0e4ec00970aa4c4c10',1,'icons.h']]],
@@ -2207,8 +2207,8 @@ var searchData=
   ['increment_5frate_2204',['increment_rate',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29',1,'yaze::app::emu::video::VideoPortControl']]],
   ['increment_5fsize_2205',['increment_size',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],
   ['incw_2206',['INCW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5bbdad94d5dbabfacf9fcf314e3d503c',1,'yaze::app::emu::audio::Spc700']]],
-  ['index_2207',['index',['../structyaze_1_1app_1_1emu_1_1video_1_1Tile.html#a3398a46f69dc283f04b07b0e1aaca545',1,'yaze::app::emu::video::Tile']]],
-  ['index_2208',['Index',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a71607b38bcc957eee162bea627d3e282',1,'yaze::app::zelda3::dungeon::DungeonDestination']]],
+  ['index_2207',['Index',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a71607b38bcc957eee162bea627d3e282',1,'yaze::app::zelda3::dungeon::DungeonDestination']]],
+  ['index_2208',['index',['../structyaze_1_1app_1_1emu_1_1video_1_1Tile.html#a3398a46f69dc283f04b07b0e1aaca545',1,'yaze::app::emu::video::Tile']]],
   ['index_5f_2209',['index_',['../classyaze_1_1app_1_1zelda3_1_1OverworldMap.html#a0a0fb040f8e5a6c4b5751dd486be730b',1,'yaze::app::zelda3::OverworldMap']]],
   ['inferaddressingmodefromoperand_2210',['InferAddressingModeFromOperand',['../classyaze_1_1app_1_1emu_1_1AsmParser.html#ab93a1bd4bf7da9474b99e805b5fc4077',1,'yaze::app::emu::AsmParser']]],
   ['infrastructure_20overview_2211',['YAZE Infrastructure Overview',['../md_docs_2infrastructure.html',1,'']]],
@@ -2216,7 +2216,7 @@ var searchData=
   ['inidisp_2213',['INIDISP',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html',1,'yaze::app::emu::video::PpuRegisters::INIDISP'],['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#aaf073d12e4e995b4777fbbb1b54fcf5f',1,'yaze::app::emu::video::PpuRegisters::INIDISP']]],
   ['init_2214',['Init',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a683c5e94e45d1336df9be9ccf9660d9f',1,'yaze::app::emu::audio::Apu::Init()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#add00d0041c3e891cc2db59ff92a12850',1,'yaze::app::emu::Cpu::Init()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#ae648f002afec4d24c153a88b744c26c0',1,'yaze::app::emu::memory::MockMemory::Init()'],['../classyaze_1_1app_1_1emu_1_1SNES.html#ac252c1d80bdd0e4e72c705d3f72085d5',1,'yaze::app::emu::SNES::Init()'],['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a83772f7108d8781559c680ad670077c1',1,'yaze::app::emu::video::PpuInterface::Init()'],['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a6086f5272d55886f269ebd59b1609379',1,'yaze::app::emu::video::Ppu::Init()'],['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a6571d25014f0c2fce8e26bc77557b16b',1,'yaze::app::gfx::Tilesheet::Init()']]],
   ['initblockset_2215',['InitBlockset',['../classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a36ceca63810dbcc81e774bb0ce282f96',1,'yaze::app::editor::GfxGroupEditor::InitBlockset()'],['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#ad97635ed6047d39d890d8ede59d98af7',1,'yaze::app::editor::Tile16Editor::InitBlockset()']]],
-  ['initial_5falloc_5fsize_2216',['INITIAL_ALLOC_SIZE',['../namespaceyaze_1_1app_1_1gfx.html#a02f20a9b628bdd20d0b918e967655919',1,'yaze::app::gfx']]],
+  ['initial_5falloc_5fsize_2216',['INITIAL_ALLOC_SIZE',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ace40cf24cf8f92d193c9d6758acca741',1,'yaze::app::gfx::lc_lz2']]],
   ['initial_5fequipement_2217',['initial_equipement',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a318974354aea6ec42a8a17fb6f349397',1,'yaze::app::zelda3::dungeon']]],
   ['initialize_2218',['Initialize',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ade3be524545cc675650a5c28fb83f9fd',1,'yaze::app::editor::DungeonEditor::Initialize()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a9ea4272b11e022785545d73d6f1a9423',1,'yaze::app::emu::audio::Apu::Initialize()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#aa642c0cb44257a313d5ce349edb363df',1,'yaze::app::emu::memory::MemoryImpl::Initialize()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a9443af73596f2c973a8c69332e214bb7',1,'yaze::app::emu::memory::MockMemory::Initialize()']]],
   ['initializeclipboard_2219',['InitializeClipboard',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#adaf08d50dc9917daec65db2f32379043',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
@@ -2295,11 +2295,10 @@ var searchData=
   ['isbreakpoint_2292',['IsBreakpoint',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003',1,'yaze::app::emu::Cpu']]],
   ['ismousehovering_2293',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
   ['ismousehoveringoverentity_2294',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95',1,'yaze::app::editor::entity_internal']]],
-  ['istaskcomplete_2295',['IsTaskComplete',['../classyaze_1_1app_1_1core_1_1TaskManager.html#ad6025c0eaa75fcec0f9e1ee851474ca2',1,'yaze::app::core::TaskManager']]],
-  ['itemlabel_2296',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]],
-  ['itemlabelflags_2297',['ItemLabelFlags',['../namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958',1,'yaze::app::gui']]],
-  ['items_2298',['ITEMS',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fa9a932d55199939bfa5c0df5a8830fc1d',1,'yaze::app::editor::OverworldEditor']]],
-  ['items_5fdata_5fend_2299',['items_data_end',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188',1,'yaze::app::zelda3::dungeon']]],
-  ['items_5fdata_5fstart_2300',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]],
-  ['iterator_2301',['iterator',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#ae6497a24c5b132c258854a2402b3ddbb',1,'yaze::app::gfx::BitmapManager']]]
+  ['itemlabel_2295',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]],
+  ['itemlabelflags_2296',['ItemLabelFlags',['../namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958',1,'yaze::app::gui']]],
+  ['items_2297',['ITEMS',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fa9a932d55199939bfa5c0df5a8830fc1d',1,'yaze::app::editor::OverworldEditor']]],
+  ['items_5fdata_5fend_2298',['items_data_end',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188',1,'yaze::app::zelda3::dungeon']]],
+  ['items_5fdata_5fstart_2299',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]],
+  ['iterator_2300',['iterator',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#ae6497a24c5b132c258854a2402b3ddbb',1,'yaze::app::gfx::BitmapManager']]]
 ];

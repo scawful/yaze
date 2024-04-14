@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="781,106,814,106,814,111,781,111"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="399,96,509,121"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="524,106,588,106,588,111,524,111"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title=" " alt="" coords="15,5,190,46"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="15,5,190,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,34,289,48,376,70,429,92,427,97,374,75,288,53,205,39"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="5,70,200,96"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="216,88,399,102,398,107,215,94"/>

@@ -14,7 +14,7 @@ var searchData=
   ['decompressoverworld_11',['DecompressOverworld',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#afe1d582fab6d08efe1544cdccb882830',1,'yaze::app::gfx::lc_lz2::DecompressOverworld(const uchar *data, int pos, int size)'],['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2106a455fd14b9093a5c1b8eeef23b00',1,'yaze::app::gfx::lc_lz2::DecompressOverworld(const std::vector&lt; uint8_t &gt; data, int pos, int size)']]],
   ['decompressprotomaptiles_12',['DecompressProtoMapTiles',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#ac9844a19658f31059710ac13903c75d9',1,'yaze::app::zelda3::Overworld']]],
   ['decompresssuperdonkey_13',['DecompressSuperDonkey',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f',1,'yaze::app::editor::GraphicsEditor']]],
-  ['decompressv2_14',['DecompressV2',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717',1,'yaze::app::gfx::lc_lz2']]],
+  ['decompressv2_14',['DecompressV2',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92',1,'yaze::app::gfx::lc_lz2']]],
   ['decw_15',['DECW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a85dc52e86728af472e60da35a8247382',1,'yaze::app::emu::audio::Spc700']]],
   ['deleted_16',['deleted',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a3ae065221d32ba32057f9c310801eae3',1,'yaze::app::zelda3::Sprite']]],
   ['deleted_5fentrances_17',['deleted_entrances',['../classyaze_1_1app_1_1zelda3_1_1Overworld.html#aacda8341b6f9e9f4e06116a61650e0f1',1,'yaze::app::zelda3::Overworld']]],

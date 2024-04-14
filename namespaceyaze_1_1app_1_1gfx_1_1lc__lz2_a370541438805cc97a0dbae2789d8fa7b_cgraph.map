@@ -1,5 +1,5 @@
 <map id="yaze::app::gfx::lc_lz2::CompressV3" name="yaze::app::gfx::lc_lz2::CompressV3">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,271,131,311"/>
+<area shape="rect" id="Node000001" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,271,131,311"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e" title=" " alt="" coords="193,61,391,102"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,270,88,235,110,193,139,149,177,112,183,108,186,112,180,116,143,152,114,195,93,237,79,272"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9" title=" " alt="" coords="184,126,400,182"/>
@@ -28,7 +28,7 @@
 <area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="377,464,404,451,418,441,427,431,437,420,452,409,481,395,484,400,454,413,440,424,431,434,421,445,406,456,379,469"/>
 <area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="702,446,844,472"/>
 <area shape="poly" id="edge14_Node000013_Node000015" title=" " alt="" coords="381,463,453,452,509,448,554,448,654,452,687,453,687,458,654,458,553,454,510,454,453,458,382,469"/>
-<area shape="rect" id="Node000016" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="484,532,623,573"/>
+<area shape="rect" id="Node000016" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="484,532,623,573"/>
 <area shape="poly" id="edge15_Node000013_Node000016" title=" " alt="" coords="377,505,470,529,468,534,376,511"/>
 <area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="466,467,641,507"/>
 <area shape="poly" id="edge17_Node000013_Node000018" title=" " alt="" coords="405,484,450,484,450,490,405,490"/>

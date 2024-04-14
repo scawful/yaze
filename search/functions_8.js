@@ -44,6 +44,5 @@ var searchData=
   ['isbreakpoint_41',['IsBreakpoint',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003',1,'yaze::app::emu::Cpu']]],
   ['ismousehovering_42',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
   ['ismousehoveringoverentity_43',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95',1,'yaze::app::editor::entity_internal']]],
-  ['istaskcomplete_44',['IsTaskComplete',['../classyaze_1_1app_1_1core_1_1TaskManager.html#ad6025c0eaa75fcec0f9e1ee851474ca2',1,'yaze::app::core::TaskManager']]],
-  ['itemlabel_45',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
+  ['itemlabel_44',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
 ];

@@ -8,10 +8,7 @@ var annotated_dup =
           [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
-          [ "ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "classyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
-          [ "TaskCheckpoint", "structyaze_1_1app_1_1core_1_1TaskCheckpoint.html", "structyaze_1_1app_1_1core_1_1TaskCheckpoint" ],
-          [ "TaskManager", "classyaze_1_1app_1_1core_1_1TaskManager.html", "classyaze_1_1app_1_1core_1_1TaskManager" ],
-          [ "TaskTimer", "classyaze_1_1app_1_1core_1_1TaskTimer.html", "classyaze_1_1app_1_1core_1_1TaskTimer" ]
+          [ "ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "classyaze_1_1app_1_1core_1_1ResourceLabelManager" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
           [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", [

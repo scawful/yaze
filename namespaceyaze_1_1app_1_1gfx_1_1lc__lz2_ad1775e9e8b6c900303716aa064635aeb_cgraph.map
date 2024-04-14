@@ -1,6 +1,6 @@
 <map id="yaze::app::gfx::lc_lz2::CompressOverworld" name="yaze::app::gfx::lc_lz2::CompressOverworld">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,271,174,311"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,271,347,311"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,271,347,311"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,288,206,288,206,294,174,294"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e" title=" " alt="" coords="410,61,607,102"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="290,270,304,235,326,193,356,149,393,112,399,108,402,112,397,116,360,152,331,195,309,237,295,272"/>
@@ -30,7 +30,7 @@
 <area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="593,464,620,451,634,441,643,431,653,420,668,409,698,395,700,400,671,413,657,424,647,434,638,445,623,456,595,469"/>
 <area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1ROM.html#a286b3694f7fb69c2106a8cd883c8eb5a" title=" " alt="" coords="919,446,1060,472"/>
 <area shape="poly" id="edge15_Node000014_Node000016" title=" " alt="" coords="598,463,669,452,726,448,770,448,871,452,903,453,903,458,871,458,770,454,726,454,670,458,599,469"/>
-<area shape="rect" id="Node000017" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a5ea9587c113ad6e6268549036a78c717" title=" " alt="" coords="700,532,840,573"/>
+<area shape="rect" id="Node000017" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="700,532,840,573"/>
 <area shape="poly" id="edge16_Node000014_Node000017" title=" " alt="" coords="593,505,686,529,685,534,592,511"/>
 <area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1ROM.html#a6fcac5aef8b057ee3d4cccbd50f5a1ef" title=" " alt="" coords="682,467,858,507"/>
 <area shape="poly" id="edge18_Node000014_Node000019" title=" " alt="" coords="622,484,667,484,667,490,622,490"/>

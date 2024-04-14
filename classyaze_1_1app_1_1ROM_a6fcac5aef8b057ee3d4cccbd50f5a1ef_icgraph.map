@@ -26,13 +26,13 @@
 <area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="203,36,171,36,171,31,203,31"/>
 <area shape="poly" id="edge10_Node000010_Node000008" title=" " alt="" coords="432,53,400,49,401,43,433,48"/>
 <area shape="poly" id="edge12_Node000011_Node000011" title=" " alt="" coords="1800,97,1785,90,1761,87,1741,89,1727,94,1719,100,1717,109,1712,107,1715,97,1724,89,1740,84,1761,82,1787,85,1803,92"/>
-<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="1431,204,1556,244"/>
+<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="1431,204,1556,244"/>
 <area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="1640,227,1557,227,1557,221,1640,221"/>
 <area shape="rect" id="Node000014" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="1174,138,1335,179"/>
 <area shape="poly" id="edge15_Node000013_Node000014" title=" " alt="" coords="1415,205,1331,182,1332,177,1417,200"/>
 <area shape="rect" id="Node000015" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="1170,204,1339,244"/>
 <area shape="poly" id="edge16_Node000013_Node000015" title=" " alt="" coords="1415,227,1339,227,1339,221,1415,221"/>
-<area shape="rect" id="Node000017" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="1431,269,1556,310"/>
+<area shape="rect" id="Node000017" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="1431,269,1556,310"/>
 <area shape="poly" id="edge18_Node000016_Node000017" title=" " alt="" coords="1632,292,1556,292,1556,287,1632,287"/>
 <area shape="rect" id="Node000018" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="1170,269,1339,310"/>
 <area shape="poly" id="edge19_Node000017_Node000018" title=" " alt="" coords="1415,292,1339,292,1339,287,1415,287"/>

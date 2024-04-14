@@ -4,13 +4,13 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="653,114,614,109,614,103,654,109"/>
 <area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#afd53022c82e6fb4377ab72b823f6d6cf" title=" " alt="" coords="395,136,621,177"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="654,139,622,144,621,138,653,134"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2b2c7f643980f1ce88cdc09ac06b8f73" title=" " alt="" coords="222,71,347,111"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1490ab6482040dde33225a8985b57c3" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,71,347,111"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,94,347,94,347,88,388,88"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,68,151,49,153,44,208,63"/>
 <area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="5,71,174,111"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="206,94,174,94,174,88,206,88"/>
-<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a6aaf9e81ccacb9962676ecddfce72efa" title=" " alt="" coords="222,136,347,177"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,136,347,177"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="380,159,348,159,348,154,380,154"/>
 <area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,136,174,177"/>
 <area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="206,159,174,159,174,154,206,154"/>

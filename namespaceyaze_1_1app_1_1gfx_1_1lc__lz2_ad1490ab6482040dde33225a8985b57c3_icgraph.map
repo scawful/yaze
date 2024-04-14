@@ -1,5 +1,5 @@
 <map id="yaze::app::gfx::lc_lz2::CompressV2" name="yaze::app::gfx::lc_lz2::CompressV2">
-<area shape="rect" id="Node000001" title=" " alt="" coords="222,39,347,79"/>
+<area shape="rect" id="Node000001" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,39,347,79"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a405e942bb0f4f03896a275fb2bdf0623" title=" " alt="" coords="9,5,170,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,48,170,42,171,37,207,43"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a9a7ac42c7d62b423375d6a2670250d81" title=" " alt="" coords="5,71,174,111"/>

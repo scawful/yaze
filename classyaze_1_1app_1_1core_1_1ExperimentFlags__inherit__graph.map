@@ -1,5 +1,5 @@
 <map id="yaze::app::core::ExperimentFlags" name="yaze::app::core::ExperimentFlags">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,203,181,244"/>
+<area shape="rect" id="Node000001" title="A class to manage experimental feature flags." alt="" coords="5,203,181,244"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1ROM.html" title="The ROM class is used to load, save, and modify ROM data." alt="" coords="257,5,367,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,188,128,153,155,113,188,74,227,40,255,26,257,31,230,44,192,77,159,116,133,156,113,191"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1Controller.html" title=" " alt="" coords="229,55,395,80"/>
@@ -8,7 +8,7 @@
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,194,228,156,257,143,259,148,230,161,150,198"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html" title="The MasterEditor class represents the main editor for a ROM in the Yaze application." alt="" coords="253,170,371,211"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="195,205,252,197,253,202,196,210"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html" title="Represents an editor for the overworld in a game." alt="" coords="253,235,371,276"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a ROM." alt="" coords="253,235,371,276"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="196,236,253,244,252,250,195,241"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1Cpu.html" title=" " alt="" coords="245,300,379,326"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="149,249,230,285,264,297,262,302,228,290,147,254"/>

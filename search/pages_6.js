@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['lc_5flz2_20compression_0',['LC_LZ2 Compression',['../md_docs_2compression.html',1,'']]],
-  ['list_1',['List',['../test.html',1,'Test List'],['../todo.html',1,'Todo List']]]
+  ['infrastructure_20overview_0',['YAZE Infrastructure Overview',['../md_docs_2infrastructure.html',1,'']]],
+  ['instructions_1',['Build Instructions',['../md_docs_2build-instructions.html',1,'']]]
 ];
