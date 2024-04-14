@@ -118,6 +118,13 @@ class OverworldEditor : public Editor,
     map_blockset_loaded_ = false;
   }
 
+  /**
+   * @brief Load the Bitmap objects for each OverworldMap.
+   *
+   * Calls the Overworld class to load the image data and palettes from the ROM,
+   * then renders the area graphics and tile16 blockset Bitmap objects before
+   * assembling the OverworldMap Bitmap objects.
+   */
   absl::Status LoadGraphics();
 
  private:
