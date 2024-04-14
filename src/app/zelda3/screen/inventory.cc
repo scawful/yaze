@@ -79,9 +79,9 @@ absl::Status Inventory::BuildTileset() {
     test_.push_back(tilesheets_[i]);
   }
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
-  ASSIGN_OR_RETURN(auto hud_pal_group, rom()->palette_group("hud"));
+  auto hud_pal_group = rom()->palette_group().hud;
   palette_ = hud_pal_group[0];
-  tilesheets_bmp_.ApplyPalette(palette_);
+  RETURN_IF_ERROR(tilesheets_bmp_.ApplyPalette(palette_))
   rom()->RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();
 }

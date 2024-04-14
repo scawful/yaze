@@ -7,9 +7,9 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/editor/utils/editor.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -60,7 +60,7 @@ class Tile16Editor : public context::GfxContext, public SharedROM {
   absl::Status set_tile16(int id) {
     current_tile16_ = id;
     current_tile16_bmp_ = tile16_individual_[id];
-    ASSIGN_OR_RETURN(auto ow_main_pal_group, rom()->palette_group("ow_main"));
+    auto ow_main_pal_group = rom()->palette_group().overworld_main;
     RETURN_IF_ERROR(
         current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]));
     rom()->RenderBitmap(&current_tile16_bmp_);

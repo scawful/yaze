@@ -6,8 +6,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/editor/utils/editor.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -220,29 +220,20 @@ void GfxGroupEditor::DrawPaletteViewer() {
   gui::InputHexByte("Dungeon Spr Pal 2", &dungeon_spr_pal_2_val);
   gui::InputHexByte("Dungeon Spr Pal 3", &dungeon_spr_pal_3_val);
 
-  auto &palette =
-      *rom()
-           ->mutable_palette_group(
-               "dungeon_main")[rom()->paletteset_ids[selected_paletteset][0]]
-           .mutable_palette(0);
+  auto &palette = *rom()->mutable_palette_group()->dungeon_main.mutable_palette(
+      rom()->paletteset_ids[selected_paletteset][0]);
   DrawPaletteFromPaletteGroup(palette);
   auto &spr_aux_pal1 =
-      *rom()
-           ->mutable_palette_group(
-               "sprites_aux1")[rom()->paletteset_ids[selected_paletteset][1]]
-           .mutable_palette(0);
+      *rom()->mutable_palette_group()->sprites_aux1.mutable_palette(
+          rom()->paletteset_ids[selected_paletteset][1]);
   DrawPaletteFromPaletteGroup(spr_aux_pal1);
   auto &spr_aux_pal2 =
-      *rom()
-           ->mutable_palette_group(
-               "sprites_aux2")[rom()->paletteset_ids[selected_paletteset][2]]
-           .mutable_palette(0);
+      *rom()->mutable_palette_group()->sprites_aux2.mutable_palette(
+          rom()->paletteset_ids[selected_paletteset][2]);
   DrawPaletteFromPaletteGroup(spr_aux_pal2);
   auto &spr_aux_pal3 =
-      *rom()
-           ->mutable_palette_group(
-               "sprites_aux3")[rom()->paletteset_ids[selected_paletteset][3]]
-           .mutable_palette(0);
+      *rom()->mutable_palette_group()->sprites_aux3.mutable_palette(
+          rom()->paletteset_ids[selected_paletteset][3]);
   DrawPaletteFromPaletteGroup(spr_aux_pal3);
 }
 

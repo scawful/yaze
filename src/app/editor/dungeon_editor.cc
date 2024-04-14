@@ -59,8 +59,7 @@ absl::Status DungeonEditor::Update() {
 }
 
 absl::Status DungeonEditor::Initialize() {
-  ASSIGN_OR_RETURN(auto dungeon_man_pal_group,
-                   rom()->palette_group("dungeon_main"));
+  auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
   for (int i = 0; i < 0x100 + 40; i++) {
     rooms_.emplace_back(zelda3::dungeon::Room(i));
     rooms_[i].LoadHeader();
@@ -101,12 +100,11 @@ absl::Status DungeonEditor::Initialize() {
 absl::Status DungeonEditor::RefreshGraphics() {
   for (int i = 0; i < 8; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
-    graphics_bin_[block].get()->ApplyPaletteWithTransparent(
-        current_palette_group_[current_palette_id_], 0);
+    RETURN_IF_ERROR(graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+        current_palette_group_[current_palette_id_], 0));
     rom()->UpdateBitmap(graphics_bin_[block].get(), true);
   }
-  ASSIGN_OR_RETURN(auto sprites_aux1_pal_group,
-                   rom()->palette_group("sprites_aux1"));
+  auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
   for (int i = 9; i < 16; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
     graphics_bin_[block].get()->ApplyPaletteWithTransparent(
@@ -163,8 +161,7 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
 
   if (palette_showing_) {
     ImGui::Begin("Palette Editor", &palette_showing_, 0);
-    ASSIGN_OR_RETURN(auto dungeon_main_pal_group,
-                     rom()->palette_group("dungeon_main"));
+    auto dungeon_main_pal_group = rom()->palette_group().dungeon_main;
     current_palette_ = dungeon_main_pal_group[current_palette_group_id_];
     gui::SelectablePalettePipeline(current_palette_id_, refresh_graphics_,
                                    current_palette_);
