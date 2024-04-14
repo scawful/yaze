@@ -9,6 +9,7 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace video {
 
 using namespace PpuRegisters;
 
@@ -56,8 +57,8 @@ void Ppu::RenderScanline() {
 
   // Fetch the tile data from VRAM, tile map data from memory, and palette data
   // from CGRAM
-  // UpdateTileData();     // Fetches the tile data from VRAM and stores it in an
-                        // internal buffer
+  // UpdateTileData();     // Fetches the tile data from VRAM and stores it in
+  // an internal buffer
   UpdateTileMapData();  // Fetches the tile map data from memory and stores it
                         // in an internal buffer
   UpdatePaletteData();  // Fetches the palette data from CGRAM and stores it in
@@ -430,6 +431,7 @@ void Ppu::DisplayFrameBuffer() {
   }
 }
 
+}  // namespace video
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze
