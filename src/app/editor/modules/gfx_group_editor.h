@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -23,6 +23,10 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+/**
+ * @class GfxGroupEditor
+ * @brief Manage graphics group configurations in a ROM.
+ */
 class GfxGroupEditor : public SharedROM {
  public:
   absl::Status Update();

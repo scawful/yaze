@@ -697,8 +697,6 @@ void OverworldEditor::CheckForMousePan() {
   }
 }
 
-// Overworld Editor canvas
-// Allows the user to make changes to the overworld map.
 void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
     DrawOverworldMapSettings();

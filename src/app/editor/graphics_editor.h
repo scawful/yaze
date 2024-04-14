@@ -62,7 +62,7 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
 /**
  * @class GraphicsEditor
  * @brief Allows the user to edit graphics sheets from the game or view
- * prototype graphics of Link to the Past from the CGX, SCR, and OBJ formats.
+ * prototype graphics.
  *
  * The GraphicsEditor class is responsible for providing functionality to edit
  * graphics sheets from the game or view prototype graphics of Link to the Past

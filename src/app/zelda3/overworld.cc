@@ -311,11 +311,11 @@ absl::Status Overworld::LoadOverworldMaps() {
     } else if (i >= 0x80) {
       world_type = 2;
     }
-    futures.emplace_back(
-        std::async(std::launch::async, [this, i, size, world_type]() {
-          return overworld_maps_[i].BuildMap(size, game_state_, world_type,
-                                             GetMapTiles(world_type));
-        }));
+    auto task_function = [this, i, size, world_type]() {
+      return overworld_maps_[i].BuildMap(size, game_state_, world_type,
+                                         GetMapTiles(world_type));
+    };
+    futures.emplace_back(std::async(std::launch::async, task_function));
   }
 
   // Wait for all tasks to complete and check their results

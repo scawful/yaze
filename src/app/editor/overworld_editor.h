@@ -12,7 +12,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
-#include "app/core/editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/editor/context/entrance_context.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/modules/gfx_group_editor.h"
@@ -88,6 +88,9 @@ class OverworldEditor : public Editor,
 
   auto overworld() { return &overworld_; }
 
+  /**
+   * @brief
+   */
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
@@ -139,6 +142,10 @@ class OverworldEditor : public Editor,
   void CheckForSelectRectangle();
   absl::Status CheckForCurrentMap();
   void CheckForMousePan();
+
+  /**
+   * @brief Allows the user to make changes to the overworld map.
+   */
   void DrawOverworldCanvas();
 
   absl::Status DrawTile16Selector();
