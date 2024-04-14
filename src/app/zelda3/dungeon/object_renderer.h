@@ -49,7 +49,7 @@ class DungeonObjectRenderer : public SharedROM {
   emu::MemoryImpl memory_;
   emu::ClockImpl clock_;
   emu::Cpu cpu{memory_, clock_};
-  emu::Ppu ppu{memory_, clock_};
+  emu::video::Ppu ppu{memory_, clock_};
   gfx::Bitmap bitmap_;
   PseudoVram vram_;
 };

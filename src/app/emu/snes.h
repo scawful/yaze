@@ -62,7 +62,7 @@ class SNES : public DMA {
   bool running() const { return running_; }
 
   auto cpu() -> Cpu& { return cpu_; }
-  auto ppu() -> Ppu& { return ppu_; }
+  auto ppu() -> video::Ppu& { return ppu_; }
   auto Memory() -> MemoryImpl* { return &memory_; }
 
   void SetCpuMode(int mode) { cpu_mode_ = mode; }
@@ -91,7 +91,7 @@ class SNES : public DMA {
   audio::AudioRamImpl audio_ram_;
 
   Cpu cpu_{memory_, clock_};
-  Ppu ppu_{memory_, clock_};
+  video::Ppu ppu_{memory_, clock_};
   audio::Apu apu_{memory_, audio_ram_, clock_};
 
   // Helper classes

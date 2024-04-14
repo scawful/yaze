@@ -13,8 +13,9 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace video {
 
-using namespace yaze::app::emu::PpuRegisters;
+using namespace PpuRegisters;
 
 class PpuInterface {
  public:
@@ -386,6 +387,7 @@ class Ppu : public Observer, public SharedROM {
   const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 };
 
+}  // namespace video
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze
