@@ -18,7 +18,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/pipeline.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -128,7 +128,7 @@ class Tile16Editor : public context::GfxContext, public SharedROM {
   PaletteEditor palette_editor_;
 
   gfx::SnesPalette palette_;
-  zelda3::Overworld transfer_overworld_;
+  zelda3::overworld::Overworld transfer_overworld_;
 
   gfx::BitmapTable graphics_bin_;
 

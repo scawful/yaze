@@ -23,7 +23,7 @@
 #include "app/gui/style.h"
 #include "app/gui/widgets.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -863,8 +863,9 @@ bool IsMouseHoveringOverEntity(const zelda3::OverworldEntity &entity,
   return false;
 }
 
-void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
-                      ImVec2 scrolling, bool free_movement = false) {
+void MoveEntityOnGrid(zelda3::OverworldEntity *entity,
+                      ImVec2 canvas_p0, ImVec2 scrolling,
+                      bool free_movement = false) {
   // Get the mouse position relative to the canvas
   const ImGuiIO &io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
@@ -883,8 +884,9 @@ void MoveEntityOnGrid(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
   entity->set_y(new_y);
 }
 
-void HandleEntityDragging(zelda3::OverworldEntity *entity, ImVec2 canvas_p0,
-                          ImVec2 scrolling, bool &is_dragging_entity,
+void HandleEntityDragging(zelda3::OverworldEntity *entity,
+                          ImVec2 canvas_p0, ImVec2 scrolling,
+                          bool &is_dragging_entity,
                           zelda3::OverworldEntity *&dragged_entity,
                           zelda3::OverworldEntity *&current_entity,
                           bool free_movement = false) {
@@ -960,7 +962,8 @@ bool DrawEntranceInserterPopup() {
 }
 
 // TODO: Implement deleting OverworldEntrance objects, currently only hides them
-bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
+bool DrawOverworldEntrancePopup(
+    zelda3::overworld::OverworldEntrance &entrance) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
@@ -1084,7 +1087,7 @@ void DrawExitInserterPopup() {
   }
 }
 
-bool DrawExitEditorPopup(zelda3::OverworldExit &exit) {
+bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
@@ -1280,8 +1283,8 @@ void DrawItemInsertPopup() {
     ImGui::Text("Add Item");
     ImGui::BeginChild("ScrollRegion", ImVec2(150, 150), true,
                       ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    for (int i = 0; i < zelda3::kSecretItemNames.size(); i++) {
-      if (ImGui::Selectable(zelda3::kSecretItemNames[i].c_str(),
+    for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
+      if (ImGui::Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
                             i == new_item_id)) {
         new_item_id = i;
       }
@@ -1304,7 +1307,7 @@ void DrawItemInsertPopup() {
 }
 
 // TODO: Implement deleting OverworldItem objects, currently only hides them
-bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
+bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
@@ -1314,8 +1317,8 @@ bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
     ImGui::BeginChild("ScrollRegion", ImVec2(150, 150), true,
                       ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
-    for (int i = 0; i < zelda3::kSecretItemNames.size(); i++) {
-      if (ImGui::Selectable(zelda3::kSecretItemNames[i].c_str(),
+    for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
+      if (ImGui::Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
                             item.id == i)) {
         item.id = i;
       }
@@ -1348,7 +1351,7 @@ void OverworldEditor::DrawOverworldItems() {
     // Get the item's bitmap and real X and Y positions
     if (item.room_map_id < 0x40 + (current_world_ * 0x40) &&
         item.room_map_id >= (current_world_ * 0x40) && !item.deleted) {
-      std::string item_name = zelda3::kSecretItemNames[item.id];
+      std::string item_name = zelda3::overworld::kSecretItemNames[item.id];
 
       ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, ImVec4(255, 0, 0, 150));
 
@@ -1647,7 +1650,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
 
   // Render the overworld maps loaded from the ROM.
-  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+  for (int i = 0; i < zelda3::overworld::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
     auto palette = overworld_.AreaPalette();
     gui::BuildAndRenderBitmapPipeline(0x200, 0x200, 0x200,

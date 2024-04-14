@@ -25,7 +25,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/pipeline.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace app {
@@ -235,11 +235,11 @@ class OverworldEditor : public Editor,
   zelda3::OverworldEntity* current_entity_;
 
   int current_entrance_id_ = 0;
-  zelda3::OverworldEntrance current_entrance_;
+  zelda3::overworld::OverworldEntrance current_entrance_;
   int current_exit_id_ = 0;
-  zelda3::OverworldExit current_exit_;
+  zelda3::overworld::OverworldExit current_exit_;
   int current_item_id_ = 0;
-  zelda3::OverworldItem current_item_;
+  zelda3::overworld::OverworldItem current_item_;
   int current_sprite_id_ = 0;
   zelda3::Sprite current_sprite_;
 
@@ -257,7 +257,7 @@ class OverworldEditor : public Editor,
   Tile16Editor tile16_editor_;
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
-  zelda3::Overworld overworld_;
+  zelda3::overworld::Overworld overworld_;
 
   gui::Canvas ow_map_canvas_{ImVec2(0x200 * 8, 0x200 * 8),
                              gui::CanvasGridSize::k64x64};

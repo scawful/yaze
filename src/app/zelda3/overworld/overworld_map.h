@@ -20,6 +20,7 @@
 namespace yaze {
 namespace app {
 namespace zelda3 {
+namespace overworld {
 
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
@@ -144,6 +145,7 @@ class OverworldMap : public editor::context::GfxContext {
   std::vector<gfx::Tile16> tiles16_;
 };
 
+}  // namespace overworld
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze

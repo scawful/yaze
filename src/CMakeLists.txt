@@ -34,8 +34,8 @@ set(
 
 set(
   YAZE_APP_ZELDA3_SRC
-  app/zelda3/overworld_map.cc
-  app/zelda3/overworld.cc
+  app/zelda3/overworld/overworld_map.cc
+  app/zelda3/overworld/overworld.cc
   app/zelda3/screen/inventory.cc
   app/zelda3/screen/title_screen.cc
   app/zelda3/sprite/sprite.cc

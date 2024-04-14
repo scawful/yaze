@@ -22,7 +22,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/pipeline.h"
 #include "app/rom.h"  // for ROM
-#include "app/zelda3/overworld.h"
+#include "app/zelda3/overworld/overworld.h"
 #include "cli/patch.h"  // for ApplyBpsPatch, CreateBpsPatch
 
 namespace yaze {

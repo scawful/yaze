@@ -1,5 +1,7 @@
 #include "sprite.h"
 
+#include "app/zelda3/overworld/overworld.h"
+
 namespace yaze {
 namespace app {
 namespace zelda3 {
