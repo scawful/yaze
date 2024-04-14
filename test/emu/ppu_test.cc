@@ -9,7 +9,11 @@
 namespace yaze {
 namespace app {
 namespace emu {
+namespace video {
 
+/**
+ * @brief Mock Ppu class for testing
+ */
 class MockPpu : public PpuInterface {
  public:
   MOCK_METHOD(void, Write, (uint16_t address, uint8_t data), (override));
@@ -48,6 +52,9 @@ class MockPpu : public PpuInterface {
   BackgroundMode bgMode;
 };
 
+/**
+ * \test Test fixture for PPU unit tests
+ */
 class PpuTest : public ::testing::Test {
  protected:
   MockMemory mock_memory;
@@ -141,6 +148,7 @@ TEST_F(PpuTest, FrameComposition) {
   // buffer
 }
 
+}  // namespace video
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

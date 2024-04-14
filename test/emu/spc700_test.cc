@@ -12,6 +12,9 @@ namespace audio {
 using testing::_;
 using testing::Return;
 
+/**
+ * @brief MockAudioRam is a mock class for the AudioRam class.
+ */
 class MockAudioRam : public AudioRam {
  public:
   MOCK_METHOD(void, reset, (), (override));
@@ -52,6 +55,9 @@ class MockAudioRam : public AudioRam {
   std::vector<uint8_t> internal_audio_ram_ = std::vector<uint8_t>(0x10000, 0);
 };
 
+/**
+ * \test Spc700Test is a test fixture for the Spc700 class.
+ */
 class Spc700Test : public ::testing::Test {
  public:
   Spc700Test() = default;
