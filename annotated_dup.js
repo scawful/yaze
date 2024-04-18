@@ -174,6 +174,12 @@ var annotated_dup =
           [ "Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html", "classyaze_1_1app_1_1gfx_1_1Tilesheet" ]
         ] ],
         [ "gui", "namespaceyaze_1_1app_1_1gui.html", [
+          [ "zeml", "namespaceyaze_1_1app_1_1gui_1_1zeml.html", [
+            [ "Action", "structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html", "structyaze_1_1app_1_1gui_1_1zeml_1_1Action" ],
+            [ "Node", "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html", "structyaze_1_1app_1_1gui_1_1zeml_1_1Node" ],
+            [ "Token", "structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html", "structyaze_1_1app_1_1gui_1_1zeml_1_1Token" ],
+            [ "WidgetAttributes", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes" ]
+          ] ],
           [ "BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", "classyaze_1_1app_1_1gui_1_1BitmapViewer" ],
           [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", "classyaze_1_1app_1_1gui_1_1Canvas" ],
           [ "DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ]

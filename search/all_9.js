@@ -37,7 +37,7 @@ var searchData=
   ['findmetastamp_34',['FindMetastamp',['../namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#abe047922c043574add4a0819ba82ea31',1,'yaze::app::gfx::scad_format']]],
   ['fixed_5fsubscreen_35',['fixed_subscreen',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html#aa3058f1e861c80ae82f31bac55f29ba5',1,'yaze::app::emu::video::PpuRegisters::CGWSEL']]],
   ['flags_36',['Flags',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html',1,'yaze::app::core::ExperimentFlags::Flags'],['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['flags_37',['flags',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#aef0f6638f724c50f1315a7b90c079f30',1,'yaze::app::emu::audio::DigitalSignalProcessor::flags'],['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116',1,'yaze::app::core::ExperimentFlags::flags() const']]],
+  ['flags_37',['flags',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#aef0f6638f724c50f1315a7b90c079f30',1,'yaze::app::emu::audio::DigitalSignalProcessor::flags'],['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#aa37879736f98fd35a67aa58ef1584568',1,'yaze::app::gui::zeml::WidgetAttributes::flags'],['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116',1,'yaze::app::core::ExperimentFlags::flags() const']]],
   ['flags_5f_38',['flags_',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a90c81a943c914ebc2d06be515c76fc83',1,'yaze::app::core::ExperimentFlags']]],
   ['flagstobyte_39',['FlagsToByte',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f',1,'yaze::app::emu::audio::Spc700']]],
   ['flip_5fhorizontal_40',['flip_horizontal',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac',1,'yaze::app::emu::video::PpuRegisters::M7SEL']]],
@@ -67,8 +67,9 @@ var searchData=
   ['frequency_64',['frequency',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#af8546af43797ed80f52a784d35f04689',1,'yaze::app::emu::ClockImpl']]],
   ['full_5fgraphic_65',['full_graphic',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0',1,'yaze::app::emu::video::VideoPortControl']]],
   ['full_5fpalette_5f_66',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
-  ['functions_67',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
-  ['functions_3a_68',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2infrastructure.html#autotoc_md27',1,'Main Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
-  ['further_20development_20ideas_69',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md29',1,'']]],
-  ['fx_70',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
+  ['function_67',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
+  ['functions_68',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
+  ['functions_3a_69',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2infrastructure.html#autotoc_md27',1,'Main Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
+  ['further_20development_20ideas_70',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md29',1,'']]],
+  ['fx_71',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

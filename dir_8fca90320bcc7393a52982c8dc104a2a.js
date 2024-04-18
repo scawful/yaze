@@ -12,5 +12,7 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "style.cc", "style_8cc.html", "style_8cc" ],
     [ "style.h", "style_8h.html", "style_8h" ],
     [ "widgets.cc", "widgets_8cc.html", "widgets_8cc" ],
-    [ "widgets.h", "widgets_8h.html", "widgets_8h" ]
+    [ "widgets.h", "widgets_8h.html", "widgets_8h" ],
+    [ "zeml.cc", "zeml_8cc.html", "zeml_8cc" ],
+    [ "zeml.h", "zeml_8h.html", "zeml_8h" ]
 ];

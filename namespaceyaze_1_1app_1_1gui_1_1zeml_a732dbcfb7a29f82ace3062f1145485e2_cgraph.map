@@ -1,0 +1,6 @@
+<map id="yaze::app::gui::zeml::Render" name="yaze::app::gui::zeml::Render">
+<area shape="rect" id="Node000001" title="Render a zeml tree." alt="" coords="5,29,136,70"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="36,29,35,19,40,10,52,5,71,3,90,5,102,11,99,16,88,10,70,8,54,10,44,14,40,20,42,28"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="184,29,314,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,47,168,47,168,52,136,52"/>
+</map>

@@ -1,5 +1,6 @@
 var hierarchy =
 [
+    [ "yaze::app::gui::zeml::Action", "structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html", null ],
     [ "yaze::app::emu::AsmParser", "classyaze_1_1app_1_1emu_1_1AsmParser.html", null ],
     [ "yaze::app::editor::AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", null ],
     [ "yaze::app::emu::audio::AudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html", [
@@ -116,6 +117,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::MPYH", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYH.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::MPYL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYL.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::MPYM", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html", null ],
+    [ "yaze::app::gui::zeml::Node", "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html", null ],
     [ "yaze::app::core::NotifyValue< T >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
     [ "yaze::app::core::NotifyValue< uint32_t >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
     [ "yaze::app::core::NotifyValue< uint8_t >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
@@ -222,6 +224,7 @@ var hierarchy =
     [ "yaze::app::zelda3::screen::TitleScreen", "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TM", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TM.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TMW", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TMW.html", null ],
+    [ "yaze::app::gui::zeml::Token", "structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html", null ],
     [ "yaze::app::zelda3::music::Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TS", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TSW", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TSW.html", null ],
@@ -241,6 +244,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::WH1", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH1.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::WH2", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH2.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::WH3", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH3.html", null ],
+    [ "yaze::app::gui::zeml::WidgetAttributes", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html", null ],
     [ "yaze::app::emu::video::WindowMaskSettings", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html", null ],
     [ "yaze::app::emu::video::WindowMaskSettings2", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html", null ],
     [ "yaze::app::emu::video::WindowPosition", "structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html", null ],

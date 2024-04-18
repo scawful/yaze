@@ -3,6 +3,7 @@ var namespaceyaze_1_1app_1_1gui =
     [ "anonymous_namespace{canvas.cc}", "namespaceyaze_1_1app_1_1gui_1_1anonymous__namespace_02canvas_8cc_03.html", [
       [ "AlignPosToGrid", "namespaceyaze_1_1app_1_1gui_1_1anonymous__namespace_02canvas_8cc_03.html#a6739cf66e8926a0ff5db236971ab9eaf", null ]
     ] ],
+    [ "zeml", "namespaceyaze_1_1app_1_1gui_1_1zeml.html", "namespaceyaze_1_1app_1_1gui_1_1zeml" ],
     [ "BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", "classyaze_1_1app_1_1gui_1_1BitmapViewer" ],
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", "classyaze_1_1app_1_1gui_1_1Canvas" ],
     [ "DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ],

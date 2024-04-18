@@ -1,0 +1,31 @@
+<map id="yaze::app::gui::zeml::Tokenize" name="yaze::app::gui::zeml::Tokenize">
+<area shape="rect" id="Node000001" title="Tokenize a zeml string." alt="" coords="2264,71,2394,111"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="ParseNode a zeml string." alt="" coords="2086,71,2216,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2248,94,2217,94,2217,88,2248,88"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Emulator.html#a2f68f5186d551ed92ff7650a5a70ae9d" title=" " alt="" coords="1875,5,2038,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2073,68,2018,49,2020,44,2075,63"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Emulator.html#a62d0a3140ed71bd2bcc3a645cec64fa6" title=" " alt="" coords="1875,71,2038,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="2070,94,2038,94,2038,88,2070,88"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1emu_1_1Emulator.html#a768f75e52c4da7c5d99cc0e527059379" title=" " alt="" coords="1875,136,2038,177"/>
+<area shape="poly" id="edge14_Node000002_Node000014" title=" " alt="" coords="2075,119,2020,138,2018,133,2073,114"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f" title=" " alt="" coords="1636,112,1827,137"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1860,108,1823,113,1822,108,1860,103"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0" title=" " alt="" coords="1397,104,1588,145"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1620,127,1589,127,1589,122,1620,122"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1157,104,1349,145"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1381,127,1349,127,1349,122,1381,122"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,104,1109,145"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1141,127,1110,127,1110,122,1141,122"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,104,919,145"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="951,127,920,127,920,122,951,122"/>
+<area shape="rect" id="Node000010" href="$yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,112,705,137"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="737,127,705,127,705,122,737,122"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,97,388,152"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="640,122,607,119,493,117,388,121,388,116,493,112,607,114,640,117"/>
+<area shape="rect" id="Node000013" href="$namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,129,607,184"/>
+<area shape="poly" id="edge12_Node000010_Node000013" title=" " alt="" coords="640,135,608,141,607,136,639,130"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,97,173,152"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="205,127,173,127,173,122,205,122"/>
+<area shape="poly" id="edge13_Node000013_Node000011" title=" " alt="" coords="420,144,388,139,389,134,421,139"/>
+<area shape="poly" id="edge15_Node000014_Node000005" title=" " alt="" coords="1860,145,1826,140,1827,135,1860,140"/>
+</map>

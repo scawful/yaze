@@ -11,5 +11,6 @@ var searchData=
   ['fg_5fyellow_8',['FG_YELLOW',['../namespaceyaze_1_1cli_1_1Color.html#a2aac92fcaacd2c1da7a5fcbaa85ddb07a0ef503419ce5c0cc97052f36b8fa18e3',1,'yaze::cli::Color']]],
   ['fill_5fvram_9',['FILL_VRAM',['../classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html#aa9aafb990f8178acf48e322fe9da0c14a3f532dd6955a80d939e6a32fb117a38a',1,'yaze::app::emu::memory::DirectMemoryAccess']]],
   ['floors_10',['Floors',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae70340033b22f19b9a25b59360eae20e',1,'yaze::app::zelda3::dungeon']]],
-  ['fx_11',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
+  ['function_11',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
+  ['fx_12',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

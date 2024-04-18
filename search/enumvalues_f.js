@@ -9,5 +9,5 @@ var searchData=
   ['rom_5fdsp1_5fsram_6',['ROM_DSP1_SRAM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42adb0448977677aee0697a52af296ec16b',1,'yaze::app::emu::memory']]],
   ['rom_5fram_7',['ROM_RAM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42af974317d61876358bbbda11d4342abec',1,'yaze::app::emu::memory']]],
   ['rom_5fsram_8',['ROM_SRAM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a53a557d7fc26bb072adc208bfad5c75c',1,'yaze::app::emu::memory']]],
-  ['run_9',['Run',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8ac5301693c4e792bcd5a479ef38fb8f8d',1,'yaze::app::emu::Cpu']]]
+  ['run_9',['Run',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8ac5301693c4e792bcd5a479ef38fb8f8d',1,'yaze::app::emu::Cpu::Run'],['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a8012c292c03901c7a7f2aa7a0d82fee5ac5301693c4e792bcd5a479ef38fb8f8d',1,'yaze::app::gui::zeml::Run']]]
 ];
