@@ -1,19 +1,21 @@
 <map id="yaze::app::emu::Emulator::RenderEmulator" name="yaze::app::emu::Emulator::RenderEmulator">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,136,168,177"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="ParseNode a zeml string." alt="" coords="216,91,346,131"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,135,200,127,201,132,169,140"/>
-<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2" title="Render a zeml tree." alt="" coords="216,180,346,221"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="169,172,201,180,200,185,167,177"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a1e891955bce64a1ee1c62a06118f284f" title="ParseNode a zeml node." alt="" coords="394,37,524,78"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="346,89,378,79,380,84,347,94"/>
-<area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#aef3beb3e97e844a0512d586ecfb7bf06" title="Tokenize a zeml string." alt="" coords="394,103,524,143"/>
-<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="347,113,378,115,378,120,346,118"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="425,37,423,27,429,18,441,13,459,11,479,13,490,19,488,24,477,18,459,16,442,18,432,22,429,28,430,36"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc" title="Map a string to a widget type." alt="" coords="572,5,703,46"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="524,43,556,37,557,43,525,49"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a03a069771465c842d3c6d861a4b6b539" title="ParseNode attributes for a widget." alt="" coords="572,71,703,111"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="525,67,557,73,556,79,524,73"/>
-<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="247,180,245,170,251,161,263,155,281,153,300,156,312,162,309,167,299,161,281,159,264,161,254,165,250,171,252,179"/>
-<area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="394,180,524,221"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="347,198,378,198,378,203,347,203"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,91,168,131"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7" title=" " alt="" coords="216,41,390,67"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,88,236,68,238,74,166,93"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="ParseNode a zeml string." alt="" coords="238,91,368,131"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,108,222,108,222,114,168,114"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2" title="Render a zeml tree." alt="" coords="238,180,368,221"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="139,129,238,171,236,176,137,134"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a1e891955bce64a1ee1c62a06118f284f" title="ParseNode a zeml node." alt="" coords="438,37,568,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="368,91,423,76,424,81,369,96"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#aef3beb3e97e844a0512d586ecfb7bf06" title="Tokenize a zeml string." alt="" coords="438,103,568,143"/>
+<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="369,112,423,116,423,121,368,118"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="469,37,467,27,473,18,485,13,503,11,523,13,534,19,532,24,521,18,503,16,486,18,476,22,473,28,474,36"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc" title="Map a string to a widget type." alt="" coords="616,5,747,46"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="568,43,600,37,601,43,569,49"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a03a069771465c842d3c6d861a4b6b539" title="ParseNode attributes for a widget." alt="" coords="616,71,747,111"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="569,67,601,73,600,79,568,73"/>
+<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="265,180,263,170,269,161,283,155,303,153,325,156,338,162,335,167,323,161,303,159,284,161,272,165,268,171,270,179"/>
+<area shape="rect" id="Node000009" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="438,180,568,221"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="368,198,423,198,423,203,368,203"/>
 </map>
