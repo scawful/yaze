@@ -53,6 +53,7 @@ set(
   app/gui/widgets.cc
   app/gui/color.cc
   app/gui/pipeline.cc
+  app/gui/zeml.cc
 )
 
 set(
