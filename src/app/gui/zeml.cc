@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 
 #include <cctype>
+#include <functional>
 #include <map>
 #include <sstream>
 #include <string>
@@ -75,7 +76,7 @@ WidgetType MapType(const std::string& type) {
 }
 
 Node ParseNode(const std::vector<Token>& tokens, size_t& index,
-           const std::map<std::string, void*>& data_bindings) {
+               const std::map<std::string, void*>& data_bindings) {
   Node node;
   if (index >= tokens.size() || tokens[index].type == TokenType::EndOfStream) {
     return node;
@@ -265,7 +266,7 @@ void Render(Node& node) {
 }
 
 Node Parse(const std::string& yazon_input,
-               const std::map<std::string, void*>& data_bindings) {
+           const std::map<std::string, void*>& data_bindings) {
   size_t index = 0;
   auto tokens = Tokenize(yazon_input);
   return ParseNode(tokens, index, data_bindings);
@@ -281,13 +282,15 @@ void ExecuteActions(const std::vector<Action>& actions, ActionType type) {
 
 void Bind(Node* node, std::function<void()> callback) {
   if (node) {
-    node->actions.push_back({ActionType::Click, callback});
+    Action action = {ActionType::Click, callback};
+    node->actions.push_back(action);
   }
 }
 
 void BindAction(Node* node, ActionType type, std::function<void()> callback) {
   if (node) {
-    node->actions.push_back({type, callback});
+    Action action = {type, callback};
+    node->actions.push_back(action);
   }
 }
 

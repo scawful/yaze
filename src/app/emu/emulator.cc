@@ -173,12 +173,29 @@ void Emulator::RenderEmulator() {
         }
         TableNextColumn {
           BeginChild id="##" size="0,0" flags="NoMove|NoScrollbar" {
+            CollapsingHeader id="cpuState" title="Register Values" open=true {
+              Columns id="registersColumns" count="2" {
+                Text text="A: 0x%04X" data="cpu.A",
+                Text text="D: 0x%04X" data="cpu.D",
+                Text text="X: 0x%04X" data="cpu.X",
+                Text text="DB: 0x%02X" data="cpu.DB",
+                Text text="Y: 0x%04X" data="cpu.Y",
+                Text text="PB: 0x%02X" data="cpu.PB",
+                Text text="PC: 0x%04X" data="cpu.PC",
+                Text text="E: %d" data="cpu.E"
+              }
+            }
             Function id="CpuState"
           }
         }
       }
     )";
-  auto emulator_node = gui::zeml::Parse(emulator_layout);
+  const std::map<std::string, void*> data_bindings = {
+      {"cpu.A", &snes_.cpu().A},   {"cpu.D", &snes_.cpu().D},
+      {"cpu.X", &snes_.cpu().X},   {"cpu.DB", &snes_.cpu().DB},
+      {"cpu.Y", &snes_.cpu().Y},   {"cpu.PB", &snes_.cpu().PB},
+      {"cpu.PC", &snes_.cpu().PC}, {"cpu.E", &snes_.cpu().E}};
+  auto emulator_node = gui::zeml::Parse(emulator_layout, data_bindings);
   Bind(emulator_node.GetNode("CpuInstructionLog"),
        [&]() { RenderCpuInstructionLog(snes_.cpu().instruction_log_); });
   Bind(emulator_node.GetNode("SnesPpu"), [&]() { RenderSnesPpu(); });
@@ -186,7 +203,6 @@ void Emulator::RenderEmulator() {
        [&]() { RenderBreakpointList(); });
   Bind(emulator_node.GetNode("CpuState"),
        [&]() { RenderCpuState(snes_.cpu()); });
-
   gui::zeml::Render(emulator_node);
 }
 
@@ -272,28 +288,6 @@ void Emulator::RenderBreakpointList() {
 }
 
 void Emulator::RenderCpuState(Cpu& cpu) {
-  std::string cpu_state_layout = R"(
-      CollapsingHeader id="cpuState" title="Register Values" open=true {
-        Columns id="registersColumns" count="2" {
-          Text text="A: 0x%04X" data="cpu.A",
-          Text text="D: 0x%04X" data="cpu.D",
-          Text text="X: 0x%04X" data="cpu.X",
-          Text text="DB: 0x%02X" data="cpu.DB",
-          Text text="Y: 0x%04X" data="cpu.Y",
-          Text text="PB: 0x%02X" data="cpu.PB",
-          Text text="PC: 0x%04X" data="cpu.PC",
-          Text text="E: %d" data="cpu.E"
-        }
-      }
-  )";
-  const std::map<std::string, void*> data_bindings = {
-      {"cpu.A", &cpu.A},   {"cpu.D", &cpu.D}, {"cpu.X", &cpu.X},
-      {"cpu.DB", &cpu.DB}, {"cpu.Y", &cpu.Y}, {"cpu.PB", &cpu.PB},
-      {"cpu.PC", &cpu.PC}, {"cpu.E", &cpu.E}};
-  gui::zeml::Node cpu_state_node =
-      gui::zeml::Parse(cpu_state_layout, data_bindings);
-  gui::zeml::Render(cpu_state_node);
-
   // Call Stack
   if (ImGui::CollapsingHeader("Call Stack", ImGuiTreeNodeFlags_DefaultOpen)) {
     // For each return address in the call stack:
