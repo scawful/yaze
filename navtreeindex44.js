@@ -1,7 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac26b59be8f9cf9fd06239b55f5a57383":[9,0,0,0,4,0,3,0],
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html":[8,0,1,0,5,1,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html":[9,0,0,0,5,0,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html#a20d5b4ddbd5b3e104cb61986cacbe07f":[9,0,0,0,5,0,0,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1ChestData.html#a20d5b4ddbd5b3e104cb61986cacbe07f":[8,0,1,0,5,1,0,0],

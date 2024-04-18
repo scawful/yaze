@@ -1,7 +1,5 @@
 var NAVTREEINDEX39 =
 {
-"scad__format_8cc.html#a727d2b36d35304c829d68a5ac9851175":[10,0,1,0,3,4,5],
-"scad__format_8cc.html#abbaf0d3bc11b96aee6681513c0128d26":[10,0,1,0,3,4,2],
 "scad__format_8cc.html#abe047922c043574add4a0819ba82ea31":[10,0,1,0,3,4,0],
 "scad__format_8cc.html#af4c5a9dd5cff79a3c0e3ebdf62620336":[10,0,1,0,3,4,3],
 "scad__format_8h.html":[10,0,1,0,3,5],
@@ -249,5 +247,7 @@ var NAVTREEINDEX39 =
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a5a87623efc1819c506b2cce2b9c4e06c":[9,0,0,0,0,1,0,0,2],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a7e880b8d5d761e6fe41ebdd317aa9b5a":[9,0,0,0,0,1,0,0,4],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a7e880b8d5d761e6fe41ebdd317aa9b5a":[8,0,1,0,0,2,0,0,4],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html":[9,0,0,0,0,5,0]
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html":[9,0,0,0,0,5,0],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html":[8,0,1,0,0,6,0],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[8,0,1,0,0,6,0,1]
 };

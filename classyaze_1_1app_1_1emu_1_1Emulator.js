@@ -7,7 +7,6 @@ var classyaze_1_1app_1_1emu_1_1Emulator =
     [ "RenderEmulator", "classyaze_1_1app_1_1emu_1_1Emulator.html#a62d0a3140ed71bd2bcc3a645cec64fa6", null ],
     [ "RenderSnesPpu", "classyaze_1_1app_1_1emu_1_1Emulator.html#ae44b9e7548dde43578830f2c277eaa28", null ],
     [ "RenderBreakpointList", "classyaze_1_1app_1_1emu_1_1Emulator.html#a4fdec129bd56bb57d0b474cc04f38ed7", null ],
-    [ "RenderCpuState", "classyaze_1_1app_1_1emu_1_1Emulator.html#a2f68f5186d551ed92ff7650a5a70ae9d", null ],
     [ "RenderMemoryViewer", "classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710", null ],
     [ "RenderCpuInstructionLog", "classyaze_1_1app_1_1emu_1_1Emulator.html#a503ffcfd6c1c67166f6f15b539cd4a18", null ],
     [ "bookmarks", "classyaze_1_1app_1_1emu_1_1Emulator.html#a4fbcfae2811c1534e06012f79364c237", null ],

@@ -1,7 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDH.html":[8,0,1,0,2,4,0,38],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDH.html#acc527c8d2f85e419bf71b6fac6e13e6e":[9,0,0,0,2,2,0,38,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDH.html#acc527c8d2f85e419bf71b6fac6e13e6e":[8,0,1,0,2,4,0,38,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDL.html":[9,0,0,0,2,2,0,39],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDL.html":[8,0,1,0,2,4,0,39],
@@ -249,5 +247,7 @@ var NAVTREEINDEX42 =
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a0f1cf0111f7b63058d5c4332765aea3c":[8,0,1,0,2,4,25,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a75bddc21e55c0b57f3649bf319ca64dc":[9,0,0,0,2,2,25,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a75bddc21e55c0b57f3649bf319ca64dc":[8,0,1,0,2,4,25,0],
-"structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html":[8,0,1,0,3,4,0]
+"structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html":[8,0,1,0,3,4,0],
+"structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html":[9,0,0,0,3,2,0],
+"structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html#a6351ec5dddd96836153176c65d8ea40d":[9,0,0,0,3,2,0,0]
 };
