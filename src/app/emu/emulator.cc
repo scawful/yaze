@@ -10,6 +10,7 @@
 #include "app/emu/snes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/zeml.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -51,14 +52,17 @@ void Emulator::Run() {
 }
 
 void Emulator::RenderNavBar() {
-  MENU_BAR()
-  if (ImGui::BeginMenu("Options")) {
-    MENU_ITEM("Input") {}
-    MENU_ITEM("Audio") {}
-    MENU_ITEM("Video") {}
-    ImGui::EndMenu();
-  }
-  END_MENU_BAR()
+  std::string navbar_layout = R"(
+    BeginMenuBar {
+      BeginMenu title="Options" {
+        MenuItem title="Input" {}
+        MenuItem title="Audio" {}
+        MenuItem title="Video" {}
+      }
+    }
+  )";
+  auto navbar_node = gui::zeml::Parse(navbar_layout);
+  gui::zeml::Render(navbar_node);
 
   if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
     loading_ = true;
@@ -155,27 +159,35 @@ void Emulator::HandleEvents() {
 }
 
 void Emulator::RenderEmulator() {
-  if (ImGui::BeginTable("##Emulator", 3,
-                        ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
-    ImGui::TableSetupColumn("CPU");
-    ImGui::TableSetupColumn("PPU");
-    ImGui::TableHeadersRow();
+  std::string emulator_layout = R"(
+      Table id="Emulator" count="3" flags="Resizable|ScrollY" {
+        TableSetupColumn title="CPU",
+        TableSetupColumn title="PPU",
+        TableHeadersRow,
+        TableNextColumn {
+          Function id="CpuInstructionLog"
+        }
+        TableNextColumn {
+          Function id="SnesPpu",
+          Function id="BreakpointList"
+        }
+        TableNextColumn {
+          BeginChild id="##" size="0,0" flags="NoMove|NoScrollbar" {
+            Function id="CpuState"
+          }
+        }
+      }
+    )";
+  auto emulator_node = gui::zeml::Parse(emulator_layout);
+  Bind(emulator_node.GetNode("CpuInstructionLog"),
+       [&]() { RenderCpuInstructionLog(snes_.cpu().instruction_log_); });
+  Bind(emulator_node.GetNode("SnesPpu"), [&]() { RenderSnesPpu(); });
+  Bind(emulator_node.GetNode("BreakpointList"),
+       [&]() { RenderBreakpointList(); });
+  Bind(emulator_node.GetNode("CpuState"),
+       [&]() { RenderCpuState(snes_.cpu()); });
 
-    TableNextColumn();
-    RenderCpuInstructionLog(snes_.cpu().instruction_log_);
-
-    TableNextColumn();
-    RenderSnesPpu();
-    RenderBreakpointList();
-
-    TableNextColumn();
-    ImGui::BeginChild("##", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
-    RenderCpuState(snes_.cpu());
-    ImGui::EndChild();
-
-    ImGui::EndTable();
-  }
+  gui::zeml::Render(emulator_node);
 }
 
 void Emulator::RenderSnesPpu() {
@@ -251,7 +263,7 @@ void Emulator::RenderBreakpointList() {
     ImGui::EndChild();
   }
   Separator();
-  gui::InputHexByte("PB", &manual_pb_, 1, 25.f);
+  gui::InputHexByte("PB", &manual_pb_, 25.f);
   gui::InputHexWord("PC", &manual_pc_, 25.f);
   if (ImGui::Button("Set Current Address")) {
     snes_.cpu().PC = manual_pc_;
@@ -260,29 +272,27 @@ void Emulator::RenderBreakpointList() {
 }
 
 void Emulator::RenderCpuState(Cpu& cpu) {
-  if (ImGui::CollapsingHeader("Register Values",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Columns(2, "RegistersColumns");
-    Separator();
-    Text("A: 0x%04X", cpu.A);
-    NextColumn();
-    Text("D: 0x%04X", cpu.D);
-    NextColumn();
-    Text("X: 0x%04X", cpu.X);
-    NextColumn();
-    Text("DB: 0x%02X", cpu.DB);
-    NextColumn();
-    Text("Y: 0x%04X", cpu.Y);
-    NextColumn();
-    Text("PB: 0x%02X", cpu.PB);
-    NextColumn();
-    Text("PC: 0x%04X", cpu.PC);
-    NextColumn();
-    Text("E: %d", cpu.E);
-    NextColumn();
-    ImGui::Columns(1);
-    Separator();
-  }
+  std::string cpu_state_layout = R"(
+      CollapsingHeader id="cpuState" title="Register Values" open=true {
+        Columns id="registersColumns" count="2" {
+          Text text="A: 0x%04X" data="cpu.A",
+          Text text="D: 0x%04X" data="cpu.D",
+          Text text="X: 0x%04X" data="cpu.X",
+          Text text="DB: 0x%02X" data="cpu.DB",
+          Text text="Y: 0x%04X" data="cpu.Y",
+          Text text="PB: 0x%02X" data="cpu.PB",
+          Text text="PC: 0x%04X" data="cpu.PC",
+          Text text="E: %d" data="cpu.E"
+        }
+      }
+  )";
+  const std::map<std::string, void*> data_bindings = {
+      {"cpu.A", &cpu.A},   {"cpu.D", &cpu.D}, {"cpu.X", &cpu.X},
+      {"cpu.DB", &cpu.DB}, {"cpu.Y", &cpu.Y}, {"cpu.PB", &cpu.PB},
+      {"cpu.PC", &cpu.PC}, {"cpu.E", &cpu.E}};
+  gui::zeml::Node cpu_state_node =
+      gui::zeml::Parse(cpu_state_layout, data_bindings);
+  gui::zeml::Render(cpu_state_node);
 
   // Call Stack
   if (ImGui::CollapsingHeader("Call Stack", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -365,8 +375,7 @@ void Emulator::RenderCpuInstructionLog(
     ImGui::Checkbox("Show All Opcodes", &showAllOpcodes);
 
     // Instruction list
-    ImGui::BeginChild("InstructionList", ImVec2(0, 0),
-                      ImGuiChildFlags_None);
+    ImGui::BeginChild("InstructionList", ImVec2(0, 0), ImGuiChildFlags_None);
     for (const auto& entry : instructionLog) {
       if (ShouldDisplay(entry, filterBuf, showAllOpcodes)) {
         if (ImGui::Selectable(
