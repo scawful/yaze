@@ -185,7 +185,6 @@ void Emulator::RenderEmulator() {
                 Text text="E: %d" data="cpu.E"
               }
             }
-            Function id="CpuState"
           }
         }
       }
@@ -201,8 +200,6 @@ void Emulator::RenderEmulator() {
   Bind(emulator_node.GetNode("SnesPpu"), [&]() { RenderSnesPpu(); });
   Bind(emulator_node.GetNode("BreakpointList"),
        [&]() { RenderBreakpointList(); });
-  Bind(emulator_node.GetNode("CpuState"),
-       [&]() { RenderCpuState(snes_.cpu()); });
   gui::zeml::Render(emulator_node);
 }
 
@@ -285,16 +282,6 @@ void Emulator::RenderBreakpointList() {
     snes_.cpu().PC = manual_pc_;
     snes_.cpu().PB = manual_pb_;
   }
-}
-
-void Emulator::RenderCpuState(Cpu& cpu) {
-  // Call Stack
-  if (ImGui::CollapsingHeader("Call Stack", ImGuiTreeNodeFlags_DefaultOpen)) {
-    // For each return address in the call stack:
-    Text("Return Address: 0x%08X", 0xFFFFFF);  // Placeholder
-  }
-
-  snes_.SetCpuMode(0);
 }
 
 void Emulator::RenderMemoryViewer() {
