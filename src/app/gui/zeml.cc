@@ -193,6 +193,32 @@ void ParseFlags(const WidgetType& type, const std::string& flags,
       attributes.flags = new ImGuiWindowFlags(windowFlags);
       break;
     }
+    case WidgetType::CollapsingHeader: {
+      // Create a flag map using the tree node flags
+      static std::map<std::string, ImGuiTreeNodeFlags> flagMap = {
+          {"None", ImGuiTreeNodeFlags_None},
+          {"Selected", ImGuiTreeNodeFlags_Selected},
+          {"Framed", ImGuiTreeNodeFlags_Framed},
+          {"AllowItemOverlap", ImGuiTreeNodeFlags_AllowItemOverlap},
+          {"NoTreePushOnOpen", ImGuiTreeNodeFlags_NoTreePushOnOpen},
+          {"NoAutoOpenOnLog", ImGuiTreeNodeFlags_NoAutoOpenOnLog},
+          {"DefaultOpen", ImGuiTreeNodeFlags_DefaultOpen},
+          {"OpenOnDoubleClick", ImGuiTreeNodeFlags_OpenOnDoubleClick},
+          {"OpenOnArrow", ImGuiTreeNodeFlags_OpenOnArrow},
+          {"Leaf", ImGuiTreeNodeFlags_Leaf},
+          {"Bullet", ImGuiTreeNodeFlags_Bullet},
+          {"FramePadding", ImGuiTreeNodeFlags_FramePadding},
+          {"NavLeftJumpsBackHere", ImGuiTreeNodeFlags_NavLeftJumpsBackHere},
+          {"CollapsingHeader", ImGuiTreeNodeFlags_CollapsingHeader}};
+      ImGuiTreeNodeFlags treeFlags = ImGuiTreeNodeFlags_None;
+      for (const auto& flag : flag_tokens) {
+        if (flagMap.find(flag) != flagMap.end()) {
+          treeFlags |= flagMap[flag];
+        }
+      }
+      attributes.flags = new ImGuiTreeNodeFlags(treeFlags);
+      break;
+    }
     case WidgetType::Table: {
       // Create a flag map
       static std::map<std::string, ImGuiTableFlags> flagMap = {
@@ -377,13 +403,17 @@ void Render(Node& node) {
         }
       }
       break;
-    case WidgetType::CollapsingHeader:
-      if (ImGui::CollapsingHeader(node.attributes.title.c_str())) {
+    case WidgetType::CollapsingHeader: {
+      ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+      if (node.attributes.flags) {
+        flags = *(ImGuiTreeNodeFlags*)node.attributes.flags;
+      }
+      if (ImGui::CollapsingHeader(node.attributes.title.c_str(), flags)) {
         for (auto& child : node.children) {
           Render(child);
         }
       }
-      break;
+    } break;
     case WidgetType::Columns:
       ImGui::Columns(node.attributes.count, node.attributes.title.c_str());
       ImGui::Separator();
