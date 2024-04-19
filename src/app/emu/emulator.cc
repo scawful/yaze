@@ -50,7 +50,6 @@ using ImGui::Text;
 
 void Emulator::Run() {
   if (!snes_.running() && rom()->is_loaded()) {
-    snes_.SetupMemory(*rom());
     snes_.Init(*rom());
   }
 
@@ -78,7 +77,7 @@ void Emulator::RenderNavBar() {
   gui::zeml::Render(navbar_node);
 
   if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
-    loading_ = true;
+    running_ = true;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Start Emulation");
@@ -86,7 +85,7 @@ void Emulator::RenderNavBar() {
   SameLine();
 
   if (ImGui::Button(ICON_MD_PAUSE)) {
-    snes_.SetCpuMode(1);
+    running_ = false;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Pause Emulation");

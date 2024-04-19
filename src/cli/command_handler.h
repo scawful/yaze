@@ -324,7 +324,6 @@ class Emulator : public CommandHandler {
       step = true;
     }
 
-    snes.SetupMemory(rom_);
     snes.Init(rom_);
 
     if (!step) {

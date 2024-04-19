@@ -1,5 +1,7 @@
 #include "app/emu/audio/apu.h"
 
+#include <SDL.h>
+
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -50,7 +52,7 @@ void Apu::Update() {
   ProcessSamples();
 }
 
-void Apu::Notify(uint32_t address, uint8_t data) {
+void Apu::Notify(uint32_t address, uint16_t data) {
   if (address < 0x2140 || address > 0x2143) {
     return;
   }
@@ -58,12 +60,11 @@ void Apu::Notify(uint32_t address, uint8_t data) {
   spc700_.write(offset, data);
 
   // HACK - This is a temporary solution to get the Apu to play audio
+  SDL_Log("Apu::Notify(0x%08x, 0x%04x)", address, data);
   ports_[address - 0x2140] = data;
   switch (address) {
     case 0x2140:
-      if (data == BEGIN_SIGNAL) {
-        SignalReady();
-      }
+      SignalReady();
       break;
     case 0x2141:
       // TODO: Handle data byte transfer here
@@ -135,7 +136,7 @@ void Apu::WriteDspMemory(uint16_t address, uint8_t value) {
   dsp_.WriteGlobalReg(address, value);
 }
 
-} // namespace audio
+}  // namespace audio
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

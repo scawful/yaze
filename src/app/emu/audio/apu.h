@@ -60,7 +60,7 @@ class Apu : public Observer {
   void Init();
   void Reset();
   void Update();
-  void Notify(uint32_t address, uint8_t data) override;
+  void Notify(uint32_t address, uint16_t data) override;
 
   void ProcessSamples();
   uint8_t FetchSampleForVoice(uint8_t voice_num);

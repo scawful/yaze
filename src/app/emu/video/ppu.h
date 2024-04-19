@@ -289,7 +289,7 @@ class Ppu : public Observer, public SharedRom {
   // Renders a scanline of the screen
   void RenderScanline();
 
-  void Notify(uint32_t address, uint8_t data) override;
+  void Notify(uint32_t address, uint16_t data) override;
 
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }

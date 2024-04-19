@@ -94,7 +94,7 @@ class RomInfo {
 class Observer {
  public:
   virtual ~Observer() = default;
-  virtual void Notify(uint32_t address, uint8_t data) = 0;
+  virtual void Notify(uint32_t address, uint16_t data) = 0;
 };
 
 constexpr uint32_t kROMStart = 0x008000;
@@ -401,7 +401,7 @@ class MemoryImpl : public Memory, public Loggable {
     return address;  // Return the original address if no mapping is defined
   }
 
-  void NotifyObservers(uint32_t address, uint8_t data) const {
+  void NotifyObservers(uint32_t address, uint16_t data) const {
     for (auto observer : observers_) {
       observer->Notify(address, data);
     }

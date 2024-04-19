@@ -45,6 +45,7 @@ void Ppu::UpdateInternalState(int cycles) {
 }
 
 void Ppu::RenderScanline() {
+  /**
   for (int y = 0; y < 240; ++y) {
     for (int x = 0; x < 256; ++x) {
       // Calculate the color index based on the x and y coordinates
@@ -54,6 +55,7 @@ void Ppu::RenderScanline() {
       frame_buffer_[y * 256 + x] = color_index;
     }
   }
+  */
 
   // Fetch tile data from VRAM, tile map from memory, palette data from CGRAM
   UpdateTileData();
@@ -64,25 +66,18 @@ void Ppu::RenderScanline() {
     RenderBackground(layer);
   }
 
-  // Render the sprite layer, taking into account sprite priorities and
-  // transparency
-  RenderSprites();  // Renders the sprite layer into an internal sprite buffer
-
-  // Apply effects to the layers, such as scaling, rotation, and blending
-  ApplyEffects();  // Applies effects to the layers based on the current mode
-                   // and register settings
-
-  // Combine the layers into a single image and store it in the frame buffer
-  ComposeLayers();  // Combines the layers into a single image and stores it in
-                    // the frame buffer
+  RenderSprites();
+  ApplyEffects();
+  ComposeLayers();
 
   // Display the frame buffer on the screen
   DisplayFrameBuffer();
 }
 
-void Ppu::Notify(uint32_t address, uint8_t data) {
+void Ppu::Notify(uint32_t address, uint16_t data) {
   // Handle communication in the Ppu.
   if (address >= 0x2100 && address <= 0x213F) {
+    SDL_Log("Ppu::Notify(0x%08x, 0x%04x)", address, data);
     // Handle register notification
     switch (address) {
       case INIDISP:
@@ -380,35 +375,22 @@ void Ppu::UpdateTileData() {
 void Ppu::UpdateTileMapData() {}
 
 void Ppu::RenderBackground(int layer) {
-  auto bg1_tilemap_info = BGSC(0);
-  auto bg1_chr_data = BGNBA(0);
-  auto bg2_tilemap_info = BGSC(0);
-  auto bg2_chr_data = BGNBA(0);
-  auto bg3_tilemap_info = BGSC(0);
-  auto bg3_chr_data = BGNBA(0);
-  auto bg4_tilemap_info = BGSC(0);
-  auto bg4_chr_data = BGNBA(0);
-
   switch (layer) {
     case 1:
       // Render the first background layer
-      bg1_tilemap_info = BGSC(memory_.ReadByte(BG1SC));
-      bg1_chr_data = BGNBA(memory_.ReadByte(BG12NBA));
+
       break;
     case 2:
       // Render the second background layer
-      bg2_tilemap_info = BGSC(memory_.ReadByte(BG2SC));
-      bg2_chr_data = BGNBA(memory_.ReadByte(BG12NBA));
+
       break;
     case 3:
       // Render the third background layer
-      bg3_tilemap_info = BGSC(memory_.ReadByte(BG3SC));
-      bg3_chr_data = BGNBA(memory_.ReadByte(BG34NBA));
+
       break;
     case 4:
       // Render the fourth background layer
-      bg4_tilemap_info = BGSC(memory_.ReadByte(BG4SC));
-      bg4_chr_data = BGNBA(memory_.ReadByte(BG34NBA));
+
       break;
     default:
       // Invalid layer, do nothing
