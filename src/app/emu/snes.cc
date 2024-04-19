@@ -107,6 +107,14 @@ RomInfo SNES::ReadRomHeader(uint32_t offset) {
 }
 
 void SNES::Init(Rom& rom) {
+  // Setup observers for the memory space
+  memory_.AddObserver(&apu_);
+  memory_.AddObserver(&ppu_);
+
+  // Load the ROM into memory and set up the memory mapping
+  rom_data = rom.vector();
+  memory_.Initialize(rom_data);
+
   // Perform a long jump into a FastROM bank (if the ROM speed is FastROM)
   // Disable the emulation flag (switch to 65816 native mode)
   cpu_.E = 0;
