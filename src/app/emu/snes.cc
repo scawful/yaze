@@ -329,36 +329,6 @@ void SNES::VBlankRoutine() {
   // ...
 }
 
-void SNES::StartApuDataTransfer() {
-  // 2. Setting the starting address
-  const uint16_t startAddress = 0x0200;
-  memory_.WriteByte(0x2142, startAddress & 0xFF);  // Lower byte
-  memory_.WriteByte(0x2143, startAddress >> 8);    // Upper byte
-  memory_.WriteByte(0x2141, 0xCC);                 // Any non-zero value
-  memory_.WriteByte(0x2140, 0xCC);                 // Signal to start
-
-  const int DATA_SIZE = 0x1000;  // 4 KiB
-
-  // 3. Sending data (simplified)
-  // Assuming a buffer `audioData` containing the audio program/data
-  uint8_t audioData[DATA_SIZE];  // Define DATA_SIZE and populate audioData as
-                                 // needed
-  for (int i = 0; i < DATA_SIZE; ++i) {
-    memory_.WriteByte(0x2141, audioData[i]);
-    memory_.WriteByte(0x2140, i & 0xFF);
-    while (memory_.ReadByte(0x2140) != (i & 0xFF))
-      ;  // Wait for acknowledgment
-  }
-
-  // 4. Running the SPC700 program
-  memory_.WriteByte(0x2142, startAddress & 0xFF);  // Lower byte
-  memory_.WriteByte(0x2143, startAddress >> 8);    // Upper byte
-  memory_.WriteByte(0x2141, 0x00);                 // Zero to start the program
-  memory_.WriteByte(0x2140, 0xCE);                 // Increment by 2
-  while (memory_.ReadByte(0x2140) != 0xCE)
-    ;  // Wait for acknowledgment
-}
-
 void SNES::HandleInput() {
   // ...
 }
