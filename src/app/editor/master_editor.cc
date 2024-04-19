@@ -121,6 +121,7 @@ using ImGui::Text;
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
   sdl_renderer_ = renderer;
   rom()->SetupRenderer(renderer);
+  overworld_editor_.InitializeZeml();
 }
 
 namespace {
