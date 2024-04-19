@@ -342,7 +342,11 @@ WidgetAttributes ParseAttributes(
         } else if (keyToken.value == "flags") {
           ParseFlags(type, value, attributes);
         } else if (keyToken.value == "size") {
-          attributes.size = ImVec2(0, 0);  // Placeholder for future use
+          std::string sizeX, sizeY;
+          std::istringstream sizeStream(value);
+          std::getline(sizeStream, sizeX, ',');
+          std::getline(sizeStream, sizeY, ',');
+          attributes.size = ImVec2(std::stod(sizeX), std::stod(sizeY));
         }
       }
     } else {
