@@ -177,6 +177,7 @@ var NAVTREEINDEX20 =
 "cpu_2internal_2instructions_8cc.html":[10,0,1,0,2,1,0,1],
 "cpu_2internal_2opcodes_8h.html":[10,0,1,0,2,1,0,2],
 "cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd":[10,0,1,0,2,1,0,2,0],
+"cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791":[10,0,1,0,2,1,0,2,1],
 "cpu_2internal_2opcodes_8h_source.html":[10,0,1,0,2,1,0,2],
 "cpu_8cc.html":[10,0,1,0,2,1,2],
 "cpu_8h.html":[10,0,1,0,2,1,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "cpu__test_8cc.html#a364c76d1467ce86a57f308bf91c6b90b":[10,0,2,0,0,123],
 "cpu__test_8cc.html#a3686b6443a36c55f032e8ab78f620bfd":[10,0,2,0,0,91],
 "cpu__test_8cc.html#a36acc26067f421260a535bd6fa12479a":[10,0,2,0,0,60],
-"cpu__test_8cc.html#a3751d88ede40763c05d3155dc5052300":[10,0,2,0,0,59],
-"cpu__test_8cc.html#a37ff5d96de4fcede1812a49ffdb355e7":[10,0,2,0,0,71]
+"cpu__test_8cc.html#a3751d88ede40763c05d3155dc5052300":[10,0,2,0,0,59]
 };

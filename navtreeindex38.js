@@ -1,5 +1,6 @@
 var NAVTREEINDEX38 =
 {
+"pipeline_8h.html#ac8855b43699a5fdc16812db22be8cc43":[10,0,1,0,4,8,3],
 "pipeline_8h.html#af3842eaca5095da067d7248aeda9d006":[10,0,1,0,4,8,1],
 "pipeline_8h_source.html":[10,0,1,0,4,8],
 "ppu_8cc.html":[10,0,1,0,2,4,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX38 =
 "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae70340033b22f19b9a25b59360eae20e":[10,0,1,0,5,0,8,7,6],
 "room__object_8h.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae74cd2151daef72e4f50e4c6e05df1f1":[10,0,1,0,5,0,8,7,7],
 "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2b":[10,0,1,0,5,0,8,5],
-"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba080a546abcbea74459f27ba33313993d":[10,0,1,0,5,0,8,5,0],
-"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba4196867d030ad1793b4087b9747f8b04":[10,0,1,0,5,0,8,5,2]
+"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba080a546abcbea74459f27ba33313993d":[10,0,1,0,5,0,8,5,0]
 };

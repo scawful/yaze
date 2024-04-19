@@ -1,5 +1,6 @@
 var NAVTREEINDEX39 =
 {
+"room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba4196867d030ad1793b4087b9747f8b04":[10,0,1,0,5,0,8,5,2],
 "room__object_8h.html#ac46cb973cf8ca0aa50e953f5c8978f2ba52a3e405eb69e72cd81af3c5e1f93065":[10,0,1,0,5,0,8,5,1],
 "room__object_8h_source.html":[10,0,1,0,5,0,8],
 "room__object__test_8cc.html":[10,0,2,2,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX39 =
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a200d9e75531f5c3e041f65ce1031eec3":[9,0,0,0,0,1,0,0,5],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a28eb46001933e0c3ae27a82e95286c72":[9,0,0,0,0,1,0,0,1],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a28eb46001933e0c3ae27a82e95286c72":[8,0,1,0,0,2,0,0,1],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a3cc895c878076b360f2e5251523ef089":[9,0,0,0,0,1,0,0,3],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a3cc895c878076b360f2e5251523ef089":[8,0,1,0,0,2,0,0,3]
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html#a3cc895c878076b360f2e5251523ef089":[9,0,0,0,0,1,0,0,3]
 };

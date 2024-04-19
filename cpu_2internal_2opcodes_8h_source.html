@@ -161,11 +161,51 @@ $(function(){initNavTree('cpu_2internal_2opcodes_8h_source.html',''); initResiza
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    {0xF0, <span class="stringliteral">&quot;BEQ&quot;</span>}, {0xF1, <span class="stringliteral">&quot;SBC&quot;</span>}, {0xF2, <span class="stringliteral">&quot;SBC&quot;</span>}, {0xF3, <span class="stringliteral">&quot;SBC&quot;</span>}, {0xF4, <span class="stringliteral">&quot;PEA&quot;</span>},</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    {0xF5, <span class="stringliteral">&quot;SBC&quot;</span>}, {0xF6, <span class="stringliteral">&quot;INC&quot;</span>}, {0xF7, <span class="stringliteral">&quot;SBC&quot;</span>}, {0xF8, <span class="stringliteral">&quot;SED&quot;</span>}, {0xF9, <span class="stringliteral">&quot;SBC&quot;</span>},</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    {0xFA, <span class="stringliteral">&quot;PLX&quot;</span>}, {0xFB, <span class="stringliteral">&quot;XCE&quot;</span>}, {0xFC, <span class="stringliteral">&quot;JSR&quot;</span>}, {0xFD, <span class="stringliteral">&quot;SBC&quot;</span>}, {0xFE, <span class="stringliteral">&quot;INC&quot;</span>},</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    {0xFF, <span class="stringliteral">&quot;SBC&quot;</span>}</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    {0xFF, <span class="stringliteral">&quot;SBC&quot;</span>}};</div>
+</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>};</div>
+<div class="foldopen" id="foldopen00061" data-start="{" data-end="};">
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791">   61</a></span><span class="keyword">const</span> std::unordered_map&lt;uint8_t, uint8_t&gt; <a class="code hl_variable" href="cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791">opcode_to_cycle_count</a> = {</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    {0x00, 7}, {0x01, 6}, {0x02, 8}, {0x03, 8}, {0x04, 3}, {0x05, 3}, {0x06, 5},</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    {0x07, 5}, {0x08, 3}, {0x09, 2}, {0x0A, 2}, {0x0B, 4}, {0x0C, 4}, {0x0D, 4},</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    {0x0E, 6}, {0x0F, 6}, {0x10, 2}, {0x11, 5}, {0x12, 6}, {0x13, 8}, {0x14, 4},</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    {0x15, 4}, {0x16, 6}, {0x17, 6}, {0x18, 2}, {0x19, 4}, {0x1A, 2}, {0x1B, 4},</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    {0x1C, 4}, {0x1D, 4}, {0x1E, 7}, {0x1F, 7}, {0x20, 6}, {0x21, 6}, {0x22, 8},</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    {0x23, 8}, {0x24, 3}, {0x25, 3}, {0x26, 5}, {0x27, 5}, {0x28, 4}, {0x29, 2},</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    {0x2A, 2}, {0x2B, 4}, {0x2C, 4}, {0x2D, 4}, {0x2E, 6}, {0x2F, 6}, {0x30, 2},</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    {0x31, 5}, {0x32, 6}, {0x33, 8}, {0x34, 4}, {0x35, 4}, {0x36, 6}, {0x37, 6},</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    {0x38, 2}, {0x39, 4}, {0x3A, 2}, {0x3B, 4}, {0x3C, 4}, {0x3D, 4}, {0x3E, 7},</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    {0x3F, 7}, {0x40, 6}, {0x41, 6}, {0x42, 8}, {0x43, 8}, {0x44, 3}, {0x45, 3},</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    {0x46, 5}, {0x47, 5}, {0x48, 3}, {0x49, 2}, {0x4A, 2}, {0x4B, 4}, {0x4C, 3},</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    {0x4D, 4}, {0x4E, 6}, {0x4F, 6}, {0x50, 2}, {0x51, 5}, {0x52, 6}, {0x53, 8},</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    {0x54, 4}, {0x55, 4}, {0x56, 6}, {0x57, 6}, {0x58, 2}, {0x59, 4}, {0x5A, 2},</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    {0x5B, 4}, {0x5C, 4}, {0x5D, 4}, {0x5E, 7}, {0x5F, 7}, {0x60, 6}, {0x61, 6},</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    {0x62, 8}, {0x63, 8}, {0x64, 3}, {0x65, 3}, {0x66, 5}, {0x67, 5}, {0x68, 4},</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    {0x69, 2}, {0x6A, 2}, {0x6B, 4}, {0x6C, 5}, {0x6D, 4}, {0x6E, 6}, {0x6F, 6},</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    {0x70, 2}, {0x71, 5}, {0x72, 6}, {0x73, 8}, {0x74, 4}, {0x75, 4}, {0x76, 6},</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    {0x77, 6}, {0x78, 2}, {0x79, 4}, {0x7A, 2}, {0x7B, 4}, {0x7C, 6}, {0x7D, 4},</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    {0x7E, 7}, {0x7F, 7}, {0x80, 2}, {0x81, 6}, {0x82, 5}, {0x83, 8}, {0x84, 3},</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    {0x85, 3}, {0x86, 3}, {0x87, 5}, {0x88, 2}, {0x89, 2}, {0x8A, 2}, {0x8B, 4},</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    {0x8C, 4}, {0x8D, 4}, {0x8E, 4}, {0x8F, 6}, {0x90, 2}, {0x91, 6}, {0x92, 5},</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    {0x93, 8}, {0x94, 4}, {0x95, 4}, {0x96, 4}, {0x97, 6}, {0x98, 2}, {0x99, 5},</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    {0x9A, 2}, {0x9B, 4}, {0x9C, 4}, {0x9D, 4}, {0x9E, 4}, {0x9F, 5}, {0xA0, 2},</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    {0xA1, 6}, {0xA2, 2}, {0xA3, 8}, {0xA4, 3}, {0xA5, 3}, {0xA6, 3}, {0xA7, 5},</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    {0xA8, 2}, {0xA9, 2}, {0xAA, 2}, {0xAB, 4}, {0xAC, 4}, {0xAD, 4}, {0xAE, 4},</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    {0xAF, 6}, {0xB0, 2}, {0xB1, 5}, {0xB2, 5}, {0xB3, 8}, {0xB4, 4}, {0xB5, 4},</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    {0xB6, 4}, {0xB7, 6}, {0xB8, 2}, {0xB9, 4}, {0xBA, 2}, {0xBB, 4}, {0xBC, 4},</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    {0xBD, 4}, {0xBE, 4}, {0xBF, 5}, {0xC0, 2}, {0xC1, 6}, {0xC2, 2}, {0xC3, 8},</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    {0xC4, 3}, {0xC5, 3}, {0xC6, 5}, {0xC7, 5}, {0xC8, 2}, {0xC9, 2}, {0xCA, 2},</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    {0xCB, 4}, {0xCC, 4}, {0xCD, 4}, {0xCE, 6}, {0xCF, 6}, {0xD0, 2}, {0xD1, 5},</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    {0xD2, 5}, {0xD3, 8}, {0xD4, 4}, {0xD5, 4}, {0xD6, 6}, {0xD7, 6}, {0xD8, 2},</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    {0xD9, 4}, {0xDA, 2}, {0xDB, 4}, {0xDC, 3}, {0xDD, 4}, {0xDE, 7}, {0xDF, 7},</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    {0xE0, 2}, {0xE1, 6}, {0xE2, 2}, {0xE3, 8}, {0xE4, 3}, {0xE5, 3}, {0xE6, 5},</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    {0xE7, 5}, {0xE8, 2}, {0xE9, 2}, {0xEA, 2}, {0xEB, 2}, {0xEC, 4}, {0xED, 4},</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    {0xEE, 6}, {0xEF, 6}, {0xF0, 2}, {0xF1, 5}, {0xF2, 5}, {0xF3, 8}, {0xF4, 4},</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    {0xF5, 4}, {0xF6, 6}, {0xF7, 6}, {0xF8, 2}, {0xF9, 4}, {0xFA, 2}, {0xFB, 2},</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    {0xFC, 3}, {0xFD, 4}, {0xFE, 7}, {0xFF, 7}};</div>
 </div>
 <div class="ttc" id="acpu_2internal_2opcodes_8h_html_a2897f080989f16f7558398964f9934dd"><div class="ttname"><a href="cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd">opcode_to_mnemonic</a></div><div class="ttdeci">const std::unordered_map&lt; uint8_t, std::string &gt; opcode_to_mnemonic</div><div class="ttdef"><b>Definition</b> opcodes.h:7</div></div>
+<div class="ttc" id="acpu_2internal_2opcodes_8h_html_a67a067e14e127267cfa234e6413a5791"><div class="ttname"><a href="cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791">opcode_to_cycle_count</a></div><div class="ttdeci">const std::unordered_map&lt; uint8_t, uint8_t &gt; opcode_to_cycle_count</div><div class="ttdef"><b>Definition</b> opcodes.h:61</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -1,5 +1,6 @@
 var NAVTREEINDEX44 =
 {
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a4549f09fdfa272bca92be483daa86e67":[9,0,0,0,4,0,3,4],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a9239e4dfb0cd13de06b658400a32525b":[8,0,1,0,4,1,3,3],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a9239e4dfb0cd13de06b658400a32525b":[9,0,0,0,4,0,3,3],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab3f542605d401c12d51fc6a8494e31bf":[8,0,1,0,4,1,3,10],
