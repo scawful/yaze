@@ -50,10 +50,6 @@ class SNES : public DirectMemoryAccess {
   // VBlank routine
   void VBlankRoutine();
 
-  // Boot the APU with the IPL ROM
-  void BootApuWithIPL();
-  void StartApuDataTransfer();
-
   // Controller input handling
   void HandleInput();
 
