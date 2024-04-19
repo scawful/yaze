@@ -43,6 +43,25 @@ using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
 
+void OverworldEditor::InitializeZeml() {
+  // Load zeml string from layouts/overworld.zeml
+  std::string layout = gui::zeml::LoadFile("overworld.zeml");
+  // Parse the zeml string into a Node object
+  layout_node_ = gui::zeml::Parse(layout);
+
+  gui::zeml::Bind(&*layout_node_.GetNode("OverworldCanvas"),
+                  [this]() { DrawOverworldCanvas(); });
+  gui::zeml::Bind(&*layout_node_.GetNode("OverworldTileSelector"),
+                  [this]() { status_ = DrawTileSelector(); });
+  gui::zeml::Bind(&*layout_node_.GetNode("OwUsageStats"), [this]() {
+    if (rom()->is_loaded()) {
+      status_ = UpdateUsageStats();
+    }
+  });
+  gui::zeml::Bind(&*layout_node_.GetNode("owToolset"),
+                  [this]() { status_ = DrawToolset(); });
+}
+
 absl::Status OverworldEditor::Update() {
   if (rom()->is_loaded() && !all_gfx_loaded_) {
     tile16_editor_.InitBlockset(tile16_blockset_bmp_, current_gfx_bmp_,
@@ -57,35 +76,9 @@ absl::Status OverworldEditor::Update() {
 
   RETURN_IF_ERROR(UpdateFullscreenCanvas());
 
-  TAB_BAR("##OWEditorTabBar")
-  TAB_ITEM("Map Editor")
-  status_ = UpdateOverworldEdit();
-  END_TAB_ITEM()
-  TAB_ITEM("Usage Statistics")
-  if (rom()->is_loaded()) {
-    status_ = UpdateUsageStats();
-  }
-  END_TAB_ITEM()
-  END_TAB_BAR()
+  gui::zeml::Render(layout_node_);
 
   CLEAR_AND_RETURN_STATUS(status_);
-  return absl::OkStatus();
-}
-
-absl::Status OverworldEditor::UpdateOverworldEdit() {
-  RETURN_IF_ERROR(DrawToolset())
-  if (BeginTable(kOWEditTable.data(), 2, kOWEditFlags, ImVec2(0, 0))) {
-    TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
-                     ImGui::GetContentRegionAvail().x);
-    TableSetupColumn("Tile Selector", ImGuiTableColumnFlags_WidthFixed, 256);
-    TableHeadersRow();
-    TableNextRow();
-    TableNextColumn();
-    DrawOverworldCanvas();
-    TableNextColumn();
-    RETURN_IF_ERROR(DrawTileSelector());
-    ImGui::EndTable();
-  }
   return absl::OkStatus();
 }
 

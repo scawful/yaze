@@ -24,6 +24,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/pipeline.h"
+#include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 
@@ -84,6 +85,8 @@ class OverworldEditor : public Editor,
                         public context::EntranceContext,
                         public core::ExperimentFlags {
  public:
+  void InitializeZeml();
+
   absl::Status Update() final;
   absl::Status Undo() { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() { return absl::UnimplementedError("Redo"); }
@@ -128,7 +131,6 @@ class OverworldEditor : public Editor,
   absl::Status LoadGraphics();
 
  private:
-  absl::Status UpdateOverworldEdit();
   absl::Status UpdateFullscreenCanvas();
 
   absl::Status DrawToolset();
@@ -283,6 +285,7 @@ class OverworldEditor : public Editor,
 
   gfx::BitmapTable animated_maps_;
 
+  gui::zeml::Node layout_node_;
   absl::Status status_;
 };
 }  // namespace editor
