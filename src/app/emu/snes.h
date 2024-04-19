@@ -68,16 +68,6 @@ class SNES : public DirectMemoryAccess {
     return static_cast<Cpu::UpdateMode>(cpu_mode_);
   }
 
-  void SetupMemory(Rom& rom) {
-    // Setup observers for the memory space
-    memory_.AddObserver(&apu_);
-    memory_.AddObserver(&ppu_);
-
-    // Load the ROM into memory and set up the memory mapping
-    rom_data = rom.vector();
-    memory_.Initialize(rom_data);
-  }
-
  private:
   void WriteToRegister(uint16_t address, uint8_t value) {
     memory_.WriteByte(address, value);
