@@ -313,17 +313,7 @@ void MasterEditor::DrawFileMenu() {
 
   if (BeginMenu("File")) {
     if (MenuItem("Open", "Ctrl+O")) {
-      if (flags()->kNewFileDialogWrapper) {
-        auto file_name = FileDialogWrapper::ShowOpenFileDialog();
-        PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
-        static RecentFilesManager manager("recent_files.txt");
-        manager.Load();
-        manager.AddFile(file_name);
-        manager.Save();
-      } else {
-        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
-                                                ".sfc,.smc", ".");
-      }
+      LoadRom();
     }
 
     if (BeginMenu("Open Recent")) {
@@ -606,6 +596,20 @@ void MasterEditor::DrawHelpMenu() {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
+  }
+}
+
+void MasterEditor::LoadRom() {
+  if (flags()->kNewFileDialogWrapper) {
+    auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+    PRINT_IF_ERROR(rom()->LoadFromFile(file_name));
+    static RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    manager.AddFile(file_name);
+    manager.Save();
+  } else {
+    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Open ROM",
+                                            ".sfc,.smc", ".");
   }
 }
 

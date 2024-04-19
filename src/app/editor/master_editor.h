@@ -75,6 +75,7 @@ class MasterEditor : public SharedRom,
   void DrawViewMenu();
   void DrawHelpMenu();
 
+  void LoadRom();
   void SaveRom();
 
   bool about_ = false;
