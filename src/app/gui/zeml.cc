@@ -4,11 +4,15 @@
 #include <imgui/imgui.h>
 
 #include <cctype>
+#include <fstream>
 #include <functional>
 #include <map>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "app/gui/canvas.h"
+#include "app/gui/input.h"
 
 namespace yaze {
 namespace app {
@@ -58,6 +62,7 @@ WidgetType MapType(const std::string& type) {
       {"Text", WidgetType::Text},
       {"CollapsingHeader", WidgetType::CollapsingHeader},
       {"Columns", WidgetType::Columns},
+      {"Checkbox", WidgetType::Checkbox},
       {"HexInputByte", WidgetType::HexInputByte},
       {"HexInputWord", WidgetType::HexInputWord},
       {"Table", WidgetType::Table},
@@ -71,12 +76,17 @@ WidgetType MapType(const std::string& type) {
       {"MenuItem", WidgetType::MenuItem},
       {"BeginMenuBar", WidgetType::BeginMenuBar},
       {"Separator", WidgetType::Separator},
+      {"BeginTabBar", WidgetType::BeginTabBar},
+      {"BeginTabItem", WidgetType::BeginTabItem},
+      {"Canvas", WidgetType::Canvas},
+      {"ref", WidgetType::Definition},
   };
   return typeMap[type];
 }
 
 Node ParseNode(const std::vector<Token>& tokens, size_t& index,
-               const std::map<std::string, void*>& data_bindings) {
+               const std::map<std::string, void*>& data_bindings,
+               const std::map<std::string, Node>& definitions) {
   Node node;
   if (index >= tokens.size() || tokens[index].type == TokenType::EndOfStream) {
     return node;
@@ -88,8 +98,14 @@ Node ParseNode(const std::vector<Token>& tokens, size_t& index,
     if (token.type == TokenType::Identifier) {
       node.type = MapType(token.value);
       index++;  // Move to the next token for attributes
-      node.attributes =
-          ParseAttributes(tokens, index, node.type, data_bindings);
+      if (node.type == WidgetType::Definition) {
+        if (definitions.find(token.value) != definitions.end()) {
+          node = definitions.at(token.value);
+        }
+      } else {
+        node.attributes =
+            ParseAttributes(tokens, index, node.type, data_bindings);
+      }
     }
 
     // Handle the opening brace indicating the start of child nodes
@@ -116,6 +132,150 @@ Node ParseNode(const std::vector<Token>& tokens, size_t& index,
   return node;
 }
 
+void ParseFlags(const WidgetType& type, const std::string& flags,
+                WidgetAttributes& attributes) {
+  // Parse the flags for the `|` character
+  std::vector<std::string> flag_tokens;
+  std::string token;
+  std::istringstream tokenStream(flags);
+  while (std::getline(tokenStream, token, '|')) {
+    flag_tokens.push_back(token);
+  }
+
+  switch (type) {
+    case WidgetType::BeginChild: {
+      static std::map<std::string, ImGuiWindowFlags> flagMap = {
+          {"None", ImGuiWindowFlags_None},
+          {"NoTitleBar", ImGuiWindowFlags_NoTitleBar},
+          {"NoResize", ImGuiWindowFlags_NoResize},
+          {"NoMove", ImGuiWindowFlags_NoMove},
+          {"NoScrollbar", ImGuiWindowFlags_NoScrollbar},
+          {"NoScrollWithMouse", ImGuiWindowFlags_NoScrollWithMouse},
+          {"NoCollapse", ImGuiWindowFlags_NoCollapse},
+          {"AlwaysAutoResize", ImGuiWindowFlags_AlwaysAutoResize},
+          {"NoSavedSettings", ImGuiWindowFlags_NoSavedSettings},
+          {"NoInputs", ImGuiWindowFlags_NoInputs},
+          {"MenuBar", ImGuiWindowFlags_MenuBar},
+          {"HorizontalScrollbar", ImGuiWindowFlags_HorizontalScrollbar},
+          {"NoFocusOnAppearing", ImGuiWindowFlags_NoFocusOnAppearing},
+          {"NoBringToFrontOnFocus", ImGuiWindowFlags_NoBringToFrontOnFocus},
+          {"AlwaysVerticalScrollbar", ImGuiWindowFlags_AlwaysVerticalScrollbar},
+          {"AlwaysHorizontalScrollbar",
+           ImGuiWindowFlags_AlwaysHorizontalScrollbar},
+          {"AlwaysUseWindowPadding", ImGuiWindowFlags_AlwaysUseWindowPadding},
+          {"NoNavInputs", ImGuiWindowFlags_NoNavInputs},
+          {"NoNavFocus", ImGuiWindowFlags_NoNavFocus},
+          {"UnsavedDocument", ImGuiWindowFlags_UnsavedDocument},
+          {"NoNav", ImGuiWindowFlags_NoNav},
+          {"NoDecoration", ImGuiWindowFlags_NoDecoration},
+          {"NoInputs", ImGuiWindowFlags_NoInputs},
+          {"NoFocusOnAppearing", ImGuiWindowFlags_NoFocusOnAppearing},
+          {"NoBringToFrontOnFocus", ImGuiWindowFlags_NoBringToFrontOnFocus},
+          {"AlwaysAutoResize", ImGuiWindowFlags_AlwaysAutoResize},
+          {"NoSavedSettings", ImGuiWindowFlags_NoSavedSettings},
+          {"NoMouseInputs", ImGuiWindowFlags_NoMouseInputs},
+          {"NoMouseInputs", ImGuiWindowFlags_NoMouseInputs},
+          {"NoTitleBar", ImGuiWindowFlags_NoTitleBar},
+          {"NoResize", ImGuiWindowFlags_NoResize},
+          {"NoMove", ImGuiWindowFlags_NoMove},
+          {"NoScrollbar", ImGuiWindowFlags_NoScrollbar},
+          {"NoScrollWithMouse", ImGuiWindowFlags_NoScrollWithMouse},
+          {"NoCollapse", ImGuiWindowFlags_NoCollapse},
+          {"AlwaysVerticalScrollbar", ImGuiWindowFlags_AlwaysVerticalScrollbar},
+          {"AlwaysHorizontalScrollbar",
+           ImGuiWindowFlags_AlwaysHorizontalScrollbar}};
+      ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None;
+      for (const auto& flag : flag_tokens) {
+        if (flagMap.find(flag) != flagMap.end()) {
+          windowFlags |= flagMap[flag];
+        }
+      }
+      attributes.flags = new ImGuiWindowFlags(windowFlags);
+      break;
+    }
+    case WidgetType::Table: {
+      // Create a flag map
+      static std::map<std::string, ImGuiTableFlags> flagMap = {
+          {"None", ImGuiTableFlags_None},
+          {"Resizable", ImGuiTableFlags_Resizable},
+          {"Reorderable", ImGuiTableFlags_Reorderable},
+          {"Hideable", ImGuiTableFlags_Hideable},
+          {"Sortable", ImGuiTableFlags_Sortable},
+          {"NoSavedSettings", ImGuiTableFlags_NoSavedSettings},
+          {"ContextMenuInBody", ImGuiTableFlags_ContextMenuInBody},
+          {"RowBg", ImGuiTableFlags_RowBg},
+          {"BordersInnerH", ImGuiTableFlags_BordersInnerH},
+          {"BordersOuterH", ImGuiTableFlags_BordersOuterH},
+          {"BordersInnerV", ImGuiTableFlags_BordersInnerV},
+          {"BordersOuterV", ImGuiTableFlags_BordersOuterV},
+          {"BordersH", ImGuiTableFlags_BordersH},
+          {"BordersV", ImGuiTableFlags_BordersV},
+          {"Borders", ImGuiTableFlags_Borders},
+          {"NoBordersInBody", ImGuiTableFlags_NoBordersInBody},
+          {"NoBordersInBodyUntilResize",
+           ImGuiTableFlags_NoBordersInBodyUntilResize},
+          {"SizingFixedFit", ImGuiTableFlags_SizingFixedFit},
+          {"SizingFixedSame", ImGuiTableFlags_SizingFixedSame},
+          {"SizingStretchProp", ImGuiTableFlags_SizingStretchProp},
+          {"SizingStretchSame", ImGuiTableFlags_SizingStretchSame},
+          {"NoHostExtendX", ImGuiTableFlags_NoHostExtendX},
+          {"NoHostExtendY", ImGuiTableFlags_NoHostExtendY},
+          {"NoKeepColumnsVisible", ImGuiTableFlags_NoKeepColumnsVisible},
+          {"PreciseWidths", ImGuiTableFlags_PreciseWidths},
+          {"NoClip", ImGuiTableFlags_NoClip},
+          {"PadOuterX", ImGuiTableFlags_PadOuterX},
+          {"NoPadOuterX", ImGuiTableFlags_NoPadOuterX},
+          {"NoPadInnerX", ImGuiTableFlags_NoPadInnerX},
+          {"ScrollX", ImGuiTableFlags_ScrollX},
+          {"ScrollY", ImGuiTableFlags_ScrollY},
+          {"SortMulti", ImGuiTableFlags_SortMulti},
+          {"SortTristate", ImGuiTableFlags_SortTristate}};
+      ImGuiTableFlags tableFlags = ImGuiTableFlags_None;
+      for (const auto& flag : flag_tokens) {
+        if (flagMap.find(flag) != flagMap.end()) {
+          tableFlags |= flagMap[flag];
+        }
+      }
+      // Reserve data to the void* pointer and assign flags
+      attributes.flags = new ImGuiTableFlags(tableFlags);
+    } break;
+    case WidgetType::TableSetupColumn: {
+      static std::map<std::string, ImGuiTableColumnFlags> flagMap = {
+          {"None", ImGuiTableColumnFlags_None},
+          {"DefaultHide", ImGuiTableColumnFlags_DefaultHide},
+          {"DefaultSort", ImGuiTableColumnFlags_DefaultSort},
+          {"WidthStretch", ImGuiTableColumnFlags_WidthStretch},
+          {"WidthFixed", ImGuiTableColumnFlags_WidthFixed},
+          {"NoResize", ImGuiTableColumnFlags_NoResize},
+          {"NoReorder", ImGuiTableColumnFlags_NoReorder},
+          {"NoHide", ImGuiTableColumnFlags_NoHide},
+          {"NoClip", ImGuiTableColumnFlags_NoClip},
+          {"NoSort", ImGuiTableColumnFlags_NoSort},
+          {"NoSortAscending", ImGuiTableColumnFlags_NoSortAscending},
+          {"NoSortDescending", ImGuiTableColumnFlags_NoSortDescending},
+          {"NoHeaderWidth", ImGuiTableColumnFlags_NoHeaderWidth},
+          {"PreferSortAscending", ImGuiTableColumnFlags_PreferSortAscending},
+          {"PreferSortDescending", ImGuiTableColumnFlags_PreferSortDescending},
+          {"IndentEnable", ImGuiTableColumnFlags_IndentEnable},
+          {"IndentDisable", ImGuiTableColumnFlags_IndentDisable},
+          {"IsEnabled", ImGuiTableColumnFlags_IsEnabled},
+          {"IsVisible", ImGuiTableColumnFlags_IsVisible},
+          {"IsSorted", ImGuiTableColumnFlags_IsSorted},
+          {"IsHovered", ImGuiTableColumnFlags_IsHovered}};
+      ImGuiTableColumnFlags columnFlags = ImGuiTableColumnFlags_None;
+      for (const auto& flag : flag_tokens) {
+        if (flagMap.find(flag) != flagMap.end()) {
+          columnFlags |= flagMap[flag];
+        }
+      }
+      // Reserve data to the void* pointer and assign flags
+      attributes.flags = new ImGuiTableColumnFlags(columnFlags);
+    }
+    default:
+      break;
+  }
+}
+
 WidgetAttributes ParseAttributes(
     const std::vector<Token>& tokens, size_t& index, const WidgetType& type,
     const std::map<std::string, void*>& data_bindings) {
@@ -139,6 +299,13 @@ WidgetAttributes ParseAttributes(
           attributes.max = std::stod(value);
         else if (keyToken.value == "value")
           attributes.value = std::stod(value);
+        else if (keyToken.value == "width")
+          if (value == "autox")
+            attributes.width = ImGui::GetContentRegionAvail().x;
+          else if (value == "autoy")
+            attributes.width = ImGui::GetContentRegionAvail().y;
+          else
+            attributes.width = std::stod(value);
         else if (keyToken.value == "text")
           attributes.text = value;
         else if (keyToken.value == "data" &&
@@ -147,7 +314,7 @@ WidgetAttributes ParseAttributes(
         } else if (keyToken.value == "count") {
           attributes.count = std::stoi(value);
         } else if (keyToken.value == "flags") {
-          attributes.flags = nullptr;  // Placeholder for future use
+          ParseFlags(type, value, attributes);
         } else if (keyToken.value == "size") {
           attributes.size = ImVec2(0, 0);  // Placeholder for future use
         }
@@ -160,19 +327,54 @@ WidgetAttributes ParseAttributes(
   return attributes;
 }
 
+Node Parse(const std::string& yazon_input,
+           const std::map<std::string, void*>& data_bindings) {
+  size_t index = 0;
+  auto tokens = Tokenize(yazon_input);
+
+  std::map<std::string, Node> definitions;
+  if (tokens[index].value == "Definitions") {
+    index++;  // Skip the "Definitions" token
+    while (index < tokens.size() &&
+           tokens[index].value != "Layout") {  // Skip the definitions
+      // Get the definition name and parse the node
+      std::string definition_name = tokens[index].value;
+      index++;  // Move to the definition node
+      definitions[definition_name] = ParseNode(tokens, index, data_bindings);
+      index++;
+    }
+  }
+
+  return ParseNode(tokens, index, data_bindings);
+}
+
 void Render(Node& node) {
   switch (node.type) {
-    case WidgetType::Window:
-      if (ImGui::Begin(node.attributes.title.c_str())) {
+    case WidgetType::Window: {
+      ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+      if (node.attributes.flags) {
+        flags = *(ImGuiWindowFlags*)node.attributes.flags;
+      }
+      if (ImGui::Begin(node.attributes.title.c_str(), nullptr, flags)) {
         for (auto& child : node.children) {
           Render(child);
         }
         ImGui::End();
       }
-      break;
+    } break;
     case WidgetType::Button:
-      if (ImGui::Button(node.attributes.text.c_str())) {
-        ExecuteActions(node.actions, ActionType::Click);
+      if (node.attributes.data) {
+        // Format the text with the data value
+        char formattedText[256];
+        snprintf(formattedText, sizeof(formattedText),
+                 node.attributes.text.c_str(), *(int*)node.attributes.data);
+        if (ImGui::Button(formattedText)) {
+          ExecuteActions(node.actions, ActionType::Click);
+        }
+      } else {
+        if (ImGui::Button(node.attributes.text.c_str())) {
+          ExecuteActions(node.actions, ActionType::Click);
+        }
       }
       break;
     case WidgetType::CollapsingHeader:
@@ -192,24 +394,37 @@ void Render(Node& node) {
       ImGui::Columns(1);
       ImGui::Separator();
       break;
-    case WidgetType::Table:
-      ImGui::BeginTable(node.attributes.id.c_str(), node.attributes.count);
-      for (auto& child : node.children) {
-        Render(child);
+    case WidgetType::Checkbox:
+      if (ImGui::Checkbox(node.attributes.title.c_str(),
+                          (bool*)node.attributes.data)) {
+        ExecuteActions(node.actions, ActionType::Change);
+      }
+      break;
+    case WidgetType::Table: {
+      ImGuiTableFlags flags = ImGuiTableFlags_None;
+      if (node.attributes.flags) {
+        flags = *(ImGuiTableFlags*)node.attributes.flags;
+      }
+      if (ImGui::BeginTable(node.attributes.id.c_str(), node.attributes.count,
+                            flags)) {
+        for (auto& child : node.children) {
+          Render(child);
+        }
       }
       ImGui::EndTable();
-      break;
-    case WidgetType::TableSetupColumn:
-      ImGui::TableSetupColumn(node.attributes.title.c_str());
-      break;
+    } break;
+    case WidgetType::TableSetupColumn: {
+      ImGuiTableColumnFlags flags = ImGuiTableColumnFlags_None;
+      if (node.attributes.flags) {
+        flags = *(ImGuiTableColumnFlags*)node.attributes.flags;
+      }
+      ImGui::TableSetupColumn(node.attributes.title.c_str(), flags);
+    } break;
     case WidgetType::TableHeadersRow:
       ImGui::TableHeadersRow();
       break;
     case WidgetType::TableNextColumn:
       ImGui::TableNextColumn();
-      for (auto& child : node.children) {
-        Render(child);
-      }
       break;
     case WidgetType::Text:
       if (node.attributes.data) {
@@ -260,16 +475,50 @@ void Render(Node& node) {
     case WidgetType::Separator:
       ImGui::Separator();
       break;
+    case WidgetType::Selectable:
+      if (ImGui::Selectable(node.attributes.title.c_str(),
+                            (bool*)node.attributes.selected)) {
+        ExecuteActions(node.actions, ActionType::Click);
+      }
+      break;
+    case WidgetType::BeginTabBar:
+      if (ImGui::BeginTabBar(node.attributes.title.c_str())) {
+        for (auto& child : node.children) {
+          Render(child);
+        }
+        ImGui::EndTabBar();
+      }
+      break;
+    case WidgetType::BeginTabItem:
+      if (ImGui::BeginTabItem(node.attributes.title.c_str())) {
+        for (auto& child : node.children) {
+          Render(child);
+        }
+        ImGui::EndTabItem();
+      }
+      break;
+    case WidgetType::HexInputByte:
+      gui::InputHexByte(node.attributes.id.c_str(),
+                        (uint8_t*)node.attributes.data);
+      break;
+    case WidgetType::HexInputWord:
+      gui::InputHexWord(node.attributes.id.c_str(),
+                        (uint16_t*)node.attributes.data);
+      break;
+    case WidgetType::Canvas: {
+      gui::Canvas* canvas = (gui::Canvas*)node.attributes.data;
+      if (canvas) {
+        canvas->DrawBackground();
+        canvas->DrawContextMenu();
+
+        canvas->DrawGrid();
+        canvas->DrawOverlay();
+      }
+      break;
+    }
     default:
       break;
   }
-}
-
-Node Parse(const std::string& yazon_input,
-           const std::map<std::string, void*>& data_bindings) {
-  size_t index = 0;
-  auto tokens = Tokenize(yazon_input);
-  return ParseNode(tokens, index, data_bindings);
 }
 
 void ExecuteActions(const std::vector<Action>& actions, ActionType type) {
@@ -292,6 +541,33 @@ void BindAction(Node* node, ActionType type, std::function<void()> callback) {
     Action action = {type, callback};
     node->actions.push_back(action);
   }
+}
+
+void BindSelectable(Node* node, bool* selected,
+                    std::function<void()> callback) {
+  if (node) {
+    Action action = {ActionType::Click, callback};
+    node->actions.push_back(action);
+    node->attributes.selected = selected;
+  }
+}
+
+std::string LoadFile(const std::string& filename) {
+  std::string fileContents;
+  const std::string kPath = "assets/layouts/";
+  std::ifstream file(kPath + filename);
+
+  if (file.is_open()) {
+    std::string line;
+    while (std::getline(file, line)) {
+      fileContents += line;
+    }
+    file.close();
+  } else {
+    fileContents = "File not found: " + filename;
+    std::cout << fileContents << std::endl;
+  }
+  return fileContents;
 }
 
 }  // namespace zeml
