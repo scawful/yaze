@@ -1,5 +1,7 @@
 var NAVTREEINDEX33 =
 {
+"namespaceyaze_1_1app_1_1editor_1_1item__internal.html#ab2c9f1e52d63636be5c038668a23e697":[8,0,1,0,1,8,0],
+"namespaceyaze_1_1app_1_1editor_1_1palette__internal.html":[8,0,1,0,1,9],
 "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html":[8,0,1,0,1,10],
 "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670b":[8,0,1,0,1,10,1],
 "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#a6f9516dececa49431eefccfaf78f670ba434b73359cdd84750e4da83ae7a05fc3":[8,0,1,0,1,10,1,3],
@@ -13,7 +15,7 @@ var NAVTREEINDEX33 =
 "namespaceyaze_1_1app_1_1emu.html":[8,0,1,0,2],
 "namespaceyaze_1_1app_1_1emu.html#a7c2cc0176c97d85b74d62cc8147be1de":[8,0,1,0,2,15],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html":[8,0,1,0,2,0],
-"namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a824d10c09fa6064deb965096a7766361":[8,0,1,0,2,0,0],
+"namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a8661d56df6530eb9b492271d63b262ac":[8,0,1,0,2,0,0],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html":[8,0,1,0,2,1],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a228f6f49b9ffa0fc42fb4760f13fc48b":[8,0,1,0,2,1,1],
 "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a7cc2b521f0ca37fa3351bb0452e397b5":[8,0,1,0,2,1,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX33 =
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa5f36c0fbde5994c88d0a644f97aac0f":[8,0,1,0,3,1,68],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785":[8,0,1,0,3,1,48],
 "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa8bcf90e524970ee34af92030ea7066f":[8,0,1,0,3,1,77],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab029bf3391b9f450789088d69ee7d08f":[8,0,1,0,3,1,29],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab1a2b7e8919a316888cef2f9dd30318b":[8,0,1,0,3,1,66],
-"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9":[8,0,1,0,3,1,38]
+"namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab029bf3391b9f450789088d69ee7d08f":[8,0,1,0,3,1,29]
 };

@@ -1,7 +1,7 @@
 var namespaceyaze_1_1app_1_1emu =
 [
     [ "anonymous_namespace{emulator.cc}", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html", [
-      [ "ShouldDisplay", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a824d10c09fa6064deb965096a7766361", null ]
+      [ "ShouldDisplay", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a8661d56df6530eb9b492271d63b262ac", null ]
     ] ],
     [ "anonymous_namespace{snes.cc}", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html", [
       [ "GetHeaderOffset", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a7cc2b521f0ca37fa3351bb0452e397b5", null ],

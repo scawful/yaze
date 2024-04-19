@@ -1,12 +1,5 @@
 <map id="yaze::app::emu::video::Ppu::UpdateModeSettings" name="yaze::app::emu::video::Ppu::UpdateModeSettings">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,33,184,74"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="446,5,603,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,30,231,19,334,13,431,16,431,21,335,19,232,24,172,35"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a6e7b9f59d2bc7f435bd35cfaf69c97a8" title=" " alt="" coords="232,33,398,74"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,51,216,51,216,56,184,56"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a4cd8676f399582001849c170ddbea22c" title=" " alt="" coords="242,99,388,139"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="166,72,230,91,228,96,165,77"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="368,96,397,83,466,51,469,56,399,88,370,101"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="446,99,603,139"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="389,116,431,116,431,122,389,122"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,184,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="232,5,389,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
 </map>

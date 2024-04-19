@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['i_0',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a7c1ee50463f68e8a17c0a192e5a9ef1c',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['i_1',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
+  ['i_0',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
+  ['i_1',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a7c1ee50463f68e8a17c0a192e5a9ef1c',1,'yaze::app::emu::audio::Spc700::Flags']]],
   ['i_5fpostinc_2',['i_postinc',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae6ae32cc8156adc034374664393a0fc3',1,'yaze::app::emu::audio::Spc700']]],
   ['icon_5fmax_5fmd_3',['ICON_MAX_MD',['../icons_8h.html#a1f33448153f99d7338175831c1775dc7',1,'icons.h']]],
   ['icon_5fmd_5f10k_4',['ICON_MD_10K',['../icons_8h.html#a5fda85dd85890c0e4ec00970aa4c4c10',1,'icons.h']]],
@@ -2208,8 +2208,8 @@ var searchData=
   ['increment_5frate_2205',['increment_rate',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29',1,'yaze::app::emu::video::VideoPortControl']]],
   ['increment_5fsize_2206',['increment_size',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],
   ['incw_2207',['INCW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5bbdad94d5dbabfacf9fcf314e3d503c',1,'yaze::app::emu::audio::Spc700']]],
-  ['index_2208',['Index',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a71607b38bcc957eee162bea627d3e282',1,'yaze::app::zelda3::dungeon::DungeonDestination']]],
-  ['index_2209',['index',['../structyaze_1_1app_1_1emu_1_1video_1_1Tile.html#a3398a46f69dc283f04b07b0e1aaca545',1,'yaze::app::emu::video::Tile']]],
+  ['index_2208',['index',['../structyaze_1_1app_1_1emu_1_1video_1_1Tile.html#a3398a46f69dc283f04b07b0e1aaca545',1,'yaze::app::emu::video::Tile']]],
+  ['index_2209',['Index',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html#a71607b38bcc957eee162bea627d3e282',1,'yaze::app::zelda3::dungeon::DungeonDestination']]],
   ['index_5f_2210',['index_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36bbe66e8eafda0024f8b4752d991730',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['inferaddressingmodefromoperand_2211',['InferAddressingModeFromOperand',['../classyaze_1_1app_1_1emu_1_1AsmParser.html#ab93a1bd4bf7da9474b99e805b5fc4077',1,'yaze::app::emu::AsmParser']]],
   ['infrastructure_20overview_2212',['YAZE Infrastructure Overview',['../md_docs_2infrastructure.html',1,'']]],
