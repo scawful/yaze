@@ -32,7 +32,7 @@ class ExperimentFlags {
     bool kUseBitmapManager = true;
 
     // Log instructions to the GUI debugger.
-    bool kLogInstructions = false;
+    bool kLogInstructions = true;
 
     // Flag to enable ImGui input config flags. Currently is
     // handled manually by controller class but should be
