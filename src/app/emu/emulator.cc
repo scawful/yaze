@@ -18,11 +18,26 @@ namespace app {
 namespace emu {
 
 namespace {
-bool ShouldDisplay(const InstructionEntry& entry, const char* filter,
-                   bool showAll) {
-  // Implement logic to determine if the entry should be displayed based on the
-  // filter and showAll flag
-  return true;
+bool ShouldDisplay(const InstructionEntry& entry, const char* filter) {
+  if (filter[0] == '\0') {
+    return true;
+  }
+
+  // Supported fields: address, opcode, operands
+  if (entry.operands.find(filter) != std::string::npos) {
+    return true;
+  }
+
+  if (absl::StrFormat("%06X", entry.address).find(filter) !=
+      std::string::npos) {
+    return true;
+  }
+
+  if (opcode_to_mnemonic.at(entry.opcode).find(filter) != std::string::npos) {
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace
@@ -43,12 +58,10 @@ void Emulator::Run() {
 
   if (running_) {
     HandleEvents();
-    if (!step_) {
-      snes_.Run();
-    }
+    snes_.Run();
   }
 
-  RenderEmulator();
+  gui::zeml::Render(emulator_node_);
 }
 
 void Emulator::RenderNavBar() {
@@ -156,51 +169,6 @@ void Emulator::RenderNavBar() {
 void Emulator::HandleEvents() {
   // Handle user input events
   // ...
-}
-
-void Emulator::RenderEmulator() {
-  std::string emulator_layout = R"(
-      Table id="Emulator" count="3" flags="Resizable|ScrollY" {
-        TableSetupColumn title="CPU",
-        TableSetupColumn title="PPU",
-        TableHeadersRow,
-        TableNextColumn {
-          Function id="CpuInstructionLog"
-        }
-        TableNextColumn {
-          Function id="SnesPpu",
-          Function id="BreakpointList"
-        }
-        TableNextColumn {
-          BeginChild id="##" size="0,0" flags="NoMove|NoScrollbar" {
-            CollapsingHeader id="cpuState" title="Register Values" open=true {
-              Columns id="registersColumns" count="2" {
-                Text text="A: 0x%04X" data="cpu.A",
-                Text text="D: 0x%04X" data="cpu.D",
-                Text text="X: 0x%04X" data="cpu.X",
-                Text text="DB: 0x%02X" data="cpu.DB",
-                Text text="Y: 0x%04X" data="cpu.Y",
-                Text text="PB: 0x%02X" data="cpu.PB",
-                Text text="PC: 0x%04X" data="cpu.PC",
-                Text text="E: %d" data="cpu.E"
-              }
-            }
-          }
-        }
-      }
-    )";
-  const std::map<std::string, void*> data_bindings = {
-      {"cpu.A", &snes_.cpu().A},   {"cpu.D", &snes_.cpu().D},
-      {"cpu.X", &snes_.cpu().X},   {"cpu.DB", &snes_.cpu().DB},
-      {"cpu.Y", &snes_.cpu().Y},   {"cpu.PB", &snes_.cpu().PB},
-      {"cpu.PC", &snes_.cpu().PC}, {"cpu.E", &snes_.cpu().E}};
-  auto emulator_node = gui::zeml::Parse(emulator_layout, data_bindings);
-  Bind(emulator_node.GetNode("CpuInstructionLog"),
-       [&]() { RenderCpuInstructionLog(snes_.cpu().instruction_log_); });
-  Bind(emulator_node.GetNode("SnesPpu"), [&]() { RenderSnesPpu(); });
-  Bind(emulator_node.GetNode("BreakpointList"),
-       [&]() { RenderBreakpointList(); });
-  gui::zeml::Render(emulator_node);
 }
 
 void Emulator::RenderSnesPpu() {
@@ -342,32 +310,37 @@ void Emulator::RenderMemoryViewer() {
 }
 
 void Emulator::RenderCpuInstructionLog(
-    const std::vector<InstructionEntry>& instructionLog) {
-  if (ImGui::CollapsingHeader("CPU Instruction Log")) {
+    const std::vector<InstructionEntry>& instruction_log) {
+  if (ImGui::CollapsingHeader("CPU Instruction Log",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     // Filtering options
-    static char filterBuf[256];
-    ImGui::InputText("Filter", filterBuf, IM_ARRAYSIZE(filterBuf));
-    SameLine();
-    if (ImGui::Button("Clear")) { /* Clear filter logic */
-    }
-
-    // Toggle for showing all opcodes
-    static bool showAllOpcodes = true;
-    ImGui::Checkbox("Show All Opcodes", &showAllOpcodes);
+    static char filter[256];
+    ImGui::InputText("Filter", filter, IM_ARRAYSIZE(filter));
 
     // Instruction list
     ImGui::BeginChild("InstructionList", ImVec2(0, 0), ImGuiChildFlags_None);
-    for (const auto& entry : instructionLog) {
-      if (ShouldDisplay(entry, filterBuf, showAllOpcodes)) {
+    for (const auto& entry : instruction_log) {
+      if (ShouldDisplay(entry, filter)) {
         if (ImGui::Selectable(
-                absl::StrFormat("%06X: %s %s", entry.address,
-                                opcode_to_mnemonic.at(entry.opcode),
-                                entry.operands)
-                    .c_str())) {
+                absl::StrFormat("%06X:", entry.address).c_str())) {
           // Logic to handle click (e.g., jump to address, set breakpoint)
         }
+
+        ImGui::SameLine();
+
+        ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        ImGui::TextColored(color, "%s",
+                           opcode_to_mnemonic.at(entry.opcode).c_str());
+        ImVec4 operand_color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+        ImGui::SameLine();
+        ImGui::TextColored(operand_color, "%s", entry.operands.c_str());
       }
     }
+    // Jump to the bottom of the child scrollbar
+    if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
+      ImGui::SetScrollHereY(1.0f);
+    }
+
     ImGui::EndChild();
   }
 }
