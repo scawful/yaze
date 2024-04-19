@@ -27,21 +27,15 @@ class Emulator : public SharedRom {
  public:
   Emulator() {
     std::string emulator_layout = R"(
-      Table id="Emulator" count="3" flags="Resizable|ScrollY" {
+      Table id="Emulator" count="2" flags="Resizable|ScrollY" {
         TableSetupColumn title="CPU",
         TableSetupColumn title="PPU",
 
         TableHeadersRow,
         TableNextColumn,
-        Function id="CpuInstructionLog",
 
-        TableNextColumn,
-        Function id="SnesPpu",
-        Function id="BreakpointList",
-
-        TableNextColumn,
-        BeginChild id="##" size="0,0" flags="NoMove|NoScrollbar" {
-          CollapsingHeader id="cpuState" title="Register Values" flags="DefaultOpen" {
+        CollapsingHeader id="cpuState" title="Register Values" flags="DefaultOpen" {
+        BeginChild id="##CpuState" size="0,100" flags="NoMove|NoScrollbar" {
             Columns id="registersColumns" count="2" {
               Text text="A: 0x%04X" data="cpu.A",
               Text text="D: 0x%04X" data="cpu.D",
@@ -54,6 +48,11 @@ class Emulator : public SharedRom {
             }
           }
         }
+        Function id="CpuInstructionLog",
+
+        TableNextColumn,
+        Function id="SnesPpu",
+        Function id="BreakpointList",
       }
     )";
     const std::map<std::string, void*> data_bindings = {
