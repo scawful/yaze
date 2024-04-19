@@ -190,7 +190,7 @@ void ParseFlags(const WidgetType& type, const std::string& flags,
           windowFlags |= flagMap[flag];
         }
       }
-      attributes.flags = new ImGuiWindowFlags(windowFlags);
+      attributes.flags = std::make_unique<ImGuiWindowFlags>(windowFlags);
       break;
     }
     case WidgetType::CollapsingHeader: {
@@ -216,7 +216,7 @@ void ParseFlags(const WidgetType& type, const std::string& flags,
           treeFlags |= flagMap[flag];
         }
       }
-      attributes.flags = new ImGuiTreeNodeFlags(treeFlags);
+      attributes.flags = std::make_unique<ImGuiTreeNodeFlags>(treeFlags);
       break;
     }
     case WidgetType::Table: {
@@ -263,7 +263,7 @@ void ParseFlags(const WidgetType& type, const std::string& flags,
         }
       }
       // Reserve data to the void* pointer and assign flags
-      attributes.flags = new ImGuiTableFlags(tableFlags);
+      attributes.flags = std::make_unique<ImGuiTableFlags>(tableFlags);
     } break;
     case WidgetType::TableSetupColumn: {
       static std::map<std::string, ImGuiTableColumnFlags> flagMap = {
@@ -295,7 +295,7 @@ void ParseFlags(const WidgetType& type, const std::string& flags,
         }
       }
       // Reserve data to the void* pointer and assign flags
-      attributes.flags = new ImGuiTableColumnFlags(columnFlags);
+      attributes.flags = std::make_unique<ImGuiTableColumnFlags>(columnFlags);
     }
     default:
       break;
@@ -379,7 +379,7 @@ void Render(Node& node) {
     case WidgetType::Window: {
       ImGuiWindowFlags flags = ImGuiWindowFlags_None;
       if (node.attributes.flags) {
-        flags = *(ImGuiWindowFlags*)node.attributes.flags;
+        flags = *(ImGuiWindowFlags*)node.attributes.flags.get();
       }
       if (ImGui::Begin(node.attributes.title.c_str(), nullptr, flags)) {
         for (auto& child : node.children) {
@@ -406,7 +406,7 @@ void Render(Node& node) {
     case WidgetType::CollapsingHeader: {
       ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
       if (node.attributes.flags) {
-        flags = *(ImGuiTreeNodeFlags*)node.attributes.flags;
+        flags = *(ImGuiTreeNodeFlags*)node.attributes.flags.get();
       }
       if (ImGui::CollapsingHeader(node.attributes.title.c_str(), flags)) {
         for (auto& child : node.children) {
@@ -433,7 +433,7 @@ void Render(Node& node) {
     case WidgetType::Table: {
       ImGuiTableFlags flags = ImGuiTableFlags_None;
       if (node.attributes.flags) {
-        flags = *(ImGuiTableFlags*)node.attributes.flags;
+        flags = *(ImGuiTableFlags*)node.attributes.flags.get();
       }
       if (ImGui::BeginTable(node.attributes.id.c_str(), node.attributes.count,
                             flags)) {
@@ -446,7 +446,7 @@ void Render(Node& node) {
     case WidgetType::TableSetupColumn: {
       ImGuiTableColumnFlags flags = ImGuiTableColumnFlags_None;
       if (node.attributes.flags) {
-        flags = *(ImGuiTableColumnFlags*)node.attributes.flags;
+        flags = *(ImGuiTableColumnFlags*)node.attributes.flags.get();
       }
       ImGui::TableSetupColumn(node.attributes.title.c_str(), flags);
     } break;

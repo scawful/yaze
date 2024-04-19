@@ -5,7 +5,9 @@
 
 #include <cctype>
 #include <functional>
+#include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -87,17 +89,17 @@ enum class WidgetType {
  */
 struct WidgetAttributes {
   std::string id;
-  std::string title;           // For Window, Button
-  std::string text;            // For Text, Button
-  double min;                  // For Slider
-  double max;                  // For Slider
-  double value;                // For Slidecar
-  float width;                 // For Columns
-  int count = 0;               // For Columns
-  ImVec2 size = ImVec2(0, 0);  // For BeginChild
-  bool* selected = nullptr;    // For Selectable
-  void* flags = nullptr;       // For Various
-  void* data = nullptr;        // For Various
+  std::string title;                      // For Window, Button
+  std::string text;                       // For Text, Button
+  double min;                             // For Slider
+  double max;                             // For Slider
+  double value;                           // For Slidecar
+  float width;                            // For Columns
+  int count = 0;                          // For Columns
+  ImVec2 size = ImVec2(0, 0);             // For BeginChild
+  bool* selected = nullptr;               // For Selectable
+  std::shared_ptr<void> flags = nullptr;  // For Various
+  void* data = nullptr;                   // For Various
 };
 
 /**
