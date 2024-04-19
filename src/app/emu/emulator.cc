@@ -243,8 +243,8 @@ void Emulator::RenderBreakpointList() {
     ImGui::EndChild();
   }
   Separator();
-  gui::InputHexByte("PB", &manual_pb_, 25.f);
-  gui::InputHexWord("PC", &manual_pc_, 25.f);
+  gui::InputHexByte("PB", &manual_pb_, 50.f);
+  gui::InputHexWord("PC", &manual_pc_, 75.f);
   if (ImGui::Button("Set Current Address")) {
     snes_.cpu().PC = manual_pc_;
     snes_.cpu().PB = manual_pb_;
@@ -310,7 +310,7 @@ void Emulator::RenderMemoryViewer() {
 
 void Emulator::RenderCpuInstructionLog(
     const std::vector<InstructionEntry>& instruction_log) {
-  if (ImGui::CollapsingHeader("CPU Instruction Log",
+  if (ImGui::CollapsingHeader("Instruction Log",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     // Filtering options
     static char filter[256];
@@ -330,7 +330,7 @@ void Emulator::RenderCpuInstructionLog(
         ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
         ImGui::TextColored(color, "%s",
                            opcode_to_mnemonic.at(entry.opcode).c_str());
-        ImVec4 operand_color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+        ImVec4 operand_color = ImVec4(0.7f, 0.5f, 0.3f, 1.0f);
         ImGui::SameLine();
         ImGui::TextColored(operand_color, "%s", entry.operands.c_str());
       }
