@@ -1,11 +1,5 @@
 var NAVTREEINDEX35 =
 {
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab8dbbb08aa7f63249b56c7745e4cb2c4":[8,0,1,0,5,1,18],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ababe6a432142d41be104609d96b4a1a6":[8,0,1,0,5,1,112],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abc3a2e7da3f410c59fa73b7adac975c8":[8,0,1,0,5,1,122],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145da":[8,0,1,0,5,1,17],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daa2490e9a00eef4bde027f8c73fffdaa69":[8,0,1,0,5,1,17,0],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daa4dc6baef96f60a48335beafe308edb99":[8,0,1,0,5,1,17,5],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaa1e1287b647a78dfd7e3c742f9590cc7":[8,0,1,0,5,1,17,1],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaca9b537ecea3e82cd07e699c590f3ffb":[8,0,1,0,5,1,17,3],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daada90fc3009978905b224ab82f6e5c733":[8,0,1,0,5,1,17,2],
@@ -249,5 +243,11 @@ var NAVTREEINDEX35 =
 "namespaceyaze__test_1_1emu__test.html#a2307d3bc3467bc657c99abeb0f50d112":[8,0,2,0,258],
 "namespaceyaze__test_1_1emu__test.html#a232a68b57a1c9a655af90b8552934fe7":[8,0,2,0,330],
 "namespaceyaze__test_1_1emu__test.html#a23db3c60599e2205d7e8ab8af9a36bae":[8,0,2,0,38],
-"namespaceyaze__test_1_1emu__test.html#a24268abd8f5936f2e1fede27443f6bed":[8,0,2,0,289]
+"namespaceyaze__test_1_1emu__test.html#a24268abd8f5936f2e1fede27443f6bed":[8,0,2,0,289],
+"namespaceyaze__test_1_1emu__test.html#a2438715df2d81efb844f013ca5b67e87":[8,0,2,0,310],
+"namespaceyaze__test_1_1emu__test.html#a256675cdcb86c246b135192dfceb8b17":[8,0,2,0,77],
+"namespaceyaze__test_1_1emu__test.html#a25ba7233d6111000c0b2a1af329d9df5":[8,0,2,0,228],
+"namespaceyaze__test_1_1emu__test.html#a25c6ffe67817a9c7ccbee46bbf48bcd2":[8,0,2,0,237],
+"namespaceyaze__test_1_1emu__test.html#a25fb14f3db7e2ce8e6e0aea5a2845eb5":[8,0,2,0,186],
+"namespaceyaze__test_1_1emu__test.html#a265e8e6590e79c9de3ec153a0a525cc2":[8,0,2,0,169]
 };

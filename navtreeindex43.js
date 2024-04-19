@@ -1,11 +1,5 @@
 var NAVTREEINDEX43 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html#abaaa2da06378c58f0dbeb89000b3d017":[8,0,1,0,2,4,23,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html#abaaa2da06378c58f0dbeb89000b3d017":[9,0,0,0,2,2,23,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html":[9,0,0,0,2,2,24],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html":[8,0,1,0,2,4,24],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html#a4ab3c7f07ffddef00afe0c06be0d6973":[8,0,1,0,2,4,24,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html#a4ab3c7f07ffddef00afe0c06be0d6973":[9,0,0,0,2,2,24,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html":[9,0,0,0,2,2,25],
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html":[8,0,1,0,2,4,25],
 "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html#a0f1cf0111f7b63058d5c4332765aea3c":[8,0,1,0,2,4,25,1],
@@ -249,5 +243,11 @@ var NAVTREEINDEX43 =
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a1d818a63047fa9417e1edb648e05aca4":[9,0,0,0,4,0,3,5],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a1d818a63047fa9417e1edb648e05aca4":[8,0,1,0,4,1,3,5],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a30bb67469bd35fee3adc4fdd09c36dab":[9,0,0,0,4,0,3,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a30bb67469bd35fee3adc4fdd09c36dab":[8,0,1,0,4,1,3,2]
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a30bb67469bd35fee3adc4fdd09c36dab":[8,0,1,0,4,1,3,2],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a3d3efe584ee8c72b9aa1508e15c9e377":[8,0,1,0,4,1,3,7],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a3d3efe584ee8c72b9aa1508e15c9e377":[9,0,0,0,4,0,3,7],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a43e594271673fbb84233a89f7ad2954b":[8,0,1,0,4,1,3,1],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a43e594271673fbb84233a89f7ad2954b":[9,0,0,0,4,0,3,1],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a4549f09fdfa272bca92be483daa86e67":[8,0,1,0,4,1,3,4],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a4549f09fdfa272bca92be483daa86e67":[9,0,0,0,4,0,3,4]
 };

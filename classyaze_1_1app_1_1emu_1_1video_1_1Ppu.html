@@ -214,8 +214,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7fb5902bb55460ab1d03463c076223cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a547c0e92dc1df59484b8570b3220f4" id="r_a5a547c0e92dc1df59484b8570b3220f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5a547c0e92dc1df59484b8570b3220f4">RenderScanline</a> ()</td></tr>
 <tr class="separator:a5a547c0e92dc1df59484b8570b3220f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a81546ddbdfe469b2d398c46cddc2e32a" id="r_a81546ddbdfe469b2d398c46cddc2e32a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify</a> (uint32_t address, uint8_t data) override</td></tr>
-<tr class="separator:a81546ddbdfe469b2d398c46cddc2e32a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae62949eafe6e2858f927b943c9dea85e" id="r_ae62949eafe6e2858f927b943c9dea85e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify</a> (uint32_t address, uint16_t data) override</td></tr>
+<tr class="separator:ae62949eafe6e2858f927b943c9dea85e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af954ff0aaefd20653c9457f2abf93079" id="r_af954ff0aaefd20653c9457f2abf93079"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af954ff0aaefd20653c9457f2abf93079">GetFrameBuffer</a> () const</td></tr>
 <tr class="separator:af954ff0aaefd20653c9457f2abf93079"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf486c347dbe447c6997efce071e75a1" id="r_abf486c347dbe447c6997efce071e75a1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abf486c347dbe447c6997efce071e75a1">GetScreen</a> () const</td></tr>
@@ -544,11 +544,10 @@ Here is the call graph for this function:</div>
 <area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="635,144,812,169"/>
 <area shape="poly" title=" " alt="" coords="586,154,620,154,620,159,586,159"/>
 <area shape="poly" title=" " alt="" coords="687,145,679,135,684,125,699,119,724,117,751,120,764,126,762,131,749,125,723,122,700,124,687,129,685,134,691,141"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="645,267,802,307"/>
-<area shape="poly" title=" " alt="" coords="574,240,638,259,637,264,572,245"/>
-<area shape="poly" title=" " alt="" coords="560,394,586,382,638,349,684,315,687,319,641,354,589,387,563,399"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="645,397,802,438"/>
-<area shape="poly" title=" " alt="" coords="575,415,629,415,629,420,575,420"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="645,364,802,405"/>
+<area shape="poly" title=" " alt="" coords="575,404,629,396,630,401,576,409"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="645,429,802,470"/>
+<area shape="poly" title=" " alt="" coords="576,426,630,433,629,439,575,431"/>
 </map>
 </div>
 <div class="dynheader">
@@ -741,8 +740,10 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>for (int y = 0; y &lt; 240; ++y) { for (int x = 0; x &lt; 256; ++x) { Calculate the color index based on the x and y coordinates uint8_t color_index = (x + y) % 8;</p>
+<p>Set the pixel in the frame buffer to the calculated color index frame_buffer_[y * 256 + x] = color_index; } }</p>
 
-<p class="reference">References <a class="el" href="#ad077f996d2ae1849711d06a380fdd10b">ApplyEffects()</a>, <a class="el" href="#a0a878bb3d77be3c178da06271080409f">ComposeLayers()</a>, <a class="el" href="#a0d08e0e22ac986fc620bbe0e82dfea78">DisplayFrameBuffer()</a>, <a class="el" href="#a5129ea2bc44bc0ee9c3b6cb086afd2cf">frame_buffer_</a>, <a class="el" href="#ad1fcbda7268f6e1981acbcfe990c2c8b">RenderBackground()</a>, <a class="el" href="#a6f80890450c6ef457eab010e29e38495">RenderSprites()</a>, <a class="el" href="#a6e7b9f59d2bc7f435bd35cfaf69c97a8">UpdatePaletteData()</a>, <a class="el" href="#a4cd8676f399582001849c170ddbea22c">UpdateTileData()</a>, and <a class="el" href="#a159b42daddc0f2c322aa223d8b7ff491">UpdateTileMapData()</a>.</p>
+<p class="reference">References <a class="el" href="#ad077f996d2ae1849711d06a380fdd10b">ApplyEffects()</a>, <a class="el" href="#a0a878bb3d77be3c178da06271080409f">ComposeLayers()</a>, <a class="el" href="#a0d08e0e22ac986fc620bbe0e82dfea78">DisplayFrameBuffer()</a>, <a class="el" href="#ad1fcbda7268f6e1981acbcfe990c2c8b">RenderBackground()</a>, <a class="el" href="#a6f80890450c6ef457eab010e29e38495">RenderSprites()</a>, <a class="el" href="#a6e7b9f59d2bc7f435bd35cfaf69c97a8">UpdatePaletteData()</a>, <a class="el" href="#a4cd8676f399582001849c170ddbea22c">UpdateTileData()</a>, and <a class="el" href="#a159b42daddc0f2c322aa223d8b7ff491">UpdateTileMapData()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#aa017ec2e2e138afad8e08f66d5323dee">Update()</a>.</p>
 <div class="dynheader">
@@ -770,11 +771,10 @@ Here is the call graph for this function:</div>
 <area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="420,144,596,169"/>
 <area shape="poly" title=" " alt="" coords="371,154,404,154,404,159,371,159"/>
 <area shape="poly" title=" " alt="" coords="471,145,464,135,468,125,483,119,508,117,535,120,549,126,547,131,534,125,508,122,485,124,472,129,469,134,476,141"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="430,267,587,307"/>
-<area shape="poly" title=" " alt="" coords="358,240,423,259,421,264,357,245"/>
-<area shape="poly" title=" " alt="" coords="345,394,371,382,423,349,469,315,472,319,426,354,373,387,347,399"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="430,397,587,438"/>
-<area shape="poly" title=" " alt="" coords="360,415,414,415,414,420,360,420"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="430,364,587,405"/>
+<area shape="poly" title=" " alt="" coords="360,404,414,396,414,401,360,409"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="430,429,587,470"/>
+<area shape="poly" title=" " alt="" coords="360,426,414,433,414,439,360,431"/>
 </map>
 </div>
 <div class="dynheader">
@@ -819,8 +819,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a81546ddbdfe469b2d398c46cddc2e32a" name="a81546ddbdfe469b2d398c46cddc2e32a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a81546ddbdfe469b2d398c46cddc2e32a">&#9670;&#160;</a></span>Notify()</h2>
+<a id="ae62949eafe6e2858f927b943c9dea85e" name="ae62949eafe6e2858f927b943c9dea85e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae62949eafe6e2858f927b943c9dea85e">&#9670;&#160;</a></span>Notify()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -836,7 +836,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>data</em></span>&#160;)</td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>data</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -846,14 +846,14 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html#a1112166ccbd4bdbc393ca00c1052c0d8">yaze::app::emu::memory::Observer</a>.</p>
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html#ac63345750590203ebc222cfdf752664d">yaze::app::emu::memory::Observer</a>.</p>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADD.html#a810c63799195aa1ff8a54a2d661c52a2">yaze::app::emu::video::PpuRegisters::CGADD::address</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDH.html#acc527c8d2f85e419bf71b6fac6e13e6e">yaze::app::emu::video::PpuRegisters::VMADDH::address_high</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a73be6b1c3c0b345c0e54b5d828a4563a">yaze::app::emu::video::PpuRegisters::VMAIN::address_increment_mode</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDL.html#a11be6a11821cc56569037e2ffc58bf43">yaze::app::emu::video::PpuRegisters::VMADDL::address_low</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html#a8b68e4ed8b9fca997bbecf481bc916aa">yaze::app::emu::video::OAMSize::base_selection</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a98dadd260db0bf7d185e0ecbfbd7be8a">yaze::app::emu::video::PpuRegisters::BG12NBA</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a3e3a5057c6eebc4bf5fb4a245f59d78a">yaze::app::emu::video::PpuRegisters::BG1HOFS</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac7b568a201cf964b594b159e7afb97e2">yaze::app::emu::video::PpuRegisters::BG1SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac3c2ca2b9a617cff519aa17ad2165d5e">yaze::app::emu::video::PpuRegisters::BG1VOFS</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8a1ecc11a80c32ce0e88308f33469956">yaze::app::emu::video::PpuRegisters::BG2HOFS</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a2dac7b7419e2607ea0aea3a78776b8a1">yaze::app::emu::video::PpuRegisters::BG2SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a7e53b67263346d48e856d039574f4c93">yaze::app::emu::video::PpuRegisters::BG2VOFS</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a465ea876d198acda719a0179d5ac61d8">yaze::app::emu::video::PpuRegisters::BG34NBA</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a095a39366cc74e3b4d2ff352b651b675">yaze::app::emu::video::PpuRegisters::BG3HOFS</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#aaef32aec2dc1ade62daabd1c21aeb68a">yaze::app::emu::video::PpuRegisters::BG3SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ae354a83402c080b6c1ecc424670b53b5">yaze::app::emu::video::PpuRegisters::BG3VOFS</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a935e14f26d347ea30a2cdc9ffebd42a5">yaze::app::emu::video::PpuRegisters::BG4HOFS</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6fb00f65a358deca2c1ffe3c4f849410">yaze::app::emu::video::PpuRegisters::BG4SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#abb96c2b7c83a666142cb78b263f6ac56">yaze::app::emu::video::PpuRegisters::BG4VOFS</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#aba6c09b121212b08cf03d900e69fa695">yaze::app::emu::video::PpuRegisters::Mosaic::bg_enable</a>, <a class="el" href="#a0405fa250ba699476fc6e20766ac538c">bghofs_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a137a89e211e1cd3682a1eec350a04e14">yaze::app::emu::video::PpuRegisters::BGMODE</a>, <a class="el" href="#adc2238456167cfd663d6d23e673ad9b0">bgnba_</a>, <a class="el" href="#ae920d2f7043f0518740a11b1b2bc1d5e">bgsc_</a>, <a class="el" href="#aed266d4b5c928024572b97bdf74dbbaf">bgvofs_</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7X.html#a7ae465e8ef59043db45f86960e9e6293">yaze::app::emu::video::PpuRegisters::M7X::center_x</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7Y.html#a79f69cd8ace16d80e14370725c89fd20">yaze::app::emu::video::PpuRegisters::M7Y::center_y</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a974642af2ae98776f8a2f7efe0c39a7f">yaze::app::emu::video::PpuRegisters::CGADD</a>, <a class="el" href="#ab3ecd9689e3310987d71b31ac15bf6ed">cgadd_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a01946d6b079d28c1b950d4dca483aec1">yaze::app::emu::video::PpuRegisters::CGDATA</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a979926365886a090a07fb67c713a6cbc">yaze::app::emu::video::PpuRegisters::W12SEL::enable_bg1_a</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#adca2cc0aecf325978df32d989972b4b4">yaze::app::emu::video::PpuRegisters::W12SEL::enable_bg1_b</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#ae0cd764e6edceb1db16a2ccf06213baa">yaze::app::emu::video::PpuRegisters::W12SEL::enable_bg2_c</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a5d408840e1a16c52105c14c97e00fde4">yaze::app::emu::video::PpuRegisters::W12SEL::enable_bg2_d</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#a2b2fdec1f893c67ee612662385a11f10">yaze::app::emu::video::PpuRegisters::W34SEL::enable_bg3_e</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#a8ba56d9663f90207977b2cd6b5364cab">yaze::app::emu::video::PpuRegisters::W34SEL::enable_bg3_f</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#ab8565fb4469e6e6e236de7c1064a1feb">yaze::app::emu::video::PpuRegisters::W34SEL::enable_bg4_g</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#a911c1bec46d5ba7306fe12bc99a6f999">yaze::app::emu::video::PpuRegisters::W34SEL::enable_bg4_h</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a29e7bf37f18dc58a0a3a66ffd0c7042b">yaze::app::emu::video::PpuRegisters::WOBJSEL::enable_color_k</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a93080a25802dbfe402a6d7dd3b010511">yaze::app::emu::video::PpuRegisters::WOBJSEL::enable_color_l</a>, <a class="el" href="#a41235595f3f75553502df27f23c9201e">enable_forced_blanking_</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TM.html#ac7b78d9e04ecdfcd9a78f4bd1a219dba">yaze::app::emu::video::PpuRegisters::TM::enable_layer</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html#a368a40ae19af2a021ff2c9a6cabe034a">yaze::app::emu::video::PpuRegisters::TS::enable_layer</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#ac7aed8890be13d9f939d3f13d4b7cbcd">yaze::app::emu::video::PpuRegisters::WOBJSEL::enable_obj_i</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#aaa4c4f965dff2e5594311fd80682b654">yaze::app::emu::video::PpuRegisters::WOBJSEL::enable_obj_j</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TMW.html#a7508715ea0b3408c84c5ae622219fa85">yaze::app::emu::video::PpuRegisters::TMW::enable_window</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TSW.html#a9f0ba18f03071410a37920fa8c0ec5d4">yaze::app::emu::video::PpuRegisters::TSW::enable_window</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a3dc9d3102e442f6a14ccd34096c6b248">yaze::app::emu::video::PpuRegisters::M7SEL::fill</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac">yaze::app::emu::video::PpuRegisters::M7SEL::flip_horizontal</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#ab47b238a6b141afda1726dcc32260b51">yaze::app::emu::video::PpuRegisters::M7SEL::flip_vertical</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483">yaze::app::emu::video::PpuRegisters::VMAIN::increment_size</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#aaf073d12e4e995b4777fbbb1b54fcf5f">yaze::app::emu::video::PpuRegisters::INIDISP</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a5f0422562ecf0f77d569ef245e15c73a">yaze::app::emu::video::PpuRegisters::W12SEL::invert_bg1_a</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a9baf3354f8f5750e28cda3ebe951f1ca">yaze::app::emu::video::PpuRegisters::W12SEL::invert_bg1_b</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a5b7103dfa782bbcca25cd0ffbc57fed7">yaze::app::emu::video::PpuRegisters::W12SEL::invert_bg2_c</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#aa71900bfacc09de0cd70a2202703005c">yaze::app::emu::video::PpuRegisters::W12SEL::invert_bg2_d</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#a17f99afecb19928e3e613c29113b113c">yaze::app::emu::video::PpuRegisters::W34SEL::invert_bg3_e</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#a96d44a4badcdb7e665fce8718d9e9a16">yaze::app::emu::video::PpuRegisters::W34SEL::invert_bg3_f</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#acf26c766b5c4bb214902cde9d8719227">yaze::app::emu::video::PpuRegisters::W34SEL::invert_bg4_g</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#ac0ce6af4c6bcc09b9abda4099ca3ae99">yaze::app::emu::video::PpuRegisters::W34SEL::invert_bg4_h</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a9368aa1b67b2012c45b5febbb2af377b">yaze::app::emu::video::PpuRegisters::WOBJSEL::invert_color_k</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a7e89503e289f624124783b92770d734d">yaze::app::emu::video::PpuRegisters::WOBJSEL::invert_color_l</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#ab9f8d5fdd93695ac24e89d0790be2ebb">yaze::app::emu::video::PpuRegisters::WOBJSEL::invert_obj_i</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#afe639c51be4fb68d5f812d7df9a92760">yaze::app::emu::video::PpuRegisters::WOBJSEL::invert_obj_j</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH0.html#a07ba4f12e9c6cea693bdcfba04611aab">yaze::app::emu::video::PpuRegisters::WH0::left_position</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH2.html#a74b3bfbbe98a0d4a39acce158e9b313b">yaze::app::emu::video::PpuRegisters::WH2::left_position</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a7ab3b09eae2f5696ebd852c76ca28081">yaze::app::emu::video::PpuRegisters::M7A</a>, <a class="el" href="#a260caddc820c3186e455840258866592">m7a_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6a2a4d60179c770d6c65eb713b99c24d">yaze::app::emu::video::PpuRegisters::M7B</a>, <a class="el" href="#a3ed2934aed5edbbd8bc4a7006eac3e9e">m7b_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8c8b3f87636a015c88ca7ee6d7bf74f5">yaze::app::emu::video::PpuRegisters::M7C</a>, <a class="el" href="#addd0f7fa512a618d384e221f27672a35">m7c_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#af4ec47a3efd916ef014c93a2b203e84a">yaze::app::emu::video::PpuRegisters::M7D</a>, <a class="el" href="#a9c712fdadb90231e1c55ad9e6d8f8e43">m7d_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a70a489fec05d234b20277caa3768598d">yaze::app::emu::video::PpuRegisters::M7SEL</a>, <a class="el" href="#ad168bcf0a6d090dd09acb78e2665ac27">m7sel_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6dec80a913c3fbd6a80081ae5b12f3ca">yaze::app::emu::video::PpuRegisters::M7X</a>, <a class="el" href="#a2040caca265e7d48e1164d154975efe7">m7x_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac7d2d909c6cf1812f789c4ff5418ebdc">yaze::app::emu::video::PpuRegisters::M7Y</a>, <a class="el" href="#ae70b5ce104e23a99a7dd4cc5baad9f98">m7y_</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7A.html#ab280a0fc90839a5453d82547cc99c3d1">yaze::app::emu::video::PpuRegisters::M7A::matrix_a</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7B.html#a385ecdf161159cf7369185b15b1b9965">yaze::app::emu::video::PpuRegisters::M7B::matrix_b</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7C.html#a24d29819c70b8587ff7849e26cde3384">yaze::app::emu::video::PpuRegisters::M7C::matrix_c</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7D.html#aaeb1201c6fbc570febfb6c561a8f5368">yaze::app::emu::video::PpuRegisters::M7D::matrix_d</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#afeaa3157a66a6e476691aaecaed33ec9">yaze::app::emu::video::PpuRegisters::MOSAIC</a>, <a class="el" href="#a3aca33be6aee6690df5ad16cc282ca43">mosaic_</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#a2aed862f530e9c1ac5886d978760b348">yaze::app::emu::video::PpuRegisters::Mosaic::mosaic_size</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html#a036a3faf269775fd20e9ba2b30846e3e">yaze::app::emu::video::OAMSize::name_selection</a>, <a class="el" href="#a974b8cd4590a09f39151bbef4945cf33">oam_address_</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a1836b45c14c41961110ed937db3dbb44">yaze::app::emu::video::OAMAddress::oam_address_low</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a505e7768c91986523d38db8897ed872a">yaze::app::emu::video::OAMAddress::oam_address_msb</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a000a3f06599521463f9e759a4581d875">yaze::app::emu::video::OAMAddress::oam_priority_rotation</a>, <a class="el" href="#a0dd090c166d4016240cba8abced1b95e">oam_size_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a81a88901a26cd16ed54c24be0b808d6b">yaze::app::emu::video::PpuRegisters::OAMADDH</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#adf0bf0d2e3d1ff6ba45947b48aaa6f69">yaze::app::emu::video::PpuRegisters::OAMADDL</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ad0e6434ac6054581184dd5d542344f67">yaze::app::emu::video::PpuRegisters::OAMDATA</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html#a2975e9ddec9871b9a9866c90576dd7c1">yaze::app::emu::video::OAMSize::object_size</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a5668b7ce55e5eb12bda791b26f5c1c5c">yaze::app::emu::video::PpuRegisters::OBJSEL</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#aefe451e6ca6c1ed01d19d4c1f1a77f03">yaze::app::emu::video::PpuRegisters::VMAIN::remapping</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH1.html#a1e7bbe342ec01fd68d19bc22ce25116d">yaze::app::emu::video::PpuRegisters::WH1::right_position</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WH3.html#a42d360e81cce0e443f174089638bd596">yaze::app::emu::video::PpuRegisters::WH3::right_position</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#aab6fa113fc35796aafae59fdf50e5b79">yaze::app::emu::video::PpuRegisters::M7SEL::tilemap_repeat</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#af2ca5ded212f3005513f09af31c96030">yaze::app::emu::video::PpuRegisters::TM</a>, <a class="el" href="#ac32fd3f71052911cb930d22b79669e84">tm_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a22bd791fdf9d37bfbb0e6a909d030d40">yaze::app::emu::video::PpuRegisters::TMW</a>, <a class="el" href="#ad0d1abaeec1146f6c4884b006ce3eca9">tmw_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a9dd53b42b74e95d87bbd36e697311052">yaze::app::emu::video::PpuRegisters::TS</a>, <a class="el" href="#ab227b321dc470dddcc1008ba7cf0e8b8">ts_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac3c839baebcf8e51ad7aa2036d4cebfc">yaze::app::emu::video::PpuRegisters::TSW</a>, <a class="el" href="#a1e164bcfa64cb2233964fd908b409ab6">tsw_</a>, <a class="el" href="#a870f863424532eb0a10cf3fe7e7c8bd9">UpdateModeSettings()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a20b4540bc753158ca97483620bf2df03">yaze::app::emu::video::PpuRegisters::VMADDH</a>, <a class="el" href="#a6619662976136929298690c8f85654d0">vmaddh_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a355b518616aa53d385f45b1be595cf32">yaze::app::emu::video::PpuRegisters::VMADDL</a>, <a class="el" href="#af320844df3a146444e549bdb7fdc4826">vmaddl_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a49db54a7f6e3b9c2e9b1a4412debda9f">yaze::app::emu::video::PpuRegisters::VMAIN</a>, <a class="el" href="#a24042913777bc6da517336635bb11991">vmain_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ad988eb7f56a7f594377fe6a8a5bf4394">yaze::app::emu::video::PpuRegisters::W12SEL</a>, <a class="el" href="#af7701562611392eb882207839f13a886">w12sel_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a05048f63c8c7246f44e67f5a0eb177bb">yaze::app::emu::video::PpuRegisters::W34SEL</a>, <a class="el" href="#a474d1b7e0eb2526468e272499001639b">w34sel_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#aa9e4fd8b26176d47d057dce3b57cf1b3">yaze::app::emu::video::PpuRegisters::WH0</a>, <a class="el" href="#ace7b2354554b10d60bdc83703787b309">wh0_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a917b1cfd38dda769c7541becf78c3a7b">yaze::app::emu::video::PpuRegisters::WH1</a>, <a class="el" href="#aff1819dd31eff5c6b45b25e750df8639">wh1_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ab219ca5882a0f5c94a4637c2ae58af88">yaze::app::emu::video::PpuRegisters::WH2</a>, <a class="el" href="#a23c5c7a08ed6658a38d4b2e29d0ed6f4">wh2_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a62f11b2698b5a60d29e5c60a2339a022">yaze::app::emu::video::PpuRegisters::WH3</a>, <a class="el" href="#adf7ffde4758d2da3ecf65dd83a5d5c40">wh3_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac0943e4703e990b0a88f8485466c0dbe">yaze::app::emu::video::PpuRegisters::WOBJSEL</a>, and <a class="el" href="#ab0ff0e7120afbf9609670af425f17e70">wobjsel_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1video_1_1Ppu_a81546ddbdfe469b2d398c46cddc2e32a_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a81546ddbdfe469b2d398c46cddc2e32a_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a81546ddbdfe469b2d398c46cddc2e32a_cgraph" id="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a81546ddbdfe469b2d398c46cddc2e32a_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1video_1_1Ppu_ae62949eafe6e2858f927b943c9dea85e_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_ae62949eafe6e2858f927b943c9dea85e_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_ae62949eafe6e2858f927b943c9dea85e_cgraph" id="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_ae62949eafe6e2858f927b943c9dea85e_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,148,46"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a870f863424532eb0a10cf3fe7e7c8bd9" title=" " alt="" coords="196,5,374,46"/>
 <area shape="poly" title=" " alt="" coords="148,23,180,23,180,28,148,28"/>
@@ -943,7 +943,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a98dadd260db0bf7d185e0ecbfbd7be8a">yaze::app::emu::video::PpuRegisters::BG12NBA</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac7b568a201cf964b594b159e7afb97e2">yaze::app::emu::video::PpuRegisters::BG1SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a2dac7b7419e2607ea0aea3a78776b8a1">yaze::app::emu::video::PpuRegisters::BG2SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a465ea876d198acda719a0179d5ac61d8">yaze::app::emu::video::PpuRegisters::BG34NBA</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#aaef32aec2dc1ade62daabd1c21aeb68a">yaze::app::emu::video::PpuRegisters::BG3SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6fb00f65a358deca2c1ffe3c4f849410">yaze::app::emu::video::PpuRegisters::BG4SC</a>, <a class="el" href="#a00dc86f4dcc3ecb5fc9ed3ec37fbad02">bg_layers_</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a47cff82663e28fdaf0a10de3eb491996a6e24c2fba60bf0169b9d27e24d696c06">yaze::app::emu::video::BackgroundLayer::BPP_2</a>, <a class="el" href="#aa0a2f0f76f088331f72a9ada067715ef">memory_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a315436bae0e85636381fc939db06aee5">yaze::app::emu::video::Mode0</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a7a2ea225a084605104f8c39b3ae9657c">yaze::app::emu::video::Mode1</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a04c542f260d16590ec60c594f67a30e7">yaze::app::emu::video::Mode2</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499ab68fa4884da8d22e83f37b4f209295f1">yaze::app::emu::video::Mode3</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499af84b2e944a3acf91240a6c08d9c32b5e">yaze::app::emu::video::Mode4</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499afb18b5da29e7e7098a82fe478934ce8b">yaze::app::emu::video::Mode5</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a5baea5488eacdf0684fbad674206d40d">yaze::app::emu::video::Mode6</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a427e9200555ca4f3514cbdc4f560e499a8cfe262c5049539f1662dabd1a8e45ba">yaze::app::emu::video::Mode7</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df">yaze::app::emu::memory::Memory::ReadByte()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -960,7 +960,7 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1video_1_1Ppu_a870f863424532eb0a10cf3fe7e7c8bd9_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a870f863424532eb0a10cf3fe7e7c8bd9_icgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a870f863424532eb0a10cf3fe7e7c8bd9_icgraph" id="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a870f863424532eb0a10cf3fe7e7c8bd9_icgraph">
 <area shape="rect" title=" " alt="" coords="196,5,374,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a81546ddbdfe469b2d398c46cddc2e32a" title=" " alt="" coords="5,5,148,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ae62949eafe6e2858f927b943c9dea85e" title=" " alt="" coords="5,5,148,46"/>
 <area shape="poly" title=" " alt="" coords="180,28,148,28,148,23,180,23"/>
 </map>
 </div>
@@ -1140,19 +1140,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a98dadd260db0bf7d185e0ecbfbd7be8a">yaze::app::emu::video::PpuRegisters::BG12NBA</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac7b568a201cf964b594b159e7afb97e2">yaze::app::emu::video::PpuRegisters::BG1SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a2dac7b7419e2607ea0aea3a78776b8a1">yaze::app::emu::video::PpuRegisters::BG2SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a465ea876d198acda719a0179d5ac61d8">yaze::app::emu::video::PpuRegisters::BG34NBA</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#aaef32aec2dc1ade62daabd1c21aeb68a">yaze::app::emu::video::PpuRegisters::BG3SC</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6fb00f65a358deca2c1ffe3c4f849410">yaze::app::emu::video::PpuRegisters::BG4SC</a>, <a class="el" href="#aa0a2f0f76f088331f72a9ada067715ef">memory_</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df">yaze::app::emu::memory::Memory::ReadByte()</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="#a5a547c0e92dc1df59484b8570b3220f4">RenderScanline()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1video_1_1Ppu_ad1fcbda7268f6e1981acbcfe990c2c8b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_ad1fcbda7268f6e1981acbcfe990c2c8b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_ad1fcbda7268f6e1981acbcfe990c2c8b_cgraph" id="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_ad1fcbda7268f6e1981acbcfe990c2c8b_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,172,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="220,5,377,46"/>
-<area shape="poly" title=" " alt="" coords="172,23,204,23,204,28,172,28"/>
-</map>
-</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -1571,7 +1559,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad1fcbda7268f6e1981acbcfe990c2c8b">RenderBackground()</a>, <a class="el" href="#a870f863424532eb0a10cf3fe7e7c8bd9">UpdateModeSettings()</a>, and <a class="el" href="#a4cd8676f399582001849c170ddbea22c">UpdateTileData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a870f863424532eb0a10cf3fe7e7c8bd9">UpdateModeSettings()</a>, and <a class="el" href="#a4cd8676f399582001849c170ddbea22c">UpdateTileData()</a>.</p>
 
 </div>
 </div>
@@ -1619,7 +1607,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1643,7 +1631,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1667,7 +1655,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1691,7 +1679,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1715,7 +1703,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1739,7 +1727,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1763,7 +1751,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1787,7 +1775,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1811,7 +1799,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1835,7 +1823,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1859,7 +1847,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1883,7 +1871,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1907,7 +1895,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1931,7 +1919,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1955,7 +1943,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -1979,7 +1967,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2003,7 +1991,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2027,7 +2015,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2073,7 +2061,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2097,7 +2085,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2121,7 +2109,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2145,7 +2133,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2169,7 +2157,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2193,7 +2181,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2217,7 +2205,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2285,7 +2273,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2309,7 +2297,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2333,7 +2321,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2357,7 +2345,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>
@@ -2521,7 +2509,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a0d08e0e22ac986fc620bbe0e82dfea78">DisplayFrameBuffer()</a>, <a class="el" href="#af954ff0aaefd20653c9457f2abf93079">GetFrameBuffer()</a>, <a class="el" href="#a6086f5272d55886f269ebd59b1609379">Init()</a>, <a class="el" href="#a5a547c0e92dc1df59484b8570b3220f4">RenderScanline()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a0d08e0e22ac986fc620bbe0e82dfea78">DisplayFrameBuffer()</a>, <a class="el" href="#af954ff0aaefd20653c9457f2abf93079">GetFrameBuffer()</a>, <a class="el" href="#a6086f5272d55886f269ebd59b1609379">Init()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2663,7 +2651,7 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a81546ddbdfe469b2d398c46cddc2e32a">Notify()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae62949eafe6e2858f927b943c9dea85e">Notify()</a>.</p>
 
 </div>
 </div>

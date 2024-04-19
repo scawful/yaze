@@ -7,7 +7,7 @@ var classyaze_1_1app_1_1emu_1_1video_1_1Ppu =
     [ "UpdateClock", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a8d20c6ce713de3d0b1306de0f879df2b", null ],
     [ "UpdateInternalState", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a7fb5902bb55460ab1d03463c076223cc", null ],
     [ "RenderScanline", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5a547c0e92dc1df59484b8570b3220f4", null ],
-    [ "Notify", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a81546ddbdfe469b2d398c46cddc2e32a", null ],
+    [ "Notify", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ae62949eafe6e2858f927b943c9dea85e", null ],
     [ "GetFrameBuffer", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#af954ff0aaefd20653c9457f2abf93079", null ],
     [ "GetScreen", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abf486c347dbe447c6997efce071e75a1", null ],
     [ "UpdateModeSettings", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a870f863424532eb0a10cf3fe7e7c8bd9", null ],

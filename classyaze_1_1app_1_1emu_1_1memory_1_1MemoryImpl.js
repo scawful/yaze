@@ -25,7 +25,7 @@ var classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl =
     [ "end", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a46132400c7395ec5cbfbe8d548edc508", null ],
     [ "data", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882", null ],
     [ "GetMappedAddress", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff", null ],
-    [ "NotifyObservers", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a45b4fd8bed7fd1157789492fdc97717c", null ],
+    [ "NotifyObservers", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a254e2d009ba5adfa72354aa8870fccb8", null ],
     [ "rom_", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a64f06f24045b90e93dbf12826fd69309", null ],
     [ "ram_", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab5fcd24f61d08fe948d41d2dc251b639", null ],
     [ "vram_", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a0736b7d9e873a0d12f0708c6c2d52a02", null ],

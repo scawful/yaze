@@ -10,6 +10,6 @@ var structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes =
     [ "count", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a3d3efe584ee8c72b9aa1508e15c9e377", null ],
     [ "size", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a0877113f9b6c3a3522c9f4255c155924", null ],
     [ "selected", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab6256b25d36406430539b5d997eb8bdd", null ],
-    [ "flags", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#aa37879736f98fd35a67aa58ef1584568", null ],
+    [ "flags", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab3f542605d401c12d51fc6a8494e31bf", null ],
     [ "data", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac25e8b4fa6fdda74c26f600609949d70", null ]
 ];

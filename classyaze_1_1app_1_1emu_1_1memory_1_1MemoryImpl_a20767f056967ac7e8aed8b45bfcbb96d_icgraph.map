@@ -1,6 +1,6 @@
 <map id="yaze::app::emu::memory::MemoryImpl::AddObserver" name="yaze::app::emu::memory::MemoryImpl::AddObserver">
 <area shape="rect" id="Node000001" title=" " alt="" coords="2071,35,2251,75"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a0f18d16f8f7b3925e664e77604caac27" title=" " alt="" coords="1875,35,2023,75"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35" title=" " alt="" coords="1875,35,2023,75"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2055,58,2023,58,2023,52,2055,52"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057" title=" " alt="" coords="1670,5,1793,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1860,46,1793,37,1794,31,1860,40"/>

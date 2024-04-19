@@ -4,7 +4,7 @@ var classyaze_1_1app_1_1emu_1_1audio_1_1Apu =
     [ "Init", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a683c5e94e45d1336df9be9ccf9660d9f", null ],
     [ "Reset", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c", null ],
     [ "Update", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#aaa440775d5fed5dc7d2229ece9fdd013", null ],
-    [ "Notify", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a253cd04f0ebdf2ed595ae77ad17dc083", null ],
+    [ "Notify", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a8486f8369bdac2c79be7616be60ecf79", null ],
     [ "ProcessSamples", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a87872e79698d26e30eb99b98af9d4f87", null ],
     [ "FetchSampleForVoice", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a1ed94512007f013a0a981e016aa50164", null ],
     [ "CalculateAddressForVoice", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ad1eb48cb8e08562d6b4b50d406b30c63", null ],

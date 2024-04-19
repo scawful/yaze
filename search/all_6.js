@@ -334,8 +334,8 @@ var searchData=
   ['customareaspecificbgpalette_331',['customAreaSpecificBGPalette',['../namespaceyaze_1_1app_1_1core.html#a611f18a2bfa22109c5d9c4841c50e261',1,'yaze::app::core']]],
   ['customformatstring_332',['CustomFormatString',['../palette__editor_8cc.html#a0fbb06ddad5c7745a2c6ed484f8f70df',1,'palette_editor.cc']]],
   ['cut_333',['Cut',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d60f7e1e149769068acee4838a90474',1,'yaze::app::editor::DungeonEditor::Cut()'],['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad9584b2d18fb38325fa925fd8a7d83cc',1,'yaze::app::editor::OverworldEditor::Cut()'],['../classyaze_1_1app_1_1editor_1_1Editor.html#a0a6a8763609479556beea5fcdfbe9256',1,'yaze::app::editor::Editor::Cut()']]],
-  ['cycle_334',['cycle',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#acf50c3665933611bb2730f14d5b9aaf0',1,'yaze::app::emu::ClockImpl']]],
-  ['cycle_335',['Cycle',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#add995744997a713a02ef9e7829661f03',1,'yaze::app::emu::ClockImpl']]],
+  ['cycle_334',['Cycle',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#add995744997a713a02ef9e7829661f03',1,'yaze::app::emu::ClockImpl']]],
+  ['cycle_335',['cycle',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#acf50c3665933611bb2730f14d5b9aaf0',1,'yaze::app::emu::ClockImpl']]],
   ['cycle_5fcount_5f_336',['cycle_count_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aa2e79a16f4de165465f93a63b3a6121a',1,'yaze::app::emu::video::Ppu']]],
   ['cyclecount_337',['cycleCount',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#af1674dc0a67b4890947f4c0e67954359',1,'yaze::app::emu::ClockImpl']]],
   ['cyclesperscanline_338',['cyclesPerScanline',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a31f841f9379687837f2f141de0f40f66',1,'yaze::app::emu::video::Ppu']]]
