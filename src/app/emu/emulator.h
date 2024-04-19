@@ -35,7 +35,7 @@ class Emulator : public SharedRom {
         TableNextColumn,
 
         CollapsingHeader id="cpuState" title="Register Values" flags="DefaultOpen" {
-        BeginChild id="##CpuState" size="0,100" flags="NoMove|NoScrollbar" {
+          BeginChild id="##CpuState" size="0,100" flags="NoMove|NoScrollbar" {
             Columns id="registersColumns" count="2" {
               Text text="A: 0x%04X" data="cpu.A",
               Text text="D: 0x%04X" data="cpu.D",
