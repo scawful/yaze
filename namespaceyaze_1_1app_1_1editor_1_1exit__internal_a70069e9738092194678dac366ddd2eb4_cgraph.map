@@ -1,5 +1,4 @@
 <map id="yaze::app::editor::exit_internal::DrawExitInserterPopup" name="yaze::app::editor::exit_internal::DrawExitInserterPopup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,197,61"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="245,20,400,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,31,229,31,229,36,197,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,197,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="63,29,63,19,70,10,83,5,101,3,121,5,134,12,131,17,120,10,101,8,84,10,74,14,69,21,68,29"/>
 </map>

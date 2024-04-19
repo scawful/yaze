@@ -1,23 +1,18 @@
 <map id="yaze::app::editor::sprite_internal::DrawSpriteEditorPopup" name="yaze::app::editor::sprite_internal::DrawSpriteEditorPopup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,176,178,232"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html#af8c262f4f4532022c69bfea7fcadcd9d" title=" " alt="" coords="233,5,406,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,174,162,123,224,71,231,67,234,71,227,75,166,127,118,178"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a4a8839525e930bb383c0cdd7cad012d2" title=" " alt="" coords="258,85,381,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="146,173,225,136,242,129,244,134,227,141,148,178"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a869fbb9610e3cc4a135e87f4b4c269be" title=" " alt="" coords="258,150,381,191"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="178,189,242,179,243,184,178,194"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a905beb8c98aadf360bb8c04cf60002f9" title=" " alt="" coords="255,216,384,256"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="178,213,240,222,239,227,178,219"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a35287ae2e1c917b15771558aac8598cf" title=" " alt="" coords="258,281,381,322"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="150,230,227,265,244,272,242,277,225,270,147,235"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#aae335a701da76d98c6ecf33b7c12878f" title=" " alt="" coords="226,346,413,387"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="117,230,165,281,195,308,227,331,238,337,235,342,224,335,192,312,161,285,114,234"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html#a5277add1bf66e9db3f5adaab94ec2e04" title=" " alt="" coords="461,5,629,61"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,31,445,31,445,36,406,36"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html#a70231fa927323e4b6cdd846dbc4ec7c1" title=" " alt="" coords="677,5,846,61"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="630,31,662,31,662,36,630,36"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a3ae065221d32ba32057f9c310801eae3" title=" " alt="" coords="484,216,607,256"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="384,233,468,233,468,239,384,239"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae35b8ea7765e1fefd6ebe2e7ef2810b5" title=" " alt="" coords="484,281,607,322"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="382,299,468,299,468,304,382,304"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,129,178,184"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="47,128,47,118,55,109,70,104,92,102,115,104,130,111,128,116,114,110,91,107,71,109,58,114,52,120,52,128"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a4a8839525e930bb383c0cdd7cad012d2" title=" " alt="" coords="258,5,381,46"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="124,126,170,91,224,57,242,48,244,53,227,61,173,95,128,130"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a869fbb9610e3cc4a135e87f4b4c269be" title=" " alt="" coords="258,71,381,111"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="177,129,242,110,243,115,179,134"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a905beb8c98aadf360bb8c04cf60002f9" title=" " alt="" coords="255,136,384,177"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="178,154,240,154,240,159,178,159"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a35287ae2e1c917b15771558aac8598cf" title=" " alt="" coords="258,201,381,242"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="179,178,243,197,242,202,177,184"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#aae335a701da76d98c6ecf33b7c12878f" title=" " alt="" coords="226,267,413,307"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="128,183,173,218,227,251,240,258,238,263,224,256,170,222,124,187"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a3ae065221d32ba32057f9c310801eae3" title=" " alt="" coords="461,136,584,177"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="384,154,446,154,446,159,384,159"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae35b8ea7765e1fefd6ebe2e7ef2810b5" title=" " alt="" coords="461,201,584,242"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="381,219,445,219,445,224,381,224"/>
 </map>

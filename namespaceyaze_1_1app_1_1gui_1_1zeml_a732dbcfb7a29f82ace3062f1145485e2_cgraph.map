@@ -1,6 +1,27 @@
 <map id="yaze::app::gui::zeml::Render" name="yaze::app::gui::zeml::Render">
-<area shape="rect" id="Node000001" title="Render a zeml tree." alt="" coords="5,29,136,70"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="36,29,35,19,40,10,52,5,71,3,90,5,102,11,99,16,88,10,70,8,54,10,44,14,40,20,42,28"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="184,29,314,70"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,47,168,47,168,52,136,52"/>
+<area shape="rect" id="Node000001" title="Render a zeml tree." alt="" coords="5,201,136,242"/>
+<area shape="poly" id="edge13_Node000001_Node000001" title=" " alt="" coords="31,201,30,191,36,182,50,177,71,175,93,177,106,183,104,188,91,182,70,180,51,182,39,187,35,192,37,200"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="203,5,350,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,200,117,131,146,91,182,57,189,52,192,56,185,61,150,95,121,133,83,202"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="203,71,350,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="89,199,130,160,182,122,194,116,196,120,185,127,133,165,93,203"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="203,136,350,177"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="135,198,195,179,196,184,137,204"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="203,201,350,242"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="136,219,187,219,187,224,136,224"/>
+<area shape="rect" id="Node000009" href="$namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="211,267,342,307"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="137,240,197,259,196,264,135,245"/>
+<area shape="rect" id="Node000010" href="$namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="186,332,367,357"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="92,241,133,280,185,317,199,323,197,328,182,321,129,284,89,245"/>
+<area shape="rect" id="Node000012" href="$namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="184,381,369,407"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="84,241,123,304,151,339,185,368,192,371,189,376,182,372,147,342,118,307,79,244"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="419,5,566,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,23,403,23,403,28,351,28"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b" title=" " alt="" coords="421,71,565,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="351,88,405,88,405,94,351,94"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="419,136,566,177"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="351,154,403,154,403,159,351,159"/>
+<area shape="rect" id="Node000011" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="417,356,568,381"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="368,352,402,356,401,361,367,357"/>
+<area shape="poly" id="edge12_Node000012_Node000011" title=" " alt="" coords="369,380,402,376,402,382,370,385"/>
 </map>

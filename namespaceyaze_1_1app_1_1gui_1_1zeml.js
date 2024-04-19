@@ -23,15 +23,20 @@ var namespaceyaze_1_1app_1_1gui_1_1zeml =
       [ "TableNextColumn", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a3363b69ee0e0e3fba37ebd39557a2fa7", null ],
       [ "CollapsingHeader", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824afd974b19acafec5dc7e542582c3a87cc", null ],
       [ "Columns", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a168b82d33f8073018c50a4f658a02559", null ],
+      [ "Checkbox", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a4f8222964f9a317cef99dddc23a121bd", null ],
       [ "Selectable", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a8318ce1c96df6ce21eb2ed428c6d0f85", null ],
       [ "Function", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261", null ],
       [ "BeginChild", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824ae69bf4d9adc4bddb109eed1becd717fa", null ],
       [ "BeginMenuBar", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a63b3d4874f4470e23ef51081bf01c136", null ],
       [ "BeginMenu", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a6fddd314f13bd1f15e62b8bf15ee9f42", null ],
+      [ "BeginTabBar", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a9bcd3c3f49e92fc9edba1362c9fdb25e", null ],
+      [ "BeginTabItem", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824ad00665cd0efc22379ce24b61e50c16f0", null ],
       [ "MenuItem", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824ac9a123faa6ec225161d25f26796b2960", null ],
       [ "Separator", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a04b2e4188d4ef8051e4699da8af01335", null ],
       [ "HexInputByte", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a39fd0fc98cc838a96dce6647bc44c909", null ],
-      [ "HexInputWord", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a62763d51488ae2f20570ce8d062e4106", null ]
+      [ "HexInputWord", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a62763d51488ae2f20570ce8d062e4106", null ],
+      [ "Canvas", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a6ea5359e01a41842884943125518289b", null ],
+      [ "Definition", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a0b890b1926b90387673882e6ccae7fdc", null ]
     ] ],
     [ "ActionType", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a8012c292c03901c7a7f2aa7a0d82fee5", [
       [ "Click", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a8012c292c03901c7a7f2aa7a0d82fee5a316853cc3718335f11c048e33b9be98a", null ],
@@ -40,11 +45,15 @@ var namespaceyaze_1_1app_1_1gui_1_1zeml =
     ] ],
     [ "Tokenize", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#aef3beb3e97e844a0512d586ecfb7bf06", null ],
     [ "MapType", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc", null ],
-    [ "ParseNode", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a1e891955bce64a1ee1c62a06118f284f", null ],
+    [ "ParseNode", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a805db34a520725f235fdb7d642e343f3", null ],
+    [ "ParseFlags", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#ad579d58e78d2fd24d70a4e4afa4d8307", null ],
     [ "ParseAttributes", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a03a069771465c842d3c6d861a4b6b539", null ],
-    [ "Render", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2", null ],
     [ "Parse", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a", null ],
+    [ "Render", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2", null ],
     [ "ExecuteActions", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154", null ],
     [ "Bind", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a62039a73639fc1606a15c25ff0b919cc", null ],
-    [ "BindAction", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a0dd5972415f296e782588c4e17bb15c5", null ]
+    [ "BindAction", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a0dd5972415f296e782588c4e17bb15c5", null ],
+    [ "BindSelectable", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a6636dda0fffd7cc948fe65df62a54621", null ],
+    [ "LoadFile", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#ab66fc494201a906e415db8cddcde2e08", null ],
+    [ "ParseDefinitions", "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a4c072108fb185a885e7910e26cd6a4ed", null ]
 ];

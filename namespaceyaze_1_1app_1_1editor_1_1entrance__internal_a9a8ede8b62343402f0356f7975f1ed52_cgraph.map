@@ -1,9 +1,4 @@
 <map id="yaze::app::editor::entrance_internal::DrawOverworldEntrancePopup" name="yaze::app::editor::entrance_internal::DrawOverworldEntrancePopup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,16,221,71"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="282,5,437,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,30,266,25,266,30,221,35"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="269,55,450,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,51,254,55,253,60,221,57"/>
-<area shape="rect" id="Node000004" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="498,55,649,80"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="450,65,482,65,482,70,450,70"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,221,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="71,29,71,19,79,10,93,5,113,3,136,5,150,12,147,17,134,10,113,8,94,10,82,15,76,21,76,29"/>
 </map>

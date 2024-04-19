@@ -10,6 +10,7 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
       [ "MUSIC", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fad74c735013cdd2b883e25ccca502a2e9", null ],
       [ "PAN", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fad74461db15255d85a44ffd72419646b3", null ]
     ] ],
+    [ "InitializeZeml", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff", null ],
     [ "Undo", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab28e9f8c4ef4f48f71939b37f8fbd253", null ],
     [ "Redo", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a9da2bf1af30884cf96c1f9bfc93df353", null ],
@@ -20,7 +21,6 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
     [ "jump_to_tab", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#aa3bc9353c9acdd395f9fcc5039d71520", null ],
     [ "Shutdown", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad3b303bbf07068908b036a63a36a1f67", null ],
     [ "LoadGraphics", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390", null ],
-    [ "UpdateOverworldEdit", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1db0fa313c2fb89b424bc604100c8718", null ],
     [ "UpdateFullscreenCanvas", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d", null ],
     [ "DrawToolset", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096", null ],
     [ "DrawOverworldMapSettings", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#afe914f5828f45abb1b44fbe377211d2f", null ],
@@ -125,5 +125,6 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
     [ "current_graphics_set_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a2b4d5ac837a2450be390e37b4c648dc1", null ],
     [ "sprite_previews_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad2f9ccf2715ea7e4f64a50354fbb34d0", null ],
     [ "animated_maps_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a8c7747dc9ab3ae6a3f521f2c55038165", null ],
+    [ "layout_node_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#acbd340bb22f1f44d2705cd907657198c", null ],
     [ "status_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a9de06aac79d57f095bf23e1c417a3640", null ]
 ];

@@ -1,7 +1,4 @@
 <map id="yaze::app::editor::sprite_internal::DrawSpriteTable" name="yaze::app::editor::sprite_internal::DrawSpriteTable">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,178,61"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html#a5277add1bf66e9db3f5adaab94ec2e04" title=" " alt="" coords="226,5,394,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,31,210,31,210,36,178,36"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html#a70231fa927323e4b6cdd846dbc4ec7c1" title=" " alt="" coords="442,5,610,61"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,31,426,31,426,36,394,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,178,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,29,57,19,64,10,75,5,92,3,110,5,121,12,118,16,108,10,91,8,77,10,67,14,63,21,62,29"/>
 </map>

@@ -16,13 +16,14 @@ var searchData=
   ['wh2_5f_13',['wh2_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a23c5c7a08ed6658a38d4b2e29d0ed6f4',1,'yaze::app::emu::video::Ppu']]],
   ['wh3_14',['WH3',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a62f11b2698b5a60d29e5c60a2339a022',1,'yaze::app::emu::video::PpuRegisters']]],
   ['wh3_5f_15',['wh3_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#adf7ffde4758d2da3ecf65dd83a5d5c40',1,'yaze::app::emu::video::Ppu']]],
-  ['width_5f_16',['width_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae40c02d0cc8214e729384df698d2039a',1,'yaze::app::gfx::Bitmap::width_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#acceb001d4e8f45b1e5e3982f415bd56a',1,'yaze::app::zelda3::dungeon::RoomObject::width_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a033fe72f32bfc5c52ffc9c2803c34e9f',1,'yaze::app::zelda3::Sprite::width_']]],
-  ['window_5f_17',['window_',['../classyaze_1_1app_1_1core_1_1Controller.html#a4eec59b32e068b3fd8df4a23732fb082',1,'yaze::app::core::Controller']]],
-  ['withhead_18',['withhead',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aafa055b899ae61d795321e7bad1600af',1,'yaze::app::zelda3::music::Tracker']]],
-  ['wobjlog_19',['WOBJLOG',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a9dd2253b733e3788977c091f1e9adc60',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['wobjlog_5f_20',['wobjlog_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5444df1780fe59bd620136121aa52e1f',1,'yaze::app::emu::video::Ppu']]],
-  ['wobjsel_21',['WOBJSEL',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac0943e4703e990b0a88f8485466c0dbe',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['wobjsel_5f_22',['wobjsel_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab0ff0e7120afbf9609670af425f17e70',1,'yaze::app::emu::video::Ppu']]],
-  ['world_5f_23',['world_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0de6457335b63777689847f182867900',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['world_5findex_5f_24',['world_index_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a4e8049b1c990fef37c08f2f30e606672',1,'yaze::app::zelda3::overworld::OverworldMap']]]
+  ['width_16',['width',['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac6ae054a393303e48b3a873b7930e866',1,'yaze::app::gui::zeml::WidgetAttributes']]],
+  ['width_5f_17',['width_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae40c02d0cc8214e729384df698d2039a',1,'yaze::app::gfx::Bitmap::width_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#acceb001d4e8f45b1e5e3982f415bd56a',1,'yaze::app::zelda3::dungeon::RoomObject::width_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a033fe72f32bfc5c52ffc9c2803c34e9f',1,'yaze::app::zelda3::Sprite::width_']]],
+  ['window_5f_18',['window_',['../classyaze_1_1app_1_1core_1_1Controller.html#a4eec59b32e068b3fd8df4a23732fb082',1,'yaze::app::core::Controller']]],
+  ['withhead_19',['withhead',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aafa055b899ae61d795321e7bad1600af',1,'yaze::app::zelda3::music::Tracker']]],
+  ['wobjlog_20',['WOBJLOG',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a9dd2253b733e3788977c091f1e9adc60',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['wobjlog_5f_21',['wobjlog_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5444df1780fe59bd620136121aa52e1f',1,'yaze::app::emu::video::Ppu']]],
+  ['wobjsel_22',['WOBJSEL',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#ac0943e4703e990b0a88f8485466c0dbe',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['wobjsel_5f_23',['wobjsel_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab0ff0e7120afbf9609670af425f17e70',1,'yaze::app::emu::video::Ppu']]],
+  ['world_5f_24',['world_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0de6457335b63777689847f182867900',1,'yaze::app::zelda3::overworld::OverworldMap']]],
+  ['world_5findex_5f_25',['world_index_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a4e8049b1c990fef37c08f2f30e606672',1,'yaze::app::zelda3::overworld::OverworldMap']]]
 ];

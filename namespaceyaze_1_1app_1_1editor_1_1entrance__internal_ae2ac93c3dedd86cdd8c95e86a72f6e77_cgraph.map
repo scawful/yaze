@@ -1,5 +1,4 @@
 <map id="yaze::app::editor::entrance_internal::DrawEntranceInserterPopup" name="yaze::app::editor::entrance_internal::DrawEntranceInserterPopup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,213,61"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="261,20,416,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,31,245,31,245,36,213,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,213,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="68,29,69,19,76,10,90,5,109,3,131,5,144,12,142,17,129,10,109,8,91,10,79,15,74,21,73,29"/>
 </map>

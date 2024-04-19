@@ -1,9 +1,26 @@
 <map id="src/app/gui/zeml.h" name="src/app/gui/zeml.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="209,5,335,31"/>
-<area shape="rect" id="Node000002" href="$overworld__editor_8cc.html" title=" " alt="" coords="5,79,166,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,40,133,81,131,76,229,35"/>
-<area shape="rect" id="Node000003" href="$emulator_8cc.html" title=" " alt="" coords="190,87,354,112"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="275,47,275,86,270,86,270,47"/>
-<area shape="rect" id="Node000004" href="$zeml_8cc.html" title=" " alt="" coords="379,87,512,112"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="314,35,420,84,418,88,311,40"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="233,5,359,31"/>
+<area shape="rect" id="Node000002" href="$overworld__editor_8cc.html" title=" " alt="" coords="5,168,166,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,29,162,47,135,62,113,81,100,101,92,124,87,168,82,167,87,123,95,99,109,77,132,57,160,42,217,24"/>
+<area shape="rect" id="Node000003" href="$overworld__editor_8h.html" title=" " alt="" coords="123,79,283,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,43,228,81,224,77,269,39"/>
+<area shape="rect" id="Node000010" href="$emulator_8cc.html" title=" " alt="" coords="307,87,472,112"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="324,39,377,84,373,88,320,43"/>
+<area shape="rect" id="Node000011" href="$zeml_8cc.html" title=" " alt="" coords="496,87,630,112"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="352,33,522,83,521,88,351,38"/>
+<area shape="poly" id="edge11_Node000003_Node000002" title=" " alt="" coords="166,131,114,169,110,165,163,127"/>
+<area shape="rect" id="Node000004" href="$master__editor_8cc.html" title=" " alt="" coords="131,256,275,297"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,135,206,256,200,256,200,135"/>
+<area shape="rect" id="Node000005" href="$master__editor_8h.html" title=" " alt="" coords="240,168,384,208"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="241,128,289,165,286,169,238,132"/>
+<area shape="poly" id="edge10_Node000005_Node000004" title=" " alt="" coords="277,220,229,258,226,254,274,216"/>
+<area shape="rect" id="Node000006" href="$controller_8cc.html" title=" " alt="" coords="213,353,380,378"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="312,224,300,352,295,352,306,223"/>
+<area shape="rect" id="Node000007" href="$controller_8h.html" title=" " alt="" coords="380,264,540,290"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="360,214,441,261,438,266,358,219"/>
+<area shape="poly" id="edge7_Node000007_Node000006" title=" " alt="" coords="425,299,320,354,318,350,423,295"/>
+<area shape="rect" id="Node000008" href="$app__delegate_8mm.html" title=" " alt="" coords="404,345,548,386"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="468,304,475,344,470,345,463,305"/>
+<area shape="rect" id="Node000009" href="$yaze_8cc.html" title=" " alt="" coords="573,353,684,378"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="499,295,606,350,603,354,496,299"/>
 </map>

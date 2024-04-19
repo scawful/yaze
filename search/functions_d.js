@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['name_0',['name',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8dcaf29b0aa5d5202f20cfd7408aae5c',1,'yaze::app::gfx::PaletteGroup']]],
-  ['name_1',['Name',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a869fbb9610e3cc4a135e87f4b4c269be',1,'yaze::app::zelda3::Sprite']]],
+  ['name_0',['Name',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a869fbb9610e3cc4a135e87f4b4c269be',1,'yaze::app::zelda3::Sprite']]],
+  ['name_1',['name',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8dcaf29b0aa5d5202f20cfd7408aae5c',1,'yaze::app::gfx::PaletteGroup']]],
   ['newmasterframe_2',['NewMasterFrame',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a6872020f533c742e88197014191b68ec',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
   ['newsr_3',['NewSR',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aa665abe6a912720085f051b40f170dde',1,'yaze::app::zelda3::music::Tracker']]],
   ['nmiisr_4',['NmiIsr',['../classyaze_1_1app_1_1emu_1_1SNES.html#a926557b17e188e5a4751c6294a88ada0',1,'yaze::app::emu::SNES']]],

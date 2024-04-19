@@ -1,8 +1,0 @@
-<map id="yaze::app::editor::OverworldEditor::LoadSpriteGraphics" name="yaze::app::editor::OverworldEditor::LoadSpriteGraphics">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,188,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="236,29,412,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,59,220,55,221,60,188,65"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a5ddd14d658514b66f557a0e32995b1f3" title=" " alt="" coords="253,80,395,135"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="188,86,237,93,237,98,188,91"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="286,31,279,21,283,11,299,5,324,3,352,5,366,12,363,17,350,10,324,8,300,10,287,15,284,20,290,27"/>
-</map>
