@@ -55,20 +55,13 @@ void Ppu::RenderScanline() {
     }
   }
 
-  // Fetch the tile data from VRAM, tile map data from memory, and palette data
-  // from CGRAM
-  // UpdateTileData();     // Fetches the tile data from VRAM and stores it in
-  // an internal buffer
-  UpdateTileMapData();  // Fetches the tile map data from memory and stores it
-                        // in an internal buffer
-  UpdatePaletteData();  // Fetches the palette data from CGRAM and stores it in
-                        // an internal buffer
+  // Fetch tile data from VRAM, tile map from memory, palette data from CGRAM
+  UpdateTileData();
+  UpdateTileMapData();
+  UpdatePaletteData();
 
-  // Render the background layers, taking into account the current mode and
-  // layer priorities
   for (int layer = 1; layer <= 4; ++layer) {
-    RenderBackground(layer);  // Renders the specified background layer into an
-                              // internal layer buffer
+    RenderBackground(layer);
   }
 
   // Render the sprite layer, taking into account sprite priorities and
@@ -111,7 +104,6 @@ void Ppu::Notify(uint32_t address, uint8_t data) {
         // Write the data to OAM
         break;
       case BGMODE:
-        // Update the Ppu mode settings
         UpdateModeSettings();
         break;
       case MOSAIC:
@@ -261,19 +253,35 @@ void Ppu::Notify(uint32_t address, uint8_t data) {
 
 void Ppu::UpdateModeSettings() {
   // Read the Ppu mode settings from the Ppu registers
-  uint8_t modeRegister = memory_.ReadByte(PpuRegisters::INIDISP);
+  uint8_t mode_register = memory_.ReadByte(PpuRegisters::BGMODE);
 
   // Mode is stored in the lower 3 bits
-  auto mode = static_cast<BackgroundMode>(modeRegister & 0x07);
+  auto mode = static_cast<BackgroundMode>(mode_register & 0x07);
 
   // Update the tilemap, tile data, and palette settings
   switch (mode) {
     case BackgroundMode::Mode0:
       // Mode 0: 4 layers, each 2bpp (4 colors)
+      bg_layers_[0].tilemap_base_address = memory_.ReadByte(BG1SC);
+      bg_layers_[0].tile_data_base_address = memory_.ReadByte(BG12NBA);
+      bg_layers_[0].color_depth = BackgroundLayer::ColorDepth::BPP_2;
+
+      bg_layers_[1].tilemap_base_address = memory_.ReadByte(BG2SC);
+      bg_layers_[1].tile_data_base_address = memory_.ReadByte(BG12NBA);
+      bg_layers_[1].color_depth = BackgroundLayer::ColorDepth::BPP_2;
+
+      bg_layers_[2].tilemap_base_address = memory_.ReadByte(BG3SC);
+      bg_layers_[2].tile_data_base_address = memory_.ReadByte(BG34NBA);
+      bg_layers_[2].color_depth = BackgroundLayer::ColorDepth::BPP_2;
+
+      bg_layers_[3].tilemap_base_address = memory_.ReadByte(BG4SC);
+      bg_layers_[3].tile_data_base_address = memory_.ReadByte(BG34NBA);
+      bg_layers_[3].color_depth = BackgroundLayer::ColorDepth::BPP_2;
       break;
 
     case BackgroundMode::Mode1:
       // Mode 1: 2 layers, 4bpp (16 colors), 1 layer, 2bpp (4 colors)
+
       break;
 
     case BackgroundMode::Mode2:
@@ -301,18 +309,10 @@ void Ppu::UpdateModeSettings() {
       break;
 
     default:
-      // Invalid mode setting, handle the error or set default settings
-      // ...
       break;
   }
-
-  // Update the internal state of the Ppu based on the mode settings
-  // Update tile data, tilemaps, sprites, and palette based on the mode settings
-  UpdateTileData();
-  UpdatePaletteData();
 }
 
-// Internal methods to handle Ppu rendering and operations
 void Ppu::UpdateTileData() {
   // Fetch tile data from VRAM and store it in the internal buffer
   for (uint16_t address = 0; address < tile_data_size_; ++address) {
