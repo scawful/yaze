@@ -17,12 +17,6 @@ namespace audio {
 
 using namespace memory;
 
-/**
- *
-
- *
- */
-
 const int kApuClockSpeed = 1024000;  // 1.024 MHz
 const int apuSampleRate = 32000;     // 32 KHz
 const int apuClocksPerSample = 64;   // 64 clocks per sample
@@ -62,16 +56,10 @@ class Apu : public Observer {
   void Update();
   void Notify(uint32_t address, uint16_t data) override;
 
-  void ProcessSamples();
-  uint8_t FetchSampleForVoice(uint8_t voice_num);
-  uint16_t CalculateAddressForVoice(uint8_t voice_num);
-  int16_t GetNextSample();
-
   // Called upon a reset
   void Initialize() {
     spc700_.Reset();
     dsp_.Reset();
-    SignalReady();
   }
 
   // Set Port 0 = $AA and Port 1 = $BB
@@ -100,16 +88,7 @@ class Apu : public Observer {
 
   void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
 
-  // Method to fetch a sample from AudioRam
-  uint8_t FetchSampleFromRam(uint16_t address) const {
-    return aram_.read(address);
-  }
-
-  // Method to push a processed sample to the audio buffer
-  void PushToAudioBuffer(int16_t sample) { audio_samples_.push_back(sample); }
-
-  // Returns the audio samples for the current frame
-  const std::vector<int16_t> &GetAudioSamples() const;
+  auto dsp() -> Dsp & { return dsp_; }
 
  private:
   // Constants for communication
@@ -120,29 +99,13 @@ class Apu : public Observer {
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
   uint8_t ports_[4] = {0};
 
-  // Updates internal state based on APU register settings
-  void UpdateChannelSettings();
-
-  // Generates a sample for an audio channel
-  int16_t GenerateSample(int channel);
-
-  // Applies an envelope to an audio channel
-  void ApplyEnvelope(int channel);
-
-  // Handles DSP (Digital Signal Processor) memory reads and writes
-  uint8_t ReadDspMemory(uint16_t address);
-  void WriteDspMemory(uint16_t address, uint8_t value);
-
   // Member variables to store internal APU state and resources
   AudioRam &aram_;
   Clock &clock_;
   MemoryImpl &memory_;
 
-  DigitalSignalProcessor dsp_;
+  Dsp dsp_;
   Spc700 spc700_{aram_};
-  std::vector<int16_t> audio_samples_;
-
-  std::function<void()> ready_callback_;
 };
 
 }  // namespace audio
