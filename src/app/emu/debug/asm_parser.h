@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_split.h"
 #include "app/emu/cpu/internal/opcodes.h"
 
 namespace yaze {
@@ -62,12 +64,156 @@ struct MnemonicModeHash {
            (std::hash<int>()(static_cast<int>(k.mode)) << 1);
   }
 };
+
+class AsmParser {
+ public:
+  std::vector<uint8_t> Parse(const std::string& instruction) {
+    CreateInternalOpcodeMap();
+    auto tokens = Tokenize(instruction);
+    if (tokens.size() < 1) {
+      throw std::runtime_error("Invalid instruction format: " + instruction);
+    }
+
+    size_t index = 0;
+    std::vector<uint8_t> bytes;
+    while (index < tokens.size()) {
+      // For each "line" worth of tokens, we need to extract the
+      // mnemonic, optional addressing mode qualifier, and operand.
+      // The operand can come in a variety of formats:
+      // - Immediate: #$01
+      // - Immediate Word: #$1234
+      // - Absolute: $1234
+      // - Absolute Long: $123456
+      // This parser is not exhaustive and only supports a subset of
+      // the possible addressing modes and operands.
+      const std::string& mnemonic = tokens[index];
+      index++;
+
+      // Check if addressing mode qualifier is present
+      // Either .b, .w, .l, or nothing, which could mean
+      // it was omitted or the operand is implied
+      std::string qualifier = "";
+      std::string potential_mode = tokens[index];
+      if (absl::StrContains(potential_mode, ".")) {
+        qualifier = potential_mode;
+        index++;
+      }
+
+      // Now we check for either the immediate mode
+      // symbol # or the address symbol $ to determine
+      // the next step
+      std::string operand = tokens[index];
+      if (operand == "#") {
+        index++;
+        // Check if the next token is a # character, in which case it is
+        // a hexadecimal value that needs to be converted to a byte
+        if (tokens[index] == "#") {
+          index++;
+          operand = tokens[index];
+          index++;
+        }
+      } else if (operand == "$") {
+        index++;
+        operand = tokens[index];
+        index++;
+      }
+
+      AddressingMode mode = DetermineMode(tokens);
+
+      MnemonicMode key{mnemonic, mode};
+      auto opcode_entry = mnemonic_to_opcode_.find(key);
+      if (opcode_entry == mnemonic_to_opcode_.end()) {
+        throw std::runtime_error("Opcode not found for mnemonic and mode: " +
+                                 mnemonic);
+      }
+
+      bytes.push_back(opcode_entry->second);
+      AppendOperandBytes(bytes, operand, mode);
+    }
+
+    return bytes;
+  }
+
+  // Example: ADC.b #$01
+  // Returns: ["ADC", ".b", "#", "$", "01"]
+  std::vector<std::string> Tokenize(const std::string& instruction) {
+    std::vector<std::string> tokens;
+    std::regex tokenRegex{R"((\w+|\.\w+|[\#$]|[0-9a-fA-F]+|[a-zA-Z]+))"};
+    auto words_begin = std::sregex_iterator(instruction.begin(),
+                                            instruction.end(), tokenRegex);
+    auto words_end = std::sregex_iterator();
+
+    for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
+      std::smatch match = *i;
+      tokens.push_back(match.str());
+    }
+    return tokens;
+  }
+
+ private:
+  void AppendOperandBytes(std::vector<uint8_t>& bytes,
+                          const std::string& operand,
+                          const AddressingMode& addressing_mode) {
+    // Handle different addressing modes
+    switch (addressing_mode) {
+      case AddressingMode::kImmediate: {
+        bytes.push_back(static_cast<uint8_t>(std::stoi(operand, nullptr, 16)));
+        break;
+      }
+      case AddressingMode::kAbsolute: {
+        uint16_t word_operand =
+            static_cast<uint16_t>(std::stoi(operand, nullptr, 16));
+        bytes.push_back(static_cast<uint8_t>(word_operand & 0xFF));
+        bytes.push_back(static_cast<uint8_t>((word_operand >> 8) & 0xFF));
+        break;
+      }
+      case AddressingMode::kAbsoluteLong: {
+        uint32_t long_operand =
+            static_cast<uint32_t>(std::stoul(operand, nullptr, 16));
+        bytes.push_back(static_cast<uint8_t>(long_operand & 0xFF));
+        bytes.push_back(static_cast<uint8_t>((long_operand >> 8) & 0xFF));
+        bytes.push_back(static_cast<uint8_t>((long_operand >> 16) & 0xFF));
+        break;
+      }
+      case AddressingMode::kImplied: {
+        break;
+      }
+      default:
+        // Unknown, append it anyway
+        bytes.push_back(static_cast<uint8_t>(std::stoi(operand, nullptr, 16)));
+    }
+  }
+
+  AddressingMode DetermineMode(const std::vector<std::string>& tokens) {
+    const std::string& addressingMode = tokens[1];
+    if (addressingMode == ".b") {
       return AddressingMode::kImmediate;
+    } else if (addressingMode == ".w") {
+      return AddressingMode::kAbsolute;
+    } else if (addressingMode == ".l") {
+      return AddressingMode::kAbsoluteLong;
     } else {
       return AddressingMode::kImplied;
     }
   }
 
+  bool TryParseByte(const std::string& str, uint8_t& value) {
+    try {
+      value = std::stoi(str, nullptr, 16);
+      return true;
+    } catch (const std::invalid_argument& e) {
+      return false;
+    }
+  }
+
+  bool TryParseHex(const std::string& str, uint32_t& value) {
+    try {
+      value = std::stoul(str, nullptr, 16);
+      return true;
+    } catch (const std::invalid_argument& e) {
+      return false;
+    }
+  }
 
   void CreateInternalOpcodeMap() {
     mnemonic_to_opcode_[{"ADC", AddressingMode::kImmediate}] = 0x69;
