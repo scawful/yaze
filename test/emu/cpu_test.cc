@@ -26,7 +26,6 @@ class CpuTest : public ::testing::Test {
     mock_memory.Init();
     EXPECT_CALL(mock_memory, ClearMemory()).Times(::testing::AtLeast(1));
     mock_memory.ClearMemory();
-    asm_parser.CreateInternalOpcodeMap();
   }
 
   AsmParser asm_parser;
@@ -41,6 +40,22 @@ using ::testing::Return;
 // ============================================================================
 // Infrastructure
 // ============================================================================
+
+TEST_F(CpuTest, AsmParserTokenizerOk) {
+  AsmParser asm_parser;
+  std::string instruction = R"(
+    ADC.b #$01
+    LDA.b #$FF
+    STA.w $2000
+  )";
+
+  std::vector<std::string> tokens = asm_parser.Tokenize(instruction);
+
+  std::vector<std::string> expected_tokens = {"ADC", ".b", "#", "$",   "01",
+                                              "LDA", ".b", "#", "$",   "FF",
+                                              "STA", ".w", "$", "2000"};
+  EXPECT_THAT(tokens, ::testing::ContainerEq(expected_tokens));
+}
 
 TEST_F(CpuTest, CheckMemoryContents) {
   MockMemory memory;
