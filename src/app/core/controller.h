@@ -34,6 +34,7 @@ class Controller : public ExperimentFlags {
   absl::Status OnEntry();
   void OnInput();
   void OnLoad();
+  void PlayAudio();
   void DoRender() const;
   void OnExit();
 
@@ -61,7 +62,10 @@ class Controller : public ExperimentFlags {
   friend int ::main(int argc, char **argv);
 
   bool active_;
+  int wanted_samples_;
+  int16_t *audio_buffer_;
   editor::MasterEditor master_editor_;
+  SDL_AudioDeviceID audio_device_;
   std::shared_ptr<SDL_Window> window_;
   std::shared_ptr<SDL_Renderer> renderer_;
 };

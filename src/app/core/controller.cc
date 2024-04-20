@@ -168,6 +168,15 @@ void Controller::OnInput() {
 
 void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
 
+void Controller::PlayAudio() {
+  if (master_editor_.emulator().running()) {
+    master_editor_.emulator().snes().SetSamples(audio_buffer_, wanted_samples_);
+    if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples_ * 4 * 6) {
+      SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples_ * 4);
+    }
+  }
+}
+
 void Controller::DoRender() const {
   ImGui::Render();
   SDL_RenderClear(renderer_.get());
