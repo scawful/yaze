@@ -63,6 +63,8 @@ class MasterEditor : public SharedRom,
 
   void Shutdown() { overworld_editor_.Shutdown(); }
 
+  auto emulator() -> emu::Emulator& { return emulator_; }
+
  private:
   void DrawFileDialog();
   void DrawStatusPopup();
@@ -101,7 +103,7 @@ class MasterEditor : public SharedRom,
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
 
-  Editor *current_editor_ = nullptr;
+  Editor* current_editor_ = nullptr;
 };
 
 }  // namespace editor
