@@ -146,6 +146,8 @@ var annotated_dup =
           [ "InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", "classyaze_1_1app_1_1emu_1_1InstructionEntry" ],
           [ "Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", "classyaze_1_1app_1_1emu_1_1Loggable" ],
           [ "Logger", "classyaze_1_1app_1_1emu_1_1Logger.html", "classyaze_1_1app_1_1emu_1_1Logger" ],
+          [ "MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", "structyaze_1_1app_1_1emu_1_1MnemonicMode" ],
+          [ "MnemonicModeHash", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash" ],
           [ "SNES", "classyaze_1_1app_1_1emu_1_1SNES.html", "classyaze_1_1app_1_1emu_1_1SNES" ]
         ] ],
         [ "gfx", "namespaceyaze_1_1app_1_1gfx.html", [

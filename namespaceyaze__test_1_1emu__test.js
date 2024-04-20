@@ -5,6 +5,7 @@ var namespaceyaze__test_1_1emu__test =
     [ "MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", "classyaze__test_1_1emu__test_1_1MockPpu" ],
     [ "PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
     [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ],
+    [ "TEST_F", "namespaceyaze__test_1_1emu__test.html#a561fce76ce5c17cc9e730695c09692e9", null ],
     [ "TEST_F", "namespaceyaze__test_1_1emu__test.html#adbd1b273e9bfee848333cb81b2e39265", null ],
     [ "TEST_F", "namespaceyaze__test_1_1emu__test.html#a5e272e2ca81d039194d58ed580276fb6", null ],
     [ "TEST_F", "namespaceyaze__test_1_1emu__test.html#a33491d4830d92aae1736849b3b289fe0", null ],

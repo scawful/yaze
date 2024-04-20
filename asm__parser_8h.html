@@ -101,7 +101,8 @@ $(function(){initNavTree('asm__parser_8h.html',''); initResizable(); });
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle"><div class="title">asm_parser.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -112,29 +113,35 @@ $(function(){initNavTree('asm__parser_8h.html',''); initResizable(); });
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_split.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="cpu_2internal_2opcodes_8h_source.html">app/emu/cpu/internal/opcodes.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for asm_parser.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="asm__parser_8h__incl.png" border="0" usemap="#asrc_2app_2emu_2debug_2asm__parser_8h" alt=""/></div>
 <map name="asrc_2app_2emu_2debug_2asm__parser_8h" id="asrc_2app_2emu_2debug_2asm__parser_8h">
-<area shape="rect" title=" " alt="" coords="227,5,388,46"/>
+<area shape="rect" title=" " alt="" coords="300,5,462,46"/>
 <area shape="rect" title=" " alt="" coords="5,183,66,208"/>
-<area shape="poly" title=" " alt="" coords="227,38,170,47,113,60,65,76,48,85,36,96,28,112,25,131,30,168,24,168,20,130,23,110,32,92,45,81,63,71,112,55,169,42,226,33"/>
+<area shape="poly" title=" " alt="" coords="300,34,225,41,146,53,78,71,53,82,36,96,28,112,25,130,29,167,24,168,19,130,23,110,32,92,50,78,76,66,144,47,224,35,300,28"/>
 <area shape="rect" title=" " alt="" coords="313,102,366,127"/>
-<area shape="poly" title=" " alt="" coords="317,46,332,86,327,88,312,47"/>
+<area shape="poly" title=" " alt="" coords="374,48,354,89,349,86,369,45"/>
 <area shape="rect" title=" " alt="" coords="389,102,458,127"/>
-<area shape="poly" title=" " alt="" coords="335,44,397,90,394,95,332,49"/>
+<area shape="poly" title=" " alt="" coords="393,45,413,87,409,89,388,48"/>
 <area shape="rect" title=" " alt="" coords="482,102,560,127"/>
-<area shape="poly" title=" " alt="" coords="357,44,478,93,476,98,355,49"/>
+<area shape="poly" title=" " alt="" coords="414,44,490,91,487,96,411,49"/>
 <area shape="rect" title=" " alt="" coords="104,183,157,208"/>
-<area shape="poly" title=" " alt="" coords="291,48,201,137,158,175,155,170,198,133,287,45"/>
+<area shape="poly" title=" " alt="" coords="350,49,276,96,161,176,158,171,273,92,347,44"/>
 <area shape="rect" title=" " alt="" coords="207,183,317,208"/>
-<area shape="poly" title=" " alt="" coords="305,47,272,168,267,167,300,45"/>
+<area shape="poly" title=" " alt="" coords="352,49,326,70,303,96,283,132,271,169,266,167,278,130,299,92,323,66,349,45"/>
 <area shape="rect" title=" " alt="" coords="584,102,642,127"/>
-<area shape="poly" title=" " alt="" coords="389,41,478,63,572,91,576,93,574,98,571,97,476,68,388,46"/>
+<area shape="poly" title=" " alt="" coords="442,44,572,92,575,93,573,97,571,96,440,49"/>
+<area shape="rect" title=" " alt="" coords="666,102,808,127"/>
+<area shape="poly" title=" " alt="" coords="463,44,673,95,671,100,461,49"/>
+<area shape="rect" title=" " alt="" coords="832,102,980,127"/>
+<area shape="poly" title=" " alt="" coords="462,35,628,59,820,91,839,95,838,100,819,97,627,64,462,40"/>
 <area shape="rect" href="cpu_2internal_2opcodes_8h.html" title=" " alt="" coords="46,94,188,135"/>
-<area shape="poly" title=" " alt="" coords="265,49,175,90,173,85,263,44"/>
+<area shape="poly" title=" " alt="" coords="322,49,192,91,190,86,320,44"/>
 <area shape="poly" title=" " alt="" coords="99,137,61,173,57,170,95,133"/>
 <area shape="poly" title=" " alt="" coords="123,135,128,167,123,168,118,136"/>
 <area shape="poly" title=" " alt="" coords="154,133,228,173,226,177,152,138"/>
@@ -155,6 +162,10 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1emu_1_1MnemonicMode.html">yaze::app::emu::MnemonicMode</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html">yaze::app::emu::MnemonicModeHash</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1emu_1_1AsmParser.html">yaze::app::emu::AsmParser</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -168,6 +179,47 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceyaze_1_1app_1_1emu" id="r_namespaceyaze_1_1app_1_1emu"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu.html">yaze::app::emu</a></td></tr>
 <tr class="memdesc:namespaceyaze_1_1app_1_1emu"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> Emulation and debugging tools. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a0aa8388686279d5dd279df126af111be" id="r_a0aa8388686279d5dd279df126af111be"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111be">yaze::app::emu::AddressingMode</a> { <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beabab0767e88027de9944aa55c24c8387a">yaze::app::emu::kAbsolute</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea9571d99922a257fa1a743541848f52be">yaze::app::emu::kAbsoluteLong</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beafc6adf17891a646ee32f03f3da175e7d">yaze::app::emu::kAbsoluteIndexedIndirect</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea584a5c33178ee320c2cf6328acc4ee82">yaze::app::emu::kAbsoluteIndexedX</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea6880f138a8145739ce9e9d5b2094d476">yaze::app::emu::kAbsoluteIndexedY</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea71b09cdcff04b4aee920d11304a35d6d">yaze::app::emu::kAbsoluteIndirect</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea1f281027847722032cfa2f78bba6ab96">yaze::app::emu::kAbsoluteIndirectLong</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea161ef922130f9d368c4a73085eccf0ee">yaze::app::emu::kAbsoluteLongIndexedX</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beac1b745637d21e826ddc70aed14d3ff1d">yaze::app::emu::kAccumulator</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea3cbe906b3a7baaa1bc5a961d076fc7e5">yaze::app::emu::kBlockMove</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea8cfaea86c9ddc57ad751e8c0aafa36cd">yaze::app::emu::kDirectPage</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead1e184db8889c39a379adbf7f3494217">yaze::app::emu::kDirectPageIndexedX</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea6437ad76ebbb0d4b37fba17038144b56">yaze::app::emu::kDirectPageIndexedY</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead1f75ae076ac2ea547ef047ad1358346">yaze::app::emu::kDirectPageIndirect</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea0c6022a8e3ab650748bd313f1c01bf3b">yaze::app::emu::kDirectPageIndirectIndexedY</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea850b00e69e8676a29001df09f13d7d32">yaze::app::emu::kDirectPageIndirectLong</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beaa34cce27b1feb9a9ad46067f5d5b9bc3">yaze::app::emu::kDirectPageIndirectLongIndexedY</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead44ed864e421867b99c29a0c6391083b">yaze::app::emu::kDirectPageIndirectIndexedX</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea51aba12b39be2f7ed6bace42c077184f">yaze::app::emu::kDirectPageIndirectLongIndexedX</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea9d5396915e9c40be7d43f985aa8e5ae0">yaze::app::emu::kImmediate</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea66a9ac70decf5309e8706a0dedc4c3c8">yaze::app::emu::kImplied</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea843f1f4d2c53a5041922ffb5cfd68e33">yaze::app::emu::kProgramCounterRelative</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111beaf3bc1bce25569418c897b2e9b215af92">yaze::app::emu::kProgramCounterRelativeLong</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea88b7469580b8bc21f14fb1f591333c44">yaze::app::emu::kStackRelative</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea4aa601cf14d34696e777daadac4d992e">yaze::app::emu::kStackRelativeIndirectIndexedY</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea4fb43c0a77502c0cd46f01c14787fa75">yaze::app::emu::kStackRelativeIndirectIndexedYLong</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea5f4930a7bc3cf140a4d53f44f47ed789">yaze::app::emu::kStack</a>
+, <a class="el" href="namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead43bb7d5a33aec2376fcec383643161c">yaze::app::emu::kStackRelativeIndexedY</a>
+<br />
+ }</td></tr>
+<tr class="separator:a0aa8388686279d5dd279df126af111be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

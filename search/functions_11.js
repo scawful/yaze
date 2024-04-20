@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['read_0',['Read',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a974a0696beb228098727c022f2453e54',1,'yaze::app::emu::video::PpuInterface']]],
-  ['read_1',['read',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46',1,'yaze::app::emu::audio::AudioRam::read()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a6895aa2fd6ea083c879383c5676f36f5',1,'yaze::app::emu::audio::AudioRamImpl::read()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017',1,'yaze::app::emu::audio::Spc700::read(uint16_t address)']]],
+  ['read_0',['read',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46',1,'yaze::app::emu::audio::AudioRam::read()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a6895aa2fd6ea083c879383c5676f36f5',1,'yaze::app::emu::audio::AudioRamImpl::read()'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017',1,'yaze::app::emu::audio::Spc700::read()']]],
+  ['read_1',['Read',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a974a0696beb228098727c022f2453e54',1,'yaze::app::emu::video::PpuInterface']]],
   ['read_5f16_2',['read_16',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a291c297b7f754755f4007a72d6003c99',1,'yaze::app::emu::audio::Spc700']]],
   ['read_5fendx_3',['read_endx',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#addfd8ad125c79d77ab346135d7dde60c',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
   ['read_5fvoice_5fenvx_4',['read_voice_envx',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#aecdd03a0aeca6ac246aafae8d434977d',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],

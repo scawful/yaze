@@ -112,6 +112,8 @@ var hierarchy =
       [ "yaze::app::emu::memory::MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", null ],
       [ "yaze::app::emu::memory::MockMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html", null ]
     ] ],
+    [ "yaze::app::emu::MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", null ],
+    [ "yaze::app::emu::MnemonicModeHash", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html", null ],
     [ "yaze::cli::Color::Modifier", "classyaze_1_1cli_1_1Color_1_1Modifier.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::Mosaic", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::MPYH", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYH.html", null ],

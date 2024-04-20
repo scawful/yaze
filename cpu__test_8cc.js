@@ -1,6 +1,7 @@
 var cpu__test_8cc =
 [
     [ "yaze_test::emu_test::CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", "classyaze__test_1_1emu__test_1_1CpuTest" ],
+    [ "TEST_F", "cpu__test_8cc.html#a561fce76ce5c17cc9e730695c09692e9", null ],
     [ "TEST_F", "cpu__test_8cc.html#adbd1b273e9bfee848333cb81b2e39265", null ],
     [ "TEST_F", "cpu__test_8cc.html#a5e272e2ca81d039194d58ed580276fb6", null ],
     [ "TEST_F", "cpu__test_8cc.html#a33491d4830d92aae1736849b3b289fe0", null ],

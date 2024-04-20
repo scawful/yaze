@@ -1,5 +1,5 @@
 <map id="yaze::app::emu::AsmParser::CreateInternalOpcodeMap" name="yaze::app::emu::AsmParser::CreateInternalOpcodeMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="190,5,368,46"/>
-<area shape="rect" id="Node000002" href="$classyaze__test_1_1emu__test_1_1CpuTest.html#adc39581559a3921822adaa22c77d7926" title=" " alt="" coords="5,5,142,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,28,142,28,142,23,174,23"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="230,5,408,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1AsmParser.html#acacbf8f1812521947ac88fd188f85219" title=" " alt="" coords="5,5,182,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,28,182,28,182,23,214,23"/>
 </map>
