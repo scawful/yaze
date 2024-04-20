@@ -45,16 +45,6 @@ uint16_t GetHeaderOffset(const Memory& memory) {
   return offset;
 }
 
-void audio_callback(void* userdata, uint8_t* stream, int len) {
-  auto* apu = static_cast<audio::Apu*>(userdata);
-  auto* buffer = reinterpret_cast<int16_t*>(stream);
-
-  for (int i = 0; i < len / 2; i++) {  // Assuming 16-bit samples
-    buffer[i] = apu->GetNextSample();  // This function should be implemented in
-                                       // APU to fetch the next sample
-  }
-}
-
 }  // namespace
 
 RomInfo SNES::ReadRomHeader(uint32_t offset) {
@@ -133,9 +123,6 @@ void SNES::Init(Rom& rom) {
 
   // Initialize APU
   apu_.Init();
-
-  // Initialize SDL_Mixer to play the audio samples
-  // Mix_HookMusic(audio_callback, &apu);
 
   // Disable interrupts and rendering
   memory_.WriteByte(0x4200, 0x00);  // NMITIMEN
@@ -350,7 +337,7 @@ void SNES::LoadState(const std::string& path) {
 }
 
 void SNES::SetSamples(int16_t* sample_data, int wanted_samples) {
-  // Set the samples in the apu
+  apu_.dsp().GetSamples(sample_data, wanted_samples, pal_timing_);
 }
 
 }  // namespace emu

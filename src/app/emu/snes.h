@@ -71,10 +71,6 @@ class SNES : public DirectMemoryAccess {
   }
 
  private:
-  void WriteToRegister(uint16_t address, uint8_t value) {
-    memory_.WriteByte(address, value);
-  }
-
   // Components of the SNES
   MemoryImpl memory_;
   ClockImpl clock_;
@@ -99,6 +95,7 @@ class SNES : public DirectMemoryAccess {
 
   // Other private member variables
   bool running_ = false;
+  bool pal_timing_ = false;
   int scanline;
   int cpu_mode_ = 0;
 };
