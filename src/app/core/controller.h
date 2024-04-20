@@ -57,12 +57,14 @@ class Controller : public ExperimentFlags {
   absl::Status CreateRenderer();
   absl::Status CreateGuiContext();
   absl::Status LoadFontFamilies() const;
+  absl::Status LoadAudioDevice();
   void CloseWindow() { active_ = false; }
 
   friend int ::main(int argc, char **argv);
 
   bool active_;
   int wanted_samples_;
+  int audio_frequency_ = 48000;
   int16_t *audio_buffer_;
   editor::MasterEditor master_editor_;
   SDL_AudioDeviceID audio_device_;
