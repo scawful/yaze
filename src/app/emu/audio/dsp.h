@@ -12,9 +12,6 @@ namespace app {
 namespace emu {
 namespace audio {
 
-using SampleFetcher = std::function<uint8_t(uint16_t)>;
-using SamplePusher = std::function<void(int16_t)>;
-
 /**
  * The S-DSP is a digital signal processor generating the sound data.
  *
@@ -49,8 +46,16 @@ using SamplePusher = std::function<void(int16_t)>;
  * |         |         |           | multiplied by ENVX, before applying VOL.               |
  */
 
-class DigitalSignalProcessor {
+class Dsp {
+ public:
+  void Reset();
+
+  void GetSamples(int16_t* sample_data, int samples_per_frame, bool pal_timing);
+
  private:
+  int16_t sample_buffer_[0x400 * 2];  // (1024 samples, *2 for stereo)
+  int16_t sample_offset_;             // current offset in samplebuffer
+
   static const size_t kNumVoices = 8;
   static const size_t kNumVoiceRegs = 10;
   static const size_t kNumGlobalRegs = 15;
@@ -97,214 +102,6 @@ class DigitalSignalProcessor {
   // Decay times in ms
   const std::vector<uint32_t> decayTimes = {1200, 740, 440, 290,
                                             180,  110, 74,  37};
-
-  // Release times in ms
-  const std::vector<uint32_t> releaseTimes = {
-      // "Infinite" is represented by a large value, e.g., UINT32_MAX
-      UINT32_MAX, 38000, 28000, 24000, 19000, 14000, 12000, 9400,
-      7100,       5900,  4700,  3500,  2900,  2400,  1800,  1500,
-      1200,       880,   740,   590,   440,   370,   290,   220,
-      180,        150,   110,   92,    74,    55,    37,    18};
-
-  // Gain timings for decrease linear, decrease exponential, etc.
-  // Organized by mode: [Linear Increase, Bentline Increase, Linear Decrease,
-  // Exponential Decrease]
-  const std::vector<std::vector<uint32_t>> gainTimings = {
-      {UINT32_MAX, 3100, 2600, 2000, 1500, 1300, 1000, 770, 640, 510, 380,
-       320,        260,  190,  160,  130,  96,   80,   64,  48,  40,  32,
-       24,         20,   16,   12,   10,   8,    6,    4,   2},
-      {UINT32_MAX, 5400, 4600, 3500, 2600, 2300, 1800, 1300, 1100, 900,
-       670,        560,  450,  340,  280,  220,  170,  140,  110,  84,
-       70,         56,   42,   35,   28,   21,   18,   14,   11,   7,
-       /*3.5=*/3},
-      // Repeating the Linear Increase timings for Linear Decrease, since they
-      // are the same.
-      {UINT32_MAX, 3100, 2600, 2000, 1500, 1300, 1000, 770, 640, 510, 380,
-       320,        260,  190,  160,  130,  96,   80,   64,  48,  40,  32,
-       24,         20,   16,   12,   10,   8,    6,    4,   2},
-      {UINT32_MAX, 38000, 28000, 24000, 19000, 14000, 12000, 9400,
-       7100,       5900,  4700,  3500,  2900,  2400,  1800,  1500,
-       1200,       880,   740,   590,   440,   370,   290,   220,
-       180,        150,   110,   92,    55,    37,    18}};
-
-  // DSP Period Table
-  const std::vector<std::vector<uint16_t>> DigitalSignalProcessorPeriodTable = {
-      // ... Your DSP period table here ...
-  };
-
-  // DSP Period Offset
-  const std::vector<uint16_t> DigitalSignalProcessorPeriodOffset = {
-      // ... Your DSP period offsets here ...
-  };
-
-  uint8_t calculate_envelope_value(uint16_t amplitude) const {
-    // Convert the 16-bit amplitude to an 8-bit envelope value
-    return amplitude >> 8;
-  }
-
-  void apply_envelope_to_output(uint8_t voice_num) {
-    Voice& voice = voices_[voice_num];
-
-    // Scale the OUTX by the envelope value
-    // This might be a linear scaling, or more complex operations can be used
-    voice.outx = (voice.outx * voice.envx) / 255;
-  }
-
-  SampleFetcher sample_fetcher_;
-  SamplePusher sample_pusher_;
-
- public:
-  DigitalSignalProcessor() = default;
-
-  void Reset();
-
-  void SetSampleFetcher(std::function<uint8_t(uint16_t)> fetcher);
-  void SetSamplePusher(std::function<void(int16_t)> pusher);
-
-  // Read a byte from a voice register
-  uint8_t ReadVoiceReg(uint8_t voice, uint8_t reg) const;
-
-  // Write a byte to a voice register
-  void WriteVoiceReg(uint8_t voice, uint8_t reg, uint8_t value);
-
-  // Read a byte from a global register
-  uint8_t ReadGlobalReg(uint8_t reg) const {
-    return globalRegs[reg % kNumGlobalRegs];
-  }
-
-  // Write a byte to a global register
-  void WriteGlobalReg(uint8_t reg, uint8_t value) {
-    globalRegs[reg % kNumGlobalRegs] = value;
-  }
-
-  int16_t DecodeSample(uint8_t voice_num);
-  int16_t ProcessSample(uint8_t voice_num, int16_t sample);
-  void MixSamples();
-
-  // Trigger a voice to start playing
-  void trigger_voice(uint8_t voice_num) {
-    if (voice_num >= kNumVoices) return;
-
-    Voice& voice = voices_[voice_num];
-    voice.state = VoiceState::ATTACK;
-    // Initialize other state management variables if needed
-  }
-
-  // Release a voice (e.g., note release in ADSR)
-  void release_voice(uint8_t voice_num) {
-    if (voice_num >= kNumVoices) return;
-
-    Voice& voice = voices_[voice_num];
-    if (voice.state != VoiceState::OFF) {
-      voice.state = VoiceState::RELEASE;
-    }
-    // Update other state management variables if needed
-  }
-
-  // Calculate envelope for a given voice
-  void UpdateEnvelope(uint8_t voice);
-
-  // Voice-related functions (implementations)
-  void set_voice_volume(int voice_num, int8_t left, int8_t right) {
-    voices_[voice_num].vol_left = left;
-    voices_[voice_num].vol_right = right;
-  }
-
-  void set_voice_pitch(int voice_num, uint16_t pitch) {
-    voices_[voice_num].pitch_low = pitch & 0xFF;
-    voices_[voice_num].pitch_high = (pitch >> 8) & 0xFF;
-  }
-
-  void set_voice_source_number(int voice_num, uint8_t srcn) {
-    voices_[voice_num].source_number = srcn;
-  }
-
-  void set_voice_adsr(int voice_num, uint8_t adsr1, uint8_t adsr2) {
-    voices_[voice_num].adsr1 = adsr1;
-    voices_[voice_num].adsr2 = adsr2;
-  }
-
-  void set_voice_gain(int voice_num, uint8_t gain) {
-    voices_[voice_num].gain = gain;
-  }
-
-  uint8_t read_voice_envx(int voice_num) { return voices_[voice_num].envx; }
-
-  int8_t read_voice_outx(int voice_num) { return voices_[voice_num].outx; }
-
-  // Global DSP functions
-  void set_master_volume(int8_t left, int8_t right) {
-    mvol_left = left;
-    mvol_right = right;
-  }
-
-  void set_echo_volume(int8_t left, int8_t right) {
-    evol_left = left;
-    evol_right = right;
-  }
-
-  void update_voice_state(uint8_t voice_num);
-
-  // Override the key_on and key_off methods to utilize the new state management
-  void key_on(uint8_t value) {
-    for (uint8_t i = 0; i < kNumVoices; i++) {
-      if (value & (1 << i)) {
-        trigger_voice(i);
-      }
-    }
-  }
-
-  void key_off(uint8_t value) {
-    for (uint8_t i = 0; i < kNumVoices; i++) {
-      if (value & (1 << i)) {
-        release_voice(i);
-      }
-    }
-  }
-
-  void set_flags(uint8_t value) {
-    flags = value;
-    // More logic may be needed here depending on flag behaviors
-  }
-
-  uint8_t read_endx() { return endx; }
-
-  uint16_t AttackRate(uint8_t adsr1) {
-    // Convert the ATTACK portion of adsr1 into a rate of amplitude change
-    // You might need to adjust this logic based on the exact ADSR
-    // implementation details
-    return (adsr1 & 0x0F) * 16;  // Just a hypothetical conversion
-  }
-
-  uint16_t DecayRate(uint8_t adsr2) {
-    // Convert the DECAY portion of adsr2 into a rate of amplitude change
-    return ((adsr2 >> 4) & 0x07) * 8;  // Hypothetical conversion
-  }
-
-  uint16_t ReleaseRate(uint8_t adsr2) {
-    // Convert the RELEASE portion of adsr2 into a rate of amplitude change
-    return (adsr2 & 0x0F) * 16;  // Hypothetical conversion
-  }
-
-  uint16_t CalculateDecayLevel(uint8_t adsr2) {
-    // Calculate the decay level based on the SUSTAIN portion of adsr2
-    // This is the level the amplitude will decay to before entering the SUSTAIN
-    // phase Again, adjust based on your implementation details
-    return ((adsr2 >> 4) & 0x07) * 256;  // Hypothetical conversion
-  }
-
-  // Envelope processing for all voices
-  // Goes through each voice and processes its envelope.
-  void process_envelopes() {
-    for (size_t i = 0; i < kNumVoices; ++i) {
-      process_envelope(i);
-    }
-  }
-
-  // Envelope processing for a specific voice
-  // For a given voice, update its state (ADSR), calculate the envelope value,
-  // and apply the envelope to the audio output.
-  void process_envelope(uint8_t voice_num);
 };
 
 }  // namespace audio
