@@ -1,5 +1,0 @@
-<map id="yaze::app::emu::audio::Apu::FetchSampleFromRam" name="yaze::app::emu::audio::Apu::FetchSampleFromRam">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,196,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46" title=" " alt="" coords="244,5,386,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,23,228,23,228,28,196,28"/>
-</map>

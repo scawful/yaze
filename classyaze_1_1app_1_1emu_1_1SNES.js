@@ -13,13 +13,13 @@ var classyaze_1_1app_1_1emu_1_1SNES =
     [ "HandleInput", "classyaze_1_1app_1_1emu_1_1SNES.html#a6e0577ca69eb03193f5abd9f44723968", null ],
     [ "SaveState", "classyaze_1_1app_1_1emu_1_1SNES.html#afbddb7d7ac2402019692c2ffdfbe8a55", null ],
     [ "LoadState", "classyaze_1_1app_1_1emu_1_1SNES.html#a286eef8fd0eb56ebf2b310fada720892", null ],
+    [ "SetSamples", "classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a", null ],
     [ "running", "classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3", null ],
     [ "cpu", "classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7", null ],
     [ "ppu", "classyaze_1_1app_1_1emu_1_1SNES.html#a87a0cc3daa15e5158fb3779263296014", null ],
     [ "Memory", "classyaze_1_1app_1_1emu_1_1SNES.html#ab339932c21efd282fac0e62e96f0d9ff", null ],
     [ "SetCpuMode", "classyaze_1_1app_1_1emu_1_1SNES.html#ada5eb1dc9dd75480a5b33d66548a98fd", null ],
     [ "GetCpuMode", "classyaze_1_1app_1_1emu_1_1SNES.html#a37302d05deff3252b90770b83b1f2094", null ],
-    [ "WriteToRegister", "classyaze_1_1app_1_1emu_1_1SNES.html#a59eb62da7c0c6c54a309262d48793406", null ],
     [ "memory_", "classyaze_1_1app_1_1emu_1_1SNES.html#a11412c903b8f59cf534bb9128333896a", null ],
     [ "clock_", "classyaze_1_1app_1_1emu_1_1SNES.html#a530f0c5b5b25846acd2f4cab77c561cb", null ],
     [ "audio_ram_", "classyaze_1_1app_1_1emu_1_1SNES.html#a747296ece896c8886ed1b79c43e9abb9", null ],
@@ -32,6 +32,7 @@ var classyaze_1_1app_1_1emu_1_1SNES =
     [ "v_blank_flag_", "classyaze_1_1app_1_1emu_1_1SNES.html#abba59cb038441757f7dbb4d25fb1e3ce", null ],
     [ "frame_counter_", "classyaze_1_1app_1_1emu_1_1SNES.html#aa63131077e41bf55940309ca4baabd95", null ],
     [ "running_", "classyaze_1_1app_1_1emu_1_1SNES.html#aef94854c9b17a57a9c49f84fea0bf808", null ],
+    [ "pal_timing_", "classyaze_1_1app_1_1emu_1_1SNES.html#a88b42632ff5c8852cf19fd22922e66df", null ],
     [ "scanline", "classyaze_1_1app_1_1emu_1_1SNES.html#a7fda4fa66d07ae8f74c9a6734d290da6", null ],
     [ "cpu_mode_", "classyaze_1_1app_1_1emu_1_1SNES.html#a264edff2dde142478a454e7c5b3d8b2f", null ]
 ];

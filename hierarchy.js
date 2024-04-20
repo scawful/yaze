@@ -53,11 +53,11 @@ var hierarchy =
     [ "yaze::app::gfx::lc_lz2::CompressionPiece", "structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ],
     [ "yaze::app::emu::video::CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::app::emu::Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", null ],
-    [ "yaze::app::emu::audio::DigitalSignalProcessor", "classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html", null ],
     [ "yaze::app::emu::memory::DirectMemoryAccess", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html", [
       [ "yaze::app::emu::SNES", "classyaze_1_1app_1_1emu_1_1SNES.html", null ]
     ] ],
     [ "yaze::app::emu::video::DmaRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html", null ],
+    [ "yaze::app::emu::audio::Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html", null ],
     [ "yaze::app::zelda3::dungeon::DungeonDestination", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html", null ],
     [ "yaze::app::zelda3::screen::DungeonMap", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", null ],
     [ "yaze::app::gui::DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ],
@@ -238,7 +238,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::VMDATA", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATA.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::VMDATAHREAD", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATAHREAD.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::VMDATALREAD", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMDATALREAD.html", null ],
-    [ "yaze::app::emu::audio::DigitalSignalProcessor::Voice", "structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html", null ],
+    [ "yaze::app::emu::audio::Dsp::Voice", "structyaze_1_1app_1_1emu_1_1audio_1_1Dsp_1_1Voice.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::W12SEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::W34SEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::WBGLOG", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WBGLOG.html", null ],

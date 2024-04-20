@@ -102,7 +102,7 @@ var searchData=
   ['cpu_5fmode_5f_99',['cpu_mode_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a264edff2dde142478a454e7c5b3d8b2f',1,'yaze::app::emu::SNES']]],
   ['crystalpalette_100',['crystalPalette',['../namespaceyaze_1_1app_1_1core.html#aed23d28dedaefc0b708150211fff7974',1,'yaze::app::core']]],
   ['crystalvertices_101',['crystalVertices',['../namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a04723792c33fb909313da909800e89d6',1,'yaze::app::zelda3::screen']]],
-  ['current_5famplitude_102',['current_amplitude',['../structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html#aa2e36536a5da9034726440483e581053',1,'yaze::app::emu::audio::DigitalSignalProcessor::Voice']]],
+  ['current_5famplitude_102',['current_amplitude',['../structyaze_1_1app_1_1emu_1_1audio_1_1Dsp_1_1Voice.html#a7405fa9ef481c2e145f9137637c234a2',1,'yaze::app::emu::audio::Dsp::Voice']]],
   ['current_5fbitmap_5findex_5f_103',['current_bitmap_index_',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html#a0a4cd408d25c89e8c0f35bf05f9da2ca',1,'yaze::app::gui::BitmapViewer']]],
   ['current_5fblockset_5f_104',['current_blockset_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab39eb6d2a27009cfcd313fec96b450be',1,'yaze::app::editor::OverworldEditor::current_blockset_'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a2ae4480fbe84e5d910c334d9aa62b8b7',1,'yaze::app::zelda3::overworld::OverworldMap::current_blockset_']]],
   ['current_5fbpp_5f_105',['current_bpp_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab55ef1c1523eccdd913e4b05988872e0',1,'yaze::app::editor::GraphicsEditor']]],

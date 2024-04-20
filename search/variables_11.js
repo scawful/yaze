@@ -1,8 +1,8 @@
 var searchData=
 [
   ['s_5fcurrent_5fsort_5fspecs_0',['s_current_sort_specs',['../structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html#a094453edcd685373aef7a77493760640',1,'yaze::app::editor::sprite_internal::SpriteItem']]],
-  ['sample_5ffetcher_5f_1',['sample_fetcher_',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a7a3a69a2e8918da13849da57c8bc0b6b',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
-  ['sample_5fpusher_5f_2',['sample_pusher_',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#acd852fd3932920e926c2ba608fa52160',1,'yaze::app::emu::audio::DigitalSignalProcessor']]],
+  ['sample_5fbuffer_5f_1',['sample_buffer_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a62c08569d5864916c88a8177ac040b6e',1,'yaze::app::emu::audio::Dsp']]],
+  ['sample_5foffset_5f_2',['sample_offset_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a233102c63e2d4f1b6f51103f5114ef1d',1,'yaze::app::emu::audio::Dsp']]],
   ['save_5fnew_5fauto_5f_3',['save_new_auto_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a8502e407d94fdc934dea23c6d42e6759',1,'yaze::app::editor::MasterEditor']]],
   ['saved_5fpalette_5f_4',['saved_palette_',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a06adbd3640d6ad11ae4be94fe660fe5b',1,'yaze::app::editor::PaletteEditor']]],
   ['sc_5fsize_5',['SC_size',['../structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation.html#a80fa72bcc9c2ce0a87e7923766ffb28f',1,'yaze::app::emu::video::TileMapLocation']]],
@@ -87,7 +87,7 @@ var searchData=
   ['song_5frange_5f_84',['song_range_',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a667cb5d3fce6e4281bb49fd0ffcdbaa3',1,'yaze::app::zelda3::music::Tracker']]],
   ['songs_85',['songs',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a511459948168ec437747e473bb9cb01c',1,'yaze::app::zelda3::music::Tracker']]],
   ['sort_86',['sort',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html#ab9275165dd5e518e4026114ace5ed349',1,'yaze::app::zelda3::dungeon::Subtype1::sort'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html#adce6798bc73be1c809e4e80471f8d9ae',1,'yaze::app::zelda3::dungeon::Subtype2::sort'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a578f1455567e731f08de832e3da35a6b',1,'yaze::app::zelda3::dungeon::Subtype3::sort']]],
-  ['source_5fnumber_87',['source_number',['../structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html#a941504aa49d2b39c4fb19fa67a6572ab',1,'yaze::app::emu::audio::DigitalSignalProcessor::Voice']]],
+  ['source_5fnumber_87',['source_number',['../structyaze_1_1app_1_1emu_1_1audio_1_1Dsp_1_1Voice.html#aff854a39adeee8e4df1a4ac1a95b2739',1,'yaze::app::emu::audio::Dsp::Voice']]],
   ['sp_88',['SP',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a310bef2352b7ac4586e3be4ee519fc73',1,'yaze::app::emu::audio::Spc700']]],
   ['sp_5f_89',['SP_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a971b218f608a0d0c32717da26bea0f96',1,'yaze::app::emu::memory::MemoryImpl::SP_'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2fd95d602806c412f6b5fd94b245964c',1,'yaze::app::emu::memory::MockMemory::SP_']]],
   ['sp_5fmaps_5fto_5fload_5f_90',['sp_maps_to_load_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a3f0290213e09c8c49cb86e1a7b36f6ed',1,'yaze::app::editor::OverworldEditor']]],
@@ -168,7 +168,7 @@ var searchData=
   ['startingentrance_5fyscroll_165',['startingentrance_yscroll',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ad1724b688c13324085260dcdce75515e',1,'yaze::app::zelda3::dungeon']]],
   ['stat77_166',['STAT77',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a3d42d918afe637c13a1c380e2ff27cea',1,'yaze::app::emu::video::PpuRegisters']]],
   ['stat78_167',['STAT78',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a51c17ecb289be7aa55dbe0012a1ed47c',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['state_168',['state',['../structyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor_1_1Voice.html#a6bbf13c18473c8c12c737ee492f061be',1,'yaze::app::emu::audio::DigitalSignalProcessor::Voice']]],
+  ['state_168',['state',['../structyaze_1_1app_1_1emu_1_1audio_1_1Dsp_1_1Voice.html#ad4d3e1c9ba8ed8bb2ff380ea89384354',1,'yaze::app::emu::audio::Dsp::Voice']]],
   ['static_5fgraphics_5f_169',['static_graphics_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a1d59f2f350ecaa27413c72210f71f482',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['staticgfx_170',['staticgfx',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad286811de6fd19191bc31071660b91d7',1,'yaze::app::editor::OverworldEditor']]],
   ['status_171',['status',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a79d4d75aba3ba90eb8587f977938889e',1,'yaze::app::emu::Cpu']]],

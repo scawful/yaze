@@ -3,6 +3,8 @@ var classyaze_1_1app_1_1emu_1_1Emulator =
     [ "Bookmark", "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html", "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark" ],
     [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html#a6243b4d5bab5741b747a8b7755027dac", null ],
     [ "Run", "classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f", null ],
+    [ "snes", "classyaze_1_1app_1_1emu_1_1Emulator.html#aebd3efff1294c50a7a54fe928c48ca2d", null ],
+    [ "running", "classyaze_1_1app_1_1emu_1_1Emulator.html#adebab95dcb3ddb1840e35b91ae733d1f", null ],
     [ "RenderNavBar", "classyaze_1_1app_1_1emu_1_1Emulator.html#a768f75e52c4da7c5d99cc0e527059379", null ],
     [ "HandleEvents", "classyaze_1_1app_1_1emu_1_1Emulator.html#a9aeb81c9f12eed58ac6834998239d5df", null ],
     [ "RenderSnesPpu", "classyaze_1_1app_1_1emu_1_1Emulator.html#ae44b9e7548dde43578830f2c277eaa28", null ],

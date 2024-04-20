@@ -43,7 +43,7 @@ var annotated_dup =
             [ "Apu", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu" ],
             [ "AudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam" ],
             [ "AudioRamImpl", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl" ],
-            [ "DigitalSignalProcessor", "classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html", "classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor" ],
+            [ "Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp" ],
             [ "Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700" ]
           ] ],
           [ "memory", "namespaceyaze_1_1app_1_1emu_1_1memory.html", [

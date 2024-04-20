@@ -136,47 +136,37 @@ $(function(){initNavTree('todo.html',''); initResizable(); });
 <dd><a class="anchor" id="_todo000018"></a>Implement deleting OverworldSprite objects  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas</a>  ()</dt>
 <dd><a class="anchor" id="_todo000011"></a>Implement tile16 transfer  </dd>
-<dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a93ca0f747b24dda0426b95b16b250ac7">yaze::app::emu::audio::Apu::ApplyEnvelope</a>  (int channel)</dt>
-<dd><a class="anchor" id="_todo000026"></a>Implement this method to apply an envelope to the specified channel.  </dd>
-<dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ad1eb48cb8e08562d6b4b50d406b30c63">yaze::app::emu::audio::Apu::CalculateAddressForVoice</a>  (uint8_t voice_num)</dt>
-<dd><a class="anchor" id="_todo000022"></a>Calculate the address for the specified voice  </dd>
-<dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ab35d862ac09fcd001e9058cdc6353afb">yaze::app::emu::audio::Apu::GenerateSample</a>  (int channel)</dt>
-<dd><a class="anchor" id="_todo000025"></a>Implement this method to generate a sample for the specified channel.  </dd>
-<dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a258f28db89b3bdd08374bd93bedd316e">yaze::app::emu::audio::Apu::GetNextSample</a>  ()</dt>
-<dd><a class="anchor" id="_todo000023"></a>Return the last sample instead of 0.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a8486f8369bdac2c79be7616be60ecf79">yaze::app::emu::audio::Apu::Notify</a>  (uint32_t address, uint16_t data) override</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000020"></a>Handle the setup of destination address </p>
-<p class="interdd"><a class="anchor" id="_todo000021"></a>Handle additional communication/commands </p>
-<p class="enddd"><a class="anchor" id="_todo000019"></a>Handle data byte transfer here  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000019"></a>Handle data byte transfer here </p>
+<p class="interdd"><a class="anchor" id="_todo000020"></a>Handle the setup of destination address </p>
+<p class="enddd"><a class="anchor" id="_todo000021"></a>Handle additional communication/commands  </p>
 </dd>
-<dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a75a7f496828d04133bb59d291e4329c0">yaze::app::emu::audio::Apu::UpdateChannelSettings</a>  ()</dt>
-<dd><a class="anchor" id="_todo000024"></a>Implement this method to update the channel settings.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a1cae58175cf9b0e07a365d4e411748e8">yaze::app::emu::Cpu::GetInstructionLength</a>  (uint8_t opcode)</dt>
-<dd><a class="anchor" id="_todo000027"></a>Handle JMPs in logging.  </dd>
+<dd><a class="anchor" id="_todo000022"></a>Handle JMPs in logging.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1Cpu.html#abcc792f6220359761c4df2031daf2f92">yaze::app::emu::Cpu::HandleInterrupts</a>  ()</dt>
-<dd><a class="anchor" id="_todo000028"></a>Implement 65816 interrupts.  </dd>
+<dd><a class="anchor" id="_todo000023"></a>Implement 65816 interrupts.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1Cpu.html#aec7b530dd760a610e97c5ea67c02f789">yaze::app::emu::Cpu::STP</a>  ()</dt>
-<dd><a class="anchor" id="_todo000029"></a>Make this work with the <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html">Clock</a> class of the CPU  </dd>
+<dd><a class="anchor" id="_todo000024"></a>Make this work with the <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html">Clock</a> class of the CPU  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a40e3d5d22b135a07314814516645ea92">yaze::app::emu::Cpu::WAI</a>  ()</dt>
-<dd><a class="anchor" id="_todo000030"></a>Make this communicate with the <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> class  </dd>
+<dd><a class="anchor" id="_todo000025"></a>Make this communicate with the <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> class  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init</a>  (<a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> &amp;rom)</dt>
-<dd><a class="anchor" id="_todo000031"></a>Make this load from work ram, potentially in Memory class  </dd>
+<dd><a class="anchor" id="_todo000026"></a>Make this load from work ram, potentially in Memory class  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a9c0b8b1e13396a4c0ea677208f27f749">yaze::app::gui::Canvas::DrawBitmapTable</a>  (const BitmapTable &amp;gfx_bin)</dt>
-<dd><a class="anchor" id="_todo000033"></a>Add parameters for sizing and positioning  </dd>
+<dd><a class="anchor" id="_todo000028"></a>Add parameters for sizing and positioning  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59">yaze::app::gui::Canvas::DrawContextMenu</a>  (<a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image.">gfx::Bitmap</a> *bitmap=nullptr)</dt>
-<dd><a class="anchor" id="_todo000032"></a>Add a menu item for selecting the palette  </dd>
+<dd><a class="anchor" id="_todo000027"></a>Add a menu item for selecting the palette  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ad9e1fb3111d9a8d704400749c4badbc7">yaze::app::zelda3::dungeon::DarkRoom</a>  </dt>
-<dd><a class="anchor" id="_todo000034"></a>Determine if DarkRoom will stay there or not  </dd>
+<dd><a class="anchor" id="_todo000029"></a>Determine if DarkRoom will stay there or not  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#aef8eac64449c87f4cba7148c852ed2fc">yaze::app::zelda3::screen::TitleScreen::BuildTileset</a>  ()</dt>
-<dd><a class="anchor" id="_todo000035"></a>get the gfx from the GFX class rather than the rom.  </dd>
+<dd><a class="anchor" id="_todo000030"></a>get the gfx from the GFX class rather than the rom.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1app_1_1zelda3_1_1Sprite.html#a7aff276963041b1940a655f03058f487">yaze::app::zelda3::Sprite::Draw</a>  ()</dt>
-<dd><a class="anchor" id="_todo000036"></a>Add something here?  </dd>
+<dd><a class="anchor" id="_todo000031"></a>Add something here?  </dd>
 <dt>Member <a class="el" href="namespaceyaze__test_1_1emu__test.html#a4cf2b77b424e8de6f2514358453acc2c">yaze_test::emu_test::TEST_F</a>  (<a class="el" href="classyaze__test_1_1emu__test_1_1CpuTest.html">CpuTest</a>, COP)</dt>
-<dd><a class="anchor" id="_todo000037"></a>FIX COP TEST  </dd>
+<dd><a class="anchor" id="_todo000032"></a>FIX COP TEST  </dd>
 <dt>Member <a class="el" href="namespaceyaze__test_1_1gfx__test.html#af40e0d4f10bb4b9ad27af81907a9426b">yaze_test::gfx_test::TEST</a>  (LC_LZ2_CompressionTest, CompressionSingleSet)</dt>
-<dd><a class="anchor" id="_todo000038"></a>Check why header built is off by one  </dd>
+<dd><a class="anchor" id="_todo000033"></a>Check why header built is off by one  </dd>
 <dt>Member <a class="el" href="namespaceyaze__test_1_1gfx__test.html#a1a263e0ae5ef8848f9ab4910765f1db3">yaze_test::gfx_test::TEST</a>  (SNESPaletteTest, GetColorOutOfBounds)</dt>
-<dd><a class="anchor" id="_todo000039"></a>Fix this test, behavior has changed since the original </dd>
+<dd><a class="anchor" id="_todo000034"></a>Fix this test, behavior has changed since the original </dd>
 </dl>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

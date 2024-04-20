@@ -4,8 +4,7 @@ var namespaceyaze_1_1app_1_1emu =
       [ "ShouldDisplay", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a8661d56df6530eb9b492271d63b262ac", null ]
     ] ],
     [ "anonymous_namespace{snes.cc}", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html", [
-      [ "GetHeaderOffset", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a7cc2b521f0ca37fa3351bb0452e397b5", null ],
-      [ "audio_callback", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a228f6f49b9ffa0fc42fb4760f13fc48b", null ]
+      [ "GetHeaderOffset", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a7cc2b521f0ca37fa3351bb0452e397b5", null ]
     ] ],
     [ "audio", "namespaceyaze_1_1app_1_1emu_1_1audio.html", "namespaceyaze_1_1app_1_1emu_1_1audio" ],
     [ "memory", "namespaceyaze_1_1app_1_1emu_1_1memory.html", "namespaceyaze_1_1app_1_1emu_1_1memory" ],

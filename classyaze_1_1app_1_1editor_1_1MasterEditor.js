@@ -4,6 +4,7 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "SetupScreen", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a382d87ffac35130578ccf04d118f5c9e", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16", null ],
     [ "Shutdown", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#adec58165d7b7febdfb676c50b7261e3e", null ],
+    [ "emulator", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c329d941533145ee9a6a1e76f560ab4", null ],
     [ "DrawFileDialog", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a0839e511445aa6f28549e2006d1a28f2", null ],
     [ "DrawStatusPopup", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a3d9f9cddcd5289a7b187be91cc898789", null ],
     [ "DrawAboutPopup", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a926b20f5ff986c9d4b5e13014ab36a6f", null ],

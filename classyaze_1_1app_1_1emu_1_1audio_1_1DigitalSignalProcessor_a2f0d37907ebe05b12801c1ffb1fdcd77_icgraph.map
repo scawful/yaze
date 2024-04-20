@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::audio::DigitalSignalProcessor::calculate_envelope_value" name="yaze::app::emu::audio::DigitalSignalProcessor::calculate_envelope_value">
-<area shape="rect" id="Node000001" title=" " alt="" coords="418,5,594,61"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#a0df5f277f02f52840874a976de279af3" title=" " alt="" coords="212,5,370,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="403,36,371,36,371,31,403,31"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#aa227399b581d12618218072adec02bab" title=" " alt="" coords="5,5,164,61"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="196,36,164,36,164,31,196,31"/>
-</map>

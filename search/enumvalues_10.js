@@ -27,5 +27,5 @@ var searchData=
   ['stairs_24',['Stairs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaec2c59a8ff9de88501730a1193b164b9',1,'yaze::app::zelda3::dungeon']]],
   ['step_25',['Step',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8a48c7c41b72e1d678923ce3571aa65b2d',1,'yaze::app::emu::Cpu']]],
   ['string_26',['String',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a06f18a00b63cc01c30a59b40e16297bea27118326006d3829667a400ad23d5d98',1,'yaze::app::gui::zeml']]],
-  ['sustain_27',['SUSTAIN',['../classyaze_1_1app_1_1emu_1_1audio_1_1DigitalSignalProcessor.html#acc14bad027067dad059f4d90707a7d86a76f908385924681f5c38b86f4c41b759',1,'yaze::app::emu::audio::DigitalSignalProcessor']]]
+  ['sustain_27',['SUSTAIN',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a113b1c56f348bb5c98f16634b8e46689a76f908385924681f5c38b86f4c41b759',1,'yaze::app::emu::audio::Dsp']]]
 ];
