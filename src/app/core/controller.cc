@@ -121,6 +121,7 @@ absl::Status Controller::OnEntry() {
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
+  RETURN_IF_ERROR(LoadAudioDevice())
   InitializeKeymap();
   master_editor_.SetupScreen(renderer_);
   active_ = true;
@@ -187,6 +188,8 @@ void Controller::DoRender() const {
 void Controller::OnExit() {
   master_editor_.Shutdown();
   Mix_CloseAudio();
+  SDL_PauseAudioDevice(audio_device_, 1);
+  SDL_CloseAudioDevice(audio_device_);
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -322,6 +325,23 @@ absl::Status Controller::LoadFontFamilies() const {
                                  io.Fonts->GetGlyphRangesJapanese());
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status Controller::LoadAudioDevice() {
+  SDL_AudioSpec want, have;
+  SDL_memset(&want, 0, sizeof(want));
+  want.freq = audio_frequency_;
+  want.format = AUDIO_S16;
+  want.channels = 2;
+  want.samples = 2048;
+  want.callback = NULL;  // Uses the queue
+  audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+  if (audio_device_ == 0) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
+  }
+  SDL_PauseAudioDevice(audio_device_, 0);
   return absl::OkStatus();
 }
 
