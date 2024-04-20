@@ -69,6 +69,9 @@ class Emulator : public SharedRom {
   }
   void Run();
 
+  auto snes() -> SNES& { return snes_; }
+  auto running() const -> bool { return running_; }
+
  private:
   void RenderNavBar();
   void HandleEvents();
