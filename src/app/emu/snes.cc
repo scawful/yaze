@@ -349,6 +349,10 @@ void SNES::LoadState(const std::string& path) {
   // ...
 }
 
+void SNES::SetSamples(int16_t* sample_data, int wanted_samples) {
+  // Set the samples in the apu
+}
+
 }  // namespace emu
 }  // namespace app
 }  // namespace yaze

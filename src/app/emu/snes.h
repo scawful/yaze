@@ -57,6 +57,8 @@ class SNES : public DirectMemoryAccess {
   void SaveState(const std::string& path);
   void LoadState(const std::string& path);
 
+  void SetSamples(int16_t* sample_data, int wanted_samples);
+
   bool running() const { return running_; }
 
   auto cpu() -> Cpu& { return cpu_; }
