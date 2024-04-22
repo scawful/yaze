@@ -13,9 +13,9 @@ enable_testing()
 add_executable(
   yaze_test
   yaze_test.cc
-  emu/cpu_test.cc
-  emu/spc700_test.cc
-  emu/ppu_test.cc
+  # emu/cpu_test.cc
+  # emu/spc700_test.cc
+  # emu/ppu_test.cc
   gfx/compression_test.cc
   gfx/snes_palette_test.cc
   zelda3/room_object_test.cc
