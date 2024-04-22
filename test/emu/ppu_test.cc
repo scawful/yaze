@@ -110,27 +110,27 @@ class PpuTest : public ::testing::Test {
 
 // Test Initialization
 TEST_F(PpuTest, InitializationSetsCorrectFrameBufferSize) {
-  // EXPECT_CALL(mock_ppu, Init()).Times(1);
-  // mock_ppu.Init();
-  // EXPECT_EQ(mock_ppu.GetFrameBuffer().size(), 256 * 240);
+  EXPECT_CALL(mock_ppu, Init()).Times(1);
+  mock_ppu.Init();
+  EXPECT_EQ(mock_ppu.GetFrameBuffer().size(), 256 * 240);
 }
 
 // Test State Reset
 TEST_F(PpuTest, ResetClearsFrameBuffer) {
-  // EXPECT_CALL(mock_ppu, Reset()).Times(1);
-  // mock_ppu.Reset();
-  // auto frameBuffer = mock_ppu.GetFrameBuffer();
-  // EXPECT_TRUE(std::all_of(frameBuffer.begin(), frameBuffer.end(),
-  //                         [](uint8_t val) { return val == 0; }));
+  EXPECT_CALL(mock_ppu, Reset()).Times(1);
+  mock_ppu.Reset();
+  auto frameBuffer = mock_ppu.GetFrameBuffer();
+  EXPECT_TRUE(std::all_of(frameBuffer.begin(), frameBuffer.end(),
+                          [](uint8_t val) { return val == 0; }));
 }
 
 // Test Memory Interaction
 TEST_F(PpuTest, ReadWriteVRAM) {
-  // uint16_t address = testVRAMAddress;
-  // uint8_t value = testVRAMValue;
-  // EXPECT_CALL(mock_ppu, Write(address, value)).Times(1);
-  // mock_ppu.Write(address, value);
-  // EXPECT_EQ(mock_ppu.Read(address), value);
+  uint16_t address = testVRAMAddress;
+  uint8_t value = testVRAMValue;
+  EXPECT_CALL(mock_ppu, Write(address, value)).Times(1);
+  mock_ppu.Write(address, value);
+  EXPECT_EQ(mock_ppu.Read(address), value);
 }
 
 // Test Rendering Mechanics

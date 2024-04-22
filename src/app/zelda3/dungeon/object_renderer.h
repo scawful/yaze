@@ -48,7 +48,8 @@ class DungeonObjectRenderer : public SharedRom {
   std::vector<uint8_t> rom_data_;
   emu::memory::MemoryImpl memory_;
   emu::ClockImpl clock_;
-  emu::Cpu cpu{memory_, clock_};
+  emu::memory::CpuCallbacks cpu_callbacks_;
+  emu::Cpu cpu{memory_, clock_, cpu_callbacks_};
   emu::video::Ppu ppu{memory_, clock_};
   gfx::Bitmap bitmap_;
   PseudoVram vram_;

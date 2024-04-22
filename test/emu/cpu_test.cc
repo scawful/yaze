@@ -14,6 +14,7 @@ namespace emu_test {
 
 using yaze::app::emu::AsmParser;
 using yaze::app::emu::Cpu;
+using yaze::app::emu::memory::CpuCallbacks;
 using yaze::app::emu::memory::MockClock;
 using yaze::app::emu::memory::MockMemory;
 
@@ -31,7 +32,8 @@ class CpuTest : public ::testing::Test {
   AsmParser asm_parser;
   MockMemory mock_memory;
   MockClock mock_clock;
-  Cpu cpu{mock_memory, mock_clock};
+  CpuCallbacks cpu_callbacks;
+  Cpu cpu{mock_memory, mock_clock, cpu_callbacks};
 };
 
 using ::testing::_;
@@ -55,6 +57,18 @@ TEST_F(CpuTest, AsmParserTokenizerOk) {
                                               "LDA", ".b", "#", "$",   "FF",
                                               "STA", ".w", "$", "2000"};
   EXPECT_THAT(tokens, ::testing::ContainerEq(expected_tokens));
+}
+
+TEST_F(CpuTest, AsmParserSingleInstructionOk) {
+  AsmParser asm_parser;
+  std::string instruction = "ADC.b #$01";
+  std::vector<std::string> tokens = asm_parser.Tokenize(instruction);
+
+  std::vector<std::string> expected_tokens = {"ADC", ".b", "#", "$", "01"};
+  EXPECT_THAT(tokens, ::testing::ContainerEq(expected_tokens));
+
+  auto opcode = asm_parser.Parse(instruction);
+  EXPECT_EQ(opcode[0], 0x69);
 }
 
 TEST_F(CpuTest, CheckMemoryContents) {
@@ -500,10 +514,10 @@ TEST_F(CpuTest, AND_DirectPageIndirect) {
 }
 
 TEST_F(CpuTest, AND_StackRelativeIndirectIndexedY) {
-  cpu.A = 0b11110000;  // A register
-  cpu.Y = 0x02;        // Y register
-  cpu.DB = 0x10;       // Setting Data Bank register to 0x20
-  cpu.SetSP(0x01FF);   // Setting Stack Pointer to 0x01FF
+  cpu.A = 0b11110000;         // A register
+  cpu.Y = 0x02;               // Y register
+  cpu.DB = 0x10;              // Setting Data Bank register to 0x20
+  mock_memory.SetSP(0x01FF);  // Setting Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0x33, 0x02};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x0201, {0x00, 0x30});    // [0x0201] = 0x3000
@@ -1096,7 +1110,7 @@ TEST_F(CpuTest, CMP_DirectPageIndexedIndirectX) {
 
 TEST_F(CpuTest, CMP_StackRelative) {
   cpu.A = 0x80;
-  cpu.SetSP(0x01FF);
+  mock_memory.SetSP(0x01FF);
   std::vector<uint8_t> data = {0xC3, 0x02};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x0201, {0x40, 0x9F});
@@ -1238,10 +1252,10 @@ TEST_F(CpuTest, CMP_DirectPageIndirect) {
 }
 
 TEST_F(CpuTest, CMP_StackRelativeIndirectIndexedY) {
-  cpu.A = 0x03;       // A register
-  cpu.Y = 0x02;       // Y register
-  cpu.DB = 0x10;      // Setting Data Bank register to 0x20
-  cpu.SetSP(0x01FF);  // Setting Stack Pointer to 0x01FF
+  cpu.A = 0x03;               // A register
+  cpu.Y = 0x02;               // Y register
+  cpu.DB = 0x10;              // Setting Data Bank register to 0x20
+  mock_memory.SetSP(0x01FF);  // Setting Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0xD3, 0x02};  // ADC sr, Y
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x0201, {0x00, 0x30});  // [0x0201] = 0x3000
@@ -1576,9 +1590,9 @@ TEST_F(CpuTest, EOR_DirectPageIndexedIndirectX) {
 }
 
 TEST_F(CpuTest, EOR_StackRelative) {
-  cpu.A = 0b10101010;  // A register
-  cpu.status = 0xFF;   // 8-bit mode
-  cpu.SetSP(0x01FF);   // Set Stack Pointer to 0x01FF
+  cpu.A = 0b10101010;         // A register
+  cpu.status = 0xFF;          // 8-bit mode
+  mock_memory.SetSP(0x01FF);  // Set Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0x43, 0x02};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x0201, {0b01010101});  // [0x0201] = 0b01010101
@@ -2030,7 +2044,7 @@ TEST_F(CpuTest, LDA_DirectPageIndexedIndirectX) {
 TEST_F(CpuTest, LDA_StackRelative) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
-  cpu.SetSP(0x01FF);             // Set Stack Pointer to 0x01FF
+  mock_memory.SetSP(0x01FF);     // Set Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0xA3, 0x02};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x0201, {0x7F});
@@ -2488,7 +2502,7 @@ TEST_F(CpuTest, ORA_DirectPageIndexedIndirectX) {
 TEST_F(CpuTest, ORA_StackRelative) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
-  cpu.SetSP(0x01FF);             // Set Stack Pointer to 0x01FF
+  mock_memory.SetSP(0x01FF);     // Set Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0x03, 0x02};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x0201, {0x7F});
@@ -3322,7 +3336,7 @@ TEST_F(CpuTest, SBC_StackRelative) {
   mock_memory.SetMemoryContents(data);
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.status = 0xFF;             // 8-bit mode
-  cpu.SetSP(0x01FF);             // Set Stack Pointer to 0x01FF
+  mock_memory.SetSP(0x01FF);     // Set Stack Pointer to 0x01FF
   mock_memory.InsertMemory(0x00003E, {0x02});
   mock_memory.InsertMemory(0x2002, {0x80});
 
@@ -3464,7 +3478,7 @@ TEST_F(CpuTest, SBC_StackRelativeIndirectIndexedY) {
   cpu.Y = 0x02;                  // Set Y register to 0x02
   cpu.A = 0xFF;                  // Set A register to 0x80
   cpu.status = 0xFF;             // 8-bit mode
-  cpu.SetSP(0x01FF);             // Set Stack Pointer to 0x01FF
+  mock_memory.SetSP(0x01FF);     // Set Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0xF3, 0x02};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x0201, {0x00, 0x30});
@@ -3633,7 +3647,7 @@ TEST_F(CpuTest, STA_DirectPageIndexedIndirectX) {
 TEST_F(CpuTest, STA_StackRelative) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
-  cpu.SetSP(0x01FF);  // Set Stack Pointer to 0x01FF
+  mock_memory.SetSP(0x01FF);  // Set Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0x83, 0x3C};
   mock_memory.SetMemoryContents(data);
 
@@ -3727,8 +3741,8 @@ TEST_F(CpuTest, STA_DirectPageIndirect) {
 TEST_F(CpuTest, STA_StackRelativeIndirectIndexedY) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
   cpu.A = 0x42;
-  cpu.Y = 0x02;       // Set Y register to 0x02
-  cpu.SetSP(0x01FF);  // Set Stack Pointer to 0x01FF
+  cpu.Y = 0x02;               // Set Y register to 0x02
+  mock_memory.SetSP(0x01FF);  // Set Stack Pointer to 0x01FF
   std::vector<uint8_t> data = {0x93, 0x3C};
   mock_memory.SetMemoryContents(data);
   mock_memory.InsertMemory(0x00023B, {0x00, 0x10});
@@ -4049,7 +4063,7 @@ TEST_F(CpuTest, TSB_Absolute) {
 
 TEST_F(CpuTest, TSC) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
-  cpu.SetSP(0x42);
+  mock_memory.SetSP(0x42);
   std::vector<uint8_t> data = {0x3B};
   mock_memory.SetMemoryContents(data);
 
@@ -4061,7 +4075,7 @@ TEST_F(CpuTest, TSC) {
 
 TEST_F(CpuTest, TSX) {
   cpu.SetAccumulatorSize(true);  // Set A register to 8-bit mode
-  cpu.SetSP(0x42);
+  mock_memory.SetSP(0x42);
   std::vector<uint8_t> data = {0xBA};
   mock_memory.SetMemoryContents(data);
 
@@ -4090,7 +4104,7 @@ TEST_F(CpuTest, TXS) {
   mock_memory.SetMemoryContents(data);
 
   cpu.ExecuteInstruction(0x9A);  // TXS
-  EXPECT_EQ(cpu.SP(), 0x42);
+  EXPECT_EQ(mock_memory.SP(), 0x42);
 }
 
 // ============================================================================
