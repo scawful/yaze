@@ -42,6 +42,104 @@ static const int spriteSizes[8][2] = {{8, 16},  {8, 32},  {8, 64},  {16, 32},
 
 void Ppu::Update() {}
 
+void Ppu::Reset() {
+  memset(vram, 0, sizeof(vram));
+  vramPointer = 0;
+  vramIncrementOnHigh = false;
+  vramIncrement = 1;
+  vramRemapMode = 0;
+  vramReadBuffer = 0;
+  memset(cgram, 0, sizeof(cgram));
+  cgramPointer = 0;
+  cgramSecondWrite = false;
+  cgramBuffer = 0;
+  memset(oam, 0, sizeof(oam));
+  memset(highOam, 0, sizeof(highOam));
+  oamAdr = 0;
+  oamAdrWritten = 0;
+  oamInHigh = false;
+  oamInHighWritten = false;
+  oamSecondWrite = false;
+  oamBuffer = 0;
+  objPriority = false;
+  objTileAdr1 = 0;
+  objTileAdr2 = 0;
+  objSize = 0;
+  obj_pixel_buffer_.fill(0);
+  memset(objPriorityBuffer, 0, sizeof(objPriorityBuffer));
+  time_over_ = false;
+  range_over_ = false;
+  objInterlace = false;
+  for (int i = 0; i < 4; i++) {
+    bgLayer[i].hScroll = 0;
+    bgLayer[i].vScroll = 0;
+    bgLayer[i].tilemapWider = false;
+    bgLayer[i].tilemapHigher = false;
+    bgLayer[i].tilemapAdr = 0;
+    bgLayer[i].tileAdr = 0;
+    bgLayer[i].bigTiles = false;
+    bgLayer[i].mosaicEnabled = false;
+  }
+  scrollPrev = 0;
+  scrollPrev2 = 0;
+  mosaicSize = 1;
+  mosaicStartLine = 1;
+  for (int i = 0; i < 5; i++) {
+    layer_[i].mainScreenEnabled = false;
+    layer_[i].subScreenEnabled = false;
+    layer_[i].mainScreenWindowed = false;
+    layer_[i].subScreenWindowed = false;
+  }
+  memset(m7matrix, 0, sizeof(m7matrix));
+  m7prev = 0;
+  m7largeField = false;
+  m7charFill = false;
+  m7xFlip = false;
+  m7yFlip = false;
+  m7extBg = false;
+  m7startX = 0;
+  m7startY = 0;
+  for (int i = 0; i < 6; i++) {
+    windowLayer[i].window1enabled = false;
+    windowLayer[i].window2enabled = false;
+    windowLayer[i].window1inversed = false;
+    windowLayer[i].window2inversed = false;
+    windowLayer[i].maskLogic = 0;
+  }
+  window1left = 0;
+  window1right = 0;
+  window2left = 0;
+  window2right = 0;
+  clip_mode_ = 0;
+  prevent_math_mode_ = 0;
+  add_subscreen_ = false;
+  subtractColor = false;
+  halfColor = false;
+  memset(math_enabled_array_, 0, sizeof(math_enabled_array_));
+  fixedColorR = 0;
+  fixedColorG = 0;
+  fixedColorB = 0;
+  forcedBlank = true;
+  brightness = 0;
+  mode = 0;
+  bg3priority = false;
+  even_frame = false;
+  pseudoHires = false;
+  overscan = false;
+  frameOverscan = false;
+  interlace = false;
+  frame_interlace = false;
+  directColor = false;
+  hCount = 0;
+  vCount = 0;
+  hCountSecond = false;
+  vCountSecond = false;
+  countersLatched = false;
+  ppu1openBus = 0;
+  ppu2openBus = 0;
+  memset(pixelBuffer, 0, sizeof(pixelBuffer));
+}
+
 void Ppu::HandleFrameStart() {
   // called at (0, 0)
   mosaic_startline_ = 1;
@@ -483,7 +581,7 @@ void Ppu::CalculateMode7Starts(int y) {
 }
 
 void Ppu::HandleVblank() {
-  // called either right after ppu_checkOverscan at (0,225), or at (0,240)
+  // called either right after CheckOverscan at (0,225), or at (0,240)
   if (!forcedBlank) {
     oamAdr = oamAdrWritten;
     oamInHigh = oamInHighWritten;
