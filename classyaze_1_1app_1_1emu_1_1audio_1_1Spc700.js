@@ -5,7 +5,6 @@ var classyaze_1_1app_1_1emu_1_1audio_1_1Spc700 =
     [ "FlagsToByte", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f", null ],
     [ "ByteToFlags", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360", null ],
     [ "Reset", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8a959cd07f045af98496d5c4bd8fb666", null ],
-    [ "BootIplRom", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a73256d5323830af113c7a91202aa55e1", null ],
     [ "RunOpcode", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8be7cee31f3e9ff7a82686b42298b219", null ],
     [ "ExecuteInstructions", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a51e282a3d4d7ac88639072b6158fe95f", null ],
     [ "LogInstruction", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a3271dbfd4c6e2c2d252b0cf780b1f396", null ],

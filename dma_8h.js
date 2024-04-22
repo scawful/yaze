@@ -8,5 +8,5 @@ var dma_8h =
     [ "Read", "dma_8h.html#afa24e8e2a9befbb3775e9521bb925623", null ],
     [ "Write", "dma_8h.html#abbc688ba1ec96ed247f16a3cc1647083", null ],
     [ "StartDma", "dma_8h.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5", null ],
-    [ "DoDma", "dma_8h.html#ad416666c2bb07a82ed0d006fe2eae8d6", null ]
+    [ "DoDma", "dma_8h.html#a4d0117f3f937848d6a137c4eb4ca1649", null ]
 ];

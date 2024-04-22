@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"cpu__test_8cc.html#abde88007d30e81e3c8adb39adf1d693d":[10,0,2,0,0,170],
+"cpu__test_8cc.html#abf6aff8b43bfa746cee1836df366b870":[10,0,2,0,0,54],
 "cpu__test_8cc.html#ac09051d9de5cd2e4f81ee135e694da19":[10,0,2,0,0,271],
 "cpu__test_8cc.html#ac09594234182d42ac3ea9ad6dce77caa":[10,0,2,0,0,159],
 "cpu__test_8cc.html#ac2944eb7dbccd2b849304cf6097c993e":[10,0,2,0,0,146],
@@ -109,10 +111,10 @@ var NAVTREEINDEX23 =
 "dma_8h.html#a13816b2a60e51fb6132db6d68938f9ac":[10,0,1,0,2,3,1,2],
 "dma_8h.html#a1c8983aa73f3b43c99ef7b8b19978ebe":[10,0,1,0,2,3,1,4],
 "dma_8h.html#a33a58e186c22ce300ab3753f1fee3b04":[10,0,1,0,2,3,1,3],
+"dma_8h.html#a4d0117f3f937848d6a137c4eb4ca1649":[10,0,1,0,2,3,1,8],
 "dma_8h.html#a5c9bf03212f6c4f8ea1e0153d80dc0a1":[10,0,1,0,2,3,1,1],
 "dma_8h.html#ab5c19814c33eb509a14ba19c813371a2":[10,0,1,0,2,3,1,0],
 "dma_8h.html#abbc688ba1ec96ed247f16a3cc1647083":[10,0,1,0,2,3,1,6],
-"dma_8h.html#ad416666c2bb07a82ed0d006fe2eae8d6":[10,0,1,0,2,3,1,8],
 "dma_8h.html#afa24e8e2a9befbb3775e9521bb925623":[10,0,1,0,2,3,1,5],
 "dma_8h.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5":[10,0,1,0,2,3,1,7],
 "dma_8h_source.html":[10,0,1,0,2,3,1],
@@ -162,8 +164,8 @@ var NAVTREEINDEX23 =
 "font__loader_8h_source.html":[10,0,1,0,0,0,8],
 "font__loader_8mm.html":[10,0,1,0,0,0,9],
 "font__loader_8mm.html#a7390a9bf6e7c82bbe4cddbf00844d86d":[10,0,1,0,0,0,9,0],
-"functions.html":[9,3,0,0],
 "functions.html":[9,3,0],
+"functions.html":[9,3,0,0],
 "functions_b.html":[9,3,0,1],
 "functions_c.html":[9,3,0,2],
 "functions_d.html":[9,3,0,3],
@@ -217,8 +219,8 @@ var NAVTREEINDEX23 =
 "functions_type.html":[9,3,3],
 "functions_u.html":[9,3,0,20],
 "functions_v.html":[9,3,0,21],
-"functions_vars.html":[9,3,2,0],
 "functions_vars.html":[9,3,2],
+"functions_vars.html":[9,3,2,0],
 "functions_vars_b.html":[9,3,2,1],
 "functions_vars_c.html":[9,3,2,2],
 "functions_vars_d.html":[9,3,2,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "functions_x.html":[9,3,0,23],
 "functions_y.html":[9,3,0,24],
 "functions_z.html":[9,3,0,25],
-"functions_~.html":[9,3,0,26],
-"gfx__context_8cc.html":[10,0,1,0,1,0,1],
-"gfx__context_8h.html":[10,0,1,0,1,0,2]
+"functions_~.html":[9,3,0,26]
 };

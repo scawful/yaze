@@ -9,8 +9,7 @@ var namespaceyaze_1_1app_1_1emu_1_1memory =
       [ "InitHdma", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a13816b2a60e51fb6132db6d68938f9ac", null ],
       [ "DoHdma", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a33a58e186c22ce300ab3753f1fee3b04", null ],
       [ "TransferByte", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a1c8983aa73f3b43c99ef7b8b19978ebe", null ],
-      [ "StartDma", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5", null ],
-      [ "DoDma", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#ad416666c2bb07a82ed0d006fe2eae8d6", null ]
+      [ "StartDma", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5", null ]
     ] ],
     [ "CpuCallbacks", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks" ],
     [ "DmaChannel", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel" ],

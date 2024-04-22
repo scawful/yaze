@@ -10,8 +10,8 @@ var searchData=
   ['maptype_7',['MapType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc',1,'yaze::app::gui::zeml']]],
   ['mastereditor_8',['MasterEditor',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a8b1b4a7824557c7394dd7a1d606bac21',1,'yaze::app::editor::MasterEditor']]],
   ['memfill_9',['memfill',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785',1,'yaze::app::gfx::lc_lz2']]],
-  ['memory_10',['memory',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a8713a11de497e422ca620bde6fc280e2',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
-  ['memory_11',['Memory',['../classyaze_1_1app_1_1emu_1_1SNES.html#a441f8e1f753fdd65eb6612fb8b5a01b0',1,'yaze::app::emu::SNES']]],
+  ['memory_10',['Memory',['../classyaze_1_1app_1_1emu_1_1SNES.html#a441f8e1f753fdd65eb6612fb8b5a01b0',1,'yaze::app::emu::SNES']]],
+  ['memory_11',['memory',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a8713a11de497e422ca620bde6fc280e2',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
   ['mergecopy_12',['MergeCopy',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a876aa4cf19da24112d3d66afd49eb8f2',1,'yaze::app::gfx::lc_lz2']]],
   ['message_5fid_13',['message_id',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#add6a945238678586dda7843c46738019',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['mirrortiledata_14',['MirrorTileData',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#ac362d4aa2e88946644e7c0bc903dc8af',1,'yaze::app::gfx::Tilesheet']]],
@@ -76,6 +76,6 @@ var searchData=
   ['mutable_5fstatic_5fgraphics_73',['mutable_static_graphics',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a3bbf181ec55a06b6d2fdf1351abc5dbc',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['mutable_5fsurface_74',['mutable_surface',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ab9c29b7fb6fe7830ca51adcfa5387c9e',1,'yaze::app::gfx::Bitmap']]],
   ['mutable_5ftile_5finfo_75',['mutable_tile_info',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#acd26aa9f811eccbb7ecdc2a0505f0c23',1,'yaze::app::gfx::Tilesheet']]],
-  ['mvn_76',['MVN',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ac5e57ee30bb94cdecccbf6eda1793fc0',1,'yaze::app::emu::Cpu']]],
-  ['mvp_77',['MVP',['../classyaze_1_1app_1_1emu_1_1Cpu.html#abcfba7aa3292f42a1b279345f8db908d',1,'yaze::app::emu::Cpu']]]
+  ['mvn_76',['MVN',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aeac1d4fa688a68b1f542d0dd60b8e7ed',1,'yaze::app::emu::Cpu']]],
+  ['mvp_77',['MVP',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2a2159120a5ad1203b5fb919b30dbecc',1,'yaze::app::emu::Cpu']]]
 ];
