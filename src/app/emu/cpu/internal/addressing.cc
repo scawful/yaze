@@ -12,30 +12,31 @@ uint32_t Cpu::Absolute(Cpu::AccessType access_type) {
 }
 
 uint32_t Cpu::AbsoluteIndexedX() {
-  uint16_t address = memory.ReadWord((PB << 16) | (PC + 1));
+  uint16_t address = ReadWord((PB << 16) | (PC + 1));
   uint32_t effective_address = (DB << 16) | ((address + X) & 0xFFFF);
   return effective_address;
 }
 
 uint32_t Cpu::AbsoluteIndexedY() {
-  uint16_t address = memory.ReadWord((PB << 16) | (PC + 1));
+  uint16_t address = ReadWord((PB << 16) | (PC + 1));
   uint32_t effective_address = (DB << 16) | address + Y;
   return effective_address;
 }
 
 uint16_t Cpu::AbsoluteIndexedIndirect() {
   uint16_t address = FetchWord() + X;
-  return memory.ReadWord((DB << 16) | address & 0xFFFF);
+  callbacks_.idle(false);
+  return ReadWord((DB << 16) | address & 0xFFFF);
 }
 
 uint16_t Cpu::AbsoluteIndirect() {
   uint16_t address = FetchWord();
-  return memory.ReadWord((PB << 16) | address);
+  return ReadWord((PB << 16) | address);
 }
 
 uint32_t Cpu::AbsoluteIndirectLong() {
   uint16_t address = FetchWord();
-  return memory.ReadWordLong((PB << 16) | address);
+  return ReadWordLong((PB << 16) | address);
 }
 
 uint32_t Cpu::AbsoluteLong() { return FetchLong(); }
@@ -44,7 +45,7 @@ uint32_t Cpu::AbsoluteLongIndexedX() { return FetchLong() + X; }
 
 void Cpu::BlockMove(uint16_t source, uint16_t dest, uint16_t length) {
   for (int i = 0; i < length; i++) {
-    memory.WriteByte(dest + i, memory.ReadByte(source + i));
+    WriteByte(dest + i, ReadByte(source + i));
   }
 }
 
@@ -66,44 +67,47 @@ uint16_t Cpu::DirectPageIndexedY() {
 
 uint16_t Cpu::DirectPageIndexedIndirectX() {
   uint8_t operand = FetchByte();
+  if (D & 0xFF) {
+    callbacks_.idle(false);  // dpr not 0: 1 extra cycle
+  }
+  callbacks_.idle(false);
   uint16_t indirect_address = D + operand + X;
-  uint16_t effective_address = memory.ReadWord(indirect_address & 0xFFFF);
+  uint16_t effective_address = ReadWord(indirect_address & 0xFFFF);
   return effective_address;
 }
 
 uint16_t Cpu::DirectPageIndirect() {
   uint8_t dp = FetchByte();
   uint16_t effective_address = D + dp;
-  return memory.ReadWord(effective_address);
+  return ReadWord(effective_address);
 }
 
 uint32_t Cpu::DirectPageIndirectLong() {
   uint8_t dp = FetchByte();
   uint16_t effective_address = D + dp;
-  return memory.ReadWordLong((0x00 << 0x10) | effective_address);
+  return ReadWordLong((0x00 << 0x10) | effective_address);
 }
 
 uint16_t Cpu::DirectPageIndirectIndexedY() {
   uint8_t operand = FetchByte();
   uint16_t indirect_address = D + operand;
-  return memory.ReadWord(indirect_address) + Y;
+  return ReadWord(indirect_address) + Y;
 }
 
 uint32_t Cpu::DirectPageIndirectLongIndexedY() {
   uint8_t operand = FetchByte();
   uint16_t indirect_address = D + operand;
   uint16_t y_by_mode = GetAccumulatorSize() ? Y : Y & 0xFF;
-  uint32_t effective_address =
-      memory.ReadWordLong(indirect_address) + y_by_mode;
+  uint32_t effective_address = ReadWordLong(indirect_address) + y_by_mode;
   return effective_address;
 }
 
 uint16_t Cpu::Immediate(bool index_size) {
   bool bit_mode = index_size ? GetIndexSize() : GetAccumulatorSize();
   if (bit_mode) {
-    return memory.ReadByte((PB << 16) | PC + 1);
+    return ReadByte((PB << 16) | PC + 1);
   } else {
-    return memory.ReadWord((PB << 16) | PC + 1);
+    return ReadWord((PB << 16) | PC + 1);
   }
 }
 
@@ -115,7 +119,7 @@ uint16_t Cpu::StackRelative() {
 
 uint32_t Cpu::StackRelativeIndirectIndexedY() {
   uint8_t sr = FetchByte();
-  return (DB << 0x10) | (memory.ReadWord(SP() + sr) + Y);
+  return (DB << 0x10) | (ReadWord(SP() + sr) + Y);
 }
 
 }  // namespace emu
