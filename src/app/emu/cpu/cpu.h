@@ -250,6 +250,16 @@ class Cpu : public Loggable, public core::ExperimentFlags {
     return (high << 16) | low;
   }
 
+  void DoBranch(bool check) {
+    if (!check) CheckInt();
+    uint8_t value = FetchByte();
+    if (check) {
+      CheckInt();
+      callbacks_.idle(false);  // taken branch: 1 extra cycle
+      next_pc_ += (int8_t)value;
+    }
+  }
+
   // ==========================================================================
   // Addressing Modes
 
@@ -519,13 +529,13 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   void JMP(uint16_t address);
 
   // JML: Jump long
-  void JML(uint32_t address);
+  void JML(uint16_t address);
 
   // JSR: Jump to subroutine
   void JSR(uint16_t address);
 
   // JSL: Jump to subroutine long
-  void JSL(uint32_t address);
+  void JSL(uint16_t address);
 
   // LDA: Load accumulator
   void LDA(uint16_t address, bool immediate = false, bool direct_page = false,
@@ -541,10 +551,10 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   void LSR(uint16_t address, bool accumulator = false);
 
   // MVN: Block move next
-  void MVN(uint16_t source, uint16_t dest, uint16_t length);
+  void MVN();
 
   // MVP: Block move previous
-  void MVP(uint16_t source, uint16_t dest, uint16_t length);
+  void MVP();
 
   // NOP: No operation
   void NOP();
@@ -769,6 +779,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
 
   uint16_t last_call_frame_;
   uint16_t next_pc_;
+  uint8_t next_pb_;
 
   memory::CpuCallbacks callbacks_;
   memory::Memory& memory;

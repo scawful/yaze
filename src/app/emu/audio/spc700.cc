@@ -27,24 +27,6 @@ void Spc700::Reset(bool hard) {
   reset_wanted_ = true;
 }
 
-void Spc700::BootIplRom() {
-  PC = 0xFFC0;
-  A = 0;
-  X = 0;
-  Y = 0;
-  int i = 0;
-  while (PC != 0xFFC0 + 0x3F) {
-    uint8_t opcode = read(PC);
-    ExecuteInstructions(opcode);
-    PC++;
-    i++;
-
-    if (i > 1000) {
-      break;
-    }
-  }
-}
-
 void Spc700::RunOpcode() {
   if (reset_wanted_) {
     // based on 6502, brk without writes

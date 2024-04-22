@@ -66,7 +66,7 @@ void Cpu::RunOpcode() {
 
     SetSP(sp);
 
-    SetInterruptFlag(true);
+    E = 1;
     SetInterruptFlag(true);
     SetDecimalFlag(false);
     SetFlags(status);  // updates x and m flags, clears
@@ -346,21 +346,21 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x90:  // BCC Branch if carry clear
     {
       operand = FetchByte();
-      BCC(operand);
+      DoBranch(!GetCarryFlag());
       break;
     }
 
     case 0xB0:  // BCS  Branch if carry set
     {
       operand = FetchByte();
-      BCS(operand);
+      DoBranch(GetCarryFlag());
       break;
     }
 
     case 0xF0:  // BEQ Branch if equal (zero set)
     {
       operand = FetchByte();
-      BEQ(operand);
+      DoBranch(GetZeroFlag());
       break;
     }
 
@@ -398,29 +398,27 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
 
     case 0x30:  // BMI Branch if minus (negative set)
     {
-      operand = FetchByte();
-      BMI(operand);
+      DoBranch(GetNegativeFlag());
       break;
     }
 
     case 0xD0:  // BNE Branch if not equal (zero clear)
     {
-      operand = FetchSignedByte();
-      BNE(operand);
+      DoBranch(!GetZeroFlag());
       break;
     }
 
     case 0x10:  // BPL Branch if plus (negative clear)
     {
-      operand = FetchSignedByte();
-      BPL(operand);
+      operand = FetchByte();
+      DoBranch(!GetNegativeFlag());
       break;
     }
 
     case 0x80:  // BRA Branch always
     {
       operand = FetchByte();
-      BRA(operand);
+      DoBranch(true);
       break;
     }
 
@@ -431,7 +429,7 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     }
 
     case 0x82:  // BRL Branch always long
-    {           // operand = FetchSignedWord();
+    {
       operand = FetchWord();
       BRL(operand);
       break;
@@ -440,14 +438,14 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x50:  // BVC Branch if overflow clear
     {
       operand = FetchByte();
-      BVC(operand);
+      DoBranch(!GetOverflowFlag());
       break;
     }
 
     case 0x70:  // BVS Branch if overflow set
     {
       operand = FetchByte();
-      BVS(operand);
+      DoBranch(GetOverflowFlag());
       break;
     }
 
@@ -796,7 +794,7 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     }
     case 0x5C:  // JMP Absolute Long
     {
-      JML(AbsoluteLong());
+      JML(FetchWord());
       break;
     }
     case 0x6C:  // JMP Absolute Indirect
@@ -827,7 +825,7 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
 
     case 0x22:  // JSL Absolute Long
     {
-      JSL(AbsoluteLong());
+      JSL(FetchWord());
       break;
     }
 
@@ -1023,8 +1021,16 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
       break;
     }
 
+    case 0x42:
+      WDM();
+      break;
+
+    case 0x44:
+      MVP();
+      break;
+
     case 0x54:
-      // MVN();
+      MVN();
       break;
 
     case 0xEA:  // NOP
@@ -1604,20 +1610,24 @@ uint8_t Cpu::GetInstructionLength(uint8_t opcode) {
     case 0x00:  // BRK
     case 0x02:  // COP
       PC = next_pc_;
+      PB = next_pb_;
       return 0;
 
-    // TODO: Handle JMPs in logging.
     case 0x20:  // JSR Absolute
     case 0x4C:  // JMP Absolute
     case 0x6C:  // JMP Absolute Indirect
-    case 0x5C:  // JMP Absolute Indexed Indirect
-    case 0x22:  // JSL Absolute Long
     case 0x7C:  // JMP Absolute Indexed Indirect
     case 0xFC:  // JSR Absolute Indexed Indirect
     case 0xDC:  // JMP Absolute Indirect Long
     case 0x6B:  // RTL
     case 0x82:  // BRL Relative Long
       PC = next_pc_;
+      return 0;
+
+    case 0x22:  // JSL Absolute Long
+    case 0x5C:  // JMP Absolute Indexed Indirect
+      PC = next_pc_;
+      PB = next_pb_;
       return 0;
 
     case 0x80:  // BRA Relative
