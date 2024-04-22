@@ -18,5 +18,19 @@ var classyaze_1_1app_1_1emu_1_1memory_1_1Memory =
     [ "SetSP", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3", null ],
     [ "ClearMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00", null ],
     [ "operator[]", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5beb62a71e0701b4939c28a95b1b77c0", null ],
-    [ "at", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a6e38e8d8c2fc4af04786e855069b5b6e", null ]
+    [ "at", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a6e38e8d8c2fc4af04786e855069b5b6e", null ],
+    [ "open_bus", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a71aaf1623d03b5b6e7a4c537b8183fbd", null ],
+    [ "set_open_bus", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aed066c57e629c3633b8624848fa984fc", null ],
+    [ "hdma_init_requested", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#af9fcd47f95f1375fee36a88070ae7e6c", null ],
+    [ "hdma_run_requested", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a82f17e8628e7b9bf3956b99faeca44f0", null ],
+    [ "init_hdma_request", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab102bd25d6cbfee80fddd636a0802934", null ],
+    [ "run_hdma_request", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a7c7738a8ff23cb800681c86b3a14904f", null ],
+    [ "set_hdma_run_requested", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a650f4f3c4c7293cdfc92d2e897ef49be", null ],
+    [ "set_hdma_init_requested", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8f7bd28a48b081661e692f00910a31db", null ],
+    [ "set_pal_timing", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a25b27ffa4487a2a1dcb563b8de3d1789", null ],
+    [ "set_h_pos", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a7b54c55885d06441488800f71510f55a", null ],
+    [ "set_v_pos", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3ae61fa633aff27ac7742303ff981866", null ],
+    [ "h_pos", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8766c07c07764480cc039549e8977efa", null ],
+    [ "v_pos", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e", null ],
+    [ "pal_timing", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aea072222bdf89643d037ce94425d76b9", null ]
 ];

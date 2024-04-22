@@ -1,7 +1,0 @@
-<map id="yaze::app::gfx::TileInfoToWord" name="yaze::app::gfx::TileInfoToWord">
-<area shape="rect" id="Node000001" title=" " alt="" coords="435,5,581,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a6da6c886a28136780cbf47c1cdbd87f1" title=" " alt="" coords="209,13,387,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="420,28,388,28,388,23,420,23"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3" title=" " alt="" coords="5,5,161,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="193,28,161,28,161,23,193,23"/>
-</map>

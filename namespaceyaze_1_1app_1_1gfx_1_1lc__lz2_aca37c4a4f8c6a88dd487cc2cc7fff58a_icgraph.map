@@ -1,9 +1,0 @@
-<map id="yaze::app::gfx::lc_lz2::SplitCompressionPieceV3" name="yaze::app::gfx::lc_lz2::SplitCompressionPieceV3">
-<area shape="rect" id="Node000001" title=" " alt="" coords="613,5,815,46"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af33da6d271bc83cd2ad741dccccccbd3" title=" " alt="" coords="395,5,565,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="598,28,566,28,566,23,598,23"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a370541438805cc97a0dbae2789d8fa7b" title="Compresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="222,5,347,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="379,28,347,28,347,23,379,23"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ad1775e9e8b6c900303716aa064635aeb" title=" " alt="" coords="5,5,174,46"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
-</map>

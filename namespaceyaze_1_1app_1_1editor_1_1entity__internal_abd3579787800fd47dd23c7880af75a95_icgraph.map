@@ -1,7 +1,0 @@
-<map id="yaze::app::editor::entity_internal::IsMouseHoveringOverEntity" name="yaze::app::editor::entity_internal::IsMouseHoveringOverEntity">
-<area shape="rect" id="Node000001" title=" " alt="" coords="234,29,443,85"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="377,17,362,10,338,8,317,10,303,15,296,21,296,29,291,29,291,19,300,10,316,5,338,3,364,5,379,12"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#a6b6d033d0e537fcd6c65cff055e0a771" title=" " alt="" coords="5,29,186,85"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,60,186,60,186,55,218,55"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="134,17,120,10,95,8,74,10,60,15,54,21,53,29,48,29,49,19,57,10,73,5,96,3,121,5,137,12"/>
-</map>

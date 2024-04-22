@@ -145,9 +145,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8ee78566ee684d86501a70fc0f1998a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63d23e35f646d4f76e49f3d287247447" id="r_a63d23e35f646d4f76e49f3d287247447"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63d23e35f646d4f76e49f3d287247447">write</a> (uint16_t address, uint8_t value) override</td></tr>
 <tr class="separator:a63d23e35f646d4f76e49f3d287247447"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cde2a8dbc5f26c56a845a6fc0401f92" id="r_a4cde2a8dbc5f26c56a845a6fc0401f92"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4cde2a8dbc5f26c56a845a6fc0401f92">operator[]</a> (uint16_t address) const</td></tr>
+<tr class="separator:a4cde2a8dbc5f26c56a845a6fc0401f92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html">yaze::app::emu::audio::AudioRam</a></td></tr>
 <tr class="memitem:a9309b30b3cf01e47b6b840d218be16a8 inherit pub_methods_classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam" id="r_a9309b30b3cf01e47b6b840d218be16a8"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a9309b30b3cf01e47b6b840d218be16a8">~AudioRam</a> ()=default</td></tr>
 <tr class="separator:a9309b30b3cf01e47b6b840d218be16a8 inherit pub_methods_classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a001a2c404bc6b0fd83b98a70527e8050 inherit pub_methods_classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam" id="r_a001a2c404bc6b0fd83b98a70527e8050"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a001a2c404bc6b0fd83b98a70527e8050">operator[]</a> (uint16_t address)</td></tr>
+<tr class="separator:a001a2c404bc6b0fd83b98a70527e8050 inherit pub_methods_classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -244,6 +248,8 @@ Static Private Attributes</h2></td></tr>
 
 <p class="reference">References <a class="el" href="#ad452d9a42f88a1be120ff413315afa03">ARAM_SIZE</a>, and <a class="el" href="#af1bde7b9d46aa8f6d752375332e9fd0d">ram</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="#a4cde2a8dbc5f26c56a845a6fc0401f92">operator[]()</a>.</p>
+
 </div>
 </div>
 <a id="a8ee78566ee684d86501a70fc0f1998a4" name="a8ee78566ee684d86501a70fc0f1998a4"></a>
@@ -305,6 +311,43 @@ Static Private Attributes</h2></td></tr>
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f">yaze::app::emu::audio::AudioRam</a>.</p>
 
 <p class="reference">References <a class="el" href="#ad452d9a42f88a1be120ff413315afa03">ARAM_SIZE</a>, and <a class="el" href="#af1bde7b9d46aa8f6d752375332e9fd0d">ram</a>.</p>
+
+</div>
+</div>
+<a id="a4cde2a8dbc5f26c56a845a6fc0401f92" name="a4cde2a8dbc5f26c56a845a6fc0401f92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4cde2a8dbc5f26c56a845a6fc0401f92">&#9670;&#160;</a></span>operator[]()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::audio::AudioRamImpl::operator[] </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>address</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a6895aa2fd6ea083c879383c5676f36f5">read()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl_a4cde2a8dbc5f26c56a845a6fc0401f92_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl_a4cde2a8dbc5f26c56a845a6fc0401f92_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl_a4cde2a8dbc5f26c56a845a6fc0401f92_cgraph" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl_a4cde2a8dbc5f26c56a845a6fc0401f92_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,179,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#a6895aa2fd6ea083c879383c5676f36f5" title=" " alt="" coords="227,5,370,46"/>
+<area shape="poly" title=" " alt="" coords="179,23,211,23,211,28,179,28"/>
+</map>
+</div>
 
 </div>
 </div>

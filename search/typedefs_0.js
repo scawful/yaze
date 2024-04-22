@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['bitmaptable_0',['BitmapTable',['../namespaceyaze_1_1app_1_1gfx.html#a858420796068f9283ed3cb7dd88f9138',1,'yaze::app::gfx']]],
-  ['bytes_1',['Bytes',['../constants_8h.html#a2640b748d10e1cbab1f408f43c52449d',1,'constants.h']]]
+  ['apucallbacks_0',['ApuCallbacks',['../namespaceyaze_1_1app_1_1emu_1_1audio.html#a5208202a4f25f5f6f30cf9b374de1cd1',1,'yaze::app::emu::audio']]]
 ];

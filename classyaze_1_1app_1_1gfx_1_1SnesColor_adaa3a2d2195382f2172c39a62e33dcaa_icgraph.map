@@ -1,7 +1,0 @@
-<map id="yaze::app::gfx::SnesColor::snes" name="yaze::app::gfx::SnesColor::snes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="228,39,391,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a85ee18604b72eea4c6d7a5833463b4a6" title=" " alt="" coords="5,5,180,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,47,180,42,181,36,213,41"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a6a663120991292d7496f232e488a98c1" title=" " alt="" coords="5,71,180,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,76,181,81,180,75,212,71"/>
-</map>

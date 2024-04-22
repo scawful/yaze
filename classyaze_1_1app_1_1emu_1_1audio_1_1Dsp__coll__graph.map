@@ -1,5 +1,7 @@
 <map id="yaze::app::emu::audio::Dsp" name="yaze::app::emu::audio::Dsp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,177,135"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1emu_1_1audio_1_1Dsp_1_1Voice.html" title=" " alt="" coords="20,5,162,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,61,94,109,88,109,88,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="74,109,245,135"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html" title="AudioRam is an interface for the Audio RAM used by the SPC700." alt="" coords="5,5,148,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,56,151,107,147,111,102,60"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html" title=" " alt="" coords="172,5,314,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,60,172,111,168,107,214,56"/>
 </map>

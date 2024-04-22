@@ -14,6 +14,7 @@ var classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer =
     [ "rom_data_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a7831b179df8c8303376536ba55eda55b", null ],
     [ "memory_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ae9028e773fdb20a89dcdcd4e87293ac5", null ],
     [ "clock_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a02bd6f2b89e5d746dfb8966a9c4410f3", null ],
+    [ "cpu_callbacks_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a0f2f1656055d1308fa853f6dc7e56de5", null ],
     [ "cpu", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a76522f256adfbba6ec603c014450b363", null ],
     [ "ppu", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a32517b00880258dda46caab2b3afd313", null ],
     [ "bitmap_", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a26e90a33ede9c0bef764301dab59c2ae", null ],

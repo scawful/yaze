@@ -1,5 +1,5 @@
 <map id="yaze::app::emu::Cpu::FetchByteDirectPage" name="yaze::app::emu::Cpu::FetchByteDirectPage">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,156,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="204,5,361,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a8049f0fe9d62c001de69c44562852d75" title=" " alt="" coords="204,5,338,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,23,188,23,188,28,156,28"/>
 </map>

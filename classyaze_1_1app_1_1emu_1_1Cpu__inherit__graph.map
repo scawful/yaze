@@ -1,9 +1,7 @@
 <map id="yaze::app::emu::Cpu" name="yaze::app::emu::Cpu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="229,70,363,96"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="14,5,172,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,48,248,67,247,72,181,53"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="11,70,175,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,80,228,80,228,86,191,86"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,120,181,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,113,247,94,248,99,183,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="116,94,251,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="5,13,170,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,47,170,91,167,96,112,51"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="193,5,369,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="247,58,200,95,197,91,243,54"/>
 </map>

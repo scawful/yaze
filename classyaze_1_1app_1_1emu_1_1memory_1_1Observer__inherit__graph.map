@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::memory::Observer" name="yaze::app::emu::memory::Observer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="110,5,267,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html" title="The Apu class represents the Audio Processing Unit (APU) of a system." alt="" coords="5,94,177,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,58,108,95,104,91,151,54"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html" title=" " alt="" coords="201,94,373,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="226,54,273,91,270,95,223,58"/>
-</map>

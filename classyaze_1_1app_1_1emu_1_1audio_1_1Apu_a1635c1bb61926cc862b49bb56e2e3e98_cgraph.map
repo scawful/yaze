@@ -1,0 +1,29 @@
+<map id="yaze::app::emu::audio::Apu::SpcWrite" name="yaze::app::emu::audio::Apu::SpcWrite">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,135,148,175"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac02f7c3f7027eb940e00e6ffa7b5674d" title=" " alt="" coords="196,101,338,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,140,180,134,181,139,149,145"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a66f27b8a67915bb232ccf2b49290d9a8" title=" " alt="" coords="196,167,338,207"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="149,164,181,170,180,175,148,170"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#af0dee1dd388ab5bc5e59499e855e0044" title=" " alt="" coords="386,101,528,142"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="339,119,371,119,371,124,339,124"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a69b7209c9e20ca38d02893f991fa663a" title=" " alt="" coords="576,100,719,141"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="529,118,561,118,561,124,529,124"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#adadfa13540507449f07b633a16f490fb" title=" " alt="" coords="576,167,719,207"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="519,140,573,159,571,164,518,145"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa93fd719351fc156f62ad671bcc26a3f" title=" " alt="" coords="576,5,719,46"/>
+<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="498,98,591,51,593,56,500,103"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#ab564940423a323f7e7e49485b7ad5f58" title=" " alt="" coords="767,99,909,139"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="719,117,751,117,751,122,719,122"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a883b5a69efbd9e1a6c80752a6dfdae57" title=" " alt="" coords="767,164,909,205"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="711,139,762,156,761,161,709,144"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a2c5a39dae271e6e32fa25a8df46c001a" title=" " alt="" coords="767,33,909,74"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="707,97,763,77,765,82,709,102"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a3338c56b4a4ad1b02fad47f8a9a5413c" title=" " alt="" coords="957,5,1099,46"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="909,41,941,36,942,41,910,46"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a48aa23112a613be3af4fa5e38d83084f" title=" " alt="" coords="767,229,909,270"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="712,205,760,221,758,226,710,210"/>
+<area shape="poly" id="edge11_Node000011_Node000008" title=" " alt="" coords="719,20,767,19,909,19,941,20,941,25,909,24,767,24,719,26"/>
+<area shape="poly" id="edge13_Node000012_Node000010" title=" " alt="" coords="337,205,386,216,484,230,582,238,751,246,751,252,581,244,483,235,386,222,336,211"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a748bcb6fbed28aec5aa3e5c73de3a581" title=" " alt="" coords="386,167,528,207"/>
+<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="339,184,371,184,371,190,339,190"/>
+</map>

@@ -11,9 +11,8 @@ var searchData=
   ['_7eexperimentflags_8',['~ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0',1,'yaze::app::core::ExperimentFlags']]],
   ['_7eloggable_9',['~Loggable',['../classyaze_1_1app_1_1emu_1_1Loggable.html#ac1992031c82978c638f01bec91f86ea7',1,'yaze::app::emu::Loggable']]],
   ['_7ememory_10',['~Memory',['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#afbc68b5ef89712aaacd126de63d832b7',1,'yaze::app::emu::memory::Memory']]],
-  ['_7eobserver_11',['~Observer',['../classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html#ab8815cd0c4937397b2e67ac11a84eb24',1,'yaze::app::emu::memory::Observer']]],
-  ['_7eppuinterface_12',['~PpuInterface',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ad20d91ae7a00c87ae028bab09ef8842d',1,'yaze::app::emu::video::PpuInterface']]],
-  ['_7eroom_13',['~Room',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab3780359eade4972a2f7cc995c121eff',1,'yaze::app::zelda3::dungeon::Room']]],
-  ['_7esharedrom_14',['~SharedRom',['../classyaze_1_1app_1_1SharedRom.html#aec8bf2950681ab4539b7b7213e947855',1,'yaze::app::SharedRom']]],
-  ['_7esnes_15',['~SNES',['../classyaze_1_1app_1_1emu_1_1SNES.html#a8c976683924456093ec663746af502b5',1,'yaze::app::emu::SNES']]]
+  ['_7eppuinterface_11',['~PpuInterface',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ad20d91ae7a00c87ae028bab09ef8842d',1,'yaze::app::emu::video::PpuInterface']]],
+  ['_7eroom_12',['~Room',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab3780359eade4972a2f7cc995c121eff',1,'yaze::app::zelda3::dungeon::Room']]],
+  ['_7esharedrom_13',['~SharedRom',['../classyaze_1_1app_1_1SharedRom.html#aec8bf2950681ab4539b7b7213e947855',1,'yaze::app::SharedRom']]],
+  ['_7esnes_14',['~SNES',['../classyaze_1_1app_1_1emu_1_1SNES.html#a8c976683924456093ec663746af502b5',1,'yaze::app::emu::SNES']]]
 ];

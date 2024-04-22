@@ -1,34 +1,7 @@
 <map id="src/app/emu/memory/dma.h" name="src/app/emu/memory/dma.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="139,5,282,46"/>
-<area shape="rect" id="Node000002" href="$dma_8cc.html" title=" " alt="" coords="57,94,201,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,59,149,95,145,92,179,56"/>
-<area shape="rect" id="Node000003" href="$snes_8h.html" title=" " alt="" coords="225,102,361,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="241,56,283,99,280,103,238,59"/>
-<area shape="rect" id="Node000004" href="$emulator_8cc.html" title=" " alt="" coords="5,264,170,290"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="234,135,165,158,136,171,117,185,105,203,97,225,90,264,85,263,92,224,100,201,114,181,133,167,163,153,232,130"/>
-<area shape="rect" id="Node000005" href="$emulator_8h.html" title=" " alt="" coords="128,183,285,208"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="270,140,221,184,218,180,267,136"/>
-<area shape="rect" id="Node000012" href="$snes_8cc.html" title=" " alt="" coords="308,183,451,208"/>
-<area shape="poly" id="edge14_Node000003_Node000012" title=" " alt="" coords="319,136,368,180,364,184,315,140"/>
-<area shape="rect" id="Node000013" href="$command__handler_8h.html" title=" " alt="" coords="475,183,652,208"/>
-<area shape="poly" id="edge15_Node000003_Node000013" title=" " alt="" coords="350,129,522,179,521,185,348,135"/>
-<area shape="poly" id="edge13_Node000005_Node000004" title=" " alt="" coords="177,219,107,266,104,261,174,215"/>
-<area shape="rect" id="Node000006" href="$master__editor_8cc.html" title=" " alt="" coords="135,345,280,386"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="209,224,210,345,205,345,204,224"/>
-<area shape="rect" id="Node000007" href="$master__editor_8h.html" title=" " alt="" coords="245,256,389,297"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="237,215,291,254,288,258,234,220"/>
-<area shape="poly" id="edge12_Node000007_Node000006" title=" " alt="" coords="282,309,234,347,231,342,278,305"/>
-<area shape="rect" id="Node000008" href="$controller_8cc.html" title=" " alt="" coords="217,441,385,467"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="316,312,305,441,299,440,311,312"/>
-<area shape="rect" id="Node000009" href="$controller_8h.html" title=" " alt="" coords="385,353,545,378"/>
-<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="365,303,445,350,443,354,362,307"/>
-<area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="430,388,325,443,323,438,427,383"/>
-<area shape="rect" id="Node000010" href="$app__delegate_8mm.html" title=" " alt="" coords="409,434,553,474"/>
-<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="472,393,480,433,475,434,467,394"/>
-<area shape="rect" id="Node000011" href="$yaze_8cc.html" title=" " alt="" coords="577,441,689,467"/>
-<area shape="poly" id="edge11_Node000009_Node000011" title=" " alt="" coords="503,383,610,438,608,443,501,388"/>
-<area shape="rect" id="Node000014" href="$command__handler_8cc.html" title=" " alt="" coords="443,264,626,290"/>
-<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="556,224,541,264,536,262,551,222"/>
-<area shape="rect" id="Node000015" href="$z3ed_8cc.html" title=" " alt="" coords="650,264,754,290"/>
-<area shape="poly" id="edge17_Node000013_Node000015" title=" " alt="" coords="599,214,682,261,680,266,596,218"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="88,5,231,46"/>
+<area shape="rect" id="Node000002" href="$dma_8cc.html" title=" " alt="" coords="5,94,149,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,59,98,95,94,92,128,56"/>
+<area shape="rect" id="Node000003" href="$snes_8cc.html" title=" " alt="" coords="173,102,315,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,55,234,99,230,103,187,59"/>
 </map>

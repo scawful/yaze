@@ -4,7 +4,8 @@ var namespaceyaze_1_1app_1_1emu =
       [ "ShouldDisplay", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a8661d56df6530eb9b492271d63b262ac", null ]
     ] ],
     [ "anonymous_namespace{snes.cc}", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html", [
-      [ "GetHeaderOffset", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a7cc2b521f0ca37fa3351bb0452e397b5", null ]
+      [ "input_latch", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#aae723effd7ed469f002c818eb4ad7ff8", null ],
+      [ "input_read", "namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a81d0f6f44caa1180f02c65980a9bc7e9", null ]
     ] ],
     [ "audio", "namespaceyaze_1_1app_1_1emu_1_1audio.html", "namespaceyaze_1_1app_1_1emu_1_1audio" ],
     [ "memory", "namespaceyaze_1_1app_1_1emu_1_1memory.html", "namespaceyaze_1_1app_1_1emu_1_1memory" ],
@@ -15,6 +16,7 @@ var namespaceyaze_1_1app_1_1emu =
     [ "Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", "classyaze_1_1app_1_1emu_1_1Cpu" ],
     [ "Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", "classyaze_1_1app_1_1emu_1_1Debugger" ],
     [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", "classyaze_1_1app_1_1emu_1_1Emulator" ],
+    [ "Input", "structyaze_1_1app_1_1emu_1_1Input.html", "structyaze_1_1app_1_1emu_1_1Input" ],
     [ "InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", "classyaze_1_1app_1_1emu_1_1InstructionEntry" ],
     [ "Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", "classyaze_1_1app_1_1emu_1_1Loggable" ],
     [ "Logger", "classyaze_1_1app_1_1emu_1_1Logger.html", "classyaze_1_1app_1_1emu_1_1Logger" ],

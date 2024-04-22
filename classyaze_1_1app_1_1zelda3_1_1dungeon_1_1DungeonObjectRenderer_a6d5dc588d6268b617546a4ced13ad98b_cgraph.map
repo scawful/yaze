@@ -1,26 +1,20 @@
 <map id="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap" name="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,325,223,380"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb" title="Creates a bitmap object and reserves space for graphical data." alt="" coords="287,169,431,210"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,322,313,217,316,221,159,326"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="277,332,441,373"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="223,350,261,350,261,355,223,355"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="271,421,447,447"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="201,378,304,413,302,418,199,383"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="533,5,677,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="374,167,424,112,457,83,494,57,516,45,519,50,496,61,460,87,427,116,378,171"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="533,71,677,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="398,166,494,122,517,113,519,118,496,127,400,171"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#af3b83bf650d6acc73d46543367b944c1" title=" " alt="" coords="533,136,677,177"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="431,177,517,166,517,171,432,183"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="533,201,677,242"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="432,196,517,208,517,213,431,202"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="533,267,677,307"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="401,208,496,251,519,260,517,265,494,256,399,213"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="495,332,714,373"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="441,350,479,350,479,355,441,355"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a254e2d009ba5adfa72354aa8870fccb8" title=" " alt="" coords="506,397,704,438"/>
-<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="439,371,511,390,510,395,437,376"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="762,397,920,438"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="704,415,747,415,747,420,704,420"/>
-<area shape="poly" id="edge12_Node000012_Node000012" title=" " alt="" coords="318,422,310,412,315,402,332,396,359,394,389,397,404,404,402,409,388,402,359,399,333,402,319,406,316,412,323,419"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,194,223,250"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a900fde90ee46f9626d104999697b3fbb" title="Creates a bitmap object and reserves space for graphical data." alt="" coords="287,136,431,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,191,271,177,272,182,222,196"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="277,201,441,242"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="223,219,261,219,261,224,223,224"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="271,290,447,316"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="201,248,304,282,302,287,199,253"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="495,5,639,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="384,133,434,96,494,57,504,51,506,56,496,61,437,100,388,138"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="495,71,639,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="425,133,485,114,486,119,427,138"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#af3b83bf650d6acc73d46543367b944c1" title=" " alt="" coords="495,136,639,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="432,154,480,154,480,159,432,159"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291" title=" " alt="" coords="495,201,639,242"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="427,175,486,194,485,199,425,180"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="495,267,639,307"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="428,175,449,188,465,204,474,220,482,236,497,252,503,256,500,260,493,256,478,239,469,223,460,207,445,192,425,179"/>
+<area shape="poly" id="edge9_Node000009_Node000009" title=" " alt="" coords="324,291,317,282,321,272,336,266,359,264,384,266,397,273,395,278,383,271,359,269,337,271,325,276,323,281,328,288"/>
 </map>

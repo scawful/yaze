@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::video::Ppu::UpdateTileData" name="yaze::app::emu::video::Ppu::UpdateTileData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,152,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df" title=" " alt="" coords="200,5,357,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,44,184,39,184,44,153,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="200,71,357,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,68,184,73,184,79,152,73"/>
-</map>

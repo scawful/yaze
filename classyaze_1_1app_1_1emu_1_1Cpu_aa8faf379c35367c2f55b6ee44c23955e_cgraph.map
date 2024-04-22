@@ -1,9 +1,12 @@
 <map id="yaze::app::emu::Cpu::AbsoluteIndirectLong" name="yaze::app::emu::Cpu::AbsoluteIndirectLong">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,156,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a27de1fe5e045ecb58943d4375699b1af" title=" " alt="" coords="221,5,355,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,44,205,36,206,41,157,50"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a9f59df78b125409f323bc8bb924a5edc" title=" " alt="" coords="204,71,372,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="157,68,188,73,188,78,156,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846" title=" " alt="" coords="420,5,577,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="356,23,405,23,405,28,356,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a27de1fe5e045ecb58943d4375699b1af" title=" " alt="" coords="204,8,338,49"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,44,188,39,189,44,156,50"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#aea7cd174d127dbe408bf1c19aec71d6e" title=" " alt="" coords="386,71,520,111"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="156,63,371,81,370,87,156,68"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#ae7e6971f4f25178269e2bb96e07471ae" title=" " alt="" coords="386,5,520,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="339,25,371,24,371,30,339,30"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a8049f0fe9d62c001de69c44562852d75" title=" " alt="" coords="568,39,703,79"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="521,35,554,41,553,47,520,41"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="520,77,553,71,553,76,521,82"/>
 </map>

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['zeldainstrument_0',['ZeldaInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#ae7b18fa864b8ce743eb6dde1dd35520f',1,'yaze::app::zelda3::music']]],
-  ['zeldasfxinstrument_1',['ZeldaSfxInstrument',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd',1,'yaze::app::zelda3::music']]],
-  ['zeldawave_2',['ZeldaWave',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a2b3c427473083d084492da3958e03e63',1,'yaze::app::zelda3::music']]]
+  ['uchar_0',['uchar',['../constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21',1,'constants.h']]],
+  ['uint_1',['uint',['../constants_8h.html#a69aa29b598b851b0640aa225a9e5d61d',1,'constants.h']]],
+  ['ushort_2',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]]
 ];

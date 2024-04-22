@@ -1,0 +1,16 @@
+<map id="yaze::app::emu::video::Ppu::HandlePixel" name="yaze::app::emu::video::Ppu::HandlePixel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,169,148,210"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a910e0545161fb76b2596c928888057ff" title=" " alt="" coords="196,136,338,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,175,180,169,181,174,149,180"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab98435209212151dc85b98cf8f6a0eb1" title=" " alt="" coords="395,201,549,242"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="148,193,380,212,379,217,148,198"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a16b376a4daab7485f74d4c74160075fa" title=" " alt="" coords="386,5,558,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="287,133,330,95,385,57,396,51,398,55,387,61,334,99,291,137"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#acb715cbced56d0eb9a0913840bfd54ea" title=" " alt="" coords="391,71,554,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="332,133,390,114,392,119,334,138"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="334,175,392,193,390,199,332,180"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a8505a181533de385aaeb33e83f28da99" title=" " alt="" coords="401,136,543,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="338,154,386,154,386,159,338,159"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aec7947de6676ac132945fac1af24fe4c" title=" " alt="" coords="606,136,752,177"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="544,154,591,154,591,159,544,159"/>
+</map>

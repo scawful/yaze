@@ -16,7 +16,6 @@ var classyaze_1_1app_1_1core_1_1Controller =
     [ "CloseWindow", "classyaze_1_1app_1_1core_1_1Controller.html#addce44a5bf2ffd6e5cae6fc7d0c58f53", null ],
     [ "int::main", "classyaze_1_1app_1_1core_1_1Controller.html#a400fbb1fca81edc08b34219272eba877", null ],
     [ "active_", "classyaze_1_1app_1_1core_1_1Controller.html#a100a89b072e1fd51b58816c76f4f7a1c", null ],
-    [ "wanted_samples_", "classyaze_1_1app_1_1core_1_1Controller.html#a5f1e64000af3f054631898eeeff289aa", null ],
     [ "audio_frequency_", "classyaze_1_1app_1_1core_1_1Controller.html#a2aa3c78db90d65c697c2af17ac00f904", null ],
     [ "audio_buffer_", "classyaze_1_1app_1_1core_1_1Controller.html#aedd8bb2ace258403e9f3808e2520e4b9", null ],
     [ "master_editor_", "classyaze_1_1app_1_1core_1_1Controller.html#abaabde3c5cafdc04aad7d073d7b5fcfd", null ],

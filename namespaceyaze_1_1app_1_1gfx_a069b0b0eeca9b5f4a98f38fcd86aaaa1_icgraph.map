@@ -1,5 +1,0 @@
-<map id="yaze::app::gfx::ConvertPngToSurface" name="yaze::app::gfx::ConvertPngToSurface">
-<area shape="rect" id="Node000001" title="Convert PNG image data to SDL_Surface." alt="" coords="198,5,369,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aceb56456070b3d020bfa0e26866a9a46" title=" " alt="" coords="5,5,150,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,28,150,28,150,23,182,23"/>
-</map>

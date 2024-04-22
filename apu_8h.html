@@ -102,6 +102,7 @@ $(function(){initNavTree('apu_8h.html',''); initResizable(); });
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">apu.h File Reference</div></div>
 </div><!--header-->
@@ -118,41 +119,47 @@ Include dependency graph for apu.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="apu_8h__incl.png" border="0" usemap="#asrc_2app_2emu_2audio_2apu_8h" alt=""/></div>
 <map name="asrc_2app_2emu_2audio_2apu_8h" id="asrc_2app_2emu_2audio_2apu_8h">
-<area shape="rect" title=" " alt="" coords="396,5,559,31"/>
-<area shape="rect" title=" " alt="" coords="298,226,358,252"/>
-<area shape="poly" title=" " alt="" coords="478,32,469,66,454,106,433,146,403,180,359,219,356,215,399,176,428,142,450,104,464,64,472,31"/>
-<area shape="rect" title=" " alt="" coords="364,300,436,326"/>
-<area shape="poly" title=" " alt="" coords="555,29,622,47,655,60,686,76,712,96,732,119,742,147,743,179,737,220,730,237,715,254,695,266,668,276,598,292,520,304,452,311,451,305,520,298,597,287,666,271,693,261,712,250,726,234,732,219,737,178,737,148,727,122,708,100,683,81,653,65,620,52,554,34"/>
-<area shape="rect" title=" " alt="" coords="414,226,471,252"/>
-<area shape="poly" title=" " alt="" coords="485,31,494,58,503,95,506,137,499,179,487,200,472,218,468,214,482,197,493,177,501,137,498,96,489,59,480,32"/>
-<area shape="rect" href="dsp_8h.html" title=" " alt="" coords="299,79,440,105"/>
-<area shape="poly" title=" " alt="" coords="460,34,402,72,399,68,458,29"/>
-<area shape="rect" href="memory_8h.html" title=" " alt="" coords="5,153,187,178"/>
-<area shape="poly" title=" " alt="" coords="395,26,319,32,239,43,169,59,142,69,123,81,113,93,106,107,99,138,94,137,101,106,109,90,120,77,140,64,167,54,238,38,319,27,395,21"/>
-<area shape="rect" href="spc700_8h.html" title=" " alt="" coords="566,153,728,178"/>
-<area shape="poly" title=" " alt="" coords="493,29,623,140,619,144,489,33"/>
-<area shape="rect" href="clock_8h.html" title=" " alt="" coords="133,79,275,105"/>
-<area shape="poly" title=" " alt="" coords="432,34,266,77,264,72,430,29"/>
-<area shape="poly" title=" " alt="" coords="349,107,323,127,302,154,299,168,301,183,313,213,308,215,295,185,294,168,298,152,319,123,345,103"/>
-<area shape="poly" title=" " alt="" coords="378,104,404,151,433,211,428,214,399,154,374,106"/>
-<area shape="rect" title=" " alt="" coords="312,153,389,178"/>
-<area shape="poly" title=" " alt="" coords="369,106,360,138,355,137,364,104"/>
-<area shape="poly" title=" " alt="" coords="324,108,158,151,156,146,322,103"/>
-<area shape="poly" title=" " alt="" coords="136,176,284,222,282,227,135,181"/>
-<area shape="poly" title=" " alt="" coords="127,176,236,224,365,290,362,295,234,229,124,181"/>
-<area shape="poly" title=" " alt="" coords="156,176,399,226,398,231,155,182"/>
-<area shape="rect" title=" " alt="" coords="72,300,125,326"/>
-<area shape="poly" title=" " alt="" coords="90,180,75,212,71,232,72,251,86,285,81,287,67,253,66,231,70,211,86,178"/>
-<area shape="rect" href="log_8h.html" title=" " alt="" coords="81,226,223,252"/>
-<area shape="poly" title=" " alt="" coords="107,177,135,212,131,216,103,180"/>
-<area shape="poly" title=" " alt="" coords="195,250,350,294,348,299,193,255"/>
-<area shape="poly" title=" " alt="" coords="145,254,119,289,115,286,141,251"/>
-<area shape="poly" title=" " alt="" coords="593,182,374,230,373,225,592,176"/>
-<area shape="poly" title=" " alt="" coords="627,181,435,294,432,290,625,177"/>
-<area shape="poly" title=" " alt="" coords="613,181,486,225,485,220,611,176"/>
-<area shape="rect" title=" " alt="" coords="592,226,702,252"/>
-<area shape="poly" title=" " alt="" coords="649,179,649,211,644,211,644,179"/>
-<area shape="poly" title=" " alt="" coords="216,103,310,213,306,216,212,107"/>
+<area shape="rect" title=" " alt="" coords="296,5,459,31"/>
+<area shape="rect" title=" " alt="" coords="358,315,418,341"/>
+<area shape="poly" title=" " alt="" coords="295,26,230,33,162,43,105,59,84,69,70,81,49,100,28,111,13,119,8,127,15,141,41,166,167,265,209,290,256,306,302,316,343,322,342,327,301,322,255,311,207,294,164,269,38,170,11,144,3,127,10,115,26,106,46,95,66,77,81,65,103,54,161,38,229,28,295,21"/>
+<area shape="rect" title=" " alt="" coords="998,315,1069,341"/>
+<area shape="poly" title=" " alt="" coords="460,28,619,55,809,97,900,123,981,154,1046,187,1070,206,1088,225,1095,246,1089,268,1077,288,1061,306,1057,302,1073,285,1084,266,1089,246,1083,228,1066,209,1043,192,979,158,899,129,808,102,618,60,459,33"/>
+<area shape="rect" title=" " alt="" coords="401,234,458,260"/>
+<area shape="poly" title=" " alt="" coords="362,34,331,60,298,97,286,117,279,137,279,157,286,177,391,225,388,229,282,180,273,158,274,136,282,114,294,93,327,56,359,30"/>
+<area shape="rect" href="dsp_8h.html" title=" " alt="" coords="451,79,592,105"/>
+<area shape="poly" title=" " alt="" coords="403,29,485,69,482,74,401,34"/>
+<area shape="rect" href="spc700_8h.html" title=" " alt="" coords="296,153,459,178"/>
+<area shape="poly" title=" " alt="" coords="380,31,380,137,375,137,375,31"/>
+<area shape="rect" href="memory_8h.html" title=" " alt="" coords="635,153,816,178"/>
+<area shape="poly" title=" " alt="" coords="450,29,526,48,605,77,658,108,702,140,699,145,655,112,603,81,525,53,449,34"/>
+<area shape="rect" href="clock_8h.html" title=" " alt="" coords="80,79,221,105"/>
+<area shape="poly" title=" " alt="" coords="340,34,205,76,203,71,338,29"/>
+<area shape="poly" title=" " alt="" coords="533,103,555,134,577,177,585,200,588,224,585,247,574,269,545,296,508,314,470,324,434,329,434,323,469,319,507,309,542,292,570,265,580,246,582,224,579,201,572,179,551,137,529,106"/>
+<area shape="poly" title=" " alt="" coords="517,107,473,180,447,222,442,219,469,177,512,104"/>
+<area shape="rect" title=" " alt="" coords="483,234,560,260"/>
+<area shape="poly" title=" " alt="" coords="524,105,524,218,519,218,519,105"/>
+<area shape="poly" title=" " alt="" coords="498,108,417,148,414,143,496,103"/>
+<area shape="poly" title=" " alt="" coords="557,103,678,145,676,150,555,108"/>
+<area shape="poly" title=" " alt="" coords="297,178,250,196,230,210,213,228,206,247,213,266,240,291,273,308,309,318,343,323,342,328,308,323,271,313,236,295,209,268,200,247,209,225,226,206,247,191,295,173"/>
+<area shape="poly" title=" " alt="" coords="324,181,287,199,270,212,257,228,249,248,251,256,257,265,271,274,296,282,370,294,469,302,579,306,922,312,982,318,982,324,921,318,579,312,468,307,370,299,294,287,269,279,253,269,246,258,244,247,253,225,266,208,284,195,322,177"/>
+<area shape="poly" title=" " alt="" coords="388,177,415,219,411,222,383,180"/>
+<area shape="poly" title=" " alt="" coords="401,176,487,224,485,228,398,181"/>
+<area shape="rect" title=" " alt="" coords="266,234,377,260"/>
+<area shape="poly" title=" " alt="" coords="371,180,341,223,337,219,367,177"/>
+<area shape="poly" title=" " alt="" coords="718,181,677,224,649,248,617,269,571,290,522,306,434,324,433,319,520,301,569,285,615,265,646,244,674,220,714,177"/>
+<area shape="poly" title=" " alt="" coords="817,167,888,173,962,184,1025,200,1048,211,1065,225,1073,244,1072,265,1065,285,1054,304,1049,301,1060,283,1067,264,1068,245,1061,228,1046,216,1023,205,961,189,888,179,816,173"/>
+<area shape="poly" title=" " alt="" coords="657,182,568,201,472,229,468,230,467,225,470,224,567,196,656,176"/>
+<area shape="poly" title=" " alt="" coords="695,181,568,230,566,225,693,176"/>
+<area shape="rect" title=" " alt="" coords="856,315,909,341"/>
+<area shape="poly" title=" " alt="" coords="770,177,811,195,831,208,849,225,861,242,871,262,881,299,876,300,866,263,857,245,845,228,828,213,808,200,768,181"/>
+<area shape="rect" href="log_8h.html" title=" " alt="" coords="909,234,1051,260"/>
+<area shape="poly" title=" " alt="" coords="765,176,927,226,926,231,764,181"/>
+<area shape="rect" href="dma__channel_8h.html" title=" " alt="" coords="685,226,835,267"/>
+<area shape="poly" title=" " alt="" coords="733,178,748,211,743,213,728,180"/>
+<area shape="poly" title=" " alt="" coords="990,258,1019,300,1014,303,986,261"/>
+<area shape="poly" title=" " alt="" coords="967,262,911,307,908,303,964,258"/>
+<area shape="poly" title=" " alt="" coords="685,267,434,320,433,314,684,261"/>
+<area shape="poly" title=" " alt="" coords="153,105,154,137,160,180,174,225,185,247,199,265,231,290,269,306,307,316,343,322,342,327,306,322,267,311,229,294,196,269,180,249,169,228,154,181,149,137,148,105"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -165,38 +172,43 @@ This graph shows which files directly or indirectly include this file:</div>
 <area shape="poly" title=" " alt="" coords="236,39,124,81,122,76,234,34"/>
 <area shape="rect" href="debugger_8h.html" title=" " alt="" coords="251,79,450,105"/>
 <area shape="poly" title=" " alt="" coords="305,40,341,77,337,80,301,44"/>
-<area shape="rect" href="snes_8cc.html" title=" " alt="" coords="166,226,308,252"/>
-<area shape="poly" title=" " alt="" coords="261,45,250,61,241,80,233,121,231,162,238,226,232,226,226,162,227,120,236,78,245,59,257,41"/>
-<area shape="rect" href="snes_8h.html" title=" " alt="" coords="368,153,504,178"/>
-<area shape="poly" title=" " alt="" coords="379,26,426,44,447,59,465,78,471,97,468,118,448,153,443,151,463,117,466,98,460,80,444,63,424,49,377,31"/>
-<area shape="poly" title=" " alt="" coords="334,119,249,227,244,224,330,115"/>
-<area shape="poly" title=" " alt="" coords="378,113,423,150,420,154,375,117"/>
-<area shape="poly" title=" " alt="" coords="389,186,272,228,270,223,387,181"/>
-<area shape="rect" href="emulator_8cc.html" title=" " alt="" coords="200,308,365,333"/>
-<area shape="poly" title=" " alt="" coords="413,191,372,228,295,309,291,305,369,224,409,187"/>
-<area shape="rect" href="emulator_8h.html" title=" " alt="" coords="383,226,540,252"/>
-<area shape="poly" title=" " alt="" coords="448,192,459,225,454,227,443,194"/>
-<area shape="rect" href="command__handler_8h.html" title=" " alt="" coords="572,226,748,252"/>
-<area shape="poly" title=" " alt="" coords="489,181,622,223,621,228,487,186"/>
-<area shape="poly" title=" " alt="" coords="421,261,311,309,309,305,419,256"/>
-<area shape="rect" href="master__editor_8cc.html" title=" " alt="" coords="532,389,676,429"/>
-<area shape="poly" title=" " alt="" coords="498,258,523,276,547,298,579,344,599,387,594,389,574,347,543,302,520,280,495,263"/>
-<area shape="rect" href="master__editor_8h.html" title=" " alt="" coords="389,300,533,341"/>
-<area shape="poly" title=" " alt="" coords="464,267,464,300,459,300,459,267"/>
-<area shape="poly" title=" " alt="" coords="508,347,573,386,570,391,505,351"/>
-<area shape="rect" href="controller_8cc.html" title=" " alt="" coords="192,485,360,511"/>
-<area shape="poly" title=" " alt="" coords="397,350,366,368,338,391,318,414,302,440,282,485,278,483,298,438,314,411,334,387,363,364,394,345"/>
-<area shape="rect" href="controller_8h.html" title=" " alt="" coords="348,396,508,422"/>
-<area shape="poly" title=" " alt="" coords="451,356,435,397,430,395,446,354"/>
-<area shape="poly" title=" " alt="" coords="395,432,299,487,296,482,392,427"/>
-<area shape="rect" href="app__delegate_8mm.html" title=" " alt="" coords="520,477,664,518"/>
-<area shape="poly" title=" " alt="" coords="466,427,556,475,554,479,463,432"/>
-<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="384,485,496,511"/>
-<area shape="poly" title=" " alt="" coords="434,437,441,484,436,485,429,438"/>
-<area shape="rect" href="command__handler_8cc.html" title=" " alt="" coords="736,308,920,333"/>
-<area shape="poly" title=" " alt="" coords="701,257,803,305,801,309,698,261"/>
-<area shape="rect" href="z3ed_8cc.html" title=" " alt="" coords="608,308,712,333"/>
-<area shape="poly" title=" " alt="" coords="663,268,663,307,657,307,657,268"/>
+<area shape="rect" href="snes_8cc.html" title=" " alt="" coords="163,323,306,348"/>
+<area shape="poly" title=" " alt="" coords="261,45,250,61,241,80,232,114,227,150,225,220,229,280,235,322,230,322,224,281,219,220,222,149,227,113,236,78,245,59,257,41"/>
+<area shape="rect" href="snes_8h.html" title=" " alt="" coords="420,153,556,178"/>
+<area shape="poly" title=" " alt="" coords="379,31,424,48,446,61,464,77,477,95,485,116,490,152,485,153,480,117,472,98,461,81,443,65,422,53,377,36"/>
+<area shape="poly" title=" " alt="" coords="341,120,243,323,238,321,336,117"/>
+<area shape="poly" title=" " alt="" coords="389,110,466,150,463,154,386,115"/>
+<area shape="poly" title=" " alt="" coords="431,186,386,204,341,229,311,252,284,278,245,324,241,320,280,275,308,248,338,224,384,199,429,181"/>
+<area shape="rect" href="emulator_8cc.html" title=" " alt="" coords="496,323,661,348"/>
+<area shape="poly" title=" " alt="" coords="504,191,574,321,570,323,499,193"/>
+<area shape="rect" href="emulator_8h.html" title=" " alt="" coords="607,234,764,260"/>
+<area shape="poly" title=" " alt="" coords="533,182,656,231,654,236,531,187"/>
+<area shape="rect" href="dma_8h.html" title=" " alt="" coords="352,226,496,267"/>
+<area shape="poly" title=" " alt="" coords="471,192,442,228,438,224,467,189"/>
+<area shape="rect" href="command__handler_8h.html" title=" " alt="" coords="908,234,1084,260"/>
+<area shape="poly" title=" " alt="" coords="571,177,918,231,917,236,570,182"/>
+<area shape="poly" title=" " alt="" coords="660,271,595,324,592,320,657,267"/>
+<area shape="rect" href="master__editor_8cc.html" title=" " alt="" coords="626,404,771,444"/>
+<area shape="poly" title=" " alt="" coords="690,275,700,403,694,404,685,275"/>
+<area shape="rect" href="master__editor_8h.html" title=" " alt="" coords="736,315,880,356"/>
+<area shape="poly" title=" " alt="" coords="716,266,782,312,779,317,713,271"/>
+<area shape="poly" title=" " alt="" coords="773,368,725,405,722,401,769,364"/>
+<area shape="rect" href="controller_8cc.html" title=" " alt="" coords="708,500,876,526"/>
+<area shape="poly" title=" " alt="" coords="807,371,796,499,790,499,802,371"/>
+<area shape="rect" href="controller_8h.html" title=" " alt="" coords="876,411,1036,437"/>
+<area shape="poly" title=" " alt="" coords="856,362,936,408,934,413,853,366"/>
+<area shape="poly" title=" " alt="" coords="921,447,816,502,814,497,918,442"/>
+<area shape="rect" href="app__delegate_8mm.html" title=" " alt="" coords="900,492,1044,533"/>
+<area shape="poly" title=" " alt="" coords="963,452,971,492,966,493,958,453"/>
+<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="1068,500,1180,526"/>
+<area shape="poly" title=" " alt="" coords="994,442,1101,497,1099,502,992,447"/>
+<area shape="poly" title=" " alt="" coords="368,276,262,324,260,320,366,271"/>
+<area shape="rect" href="dma_8cc.html" title=" " alt="" coords="330,315,473,356"/>
+<area shape="poly" title=" " alt="" coords="417,283,409,315,404,314,412,282"/>
+<area shape="rect" href="command__handler_8cc.html" title=" " alt="" coords="904,323,1088,348"/>
+<area shape="poly" title=" " alt="" coords="999,275,999,322,993,322,993,275"/>
+<area shape="rect" href="z3ed_8cc.html" title=" " alt="" coords="1112,323,1216,348"/>
+<area shape="poly" title=" " alt="" coords="1034,265,1141,320,1139,324,1032,269"/>
 </map>
 </div>
 </div>
@@ -204,6 +216,8 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html">yaze::app::emu::audio::Timer</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html">yaze::app::emu::audio::Apu</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html" title="The Apu class represents the Audio Processing Unit (APU) of a system.">Apu</a> class represents the Audio Processing Unit (APU) of a system.  <a href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -220,6 +234,11 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespaceyaze_1_1app_1_1emu_1_1audio" id="r_namespaceyaze_1_1app_1_1emu_1_1audio"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1audio.html">yaze::app::emu::audio</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a041af507339a504688fac0dd100cd4e7" id="r_a041af507339a504688fac0dd100cd4e7"><td class="memItemLeft" align="right" valign="top">typedef struct yaze::app::emu::audio::Timer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1audio.html#a041af507339a504688fac0dd100cd4e7">yaze::app::emu::audio::Timer</a></td></tr>
+<tr class="separator:a041af507339a504688fac0dd100cd4e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>

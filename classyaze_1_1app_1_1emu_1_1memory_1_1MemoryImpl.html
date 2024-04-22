@@ -130,20 +130,40 @@ Collaboration diagram for yaze::app::emu::memory::MemoryImpl:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl__coll__graph.png" border="0" usemap="#ayaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_coll__map" id="ayaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_coll__map">
-<area shape="rect" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="21,184,179,225"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="5,94,163,135"/>
-<area shape="poly" title=" " alt="" coords="93,149,99,183,94,184,88,150"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="187,102,352,127"/>
-<area shape="poly" title=" " alt="" coords="233,137,139,186,136,181,231,132"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Logger.html" title=" " alt="" coords="194,5,345,31"/>
-<area shape="poly" title=" " alt="" coords="272,47,272,101,267,101,267,47"/>
+<area shape="rect" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="510,63,667,103"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface." alt="" coords="253,5,411,46"/>
+<area shape="poly" title=" " alt="" coords="427,44,510,63,509,68,426,49"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Loggable.html" title=" " alt="" coords="250,70,414,96"/>
+<area shape="poly" title=" " alt="" coords="430,80,509,80,509,86,430,86"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Logger.html" title=" " alt="" coords="5,70,157,96"/>
+<area shape="poly" title=" " alt="" coords="172,80,249,80,249,86,172,86"/>
+<area shape="rect" href="structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html" title=" " alt="" coords="253,120,411,161"/>
+<area shape="poly" title=" " alt="" coords="426,117,509,98,510,103,427,122"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa642c0cb44257a313d5ce349edb363df" id="r_aa642c0cb44257a313d5ce349edb363df"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize</a> (const std::vector&lt; uint8_t &gt; &amp;romData, bool verbose=false, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fe">MemoryMapping</a> mapping=<a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea64e15c21526b420626337cdf8e902c3c">MemoryMapping::SNES_LOROM</a>)</td></tr>
-<tr class="separator:aa642c0cb44257a313d5ce349edb363df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae35512b6fce8180ab8b69c6c9d8a3b69" id="r_ae35512b6fce8180ab8b69c6c9d8a3b69"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize</a> (const std::vector&lt; uint8_t &gt; &amp;romData, bool verbose=false)</td></tr>
+<tr class="separator:ae35512b6fce8180ab8b69c6c9d8a3b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdd6ac19d3999636b00d2e5c03047760" id="r_acdd6ac19d3999636b00d2e5c03047760"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acdd6ac19d3999636b00d2e5c03047760">GetHeaderOffset</a> ()</td></tr>
+<tr class="separator:acdd6ac19d3999636b00d2e5c03047760"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71b0a38ce8f8a1293b9ed00ba83c5028" id="r_a71b0a38ce8f8a1293b9ed00ba83c5028"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html">memory::RomInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a71b0a38ce8f8a1293b9ed00ba83c5028">ReadRomHeader</a> ()</td></tr>
+<tr class="separator:a71b0a38ce8f8a1293b9ed00ba83c5028"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa920ba14092f42ada46a2a3f2a0b415" id="r_aaa920ba14092f42ada46a2a3f2a0b415"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read</a> (uint8_t bank, uint16_t adr)</td></tr>
+<tr class="separator:aaa920ba14092f42ada46a2a3f2a0b415"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb79d1be4fd6045eb72f44b7e2bc12f9" id="r_aeb79d1be4fd6045eb72f44b7e2bc12f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb79d1be4fd6045eb72f44b7e2bc12f9">cart_write</a> (uint8_t bank, uint16_t adr, uint8_t val)</td></tr>
+<tr class="separator:aeb79d1be4fd6045eb72f44b7e2bc12f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57c27b7e461d44957820037dd242880c" id="r_a57c27b7e461d44957820037dd242880c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom</a> (uint8_t bank, uint16_t adr)</td></tr>
+<tr class="separator:a57c27b7e461d44957820037dd242880c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50a859e729ae3fda4dd5a100121bdc20" id="r_a50a859e729ae3fda4dd5a100121bdc20"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a50a859e729ae3fda4dd5a100121bdc20">cart_writeLorom</a> (uint8_t bank, uint16_t adr, uint8_t val)</td></tr>
+<tr class="separator:a50a859e729ae3fda4dd5a100121bdc20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe9806b7ffee813736b2071e7b7b8355" id="r_afe9806b7ffee813736b2071e7b7b8355"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom</a> (uint8_t bank, uint16_t adr)</td></tr>
+<tr class="separator:afe9806b7ffee813736b2071e7b7b8355"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a154b46529288bf6ae002664d3f84bc5d" id="r_a154b46529288bf6ae002664d3f84bc5d"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom</a> (uint8_t bank, uint16_t adr)</td></tr>
+<tr class="separator:a154b46529288bf6ae002664d3f84bc5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0baebf0f0c203c7888cec15a7b7d617" id="r_ae0baebf0f0c203c7888cec15a7b7d617"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0baebf0f0c203c7888cec15a7b7d617">cart_writeHirom</a> (uint8_t bank, uint16_t adr, uint8_t val)</td></tr>
+<tr class="separator:ae0baebf0f0c203c7888cec15a7b7d617"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a614807d9ebf35a042c0fb71f0282c8fb" id="r_a614807d9ebf35a042c0fb71f0282c8fb"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a614807d9ebf35a042c0fb71f0282c8fb">ReadByte</a> (uint32_t address) const override</td></tr>
 <tr class="separator:a614807d9ebf35a042c0fb71f0282c8fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf0a6409c95662b9d56669be37e7eccd" id="r_acf0a6409c95662b9d56669be37e7eccd"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acf0a6409c95662b9d56669be37e7eccd">ReadWord</a> (uint32_t address) const override</td></tr>
@@ -170,8 +190,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9b8e58090ad02e7d4c08c8c898533f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac07930d87a6defd2b0b0f3308b6f2a34" id="r_ac07930d87a6defd2b0b0f3308b6f2a34"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac07930d87a6defd2b0b0f3308b6f2a34">PopLong</a> () override</td></tr>
 <tr class="separator:ac07930d87a6defd2b0b0f3308b6f2a34"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20767f056967ac7e8aed8b45bfcbb96d" id="r_a20767f056967ac7e8aed8b45bfcbb96d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a20767f056967ac7e8aed8b45bfcbb96d">AddObserver</a> (<a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html">Observer</a> *observer)</td></tr>
-<tr class="separator:a20767f056967ac7e8aed8b45bfcbb96d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72a7125301245e45420cfe799e912354" id="r_a72a7125301245e45420cfe799e912354"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72a7125301245e45420cfe799e912354">SP</a> () const override</td></tr>
 <tr class="separator:a72a7125301245e45420cfe799e912354"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9dabdd4a0211342ca3a5a60dfd68a83f" id="r_a9dabdd4a0211342ca3a5a60dfd68a83f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9dabdd4a0211342ca3a5a60dfd68a83f">SetSP</a> (uint16_t value) override</td></tr>
@@ -190,40 +208,86 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a46132400c7395ec5cbfbe8d548edc508"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ea2f1891a7aed682224eec5ac007882" id="r_a6ea2f1891a7aed682224eec5ac007882"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ea2f1891a7aed682224eec5ac007882">data</a> () const</td></tr>
 <tr class="separator:a6ea2f1891a7aed682224eec5ac007882"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a438795265853018a617b7e064fdf21ee" id="r_a438795265853018a617b7e064fdf21ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a438795265853018a617b7e064fdf21ee">set_open_bus</a> (uint8_t value) override</td></tr>
+<tr class="separator:a438795265853018a617b7e064fdf21ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab165116658b41810ae84c455e4759e3d" id="r_ab165116658b41810ae84c455e4759e3d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab165116658b41810ae84c455e4759e3d">open_bus</a> () const -&gt; uint8_t override</td></tr>
+<tr class="separator:ab165116658b41810ae84c455e4759e3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaee5adf7771f68a26576eda8f9e765f" id="r_aeaee5adf7771f68a26576eda8f9e765f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeaee5adf7771f68a26576eda8f9e765f">hdma_init_requested</a> () const -&gt; bool override</td></tr>
+<tr class="separator:aeaee5adf7771f68a26576eda8f9e765f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d11cd2da9d838981d5d8e525099e212" id="r_a6d11cd2da9d838981d5d8e525099e212"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6d11cd2da9d838981d5d8e525099e212">hdma_run_requested</a> () const -&gt; bool override</td></tr>
+<tr class="separator:a6d11cd2da9d838981d5d8e525099e212"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56e7ce5c4bb93834c47520b354f0b45e" id="r_a56e7ce5c4bb93834c47520b354f0b45e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56e7ce5c4bb93834c47520b354f0b45e">init_hdma_request</a> () override</td></tr>
+<tr class="separator:a56e7ce5c4bb93834c47520b354f0b45e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d61360755ed60b74a0f2f2d3d20062f" id="r_a5d61360755ed60b74a0f2f2d3d20062f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5d61360755ed60b74a0f2f2d3d20062f">run_hdma_request</a> () override</td></tr>
+<tr class="separator:a5d61360755ed60b74a0f2f2d3d20062f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85ea843bcb863f12a20df915febfbde0" id="r_a85ea843bcb863f12a20df915febfbde0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85ea843bcb863f12a20df915febfbde0">set_hdma_run_requested</a> (bool value) override</td></tr>
+<tr class="separator:a85ea843bcb863f12a20df915febfbde0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac90a2500436bebaf49a089f6c3029752" id="r_ac90a2500436bebaf49a089f6c3029752"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac90a2500436bebaf49a089f6c3029752">set_hdma_init_requested</a> (bool value) override</td></tr>
+<tr class="separator:ac90a2500436bebaf49a089f6c3029752"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5dc4621d4fde9e30499f394be852fef" id="r_aa5dc4621d4fde9e30499f394be852fef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5dc4621d4fde9e30499f394be852fef">set_pal_timing</a> (bool value) override</td></tr>
+<tr class="separator:aa5dc4621d4fde9e30499f394be852fef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28477c112185a44ca984b89db927d1da" id="r_a28477c112185a44ca984b89db927d1da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a28477c112185a44ca984b89db927d1da">set_h_pos</a> (uint16_t value) override</td></tr>
+<tr class="separator:a28477c112185a44ca984b89db927d1da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab41c9716a08560681673c44e782f3078" id="r_ab41c9716a08560681673c44e782f3078"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab41c9716a08560681673c44e782f3078">set_v_pos</a> (uint16_t value) override</td></tr>
+<tr class="separator:ab41c9716a08560681673c44e782f3078"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55a3c413ba1433537809906e517e755a" id="r_a55a3c413ba1433537809906e517e755a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a55a3c413ba1433537809906e517e755a">h_pos</a> () const -&gt; uint16_t override</td></tr>
+<tr class="separator:a55a3c413ba1433537809906e517e755a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2104491516075f57bc3e59b3d4340549" id="r_a2104491516075f57bc3e59b3d4340549"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2104491516075f57bc3e59b3d4340549">v_pos</a> () const -&gt; uint16_t override</td></tr>
+<tr class="separator:a2104491516075f57bc3e59b3d4340549"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1c2080e714a5543f6aff7c2c1ae1f63" id="r_ad1c2080e714a5543f6aff7c2c1ae1f63"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad1c2080e714a5543f6aff7c2c1ae1f63">pal_timing</a> () const -&gt; bool override</td></tr>
+<tr class="separator:ad1c2080e714a5543f6aff7c2c1ae1f63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad34e8b2827cf9d89bfabcf3dd7b1957" id="r_aad34e8b2827cf9d89bfabcf3dd7b1957"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aad34e8b2827cf9d89bfabcf3dd7b1957">dma_state</a> () -&gt; uint8_t &amp;</td></tr>
+<tr class="separator:aad34e8b2827cf9d89bfabcf3dd7b1957"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22572fa9b665fc15ac90d6c616aee60b" id="r_a22572fa9b665fc15ac90d6c616aee60b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a22572fa9b665fc15ac90d6c616aee60b">set_dma_state</a> (uint8_t value)</td></tr>
+<tr class="separator:a22572fa9b665fc15ac90d6c616aee60b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27824db4c395c5a49017d5651947a531" id="r_a27824db4c395c5a49017d5651947a531"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a27824db4c395c5a49017d5651947a531">dma_channels</a> () -&gt; <a class="el" href="structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html">DmaChannel</a> *</td></tr>
+<tr class="separator:a27824db4c395c5a49017d5651947a531"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1app_1_1emu_1_1memory_1_1Memory"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1emu_1_1memory_1_1Memory')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html">yaze::app::emu::memory::Memory</a></td></tr>
 <tr class="memitem:afbc68b5ef89712aaacd126de63d832b7 inherit pub_methods_classyaze_1_1app_1_1emu_1_1memory_1_1Memory" id="r_afbc68b5ef89712aaacd126de63d832b7"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#afbc68b5ef89712aaacd126de63d832b7">~Memory</a> ()=default</td></tr>
 <tr class="separator:afbc68b5ef89712aaacd126de63d832b7 inherit pub_methods_classyaze_1_1app_1_1emu_1_1memory_1_1Memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:ad5304c7686fdf1fbaed57c6d528b7d7a" id="r_ad5304c7686fdf1fbaed57c6d528b7d7a"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad5304c7686fdf1fbaed57c6d528b7d7a">romSize</a></td></tr>
+<tr class="separator:ad5304c7686fdf1fbaed57c6d528b7d7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadc2939160052f09d740e334fcfc2878" id="r_aadc2939160052f09d740e334fcfc2878"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a></td></tr>
+<tr class="separator:aadc2939160052f09d740e334fcfc2878"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64f06f24045b90e93dbf12826fd69309" id="r_a64f06f24045b90e93dbf12826fd69309"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a></td></tr>
 <tr class="separator:a64f06f24045b90e93dbf12826fd69309"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5fcd24f61d08fe948d41d2dc251b639" id="r_ab5fcd24f61d08fe948d41d2dc251b639"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a></td></tr>
 <tr class="separator:ab5fcd24f61d08fe948d41d2dc251b639"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0736b7d9e873a0d12f0708c6c2d52a02" id="r_a0736b7d9e873a0d12f0708c6c2d52a02"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0736b7d9e873a0d12f0708c6c2d52a02">vram_</a></td></tr>
-<tr class="separator:a0736b7d9e873a0d12f0708c6c2d52a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac37f552ff8d6de8fbf0bedd22beb8e2b" id="r_ac37f552ff8d6de8fbf0bedd22beb8e2b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac37f552ff8d6de8fbf0bedd22beb8e2b">oam_</a></td></tr>
-<tr class="separator:ac37f552ff8d6de8fbf0bedd22beb8e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
 <tr class="memitem:a5f9577496ef6a8175f3e6e9f526c3cff" id="r_a5f9577496ef6a8175f3e6e9f526c3cff"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress</a> (uint32_t address) const</td></tr>
 <tr class="separator:a5f9577496ef6a8175f3e6e9f526c3cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a254e2d009ba5adfa72354aa8870fccb8" id="r_a254e2d009ba5adfa72354aa8870fccb8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a254e2d009ba5adfa72354aa8870fccb8">NotifyObservers</a> (uint32_t address, uint16_t <a class="el" href="#a6ea2f1891a7aed682224eec5ac007882">data</a>) const</td></tr>
-<tr class="separator:a254e2d009ba5adfa72354aa8870fccb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a2dd494a961c9c31c823ab2e0517f8181" id="r_a2dd494a961c9c31c823ab2e0517f8181"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2dd494a961c9c31c823ab2e0517f8181">verbose_</a> = false</td></tr>
 <tr class="separator:a2dd494a961c9c31c823ab2e0517f8181"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8b9a3700764799dbfa8042e113ec74c" id="r_ae8b9a3700764799dbfa8042e113ec74c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html">Observer</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae8b9a3700764799dbfa8042e113ec74c">observers_</a></td></tr>
-<tr class="separator:ae8b9a3700764799dbfa8042e113ec74c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09aa0256237119486b7e19490821bca6" id="r_a09aa0256237119486b7e19490821bca6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a></td></tr>
-<tr class="separator:a09aa0256237119486b7e19490821bca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa24af0b6ff5f13a91a3411e066088bf7" id="r_aa24af0b6ff5f13a91a3411e066088bf7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa24af0b6ff5f13a91a3411e066088bf7">hdma_run_requested_</a> = false</td></tr>
+<tr class="separator:aa24af0b6ff5f13a91a3411e066088bf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3a1d940b99d76a16c4dc8a3358e0c80" id="r_ae3a1d940b99d76a16c4dc8a3358e0c80"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae3a1d940b99d76a16c4dc8a3358e0c80">hdma_init_requested_</a> = false</td></tr>
+<tr class="separator:ae3a1d940b99d76a16c4dc8a3358e0c80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1870b1e038f8597aed24279eb8d8e8ce" id="r_a1870b1e038f8597aed24279eb8d8e8ce"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1870b1e038f8597aed24279eb8d8e8ce">pal_timing_</a> = false</td></tr>
+<tr class="separator:a1870b1e038f8597aed24279eb8d8e8ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7c0fb17442e6acf8133588708a6db9c" id="r_ac7c0fb17442e6acf8133588708a6db9c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac7c0fb17442e6acf8133588708a6db9c">h_pos_</a> = 0</td></tr>
+<tr class="separator:ac7c0fb17442e6acf8133588708a6db9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a855d72fad097959a089c4c63975e78d6" id="r_a855d72fad097959a089c4c63975e78d6"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a855d72fad097959a089c4c63975e78d6">v_pos_</a> = 0</td></tr>
+<tr class="separator:a855d72fad097959a089c4c63975e78d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a180f13379b58791162a16ebb903c5afe" id="r_a180f13379b58791162a16ebb903c5afe"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a180f13379b58791162a16ebb903c5afe">dma_state_</a> = 0</td></tr>
+<tr class="separator:a180f13379b58791162a16ebb903c5afe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e08cf1ce2569c1da704b71ca55655b9" id="r_a5e08cf1ce2569c1da704b71ca55655b9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html">DmaChannel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5e08cf1ce2569c1da704b71ca55655b9">channel</a> [8]</td></tr>
+<tr class="separator:a5e08cf1ce2569c1da704b71ca55655b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af429b465bbcd3def1bc06140c2aaae3c" id="r_af429b465bbcd3def1bc06140c2aaae3c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af429b465bbcd3def1bc06140c2aaae3c">open_bus_</a> = 0</td></tr>
+<tr class="separator:af429b465bbcd3def1bc06140c2aaae3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a971b218f608a0d0c32717da26bea0f96" id="r_a971b218f608a0d0c32717da26bea0f96"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a971b218f608a0d0c32717da26bea0f96">SP_</a> = 0x01FF</td></tr>
 <tr class="separator:a971b218f608a0d0c32717da26bea0f96"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf70f608a1e7bb07a1bc52f92c1e36b4" id="r_abf70f608a1e7bb07a1bc52f92c1e36b4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fe">MemoryMapping</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abf70f608a1e7bb07a1bc52f92c1e36b4">mapping_</a> = <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea64e15c21526b420626337cdf8e902c3c">MemoryMapping::SNES_LOROM</a></td></tr>
-<tr class="separator:abf70f608a1e7bb07a1bc52f92c1e36b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a413d1f638a1b8783a664c37f87de58ef" id="r_a413d1f638a1b8783a664c37f87de58ef"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a413d1f638a1b8783a664c37f87de58ef">type_</a></td></tr>
+<tr class="separator:a413d1f638a1b8783a664c37f87de58ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09aa0256237119486b7e19490821bca6" id="r_a09aa0256237119486b7e19490821bca6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a></td></tr>
+<tr class="separator:a09aa0256237119486b7e19490821bca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -238,20 +302,12 @@ Additional Inherited Members</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Implementation of the <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface.">Memory</a> interface for emulating memory in a <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> system. </p>
-<p>The <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html" title="Implementation of the Memory interface for emulating memory in a SNES system.">MemoryImpl</a> class provides methods for initializing and accessing memory in a <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html">SNES</a> system. It implements the <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html" title="Memory interface.">Memory</a> interface and inherits from the <a class="el" href="classyaze_1_1app_1_1emu_1_1Loggable.html">Loggable</a> class.</p>
-<p>The class supports different memory mappings, including LoROM and PC_ADDRESS mappings. It provides methods for reading and writing bytes, words, and longs from/to memory. It also supports stack operations for pushing and popping values.</p>
-<p>The class maintains separate vectors for ROM, RAM, VRAM, and OAM memory regions. It provides methods for accessing these memory regions and retrieving their sizes.</p>
-<p>The class also allows adding observers to be notified when memory is read or written.</p>
-<dl class="section note"><dt>Note</dt><dd>This class assumes a 16-bit address space. </dd></dl>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa642c0cb44257a313d5ce349edb363df" name="aa642c0cb44257a313d5ce349edb363df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa642c0cb44257a313d5ce349edb363df">&#9670;&#160;</a></span>Initialize()</h2>
+<a id="ae35512b6fce8180ab8b69c6c9d8a3b69" name="ae35512b6fce8180ab8b69c6c9d8a3b69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae35512b6fce8180ab8b69c6c9d8a3b69">&#9670;&#160;</a></span>Initialize()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void yaze::app::emu::memory::MemoryImpl::Initialize </td>
@@ -261,12 +317,31 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>verbose</em><span class="paramdefsep"> = </span><span class="paramdefval">false</span>, </span></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>verbose</em><span class="paramdefsep"> = </span><span class="paramdefval">false</span></span>&#160;)</td>
         </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a5f9f7302e888aafc8ef9cd0d6697b689">yaze::app::emu::memory::kRAMSize</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ac625af95a64851647d058db173743789">yaze::app::emu::memory::kRAMStart</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a19348b7f6e5ed926e23abcaab49d6292">yaze::app::emu::memory::kROMSize</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#aa8d809bc6229536975b18e7eea4fd0a9">yaze::app::emu::memory::kROMStart</a>, <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, <a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a>, <a class="el" href="#ad5304c7686fdf1fbaed57c6d528b7d7a">romSize</a>, <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>, and <a class="el" href="#a2dd494a961c9c31c823ab2e0517f8181">verbose_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6">yaze::app::zelda3::dungeon::DungeonObjectRenderer::LoadObject()</a>.</p>
+
+</div>
+</div>
+<a id="acdd6ac19d3999636b00d2e5c03047760" name="acdd6ac19d3999636b00d2e5c03047760"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdd6ac19d3999636b00d2e5c03047760">&#9670;&#160;</a></span>GetHeaderOffset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
         <tr>
-          <td class="paramkey"></td>
+          <td class="memname">uint16_t yaze::app::emu::memory::MemoryImpl::GetHeaderOffset </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fe">MemoryMapping</a></td>          <td class="paramname"><span class="paramname"><em>mapping</em><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea64e15c21526b420626337cdf8e902c3c">MemoryMapping::SNES_LOROM</a></span></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -276,51 +351,258 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ac3e030e6e6d0c9f0e15ea8491ea306a3">yaze::app::emu::memory::kOAMSize</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ab6247814a39d9ec66c743cd3ac726ca9">yaze::app::emu::memory::kOAMStart</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a5f9f7302e888aafc8ef9cd0d6697b689">yaze::app::emu::memory::kRAMSize</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#ac625af95a64851647d058db173743789">yaze::app::emu::memory::kRAMStart</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a19348b7f6e5ed926e23abcaab49d6292">yaze::app::emu::memory::kROMSize</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#aa8d809bc6229536975b18e7eea4fd0a9">yaze::app::emu::memory::kROMStart</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a83a8ec6a99c39c44ccb14de2a52bf40b">yaze::app::emu::memory::kVRAMSize</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a0d6d80ef26a3cd8507499b4d30a647f3">yaze::app::emu::memory::kVRAMStart</a>, <a class="el" href="#abf70f608a1e7bb07a1bc52f92c1e36b4">mapping_</a>, <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, <a class="el" href="#ac37f552ff8d6de8fbf0bedd22beb8e2b">oam_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea49edc1f4f9189339cb9eaaae608be17a">yaze::app::emu::memory::PC_ADDRESS</a>, <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, <a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a>, <a class="el" href="#a2dd494a961c9c31c823ab2e0517f8181">verbose_</a>, and <a class="el" href="#a0736b7d9e873a0d12f0708c6c2d52a02">vram_</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a71b0a38ce8f8a1293b9ed00ba83c5028">ReadRomHeader()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6">yaze::app::zelda3::dungeon::DungeonObjectRenderer::LoadObject()</a>.</p>
+</div>
+</div>
+<a id="a71b0a38ce8f8a1293b9ed00ba83c5028" name="a71b0a38ce8f8a1293b9ed00ba83c5028"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71b0a38ce8f8a1293b9ed00ba83c5028">&#9670;&#160;</a></span>ReadRomHeader()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html">memory::RomInfo</a> yaze::app::emu::memory::MemoryImpl::ReadRomHeader </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a3949190d51d3c8aed1d4a693c12d95fc">yaze::app::emu::memory::RomInfo::bankSize</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a4c2b57823ff9dc94ba3a6e1197be8">yaze::app::emu::memory::RomInfo::checksum</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ad669eb1b17c578d0c5c4643ed91a74b9">yaze::app::emu::memory::RomInfo::checksumComplement</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ad1145e9517891d9c5fab21d9be66e4ce">yaze::app::emu::memory::RomInfo::countryCode</a>, <a class="el" href="#acdd6ac19d3999636b00d2e5c03047760">GetHeaderOffset()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a4a7c7461ce733f7d969949f32aefe9f4">yaze::app::emu::memory::RomInfo::license</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a7614c27b9ef52239da2bdf55f6373c31">yaze::app::emu::memory::RomInfo::nmiVblVector</a>, <a class="el" href="#a614807d9ebf35a042c0fb71f0282c8fb">ReadByte()</a>, <a class="el" href="#acf0a6409c95662b9d56669be37e7eccd">ReadWord()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a2c7b18bf7fac09946df6298c9fed1fcd">yaze::app::emu::memory::RomInfo::resetVector</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a0afba9e6f2360600fa9224bcc900af0d">yaze::app::emu::memory::RomInfo::romSize</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a742c74c8a0caba5f8cb19108211a82ea">yaze::app::emu::memory::RomInfo::romSpeed</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a430ad5d9ad998e7b6676831a4bba8">yaze::app::emu::memory::RomInfo::romType</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#aebe1d64a6f8089740d2150f31750ea94">yaze::app::emu::memory::RomInfo::sramSize</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ac934bc7cda01326ea78351395ec47c9d">yaze::app::emu::memory::RomInfo::title</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a68327f3614c18b3f42c71314366ba61a">yaze::app::emu::memory::RomInfo::version</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>.</p>
 <div class="dynheader">
-Here is the caller graph for this function:</div>
+Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aa642c0cb44257a313d5ce349edb363df_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aa642c0cb44257a313d5ce349edb363df_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aa642c0cb44257a313d5ce349edb363df_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aa642c0cb44257a313d5ce349edb363df_icgraph">
-<area shape="rect" title=" " alt="" coords="2452,92,2609,133"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35" title=" " alt="" coords="2222,56,2369,97"/>
-<area shape="poly" title=" " alt="" coords="2437,101,2369,90,2370,85,2438,95"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6" title=" " alt="" coords="2187,121,2404,176"/>
-<area shape="poly" title=" " alt="" coords="2437,129,2405,134,2404,129,2437,124"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057" title=" " alt="" coords="1961,5,2085,46"/>
-<area shape="poly" title=" " alt="" coords="2206,62,2085,40,2086,34,2207,57"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f" title=" " alt="" coords="1927,70,2119,96"/>
-<area shape="poly" title=" " alt="" coords="2206,81,2119,83,2119,78,2206,76"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0" title=" " alt="" coords="1659,63,1850,103"/>
-<area shape="poly" title=" " alt="" coords="1911,86,1850,86,1850,80,1911,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1157,63,1349,103"/>
-<area shape="poly" title=" " alt="" coords="1643,86,1349,86,1349,80,1643,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,96,1109,137"/>
-<area shape="poly" title=" " alt="" coords="1142,103,1110,108,1109,103,1141,98"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,96,919,137"/>
-<area shape="poly" title=" " alt="" coords="951,119,920,119,920,114,951,114"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,104,705,129"/>
-<area shape="poly" title=" " alt="" coords="737,119,705,119,705,114,737,114"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,89,388,144"/>
-<area shape="poly" title=" " alt="" coords="640,114,607,111,493,109,388,113,388,108,493,104,607,106,640,109"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,121,607,176"/>
-<area shape="poly" title=" " alt="" coords="640,127,608,133,607,128,639,122"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,89,173,144"/>
-<area shape="poly" title=" " alt="" coords="205,119,173,119,173,114,205,114"/>
-<area shape="poly" title=" " alt="" coords="420,136,388,131,389,126,421,131"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab9991a4d7673044078d2c530fa3149ab" title=" " alt="" coords="1907,128,2139,169"/>
-<area shape="poly" title=" " alt="" coords="2171,151,2139,151,2139,146,2171,146"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aabfd9ffe70c9373316e34e19c04527f2" title=" " alt="" coords="1649,128,1859,169"/>
-<area shape="poly" title=" " alt="" coords="1892,151,1860,151,1860,146,1892,146"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad76ae6efb9d5fea979a9d41ddfdd9d67" title=" " alt="" coords="1397,121,1601,176"/>
-<area shape="poly" title=" " alt="" coords="1633,151,1601,151,1601,146,1633,146"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa1996432de42e435b2aebfda3d7346b6" title=" " alt="" coords="1176,128,1330,169"/>
-<area shape="poly" title=" " alt="" coords="1381,151,1330,151,1330,146,1381,146"/>
-<area shape="poly" title=" " alt="" coords="1160,137,1109,130,1110,124,1161,132"/>
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a71b0a38ce8f8a1293b9ed00ba83c5028_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a71b0a38ce8f8a1293b9ed00ba83c5028_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a71b0a38ce8f8a1293b9ed00ba83c5028_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a71b0a38ce8f8a1293b9ed00ba83c5028_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,209,111"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acdd6ac19d3999636b00d2e5c03047760" title=" " alt="" coords="257,5,459,46"/>
+<area shape="poly" title=" " alt="" coords="187,67,262,48,263,53,189,73"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a614807d9ebf35a042c0fb71f0282c8fb" title=" " alt="" coords="278,71,438,111"/>
+<area shape="poly" title=" " alt="" coords="209,88,262,88,262,94,209,94"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="276,136,440,177"/>
+<area shape="poly" title=" " alt="" coords="189,109,263,129,262,134,187,115"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="aaa920ba14092f42ada46a2a3f2a0b415" name="aaa920ba14092f42ada46a2a3f2a0b415"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa920ba14092f42ada46a2a3f2a0b415">&#9670;&#160;</a></span>cart_read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::cart_read </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>adr</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>, <a class="el" href="#af429b465bbcd3def1bc06140c2aaae3c">open_bus_</a>, and <a class="el" href="#a413d1f638a1b8783a664c37f87de58ef">type_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a3fc8f6a4c1140d9486e074e286187bca">yaze::app::emu::SNES::Rread()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaa920ba14092f42ada46a2a3f2a0b415_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaa920ba14092f42ada46a2a3f2a0b415_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaa920ba14092f42ada46a2a3f2a0b415_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaa920ba14092f42ada46a2a3f2a0b415_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,164,111"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a154b46529288bf6ae002664d3f84bc5d" title=" " alt="" coords="212,5,419,46"/>
+<area shape="poly" title=" " alt="" coords="158,68,226,48,227,53,159,73"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#afe9806b7ffee813736b2071e7b7b8355" title=" " alt="" coords="219,71,412,111"/>
+<area shape="poly" title=" " alt="" coords="164,88,203,88,203,94,164,94"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a57c27b7e461d44957820037dd242880c" title=" " alt="" coords="218,136,413,177"/>
+<area shape="poly" title=" " alt="" coords="159,109,227,129,226,134,158,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aeb79d1be4fd6045eb72f44b7e2bc12f9" name="aeb79d1be4fd6045eb72f44b7e2bc12f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb79d1be4fd6045eb72f44b7e2bc12f9">&#9670;&#160;</a></span>cart_write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::cart_write </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>adr</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>val</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#ae0baebf0f0c203c7888cec15a7b7d617">cart_writeHirom()</a>, <a class="el" href="#a50a859e729ae3fda4dd5a100121bdc20">cart_writeLorom()</a>, and <a class="el" href="#a413d1f638a1b8783a664c37f87de58ef">type_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a8a9edbbe3535e8d0aa5bbedac769fe9e">yaze::app::emu::SNES::Write()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aeb79d1be4fd6045eb72f44b7e2bc12f9_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aeb79d1be4fd6045eb72f44b7e2bc12f9_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aeb79d1be4fd6045eb72f44b7e2bc12f9_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aeb79d1be4fd6045eb72f44b7e2bc12f9_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,167,79"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae0baebf0f0c203c7888cec15a7b7d617" title=" " alt="" coords="216,5,412,46"/>
+<area shape="poly" title=" " alt="" coords="166,45,200,40,201,45,167,50"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a50a859e729ae3fda4dd5a100121bdc20" title=" " alt="" coords="215,71,413,111"/>
+<area shape="poly" title=" " alt="" coords="167,68,200,72,199,78,166,73"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a57c27b7e461d44957820037dd242880c" name="a57c27b7e461d44957820037dd242880c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57c27b7e461d44957820037dd242880c">&#9670;&#160;</a></span>cart_readLorom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::cart_readLorom </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>adr</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#af429b465bbcd3def1bc06140c2aaae3c">open_bus_</a>, <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, <a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a>, <a class="el" href="#ad5304c7686fdf1fbaed57c6d528b7d7a">romSize</a>, and <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read()</a>.</p>
+
+</div>
+</div>
+<a id="a50a859e729ae3fda4dd5a100121bdc20" name="a50a859e729ae3fda4dd5a100121bdc20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50a859e729ae3fda4dd5a100121bdc20">&#9670;&#160;</a></span>cart_writeLorom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::cart_writeLorom </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>adr</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>val</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, and <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#aeb79d1be4fd6045eb72f44b7e2bc12f9">cart_write()</a>.</p>
+
+</div>
+</div>
+<a id="afe9806b7ffee813736b2071e7b7b8355" name="afe9806b7ffee813736b2071e7b7b8355"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe9806b7ffee813736b2071e7b7b8355">&#9670;&#160;</a></span>cart_readHirom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::cart_readHirom </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>adr</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#af429b465bbcd3def1bc06140c2aaae3c">open_bus_</a>, <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, <a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a>, <a class="el" href="#ad5304c7686fdf1fbaed57c6d528b7d7a">romSize</a>, and <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read()</a>.</p>
+
+</div>
+</div>
+<a id="a154b46529288bf6ae002664d3f84bc5d" name="a154b46529288bf6ae002664d3f84bc5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a154b46529288bf6ae002664d3f84bc5d">&#9670;&#160;</a></span>cart_readExHirom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::cart_readExHirom </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>adr</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#af429b465bbcd3def1bc06140c2aaae3c">open_bus_</a>, <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, <a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a>, <a class="el" href="#ad5304c7686fdf1fbaed57c6d528b7d7a">romSize</a>, and <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read()</a>.</p>
+
+</div>
+</div>
+<a id="ae0baebf0f0c203c7888cec15a7b7d617" name="ae0baebf0f0c203c7888cec15a7b7d617"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0baebf0f0c203c7888cec15a7b7d617">&#9670;&#160;</a></span>cart_writeHirom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::cart_writeHirom </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>adr</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>val</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, and <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#aeb79d1be4fd6045eb72f44b7e2bc12f9">cart_write()</a>.</p>
 
 </div>
 </div>
@@ -349,33 +631,7 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a866a0b93c7294209a636ab678de192df">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, and <a class="el" href="#a254e2d009ba5adfa72354aa8870fccb8">NotifyObservers()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303">yaze::app::emu::SNES::EnableVBlankInterrupts()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,166,79"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="214,5,433,46"/>
-<area shape="poly" title=" " alt="" coords="165,45,198,41,199,46,166,50"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a254e2d009ba5adfa72354aa8870fccb8" title=" " alt="" coords="224,71,423,111"/>
-<area shape="poly" title=" " alt="" coords="166,67,209,73,208,78,165,72"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="481,71,638,111"/>
-<area shape="poly" title=" " alt="" coords="423,88,466,88,466,94,423,94"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a614807d9ebf35a042c0fb71f0282c8fb_icgraph">
-<area shape="rect" title=" " alt="" coords="217,5,377,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303" title=" " alt="" coords="5,5,169,46"/>
-<area shape="poly" title=" " alt="" coords="201,28,169,28,169,23,201,23"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="#a71b0a38ce8f8a1293b9ed00ba83c5028">ReadRomHeader()</a>.</p>
 
 </div>
 </div>
@@ -404,58 +660,7 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99d297f9dc9fe5e93e25ecd983d3b846">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, and <a class="el" href="#a254e2d009ba5adfa72354aa8870fccb8">NotifyObservers()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a6d5dc588d6268b617546a4ced13ad98b">yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,170,79"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="218,5,437,46"/>
-<area shape="poly" title=" " alt="" coords="169,45,202,40,203,46,170,50"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a254e2d009ba5adfa72354aa8870fccb8" title=" " alt="" coords="228,71,427,111"/>
-<area shape="poly" title=" " alt="" coords="170,67,213,73,212,78,169,73"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="485,71,642,111"/>
-<area shape="poly" title=" " alt="" coords="427,88,470,88,470,94,427,94"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_acf0a6409c95662b9d56669be37e7eccd_icgraph">
-<area shape="rect" title=" " alt="" coords="2945,13,3109,54"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a6d5dc588d6268b617546a4ced13ad98b" title=" " alt="" coords="2679,5,2897,61"/>
-<area shape="poly" title=" " alt="" coords="2929,36,2897,36,2897,31,2929,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ae3bf729759c4e191972a5ad3fca4e5a7" title=" " alt="" coords="2414,5,2631,61"/>
-<area shape="poly" title=" " alt="" coords="2663,36,2632,36,2632,31,2663,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6" title=" " alt="" coords="2149,5,2366,61"/>
-<area shape="poly" title=" " alt="" coords="2398,36,2367,36,2367,31,2398,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab9991a4d7673044078d2c530fa3149ab" title=" " alt="" coords="1869,13,2101,54"/>
-<area shape="poly" title=" " alt="" coords="2133,36,2101,36,2101,31,2133,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aabfd9ffe70c9373316e34e19c04527f2" title=" " alt="" coords="1611,13,1821,54"/>
-<area shape="poly" title=" " alt="" coords="1854,36,1822,36,1822,31,1854,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad76ae6efb9d5fea979a9d41ddfdd9d67" title=" " alt="" coords="1359,5,1563,61"/>
-<area shape="poly" title=" " alt="" coords="1595,36,1563,36,1563,31,1595,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa1996432de42e435b2aebfda3d7346b6" title=" " alt="" coords="1157,13,1311,54"/>
-<area shape="poly" title=" " alt="" coords="1343,36,1311,36,1311,31,1343,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,13,1109,54"/>
-<area shape="poly" title=" " alt="" coords="1142,36,1109,36,1109,31,1142,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,13,919,54"/>
-<area shape="poly" title=" " alt="" coords="951,36,920,36,920,31,951,31"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,20,705,46"/>
-<area shape="poly" title=" " alt="" coords="737,36,705,36,705,31,737,31"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,5,388,61"/>
-<area shape="poly" title=" " alt="" coords="640,31,607,28,493,26,388,30,388,25,493,21,607,23,640,25"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,37,607,93"/>
-<area shape="poly" title=" " alt="" coords="640,44,608,50,607,45,639,39"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,5,173,61"/>
-<area shape="poly" title=" " alt="" coords="205,36,173,36,173,31,205,31"/>
-<area shape="poly" title=" " alt="" coords="420,53,388,48,389,43,421,48"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="#a71b0a38ce8f8a1293b9ed00ba83c5028">ReadRomHeader()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a6d5dc588d6268b617546a4ced13ad98b">yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap()</a>.</p>
 
 </div>
 </div>
@@ -483,22 +688,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a9f59df78b125409f323bc8bb924a5edc">yaze::app::emu::memory::Memory</a>.</p>
-
-<p class="reference">References <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, and <a class="el" href="#a254e2d009ba5adfa72354aa8870fccb8">NotifyObservers()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a00225732f63320cba7381bab0149857b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a00225732f63320cba7381bab0149857b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a00225732f63320cba7381bab0149857b_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a00225732f63320cba7381bab0149857b_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,199,79"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="247,5,466,46"/>
-<area shape="poly" title=" " alt="" coords="199,44,231,39,232,45,200,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a254e2d009ba5adfa72354aa8870fccb8" title=" " alt="" coords="257,71,456,111"/>
-<area shape="poly" title=" " alt="" coords="200,69,242,74,242,79,199,74"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="514,71,671,111"/>
-<area shape="poly" title=" " alt="" coords="456,88,499,88,499,94,456,94"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -531,22 +720,6 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a016122f34fc7c2bb79ccf7eaebcd7338">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, and <a class="el" href="#a254e2d009ba5adfa72354aa8870fccb8">NotifyObservers()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a307befbad0e5a585bc5046f011ddd9c9_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a307befbad0e5a585bc5046f011ddd9c9_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a307befbad0e5a585bc5046f011ddd9c9_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a307befbad0e5a585bc5046f011ddd9c9_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,204,79"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="252,5,471,46"/>
-<area shape="poly" title=" " alt="" coords="204,43,236,39,236,45,204,49"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a254e2d009ba5adfa72354aa8870fccb8" title=" " alt="" coords="262,71,461,111"/>
-<area shape="poly" title=" " alt="" coords="204,69,247,74,246,79,204,74"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="519,71,676,111"/>
-<area shape="poly" title=" " alt="" coords="461,88,504,88,504,94,461,94"/>
-</map>
-</div>
-
 </div>
 </div>
 <a id="aaed81ca4639961fe4c29074eba6fe0fe" name="aaed81ca4639961fe4c29074eba6fe0fe"></a>
@@ -578,58 +751,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5030f712cf24fb09397d873ee157d3e3">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, and <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303">yaze::app::emu::SNES::EnableVBlankInterrupts()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a5e25512e78d359ea3a93a6d45fc461e0">yaze::app::emu::audio::Apu::SignalReady()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a9953de1a3fe2bdf0614b94d216729f30">yaze::app::emu::audio::Apu::WriteToPort()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,166,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="214,5,433,46"/>
-<area shape="poly" title=" " alt="" coords="166,23,198,23,198,28,166,28"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_aaed81ca4639961fe4c29074eba6fe0fe_icgraph">
-<area shape="rect" title=" " alt="" coords="2087,104,2247,145"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303" title=" " alt="" coords="1875,5,2039,46"/>
-<area shape="poly" title=" " alt="" coords="2112,99,2038,61,2009,49,2012,44,2040,57,2115,94"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35" title=" " alt="" coords="1883,71,2031,111"/>
-<area shape="poly" title=" " alt="" coords="2071,112,2031,105,2032,100,2072,107"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a5e25512e78d359ea3a93a6d45fc461e0" title=" " alt="" coords="1886,136,2028,177"/>
-<area shape="poly" title=" " alt="" coords="2072,141,2029,148,2028,143,2071,136"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a9953de1a3fe2bdf0614b94d216729f30" title=" " alt="" coords="1886,201,2028,242"/>
-<area shape="poly" title=" " alt="" coords="2114,155,2040,191,2012,203,2009,198,2038,186,2111,150"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057" title=" " alt="" coords="1670,17,1793,58"/>
-<area shape="poly" title=" " alt="" coords="1867,73,1793,55,1794,50,1869,67"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f" title=" " alt="" coords="1636,82,1827,108"/>
-<area shape="poly" title=" " alt="" coords="1868,95,1828,96,1828,91,1868,90"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0" title=" " alt="" coords="1397,75,1588,115"/>
-<area shape="poly" title=" " alt="" coords="1620,98,1589,98,1589,92,1620,92"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1157,75,1349,115"/>
-<area shape="poly" title=" " alt="" coords="1381,98,1349,98,1349,92,1381,92"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,75,1109,115"/>
-<area shape="poly" title=" " alt="" coords="1141,98,1110,98,1110,92,1141,92"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,75,919,115"/>
-<area shape="poly" title=" " alt="" coords="951,98,920,98,920,92,951,92"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,82,705,108"/>
-<area shape="poly" title=" " alt="" coords="737,98,705,98,705,92,737,92"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,67,388,123"/>
-<area shape="poly" title=" " alt="" coords="640,93,607,90,493,88,388,92,388,86,493,83,607,84,640,87"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,99,607,155"/>
-<area shape="poly" title=" " alt="" coords="640,106,608,112,607,107,639,100"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,67,173,123"/>
-<area shape="poly" title=" " alt="" coords="205,98,173,98,173,92,205,92"/>
-<area shape="poly" title=" " alt="" coords="420,115,388,110,389,105,421,109"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a8486f8369bdac2c79be7616be60ecf79" title=" " alt="" coords="1661,136,1803,177"/>
-<area shape="poly" title=" " alt="" coords="1870,159,1803,159,1803,154,1870,154"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>.</p>
 
 </div>
 </div>
@@ -662,51 +784,6 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a720232c7d335b4bb9d4005aae21f9194">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, and <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,170,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="218,5,437,46"/>
-<area shape="poly" title=" " alt="" coords="170,23,202,23,202,28,170,28"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a1705694867401d6ce6516038555684d1_icgraph">
-<area shape="rect" title=" " alt="" coords="2071,35,2235,75"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35" title=" " alt="" coords="1875,35,2023,75"/>
-<area shape="poly" title=" " alt="" coords="2055,58,2023,58,2023,52,2055,52"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057" title=" " alt="" coords="1670,5,1793,46"/>
-<area shape="poly" title=" " alt="" coords="1860,46,1793,37,1794,31,1860,40"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f" title=" " alt="" coords="1636,70,1827,96"/>
-<area shape="poly" title=" " alt="" coords="1860,69,1828,73,1827,68,1860,64"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0" title=" " alt="" coords="1397,63,1588,103"/>
-<area shape="poly" title=" " alt="" coords="1620,86,1589,86,1589,80,1620,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1157,63,1349,103"/>
-<area shape="poly" title=" " alt="" coords="1381,86,1349,86,1349,80,1381,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,63,1109,103"/>
-<area shape="poly" title=" " alt="" coords="1141,86,1110,86,1110,80,1141,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,63,919,103"/>
-<area shape="poly" title=" " alt="" coords="951,86,920,86,920,80,951,80"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,70,705,96"/>
-<area shape="poly" title=" " alt="" coords="737,86,705,86,705,80,737,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,55,388,111"/>
-<area shape="poly" title=" " alt="" coords="640,81,607,78,493,76,388,80,388,74,493,71,607,72,640,75"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,87,607,143"/>
-<area shape="poly" title=" " alt="" coords="640,94,608,100,607,95,639,88"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,55,173,111"/>
-<area shape="poly" title=" " alt="" coords="205,86,173,86,173,80,205,80"/>
-<area shape="poly" title=" " alt="" coords="420,103,388,98,389,93,421,97"/>
-</map>
-</div>
-
 </div>
 </div>
 <a id="a17da21b3ebc14c7561835497c351d43b" name="a17da21b3ebc14c7561835497c351d43b"></a>
@@ -738,18 +815,6 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a1233d122f27e85f5decf925b560dfd65">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, and <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a17da21b3ebc14c7561835497c351d43b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a17da21b3ebc14c7561835497c351d43b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a17da21b3ebc14c7561835497c351d43b_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a17da21b3ebc14c7561835497c351d43b_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,169,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5f9577496ef6a8175f3e6e9f526c3cff" title=" " alt="" coords="217,5,436,46"/>
-<area shape="poly" title=" " alt="" coords="169,23,201,23,201,28,169,28"/>
-</map>
-</div>
-
 </div>
 </div>
 <a id="ae328d319170e1bb4e36596597012ac0b" name="ae328d319170e1bb4e36596597012ac0b"></a>
@@ -776,22 +841,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7">yaze::app::emu::memory::Memory</a>.</p>
-
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, and <a class="el" href="#a971b218f608a0d0c32717da26bea0f96">SP_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a9b8e58090ad02e7d4c08c8c898533f1b">PushLong()</a>, and <a class="el" href="#a2de591be654966d4fa2d2dd377ab4e6e">PushWord()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ae328d319170e1bb4e36596597012ac0b_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ae328d319170e1bb4e36596597012ac0b_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ae328d319170e1bb4e36596597012ac0b_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ae328d319170e1bb4e36596597012ac0b_icgraph">
-<area shape="rect" title=" " alt="" coords="218,39,378,79"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a9b8e58090ad02e7d4c08c8c898533f1b" title=" " alt="" coords="6,5,169,46"/>
-<area shape="poly" title=" " alt="" coords="202,47,169,41,170,36,203,41"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a2de591be654966d4fa2d2dd377ab4e6e" title=" " alt="" coords="5,71,170,111"/>
-<area shape="poly" title=" " alt="" coords="203,76,171,81,170,76,202,71"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -820,22 +869,6 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, and <a class="el" href="#a971b218f608a0d0c32717da26bea0f96">SP_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#ac07930d87a6defd2b0b0f3308b6f2a34">PopLong()</a>, and <a class="el" href="#a20512433b7a559b30b7b3ba2345e3438">PopWord()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac0347823c59999288393b7b2f90e0f0c_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac0347823c59999288393b7b2f90e0f0c_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac0347823c59999288393b7b2f90e0f0c_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac0347823c59999288393b7b2f90e0f0c_icgraph">
-<area shape="rect" title=" " alt="" coords="211,39,368,79"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac07930d87a6defd2b0b0f3308b6f2a34" title=" " alt="" coords="5,5,163,46"/>
-<area shape="poly" title=" " alt="" coords="195,46,163,41,164,36,196,41"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a20512433b7a559b30b7b3ba2345e3438" title=" " alt="" coords="5,71,163,111"/>
-<area shape="poly" title=" " alt="" coords="196,76,164,81,163,76,195,71"/>
-</map>
-</div>
-
 </div>
 </div>
 <a id="a2de591be654966d4fa2d2dd377ab4e6e" name="a2de591be654966d4fa2d2dd377ab4e6e"></a>
@@ -863,14 +896,14 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#ae328d319170e1bb4e36596597012ac0b">PushByte()</a>.</p>
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7">yaze::app::emu::memory::Memory::PushByte()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a2de591be654966d4fa2d2dd377ab4e6e_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a2de591be654966d4fa2d2dd377ab4e6e_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a2de591be654966d4fa2d2dd377ab4e6e_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a2de591be654966d4fa2d2dd377ab4e6e_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,170,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae328d319170e1bb4e36596597012ac0b" title=" " alt="" coords="218,5,378,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7" title=" " alt="" coords="218,5,375,46"/>
 <area shape="poly" title=" " alt="" coords="170,23,202,23,202,28,170,28"/>
 </map>
 </div>
@@ -902,14 +935,14 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#acfd648f90e569ced80d88a7cfab3618d">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#ac0347823c59999288393b7b2f90e0f0c">PopByte()</a>.</p>
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0">yaze::app::emu::memory::Memory::PopByte()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20512433b7a559b30b7b3ba2345e3438_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20512433b7a559b30b7b3ba2345e3438_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20512433b7a559b30b7b3ba2345e3438_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20512433b7a559b30b7b3ba2345e3438_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,163,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac0347823c59999288393b7b2f90e0f0c" title=" " alt="" coords="211,5,368,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0" title=" " alt="" coords="211,5,368,46"/>
 <area shape="poly" title=" " alt="" coords="163,23,195,23,195,28,163,28"/>
 </map>
 </div>
@@ -941,14 +974,14 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a096c6a0d0f6fe092b3810105f3c9a8ea">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#ae328d319170e1bb4e36596597012ac0b">PushByte()</a>.</p>
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7">yaze::app::emu::memory::Memory::PushByte()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a9b8e58090ad02e7d4c08c8c898533f1b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a9b8e58090ad02e7d4c08c8c898533f1b_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a9b8e58090ad02e7d4c08c8c898533f1b_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a9b8e58090ad02e7d4c08c8c898533f1b_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,169,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae328d319170e1bb4e36596597012ac0b" title=" " alt="" coords="217,5,377,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7" title=" " alt="" coords="217,5,374,46"/>
 <area shape="poly" title=" " alt="" coords="169,23,201,23,201,28,169,28"/>
 </map>
 </div>
@@ -980,75 +1013,15 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a99ae1badffb2ee9359fc06fb0fa2e59c">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#ac0347823c59999288393b7b2f90e0f0c">PopByte()</a>.</p>
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0">yaze::app::emu::memory::Memory::PopByte()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac07930d87a6defd2b0b0f3308b6f2a34_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac07930d87a6defd2b0b0f3308b6f2a34_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac07930d87a6defd2b0b0f3308b6f2a34_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_ac07930d87a6defd2b0b0f3308b6f2a34_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,163,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac0347823c59999288393b7b2f90e0f0c" title=" " alt="" coords="211,5,368,46"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab40aec766a18e571c52c169593b405c0" title=" " alt="" coords="211,5,368,46"/>
 <area shape="poly" title=" " alt="" coords="163,23,195,23,195,28,163,28"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a20767f056967ac7e8aed8b45bfcbb96d" name="a20767f056967ac7e8aed8b45bfcbb96d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a20767f056967ac7e8aed8b45bfcbb96d">&#9670;&#160;</a></span>AddObserver()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::memory::MemoryImpl::AddObserver </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html">Observer</a> *</td>          <td class="paramname"><span class="paramname"><em>observer</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#ae8b9a3700764799dbfa8042e113ec74c">observers_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20767f056967ac7e8aed8b45bfcbb96d_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20767f056967ac7e8aed8b45bfcbb96d_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20767f056967ac7e8aed8b45bfcbb96d_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a20767f056967ac7e8aed8b45bfcbb96d_icgraph">
-<area shape="rect" title=" " alt="" coords="2071,35,2251,75"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35" title=" " alt="" coords="1875,35,2023,75"/>
-<area shape="poly" title=" " alt="" coords="2055,58,2023,58,2023,52,2055,52"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057" title=" " alt="" coords="1670,5,1793,46"/>
-<area shape="poly" title=" " alt="" coords="1860,46,1793,37,1794,31,1860,40"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f" title=" " alt="" coords="1636,70,1827,96"/>
-<area shape="poly" title=" " alt="" coords="1860,69,1828,73,1827,68,1860,64"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0" title=" " alt="" coords="1397,63,1588,103"/>
-<area shape="poly" title=" " alt="" coords="1620,86,1589,86,1589,80,1620,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1157,63,1349,103"/>
-<area shape="poly" title=" " alt="" coords="1381,86,1349,86,1349,80,1381,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,63,1109,103"/>
-<area shape="poly" title=" " alt="" coords="1141,86,1110,86,1110,80,1141,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,63,919,103"/>
-<area shape="poly" title=" " alt="" coords="951,86,920,86,920,80,951,80"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,70,705,96"/>
-<area shape="poly" title=" " alt="" coords="737,86,705,86,705,80,737,80"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,55,388,111"/>
-<area shape="poly" title=" " alt="" coords="640,81,607,78,493,76,388,80,388,74,493,71,607,72,640,75"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,87,607,143"/>
-<area shape="poly" title=" " alt="" coords="640,94,608,100,607,95,639,88"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,55,173,111"/>
-<area shape="poly" title=" " alt="" coords="205,86,173,86,173,80,205,80"/>
-<area shape="poly" title=" " alt="" coords="420,103,388,98,389,93,421,97"/>
 </map>
 </div>
 
@@ -1079,8 +1052,6 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a971b218f608a0d0c32717da26bea0f96">SP_</a>.</p>
-
 </div>
 </div>
 <a id="a9dabdd4a0211342ca3a5a60dfd68a83f" name="a9dabdd4a0211342ca3a5a60dfd68a83f"></a>
@@ -1107,8 +1078,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3">yaze::app::emu::memory::Memory</a>.</p>
-
-<p class="reference">References <a class="el" href="#a971b218f608a0d0c32717da26bea0f96">SP_</a>.</p>
 
 </div>
 </div>
@@ -1137,8 +1106,6 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ad32c5e20c642d72d8cbc7146d40bac00">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
-
 </div>
 </div>
 <a id="a5a84de21b10baf854858ef8d4e464b74" name="a5a84de21b10baf854858ef8d4e464b74"></a>
@@ -1165,8 +1132,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a6e38e8d8c2fc4af04786e855069b5b6e">yaze::app::emu::memory::Memory</a>.</p>
-
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
 
 </div>
 </div>
@@ -1195,8 +1160,6 @@ Here is the caller graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a5beb62a71e0701b4939c28a95b1b77c0">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
-
 </div>
 </div>
 <a id="affd9a10492d71ad80854995ac0932c54" name="affd9a10492d71ad80854995ac0932c54"></a>
@@ -1221,8 +1184,6 @@ Here is the caller graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
 
 </div>
 </div>
@@ -1249,8 +1210,6 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
-
 </div>
 </div>
 <a id="a46132400c7395ec5cbfbe8d548edc508" name="a46132400c7395ec5cbfbe8d548edc508"></a>
@@ -1275,8 +1234,6 @@ Here is the caller graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
 
 </div>
 </div>
@@ -1303,56 +1260,490 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a254e2d009ba5adfa72354aa8870fccb8">NotifyObservers()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a6ea2f1891a7aed682224eec5ac007882_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a6ea2f1891a7aed682224eec5ac007882_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a6ea2f1891a7aed682224eec5ac007882_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a6ea2f1891a7aed682224eec5ac007882_icgraph">
-<area shape="rect" title=" " alt="" coords="3437,104,3595,145"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a254e2d009ba5adfa72354aa8870fccb8" title=" " alt="" coords="3191,104,3389,145"/>
-<area shape="poly" title=" " alt="" coords="3422,127,3390,127,3390,122,3422,122"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a614807d9ebf35a042c0fb71f0282c8fb" title=" " alt="" coords="2964,5,3124,46"/>
-<area shape="poly" title=" " alt="" coords="3230,100,3142,61,3108,49,3110,44,3144,57,3233,95"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a307befbad0e5a585bc5046f011ddd9c9" title=" " alt="" coords="2945,71,3143,111"/>
-<area shape="poly" title=" " alt="" coords="3175,111,3143,107,3144,102,3176,106"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="2962,136,3126,177"/>
-<area shape="poly" title=" " alt="" coords="3176,142,3127,148,3126,143,3175,137"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a00225732f63320cba7381bab0149857b" title=" " alt="" coords="2947,201,3141,242"/>
-<area shape="poly" title=" " alt="" coords="3231,154,3144,191,3110,203,3108,198,3142,186,3229,149"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303" title=" " alt="" coords="2706,5,2870,46"/>
-<area shape="poly" title=" " alt="" coords="2948,28,2870,28,2870,23,2948,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a6d5dc588d6268b617546a4ced13ad98b" title=" " alt="" coords="2679,129,2897,184"/>
-<area shape="poly" title=" " alt="" coords="2946,159,2897,159,2897,154,2946,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ae3bf729759c4e191972a5ad3fca4e5a7" title=" " alt="" coords="2414,129,2631,184"/>
-<area shape="poly" title=" " alt="" coords="2663,159,2632,159,2632,154,2663,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6" title=" " alt="" coords="2149,129,2366,184"/>
-<area shape="poly" title=" " alt="" coords="2398,159,2367,159,2367,154,2398,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab9991a4d7673044078d2c530fa3149ab" title=" " alt="" coords="1869,136,2101,177"/>
-<area shape="poly" title=" " alt="" coords="2133,159,2101,159,2101,154,2133,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aabfd9ffe70c9373316e34e19c04527f2" title=" " alt="" coords="1611,136,1821,177"/>
-<area shape="poly" title=" " alt="" coords="1854,159,1822,159,1822,154,1854,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad76ae6efb9d5fea979a9d41ddfdd9d67" title=" " alt="" coords="1359,129,1563,184"/>
-<area shape="poly" title=" " alt="" coords="1595,159,1563,159,1563,154,1595,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa1996432de42e435b2aebfda3d7346b6" title=" " alt="" coords="1157,136,1311,177"/>
-<area shape="poly" title=" " alt="" coords="1343,159,1311,159,1311,154,1343,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,136,1109,177"/>
-<area shape="poly" title=" " alt="" coords="1142,159,1109,159,1109,154,1142,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,136,919,177"/>
-<area shape="poly" title=" " alt="" coords="951,159,920,159,920,154,951,154"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,144,705,169"/>
-<area shape="poly" title=" " alt="" coords="737,159,705,159,705,154,737,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,129,388,184"/>
-<area shape="poly" title=" " alt="" coords="640,154,607,151,493,149,388,153,388,148,493,144,607,146,640,149"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,161,607,216"/>
-<area shape="poly" title=" " alt="" coords="640,167,608,173,607,168,639,162"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,129,173,184"/>
-<area shape="poly" title=" " alt="" coords="205,159,173,159,173,154,205,154"/>
-<area shape="poly" title=" " alt="" coords="420,176,388,171,389,166,421,171"/>
-</map>
 </div>
+</div>
+<a id="a438795265853018a617b7e064fdf21ee" name="a438795265853018a617b7e064fdf21ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a438795265853018a617b7e064fdf21ee">&#9670;&#160;</a></span>set_open_bus()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::set_open_bus </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aed066c57e629c3633b8624848fa984fc">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#afe33a84a291c68331de5153d2c01f80c">yaze::app::emu::SNES::Read()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589">yaze::app::emu::SNES::Reset()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a8a9edbbe3535e8d0aa5bbedac769fe9e">yaze::app::emu::SNES::Write()</a>.</p>
+
+</div>
+</div>
+<a id="ab165116658b41810ae84c455e4759e3d" name="ab165116658b41810ae84c455e4759e3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab165116658b41810ae84c455e4759e3d">&#9670;&#160;</a></span>open_bus()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::open_bus </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const -&gt; uint8_t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a71aaf1623d03b5b6e7a4c537b8183fbd">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afa24e8e2a9befbb3775e9521bb925623">yaze::app::emu::memory::dma::Read()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#af752beecbfc218cda7fcb8b32a9faf60">yaze::app::emu::SNES::ReadBBus()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a3ce9ccc983bd4fce86a2b1371536cee2">yaze::app::emu::SNES::ReadReg()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a3fc8f6a4c1140d9486e074e286187bca">yaze::app::emu::SNES::Rread()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a1c8983aa73f3b43c99ef7b8b19978ebe">yaze::app::emu::memory::dma::TransferByte()</a>.</p>
+
+</div>
+</div>
+<a id="aeaee5adf7771f68a26576eda8f9e765f" name="aeaee5adf7771f68a26576eda8f9e765f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeaee5adf7771f68a26576eda8f9e765f">&#9670;&#160;</a></span>hdma_init_requested()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::hdma_init_requested </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const -&gt; bool</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#af9fcd47f95f1375fee36a88070ae7e6c">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#ab5c19814c33eb509a14ba19c813371a2">yaze::app::emu::memory::dma::HandleDma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a5c9bf03212f6c4f8ea1e0153d80dc0a1">yaze::app::emu::memory::dma::WaitCycle()</a>.</p>
+
+</div>
+</div>
+<a id="a6d11cd2da9d838981d5d8e525099e212" name="a6d11cd2da9d838981d5d8e525099e212"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d11cd2da9d838981d5d8e525099e212">&#9670;&#160;</a></span>hdma_run_requested()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::hdma_run_requested </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const -&gt; bool</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a82f17e8628e7b9bf3956b99faeca44f0">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#ab5c19814c33eb509a14ba19c813371a2">yaze::app::emu::memory::dma::HandleDma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a5c9bf03212f6c4f8ea1e0153d80dc0a1">yaze::app::emu::memory::dma::WaitCycle()</a>.</p>
+
+</div>
+</div>
+<a id="a56e7ce5c4bb93834c47520b354f0b45e" name="a56e7ce5c4bb93834c47520b354f0b45e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56e7ce5c4bb93834c47520b354f0b45e">&#9670;&#160;</a></span>init_hdma_request()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::init_hdma_request </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#ab102bd25d6cbfee80fddd636a0802934">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>.</p>
+
+</div>
+</div>
+<a id="a5d61360755ed60b74a0f2f2d3d20062f" name="a5d61360755ed60b74a0f2f2d3d20062f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d61360755ed60b74a0f2f2d3d20062f">&#9670;&#160;</a></span>run_hdma_request()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::run_hdma_request </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a7c7738a8ff23cb800681c86b3a14904f">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>.</p>
+
+</div>
+</div>
+<a id="a85ea843bcb863f12a20df915febfbde0" name="a85ea843bcb863f12a20df915febfbde0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85ea843bcb863f12a20df915febfbde0">&#9670;&#160;</a></span>set_hdma_run_requested()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::set_hdma_run_requested </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a650f4f3c4c7293cdfc92d2e897ef49be">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a33a58e186c22ce300ab3753f1fee3b04">yaze::app::emu::memory::dma::DoHdma()</a>.</p>
+
+</div>
+</div>
+<a id="ac90a2500436bebaf49a089f6c3029752" name="ac90a2500436bebaf49a089f6c3029752"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac90a2500436bebaf49a089f6c3029752">&#9670;&#160;</a></span>set_hdma_init_requested()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::set_hdma_init_requested </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8f7bd28a48b081661e692f00910a31db">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a13816b2a60e51fb6132db6d68938f9ac">yaze::app::emu::memory::dma::InitHdma()</a>.</p>
+
+</div>
+</div>
+<a id="aa5dc4621d4fde9e30499f394be852fef" name="aa5dc4621d4fde9e30499f394be852fef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5dc4621d4fde9e30499f394be852fef">&#9670;&#160;</a></span>set_pal_timing()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::set_pal_timing </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a25b27ffa4487a2a1dcb563b8de3d1789">yaze::app::emu::memory::Memory</a>.</p>
+
+</div>
+</div>
+<a id="a28477c112185a44ca984b89db927d1da" name="a28477c112185a44ca984b89db927d1da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28477c112185a44ca984b89db927d1da">&#9670;&#160;</a></span>set_h_pos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::set_h_pos </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a7b54c55885d06441488800f71510f55a">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589">yaze::app::emu::SNES::Reset()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>.</p>
+
+</div>
+</div>
+<a id="ab41c9716a08560681673c44e782f3078" name="ab41c9716a08560681673c44e782f3078"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab41c9716a08560681673c44e782f3078">&#9670;&#160;</a></span>set_v_pos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::set_v_pos </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3ae61fa633aff27ac7742303ff981866">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589">yaze::app::emu::SNES::Reset()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>.</p>
+
+</div>
+</div>
+<a id="a55a3c413ba1433537809906e517e755a" name="a55a3c413ba1433537809906e517e755a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55a3c413ba1433537809906e517e755a">&#9670;&#160;</a></span>h_pos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::h_pos </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const -&gt; uint16_t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8766c07c07764480cc039549e8977efa">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a3ce9ccc983bd4fce86a2b1371536cee2">yaze::app::emu::SNES::ReadReg()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a185b3030696b68f28a5c0c0fec389ea8">yaze::app::emu::SNES::RunCycles()</a>.</p>
+
+</div>
+</div>
+<a id="a2104491516075f57bc3e59b3d4340549" name="a2104491516075f57bc3e59b3d4340549"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2104491516075f57bc3e59b3d4340549">&#9670;&#160;</a></span>v_pos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::v_pos </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const -&gt; uint16_t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>.</p>
+
+</div>
+</div>
+<a id="ad1c2080e714a5543f6aff7c2c1ae1f63" name="ad1c2080e714a5543f6aff7c2c1ae1f63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1c2080e714a5543f6aff7c2c1ae1f63">&#9670;&#160;</a></span>pal_timing()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::pal_timing </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> const -&gt; bool</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aea072222bdf89643d037ce94425d76b9">yaze::app::emu::memory::Memory</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a">yaze::app::emu::SNES::SetSamples()</a>.</p>
+
+</div>
+</div>
+<a id="aad34e8b2827cf9d89bfabcf3dd7b1957" name="aad34e8b2827cf9d89bfabcf3dd7b1957"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad34e8b2827cf9d89bfabcf3dd7b1957">&#9670;&#160;</a></span>dma_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::dma_state </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> -&gt; uint8_t&amp; </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#ab5c19814c33eb509a14ba19c813371a2">yaze::app::emu::memory::dma::HandleDma()</a>.</p>
+
+</div>
+</div>
+<a id="a22572fa9b665fc15ac90d6c616aee60b" name="a22572fa9b665fc15ac90d6c616aee60b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22572fa9b665fc15ac90d6c616aee60b">&#9670;&#160;</a></span>set_dma_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::memory::MemoryImpl::set_dma_state </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#ab5c19814c33eb509a14ba19c813371a2">yaze::app::emu::memory::dma::HandleDma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5">yaze::app::emu::memory::dma::StartDma()</a>.</p>
+
+</div>
+</div>
+<a id="a27824db4c395c5a49017d5651947a531" name="a27824db4c395c5a49017d5651947a531"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27824db4c395c5a49017d5651947a531">&#9670;&#160;</a></span>dma_channels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::emu::memory::MemoryImpl::dma_channels </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td> -&gt; <a class="el" href="structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html">DmaChannel</a>* </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a4d0117f3f937848d6a137c4eb4ca1649">yaze::app::emu::memory::dma::DoDma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a33a58e186c22ce300ab3753f1fee3b04">yaze::app::emu::memory::dma::DoHdma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a13816b2a60e51fb6132db6d68938f9ac">yaze::app::emu::memory::dma::InitHdma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afa24e8e2a9befbb3775e9521bb925623">yaze::app::emu::memory::dma::Read()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5">yaze::app::emu::memory::dma::StartDma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#abbc688ba1ec96ed247f16a3cc1647083">yaze::app::emu::memory::dma::Write()</a>.</p>
 
 </div>
 </div>
@@ -1374,176 +1765,46 @@ Here is the caller graph for this function:</div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#abf70f608a1e7bb07a1bc52f92c1e36b4">mapping_</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea49edc1f4f9189339cb9eaaae608be17a">yaze::app::emu::memory::PC_ADDRESS</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a614807d9ebf35a042c0fb71f0282c8fb">ReadByte()</a>, <a class="el" href="#a307befbad0e5a585bc5046f011ddd9c9">ReadByteVector()</a>, <a class="el" href="#acf0a6409c95662b9d56669be37e7eccd">ReadWord()</a>, <a class="el" href="#a00225732f63320cba7381bab0149857b">ReadWordLong()</a>, <a class="el" href="#aaed81ca4639961fe4c29074eba6fe0fe">WriteByte()</a>, <a class="el" href="#a17da21b3ebc14c7561835497c351d43b">WriteLong()</a>, and <a class="el" href="#a1705694867401d6ce6516038555684d1">WriteWord()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a5f9577496ef6a8175f3e6e9f526c3cff_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a5f9577496ef6a8175f3e6e9f526c3cff_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a5f9577496ef6a8175f3e6e9f526c3cff_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a5f9577496ef6a8175f3e6e9f526c3cff_icgraph">
-<area shape="rect" title=" " alt="" coords="3191,201,3410,242"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a614807d9ebf35a042c0fb71f0282c8fb" title=" " alt="" coords="2964,136,3124,177"/>
-<area shape="poly" title=" " alt="" coords="3203,200,3124,179,3125,174,3204,194"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a307befbad0e5a585bc5046f011ddd9c9" title=" " alt="" coords="2945,71,3143,111"/>
-<area shape="poly" title=" " alt="" coords="3257,195,3203,160,3142,127,3112,114,3114,110,3144,122,3206,156,3260,190"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="2962,5,3126,46"/>
-<area shape="poly" title=" " alt="" coords="3274,191,3218,126,3181,91,3142,61,3118,49,3120,44,3144,57,3185,87,3222,122,3278,188"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a00225732f63320cba7381bab0149857b" title=" " alt="" coords="2947,201,3141,242"/>
-<area shape="poly" title=" " alt="" coords="3175,224,3141,224,3141,219,3175,219"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#aaed81ca4639961fe4c29074eba6fe0fe" title=" " alt="" coords="2964,267,3124,307"/>
-<area shape="poly" title=" " alt="" coords="3204,249,3125,269,3124,264,3203,244"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a17da21b3ebc14c7561835497c351d43b" title=" " alt="" coords="2962,332,3126,373"/>
-<area shape="poly" title=" " alt="" coords="3260,253,3206,288,3144,321,3114,334,3112,329,3142,317,3203,283,3257,249"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a1705694867401d6ce6516038555684d1" title=" " alt="" coords="2962,397,3126,438"/>
-<area shape="poly" title=" " alt="" coords="3278,256,3222,322,3185,356,3144,387,3120,399,3118,394,3142,382,3181,352,3218,318,3274,252"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303" title=" " alt="" coords="2706,136,2870,177"/>
-<area shape="poly" title=" " alt="" coords="2948,159,2870,159,2870,154,2948,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a6d5dc588d6268b617546a4ced13ad98b" title=" " alt="" coords="2679,27,2897,83"/>
-<area shape="poly" title=" " alt="" coords="2946,40,2897,45,2897,40,2946,34"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ae3bf729759c4e191972a5ad3fca4e5a7" title=" " alt="" coords="2414,122,2631,178"/>
-<area shape="poly" title=" " alt="" coords="2694,91,2604,124,2602,119,2693,86"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6" title=" " alt="" coords="2149,150,2366,206"/>
-<area shape="poly" title=" " alt="" coords="2399,165,2367,169,2366,164,2398,160"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab9991a4d7673044078d2c530fa3149ab" title=" " alt="" coords="1869,161,2101,202"/>
-<area shape="poly" title=" " alt="" coords="2133,182,2101,183,2101,177,2133,177"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aabfd9ffe70c9373316e34e19c04527f2" title=" " alt="" coords="1611,165,1821,206"/>
-<area shape="poly" title=" " alt="" coords="1854,186,1822,187,1822,181,1854,181"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad76ae6efb9d5fea979a9d41ddfdd9d67" title=" " alt="" coords="1359,165,1563,220"/>
-<area shape="poly" title=" " alt="" coords="1596,191,1563,192,1563,187,1595,186"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa1996432de42e435b2aebfda3d7346b6" title=" " alt="" coords="1157,183,1311,223"/>
-<area shape="poly" title=" " alt="" coords="1344,201,1311,202,1311,197,1343,195"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,223,1109,263"/>
-<area shape="poly" title=" " alt="" coords="1143,224,1110,231,1109,226,1141,219"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,223,919,263"/>
-<area shape="poly" title=" " alt="" coords="951,246,920,246,920,240,951,240"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,230,705,256"/>
-<area shape="poly" title=" " alt="" coords="737,246,705,246,705,240,737,240"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,215,388,271"/>
-<area shape="poly" title=" " alt="" coords="640,241,607,238,493,236,388,240,388,234,493,231,607,232,640,235"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,247,607,303"/>
-<area shape="poly" title=" " alt="" coords="640,254,608,260,607,255,639,248"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,215,173,271"/>
-<area shape="poly" title=" " alt="" coords="205,246,173,246,173,240,205,240"/>
-<area shape="poly" title=" " alt="" coords="420,263,388,258,389,253,421,257"/>
-<area shape="poly" title=" " alt="" coords="2951,261,2943,256,2927,239,2918,223,2910,207,2895,192,2869,178,2871,173,2898,188,2915,204,2923,220,2931,236,2946,252,2954,257"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35" title=" " alt="" coords="2714,344,2862,385"/>
-<area shape="poly" title=" " alt="" coords="2960,315,2859,346,2857,341,2959,310"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a5e25512e78d359ea3a93a6d45fc461e0" title=" " alt="" coords="2717,267,2859,307"/>
-<area shape="poly" title=" " alt="" coords="2948,290,2859,290,2859,284,2948,284"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a9953de1a3fe2bdf0614b94d216729f30" title=" " alt="" coords="2717,201,2859,242"/>
-<area shape="poly" title=" " alt="" coords="2948,265,2859,242,2860,237,2949,260"/>
-<area shape="rect" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057" title=" " alt="" coords="2461,368,2584,409"/>
-<area shape="poly" title=" " alt="" coords="2699,375,2585,385,2585,380,2699,370"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#ad4baea4deebf6b7bb0ca845be47b443f" title=" " alt="" coords="2427,318,2618,344"/>
-<area shape="poly" title=" " alt="" coords="2698,356,2618,346,2619,340,2699,351"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0" title=" " alt="" coords="2162,256,2353,297"/>
-<area shape="poly" title=" " alt="" coords="2442,317,2353,299,2354,293,2443,312"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33" title=" " alt="" coords="1621,253,1812,294"/>
-<area shape="poly" title=" " alt="" coords="2147,278,1812,277,1812,271,2147,273"/>
-<area shape="poly" title=" " alt="" coords="1604,271,1110,249,1110,244,1605,266"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a8486f8369bdac2c79be7616be60ecf79" title=" " alt="" coords="2452,253,2594,294"/>
-<area shape="poly" title=" " alt="" coords="2701,285,2594,280,2594,275,2701,280"/>
-<area shape="poly" title=" " alt="" coords="2946,400,2862,382,2863,377,2947,395"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a254e2d009ba5adfa72354aa8870fccb8" name="a254e2d009ba5adfa72354aa8870fccb8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a254e2d009ba5adfa72354aa8870fccb8">&#9670;&#160;</a></span>NotifyObservers()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::memory::MemoryImpl::NotifyObservers </td>
-          <td>(</td>
-          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>address</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>data</em></span>&#160;) const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a6ea2f1891a7aed682224eec5ac007882">data()</a>, and <a class="el" href="#ae8b9a3700764799dbfa8042e113ec74c">observers_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a614807d9ebf35a042c0fb71f0282c8fb">ReadByte()</a>, <a class="el" href="#a307befbad0e5a585bc5046f011ddd9c9">ReadByteVector()</a>, <a class="el" href="#acf0a6409c95662b9d56669be37e7eccd">ReadWord()</a>, and <a class="el" href="#a00225732f63320cba7381bab0149857b">ReadWordLong()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_cgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,204,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a6ea2f1891a7aed682224eec5ac007882" title=" " alt="" coords="252,5,409,46"/>
-<area shape="poly" title=" " alt="" coords="204,23,236,23,236,28,204,28"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_icgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_icgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_icgraph" id="aclassyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl_a254e2d009ba5adfa72354aa8870fccb8_icgraph">
-<area shape="rect" title=" " alt="" coords="3191,104,3389,145"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a614807d9ebf35a042c0fb71f0282c8fb" title=" " alt="" coords="2964,5,3124,46"/>
-<area shape="poly" title=" " alt="" coords="3230,100,3142,61,3108,49,3110,44,3144,57,3233,95"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a307befbad0e5a585bc5046f011ddd9c9" title=" " alt="" coords="2945,71,3143,111"/>
-<area shape="poly" title=" " alt="" coords="3175,111,3143,107,3144,102,3176,106"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="2962,136,3126,177"/>
-<area shape="poly" title=" " alt="" coords="3176,142,3127,148,3126,143,3175,137"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a00225732f63320cba7381bab0149857b" title=" " alt="" coords="2947,201,3141,242"/>
-<area shape="poly" title=" " alt="" coords="3231,154,3144,191,3110,203,3108,198,3142,186,3229,149"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a4036141af8b33b4ff9906a1a6a602303" title=" " alt="" coords="2706,5,2870,46"/>
-<area shape="poly" title=" " alt="" coords="2948,28,2870,28,2870,23,2948,23"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a6d5dc588d6268b617546a4ced13ad98b" title=" " alt="" coords="2679,129,2897,184"/>
-<area shape="poly" title=" " alt="" coords="2946,159,2897,159,2897,154,2946,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#ae3bf729759c4e191972a5ad3fca4e5a7" title=" " alt="" coords="2414,129,2631,184"/>
-<area shape="poly" title=" " alt="" coords="2663,159,2632,159,2632,154,2663,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6" title=" " alt="" coords="2149,129,2366,184"/>
-<area shape="poly" title=" " alt="" coords="2398,159,2367,159,2367,154,2398,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab9991a4d7673044078d2c530fa3149ab" title=" " alt="" coords="1869,136,2101,177"/>
-<area shape="poly" title=" " alt="" coords="2133,159,2101,159,2101,154,2133,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aabfd9ffe70c9373316e34e19c04527f2" title=" " alt="" coords="1611,136,1821,177"/>
-<area shape="poly" title=" " alt="" coords="1854,159,1822,159,1822,154,1854,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad76ae6efb9d5fea979a9d41ddfdd9d67" title=" " alt="" coords="1359,129,1563,184"/>
-<area shape="poly" title=" " alt="" coords="1595,159,1563,159,1563,154,1595,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa1996432de42e435b2aebfda3d7346b6" title=" " alt="" coords="1157,136,1311,177"/>
-<area shape="poly" title=" " alt="" coords="1343,159,1311,159,1311,154,1343,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16" title=" " alt="" coords="967,136,1109,177"/>
-<area shape="poly" title=" " alt="" coords="1142,159,1109,159,1109,154,1142,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0" title=" " alt="" coords="753,136,919,177"/>
-<area shape="poly" title=" " alt="" coords="951,159,920,159,920,154,951,154"/>
-<area shape="rect" href="yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="655,144,705,169"/>
-<area shape="poly" title=" " alt="" coords="737,159,705,159,705,154,737,154"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b" title=" " alt="" coords="221,129,388,184"/>
-<area shape="poly" title=" " alt="" coords="640,154,607,151,493,149,388,153,388,148,493,144,607,146,640,149"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d" title=" " alt="" coords="436,161,607,216"/>
-<area shape="poly" title=" " alt="" coords="640,167,608,173,607,168,639,162"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ae92286a9910136f008547268b1e6e415" title=" " alt="" coords="5,129,173,184"/>
-<area shape="poly" title=" " alt="" coords="205,159,173,159,173,154,205,154"/>
-<area shape="poly" title=" " alt="" coords="420,176,388,171,389,166,421,171"/>
-</map>
-</div>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="ad5304c7686fdf1fbaed57c6d528b7d7a" name="ad5304c7686fdf1fbaed57c6d528b7d7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5304c7686fdf1fbaed57c6d528b7d7a">&#9670;&#160;</a></span>romSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::emu::memory::MemoryImpl::romSize</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>, and <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
+
+</div>
+</div>
+<a id="aadc2939160052f09d740e334fcfc2878" name="aadc2939160052f09d740e334fcfc2878"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aadc2939160052f09d740e334fcfc2878">&#9670;&#160;</a></span>sramSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::emu::memory::MemoryImpl::sramSize</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>, <a class="el" href="#ae0baebf0f0c203c7888cec15a7b7d617">cart_writeHirom()</a>, <a class="el" href="#a50a859e729ae3fda4dd5a100121bdc20">cart_writeLorom()</a>, and <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
+
+</div>
+</div>
 <a id="a64f06f24045b90e93dbf12826fd69309" name="a64f06f24045b90e93dbf12826fd69309"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a64f06f24045b90e93dbf12826fd69309">&#9670;&#160;</a></span>rom_</h2>
 
@@ -1556,7 +1817,7 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>, and <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1572,39 +1833,7 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>, and <a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize()</a>.</p>
-
-</div>
-</div>
-<a id="a0736b7d9e873a0d12f0708c6c2d52a02" name="a0736b7d9e873a0d12f0708c6c2d52a02"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0736b7d9e873a0d12f0708c6c2d52a02">&#9670;&#160;</a></span>vram_</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::emu::memory::MemoryImpl::vram_</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize()</a>.</p>
-
-</div>
-</div>
-<a id="ac37f552ff8d6de8fbf0bedd22beb8e2b" name="ac37f552ff8d6de8fbf0bedd22beb8e2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac37f552ff8d6de8fbf0bedd22beb8e2b">&#9670;&#160;</a></span>oam_</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::emu::memory::MemoryImpl::oam_</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>, <a class="el" href="#ae0baebf0f0c203c7888cec15a7b7d617">cart_writeHirom()</a>, <a class="el" href="#a50a859e729ae3fda4dd5a100121bdc20">cart_writeLorom()</a>, and <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1628,12 +1857,12 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
 
 </div>
 </div>
-<a id="ae8b9a3700764799dbfa8042e113ec74c" name="ae8b9a3700764799dbfa8042e113ec74c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae8b9a3700764799dbfa8042e113ec74c">&#9670;&#160;</a></span>observers_</h2>
+<a id="aa24af0b6ff5f13a91a3411e066088bf7" name="aa24af0b6ff5f13a91a3411e066088bf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa24af0b6ff5f13a91a3411e066088bf7">&#9670;&#160;</a></span>hdma_run_requested_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1642,7 +1871,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html">Observer</a>*&gt; yaze::app::emu::memory::MemoryImpl::observers_</td>
+          <td class="memname">bool yaze::app::emu::memory::MemoryImpl::hdma_run_requested_ = false</td>
         </tr>
       </table>
   </td>
@@ -1652,12 +1881,10 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a20767f056967ac7e8aed8b45bfcbb96d">AddObserver()</a>, and <a class="el" href="#a254e2d009ba5adfa72354aa8870fccb8">NotifyObservers()</a>.</p>
-
 </div>
 </div>
-<a id="a09aa0256237119486b7e19490821bca6" name="a09aa0256237119486b7e19490821bca6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a09aa0256237119486b7e19490821bca6">&#9670;&#160;</a></span>memory_</h2>
+<a id="ae3a1d940b99d76a16c4dc8a3358e0c80" name="ae3a1d940b99d76a16c4dc8a3358e0c80"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3a1d940b99d76a16c4dc8a3358e0c80">&#9670;&#160;</a></span>hdma_init_requested_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1666,7 +1893,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::emu::memory::MemoryImpl::memory_</td>
+          <td class="memname">bool yaze::app::emu::memory::MemoryImpl::hdma_init_requested_ = false</td>
         </tr>
       </table>
   </td>
@@ -1676,7 +1903,139 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5a84de21b10baf854858ef8d4e464b74">at()</a>, <a class="el" href="#ad6d5a8370d022dcad6facccb0377bddc">begin()</a>, <a class="el" href="#a83e9f3e11abb6bab46e532b4906e2944">ClearMemory()</a>, <a class="el" href="#a6ea2f1891a7aed682224eec5ac007882">data()</a>, <a class="el" href="#a46132400c7395ec5cbfbe8d548edc508">end()</a>, <a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize()</a>, <a class="el" href="#af3653f4e98bbc402b5cc0da36c92e9a7">operator[]()</a>, <a class="el" href="#ac0347823c59999288393b7b2f90e0f0c">PopByte()</a>, <a class="el" href="#ae328d319170e1bb4e36596597012ac0b">PushByte()</a>, <a class="el" href="#a614807d9ebf35a042c0fb71f0282c8fb">ReadByte()</a>, <a class="el" href="#a307befbad0e5a585bc5046f011ddd9c9">ReadByteVector()</a>, <a class="el" href="#acf0a6409c95662b9d56669be37e7eccd">ReadWord()</a>, <a class="el" href="#a00225732f63320cba7381bab0149857b">ReadWordLong()</a>, <a class="el" href="#affd9a10492d71ad80854995ac0932c54">size()</a>, <a class="el" href="#aaed81ca4639961fe4c29074eba6fe0fe">WriteByte()</a>, <a class="el" href="#a17da21b3ebc14c7561835497c351d43b">WriteLong()</a>, and <a class="el" href="#a1705694867401d6ce6516038555684d1">WriteWord()</a>.</p>
+</div>
+</div>
+<a id="a1870b1e038f8597aed24279eb8d8e8ce" name="a1870b1e038f8597aed24279eb8d8e8ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1870b1e038f8597aed24279eb8d8e8ce">&#9670;&#160;</a></span>pal_timing_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::app::emu::memory::MemoryImpl::pal_timing_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac7c0fb17442e6acf8133588708a6db9c" name="ac7c0fb17442e6acf8133588708a6db9c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7c0fb17442e6acf8133588708a6db9c">&#9670;&#160;</a></span>h_pos_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t yaze::app::emu::memory::MemoryImpl::h_pos_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a855d72fad097959a089c4c63975e78d6" name="a855d72fad097959a089c4c63975e78d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a855d72fad097959a089c4c63975e78d6">&#9670;&#160;</a></span>v_pos_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t yaze::app::emu::memory::MemoryImpl::v_pos_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a180f13379b58791162a16ebb903c5afe" name="a180f13379b58791162a16ebb903c5afe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a180f13379b58791162a16ebb903c5afe">&#9670;&#160;</a></span>dma_state_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::dma_state_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5e08cf1ce2569c1da704b71ca55655b9" name="a5e08cf1ce2569c1da704b71ca55655b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e08cf1ce2569c1da704b71ca55655b9">&#9670;&#160;</a></span>channel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html">DmaChannel</a> yaze::app::emu::memory::MemoryImpl::channel[8]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af429b465bbcd3def1bc06140c2aaae3c" name="af429b465bbcd3def1bc06140c2aaae3c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af429b465bbcd3def1bc06140c2aaae3c">&#9670;&#160;</a></span>open_bus_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::open_bus_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read()</a>, <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, and <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>.</p>
 
 </div>
 </div>
@@ -1700,12 +2059,10 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ac0347823c59999288393b7b2f90e0f0c">PopByte()</a>, <a class="el" href="#ae328d319170e1bb4e36596597012ac0b">PushByte()</a>, <a class="el" href="#a9dabdd4a0211342ca3a5a60dfd68a83f">SetSP()</a>, and <a class="el" href="#a72a7125301245e45420cfe799e912354">SP()</a>.</p>
-
 </div>
 </div>
-<a id="abf70f608a1e7bb07a1bc52f92c1e36b4" name="abf70f608a1e7bb07a1bc52f92c1e36b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf70f608a1e7bb07a1bc52f92c1e36b4">&#9670;&#160;</a></span>mapping_</h2>
+<a id="a413d1f638a1b8783a664c37f87de58ef" name="a413d1f638a1b8783a664c37f87de58ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a413d1f638a1b8783a664c37f87de58ef">&#9670;&#160;</a></span>type_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1714,7 +2071,7 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fe">MemoryMapping</a> yaze::app::emu::memory::MemoryImpl::mapping_ = <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea64e15c21526b420626337cdf8e902c3c">MemoryMapping::SNES_LOROM</a></td>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::type_</td>
         </tr>
       </table>
   </td>
@@ -1724,12 +2081,37 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5f9577496ef6a8175f3e6e9f526c3cff">GetMappedAddress()</a>, and <a class="el" href="#aa642c0cb44257a313d5ce349edb363df">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read()</a>, and <a class="el" href="#aeb79d1be4fd6045eb72f44b7e2bc12f9">cart_write()</a>.</p>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<a id="a09aa0256237119486b7e19490821bca6" name="a09aa0256237119486b7e19490821bca6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09aa0256237119486b7e19490821bca6">&#9670;&#160;</a></span>memory_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::emu::memory::MemoryImpl::memory_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/emu/memory/<a class="el" href="memory_8h_source.html">memory.h</a></li>
+<li>src/app/emu/memory/<a class="el" href="memory_8cc.html">memory.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

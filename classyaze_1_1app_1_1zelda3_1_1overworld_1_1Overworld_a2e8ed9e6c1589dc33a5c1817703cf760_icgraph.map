@@ -1,5 +1,0 @@
-<map id="yaze::app::zelda3::overworld::Overworld::DecompressProtoMapTiles" name="yaze::app::zelda3::overworld::Overworld::DecompressProtoMapTiles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="196,5,380,61"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a8a7e2c53b269b69dcc5b24efc79ab72b" title=" " alt="" coords="5,5,148,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,36,148,36,148,31,180,31"/>
-</map>

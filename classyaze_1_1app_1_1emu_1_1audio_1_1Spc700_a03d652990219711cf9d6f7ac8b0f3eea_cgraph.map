@@ -1,8 +1,5 @@
 <map id="yaze::app::emu::audio::Spc700::addr_plus_i_indexed" name="yaze::app::emu::audio::Spc700::addr_plus_i_indexed">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,149,78"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017" title=" " alt="" coords="197,29,339,70"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,47,181,47,181,52,149,52"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="231,29,230,19,236,10,249,5,268,3,289,5,301,11,299,16,287,10,268,8,250,10,239,15,235,20,237,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#a76190c7cd6dd60be18f60576f007cb46" title=" " alt="" coords="387,29,529,70"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="340,47,372,47,372,52,340,52"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,149,61"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017" title=" " alt="" coords="197,13,339,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,31,181,31,181,36,149,36"/>
 </map>

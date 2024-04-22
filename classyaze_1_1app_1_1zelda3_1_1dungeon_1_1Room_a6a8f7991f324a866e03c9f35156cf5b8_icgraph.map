@@ -1,5 +1,0 @@
-<map id="yaze::app::zelda3::dungeon::Room::room_size" name="yaze::app::zelda3::dungeon::Room::room_size">
-<area shape="rect" id="Node000001" title=" " alt="" coords="241,5,416,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ad6d8a1fb08cfe8ae312b1220fd6ab3eb" title=" " alt="" coords="5,5,193,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,28,193,28,193,23,225,23"/>
-</map>

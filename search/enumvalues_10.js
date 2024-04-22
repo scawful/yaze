@@ -18,14 +18,12 @@ var searchData=
   ['size_5f8_5fmbit_15',['SIZE_8_MBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a8746750561338b2f964f81499005963ca47d98b6e45441d43ace22338773d716e',1,'yaze::app::emu::memory']]],
   ['slider_16',['Slider',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a2d9b9a764fb0be4be10e1b2fce63f561',1,'yaze::app::gui::zeml']]],
   ['slow_5from_17',['SLOW_ROM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#af9424b79590fad583d381935a03cb4b9a57959afe6aaafebd838308c358d47c1b',1,'yaze::app::emu::memory']]],
-  ['snes_5florom_18',['SNES_LOROM',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a9a75d43d4cf258d8bc3b4901cb1ba7fea64e15c21526b420626337cdf8e902c3c',1,'yaze::app::emu::memory']]],
-  ['sortstairs_19',['SortStairs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae74cd2151daef72e4f50e4c6e05df1f1',1,'yaze::app::zelda3::dungeon']]],
-  ['sprites_20',['SPRITES',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fa05a245c75cdf9b6a708bad83456be7be',1,'yaze::app::editor::OverworldEditor']]],
-  ['sram_5f16_5fkbit_21',['SRAM_16_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1add6897099a27180343e5aea5dfe36017',1,'yaze::app::emu::memory']]],
-  ['sram_5f32_5fkbit_22',['SRAM_32_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1af2781a1fc8478f4ccb59b52689028233',1,'yaze::app::emu::memory']]],
-  ['sram_5f64_5fkbit_23',['SRAM_64_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1a639ff04505dc710ee0436422e55ad043',1,'yaze::app::emu::memory']]],
-  ['stairs_24',['Stairs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaec2c59a8ff9de88501730a1193b164b9',1,'yaze::app::zelda3::dungeon']]],
-  ['step_25',['Step',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8a48c7c41b72e1d678923ce3571aa65b2d',1,'yaze::app::emu::Cpu']]],
-  ['string_26',['String',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a06f18a00b63cc01c30a59b40e16297bea27118326006d3829667a400ad23d5d98',1,'yaze::app::gui::zeml']]],
-  ['sustain_27',['SUSTAIN',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a113b1c56f348bb5c98f16634b8e46689a76f908385924681f5c38b86f4c41b759',1,'yaze::app::emu::audio::Dsp']]]
+  ['sortstairs_18',['SortStairs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae74cd2151daef72e4f50e4c6e05df1f1',1,'yaze::app::zelda3::dungeon']]],
+  ['sprites_19',['SPRITES',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fa05a245c75cdf9b6a708bad83456be7be',1,'yaze::app::editor::OverworldEditor']]],
+  ['sram_5f16_5fkbit_20',['SRAM_16_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1add6897099a27180343e5aea5dfe36017',1,'yaze::app::emu::memory']]],
+  ['sram_5f32_5fkbit_21',['SRAM_32_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1af2781a1fc8478f4ccb59b52689028233',1,'yaze::app::emu::memory']]],
+  ['sram_5f64_5fkbit_22',['SRAM_64_KBIT',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#ae1f596ac5f8a1e7501c140f8415a11e1a639ff04505dc710ee0436422e55ad043',1,'yaze::app::emu::memory']]],
+  ['stairs_23',['Stairs',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145daaec2c59a8ff9de88501730a1193b164b9',1,'yaze::app::zelda3::dungeon']]],
+  ['step_24',['Step',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8a48c7c41b72e1d678923ce3571aa65b2d',1,'yaze::app::emu::Cpu']]],
+  ['string_25',['String',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a06f18a00b63cc01c30a59b40e16297bea27118326006d3829667a400ad23d5d98',1,'yaze::app::gui::zeml']]]
 ];

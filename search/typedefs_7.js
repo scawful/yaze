@@ -1,6 +1,11 @@
 var searchData=
 [
-  ['uchar_0',['uchar',['../constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21',1,'constants.h']]],
-  ['uint_1',['uint',['../constants_8h.html#a69aa29b598b851b0640aa225a9e5d61d',1,'constants.h']]],
-  ['ushort_2',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]]
+  ['sampleedit_0',['SampleEdit',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#aa04d07eb2b4d97ae99d0421370f23a84',1,'yaze::app::zelda3::music']]],
+  ['snes_5fcolor_1',['snes_color',['../namespaceyaze_1_1app_1_1gfx.html#a11bb1075953f57bafc5d9205682ea50e',1,'yaze::app::gfx']]],
+  ['snes_5fpalette_2',['snes_palette',['../namespaceyaze_1_1app_1_1gfx.html#a2431c9510c885b5698d5aaac4d7e3094',1,'yaze::app::gfx']]],
+  ['song_3',['Song',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a9c6669c5e833cfd1c94ddf5ca2581a30',1,'yaze::app::zelda3::music']]],
+  ['songpart_4',['SongPart',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a98cdd85309c1dc75eba79a75d551ec4e',1,'yaze::app::zelda3::music']]],
+  ['songrange_5',['SongRange',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#ad5f4eb2ab2baf68c9346230e1a6904e0',1,'yaze::app::zelda3::music']]],
+  ['songspcblock_6',['SongSPCBlock',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#a603a4a83eb4d9dfde0c14d3acc6f42ab',1,'yaze::app::zelda3::music']]],
+  ['spccommand_7',['SPCCommand',['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#ac53e684fc25368f7b89cb6f647606eee',1,'yaze::app::zelda3::music']]]
 ];

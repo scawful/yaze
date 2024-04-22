@@ -1,8 +1,0 @@
-<map id="yaze::app::gui::Canvas::custom_labels_enabled" name="yaze::app::gui::Canvas::custom_labels_enabled">
-<area shape="rect" id="Node000001" title=" " alt="" coords="396,35,559,75"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#ae260891d3ef076ec09fbc9866132cd77" title=" " alt="" coords="191,5,348,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="380,44,348,39,349,34,381,39"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html#afea4cb552d027833add7e5f7851ffffb" title=" " alt="" coords="5,35,143,75"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="380,60,348,60,191,60,143,59,143,54,191,55,348,55,380,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="176,42,143,47,142,42,175,37"/>
-</map>

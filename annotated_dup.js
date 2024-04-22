@@ -41,18 +41,21 @@ var annotated_dup =
         [ "emu", "namespaceyaze_1_1app_1_1emu.html", [
           [ "audio", "namespaceyaze_1_1app_1_1emu_1_1audio.html", [
             [ "Apu", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu" ],
+            [ "ApuCallbacks", "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html", "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks" ],
             [ "AudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam" ],
             [ "AudioRamImpl", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl" ],
             [ "Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp" ],
-            [ "Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700" ]
+            [ "DspChannel", "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html", "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel" ],
+            [ "Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700" ],
+            [ "Timer", "structyaze_1_1app_1_1emu_1_1audio_1_1Timer.html", "structyaze_1_1app_1_1emu_1_1audio_1_1Timer" ]
           ] ],
           [ "memory", "namespaceyaze_1_1app_1_1emu_1_1memory.html", [
-            [ "DirectMemoryAccess", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess.html", "classyaze_1_1app_1_1emu_1_1memory_1_1DirectMemoryAccess" ],
+            [ "CpuCallbacks", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks" ],
+            [ "DmaChannel", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel" ],
             [ "Memory", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html", "classyaze_1_1app_1_1emu_1_1memory_1_1Memory" ],
             [ "MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl" ],
             [ "MockClock", "classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html", "classyaze_1_1app_1_1emu_1_1memory_1_1MockClock" ],
             [ "MockMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory" ],
-            [ "Observer", "classyaze_1_1app_1_1emu_1_1memory_1_1Observer.html", "classyaze_1_1app_1_1emu_1_1memory_1_1Observer" ],
             [ "RomInfo", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo" ]
           ] ],
           [ "video", "namespaceyaze_1_1app_1_1emu_1_1video.html", [
@@ -112,11 +115,13 @@ var annotated_dup =
               [ "WOBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL" ]
             ] ],
             [ "BackgroundLayer", "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html", "structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer" ],
+            [ "BgLayer", "structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html", "structyaze_1_1app_1_1emu_1_1video_1_1BgLayer" ],
             [ "CharacterLocation", "structyaze_1_1app_1_1emu_1_1video_1_1CharacterLocation.html", "structyaze_1_1app_1_1emu_1_1video_1_1CharacterLocation" ],
             [ "Color", "structyaze_1_1app_1_1emu_1_1video_1_1Color.html", "structyaze_1_1app_1_1emu_1_1video_1_1Color" ],
             [ "CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters" ],
             [ "DmaRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters" ],
             [ "JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters" ],
+            [ "Layer", "structyaze_1_1app_1_1emu_1_1video_1_1Layer.html", "structyaze_1_1app_1_1emu_1_1video_1_1Layer" ],
             [ "MainSubScreenDesignation", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html", "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation" ],
             [ "MaskLogicSettings", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html", "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings" ],
             [ "OAMAddress", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress" ],
@@ -132,6 +137,7 @@ var annotated_dup =
             [ "TilemapEntry", "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html", "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry" ],
             [ "TileMapLocation", "structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation.html", "structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation" ],
             [ "VideoPortControl", "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html", "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl" ],
+            [ "WindowLayer", "structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html", "structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer" ],
             [ "WindowMaskSettings", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings" ],
             [ "WindowMaskSettings2", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html", "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2" ],
             [ "WindowPosition", "structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html", "structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition" ],
@@ -143,6 +149,7 @@ var annotated_dup =
           [ "Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", "classyaze_1_1app_1_1emu_1_1Cpu" ],
           [ "Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", "classyaze_1_1app_1_1emu_1_1Debugger" ],
           [ "Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", "classyaze_1_1app_1_1emu_1_1Emulator" ],
+          [ "Input", "structyaze_1_1app_1_1emu_1_1Input.html", "structyaze_1_1app_1_1emu_1_1Input" ],
           [ "InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", "classyaze_1_1app_1_1emu_1_1InstructionEntry" ],
           [ "Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", "classyaze_1_1app_1_1emu_1_1Loggable" ],
           [ "Logger", "classyaze_1_1app_1_1emu_1_1Logger.html", "classyaze_1_1app_1_1emu_1_1Logger" ],

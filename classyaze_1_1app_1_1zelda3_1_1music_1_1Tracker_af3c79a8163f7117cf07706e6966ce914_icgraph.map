@@ -1,6 +1,0 @@
-<map id="yaze::app::zelda3::music::Tracker::SaveSPCCommand" name="yaze::app::zelda3::music::Tracker::SaveSPCCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="233,29,461,70"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="388,16,373,10,347,8,323,10,308,15,302,21,305,28,300,29,297,19,305,10,322,5,347,3,374,5,390,11"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3c65ab80b58c071457f243066c294ab6" title=" " alt="" coords="5,29,185,70"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,52,185,52,185,47,217,47"/>
-</map>

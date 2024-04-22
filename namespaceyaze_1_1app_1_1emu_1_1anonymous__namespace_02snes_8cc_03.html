@@ -107,44 +107,71 @@ $(function(){initNavTree('namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a7cc2b521f0ca37fa3351bb0452e397b5" id="r_a7cc2b521f0ca37fa3351bb0452e397b5"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7cc2b521f0ca37fa3351bb0452e397b5">GetHeaderOffset</a> (const <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html">Memory</a> &amp;memory)</td></tr>
-<tr class="separator:a7cc2b521f0ca37fa3351bb0452e397b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae723effd7ed469f002c818eb4ad7ff8" id="r_aae723effd7ed469f002c818eb4ad7ff8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae723effd7ed469f002c818eb4ad7ff8">input_latch</a> (<a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html">Input</a> *input, bool value)</td></tr>
+<tr class="separator:aae723effd7ed469f002c818eb4ad7ff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81d0f6f44caa1180f02c65980a9bc7e9" id="r_a81d0f6f44caa1180f02c65980a9bc7e9"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81d0f6f44caa1180f02c65980a9bc7e9">input_read</a> (<a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html">Input</a> *input)</td></tr>
+<tr class="separator:a81d0f6f44caa1180f02c65980a9bc7e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a7cc2b521f0ca37fa3351bb0452e397b5" name="a7cc2b521f0ca37fa3351bb0452e397b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7cc2b521f0ca37fa3351bb0452e397b5">&#9670;&#160;</a></span>GetHeaderOffset()</h2>
+<a id="aae723effd7ed469f002c818eb4ad7ff8" name="aae723effd7ed469f002c818eb4ad7ff8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae723effd7ed469f002c818eb4ad7ff8">&#9670;&#160;</a></span>input_latch()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint16_t yaze::app::emu::anonymous_namespace{snes.cc}::GetHeaderOffset </td>
+          <td class="memname">void yaze::app::emu::anonymous_namespace{snes.cc}::input_latch </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html">Memory</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>memory</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html">Input</a> *</td>          <td class="paramname"><span class="paramname"><em>input</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html#afd35285297f0642a4313e793854a364f">yaze::app::emu::Input::currentState</a>, <a class="el" href="#aae723effd7ed469f002c818eb4ad7ff8">input_latch()</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html#a4d04dac71a38a62e99e6b3803aa1499b">yaze::app::emu::Input::latchedState</a>, and <a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html#a5e4ff2fb4a4c1388c0cc0fd7b49ce43c">yaze::app::emu::Input::latchLine</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#aae723effd7ed469f002c818eb4ad7ff8">input_latch()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_aae723effd7ed469f002c818eb4ad7ff8_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_aae723effd7ed469f002c818eb4ad7ff8_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_aae723effd7ed469f002c818eb4ad7ff8_cgraph" id="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_aae723effd7ed469f002c818eb4ad7ff8_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,226,70"/>
+<area shape="poly" title=" " alt="" coords="74,29,72,19,79,10,93,5,116,3,139,5,154,11,151,16,138,10,115,8,95,10,82,15,77,21,79,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a81d0f6f44caa1180f02c65980a9bc7e9" name="a81d0f6f44caa1180f02c65980a9bc7e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81d0f6f44caa1180f02c65980a9bc7e9">&#9670;&#160;</a></span>input_read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::app::emu::anonymous_namespace{snes.cc}::input_read </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html">Input</a> *</td>          <td class="paramname"><span class="paramname"><em>input</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a7cc2b521f0ca37fa3351bb0452e397b5">GetHeaderOffset()</a>.</p>
+<p class="reference">References <a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html#afd35285297f0642a4313e793854a364f">yaze::app::emu::Input::currentState</a>, <a class="el" href="#a81d0f6f44caa1180f02c65980a9bc7e9">input_read()</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html#a4d04dac71a38a62e99e6b3803aa1499b">yaze::app::emu::Input::latchedState</a>, and <a class="el" href="structyaze_1_1app_1_1emu_1_1Input.html#a5e4ff2fb4a4c1388c0cc0fd7b49ce43c">yaze::app::emu::Input::latchLine</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a7cc2b521f0ca37fa3351bb0452e397b5">GetHeaderOffset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a81d0f6f44caa1180f02c65980a9bc7e9">input_read()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_cgraph" id="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_cgraph">
-<area shape="rect" title=" " alt="" coords="5,29,226,85"/>
-<area shape="poly" title=" " alt="" coords="72,29,73,19,81,10,95,5,116,3,139,5,153,12,151,17,137,10,115,8,96,10,84,15,78,21,77,29"/>
-</map>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_icgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_icgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_icgraph" id="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a7cc2b521f0ca37fa3351bb0452e397b5_icgraph">
-<area shape="rect" title=" " alt="" coords="5,29,226,85"/>
-<area shape="poly" title=" " alt="" coords="151,17,137,10,115,8,96,10,84,15,78,21,77,29,72,29,73,19,81,10,95,5,116,3,139,5,153,12"/>
+<div class="center"><img src="namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a81d0f6f44caa1180f02c65980a9bc7e9_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a81d0f6f44caa1180f02c65980a9bc7e9_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a81d0f6f44caa1180f02c65980a9bc7e9_cgraph" id="anamespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02snes_8cc_03_a81d0f6f44caa1180f02c65980a9bc7e9_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,223,70"/>
+<area shape="poly" title=" " alt="" coords="73,29,71,19,78,10,92,5,114,3,138,5,152,11,149,16,136,10,114,8,93,10,81,15,76,21,78,28"/>
 </map>
 </div>
 
