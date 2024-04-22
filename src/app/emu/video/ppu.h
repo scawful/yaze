@@ -300,10 +300,11 @@ class Ppu : public SharedRom {
   void Init() {
     clock_.SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
+    pixelOutputFormat = 1;
   }
 
   // Resets the PPU to its initial state
-  void Reset() { std::fill(frame_buffer_.begin(), frame_buffer_.end(), 0); }
+  void Reset();
 
   // Runs the PPU for one frame.
   void Update();
@@ -452,7 +453,7 @@ class Ppu : public SharedRom {
   // pixel buffer (xbgr)
   // times 2 for even and odd frame
   uint8_t pixelBuffer[512 * 4 * 239 * 2];
-  uint8_t pixelOutputFormat;
+  uint8_t pixelOutputFormat = 0;
 
   // latching
   uint16_t hCount;
