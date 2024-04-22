@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['b_0',['B',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#ac06af9a25b9d1c30f611984f26e44438',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['b_1',['b',['../structyaze_1_1app_1_1emu_1_1video_1_1Color.html#a38c89c8258211b0ceb742b1931078e27',1,'yaze::app::emu::video::Color']]],
+  ['b_0',['b',['../structyaze_1_1app_1_1emu_1_1video_1_1Color.html#a38c89c8258211b0ceb742b1931078e27',1,'yaze::app::emu::video::Color']]],
+  ['b_1',['B',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#ac06af9a25b9d1c30f611984f26e44438',1,'yaze::app::emu::audio::Spc700::Flags']]],
   ['backdrop_2',['backdrop',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a283a86a3b69119e2cc7fada8b4d16124',1,'yaze::app::emu::video::PpuRegisters::CGADSUB']]],
   ['background_3',['background',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a83e829e4f1a7490116c54b32c38a9e81',1,'yaze::app::gfx::Paletteset']]],
   ['background_5fbmps_5f_4',['background_bmps_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a0936d3e39b6aa07bea7c44552e570513',1,'yaze::app::zelda3::dungeon::Room']]],
