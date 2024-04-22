@@ -71,6 +71,8 @@ class Emulator : public SharedRom {
 
   auto snes() -> SNES& { return snes_; }
   auto running() const -> bool { return running_; }
+  void set_audio_buffer(int16_t* audio_buffer) { audio_buffer_ = audio_buffer; }
+  auto wanted_samples() const -> int { return wanted_samples_; }
 
  private:
   void RenderNavBar();
@@ -89,15 +91,28 @@ class Emulator : public SharedRom {
   void RenderCpuInstructionLog(
       const std::vector<InstructionEntry>& instructionLog);
 
-  SNES snes_;
-  uint16_t manual_pc_ = 0;
-  uint8_t manual_pb_ = 0;
-  gui::zeml::Node emulator_node_;
-
+  bool step_ = true;
   bool power_ = false;
   bool loading_ = false;
   bool running_ = false;
-  bool step_ = true;
+
+  float wanted_frames_;
+  int wanted_samples_;
+
+  uint8_t manual_pb_ = 0;
+  uint16_t manual_pc_ = 0;
+
+  // timing
+  uint64_t countFreq;
+  uint64_t lastCount;
+  float timeAdder = 0.0;
+
+  int16_t* audio_buffer_;
+
+  SNES snes_;
+  SDL_Texture* ppu_texture_;
+
+  gui::zeml::Node emulator_node_;
 };
 
 }  // namespace emu

@@ -11,7 +11,6 @@
 #include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/cpu.h"
 #include "app/emu/debug/debugger.h"
-#include "app/emu/memory/dma.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 #include "app/rom.h"
@@ -20,84 +19,117 @@ namespace yaze {
 namespace app {
 namespace emu {
 
-using namespace memory;
+struct Input {
+  uint8_t type;
+  // latchline
+  bool latchLine;
+  // for controller
+  uint16_t currentState;  // actual state
+  uint16_t latchedState;
+};
 
-class SNES : public DirectMemoryAccess {
+class SNES {
  public:
   SNES() = default;
   ~SNES() = default;
 
-  RomInfo ReadRomHeader(uint32_t offset);
-
   // Initialization
   void Init(Rom& rom);
+  void Reset(bool hard = false);
 
-  // Main emulation loop
-  void Run();
-
-  // Step through a single instruction
-  void StepRun();
-
-  // Enable NMI Interrupts
-  void EnableVBlankInterrupts();
-
-  // Wait until the VBlank routine has been processed
-  void WaitForVBlank();
-
-  // NMI Interrupt Service Routine
-  void NmiIsr();
-
-  // VBlank routine
-  void VBlankRoutine();
+  // Emulation
+  void RunFrame();
+  void CatchUpApu();
 
   // Controller input handling
   void HandleInput();
 
-  // Save/Load game state
-  void SaveState(const std::string& path);
-  void LoadState(const std::string& path);
+  // Clock cycling and synchronization
+  void RunCycle();
+  void RunCycles(int cycles);
+  void SyncCycles(bool start, int sync_cycles);
+
+  uint8_t ReadBBus(uint8_t adr);
+  uint8_t ReadReg(uint16_t adr);
+  uint8_t Rread(uint32_t adr);
+  uint8_t Read(uint32_t adr);
+
+  void WriteBBus(uint8_t adr, uint8_t val);
+  void WriteReg(uint16_t adr, uint8_t val);
+  void Write(uint32_t adr, uint8_t val);
+
+  int GetAccessTime(uint32_t adr);
+  uint8_t CpuRead(uint32_t adr);
+  void CpuWrite(uint32_t adr, uint8_t val);
+  void CpuIdle(bool waiting);
 
   void SetSamples(int16_t* sample_data, int wanted_samples);
+  void SetPixels(uint8_t* pixel_data);
 
   bool running() const { return running_; }
-
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> video::Ppu& { return ppu_; }
-  auto Memory() -> MemoryImpl* { return &memory_; }
-
-  void SetCpuMode(int mode) { cpu_mode_ = mode; }
-  Cpu::UpdateMode GetCpuMode() const {
-    return static_cast<Cpu::UpdateMode>(cpu_mode_);
-  }
+  auto Memory() -> memory::MemoryImpl* { return &memory_; }
 
  private:
   // Components of the SNES
-  MemoryImpl memory_;
   ClockImpl clock_;
+  Debugger debugger;
+  memory::RomInfo rom_info_;
+  memory::MemoryImpl memory_;
   audio::AudioRamImpl audio_ram_;
 
-  Cpu cpu_{memory_, clock_};
+  memory::CpuCallbacks cpu_callbacks_ = {
+      [this](uint32_t adr) { return CpuRead(adr); },
+      [this](uint32_t adr, uint8_t val) { CpuWrite(adr, val); },
+      [this](bool waiting) { CpuIdle(waiting); },
+  };
+  Cpu cpu_{memory_, clock_, cpu_callbacks_};
   video::Ppu ppu_{memory_, clock_};
   audio::Apu apu_{memory_, audio_ram_, clock_};
-
-  // Helper classes
-  RomInfo rom_info_;
-  Debugger debugger;
 
   // Currently loaded ROM
   std::vector<uint8_t> rom_data;
 
-  // Byte flag to indicate if the VBlank routine should be executed or not
-  std::atomic<bool> v_blank_flag_;
-
-  // 32-bit counter to track the number of NMI interrupts
-  std::atomic<uint32_t> frame_counter_;
-
-  // Other private member variables
+  // Emulation state
   bool running_ = false;
-  bool pal_timing_ = false;
-  int scanline;
-  int cpu_mode_ = 0;
+
+  // ram
+  uint8_t ram[0x20000];
+  uint32_t ram_adr_;
+
+  // Frame timing
+  uint32_t frames_ = 0;
+  uint64_t cycles_ = 0;
+  uint64_t sync_cycle_ = 0;
+  double apu_catchup_cycles_;
+
+  // Nmi / Irq
+  bool h_irq_enabled_ = false;
+  bool v_irq_enabled_ = false;
+  bool nmi_enabled_ = false;
+  uint16_t h_timer_ = 0;
+  uint16_t v_timer_ = 0;
+  bool in_nmi_ = false;
+  bool irq_condition_ = false;
+  bool in_irq_ = false;
+  bool in_vblank_;
+
+  // Multiplication / Division
+  uint8_t multiply_a_;
+  uint16_t multiply_result_;
+  uint8_t divide_a_;
+  uint8_t divide_result_;
+
+  // Joypad State
+  Input input1;
+  Input input2;
+  uint16_t port_auto_read_[4];  // as read by auto-joypad read
+  bool auto_joy_read_ = false;
+  uint16_t auto_joy_timer_ = 0;
+  bool ppuLatch;
+
+  bool fast_mem_ = false;
 };
 
 }  // namespace emu
