@@ -21,6 +21,14 @@ const int kApuClockSpeed = 1024000;  // 1.024 MHz
 const int apuSampleRate = 32000;     // 32 KHz
 const int apuClocksPerSample = 64;   // 64 clocks per sample
 
+typedef struct Timer {
+  uint8_t cycles;
+  uint8_t divider;
+  uint8_t target;
+  uint8_t counter;
+  bool enabled;
+} Timer;
+
 /**
  * @class Apu
  * @brief The Apu class represents the Audio Processing Unit (APU) of a system.
@@ -46,7 +54,7 @@ const int apuClocksPerSample = 64;   // 64 clocks per sample
  * register $F1 can be cleared to unmap the IPL ROM and allow read access to
  * this RAM.
  */
-class Apu : public Observer {
+class Apu {
  public:
   Apu(MemoryImpl &memory, AudioRam &aram, Clock &clock)
       : aram_(aram), clock_(clock), memory_(memory) {}
@@ -54,7 +62,16 @@ class Apu : public Observer {
   void Init();
   void Reset();
   void Update();
-  void Notify(uint32_t address, uint16_t data) override;
+
+  int RunCycles(uint32_t wanted_cycles);
+  uint8_t SpcRead(uint16_t address);
+  void SpcWrite(uint16_t address, uint8_t data);
+  void SpcIdle(bool waiting);
+
+  void Cycle();
+
+  uint8_t Read(uint16_t address);
+  void Write(uint16_t address, uint8_t data);
 
   // Called upon a reset
   void Initialize() {
@@ -62,33 +79,12 @@ class Apu : public Observer {
     dsp_.Reset();
   }
 
-  // Set Port 0 = $AA and Port 1 = $BB
-  void SignalReady() {
-    memory_.WriteByte(0x2140, READY_SIGNAL_0);
-    memory_.WriteByte(0x2141, READY_SIGNAL_1);
-  }
-
-  void WriteToPort(uint8_t portNum, uint8_t value) {
-    ports_[portNum] = value;
-    switch (portNum) {
-      case 0:
-        memory_.WriteByte(0x2140, value);
-        break;
-      case 1:
-        memory_.WriteByte(0x2141, value);
-        break;
-      case 2:
-        memory_.WriteByte(0x2142, value);
-        break;
-      case 3:
-        memory_.WriteByte(0x2143, value);
-        break;
-    }
-  }
-
   void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
 
   auto dsp() -> Dsp & { return dsp_; }
+
+  uint8_t inPorts[6];  // includes 2 bytes of ram
+  uint8_t outPorts[4];
 
  private:
   // Constants for communication
@@ -98,14 +94,23 @@ class Apu : public Observer {
 
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
   uint8_t ports_[4] = {0};
+  Timer timer[3];
+  uint32_t cycles_;
+  uint8_t dspAdr;
+  bool romReadable = true;
 
   // Member variables to store internal APU state and resources
   AudioRam &aram_;
   Clock &clock_;
   MemoryImpl &memory_;
 
-  Dsp dsp_;
-  Spc700 spc700_{aram_};
+  ApuCallbacks callbacks_ = {
+      [this](uint16_t adr, uint8_t val) { SpcWrite(adr, val); },
+      [this](uint16_t adr) { return SpcRead(adr); },
+      [this](bool waiting) { SpcIdle(waiting); },
+  };
+  Dsp dsp_{aram_};
+  Spc700 spc700_{aram_, callbacks_};
 };
 
 }  // namespace audio
