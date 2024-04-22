@@ -10,13 +10,12 @@ namespace emu {
 
 /**
  * 65816 Instruction Set
- *
- * TODO: STP, WDM
  */
 
 void Cpu::ADC(uint16_t operand) {
   bool C = GetCarryFlag();
   if (GetAccumulatorSize()) {  // 8-bit mode
+    CheckInt();
     uint16_t result = static_cast<uint16_t>(A & 0xFF) +
                       static_cast<uint16_t>(operand) + (C ? 1 : 0);
     SetCarryFlag(result > 0xFF);  // Update the carry flag
@@ -50,6 +49,7 @@ void Cpu::ADC(uint16_t operand) {
 void Cpu::AND(uint32_t value, bool isImmediate) {
   uint16_t operand;
   if (GetAccumulatorSize()) {  // 8-bit mode
+    CheckInt();
     operand = isImmediate ? value : ReadByte(value);
     A &= operand;
     SetZeroFlag(A == 0);
@@ -71,13 +71,24 @@ void Cpu::ANDAbsoluteLong(uint32_t address) {
 }
 
 void Cpu::ASL(uint16_t address) {
-  uint8_t value = ReadByte(address);
-  SetCarryFlag(!(value & 0x80));  // Set carry flag if bit 7 is set
-  value <<= 1;                    // Shift left
-  value &= 0xFE;                  // Clear bit 0
-  WriteByte(address, value);
-  SetNegativeFlag(!value);
-  SetZeroFlag(value);
+  if (GetAccumulatorSize()) {  // 8-bit mode
+    uint8_t value = ReadByte(address);
+    callbacks_.idle(false);
+    SetCarryFlag(value & 0x80);
+    value <<= 1;
+    CheckInt();
+    WriteByte(address, value);
+    SetZeroFlag(value == 0);
+    SetNegativeFlag(value & 0x80);
+  } else {  // 16-bit mode
+    uint16_t value = ReadWord(address);
+    callbacks_.idle(false);
+    SetCarryFlag(value & 0x8000);
+    value <<= 1;
+    WriteWord(address, value);
+    SetZeroFlag(value == 0);
+    SetNegativeFlag(value & 0x8000);
+  }
 }
 
 void Cpu::BCC(int8_t offset) {
@@ -99,6 +110,7 @@ void Cpu::BEQ(int8_t offset) {
 }
 
 void Cpu::BIT(uint16_t address) {
+  CheckInt();
   uint8_t value = ReadByte(address);
   SetNegativeFlag(value & 0x80);
   SetOverflowFlag(value & 0x40);
@@ -107,39 +119,43 @@ void Cpu::BIT(uint16_t address) {
 
 void Cpu::BMI(int8_t offset) {
   if (GetNegativeFlag()) {  // If the negative flag is set
-    next_pc_ = offset;
+    next_pc_ = PC + offset;
   }
 }
 
 void Cpu::BNE(int8_t offset) {
   if (!GetZeroFlag()) {  // If the zero flag is clear
     // PC += offset;
-    next_pc_ = offset;
+    next_pc_ = PC + offset;
   }
 }
 
 void Cpu::BPL(int8_t offset) {
   if (!GetNegativeFlag()) {  // If the negative flag is clear
-    next_pc_ = offset;
+    next_pc_ = PC + offset;
   }
 }
 
-void Cpu::BRA(int8_t offset) { next_pc_ = offset; }
+void Cpu::BRA(int8_t offset) { next_pc_ = PC + offset; }
 
 void Cpu::BRK() {
   // ReadOpcode();
-  next_pc_ += 2;  // Increment the program counter by 2
-  ReadByte(PC);   // Read the next byte
+  next_pc_ = PC + 2;  // Increment the program counter by 2
+  ReadByte(PC);       // Read the next byte
   PushByte(PB);
   PushByte(PC);  // ,false
   PushByte(status);
   SetInterruptFlag(true);
   SetDecimalFlag(false);
-  PB = 0;
-  PC = ReadWord(0xFFE6);  // ,true
+  next_pb_ = 0;
+  next_pc_ = ReadWord(0xFFE6);  // ,true
 }
 
-void Cpu::BRL(int16_t offset) { next_pc_ = offset; }
+void Cpu::BRL(int16_t offset) {
+  next_pc_ = PC + offset;
+  CheckInt();
+  callbacks_.idle(false);
+}
 
 void Cpu::BVC(int8_t offset) {
   if (!GetOverflowFlag()) {  // If the overflow flag is clear
@@ -153,19 +169,32 @@ void Cpu::BVS(int8_t offset) {
   }
 }
 
-void Cpu::CLC() { status &= ~0x01; }
+void Cpu::CLC() {
+  AdrImp();
+  status &= ~0x01;
+}
 
-void Cpu::CLD() { status &= ~0x08; }
+void Cpu::CLD() {
+  AdrImp();
+  status &= ~0x08;
+}
 
-void Cpu::CLI() { status &= ~0x04; }
+void Cpu::CLI() {
+  AdrImp();
+  status &= ~0x04;
+}
 
-void Cpu::CLV() { status &= ~0x40; }
+void Cpu::CLV() {
+  AdrImp();
+  status &= ~0x40;
+}
 
 // n Set if MSB of result is set; else cleared
 // z Set if result is zero; else cleared
 // c Set if no borrow; else cleared
 void Cpu::CMP(uint32_t value, bool isImmediate) {
   if (GetAccumulatorSize()) {  // 8-bit
+    CheckInt();
     uint8_t result;
     if (isImmediate) {
       result = A - (value & 0xFF);
@@ -191,7 +220,7 @@ void Cpu::CMP(uint32_t value, bool isImmediate) {
 }
 
 void Cpu::COP() {
-  next_pc_ += 2;  // Increment the program counter by 2
+  next_pc_ = PC + 2;  // Increment the program counter by 2
   PushWord(next_pc_);
   PushByte(status);
   SetInterruptFlag(true);
@@ -201,10 +230,13 @@ void Cpu::COP() {
     next_pc_ = ReadWord(0xFFE4);
   }
   SetDecimalFlag(false);
+  next_pb_ = 0;
+  next_pc_ = ReadWord(0xFFE4);
 }
 
 void Cpu::CPX(uint32_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
+    CheckInt();
     uint8_t memory_value = isImmediate ? value : ReadByte(value);
     compare(X, memory_value);
   } else {  // 16-bit
@@ -215,6 +247,7 @@ void Cpu::CPX(uint32_t value, bool isImmediate) {
 
 void Cpu::CPY(uint32_t value, bool isImmediate) {
   if (GetIndexSize()) {  // 8-bit
+    CheckInt();
     uint8_t memory_value = isImmediate ? value : ReadByte(value);
     compare(Y, memory_value);
   } else {  // 16-bit
@@ -225,6 +258,7 @@ void Cpu::CPY(uint32_t value, bool isImmediate) {
 
 void Cpu::DEC(uint32_t address, bool accumulator) {
   if (accumulator) {
+    AdrImp();
     if (GetAccumulatorSize()) {  // 8-bit
       A = (A - 1) & 0xFF;
       SetZeroFlag(A == 0);
@@ -240,12 +274,15 @@ void Cpu::DEC(uint32_t address, bool accumulator) {
   if (GetAccumulatorSize()) {
     uint8_t value = ReadByte(address);
     value--;
+    callbacks_.idle(false);
+    CheckInt();
     WriteByte(address, value);
     SetZeroFlag(value == 0);
     SetNegativeFlag(value & 0x80);
   } else {
     uint16_t value = ReadWord(address);
     value--;
+    callbacks_.idle(false);
     WriteWord(address, value);
     SetZeroFlag(value == 0);
     SetNegativeFlag(value & 0x8000);
@@ -253,6 +290,7 @@ void Cpu::DEC(uint32_t address, bool accumulator) {
 }
 
 void Cpu::DEX() {
+  AdrImp();
   if (GetIndexSize()) {  // 8-bit
     X = static_cast<uint8_t>(X - 1);
     SetZeroFlag(X == 0);
@@ -265,6 +303,7 @@ void Cpu::DEX() {
 }
 
 void Cpu::DEY() {
+  AdrImp();
   if (GetIndexSize()) {  // 8-bit
     Y = static_cast<uint8_t>(Y - 1);
     SetZeroFlag(Y == 0);
@@ -278,6 +317,7 @@ void Cpu::DEY() {
 
 void Cpu::EOR(uint32_t address, bool isImmediate) {
   if (GetAccumulatorSize()) {
+    CheckInt();
     A ^= isImmediate ? address : ReadByte(address);
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
@@ -290,6 +330,7 @@ void Cpu::EOR(uint32_t address, bool isImmediate) {
 
 void Cpu::INC(uint32_t address, bool accumulator) {
   if (accumulator) {
+    AdrImp();
     if (GetAccumulatorSize()) {  // 8-bit
       A = (A + 1) & 0xFF;
       SetZeroFlag(A == 0);
@@ -305,12 +346,15 @@ void Cpu::INC(uint32_t address, bool accumulator) {
   if (GetAccumulatorSize()) {
     uint8_t value = ReadByte(address);
     value++;
+    callbacks_.idle(false);
+    CheckInt();
     WriteByte(address, value);
     SetNegativeFlag(value & 0x80);
     SetZeroFlag(value == 0);
   } else {
     uint16_t value = ReadWord(address);
     value++;
+    callbacks_.idle(false);
     WriteWord(address, value);
     SetNegativeFlag(value & 0x8000);
     SetZeroFlag(value == 0);
@@ -318,6 +362,7 @@ void Cpu::INC(uint32_t address, bool accumulator) {
 }
 
 void Cpu::INX() {
+  AdrImp();
   if (GetIndexSize()) {  // 8-bit
     X = static_cast<uint8_t>(X + 1);
     SetZeroFlag(X == 0);
@@ -330,6 +375,7 @@ void Cpu::INX() {
 }
 
 void Cpu::INY() {
+  AdrImp();
   if (GetIndexSize()) {  // 8-bit
     Y = static_cast<uint8_t>(Y + 1);
     SetZeroFlag(Y == 0);
@@ -345,21 +391,26 @@ void Cpu::JMP(uint16_t address) {
   next_pc_ = address;  // Set program counter to the new address
 }
 
-void Cpu::JML(uint32_t address) {
-  next_pc_ = static_cast<uint16_t>(address & 0xFFFF);
-  // Set the PBR to the upper 8 bits of the address
-  PB = static_cast<uint8_t>((address >> 16) & 0xFF);
+void Cpu::JML(uint16_t address) {
+  CheckInt();
+  next_pc_ = address;
+  uint8_t new_pb = ReadByte(PC + 2);
+  next_pb_ = new_pb;
 }
 
 void Cpu::JSR(uint16_t address) {
+  callbacks_.idle(false);
   PushWord(PC);        // Push the program counter onto the stack
   next_pc_ = address;  // Set program counter to the new address
 }
 
-void Cpu::JSL(uint32_t address) {
-  PushLong(PC);        // Push the program counter onto the stack as a long
-                       // value (24 bits)
+void Cpu::JSL(uint16_t address) {
+  PushByte(PB);
+  callbacks_.idle(false);
+  uint8_t new_pb = ReadByte(PC + 2);
+  PushWord(PC);
   next_pc_ = address;  // Set program counter to the new address
+  next_pb_ = new_pb;
 }
 
 void Cpu::LDA(uint16_t address, bool isImmediate, bool direct_page,
@@ -369,6 +420,7 @@ void Cpu::LDA(uint16_t address, bool isImmediate, bool direct_page,
     bank = 0;
   }
   if (GetAccumulatorSize()) {
+    CheckInt();
     A = isImmediate ? address : ReadByte((bank << 16) | address);
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
@@ -381,6 +433,7 @@ void Cpu::LDA(uint16_t address, bool isImmediate, bool direct_page,
 
 void Cpu::LDX(uint16_t address, bool isImmediate) {
   if (GetIndexSize()) {
+    CheckInt();
     X = isImmediate ? address : ReadByte(address);
     SetZeroFlag(X == 0);
     SetNegativeFlag(X & 0x80);
@@ -393,6 +446,7 @@ void Cpu::LDX(uint16_t address, bool isImmediate) {
 
 void Cpu::LDY(uint16_t address, bool isImmediate) {
   if (GetIndexSize()) {
+    CheckInt();
     Y = isImmediate ? address : ReadByte(address);
     SetZeroFlag(Y == 0);
     SetNegativeFlag(Y & 0x80);
@@ -405,6 +459,7 @@ void Cpu::LDY(uint16_t address, bool isImmediate) {
 
 void Cpu::LSR(uint16_t address, bool accumulator) {
   if (accumulator) {
+    AdrImp();
     if (GetAccumulatorSize()) {  // 8-bit
       SetCarryFlag(A & 0x01);
       A >>= 1;
@@ -418,46 +473,73 @@ void Cpu::LSR(uint16_t address, bool accumulator) {
     }
     return;
   }
-  uint8_t value = ReadByte(address);
-  SetCarryFlag(value & 0x01);
-  value >>= 1;
-  WriteByte(address, value);
-  SetNegativeFlag(false);
-  SetZeroFlag(value == 0);
-}
 
-void Cpu::MVN(uint16_t source, uint16_t dest, uint16_t length) {
-  for (uint16_t i = 0; i < length; i++) {
-    WriteByte(dest, ReadByte(source));
-    source++;
-    dest++;
+  if (GetAccumulatorSize()) {
+    uint8_t value = ReadByte(address);
+    callbacks_.idle(false);
+    SetCarryFlag(value & 0x01);
+    value >>= 1;
+    CheckInt();
+    WriteByte(address, value);
+    SetNegativeFlag(false);
+    SetZeroFlag(value == 0);
+  } else {
+    uint16_t value = ReadWord(address);
+    SetCarryFlag(value & 0x0001);
+    value >>= 1;
+    WriteWord(address, value);
+    SetNegativeFlag(false);
+    SetZeroFlag(value == 0);
   }
 }
 
-void Cpu::MVP(uint16_t source, uint16_t dest, uint16_t length) {
-  for (uint16_t i = 0; i < length; i++) {
-    WriteByte(dest, ReadByte(source));
-    source--;
-    dest--;
+void Cpu::MVN() {
+  uint8_t dest = ReadByte(PC + 1);
+  uint8_t src = ReadByte(PC + 2);
+  next_pc_ = PC + 3;
+  DB = dest;
+  WriteByte((dest << 16) | Y, ReadByte((src << 16) | X));
+  A--;
+  X++;
+  Y++;
+  if (A != 0xFFFF) {
+    next_pc_ -= 3;
   }
+  if (GetIndexSize()) {
+    X &= 0xFF;
+    Y &= 0xFF;
+  }
+  callbacks_.idle(false);
+  CheckInt();
+  callbacks_.idle(false);
+}
+
+void Cpu::MVP() {
+  uint8_t dest = ReadByte(PC + 1);
+  uint8_t src = ReadByte(PC + 2);
+  next_pc_ = PC + 3;
+  DB = dest;
+  WriteByte((dest << 16) | Y, ReadByte((src << 16) | X));
+  A--;
+  X--;
+  Y--;
+  if (A != 0xFFFF) {
+    next_pc_ -= 3;
+  }
+  if (GetIndexSize()) {
+    X &= 0xFF;
+    Y &= 0xFF;
+  }
+  callbacks_.idle(false);
+  CheckInt();
+  callbacks_.idle(false);
 }
 
 void Cpu::NOP() { AdrImp(); }
 
-// void cpu_ora(uint32_t low, uint32_t high) {
-//   if (cpu->mf) {
-//     CheckInt();
-//     uint8_t value = cpu_read(cpu, low);
-//     cpu->a = (cpu->a & 0xff00) | ((cpu->a | value) & 0xff);
-//   } else {
-//     uint16_t value = cpu_readWord(cpu, low, high, true);
-//     cpu->a |= value;
-//   }
-//   cpu_setZN(cpu, cpu->a, cpu->mf);
-// }
-
 void Cpu::ORA(uint16_t address, bool isImmediate) {
   if (GetAccumulatorSize()) {
+    CheckInt();
     A |= isImmediate ? address : ReadByte(address);
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x80);
@@ -615,6 +697,7 @@ void Cpu::REP() {
 
 void Cpu::ROL(uint32_t address, bool accumulator) {
   if (accumulator) {
+    AdrImp();
     if (GetAccumulatorSize()) {  // 8-bit
       uint8_t carry = GetCarryFlag() ? 0x01 : 0x00;
       SetCarryFlag(A & 0x80);
@@ -633,18 +716,33 @@ void Cpu::ROL(uint32_t address, bool accumulator) {
     return;
   }
 
-  uint8_t value = ReadByte(address);
-  uint8_t carry = GetCarryFlag() ? 0x01 : 0x00;
-  SetCarryFlag(value & 0x80);
-  value <<= 1;
-  value |= carry;
-  WriteByte(address, value);
-  SetNegativeFlag(value & 0x80);
-  SetZeroFlag(value == 0);
+  if (GetAccumulatorSize()) {
+    uint8_t value = ReadByte(address);
+    callbacks_.idle(false);
+    uint8_t carry = GetCarryFlag() ? 0x01 : 0x00;
+    SetCarryFlag(value & 0x80);
+    value <<= 1;
+    value |= carry;
+    CheckInt();
+    WriteByte(address, value);
+    SetNegativeFlag(value & 0x80);
+    SetZeroFlag(value == 0);
+  } else {
+    uint16_t value = ReadWord(address);
+    callbacks_.idle(false);
+    uint8_t carry = GetCarryFlag() ? 0x01 : 0x00;
+    SetCarryFlag(value & 0x8000);
+    value <<= 1;
+    value |= carry;
+    WriteWord(address, value);
+    SetNegativeFlag(value & 0x8000);
+    SetZeroFlag(value == 0);
+  }
 }
 
 void Cpu::ROR(uint32_t address, bool accumulator) {
   if (accumulator) {
+    AdrImp();
     if (GetAccumulatorSize()) {  // 8-bit
       uint8_t carry = GetCarryFlag() ? 0x80 : 0x00;
       SetCarryFlag(A & 0x01);
@@ -663,27 +761,54 @@ void Cpu::ROR(uint32_t address, bool accumulator) {
     return;
   }
 
-  uint8_t value = ReadByte(address);
-  uint8_t carry = GetCarryFlag() ? 0x80 : 0x00;
-  SetCarryFlag(value & 0x01);
-  value >>= 1;
-  value |= carry;
-  WriteByte(address, value);
-  SetNegativeFlag(value & 0x80);
-  SetZeroFlag(value == 0);
+  if (GetAccumulatorSize()) {
+    uint8_t value = ReadByte(address);
+    callbacks_.idle(false);
+    uint8_t carry = GetCarryFlag() ? 0x80 : 0x00;
+    SetCarryFlag(value & 0x01);
+    value >>= 1;
+    value |= carry;
+    CheckInt();
+    WriteByte(address, value);
+    SetNegativeFlag(value & 0x80);
+    SetZeroFlag(value == 0);
+  } else {
+    uint16_t value = ReadWord(address);
+    callbacks_.idle(false);
+    uint8_t carry = GetCarryFlag() ? 0x8000 : 0x00;
+    SetCarryFlag(value & 0x0001);
+    value >>= 1;
+    value |= carry;
+    WriteWord(address, value);
+    SetNegativeFlag(value & 0x8000);
+    SetZeroFlag(value == 0);
+  }
 }
 
 void Cpu::RTI() {
+  callbacks_.idle(false);
+  callbacks_.idle(false);
   status = PopByte();
-  PC = PopWord();
+  next_pc_ = PopWord();
+  CheckInt();
+  next_pb_ = PopByte();
 }
 
 void Cpu::RTL() {
+  callbacks_.idle(false);
+  callbacks_.idle(false);
   next_pc_ = PopWord();
-  PB = PopByte();
+  CheckInt();
+  next_pb_ = PopByte();
 }
 
-void Cpu::RTS() { last_call_frame_ = PopWord(); }
+void Cpu::RTS() {
+  callbacks_.idle(false);
+  callbacks_.idle(false);
+  last_call_frame_ = PopWord();
+  CheckInt();
+  callbacks_.idle(false);
+}
 
 void Cpu::SBC(uint32_t value, bool isImmediate) {
   uint16_t operand;
@@ -702,6 +827,7 @@ void Cpu::SBC(uint32_t value, bool isImmediate) {
     SetZeroFlag(A == 0);
     SetNegativeFlag(A & 0x8000);
   } else {  // 8-bit mode
+    CheckInt();
     operand = isImmediate ? value : ReadByte(value);
     uint8_t result = A - operand - (GetCarryFlag() ? 0 : 1);
     SetCarryFlag(!(result > 0xFF));  // Update the carry flag
@@ -718,11 +844,20 @@ void Cpu::SBC(uint32_t value, bool isImmediate) {
   }
 }
 
-void Cpu::SEC() { status |= 0x01; }
+void Cpu::SEC() {
+  AdrImp();
+  status |= 0x01;
+}
 
-void Cpu::SED() { status |= 0x08; }
+void Cpu::SED() {
+  AdrImp();
+  status |= 0x08;
+}
 
-void Cpu::SEI() { status |= 0x04; }
+void Cpu::SEI() {
+  AdrImp();
+  status |= 0x04;
+}
 
 void Cpu::SEP() {
   auto byte = FetchByte();
@@ -733,6 +868,7 @@ void Cpu::SEP() {
 
 void Cpu::STA(uint32_t address) {
   if (GetAccumulatorSize()) {
+    CheckInt();
     WriteByte(address, static_cast<uint8_t>(A));
   } else {
     WriteWord(address, A);
@@ -747,6 +883,7 @@ void Cpu::STP() {
 
 void Cpu::STX(uint16_t address) {
   if (GetIndexSize()) {
+    CheckInt();
     WriteByte(address, static_cast<uint8_t>(X));
   } else {
     WriteWord(address, X);
@@ -755,6 +892,7 @@ void Cpu::STX(uint16_t address) {
 
 void Cpu::STY(uint16_t address) {
   if (GetIndexSize()) {
+    CheckInt();
     WriteByte(address, static_cast<uint8_t>(Y));
   } else {
     WriteWord(address, Y);
@@ -763,6 +901,7 @@ void Cpu::STY(uint16_t address) {
 
 void Cpu::STZ(uint16_t address) {
   if (GetAccumulatorSize()) {
+    CheckInt();
     WriteByte(address, 0x00);
   } else {
     WriteWord(address, 0x0000);
@@ -770,46 +909,82 @@ void Cpu::STZ(uint16_t address) {
 }
 
 void Cpu::TAX() {
-  X = A;
+  AdrImp();
+  if (GetIndexSize()) {
+    X = A & 0xFF;
+  } else {
+    X = A;
+  }
   SetZeroFlag(X == 0);
   SetNegativeFlag(X & 0x80);
 }
 
 void Cpu::TAY() {
-  Y = A;
+  AdrImp();
+  if (GetIndexSize()) {
+    Y = A & 0xFF;
+  } else {
+    Y = A;
+  }
   SetZeroFlag(Y == 0);
   SetNegativeFlag(Y & 0x80);
 }
 
 void Cpu::TCD() {
+  AdrImp();
   D = A;
   SetZeroFlag(D == 0);
   SetNegativeFlag(D & 0x80);
 }
 
-void Cpu::TCS() { SetSP(A); }
+void Cpu::TCS() {
+  AdrImp();
+  SetSP(A);
+}
 
 void Cpu::TDC() {
+  AdrImp();
   A = D;
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
 }
 
 void Cpu::TRB(uint16_t address) {
-  uint8_t value = ReadByte(address);
-  SetZeroFlag((A & value) == 0);
-  value &= ~A;
-  WriteByte(address, value);
+  if (GetAccumulatorSize()) {
+    uint8_t value = ReadByte(address);
+    callbacks_.idle(false);
+    SetZeroFlag((A & value) == 0);
+    value &= ~A;
+    CheckInt();
+    WriteByte(address, value);
+  } else {
+    uint16_t value = ReadWord(address);
+    callbacks_.idle(false);
+    SetZeroFlag((A & value) == 0);
+    value &= ~A;
+    WriteWord(address, value);
+  }
 }
 
 void Cpu::TSB(uint16_t address) {
-  uint8_t value = ReadByte(address);
-  SetZeroFlag((A & value) == 0);
-  value |= A;
-  WriteByte(address, value);
+  if (GetAccumulatorSize()) {
+    uint8_t value = ReadByte(address);
+    callbacks_.idle(false);
+    SetZeroFlag((A & value) == 0);
+    value |= A;
+    CheckInt();
+    WriteByte(address, value);
+  } else {
+    uint16_t value = ReadWord(address);
+    callbacks_.idle(false);
+    SetZeroFlag((A & value) == 0);
+    value |= A;
+    WriteWord(address, value);
+  }
 }
 
 void Cpu::TSC() {
+  AdrImp();
   A = SP();
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
@@ -817,14 +992,22 @@ void Cpu::TSC() {
 
 void Cpu::TSX() {
   AdrImp();
-  X = SP();
+  if (GetIndexSize()) {
+    X = SP() & 0xFF;
+  } else {
+    X = SP();
+  }
   SetZeroFlag(X == 0);
   SetNegativeFlag(X & 0x80);
 }
 
 void Cpu::TXA() {
   AdrImp();
-  A = X;
+  if (GetAccumulatorSize()) {
+    A = X & 0xFF;
+  } else {
+    A = X;
+  }
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
 }
@@ -836,14 +1019,22 @@ void Cpu::TXS() {
 
 void Cpu::TXY() {
   AdrImp();
-  Y = X;
+  if (GetIndexSize()) {
+    Y = X & 0xFF;
+  } else {
+    Y = X;
+  }
   SetZeroFlag(X == 0);
   SetNegativeFlag(X & 0x80);
 }
 
 void Cpu::TYA() {
   AdrImp();
-  A = Y;
+  if (GetAccumulatorSize()) {
+    A = Y & 0xFF;
+  } else {
+    A = Y;
+  }
   SetZeroFlag(A == 0);
   SetNegativeFlag(A & 0x80);
 }
@@ -863,6 +1054,11 @@ void Cpu::WAI() {
   waiting_ = true;
   callbacks_.idle(false);
   callbacks_.idle(false);
+}
+
+void Cpu::WDM() {
+  CheckInt();
+  ReadByte(PC);
 }
 
 void Cpu::XBA() {

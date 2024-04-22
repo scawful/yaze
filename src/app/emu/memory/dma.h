@@ -25,7 +25,7 @@ void TransferByte(SNES* snes, MemoryImpl* memory, uint16_t aAdr, uint8_t aBank,
 uint8_t Read(MemoryImpl* memory, uint16_t address);
 void Write(MemoryImpl* memory, uint16_t address, uint8_t data);
 void StartDma(MemoryImpl* memory, uint8_t val, bool hdma);
-void DoDma(MemoryImpl* memory, int cycles);
+void DoDma(SNES* snes, MemoryImpl* memory, int cycles);
 
 }  // namespace dma
 }  // namespace memory

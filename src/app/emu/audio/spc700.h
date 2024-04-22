@@ -130,8 +130,6 @@ class Spc700 {
 
   void Reset(bool hard = false);
 
-  void BootIplRom();
-
   void RunOpcode();
 
   void ExecuteInstructions(uint8_t opcode);
