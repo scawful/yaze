@@ -63,7 +63,6 @@ class Controller : public ExperimentFlags {
   friend int ::main(int argc, char **argv);
 
   bool active_;
-  int wanted_samples_;
   int audio_frequency_ = 48000;
   int16_t *audio_buffer_;
   editor::MasterEditor master_editor_;

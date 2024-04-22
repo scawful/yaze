@@ -171,9 +171,10 @@ void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
 
 void Controller::PlayAudio() {
   if (master_editor_.emulator().running()) {
-    master_editor_.emulator().snes().SetSamples(audio_buffer_, wanted_samples_);
-    if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples_ * 4 * 6) {
-      SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples_ * 4);
+    auto wanted_samples = master_editor_.emulator().wanted_samples();
+    master_editor_.emulator().snes().SetSamples(audio_buffer_, wanted_samples);
+    if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples * 4 * 6) {
+      SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples * 4);
     }
   }
 }
@@ -190,6 +191,7 @@ void Controller::OnExit() {
   Mix_CloseAudio();
   SDL_PauseAudioDevice(audio_device_, 1);
   SDL_CloseAudioDevice(audio_device_);
+  delete audio_buffer_;
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -341,6 +343,8 @@ absl::Status Controller::LoadAudioDevice() {
     return absl::InternalError(
         absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
   }
+  audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
+  master_editor_.emulator().set_audio_buffer(audio_buffer_);
   SDL_PauseAudioDevice(audio_device_, 0);
   return absl::OkStatus();
 }
