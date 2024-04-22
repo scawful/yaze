@@ -9,6 +9,7 @@ namespace emu_test {
 
 using testing::_;
 using testing::Return;
+using yaze::app::emu::audio::ApuCallbacks;
 using yaze::app::emu::audio::AudioRam;
 using yaze::app::emu::audio::Spc700;
 
@@ -70,7 +71,8 @@ class Spc700Test : public ::testing::Test {
   }
 
   testing::StrictMock<MockAudioRam> audioRAM;
-  Spc700 spc700{audioRAM};
+  ApuCallbacks callbacks_;
+  Spc700 spc700{audioRAM, callbacks_};
 };
 
 // ========================================================

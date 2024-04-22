@@ -316,38 +316,6 @@ class Emulator : public CommandHandler {
     std::string filename = arg_vec[0];
     RETURN_IF_ERROR(rom_.LoadFromFile(filename))
 
-    bool step = false;
-    if (arg_vec[1].empty()) {
-      snes.SetCpuMode(0);
-    } else {
-      snes.SetCpuMode(1);
-      step = true;
-    }
-
-    snes.Init(rom_);
-
-    if (!step) {
-      int i = 0;
-      while (i < 80000) {
-        snes.Run();
-        i++;
-      }
-    } else {
-      // This loop should take in input from the keyboard, such as pressing
-      // space to step through the loop and pressing x to end the execution.
-      bool stepping = true;
-      std::cout << "Press space to step, x to exit" << std::endl;
-      while (stepping) {
-        char input;
-        std::cin.get(input);
-        if (input == 'x') {
-          break;
-        } else {
-          snes.StepRun();
-        }
-      }
-    }
-
     return absl::OkStatus();
   }
 

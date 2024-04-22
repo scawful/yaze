@@ -106,7 +106,6 @@ void DungeonObjectRenderer::RenderObject(const SubtypeInfo& info) {
   while (true) {
     uint8_t opcode = cpu.ReadByte(cpu.PB << 16 | cpu.PC);
     cpu.ExecuteInstruction(opcode);
-    cpu.HandleInterrupts();
 
     if ((i != 0 &&
              (cpu.ReadWord((0x00 << 16 | cpu.SP() + 2)) == info.routine_ptr) ||

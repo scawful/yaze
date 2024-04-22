@@ -473,6 +473,7 @@ class Rom : public core::ExperimentFlags {
   auto filename() const { return filename_; }
   auto is_loaded() const { return is_loaded_; }
   auto version() const { return version_; }
+  auto renderer() const { return renderer_; }
 
   uint8_t& operator[](int i) {
     if (i > size_) {
