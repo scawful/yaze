@@ -6,9 +6,32 @@
 #include <sstream>
 #include <vector>
 
+#include "app/emu/cpu/internal/opcodes.h"
+
 namespace yaze {
 namespace app {
 namespace emu {
+
+void Cpu::Reset(bool hard) {
+  if (hard) {
+    A = 0;
+    X = 0;
+    Y = 0;
+    PC = 0;
+    PB = 0;
+    D = 0;
+    DB = 0;
+    E = 0;
+    status = 0;
+    irq_wanted_ = false;
+  }
+
+  reset_wanted_ = true;
+  stopped_ = false;
+  waiting_ = false;
+  nmi_wanted_ = false;
+  int_wanted_ = false;
+}
 
 void Cpu::Update(UpdateMode mode, int stepCount) {
   int cycles = (mode == UpdateMode::Run) ? clock.GetCycleCount() : stepCount;
@@ -22,17 +45,80 @@ void Cpu::Update(UpdateMode mode, int stepCount) {
     // Fetch and execute an instruction
     ExecuteInstruction(ReadByte((PB << 16) + PC));
 
-    // Handle any interrupts, if necessary
-    HandleInterrupts();
-
     if (mode == UpdateMode::Step) {
       break;
     }
   }
 }
 
+void Cpu::RunOpcode() {
+  if (reset_wanted_) {
+    reset_wanted_ = false;
+    // reset: brk/interrupt without writes
+    auto sp = SP();
+
+    ReadByte((PB << 16) | PC);
+    callbacks_.idle(false);
+    ReadByte(0x100 | (sp-- & 0xff));
+    ReadByte(0x100 | (sp-- & 0xff));
+    ReadByte(0x100 | (sp-- & 0xff));
+    sp = (sp & 0xff) | 0x100;
+
+    SetSP(sp);
+
+    SetInterruptFlag(true);
+    SetInterruptFlag(true);
+    SetDecimalFlag(false);
+    SetFlags(status);  // updates x and m flags, clears
+                       // upper half of x and y if needed
+    PB = 0;
+    PC = ReadWord(0xfffc);
+    return;
+  }
+  if (stopped_) {
+    callbacks_.idle(true);
+    return;
+  }
+  if (waiting_) {
+    if (irq_wanted_ || nmi_wanted_) {
+      waiting_ = false;
+      callbacks_.idle(false);
+      CheckInt();
+      callbacks_.idle(false);
+      return;
+    } else {
+      callbacks_.idle(true);
+      return;
+    }
+  }
+  // not stopped or waiting, execute a opcode or go to interrupt
+  if (int_wanted_) {
+    ReadByte((PB << 16) | PC);
+    DoInterrupt();
+  } else {
+    // uint8_t opcode = ReadOpcode();
+    ExecuteInstruction(ReadByte((PB << 16) | PC));
+  }
+}
+
+void Cpu::DoInterrupt() {
+  callbacks_.idle(false);
+  PushByte(status);
+  PushWord(PC);
+  PushByte(status);
+  SetInterruptFlag(true);
+  SetDecimalFlag(false);
+  PB = 0;
+  int_wanted_ = false;
+  if (nmi_wanted_) {
+    nmi_wanted_ = false;
+    PC = ReadWord(0xffea);
+  } else {  // irq
+    PC = ReadWord(0xffee);
+  }
+}
+
 void Cpu::ExecuteInstruction(uint8_t opcode) {
-  uint8_t cycles = 0;
   uint8_t instruction_length = 0;
   uint32_t operand = 0;
   bool immediate = false;
@@ -41,49 +127,30 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
   switch (opcode) {
     case 0x61:  // ADC DP Indexed Indirect, X
     {
-      cycles = 6;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByte(DirectPageIndexedIndirectX());
       ADC(operand);
       break;
     }
     case 0x63:  // ADC Stack Relative
     {
-      cycles = 4;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByte(StackRelative());
       ADC(operand);
       break;
     }
     case 0x65:  // ADC Direct Page
     {
-      cycles = 3;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByte(DirectPage());
       ADC(operand);
       break;
     }
     case 0x67:  // ADC DP Indirect Long
     {
-      cycles = 6;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadWord(DirectPageIndirectLong());
       ADC(operand);
       break;
     }
     case 0x69:  // ADC Immediate
     {
-      cycles = 2;
-      if (!m()) cycles++;
-      if (GetAccumulatorSize()) {
-        instruction_length = 2;
-      } else {
-        instruction_length = 3;
-      }
       operand = Immediate();
       immediate = true;
       ADC(operand);
@@ -91,90 +158,60 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     }
     case 0x6D:  // ADC Absolute
     {
-      cycles = 4;
-      if (!m()) cycles++;
-      instruction_length = 3;
       operand = ReadWord(Absolute());
       ADC(operand);
       break;
     }
     case 0x6F:  // ADC Absolute Long
     {
-      cycles = 5;
-      if (!m()) cycles++;
-      instruction_length = 4;
       operand = ReadWord(AbsoluteLong());
       ADC(operand);
       break;
     }
     case 0x71:  // ADC DP Indirect Indexed, Y
     {
-      cycles = 5;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByteOrWord(DirectPageIndirectIndexedY());
       ADC(operand);
       break;
     }
     case 0x72:  // ADC DP Indirect
     {
-      cycles = 5;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByte(DirectPageIndirect());
       ADC(operand);
       break;
     }
     case 0x73:  // ADC SR Indirect Indexed, Y
     {
-      cycles = 7;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByte(StackRelativeIndirectIndexedY());
       ADC(operand);
       break;
     }
     case 0x75:  // ADC DP Indexed, X
     {
-      cycles = 4;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByteOrWord(DirectPageIndexedX());
       ADC(operand);
       break;
     }
     case 0x77:  // ADC DP Indirect Long Indexed, Y
     {
-      cycles = 6;
-      if (!m()) cycles++;
-      instruction_length = 2;
       operand = ReadByteOrWord(DirectPageIndirectLongIndexedY());
       ADC(operand);
       break;
     }
     case 0x79:  // ADC Absolute Indexed, Y
     {
-      cycles = 4;
-      if (!m()) cycles++;
-      instruction_length = 3;
       operand = ReadWord(AbsoluteIndexedY());
       ADC(operand);
       break;
     }
     case 0x7D:  // ADC Absolute Indexed, X
     {
-      cycles = 4;
-      if (!m()) cycles++;
-      instruction_length = 3;
       operand = ReadWord(AbsoluteIndexedX());
       ADC(operand);
       break;
     }
     case 0x7F:  // ADC Absolute Long Indexed, X
     {
-      cycles = 5;
-      if (!m()) cycles++;
-      instruction_length = 4;
       operand = ReadByteOrWord(AbsoluteLongIndexedX());
       ADC(operand);
       break;
@@ -390,29 +427,6 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
     case 0x00:  // BRK Break
     {
       BRK();
-      std::cout << "BRK" << std::endl;
-      // Print all the registers
-      std::cout << "A: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)A << std::endl;
-      std::cout << "X: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)X << std::endl;
-      std::cout << "Y: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)Y << std::endl;
-      std::cout << "S: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)SP() << std::endl;
-      std::cout << "PC: " << std::hex << std::setw(4) << std::setfill('0')
-                << (int)PC << std::endl;
-      std::cout << "PB: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)PB << std::endl;
-      std::cout << "D: " << std::hex << std::setw(4) << std::setfill('0')
-                << (int)D << std::endl;
-      std::cout << "DB: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)DB << std::endl;
-      std::cout << "E: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)E << std::endl;
-      // status registers
-      std::cout << "C: " << std::hex << std::setw(2) << std::setfill('0')
-                << (int)status << std::endl;
       break;
     }
 
@@ -1470,7 +1484,9 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
       break;
   }
 
-  LogInstructions(PC, opcode, operand, immediate, accumulator_mode);
+  if (log_instructions_) {
+    LogInstructions(PC, opcode, operand, immediate, accumulator_mode);
+  }
   instruction_length = GetInstructionLength(opcode);
   UpdatePC(instruction_length);
 }
@@ -1925,71 +1941,6 @@ uint8_t Cpu::GetInstructionLength(uint8_t opcode) {
       throw std::runtime_error("Unknown instruction length");
       return 1;  // Default to 1 as a safe fallback
   }
-}
-
-// TODO: Implement 65816 interrupts.
-void Cpu::HandleInterrupts() {
-  if (GetInterruptFlag()) {
-    return;
-  }
-
-  /**
-  if (GetIRQFlag()) {
-    if (GetEmulationFlag()) {
-      PushWord(PC);
-      PushByte(status);
-      SetInterruptFlag(true);
-      SetDecimalFlag(false);
-      SetIRQFlag(false);
-      SetEmulationFlag(true);
-      try {
-        PC = memory.ReadWord(0xFFFE);
-      } catch (const std::exception& e) {
-        std::cout << "IRQ: " << e.what() << std::endl;
-      }
-    } else {
-      PushWord(PC);
-      PushByte(status);
-      SetInterruptFlag(true);
-      SetDecimalFlag(false);
-      SetIRQFlag(false);
-      SetEmulationFlag(false);
-      try {
-        PC = memory.ReadWord(0xFFFE);
-      } catch (const std::exception& e) {
-        std::cout << "IRQ: " << e.what() << std::endl;
-      }
-    }
-  }
-
-  if (GetNMIFlag()) {
-    if (GetEmulationFlag()) {
-      PushWord(PC);
-      PushByte(status);
-      SetInterruptFlag(true);
-      SetDecimalFlag(false);
-      SetNMIFlag(false);
-      SetEmulationFlag(true);
-      try {
-        PC = memory.ReadWord(0xFFFA);
-      } catch (const std::exception& e) {
-        std::cout << "NMI: " << e.what() << std::endl;
-      }
-    } else {
-      PushWord(PC);
-      PushByte(status);
-      SetInterruptFlag(true);
-      SetDecimalFlag(false);
-      SetNMIFlag(false);
-      SetEmulationFlag(false);
-      try {
-        PC = memory.ReadWord(0xFFFA);
-      } catch (const std::exception& e) {
-        std::cout << "NMI: " << e.what() << std::endl;
-      }
-    }
-  }
-  */
 }
 
 }  // namespace emu

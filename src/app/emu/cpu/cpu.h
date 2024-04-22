@@ -38,44 +38,30 @@ class InstructionEntry {
 
 const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
 
-class Cpu : public memory::Memory,
-            public Loggable,
-            public core::ExperimentFlags {
+class Cpu : public Loggable, public core::ExperimentFlags {
  public:
-  explicit Cpu(Memory& mem, Clock& vclock) : memory(mem), clock(vclock) {}
+  explicit Cpu(memory::Memory& mem, Clock& vclock,
+               memory::CpuCallbacks& callbacks)
+      : memory(mem), clock(vclock), callbacks_(callbacks) {}
   enum class UpdateMode { Run, Step, Pause };
 
   void Init(bool verbose = false) { clock.SetFrequency(kCpuClockSpeed); }
-
+  void Reset(bool hard = false);
   void Update(UpdateMode mode = UpdateMode::Run, int stepCount = 1);
+
+  void RunOpcode();
 
   void ExecuteInstruction(uint8_t opcode);
   void LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
                        bool immediate, bool accumulator_mode);
 
   void UpdatePC(uint8_t instruction_length) { PC += instruction_length; }
-
-  uint8_t GetInstructionLength(uint8_t opcode);
-  uint16_t SP() const override { return memory.SP(); }
-  void SetSP(uint16_t value) override { memory.SetSP(value); }
-  void set_next_pc(uint16_t value) { next_pc_ = value; }
   void UpdateClock(int delta_time) { clock.UpdateClock(delta_time); }
 
-  bool IsBreakpoint(uint32_t address) {
-    return std::find(breakpoints_.begin(), breakpoints_.end(), address) !=
-           breakpoints_.end();
-  }
-  void SetBreakpoint(uint32_t address) { breakpoints_.push_back(address); }
-  void ClearBreakpoint(uint32_t address) {
-    breakpoints_.erase(
-        std::remove(breakpoints_.begin(), breakpoints_.end(), address),
-        breakpoints_.end());
-  }
-  void ClearBreakpoints() {
-    breakpoints_.clear();
-    breakpoints_.shrink_to_fit();
-  }
-  auto GetBreakpoints() { return breakpoints_; }
+  void SetIrq(bool state) { irq_wanted_ = state; }
+  void Nmi() { nmi_wanted_ = true; }
+
+  uint8_t GetInstructionLength(uint8_t opcode);
 
   std::vector<uint32_t> breakpoints_;
   std::vector<InstructionEntry> instruction_log_;
@@ -90,7 +76,7 @@ class Cpu : public memory::Memory,
   // 0xFFF8,F9 - ABORT          0xFFE8,E9  - ABORT
   //                            0xFFE6,E7  - BRK
   // 0xFFF4,F5 - COP            0xFFE4,E5  - COP
-  void HandleInterrupts();
+  void DoInterrupt();
 
   // ======================================================
   // Registers
@@ -117,18 +103,21 @@ class Cpu : public memory::Memory,
   // E 			                  6502 emulation mode
   // B 	      #$10 	00010000 	Break (emulation mode only)
 
+  void SetFlags(uint8_t val) {
+    status = val;
+    if (E) {
+      status |= 0x10;
+    }
+    if (status & 0x20) {
+      X &= 0xff;
+      Y &= 0xff;
+    }
+  }
+
   // Setting flags in the status register
   bool m() { return GetAccumulatorSize() ? 1 : 0; }
   int GetAccumulatorSize() const { return status & 0x20; }
   int GetIndexSize() const { return status & 0x10; }
-  void set_16_bit_mode() {
-    SetAccumulatorSize(true);
-    SetIndexSize(true);
-  }
-  void set_8_bit_mode() {
-    SetAccumulatorSize(false);
-    SetIndexSize(false);
-  }
   void SetAccumulatorSize(bool set) { SetFlag(0x20, set); }
   void SetIndexSize(bool set) { SetFlag(0x10, set); }
 
@@ -152,8 +141,119 @@ class Cpu : public memory::Memory,
 
   enum class AccessType { Control, Data };
 
+  // Memory access routines
+  uint8_t ReadByte(uint32_t address) const {
+    return callbacks_.read_byte(address);
+  }
+  uint16_t ReadWord(uint32_t address) const {
+    uint8_t value = ReadByte(address);
+    uint8_t value2 = ReadByte(address + 1);
+    return value | (value2 << 8);
+  }
+  uint32_t ReadWordLong(uint32_t address) const {
+    uint8_t value = ReadByte(address);
+    uint8_t value2 = ReadByte(address + 1);
+    uint8_t value3 = ReadByte(address + 2);
+    return value | (value2 << 8) | (value3 << 16);
+  }
+
+  void WriteByte(uint32_t address, uint8_t value) {
+    callbacks_.write_byte(address, value);
+  }
+
+  void WriteWord(uint32_t address, uint16_t value) {
+    WriteByte(address, value & 0xFF);
+    WriteByte(address + 1, value >> 8);
+  }
+  void WriteLong(uint32_t address, uint32_t value) {
+    WriteByte(address, value & 0xFF);
+    WriteByte(address + 1, (value >> 8) & 0xFF);
+    WriteByte(address + 2, value >> 16);
+  }
+
+  uint8_t FetchByte() {
+    uint32_t address = (PB << 16) | PC + 1;
+    uint8_t byte = ReadByte(address);
+    return byte;
+  }
+
+  uint16_t FetchWord() {
+    uint32_t address = (PB << 16) | PC + 1;
+    uint16_t value = ReadWord(address);
+    return value;
+  }
+
+  uint32_t FetchLong() {
+    uint32_t value = ReadWordLong((PB << 16) | PC + 1);
+    return value;
+  }
+
+  int8_t FetchSignedByte() { return static_cast<int8_t>(FetchByte()); }
+
+  int16_t FetchSignedWord() {
+    auto offset = static_cast<int16_t>(FetchWord());
+    return offset;
+  }
+
+  uint8_t FetchByteDirectPage(uint8_t operand) {
+    uint16_t distance = D * 0x100;
+
+    // Calculate the effective address in the Direct Page
+    uint16_t effectiveAddress = operand + distance;
+
+    // Fetch the byte from memory
+    uint8_t fetchedByte = ReadByte(effectiveAddress);
+
+    next_pc_ = PC + 1;
+
+    return fetchedByte;
+  }
+
+  uint16_t ReadByteOrWord(uint32_t address) {
+    if (GetAccumulatorSize()) {
+      // 8-bit mode
+      return ReadByte(address) & 0xFF;
+    } else {
+      // 16-bit mode
+      return ReadWord(address);
+    }
+  }
+
+  void PushByte(uint8_t value) {
+    WriteByte(SP(), value);
+    SetSP(SP() - 1);
+    if (E) SetSP((SP() & 0xff) | 0x100);
+  }
+  void PushWord(uint16_t value, bool int_check = false) {
+    PushByte(value >> 8);
+    if (int_check) CheckInt();
+    PushByte(value & 0xFF);
+  }
+  void PushLong(uint32_t value) {  // Push 24-bit value
+    PushByte(value >> 16);
+    PushWord(value & 0xFFFF);
+  }
+
+  uint8_t PopByte() {
+    SetSP(SP() + 1);
+    if (E) SetSP((SP() & 0xff) | 0x100);
+    return ReadByte(SP());
+  }
+  uint16_t PopWord(bool int_check = false) {
+    uint8_t low = PopByte();
+    if (int_check) CheckInt();
+    return low | (PopByte() << 8);
+  }
+  uint32_t PopLong() {  // Pop 24-bit value
+    uint32_t low = PopWord();
+    uint32_t high = PopByte();
+    return (high << 16) | low;
+  }
+
   // ==========================================================================
   // Addressing Modes
+
+  void AdrImp();
 
   // Effective Address:
   //    Bank: Data Bank Register if locating data
@@ -320,88 +420,6 @@ class Cpu : public memory::Memory,
   //
   // LDA (sr, S), Y
   uint32_t StackRelativeIndirectIndexedY();
-
-  // Memory access routines
-  uint8_t ReadByte(uint32_t address) const override {
-    return memory.ReadByte(address);
-  }
-  uint16_t ReadWord(uint32_t address) const override {
-    return memory.ReadWord(address);
-  }
-  uint32_t ReadWordLong(uint32_t address) const override {
-    return memory.ReadWordLong(address);
-  }
-
-  std::vector<uint8_t> ReadByteVector(uint32_t address,
-                                      uint16_t size) const override {
-    return memory.ReadByteVector(address, size);
-  }
-
-  void WriteByte(uint32_t address, uint8_t value) override {
-    memory.WriteByte(address, value);
-  }
-
-  void WriteWord(uint32_t address, uint16_t value) override {
-    memory.WriteWord(address, value);
-  }
-  void WriteLong(uint32_t address, uint32_t value) override {
-    memory.WriteLong(address, value);
-  }
-
-  uint8_t FetchByte() {
-    uint32_t address = (PB << 16) | PC + 1;
-    uint8_t byte = memory.ReadByte(address);
-    return byte;
-  }
-
-  uint16_t FetchWord() {
-    uint32_t address = (PB << 16) | PC + 1;
-    uint16_t value = memory.ReadWord(address);
-    return value;
-  }
-
-  uint32_t FetchLong() {
-    uint32_t value = memory.ReadWordLong((PB << 16) | PC + 1);
-    return value;
-  }
-
-  int8_t FetchSignedByte() { return static_cast<int8_t>(FetchByte()); }
-
-  int16_t FetchSignedWord() {
-    auto offset = static_cast<int16_t>(FetchWord());
-    return offset;
-  }
-
-  uint8_t FetchByteDirectPage(uint8_t operand) {
-    uint16_t distance = D * 0x100;
-
-    // Calculate the effective address in the Direct Page
-    uint16_t effectiveAddress = operand + distance;
-
-    // Fetch the byte from memory
-    uint8_t fetchedByte = memory.ReadByte(effectiveAddress);
-
-    next_pc_ = PC + 1;
-
-    return fetchedByte;
-  }
-
-  uint16_t ReadByteOrWord(uint32_t address) {
-    if (GetAccumulatorSize()) {
-      // 8-bit mode
-      return memory.ReadByte(address) & 0xFF;
-    } else {
-      // 16-bit mode
-      return memory.ReadWord(address);
-    }
-  }
-
-  void PushByte(uint8_t value) override { memory.PushByte(value); }
-  void PushWord(uint16_t value) override { memory.PushWord(value); }
-  uint8_t PopByte() override { return memory.PopByte(); }
-  uint16_t PopWord() override { return memory.PopWord(); }
-  void PushLong(uint32_t value) override { memory.PushLong(value); }
-  uint32_t PopLong() override { return memory.PopLong(); }
 
   // ======================================================
   // Instructions
@@ -684,6 +702,33 @@ class Cpu : public memory::Memory,
   // XCE: Exchange carry and emulation bits
   void XCE();
 
+  // ==========================================================================
+  uint16_t SP() const { return memory.SP(); }
+  void SetSP(uint16_t value) { memory.SetSP(value); }
+  void set_next_pc(uint16_t value) { next_pc_ = value; }
+
+  bool IsBreakpoint(uint32_t address) {
+    return std::find(breakpoints_.begin(), breakpoints_.end(), address) !=
+           breakpoints_.end();
+  }
+  void SetBreakpoint(uint32_t address) { breakpoints_.push_back(address); }
+  void ClearBreakpoint(uint32_t address) {
+    breakpoints_.erase(
+        std::remove(breakpoints_.begin(), breakpoints_.end(), address),
+        breakpoints_.end());
+  }
+  void ClearBreakpoints() {
+    breakpoints_.clear();
+    breakpoints_.shrink_to_fit();
+  }
+  auto GetBreakpoints() { return breakpoints_; }
+
+  void CheckInt() {
+    int_wanted_ = nmi_wanted_ || (irq_wanted_ && !GetInterruptFlag());
+  }
+
+  auto mutable_log_instructions() -> bool* { return &log_instructions_; }
+
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
     uint16_t result;
@@ -711,14 +756,22 @@ class Cpu : public memory::Memory,
   }
 
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
-  void ClearMemory() override { memory.ClearMemory(); }
-  uint8_t operator[](int i) const override { return 0; }
-  uint8_t at(int i) const override { return 0; }
+
+  bool log_instructions_ = false;
+
+  bool waiting_ = false;
+  bool stopped_ = false;
+
+  bool irq_wanted_ = false;
+  bool nmi_wanted_ = false;
+  bool reset_wanted_ = false;
+  bool int_wanted_ = false;
 
   uint16_t last_call_frame_;
   uint16_t next_pc_;
 
-  Memory& memory;
+  memory::CpuCallbacks callbacks_;
+  memory::Memory& memory;
   Clock& clock;
 };
 
