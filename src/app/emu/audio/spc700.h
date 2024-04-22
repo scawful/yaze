@@ -152,8 +152,9 @@ class Spc700 {
   }
 
   uint16_t ReadOpcodeWord() {
-    uint16_t opcode = read_word(PC);
-    return opcode;
+    uint8_t low = ReadOpcode();
+    uint8_t high = ReadOpcode();
+    return low | (high << 8);
   }
 
   void DoBranch(uint8_t value, bool check) {
