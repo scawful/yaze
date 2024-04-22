@@ -485,34 +485,6 @@ class Ppu : public SharedRom {
   std::array<BGNBA, 4> bgnba_;
   std::array<BGHOFS, 4> bghofs_;
   std::array<BGVOFS, 4> bgvofs_;
-  struct VMAIN vmain_;
-  struct VMADDL vmaddl_;
-  struct VMADDH vmaddh_;
-  // struct VMDATAL vmdatal_;
-  // struct VMDATAH vmdatah_;
-  struct M7SEL m7sel_;
-  struct M7A m7a_;
-  struct M7B m7b_;
-  struct M7C m7c_;
-  struct M7D m7d_;
-  struct M7X m7x_;
-  struct M7Y m7y_;
-  struct CGADD cgadd_;
-  struct CGDATA cgdata_;
-  struct W12SEL w12sel_;
-  struct W34SEL w34sel_;
-  struct WOBJSEL wobjsel_;
-  struct WH0 wh0_;
-  struct WH1 wh1_;
-  struct WH2 wh2_;
-  struct WH3 wh3_;
-  struct WBGLOG wbglog_;
-  struct WOBJLOG wobjlog_;
-  struct TM tm_;
-  struct TS ts_;
-  struct TSW tsw_;
-  struct TMW tmw_;
-  struct SETINI setini_;
 };
 
 }  // namespace video
