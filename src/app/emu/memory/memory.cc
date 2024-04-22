@@ -23,19 +23,16 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& romData, bool verbose) {
   rom_.resize(romSize);
 
   // Copy memory into rom_
-  std::copy(romData.begin() + kROMStart, romData.begin() + kROMStart + kROMSize,
-            rom_.begin());
-
-  memory_.resize(0x1000000);  // 16 MB
-
-  const size_t ROM_CHUNK_SIZE = 0x8000;  // 32 KB
+  std::copy(romData.begin(), romData.begin() + romSize, rom_.begin());
 
   // Clear memory
+  memory_.resize(0x1000000);  // 16 MB
   std::fill(memory_.begin(), memory_.end(), 0);
 
   // Load ROM data into memory based on LoROM mapping
   size_t romSize = romData.size();
   size_t romAddress = 0;
+  const size_t ROM_CHUNK_SIZE = 0x8000;  // 32 KB
   for (size_t bank = 0x00; bank <= 0x3F; ++bank) {
     for (size_t offset = 0x8000; offset <= 0xFFFF; offset += ROM_CHUNK_SIZE) {
       if (romAddress < romSize) {
@@ -46,16 +43,6 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& romData, bool verbose) {
       }
     }
   }
-
-  // Copy data into rom_ vector
-  rom_.resize(kROMSize);
-  std::copy(memory_.begin() + kROMStart, memory_.begin() + kROMStart + kROMSize,
-            rom_.begin());
-
-  // Copy data into ram_ vector
-  ram_.resize(kRAMSize);
-  std::copy(memory_.begin() + kRAMStart, memory_.begin() + kRAMStart + kRAMSize,
-            ram_.begin());
 }
 
 memory::RomInfo MemoryImpl::ReadRomHeader() {

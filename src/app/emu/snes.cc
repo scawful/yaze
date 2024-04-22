@@ -22,19 +22,6 @@ namespace app {
 namespace emu {
 
 void SNES::Init(Rom& rom) {
-  // Load the ROM into memory and set up the memory mapping
-  rom_data = rom.vector();
-  memory_.Initialize(rom_data);
-
-  // Read the ROM header
-  rom_info_ = memory_.ReadRomHeader();
-  Reset();
-
-  // Disable the emulation flag (switch to 65816 native mode)
-  cpu_.E = 0;
-  cpu_.PB = 0x00;
-  cpu_.PC = 0x8000;
-
   // Initialize CPU
   cpu_.Init();
 
@@ -43,6 +30,19 @@ void SNES::Init(Rom& rom) {
 
   // Initialize APU
   apu_.Init();
+
+  // Load the ROM into memory and set up the memory mapping
+  rom_data = rom.vector();
+  memory_.Initialize(rom_data);
+
+  // Read the ROM header
+  // rom_info_ = memory_.ReadRomHeader();
+  Reset(true);
+
+  // Disable the emulation flag (switch to 65816 native mode)
+  cpu_.E = 0;
+  // cpu_.PB = 0x00;
+  // cpu_.PC = 0x8000;
 
   // Disable interrupts and rendering
   memory_.WriteByte(0x4200, 0x00);  // NMITIMEN
@@ -90,7 +90,7 @@ void SNES::Reset(bool hard) {
   input1.latchedState = 0;
   input2.latchedState = 0;
   // cart_reset();
-  // if(hard) memset(ram, 0, sizeof(ram));
+  if (hard) memset(ram, 0, sizeof(ram));
   ram_adr_ = 0;
   memory_.set_h_pos(0);
   memory_.set_v_pos(0);
