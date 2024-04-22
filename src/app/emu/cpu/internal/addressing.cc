@@ -3,6 +3,20 @@
 namespace yaze {
 namespace app {
 namespace emu {
+// addressing modes
+
+void Cpu::AdrImp() {
+  // only for 2-cycle implied opcodes
+  CheckInt();
+  if (int_wanted_) {
+    // if interrupt detected in 2-cycle implied/accumulator opcode,
+    // idle cycle turns into read from pc
+    ReadByte((PB << 16) | PC);
+  } else {
+    callbacks_.idle(false);
+  }
+}
+
 
 uint32_t Cpu::Absolute(Cpu::AccessType access_type) {
   auto operand = FetchWord();
