@@ -60,8 +60,6 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  # asar-static
-  # snes_spc
   ImGui
   gmock_main
   gmock
