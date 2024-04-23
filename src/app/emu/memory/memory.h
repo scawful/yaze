@@ -168,7 +168,7 @@ class MemoryImpl : public Memory, public Loggable {
   void Initialize(const std::vector<uint8_t>& romData, bool verbose = false);
 
   uint16_t GetHeaderOffset() {
-    uint8_t mapMode = rom_[(0x00 << 16) + 0xFFD5];
+    uint8_t mapMode = memory_[(0x00 << 16) + 0xFFD5];
     uint16_t offset;
 
     switch (mapMode & 0x07) {
@@ -361,10 +361,10 @@ class MemoryImpl : public Memory, public Loggable {
   uint8_t open_bus_ = 0;
 
   // Stack Pointer
-  uint16_t SP_ = 0x01FF;
+  uint16_t SP_ = 0;
 
   // Cart Type
-  uint8_t type_;
+  uint8_t type_ = 1;
 
   // Memory (64KB)
   std::vector<uint8_t> memory_;

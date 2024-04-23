@@ -56,13 +56,13 @@ class Emulator : public SharedRom {
       }
     )";
     const std::map<std::string, void*> data_bindings = {
-        {"cpu.A", &snes_.cpu().A},   {"cpu.D", &snes_.cpu().D},
-        {"cpu.X", &snes_.cpu().X},   {"cpu.DB", &snes_.cpu().DB},
-        {"cpu.Y", &snes_.cpu().Y},   {"cpu.PB", &snes_.cpu().PB},
-        {"cpu.PC", &snes_.cpu().PC}, {"cpu.E", &snes_.cpu().E}};
+        {"cpu.A", &snes_.cpu()->A},   {"cpu.D", &snes_.cpu()->D},
+        {"cpu.X", &snes_.cpu()->X},   {"cpu.DB", &snes_.cpu()->DB},
+        {"cpu.Y", &snes_.cpu()->Y},   {"cpu.PB", &snes_.cpu()->PB},
+        {"cpu.PC", &snes_.cpu()->PC}, {"cpu.E", &snes_.cpu()->E}};
     emulator_node_ = gui::zeml::Parse(emulator_layout, data_bindings);
     Bind(emulator_node_.GetNode("CpuInstructionLog"),
-         [&]() { RenderCpuInstructionLog(snes_.cpu().instruction_log_); });
+         [&]() { RenderCpuInstructionLog(snes_.cpu()->instruction_log_); });
     Bind(emulator_node_.GetNode("SnesPpu"), [&]() { RenderSnesPpu(); });
     Bind(emulator_node_.GetNode("BreakpointList"),
          [&]() { RenderBreakpointList(); });
