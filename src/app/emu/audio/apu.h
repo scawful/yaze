@@ -97,7 +97,7 @@ class Apu {
   Timer timer[3];
   uint32_t cycles_;
   uint8_t dspAdr;
-  bool romReadable = true;
+  bool romReadable = false;
 
   // Member variables to store internal APU state and resources
   AudioRam &aram_;
@@ -105,9 +105,9 @@ class Apu {
   MemoryImpl &memory_;
 
   ApuCallbacks callbacks_ = {
-      [this](uint16_t adr, uint8_t val) { SpcWrite(adr, val); },
-      [this](uint16_t adr) { return SpcRead(adr); },
-      [this](bool waiting) { SpcIdle(waiting); },
+      [&](uint16_t adr, uint8_t val) { SpcWrite(adr, val); },
+      [&](uint16_t adr) { return SpcRead(adr); },
+      [&](bool waiting) { SpcIdle(waiting); },
   };
   Dsp dsp_{aram_};
   Spc700 spc700_{aram_, callbacks_};
