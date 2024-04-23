@@ -67,8 +67,8 @@ class SNES {
   void SetPixels(uint8_t* pixel_data);
 
   bool running() const { return running_; }
-  auto cpu() -> Cpu& { return cpu_; }
-  auto ppu() -> video::Ppu& { return ppu_; }
+  auto cpu() -> Cpu* { return &cpu_; }
+  auto ppu() -> video::Ppu* { return &ppu_; }
   auto Memory() -> memory::MemoryImpl* { return &memory_; }
 
  private:
@@ -80,9 +80,9 @@ class SNES {
   audio::AudioRamImpl audio_ram_;
 
   memory::CpuCallbacks cpu_callbacks_ = {
-      [this](uint32_t adr) { return CpuRead(adr); },
-      [this](uint32_t adr, uint8_t val) { CpuWrite(adr, val); },
-      [this](bool waiting) { CpuIdle(waiting); },
+      [&](uint32_t adr) { return CpuRead(adr); },
+      [&](uint32_t adr, uint8_t val) { CpuWrite(adr, val); },
+      [&](bool waiting) { CpuIdle(waiting); },
   };
   Cpu cpu_{memory_, clock_, cpu_callbacks_};
   video::Ppu ppu_{memory_, clock_};
@@ -118,8 +118,8 @@ class SNES {
   // Multiplication / Division
   uint8_t multiply_a_;
   uint16_t multiply_result_;
-  uint8_t divide_a_;
-  uint8_t divide_result_;
+  uint16_t divide_a_;
+  uint16_t divide_result_;
 
   // Joypad State
   Input input1;

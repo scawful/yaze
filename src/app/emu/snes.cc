@@ -1,7 +1,5 @@
 #include "app/emu/snes.h"
 
-#include <SDL_mixer.h>
-
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -40,7 +38,7 @@ void SNES::Init(Rom& rom) {
   Reset(true);
 
   // Disable the emulation flag (switch to 65816 native mode)
-  cpu_.E = 0;
+  // cpu_.E = 0;
   // cpu_.PB = 0x00;
   // cpu_.PC = 0x8000;
 
@@ -85,6 +83,7 @@ void SNES::Reset(bool hard) {
   cpu_.Reset(hard);
   apu_.Reset();
   ppu_.Reset();
+  memory::dma::Reset(&memory_);
   input1.latchLine = false;
   input2.latchLine = false;
   input1.latchedState = 0;
