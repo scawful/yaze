@@ -12,6 +12,7 @@ namespace emu {
 namespace memory {
 namespace dma {
 
+void Reset(MemoryImpl* memory);
 void HandleDma(SNES* snes, MemoryImpl* memory, int cpu_cycles);
 
 void WaitCycle(SNES* snes, MemoryImpl* memory);
