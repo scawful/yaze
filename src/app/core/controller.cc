@@ -1,7 +1,6 @@
 #include "controller.h"
 
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/backends/imgui_impl_sdlrenderer2.h>
 #include <imgui/imgui.h>
@@ -188,7 +187,6 @@ void Controller::DoRender() const {
 
 void Controller::OnExit() {
   master_editor_.Shutdown();
-  Mix_CloseAudio();
   SDL_PauseAudioDevice(audio_device_, 1);
   SDL_CloseAudioDevice(audio_device_);
   delete audio_buffer_;
@@ -219,11 +217,6 @@ absl::Status Controller::CreateSDL_Window() {
     if (window_ == nullptr) {
       return absl::InternalError(
           absl::StrFormat("SDL_CreateWindow: %s\n", SDL_GetError()));
-    }
-    // Initialize SDL_mixer
-    if (Mix_OpenAudio(32000, MIX_DEFAULT_FORMAT, 2, 1024) < 0) {
-      printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n",
-             Mix_GetError());
     }
   }
   return absl::OkStatus();

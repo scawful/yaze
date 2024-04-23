@@ -1,7 +1,6 @@
 #ifndef YAZE_APP_EDITOR_MUSIC_EDITOR_H
 #define YAZE_APP_EDITOR_MUSIC_EDITOR_H
 
-#include <SDL_mixer.h>
 #include <imgui/imgui.h>
 
 #include "absl/strings/str_format.h"
