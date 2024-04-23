@@ -49,6 +49,7 @@ using ImGui::TableNextColumn;
 using ImGui::Text;
 
 void Emulator::Run() {
+  static bool loaded = false;
   if (!snes_.running() && rom()->is_loaded()) {
     ppu_texture_ =
         SDL_CreateTexture(rom()->renderer().get(), SDL_PIXELFORMAT_RGBX8888,
@@ -57,10 +58,10 @@ void Emulator::Run() {
       printf("Failed to create texture: %s\n", SDL_GetError());
       return;
     }
-    
     snes_.Init(*rom());
     wanted_frames_ = 1.0 / (snes_.Memory()->pal_timing() ? 50.0 : 60.0);
     wanted_samples_ = 48000 / (snes_.Memory()->pal_timing() ? 50 : 60);
+    loaded = true;
 
     countFreq = SDL_GetPerformanceFrequency();
     lastCount = SDL_GetPerformanceCounter();
@@ -80,16 +81,19 @@ void Emulator::Run() {
     // allow 2 ms earlier, to prevent skipping due to being just below wanted
     while (timeAdder >= wanted_frames_ - 0.002) {
       timeAdder -= wanted_frames_;
-      snes_.RunFrame();
 
-      void* ppu_pixels_;
-      int ppu_pitch_;
-      if (SDL_LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_) != 0) {
-        printf("Failed to lock texture: %s\n", SDL_GetError());
-        return;
+      if (loaded) {
+        snes_.RunFrame();
+        void* ppu_pixels_;
+        int ppu_pitch_;
+        if (SDL_LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_) !=
+            0) {
+          printf("Failed to lock texture: %s\n", SDL_GetError());
+          return;
+        }
+        snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
+        SDL_UnlockTexture(ppu_texture_);
       }
-      snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
-      SDL_UnlockTexture(ppu_texture_);
     }
   }
 
@@ -149,7 +153,7 @@ void Emulator::RenderNavBar() {
 
   if (ImGui::Button(ICON_MD_SKIP_NEXT)) {
     // Step through Code logic
-    // snes_.StepRun();
+    snes_.cpu()->RunOpcode();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Step Through Code");
@@ -158,6 +162,7 @@ void Emulator::RenderNavBar() {
 
   if (ImGui::Button(ICON_MD_REFRESH)) {
     // Reset Emulator logic
+    snes_.Reset();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Reset Emulator");
@@ -205,7 +210,7 @@ void Emulator::RenderNavBar() {
   }
 
   SameLine();
-  ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions());
+  ImGui::Checkbox("Logging", snes_.cpu()->mutable_log_instructions());
 
   static bool show_memory_viewer = false;
 
@@ -252,28 +257,28 @@ void Emulator::RenderBreakpointList() {
   if (ImGui::InputText("##BreakpointInput", breakpoint_input, 10,
                        ImGuiInputTextFlags_EnterReturnsTrue)) {
     int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
-    snes_.cpu().SetBreakpoint(breakpoint);
+    snes_.cpu()->SetBreakpoint(breakpoint);
     memset(breakpoint_input, 0, sizeof(breakpoint_input));
   }
   SameLine();
   if (ImGui::Button("Add")) {
     int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
-    snes_.cpu().SetBreakpoint(breakpoint);
+    snes_.cpu()->SetBreakpoint(breakpoint);
     memset(breakpoint_input, 0, sizeof(breakpoint_input));
   }
   SameLine();
   if (ImGui::Button("Clear")) {
-    snes_.cpu().ClearBreakpoints();
+    snes_.cpu()->ClearBreakpoints();
   }
   Separator();
-  auto breakpoints = snes_.cpu().GetBreakpoints();
+  auto breakpoints = snes_.cpu()->GetBreakpoints();
   if (!breakpoints.empty()) {
     Text("Breakpoints:");
     ImGui::BeginChild("BreakpointsList", ImVec2(0, 100), true);
     for (auto breakpoint : breakpoints) {
       if (ImGui::Selectable(absl::StrFormat("0x%04X", breakpoint).c_str())) {
         // Jump to breakpoint
-        // snes_.Cpu().JumpToBreakpoint(breakpoint);
+        // snes_.cpu()->JumpToBreakpoint(breakpoint);
       }
     }
     ImGui::EndChild();
@@ -282,8 +287,8 @@ void Emulator::RenderBreakpointList() {
   gui::InputHexByte("PB", &manual_pb_, 50.f);
   gui::InputHexWord("PC", &manual_pc_, 75.f);
   if (ImGui::Button("Set Current Address")) {
-    snes_.cpu().PC = manual_pc_;
-    snes_.cpu().PB = manual_pb_;
+    snes_.cpu()->PC = manual_pc_;
+    snes_.cpu()->PB = manual_pb_;
   }
 }
 
@@ -337,8 +342,8 @@ void Emulator::RenderMemoryViewer() {
     }
 
     TableNextColumn();
-    mem_edit.DrawContents((void*)snes_.Memory()->data(),
-                          snes_.Memory()->size());
+    mem_edit.DrawContents((void*)snes_.Memory()->rom_.data(),
+                          snes_.Memory()->rom_.size());
 
     ImGui::EndTable();
   }

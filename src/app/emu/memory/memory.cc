@@ -16,6 +16,7 @@ namespace memory {
 
 void MemoryImpl::Initialize(const std::vector<uint8_t>& romData, bool verbose) {
   verbose_ = verbose;
+  type_ = 1;
 
   auto location = 0x7FC0;  // GetHeaderOffset();
   romSize = 0x400 << romData[location + 0x17];
@@ -23,7 +24,13 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& romData, bool verbose) {
   rom_.resize(romSize);
 
   // Copy memory into rom_
-  std::copy(romData.begin(), romData.begin() + romSize, rom_.begin());
+  for (size_t i = 0; i < romSize; i++) {
+    rom_[i] = romData[i];
+  }
+  ram_.resize(sramSize);
+  for (size_t i = 0; i < sramSize; i++) {
+    ram_[i] = 0;
+  }
 
   // Clear memory
   memory_.resize(0x1000000);  // 16 MB
@@ -43,6 +50,7 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& romData, bool verbose) {
       }
     }
   }
+
 }
 
 memory::RomInfo MemoryImpl::ReadRomHeader() {
