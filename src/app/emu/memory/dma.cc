@@ -14,6 +14,33 @@ static const int bAdrOffsets[8][4] = {{0, 0, 0, 0}, {0, 1, 0, 1}, {0, 0, 0, 0},
 
 static const int transferLength[8] = {1, 2, 2, 4, 4, 4, 2, 4};
 
+void Reset(MemoryImpl* memory) {
+  auto channel = memory->dma_channels();
+  for (int i = 0; i < 8; i++) {
+    channel[i].bAdr = 0xff;
+    channel[i].aAdr = 0xffff;
+    channel[i].aBank = 0xff;
+    channel[i].size = 0xffff;
+    channel[i].indBank = 0xff;
+    channel[i].tableAdr = 0xffff;
+    channel[i].repCount = 0xff;
+    channel[i].unusedByte = 0xff;
+    channel[i].dmaActive = false;
+    channel[i].hdmaActive = false;
+    channel[i].mode = 7;
+    channel[i].fixed = true;
+    channel[i].decrement = true;
+    channel[i].indirect = true;
+    channel[i].fromB = true;
+    channel[i].unusedBit = true;
+    channel[i].doTransfer = false;
+    channel[i].terminated = false;
+  }
+  memory->set_dma_state(0);
+  memory->set_hdma_init_requested(false);
+  memory->set_hdma_run_requested(false);
+}
+
 uint8_t Read(MemoryImpl* memory, uint16_t adr) {
   auto channel = memory->dma_channels();
   uint8_t c = (adr & 0x70) >> 4;
