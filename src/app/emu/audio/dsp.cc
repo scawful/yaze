@@ -66,7 +66,66 @@ static const int gaussValues[512] = {
     0x512, 0x513, 0x514, 0x514, 0x515, 0x516, 0x516, 0x517, 0x517, 0x517, 0x518,
     0x518, 0x518, 0x518, 0x518, 0x519, 0x519};
 
-void Dsp::Reset() {}
+void Dsp::Reset() {
+  memset(ram, 0, sizeof(ram));
+  ram[0x7c] = 0xff;  // set ENDx
+  for (int i = 0; i < 8; i++) {
+    channel[i].pitch = 0;
+    channel[i].pitchCounter = 0;
+    channel[i].pitchModulation = false;
+    memset(channel[i].decodeBuffer, 0, sizeof(channel[i].decodeBuffer));
+    channel[i].bufferOffset = 0;
+    channel[i].srcn = 0;
+    channel[i].decodeOffset = 0;
+    channel[i].blockOffset = 0;
+    channel[i].brrHeader = 0;
+    channel[i].useNoise = false;
+    channel[i].startDelay = 0;
+    memset(channel[i].adsrRates, 0, sizeof(channel[i].adsrRates));
+    channel[i].adsrState = 0;
+    channel[i].sustainLevel = 0;
+    channel[i].gainSustainLevel = 0;
+    channel[i].useGain = false;
+    channel[i].gainMode = 0;
+    channel[i].directGain = false;
+    channel[i].gainValue = 0;
+    channel[i].preclampGain = 0;
+    channel[i].gain = 0;
+    channel[i].keyOn = false;
+    channel[i].keyOff = false;
+    channel[i].sampleOut = 0;
+    channel[i].volumeL = 0;
+    channel[i].volumeR = 0;
+    channel[i].echoEnable = false;
+  }
+  counter = 0;
+  dirPage = 0;
+  evenCycle = true;
+  mute = true;
+  reset = true;
+  masterVolumeL = 0;
+  masterVolumeR = 0;
+  sampleOutL = 0;
+  sampleOutR = 0;
+  echoOutL = 0;
+  echoOutR = 0;
+  noiseSample = 0x4000;
+  noiseRate = 0;
+  echoWrites = false;
+  echoVolumeL = 0;
+  echoVolumeR = 0;
+  feedbackVolume = 0;
+  echoBufferAdr = 0;
+  echoDelay = 0;
+  echoLength = 0;
+  echoBufferIndex = 0;
+  firBufferIndex = 0;
+  memset(firValues, 0, sizeof(firValues));
+  memset(firBufferL, 0, sizeof(firBufferL));
+  memset(firBufferR, 0, sizeof(firBufferR));
+  memset(sampleBuffer, 0, sizeof(sampleBuffer));
+  sampleOffset = 0;
+}
 
 void Dsp::Cycle() {
   sampleOutL = 0;
