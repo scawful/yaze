@@ -1,6 +1,5 @@
 #include "music_editor.h"
 
-#include <SDL_mixer.h>
 #include <imgui/imgui.h>
 
 #include "absl/strings/str_format.h"
@@ -264,7 +263,6 @@ void MusicEditor::DrawToolset() {
     ImGui::TableNextColumn();
     if (ImGui::Button(is_playing ? ICON_MD_STOP : ICON_MD_PLAY_ARROW)) {
       if (is_playing) {
-        Mix_HaltMusic();
         has_loaded_song = false;
       }
       is_playing = !is_playing;

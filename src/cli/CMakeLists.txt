@@ -19,7 +19,6 @@ target_include_directories(
   z3ed PUBLIC
   lib/
   app/
-  lib/SDL_mixer/include/
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
@@ -34,6 +33,5 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  SDL2_mixer
   ImGui
 )

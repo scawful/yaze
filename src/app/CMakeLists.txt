@@ -15,7 +15,6 @@ target_include_directories(
   yaze PUBLIC
   lib/
   app/
-  lib/SDL_mixer/include/
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
@@ -27,7 +26,6 @@ target_link_libraries(
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  SDL2_mixer
   ImGui
 )
 
