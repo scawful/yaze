@@ -7,10 +7,6 @@ namespace audio {
 
 // adressing modes
 
-//  uint16_t adrDp() {
-//   return ReadOpcode() | (PSW.P << 8);
-// }
-
 uint16_t Spc700::ind() {
   read(PC);
   return X | (PSW.P << 8);
@@ -53,11 +49,6 @@ uint16_t Spc700::idy() {
   return (adr + Y) & 0xffff;
 }
 
-//  uint16_t adrDpDp(uint8_t* srcVal) {
-//   *srcVal = read(spc, ReadOpcode() | (PSW.P << 8));
-//   return ReadOpcode() | (PSW.P << 8);
-// }
-
 uint16_t Spc700::dp_imm(uint8_t* srcVal) {
   *srcVal = ReadOpcode();
   return ReadOpcode() | (PSW.P << 8);
@@ -91,9 +82,7 @@ uint16_t Spc700::imm() { return PC++; }
 
 // Direct page
 uint8_t Spc700::dp() {
-  PC++;
-  uint8_t offset = read(PC);
-  return read((PSW.P << 8) + offset);
+  return ReadOpcode() | (PSW.P << 8);
 }
 
 uint8_t Spc700::get_dp_addr() {
