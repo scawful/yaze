@@ -34,7 +34,6 @@ class Controller : public ExperimentFlags {
   absl::Status OnEntry();
   void OnInput();
   void OnLoad();
-  void PlayAudio();
   void DoRender() const;
   void OnExit();
 

@@ -121,6 +121,8 @@ absl::Status Controller::OnEntry() {
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
   RETURN_IF_ERROR(LoadAudioDevice())
+  master_editor_.emulator().set_audio_buffer(audio_buffer_);
+  master_editor_.emulator().set_audio_device_id(audio_device_);
   InitializeKeymap();
   master_editor_.SetupScreen(renderer_);
   active_ = true;
@@ -167,16 +169,6 @@ void Controller::OnInput() {
 }
 
 void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
-
-void Controller::PlayAudio() {
-  if (master_editor_.emulator().running()) {
-    auto wanted_samples = master_editor_.emulator().wanted_samples();
-    master_editor_.emulator().snes().SetSamples(audio_buffer_, wanted_samples);
-    if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples * 4 * 6) {
-      SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples * 4);
-    }
-  }
-}
 
 void Controller::DoRender() const {
   ImGui::Render();
