@@ -56,8 +56,8 @@ typedef struct Timer {
  */
 class Apu {
  public:
-  Apu(MemoryImpl &memory, AudioRam &aram, Clock &clock)
-      : aram_(aram), clock_(clock), memory_(memory) {}
+  Apu(MemoryImpl &memory, Clock &clock)
+      : clock_(clock), memory_(memory) {}
 
   void Init();
   void Reset();
@@ -73,34 +73,22 @@ class Apu {
   uint8_t Read(uint16_t address);
   void Write(uint16_t address, uint8_t data);
 
-  // Called upon a reset
-  void Initialize() {
-    spc700_.Reset();
-    dsp_.Reset();
-  }
-
   void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
 
   auto dsp() -> Dsp & { return dsp_; }
 
-  uint8_t inPorts[6];  // includes 2 bytes of ram
-  uint8_t outPorts[4];
+  // Port buffers (equivalent to $2140 to $2143 for the main CPU)
+  uint8_t in_ports_[6];  // includes 2 bytes of ram
+  uint8_t out_ports_[4];
 
  private:
-  // Constants for communication
-  static const uint8_t READY_SIGNAL_0 = 0xAA;
-  static const uint8_t READY_SIGNAL_1 = 0xBB;
-  static const uint8_t BEGIN_SIGNAL = 0xCC;
-
-  // Port buffers (equivalent to $2140 to $2143 for the main CPU)
-  uint8_t ports_[4] = {0};
-  Timer timer[3];
+  Timer timer_[3];
   uint32_t cycles_;
-  uint8_t dspAdr;
-  bool romReadable = false;
+  uint8_t dsp_adr_;
+  bool rom_readable_ = false;
+  std::vector<uint8_t> ram = std::vector<uint8_t>(0x10000, 0);
 
   // Member variables to store internal APU state and resources
-  AudioRam &aram_;
   Clock &clock_;
   MemoryImpl &memory_;
 
@@ -109,8 +97,8 @@ class Apu {
       [&](uint16_t adr) { return SpcRead(adr); },
       [&](bool waiting) { SpcIdle(waiting); },
   };
-  Dsp dsp_{aram_};
-  Spc700 spc700_{aram_, callbacks_};
+  Dsp dsp_{ram};
+  Spc700 spc700_{callbacks_};
 };
 
 }  // namespace audio

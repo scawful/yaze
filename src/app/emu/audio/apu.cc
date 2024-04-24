@@ -31,10 +31,21 @@ void Apu::Init() {
 }
 
 void Apu::Reset() {
-  clock_.ResetAccumulatedTime();
   spc700_.Reset(true);
   dsp_.Reset();
-  romReadable = true;
+  ram.clear();
+  rom_readable_ = true;
+  dsp_adr_ = 0;
+  cycles_ = 0;
+  memset(in_ports_, 0, sizeof(in_ports_));
+  memset(out_ports_, 0, sizeof(out_ports_));
+  for (int i = 0; i < 3; i++) {
+    timer_[i].cycles = 0;
+    timer_[i].divider = 0;
+    timer_[i].target = 0;
+    timer_[i].counter = 0;
+    timer_[i].enabled = false;
+  }
 }
 
 void Apu::Update() {
@@ -69,18 +80,18 @@ void Apu::Cycle() {
 
   // handle timers
   for (int i = 0; i < 3; i++) {
-    if (timer[i].cycles == 0) {
-      timer[i].cycles = i == 2 ? 16 : 128;
-      if (timer[i].enabled) {
-        timer[i].divider++;
-        if (timer[i].divider == timer[i].target) {
-          timer[i].divider = 0;
-          timer[i].counter++;
-          timer[i].counter &= 0xf;
+    if (timer_[i].cycles == 0) {
+      timer_[i].cycles = i == 2 ? 16 : 128;
+      if (timer_[i].enabled) {
+        timer_[i].divider++;
+        if (timer_[i].divider == timer_[i].target) {
+          timer_[i].divider = 0;
+          timer_[i].counter++;
+          timer_[i].counter &= 0xf;
         }
       }
     }
-    timer[i].cycles--;
+    timer_[i].cycles--;
   }
 
   cycles_++;
@@ -96,10 +107,10 @@ uint8_t Apu::Read(uint16_t adr) {
       return 0;
     }
     case 0xf2: {
-      return dspAdr;
+      return dsp_adr_;
     }
     case 0xf3: {
-      return dsp_.Read(dspAdr & 0x7f);
+      return dsp_.Read(dsp_adr_ & 0x7f);
     }
     case 0xf4:
     case 0xf5:
@@ -107,20 +118,20 @@ uint8_t Apu::Read(uint16_t adr) {
     case 0xf7:
     case 0xf8:
     case 0xf9: {
-      return inPorts[adr - 0xf4];
+      return in_ports_[adr - 0xf4];
     }
     case 0xfd:
     case 0xfe:
     case 0xff: {
-      uint8_t ret = timer[adr - 0xfd].counter;
-      timer[adr - 0xfd].counter = 0;
+      uint8_t ret = timer_[adr - 0xfd].counter;
+      timer_[adr - 0xfd].counter = 0;
       return ret;
     }
   }
-  if (romReadable && adr >= 0xffc0) {
+  if (rom_readable_ && adr >= 0xffc0) {
     return bootRom[adr - 0xffc0];
   }
-  return aram_.read(adr);
+  return ram[adr];
 }
 
 void Apu::Write(uint16_t adr, uint8_t val) {
@@ -130,51 +141,51 @@ void Apu::Write(uint16_t adr, uint8_t val) {
     }
     case 0xf1: {
       for (int i = 0; i < 3; i++) {
-        if (!timer[i].enabled && (val & (1 << i))) {
-          timer[i].divider = 0;
-          timer[i].counter = 0;
+        if (!timer_[i].enabled && (val & (1 << i))) {
+          timer_[i].divider = 0;
+          timer_[i].counter = 0;
         }
-        timer[i].enabled = val & (1 << i);
+        timer_[i].enabled = val & (1 << i);
       }
       if (val & 0x10) {
-        inPorts[0] = 0;
-        inPorts[1] = 0;
+        in_ports_[0] = 0;
+        in_ports_[1] = 0;
       }
       if (val & 0x20) {
-        inPorts[2] = 0;
-        inPorts[3] = 0;
+        in_ports_[2] = 0;
+        in_ports_[3] = 0;
       }
-      romReadable = val & 0x80;
+      rom_readable_ = val & 0x80;
       break;
     }
     case 0xf2: {
-      dspAdr = val;
+      dsp_adr_ = val;
       break;
     }
     case 0xf3: {
-      if (dspAdr < 0x80) dsp_.Write(dspAdr, val);
+      if (dsp_adr_ < 0x80) dsp_.Write(dsp_adr_, val);
       break;
     }
     case 0xf4:
     case 0xf5:
     case 0xf6:
     case 0xf7: {
-      outPorts[adr - 0xf4] = val;
+      out_ports_[adr - 0xf4] = val;
       break;
     }
     case 0xf8:
     case 0xf9: {
-      inPorts[adr - 0xf4] = val;
+      in_ports_[adr - 0xf4] = val;
       break;
     }
     case 0xfa:
     case 0xfb:
     case 0xfc: {
-      timer[adr - 0xfa].target = val;
+      timer_[adr - 0xfa].target = val;
       break;
     }
   }
-  aram_.write(adr, val);
+  ram[adr] = val;
 }
 
 uint8_t Apu::SpcRead(uint16_t adr) {
