@@ -289,6 +289,7 @@ class MemoryImpl : public Memory, public Loggable {
 
   // Stack Pointer access.
   uint16_t SP() const override { return SP_; }
+  auto mutable_sp() -> uint16_t& { return SP_; }
   void SetSP(uint16_t value) override { SP_ = value; }
   void ClearMemory() override { std::fill(memory_.begin(), memory_.end(), 0); }
 

@@ -160,6 +160,7 @@ void Write(MemoryImpl* memory, uint16_t adr, uint8_t val) {
 
 void DoDma(SNES* snes, MemoryImpl* memory, int cpuCycles) {
   auto channel = memory->dma_channels();
+  snes->cpu().set_int_delay(true);
 
   // align to multiple of 8
   snes->SyncCycles(true, 8);
@@ -228,6 +229,7 @@ void InitHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
     channel[i].terminated = false;
   }
   if (!hdmaEnabled) return;
+  snes->cpu().set_int_delay(true);
   if (do_sync) snes->SyncCycles(true, 8);
 
   // full transfer overhead
@@ -269,6 +271,7 @@ void DoHdma(SNES* snes, MemoryImpl* memory, bool do_sync, int cycles) {
   }
 
   if (!hdmaActive) return;
+  snes->cpu().set_int_delay(true);
 
   if (do_sync) snes->SyncCycles(true, 8);
 
