@@ -106,9 +106,11 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   void SetFlags(uint8_t val) {
     status = val;
     if (E) {
-      status |= 0x10;
+      SetAccumulatorSize(true);
+      SetIndexSize(true);
+      SetSP(SP() & 0xFF | 0x100);
     }
-    if (status & 0x20) {
+    if (GetIndexSize()) {
       X &= 0xff;
       Y &= 0xff;
     }
