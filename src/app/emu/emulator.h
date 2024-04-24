@@ -44,7 +44,9 @@ class Emulator : public SharedRom {
               Text text="Y: 0x%04X" data="cpu.Y",
               Text text="PB: 0x%02X" data="cpu.PB",
               Text text="PC: 0x%04X" data="cpu.PC",
-              Text text="E: %d" data="cpu.E"
+              Text text="PS: 0x%02X" data="cpu.status",
+              Text text="SP: 0x%02X" data="cpu.SP",
+              Text text="Cycle: %d" data="snes.cycle_count",
             }
           }
         }
@@ -68,14 +70,22 @@ class Emulator : public SharedRom {
       }
     )";
     const std::map<std::string, void*> data_bindings = {
-      {"cpu.A", &snes_.cpu().A}, {"cpu.D", &snes_.cpu().D},
-      {"cpu.X", &snes_.cpu().X}, {"cpu.DB", &snes_.cpu().DB},
-      {"cpu.Y", &snes_.cpu().Y}, {"cpu.PB", &snes_.cpu().PB},
-      {"cpu.PC", &snes_.cpu().PC}, {"cpu.E", &snes_.cpu().E},
-      {"spc.A", &snes_.apu().spc700().A}, {"spc.X", &snes_.apu().spc700().X},
-      {"spc.Y", &snes_.apu().spc700().Y}, {"spc.PC", &snes_.apu().spc700().PC},
-      {"spc.SP", &snes_.apu().spc700().SP},
-      {"spc.PSW", &snes_.apu().spc700().PSW}};
+        {"cpu.A", &snes_.cpu().A},
+        {"cpu.D", &snes_.cpu().D},
+        {"cpu.X", &snes_.cpu().X},
+        {"cpu.DB", &snes_.cpu().DB},
+        {"cpu.Y", &snes_.cpu().Y},
+        {"cpu.PB", &snes_.cpu().PB},
+        {"cpu.PC", &snes_.cpu().PC},
+        {"cpu.status", &snes_.cpu().status},
+        {"snes.cycle_count", &snes_.mutable_cycles()},
+        {"cpu.SP", &snes_.Memory().mutable_sp()},
+        {"spc.A", &snes_.apu().spc700().A},
+        {"spc.X", &snes_.apu().spc700().X},
+        {"spc.Y", &snes_.apu().spc700().Y},
+        {"spc.PC", &snes_.apu().spc700().PC},
+        {"spc.SP", &snes_.apu().spc700().SP},
+        {"spc.PSW", &snes_.apu().spc700().PSW}};
     emulator_node_ = gui::zeml::Parse(emulator_layout, data_bindings);
     Bind(emulator_node_.GetNode("CpuInstructionLog"),
          [&]() { RenderCpuInstructionLog(snes_.cpu().instruction_log_); });
@@ -114,6 +124,7 @@ class Emulator : public SharedRom {
   bool power_ = false;
   bool loading_ = false;
   bool running_ = false;
+  bool turbo_mode_ = false;
 
   float wanted_frames_;
   int wanted_samples_;
