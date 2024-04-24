@@ -31,6 +31,7 @@ void Cpu::Reset(bool hard) {
   waiting_ = false;
   nmi_wanted_ = false;
   int_wanted_ = false;
+  int_delay_ = false;
 }
 
 void Cpu::Update(UpdateMode mode, int stepCount) {
