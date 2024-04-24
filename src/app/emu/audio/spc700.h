@@ -71,7 +71,6 @@ typedef struct ApuCallbacks {
  */
 class Spc700 {
  private:
-  AudioRam& aram_;
   ApuCallbacks callbacks_;
   std::vector<std::string> log_;
 
@@ -87,8 +86,7 @@ class Spc700 {
       0xDD, 0x5D, 0xD0, 0xDB, 0x1F, 0x00, 0x00, 0xC0, 0xFF};
 
  public:
-  explicit Spc700(AudioRam& aram, ApuCallbacks& callbacks)
-      : aram_(aram), callbacks_(callbacks) {}
+  explicit Spc700(ApuCallbacks& callbacks) : callbacks_(callbacks) {}
 
   // Registers
   uint8_t A = 0x00;      // 8-bit accumulator
@@ -146,8 +144,7 @@ class Spc700 {
   }
 
   uint8_t ReadOpcode() {
-    uint8_t opcode = read(PC);
-    PC++;
+    uint8_t opcode = read(PC++);
     return opcode;
   }
 

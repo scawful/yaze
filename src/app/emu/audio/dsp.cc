@@ -193,10 +193,10 @@ void Dsp::HandleEcho() {
   int echoR = clamp16(echoOutR + clip16((sumR * feedbackVolume) >> 7)) & ~1;
   // write it to ram
   if (echoWrites) {
-    aram_.write(adr, echoL & 0xff);
-    aram_.write((adr + 1) & 0xffff, echoL >> 8);
-    aram_.write((adr + 2) & 0xffff, echoR & 0xff);
-    aram_.write((adr + 3) & 0xffff, echoR >> 8);
+    aram_[adr] = echoL & 0xff;
+    aram_[(adr + 1) & 0xffff] = echoL >> 8;
+    aram_[(adr + 2) & 0xffff] = echoR & 0xff;
+    aram_[(adr + 3) & 0xffff] = echoR >> 8;
   }
   // handle indexes
   if (echoBufferIndex == 0) {

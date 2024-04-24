@@ -85,7 +85,7 @@ typedef struct DspChannel {
 
 class Dsp {
  public:
-  Dsp(AudioRam& aram) : aram_(aram) {}
+  Dsp(std::vector<uint8_t>& aram) : aram_(aram) {}
 
   void Reset();
 
@@ -114,7 +114,7 @@ class Dsp {
   int16_t sample_buffer_[0x400 * 2];  // (1024 samples, *2 for stereo)
   int16_t sample_offset_;             // current offset in samplebuffer
 
-  AudioRam& aram_;
+  std::vector<uint8_t>& aram_;
 
   // mirror ram
   uint8_t ram[0x80];

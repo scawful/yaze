@@ -21,7 +21,6 @@ void Spc700::Reset(bool hard) {
     Y = 0;
     SP = 0x00;
     PSW = ByteToFlags(0x00);
-    aram_.reset();
   }
   stopped_ = false;
   reset_wanted_ = true;
@@ -251,7 +250,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       A <<= 1;
       PSW.Z = (A == 0);
       PSW.N = (A & 0x80);
-      ;
       break;
     }
     case 0x1d: {  // decx imp
@@ -674,7 +672,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       PSW.C = newC;
       PSW.Z = (A == 0);
       PSW.N = (A & 0x80);
-      ;
       break;
     }
     case 0x7d: {  // movax imp
@@ -682,7 +679,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       A = X;
       PSW.Z = (A == 0);
       PSW.N = (A & 0x80);
-      ;
       break;
     }
     case 0x7e: {  // cmpy dp
@@ -1282,7 +1278,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
   }
 
-  LogInstruction(initialPC, opcode);
+  //LogInstruction(initialPC, opcode);
 }
 
 void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
@@ -1310,7 +1306,7 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
   std::cerr << log_entry << std::endl;
 
   // Append the log entry to the log
-  log_.push_back(log_entry);
+  // log_.push_back(log_entry);
 }
 
 }  // namespace audio
