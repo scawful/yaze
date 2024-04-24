@@ -154,8 +154,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a683c5e94e45d1336df9be9ccf9660d9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2936da37b32881c4ed74e20aefb789c" id="r_ac2936da37b32881c4ed74e20aefb789c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset</a> ()</td></tr>
 <tr class="separator:ac2936da37b32881c4ed74e20aefb789c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa440775d5fed5dc7d2229ece9fdd013" id="r_aaa440775d5fed5dc7d2229ece9fdd013"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa440775d5fed5dc7d2229ece9fdd013">Update</a> ()</td></tr>
-<tr class="separator:aaa440775d5fed5dc7d2229ece9fdd013"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa010dcc9577f2afd47d7fa622036b1b" id="r_afa010dcc9577f2afd47d7fa622036b1b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afa010dcc9577f2afd47d7fa622036b1b">RunCycles</a> (uint64_t cycles)</td></tr>
 <tr class="separator:afa010dcc9577f2afd47d7fa622036b1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57fe32259ad8866d4b7df0ad78601e11" id="r_a57fe32259ad8866d4b7df0ad78601e11"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a57fe32259ad8866d4b7df0ad78601e11">SpcRead</a> (uint16_t address)</td></tr>
@@ -183,6 +181,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ac83ed095effd53a9008a7a18437f080e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb949e69aad601440702d15f0c7c7e64" id="r_abb949e69aad601440702d15f0c7c7e64"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abb949e69aad601440702d15f0c7c7e64">out_ports_</a> [4]</td></tr>
 <tr class="separator:abb949e69aad601440702d15f0c7c7e64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf4d534988bc002bb527b0b2efc4b417" id="r_adf4d534988bc002bb527b0b2efc4b417"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adf4d534988bc002bb527b0b2efc4b417">ram</a> = std::vector&lt;uint8_t&gt;(0x10000, 0)</td></tr>
+<tr class="separator:adf4d534988bc002bb527b0b2efc4b417"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -194,8 +194,6 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a75bb828dab0170df1922c2181b7cdfbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac072e06da2be5f74a17c8d122fb281da" id="r_ac072e06da2be5f74a17c8d122fb281da"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac072e06da2be5f74a17c8d122fb281da">rom_readable_</a> = false</td></tr>
 <tr class="separator:ac072e06da2be5f74a17c8d122fb281da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf4d534988bc002bb527b0b2efc4b417" id="r_adf4d534988bc002bb527b0b2efc4b417"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adf4d534988bc002bb527b0b2efc4b417">ram</a> = std::vector&lt;uint8_t&gt;(0x10000, 0)</td></tr>
-<tr class="separator:adf4d534988bc002bb527b0b2efc4b417"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19fee22809eb075bf0974a4f54ce20a8" id="r_a19fee22809eb075bf0974a4f54ce20a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html">Clock</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19fee22809eb075bf0974a4f54ce20a8">clock_</a></td></tr>
 <tr class="separator:a19fee22809eb075bf0974a4f54ce20a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0aa509cadc3a6021bd1e1e74e454b10b" id="r_a0aa509cadc3a6021bd1e1e74e454b10b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html">MemoryImpl</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0aa509cadc3a6021bd1e1e74e454b10b">memory_</a></td></tr>
@@ -259,7 +257,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a19fee22809eb075bf0974a4f54ce20a8">clock_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1audio.html#a92e7d178bdd930a40cfdc29ff5d160e6">yaze::app::emu::audio::kApuClockSpeed</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c">yaze::app::emu::Clock::SetFrequency()</a>.</p>
+<p class="reference">References <a class="el" href="#a19fee22809eb075bf0974a4f54ce20a8">clock_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1audio.html#a92e7d178bdd930a40cfdc29ff5d160e6">yaze::app::emu::audio::kApuClockSpeed</a>, <a class="el" href="#adf4d534988bc002bb527b0b2efc4b417">ram</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c">yaze::app::emu::Clock::SetFrequency()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>.</p>
 <div class="dynheader">
@@ -305,162 +303,6 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="149,68,181,74,180,79,148,74"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360" title=" " alt="" coords="386,71,536,111"/>
 <area shape="poly" title=" " alt="" coords="338,88,371,88,371,94,338,94"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="aaa440775d5fed5dc7d2229ece9fdd013" name="aaa440775d5fed5dc7d2229ece9fdd013"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa440775d5fed5dc7d2229ece9fdd013">&#9670;&#160;</a></span>Update()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::emu::audio::Apu::Update </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a19fee22809eb075bf0974a4f54ce20a8">clock_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a51e282a3d4d7ac88639072b6158fe95f">yaze::app::emu::audio::Spc700::ExecuteInstructions()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#af5eba8a7fbfc88b616681f45aee43363">yaze::app::emu::Clock::GetCycleCount()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a973bcfea6165510283a1d020c0bdfd76">yaze::app::emu::audio::Spc700::PC</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017">yaze::app::emu::audio::Spc700::read()</a>, and <a class="el" href="#a2b1179dcfc9b246035ef6ec97c9ea7bb">spc700_</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1audio_1_1Apu_aaa440775d5fed5dc7d2229ece9fdd013_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_aaa440775d5fed5dc7d2229ece9fdd013_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_aaa440775d5fed5dc7d2229ece9fdd013_cgraph" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_aaa440775d5fed5dc7d2229ece9fdd013_cgraph">
-<area shape="rect" title=" " alt="" coords="5,2704,148,2745"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a51e282a3d4d7ac88639072b6158fe95f" title=" " alt="" coords="196,1345,387,1386"/>
-<area shape="poly" title=" " alt="" coords="78,2703,282,1401,287,1402,84,2704"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017" title=" " alt="" coords="824,1520,966,1561"/>
-<area shape="poly" title=" " alt="" coords="148,2728,302,2736,490,2735,582,2729,664,2717,730,2697,755,2684,774,2669,787,2646,800,2608,823,2491,842,2337,858,2162,880,1814,890,1576,895,1577,885,1814,863,2163,848,2338,828,2492,805,2609,792,2648,778,2673,758,2689,732,2702,665,2722,582,2734,490,2741,302,2741,148,2733"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Clock.html#af5eba8a7fbfc88b616681f45aee43363" title=" " alt="" coords="219,2761,364,2802"/>
-<area shape="poly" title=" " alt="" coords="149,2741,205,2756,203,2761,147,2746"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8ad2dafcd4089bb12c080905c71d2313" title=" " alt="" coords="439,5,581,46"/>
-<area shape="poly" title=" " alt="" coords="291,1345,305,1092,335,683,355,472,378,283,404,138,418,89,433,58,435,55,439,58,437,60,423,91,409,140,383,284,360,472,340,684,311,1093,296,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aaaebe1f89d67f5ac0ff343506df5ceb8" title=" " alt="" coords="439,71,581,111"/>
-<area shape="poly" title=" " alt="" coords="290,1345,290,1121,294,948,304,757,321,562,347,381,363,300,383,229,406,169,433,123,435,121,439,124,437,126,411,171,388,231,369,301,352,382,326,562,309,757,300,949,295,1121,295,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a0a024ab6b4b28e24d7d606d3da8b6756" title=" " alt="" coords="439,136,581,177"/>
-<area shape="poly" title=" " alt="" coords="290,1345,292,1132,297,968,307,787,324,603,350,432,366,355,385,288,408,232,433,188,435,186,439,189,437,191,412,234,391,290,372,357,355,433,330,603,313,787,302,969,297,1132,295,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ab3109f8ac9ac476801093a3e7e7b3fa7" title=" " alt="" coords="439,201,581,242"/>
-<area shape="poly" title=" " alt="" coords="290,1345,295,1144,302,991,313,821,331,649,356,488,372,417,389,354,410,300,433,259,440,250,444,253,437,262,415,303,394,355,377,418,361,489,336,649,319,821,307,991,300,1144,295,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a4ccb0744499ec944751f968286e2d244" title=" " alt="" coords="633,252,776,293"/>
-<area shape="poly" title=" " alt="" coords="290,1345,290,1148,294,999,303,835,320,669,346,518,363,451,383,393,406,345,433,309,452,293,474,280,521,264,571,257,618,258,618,263,571,263,522,269,476,285,455,297,437,313,411,348,388,395,368,452,351,519,325,670,309,835,299,999,295,1148,295,1345"/>
-<area shape="poly" title=" " alt="" coords="290,1345,293,1163,300,1027,311,877,328,726,353,588,369,527,388,473,409,429,433,396,461,375,501,358,550,344,603,334,657,329,706,330,748,337,777,353,794,378,808,419,833,541,853,703,868,888,888,1255,895,1504,890,1504,882,1255,863,888,847,703,828,542,803,420,789,380,774,357,746,342,706,335,657,334,604,339,551,349,503,363,464,380,437,400,414,432,393,475,375,528,359,589,334,727,316,877,305,1027,299,1163,295,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8ad85e73e6c270e09c5ff288ba6ada9d" title=" " alt="" coords="633,367,776,407"/>
-<area shape="poly" title=" " alt="" coords="290,1345,295,1172,302,1042,314,900,332,758,357,627,372,569,390,519,410,477,433,445,452,428,473,414,520,395,570,384,617,380,618,385,571,389,522,400,476,419,455,432,437,449,415,480,395,521,377,571,362,628,337,759,319,901,308,1043,300,1172,295,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae6674616db70040804fc0ebc043cd199" title=" " alt="" coords="633,433,776,474"/>
-<area shape="poly" title=" " alt="" coords="290,1345,295,1178,302,1054,314,918,332,783,357,658,372,603,390,556,410,517,433,488,453,472,474,460,521,444,571,438,618,438,618,444,571,443,523,449,476,465,456,476,437,492,415,520,395,558,377,605,362,659,337,783,319,919,308,1054,300,1178,295,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a02a08e3c2af343a2077640e936bd8d1d" title=" " alt="" coords="633,500,776,541"/>
-<area shape="poly" title=" " alt="" coords="290,1345,295,1182,302,1063,313,932,331,802,356,683,372,631,390,587,410,550,433,524,453,509,475,499,523,488,572,488,618,494,618,499,572,493,523,494,477,504,456,514,437,528,414,553,394,589,377,633,361,685,336,803,319,933,307,1063,300,1183,295,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ab5ea4d2c9abd16f366720d766d262c5e" title=" " alt="" coords="633,568,776,609"/>
-<area shape="poly" title=" " alt="" coords="290,1345,296,1188,303,1072,315,947,333,822,358,708,373,658,391,616,411,581,433,556,458,540,485,531,513,527,543,528,600,540,650,559,649,564,599,545,542,534,514,533,486,536,460,545,437,560,415,584,395,618,378,660,363,709,338,823,320,947,308,1073,301,1188,296,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360" title=" " alt="" coords="435,569,585,610"/>
-<area shape="poly" title=" " alt="" coords="292,1344,305,1204,332,990,351,878,374,775,401,688,417,654,433,627,441,618,445,621,437,630,421,656,406,690,379,776,356,879,337,991,310,1204,297,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ab69603475054a712357dac2eeafb30db" title=" " alt="" coords="633,639,776,679"/>
-<area shape="poly" title=" " alt="" coords="292,1345,306,1221,333,1039,353,944,375,857,402,785,417,757,433,736,474,703,521,681,570,667,618,660,618,665,572,672,523,686,476,708,437,740,422,760,407,787,381,858,358,945,339,1039,311,1222,297,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a68058a82693f30d621852e2837ec52d7" title=" " alt="" coords="633,716,776,757"/>
-<area shape="poly" title=" " alt="" coords="292,1345,306,1228,334,1058,353,970,376,890,402,825,417,800,433,781,474,753,522,736,571,728,618,726,618,731,571,733,523,741,477,758,437,785,422,803,407,827,381,892,358,972,339,1059,311,1229,297,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5201f403690a23990fd26b514faf271c" title=" " alt="" coords="633,804,776,845"/>
-<area shape="poly" title=" " alt="" coords="292,1345,306,1233,333,1071,352,989,375,914,402,853,417,831,433,814,456,800,480,791,532,783,584,787,632,797,631,802,583,792,532,789,481,796,458,805,437,818,421,834,407,856,380,916,357,990,338,1072,311,1234,297,1346"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8e8ec2a5c3bbcff40141406abfbcdb98" title=" " alt="" coords="633,871,776,911"/>
-<area shape="poly" title=" " alt="" coords="292,1345,307,1238,335,1085,354,1007,377,936,403,879,418,858,433,842,453,830,471,823,506,822,586,842,649,862,647,867,585,847,505,827,472,828,455,835,437,846,422,861,408,882,382,938,360,1008,340,1086,312,1239,298,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5ff5f06d41678136c85609210c5ca9e0" title=" " alt="" coords="633,981,776,1022"/>
-<area shape="poly" title=" " alt="" coords="293,1345,308,1243,337,1100,357,1026,379,960,405,907,419,887,433,873,472,852,507,847,544,856,587,873,676,968,673,971,584,877,543,861,507,853,473,857,437,877,423,891,409,910,384,962,362,1028,343,1101,314,1244,298,1346"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aeeef2fdb2acb341559051c6a682e28b6" title=" " alt="" coords="439,887,581,927"/>
-<area shape="poly" title=" " alt="" coords="291,1345,300,1271,322,1163,340,1104,364,1045,395,989,433,939,436,935,440,939,437,942,399,992,369,1047,345,1106,327,1165,305,1271,297,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a28be94c9eb0010c065e2c64f7fe373c4" title=" " alt="" coords="439,952,581,993"/>
-<area shape="poly" title=" " alt="" coords="293,1344,306,1282,332,1194,350,1145,373,1097,400,1051,433,1009,443,1000,447,1004,437,1013,405,1054,378,1100,355,1147,337,1195,311,1283,298,1346"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a22a0be9cf04f1a3e9db84b5866e3dea3" title=" " alt="" coords="633,1137,776,1178"/>
-<area shape="poly" title=" " alt="" coords="292,1344,302,1284,326,1202,344,1160,368,1119,397,1082,434,1053,473,1034,508,1030,544,1037,586,1053,614,1066,639,1084,680,1123,676,1127,636,1088,611,1071,584,1057,543,1043,508,1035,474,1039,436,1057,401,1086,372,1122,349,1162,331,1204,308,1285,297,1345"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#abdf9c3163a429ec02f924d6094433108" title=" " alt="" coords="439,1067,581,1107"/>
-<area shape="poly" title=" " alt="" coords="297,1344,315,1298,344,1239,383,1175,407,1145,433,1118,438,1114,442,1118,437,1122,411,1149,388,1178,349,1241,320,1300,302,1346"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03108716fc2a82b401b8e5c4f6fb2727" title=" " alt="" coords="439,1132,581,1173"/>
-<area shape="poly" title=" " alt="" coords="302,1344,353,1268,391,1223,433,1184,440,1179,443,1183,437,1188,394,1227,357,1271,306,1347"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6493c5664970c80ba7d0158695df0c47" title=" " alt="" coords="439,1197,581,1238"/>
-<area shape="poly" title=" " alt="" coords="313,1343,366,1297,434,1249,443,1243,446,1248,436,1253,370,1301,317,1347"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a7da1fb5cfe312fa6e9aefe7e005539d3" title=" " alt="" coords="439,1263,581,1303"/>
-<area shape="poly" title=" " alt="" coords="346,1342,439,1307,441,1312,348,1347"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#acef58910122aac54acd722b6984213c7" title=" " alt="" coords="633,1329,776,1370"/>
-<area shape="poly" title=" " alt="" coords="387,1359,618,1350,618,1356,387,1365"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03ae1c051eedfeef057b09b087ad9da9" title=" " alt="" coords="633,1404,776,1445"/>
-<area shape="poly" title=" " alt="" coords="388,1377,619,1410,618,1415,387,1382"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f" title=" " alt="" coords="435,1428,585,1469"/>
-<area shape="poly" title=" " alt="" coords="348,1384,441,1419,439,1424,346,1389"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e" title=" " alt="" coords="633,1487,776,1527"/>
-<area shape="poly" title=" " alt="" coords="313,1385,365,1434,399,1458,436,1478,481,1492,528,1502,618,1508,617,1513,527,1507,480,1498,434,1483,396,1463,361,1438,309,1388"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ab06753a87870581d0aba2b9d7ac8fc75" title=" " alt="" coords="439,1543,581,1583"/>
-<area shape="poly" title=" " alt="" coords="309,1385,362,1450,398,1488,437,1522,451,1532,448,1537,433,1526,394,1492,358,1454,305,1388"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a023995503cdec2e781e3f3310c64d1b6" title=" " alt="" coords="439,1608,581,1649"/>
-<area shape="poly" title=" " alt="" coords="303,1385,322,1428,351,1483,389,1541,437,1593,442,1597,439,1601,433,1597,385,1545,346,1486,317,1430,298,1388"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a98a13b1c7651ce643f07c7cf5e3ff18b" title=" " alt="" coords="439,1673,581,1714"/>
-<area shape="poly" title=" " alt="" coords="300,1386,315,1439,342,1512,382,1589,408,1626,437,1658,441,1662,437,1666,433,1662,404,1629,378,1592,337,1514,310,1441,295,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2e69d799f20d7bb65b2b0d89402cf298" title=" " alt="" coords="633,1552,776,1593"/>
-<area shape="poly" title=" " alt="" coords="296,1386,303,1455,311,1500,324,1549,342,1599,366,1646,397,1689,437,1723,475,1744,510,1751,545,1744,584,1723,597,1711,605,1699,610,1670,614,1638,620,1622,631,1605,636,1600,640,1604,635,1609,624,1624,619,1639,615,1670,610,1700,601,1715,587,1728,547,1749,510,1756,473,1749,433,1728,393,1692,361,1649,337,1601,319,1551,306,1501,298,1455,291,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af82a5af8b95ad22204ab6de079f9fad0" title=" " alt="" coords="633,1619,776,1659"/>
-<area shape="poly" title=" " alt="" coords="295,1386,300,1460,307,1510,319,1564,337,1619,361,1672,394,1720,437,1758,474,1779,509,1785,544,1778,584,1758,602,1740,609,1719,615,1696,631,1672,638,1666,641,1671,635,1675,620,1698,614,1721,607,1743,587,1763,546,1783,509,1790,473,1784,433,1763,390,1723,357,1675,332,1621,314,1566,302,1511,295,1461,290,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aaf87699fd82fc831c954434a10c9d0ff" title=" " alt="" coords="633,1685,776,1726"/>
-<area shape="poly" title=" " alt="" coords="295,1386,297,1466,303,1520,314,1579,332,1639,357,1697,392,1749,413,1772,436,1791,474,1811,507,1816,543,1808,584,1791,600,1781,609,1769,617,1754,632,1740,643,1732,646,1736,635,1744,621,1758,613,1772,603,1785,587,1796,544,1813,508,1821,472,1816,434,1796,409,1776,387,1752,352,1700,327,1641,309,1580,298,1521,292,1467,289,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6c94dcc08b5202470e222e2015a6182c" title=" " alt="" coords="633,1753,776,1794"/>
-<area shape="poly" title=" " alt="" coords="298,1386,315,1482,345,1615,364,1683,386,1743,411,1792,437,1822,455,1834,473,1840,506,1842,585,1822,619,1812,651,1798,653,1803,621,1817,586,1827,506,1847,471,1846,453,1839,433,1826,406,1795,381,1746,359,1684,340,1617,310,1483,293,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213" title=" " alt="" coords="633,1825,776,1866"/>
-<area shape="poly" title=" " alt="" coords="298,1386,314,1486,343,1628,362,1700,385,1765,409,1816,423,1835,437,1849,458,1862,480,1871,530,1879,580,1876,627,1868,628,1873,580,1882,529,1884,479,1876,455,1866,433,1853,419,1839,405,1819,380,1767,357,1702,338,1630,309,1487,293,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a13863acbe9fc43c2c6f7d0c7c6c6f8ee" title=" " alt="" coords="633,1904,776,1945"/>
-<area shape="poly" title=" " alt="" coords="298,1386,314,1492,343,1644,362,1721,384,1791,409,1848,423,1869,437,1885,477,1911,524,1926,572,1932,618,1932,618,1938,571,1937,522,1931,475,1916,433,1889,419,1873,405,1851,379,1793,357,1722,338,1645,308,1493,293,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a288a6d20c4d124e5524a4a40fa78718f" title=" " alt="" coords="439,2041,581,2082"/>
-<area shape="poly" title=" " alt="" coords="297,1386,313,1513,342,1703,361,1801,383,1893,409,1969,437,2021,445,2030,441,2033,433,2025,404,1971,378,1894,356,1803,336,1704,307,1514,292,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a7f9936acafd805350c0cd4a22abb1617" title=" " alt="" coords="633,2099,776,2139"/>
-<area shape="poly" title=" " alt="" coords="296,1386,305,1528,328,1743,346,1855,370,1956,400,2038,418,2069,437,2092,456,2106,477,2117,523,2131,572,2135,618,2132,618,2138,572,2140,522,2136,475,2122,453,2111,433,2096,413,2072,395,2041,365,1958,341,1856,323,1744,300,1529,291,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aa6c25c64790ef3db4014cba7ee7849de" title=" " alt="" coords="439,2156,581,2197"/>
-<area shape="poly" title=" " alt="" coords="297,1386,309,1533,335,1756,355,1874,378,1982,405,2073,421,2109,437,2136,445,2145,441,2148,433,2139,416,2111,400,2075,373,1984,349,1875,330,1757,304,1533,291,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ab735dc6beb3b96012d4ac9d02ddf189d" title=" " alt="" coords="439,2221,581,2262"/>
-<area shape="poly" title=" " alt="" coords="296,1386,306,1545,330,1790,349,1919,372,2039,402,2138,419,2177,437,2207,439,2209,435,2213,433,2210,414,2179,397,2140,367,2040,343,1920,325,1791,301,1545,291,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aef64ba0d7dca89cd3c8b23a53831eaf2" title=" " alt="" coords="439,2287,581,2327"/>
-<area shape="poly" title=" " alt="" coords="296,1386,304,1556,327,1821,345,1960,369,2090,400,2198,417,2240,437,2272,439,2274,435,2278,433,2275,413,2242,395,2199,364,2091,340,1961,321,1821,299,1556,291,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a854437ef362be1aab8b4c14ab95e24ee" title=" " alt="" coords="439,2352,581,2393"/>
-<area shape="poly" title=" " alt="" coords="296,1386,302,1566,310,1702,323,1851,341,2001,366,2141,397,2257,416,2302,437,2337,439,2340,435,2343,433,2341,411,2305,392,2259,360,2142,336,2002,318,1851,305,1702,297,1567,290,1386"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af57e6036e9debe00a415aa44a22014cd" title=" " alt="" coords="439,2417,581,2458"/>
-<area shape="poly" title=" " alt="" coords="296,1386,301,1577,308,1722,320,1881,337,2042,362,2192,378,2258,395,2316,415,2365,437,2403,439,2405,435,2408,433,2406,410,2368,390,2318,372,2259,357,2193,332,2043,314,1881,302,1722,295,1577,290,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae9cb5f269a7da0b7f7c7a0fe57eee315" title=" " alt="" coords="633,2475,776,2515"/>
-<area shape="poly" title=" " alt="" coords="296,1386,311,1606,340,1953,359,2130,382,2287,408,2406,422,2445,437,2468,455,2483,476,2494,522,2508,571,2512,618,2509,618,2515,571,2517,521,2513,474,2499,453,2487,433,2471,418,2447,403,2407,377,2288,354,2131,334,1953,305,1606,291,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a542d008df21df772bcb86e511d26c2a7" title=" " alt="" coords="439,2532,581,2573"/>
-<area shape="poly" title=" " alt="" coords="295,1386,299,1594,305,1753,317,1929,334,2108,359,2275,375,2349,393,2415,414,2470,437,2512,444,2520,440,2524,433,2515,409,2472,388,2416,370,2351,354,2276,329,2109,311,1930,300,1753,294,1594,290,1386"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8ae4aa554650342dc21615ac88edbda7" title=" " alt="" coords="633,2619,776,2659"/>
-<area shape="poly" title=" " alt="" coords="296,1386,310,1625,338,2008,358,2205,381,2379,407,2512,422,2556,437,2582,465,2600,510,2613,618,2630,617,2635,509,2618,463,2604,433,2586,417,2558,402,2513,376,2380,352,2206,333,2009,304,1626,291,1387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a038513eaaf2e25b485789ea1a433aec1" title=" " alt="" coords="439,2647,581,2687"/>
-<area shape="poly" title=" " alt="" coords="295,1386,296,1612,301,1787,311,1982,328,2180,354,2364,370,2446,389,2519,412,2580,437,2627,444,2635,440,2638,433,2630,407,2582,384,2521,365,2448,348,2365,323,2181,306,1982,296,1788,291,1612,290,1386"/>
-<area shape="poly" title=" " alt="" coords="759,291,778,309,790,338,802,383,824,513,843,683,859,874,883,1252,895,1504,889,1505,877,1252,853,875,837,683,818,514,797,384,785,340,773,313,756,295"/>
-<area shape="poly" title=" " alt="" coords="764,406,778,420,790,446,801,486,822,603,840,756,857,929,881,1271,894,1504,889,1505,876,1272,851,929,835,757,817,604,796,487,785,448,773,423,760,410"/>
-<area shape="poly" title=" " alt="" coords="764,473,778,487,799,525,817,573,833,630,847,695,868,840,882,998,891,1155,895,1300,897,1504,891,1504,890,1300,886,1155,877,998,863,841,842,696,828,631,812,575,794,527,774,490,760,476"/>
-<area shape="poly" title=" " alt="" coords="762,539,778,555,797,590,815,635,843,748,864,884,878,1030,893,1312,896,1505,891,1505,888,1312,873,1031,858,885,838,750,810,637,793,592,774,558,758,543"/>
-<area shape="poly" title=" " alt="" coords="759,607,778,625,796,658,812,700,838,804,859,929,874,1064,890,1324,896,1504,890,1504,885,1325,868,1065,853,930,833,805,807,702,791,661,774,629,756,611"/>
-<area shape="poly" title=" " alt="" coords="753,678,778,703,794,733,808,771,832,866,852,980,867,1102,887,1339,895,1504,890,1505,881,1339,862,1103,847,980,827,867,803,773,789,735,774,706,749,682"/>
-<area shape="poly" title=" " alt="" coords="744,755,762,771,778,791,803,852,825,937,844,1037,860,1145,882,1355,894,1504,889,1504,877,1355,855,1146,839,1038,820,938,798,854,773,794,759,775,740,759"/>
-<area shape="poly" title=" " alt="" coords="763,843,778,857,792,881,805,911,828,986,847,1076,863,1174,884,1365,894,1504,889,1505,879,1366,857,1174,842,1077,823,987,800,912,787,883,774,861,759,847"/>
-<area shape="poly" title=" " alt="" coords="732,910,756,936,778,968,810,1041,835,1118,855,1195,870,1271,888,1407,895,1504,890,1505,883,1408,865,1272,850,1197,830,1119,805,1043,773,971,752,939,728,914"/>
-<area shape="poly" title=" " alt="" coords="722,1021,750,1067,778,1125,817,1231,849,1338,889,1504,884,1505,844,1339,812,1232,773,1127,745,1070,717,1024"/>
-<area shape="poly" title=" " alt="" coords="718,1177,879,1505,874,1507,714,1179"/>
-<area shape="poly" title=" " alt="" coords="747,1368,777,1390,832,1449,874,1506,870,1509,828,1452,774,1394,744,1373"/>
-<area shape="poly" title=" " alt="" coords="741,1443,848,1509,846,1514,738,1447"/>
-<area shape="poly" title=" " alt="" coords="777,1517,809,1523,808,1528,776,1522"/>
-<area shape="poly" title=" " alt="" coords="776,1558,808,1552,809,1557,777,1563"/>
-<area shape="poly" title=" " alt="" coords="747,1616,774,1602,842,1566,844,1571,777,1607,750,1621"/>
-<area shape="poly" title=" " alt="" coords="752,1683,774,1669,826,1620,868,1572,872,1575,830,1624,777,1673,755,1687"/>
-<area shape="poly" title=" " alt="" coords="754,1751,774,1736,808,1697,837,1654,877,1574,882,1576,842,1656,813,1700,777,1740,757,1755"/>
-<area shape="poly" title=" " alt="" coords="750,1823,774,1804,815,1747,846,1684,868,1624,883,1575,888,1576,874,1626,851,1687,819,1750,778,1807,754,1827"/>
-<area shape="poly" title=" " alt="" coords="745,1902,774,1876,799,1839,820,1799,853,1716,874,1637,886,1576,891,1577,879,1638,858,1717,825,1801,803,1842,778,1879,748,1906"/>
-<area shape="poly" title=" " alt="" coords="581,2049,630,2036,681,2018,731,1991,774,1955,807,1910,834,1860,854,1807,869,1754,886,1653,891,1576,896,1576,891,1653,874,1755,859,1809,838,1862,812,1913,778,1958,734,1995,683,2022,631,2042,583,2054"/>
-<area shape="poly" title=" " alt="" coords="724,2096,750,2064,773,2026,799,1965,821,1901,855,1773,876,1659,887,1576,893,1576,881,1660,860,1774,826,1902,804,1967,778,2028,754,2067,728,2100"/>
-<area shape="poly" title=" " alt="" coords="582,2188,630,2192,681,2189,731,2176,754,2164,774,2149,789,2131,803,2108,827,2044,846,1965,861,1878,881,1705,889,1576,895,1576,886,1705,867,1879,851,1967,832,2046,808,2110,793,2135,777,2153,756,2169,733,2181,682,2194,630,2197,582,2193"/>
-<area shape="poly" title=" " alt="" coords="582,2249,630,2249,682,2243,731,2227,754,2215,774,2198,790,2179,804,2152,829,2082,848,1997,863,1902,882,1714,890,1576,895,1576,888,1714,869,1902,854,1998,834,2084,809,2154,794,2182,778,2202,757,2219,734,2232,683,2248,630,2254,582,2254"/>
-<area shape="poly" title=" " alt="" coords="582,2312,630,2311,682,2303,732,2286,754,2273,774,2256,791,2234,806,2204,832,2127,852,2033,867,1929,884,1724,890,1576,896,1576,889,1724,872,1930,857,2034,837,2129,811,2207,795,2237,778,2260,757,2277,734,2291,683,2308,631,2316,582,2317"/>
-<area shape="poly" title=" " alt="" coords="582,2376,630,2374,682,2366,732,2348,754,2334,774,2317,792,2293,808,2260,835,2176,855,2072,870,1958,886,1735,891,1576,896,1576,892,1735,875,1959,861,2073,840,2177,813,2262,796,2296,778,2321,757,2339,734,2353,684,2371,631,2380,582,2381"/>
-<area shape="poly" title=" " alt="" coords="582,2441,630,2439,682,2430,732,2411,754,2397,774,2380,793,2353,810,2318,838,2225,859,2112,874,1988,883,1863,888,1746,891,1576,896,1576,894,1746,888,1863,879,1989,865,2113,844,2226,815,2320,798,2356,778,2383,757,2402,734,2416,684,2435,631,2444,582,2446"/>
-<area shape="poly" title=" " alt="" coords="745,2472,761,2459,773,2444,789,2412,804,2370,829,2267,849,2143,864,2010,883,1754,890,1576,895,1576,888,1754,869,2011,854,2144,834,2268,809,2372,794,2414,778,2447,765,2463,749,2476"/>
-<area shape="poly" title=" " alt="" coords="580,2529,618,2518,619,2523,582,2534"/>
-<area shape="poly" title=" " alt="" coords="581,2654,617,2649,618,2654,582,2659"/>
 </map>
 </div>
 
@@ -1024,6 +866,22 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="adf4d534988bc002bb527b0b2efc4b417" name="adf4d534988bc002bb527b0b2efc4b417"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf4d534988bc002bb527b0b2efc4b417">&#9670;&#160;</a></span>ram</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::emu::audio::Apu::ram = std::vector&lt;uint8_t&gt;(0x10000, 0)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a683c5e94e45d1336df9be9ccf9660d9f">Init()</a>, <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+
+</div>
+</div>
 <a id="a3f7aa0baf5c5a09df19a47ac277d5990" name="a3f7aa0baf5c5a09df19a47ac277d5990"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3f7aa0baf5c5a09df19a47ac277d5990">&#9670;&#160;</a></span>timer_</h2>
 
@@ -1120,30 +978,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="adf4d534988bc002bb527b0b2efc4b417" name="adf4d534988bc002bb527b0b2efc4b417"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adf4d534988bc002bb527b0b2efc4b417">&#9670;&#160;</a></span>ram</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::emu::audio::Apu::ram = std::vector&lt;uint8_t&gt;(0x10000, 0)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
-
-</div>
-</div>
 <a id="a19fee22809eb075bf0974a4f54ce20a8" name="a19fee22809eb075bf0974a4f54ce20a8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a19fee22809eb075bf0974a4f54ce20a8">&#9670;&#160;</a></span>clock_</h2>
 
@@ -1164,7 +998,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a683c5e94e45d1336df9be9ccf9660d9f">Init()</a>, <a class="el" href="#aaa440775d5fed5dc7d2229ece9fdd013">Update()</a>, and <a class="el" href="#a1870359980e286ec3a879d5edc12571f">UpdateClock()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a683c5e94e45d1336df9be9ccf9660d9f">Init()</a>, and <a class="el" href="#a1870359980e286ec3a879d5edc12571f">UpdateClock()</a>.</p>
 
 </div>
 </div>
@@ -1216,9 +1050,9 @@ Here is the call graph for this function:</div>
 <div class="line">      [&amp;](uint16_t adr) { <span class="keywordflow">return</span> <a class="code hl_function" href="#a57fe32259ad8866d4b7df0ad78601e11">SpcRead</a>(adr); },</div>
 <div class="line">      [&amp;](<span class="keywordtype">bool</span> waiting) { <a class="code hl_function" href="#a3515834953a3b748c95d0117b55b075e">SpcIdle</a>(waiting); },</div>
 <div class="line">  }</div>
-<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a1635c1bb61926cc862b49bb56e2e3e98"><div class="ttname"><a href="#a1635c1bb61926cc862b49bb56e2e3e98">yaze::app::emu::audio::Apu::SpcWrite</a></div><div class="ttdeci">void SpcWrite(uint16_t address, uint8_t data)</div><div class="ttdef"><b>Definition</b> apu.cc:196</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a3515834953a3b748c95d0117b55b075e"><div class="ttname"><a href="#a3515834953a3b748c95d0117b55b075e">yaze::app::emu::audio::Apu::SpcIdle</a></div><div class="ttdeci">void SpcIdle(bool waiting)</div><div class="ttdef"><b>Definition</b> apu.cc:201</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a57fe32259ad8866d4b7df0ad78601e11"><div class="ttname"><a href="#a57fe32259ad8866d4b7df0ad78601e11">yaze::app::emu::audio::Apu::SpcRead</a></div><div class="ttdeci">uint8_t SpcRead(uint16_t address)</div><div class="ttdef"><b>Definition</b> apu.cc:191</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a1635c1bb61926cc862b49bb56e2e3e98"><div class="ttname"><a href="#a1635c1bb61926cc862b49bb56e2e3e98">yaze::app::emu::audio::Apu::SpcWrite</a></div><div class="ttdeci">void SpcWrite(uint16_t address, uint8_t data)</div><div class="ttdef"><b>Definition</b> apu.cc:199</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a3515834953a3b748c95d0117b55b075e"><div class="ttname"><a href="#a3515834953a3b748c95d0117b55b075e">yaze::app::emu::audio::Apu::SpcIdle</a></div><div class="ttdeci">void SpcIdle(bool waiting)</div><div class="ttdef"><b>Definition</b> apu.cc:204</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a57fe32259ad8866d4b7df0ad78601e11"><div class="ttname"><a href="#a57fe32259ad8866d4b7df0ad78601e11">yaze::app::emu::audio::Apu::SpcRead</a></div><div class="ttdeci">uint8_t SpcRead(uint16_t address)</div><div class="ttdef"><b>Definition</b> apu.cc:194</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1266,7 +1100,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, <a class="el" href="#afa010dcc9577f2afd47d7fa622036b1b">RunCycles()</a>, <a class="el" href="#afa03a4680931fc7dd19dfd7ec09c43c8">spc700()</a>, and <a class="el" href="#aaa440775d5fed5dc7d2229ece9fdd013">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, <a class="el" href="#afa010dcc9577f2afd47d7fa622036b1b">RunCycles()</a>, and <a class="el" href="#afa03a4680931fc7dd19dfd7ec09c43c8">spc700()</a>.</p>
 
 </div>
 </div>

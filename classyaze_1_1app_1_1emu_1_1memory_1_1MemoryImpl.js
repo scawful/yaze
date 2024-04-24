@@ -24,6 +24,7 @@ var classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl =
     [ "PushLong", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a9b8e58090ad02e7d4c08c8c898533f1b", null ],
     [ "PopLong", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac07930d87a6defd2b0b0f3308b6f2a34", null ],
     [ "SP", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a72a7125301245e45420cfe799e912354", null ],
+    [ "mutable_sp", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a0dc2f400dd7d602b6fc05f103c31ef0c", null ],
     [ "SetSP", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a9dabdd4a0211342ca3a5a60dfd68a83f", null ],
     [ "ClearMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a83e9f3e11abb6bab46e532b4906e2944", null ],
     [ "at", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a5a84de21b10baf854858ef8d4e464b74", null ],

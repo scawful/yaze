@@ -1,5 +1,17 @@
 var NAVTREEINDEX41 =
 {
+"snes__palette__test_8cc.html#aae614732019e6f806ae921acf0996a36":[10,0,2,1,1,7],
+"snes__palette__test_8cc.html#ac79465247aad16f5bf69c7bb4476eb6a":[10,0,2,1,1,1],
+"snes__palette__test_8cc.html#ad4f5b3190dfe909a51619ad862f3153b":[10,0,2,1,1,0],
+"snes__palette__test_8cc.html#ae20400d61a9b652970778a4b0fd554e4":[10,0,2,1,1,6],
+"snes__palette__test_8cc.html#ae974a1d17ac339bb96e17521b20b73e2":[10,0,2,1,1,5],
+"snes__tile_8cc.html":[10,0,1,0,3,10],
+"snes__tile_8cc.html#a12666f7bb6b6dcacbb721b16eded9000":[10,0,1,0,3,10,4],
+"snes__tile_8cc.html#a1c0d7314890a130ceda6eec9def39c4e":[10,0,1,0,3,10,8],
+"snes__tile_8cc.html#a4ec1226f327e64dcc4a789f6d21f4a24":[10,0,1,0,3,10,0],
+"snes__tile_8cc.html#a552ecb78eb0a711234650adab705305c":[10,0,1,0,3,10,1],
+"snes__tile_8cc.html#a568c3c8e5996e53a73ef3cf6e1dd851f":[10,0,1,0,3,10,5],
+"snes__tile_8cc.html#a7f314a1a135641431d8cd613173fb720":[10,0,1,0,3,10,6],
 "snes__tile_8cc.html#a8b918c5ebd5aeb116c421ae7125e4128":[10,0,1,0,3,10,9],
 "snes__tile_8cc.html#ab26e7d963d877f126b4ff7442c473864":[10,0,1,0,3,10,2],
 "snes__tile_8cc.html#acbccad0c8c3b4758e2ed3425058623d7":[10,0,1,0,3,10,3],
@@ -237,17 +249,5 @@ var NAVTREEINDEX41 =
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a5f2686188beea1b0ddf2c525b66c3ffc":[8,0,1,0,2,2,5,10],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a5f2686188beea1b0ddf2c525b66c3ffc":[9,0,0,0,2,0,5,10],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8":[9,0,0,0,2,0,5,4],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8":[8,0,1,0,2,2,5,4],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6f21dc186cb7e8781f010dc575d1fae9":[9,0,0,0,2,0,5,2],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6f21dc186cb7e8781f010dc575d1fae9":[8,0,1,0,2,2,5,2],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46":[8,0,1,0,2,2,5,22],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46":[9,0,0,0,2,0,5,22],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a829cfa1b73ee390d599092701c2883e6":[8,0,1,0,2,2,5,6],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a829cfa1b73ee390d599092701c2883e6":[9,0,0,0,2,0,5,6],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac":[9,0,0,0,2,0,5,15],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac":[8,0,1,0,2,2,5,15],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a8742b2e841d342e517ea4152f2bd16e7":[8,0,1,0,2,2,5,25],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a8742b2e841d342e517ea4152f2bd16e7":[9,0,0,0,2,0,5,25],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a89d96202f034f8f7574b66475cfdf952":[8,0,1,0,2,2,5,1],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a89d96202f034f8f7574b66475cfdf952":[9,0,0,0,2,0,5,1]
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8":[8,0,1,0,2,2,5,4]
 };

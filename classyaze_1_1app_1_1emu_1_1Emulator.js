@@ -19,6 +19,7 @@ var classyaze_1_1app_1_1emu_1_1Emulator =
     [ "power_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a77e3fcc88a86b156b939ab8d111b05ba", null ],
     [ "loading_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a7c9e92454030f7fbe1dcbd9dbd40495b", null ],
     [ "running_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a97c9139aa0c99b34917b8b6cb59db81c", null ],
+    [ "turbo_mode_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a0eebe5eeca595a9a850269aa35dbf7f1", null ],
     [ "wanted_frames_", "classyaze_1_1app_1_1emu_1_1Emulator.html#aa3931a883be44a8767791d082ee3a44c", null ],
     [ "wanted_samples_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a36053b617e64b7588958f73b1a12948b", null ],
     [ "manual_pb_", "classyaze_1_1app_1_1emu_1_1Emulator.html#ab46a750f4f62af7258e3a6017002a9cd", null ],
