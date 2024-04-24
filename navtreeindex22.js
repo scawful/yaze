@@ -1,5 +1,7 @@
 var NAVTREEINDEX22 =
 {
+"controller_8cc.html#ae74e0ed0e27003c9a7f411ac36bedf31":[10,0,1,0,0,4,6],
+"controller_8h.html":[10,0,1,0,0,5],
 "controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627":[10,0,1,0,0,5,2],
 "controller_8h_source.html":[10,0,1,0,0,5],
 "core_2common_8h.html":[10,0,1,0,0,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX22 =
 "cpu__test_8cc.html#ab105e903c8566fdbb1b0183d9ae9771b":[10,0,2,0,0,224],
 "cpu__test_8cc.html#ab1a4899857e3115f238763e5b417acf5":[10,0,2,0,0,121],
 "cpu__test_8cc.html#ab1dcd1126e88d146f83b6244cf036cd1":[10,0,2,0,0,284],
-"cpu__test_8cc.html#ab4363f85fc99dc9869c91cf69b5c4fcb":[10,0,2,0,0,190],
-"cpu__test_8cc.html#ab4cb78a04230a061f6af9be9b034f8db":[10,0,2,0,0,279],
-"cpu__test_8cc.html#ab6468192d20e0f8086868c7544624898":[10,0,2,0,0,51]
+"cpu__test_8cc.html#ab4363f85fc99dc9869c91cf69b5c4fcb":[10,0,2,0,0,190]
 };

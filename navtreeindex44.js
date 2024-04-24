@@ -1,5 +1,7 @@
 var NAVTREEINDEX44 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a35a7fb934df1f106902423847a2113f6":[8,0,1,0,2,4,0,32,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a35a7fb934df1f106902423847a2113f6":[9,0,0,0,2,2,0,32,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a567611590cd448098505a03f94f1868e":[8,0,1,0,2,4,0,32,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a567611590cd448098505a03f94f1868e":[9,0,0,0,2,2,0,32,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a63af17d4b22e5d2611697163a2da15fa":[9,0,0,0,2,2,0,32,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html":[8,0,1,0,2,4,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html":[9,0,0,0,2,2,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29":[9,0,0,0,2,2,23,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29":[8,0,1,0,2,4,23,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a6fa3eca3213665239501d1cc870a282d":[9,0,0,0,2,2,23,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a6fa3eca3213665239501d1cc870a282d":[8,0,1,0,2,4,23,3]
+"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29":[8,0,1,0,2,4,23,0]
 };

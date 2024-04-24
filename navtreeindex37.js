@@ -1,5 +1,7 @@
 var NAVTREEINDEX37 =
 {
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a596fa39239f15d867878761bf6743f79":[8,0,1,0,5,3,81],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a5a796ac1caea3e148bab0b065f752537":[8,0,1,0,5,3,48],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a5d0d30e7b136539b27338406dd4debc6":[8,0,1,0,5,3,35],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a614925fe8ad0001a00c2996af767e80d":[8,0,1,0,5,3,51],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a61919214db4e995d9fd5364aad58c213":[8,0,1,0,5,3,60],
@@ -247,7 +249,5 @@ var NAVTREEINDEX37 =
 "namespaceyaze__test_1_1emu__test.html#a6128c4bb80ec6ab827bb687863f1e7ee":[8,0,2,0,96],
 "namespaceyaze__test_1_1emu__test.html#a616d1bc89678eae2faaf5306078d0d9e":[8,0,2,0,182],
 "namespaceyaze__test_1_1emu__test.html#a61f697e33f6de71c89bbb34c79021879":[8,0,2,0,132],
-"namespaceyaze__test_1_1emu__test.html#a63a8d3fd7a1e67f3224c07de7a4ca39d":[8,0,2,0,293],
-"namespaceyaze__test_1_1emu__test.html#a64768daea633d305856991c58050aaf1":[8,0,2,0,263],
-"namespaceyaze__test_1_1emu__test.html#a6495fd4dd1f26df6907b1cc9cf8993fd":[8,0,2,0,120]
+"namespaceyaze__test_1_1emu__test.html#a63a8d3fd7a1e67f3224c07de7a4ca39d":[8,0,2,0,293]
 };
