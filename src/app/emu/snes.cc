@@ -37,45 +37,6 @@ void SNES::Init(Rom& rom) {
   // rom_info_ = memory_.ReadRomHeader();
   Reset(true);
 
-  // Disable the emulation flag (switch to 65816 native mode)
-  // cpu_.E = 0;
-  // cpu_.PB = 0x00;
-  // cpu_.PC = 0x8000;
-
-  // Disable interrupts and rendering
-  memory_.WriteByte(0x4200, 0x00);  // NMITIMEN
-  memory_.WriteByte(0x420C, 0x00);  // HDMAEN
-
-  // Disable screen
-  memory_.WriteByte(0x2100, 0x8F);  // INIDISP
-
-  // Reset PPU registers to a known good state
-  memory_.WriteByte(0x4201, 0xFF);  // WRIO
-
-  // Scroll Registers
-  memory_.WriteByte(0x210D, 0x00);  // BG1HOFS
-  memory_.WriteByte(0x210E, 0xFF);  // BG1VOFS
-
-  memory_.WriteByte(0x210F, 0x00);  // BG2HOFS
-  memory_.WriteByte(0x2110, 0xFF);  // BG2VOFS
-
-  memory_.WriteByte(0x2111, 0x00);  // BG3HOFS
-  memory_.WriteByte(0x2112, 0xFF);  // BG3VOFS
-
-  memory_.WriteByte(0x2113, 0x00);  // BG4HOFS
-  memory_.WriteByte(0x2114, 0xFF);  // BG4VOFS
-
-  // VRAM Registers
-  memory_.WriteByte(0x2115, 0x80);  // VMAIN
-
-  // Color Math
-  memory_.WriteByte(0x2130, 0x30);  // CGWSEL
-  memory_.WriteByte(0x2131, 0x00);  // CGADSUB
-  memory_.WriteByte(0x2132, 0xE0);  // COLDATA
-
-  // Misc
-  memory_.WriteByte(0x2133, 0x00);  // SETINI
-
   running_ = true;
 }
 
@@ -291,7 +252,7 @@ uint8_t SNES::ReadBBus(uint8_t adr) {
   }
   if (adr < 0x80) {
     CatchUpApu();  // catch up the apu before reading
-    return apu_.outPorts[adr & 0x3];
+    return apu_.out_ports_[adr & 0x3];
   }
   if (adr == 0x80) {
     uint8_t ret = ram[ram_adr_++];
@@ -397,7 +358,7 @@ void SNES::WriteBBus(uint8_t adr, uint8_t val) {
   }
   if (adr < 0x80) {
     CatchUpApu();  // catch up the apu before writing
-    apu_.inPorts[adr & 0x3] = val;
+    apu_.in_ports_[adr & 0x3] = val;
     return;
   }
   switch (adr) {
