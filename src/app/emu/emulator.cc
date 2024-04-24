@@ -52,15 +52,15 @@ void Emulator::Run() {
   static bool loaded = false;
   if (!snes_.running() && rom()->is_loaded()) {
     ppu_texture_ =
-        SDL_CreateTexture(rom()->renderer().get(), SDL_PIXELFORMAT_RGBX8888,
+        SDL_CreateTexture(rom()->renderer().get(), SDL_PIXELFORMAT_ARGB8888,
                           SDL_TEXTUREACCESS_STREAMING, 512, 480);
     if (ppu_texture_ == NULL) {
       printf("Failed to create texture: %s\n", SDL_GetError());
       return;
     }
     snes_.Init(*rom());
-    wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
+    wanted_frames_ = 1.0 /  60.0;
+    wanted_samples_ = 48000 /60;
     loaded = true;
 
     countFreq = SDL_GetPerformanceFrequency();
@@ -83,6 +83,9 @@ void Emulator::Run() {
       timeAdder -= wanted_frames_;
 
       if (loaded) {
+        if (turbo_mode_) {
+          snes_.RunFrame();
+        }
         snes_.RunFrame();
 
         snes_.SetSamples(audio_buffer_, wanted_samples_);
@@ -168,7 +171,7 @@ void Emulator::RenderNavBar() {
 
   if (ImGui::Button(ICON_MD_REFRESH)) {
     // Reset Emulator logic
-    snes_.Reset();
+    snes_.Reset(true);
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Reset Emulator");
@@ -217,6 +220,9 @@ void Emulator::RenderNavBar() {
 
   SameLine();
   ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions());
+
+  SameLine();
+  ImGui::Checkbox("Turbo", &turbo_mode_);
 
   static bool show_memory_viewer = false;
 
@@ -299,15 +305,16 @@ void Emulator::RenderBreakpointList() {
 }
 
 void Emulator::RenderMemoryViewer() {
+  static MemoryEditor ram_edit;
+  static MemoryEditor aram_edit;
   static MemoryEditor mem_edit;
-  if (ImGui::Button("RAM")) {
-    mem_edit.GotoAddrAndHighlight(0x7E0000, 0x7E0001);
-  }
 
-  if (ImGui::BeginTable("MemoryViewerTable", 2,
+  if (ImGui::BeginTable("MemoryViewerTable", 4,
                         ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
     ImGui::TableSetupColumn("Bookmarks");
-    ImGui::TableSetupColumn("Memory");
+    ImGui::TableSetupColumn("RAM");
+    ImGui::TableSetupColumn("ARAM");
+    ImGui::TableSetupColumn("ROM");
     ImGui::TableHeadersRow();
 
     TableNextColumn();
@@ -348,8 +355,33 @@ void Emulator::RenderMemoryViewer() {
     }
 
     TableNextColumn();
-    mem_edit.DrawContents((void*)snes_.Memory().rom_.data(),
-                          snes_.Memory().rom_.size());
+    if (ImGui::BeginChild("RAM", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_NoMove |
+                              ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse)) {
+      ram_edit.DrawContents((void*)snes_.get_ram(), 0x20000);
+      ImGui::EndChild();
+    }
+
+    TableNextColumn();
+    if (ImGui::BeginChild("ARAM", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_NoMove |
+                              ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse)) {
+      aram_edit.DrawContents((void*)snes_.apu().ram.data(),
+                             snes_.apu().ram.size());
+      ImGui::EndChild();
+    }
+
+    TableNextColumn();
+    if (ImGui::BeginChild("ROM", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_NoMove |
+                              ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse)) {
+      mem_edit.DrawContents((void*)snes_.Memory().rom_.data(),
+                            snes_.Memory().rom_.size());
+      ImGui::EndChild();
+    }
 
     ImGui::EndTable();
   }
