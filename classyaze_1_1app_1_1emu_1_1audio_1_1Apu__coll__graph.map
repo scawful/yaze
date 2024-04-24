@@ -16,16 +16,13 @@
 <area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="426,144,533,140,534,146,426,149"/>
 <area shape="rect" id="Node000009" href="$structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html" title=" " alt="" coords="261,195,403,235"/>
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="419,206,698,185,802,176,802,181,699,190,419,211"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html" title="The Spc700 class represents the SPC700 processor." alt="" coords="542,255,684,295"/>
-<area shape="poly" id="edge14_Node000013_Node000009" title=" " alt="" coords="419,231,542,257,541,262,418,236"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html" title=" " alt="" coords="527,358,698,384"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="652,348,712,314,777,271,831,224,872,183,876,186,835,228,780,275,715,318,655,353"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html" title="AudioRam is an interface for the Audio RAM used by the SPC700." alt="" coords="261,328,403,369"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="418,365,438,367,527,371,526,377,438,373,418,370"/>
-<area shape="poly" id="edge13_Node000013_Node000011" title=" " alt="" coords="417,323,540,291,542,296,419,329"/>
-<area shape="rect" id="Node000012" href="$structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html" title=" " alt="" coords="261,396,403,437"/>
-<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="418,403,503,390,547,382,548,387,503,395,419,408"/>
-<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="698,256,777,232,826,207,866,182,869,187,829,212,779,236,700,261"/>
-<area shape="rect" id="Node000014" href="$structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html" title=" " alt="" coords="261,260,403,301"/>
-<area shape="poly" id="edge15_Node000013_Node000014" title=" " alt="" coords="418,278,503,277,541,275,541,281,503,282,419,283"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html" title="The Spc700 class represents the SPC700 processor." alt="" coords="542,248,684,289"/>
+<area shape="poly" id="edge12_Node000012_Node000009" title=" " alt="" coords="419,229,542,252,541,257,418,234"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html" title=" " alt="" coords="527,322,698,348"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="676,314,727,295,777,269,833,224,873,183,877,186,837,228,780,274,729,300,678,319"/>
+<area shape="rect" id="Node000011" href="$structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html" title=" " alt="" coords="261,325,403,366"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="418,340,527,336,527,341,418,345"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="698,253,777,232,827,207,867,182,869,187,829,212,779,236,700,259"/>
+<area shape="rect" id="Node000013" href="$structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html" title=" " alt="" coords="261,260,403,301"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="418,279,503,277,541,274,541,279,503,282,419,284"/>
 </map>

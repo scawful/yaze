@@ -6,6 +6,7 @@ var classyaze_1_1app_1_1emu_1_1Emulator =
     [ "snes", "classyaze_1_1app_1_1emu_1_1Emulator.html#aebd3efff1294c50a7a54fe928c48ca2d", null ],
     [ "running", "classyaze_1_1app_1_1emu_1_1Emulator.html#adebab95dcb3ddb1840e35b91ae733d1f", null ],
     [ "set_audio_buffer", "classyaze_1_1app_1_1emu_1_1Emulator.html#a656c4a754f76d9370efc29e176939ef0", null ],
+    [ "set_audio_device_id", "classyaze_1_1app_1_1emu_1_1Emulator.html#a7b5e6b22f73970dec0f9602ecdba8767", null ],
     [ "wanted_samples", "classyaze_1_1app_1_1emu_1_1Emulator.html#afc104621863ff7b3e894dba82b93584c", null ],
     [ "RenderNavBar", "classyaze_1_1app_1_1emu_1_1Emulator.html#a768f75e52c4da7c5d99cc0e527059379", null ],
     [ "HandleEvents", "classyaze_1_1app_1_1emu_1_1Emulator.html#a9aeb81c9f12eed58ac6834998239d5df", null ],
@@ -26,6 +27,7 @@ var classyaze_1_1app_1_1emu_1_1Emulator =
     [ "lastCount", "classyaze_1_1app_1_1emu_1_1Emulator.html#a33d23be5c153f1efb39dc28de1feecff", null ],
     [ "timeAdder", "classyaze_1_1app_1_1emu_1_1Emulator.html#a090603663f5235f2f2bd43ee629bfeea", null ],
     [ "audio_buffer_", "classyaze_1_1app_1_1emu_1_1Emulator.html#ae0afccc1d612dd7c8ad96f74e44b9a37", null ],
+    [ "audio_device_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a133affc39ccc0e14517b0bfef883b2f0", null ],
     [ "snes_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a6c6ccc11f41bdc323dfa4c1bd1ab5dfa", null ],
     [ "ppu_texture_", "classyaze_1_1app_1_1emu_1_1Emulator.html#aba8cfa17f73c297631194e4bc66fceb4", null ],
     [ "emulator_node_", "classyaze_1_1app_1_1emu_1_1Emulator.html#aa0faccd3b01b89f029d15eb97bcfbe31", null ]

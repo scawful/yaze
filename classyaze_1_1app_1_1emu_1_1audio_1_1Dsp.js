@@ -1,6 +1,6 @@
 var classyaze_1_1app_1_1emu_1_1audio_1_1Dsp =
 [
-    [ "Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a38056fd07a8b9a928f00173b360d3e3f", null ],
+    [ "Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#ac2076b5b28b95e4675a66d8a1da56ea9", null ],
     [ "Reset", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a96234b514b6cb9d56c48e6e8ac44af67", null ],
     [ "Cycle", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#af0dee1dd388ab5bc5e59499e855e0044", null ],
     [ "HandleEcho", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#adadfa13540507449f07b633a16f490fb", null ],
@@ -15,7 +15,7 @@ var classyaze_1_1app_1_1emu_1_1audio_1_1Dsp =
     [ "GetSamples", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#af503d7987b4928da38fd9072f862dfc5", null ],
     [ "sample_buffer_", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a62c08569d5864916c88a8177ac040b6e", null ],
     [ "sample_offset_", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a233102c63e2d4f1b6f51103f5114ef1d", null ],
-    [ "aram_", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa5ba959c43ce0ddd427d49d07e5c45e4", null ],
+    [ "aram_", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a0c6b9d54aaed6103539d352aabee6911", null ],
     [ "ram", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a5a5db56179db22c250197779b861c542", null ],
     [ "channel", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a0b9241728d3cff4afc0b3ba238fc7de6", null ],
     [ "counter", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a69f7898b03f3bb789a536b1d652e2f55", null ],

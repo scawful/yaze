@@ -1,7 +1,7 @@
 var classyaze_1_1app_1_1emu_1_1audio_1_1Spc700 =
 [
     [ "Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags" ],
-    [ "Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a51637515fe4ac5a9c4498d384965e64a", null ],
+    [ "Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a4d29cb0c7aaa5dbc8f344bde6a4c9b78", null ],
     [ "FlagsToByte", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f", null ],
     [ "ByteToFlags", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360", null ],
     [ "Reset", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8a959cd07f045af98496d5c4bd8fb666", null ],
@@ -120,7 +120,6 @@ var classyaze_1_1app_1_1emu_1_1audio_1_1Spc700 =
     [ "NOP", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a08491a73e714c14e55a219459106063e", null ],
     [ "SLEEP", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#afbcfd014bacca22e4560c05d8a530e06", null ],
     [ "STOP", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a78754223f00c5fda76ec9103316a85a6", null ],
-    [ "aram_", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a41182ef3561ab6e311380e4e9b18a58f", null ],
     [ "callbacks_", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a7d92b735859f21b6cbabb1ff9cc881eb", null ],
     [ "log_", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae3be0be62f792f6a4aeccbbcd567a907", null ],
     [ "stopped_", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af0c4d1ab8982af720f8a98274e029613", null ],

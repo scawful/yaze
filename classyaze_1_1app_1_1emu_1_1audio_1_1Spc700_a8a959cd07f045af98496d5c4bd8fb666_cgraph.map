@@ -1,7 +1,5 @@
 <map id="yaze::app::emu::audio::Spc700::Reset" name="yaze::app::emu::audio::Spc700::Reset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,148,79"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,148,46"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360" title=" " alt="" coords="196,5,346,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,44,180,39,181,44,149,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html#aba918304c71c8f4f5619ed20da96ed0d" title=" " alt="" coords="200,71,342,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,68,185,74,184,79,148,73"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,23,180,23,180,28,148,28"/>
 </map>
