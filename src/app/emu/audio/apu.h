@@ -56,14 +56,13 @@ typedef struct Timer {
  */
 class Apu {
  public:
-  Apu(MemoryImpl &memory, Clock &clock)
-      : clock_(clock), memory_(memory) {}
+  Apu(MemoryImpl &memory, Clock &clock) : clock_(clock), memory_(memory) {}
 
   void Init();
   void Reset();
   void Update();
 
-  int RunCycles(uint32_t wanted_cycles);
+  void RunCycles(uint64_t cycles);
   uint8_t SpcRead(uint16_t address);
   void SpcWrite(uint16_t address, uint8_t data);
   void SpcIdle(bool waiting);
@@ -76,6 +75,7 @@ class Apu {
   void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
 
   auto dsp() -> Dsp & { return dsp_; }
+  auto spc700() -> Spc700 & { return spc700_; }
 
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
   uint8_t in_ports_[6];  // includes 2 bytes of ram
