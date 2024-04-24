@@ -282,9 +282,9 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a5e08cf1ce2569c1da704b71ca55655b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af429b465bbcd3def1bc06140c2aaae3c" id="r_af429b465bbcd3def1bc06140c2aaae3c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af429b465bbcd3def1bc06140c2aaae3c">open_bus_</a> = 0</td></tr>
 <tr class="separator:af429b465bbcd3def1bc06140c2aaae3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a971b218f608a0d0c32717da26bea0f96" id="r_a971b218f608a0d0c32717da26bea0f96"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a971b218f608a0d0c32717da26bea0f96">SP_</a> = 0x01FF</td></tr>
+<tr class="memitem:a971b218f608a0d0c32717da26bea0f96" id="r_a971b218f608a0d0c32717da26bea0f96"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a971b218f608a0d0c32717da26bea0f96">SP_</a> = 0</td></tr>
 <tr class="separator:a971b218f608a0d0c32717da26bea0f96"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a413d1f638a1b8783a664c37f87de58ef" id="r_a413d1f638a1b8783a664c37f87de58ef"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a413d1f638a1b8783a664c37f87de58ef">type_</a></td></tr>
+<tr class="memitem:a413d1f638a1b8783a664c37f87de58ef" id="r_a413d1f638a1b8783a664c37f87de58ef"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a413d1f638a1b8783a664c37f87de58ef">type_</a> = 1</td></tr>
 <tr class="separator:a413d1f638a1b8783a664c37f87de58ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a09aa0256237119486b7e19490821bca6" id="r_a09aa0256237119486b7e19490821bca6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a></td></tr>
 <tr class="separator:a09aa0256237119486b7e19490821bca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -322,7 +322,7 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, <a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a>, <a class="el" href="#ad5304c7686fdf1fbaed57c6d528b7d7a">romSize</a>, <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>, and <a class="el" href="#a2dd494a961c9c31c823ab2e0517f8181">verbose_</a>.</p>
+<p class="reference">References <a class="el" href="#a09aa0256237119486b7e19490821bca6">memory_</a>, <a class="el" href="#ab5fcd24f61d08fe948d41d2dc251b639">ram_</a>, <a class="el" href="#a64f06f24045b90e93dbf12826fd69309">rom_</a>, <a class="el" href="#ad5304c7686fdf1fbaed57c6d528b7d7a">romSize</a>, <a class="el" href="#aadc2939160052f09d740e334fcfc2878">sramSize</a>, <a class="el" href="#a413d1f638a1b8783a664c37f87de58ef">type_</a>, and <a class="el" href="#a2dd494a961c9c31c823ab2e0517f8181">verbose_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a68edab92a837430e45ad90581f5f96b6">yaze::app::zelda3::dungeon::DungeonObjectRenderer::LoadObject()</a>.</p>
 
@@ -1459,7 +1459,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a650f4f3c4c7293cdfc92d2e897ef49be">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a33a58e186c22ce300ab3753f1fee3b04">yaze::app::emu::memory::dma::DoHdma()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a33a58e186c22ce300ab3753f1fee3b04">yaze::app::emu::memory::dma::DoHdma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287">yaze::app::emu::memory::dma::Reset()</a>.</p>
 
 </div>
 </div>
@@ -1488,7 +1488,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8f7bd28a48b081661e692f00910a31db">yaze::app::emu::memory::Memory</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a13816b2a60e51fb6132db6d68938f9ac">yaze::app::emu::memory::dma::InitHdma()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a13816b2a60e51fb6132db6d68938f9ac">yaze::app::emu::memory::dma::InitHdma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287">yaze::app::emu::memory::dma::Reset()</a>.</p>
 
 </div>
 </div>
@@ -1714,7 +1714,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#ab5c19814c33eb509a14ba19c813371a2">yaze::app::emu::memory::dma::HandleDma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5">yaze::app::emu::memory::dma::StartDma()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#ab5c19814c33eb509a14ba19c813371a2">yaze::app::emu::memory::dma::HandleDma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287">yaze::app::emu::memory::dma::Reset()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5">yaze::app::emu::memory::dma::StartDma()</a>.</p>
 
 </div>
 </div>
@@ -1741,7 +1741,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a4d0117f3f937848d6a137c4eb4ca1649">yaze::app::emu::memory::dma::DoDma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a33a58e186c22ce300ab3753f1fee3b04">yaze::app::emu::memory::dma::DoHdma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a13816b2a60e51fb6132db6d68938f9ac">yaze::app::emu::memory::dma::InitHdma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afa24e8e2a9befbb3775e9521bb925623">yaze::app::emu::memory::dma::Read()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5">yaze::app::emu::memory::dma::StartDma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#abbc688ba1ec96ed247f16a3cc1647083">yaze::app::emu::memory::dma::Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a4d0117f3f937848d6a137c4eb4ca1649">yaze::app::emu::memory::dma::DoDma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a33a58e186c22ce300ab3753f1fee3b04">yaze::app::emu::memory::dma::DoHdma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a13816b2a60e51fb6132db6d68938f9ac">yaze::app::emu::memory::dma::InitHdma()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afa24e8e2a9befbb3775e9521bb925623">yaze::app::emu::memory::dma::Read()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287">yaze::app::emu::memory::dma::Reset()</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5">yaze::app::emu::memory::dma::StartDma()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#abbc688ba1ec96ed247f16a3cc1647083">yaze::app::emu::memory::dma::Write()</a>.</p>
 
 </div>
 </div>
@@ -1831,7 +1831,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>, <a class="el" href="#ae0baebf0f0c203c7888cec15a7b7d617">cart_writeHirom()</a>, and <a class="el" href="#a50a859e729ae3fda4dd5a100121bdc20">cart_writeLorom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a154b46529288bf6ae002664d3f84bc5d">cart_readExHirom()</a>, <a class="el" href="#afe9806b7ffee813736b2071e7b7b8355">cart_readHirom()</a>, <a class="el" href="#a57c27b7e461d44957820037dd242880c">cart_readLorom()</a>, <a class="el" href="#ae0baebf0f0c203c7888cec15a7b7d617">cart_writeHirom()</a>, <a class="el" href="#a50a859e729ae3fda4dd5a100121bdc20">cart_writeLorom()</a>, and <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -2047,7 +2047,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint16_t yaze::app::emu::memory::MemoryImpl::SP_ = 0x01FF</td>
+          <td class="memname">uint16_t yaze::app::emu::memory::MemoryImpl::SP_ = 0</td>
         </tr>
       </table>
   </td>
@@ -2069,7 +2069,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::type_</td>
+          <td class="memname">uint8_t yaze::app::emu::memory::MemoryImpl::type_ = 1</td>
         </tr>
       </table>
   </td>
@@ -2079,7 +2079,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read()</a>, and <a class="el" href="#aeb79d1be4fd6045eb72f44b7e2bc12f9">cart_write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aaa920ba14092f42ada46a2a3f2a0b415">cart_read()</a>, <a class="el" href="#aeb79d1be4fd6045eb72f44b7e2bc12f9">cart_write()</a>, and <a class="el" href="#ae35512b6fce8180ab8b69c6c9d8a3b69">Initialize()</a>.</p>
 
 </div>
 </div>

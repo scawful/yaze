@@ -199,7 +199,7 @@ Private Attributes</h2></td></tr>
 <tr class="separator:af02fc4baffed0d1604b8f0377fb9d883"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01e22c79aef68a25e12bacdae40aed4f" id="r_a01e22c79aef68a25e12bacdae40aed4f"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a01e22c79aef68a25e12bacdae40aed4f">dspAdr</a></td></tr>
 <tr class="separator:a01e22c79aef68a25e12bacdae40aed4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a922a700f6c5cc5e96a7ede628b381c0b" id="r_a922a700f6c5cc5e96a7ede628b381c0b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a922a700f6c5cc5e96a7ede628b381c0b">romReadable</a> = true</td></tr>
+<tr class="memitem:a922a700f6c5cc5e96a7ede628b381c0b" id="r_a922a700f6c5cc5e96a7ede628b381c0b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a922a700f6c5cc5e96a7ede628b381c0b">romReadable</a> = false</td></tr>
 <tr class="separator:a922a700f6c5cc5e96a7ede628b381c0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae65a9567d2392f99f22551815259325c" id="r_ae65a9567d2392f99f22551815259325c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html">AudioRam</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae65a9567d2392f99f22551815259325c">aram_</a></td></tr>
 <tr class="separator:ae65a9567d2392f99f22551815259325c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1250,7 +1250,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool yaze::app::emu::audio::Apu::romReadable = true</td>
+          <td class="memname">bool yaze::app::emu::audio::Apu::romReadable = false</td>
         </tr>
       </table>
   </td>
@@ -1354,9 +1354,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= {</div>
-<div class="line">      [<span class="keyword">this</span>](uint16_t adr, uint8_t val) { <a class="code hl_function" href="#a1635c1bb61926cc862b49bb56e2e3e98">SpcWrite</a>(adr, val); },</div>
-<div class="line">      [<span class="keyword">this</span>](uint16_t adr) { <span class="keywordflow">return</span> <a class="code hl_function" href="#a57fe32259ad8866d4b7df0ad78601e11">SpcRead</a>(adr); },</div>
-<div class="line">      [<span class="keyword">this</span>](<span class="keywordtype">bool</span> waiting) { <a class="code hl_function" href="#a3515834953a3b748c95d0117b55b075e">SpcIdle</a>(waiting); },</div>
+<div class="line">      [&amp;](uint16_t adr, uint8_t val) { <a class="code hl_function" href="#a1635c1bb61926cc862b49bb56e2e3e98">SpcWrite</a>(adr, val); },</div>
+<div class="line">      [&amp;](uint16_t adr) { <span class="keywordflow">return</span> <a class="code hl_function" href="#a57fe32259ad8866d4b7df0ad78601e11">SpcRead</a>(adr); },</div>
+<div class="line">      [&amp;](<span class="keywordtype">bool</span> waiting) { <a class="code hl_function" href="#a3515834953a3b748c95d0117b55b075e">SpcIdle</a>(waiting); },</div>
 <div class="line">  }</div>
 <div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a1635c1bb61926cc862b49bb56e2e3e98"><div class="ttname"><a href="#a1635c1bb61926cc862b49bb56e2e3e98">yaze::app::emu::audio::Apu::SpcWrite</a></div><div class="ttdeci">void SpcWrite(uint16_t address, uint8_t data)</div><div class="ttdef"><b>Definition</b> apu.cc:185</div></div>
 <div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a3515834953a3b748c95d0117b55b075e"><div class="ttname"><a href="#a3515834953a3b748c95d0117b55b075e">yaze::app::emu::audio::Apu::SpcIdle</a></div><div class="ttdeci">void SpcIdle(bool waiting)</div><div class="ttdef"><b>Definition</b> apu.cc:190</div></div>

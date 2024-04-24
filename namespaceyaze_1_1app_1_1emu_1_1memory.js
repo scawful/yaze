@@ -1,6 +1,7 @@
 var namespaceyaze_1_1app_1_1emu_1_1memory =
 [
     [ "dma", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html", [
+      [ "Reset", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287", null ],
       [ "Read", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afa24e8e2a9befbb3775e9521bb925623", null ],
       [ "Write", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#abbc688ba1ec96ed247f16a3cc1647083", null ],
       [ "DoDma", "namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a4d0117f3f937848d6a137c4eb4ca1649", null ],

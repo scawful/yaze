@@ -1,6 +1,6 @@
 <map id="yaze::app::emu::Emulator::RenderBreakpointList" name="yaze::app::emu::Emulator::RenderBreakpointList">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,47,168,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7" title=" " alt="" coords="221,5,396,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#ad68ba324f88ee3705128817bd55b94f2" title=" " alt="" coords="221,5,396,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,47,232,32,233,38,169,52"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="218,55,399,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,65,202,65,202,70,168,70"/>

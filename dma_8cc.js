@@ -1,5 +1,6 @@
 var dma_8cc =
 [
+    [ "Reset", "dma_8cc.html#a666ce88f7c70d9de1b75f043fea20287", null ],
     [ "Read", "dma_8cc.html#afa24e8e2a9befbb3775e9521bb925623", null ],
     [ "Write", "dma_8cc.html#abbc688ba1ec96ed247f16a3cc1647083", null ],
     [ "DoDma", "dma_8cc.html#a4d0117f3f937848d6a137c4eb4ca1649", null ],

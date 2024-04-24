@@ -1,6 +1,6 @@
 <map id="yaze::app::emu::Emulator::Emulator" name="yaze::app::emu::Emulator::Emulator">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,79,168,120"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7" title=" " alt="" coords="216,5,390,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#ad68ba324f88ee3705128817bd55b94f2" title=" " alt="" coords="216,5,390,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,76,215,41,237,33,239,39,217,46,133,81"/>
 <area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#a11da3fca9f77d21f920f97e403be7c11" title=" " alt="" coords="238,79,368,120"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,97,222,97,222,102,168,102"/>
