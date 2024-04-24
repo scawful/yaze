@@ -61,7 +61,7 @@ void SNES::Reset(bool hard) {
   h_irq_enabled_ = false;
   v_irq_enabled_ = false;
   nmi_enabled_ = false;
-  h_timer_ = 0x1ff;
+  h_timer_ = 0x1ff * 4;
   v_timer_ = 0x1ff;
   in_nmi_ = false;
   irq_condition_ = false;
@@ -77,6 +77,8 @@ void SNES::Reset(bool hard) {
   divide_result_ = 0x101;
   fast_mem_ = false;
   memory_.set_open_bus(0);
+  nextHoriEvent = 16;
+  build_accesstime(false);
 }
 
 void SNES::RunFrame() {
@@ -128,94 +130,103 @@ void SNES::HandleInput() {
 
 void SNES::RunCycle() {
   cycles_ += 2;
-
   // check for h/v timer irq's
-  bool condition = ((v_irq_enabled_ || h_irq_enabled_) &&
-                    (memory_.v_pos() == v_timer_ || !v_irq_enabled_) &&
-                    (memory_.h_pos() == h_timer_ * 4 || !h_irq_enabled_));
-  if (!irq_condition_ && condition) {
+  bool condition = (
+    (v_irq_enabled_ || h_irq_enabled_) &&
+    (memory_.v_pos() == v_timer_ || !v_irq_enabled_) &&
+    (memory_.h_pos() == h_timer_ || !h_irq_enabled_)
+  );
+  if(!irq_condition_ && condition) {
     in_irq_ = true;
     cpu_.SetIrq(true);
   }
   irq_condition_ = condition;
-
-  // handle positional stuff
-  if (memory_.h_pos() == 0) {
-    // end of hblank, do most v_pos_-tests
-    bool startingVblank = false;
-    if (memory_.v_pos() == 0) {
-      // end of vblank
-      in_vblank_ = false;
-      in_nmi_ = false;
-      ppu_.HandleFrameStart();
-    } else if (memory_.v_pos() == 225) {
-      // ask the ppu if we start vblank now or at v_pos_ 240 (overscan)
-      startingVblank = !ppu_.CheckOverscan();
-    } else if (memory_.v_pos() == 240) {
-      // if we are not yet in vblank, we had an overscan frame, set
-      // startingVblank
-      if (!in_vblank_) startingVblank = true;
-    }
-    if (startingVblank) {
-      // if we are starting vblank
-      ppu_.HandleVblank();
-      in_vblank_ = true;
-      in_nmi_ = true;
-      if (auto_joy_read_) {
-        // TODO: this starts a little after start of vblank
-        auto_joy_timer_ = 4224;
-        HandleInput();
-      }
-      if (nmi_enabled_) {
-        cpu_.Nmi();
-      }
-    }
-  } else if (memory_.h_pos() == 16) {
-    if (memory_.v_pos() == 0) memory_.init_hdma_request();
-  } else if (memory_.h_pos() == 512) {
-    // render the line halfway of the screen for better compatibility
-    if (!in_vblank_ && memory_.v_pos() > 0) ppu_.RunLine(memory_.v_pos());
-  } else if (memory_.h_pos() == 1104) {
-    if (!in_vblank_) memory_.run_hdma_request();
-  }
-
-  // handle autoJoyRead-timer
-  if (auto_joy_timer_ > 0) auto_joy_timer_ -= 2;
-
-  // increment position
+  // increment position; must come after irq checks! (hagane, cybernator)
   memory_.set_h_pos(memory_.h_pos() + 2);
-  if (!memory_.pal_timing()) {
-    // line 240 of odd frame with no interlace is 4 cycles shorter
-    if ((memory_.h_pos() == 1360 && memory_.v_pos() == 240 &&
-         !ppu_.even_frame && !ppu_.frame_interlace) ||
-        memory_.h_pos() == 1364) {
-      memory_.set_h_pos(0);
-      memory_.set_v_pos(memory_.v_pos() + 1);
-      // even interlace frame is 263 lines
-      if ((memory_.v_pos() == 262 &&
-           (!ppu_.frame_interlace || !ppu_.even_frame)) ||
-          memory_.v_pos() == 263) {
-        memory_.set_v_pos(0);
-        frames_++;
-      }
-    }
-  } else {
-    // line 311 of odd frame with interlace is 4 cycles longer
-    if ((memory_.h_pos() == 1364 &&
-         (memory_.v_pos() != 311 || ppu_.even_frame ||
-          !ppu_.frame_interlace)) ||
-        memory_.h_pos() == 1368) {
-      memory_.set_h_pos(0);
-      memory_.set_v_pos(memory_.v_pos() + 1);
-      // even interlace frame is 313 lines
-      if ((memory_.v_pos() == 312 &&
-           (!ppu_.frame_interlace || !ppu_.even_frame)) ||
-          memory_.v_pos() == 313) {
-        memory_.set_v_pos(0);
-        frames_++;
-      }
+  // handle positional stuff
+  if (memory_.h_pos() == nextHoriEvent) {
+    switch (memory_.h_pos()) {
+      case 16: {
+        nextHoriEvent = 512;
+        if(memory_.v_pos() == 0) memory_.init_hdma_request();
+      } break;
+      case 512: {
+        nextHoriEvent = 1104;
+        // render the line halfway of the screen for better compatibility
+        if(!in_vblank_ && memory_.v_pos() > 0) ppu_.RunLine(memory_.v_pos());
+      } break;
+      case 1104: {
+        if(!in_vblank_) memory_.run_hdma_request();
+        if(!memory_.pal_timing()) {
+          // line 240 of odd frame with no interlace is 4 cycles shorter
+          // if((memory_.h_pos() == 1360 && memory_.v_pos() == 240 && !ppu_evenFrame() && !ppu_frameInterlace()) || memory_.h_pos() == 1364) {
+          nextHoriEvent = (memory_.v_pos() == 240 && !ppu_.even_frame && !ppu_.frame_interlace) ? 1360 : 1364;
+        } else {
+          // line 311 of odd frame with interlace is 4 cycles longer
+          // if((memory_.h_pos() == 1364 && (memory_.v_pos() != 311 || ppu_evenFrame() || !ppu_frameInterlace())) || memory_.h_pos() == 1368)
+          nextHoriEvent = (memory_.v_pos() != 311 || ppu_.even_frame || !ppu_.frame_interlace) ? 1364 : 1368;
+        }
+      } break;
+      case 1360:
+      case 1364:
+      case 1368: { // this is the end (of the h-line)
+        nextHoriEvent = 16;
+
+        memory_.set_h_pos(0);
+        memory_.set_v_pos(memory_.v_pos() + 1);
+        if(!memory_.pal_timing()) {
+          // even interlace frame is 263 lines
+          if((memory_.v_pos() == 262 && (!ppu_.frame_interlace || !ppu_.even_frame)) || memory_.v_pos() == 263) {
+
+            memory_.set_v_pos(0);
+            frames_++;
+          }
+	    } else {
+          // even interlace frame is 313 lines
+          if((memory_.v_pos() == 312 && (!ppu_.frame_interlace || !ppu_.even_frame)) || memory_.v_pos() == 313) {
+            memory_.set_v_pos(0);
+            frames_++;
+          }
+        }
+
+        // end of hblank, do most memory_.v_pos()-tests
+        bool startingVblank = false;
+        if(memory_.v_pos() == 0) {
+          // end of vblank
+          in_vblank_ = false;
+          in_nmi_ = false;
+          ppu_.HandleFrameStart();
+        } else if(memory_.v_pos() == 225) {
+          // ask the ppu if we start vblank now or at memory_.v_pos() 240 (overscan)
+          startingVblank = !ppu_.CheckOverscan();
+        } else if(memory_.v_pos() == 240){
+          // if we are not yet in vblank, we had an overscan frame, set startingVblank
+          if(!in_vblank_) startingVblank = true;
+        }
+        if(startingVblank) {
+          // catch up the apu at end of emulated frame (we end frame @ start of vblank)
+          CatchUpApu();
+          // notify dsp of frame-end, because sometimes dma will extend much further past vblank (or even into the next frame)
+          // Megaman X2 (titlescreen animation), Tales of Phantasia (game demo), Actraiser 2 (fade-in @ bootup)
+          // dsp_.newFrame();
+          // we are starting vblank
+          ppu_.HandleVblank();
+          in_vblank_ = true;
+          in_nmi_ = true;
+          if(auto_joy_read_) {
+            // TODO: this starts a little after start of vblank
+            auto_joy_timer_ = 4224;
+            HandleInput();
+          }
+          if(nmi_enabled_) {
+            cpu_.Nmi();
+          }
+        }
+      } break;
     }
   }
+  // handle auto_joy_read_-timer
+  if(auto_joy_timer_ > 0) auto_joy_timer_ -= 2;
 }
 
 void SNES::RunCycles(int cycles) {
@@ -386,7 +397,7 @@ void SNES::WriteReg(uint16_t adr, uint8_t val) {
         in_irq_ = false;
         cpu_.SetIrq(false);
       }
-      // if nmi is enabled while inNmi is still set, immediately generate nmi
+      // if nmi is enabled while in_nmi_ is still set, immediately generate nmi
       if (!nmi_enabled_ && (val & 0x80) && in_nmi_) {
         cpu_.Nmi();
       }
@@ -506,20 +517,26 @@ int SNES::GetAccessTime(uint32_t adr) {
 }
 
 uint8_t SNES::CpuRead(uint32_t adr) {
-  int cycles = GetAccessTime(adr);
+  cpu_.set_int_delay(false);
+  const int cycles = access_time[adr] - 4;
   memory::dma::HandleDma(this, &memory_, cycles);
   RunCycles(cycles);
-  return Read(adr);
+  uint8_t rv = Read(adr);
+  memory::dma::HandleDma(this, &memory_, 4);
+  RunCycles(4);
+  return rv;
 }
 
 void SNES::CpuWrite(uint32_t adr, uint8_t val) {
-  int cycles = GetAccessTime(adr);
-  memory::dma::HandleDma(this, &memory_, cycles);
-  RunCycles(cycles);
+  cpu_.set_int_delay(false);
+  const int cycles = access_time[adr]; // GetAccessTime(adr);
+  memory::dma::HandleDma(this, &memory_, cycles_);
+  RunCycles(cycles_);
   Write(adr, val);
 }
 
 void SNES::CpuIdle(bool waiting) {
+  cpu_.set_int_delay(false);
   memory::dma::HandleDma(this, &memory_, 6);
   RunCycles(6);
 }
