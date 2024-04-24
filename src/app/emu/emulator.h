@@ -56,13 +56,13 @@ class Emulator : public SharedRom {
       }
     )";
     const std::map<std::string, void*> data_bindings = {
-        {"cpu.A", &snes_.cpu()->A},   {"cpu.D", &snes_.cpu()->D},
-        {"cpu.X", &snes_.cpu()->X},   {"cpu.DB", &snes_.cpu()->DB},
-        {"cpu.Y", &snes_.cpu()->Y},   {"cpu.PB", &snes_.cpu()->PB},
-        {"cpu.PC", &snes_.cpu()->PC}, {"cpu.E", &snes_.cpu()->E}};
+        {"cpu.A", &snes_.cpu().A},   {"cpu.D", &snes_.cpu().D},
+        {"cpu.X", &snes_.cpu().X},   {"cpu.DB", &snes_.cpu().DB},
+        {"cpu.Y", &snes_.cpu().Y},   {"cpu.PB", &snes_.cpu().PB},
+        {"cpu.PC", &snes_.cpu().PC}, {"cpu.E", &snes_.cpu().E}};
     emulator_node_ = gui::zeml::Parse(emulator_layout, data_bindings);
     Bind(emulator_node_.GetNode("CpuInstructionLog"),
-         [&]() { RenderCpuInstructionLog(snes_.cpu()->instruction_log_); });
+         [&]() { RenderCpuInstructionLog(snes_.cpu().instruction_log_); });
     Bind(emulator_node_.GetNode("SnesPpu"), [&]() { RenderSnesPpu(); });
     Bind(emulator_node_.GetNode("BreakpointList"),
          [&]() { RenderBreakpointList(); });
@@ -72,6 +72,9 @@ class Emulator : public SharedRom {
   auto snes() -> SNES& { return snes_; }
   auto running() const -> bool { return running_; }
   void set_audio_buffer(int16_t* audio_buffer) { audio_buffer_ = audio_buffer; }
+  auto set_audio_device_id(SDL_AudioDeviceID audio_device) {
+    audio_device_ = audio_device;
+  }
   auto wanted_samples() const -> int { return wanted_samples_; }
 
  private:
@@ -108,6 +111,7 @@ class Emulator : public SharedRom {
   float timeAdder = 0.0;
 
   int16_t* audio_buffer_;
+  SDL_AudioDeviceID audio_device_;
 
   SNES snes_;
   SDL_Texture* ppu_texture_;

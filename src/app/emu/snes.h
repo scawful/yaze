@@ -67,9 +67,9 @@ class SNES {
   void SetPixels(uint8_t* pixel_data);
 
   bool running() const { return running_; }
-  auto cpu() -> Cpu* { return &cpu_; }
-  auto ppu() -> video::Ppu* { return &ppu_; }
-  auto Memory() -> memory::MemoryImpl* { return &memory_; }
+  auto cpu() -> Cpu& { return cpu_; }
+  auto ppu() -> video::Ppu& { return ppu_; }
+  auto Memory() -> memory::MemoryImpl& { return memory_; }
 
  private:
   // Components of the SNES
@@ -77,7 +77,6 @@ class SNES {
   Debugger debugger;
   memory::RomInfo rom_info_;
   memory::MemoryImpl memory_;
-  audio::AudioRamImpl audio_ram_;
 
   memory::CpuCallbacks cpu_callbacks_ = {
       [&](uint32_t adr) { return CpuRead(adr); },
@@ -86,7 +85,7 @@ class SNES {
   };
   Cpu cpu_{memory_, clock_, cpu_callbacks_};
   video::Ppu ppu_{memory_, clock_};
-  audio::Apu apu_{memory_, audio_ram_, clock_};
+  audio::Apu apu_{memory_, clock_};
 
   // Currently loaded ROM
   std::vector<uint8_t> rom_data;
