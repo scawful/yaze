@@ -57,18 +57,6 @@ void Spc700::ADC(uint16_t adr) {
   PSW.N = (A & 0x80);
 }
 
-// void spc_adcm(uint16_t dst, uint8_t value) {
-//   uint8_t applyOn = read(dst);
-//   int result = applyOn + value + PSW.C;
-//   spc->v =
-//       (applyOn & 0x80) == (value & 0x80) && (value & 0x80) != (result &
-//       0x80);
-//   PSW.H = ((applyOn & 0xf) + (value & 0xf) + PSW.C) > 0xf;
-//   PSW.C = result > 0xff;
-//   spc_write(dst, result);
-//   spc_setZN(result);
-// }
-
 void Spc700::ADCM(uint16_t& dest, uint8_t operand) {
   uint8_t applyOn = read(dest);
   int result = applyOn + operand + PSW.C;
@@ -79,17 +67,7 @@ void Spc700::ADCM(uint16_t& dest, uint8_t operand) {
   write(dest, result);
   PSW.Z = ((result & 0xFF) == 0);
   PSW.N = (result & 0x80);
-  // dest = result & 0xFF;
 }
-
-//  void spc_sbcm(uint16_t dst, uint8_t value) {
-//   value ^= 0xff;
-//   uint8_t applyOn = read(dst);
-//   int result = applyOn + value + PSW.C;
-//   spc->v = (applyOn & 0x80) == (value & 0x80) && (value & 0x80) != (result &
-//   0x80); PSW.H = ((applyOn & 0xf) + (value & 0xf) + PSW.C) > 0xf; PSW.C =
-//   result > 0xff; spc_write(dst, result); spc_setZN(result);
-// }
 
 void Spc700::SBC(uint16_t adr) {
   uint8_t value = read(adr) ^ 0xff;
@@ -103,13 +81,16 @@ void Spc700::SBC(uint16_t adr) {
 }
 
 void Spc700::SBCM(uint16_t& dest, uint8_t operand) {
-  uint8_t value = read(dest) - operand - (1 - PSW.C);
-  PSW.V = ((read(dest) ^ value) & (read(dest) ^ operand) & 0x80);
-  PSW.C = (value < 0x100);
-  PSW.Z = ((value & 0xFF) == 0);
-  PSW.N = (value & 0x80);
-  PSW.H = ((read(dest) ^ operand ^ value) & 0x10);
-  write(dest, value);
+  operand ^= 0xff;
+  uint8_t applyOn = read(dest);
+  int result = applyOn + operand + PSW.C;
+  PSW.V = (applyOn & 0x80) == (operand & 0x80) &&
+          (operand & 0x80) != (operand & 0x80);
+  PSW.H = ((applyOn & 0xF) + (operand & 0xF) + PSW.C) > 0xF;
+  PSW.C = result > 0xFF;
+  write(dest, result);
+  PSW.Z = ((A & 0xFF) == 0);
+  PSW.N = (A & 0x80);
 }
 
 void Spc700::CMPX(uint16_t adr) {
@@ -145,12 +126,6 @@ void Spc700::CMP(uint16_t adr) {
   PSW.N = (result & 0x80);
 }
 
-//  void spc_andm(uint16_t dst, uint8_t value) {
-//   uint8_t result = read(dst) & value;
-//   spc_write(dst, result);
-//   spc_setZN(result);
-// }
-
 void Spc700::AND(uint16_t adr) {
   A &= read(adr);
   PSW.Z = (A == 0);
@@ -163,17 +138,6 @@ void Spc700::ANDM(uint16_t dest, uint8_t operand) {
   PSW.Z = (result == 0);
   PSW.N = (result & 0x80);
 }
-
-//  void spc_or(uint16_t adr) {
-//   A |= read(adr);
-//   spc_setZN(A);
-// }
-
-//  void spc_orm(uint16_t dst, uint8_t value) {
-//   uint8_t result = read(dst) | value;
-//   spc_write(dst, result);
-//   spc_setZN(result);
-// }
 
 void Spc700::OR(uint16_t adr) {
   A |= read(adr);
