@@ -143,6 +143,14 @@ class Cpu : public Loggable, public core::ExperimentFlags {
 
   enum class AccessType { Control, Data };
 
+  uint8_t ReadOpcode() { return ReadByte((PB << 16) | PC++); }
+
+  uint16_t ReadOpcodeWord(bool int_check = false) {
+    uint8_t value = ReadOpcode();
+    if (int_check) CheckInt();
+    return value | (ReadOpcode() << 8);
+  }
+
   // Memory access routines
   uint8_t ReadByte(uint32_t address) const {
     return callbacks_.read_byte(address);
@@ -254,13 +262,15 @@ class Cpu : public Loggable, public core::ExperimentFlags {
 
   void DoBranch(bool check) {
     if (!check) CheckInt();
-    uint8_t value = FetchByte();
+    uint8_t value = ReadOpcode();
     if (check) {
       CheckInt();
       callbacks_.idle(false);  // taken branch: 1 extra cycle
-      next_pc_ += (int8_t)value;
+      PC += (int8_t)value;
     }
   }
+
+  void set_int_delay(bool delay) { int_delay_ = delay; }
 
   // ==========================================================================
   // Addressing Modes
@@ -736,7 +746,8 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   auto GetBreakpoints() { return breakpoints_; }
 
   void CheckInt() {
-    int_wanted_ = nmi_wanted_ || (irq_wanted_ && !GetInterruptFlag());
+    int_wanted_ = (nmi_wanted_ || (irq_wanted_ && !GetInterruptFlag()))&& !int_delay_;
+    int_delay_ = false;
   }
 
   auto mutable_log_instructions() -> bool* { return &log_instructions_; }
@@ -778,10 +789,8 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   bool nmi_wanted_ = false;
   bool reset_wanted_ = false;
   bool int_wanted_ = false;
+  bool int_delay_ = false;
 
-  uint16_t last_call_frame_;
-  uint16_t next_pc_;
-  uint8_t next_pb_;
 
   memory::CpuCallbacks callbacks_;
   memory::Memory& memory;
