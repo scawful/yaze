@@ -17,6 +17,9 @@ namespace app {
 namespace emu {
 namespace audio {
 
+static const double apuCyclesPerMaster = (32040 * 32) / (1364 * 262 * 60.0);
+static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312 * 50.0);
+
 static const uint8_t bootRom[0x40] = {
     0xcd, 0xef, 0xbd, 0xe8, 0x00, 0xc6, 0x1d, 0xd0, 0xfc, 0x8f, 0xaa,
     0xf4, 0x8f, 0xbb, 0xf5, 0x78, 0xcc, 0xf4, 0xd0, 0xfb, 0x2f, 0x19,
@@ -59,17 +62,14 @@ void Apu::Update() {
   }
 }
 
-int Apu::RunCycles(uint32_t wanted_cycles) {
-  int run_cycles = 0;
-  uint32_t start_cycles = cycles_;
+void Apu::RunCycles(uint64_t cycles) {
+  uint64_t sync_to =
+      (uint64_t)cycles *
+      (memory_.pal_timing() ? apuCyclesPerMasterPal : apuCyclesPerMaster);
 
-  while (run_cycles < wanted_cycles) {
+  while (cycles_ < sync_to) {
     spc700_.RunOpcode();
-
-    run_cycles += (uint32_t)cycles_ - start_cycles;
-    start_cycles = cycles_;
   }
-  return run_cycles;
 }
 
 void Apu::Cycle() {

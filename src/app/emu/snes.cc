@@ -87,18 +87,13 @@ void SNES::RunFrame() {
   while (!in_vblank_ && frame == frames_) {
     cpu_.RunOpcode();
   }
-  CatchUpApu();
 }
 
 void SNES::CatchUpApu() {
-  int catchup_cycles = (int)apu_catchup_cycles_;
-  int ran_cycles = apu_.RunCycles(catchup_cycles);
-  apu_catchup_cycles_ -= ran_cycles;
+  apu_.RunCycles(cycles_);
 }
 
 namespace {
-static const double apuCyclesPerMaster = (32040 * 32) / (1364 * 262 * 60.0);
-static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312 * 50.0);
 
 void input_latch(Input* input, bool value) {
   input->latchLine = value;
@@ -132,8 +127,6 @@ void SNES::HandleInput() {
 }
 
 void SNES::RunCycle() {
-  apu_catchup_cycles_ +=
-      (memory_.pal_timing() ? apuCyclesPerMasterPal : apuCyclesPerMaster) * 2.0;
   cycles_ += 2;
 
   // check for h/v timer irq's

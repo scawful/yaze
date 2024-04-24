@@ -69,6 +69,7 @@ class SNES {
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> video::Ppu& { return ppu_; }
+  auto apu() -> audio::Apu& { return apu_; }
   auto Memory() -> memory::MemoryImpl& { return memory_; }
 
  private:
