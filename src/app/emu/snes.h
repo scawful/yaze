@@ -71,6 +71,19 @@ class SNES {
   auto ppu() -> video::Ppu& { return ppu_; }
   auto apu() -> audio::Apu& { return apu_; }
   auto Memory() -> memory::MemoryImpl& { return memory_; }
+  auto get_ram() -> uint8_t* { return ram; }
+
+  auto mutable_cycles() -> uint64_t& { return cycles_; }
+
+  std::vector<uint8_t> access_time;
+
+  void build_accesstime( bool recalc) {
+  int start = (recalc) ? 0x800000 : 0; // recalc only updates "fastMem" area
+  access_time.resize(0x1000000);
+  for (int i = start; i < 0x1000000; i++) {
+    access_time[i] = GetAccessTime(i);
+  }
+}
 
  private:
   // Components of the SNES
@@ -103,6 +116,7 @@ class SNES {
   uint64_t cycles_ = 0;
   uint64_t sync_cycle_ = 0;
   double apu_catchup_cycles_;
+  uint32_t nextHoriEvent;
 
   // Nmi / Irq
   bool h_irq_enabled_ = false;
