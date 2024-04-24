@@ -31,12 +31,26 @@ static const uint8_t bootRom[0x40] = {
 void Apu::Init() {
   // Set the clock frequency
   clock_.SetFrequency(kApuClockSpeed);
+  ram.resize(0x10000);
+  for (int i = 0; i < 0x10000; i++) {
+    ram[i] = 0;
+  }
+  // Copy the boot rom into the ram at ffc0
+  for (int i = 0; i < 0x40; i++) {
+    ram[0xffc0 + i] = bootRom[i];
+  }
 }
 
 void Apu::Reset() {
   spc700_.Reset(true);
   dsp_.Reset();
-  ram.clear();
+  for (int i = 0; i < 0x10000; i++) {
+    ram[i] = 0;
+  }
+  // Copy the boot rom into the ram at ffc0
+  for (int i = 0; i < 0x40; i++) {
+    ram[0xffc0 + i] = bootRom[i];
+  }
   rom_readable_ = true;
   dsp_adr_ = 0;
   cycles_ = 0;
@@ -48,17 +62,6 @@ void Apu::Reset() {
     timer_[i].target = 0;
     timer_[i].counter = 0;
     timer_[i].enabled = false;
-  }
-}
-
-void Apu::Update() {
-  auto cycles_to_run = clock_.GetCycleCount();
-
-  for (auto i = 0; i < cycles_to_run; ++i) {
-    // Update the SPC700
-    uint8_t opcode = spc700_.read(spc700_.PC);
-    spc700_.ExecuteInstructions(opcode);
-    spc700_.PC++;
   }
 }
 

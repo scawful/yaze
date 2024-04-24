@@ -60,7 +60,6 @@ class Apu {
 
   void Init();
   void Reset();
-  void Update();
 
   void RunCycles(uint64_t cycles);
   uint8_t SpcRead(uint16_t address);
@@ -80,13 +79,13 @@ class Apu {
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
   uint8_t in_ports_[6];  // includes 2 bytes of ram
   uint8_t out_ports_[4];
+  std::vector<uint8_t> ram = std::vector<uint8_t>(0x10000, 0);
 
  private:
   Timer timer_[3];
   uint32_t cycles_;
   uint8_t dsp_adr_;
   bool rom_readable_ = false;
-  std::vector<uint8_t> ram = std::vector<uint8_t>(0x10000, 0);
 
   // Member variables to store internal APU state and resources
   Clock &clock_;
