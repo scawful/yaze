@@ -1,5 +1,7 @@
 #include "app/emu/audio/dsp.h"
 
+#include <cstring>
+
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
@@ -611,20 +613,6 @@ void Dsp::Write(uint8_t adr, uint8_t val) {
   }
   ram[adr] = val;
 }
-
-// void GetSamples(int16_t* sampleData,
-//                 int samplesPerFrame) {  // resample from 534 / 641 samples
-//                 per
-//                                         // frame to wanted value
-//   float wantedSamples = (apu->snes->palTiming ? 641.0 : 534.0);
-//   double adder = wantedSamples / samplesPerFrame;
-//   double location = sampleOffset - wantedSamples;
-//   for (int i = 0; i < samplesPerFrame; i++) {
-//     sampleData[i * 2] = sampleBuffer[(((int)location) & 0x3ff) * 2];
-//     sampleData[i * 2 + 1] = sampleBuffer[(((int)location) & 0x3ff) * 2 + 1];
-//     location += adder;
-//   }
-// }
 
 void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
                      bool pal_timing) {
