@@ -36,7 +36,7 @@ var searchData=
   ['apu_5fcatchup_5fcycles_5f_33',['apu_catchup_cycles_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a8ca11347c17a8bb5c39f47f153ed28a7',1,'yaze::app::emu::SNES']]],
   ['apuclockspersample_34',['apuClocksPerSample',['../namespaceyaze_1_1app_1_1emu_1_1audio.html#a6e15b76087c10ca523aa51e0f7f7ba77',1,'yaze::app::emu::audio']]],
   ['apusamplerate_35',['apuSampleRate',['../namespaceyaze_1_1app_1_1emu_1_1audio.html#a89acd4cf51b28f6b72c8bb8748c20ee4',1,'yaze::app::emu::audio']]],
-  ['aram_5f_36',['aram_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ae65a9567d2392f99f22551815259325c',1,'yaze::app::emu::audio::Apu::aram_'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa5ba959c43ce0ddd427d49d07e5c45e4',1,'yaze::app::emu::audio::Dsp::aram_'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a41182ef3561ab6e311380e4e9b18a58f',1,'yaze::app::emu::audio::Spc700::aram_']]],
+  ['aram_5f_36',['aram_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa5ba959c43ce0ddd427d49d07e5c45e4',1,'yaze::app::emu::audio::Dsp::aram_'],['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a41182ef3561ab6e311380e4e9b18a58f',1,'yaze::app::emu::audio::Spc700::aram_']]],
   ['aram_5fsize_37',['ARAM_SIZE',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html#ad452d9a42f88a1be120ff413315afa03',1,'yaze::app::emu::audio::AudioRamImpl']]],
   ['area_5fgraphics_5f_38',['area_graphics_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a18ecdcf7f492a171346e4947d1f85de6',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['area_5fmusic_5f_39',['area_music_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ab21ba256124761530abf71b22017bbbf',1,'yaze::app::zelda3::overworld::OverworldMap']]],

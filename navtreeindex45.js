@@ -1,11 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a318e61fd5c7de073d4ecac150dbe87d2":[9,0,0,0,2,2,24,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a318e61fd5c7de073d4ecac150dbe87d2":[8,0,1,0,2,4,24,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a9233b6bfe7c6cb51e2cc0866ac3b7e01":[9,0,0,0,2,2,24,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a9233b6bfe7c6cb51e2cc0866ac3b7e01":[8,0,1,0,2,4,24,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#af9921096a0ff88bfc183d03ce2fbc936":[9,0,0,0,2,2,24,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#af9921096a0ff88bfc183d03ce2fbc936":[8,0,1,0,2,4,24,4],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html":[9,0,0,0,2,2,25],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html":[8,0,1,0,2,4,25],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a0addc2d03786f54fc5014356b49fe640":[9,0,0,0,2,2,25,1],
@@ -249,5 +243,11 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[9,0,0,0,3,14,2],
 "structyaze_1_1app_1_1gfx_1_1tile8.html#a89f6ada5d869638b665fcfe357d14b53":[8,0,1,0,3,16,2],
 "structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[8,0,1,0,3,16,0],
-"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[9,0,0,0,3,14,0]
+"structyaze_1_1app_1_1gfx_1_1tile8.html#ac555fcfe8e1ab5d894c2a07ee342c014":[9,0,0,0,3,14,0],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html":[8,0,1,0,4,1,0],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html":[9,0,0,0,4,0,0],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html#a2d68080353e3c8d3dec70b5ee363b38f":[8,0,1,0,4,1,0,1],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html#a2d68080353e3c8d3dec70b5ee363b38f":[9,0,0,0,4,0,0,1],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html#aad44c6f12a02ebef133a04700f01b4e4":[8,0,1,0,4,1,0,0],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html#aad44c6f12a02ebef133a04700f01b4e4":[9,0,0,0,4,0,0,0]
 };

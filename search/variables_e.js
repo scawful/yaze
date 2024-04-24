@@ -52,7 +52,7 @@ var searchData=
   ['options_5f_49',['options_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aaf96dd3ca77a3cd635e5a3dd527f777d',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['opvct_50',['OPVCT',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8ba1df9436e8e02f33ce9fbcc04e168d',1,'yaze::app::emu::video::PpuRegisters']]],
   ['original_5fcolor_51',['original_color',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#a233468c31950b61833bf552c50c25dc6',1,'yaze::app::editor::palette_internal::PaletteChange']]],
-  ['outports_52',['outPorts',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac922d0d4469c8bda5855de30ab3df6f6',1,'yaze::app::emu::audio::Apu']]],
+  ['out_5fports_5f_52',['out_ports_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#abb949e69aad601440702d15f0c7c7e64',1,'yaze::app::emu::audio::Apu']]],
   ['over_5f_53',['over_',['../classyaze_1_1app_1_1gfx_1_1TileInfo.html#a11e6bd4d9910365e36a30be9c4999c65',1,'yaze::app::gfx::TileInfo']]],
   ['overlaypointers_54',['overlayPointers',['../structyaze_1_1app_1_1VersionConstants.html#a6e5f46dd43f564fcbb8495b1abcd470b',1,'yaze::app::VersionConstants::overlayPointers'],['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a7d3d672232c1cd193bcc7098a79df033',1,'yaze::app::zelda3::overworld::overlayPointers']]],
   ['overlaypointersbank_55',['overlayPointersBank',['../structyaze_1_1app_1_1VersionConstants.html#a1364abb7f43ec1defb49729fa385d126',1,'yaze::app::VersionConstants::overlayPointersBank'],['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#ade49e0d8a965cfdf7280908ed28fec84',1,'yaze::app::zelda3::overworld::overlayPointersBank']]],

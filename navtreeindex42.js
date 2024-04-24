@@ -1,11 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a89d96202f034f8f7574b66475cfdf952":[8,0,1,0,2,2,5,1],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a89d96202f034f8f7574b66475cfdf952":[9,0,0,0,2,0,5,1],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#aa326f22067d8c1c37c40af231b98e48f":[9,0,0,0,2,0,5,13],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#aa326f22067d8c1c37c40af231b98e48f":[8,0,1,0,2,2,5,13],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ab47df8a8a8ffc8cfda17252c5a1aec46":[9,0,0,0,2,0,5,20],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ab47df8a8a8ffc8cfda17252c5a1aec46":[8,0,1,0,2,2,5,20],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#abd6f9d87654914484cde16d4718b1d61":[9,0,0,0,2,0,5,23],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#abd6f9d87654914484cde16d4718b1d61":[8,0,1,0,2,2,5,23],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ac1082ac73482d5ff9423fa87b1b47d31":[8,0,1,0,2,2,5,9],
@@ -249,5 +243,11 @@ var NAVTREEINDEX42 =
 "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a561b6789bd0b8cc565ace80c7955b095":[9,0,0,0,2,2,10,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a561b6789bd0b8cc565ace80c7955b095":[8,0,1,0,2,4,10,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a98121aa8b3217e9e917793e951d8b861":[9,0,0,0,2,2,10,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a98121aa8b3217e9e917793e951d8b861":[8,0,1,0,2,4,10,2]
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a98121aa8b3217e9e917793e951d8b861":[8,0,1,0,2,4,10,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html":[9,0,0,0,2,2,11],
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html":[8,0,1,0,2,4,11],
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a000a3f06599521463f9e759a4581d875":[8,0,1,0,2,4,11,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a000a3f06599521463f9e759a4581d875":[9,0,0,0,2,2,11,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a1836b45c14c41961110ed937db3dbb44":[8,0,1,0,2,4,11,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a1836b45c14c41961110ed937db3dbb44":[9,0,0,0,2,2,11,0]
 };

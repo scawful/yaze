@@ -64,7 +64,7 @@ var searchData=
   ['draw_5flist_5f_61',['draw_list_',['../classyaze_1_1app_1_1gui_1_1Canvas.html#ae0c6843587427e07648940ba6a93a0e5',1,'yaze::app::gui::Canvas']]],
   ['drawn_5ftile_5fpos_5f_62',['drawn_tile_pos_',['../classyaze_1_1app_1_1gui_1_1Canvas.html#ae577282b2e01e9af2dee765d656d1eb8',1,'yaze::app::gui::Canvas']]],
   ['dsp_5f_63',['dsp_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a4bd8a35e4f90659e0602652cccff3f5b',1,'yaze::app::emu::audio::Apu']]],
-  ['dspadr_64',['dspAdr',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a01e22c79aef68a25e12bacdae40aed4f',1,'yaze::app::emu::audio::Apu']]],
+  ['dsp_5fadr_5f_64',['dsp_adr_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a75bb828dab0170df1922c2181b7cdfbb',1,'yaze::app::emu::audio::Apu']]],
   ['dungeon_5feditor_5f_65',['dungeon_editor_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a5226d5090c3062bdffcc03dd950db5cc',1,'yaze::app::editor::MasterEditor']]],
   ['dungeon_5fid_5f_66',['dungeon_id_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#a51ada21816954675ede08de48329d14f',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
   ['dungeon_5fmain_67',['dungeon_main',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9',1,'yaze::app::gfx::PaletteGroupMap']]],

@@ -1,11 +1,5 @@
 var NAVTREEINDEX34 =
 {
-"namespaceyaze_1_1app_1_1core.html#a702a3451df694ac12427f0ba2c707b68":[8,0,1,0,0,75],
-"namespaceyaze_1_1app_1_1core.html#a746dbf4eab9f52281c0168f79ea63aa4":[8,0,1,0,0,67],
-"namespaceyaze_1_1app_1_1core.html#a879d750a26ba80d053be5e4a76ecd0e8":[8,0,1,0,0,13],
-"namespaceyaze_1_1app_1_1core.html#a9453e71bb422bc071352f1771d54cd1a":[8,0,1,0,0,40],
-"namespaceyaze_1_1app_1_1core.html#a97e88b9c9e458b8898ae2bfddffd81c7":[8,0,1,0,0,64],
-"namespaceyaze_1_1app_1_1core.html#a9c0944d162aeff7c714ab42c8149038d":[8,0,1,0,0,76],
 "namespaceyaze_1_1app_1_1core.html#a9c9211ff57271b21476c5b0f39ee57c6":[8,0,1,0,0,78],
 "namespaceyaze_1_1app_1_1core.html#a9eacac1caa31827c0c21972fd3ce191a":[8,0,1,0,0,68],
 "namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81":[8,0,1,0,0,9],
@@ -249,5 +243,11 @@ var NAVTREEINDEX34 =
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a68b7b5b3473f57ac32a24c53edd972e5":[8,0,1,0,2,4,0,95],
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a69b2d88962ee3c4b60118ec31ff72842":[8,0,1,0,2,4,0,109],
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6a2a4d60179c770d6c65eb713b99c24d":[8,0,1,0,2,4,0,81],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6d9318393b7f32cef3933f7d2ef09f5d":[8,0,1,0,2,4,0,103]
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6d9318393b7f32cef3933f7d2ef09f5d":[8,0,1,0,2,4,0,103],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6dec80a913c3fbd6a80081ae5b12f3ca":[8,0,1,0,2,4,0,84],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6fb00f65a358deca2c1ffe3c4f849410":[8,0,1,0,2,4,0,63],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a70a489fec05d234b20277caa3768598d":[8,0,1,0,2,4,0,79],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a7ab3b09eae2f5696ebd852c76ca28081":[8,0,1,0,2,4,0,80],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a7d04d335a4454eeb9c470102bed49109":[8,0,1,0,2,4,0,101],
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a7e53b67263346d48e856d039574f4c93":[8,0,1,0,2,4,0,69]
 };

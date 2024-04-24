@@ -44,7 +44,7 @@ var searchData=
   ['applypalette_41',['ApplyPalette',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a63a3008e5953e88af8a8ed6667ab2a61',1,'yaze::app::gfx::Bitmap::ApplyPalette(const SnesPalette &amp;palette)'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a1dd346f8c7f2faf2765f19539012ecf0',1,'yaze::app::gfx::Bitmap::ApplyPalette(const std::vector&lt; SDL_Color &gt; &amp;palette)']]],
   ['applypalettefrompalettegroup_42',['ApplyPaletteFromPaletteGroup',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#abd48b40af92ef2e71ba442471734af8a',1,'yaze::app::gfx::Bitmap']]],
   ['applypalettewithtransparent_43',['ApplyPaletteWithTransparent',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a24c4b7b033b5edee88e552ecc4cd1103',1,'yaze::app::gfx::Bitmap']]],
-  ['apu_44',['Apu',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ad53afd65f689d36e52a95ccf6757b346',1,'yaze::app::emu::audio::Apu']]],
+  ['apu_44',['Apu',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#abc248a6506d07729a62ac85dfa4863ff',1,'yaze::app::emu::audio::Apu']]],
   ['area_5fgraphics_45',['area_graphics',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a52aa16be4832b99c556556305f74c77f',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['area_5fmusic_46',['area_music',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a59ada685a3370f927179e941a9977027',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['area_5fpalette_47',['area_palette',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a76b95a12eb635d9267a8519d7c79fd8c',1,'yaze::app::zelda3::overworld::OverworldMap']]],

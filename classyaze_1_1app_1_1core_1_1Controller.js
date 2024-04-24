@@ -5,7 +5,6 @@ var classyaze_1_1app_1_1core_1_1Controller =
     [ "OnEntry", "classyaze_1_1app_1_1core_1_1Controller.html#a96a47fb759041832df66d9fd1e4d40f1", null ],
     [ "OnInput", "classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd", null ],
     [ "OnLoad", "classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0", null ],
-    [ "PlayAudio", "classyaze_1_1app_1_1core_1_1Controller.html#a39e91ec66b28bd8724b90a2bef0f2156", null ],
     [ "DoRender", "classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00", null ],
     [ "OnExit", "classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760", null ],
     [ "CreateSDL_Window", "classyaze_1_1app_1_1core_1_1Controller.html#a3994f2ee79504cd00f9f9e49f1462be0", null ],

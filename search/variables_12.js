@@ -96,7 +96,7 @@ var searchData=
   ['tilevflipbit_93',['TileVFlipBit',['../namespaceyaze_1_1app_1_1core.html#aee9552c27c1dd9e8acc65ff262e6e666',1,'yaze::app::core']]],
   ['time_5fover_5f_94',['time_over_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ae84934679c5846cbb036d2105019ddb6',1,'yaze::app::emu::video::Ppu']]],
   ['timeadder_95',['timeAdder',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a090603663f5235f2f2bd43ee629bfeea',1,'yaze::app::emu::Emulator']]],
-  ['timer_96',['timer',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a1f14af222ac1ef7ab8b95dc2ef26efd7',1,'yaze::app::emu::audio::Apu']]],
+  ['timer_5f_96',['timer_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a3f7aa0baf5c5a09df19a47ac277d5990',1,'yaze::app::emu::audio::Apu']]],
   ['title_97',['title',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ac934bc7cda01326ea78351395ec47c9d',1,'yaze::app::emu::memory::RomInfo::title'],['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a43e594271673fbb84233a89f7ad2954b',1,'yaze::app::gui::zeml::WidgetAttributes::title']]],
   ['title_5f_98',['title_',['../classyaze_1_1app_1_1Rom.html#a3998f6405edbf671bb52692c83d670cd',1,'yaze::app::Rom']]],
   ['tm_99',['TM',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#af2ca5ded212f3005513f09af31c96030',1,'yaze::app::emu::video::PpuRegisters']]],
