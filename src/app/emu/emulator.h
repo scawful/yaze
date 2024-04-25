@@ -143,6 +143,8 @@ class Emulator : public SharedRom {
   SNES snes_;
   SDL_Texture* ppu_texture_;
 
+  std::vector<uint8_t> rom_data_;
+
   gui::zeml::Node emulator_node_;
 };
 

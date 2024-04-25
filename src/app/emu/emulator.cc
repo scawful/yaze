@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "app/core/constants.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/emu/snes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -58,9 +59,10 @@ void Emulator::Run() {
       printf("Failed to create texture: %s\n", SDL_GetError());
       return;
     }
-    snes_.Init(*rom());
-    wanted_frames_ = 1.0 /  60.0;
-    wanted_samples_ = 48000 /60;
+    rom_data_ = rom()->vector();
+    snes_.Init(rom_data_);
+    wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
+    wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
     loaded = true;
 
     countFreq = SDL_GetPerformanceFrequency();
@@ -110,9 +112,9 @@ void Emulator::Run() {
 }
 
 void Emulator::RenderSnesPpu() {
-  ImVec2 size = ImVec2(320, 480);
+  ImVec2 size = ImVec2(512, 480);
   if (snes_.running()) {
-    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 240), true,
+    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 480), true,
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
     ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
@@ -121,7 +123,7 @@ void Emulator::RenderSnesPpu() {
 
   } else {
     ImGui::Text("Emulator output not available.");
-    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 240), true,
+    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 480), true,
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
     ImGui::SetCursorPosX(((ImGui::GetWindowSize().x * 0.5f) - size.x) * 0.5f);
     ImGui::SetCursorPosY(((ImGui::GetWindowSize().y * 0.5f) - size.y) * 0.5f);
@@ -141,7 +143,8 @@ void Emulator::RenderNavBar() {
       }
     }
   )";
-  auto navbar_node = gui::zeml::Parse(navbar_layout);
+
+  static auto navbar_node = gui::zeml::Parse(navbar_layout);
   gui::zeml::Render(navbar_node);
 
   if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
@@ -210,14 +213,16 @@ void Emulator::RenderNavBar() {
     ImGui::SetTooltip("Settings");
   }
 
+  static bool open_file = false;
   SameLine();
   if (ImGui::Button(ICON_MD_INFO)) {
+    open_file = true;
+
+    // About Debugger logic
+  }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("About Debugger");
     }
-    // About Debugger logic
-  }
-
   SameLine();
   ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions());
 
@@ -238,6 +243,18 @@ void Emulator::RenderNavBar() {
     ImGui::Begin("Memory Viewer", &show_memory_viewer);
     RenderMemoryViewer();
     ImGui::End();
+  }
+
+  if (open_file) {
+    auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+    if (!file_name.empty()) {
+      std::ifstream file(file_name, std::ios::binary);
+      // Load the data directly into rom_data
+      rom_data_.assign(std::istreambuf_iterator<char>(file),
+                       std::istreambuf_iterator<char>());
+      snes_.Init(rom_data_);
+      open_file = false;
+    }
   }
 }
 

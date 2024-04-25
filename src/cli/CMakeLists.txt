@@ -8,6 +8,7 @@ add_executable(
   app/core/labeling.cc
   app/gui/pipeline.cc
   app/editor/context/gfx_context.cc
+  app/core/platform/file_dialog.mm
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
