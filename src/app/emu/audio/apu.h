@@ -17,10 +17,6 @@ namespace audio {
 
 using namespace memory;
 
-const int kApuClockSpeed = 1024000;  // 1.024 MHz
-const int apuSampleRate = 32000;     // 32 KHz
-const int apuClocksPerSample = 64;   // 64 clocks per sample
-
 typedef struct Timer {
   uint8_t cycles;
   uint8_t divider;
