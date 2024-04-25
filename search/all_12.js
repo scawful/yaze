@@ -81,7 +81,7 @@ var searchData=
   ['opvct_78',['OPVCT',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPVCT.html',1,'yaze::app::emu::video::PpuRegisters::OPVCT'],['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a8ba1df9436e8e02f33ce9fbcc04e168d',1,'yaze::app::emu::video::PpuRegisters::OPVCT']]],
   ['or_79',['OR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a854437ef362be1aab8b4c14ab95e24ee',1,'yaze::app::emu::audio::Spc700']]],
   ['or1_80',['OR1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae81eb107c2f4d3098f83bc5ef7098077',1,'yaze::app::emu::audio::Spc700']]],
-  ['ora_81',['ORA',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ae8b295ff70b435e009dc9364c3e44fed',1,'yaze::app::emu::Cpu']]],
+  ['ora_81',['ORA',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7881c5ecbfc306ba193e5f09a6a0e44d',1,'yaze::app::emu::Cpu']]],
   ['organizemaptiles_82',['OrganizeMapTiles',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ad58427a774324e9ce54eb95053c6b6ae',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['original_5fcolor_83',['original_color',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#a233468c31950b61833bf552c50c25dc6',1,'yaze::app::editor::palette_internal::PaletteChange']]],
   ['orm_84',['ORM',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af57e6036e9debe00a415aa44a22014cd',1,'yaze::app::emu::audio::Spc700']]],

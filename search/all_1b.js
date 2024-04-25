@@ -11,5 +11,6 @@ var searchData=
   ['x_5fscroll_5f_8',['x_scroll_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#ad0b5cd085658d1b4b36f5f2d26df5f97',1,'yaze::app::zelda3::overworld::OverworldExit']]],
   ['xba_9',['XBA',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a4108a2232db8cea982065b02c9f1edd0',1,'yaze::app::emu::Cpu']]],
   ['xce_10',['XCE',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a03b4b61f534c16bafad8d3bff1cdae3c',1,'yaze::app::emu::Cpu']]],
-  ['xcn_11',['XCN',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a530df97d094b0a206d7b54e1c8c6a693',1,'yaze::app::emu::audio::Spc700']]]
+  ['xcn_11',['XCN',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a530df97d094b0a206d7b54e1c8c6a693',1,'yaze::app::emu::audio::Spc700']]],
+  ['xf_12',['xf',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2c7354bc54134b0a47b9f1167e133913',1,'yaze::app::emu::Cpu']]]
 ];
