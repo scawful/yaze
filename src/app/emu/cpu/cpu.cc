@@ -21,8 +21,8 @@ void Cpu::Reset(bool hard) {
     PB = 0;
     D = 0;
     DB = 0;
-    E = 0;
-    status = 0;
+    E = 1;
+    status = 0x34;
     irq_wanted_ = false;
   }
 
@@ -32,24 +32,6 @@ void Cpu::Reset(bool hard) {
   nmi_wanted_ = false;
   int_wanted_ = false;
   int_delay_ = false;
-}
-
-void Cpu::Update(UpdateMode mode, int stepCount) {
-  int cycles = (mode == UpdateMode::Run) ? clock.GetCycleCount() : stepCount;
-
-  // Execute the calculated number of cycles
-  for (int i = 0; i < cycles; i++) {
-    if (IsBreakpoint(PC)) {
-      break;
-    }
-
-    // Fetch and execute an instruction
-    ExecuteInstruction(ReadByte((PB << 16) + PC));
-
-    if (mode == UpdateMode::Step) {
-      break;
-    }
-  }
 }
 
 void Cpu::RunOpcode() {

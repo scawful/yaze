@@ -25,39 +25,6 @@ class PpuInterface {
   // Memory Interactions
   virtual void Write(uint16_t address, uint8_t data) = 0;
   virtual uint8_t Read(uint16_t address) const = 0;
-
-  // Rendering Controls
-  virtual void RenderFrame() = 0;
-  virtual void RenderScanline() = 0;
-  virtual void RenderBackground(int layer) = 0;
-  virtual void RenderSprites() = 0;
-
-  // State Management
-  virtual void Init() = 0;
-  virtual void Reset() = 0;
-  virtual void Update(double deltaTime) = 0;
-  virtual void UpdateClock(double deltaTime) = 0;
-  virtual void UpdateInternalState(int cycles) = 0;
-
-  // Data Access
-  virtual const std::vector<uint8_t>& GetFrameBuffer() const = 0;
-  virtual std::shared_ptr<gfx::Bitmap> GetScreen() const = 0;
-
-  // Mode and Setting Updates
-  virtual void UpdateModeSettings() = 0;
-  virtual void UpdateTileData() = 0;
-  virtual void UpdateTileMapData() = 0;
-  virtual void UpdatePaletteData() = 0;
-
-  // Layer Composition
-  virtual void ApplyEffects() = 0;
-  virtual void ComposeLayers() = 0;
-
-  // Display Output
-  virtual void DisplayFrameBuffer() = 0;
-
-  // Notification (Observer pattern)
-  virtual void Notify(uint32_t address, uint8_t data) = 0;
 };
 
 // Enum representing different background modes
@@ -289,8 +256,6 @@ struct BackgroundLayer {
   bool enabled;                     // Whether the background layer is enabled
 };
 
-const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
-
 class Ppu : public SharedRom {
  public:
   // Initializes the PPU with the necessary resources and dependencies
@@ -298,7 +263,6 @@ class Ppu : public SharedRom {
 
   // Initialize the frame buffer
   void Init() {
-    clock_.SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
     pixelOutputFormat = 1;
   }

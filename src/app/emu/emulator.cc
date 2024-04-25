@@ -65,9 +65,9 @@ void Emulator::Run() {
     wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
     loaded = true;
 
-    countFreq = SDL_GetPerformanceFrequency();
-    lastCount = SDL_GetPerformanceCounter();
-    timeAdder = 0.0;
+    count_frequency = SDL_GetPerformanceFrequency();
+    last_count = SDL_GetPerformanceCounter();
+    time_adder = 0.0;
   }
 
   RenderNavBar();
@@ -75,14 +75,14 @@ void Emulator::Run() {
   if (running_) {
     HandleEvents();
 
-    uint64_t curCount = SDL_GetPerformanceCounter();
-    uint64_t delta = curCount - lastCount;
-    lastCount = curCount;
-    float seconds = delta / (float)countFreq;
-    timeAdder += seconds;
+    uint64_t current_count = SDL_GetPerformanceCounter();
+    uint64_t delta = current_count - last_count;
+    last_count = current_count;
+    float seconds = delta / (float)count_frequency;
+    time_adder += seconds;
     // allow 2 ms earlier, to prevent skipping due to being just below wanted
-    while (timeAdder >= wanted_frames_ - 0.002) {
-      timeAdder -= wanted_frames_;
+    while (time_adder >= wanted_frames_ - 0.002) {
+      time_adder -= wanted_frames_;
 
       if (loaded) {
         if (turbo_mode_) {
@@ -220,9 +220,9 @@ void Emulator::RenderNavBar() {
 
     // About Debugger logic
   }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("About Debugger");
-    }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("About Debugger");
+  }
   SameLine();
   ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions());
 
