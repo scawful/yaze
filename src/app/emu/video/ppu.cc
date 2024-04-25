@@ -590,7 +590,7 @@ void Ppu::HandleVblank() {
   frame_interlace = interlace;  // set if we have a interlaced frame
 }
 
-uint8_t Ppu::Read(uint8_t adr) {
+uint8_t Ppu::Read(uint8_t adr, bool latch) {
   switch (adr) {
     case 0x04:
     case 0x14:
@@ -621,9 +621,9 @@ uint8_t Ppu::Read(uint8_t adr) {
     }
     case 0x37: {
       // TODO: only when ppulatch is set
-      hCount = memory_.h_pos() / 4;
-      vCount = memory_.v_pos();
-      countersLatched = true;
+      if (latch) {
+        LatchHV();
+      }
       return memory_.open_bus();
     }
     case 0x38: {
@@ -711,9 +711,11 @@ uint8_t Ppu::Read(uint8_t adr) {
       val |= ppu2openBus & 0x20;
       val |= countersLatched << 6;
       val |= even_frame << 7;
-      countersLatched = false;  // TODO: only when ppulatch is set
-      hCountSecond = false;
-      vCountSecond = false;
+      if (latch) {
+        countersLatched = false;
+        hCountSecond = false;
+        vCountSecond = false;
+      }
       ppu2openBus = val;
       return val;
     }
