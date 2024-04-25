@@ -73,7 +73,7 @@ void Cpu::RunOpcode() {
     SetFlags(status);  // updates x and m flags, clears
                        // upper half of x and y if needed
     PB = 0;
-    PC = ReadWord(0xfffc);
+    PC = ReadWord(0xfffc, 0xfffd);
     return;
   }
   if (stopped_) {
@@ -97,14 +97,14 @@ void Cpu::RunOpcode() {
     ReadByte((PB << 16) | PC);
     DoInterrupt();
   } else {
-    // uint8_t opcode = ReadOpcode();
-    ExecuteInstruction(ReadByte((PB << 16) | PC));
+    uint8_t opcode = ReadOpcode();
+    ExecuteInstruction(opcode);
   }
 }
 
 void Cpu::DoInterrupt() {
   callbacks_.idle(false);
-  PushByte(status);
+  PushByte(PB);
   PushWord(PC);
   PushByte(status);
   SetInterruptFlag(true);
@@ -113,1389 +113,1711 @@ void Cpu::DoInterrupt() {
   int_wanted_ = false;
   if (nmi_wanted_) {
     nmi_wanted_ = false;
-    PC = ReadWord(0xffea);
+    PC = ReadWord(0xffea, 0xffeb);
   } else {  // irq
-    PC = ReadWord(0xffee);
+    PC = ReadWord(0xffee, 0xffef);
   }
 }
 
 void Cpu::ExecuteInstruction(uint8_t opcode) {
   uint8_t instruction_length = 0;
+  uint16_t cache_pc = PC;
   uint32_t operand = 0;
   bool immediate = false;
   bool accumulator_mode = GetAccumulatorSize();
 
   switch (opcode) {
-    case 0x61:  // ADC DP Indexed Indirect, X
-    {
-      operand = ReadByte(DirectPageIndexedIndirectX());
-      ADC(operand);
+    case 0x00: {  // brk imm(s)
+      uint32_t vector = (E) ? 0xfffe : 0xffe6;
+      ReadOpcode();
+      if (!E) PushByte(PB);
+      PushWord(PC, false);
+      PushByte(status);
+      SetInterruptFlag(true);
+      SetDecimalFlag(false);
+      PB = 0;
+      PC = ReadWord(vector, vector + 1, true);
       break;
     }
-    case 0x63:  // ADC Stack Relative
-    {
-      operand = ReadByte(StackRelative());
-      ADC(operand);
+    case 0x01: {  // ora idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      ORA(low, high);
       break;
     }
-    case 0x65:  // ADC Direct Page
-    {
-      operand = ReadByte(DirectPage());
-      ADC(operand);
+    case 0x02: {  // cop imm(s)
+      uint32_t vector = (E) ? 0xfff4 : 0xffe4;
+      ReadOpcode();
+      if (!E) PushByte(PB);
+      PushWord(PC, false);
+      PushByte(status);
+      SetInterruptFlag(true);
+      SetDecimalFlag(false);
+      PB = 0;
+      PC = ReadWord(vector, vector + 1, true);
       break;
     }
-    case 0x67:  // ADC DP Indirect Long
-    {
-      operand = ReadWord(DirectPageIndirectLong());
-      ADC(operand);
+    case 0x03: {  // ora sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      ORA(low, high);
       break;
     }
-    case 0x69:  // ADC Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      ADC(operand);
+    case 0x04: {  // tsb dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Tsb(low, high);
       break;
     }
-    case 0x6D:  // ADC Absolute
-    {
-      operand = ReadWord(Absolute());
-      ADC(operand);
+    case 0x05: {  // ora dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      ORA(low, high);
       break;
     }
-    case 0x6F:  // ADC Absolute Long
-    {
-      operand = ReadWord(AbsoluteLong());
-      ADC(operand);
+    case 0x06: {  // asl dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Asl(low, high);
       break;
     }
-    case 0x71:  // ADC DP Indirect Indexed, Y
-    {
-      operand = ReadByteOrWord(DirectPageIndirectIndexedY());
-      ADC(operand);
+    case 0x07: {  // ora idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      ORA(low, high);
       break;
     }
-    case 0x72:  // ADC DP Indirect
-    {
-      operand = ReadByte(DirectPageIndirect());
-      ADC(operand);
+    case 0x08: {  // php imp
+      callbacks_.idle(false);
+      CheckInt();
+      PushByte(status);
       break;
     }
-    case 0x73:  // ADC SR Indirect Indexed, Y
-    {
-      operand = ReadByte(StackRelativeIndirectIndexedY());
-      ADC(operand);
+    case 0x09: {  // ora imm(m)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, false);
+      ORA(low, high);
       break;
     }
-    case 0x75:  // ADC DP Indexed, X
-    {
-      operand = ReadByteOrWord(DirectPageIndexedX());
-      ADC(operand);
+    case 0x0a: {  // asla imp
+      AdrImp();
+      if (GetAccumulatorSize()) {
+        SetCarryFlag(A & 0x80);
+        A = (A & 0xff00) | ((A << 1) & 0xff);
+      } else {
+        SetCarryFlag(A & 0x8000);
+        A <<= 1;
+      }
+      SetZN(A, GetAccumulatorSize());
       break;
     }
-    case 0x77:  // ADC DP Indirect Long Indexed, Y
-    {
-      operand = ReadByteOrWord(DirectPageIndirectLongIndexedY());
-      ADC(operand);
+    case 0x0b: {  // phd imp
+      callbacks_.idle(false);
+      PushWord(D, true);
       break;
     }
-    case 0x79:  // ADC Absolute Indexed, Y
-    {
-      operand = ReadWord(AbsoluteIndexedY());
-      ADC(operand);
+    case 0x0c: {  // tsb abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Tsb(low, high);
       break;
     }
-    case 0x7D:  // ADC Absolute Indexed, X
-    {
-      operand = ReadWord(AbsoluteIndexedX());
-      ADC(operand);
+    case 0x0d: {  // ora abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      ORA(low, high);
       break;
     }
-    case 0x7F:  // ADC Absolute Long Indexed, X
-    {
-      operand = ReadByteOrWord(AbsoluteLongIndexedX());
-      ADC(operand);
+    case 0x0e: {  // asl abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Asl(low, high);
       break;
     }
-
-    case 0x21:  // AND DP Indexed Indirect, X
-    {
-      operand = ReadByteOrWord(DirectPageIndexedIndirectX());
-      AND(operand, true);  // Not immediate, but value has been retrieved
+    case 0x0f: {  // ora abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      ORA(low, high);
       break;
     }
-    case 0x23:  // AND Stack Relative
-    {
-      operand = StackRelative();
-      AND(operand);
-      break;
-    }
-    case 0x25:  // AND Direct Page
-    {
-      operand = DirectPage();
-      AND(operand);
-      break;
-    }
-    case 0x27:  // AND DP Indirect Long
-    {
-      operand = DirectPageIndirectLong();
-      AND(operand);
-      break;
-    }
-    case 0x29:  // AND Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      AND(operand, true);
-      break;
-    }
-    case 0x2D:  // AND Absolute
-    {
-      operand = Absolute();
-      AND(operand);
-      break;
-    }
-    case 0x2F:  // AND Absolute Long
-    {
-      operand = AbsoluteLong();
-      ANDAbsoluteLong(operand);
-      break;
-    }
-    case 0x31:  // AND DP Indirect Indexed, Y
-    {
-      operand = DirectPageIndirectIndexedY();
-      AND(operand);
-      break;
-    }
-    case 0x32:  // AND DP Indirect
-    {
-      operand = DirectPageIndirect();
-      AND(operand);
-      break;
-    }
-    case 0x33:  // AND SR Indirect Indexed, Y
-    {
-      operand = StackRelativeIndirectIndexedY();
-      AND(operand);
-      break;
-    }
-    case 0x35:  // AND DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      AND(operand);
-      break;
-    }
-    case 0x37:  // AND DP Indirect Long Indexed, Y
-    {
-      operand = DirectPageIndirectLongIndexedY();
-      AND(operand);
-      break;
-    }
-    case 0x39:  // AND Absolute Indexed, Y
-    {
-      operand = AbsoluteIndexedY();
-      AND(operand);
-      break;
-    }
-    case 0x3D:  // AND Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      AND(operand);
-      break;
-    }
-    case 0x3F:  // AND Absolute Long Indexed, X
-    {
-      operand = AbsoluteLongIndexedX();
-      AND(operand);
-      break;
-    }
-
-    case 0x06:  // ASL Direct Page
-    {
-      operand = DirectPage();
-      ASL(operand);
-      break;
-    }
-    case 0x0A:  // ASL Accumulator
-    {
-      A <<= 1;
-      A &= 0xFE;
-      SetCarryFlag(A & 0x80);
-      SetNegativeFlag(A);
-      SetZeroFlag(!A);
-      break;
-    }
-    case 0x0E:  // ASL Absolute
-    {
-      operand = Absolute();
-      ASL(operand);
-      break;
-    }
-    case 0x16:  // ASL DP Indexed, X
-    {
-      operand = ReadByteOrWord((0x00 << 16) + DirectPageIndexedX());
-      ASL(operand);
-      break;
-    }
-    case 0x1E:  // ASL Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      ASL(operand);
-      break;
-    }
-
-    case 0x90:  // BCC Branch if carry clear
-    {
-      operand = FetchByte();
-      DoBranch(!GetCarryFlag());
-      break;
-    }
-
-    case 0xB0:  // BCS  Branch if carry set
-    {
-      operand = FetchByte();
-      DoBranch(GetCarryFlag());
-      break;
-    }
-
-    case 0xF0:  // BEQ Branch if equal (zero set)
-    {
-      operand = FetchByte();
-      DoBranch(GetZeroFlag());
-      break;
-    }
-
-    case 0x24:  // BIT Direct Page
-    {
-      operand = DirectPage();
-      BIT(operand);
-      break;
-    }
-    case 0x2C:  // BIT Absolute
-    {
-      operand = Absolute();
-      BIT(operand);
-      break;
-    }
-    case 0x34:  // BIT DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      BIT(operand);
-      break;
-    }
-    case 0x3C:  // BIT Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      BIT(operand);
-      break;
-    }
-    case 0x89:  // BIT Immediate
-    {
-      operand = Immediate();
-      BIT(operand);
-      immediate = true;
-      break;
-    }
-
-    case 0x30:  // BMI Branch if minus (negative set)
-    {
-      DoBranch(GetNegativeFlag());
-      break;
-    }
-
-    case 0xD0:  // BNE Branch if not equal (zero clear)
-    {
-      DoBranch(!GetZeroFlag());
-      break;
-    }
-
-    case 0x10:  // BPL Branch if plus (negative clear)
-    {
-      operand = FetchByte();
+    case 0x10: {  // bpl rel
       DoBranch(!GetNegativeFlag());
       break;
     }
-
-    case 0x80:  // BRA Branch always
-    {
-      operand = FetchByte();
-      DoBranch(true);
+    case 0x11: {  // ora idy(r)
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, false);
+      ORA(low, high);
       break;
     }
-
-    case 0x00:  // BRK Break
-    {
-      BRK();
+    case 0x12: {  // ora idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      ORA(low, high);
       break;
     }
-
-    case 0x82:  // BRL Branch always long
-    {
-      operand = FetchWord();
-      BRL(operand);
+    case 0x13: {  // ora isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      ORA(low, high);
       break;
     }
-
-    case 0x50:  // BVC Branch if overflow clear
-    {
-      operand = FetchByte();
+    case 0x14: {  // trb dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Trb(low, high);
+      break;
+    }
+    case 0x15: {  // ora dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      ORA(low, high);
+      break;
+    }
+    case 0x16: {  // asl dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Asl(low, high);
+      break;
+    }
+    case 0x17: {  // ora ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      ORA(low, high);
+      break;
+    }
+    case 0x18: {  // clc imp
+      AdrImp();
+      SetCarryFlag(false);
+      break;
+    }
+    case 0x19: {  // ora aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      ORA(low, high);
+      break;
+    }
+    case 0x1a: {  // inca imp
+      AdrImp();
+      if (GetAccumulatorSize()) {
+        A = (A & 0xff00) | ((A + 1) & 0xff);
+      } else {
+        A++;
+      }
+      SetZN(A, GetAccumulatorSize());
+      break;
+    }
+    case 0x1b: {  // tcs imp
+      AdrImp();
+      SetSP(A);
+      break;
+    }
+    case 0x1c: {  // trb abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Trb(low, high);
+      break;
+    }
+    case 0x1d: {  // ora abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      ORA(low, high);
+      break;
+    }
+    case 0x1e: {  // asl abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Asl(low, high);
+      break;
+    }
+    case 0x1f: {  // ora alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      ORA(low, high);
+      break;
+    }
+    case 0x20: {  // jsr abs
+      uint16_t value = ReadOpcodeWord(false);
+      callbacks_.idle(false);
+      PushWord(PC - 1, true);
+      PC = value;
+      break;
+    }
+    case 0x21: {  // and idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      And(low, high);
+      break;
+    }
+    case 0x22: {  // jsl abl
+      uint16_t value = ReadOpcodeWord(false);
+      PushByte(PB);
+      callbacks_.idle(false);
+      uint8_t newK = ReadOpcode();
+      PushWord(PC - 1, true);
+      PC = value;
+      PB = newK;
+      break;
+    }
+    case 0x23: {  // and sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      And(low, high);
+      break;
+    }
+    case 0x24: {  // bit dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Bit(low, high);
+      break;
+    }
+    case 0x25: {  // and dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      And(low, high);
+      break;
+    }
+    case 0x26: {  // rol dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Rol(low, high);
+      break;
+    }
+    case 0x27: {  // and idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      And(low, high);
+      break;
+    }
+    case 0x28: {  // plp imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      CheckInt();
+      SetFlags(PopByte());
+      break;
+    }
+    case 0x29: {  // and imm(m)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, false);
+      And(low, high);
+      break;
+    }
+    case 0x2a: {  // rola imp
+      AdrImp();
+      int result = (A << 1) | GetCarryFlag();
+      if (GetAccumulatorSize()) {
+        SetCarryFlag(result & 0x100);
+        A = (A & 0xff00) | (result & 0xff);
+      } else {
+        SetCarryFlag(result & 0x10000);
+        A = result;
+      }
+      SetZN(A, GetAccumulatorSize());
+      break;
+    }
+    case 0x2b: {  // pld imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      D = PopWord(true);
+      SetZN(D, false);
+      break;
+    }
+    case 0x2c: {  // bit abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Bit(low, high);
+      break;
+    }
+    case 0x2d: {  // and abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      And(low, high);
+      break;
+    }
+    case 0x2e: {  // rol abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Rol(low, high);
+      break;
+    }
+    case 0x2f: {  // and abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      And(low, high);
+      break;
+    }
+    case 0x30: {  // bmi rel
+      DoBranch(GetNegativeFlag());
+      break;
+    }
+    case 0x31: {  // and idy(r)
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, false);
+      And(low, high);
+      break;
+    }
+    case 0x32: {  // and idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      And(low, high);
+      break;
+    }
+    case 0x33: {  // and isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      And(low, high);
+      break;
+    }
+    case 0x34: {  // bit dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Bit(low, high);
+      break;
+    }
+    case 0x35: {  // and dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      And(low, high);
+      break;
+    }
+    case 0x36: {  // rol dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Rol(low, high);
+      break;
+    }
+    case 0x37: {  // and ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      And(low, high);
+      break;
+    }
+    case 0x38: {  // sec imp
+      AdrImp();
+      SetCarryFlag(true);
+      break;
+    }
+    case 0x39: {  // and aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      And(low, high);
+      break;
+    }
+    case 0x3a: {  // deca imp
+      AdrImp();
+      if (GetAccumulatorSize()) {
+        A = (A & 0xff00) | ((A - 1) & 0xff);
+      } else {
+        A--;
+      }
+      SetZN(A, GetAccumulatorSize());
+      break;
+    }
+    case 0x3b: {  // tsc imp
+      AdrImp();
+      A = SP();
+      SetZN(A, false);
+      break;
+    }
+    case 0x3c: {  // bit abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      Bit(low, high);
+      break;
+    }
+    case 0x3d: {  // and abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      And(low, high);
+      break;
+    }
+    case 0x3e: {  // rol abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Rol(low, high);
+      break;
+    }
+    case 0x3f: {  // and alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      And(low, high);
+      break;
+    }
+    case 0x40: {  // rti imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      SetFlags(PopByte());
+      PC = PopWord(false);
+      CheckInt();
+      PB = PopByte();
+      break;
+    }
+    case 0x41: {  // eor idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x42: {  // wdm imm(s)
+      CheckInt();
+      ReadOpcode();
+      break;
+    }
+    case 0x43: {  // eor sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x44: {  // mvp bm
+      uint8_t dest = ReadOpcode();
+      uint8_t src = ReadOpcode();
+      DB = dest;
+      WriteByte((dest << 16) | Y, ReadByte((src << 16) | X));
+      A--;
+      X--;
+      Y--;
+      if (A != 0xffff) {
+        PC -= 3;
+      }
+      if (GetIndexSize()) {
+        X &= 0xff;
+        Y &= 0xff;
+      }
+      callbacks_.idle(false);
+      CheckInt();
+      callbacks_.idle(false);
+      break;
+    }
+    case 0x45: {  // eor dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x46: {  // lsr dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Lsr(low, high);
+      break;
+    }
+    case 0x47: {  // eor idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x48: {  // pha imp
+      callbacks_.idle(false);
+      if (GetAccumulatorSize()) {
+        CheckInt();
+        PushByte(A);
+      } else {
+        PushWord(A, true);
+      }
+      break;
+    }
+    case 0x49: {  // eor imm(m)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, false);
+      Eor(low, high);
+      break;
+    }
+    case 0x4a: {  // lsra imp
+      AdrImp();
+      SetCarryFlag(A & 1);
+      if (GetAccumulatorSize()) {
+        A = (A & 0xff00) | ((A >> 1) & 0x7f);
+      } else {
+        A >>= 1;
+      }
+      SetZN(A, GetAccumulatorSize());
+      break;
+    }
+    case 0x4b: {  // phk imp
+      callbacks_.idle(false);
+      CheckInt();
+      PushByte(PB);
+      break;
+    }
+    case 0x4c: {  // jmp abs
+      PC = ReadOpcodeWord(true);
+      break;
+    }
+    case 0x4d: {  // eor abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x4e: {  // lsr abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Lsr(low, high);
+      break;
+    }
+    case 0x4f: {  // eor abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x50: {  // bvc rel
       DoBranch(!GetOverflowFlag());
       break;
     }
-
-    case 0x70:  // BVS Branch if overflow set
-    {
-      operand = FetchByte();
+    case 0x51: {  // eor idy(r)
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, false);
+      Eor(low, high);
+      break;
+    }
+    case 0x52: {  // eor idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x53: {  // eor isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x54: {  // mvn bm
+      uint8_t dest = ReadOpcode();
+      uint8_t src = ReadOpcode();
+      DB = dest;
+      WriteByte((dest << 16) | Y, ReadByte((src << 16) | X));
+      A--;
+      X++;
+      Y++;
+      if (A != 0xffff) {
+        PC -= 3;
+      }
+      if (GetIndexSize()) {
+        X &= 0xff;
+        Y &= 0xff;
+      }
+      callbacks_.idle(false);
+      CheckInt();
+      callbacks_.idle(false);
+      break;
+    }
+    case 0x55: {  // eor dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x56: {  // lsr dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Lsr(low, high);
+      break;
+    }
+    case 0x57: {  // eor ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x58: {  // cli imp
+      AdrImp();
+      SetInterruptFlag(false);
+      break;
+    }
+    case 0x59: {  // eor aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      Eor(low, high);
+      break;
+    }
+    case 0x5a: {  // phy imp
+      callbacks_.idle(false);
+      if (GetIndexSize()) {
+        CheckInt();
+        PushByte(Y);
+      } else {
+        PushWord(Y, true);
+      }
+      break;
+    }
+    case 0x5b: {  // tcd imp
+      AdrImp();
+      D = A;
+      SetZN(D, false);
+      break;
+    }
+    case 0x5c: {  // jml abl
+      uint16_t value = ReadOpcodeWord(false);
+      CheckInt();
+      PB = ReadOpcode();
+      PC = value;
+      break;
+    }
+    case 0x5d: {  // eor abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      Eor(low, high);
+      break;
+    }
+    case 0x5e: {  // lsr abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Lsr(low, high);
+      break;
+    }
+    case 0x5f: {  // eor alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      Eor(low, high);
+      break;
+    }
+    case 0x60: {  // rts imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      PC = PopWord(false) + 1;
+      CheckInt();
+      callbacks_.idle(false);
+      break;
+    }
+    case 0x61: {  // adc idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      Adc(low, high);
+      break;
+    }
+    case 0x62: {  // per rll
+      uint16_t value = ReadOpcodeWord(false);
+      callbacks_.idle(false);
+      PushWord(PC + (int16_t)value, true);
+      break;
+    }
+    case 0x63: {  // adc sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      Adc(low, high);
+      break;
+    }
+    case 0x64: {  // stz dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Stz(low, high);
+      break;
+    }
+    case 0x65: {  // adc dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Adc(low, high);
+      break;
+    }
+    case 0x66: {  // ror dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Ror(low, high);
+      break;
+    }
+    case 0x67: {  // adc idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      Adc(low, high);
+      break;
+    }
+    case 0x68: {  // pla imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      if (GetAccumulatorSize()) {
+        CheckInt();
+        A = (A & 0xff00) | PopByte();
+      } else {
+        A = PopWord(true);
+      }
+      SetZN(A, GetAccumulatorSize());
+      break;
+    }
+    case 0x69: {  // adc imm(m)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, false);
+      Adc(low, high);
+      break;
+    }
+    case 0x6a: {  // rora imp
+      AdrImp();
+      bool carry = A & 1;
+      auto C = GetCarryFlag();
+      if (GetAccumulatorSize()) {
+        A = (A & 0xff00) | ((A >> 1) & 0x7f) | (C << 7);
+      } else {
+        A = (A >> 1) | (C << 15);
+      }
+      SetCarryFlag(carry);
+      SetZN(A, GetAccumulatorSize());
+      break;
+    }
+    case 0x6b: {  // rtl imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      PC = PopWord(false) + 1;
+      CheckInt();
+      PB = PopByte();
+      break;
+    }
+    case 0x6c: {  // jmp ind
+      uint16_t adr = ReadOpcodeWord(false);
+      PC = ReadWord(adr, (adr + 1) & 0xffff, true);
+      break;
+    }
+    case 0x6d: {  // adc abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Adc(low, high);
+      break;
+    }
+    case 0x6e: {  // ror abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Ror(low, high);
+      break;
+    }
+    case 0x6f: {  // adc abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      Adc(low, high);
+      break;
+    }
+    case 0x70: {  // bvs rel
       DoBranch(GetOverflowFlag());
       break;
     }
-
-    case 0x18:  // CLC Clear carry
-    {
-      CLC();
+    case 0x71: {  // adc idy(r)
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, false);
+      Adc(low, high);
       break;
     }
-
-    case 0xD8:  // CLD Clear decimal
-    {
-      CLD();
+    case 0x72: {  // adc idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      Adc(low, high);
       break;
     }
-
-    case 0x58:  // CLI Clear interrupt disable
-    {
-      CLI();
+    case 0x73: {  // adc isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      Adc(low, high);
       break;
     }
-
-    case 0xB8:  // CLV Clear overflow
-    {
-      CLV();
+    case 0x74: {  // stz dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Stz(low, high);
       break;
     }
-
-    case 0xC1:  // CMP DP Indexed Indirect, X
-    {
-      operand = ReadByteOrWord(DirectPageIndexedIndirectX());
-      CMP(operand);
+    case 0x75: {  // adc dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Adc(low, high);
       break;
     }
-    case 0xC3:  // CMP Stack Relative
-    {
-      operand = StackRelative();
-      CMP(operand);
+    case 0x76: {  // ror dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Ror(low, high);
       break;
     }
-    case 0xC5:  // CMP Direct Page
-    {
-      operand = DirectPage();
-      CMP(operand);
+    case 0x77: {  // adc ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      Adc(low, high);
       break;
     }
-    case 0xC7:  // CMP DP Indirect Long
-    {
-      operand = DirectPageIndirectLong();
-      CMP(operand);
+    case 0x78: {  // sei imp
+      AdrImp();
+      SetInterruptFlag(true);
       break;
     }
-    case 0xC9:  // CMP Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      CMP(operand, immediate);
+    case 0x79: {  // adc aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      Adc(low, high);
       break;
     }
-    case 0xCD:  // CMP Absolute
-    {
-      operand = Absolute(AccessType::Data);
-      CMP(operand);
+    case 0x7a: {  // ply imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      if (GetIndexSize()) {
+        CheckInt();
+        Y = PopByte();
+      } else {
+        Y = PopWord(true);
+      }
+      SetZN(Y, GetIndexSize());
       break;
     }
-    case 0xCF:  // CMP Absolute Long
-    {
-      operand = AbsoluteLong();
-      CMP(operand);
+    case 0x7b: {  // tdc imp
+      AdrImp();
+      A = D;
+      SetZN(A, false);
       break;
     }
-    case 0xD1:  // CMP DP Indirect Indexed, Y
-    {
-      operand = DirectPageIndirectIndexedY();
-      CMP(operand);
+    case 0x7c: {  // jmp iax
+      uint16_t adr = ReadOpcodeWord(false);
+      callbacks_.idle(false);
+      PC = ReadWord((PB << 16) | ((adr + X) & 0xffff),
+                    ((PB << 16) | ((adr + X + 1) & 0xffff)), true);
       break;
     }
-    case 0xD2:  // CMP DP Indirect
-    {
-      operand = DirectPageIndirect();
-      CMP(operand);
+    case 0x7d: {  // adc abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      Adc(low, high);
       break;
     }
-    case 0xD3:  // CMP SR Indirect Indexed, Y
-    {
-      operand = StackRelativeIndirectIndexedY();
-      CMP(operand);
+    case 0x7e: {  // ror abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Ror(low, high);
       break;
     }
-    case 0xD5:  // CMP DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      CMP(operand);
+    case 0x7f: {  // adc alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      Adc(low, high);
       break;
     }
-    case 0xD7:  // CMP DP Indirect Long Indexed, Y
-    {
-      operand = DirectPageIndirectLongIndexedY();
-      CMP(operand);
+    case 0x80: {  // bra rel
+      DoBranch(true);
       break;
     }
-    case 0xD9:  // CMP Absolute Indexed, Y
-    {
-      operand = AbsoluteIndexedY();
-      CMP(operand);
+    case 0x81: {  // sta idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      Sta(low, high);
       break;
     }
-    case 0xDD:  // CMP Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      CMP(operand);
+    case 0x82: {  // brl rll
+      PC += (int16_t)ReadOpcodeWord(false);
+      CheckInt();
+      callbacks_.idle(false);
       break;
     }
-    case 0xDF:  // CMP Absolute Long Indexed, X
-    {
-      operand = AbsoluteLongIndexedX();
-      CMP(operand);
+    case 0x83: {  // sta sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      Sta(low, high);
       break;
     }
-
-    case 0x02:  // COP
-    {
-      COP();
+    case 0x84: {  // sty dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Sty(low, high);
       break;
     }
-
-    case 0xE0:  // CPX Immediate
-    {
-      operand = Immediate(/*index_size=*/true);
-      immediate = true;
-      CPX(operand, immediate);
+    case 0x85: {  // sta dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Sta(low, high);
       break;
     }
-    case 0xE4:  // CPX Direct Page
-    {
-      operand = DirectPage();
-      CPX(operand);
+    case 0x86: {  // stx dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Stx(low, high);
       break;
     }
-    case 0xEC:  // CPX Absolute
-    {
-      operand = Absolute();
-      CPX(operand);
+    case 0x87: {  // sta idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      Sta(low, high);
       break;
     }
-
-    case 0xC0:  // CPY Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      CPY(operand, immediate);
+    case 0x88: {  // dey imp
+      AdrImp();
+      if (GetIndexSize()) {
+        Y = (Y - 1) & 0xff;
+      } else {
+        Y--;
+      }
+      SetZN(Y, GetIndexSize());
       break;
     }
-    case 0xC4:  // CPY Direct Page
-    {
-      operand = DirectPage();
-      CPY(operand);
+    case 0x89: {  // biti imm(m)
+      if (GetAccumulatorSize()) {
+        CheckInt();
+        uint8_t result = (A & 0xff) & ReadOpcode();
+        SetZeroFlag(result == 0);
+      } else {
+        uint16_t result = A & ReadOpcodeWord(true);
+        SetZeroFlag(result == 0);
+      }
       break;
     }
-    case 0xCC:  // CPY Absolute
-    {
-      operand = Absolute();
-      CPY(operand);
+    case 0x8a: {  // txa imp
+      AdrImp();
+      if (GetAccumulatorSize()) {
+        A = (A & 0xff00) | (X & 0xff);
+      } else {
+        A = X;
+      }
+      SetZN(A, GetAccumulatorSize());
       break;
     }
-
-    case 0x3A:  // DEC Accumulator
-    {
-      DEC(A, /*accumulator=*/true);
+    case 0x8b: {  // phb imp
+      callbacks_.idle(false);
+      CheckInt();
+      PushByte(DB);
       break;
     }
-    case 0xC6:  // DEC Direct Page
-    {
-      operand = DirectPage();
-      DEC(operand);
+    case 0x8c: {  // sty abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Sty(low, high);
       break;
     }
-    case 0xCE:  // DEC Absolute
-    {
-      operand = Absolute();
-      DEC(operand);
+    case 0x8d: {  // sta abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Sta(low, high);
       break;
     }
-    case 0xD6:  // DEC DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      DEC(operand);
+    case 0x8e: {  // stx abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Stx(low, high);
       break;
     }
-    case 0xDE:  // DEC Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      DEC(operand);
+    case 0x8f: {  // sta abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      Sta(low, high);
       break;
     }
-
-    case 0xCA:  // DEX
-    {
-      DEX();
+    case 0x90: {  // bcc rel
+      DoBranch(!GetCarryFlag());
       break;
     }
-
-    case 0x88:  // DEY
-    {
-      DEY();
+    case 0x91: {  // sta idy
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, true);
+      Sta(low, high);
       break;
     }
-
-    case 0x41:  // EOR DP Indexed Indirect, X
-    {
-      operand = DirectPageIndexedIndirectX();
-      EOR(operand);
+    case 0x92: {  // sta idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      Sta(low, high);
       break;
     }
-    case 0x43:  // EOR Stack Relative
-    {
-      operand = StackRelative();
-      EOR(operand);
+    case 0x93: {  // sta isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      Sta(low, high);
       break;
     }
-    case 0x45:  // EOR Direct Page
-    {
-      operand = DirectPage();
-      EOR(operand);
+    case 0x94: {  // sty dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Sty(low, high);
       break;
     }
-    case 0x47:  // EOR DP Indirect Long
-    {
-      operand = DirectPageIndirectLong();
-      EOR(operand);
+    case 0x95: {  // sta dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Sta(low, high);
       break;
     }
-    case 0x49:  // EOR Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      EOR(operand, immediate);
+    case 0x96: {  // stx dpy
+      uint32_t low = 0;
+      uint32_t high = AdrDpy(&low);
+      Stx(low, high);
       break;
     }
-    case 0x4D:  // EOR Absolute
-    {
-      operand = Absolute();
-      EOR(operand);
+    case 0x97: {  // sta ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      Sta(low, high);
       break;
     }
-    case 0x4F:  // EOR Absolute Long
-    {
-      operand = AbsoluteLong();
-      EOR(operand);
+    case 0x98: {  // tya imp
+      AdrImp();
+      if (GetAccumulatorSize()) {
+        A = (A & 0xff00) | (Y & 0xff);
+      } else {
+        A = Y;
+      }
+      SetZN(A, GetAccumulatorSize());
       break;
     }
-    case 0x51:  // EOR DP Indirect Indexed, Y
-    {
-      operand = DirectPageIndirectIndexedY();
-      EOR(operand);
+    case 0x99: {  // sta aby
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, true);
+      Sta(low, high);
       break;
     }
-    case 0x52:  // EOR DP Indirect
-    {
-      operand = DirectPageIndirect();
-      EOR(operand);
+    case 0x9a: {  // txs imp
+      AdrImp();
+      SetSP(X);
       break;
     }
-    case 0x53:  // EOR SR Indirect Indexed, Y
-    {
-      operand = StackRelativeIndirectIndexedY();
-      EOR(operand);
+    case 0x9b: {  // txy imp
+      AdrImp();
+      if (GetIndexSize()) {
+        Y = X & 0xff;
+      } else {
+        Y = X;
+      }
+      SetZN(Y, GetIndexSize());
       break;
     }
-    case 0x55:  // EOR DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      EOR(operand);
+    case 0x9c: {  // stz abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Stz(low, high);
       break;
     }
-    case 0x57:  // EOR DP Indirect Long Indexed, Y
-    {
-      operand = ReadByteOrWord(DirectPageIndirectLongIndexedY());
-      EOR(operand);
+    case 0x9d: {  // sta abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Sta(low, high);
       break;
     }
-    case 0x59:  // EOR Absolute Indexed, Y
-    {
-      operand = AbsoluteIndexedY();
-      EOR(operand);
+    case 0x9e: {  // stz abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Stz(low, high);
       break;
     }
-    case 0x5D:  // EOR Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      EOR(operand);
+    case 0x9f: {  // sta alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      Sta(low, high);
       break;
     }
-    case 0x5F:  // EOR Absolute Long Indexed, X
-    {
-      operand = AbsoluteLongIndexedX();
-      EOR(operand);
+    case 0xa0: {  // ldy imm(x)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, true);
+      Ldy(low, high);
       break;
     }
-
-    case 0x1A:  // INC Accumulator
-    {
-      INC(A, /*accumulator=*/true);
+    case 0xa1: {  // lda idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      Lda(low, high);
       break;
     }
-    case 0xE6:  // INC Direct Page
-    {
-      operand = DirectPage();
-      INC(operand);
+    case 0xa2: {  // ldx imm(x)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, true);
+      Ldx(low, high);
       break;
     }
-    case 0xEE:  // INC Absolute
-    {
-      operand = Absolute();
-      INC(operand);
+    case 0xa3: {  // lda sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      Lda(low, high);
       break;
     }
-    case 0xF6:  // INC DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      INC(operand);
+    case 0xa4: {  // ldy dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Ldy(low, high);
       break;
     }
-    case 0xFE:  // INC Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      INC(operand);
+    case 0xa5: {  // lda dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Lda(low, high);
       break;
     }
-
-    case 0xE8:  // INX
-    {
-      INX();
+    case 0xa6: {  // ldx dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Ldx(low, high);
       break;
     }
-
-    case 0xC8:  // INY
-    {
-      INY();
+    case 0xa7: {  // lda idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      Lda(low, high);
       break;
     }
-
-    case 0x4C:  // JMP Absolute
-    {
-      JMP(Absolute());
+    case 0xa8: {  // tay imp
+      AdrImp();
+      if (GetIndexSize()) {
+        Y = A & 0xff;
+      } else {
+        Y = A;
+      }
+      SetZN(Y, GetIndexSize());
       break;
     }
-    case 0x5C:  // JMP Absolute Long
-    {
-      JML(FetchWord());
+    case 0xa9: {  // lda imm(m)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, false);
+      Lda(low, high);
       break;
     }
-    case 0x6C:  // JMP Absolute Indirect
-    {
-      JMP(AbsoluteIndirect());
+    case 0xaa: {  // tax imp
+      AdrImp();
+      if (GetIndexSize()) {
+        X = A & 0xff;
+      } else {
+        X = A;
+      }
+      SetZN(X, GetIndexSize());
       break;
     }
-    case 0x7C:  // JMP Absolute Indexed Indirect
-    {
-      JMP(AbsoluteIndexedIndirect());
+    case 0xab: {  // plb imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      CheckInt();
+      DB = PopByte();
+      SetZN(DB, true);
       break;
     }
-    case 0xDC:  // JMP Absolute Indirect Long
-    {
-      operand = AbsoluteIndirectLong();
-      JMP(operand);
-      PB = operand >> 16;
+    case 0xac: {  // ldy abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Ldy(low, high);
       break;
     }
-
-    case 0x20:  // JSR Absolute
-    {
-      operand = Absolute(AccessType::Control);
-      PB = (operand >> 16);
-      JSR(operand);
+    case 0xad: {  // lda abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Lda(low, high);
       break;
     }
-
-    case 0x22:  // JSL Absolute Long
-    {
-      JSL(FetchWord());
+    case 0xae: {  // ldx abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Ldx(low, high);
       break;
     }
-
-    case 0xFC:  // JSR Absolute Indexed Indirect
-    {
-      JSR(AbsoluteIndexedIndirect());
+    case 0xaf: {  // lda abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      Lda(low, high);
       break;
     }
-
-    case 0xA1:  // LDA DP Indexed Indirect, X
-    {
-      operand = DirectPageIndexedIndirectX();
-      LDA(operand);
+    case 0xb0: {  // bcs rel
+      DoBranch(GetCarryFlag());
       break;
     }
-    case 0xA3:  // LDA Stack Relative
-    {
-      operand = StackRelative();
-      LDA(operand);
+    case 0xb1: {  // lda idy(r)
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, false);
+      Lda(low, high);
       break;
     }
-    case 0xA5:  // LDA Direct Page
-    {
-      operand = DirectPage();
-      LDA(operand, false, true);
+    case 0xb2: {  // lda idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      Lda(low, high);
       break;
     }
-    case 0xA7:  // LDA DP Indirect Long
-    {
-      operand = DirectPageIndirectLong();
-      LDA(operand);
+    case 0xb3: {  // lda isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      Lda(low, high);
       break;
     }
-    case 0xA9:  // LDA Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      LDA(operand, immediate);
+    case 0xb4: {  // ldy dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Ldy(low, high);
       break;
     }
-    case 0xAD:  // LDA Absolute
-    {
-      operand = Absolute();
-      LDA(operand);
+    case 0xb5: {  // lda dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Lda(low, high);
       break;
     }
-    case 0xAF:  // LDA Absolute Long
-    {
-      operand = AbsoluteLong();
-      LDA(operand);
+    case 0xb6: {  // ldx dpy
+      uint32_t low = 0;
+      uint32_t high = AdrDpy(&low);
+      Ldx(low, high);
       break;
     }
-    case 0xB1:  // LDA DP Indirect Indexed, Y
-    {
-      operand = DirectPageIndirectIndexedY();
-      LDA(operand);
+    case 0xb7: {  // lda ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      Lda(low, high);
       break;
     }
-    case 0xB2:  // LDA DP Indirect
-    {
-      operand = DirectPageIndirect();
-      LDA(operand);
+    case 0xb8: {  // clv imp
+      AdrImp();
+      SetOverflowFlag(false);
       break;
     }
-    case 0xB3:  // LDA SR Indirect Indexed, Y
-    {
-      operand = StackRelativeIndirectIndexedY();
-      LDA(operand);
+    case 0xb9: {  // lda aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      Lda(low, high);
       break;
     }
-    case 0xB5:  // LDA DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      LDA(operand);
+    case 0xba: {  // tsx imp
+      AdrImp();
+      if (GetIndexSize()) {
+        SetSP(X & 0xff);
+      } else {
+        SetSP(X);
+      }
+      SetZN(X, GetIndexSize());
       break;
     }
-    case 0xB7:  // LDA DP Indirect Long Indexed, Y
-    {
-      operand = DirectPageIndirectLongIndexedY();
-      LDA(operand);
+    case 0xbb: {  // tyx imp
+      AdrImp();
+      if (GetIndexSize()) {
+        X = Y & 0xff;
+      } else {
+        X = Y;
+      }
+      SetZN(X, GetIndexSize());
       break;
     }
-    case 0xB9:  // LDA Absolute Indexed, Y
-    {
-      operand = AbsoluteIndexedY();
-      LDA(operand);
+    case 0xbc: {  // ldy abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      Ldy(low, high);
       break;
     }
-    case 0xBD:  // LDA Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      LDA(operand, false, false, true);
+    case 0xbd: {  // lda abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      Lda(low, high);
       break;
     }
-    case 0xBF:  // LDA Absolute Long Indexed, X
-    {
-      operand = AbsoluteLongIndexedX();
-      LDA(operand);
+    case 0xbe: {  // ldx aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      Ldx(low, high);
       break;
     }
-
-    case 0xA2:  // LDX Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      LDX(operand, immediate);
+    case 0xbf: {  // lda alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      Lda(low, high);
       break;
     }
-    case 0xA6:  // LDX Direct Page
-    {
-      operand = DirectPage();
-      LDX(operand);
+    case 0xc0: {  // cpy imm(x)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, true);
+      Cpy(low, high);
       break;
     }
-    case 0xAE:  // LDX Absolute
-    {
-      operand = Absolute();
-      LDX(operand);
+    case 0xc1: {  // cmp idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      Cmp(low, high);
       break;
     }
-    case 0xB6:  // LDX DP Indexed, Y
-    {
-      operand = DirectPageIndexedY();
-      LDX(operand);
+    case 0xc2: {  // rep imm(s)
+      uint8_t val = ReadOpcode();
+      CheckInt();
+      SetFlags(status & ~val);
+      callbacks_.idle(false);
       break;
     }
-    case 0xBE:  // LDX Absolute Indexed, Y
-    {
-      operand = AbsoluteIndexedY();
-      LDX(operand);
+    case 0xc3: {  // cmp sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      Cmp(low, high);
       break;
     }
-
-    case 0xA0:  // LDY Immediate
-    {
-      operand = Immediate();
-      immediate = true;
-      LDY(operand, immediate);
+    case 0xc4: {  // cpy dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Cpy(low, high);
       break;
     }
-    case 0xA4:  // LDY Direct Page
-    {
-      operand = DirectPage();
-      LDY(operand);
+    case 0xc5: {  // cmp dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Cmp(low, high);
       break;
     }
-    case 0xAC:  // LDY Absolute
-    {
-      operand = Absolute();
-      LDY(operand);
+    case 0xc6: {  // dec dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Dec(low, high);
       break;
     }
-    case 0xB4:  // LDY DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      LDY(operand);
+    case 0xc7: {  // cmp idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      Cmp(low, high);
       break;
     }
-    case 0xBC:  // LDY Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      LDY(operand);
+    case 0xc8: {  // iny imp
+      AdrImp();
+      if (GetIndexSize()) {
+        Y = (Y + 1) & 0xff;
+      } else {
+        Y++;
+      }
+      SetZN(Y, GetIndexSize());
       break;
     }
-
-    case 0x46:  // LSR Direct Page
-    {
-      operand = DirectPage();
-      LSR(operand);
+    case 0xc9: {  // cmp imm(m)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, false);
+      Cmp(low, high);
       break;
     }
-    case 0x4A:  // LSR Accumulator
-    {
-      LSR(A, /*accumulator=*/true);
+    case 0xca: {  // dex imp
+      AdrImp();
+      if (GetIndexSize()) {
+        X = (X - 1) & 0xff;
+      } else {
+        X--;
+      }
+      SetZN(X, GetIndexSize());
       break;
     }
-    case 0x4E:  // LSR Absolute
-    {
-      operand = Absolute();
-      LSR(operand);
+    case 0xcb: {  // wai imp
+      waiting_ = true;
+      callbacks_.idle(false);
+      callbacks_.idle(false);
       break;
     }
-    case 0x56:  // LSR DP Indexed, X
-    {
-      operand = DirectPageIndexedX();
-      LSR(operand);
+    case 0xcc: {  // cpy abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Cpy(low, high);
       break;
     }
-    case 0x5E:  // LSR Absolute Indexed, X
-    {
-      operand = AbsoluteIndexedX();
-      LSR(operand);
+    case 0xcd: {  // cmp abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Cmp(low, high);
       break;
     }
-
-    case 0x42:
-      WDM();
+    case 0xce: {  // dec abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Dec(low, high);
       break;
-
-    case 0x44:
-      MVP();
-      break;
-
-    case 0x54:
-      MVN();
-      break;
-
-    case 0xEA:  // NOP
-      NOP();
-      break;
-
-    case 0x01:  // ORA DP Indexed Indirect, X
-      operand = DirectPageIndexedIndirectX();
-      ORA(operand);
-      break;
-    case 0x03:  // ORA Stack Relative
-      operand = StackRelative();
-      ORA(operand);
-      break;
-    case 0x05:  // ORA Direct Page
-      operand = DirectPage();
-      ORA(operand);
-      break;
-    case 0x07:  // ORA DP Indirect Long
-      operand = DirectPageIndirectLong();
-      ORA(operand);
-      break;
-    case 0x09:  // ORA Immediate
-      operand = Immediate();
-      immediate = true;
-      ORA(operand, immediate);
-      break;
-    case 0x0D:  // ORA Absolute
-      operand = Absolute();
-      ORA(operand);
-      break;
-    case 0x0F:  // ORA Absolute Long
-      operand = AbsoluteLong();
-      ORA(operand);
-      break;
-    case 0x11:  // ORA DP Indirect Indexed, Y
-      operand = DirectPageIndirectIndexedY();
-      ORA(operand);
-      break;
-    case 0x12:  // ORA DP Indirect
-      operand = DirectPageIndirect();
-      ORA(operand);
-      break;
-    case 0x13:  // ORA SR Indirect Indexed, Y
-      operand = StackRelativeIndirectIndexedY();
-      ORA(operand);
-      break;
-    case 0x15:  // ORA DP Indexed, X
-      operand = DirectPageIndexedX();
-      ORA(operand);
-      break;
-    case 0x17:  // ORA DP Indirect Long Indexed, Y
-      operand = DirectPageIndirectLongIndexedY();
-      ORA(operand);
-      break;
-    case 0x19:  // ORA Absolute Indexed, Y
-      operand = AbsoluteIndexedY();
-      ORA(operand);
-      break;
-    case 0x1D:  // ORA Absolute Indexed, X
-      operand = AbsoluteIndexedX();
-      ORA(operand);
-      break;
-    case 0x1F:  // ORA Absolute Long Indexed, X
-      operand = AbsoluteLongIndexedX();
-      ORA(operand);
-      break;
-
-    case 0xF4:  // PEA Push Effective Absolute address
-      PEA();
-      break;
-
-    case 0xD4:  // PEI Push Effective Indirect address
-      PEI();
-      break;
-
-    case 0x62:  // PER Push Effective PC Relative Indirect address
-      PER();
-      break;
-
-    case 0x48:  // PHA Push Accumulator
-      PHA();
-      break;
-
-    case 0x8B:  // PHB Push Data Bank Register
-      PHB();
-      break;
-
-    case 0x0B:  // PHD Push Direct Page Register
-      PHD();
-      break;
-
-    case 0x4B:  // PHK Push Program Bank Register
-      PHK();
-      break;
-
-    case 0x08:  // PHP Push Processor Status Register
-      PHP();
-      break;
-
-    case 0xDA:  // PHX Push X register
-      PHX();
-      break;
-
-    case 0x5A:  // PHY Push Y register
-      PHY();
-      break;
-
-    case 0x68:  // PLA Pull Accumulator
-      PLA();
-      break;
-
-    case 0xAB:  // PLB Pull Data Bank Register
-      PLB();
-      break;
-
-    case 0x2B:  // PLD Pull Direct Page Register
-      PLD();
-      break;
-
-    case 0x28:  // PLP Pull Processor Status Register
-      PLP();
-      break;
-
-    case 0xFA:  // PLX Pull X register
-      PLX();
-      break;
-
-    case 0x7A:  // PLY Pull Y register
-      PLY();
-      break;
-
-    case 0xC2:  // REP Reset status bits
-      operand = FetchByte();
-      immediate = true;
-      REP();
-      break;
-
-    case 0x26:  // ROL Direct Page
-      operand = DirectPage();
-      ROL(operand);
-      break;
-    case 0x2A:  // ROL Accumulator
-      ROL(A, /*accumulator=*/true);
-      break;
-    case 0x2E:  // ROL Absolute
-      operand = Absolute();
-      ROL(operand);
-      break;
-    case 0x36:  // ROL DP Indexed, X
-      operand = DirectPageIndexedX();
-      ROL(operand);
-      break;
-    case 0x3E:  // ROL Absolute Indexed, X
-      operand = AbsoluteIndexedX();
-      ROL(operand);
-      break;
-
-    case 0x66:  // ROR Direct Page
-      operand = DirectPage();
-      ROR(operand);
-      break;
-    case 0x6A:  // ROR Accumulator
-      ROR(A, /*accumulator=*/true);
-      break;
-    case 0x6E:  // ROR Absolute
-      operand = Absolute();
-      ROR(operand);
-      break;
-    case 0x76:  // ROR DP Indexed, X
-      operand = DirectPageIndexedX();
-      ROR(operand);
-      break;
-    case 0x7E:  // ROR Absolute Indexed, X
-      operand = AbsoluteIndexedX();
-      ROR(operand);
-      break;
-
-    case 0x40:  // RTI Return from interrupt
-      RTI();
-      break;
-
-    case 0x6B:  // RTL Return from subroutine long
-      RTL();
-      break;
-
-    case 0x60:  // RTS Return from subroutine
-      RTS();
-      break;
-
-    case 0xE1:  // SBC DP Indexed Indirect, X
-      operand = DirectPageIndexedIndirectX();
-      SBC(operand);
-      break;
-    case 0xE3:  // SBC Stack Relative
-      operand = StackRelative();
-      SBC(operand);
-      break;
-    case 0xE5:  // SBC Direct Page
-      operand = DirectPage();
-      SBC(operand);
-      break;
-    case 0xE7:  // SBC DP Indirect Long
-      operand = DirectPageIndirectLong();
-      SBC(operand);
-      break;
-    case 0xE9:  // SBC Immediate
-      operand = Immediate();
-      immediate = true;
-      SBC(operand, immediate);
-      break;
-    case 0xED:  // SBC Absolute
-      operand = Absolute();
-      SBC(operand);
-      break;
-    case 0xEF:  // SBC Absolute Long
-      operand = AbsoluteLong();
-      SBC(operand);
-      break;
-    case 0xF1:  // SBC DP Indirect Indexed, Y
-      operand = DirectPageIndirectIndexedY();
-      SBC(operand);
-      break;
-    case 0xF2:  // SBC DP Indirect
-      operand = DirectPageIndirect();
-      SBC(operand);
-      break;
-    case 0xF3:  // SBC SR Indirect Indexed, Y
-      operand = StackRelativeIndirectIndexedY();
-      SBC(operand);
-      break;
-    case 0xF5:  // SBC DP Indexed, X
-      operand = DirectPageIndexedX();
-      SBC(operand);
-      break;
-    case 0xF7:  // SBC DP Indirect Long Indexed, Y
-      operand = DirectPageIndirectLongIndexedY();
-      SBC(operand);
-      break;
-    case 0xF9:  // SBC Absolute Indexed, Y
-      operand = AbsoluteIndexedY();
-      SBC(operand);
-      break;
-    case 0xFD:  // SBC Absolute Indexed, X
-      operand = AbsoluteIndexedX();
-      SBC(operand);
-      break;
-    case 0xFF:  // SBC Absolute Long Indexed, X
-      operand = AbsoluteLongIndexedX();
-      SBC(operand);
-      break;
-
-    case 0x38:  // SEC Set carry
-      SEC();
+    }
+    case 0xcf: {  // cmp abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      Cmp(low, high);
       break;
-
-    case 0xF8:  // SED Set decimal
-      SED();
+    }
+    case 0xd0: {  // bne rel
+      DoBranch(!GetZeroFlag());
       break;
-
-    case 0x78:  // SEI Set interrupt disable
-      SEI();
+    }
+    case 0xd1: {  // cmp idy(r)
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, false);
+      Cmp(low, high);
       break;
-
-    case 0xE2:  // SEP Set status bits
-      operand = FetchByte();
-      immediate = true;
-      SEP();
+    }
+    case 0xd2: {  // cmp idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      Cmp(low, high);
       break;
-
-    case 0x81:  // STA DP Indexed Indirect, X
-      operand = DirectPageIndexedIndirectX();
-      STA(operand);
+    }
+    case 0xd3: {  // cmp isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      Cmp(low, high);
       break;
-    case 0x83:  // STA Stack Relative
-      operand = StackRelative();
-      STA(operand);
+    }
+    case 0xd4: {  // pei dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      PushWord(ReadWord(low, high, false), true);
       break;
-    case 0x85:  // STA Direct Page
-      operand = DirectPage();
-      STA(operand);
+    }
+    case 0xd5: {  // cmp dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Cmp(low, high);
       break;
-    case 0x87:  // STA DP Indirect Long
-      operand = DirectPageIndirectLong();
-      STA(operand);
+    }
+    case 0xd6: {  // dec dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Dec(low, high);
       break;
-    case 0x8D:  // STA Absolute
-      operand = Absolute(AccessType::Data);
-      STA(operand);
+    }
+    case 0xd7: {  // cmp ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      Cmp(low, high);
       break;
-    case 0x8F:  // STA Absolute Long
-      operand = AbsoluteLong();
-      STA(operand);
+    }
+    case 0xd8: {  // cld imp
+      AdrImp();
+      SetDecimalFlag(false);
       break;
-    case 0x91:  // STA DP Indirect Indexed, Y
-      operand = DirectPageIndirectIndexedY();
-      STA(operand);
+    }
+    case 0xd9: {  // cmp aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      Cmp(low, high);
       break;
-    case 0x92:  // STA DP Indirect
-      operand = DirectPageIndirect();
-      STA(operand);
+    }
+    case 0xda: {  // phx imp
+      callbacks_.idle(false);
+      if (GetIndexSize()) {
+        CheckInt();
+        PushByte(X);
+      } else {
+        PushWord(X, true);
+      }
       break;
-    case 0x93:  // STA SR Indirect Indexed, Y
-      operand = StackRelativeIndirectIndexedY();
-      STA(operand);
+    }
+    case 0xdb: {  // stp imp
+      stopped_ = true;
+      callbacks_.idle(false);
+      callbacks_.idle(false);
       break;
-    case 0x95:  // STA DP Indexed, X
-      operand = DirectPageIndexedX();
-      STA(operand);
+    }
+    case 0xdc: {  // jml ial
+      uint16_t adr = ReadOpcodeWord(false);
+      PC = ReadWord(adr, ((adr + 1) & 0xffff), false);
+      CheckInt();
+      PB = ReadByte((adr + 2) & 0xffff);
       break;
-    case 0x97:  // STA DP Indirect Long Indexed, Y
-    {
-      operand = DirectPageIndirectLongIndexedY();
-      STA(operand);
+    }
+    case 0xdd: {  // cmp abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      Cmp(low, high);
       break;
     }
-    case 0x99:  // STA Absolute Indexed, Y
-      operand = AbsoluteIndexedY();
-      STA(operand);
+    case 0xde: {  // dec abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Dec(low, high);
       break;
-    case 0x9D:  // STA Absolute Indexed, X
-      operand = AbsoluteIndexedX();
-      STA(operand);
+    }
+    case 0xdf: {  // cmp alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      Cmp(low, high);
       break;
-    case 0x9F:  // STA Absolute Long Indexed, X
-      operand = AbsoluteLongIndexedX();
-      STA(operand);
+    }
+    case 0xe0: {  // cpx imm(x)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, true);
+      Cpx(low, high);
       break;
-
-    case 0xDB:  // STP Stop the processor
-      STP();
+    }
+    case 0xe1: {  // sbc idx
+      uint32_t low = 0;
+      uint32_t high = AdrIdx(&low);
+      Sbc(low, high);
       break;
-
-    case 0x86:  // STX Direct Page
-      operand = DirectPage();
-      STX(operand);
+    }
+    case 0xe2: {  // sep imm(s)
+      uint8_t val = ReadOpcode();
+      CheckInt();
+      SetFlags(status | val);
+      callbacks_.idle(false);
       break;
-    case 0x8E:  // STX Absolute
-      operand = Absolute();
-      STX(operand);
+    }
+    case 0xe3: {  // sbc sr
+      uint32_t low = 0;
+      uint32_t high = AdrSr(&low);
+      Sbc(low, high);
       break;
-    case 0x96:  // STX DP Indexed, Y
-      operand = DirectPageIndexedY();
-      STX(operand);
+    }
+    case 0xe4: {  // cpx dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Cpx(low, high);
       break;
-
-    case 0x84:  // STY Direct Page
-      operand = DirectPage();
-      STY(operand);
+    }
+    case 0xe5: {  // sbc dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Sbc(low, high);
       break;
-    case 0x8C:  // STY Absolute
-      operand = Absolute();
-      STY(operand);
+    }
+    case 0xe6: {  // inc dp
+      uint32_t low = 0;
+      uint32_t high = AdrDp(&low);
+      Inc(low, high);
       break;
-    case 0x94:  // STY DP Indexed, X
-      operand = DirectPageIndexedX();
-      STY(operand);
+    }
+    case 0xe7: {  // sbc idl
+      uint32_t low = 0;
+      uint32_t high = AdrIdl(&low);
+      Sbc(low, high);
       break;
-
-    case 0x64:  // STZ Direct Page
-      operand = DirectPage();
-      STZ(operand);
+    }
+    case 0xe8: {  // inx imp
+      AdrImp();
+      if (GetIndexSize()) {
+        X = (X + 1) & 0xff;
+      } else {
+        X++;
+      }
+      SetZN(X, GetIndexSize());
       break;
-    case 0x74:  // STZ DP Indexed, X
-      operand = DirectPageIndexedX();
-      STZ(operand);
+    }
+    case 0xe9: {  // sbc imm(m)
+      uint32_t low = 0;
+      uint32_t high = Immediate(&low, false);
+      Sbc(low, high);
       break;
-    case 0x9C:  // STZ Absolute
-      operand = Absolute();
-      STZ(operand);
+    }
+    case 0xea: {  // nop imp
+      AdrImp();
+      // no operation
       break;
-    case 0x9E:  // STZ Absolute Indexed, X
-      operand = AbsoluteIndexedX();
-      STZ(operand);
+    }
+    case 0xeb: {  // xba imp
+      uint8_t low = A & 0xff;
+      uint8_t high = A >> 8;
+      A = (low << 8) | high;
+      SetZN(high, true);
+      callbacks_.idle(false);
+      CheckInt();
+      callbacks_.idle(false);
       break;
-
-    case 0xAA:  // TAX Transfer accumulator to X
-      TAX();
+    }
+    case 0xec: {  // cpx abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Cpx(low, high);
       break;
-
-    case 0xA8:  // TAY Transfer accumulator to Y
-      TAY();
+    }
+    case 0xed: {  // sbc abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Sbc(low, high);
       break;
-
-    case 0x5B:  // TCD
-      TCD();
+    }
+    case 0xee: {  // inc abs
+      uint32_t low = 0;
+      uint32_t high = Absolute(&low);
+      Inc(low, high);
       break;
-
-    case 0x1B:  // TCS
-      TCS();
+    }
+    case 0xef: {  // sbc abl
+      uint32_t low = 0;
+      uint32_t high = AdrAbl(&low);
+      Sbc(low, high);
       break;
-
-    case 0x7B:  // TDC
-      TDC();
+    }
+    case 0xf0: {  // beq rel
+      DoBranch(GetZeroFlag());
       break;
-
-    case 0x14:  // TRB Direct Page
-      operand = DirectPage();
-      TRB(operand);
+    }
+    case 0xf1: {  // sbc idy(r)
+      uint32_t low = 0;
+      uint32_t high = AdrIdy(&low, false);
+      Sbc(low, high);
       break;
-    case 0x1C:  // TRB Absolute
-      operand = Absolute();
-      TRB(operand);
+    }
+    case 0xf2: {  // sbc idp
+      uint32_t low = 0;
+      uint32_t high = AdrIdp(&low);
+      Sbc(low, high);
       break;
-
-    case 0x04:  // TSB Direct Page
-      operand = DirectPage();
-      TSB(operand);
+    }
+    case 0xf3: {  // sbc isy
+      uint32_t low = 0;
+      uint32_t high = AdrIsy(&low);
+      Sbc(low, high);
       break;
-    case 0x0C:  // TSB Absolute
-      operand = Absolute();
-      TSB(operand);
+    }
+    case 0xf4: {  // pea imm(l)
+      PushWord(ReadOpcodeWord(false), true);
       break;
-
-    case 0x3B:  // TSC
-      TSC();
+    }
+    case 0xf5: {  // sbc dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Sbc(low, high);
       break;
-
-    case 0xBA:  // TSX Transfer stack pointer to X
-      TSX();
+    }
+    case 0xf6: {  // inc dpx
+      uint32_t low = 0;
+      uint32_t high = AdrDpx(&low);
+      Inc(low, high);
       break;
-
-    case 0x8A:  // TXA Transfer X to accumulator
-      TXA();
+    }
+    case 0xf7: {  // sbc ily
+      uint32_t low = 0;
+      uint32_t high = AdrIly(&low);
+      Sbc(low, high);
       break;
-
-    case 0x9A:  // TXS Transfer X to stack pointer
-      TXS();
+    }
+    case 0xf8: {  // sed imp
+      AdrImp();
+      SetDecimalFlag(true);
       break;
-
-    case 0x9B:  // TXY Transfer X to Y
-      TXY();
+    }
+    case 0xf9: {  // sbc aby(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAby(&low, false);
+      Sbc(low, high);
       break;
-
-    case 0x98:  // TYA Transfer Y to accumulator
-      TYA();
+    }
+    case 0xfa: {  // plx imp
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      if (GetIndexSize()) {
+        CheckInt();
+        X = PopByte();
+      } else {
+        X = PopWord(true);
+      }
+      SetZN(X, GetIndexSize());
       break;
-
-    case 0xBB:  // TYX Transfer Y to X
-      TYX();
+    }
+    case 0xfb: {  // xce imp
+      AdrImp();
+      bool temp = GetCarryFlag();
+      SetCarryFlag(E);
+      E = temp;
+      SetFlags(status);  // updates x and m flags, clears upper half of x and y
+                         // if needed
       break;
-
-    case 0xCB:  // WAI Wait for interrupt
-      WAI();
+    }
+    case 0xfc: {  // jsr iax
+      uint8_t adrl = ReadOpcode();
+      PushWord(PC, false);
+      uint16_t adr = adrl | (ReadOpcode() << 8);
+      callbacks_.idle(false);
+      uint16_t value = ReadWord((PB << 16) | ((adr + X) & 0xffff),
+                                (PB << 16) | ((adr + X + 1) & 0xffff), true);
+      PC = value;
       break;
-
-    case 0xEB:  // XBA Exchange B and A
-      XBA();
+    }
+    case 0xfd: {  // sbc abx(r)
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, false);
+      Sbc(low, high);
       break;
-
-    case 0xFB:  // XCE Exchange carry and emulation bits
-      XCE();
+    }
+    case 0xfe: {  // inc abx
+      uint32_t low = 0;
+      uint32_t high = AdrAbx(&low, true);
+      Inc(low, high);
       break;
-    default:
-      std::cerr << "Unknown instruction: " << std::hex
-                << static_cast<int>(opcode) << std::endl;
+    }
+    case 0xff: {  // sbc alx
+      uint32_t low = 0;
+      uint32_t high = AdrAlx(&low);
+      Sbc(low, high);
       break;
+    }
   }
-
   if (log_instructions_) {
-    LogInstructions(PC, opcode, operand, immediate, accumulator_mode);
+    LogInstructions(cache_pc, opcode, operand, immediate, accumulator_mode);
   }
-  instruction_length = GetInstructionLength(opcode);
-  UpdatePC(instruction_length);
+  // instruction_length = GetInstructionLength(opcode);
+  // UpdatePC(instruction_length);
 }
 
 void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
@@ -1605,7 +1927,7 @@ void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
     std::cout << std::endl;
   }
 }
-
+/**
 uint8_t Cpu::GetInstructionLength(uint8_t opcode) {
   switch (opcode) {
     case 0x00:  // BRK
@@ -1953,6 +2275,7 @@ uint8_t Cpu::GetInstructionLength(uint8_t opcode) {
       return 1;  // Default to 1 as a safe fallback
   }
 }
+*/
 
 }  // namespace emu
 }  // namespace app

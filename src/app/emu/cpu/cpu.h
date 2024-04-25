@@ -116,8 +116,19 @@ class Cpu : public Loggable, public core::ExperimentFlags {
     }
   }
 
+  void SetZN(uint16_t value, bool byte) {
+    if (byte) {
+      SetZeroFlag((value & 0xff) == 0);
+      SetNegativeFlag(value & 0x80);
+    } else {
+      SetZeroFlag(value == 0);
+      SetNegativeFlag(value & 0x8000);
+    }
+  }
+
   // Setting flags in the status register
   bool m() { return GetAccumulatorSize() ? 1 : 0; }
+  bool xf() { return GetIndexSize() ? 1 : 0; }
   int GetAccumulatorSize() const { return status & 0x20; }
   int GetIndexSize() const { return status & 0x10; }
   void SetAccumulatorSize(bool set) { SetFlag(0x20, set); }
@@ -152,15 +163,15 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   }
 
   // Memory access routines
-  uint8_t ReadByte(uint32_t address) const {
-    return callbacks_.read_byte(address);
-  }
-  uint16_t ReadWord(uint32_t address) const {
+  uint8_t ReadByte(uint32_t address) { return callbacks_.read_byte(address); }
+  uint16_t ReadWord(uint32_t address, uint32_t address_high,
+                    bool int_check = false) {
     uint8_t value = ReadByte(address);
-    uint8_t value2 = ReadByte(address + 1);
+    if (int_check) CheckInt();
+    uint8_t value2 = ReadByte(address_high);
     return value | (value2 << 8);
   }
-  uint32_t ReadWordLong(uint32_t address) const {
+  uint32_t ReadWordLong(uint32_t address) {
     uint8_t value = ReadByte(address);
     uint8_t value2 = ReadByte(address + 1);
     uint8_t value3 = ReadByte(address + 2);
@@ -171,62 +182,22 @@ class Cpu : public Loggable, public core::ExperimentFlags {
     callbacks_.write_byte(address, value);
   }
 
-  void WriteWord(uint32_t address, uint16_t value) {
-    WriteByte(address, value & 0xFF);
-    WriteByte(address + 1, value >> 8);
+  void WriteWord(uint32_t address, uint32_t address_high, uint16_t value,
+                 bool reversed = false, bool int_check = false) {
+    if (reversed) {
+      WriteByte(address_high, value >> 8);
+      if (int_check) CheckInt();
+      WriteByte(address, value & 0xFF);
+    } else {
+      WriteByte(address, value & 0xFF);
+      if (int_check) CheckInt();
+      WriteByte(address_high, value >> 8);
+    }
   }
   void WriteLong(uint32_t address, uint32_t value) {
     WriteByte(address, value & 0xFF);
     WriteByte(address + 1, (value >> 8) & 0xFF);
     WriteByte(address + 2, value >> 16);
-  }
-
-  uint8_t FetchByte() {
-    uint32_t address = (PB << 16) | PC + 1;
-    uint8_t byte = ReadByte(address);
-    return byte;
-  }
-
-  uint16_t FetchWord() {
-    uint32_t address = (PB << 16) | PC + 1;
-    uint16_t value = ReadWord(address);
-    return value;
-  }
-
-  uint32_t FetchLong() {
-    uint32_t value = ReadWordLong((PB << 16) | PC + 1);
-    return value;
-  }
-
-  int8_t FetchSignedByte() { return static_cast<int8_t>(FetchByte()); }
-
-  int16_t FetchSignedWord() {
-    auto offset = static_cast<int16_t>(FetchWord());
-    return offset;
-  }
-
-  uint8_t FetchByteDirectPage(uint8_t operand) {
-    uint16_t distance = D * 0x100;
-
-    // Calculate the effective address in the Direct Page
-    uint16_t effectiveAddress = operand + distance;
-
-    // Fetch the byte from memory
-    uint8_t fetchedByte = ReadByte(effectiveAddress);
-
-    next_pc_ = PC + 1;
-
-    return fetchedByte;
-  }
-
-  uint16_t ReadByteOrWord(uint32_t address) {
-    if (GetAccumulatorSize()) {
-      // 8-bit mode
-      return ReadByte(address) & 0xFF;
-    } else {
-      // 16-bit mode
-      return ReadWord(address);
-    }
   }
 
   void PushByte(uint8_t value) {
@@ -272,10 +243,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
 
   void set_int_delay(bool delay) { int_delay_ = delay; }
 
-  // ==========================================================================
   // Addressing Modes
-
-  void AdrImp();
 
   // Effective Address:
   //    Bank: Data Bank Register if locating data
@@ -284,7 +252,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   //    Low:  First operand byte
   //
   // LDA addr
-  uint32_t Absolute(AccessType access_type = AccessType::Data);
+  uint32_t Absolute(uint32_t* low);
 
   // Effective Address:
   //    The Data Bank Register is concatened with the 16-bit operand
@@ -293,6 +261,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   //
   // LDA addr, X
   uint32_t AbsoluteIndexedX();
+  uint32_t AdrAbx(uint32_t* low, bool write);
 
   // Effective Address:
   //    The Data Bank Register is concatened with the 16-bit operand
@@ -301,6 +270,17 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   //
   // LDA addr, Y
   uint32_t AbsoluteIndexedY();
+  uint32_t AdrAby(uint32_t* low, bool write);
+
+  void AdrImp();
+  uint32_t AdrIdx(uint32_t* low);
+
+  uint32_t AdrIdp(uint32_t* low);
+  uint32_t AdrIdy(uint32_t* low, bool write);
+  uint32_t AdrIdl(uint32_t* low);
+  uint32_t AdrIly(uint32_t* low);
+  uint32_t AdrIsy(uint32_t* low);
+  uint32_t Immediate(uint32_t* low, bool xFlag);
 
   // Effective Address:
   //    Bank:             Program Bank Register (PBR)
@@ -333,12 +313,14 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   //
   // LDA long
   uint32_t AbsoluteLong();
+  uint32_t AdrAbl(uint32_t* low);
 
   // Effective Address:
   //   The 24-bit operand is added to X based on the emulation mode
   //
   // LDA long, X
   uint32_t AbsoluteLongIndexedX();
+  uint32_t AdrAlx(uint32_t* low);
 
   // Source Effective Address:
   //    Bank: Second operand byte
@@ -360,6 +342,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   //
   // LDA dp
   uint16_t DirectPage();
+  uint32_t AdrDp(uint32_t* low);
 
   // Effective Address:
   //    Bank:     Zero
@@ -368,6 +351,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   //
   // LDA dp, X
   uint16_t DirectPageIndexedX();
+  uint32_t AdrDpx(uint32_t* low);
 
   // Effective Address:
   //    Bank:     Zero
@@ -375,6 +359,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   //              based on the emulation mode
   // LDA dp, Y
   uint16_t DirectPageIndexedY();
+  uint32_t AdrDpy(uint32_t* low);
 
   // Effective Address:
   // Bank:      Data bank register
@@ -432,6 +417,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   uint16_t Immediate(bool index_size = false);
 
   uint16_t StackRelative();
+  uint32_t AdrSr(uint32_t* low);
 
   // Effective Address:
   //    The Data Bank Register is concatenated to the Indirect Address;
@@ -572,7 +558,7 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   void NOP();
 
   // ORA: Logical inclusive OR
-  void ORA(uint16_t address, bool immediate = false);
+  void ORA(uint32_t low, uint32_t high);
 
   // PEA: Push effective absolute address
   void PEA();
@@ -724,7 +710,30 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   // XCE: Exchange carry and emulation bits
   void XCE();
 
-  // ==========================================================================
+  void And(uint32_t low, uint32_t high);
+  void Eor(uint32_t low, uint32_t high);
+  void Adc(uint32_t low, uint32_t high);
+  void Sbc(uint32_t low, uint32_t high);
+  void Cmp(uint32_t low, uint32_t high);
+  void Cpx(uint32_t low, uint32_t high);
+  void Cpy(uint32_t low, uint32_t high);
+  void Bit(uint32_t low, uint32_t high);
+  void Lda(uint32_t low, uint32_t high);
+  void Ldx(uint32_t low, uint32_t high);
+  void Ldy(uint32_t low, uint32_t high);
+  void Sta(uint32_t low, uint32_t high);
+  void Stx(uint32_t low, uint32_t high);
+  void Sty(uint32_t low, uint32_t high);
+  void Stz(uint32_t low, uint32_t high);
+  void Ror(uint32_t low, uint32_t high);
+  void Rol(uint32_t low, uint32_t high);
+  void Lsr(uint32_t low, uint32_t high);
+  void Asl(uint32_t low, uint32_t high);
+  void Inc(uint32_t low, uint32_t high);
+  void Dec(uint32_t low, uint32_t high);
+  void Tsb(uint32_t low, uint32_t high);
+  void Trb(uint32_t low, uint32_t high);
+
   uint16_t SP() const { return memory.SP(); }
   void SetSP(uint16_t value) { memory.SetSP(value); }
 
@@ -745,7 +754,8 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   auto GetBreakpoints() { return breakpoints_; }
 
   void CheckInt() {
-    int_wanted_ = (nmi_wanted_ || (irq_wanted_ && !GetInterruptFlag()))&& !int_delay_;
+    int_wanted_ =
+        (nmi_wanted_ || (irq_wanted_ && !GetInterruptFlag())) && !int_delay_;
     int_delay_ = false;
   }
 
@@ -789,7 +799,6 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   bool reset_wanted_ = false;
   bool int_wanted_ = false;
   bool int_delay_ = false;
-
 
   memory::CpuCallbacks callbacks_;
   memory::Memory& memory;
