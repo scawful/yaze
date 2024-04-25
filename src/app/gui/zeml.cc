@@ -463,9 +463,10 @@ void Render(Node& node) {
     case WidgetType::Text:
       if (node.attributes.data) {
         // Assuming all data-bound Text widgets use string formatting
-        char formattedText[256];
+        char formattedText[128];
         snprintf(formattedText, sizeof(formattedText),
-                 node.attributes.text.c_str(), *(int*)node.attributes.data);
+                 node.attributes.text.c_str(),
+                 *(int*)node.attributes.data & 0xFFFF);
         ImGui::Text("%s", formattedText);
       } else {
         ImGui::Text("%s", node.attributes.text.c_str());
