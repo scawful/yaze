@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['updatemode_0',['UpdateMode',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8',1,'yaze::app::emu::Cpu']]]
+  ['widgettype_0',['WidgetType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824',1,'yaze::app::gui::zeml']]]
 ];

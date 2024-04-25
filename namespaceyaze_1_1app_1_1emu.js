@@ -52,6 +52,5 @@ var namespaceyaze_1_1app_1_1emu =
       [ "kStackRelativeIndirectIndexedYLong", "namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea4fb43c0a77502c0cd46f01c14787fa75", null ],
       [ "kStack", "namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bea5f4930a7bc3cf140a4d53f44f47ed789", null ],
       [ "kStackRelativeIndexedY", "namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111bead43bb7d5a33aec2376fcec383643161c", null ]
-    ] ],
-    [ "kCpuClockSpeed", "namespaceyaze_1_1app_1_1emu.html#a7c2cc0176c97d85b74d62cc8147be1de", null ]
+    ] ]
 ];

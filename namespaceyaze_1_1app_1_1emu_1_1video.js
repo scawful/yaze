@@ -47,6 +47,5 @@ var namespaceyaze_1_1app_1_1emu_1_1video =
       [ "Size16x16", "namespaceyaze_1_1app_1_1emu_1_1video.html#a55b219b70a80e3b20522da1a08cc6c0aa407a174c98babc11c9f5c5967857ee29", null ],
       [ "Size32x32", "namespaceyaze_1_1app_1_1emu_1_1video.html#a55b219b70a80e3b20522da1a08cc6c0aaec579cbe3d24a02a93dad1682c20330d", null ],
       [ "Size64x64", "namespaceyaze_1_1app_1_1emu_1_1video.html#a55b219b70a80e3b20522da1a08cc6c0aa8816d701dd08fb573f43ab49d6fc32e3", null ]
-    ] ],
-    [ "kPpuClockSpeed", "namespaceyaze_1_1app_1_1emu_1_1video.html#a7207ceb50d735dbd3330beacba6a946f", null ]
+    ] ]
 ];

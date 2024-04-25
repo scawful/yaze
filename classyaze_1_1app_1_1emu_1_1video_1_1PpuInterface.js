@@ -2,24 +2,5 @@ var classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface =
 [
     [ "~PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ad20d91ae7a00c87ae028bab09ef8842d", null ],
     [ "Write", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a396a573a1aa0ff52d4c6b2c829b41b0e", null ],
-    [ "Read", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a974a0696beb228098727c022f2453e54", null ],
-    [ "RenderFrame", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a53aad9bb9702751581ff497decc93ed4", null ],
-    [ "RenderScanline", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ad1760e9ac5fe60eea27481867cbc7809", null ],
-    [ "RenderBackground", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a2d7ef0ed9584453dfa892e0d68861e74", null ],
-    [ "RenderSprites", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ad257b8e1193a3aba95c3a83776f29192", null ],
-    [ "Init", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a83772f7108d8781559c680ad670077c1", null ],
-    [ "Reset", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a245fcaa6262d7b4d19f631265e0af22c", null ],
-    [ "Update", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a13c4c9543953b7777c2eed7d99e4a78a", null ],
-    [ "UpdateClock", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a42cec1763b2e4a6b9f776d9710da5266", null ],
-    [ "UpdateInternalState", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ad9c4fb592ce8c7a012e1338564c851ba", null ],
-    [ "GetFrameBuffer", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a96fbde0f3459a2ec10709bde48178433", null ],
-    [ "GetScreen", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a35939ffcb69cf65b1e057b6e6e3ec122", null ],
-    [ "UpdateModeSettings", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#afea5260a1bf9794ae37f83cdaae9051c", null ],
-    [ "UpdateTileData", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a80f16791ba25964be619b0a594aabc9b", null ],
-    [ "UpdateTileMapData", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ae5bc745b3a948708b4a9e45fa72d7b9e", null ],
-    [ "UpdatePaletteData", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a8e0422cc29d76bdeec84a056233e0a56", null ],
-    [ "ApplyEffects", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a9b3f05067539dc77c7cd321c3bf25d6e", null ],
-    [ "ComposeLayers", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#af3d2e0de8c5757bb229533db8fcd186f", null ],
-    [ "DisplayFrameBuffer", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#ae7804fe221bcb18a20fb944a819a7671", null ],
-    [ "Notify", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#accdff659554cfdf615a2a3bfcaf13825", null ]
+    [ "Read", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html#a974a0696beb228098727c022f2453e54", null ]
 ];

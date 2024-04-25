@@ -1,18 +1,11 @@
 var classyaze_1_1app_1_1emu_1_1Cpu =
 [
-    [ "UpdateMode", "classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8", [
-      [ "Run", "classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8ac5301693c4e792bcd5a479ef38fb8f8d", null ],
-      [ "Step", "classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8a48c7c41b72e1d678923ce3571aa65b2d", null ],
-      [ "Pause", "classyaze_1_1app_1_1emu_1_1Cpu.html#a65006a936b00c4ac3ff203e55bb012f8a105b296a83f9c105355403f3332af50f", null ]
-    ] ],
     [ "AccessType", "classyaze_1_1app_1_1emu_1_1Cpu.html#a324ba56e42b5f4c60bae35729e8b0f1d", [
       [ "Control", "classyaze_1_1app_1_1emu_1_1Cpu.html#a324ba56e42b5f4c60bae35729e8b0f1daa1595abbb4c3a326636dd178757cd6c1", null ],
       [ "Data", "classyaze_1_1app_1_1emu_1_1Cpu.html#a324ba56e42b5f4c60bae35729e8b0f1daf6068daa29dbb05a7ead1e3b5a48bbee", null ]
     ] ],
     [ "Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html#aa07ed3f4bd68fd61b2ec05639db52601", null ],
-    [ "Init", "classyaze_1_1app_1_1emu_1_1Cpu.html#add00d0041c3e891cc2db59ff92a12850", null ],
     [ "Reset", "classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f", null ],
-    [ "Update", "classyaze_1_1app_1_1emu_1_1Cpu.html#a1973730bb2782a39532631012e28693a", null ],
     [ "RunOpcode", "classyaze_1_1app_1_1emu_1_1Cpu.html#ac392994da7d30296911f8dfa21ae3894", null ],
     [ "ExecuteInstruction", "classyaze_1_1app_1_1emu_1_1Cpu.html#ae5f8a8d0e5f8f1a72c4475ac402acda0", null ],
     [ "LogInstructions", "classyaze_1_1app_1_1emu_1_1Cpu.html#a3361d0712df46b8fd18d91b57533a491", null ],
