@@ -22,10 +22,10 @@ namespace emu {
 struct Input {
   uint8_t type;
   // latchline
-  bool latchLine;
+  bool latch_line_;
   // for controller
-  uint16_t currentState;  // actual state
-  uint16_t latchedState;
+  uint16_t current_state_;  // actual state
+  uint16_t latched_state_;
 };
 
 class SNES {
@@ -34,7 +34,7 @@ class SNES {
   ~SNES() = default;
 
   // Initialization
-  void Init(Rom& rom);
+  void Init(std::vector<uint8_t>& rom_data);
   void Reset(bool hard = false);
 
   // Emulation
@@ -65,25 +65,17 @@ class SNES {
 
   void SetSamples(int16_t* sample_data, int wanted_samples);
   void SetPixels(uint8_t* pixel_data);
-
+  void SetButtonState(int player, int button, bool pressed);
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> video::Ppu& { return ppu_; }
   auto apu() -> audio::Apu& { return apu_; }
   auto Memory() -> memory::MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
-
   auto mutable_cycles() -> uint64_t& { return cycles_; }
+  void InitAccessTime(bool recalc);
 
   std::vector<uint8_t> access_time;
-
-  void build_accesstime( bool recalc) {
-  int start = (recalc) ? 0x800000 : 0; // recalc only updates "fastMem" area
-  access_time.resize(0x1000000);
-  for (int i = start; i < 0x1000000; i++) {
-    access_time[i] = GetAccessTime(i);
-  }
-}
 
  private:
   // Components of the SNES
@@ -116,7 +108,7 @@ class SNES {
   uint64_t cycles_ = 0;
   uint64_t sync_cycle_ = 0;
   double apu_catchup_cycles_;
-  uint32_t nextHoriEvent;
+  uint32_t next_horiz_event;
 
   // Nmi / Irq
   bool h_irq_enabled_ = false;
@@ -141,7 +133,7 @@ class SNES {
   uint16_t port_auto_read_[4];  // as read by auto-joypad read
   bool auto_joy_read_ = false;
   uint16_t auto_joy_timer_ = 0;
-  bool ppuLatch;
+  bool ppu_latch_;
 
   bool fast_mem_ = false;
 };
