@@ -87,6 +87,8 @@ class Dsp {
  public:
   Dsp(std::vector<uint8_t>& aram) : aram_(aram) {}
 
+  void NewFrame();
+
   void Reset();
 
   void Cycle();
@@ -150,6 +152,7 @@ class Dsp {
   // sample ring buffer (1024 samples, *2 for stereo)
   int16_t sampleBuffer[0x400 * 2];
   uint16_t sampleOffset;  // current offset in samplebuffer
+  uint32_t lastFrameBoundary;
 };
 
 }  // namespace audio
