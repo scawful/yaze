@@ -727,7 +727,6 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   // ==========================================================================
   uint16_t SP() const { return memory.SP(); }
   void SetSP(uint16_t value) { memory.SetSP(value); }
-  void set_next_pc(uint16_t value) { next_pc_ = value; }
 
   bool IsBreakpoint(uint32_t address) {
     return std::find(breakpoints_.begin(), breakpoints_.end(), address) !=
