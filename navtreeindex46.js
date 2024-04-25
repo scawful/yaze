@@ -1,5 +1,13 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[9,0,0,0,3,8,2],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[8,0,1,0,3,10,2],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395":[8,0,1,0,3,10,1],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395":[9,0,0,0,3,8,1],
+"structyaze_1_1app_1_1gfx_1_1snes__palette.html":[9,0,0,0,3,9],
+"structyaze_1_1app_1_1gfx_1_1snes__palette.html":[8,0,1,0,3,11],
+"structyaze_1_1app_1_1gfx_1_1snes__palette.html#a514949dab784b164c062ad1b8a5074ca":[8,0,1,0,3,11,1],
+"structyaze_1_1app_1_1gfx_1_1snes__palette.html#a514949dab784b164c062ad1b8a5074ca":[9,0,0,0,3,9,1],
 "structyaze_1_1app_1_1gfx_1_1snes__palette.html#a83e9b85223659de8dabe87e86c76967e":[9,0,0,0,3,9,0],
 "structyaze_1_1app_1_1gfx_1_1snes__palette.html#a83e9b85223659de8dabe87e86c76967e":[8,0,1,0,3,11,0],
 "structyaze_1_1app_1_1gfx_1_1snes__palette.html#affac73ef085eaaaf92113e623ee2307d":[8,0,1,0,3,11,2],
@@ -241,13 +249,5 @@ var NAVTREEINDEX46 =
 "zeml_8h.html#a06f18a00b63cc01c30a59b40e16297be":[10,0,1,0,4,14,4],
 "zeml_8h.html#a06f18a00b63cc01c30a59b40e16297bea00c1c78f29526ca823b26a7fa69bcb81":[10,0,1,0,4,14,4,3],
 "zeml_8h.html#a06f18a00b63cc01c30a59b40e16297bea27118326006d3829667a400ad23d5d98":[10,0,1,0,4,14,4,1],
-"zeml_8h.html#a06f18a00b63cc01c30a59b40e16297bea29ee5d1ebcc033234938a5234f1f2075":[10,0,1,0,4,14,4,0],
-"zeml_8h.html#a06f18a00b63cc01c30a59b40e16297bea320a5f52ef853ce25553cb2ffbfa0f76":[10,0,1,0,4,14,4,2],
-"zeml_8h.html#a06f18a00b63cc01c30a59b40e16297bea58be47db9455679e6a44df2eff9c9fa6":[10,0,1,0,4,14,4,4],
-"zeml_8h.html#a06f18a00b63cc01c30a59b40e16297beacec32ee5e75ca0f05bf073ea213a72c2":[10,0,1,0,4,14,4,5],
-"zeml_8h.html#a0dd5972415f296e782588c4e17bb15c5":[10,0,1,0,4,14,9],
-"zeml_8h.html#a32ea3c388ebf019406a39bdbe5f60154":[10,0,1,0,4,14,18],
-"zeml_8h.html#a4c072108fb185a885e7910e26cd6a4ed":[10,0,1,0,4,14,12],
-"zeml_8h.html#a62039a73639fc1606a15c25ff0b919cc":[10,0,1,0,4,14,8],
-"zeml_8h.html#a6636dda0fffd7cc948fe65df62a54621":[10,0,1,0,4,14,10]
+"zeml_8h.html#a06f18a00b63cc01c30a59b40e16297bea29ee5d1ebcc033234938a5234f1f2075":[10,0,1,0,4,14,4,0]
 };

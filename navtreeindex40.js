@@ -1,5 +1,13 @@
 var NAVTREEINDEX40 =
 {
+"ppu__registers_8h.html#af2ca5ded212f3005513f09af31c96030":[10,0,1,0,2,4,2,97],
+"ppu__registers_8h.html#af4ec47a3efd916ef014c93a2b203e84a":[10,0,1,0,2,4,2,83],
+"ppu__registers_8h.html#afb96b53b4ae7a94ceb04f65ff3c144ca":[10,0,1,0,2,4,2,102],
+"ppu__registers_8h.html#afeaa3157a66a6e476691aaecaed33ec9":[10,0,1,0,2,4,2,59],
+"ppu__registers_8h_source.html":[10,0,1,0,2,4,2],
+"ppu__test_8cc.html":[10,0,2,0,1],
+"ppu__test_8cc.html#a282d2406b43ad6d7c7157660ab32f6c6":[10,0,2,0,1,3],
+"ppu__test_8cc.html#a67381d3c0ca3f8b0b77c59951227a620":[10,0,2,0,1,7],
 "ppu__test_8cc.html#a708f793586acfee0ae064e1737b69837":[10,0,2,0,1,6],
 "ppu__test_8cc.html#a79793b7f1c3f9b4b0089e8559c1a8a62":[10,0,2,0,1,8],
 "ppu__test_8cc.html#a861c5b95a0e93b13fbe1a6e08f4434e1":[10,0,2,0,1,2],
@@ -241,13 +249,5 @@ var NAVTREEINDEX40 =
 "snes__palette_8cc.html#af624df2438c3def1da9a3c82ab7e58ee":[10,0,1,0,3,8,14],
 "snes__palette_8h.html":[10,0,1,0,3,9],
 "snes__palette_8h.html#a04544775b5724bfbe086cb024eb4091a":[10,0,1,0,3,9,6],
-"snes__palette_8h.html#a2431c9510c885b5698d5aaac4d7e3094":[10,0,1,0,3,9,5],
-"snes__palette_8h.html#a54b0c20ee2f3df0fb9a988b215754180":[10,0,1,0,3,9,11],
-"snes__palette_8h.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef":[10,0,1,0,3,9,8],
-"snes__palette_8h.html#a770b616b1a09b80f72fdd549ec6a7f34":[10,0,1,0,3,9,7],
-"snes__palette_8h.html#abdc15a02218fe29002585f61230af828":[10,0,1,0,3,9,9],
-"snes__palette_8h.html#ae5807cdf64ba8eed9e0b94335c514674":[10,0,1,0,3,9,10],
-"snes__palette_8h_source.html":[10,0,1,0,3,9],
-"snes__palette__test_8cc.html":[10,0,2,1,1],
-"snes__palette__test_8cc.html#a1a263e0ae5ef8848f9ab4910765f1db3":[10,0,2,1,1,2]
+"snes__palette_8h.html#a2431c9510c885b5698d5aaac4d7e3094":[10,0,1,0,3,9,5]
 };

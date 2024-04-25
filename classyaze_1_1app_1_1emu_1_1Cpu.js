@@ -181,7 +181,6 @@ var classyaze_1_1app_1_1emu_1_1Cpu =
     [ "XCE", "classyaze_1_1app_1_1emu_1_1Cpu.html#a03b4b61f534c16bafad8d3bff1cdae3c", null ],
     [ "SP", "classyaze_1_1app_1_1emu_1_1Cpu.html#a2f1de603064fd4f4f108efe0713ec42c", null ],
     [ "SetSP", "classyaze_1_1app_1_1emu_1_1Cpu.html#a3d84e3340db0ba07c23fca82fbaaf2fe", null ],
-    [ "set_next_pc", "classyaze_1_1app_1_1emu_1_1Cpu.html#aca69379682a378dac4a0706b227727d0", null ],
     [ "IsBreakpoint", "classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003", null ],
     [ "SetBreakpoint", "classyaze_1_1app_1_1emu_1_1Cpu.html#a0573c37370ed1fa6d581ca3625621f2b", null ],
     [ "ClearBreakpoint", "classyaze_1_1app_1_1emu_1_1Cpu.html#abde64a0949d020ec66b04463e46c26b1", null ],

@@ -289,6 +289,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a6c6ccc11f41bdc323dfa4c1bd1ab5dfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba8cfa17f73c297631194e4bc66fceb4" id="r_aba8cfa17f73c297631194e4bc66fceb4"><td class="memItemLeft" align="right" valign="top">SDL_Texture *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba8cfa17f73c297631194e4bc66fceb4">ppu_texture_</a></td></tr>
 <tr class="separator:aba8cfa17f73c297631194e4bc66fceb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ea05a41b564d95fe929155e9edc4d7b" id="r_a1ea05a41b564d95fe929155e9edc4d7b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1ea05a41b564d95fe929155e9edc4d7b">rom_data_</a></td></tr>
+<tr class="separator:a1ea05a41b564d95fe929155e9edc4d7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0faccd3b01b89f029d15eb97bcfbe31" id="r_aa0faccd3b01b89f029d15eb97bcfbe31"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html">gui::zeml::Node</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa0faccd3b01b89f029d15eb97bcfbe31">emulator_node_</a></td></tr>
 <tr class="separator:aa0faccd3b01b89f029d15eb97bcfbe31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -376,7 +378,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#ae0afccc1d612dd7c8ad96f74e44b9a37">audio_buffer_</a>, <a class="el" href="#a133affc39ccc0e14517b0bfef883b2f0">audio_device_</a>, <a class="el" href="#ad3c4ae553cce131525c435f31c8182be">countFreq</a>, <a class="el" href="#aa0faccd3b01b89f029d15eb97bcfbe31">emulator_node_</a>, <a class="el" href="#a9aeb81c9f12eed58ac6834998239d5df">HandleEvents()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>, <a class="el" href="#a33d23be5c153f1efb39dc28de1feecff">lastCount</a>, <a class="el" href="#aba8cfa17f73c297631194e4bc66fceb4">ppu_texture_</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2">yaze::app::gui::zeml::Render()</a>, <a class="el" href="#a768f75e52c4da7c5d99cc0e527059379">RenderNavBar()</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a14b03ac590781c59ff14e2a2cfcbbffa">yaze::app::emu::SNES::RunFrame()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3">yaze::app::emu::SNES::running()</a>, <a class="el" href="#a97c9139aa0c99b34917b8b6cb59db81c">running_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ac11726994035cd0caf4ab0d7e86a1495">yaze::app::emu::SNES::SetPixels()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a">yaze::app::emu::SNES::SetSamples()</a>, <a class="el" href="#a6c6ccc11f41bdc323dfa4c1bd1ab5dfa">snes_</a>, <a class="el" href="#a090603663f5235f2f2bd43ee629bfeea">timeAdder</a>, <a class="el" href="#a0eebe5eeca595a9a850269aa35dbf7f1">turbo_mode_</a>, <a class="el" href="#aa3931a883be44a8767791d082ee3a44c">wanted_frames_</a>, and <a class="el" href="#a36053b617e64b7588958f73b1a12948b">wanted_samples_</a>.</p>
+<p class="reference">References <a class="el" href="#ae0afccc1d612dd7c8ad96f74e44b9a37">audio_buffer_</a>, <a class="el" href="#a133affc39ccc0e14517b0bfef883b2f0">audio_device_</a>, <a class="el" href="#ad3c4ae553cce131525c435f31c8182be">countFreq</a>, <a class="el" href="#aa0faccd3b01b89f029d15eb97bcfbe31">emulator_node_</a>, <a class="el" href="#a9aeb81c9f12eed58ac6834998239d5df">HandleEvents()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35">yaze::app::emu::SNES::Init()</a>, <a class="el" href="#a33d23be5c153f1efb39dc28de1feecff">lastCount</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c">yaze::app::emu::SNES::Memory()</a>, <a class="el" href="#aba8cfa17f73c297631194e4bc66fceb4">ppu_texture_</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2">yaze::app::gui::zeml::Render()</a>, <a class="el" href="#a768f75e52c4da7c5d99cc0e527059379">RenderNavBar()</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="#a1ea05a41b564d95fe929155e9edc4d7b">rom_data_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a14b03ac590781c59ff14e2a2cfcbbffa">yaze::app::emu::SNES::RunFrame()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3">yaze::app::emu::SNES::running()</a>, <a class="el" href="#a97c9139aa0c99b34917b8b6cb59db81c">running_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ac11726994035cd0caf4ab0d7e86a1495">yaze::app::emu::SNES::SetPixels()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a">yaze::app::emu::SNES::SetSamples()</a>, <a class="el" href="#a6c6ccc11f41bdc323dfa4c1bd1ab5dfa">snes_</a>, <a class="el" href="#a090603663f5235f2f2bd43ee629bfeea">timeAdder</a>, <a class="el" href="#a0eebe5eeca595a9a850269aa35dbf7f1">turbo_mode_</a>, <a class="el" href="#aa3931a883be44a8767791d082ee3a44c">wanted_frames_</a>, and <a class="el" href="#a36053b617e64b7588958f73b1a12948b">wanted_samples_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0">yaze::app::editor::MasterEditor::DrawViewMenu()</a>.</p>
 <div class="dynheader">
@@ -384,113 +386,115 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1Emulator_ad4baea4deebf6b7bb0ca845be47b443f_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1Emulator_ad4baea4deebf6b7bb0ca845be47b443f_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1emu_1_1Emulator_ad4baea4deebf6b7bb0ca845be47b443f_cgraph" id="aclassyaze_1_1app_1_1emu_1_1Emulator_ad4baea4deebf6b7bb0ca845be47b443f_cgraph">
-<area shape="rect" title=" " alt="" coords="5,1117,197,1143"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#a9aeb81c9f12eed58ac6834998239d5df" title=" " alt="" coords="252,153,414,194"/>
-<area shape="poly" title=" " alt="" coords="100,1116,106,952,114,823,127,679,145,533,170,397,185,337,202,284,221,239,243,205,245,203,249,206,247,209,226,242,207,286,190,338,175,398,150,534,132,680,120,823,112,952,105,1116"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35" title=" " alt="" coords="259,219,407,259"/>
-<area shape="poly" title=" " alt="" coords="103,1116,320,274,325,275,108,1117"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2" title="Render a zeml tree." alt="" coords="491,928,621,969"/>
-<area shape="poly" title=" " alt="" coords="113,1115,166,1065,203,1037,244,1014,302,991,363,973,475,953,476,958,364,978,304,996,246,1019,206,1042,170,1069,116,1118"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#a768f75e52c4da7c5d99cc0e527059379" title=" " alt="" coords="252,1028,414,1069"/>
-<area shape="poly" title=" " alt="" coords="139,1114,258,1072,259,1077,141,1119"/>
-<area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="245,1117,421,1143"/>
-<area shape="poly" title=" " alt="" coords="197,1127,229,1127,229,1132,197,1132"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a14b03ac590781c59ff14e2a2cfcbbffa" title=" " alt="" coords="259,1167,407,1207"/>
-<area shape="poly" title=" " alt="" coords="157,1141,245,1162,243,1168,155,1146"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3" title=" " alt="" coords="259,1232,407,1273"/>
-<area shape="poly" title=" " alt="" coords="122,1141,177,1177,246,1217,259,1223,257,1228,243,1221,174,1182,120,1145"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ac11726994035cd0caf4ab0d7e86a1495" title=" " alt="" coords="259,1335,407,1375"/>
-<area shape="poly" title=" " alt="" coords="116,1141,170,1204,246,1282,294,1323,290,1327,243,1286,166,1207,112,1145"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a" title=" " alt="" coords="259,1451,407,1491"/>
-<area shape="poly" title=" " alt="" coords="110,1142,160,1246,200,1317,247,1385,297,1438,293,1442,243,1389,196,1320,156,1249,106,1144"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a683c5e94e45d1336df9be9ccf9660d9f" title=" " alt="" coords="485,120,627,161"/>
-<area shape="poly" title=" " alt="" coords="393,216,420,203,444,187,468,171,481,165,483,170,470,176,446,192,422,208,395,221"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a6086f5272d55886f269ebd59b1609379" title=" " alt="" coords="485,185,627,226"/>
-<area shape="poly" title=" " alt="" coords="407,225,469,216,470,221,407,231"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#add00d0041c3e891cc2db59ff92a12850" title=" " alt="" coords="489,251,623,291"/>
-<area shape="poly" title=" " alt="" coords="407,247,474,257,473,262,407,252"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae35512b6fce8180ab8b69c6c9d8a3b69" title=" " alt="" coords="478,5,635,46"/>
-<area shape="poly" title=" " alt="" coords="404,216,419,204,432,186,439,168,442,131,445,94,453,75,467,56,469,54,473,58,471,59,457,78,451,95,448,132,444,169,437,188,423,208,407,220"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589" title=" " alt="" coords="483,381,630,422"/>
-<area shape="poly" title=" " alt="" coords="364,258,516,370,513,374,361,262"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="482,70,631,96"/>
-<area shape="poly" title=" " alt="" coords="402,216,419,204,436,180,442,156,449,131,467,106,474,102,477,106,471,110,453,133,447,157,441,182,423,208,405,220"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c" title=" " alt="" coords="712,87,856,127"/>
-<area shape="poly" title=" " alt="" coords="627,127,696,117,697,122,628,133"/>
-<area shape="poly" title=" " alt="" coords="615,182,642,170,666,154,690,138,704,131,707,136,693,143,669,158,645,175,618,187"/>
-<area shape="poly" title=" " alt="" coords="622,249,641,236,658,212,665,188,671,163,689,138,697,133,700,137,693,142,676,166,670,190,663,214,645,240,625,253"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a0d955aa61589e7c3c22fc5d5c3355af9" title=" " alt="" coords="710,479,858,519"/>
-<area shape="poly" title=" " alt="" coords="600,420,692,463,710,470,708,475,690,468,598,425"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c" title=" " alt="" coords="713,544,855,585"/>
-<area shape="poly" title=" " alt="" coords="576,421,625,474,658,503,693,529,703,535,700,539,690,533,654,507,621,478,572,424"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a50bcf505e15706b422de6a72fc94adb3" title=" " alt="" coords="713,609,855,650"/>
-<area shape="poly" title=" " alt="" coords="569,421,587,458,614,505,650,552,693,594,701,600,698,604,690,598,646,556,610,507,582,461,564,424"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f" title=" " alt="" coords="717,152,851,193"/>
-<area shape="poly" title=" " alt="" coords="576,379,608,344,641,302,655,274,661,251,670,227,689,204,702,195,705,199,693,208,675,230,666,252,660,276,646,304,613,347,580,383"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287" title=" " alt="" coords="705,217,863,258"/>
-<area shape="poly" title=" " alt="" coords="572,379,621,325,654,295,690,269,700,263,703,267,693,273,657,299,625,329,576,383"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a28477c112185a44ca984b89db927d1da" title=" " alt="" coords="702,283,866,323"/>
-<area shape="poly" title=" " alt="" coords="596,378,690,334,707,327,709,332,692,339,599,383"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a438795265853018a617b7e064fdf21ee" title=" " alt="" coords="691,348,877,389"/>
-<area shape="poly" title=" " alt="" coords="630,388,676,381,676,387,630,394"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab41c9716a08560681673c44e782f3078" title=" " alt="" coords="702,413,866,454"/>
-<area shape="poly" title=" " alt="" coords="630,409,687,417,686,423,630,415"/>
-<area shape="poly" title=" " alt="" coords="514,928,512,918,519,909,534,903,556,901,580,904,595,910,593,915,579,909,556,907,535,909,522,913,517,919,519,927"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="710,1035,858,1075"/>
-<area shape="poly" title=" " alt="" coords="592,967,639,994,692,1021,706,1026,704,1031,690,1025,636,998,589,971"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="710,675,858,715"/>
-<area shape="poly" title=" " alt="" coords="562,927,579,885,606,831,643,775,665,749,690,726,696,721,699,726,693,730,669,753,647,779,611,834,584,887,567,929"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="710,740,858,781"/>
-<area shape="poly" title=" " alt="" coords="568,926,616,861,651,824,690,792,699,786,701,790,693,796,654,828,621,864,572,929"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="710,805,858,846"/>
-<area shape="poly" title=" " alt="" coords="583,925,632,891,690,857,704,850,707,855,693,861,635,896,586,930"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="719,871,849,911"/>
-<area shape="poly" title=" " alt="" coords="621,929,703,909,704,914,622,935"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="693,985,875,1011"/>
-<area shape="poly" title=" " alt="" coords="622,960,707,978,706,984,621,965"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="691,936,877,961"/>
-<area shape="poly" title=" " alt="" coords="621,946,676,946,676,951,621,951"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="927,1035,1074,1075"/>
-<area shape="poly" title=" " alt="" coords="858,1052,911,1052,911,1058,858,1058"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b" title=" " alt="" coords="928,675,1073,715"/>
-<area shape="poly" title=" " alt="" coords="858,692,913,692,913,698,858,698"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="927,740,1074,781"/>
-<area shape="poly" title=" " alt="" coords="858,758,911,758,911,763,858,763"/>
-<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="925,961,1076,987"/>
-<area shape="poly" title=" " alt="" coords="875,985,909,981,910,986,876,990"/>
-<area shape="poly" title=" " alt="" coords="878,957,910,960,909,966,877,962"/>
-<area shape="poly" title=" " alt="" coords="339,1027,540,436,545,437,344,1028"/>
-<area shape="poly" title=" " alt="" coords="379,1025,494,973,496,978,382,1030"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7" title=" " alt="" coords="469,1036,643,1061"/>
-<area shape="poly" title=" " alt="" coords="414,1046,453,1046,453,1051,414,1051"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="Parse a zeml string." alt="" coords="491,1100,621,1141"/>
-<area shape="poly" title=" " alt="" coords="399,1067,477,1092,476,1097,397,1072"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710" title=" " alt="" coords="475,1255,637,1295"/>
-<area shape="poly" title=" " alt="" coords="405,1067,423,1078,440,1096,450,1112,471,1151,534,1241,529,1244,467,1154,446,1115,436,1099,419,1082,402,1072"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a805db34a520725f235fdb7d642e343f3" title="Parse a zeml node." alt="" coords="719,1189,849,1230"/>
-<area shape="poly" title=" " alt="" coords="611,1139,717,1181,715,1186,609,1144"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#aef3beb3e97e844a0512d586ecfb7bf06" title="Tokenize a zeml string." alt="" coords="719,1100,849,1141"/>
-<area shape="poly" title=" " alt="" coords="621,1118,703,1118,703,1123,621,1123"/>
-<area shape="poly" title=" " alt="" coords="743,1189,741,1179,748,1170,762,1165,784,1163,807,1165,821,1171,819,1176,806,1170,784,1168,763,1170,751,1175,746,1181,748,1188"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a136b05c68e9ba83c6da6ad46b976590d" title=" " alt="" coords="697,1434,871,1460"/>
-<area shape="poly" title=" " alt="" coords="628,1294,645,1306,657,1321,664,1336,669,1365,675,1393,681,1406,693,1420,699,1424,696,1428,690,1424,677,1410,669,1395,664,1366,659,1338,653,1324,641,1310,625,1298"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a9bdb60defe64d1ce05b9ebd5657f6338" title=" " alt="" coords="710,1255,858,1295"/>
-<area shape="poly" title=" " alt="" coords="638,1272,695,1272,695,1278,638,1278"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="706,1320,862,1345"/>
-<area shape="poly" title=" " alt="" coords="638,1293,716,1313,714,1318,637,1298"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c" title=" " alt="" coords="710,1369,858,1410"/>
-<area shape="poly" title=" " alt="" coords="622,1293,645,1306,660,1319,669,1332,678,1344,693,1355,700,1360,698,1364,690,1360,675,1347,665,1335,656,1323,642,1311,619,1298"/>
-<area shape="poly" title=" " alt="" coords="296,1118,288,1108,293,1098,308,1092,333,1090,360,1093,374,1100,372,1104,359,1098,333,1095,309,1098,296,1102,294,1108,300,1115"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#ac392994da7d30296911f8dfa21ae3894" title=" " alt="" coords="489,1320,623,1361"/>
-<area shape="poly" title=" " alt="" coords="404,1206,423,1218,440,1241,448,1263,455,1284,471,1305,477,1310,474,1314,467,1309,450,1287,442,1264,436,1243,419,1222,401,1210"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a68c403ec77f43ce410cf881717274997" title=" " alt="" coords="717,1484,851,1525"/>
-<area shape="poly" title=" " alt="" coords="625,1358,645,1372,663,1397,670,1423,676,1447,693,1470,705,1479,702,1483,689,1474,671,1449,665,1424,658,1400,641,1376,622,1362"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abfae099f8f3ce10b2e043cc6adf4e7f5" title=" " alt="" coords="485,1385,627,1426"/>
-<area shape="poly" title=" " alt="" coords="408,1369,470,1384,469,1389,406,1374"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac5797bebb6a04d4fc65191e32916dc5a" title=" " alt="" coords="485,1451,627,1491"/>
-<area shape="poly" title=" " alt="" coords="407,1468,470,1468,470,1474,407,1474"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ad1c2080e714a5543f6aff7c2c1ae1f63" title=" " alt="" coords="475,1516,638,1557"/>
-<area shape="poly" title=" " alt="" coords="405,1489,470,1508,469,1514,404,1494"/>
+<area shape="rect" title=" " alt="" coords="5,1066,197,1092"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#a9aeb81c9f12eed58ac6834998239d5df" title=" " alt="" coords="252,771,414,811"/>
+<area shape="poly" title=" " alt="" coords="104,1065,120,1021,149,958,190,889,215,857,243,828,256,817,260,822,246,832,219,860,194,892,154,960,125,1023,109,1067"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35" title=" " alt="" coords="483,233,630,274"/>
+<area shape="poly" title=" " alt="" coords="105,1065,123,1028,153,977,193,922,217,897,243,875,268,861,292,855,337,852,379,848,399,839,419,821,440,794,452,769,458,745,459,720,459,665,461,634,466,598,543,289,548,290,472,600,466,634,464,665,465,720,463,746,457,771,444,797,423,825,402,843,380,853,337,858,293,860,270,866,246,880,221,901,197,926,157,979,128,1030,110,1067"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c" title=" " alt="" coords="710,1095,858,1135"/>
+<area shape="poly" title=" " alt="" coords="197,1067,245,1064,333,1061,421,1064,566,1079,695,1097,694,1103,565,1084,421,1070,333,1066,245,1070,197,1073"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2" title="Render a zeml tree." alt="" coords="491,776,621,817"/>
+<area shape="poly" title=" " alt="" coords="109,1064,160,997,199,957,243,922,290,899,330,888,371,881,420,865,505,822,507,827,422,869,372,886,331,894,292,904,246,927,202,961,164,1000,113,1067"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#a768f75e52c4da7c5d99cc0e527059379" title=" " alt="" coords="252,936,414,977"/>
+<area shape="poly" title=" " alt="" coords="126,1063,278,982,280,987,129,1068"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="245,1104,421,1129"/>
+<area shape="poly" title=" " alt="" coords="185,1090,235,1098,234,1103,185,1095"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a14b03ac590781c59ff14e2a2cfcbbffa" title=" " alt="" coords="259,1153,407,1194"/>
+<area shape="poly" title=" " alt="" coords="133,1090,246,1139,260,1145,258,1150,244,1144,130,1095"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3" title=" " alt="" coords="259,1219,407,1259"/>
+<area shape="poly" title=" " alt="" coords="116,1090,169,1144,206,1175,246,1203,257,1209,254,1214,243,1208,203,1180,166,1148,112,1094"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#ac11726994035cd0caf4ab0d7e86a1495" title=" " alt="" coords="259,1284,407,1325"/>
+<area shape="poly" title=" " alt="" coords="111,1091,130,1126,160,1174,199,1224,246,1269,253,1274,250,1278,243,1273,195,1228,155,1177,125,1129,106,1093"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a" title=" " alt="" coords="259,1349,407,1390"/>
+<area shape="poly" title=" " alt="" coords="109,1091,124,1137,152,1202,192,1272,218,1305,246,1334,252,1339,248,1343,243,1338,214,1309,188,1275,147,1204,119,1139,104,1093"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a683c5e94e45d1336df9be9ccf9660d9f" title=" " alt="" coords="713,5,855,46"/>
+<area shape="poly" title=" " alt="" coords="564,232,582,195,610,148,646,99,690,57,698,51,701,55,693,61,650,103,614,151,587,197,569,234"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a6086f5272d55886f269ebd59b1609379" title=" " alt="" coords="713,71,855,111"/>
+<area shape="poly" title=" " alt="" coords="572,231,621,178,654,148,690,122,700,116,703,121,693,127,658,152,625,181,576,235"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#add00d0041c3e891cc2db59ff92a12850" title=" " alt="" coords="717,136,851,177"/>
+<area shape="poly" title=" " alt="" coords="605,230,719,181,722,186,607,235"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae35512b6fce8180ab8b69c6c9d8a3b69" title=" " alt="" coords="705,233,863,274"/>
+<area shape="poly" title=" " alt="" coords="630,251,690,251,690,256,630,256"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589" title=" " alt="" coords="710,299,858,339"/>
+<area shape="poly" title=" " alt="" coords="630,272,697,291,695,296,629,277"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c" title=" " alt="" coords="945,5,1090,46"/>
+<area shape="poly" title=" " alt="" coords="856,23,930,23,930,28,856,28"/>
+<area shape="poly" title=" " alt="" coords="855,68,929,47,931,53,857,74"/>
+<area shape="poly" title=" " alt="" coords="850,135,875,121,890,105,898,90,907,73,923,57,931,52,934,56,926,61,911,77,903,92,894,109,878,125,853,140"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a24631987a6d2a24f9179bee38da85f8d" title=" " alt="" coords="944,71,1091,111"/>
+<area shape="poly" title=" " alt="" coords="857,298,875,284,889,264,896,245,898,205,900,164,908,143,923,123,929,116,933,120,927,126,912,146,905,165,903,205,901,246,894,267,879,288,860,302"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c" title=" " alt="" coords="946,136,1089,177"/>
+<area shape="poly" title=" " alt="" coords="857,296,875,284,892,261,898,237,905,212,923,188,931,181,934,185,927,192,910,215,903,238,897,263,879,288,860,301"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a50bcf505e15706b422de6a72fc94adb3" title=" " alt="" coords="946,201,1089,242"/>
+<area shape="poly" title=" " alt="" coords="847,296,875,283,899,268,923,253,938,246,940,251,926,257,902,273,878,288,850,300"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f" title=" " alt="" coords="950,267,1085,307"/>
+<area shape="poly" title=" " alt="" coords="858,306,934,296,935,301,859,312"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287" title=" " alt="" coords="939,332,1096,373"/>
+<area shape="poly" title=" " alt="" coords="859,327,924,336,923,342,858,332"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a28477c112185a44ca984b89db927d1da" title=" " alt="" coords="935,397,1100,438"/>
+<area shape="poly" title=" " alt="" coords="828,337,926,382,943,389,941,394,924,387,826,342"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a438795265853018a617b7e064fdf21ee" title=" " alt="" coords="925,463,1110,503"/>
+<area shape="poly" title=" " alt="" coords="805,338,856,392,890,421,926,447,937,453,934,458,923,452,886,426,852,396,801,342"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab41c9716a08560681673c44e782f3078" title=" " alt="" coords="935,528,1100,569"/>
+<area shape="poly" title=" " alt="" coords="797,339,816,376,845,422,882,471,926,513,933,518,930,522,923,517,878,474,841,426,812,378,792,341"/>
+<area shape="poly" title=" " alt="" coords="514,776,512,766,519,757,534,751,556,749,580,752,595,758,593,763,579,757,556,755,535,757,522,761,517,767,519,775"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="710,515,858,555"/>
+<area shape="poly" title=" " alt="" coords="562,775,578,732,605,676,642,617,665,590,690,566,696,562,699,566,693,570,668,594,646,621,610,678,583,734,567,776"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="710,580,858,621"/>
+<area shape="poly" title=" " alt="" coords="567,774,615,705,650,666,690,632,698,626,701,631,693,636,653,670,619,708,571,777"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="710,645,858,686"/>
+<area shape="poly" title=" " alt="" coords="580,773,629,735,690,697,703,690,706,695,693,701,632,740,583,778"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="710,711,858,751"/>
+<area shape="poly" title=" " alt="" coords="621,775,696,754,697,759,622,780"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="719,776,849,817"/>
+<area shape="poly" title=" " alt="" coords="621,794,703,794,703,799,621,799"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="693,841,875,867"/>
+<area shape="poly" title=" " alt="" coords="622,810,716,834,715,839,621,815"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="691,890,877,916"/>
+<area shape="poly" title=" " alt="" coords="587,815,635,846,692,877,708,883,706,888,690,881,632,851,584,819"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="944,593,1091,634"/>
+<area shape="poly" title=" " alt="" coords="847,553,941,585,939,590,846,558"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b" title=" " alt="" coords="945,659,1090,699"/>
+<area shape="poly" title=" " alt="" coords="847,619,941,651,939,656,846,624"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="944,724,1091,765"/>
+<area shape="poly" title=" " alt="" coords="847,684,941,716,939,721,846,689"/>
+<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="942,866,1093,892"/>
+<area shape="poly" title=" " alt="" coords="875,861,926,866,926,872,875,866"/>
+<area shape="poly" title=" " alt="" coords="877,891,926,886,926,891,877,896"/>
+<area shape="poly" title=" " alt="" coords="361,933,392,904,419,866,439,816,450,773,455,733,455,695,454,614,457,567,466,513,503,387,539,287,544,289,508,389,472,514,462,568,459,614,460,695,460,733,455,774,444,818,423,868,396,907,364,937"/>
+<area shape="poly" title=" " alt="" coords="358,934,389,903,419,866,436,832,444,804,451,774,467,739,539,621,619,510,694,417,752,349,756,353,698,420,623,514,544,624,471,742,456,776,449,805,441,834,423,868,393,907,361,937"/>
+<area shape="poly" title=" " alt="" coords="387,933,420,915,477,871,524,826,527,830,480,875,422,920,390,938"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7" title=" " alt="" coords="469,914,643,940"/>
+<area shape="poly" title=" " alt="" coords="414,943,454,938,454,943,415,948"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="Parse a zeml string." alt="" coords="491,964,621,1005"/>
+<area shape="poly" title=" " alt="" coords="415,964,476,972,475,977,414,969"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710" title=" " alt="" coords="475,1152,637,1193"/>
+<area shape="poly" title=" " alt="" coords="357,975,524,1139,521,1143,353,979"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a805db34a520725f235fdb7d642e343f3" title="Parse a zeml node." alt="" coords="719,964,849,1005"/>
+<area shape="poly" title=" " alt="" coords="621,982,703,982,703,987,621,987"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#aef3beb3e97e844a0512d586ecfb7bf06" title="Tokenize a zeml string." alt="" coords="719,1029,849,1070"/>
+<area shape="poly" title=" " alt="" coords="622,1000,704,1024,703,1029,621,1005"/>
+<area shape="poly" title=" " alt="" coords="741,964,739,954,746,945,761,939,784,937,809,940,823,946,821,951,807,945,784,943,762,945,749,949,744,955,746,963"/>
+<area shape="poly" title=" " alt="" coords="637,1149,695,1135,696,1140,638,1155"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a136b05c68e9ba83c6da6ad46b976590d" title=" " alt="" coords="697,1160,871,1185"/>
+<area shape="poly" title=" " alt="" coords="638,1170,681,1170,681,1175,638,1175"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a9bdb60defe64d1ce05b9ebd5657f6338" title=" " alt="" coords="710,1209,858,1250"/>
+<area shape="poly" title=" " alt="" coords="638,1190,696,1205,695,1210,637,1195"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="706,1274,862,1300"/>
+<area shape="poly" title=" " alt="" coords="621,1191,645,1205,660,1219,669,1233,678,1247,693,1259,704,1265,701,1270,690,1264,674,1250,665,1236,656,1223,642,1209,618,1196"/>
+<area shape="poly" title=" " alt="" coords="296,1105,288,1095,293,1085,308,1079,333,1077,360,1080,374,1086,372,1091,359,1085,333,1082,309,1084,296,1089,294,1094,300,1101"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#ac392994da7d30296911f8dfa21ae3894" title=" " alt="" coords="489,1219,623,1259"/>
+<area shape="poly" title=" " alt="" coords="405,1192,475,1212,473,1218,404,1197"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a68c403ec77f43ce410cf881717274997" title=" " alt="" coords="717,1324,851,1365"/>
+<area shape="poly" title=" " alt="" coords="620,1258,645,1270,669,1290,693,1310,704,1316,702,1321,690,1315,666,1295,642,1275,617,1262"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a81224bcd0e37d7898980e3f3b0accaf7" title=" " alt="" coords="717,1389,851,1430"/>
+<area shape="poly" title=" " alt="" coords="625,1256,645,1270,657,1284,664,1298,670,1324,676,1350,682,1362,693,1374,705,1383,701,1387,690,1378,678,1365,671,1351,665,1325,659,1299,652,1287,642,1274,622,1261"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abfae099f8f3ce10b2e043cc6adf4e7f5" title=" " alt="" coords="485,1284,627,1325"/>
+<area shape="poly" title=" " alt="" coords="407,1302,470,1302,470,1307,407,1307"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac5797bebb6a04d4fc65191e32916dc5a" title=" " alt="" coords="485,1349,627,1390"/>
+<area shape="poly" title=" " alt="" coords="407,1367,470,1367,470,1372,407,1372"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ad1c2080e714a5543f6aff7c2c1ae1f63" title=" " alt="" coords="475,1415,638,1455"/>
+<area shape="poly" title=" " alt="" coords="405,1388,470,1407,469,1412,404,1393"/>
 </map>
 </div>
 
@@ -654,7 +658,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7">yaze::app::emu::SNES::cpu()</a>, <a class="el" href="icons_8h.html#a216f1be7e88939f6b48fc3ff3a99d86d">ICON_MD_INFO</a>, <a class="el" href="icons_8h.html#a26574ae110178be5ac4c20b37e0abdae">ICON_MD_MEMORY</a>, <a class="el" href="icons_8h.html#a0e0d0775e35bcd6358d12c0d27a29f88">ICON_MD_PAUSE</a>, <a class="el" href="icons_8h.html#a4123933301e7a699c99169472c4054b4">ICON_MD_PLAY_ARROW</a>, <a class="el" href="icons_8h.html#a5921579d0045db598703371c5a9b54a6">ICON_MD_REFRESH</a>, <a class="el" href="icons_8h.html#acbbc3590e0cc448734c935ed0f31a6b2">ICON_MD_SAVE</a>, <a class="el" href="icons_8h.html#a14ded7148bef481ff6b688f261157597">ICON_MD_SETTINGS</a>, <a class="el" href="icons_8h.html#ab9e10cb834a41383e84eb1428bb0de36">ICON_MD_SKIP_NEXT</a>, <a class="el" href="icons_8h.html#a5e5d9dbd5addb6c8d77a09e41c53ed31">ICON_MD_STOP</a>, <a class="el" href="icons_8h.html#a6744b65a3843136d813b47bbd609baf4">ICON_MD_SYSTEM_UPDATE_ALT</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a">yaze::app::gui::zeml::Parse()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2">yaze::app::gui::zeml::Render()</a>, <a class="el" href="#abb2362878c817db5de336bdf4dab0710">RenderMemoryViewer()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589">yaze::app::emu::SNES::Reset()</a>, <a class="el" href="#a97c9139aa0c99b34917b8b6cb59db81c">running_</a>, <a class="el" href="#a6c6ccc11f41bdc323dfa4c1bd1ab5dfa">snes_</a>, and <a class="el" href="#a0eebe5eeca595a9a850269aa35dbf7f1">turbo_mode_</a>.</p>
+<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7">yaze::app::emu::SNES::cpu()</a>, <a class="el" href="icons_8h.html#a216f1be7e88939f6b48fc3ff3a99d86d">ICON_MD_INFO</a>, <a class="el" href="icons_8h.html#a26574ae110178be5ac4c20b37e0abdae">ICON_MD_MEMORY</a>, <a class="el" href="icons_8h.html#a0e0d0775e35bcd6358d12c0d27a29f88">ICON_MD_PAUSE</a>, <a class="el" href="icons_8h.html#a4123933301e7a699c99169472c4054b4">ICON_MD_PLAY_ARROW</a>, <a class="el" href="icons_8h.html#a5921579d0045db598703371c5a9b54a6">ICON_MD_REFRESH</a>, <a class="el" href="icons_8h.html#acbbc3590e0cc448734c935ed0f31a6b2">ICON_MD_SAVE</a>, <a class="el" href="icons_8h.html#a14ded7148bef481ff6b688f261157597">ICON_MD_SETTINGS</a>, <a class="el" href="icons_8h.html#ab9e10cb834a41383e84eb1428bb0de36">ICON_MD_SKIP_NEXT</a>, <a class="el" href="icons_8h.html#a5e5d9dbd5addb6c8d77a09e41c53ed31">ICON_MD_STOP</a>, <a class="el" href="icons_8h.html#a6744b65a3843136d813b47bbd609baf4">ICON_MD_SYSTEM_UPDATE_ALT</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35">yaze::app::emu::SNES::Init()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a">yaze::app::gui::zeml::Parse()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2">yaze::app::gui::zeml::Render()</a>, <a class="el" href="#abb2362878c817db5de336bdf4dab0710">RenderMemoryViewer()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589">yaze::app::emu::SNES::Reset()</a>, <a class="el" href="#a1ea05a41b564d95fe929155e9edc4d7b">rom_data_</a>, <a class="el" href="#a97c9139aa0c99b34917b8b6cb59db81c">running_</a>, <a class="el" href="#a6c6ccc11f41bdc323dfa4c1bd1ab5dfa">snes_</a>, and <a class="el" href="#a0eebe5eeca595a9a850269aa35dbf7f1">turbo_mode_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#ad4baea4deebf6b7bb0ca845be47b443f">Run()</a>.</p>
 <div class="dynheader">
@@ -662,92 +666,107 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1emu_1_1Emulator_a768f75e52c4da7c5d99cc0e527059379_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1Emulator_a768f75e52c4da7c5d99cc0e527059379_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1emu_1_1Emulator_a768f75e52c4da7c5d99cc0e527059379_cgraph" id="aclassyaze_1_1app_1_1emu_1_1Emulator_a768f75e52c4da7c5d99cc0e527059379_cgraph">
-<area shape="rect" title=" " alt="" coords="5,364,168,405"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7" title=" " alt="" coords="216,140,390,165"/>
-<area shape="poly" title=" " alt="" coords="92,363,108,323,134,273,169,220,190,196,214,176,222,170,225,175,217,180,194,200,173,224,139,275,113,325,97,365"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="Parse a zeml string." alt="" coords="238,189,368,230"/>
-<area shape="poly" title=" " alt="" coords="111,362,263,238,266,242,115,366"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2" title="Render a zeml tree." alt="" coords="238,364,368,405"/>
-<area shape="poly" title=" " alt="" coords="168,382,222,382,222,387,168,387"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710" title=" " alt="" coords="222,643,384,683"/>
-<area shape="poly" title=" " alt="" coords="106,404,278,629,274,632,102,407"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589" title=" " alt="" coords="229,1019,377,1059"/>
-<area shape="poly" title=" " alt="" coords="97,404,293,1003,288,1005,92,406"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a805db34a520725f235fdb7d642e343f3" title="Parse a zeml node." alt="" coords="466,37,596,78"/>
-<area shape="poly" title=" " alt="" coords="367,189,388,176,405,155,411,133,419,111,436,89,450,79,453,83,440,93,423,114,416,135,409,157,392,180,370,194"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#aef3beb3e97e844a0512d586ecfb7bf06" title="Tokenize a zeml string." alt="" coords="466,103,596,143"/>
-<area shape="poly" title=" " alt="" coords="361,186,389,175,437,154,455,147,457,152,439,159,391,180,363,191"/>
-<area shape="poly" title=" " alt="" coords="488,37,486,27,493,18,508,13,531,11,555,13,570,19,568,24,554,18,531,16,509,18,496,23,491,29,493,36"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc" title="Map a string to a widget type." alt="" coords="701,5,832,46"/>
-<area shape="poly" title=" " alt="" coords="596,46,686,34,686,39,597,51"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a03a069771465c842d3c6d861a4b6b539" title="ParseNode attributes for a widget." alt="" coords="701,71,832,111"/>
-<area shape="poly" title=" " alt="" coords="597,64,686,77,686,82,596,70"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#ad579d58e78d2fd24d70a4e4afa4d8307" title=" " alt="" coords="920,71,1050,111"/>
-<area shape="poly" title=" " alt="" coords="832,88,904,88,904,94,832,94"/>
-<area shape="poly" title=" " alt="" coords="262,364,260,354,267,345,281,339,303,337,326,340,340,346,338,351,325,345,303,343,282,345,270,349,265,355,267,363"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="457,168,604,209"/>
-<area shape="poly" title=" " alt="" coords="314,362,362,293,396,254,436,220,445,214,448,219,440,224,400,258,366,296,318,365"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="457,233,604,274"/>
-<area shape="poly" title=" " alt="" coords="327,361,376,323,437,285,450,278,452,283,439,289,379,328,330,366"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="457,299,604,339"/>
-<area shape="poly" title=" " alt="" coords="367,363,442,342,444,347,369,368"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="457,364,604,405"/>
-<area shape="poly" title=" " alt="" coords="368,382,441,382,441,387,368,387"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="466,429,596,470"/>
-<area shape="poly" title=" " alt="" coords="369,400,451,424,450,429,367,405"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="440,494,621,520"/>
-<area shape="poly" title=" " alt="" coords="329,403,378,442,439,479,456,486,453,491,437,484,375,446,326,407"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="438,544,623,569"/>
-<area shape="poly" title=" " alt="" coords="319,403,367,467,401,501,439,530,448,535,446,540,437,535,397,505,363,470,315,407"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="693,168,840,209"/>
-<area shape="poly" title=" " alt="" coords="604,186,677,186,677,191,604,191"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b" title=" " alt="" coords="694,233,839,274"/>
-<area shape="poly" title=" " alt="" coords="604,251,679,251,679,256,604,256"/>
-<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="693,299,840,339"/>
-<area shape="poly" title=" " alt="" coords="604,316,677,316,677,322,604,322"/>
-<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="691,520,842,545"/>
-<area shape="poly" title=" " alt="" coords="622,514,676,520,675,525,622,519"/>
-<area shape="poly" title=" " alt="" coords="624,544,675,539,675,544,624,550"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a136b05c68e9ba83c6da6ad46b976590d" title=" " alt="" coords="444,593,618,619"/>
-<area shape="poly" title=" " alt="" coords="384,640,461,620,462,625,385,645"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a9bdb60defe64d1ce05b9ebd5657f6338" title=" " alt="" coords="457,643,604,683"/>
-<area shape="poly" title=" " alt="" coords="384,660,442,660,442,666,384,666"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="453,708,608,733"/>
-<area shape="poly" title=" " alt="" coords="385,681,462,701,461,706,384,686"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c" title=" " alt="" coords="457,757,604,798"/>
-<area shape="poly" title=" " alt="" coords="335,682,383,713,439,743,451,749,449,754,437,748,380,717,332,686"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a0d955aa61589e7c3c22fc5d5c3355af9" title=" " alt="" coords="457,823,604,863"/>
-<area shape="poly" title=" " alt="" coords="314,1017,362,948,396,909,436,874,445,869,448,873,440,878,400,912,366,951,318,1020"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c" title=" " alt="" coords="460,888,602,929"/>
-<area shape="poly" title=" " alt="" coords="327,1016,376,978,437,939,450,933,452,938,439,944,379,982,330,1020"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a50bcf505e15706b422de6a72fc94adb3" title=" " alt="" coords="460,953,602,994"/>
-<area shape="poly" title=" " alt="" coords="375,1016,444,996,445,1001,377,1021"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f" title=" " alt="" coords="464,1019,598,1059"/>
-<area shape="poly" title=" " alt="" coords="377,1036,448,1036,448,1042,377,1042"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287" title=" " alt="" coords="452,1084,609,1125"/>
-<area shape="poly" title=" " alt="" coords="377,1057,443,1077,442,1082,375,1062"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a28477c112185a44ca984b89db927d1da" title=" " alt="" coords="449,1149,613,1190"/>
-<area shape="poly" title=" " alt="" coords="330,1058,379,1096,439,1134,452,1140,450,1145,437,1139,376,1100,327,1062"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a438795265853018a617b7e064fdf21ee" title=" " alt="" coords="438,1215,623,1255"/>
-<area shape="poly" title=" " alt="" coords="318,1058,366,1127,400,1166,440,1200,448,1205,445,1209,436,1204,396,1169,362,1130,314,1061"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab41c9716a08560681673c44e782f3078" title=" " alt="" coords="449,1280,613,1321"/>
-<area shape="poly" title=" " alt="" coords="313,1059,330,1102,356,1157,393,1215,415,1241,440,1265,446,1270,443,1274,436,1269,411,1245,389,1218,352,1160,325,1104,308,1061"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a966f50d10633d4ad47a5f1042673ffdd" title=" " alt="" coords="693,823,840,863"/>
-<area shape="poly" title=" " alt="" coords="604,840,677,840,677,846,604,846"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a96234b514b6cb9d56c48e6e8ac44af67" title=" " alt="" coords="695,888,838,929"/>
-<area shape="poly" title=" " alt="" coords="602,906,680,906,680,911,602,911"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8a959cd07f045af98496d5c4bd8fb666" title=" " alt="" coords="695,953,838,994"/>
-<area shape="poly" title=" " alt="" coords="603,925,681,947,680,952,601,931"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360" title=" " alt="" coords="910,953,1060,994"/>
-<area shape="poly" title=" " alt="" coords="838,971,894,971,894,976,838,976"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a27824db4c395c5a49017d5651947a531" title=" " alt="" coords="672,1019,861,1059"/>
-<area shape="poly" title=" " alt="" coords="606,1081,675,1062,676,1067,607,1086"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a22572fa9b665fc15ac90d6c616aee60b" title=" " alt="" coords="671,1084,862,1125"/>
-<area shape="poly" title=" " alt="" coords="610,1102,656,1102,656,1107,610,1107"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac90a2500436bebaf49a089f6c3029752" title=" " alt="" coords="686,1149,847,1204"/>
-<area shape="poly" title=" " alt="" coords="600,1123,672,1145,670,1150,599,1128"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a85ea843bcb863f12a20df915febfbde0" title=" " alt="" coords="686,1229,847,1284"/>
-<area shape="poly" title=" " alt="" coords="605,1123,625,1136,642,1156,650,1176,658,1195,673,1214,677,1217,673,1222,669,1218,653,1198,645,1178,638,1159,622,1140,602,1127"/>
+<area shape="rect" title=" " alt="" coords="5,463,168,503"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7" title=" " alt="" coords="216,181,390,207"/>
+<area shape="poly" title=" " alt="" coords="89,462,102,412,126,346,162,277,186,245,214,217,220,212,223,216,217,221,190,248,167,280,131,348,107,414,94,463"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35" title=" " alt="" coords="229,231,377,271"/>
+<area shape="poly" title=" " alt="" coords="105,460,271,281,274,284,109,464"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589" title=" " alt="" coords="457,328,604,369"/>
+<area shape="poly" title=" " alt="" coords="156,460,445,371,447,376,157,465"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a" title="Parse a zeml string." alt="" coords="238,593,368,634"/>
+<area shape="poly" title=" " alt="" coords="124,502,256,583,253,587,121,506"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2" title="Render a zeml tree." alt="" coords="238,888,368,929"/>
+<area shape="poly" title=" " alt="" coords="101,502,287,873,282,875,96,505"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710" title=" " alt="" coords="222,1199,384,1239"/>
+<area shape="poly" title=" " alt="" coords="96,503,218,940,293,1183,288,1184,213,941,91,504"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#a683c5e94e45d1336df9be9ccf9660d9f" title=" " alt="" coords="460,8,602,49"/>
+<area shape="poly" title=" " alt="" coords="375,228,388,217,402,199,409,181,412,145,415,107,422,88,436,68,450,55,454,59,440,71,427,90,420,108,417,145,414,182,406,202,392,221,378,232"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a6086f5272d55886f269ebd59b1609379" title=" " alt="" coords="460,81,602,122"/>
+<area shape="poly" title=" " alt="" coords="371,228,388,217,404,201,412,185,421,167,436,149,466,128,469,132,440,153,425,170,417,187,408,204,392,221,374,232"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#add00d0041c3e891cc2db59ff92a12850" title=" " alt="" coords="464,163,598,203"/>
+<area shape="poly" title=" " alt="" coords="373,227,448,205,449,210,374,233"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae35512b6fce8180ab8b69c6c9d8a3b69" title=" " alt="" coords="452,231,609,271"/>
+<area shape="poly" title=" " alt="" coords="377,248,436,248,436,254,377,254"/>
+<area shape="poly" title=" " alt="" coords="354,269,468,319,466,324,351,274"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c" title=" " alt="" coords="692,5,836,46"/>
+<area shape="poly" title=" " alt="" coords="602,25,676,24,676,29,602,30"/>
+<area shape="poly" title=" " alt="" coords="595,78,684,49,686,54,596,83"/>
+<area shape="poly" title=" " alt="" coords="580,160,622,132,636,113,644,94,653,76,670,57,677,52,680,56,673,61,657,79,649,97,641,116,625,136,583,164"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a24631987a6d2a24f9179bee38da85f8d" title=" " alt="" coords="690,71,838,111"/>
+<area shape="poly" title=" " alt="" coords="571,325,598,306,621,281,633,260,639,240,642,201,646,163,654,143,669,123,676,116,680,120,673,126,659,145,651,164,647,202,644,241,638,262,625,285,601,310,574,330"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c" title=" " alt="" coords="693,136,835,177"/>
+<area shape="poly" title=" " alt="" coords="567,325,595,306,621,281,636,257,643,234,651,211,669,188,678,181,681,186,673,192,656,214,648,235,641,259,625,285,599,310,571,330"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a50bcf505e15706b422de6a72fc94adb3" title=" " alt="" coords="693,201,835,242"/>
+<area shape="poly" title=" " alt="" coords="560,325,619,284,670,253,684,246,687,251,673,257,622,289,563,330"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f" title=" " alt="" coords="697,267,831,307"/>
+<area shape="poly" title=" " alt="" coords="604,326,681,306,682,311,606,332"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#a666ce88f7c70d9de1b75f043fea20287" title=" " alt="" coords="685,332,843,373"/>
+<area shape="poly" title=" " alt="" coords="605,347,670,348,670,353,605,352"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a28477c112185a44ca984b89db927d1da" title=" " alt="" coords="682,397,846,438"/>
+<area shape="poly" title=" " alt="" coords="603,367,679,390,678,395,601,372"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a438795265853018a617b7e064fdf21ee" title=" " alt="" coords="671,463,857,503"/>
+<area shape="poly" title=" " alt="" coords="558,367,609,407,673,447,686,454,683,459,670,452,606,411,555,371"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab41c9716a08560681673c44e782f3078" title=" " alt="" coords="682,528,846,569"/>
+<area shape="poly" title=" " alt="" coords="547,368,596,438,632,478,673,513,681,518,678,523,670,517,628,482,592,442,542,371"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a966f50d10633d4ad47a5f1042673ffdd" title=" " alt="" coords="926,71,1074,111"/>
+<area shape="poly" title=" " alt="" coords="838,88,911,88,911,94,838,94"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a96234b514b6cb9d56c48e6e8ac44af67" title=" " alt="" coords="929,136,1071,177"/>
+<area shape="poly" title=" " alt="" coords="835,154,913,154,913,159,835,159"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8a959cd07f045af98496d5c4bd8fb666" title=" " alt="" coords="929,201,1071,242"/>
+<area shape="poly" title=" " alt="" coords="836,173,914,195,913,200,835,179"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360" title=" " alt="" coords="1143,201,1293,242"/>
+<area shape="poly" title=" " alt="" coords="1071,219,1127,219,1127,224,1071,224"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a27824db4c395c5a49017d5651947a531" title=" " alt="" coords="906,267,1094,307"/>
+<area shape="poly" title=" " alt="" coords="839,329,908,310,910,315,840,334"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a22572fa9b665fc15ac90d6c616aee60b" title=" " alt="" coords="905,332,1095,373"/>
+<area shape="poly" title=" " alt="" coords="843,350,889,350,889,355,843,355"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ac90a2500436bebaf49a089f6c3029752" title=" " alt="" coords="919,397,1081,452"/>
+<area shape="poly" title=" " alt="" coords="834,371,905,393,904,398,832,376"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a85ea843bcb863f12a20df915febfbde0" title=" " alt="" coords="919,477,1081,532"/>
+<area shape="poly" title=" " alt="" coords="839,371,858,384,875,404,883,424,891,443,907,462,910,465,907,470,903,466,886,446,878,426,871,407,855,388,836,375"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a805db34a520725f235fdb7d642e343f3" title="Parse a zeml node." alt="" coords="466,593,596,634"/>
+<area shape="poly" title=" " alt="" coords="368,611,450,611,450,616,368,616"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#aef3beb3e97e844a0512d586ecfb7bf06" title="Tokenize a zeml string." alt="" coords="466,659,596,699"/>
+<area shape="poly" title=" " alt="" coords="369,630,451,653,450,659,367,635"/>
+<area shape="poly" title=" " alt="" coords="488,593,486,583,493,574,508,569,531,567,555,569,570,575,568,580,554,574,531,572,509,574,496,579,491,585,493,592"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc" title="Map a string to a widget type." alt="" coords="699,593,829,634"/>
+<area shape="poly" title=" " alt="" coords="596,611,683,611,683,616,596,616"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a03a069771465c842d3c6d861a4b6b539" title="ParseNode attributes for a widget." alt="" coords="699,659,829,699"/>
+<area shape="poly" title=" " alt="" coords="597,629,685,654,683,659,596,634"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#ad579d58e78d2fd24d70a4e4afa4d8307" title=" " alt="" coords="935,659,1065,699"/>
+<area shape="poly" title=" " alt="" coords="830,676,919,676,919,682,830,682"/>
+<area shape="poly" title=" " alt="" coords="262,888,260,878,267,869,281,863,303,861,326,864,340,870,338,875,325,869,303,867,282,869,270,873,265,879,267,887"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="457,724,604,765"/>
+<area shape="poly" title=" " alt="" coords="319,886,368,831,401,802,437,775,447,770,449,774,439,780,404,806,372,835,323,889"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59" title=" " alt="" coords="457,789,604,830"/>
+<area shape="poly" title=" " alt="" coords="343,885,437,841,454,834,456,839,439,845,345,890"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="457,855,604,895"/>
+<area shape="poly" title=" " alt="" coords="368,896,441,885,442,891,368,902"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105" title=" " alt="" coords="457,920,604,961"/>
+<area shape="poly" title=" " alt="" coords="368,915,442,925,441,930,368,920"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a32ea3c388ebf019406a39bdbe5f60154" title="Execute actions for a node." alt="" coords="466,985,596,1026"/>
+<area shape="poly" title=" " alt="" coords="346,927,439,970,457,977,455,982,437,975,344,932"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="440,1050,621,1076"/>
+<area shape="poly" title=" " alt="" coords="322,927,371,982,403,1011,439,1035,452,1042,450,1047,437,1040,400,1015,367,985,318,931"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="438,1100,623,1125"/>
+<area shape="poly" title=" " alt="" coords="316,928,335,963,362,1006,397,1049,440,1086,446,1090,443,1095,436,1090,393,1053,358,1009,330,965,311,930"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="690,724,838,765"/>
+<area shape="poly" title=" " alt="" coords="605,742,675,742,675,747,605,747"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a484c886ec526a3541338c4b32005399b" title=" " alt="" coords="692,789,836,830"/>
+<area shape="poly" title=" " alt="" coords="605,807,676,807,676,812,605,812"/>
+<area shape="rect" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aff0d9773e5e0ec3edbe46df159149615" title=" " alt="" coords="690,855,838,895"/>
+<area shape="poly" title=" " alt="" coords="605,872,675,872,675,878,605,878"/>
+<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="688,1074,840,1100"/>
+<area shape="poly" title=" " alt="" coords="622,1070,673,1075,673,1080,622,1075"/>
+<area shape="poly" title=" " alt="" coords="624,1100,672,1094,673,1100,624,1105"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a136b05c68e9ba83c6da6ad46b976590d" title=" " alt="" coords="444,1149,618,1175"/>
+<area shape="poly" title=" " alt="" coords="384,1196,461,1176,462,1181,385,1201"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a9bdb60defe64d1ce05b9ebd5657f6338" title=" " alt="" coords="457,1199,604,1239"/>
+<area shape="poly" title=" " alt="" coords="384,1216,442,1216,442,1222,384,1222"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a3cce6ce5c9b245f61e6531334c427476" title=" " alt="" coords="453,1264,608,1289"/>
+<area shape="poly" title=" " alt="" coords="385,1237,462,1257,461,1262,384,1242"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c" title=" " alt="" coords="457,1313,604,1354"/>
+<area shape="poly" title=" " alt="" coords="335,1238,383,1269,439,1299,451,1305,449,1310,437,1304,380,1273,332,1242"/>
 </map>
 </div>
 
@@ -1333,6 +1352,30 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#ae44b9e7548dde43578830f2c277eaa28">RenderSnesPpu()</a>, and <a class="el" href="#ad4baea4deebf6b7bb0ca845be47b443f">Run()</a>.</p>
+
+</div>
+</div>
+<a id="a1ea05a41b564d95fe929155e9edc4d7b" name="a1ea05a41b564d95fe929155e9edc4d7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ea05a41b564d95fe929155e9edc4d7b">&#9670;&#160;</a></span>rom_data_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint8_t&gt; yaze::app::emu::Emulator::rom_data_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a768f75e52c4da7c5d99cc0e527059379">RenderNavBar()</a>, and <a class="el" href="#ad4baea4deebf6b7bb0ca845be47b443f">Run()</a>.</p>
 
 </div>
 </div>

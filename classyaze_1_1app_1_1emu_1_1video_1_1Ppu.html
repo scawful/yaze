@@ -167,6 +167,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9b93350a5aee7cb85e1941c4f6c36071"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a807dd887b2027a914b7d0af63b92f2" id="r_a4a807dd887b2027a914b7d0af63b92f2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4a807dd887b2027a914b7d0af63b92f2">HandlePixel</a> (int x, int y)</td></tr>
 <tr class="separator:a4a807dd887b2027a914b7d0af63b92f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5125a48b53c3ca1b979f487b949c26b1" id="r_a5125a48b53c3ca1b979f487b949c26b1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5125a48b53c3ca1b979f487b949c26b1">LatchHV</a> ()</td></tr>
+<tr class="separator:a5125a48b53c3ca1b979f487b949c26b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a910e0545161fb76b2596c928888057ff" id="r_a910e0545161fb76b2596c928888057ff"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a910e0545161fb76b2596c928888057ff">GetPixel</a> (int x, int y, bool sub, int *r, int *g, int *b)</td></tr>
 <tr class="separator:a910e0545161fb76b2596c928888057ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5321aaeae09fb0786c02bd847d636347" id="r_a5321aaeae09fb0786c02bd847d636347"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites</a> (int line)</td></tr>
@@ -185,8 +187,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aec7947de6676ac132945fac1af24fe4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16b376a4daab7485f74d4c74160075fa" id="r_a16b376a4daab7485f74d4c74160075fa"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a16b376a4daab7485f74d4c74160075fa">GetPixelForBgLayer</a> (int x, int y, int layer, bool priority)</td></tr>
 <tr class="separator:a16b376a4daab7485f74d4c74160075fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af55dc896125b1230d66d06e226b0c73d" id="r_af55dc896125b1230d66d06e226b0c73d"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read</a> (uint8_t adr)</td></tr>
-<tr class="separator:af55dc896125b1230d66d06e226b0c73d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a6d723e321f8b51cff20c6d5f872724" id="r_a7a6d723e321f8b51cff20c6d5f872724"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read</a> (uint8_t adr, bool latch)</td></tr>
+<tr class="separator:a7a6d723e321f8b51cff20c6d5f872724"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7fd6a5fa4deaabc9117536386c66b3f5" id="r_a7fd6a5fa4deaabc9117536386c66b3f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write</a> (uint8_t adr, uint8_t val)</td></tr>
 <tr class="separator:a7fd6a5fa4deaabc9117536386c66b3f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88ab8ef055956e1cfaacd2cd8ca060d7" id="r_a88ab8ef055956e1cfaacd2cd8ca060d7"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88ab8ef055956e1cfaacd2cd8ca060d7">GetVramRemap</a> ()</td></tr>
@@ -486,7 +488,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="reference">References <a class="el" href="#a2172bfdd2c4962044bc521a554541f03">clock_</a>, <a class="el" href="#a5129ea2bc44bc0ee9c3b6cb086afd2cf">frame_buffer_</a>, <a class="el" href="namespaceyaze_1_1app_1_1emu_1_1video.html#a7207ceb50d735dbd3330beacba6a946f">yaze::app::emu::video::kPpuClockSpeed</a>, <a class="el" href="#a8cf5ae7407f19d392a86bf99834a7de5">pixelOutputFormat</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c">yaze::app::emu::Clock::SetFrequency()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35">yaze::app::emu::SNES::Init()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35">yaze::app::emu::SNES::Init()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -688,6 +690,47 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="338,154,386,154,386,159,338,159"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aec7947de6676ac132945fac1af24fe4c" title=" " alt="" coords="606,136,752,177"/>
 <area shape="poly" title=" " alt="" coords="544,154,591,154,591,159,544,159"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a5125a48b53c3ca1b979f487b949c26b1" name="a5125a48b53c3ca1b979f487b949c26b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5125a48b53c3ca1b979f487b949c26b1">&#9670;&#160;</a></span>LatchHV()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::emu::video::Ppu::LatchHV </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a5d1b36619f54df77adeb09d601b6f8d6">countersLatched</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8766c07c07764480cc039549e8977efa">yaze::app::emu::memory::Memory::h_pos()</a>, <a class="el" href="#a522d7b0995a3a88a3595313c8b8d2fd2">hCount</a>, <a class="el" href="#aa0a2f0f76f088331f72a9ada067715ef">memory_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e">yaze::app::emu::memory::Memory::v_pos()</a>, and <a class="el" href="#afba543802162acf0e268e29e127f040a">vCount</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac">yaze::app::emu::SNES::WriteReg()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1video_1_1Ppu_a5125a48b53c3ca1b979f487b949c26b1_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a5125a48b53c3ca1b979f487b949c26b1_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a5125a48b53c3ca1b979f487b949c26b1_cgraph" id="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a5125a48b53c3ca1b979f487b949c26b1_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,148,79"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8766c07c07764480cc039549e8977efa" title=" " alt="" coords="196,5,353,46"/>
+<area shape="poly" title=" " alt="" coords="148,44,180,39,181,44,149,50"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e" title=" " alt="" coords="196,71,353,111"/>
+<area shape="poly" title=" " alt="" coords="149,68,181,73,180,78,148,73"/>
 </map>
 </div>
 
@@ -976,8 +1019,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="af55dc896125b1230d66d06e226b0c73d" name="af55dc896125b1230d66d06e226b0c73d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af55dc896125b1230d66d06e226b0c73d">&#9670;&#160;</a></span>Read()</h2>
+<a id="a7a6d723e321f8b51cff20c6d5f872724" name="a7a6d723e321f8b51cff20c6d5f872724"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a6d723e321f8b51cff20c6d5f872724">&#9670;&#160;</a></span>Read()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -985,33 +1028,38 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">uint8_t yaze::app::emu::video::Ppu::Read </td>
           <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>adr</em></span></td><td>)</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>adr</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>latch</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000026">Todo</a></b></dt><dd>only when ppulatch is set </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000027">Todo</a></b></dt><dd>only when ppulatch is set </dd></dl>
 
-<p class="reference">References <a class="el" href="#a8a653f06b9bf165c92e253216370bb80">cgram</a>, <a class="el" href="#af8b21b639b318b77da578090ba7c7143">cgramPointer</a>, <a class="el" href="#ab747c188f3968b949cbc8db0f0e0f02d">cgramSecondWrite</a>, <a class="el" href="#a5d1b36619f54df77adeb09d601b6f8d6">countersLatched</a>, <a class="el" href="#aa666b326474a27aa582400f65b57fb0b">even_frame</a>, <a class="el" href="#a88ab8ef055956e1cfaacd2cd8ca060d7">GetVramRemap()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8766c07c07764480cc039549e8977efa">yaze::app::emu::memory::Memory::h_pos()</a>, <a class="el" href="#a522d7b0995a3a88a3595313c8b8d2fd2">hCount</a>, <a class="el" href="#af353d4c80a95f9194dc0fb7c7febd6b5">hCountSecond</a>, <a class="el" href="#a760020d7dda7fdc60e66a3c1187063ae">highOam</a>, <a class="el" href="#adc9f52d8356d28b96d8f2a07003962fe">m7matrix</a>, <a class="el" href="#aa0a2f0f76f088331f72a9ada067715ef">memory_</a>, <a class="el" href="#aa59bf7a60506c9f3dc65bb1191076c52">oam</a>, <a class="el" href="#ae5617f0e1351d487e473a014e811985c">oamAdr</a>, <a class="el" href="#a81d8b1b89b2489d0144643935be33643">oamInHigh</a>, <a class="el" href="#a8018e3c86a6a3e4d74656da22a2e5f3e">oamSecondWrite</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a71aaf1623d03b5b6e7a4c537b8183fbd">yaze::app::emu::memory::Memory::open_bus()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aea072222bdf89643d037ce94425d76b9">yaze::app::emu::memory::Memory::pal_timing()</a>, <a class="el" href="#a8a86297e3f2ff73a631a3c42fb2f5b44">ppu1openBus</a>, <a class="el" href="#a1bfa3d19f5695fe18b3a00ef39b6a05f">ppu2openBus</a>, <a class="el" href="#ae282ca835c4058e7ec462115e09494fa">range_over_</a>, <a class="el" href="#ae84934679c5846cbb036d2105019ddb6">time_over_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e">yaze::app::emu::memory::Memory::v_pos()</a>, <a class="el" href="#afba543802162acf0e268e29e127f040a">vCount</a>, <a class="el" href="#a532df8c1a1315f25810c0bccd03af5de">vCountSecond</a>, <a class="el" href="#af7ce9ce0c5b745159d762069b62780dd">vram</a>, <a class="el" href="#a3972637f260eca020e7fd1bf4fba97ce">vramIncrement</a>, <a class="el" href="#ae70035cb8b5328738cd3bd2c523a0e75">vramIncrementOnHigh</a>, <a class="el" href="#a9706ed299353d78893d782a231783df9">vramPointer</a>, and <a class="el" href="#af53126e3d96d2dfa3179025638eb07b9">vramReadBuffer</a>.</p>
+<p class="reference">References <a class="el" href="#a8a653f06b9bf165c92e253216370bb80">cgram</a>, <a class="el" href="#af8b21b639b318b77da578090ba7c7143">cgramPointer</a>, <a class="el" href="#ab747c188f3968b949cbc8db0f0e0f02d">cgramSecondWrite</a>, <a class="el" href="#a5d1b36619f54df77adeb09d601b6f8d6">countersLatched</a>, <a class="el" href="#aa666b326474a27aa582400f65b57fb0b">even_frame</a>, <a class="el" href="#a88ab8ef055956e1cfaacd2cd8ca060d7">GetVramRemap()</a>, <a class="el" href="#a522d7b0995a3a88a3595313c8b8d2fd2">hCount</a>, <a class="el" href="#af353d4c80a95f9194dc0fb7c7febd6b5">hCountSecond</a>, <a class="el" href="#a760020d7dda7fdc60e66a3c1187063ae">highOam</a>, <a class="el" href="#a5125a48b53c3ca1b979f487b949c26b1">LatchHV()</a>, <a class="el" href="#adc9f52d8356d28b96d8f2a07003962fe">m7matrix</a>, <a class="el" href="#aa0a2f0f76f088331f72a9ada067715ef">memory_</a>, <a class="el" href="#aa59bf7a60506c9f3dc65bb1191076c52">oam</a>, <a class="el" href="#ae5617f0e1351d487e473a014e811985c">oamAdr</a>, <a class="el" href="#a81d8b1b89b2489d0144643935be33643">oamInHigh</a>, <a class="el" href="#a8018e3c86a6a3e4d74656da22a2e5f3e">oamSecondWrite</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a71aaf1623d03b5b6e7a4c537b8183fbd">yaze::app::emu::memory::Memory::open_bus()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aea072222bdf89643d037ce94425d76b9">yaze::app::emu::memory::Memory::pal_timing()</a>, <a class="el" href="#a8a86297e3f2ff73a631a3c42fb2f5b44">ppu1openBus</a>, <a class="el" href="#a1bfa3d19f5695fe18b3a00ef39b6a05f">ppu2openBus</a>, <a class="el" href="#ae282ca835c4058e7ec462115e09494fa">range_over_</a>, <a class="el" href="#ae84934679c5846cbb036d2105019ddb6">time_over_</a>, <a class="el" href="#afba543802162acf0e268e29e127f040a">vCount</a>, <a class="el" href="#a532df8c1a1315f25810c0bccd03af5de">vCountSecond</a>, <a class="el" href="#af7ce9ce0c5b745159d762069b62780dd">vram</a>, <a class="el" href="#a3972637f260eca020e7fd1bf4fba97ce">vramIncrement</a>, <a class="el" href="#ae70035cb8b5328738cd3bd2c523a0e75">vramIncrementOnHigh</a>, <a class="el" href="#a9706ed299353d78893d782a231783df9">vramPointer</a>, and <a class="el" href="#af53126e3d96d2dfa3179025638eb07b9">vramReadBuffer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#af752beecbfc218cda7fcb8b32a9faf60">yaze::app::emu::SNES::ReadBBus()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac">yaze::app::emu::SNES::WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#af752beecbfc218cda7fcb8b32a9faf60">yaze::app::emu::SNES::ReadBBus()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1emu_1_1video_1_1Ppu_af55dc896125b1230d66d06e226b0c73d_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_af55dc896125b1230d66d06e226b0c73d_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_af55dc896125b1230d66d06e226b0c73d_cgraph" id="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_af55dc896125b1230d66d06e226b0c73d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,136,148,177"/>
+<div class="center"><img src="classyaze_1_1app_1_1emu_1_1video_1_1Ppu_a7a6d723e321f8b51cff20c6d5f872724_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a7a6d723e321f8b51cff20c6d5f872724_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a7a6d723e321f8b51cff20c6d5f872724_cgraph" id="aclassyaze_1_1app_1_1emu_1_1video_1_1Ppu_a7a6d723e321f8b51cff20c6d5f872724_cgraph">
+<area shape="rect" title=" " alt="" coords="5,104,148,145"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a88ab8ef055956e1cfaacd2cd8ca060d7" title=" " alt="" coords="200,5,349,46"/>
-<area shape="poly" title=" " alt="" coords="97,134,140,96,194,57,204,51,207,56,197,61,144,100,101,138"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8766c07c07764480cc039549e8977efa" title=" " alt="" coords="196,71,353,111"/>
-<area shape="poly" title=" " alt="" coords="139,133,195,114,197,119,141,138"/>
+<area shape="poly" title=" " alt="" coords="112,101,194,57,207,51,210,55,197,61,115,106"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5125a48b53c3ca1b979f487b949c26b1" title=" " alt="" coords="203,71,346,111"/>
+<area shape="poly" title=" " alt="" coords="148,110,187,103,188,108,149,115"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a71aaf1623d03b5b6e7a4c537b8183fbd" title=" " alt="" coords="196,136,353,177"/>
-<area shape="poly" title=" " alt="" coords="148,154,180,154,180,159,148,159"/>
+<area shape="poly" title=" " alt="" coords="149,133,181,138,180,144,148,139"/>
 <area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aea072222bdf89643d037ce94425d76b9" title=" " alt="" coords="196,201,353,242"/>
-<area shape="poly" title=" " alt="" coords="141,175,197,193,195,198,139,180"/>
-<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e" title=" " alt="" coords="196,267,353,307"/>
-<area shape="poly" title=" " alt="" coords="101,175,144,213,197,251,207,257,204,262,194,256,140,217,97,179"/>
+<area shape="poly" title=" " alt="" coords="115,143,197,186,210,192,208,197,194,191,113,147"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a8766c07c07764480cc039549e8977efa" title=" " alt="" coords="401,39,558,79"/>
+<area shape="poly" title=" " alt="" coords="346,77,385,71,386,76,346,83"/>
+<area shape="rect" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e" title=" " alt="" coords="401,104,558,145"/>
+<area shape="poly" title=" " alt="" coords="346,100,386,106,385,112,346,105"/>
 </map>
 </div>
 
@@ -1035,9 +1083,9 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000028">Todo</a></b></dt><dd>oam address reset when written on first line of vblank, (and when </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000029">Todo</a></b></dt><dd>mosaic line reset specifics </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000030">Todo</a></b></dt><dd>vram access during rendering (also cgram and oam) </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000027">Todo</a></b></dt><dd>oam address reset when written on first line of vblank, (and when </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000028">Todo</a></b></dt><dd>mosaic line reset specifics </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000029">Todo</a></b></dt><dd>vram access during rendering (also cgram and oam) </dd></dl>
 
 <p class="reference">References <a class="el" href="#af6ae0be52d5715eb4a2599c93e3a9078">add_subscreen_</a>, <a class="el" href="#a5347cb48ba2eb9aa455263022960634f">bg3priority</a>, <a class="el" href="#aec998cedebb03466b2e292a816ff3625">bgLayer</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a86b417ec8700327fa4acbcbf37820764">yaze::app::emu::video::BgLayer::bigTiles</a>, <a class="el" href="#afa4c2ac0c72fae10dcbf1ede8e326f7b">brightness</a>, <a class="el" href="#a8a653f06b9bf165c92e253216370bb80">cgram</a>, <a class="el" href="#a007858ae55023c37e2b0f019511f51c9">cgramBuffer</a>, <a class="el" href="#af8b21b639b318b77da578090ba7c7143">cgramPointer</a>, <a class="el" href="#ab747c188f3968b949cbc8db0f0e0f02d">cgramSecondWrite</a>, <a class="el" href="#a50039ccf288b66e3153654854fc082b3">clip_mode_</a>, <a class="el" href="#a9e2d974a518a5c33ab3b3a0e07bc745c">directColor</a>, <a class="el" href="#ac5f28e19e5df572bebf8083064e67af0">fixedColorB</a>, <a class="el" href="#a7c12ecc708d376a784081bee0897106a">fixedColorG</a>, <a class="el" href="#a3b87de49cbd3ed116ef25aa81b29760f">fixedColorR</a>, <a class="el" href="#add3966be2096c1d8ffcc2179c85069af">forcedBlank</a>, <a class="el" href="#a88ab8ef055956e1cfaacd2cd8ca060d7">GetVramRemap()</a>, <a class="el" href="#ab94095526c509e78446be14747aedf57">halfColor</a>, <a class="el" href="#a760020d7dda7fdc60e66a3c1187063ae">highOam</a>, <a class="el" href="#a0b41b3772bf00df56f53e6a79944a54b">interlace</a>, <a class="el" href="#aad7b1c2fc7099fca22e46e4350664b4a">layer_</a>, <a class="el" href="#a5c96fa8ec893c1154d1cbf77244e1710">m7charFill</a>, <a class="el" href="#a7cdbaa09bbacd69f6959b50f2938c78e">m7extBg</a>, <a class="el" href="#ae4c5927218918e781d21e8408d8c8fb8">m7largeField</a>, <a class="el" href="#adc9f52d8356d28b96d8f2a07003962fe">m7matrix</a>, <a class="el" href="#a2a1cf7c500de458bc961cde8df40eb64">m7prev</a>, <a class="el" href="#a17a94f8431761bfa323e20e95689c209">m7xFlip</a>, <a class="el" href="#af8960086bf56dc0e1c122cdf0ca81ecb">m7yFlip</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1Layer.html#ad2bc74c15ac856215392c9e1014faa84">yaze::app::emu::video::Layer::mainScreenEnabled</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1Layer.html#a42cc91b0b9215c578d90914b7630019c">yaze::app::emu::video::Layer::mainScreenWindowed</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#af9921096a0ff88bfc183d03ce2fbc936">yaze::app::emu::video::WindowLayer::maskLogic</a>, <a class="el" href="#a5d8678e8887a46645f711df150ad3e84">math_enabled_array_</a>, <a class="el" href="#aa0a2f0f76f088331f72a9ada067715ef">memory_</a>, <a class="el" href="#abedf75f8c77ab64175054076398ed1db">mode</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a2fa19795b01890defda2ab58bdf7c075">yaze::app::emu::video::BgLayer::mosaicEnabled</a>, <a class="el" href="#a5ca6fa4f848decf2ae695f0d5f9ba6fc">mosaicSize</a>, <a class="el" href="#a420a56186183b4826f2db822c5d3a770">mosaicStartLine</a>, <a class="el" href="#aa59bf7a60506c9f3dc65bb1191076c52">oam</a>, <a class="el" href="#ae5617f0e1351d487e473a014e811985c">oamAdr</a>, <a class="el" href="#acf8e662b484a99f0232e6b3de41ea647">oamAdrWritten</a>, <a class="el" href="#abce9093fab98b81ee91930f9a67e8eb8">oamBuffer</a>, <a class="el" href="#a81d8b1b89b2489d0144643935be33643">oamInHigh</a>, <a class="el" href="#ac1176edf1942dd9e4ccbab0af403d32f">oamInHighWritten</a>, <a class="el" href="#a8018e3c86a6a3e4d74656da22a2e5f3e">oamSecondWrite</a>, <a class="el" href="#aa49b2edc8064140d8a8dcf87fab6da46">objInterlace</a>, <a class="el" href="#a6f708aad6dd5e6a723d95fcaaddb20f7">objPriority</a>, <a class="el" href="#a8629b4782f367a7f1fea6bf89bee5b8f">objSize</a>, <a class="el" href="#aff7cab5186fb8568e51e02be77db17d8">objTileAdr1</a>, <a class="el" href="#ab0b0e599b0ed08d656b6fb4f588642de">objTileAdr2</a>, <a class="el" href="#ae4f40cf82301325e56b8688234337b43">overscan</a>, <a class="el" href="#a4a6e6e5a5e5ef05175e7ad07a02c6046">prevent_math_mode_</a>, <a class="el" href="#a80ef138faa835a4d2b217f9ed4cfce4f">pseudoHires</a>, <a class="el" href="#ad101d90745053aa2900c80d1b6a0232b">scrollPrev</a>, <a class="el" href="#aa4da5e48a53223dfc886fc0cc9e9dfbb">scrollPrev2</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1Layer.html#adc6dbda7f98314b43af01d5558c92756">yaze::app::emu::video::Layer::subScreenEnabled</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1Layer.html#a315941b327241b0a0f370a970435b44b">yaze::app::emu::video::Layer::subScreenWindowed</a>, <a class="el" href="#a400892d47dc7b782135585472f81bc62">subtractColor</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a2bc5d22962313ad674b8ba58925fbce8">yaze::app::emu::video::BgLayer::tileAdr</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#adcafd64c85e5736f637bbef22a1219ed">yaze::app::emu::video::BgLayer::tilemapAdr</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#add1c5ebc400841f2bee8a2fe7a5d73b5">yaze::app::emu::video::BgLayer::tilemapHigher</a>, <a class="el" href="structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a5ed9b814ca70d91871deffb9e0595c2d">yaze::app::emu::video::BgLayer::tilemapWider</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a4c74763b9244d4d2af6bfdee4b2e129e">yaze::app::emu::memory::Memory::v_pos()</a>, <a class="el" href="#af7ce9ce0c5b745159d762069b62780dd">vram</a>, <a class="el" href="#a3972637f260eca020e7fd1bf4fba97ce">vramIncrement</a>, <a class="el" href="#ae70035cb8b5328738cd3bd2c523a0e75">vramIncrementOnHigh</a>, <a class="el" href="#a9706ed299353d78893d782a231783df9">vramPointer</a>, <a class="el" href="#af53126e3d96d2dfa3179025638eb07b9">vramReadBuffer</a>, <a class="el" href="#a58312f56ea826002ca1886e4ac88cc91">vramRemapMode</a>, <a class="el" href="#a87aa2bbd5e683c1d0e9593f46f780111">window1left</a>, <a class="el" href="#ad0d02a51972cc5e850020a034ac634ec">window1right</a>, <a class="el" href="#a612b6cf9711ba633d5e35b02cf9f84f0">window2left</a>, <a class="el" href="#acdf4696b4a75a67424149edfdaae24da">window2right</a>, and <a class="el" href="#a33ccd13905cab25046e4f23f787df2eb">windowLayer</a>.</p>
 
@@ -1074,7 +1122,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a9706ed299353d78893d782a231783df9">vramPointer</a>, and <a class="el" href="#a58312f56ea826002ca1886e4ac88cc91">vramRemapMode</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1273,7 +1321,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#a910e0545161fb76b2596c928888057ff">GetPixel()</a>, <a class="el" href="#ab4b1433221c31364affdbb889135d646">HandleFrameStart()</a>, <a class="el" href="#a4a807dd887b2027a914b7d0af63b92f2">HandlePixel()</a>, <a class="el" href="#abfae099f8f3ce10b2e043cc6adf4e7f5">PutPixels()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#a910e0545161fb76b2596c928888057ff">GetPixel()</a>, <a class="el" href="#ab4b1433221c31364affdbb889135d646">HandleFrameStart()</a>, <a class="el" href="#a4a807dd887b2027a914b7d0af63b92f2">HandlePixel()</a>, <a class="el" href="#abfae099f8f3ce10b2e043cc6adf4e7f5">PutPixels()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>.</p>
 
 </div>
 </div>
@@ -1525,7 +1573,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#aec7947de6676ac132945fac1af24fe4c">GetOffsetValue()</a>, <a class="el" href="#a16b376a4daab7485f74d4c74160075fa">GetPixelForBgLayer()</a>, <a class="el" href="#acb715cbced56d0eb9a0913840bfd54ea">GetPixelForMode7()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#aec7947de6676ac132945fac1af24fe4c">GetOffsetValue()</a>, <a class="el" href="#a16b376a4daab7485f74d4c74160075fa">GetPixelForBgLayer()</a>, <a class="el" href="#acb715cbced56d0eb9a0913840bfd54ea">GetPixelForMode7()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1549,7 +1597,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a88ab8ef055956e1cfaacd2cd8ca060d7">GetVramRemap()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a88ab8ef055956e1cfaacd2cd8ca060d7">GetVramRemap()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1573,7 +1621,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1597,7 +1645,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1645,7 +1693,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1669,7 +1717,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a910e0545161fb76b2596c928888057ff">GetPixel()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a910e0545161fb76b2596c928888057ff">GetPixel()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1693,7 +1741,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1717,7 +1765,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1765,7 +1813,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1789,7 +1837,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1813,7 +1861,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#a77fb8958c75d9038648c802a7027ae60">HandleVblank()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#a77fb8958c75d9038648c802a7027ae60">HandleVblank()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1861,7 +1909,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a77fb8958c75d9038648c802a7027ae60">HandleVblank()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a77fb8958c75d9038648c802a7027ae60">HandleVblank()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -1909,7 +1957,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a77fb8958c75d9038648c802a7027ae60">HandleVblank()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a77fb8958c75d9038648c802a7027ae60">HandleVblank()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -2101,7 +2149,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#ab4b1433221c31364affdbb889135d646">HandleFrameStart()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#ab4b1433221c31364affdbb889135d646">HandleFrameStart()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2125,7 +2173,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#ab4b1433221c31364affdbb889135d646">HandleFrameStart()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5321aaeae09fb0786c02bd847d636347">EvaluateSprites()</a>, <a class="el" href="#ab4b1433221c31364affdbb889135d646">HandleFrameStart()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2413,7 +2461,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a891065a1fb48c657f96b13ecab988c78">CalculateMode7Starts()</a>, <a class="el" href="#acb715cbced56d0eb9a0913840bfd54ea">GetPixelForMode7()</a>, <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a891065a1fb48c657f96b13ecab988c78">CalculateMode7Starts()</a>, <a class="el" href="#acb715cbced56d0eb9a0913840bfd54ea">GetPixelForMode7()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>
@@ -2963,7 +3011,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5125a48b53c3ca1b979f487b949c26b1">LatchHV()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2987,7 +3035,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5125a48b53c3ca1b979f487b949c26b1">LatchHV()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3011,7 +3059,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3035,7 +3083,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3059,7 +3107,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5125a48b53c3ca1b979f487b949c26b1">LatchHV()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3083,7 +3131,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3107,7 +3155,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a50bcf505e15706b422de6a72fc94adb3">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3219,7 +3267,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55dc896125b1230d66d06e226b0c73d">Read()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a5125a48b53c3ca1b979f487b949c26b1">LatchHV()</a>, <a class="el" href="#a7a6d723e321f8b51cff20c6d5f872724">Read()</a>, and <a class="el" href="#a7fd6a5fa4deaabc9117536386c66b3f5">Write()</a>.</p>
 
 </div>
 </div>

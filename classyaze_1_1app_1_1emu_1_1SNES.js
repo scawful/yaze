@@ -2,7 +2,7 @@ var classyaze_1_1app_1_1emu_1_1SNES =
 [
     [ "SNES", "classyaze_1_1app_1_1emu_1_1SNES.html#a822681136d9a3009b5cbf13fb7d9bc5a", null ],
     [ "~SNES", "classyaze_1_1app_1_1emu_1_1SNES.html#a8c976683924456093ec663746af502b5", null ],
-    [ "Init", "classyaze_1_1app_1_1emu_1_1SNES.html#ae6ed4e25b8d7aabd3a37a710d8cf8d35", null ],
+    [ "Init", "classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35", null ],
     [ "Reset", "classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589", null ],
     [ "RunFrame", "classyaze_1_1app_1_1emu_1_1SNES.html#a14b03ac590781c59ff14e2a2cfcbbffa", null ],
     [ "CatchUpApu", "classyaze_1_1app_1_1emu_1_1SNES.html#a6c1abd10faa22d9a680130233a997127", null ],
@@ -23,6 +23,7 @@ var classyaze_1_1app_1_1emu_1_1SNES =
     [ "CpuIdle", "classyaze_1_1app_1_1emu_1_1SNES.html#a4ee3b1e246aa38fbf615854c5a50fc53", null ],
     [ "SetSamples", "classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a", null ],
     [ "SetPixels", "classyaze_1_1app_1_1emu_1_1SNES.html#ac11726994035cd0caf4ab0d7e86a1495", null ],
+    [ "SetButtonState", "classyaze_1_1app_1_1emu_1_1SNES.html#a9ac754f76c6b40ff850ad584c1da260a", null ],
     [ "running", "classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3", null ],
     [ "cpu", "classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7", null ],
     [ "ppu", "classyaze_1_1app_1_1emu_1_1SNES.html#a87a0cc3daa15e5158fb3779263296014", null ],
@@ -30,7 +31,7 @@ var classyaze_1_1app_1_1emu_1_1SNES =
     [ "Memory", "classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c", null ],
     [ "get_ram", "classyaze_1_1app_1_1emu_1_1SNES.html#a9bdb60defe64d1ce05b9ebd5657f6338", null ],
     [ "mutable_cycles", "classyaze_1_1app_1_1emu_1_1SNES.html#a7ba718cb55d231425935adcd4724a4e3", null ],
-    [ "build_accesstime", "classyaze_1_1app_1_1emu_1_1SNES.html#a0d955aa61589e7c3c22fc5d5c3355af9", null ],
+    [ "InitAccessTime", "classyaze_1_1app_1_1emu_1_1SNES.html#a24631987a6d2a24f9179bee38da85f8d", null ],
     [ "access_time", "classyaze_1_1app_1_1emu_1_1SNES.html#a7a9e725bf9b84e1c84ee4487209207ec", null ],
     [ "clock_", "classyaze_1_1app_1_1emu_1_1SNES.html#a530f0c5b5b25846acd2f4cab77c561cb", null ],
     [ "debugger", "classyaze_1_1app_1_1emu_1_1SNES.html#a28bcfe49c25bd29af1ca192aa8726b24", null ],
@@ -48,7 +49,7 @@ var classyaze_1_1app_1_1emu_1_1SNES =
     [ "cycles_", "classyaze_1_1app_1_1emu_1_1SNES.html#a0787b4101cc0b2a9eeef3813e9cb1c41", null ],
     [ "sync_cycle_", "classyaze_1_1app_1_1emu_1_1SNES.html#a53b7d3cab53fc715b1d2faf766b320cd", null ],
     [ "apu_catchup_cycles_", "classyaze_1_1app_1_1emu_1_1SNES.html#a8ca11347c17a8bb5c39f47f153ed28a7", null ],
-    [ "nextHoriEvent", "classyaze_1_1app_1_1emu_1_1SNES.html#aaef4293c559c95e1411b845455f589c4", null ],
+    [ "next_horiz_event", "classyaze_1_1app_1_1emu_1_1SNES.html#ac48a2aab8f015b498a70470c10b7d3f4", null ],
     [ "h_irq_enabled_", "classyaze_1_1app_1_1emu_1_1SNES.html#acf40f2555f47abbad4c2ed82edcf3418", null ],
     [ "v_irq_enabled_", "classyaze_1_1app_1_1emu_1_1SNES.html#a361e4c7d3490fcff7f1951cab7fbf2da", null ],
     [ "nmi_enabled_", "classyaze_1_1app_1_1emu_1_1SNES.html#a5bbe00e728214101a8a498be2b8f04e4", null ],
@@ -67,6 +68,6 @@ var classyaze_1_1app_1_1emu_1_1SNES =
     [ "port_auto_read_", "classyaze_1_1app_1_1emu_1_1SNES.html#a0d003532cbe5f9f137c802f3ce9bdddd", null ],
     [ "auto_joy_read_", "classyaze_1_1app_1_1emu_1_1SNES.html#a89c5f3a1cc06a3f78398dfba567936b9", null ],
     [ "auto_joy_timer_", "classyaze_1_1app_1_1emu_1_1SNES.html#a8d4279e4bd9798fc575b69e7e26f0504", null ],
-    [ "ppuLatch", "classyaze_1_1app_1_1emu_1_1SNES.html#a14aa622917cf7fe34d8dfe3deb9109b0", null ],
+    [ "ppu_latch_", "classyaze_1_1app_1_1emu_1_1SNES.html#ac5107a5af77dff800d22b3a7dfbb8ce3", null ],
     [ "fast_mem_", "classyaze_1_1app_1_1emu_1_1SNES.html#a78edf487e8006eab83dfef045cee66e4", null ]
 ];

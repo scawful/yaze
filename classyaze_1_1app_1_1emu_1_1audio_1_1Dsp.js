@@ -1,6 +1,7 @@
 var classyaze_1_1app_1_1emu_1_1audio_1_1Dsp =
 [
     [ "Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#ac2076b5b28b95e4675a66d8a1da56ea9", null ],
+    [ "NewFrame", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a50bc6784048f64b765f8026f7c67099e", null ],
     [ "Reset", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a96234b514b6cb9d56c48e6e8ac44af67", null ],
     [ "Cycle", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#af0dee1dd388ab5bc5e59499e855e0044", null ],
     [ "HandleEcho", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#adadfa13540507449f07b633a16f490fb", null ],
@@ -44,5 +45,6 @@ var classyaze_1_1app_1_1emu_1_1audio_1_1Dsp =
     [ "firBufferL", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#adff8fa62fb496d5e9a259b6b15c88688", null ],
     [ "firBufferR", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aaaa3b70c1fe1156bb5bd8b67f00d31f5", null ],
     [ "sampleBuffer", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a29bb57123f9260a31ecd8ef5506c9580", null ],
-    [ "sampleOffset", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa32b630984516360407cebde5294c7ca", null ]
+    [ "sampleOffset", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa32b630984516360407cebde5294c7ca", null ],
+    [ "lastFrameBoundary", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#afa65d58ac68f66cf5f8ac6cf10368f60", null ]
 ];

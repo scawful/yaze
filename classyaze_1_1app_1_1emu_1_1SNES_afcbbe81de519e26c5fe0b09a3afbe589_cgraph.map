@@ -1,6 +1,6 @@
 <map id="yaze::app::emu::SNES::Reset" name="yaze::app::emu::SNES::Reset">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,235,153,275"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a0d955aa61589e7c3c22fc5d5c3355af9" title=" " alt="" coords="220,5,367,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a24631987a6d2a24f9179bee38da85f8d" title=" " alt="" coords="220,5,367,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,233,101,196,125,149,158,100,199,57,205,52,209,56,202,61,162,103,130,151,106,198,90,235"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c" title=" " alt="" coords="222,71,365,111"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="93,232,136,178,166,148,199,122,209,116,211,121,202,127,170,152,140,182,97,236"/>

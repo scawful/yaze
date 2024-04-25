@@ -31,5 +31,6 @@ var classyaze_1_1app_1_1emu_1_1Emulator =
     [ "audio_device_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a133affc39ccc0e14517b0bfef883b2f0", null ],
     [ "snes_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a6c6ccc11f41bdc323dfa4c1bd1ab5dfa", null ],
     [ "ppu_texture_", "classyaze_1_1app_1_1emu_1_1Emulator.html#aba8cfa17f73c297631194e4bc66fceb4", null ],
+    [ "rom_data_", "classyaze_1_1app_1_1emu_1_1Emulator.html#a1ea05a41b564d95fe929155e9edc4d7b", null ],
     [ "emulator_node_", "classyaze_1_1app_1_1emu_1_1Emulator.html#aa0faccd3b01b89f029d15eb97bcfbe31", null ]
 ];

@@ -10,7 +10,7 @@ var searchData=
   ['nbr_5fof_5ffloor_7',['nbr_of_floor',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a869c6f5679814521a2d05bf6fbb2d2bb',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['new_5fcolor_8',['new_color',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#af74249fe652d2c8cab3ff2148c0f9f85',1,'yaze::app::editor::palette_internal::PaletteChange']]],
   ['next_9',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece']]],
-  ['nexthorievent_10',['nextHoriEvent',['../classyaze_1_1app_1_1emu_1_1SNES.html#aaef4293c559c95e1411b845455f589c4',1,'yaze::app::emu::SNES']]],
+  ['next_5fhoriz_5fevent_10',['next_horiz_event',['../classyaze_1_1app_1_1emu_1_1SNES.html#ac48a2aab8f015b498a70470c10b7d3f4',1,'yaze::app::emu::SNES']]],
   ['nmi_5fenabled_5f_11',['nmi_enabled_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a5bbe00e728214101a8a498be2b8f04e4',1,'yaze::app::emu::SNES']]],
   ['nmi_5fwanted_5f_12',['nmi_wanted_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a86d5c6f2309b1702e1b7777cde844b1e',1,'yaze::app::emu::Cpu']]],
   ['nmiregister_13',['nmiRegister',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#ad509a8023cc0cf5172285a19ea254d22',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],

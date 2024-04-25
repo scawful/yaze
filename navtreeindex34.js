@@ -1,5 +1,13 @@
 var NAVTREEINDEX34 =
 {
+"namespaceyaze_1_1app_1_1core.html#a3e191e0b261638665d634ccda0110c38":[8,0,1,0,0,45],
+"namespaceyaze_1_1app_1_1core.html#a404bc704e5790601b2b9c4b5817ed0a8":[8,0,1,0,0,70],
+"namespaceyaze_1_1app_1_1core.html#a4058970d6f1921076ef1f68b88fa42af":[8,0,1,0,0,20],
+"namespaceyaze_1_1app_1_1core.html#a408089b530849b090f79632e912368fb":[8,0,1,0,0,30],
+"namespaceyaze_1_1app_1_1core.html#a429a09bfae25435c0a8606d89a09e1be":[8,0,1,0,0,69],
+"namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48":[8,0,1,0,0,11],
+"namespaceyaze_1_1app_1_1core.html#a44151bd7ba995193dbd36f28e7b219c0":[8,0,1,0,0,73],
+"namespaceyaze_1_1app_1_1core.html#a46743e1a4aa5c38b9bbb84a67d95916e":[8,0,1,0,0,50],
 "namespaceyaze_1_1app_1_1core.html#a4c8dafb3f8ad4cdf10435516a56b0edc":[8,0,1,0,0,84],
 "namespaceyaze_1_1app_1_1core.html#a57423a3f6c1ec89535f5e836dc1406fe":[8,0,1,0,0,16],
 "namespaceyaze_1_1app_1_1core.html#a58dc78cb3c691e3d7fa277549bc9bed3":[8,0,1,0,0,21],
@@ -241,13 +249,5 @@ var NAVTREEINDEX34 =
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html":[8,0,1,0,2,4,0],
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a01946d6b079d28c1b950d4dca483aec1":[8,0,1,0,2,4,0,87],
 "namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a05048f63c8c7246f44e67f5a0eb177bb":[8,0,1,0,2,4,0,89],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a06be98cf409ae590f3645a346f1d31b9":[8,0,1,0,2,4,0,107],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a095a39366cc74e3b4d2ff352b651b675":[8,0,1,0,2,4,0,70],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a137a89e211e1cd3682a1eec350a04e14":[8,0,1,0,2,4,0,58],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a20b4540bc753158ca97483620bf2df03":[8,0,1,0,2,4,0,76],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a22bd791fdf9d37bfbb0e6a909d030d40":[8,0,1,0,2,4,0,99],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a2dac7b7419e2607ea0aea3a78776b8a1":[8,0,1,0,2,4,0,61],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a30f7ab3067d2a6a0d121ab7021e869bb":[8,0,1,0,2,4,0,111],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a355b518616aa53d385f45b1be595cf32":[8,0,1,0,2,4,0,75],
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a3d42d918afe637c13a1c380e2ff27cea":[8,0,1,0,2,4,0,115]
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a06be98cf409ae590f3645a346f1d31b9":[8,0,1,0,2,4,0,107]
 };
