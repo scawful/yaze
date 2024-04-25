@@ -36,18 +36,12 @@ class InstructionEntry {
   std::string instruction;  // Human-readable instruction text
 };
 
-const int kCpuClockSpeed = 21477272;  // 21.477272 MHz
-
 class Cpu : public Loggable, public core::ExperimentFlags {
  public:
   explicit Cpu(memory::Memory& mem, Clock& vclock,
                memory::CpuCallbacks& callbacks)
       : memory(mem), clock(vclock), callbacks_(callbacks) {}
-  enum class UpdateMode { Run, Step, Pause };
-
-  void Init(bool verbose = false) { clock.SetFrequency(kCpuClockSpeed); }
   void Reset(bool hard = false);
-  void Update(UpdateMode mode = UpdateMode::Run, int stepCount = 1);
 
   void RunOpcode();
 

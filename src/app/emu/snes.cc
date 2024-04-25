@@ -36,7 +36,6 @@ uint8_t input_read(Input* input) {
 
 void SNES::Init(std::vector<uint8_t>& rom_data) {
   // Initialize the CPU, PPU, and APU
-  cpu_.Init();
   ppu_.Init();
   apu_.Init();
 
