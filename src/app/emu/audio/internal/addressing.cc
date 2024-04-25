@@ -85,12 +85,6 @@ uint8_t Spc700::dp() {
   return ReadOpcode() | (PSW.P << 8);
 }
 
-uint8_t Spc700::get_dp_addr() {
-  PC++;
-  uint8_t offset = read(PC);
-  return (PSW.P << 8) + offset;
-}
-
 // Direct page indexed by X
 uint8_t Spc700::dp_plus_x() {
   PC++;

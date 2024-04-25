@@ -854,7 +854,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       A = (A >> 4) | (A << 4);
       PSW.Z = (A == 0);
       PSW.N = (A & 0x80);
-      ;
       break;
     }
     case 0xa0: {  // ei  imp

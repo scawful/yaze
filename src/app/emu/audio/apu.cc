@@ -29,8 +29,6 @@ static const uint8_t bootRom[0x40] = {
     0xdd, 0x5d, 0xd0, 0xdb, 0x1f, 0x00, 0x00, 0xc0, 0xff};
 
 void Apu::Init() {
-  // Set the clock frequency
-  clock_.SetFrequency(kApuClockSpeed);
   ram.resize(0x10000);
   for (int i = 0; i < 0x10000; i++) {
     ram[i] = 0;
