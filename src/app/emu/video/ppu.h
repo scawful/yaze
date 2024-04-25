@@ -314,6 +314,12 @@ class Ppu : public SharedRom {
   void RunLine(int line);
   void HandlePixel(int x, int y);
 
+  void LatchHV() {
+    hCount = memory_.h_pos() / 4;
+    vCount = memory_.v_pos();
+    countersLatched = true;
+  }
+
   int GetPixel(int x, int y, bool sub, int* r, int* g, int* b);
 
   void EvaluateSprites(int line);
@@ -350,7 +356,7 @@ class Ppu : public SharedRom {
   uint16_t GetOffsetValue(int col, int row);
   int GetPixelForBgLayer(int x, int y, int layer, bool priority);
 
-  uint8_t Read(uint8_t adr);
+  uint8_t Read(uint8_t adr, bool latch);
   void Write(uint8_t adr, uint8_t val);
 
   uint16_t GetVramRemap();
