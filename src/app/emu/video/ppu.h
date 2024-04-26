@@ -279,9 +279,9 @@ class Ppu : public SharedRom {
   void HandlePixel(int x, int y);
 
   void LatchHV() {
-    hCount = memory_.h_pos() / 4;
-    vCount = memory_.v_pos();
-    countersLatched = true;
+    h_count_ = memory_.h_pos() / 4;
+    v_count_ = memory_.v_pos();
+    counters_latched_ = true;
   }
 
   int GetPixel(int x, int y, bool sub, int* r, int* g, int* b);
@@ -292,23 +292,21 @@ class Ppu : public SharedRom {
 
   bool GetWindowState(int layer, int x);
 
+  // if we are overscanning this frame (determined at  0,225)
   bool frame_overscan_ = false;
   bool overscan_ = false;
 
   // settings
-  bool forcedBlank;
+  bool forced_blank_;
   uint8_t brightness;
   uint8_t mode;
   bool bg3priority;
   bool even_frame;
-  bool pseudoHires;
-  bool overscan;
-  bool
-      frameOverscan;  // if we are overscanning this frame (determined at 0,225)
+  bool pseudo_hires_;
   bool interlace;
   bool frame_interlace;  // if we are interlacing this frame (determined at
                          // start vblank)
-  bool directColor;
+  bool direct_color_;
 
   bool CheckOverscan() {
     frame_overscan_ = overscan_;
@@ -331,61 +329,62 @@ class Ppu : public SharedRom {
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
 
  private:
-  bool enable_forced_blanking_ = false;
+  int GetPixelForMode7(int x, int layer, bool priority);
 
-  int cycle_count_ = 0;
-  int current_scanline_ = 0;
   const int cyclesPerScanline = 341;  // SNES PPU has 341 cycles per scanline
   const int totalScanlines = 262;     // SNES PPU has 262 scanlines per frame
   const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 
-  int GetPixelForMode7(int x, int layer, bool priority);
+  bool enable_forced_blanking_ = false;
+
+  int cycle_count_ = 0;
+  int current_scanline_ = 0;
 
   // vram access
   uint16_t vram[0x8000];
-  uint16_t vramPointer;
-  bool vramIncrementOnHigh;
-  uint16_t vramIncrement;
-  uint8_t vramRemapMode;
-  uint16_t vramReadBuffer;
+  uint16_t vram_pointer;
+  bool vram_increment_on_high_;
+  uint16_t vram_increment_;
+  uint8_t vram_remap_mode_;
+  uint16_t vram_read_buffer_;
 
   // cgram access
   uint16_t cgram[0x100];
-  uint8_t cgramPointer;
-  bool cgramSecondWrite;
-  uint8_t cgramBuffer;
+  uint8_t cgram_pointer_;
+  bool cgram_second_write_;
+  uint8_t cgram_buffer_;
 
   // oam access
   uint16_t oam[0x100];
-  uint8_t highOam[0x20];
-  uint8_t oamAdr;
-  uint8_t oamAdrWritten;
-  bool oamInHigh;
-  bool oamInHighWritten;
-  bool oamSecondWrite;
-  uint8_t oamBuffer;
+  uint8_t high_oam_[0x20];
+  uint8_t oam_adr_;
+  uint8_t oam_adr_written_;
+  bool oam_in_high_;
+  bool oam_in_high_written_;
+  bool oam_second_write_;
+  uint8_t oam_buffer_;
 
   // Objects / Sprites
-  bool objPriority;
-  uint16_t objTileAdr1;
-  uint16_t objTileAdr2;
-  uint8_t objSize;
-  std::array<uint8_t, 256> obj_pixel_buffer_;
-  uint8_t objPriorityBuffer[256];
   bool time_over_ = false;
   bool range_over_ = false;
-  bool objInterlace;
+  bool obj_interlace_;
+  bool obj_priority_;
+  uint16_t obj_tile_adr1_;
+  uint16_t obj_tile_adr2_;
+  uint8_t obj_size_;
+  std::array<uint8_t, 256> obj_pixel_buffer_;
+  std::array<uint8_t, 256> obj_priority_buffer_;
 
   // Color Math
   uint8_t clip_mode_ = 0;
   uint8_t prevent_math_mode_ = 0;
   bool math_enabled_array_[6] = {false, false, false, false, false, false};
   bool add_subscreen_ = false;
-  bool subtractColor;
-  bool halfColor;
-  uint8_t fixedColorR;
-  uint8_t fixedColorG;
-  uint8_t fixedColorB;
+  bool subtract_color_;
+  bool half_color_;
+  uint8_t fixed_color_r_;
+  uint8_t fixed_color_g_;
+  uint8_t fixed_color_b_;
 
   // layers
   Layer layer_[5];
@@ -414,11 +413,10 @@ class Ppu : public SharedRom {
   std::array<BackgroundLayer, 4> bg_layers_;
   uint8_t mosaic_startline_ = 1;
 
-  BgLayer bgLayer[4];
-  uint8_t scrollPrev;
-  uint8_t scrollPrev2;
-  uint8_t mosaicSize;
-  uint8_t mosaicStartLine;
+  BgLayer bg_layer_[4];
+  uint8_t scroll_prev_;
+  uint8_t scroll_prev2_;
+  uint8_t mosaic_size_;
 
   // pixel buffer (xbgr)
   // times 2 for even and odd frame
@@ -426,13 +424,13 @@ class Ppu : public SharedRom {
   uint8_t pixelOutputFormat = 0;
 
   // latching
-  uint16_t hCount;
-  uint16_t vCount;
-  bool hCountSecond;
-  bool vCountSecond;
-  bool countersLatched;
-  uint8_t ppu1openBus;
-  uint8_t ppu2openBus;
+  uint16_t h_count_;
+  uint16_t v_count_;
+  bool h_count_second_;
+  bool v_count_second_;
+  bool counters_latched_;
+  uint8_t ppu1_open_bus_;
+  uint8_t ppu2_open_bus_;
 
   uint16_t tile_data_size_;
   uint16_t vram_base_address_;
