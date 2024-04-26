@@ -81,7 +81,6 @@ class SNES {
   // Components of the SNES
   ClockImpl clock_;
   Debugger debugger;
-  memory::RomInfo rom_info_;
   memory::MemoryImpl memory_;
 
   memory::CpuCallbacks cpu_callbacks_ = {
@@ -91,7 +90,7 @@ class SNES {
   };
   Cpu cpu_{memory_, clock_, cpu_callbacks_};
   video::Ppu ppu_{memory_, clock_};
-  audio::Apu apu_{memory_, clock_};
+  audio::Apu apu_{memory_};
 
   // Currently loaded ROM
   std::vector<uint8_t> rom_data;

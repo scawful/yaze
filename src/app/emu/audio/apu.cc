@@ -52,8 +52,8 @@ void Apu::Reset() {
   rom_readable_ = true;
   dsp_adr_ = 0;
   cycles_ = 0;
-  memset(in_ports_, 0, sizeof(in_ports_));
-  memset(out_ports_, 0, sizeof(out_ports_));
+  std::fill(in_ports_.begin(), in_ports_.end(), 0);
+  std::fill(out_ports_.begin(), out_ports_.end(), 0);
   for (int i = 0; i < 3; i++) {
     timer_[i].cycles = 0;
     timer_[i].divider = 0;
