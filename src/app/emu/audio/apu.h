@@ -7,7 +7,6 @@
 
 #include "app/emu/audio/dsp.h"
 #include "app/emu/audio/spc700.h"
-#include "app/emu/cpu/clock.h"
 #include "app/emu/memory/memory.h"
 
 namespace yaze {
@@ -52,7 +51,7 @@ typedef struct Timer {
  */
 class Apu {
  public:
-  Apu(MemoryImpl &memory, Clock &clock) : clock_(clock), memory_(memory) {}
+  Apu(MemoryImpl &memory) : memory_(memory) {}
 
   void Init();
   void Reset();
@@ -67,25 +66,22 @@ class Apu {
   uint8_t Read(uint16_t address);
   void Write(uint16_t address, uint8_t data);
 
-  void UpdateClock(int delta_time) { clock_.UpdateClock(delta_time); }
-
   auto dsp() -> Dsp & { return dsp_; }
   auto spc700() -> Spc700 & { return spc700_; }
 
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
-  uint8_t in_ports_[6];  // includes 2 bytes of ram
-  uint8_t out_ports_[4];
+  std::array<uint8_t, 6> in_ports_;  // includes 2 bytes of ram
+  std::array<uint8_t, 4> out_ports_;
   std::vector<uint8_t> ram = std::vector<uint8_t>(0x10000, 0);
 
  private:
-  Timer timer_[3];
-  uint32_t cycles_;
-  uint8_t dsp_adr_;
   bool rom_readable_ = false;
 
-  // Member variables to store internal APU state and resources
-  Clock &clock_;
+  uint8_t dsp_adr_ = 0;
+  uint32_t cycles_ = 0;
+
   MemoryImpl &memory_;
+  std::array<Timer, 3> timer_;
 
   ApuCallbacks callbacks_ = {
       [&](uint16_t adr, uint8_t val) { SpcWrite(adr, val); },
