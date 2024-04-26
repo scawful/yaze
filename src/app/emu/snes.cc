@@ -403,6 +403,7 @@ void SNES::WriteReg(uint16_t adr, uint8_t val) {
         cpu_.Nmi();
       }
       nmi_enabled_ = val & 0x80;
+      cpu_.set_int_delay(true);
       break;
     }
     case 0x4201: {
