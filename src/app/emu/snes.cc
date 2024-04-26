@@ -531,8 +531,8 @@ uint8_t SNES::CpuRead(uint32_t adr) {
 void SNES::CpuWrite(uint32_t adr, uint8_t val) {
   cpu_.set_int_delay(false);
   const int cycles = access_time[adr];
-  memory::dma::HandleDma(this, &memory_, cycles_);
-  RunCycles(cycles_);
+  memory::dma::HandleDma(this, &memory_, cycles);
+  RunCycles(cycles);
   Write(adr, val);
 }
 
