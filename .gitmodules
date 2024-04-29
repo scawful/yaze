@@ -22,6 +22,3 @@
 [submodule "src/lib/asar"]
 	path = src/lib/asar
 	url = https://github.com/RPGHacker/asar.git
-[submodule "src/lib/SDL_mixer"]
-	path = src/lib/SDL_mixer
-	url = https://github.com/libsdl-org/SDL_mixer.git
