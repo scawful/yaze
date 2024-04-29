@@ -41,10 +41,10 @@ var searchData=
   ['position_38',['position',['../structyaze_1_1app_1_1emu_1_1video_1_1WindowPosition.html#a4ab3c7f07ffddef00afe0c06be0d6973',1,'yaze::app::emu::video::WindowPosition']]],
   ['power_5f_39',['power_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a77e3fcc88a86b156b939ab8d111b05ba',1,'yaze::app::emu::Emulator']]],
   ['ppu_40',['ppu',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a32517b00880258dda46caab2b3afd313',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
-  ['ppu1_5fversion_41',['ppu1_version',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a567611590cd448098505a03f94f1868e',1,'yaze::app::emu::video::PpuRegisters::STAT77']]],
-  ['ppu1openbus_42',['ppu1openBus',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a8a86297e3f2ff73a631a3c42fb2f5b44',1,'yaze::app::emu::video::Ppu']]],
-  ['ppu2_5fversion_43',['ppu2_version',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#af7b4e004e2dd090971f78343c0ad1010',1,'yaze::app::emu::video::PpuRegisters::STAT78']]],
-  ['ppu2openbus_44',['ppu2openBus',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a1bfa3d19f5695fe18b3a00ef39b6a05f',1,'yaze::app::emu::video::Ppu']]],
+  ['ppu1_5fopen_5fbus_5f_41',['ppu1_open_bus_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a4add2a7ee578dd6891432427644ffdb4',1,'yaze::app::emu::video::Ppu']]],
+  ['ppu1_5fversion_42',['ppu1_version',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html#a567611590cd448098505a03f94f1868e',1,'yaze::app::emu::video::PpuRegisters::STAT77']]],
+  ['ppu2_5fopen_5fbus_5f_43',['ppu2_open_bus_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a4edae90c48472592e1770deee7062be2',1,'yaze::app::emu::video::Ppu']]],
+  ['ppu2_5fversion_44',['ppu2_version',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#af7b4e004e2dd090971f78343c0ad1010',1,'yaze::app::emu::video::PpuRegisters::STAT78']]],
   ['ppu_5f_45',['ppu_',['../classyaze_1_1app_1_1emu_1_1SNES.html#aec031a73b0980b31d69fac3963f06d1e',1,'yaze::app::emu::SNES']]],
   ['ppu_5flatch_5f_46',['ppu_latch_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ac5107a5af77dff800d22b3a7dfbb8ce3',1,'yaze::app::emu::SNES']]],
   ['ppu_5ftexture_5f_47',['ppu_texture_',['../classyaze_1_1app_1_1emu_1_1Emulator.html#aba8cfa17f73c297631194e4bc66fceb4',1,'yaze::app::emu::Emulator']]],
@@ -62,6 +62,6 @@ var searchData=
   ['priority_5ftile_59',['priority_tile',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a6bc96ce50b3c559702874737255ce2c2',1,'yaze::app::editor::Tile16Editor']]],
   ['properties_5fcanvas_5f_60',['properties_canvas_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ac657f4be7ce2554fe29d7e008468d014',1,'yaze::app::editor::OverworldEditor']]],
   ['proto_5fmap_5fdata_5f_61',['proto_map_data_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a091f7494347d7e9e9c01ed7c6752b7f7',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['pseudohires_62',['pseudoHires',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a80ef138faa835a4d2b217f9ed4cfce4f',1,'yaze::app::emu::video::Ppu']]],
+  ['pseudo_5fhires_5f_62',['pseudo_hires_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0e5fb16de4cb54edc6b76eaf13843677',1,'yaze::app::emu::video::Ppu']]],
   ['psw_63',['PSW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#acb00737c3faffb45fe382615ad14a92f',1,'yaze::app::emu::audio::Spc700']]]
 ];

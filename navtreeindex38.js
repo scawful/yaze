@@ -1,17 +1,5 @@
 var NAVTREEINDEX38 =
 {
-"namespaceyaze__test_1_1emu__test.html#a59774030441c6c3424399636f8cab767":[8,0,2,0,13],
-"namespaceyaze__test_1_1emu__test.html#a5ac6fd47dc8026531f4ea342bee84ae0":[8,0,2,0,317],
-"namespaceyaze__test_1_1emu__test.html#a5b2c72027b46dbafa513193db2ebb2aa":[8,0,2,0,201],
-"namespaceyaze__test_1_1emu__test.html#a5c914d1271dc592dcb6dab4f50d88665":[8,0,2,0,168],
-"namespaceyaze__test_1_1emu__test.html#a5d3f9c9046600e7046dc63049aab903f":[8,0,2,0,215],
-"namespaceyaze__test_1_1emu__test.html#a5d572e1c3edacef15bda3ee489ead415":[8,0,2,0,144],
-"namespaceyaze__test_1_1emu__test.html#a5de85d3b08552136d091b5533796ee49":[8,0,2,0,323],
-"namespaceyaze__test_1_1emu__test.html#a5e00b9b6d8d9de913c253f373c09f2e9":[8,0,2,0,27],
-"namespaceyaze__test_1_1emu__test.html#a5e209a59e84b394fa025be882e6c07a4":[8,0,2,0,81],
-"namespaceyaze__test_1_1emu__test.html#a5e272e2ca81d039194d58ed580276fb6":[8,0,2,0,8],
-"namespaceyaze__test_1_1emu__test.html#a60ccefdd07e27a92aa0d94e2fb3aab43":[8,0,2,0,108],
-"namespaceyaze__test_1_1emu__test.html#a6128c4bb80ec6ab827bb687863f1e7ee":[8,0,2,0,96],
 "namespaceyaze__test_1_1emu__test.html#a616d1bc89678eae2faaf5306078d0d9e":[8,0,2,0,182],
 "namespaceyaze__test_1_1emu__test.html#a61f697e33f6de71c89bbb34c79021879":[8,0,2,0,132],
 "namespaceyaze__test_1_1emu__test.html#a63a8d3fd7a1e67f3224c07de7a4ca39d":[8,0,2,0,293],
@@ -249,5 +237,17 @@ var NAVTREEINDEX38 =
 "namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[8,0,2,2,0],
 "object__names_8h.html":[10,0,1,0,5,0,0],
 "object__names_8h_source.html":[10,0,1,0,5,0,0],
-"object__renderer_8cc.html":[10,0,1,0,5,0,1]
+"object__renderer_8cc.html":[10,0,1,0,5,0,1],
+"object__renderer_8h.html":[10,0,1,0,5,0,2],
+"object__renderer_8h_source.html":[10,0,1,0,5,0,2],
+"overworld_8cc.html":[10,0,1,0,5,2,0],
+"overworld_8cc.html#a044bbb36700e16ea5936a62a00c629e5":[10,0,1,0,5,2,0,0],
+"overworld_8cc.html#a2b56d8805cb8d768a32d570cc90b6ba1":[10,0,1,0,5,2,0,2],
+"overworld_8cc.html#ac98b5712e9e6551a790b01d0a4cd881b":[10,0,1,0,5,2,0,1],
+"overworld_8h.html":[10,0,1,0,5,2,1],
+"overworld_8h.html#a03b8e6933914ee3f39cf82d94f692bcf":[10,0,1,0,5,2,1,72],
+"overworld_8h.html#a082e5c7c386f119b49c474d43a3d1dc5":[10,0,1,0,5,2,1,40],
+"overworld_8h.html#a09fd86eec2e33e66d3170f43abcaf0cb":[10,0,1,0,5,2,1,43],
+"overworld_8h.html#a16058a457f51dfc0349d74d91b6cfecc":[10,0,1,0,5,2,1,13],
+"overworld_8h.html#a1732d384055165e663939826507e47e9":[10,0,1,0,5,2,1,101]
 };
