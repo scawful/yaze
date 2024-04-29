@@ -33,22 +33,6 @@ include(cmake/sdl2.cmake)
 # add_subdirectory(src/lib/asar/src)
 # include(cmake/asar.cmake)
 
-# snes-spc
-ADD_DEFINITIONS(-DSNES_SPC_EXPORTS)
-set(SNES_SPC_SOURCES
-  "../src/lib/snes_spc/snes_spc/spc.cpp"
-  "../src/lib/snes_spc/snes_spc/SNES_SPC.cpp"
-  "../src/lib/snes_spc/snes_spc/SNES_SPC_misc.cpp"
-  "../src/lib/snes_spc/snes_spc/SNES_SPC_state.cpp"
-  "../src/lib/snes_spc/snes_spc/SPC_DSP.cpp"
-  "../src/lib/snes_spc/snes_spc/dsp.cpp"
-  "../src/lib/snes_spc/snes_spc/SPC_Filter.cpp"
-  "../src/lib/snes_spc/demo/wave_writer.c"
-  "../src/lib/snes_spc/demo/demo_util.c"
-)
-include_directories(src/lib/snes_spc/snes_spc)
-ADD_LIBRARY(snes_spc STATIC ${SNES_SPC_SOURCES} src/app/zelda3/music/spc700.def)
-
 # ImGui
 include(cmake/imgui.cmake)
 
