@@ -28,8 +28,8 @@ find_package(OpenGL REQUIRED)
 include(cmake/sdl2.cmake)
 
 # Asar 
-# add_subdirectory(src/lib/asar/src)
-# include(cmake/asar.cmake)
+add_subdirectory(src/lib/asar/src)
+include(cmake/asar.cmake)
 
 # ImGui
 include(cmake/imgui.cmake)
