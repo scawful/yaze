@@ -2,6 +2,8 @@
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <imgui/backends/imgui_impl_sdl2.h>
+#include <imgui/backends/imgui_impl_sdlrenderer2.h>
 #include <imgui/imgui.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <imgui_internal.h>
@@ -43,6 +45,8 @@ constexpr ImGuiWindowFlags kMainEditorFlags =
 
 void NewMasterFrame() {
   const ImGuiIO& io = ImGui::GetIO();
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
   ImGui::SetNextWindowPos(gui::kZeroPos);
   ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
