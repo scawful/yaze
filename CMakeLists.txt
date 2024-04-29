@@ -22,8 +22,6 @@ set(BUILD_SHARED_LIBS ON)
 include(cmake/absl.cmake)
 add_subdirectory(src/lib/abseil-cpp)
 
-include(cmake/openssl.cmake)
-
 # Video Libraries 
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED)
