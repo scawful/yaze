@@ -1,6 +1,7 @@
 var classyaze_1_1app_1_1editor_1_1PaletteEditor =
 [
     [ "Update", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a511d7c2baa195ab9cb288099b8029b5f", null ],
+    [ "DisplayCategoryTable", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9", null ],
     [ "DrawPaletteGroups", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad494120a52d9eea8684174b6993e5ade", null ],
     [ "EditColorInPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da", null ],
     [ "ResetColorToOriginal", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a18e4b234d6b6a7d8d2ea8fa7c236415a", null ],
