@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['i_0',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
-  ['i_1',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a7c1ee50463f68e8a17c0a192e5a9ef1c',1,'yaze::app::emu::audio::Spc700::Flags']]],
+  ['i_0',['I',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a951300430795674c8cfc6342b53fd967',1,'yaze::app::emu::audio::Spc700::Flags']]],
+  ['i_1',['i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a31c959ba1ae4c4c5ff8ec0ad37b6945e',1,'yaze::app::emu::audio::Spc700']]],
   ['i_5fpostinc_2',['i_postinc',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae6ae32cc8156adc034374664393a0fc3',1,'yaze::app::emu::audio::Spc700']]],
   ['icon_5fmax_5fmd_3',['ICON_MAX_MD',['../icons_8h.html#a1f33448153f99d7338175831c1775dc7',1,'icons.h']]],
   ['icon_5fmd_5f10k_4',['ICON_MD_10K',['../icons_8h.html#a5fda85dd85890c0e4ec00970aa4c4c10',1,'icons.h']]],
@@ -2210,8 +2210,8 @@ var searchData=
   ['in_5fnmi_5f_2207',['in_nmi_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a0cd6dda68e6b7f3338ca84b5b3ff9719',1,'yaze::app::emu::SNES']]],
   ['in_5fports_5f_2208',['in_ports_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#aa942ee981aa7dde856a48f214a16f962',1,'yaze::app::emu::audio::Apu']]],
   ['in_5fvblank_5f_2209',['in_vblank_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ac0561d61f90d6a95bb2520774433cf21',1,'yaze::app::emu::SNES']]],
-  ['inc_2210',['INC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2e69d799f20d7bb65b2b0d89402cf298',1,'yaze::app::emu::audio::Spc700::INC()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#afa1f462717f3b3d559c72c984813b83a',1,'yaze::app::emu::Cpu::INC(uint32_t address, bool accumulator=false)']]],
-  ['inc_2211',['Inc',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a92d0155f57275b7d4f3fd8b67eaac0e0',1,'yaze::app::emu::Cpu']]],
+  ['inc_2210',['Inc',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a92d0155f57275b7d4f3fd8b67eaac0e0',1,'yaze::app::emu::Cpu']]],
+  ['inc_2211',['INC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2e69d799f20d7bb65b2b0d89402cf298',1,'yaze::app::emu::audio::Spc700::INC()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#afa1f462717f3b3d559c72c984813b83a',1,'yaze::app::emu::Cpu::INC()']]],
   ['increment_5fmode_2212',['increment_mode',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#ad9e3d821b035da5413027615a2b5f3a0',1,'yaze::app::emu::video::VideoPortControl']]],
   ['increment_5frate_2213',['increment_rate',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29',1,'yaze::app::emu::video::VideoPortControl']]],
   ['increment_5fsize_2214',['increment_size',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMAIN.html#a3e3871c7c22bda5f6ad0e5a15d7dd483',1,'yaze::app::emu::video::PpuRegisters::VMAIN']]],

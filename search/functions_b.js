@@ -16,8 +16,8 @@ var searchData=
   ['ldle16b_5fi_13',['ldle16b_i',['../namespaceyaze_1_1app_1_1core.html#aa6c12bd455e5cf377d2362c6dc7fab85',1,'yaze::app::core']]],
   ['ldle2_14',['ldle2',['../namespaceyaze_1_1app_1_1core.html#a1f0ceb1fdf28494142c20dcd7435ae18',1,'yaze::app::core']]],
   ['ldle3_15',['ldle3',['../namespaceyaze_1_1app_1_1core.html#ac2588b6c37606c1692a7a4771dfc5356',1,'yaze::app::core']]],
-  ['ldx_16',['LDX',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ad80f4db1bfc91c8b7415b0966361772f',1,'yaze::app::emu::Cpu']]],
-  ['ldx_17',['Ldx',['../classyaze_1_1app_1_1emu_1_1Cpu.html#acd17789df08dfbfa9b3262ceb865f3eb',1,'yaze::app::emu::Cpu']]],
+  ['ldx_16',['Ldx',['../classyaze_1_1app_1_1emu_1_1Cpu.html#acd17789df08dfbfa9b3262ceb865f3eb',1,'yaze::app::emu::Cpu']]],
+  ['ldx_17',['LDX',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ad80f4db1bfc91c8b7415b0966361772f',1,'yaze::app::emu::Cpu']]],
   ['ldy_18',['LDY',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a58461a8fffbbec0658bf2d621987dda0',1,'yaze::app::emu::Cpu']]],
   ['ldy_19',['Ldy',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aaa19637a5a4b96bb489d07fb01a4dc8f',1,'yaze::app::emu::Cpu']]],
   ['link_5fgraphics_20',['link_graphics',['../classyaze_1_1app_1_1Rom.html#a48f0987559ea7f4f48c5cd41e3fe3f39',1,'yaze::app::Rom']]],
@@ -97,6 +97,6 @@ var searchData=
   ['loginstruction_94',['LogInstruction',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a3271dbfd4c6e2c2d252b0cf780b1f396',1,'yaze::app::emu::audio::Spc700']]],
   ['loginstructions_95',['LogInstructions',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a3361d0712df46b8fd18d91b57533a491',1,'yaze::app::emu::Cpu']]],
   ['logmessage_96',['LogMessage',['../classyaze_1_1app_1_1emu_1_1Loggable.html#a17cc982c7eb52c90c85102cbe3eb2dd5',1,'yaze::app::emu::Loggable']]],
-  ['lsr_97',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]],
-  ['lsr_98',['LSR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213',1,'yaze::app::emu::audio::Spc700::LSR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5072f70a9c7470c467dee5c8172d5f5a',1,'yaze::app::emu::Cpu::LSR()']]]
+  ['lsr_97',['LSR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213',1,'yaze::app::emu::audio::Spc700::LSR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5072f70a9c7470c467dee5c8172d5f5a',1,'yaze::app::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
+  ['lsr_98',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]]
 ];

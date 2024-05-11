@@ -55,7 +55,7 @@ var searchData=
   ['onload_52',['OnLoad',['../classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0',1,'yaze::app::core::Controller']]],
   ['ontop_53',['OnTop',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ae46a8c82ed18b9229dfc17bf90edbedd',1,'yaze::app::zelda3::dungeon']]],
   ['op_5flen_54',['op_len',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a2f5aa3904f04e200f4087d53c17f4d8d',1,'yaze::app::zelda3::music::Tracker::op_len'],['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#af474276ff049f20df44cde7b0cd6c155',1,'yaze::app::zelda3::music::op_len']]],
-  ['opcode_55',['opcode',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a298fbf6ee3485a0cb3d57ba9983a88a4',1,'yaze::app::emu::InstructionEntry']]],
+  ['opcode_55',['opcode',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a16fce926940841e7bfaebe5a6cdc8c01',1,'yaze::app::emu::audio::Spc700::opcode'],['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a298fbf6ee3485a0cb3d57ba9983a88a4',1,'yaze::app::emu::InstructionEntry::opcode']]],
   ['opcode_5fto_5fcycle_5fcount_56',['opcode_to_cycle_count',['../cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791',1,'opcodes.h']]],
   ['opcode_5fto_5fmnemonic_57',['opcode_to_mnemonic',['../cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd',1,'opcodes.h']]],
   ['opcodes_2eh_58',['opcodes.h',['../audio_2internal_2opcodes_8h.html',1,'(Global Namespace)'],['../cpu_2internal_2opcodes_8h.html',1,'(Global Namespace)']]],

@@ -1,13 +1,11 @@
 <map id="yaze::app::emu::Cpu::PushByte" name="yaze::app::emu::Cpu::PushByte">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,69,140,110"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,140,79"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a3d84e3340db0ba07c23fca82fbaaf2fe" title=" " alt="" coords="200,8,334,49"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,66,185,51,187,56,140,71"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a2f1de603064fd4f4f108efe0713ec42c" title=" " alt="" coords="188,77,346,103"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="140,87,172,87,172,92,140,92"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#ac0bba2dffcf90f81d62c180b37df9b9e" title=" " alt="" coords="200,127,334,167"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="141,107,185,120,184,125,140,112"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,46,184,39,185,44,141,51"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a2f1de603064fd4f4f108efe0713ec42c" title=" " alt="" coords="188,74,346,100"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="141,66,173,71,172,76,140,71"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3cede9f02a5c326d86e06a53d74e05b3" title=" " alt="" coords="394,5,551,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="334,25,379,24,379,30,334,30"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3a9ebd30a3afac6629b084aa014a861d" title=" " alt="" coords="394,71,551,111"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="346,88,378,88,378,93,346,93"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="346,86,378,87,378,92,346,91"/>
 </map>

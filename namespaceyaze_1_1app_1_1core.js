@@ -5,8 +5,8 @@ var namespaceyaze_1_1app_1_1core =
       [ "ImGui_ImplSDL2_SetClipboardText", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a7cedf84adb43edcf0230f6589e90d588", null ],
       [ "ImGui_ImplSDL2_GetClipboardText", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a4f7ea20b69b7320bab22711cf18cb436", null ],
       [ "InitializeClipboard", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#adaf08d50dc9917daec65db2f32379043", null ],
-      [ "HandleKeyDown", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6d772d7ba79028976cef503b5f467e18", null ],
-      [ "HandleKeyUp", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6942369617757efc84f4717df31ceebf", null ],
+      [ "HandleKeyDown", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ac6d751f5f503987b8a5d28cd42c78d7a", null ],
+      [ "HandleKeyUp", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aff87aa6c49f935a01d5e385bdebeafe9", null ],
       [ "ChangeWindowSizeEvent", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ae74e0ed0e27003c9a7f411ac36bedf31", null ],
       [ "HandleMouseMovement", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a46122ee7395b7ce3cee8e8d45bc83a8d", null ]
     ] ],

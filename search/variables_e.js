@@ -40,7 +40,7 @@ var searchData=
   ['offset_5fy_5f_37',['offset_y_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a286182f9f81d26a1e933d9378c087d5b',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['oldstylejoypadregisters_38',['oldStyleJoypadRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html#a55e95d7513686a76b6cf965439c9883a',1,'yaze::app::emu::video::JoypadRegisters']]],
   ['op_5flen_39',['op_len',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a2f5aa3904f04e200f4087d53c17f4d8d',1,'yaze::app::zelda3::music::Tracker::op_len'],['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#af474276ff049f20df44cde7b0cd6c155',1,'yaze::app::zelda3::music::op_len']]],
-  ['opcode_40',['opcode',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a298fbf6ee3485a0cb3d57ba9983a88a4',1,'yaze::app::emu::InstructionEntry']]],
+  ['opcode_40',['opcode',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a16fce926940841e7bfaebe5a6cdc8c01',1,'yaze::app::emu::audio::Spc700::opcode'],['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a298fbf6ee3485a0cb3d57ba9983a88a4',1,'yaze::app::emu::InstructionEntry::opcode']]],
   ['opcode_5fto_5fcycle_5fcount_41',['opcode_to_cycle_count',['../cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791',1,'opcodes.h']]],
   ['opcode_5fto_5fmnemonic_42',['opcode_to_mnemonic',['../cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd',1,'opcodes.h']]],
   ['open_5fbus_5f_43',['open_bus_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#af429b465bbcd3def1bc06140c2aaae3c',1,'yaze::app::emu::memory::MemoryImpl']]],

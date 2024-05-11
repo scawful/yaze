@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['b_0',['B',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#ac06af9a25b9d1c30f611984f26e44438',1,'yaze::app::emu::audio::Spc700::Flags']]],
+  ['b_0',['B',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a8afed17f7a90703f5e9ad57e10ace7d6',1,'yaze::app::emu::audio::Spc700::Flags']]],
   ['b_1',['b',['../structyaze_1_1app_1_1emu_1_1video_1_1Color.html#a38c89c8258211b0ceb742b1931078e27',1,'yaze::app::emu::video::Color']]],
   ['backdrop_2',['backdrop',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a283a86a3b69119e2cc7fada8b4d16124',1,'yaze::app::emu::video::PpuRegisters::CGADSUB']]],
   ['background_3',['background',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a83e829e4f1a7490116c54b32c38a9e81',1,'yaze::app::gfx::Paletteset']]],
@@ -100,7 +100,8 @@ var searchData=
   ['breakpoints_5f_97',['breakpoints_',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a7556a2435a81b35b6d6289f741da167e',1,'yaze::app::emu::Cpu']]],
   ['brightness_98',['brightness',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html#a0bba8e5a7a285e6faa7201e5246fd539',1,'yaze::app::emu::video::ScreenDisplay::brightness'],['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#afa4c2ac0c72fae10dcbf1ede8e326f7b',1,'yaze::app::emu::video::Ppu::brightness'],['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a53762bbf78c8d04ffd255ef245d3cccb',1,'yaze::app::emu::video::PpuRegisters::INIDISP::brightness']]],
   ['brrheader_99',['brrHeader',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a0e1547619f31199e8c21273ede94fe54',1,'yaze::app::emu::audio::DspChannel']]],
-  ['bufferoffset_100',['bufferOffset',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8',1,'yaze::app::emu::audio::DspChannel']]],
-  ['built_5f_101',['built_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36e352c4704510da5c38f1af045cf0a3',1,'yaze::app::zelda3::overworld::OverworldMap']]],
-  ['bytestotransfer_102',['bytesToTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de',1,'yaze::app::emu::video::DmaRegisters']]]
+  ['bstep_100',['bstep',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af8380ea2374bfec65e8b202907a555cc',1,'yaze::app::emu::audio::Spc700']]],
+  ['bufferoffset_101',['bufferOffset',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8',1,'yaze::app::emu::audio::DspChannel']]],
+  ['built_5f_102',['built_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36e352c4704510da5c38f1af045cf0a3',1,'yaze::app::zelda3::overworld::OverworldMap']]],
+  ['bytestotransfer_103',['bytesToTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de',1,'yaze::app::emu::video::DmaRegisters']]]
 ];
