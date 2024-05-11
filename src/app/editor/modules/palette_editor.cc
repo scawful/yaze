@@ -8,28 +8,6 @@
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 
-static inline float ImSaturate(float f) {
-  return (f < 0.0f) ? 0.0f : (f > 1.0f) ? 1.0f : f;
-}
-
-#define IM_F32_TO_INT8_SAT(_VAL) \
-  ((int)(ImSaturate(_VAL) * 255.0f + 0.5f))  // Saturated, always output 0..255
-
-int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-#ifdef IMGUI_USE_STB_SPRINTF
-  int w = stbsp_vsnprintf(buf, (int)buf_size, fmt, args);
-#else
-  int w = vsnprintf(buf, buf_size, fmt, args);
-#endif
-  va_end(args);
-  if (buf == nullptr) return w;
-  if (w == -1 || w >= (int)buf_size) w = (int)buf_size - 1;
-  buf[w] = 0;
-  return w;
-}
-
 namespace yaze {
 namespace app {
 namespace editor {
@@ -150,6 +128,31 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   return absl::OkStatus();
 }
 
+namespace {
+int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+#ifdef IMGUI_USE_STB_SPRINTF
+  int w = stbsp_vsnprintf(buf, (int)buf_size, fmt, args);
+#else
+  int w = vsnprintf(buf, buf_size, fmt, args);
+#endif
+  va_end(args);
+  if (buf == nullptr) return w;
+  if (w == -1 || w >= (int)buf_size) w = (int)buf_size - 1;
+  buf[w] = 0;
+  return w;
+}
+
+static inline float color_saturate(float f) {
+  return (f < 0.0f) ? 0.0f : (f > 1.0f) ? 1.0f : f;
+}
+
+#define F32_TO_INT8_SAT(_VAL)            \
+  ((int)(color_saturate(_VAL) * 255.0f + \
+         0.5f))  // Saturated, always output 0..255
+}  // namespace
+
 absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
@@ -159,9 +162,9 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
 
   if (ImGui::Button("Copy as..", ImVec2(-1, 0))) ImGui::OpenPopup("Copy");
   if (ImGui::BeginPopup("Copy")) {
-    int cr = IM_F32_TO_INT8_SAT(col[0]);
-    int cg = IM_F32_TO_INT8_SAT(col[1]);
-    int cb = IM_F32_TO_INT8_SAT(col[2]);
+    int cr = F32_TO_INT8_SAT(col[0]);
+    int cg = F32_TO_INT8_SAT(col[1]);
+    int cb = F32_TO_INT8_SAT(col[2]);
     char buf[64];
 
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
