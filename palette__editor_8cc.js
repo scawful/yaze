@@ -1,5 +1,5 @@
 var palette__editor_8cc =
 [
-    [ "IM_F32_TO_INT8_SAT", "palette__editor_8cc.html#a044d12ff2cdc7af4a6de58d63cd96839", null ],
-    [ "CustomFormatString", "palette__editor_8cc.html#a0fbb06ddad5c7745a2c6ed484f8f70df", null ]
+    [ "F32_TO_INT8_SAT", "palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a", null ],
+    [ "CustomFormatString", "palette__editor_8cc.html#a28830f354bea9a16ce56d9c8b30f8df7", null ]
 ];

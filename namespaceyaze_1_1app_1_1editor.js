@@ -10,6 +10,9 @@ var namespaceyaze_1_1app_1_1editor =
     [ "anonymous_namespace{music_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02music__editor_8cc_03.html", [
       [ "PlaySPC", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02music__editor_8cc_03.html#a5bea5d1ca3907e69f14d4d7b6be4e8c9", null ]
     ] ],
+    [ "anonymous_namespace{palette_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html", [
+      [ "CustomFormatString", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html#a28830f354bea9a16ce56d9c8b30f8df7", null ]
+    ] ],
     [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", "namespaceyaze_1_1app_1_1editor_1_1context" ],
     [ "entity_internal", "namespaceyaze_1_1app_1_1editor_1_1entity__internal.html", [
       [ "IsMouseHoveringOverEntity", "namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95", null ],

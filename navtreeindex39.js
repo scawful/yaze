@@ -1,5 +1,7 @@
 var NAVTREEINDEX39 =
 {
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#ad4f5b3190dfe909a51619ad862f3153b":[8,0,2,1,1,0],
+"namespaceyaze__test_1_1zelda3__test.html":[8,0,2,2],
 "namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[8,0,2,2,0],
 "object__names_8h.html":[10,0,1,0,5,0,0],
 "object__names_8h_source.html":[10,0,1,0,5,0,0],
@@ -146,8 +148,8 @@ var NAVTREEINDEX39 =
 "overworld__map_8h_source.html":[10,0,1,0,5,2,3],
 "pages.html":[],
 "palette__editor_8cc.html":[10,0,1,0,1,1,6],
-"palette__editor_8cc.html#a044d12ff2cdc7af4a6de58d63cd96839":[10,0,1,0,1,1,6,0],
-"palette__editor_8cc.html#a0fbb06ddad5c7745a2c6ed484f8f70df":[10,0,1,0,1,1,6,1],
+"palette__editor_8cc.html#a28830f354bea9a16ce56d9c8b30f8df7":[10,0,1,0,1,1,6,1],
+"palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a":[10,0,1,0,1,1,6,0],
 "palette__editor_8h.html":[10,0,1,0,1,1,7],
 "palette__editor_8h.html#a1475bf292c22487da0bb81305e7c6b8f":[10,0,1,0,1,1,7,3],
 "palette__editor_8h_source.html":[10,0,1,0,1,1,7],
@@ -247,7 +249,5 @@ var NAVTREEINDEX39 =
 "ppu__registers_8h.html#aaef32aec2dc1ade62daabd1c21aeb68a":[10,0,1,0,2,4,2,62],
 "ppu__registers_8h.html#aaf073d12e4e995b4777fbbb1b54fcf5f":[10,0,1,0,2,4,2,53],
 "ppu__registers_8h.html#ab219ca5882a0f5c94a4637c2ae58af88":[10,0,1,0,2,4,2,93],
-"ppu__registers_8h.html#abb96c2b7c83a666142cb78b263f6ac56":[10,0,1,0,2,4,2,73],
-"ppu__registers_8h.html#ac0943e4703e990b0a88f8485466c0dbe":[10,0,1,0,2,4,2,90],
-"ppu__registers_8h.html#ac3c2ca2b9a617cff519aa17ad2165d5e":[10,0,1,0,2,4,2,67]
+"ppu__registers_8h.html#abb96c2b7c83a666142cb78b263f6ac56":[10,0,1,0,2,4,2,73]
 };

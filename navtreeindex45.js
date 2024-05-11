@@ -1,5 +1,7 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html":[9,0,0,0,2,2,20],
+"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html":[8,0,1,0,2,4,20],
 "structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html#a45f436ae3bffb8704932a565f4a0fa3a":[9,0,0,0,2,2,20,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html#a45f436ae3bffb8704932a565f4a0fa3a":[8,0,1,0,2,4,20,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[9,0,0,0,2,2,21],
@@ -247,7 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7253113d96cfb463bf1f164b35a055ae":[8,0,1,0,3,3,0,7],
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7253113d96cfb463bf1f164b35a055ae":[9,0,0,0,3,1,0,7],
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7957ad1e30021e96ae8f52a78fb3ebe7":[9,0,0,0,3,1,0,6],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7957ad1e30021e96ae8f52a78fb3ebe7":[8,0,1,0,3,3,0,6],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a9d40192fa23bb60f470e7942a87a6908":[9,0,0,0,3,1,0,8],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a9d40192fa23bb60f470e7942a87a6908":[8,0,1,0,3,3,0,8]
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7957ad1e30021e96ae8f52a78fb3ebe7":[8,0,1,0,3,3,0,6]
 };
