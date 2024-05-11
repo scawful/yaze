@@ -65,25 +65,58 @@ void InitializeClipboard() {
   io.ClipboardUserData = nullptr;
 }
 
-void HandleKeyDown(SDL_Event &event) {
+void HandleKeyDown(SDL_Event &event, editor::MasterEditor &editor) {
   ImGuiIO &io = ImGui::GetIO();
   io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
   switch (event.key.keysym.sym) {
-    case SDLK_UP:
-    case SDLK_DOWN:
-    case SDLK_RETURN:
     case SDLK_BACKSPACE:
     case SDLK_LSHIFT:
     case SDLK_LCTRL:
     case SDLK_TAB:
       io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
       break;
+    case SDLK_z:
+      editor.emulator().snes().SetButtonState(1, 0, true);
+      break;
+    case SDLK_a:
+      editor.emulator().snes().SetButtonState(1, 1, true);
+      break;
+    case SDLK_RSHIFT:
+      editor.emulator().snes().SetButtonState(1, 2, true);
+      break;
+    case SDLK_RETURN:
+      editor.emulator().snes().SetButtonState(1, 3, true);
+      break;
+    case SDLK_UP:
+      editor.emulator().snes().SetButtonState(1, 4, true);
+      break;
+    case SDLK_DOWN:
+      editor.emulator().snes().SetButtonState(1, 5, true);
+      break;
+    case SDLK_LEFT:
+      editor.emulator().snes().SetButtonState(1, 6, true);
+      break;
+    case SDLK_RIGHT:
+      editor.emulator().snes().SetButtonState(1, 7, true);
+      break;
+    case SDLK_x:
+      editor.emulator().snes().SetButtonState(1, 8, true);
+      break;
+    case SDLK_s:
+      editor.emulator().snes().SetButtonState(1, 9, true);
+      break;
+    case SDLK_d:
+      editor.emulator().snes().SetButtonState(1, 10, true);
+      break;
+    case SDLK_c:
+      editor.emulator().snes().SetButtonState(1, 11, true);
+      break;
     default:
       break;
   }
 }
 
-void HandleKeyUp(SDL_Event &event) {
+void HandleKeyUp(SDL_Event &event, editor::MasterEditor &editor) {
   ImGuiIO &io = ImGui::GetIO();
   int key = event.key.keysym.scancode;
   IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
@@ -92,6 +125,47 @@ void HandleKeyUp(SDL_Event &event) {
   io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
   io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+
+  switch (event.key.keysym.sym) {
+    case SDLK_z:
+      editor.emulator().snes().SetButtonState(1, 0, false);
+      break;
+    case SDLK_a:
+      editor.emulator().snes().SetButtonState(1, 1, false);
+      break;
+    case SDLK_RSHIFT:
+      editor.emulator().snes().SetButtonState(1, 2, false);
+      break;
+    case SDLK_RETURN:
+      editor.emulator().snes().SetButtonState(1, 3, false);
+      break;
+    case SDLK_UP:
+      editor.emulator().snes().SetButtonState(1, 4, false);
+      break;
+    case SDLK_DOWN:
+      editor.emulator().snes().SetButtonState(1, 5, false);
+      break;
+    case SDLK_LEFT:
+      editor.emulator().snes().SetButtonState(1, 6, false);
+      break;
+    case SDLK_RIGHT:
+      editor.emulator().snes().SetButtonState(1, 7, false);
+      break;
+    case SDLK_x:
+      editor.emulator().snes().SetButtonState(1, 8, false);
+      break;
+    case SDLK_s:
+      editor.emulator().snes().SetButtonState(1, 9, false);
+      break;
+    case SDLK_d:
+      editor.emulator().snes().SetButtonState(1, 10, false);
+      break;
+    case SDLK_c:
+      editor.emulator().snes().SetButtonState(1, 11, false);
+      break;
+    default:
+      break;
+  }
 }
 
 void ChangeWindowSizeEvent(SDL_Event &event) {
@@ -137,10 +211,10 @@ void Controller::OnInput() {
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
       case SDL_KEYDOWN:
-        HandleKeyDown(event);
+        HandleKeyDown(event, master_editor_);
         break;
       case SDL_KEYUP:
-        HandleKeyUp(event);
+        HandleKeyUp(event, master_editor_);
         break;
       case SDL_TEXTINPUT:
         io.AddInputCharactersUTF8(event.text.text);
