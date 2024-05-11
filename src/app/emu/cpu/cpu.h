@@ -179,23 +179,23 @@ class Cpu : public Loggable, public core::ExperimentFlags {
   void WriteWord(uint32_t address, uint32_t address_high, uint16_t value,
                  bool reversed = false, bool int_check = false) {
     if (reversed) {
-      WriteByte(address_high, value >> 8);
+      callbacks_.write_byte(address_high, value >> 8);
       if (int_check) CheckInt();
-      WriteByte(address, value & 0xFF);
+      callbacks_.write_byte(address, value & 0xFF);
     } else {
-      WriteByte(address, value & 0xFF);
+      callbacks_.write_byte(address, value & 0xFF);
       if (int_check) CheckInt();
-      WriteByte(address_high, value >> 8);
+      callbacks_.write_byte(address_high, value >> 8);
     }
   }
   void WriteLong(uint32_t address, uint32_t value) {
-    WriteByte(address, value & 0xFF);
-    WriteByte(address + 1, (value >> 8) & 0xFF);
-    WriteByte(address + 2, value >> 16);
+    callbacks_.write_byte(address, value & 0xFF);
+    callbacks_.write_byte(address + 1, (value >> 8) & 0xFF);
+    callbacks_.write_byte(address + 2, value >> 16);
   }
 
   void PushByte(uint8_t value) {
-    WriteByte(SP(), value);
+    callbacks_.write_byte(SP(), value);
     SetSP(SP() - 1);
     if (E) SetSP((SP() & 0xff) | 0x100);
   }
