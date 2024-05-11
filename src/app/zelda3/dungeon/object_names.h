@@ -8,7 +8,7 @@ namespace app {
 namespace zelda3 {
 namespace dungeon {
 
-static const absl::string_view Type1RoomObjectNames[] = {
+constexpr static inline absl::string_view Type1RoomObjectNames[] = {
     "Ceiling ↔",
     "Wall (top, north) ↔",
     "Wall (top, south) ↔",
@@ -259,7 +259,7 @@ static const absl::string_view Type1RoomObjectNames[] = {
     "Nothing",
 };
 
-static const absl::string_view Type2RoomObjectNames[] = {
+constexpr static inline absl::string_view Type2RoomObjectNames[] = {
     "Corner (top, concave) ▛",
     "Corner (top, concave) ▙",
     "Corner (top, concave) ▜",
@@ -326,7 +326,7 @@ static const absl::string_view Type2RoomObjectNames[] = {
     "Magic bat altar",
 };
 
-static const absl::string_view Type3RoomObjectNames[] = {
+constexpr static inline absl::string_view Type3RoomObjectNames[] = {
     "Waterfall face (empty)",
     "Waterfall face (short)",
     "Waterfall face (long)",
