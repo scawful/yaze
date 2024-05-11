@@ -84,6 +84,7 @@ class PaletteEditorHistory {
 class PaletteEditor : public SharedRom {
  public:
   absl::Status Update();
+  void DisplayCategoryTable();
   absl::Status DrawPaletteGroups();
 
   absl::Status EditColorInPalette(gfx::SnesPalette& palette, int index);

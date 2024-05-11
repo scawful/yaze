@@ -35,12 +35,7 @@ absl::Status PaletteEditor::Update() {
     ImGui::TableHeadersRow();
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    for (int category = 0; category < kNumPalettes; ++category) {
-      if (ImGui::TreeNode(kPaletteCategoryNames[category].data())) {
-        status_ = DrawPaletteGroup(category);
-        ImGui::TreePop();
-      }
-    }
+    DisplayCategoryTable();
     ImGui::TableNextColumn();
     if (gui::SnesColorEdit4("Color Picker", current_color_,
                             ImGuiColorEditFlags_NoAlpha)) {
@@ -51,6 +46,81 @@ absl::Status PaletteEditor::Update() {
   CLEAR_AND_RETURN_STATUS(status_)
 
   return absl::OkStatus();
+}
+
+void PaletteEditor::DisplayCategoryTable() {
+  // Check if the table is created successfully with 3 columns
+  if (ImGui::BeginTable("Category Table", 3)) {  // 3 columns
+
+    // Headers (optional, remove if you don't want headers)
+    ImGui::TableSetupColumn("Weapons and Gear");
+    ImGui::TableSetupColumn("World and Enemies");
+    ImGui::TableSetupColumn("Maps and Items");
+    ImGui::TableHeadersRow();
+
+    // Start the first row
+    ImGui::TableNextRow();
+
+    // Column 1 - Weapons and Gear
+    ImGui::TableSetColumnIndex(0);
+
+    if (ImGui::TreeNode("Sword")) {
+      status_ = DrawPaletteGroup(0);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Shield")) {
+      status_ = DrawPaletteGroup(1);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Clothes")) {
+      status_ = DrawPaletteGroup(2);
+      ImGui::TreePop();
+    }
+
+    // Column 2 - World and Enemies
+    ImGui::TableSetColumnIndex(1);
+    if (ImGui::TreeNode("World Colors")) {
+      status_ = DrawPaletteGroup(3);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Area Colors")) {
+      status_ = DrawPaletteGroup(4);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Enemies")) {
+      status_ = DrawPaletteGroup(5);
+      ImGui::TreePop();
+    }
+
+    // Column 3 - Maps and Items
+    ImGui::TableSetColumnIndex(2);
+    if (ImGui::TreeNode("Dungeons")) {
+      status_ = DrawPaletteGroup(6);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("World Map")) {
+      status_ = DrawPaletteGroup(7);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Dungeon Map")) {
+      status_ = DrawPaletteGroup(8);
+      ImGui::TreePop();
+    }
+
+    // Additional items in the last column, if any
+    {
+      if (ImGui::TreeNode("Triforce")) {
+        status_ = DrawPaletteGroup(9);
+        ImGui::TreePop();
+      }
+      if (ImGui::TreeNode("Crystal")) {
+        status_ = DrawPaletteGroup(10);
+        ImGui::TreePop();
+      }
+    }
+    // End the table
+    ImGui::EndTable();
+  }
 }
 
 absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
@@ -92,10 +162,10 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
 
   static bool edit_color = false;
   for (int j = 0; j < size; j++) {
-    // ImGui::Text("%d", j);
-    rom()->resource_label()->SelectableLabelWithNameEdit(
-        false, "Palette Group Name", std::to_string(j),
-        std::string(kPaletteGroupNames[category]));
+    ImGui::Text("%d", j);
+    // rom()->resource_label()->SelectableLabelWithNameEdit(
+    //     false, "Palette Group Name", std::to_string(j),
+    //     std::string(kPaletteGroupNames[category]));
     auto palette = palette_group.mutable_palette(j);
     auto pal_size = palette->size();
 
