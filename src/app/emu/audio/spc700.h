@@ -76,6 +76,15 @@ class Spc700 {
 
   bool stopped_;
   bool reset_wanted_;
+  // single-cycle
+  uint8_t opcode;
+  uint32_t step = 0;
+  uint32_t bstep;
+  uint16_t adr;
+  uint16_t adr1;
+  uint8_t dat;
+  uint16_t dat16;
+  uint8_t param;
 
   const uint8_t ipl_rom_[64]{
       0xCD, 0xEF, 0xBD, 0xE8, 0x00, 0xC6, 0x1D, 0xD0, 0xFC, 0x8F, 0xAA,
@@ -97,14 +106,14 @@ class Spc700 {
   uint8_t SP = 0x00;     // stack pointer
 
   struct Flags {
-    uint8_t N : 1;  // Negative flag
-    uint8_t V : 1;  // Overflow flag
-    uint8_t P : 1;  // Direct page flag
-    uint8_t B : 1;  // Break flag
-    uint8_t H : 1;  // Half-carry flag
-    uint8_t I : 1;  // Interrupt enable
-    uint8_t Z : 1;  // Zero flag
-    uint8_t C : 1;  // Carry flag
+    bool N : 1;  // Negative flag
+    bool V : 1;  // Overflow flag
+    bool P : 1;  // Direct page flag
+    bool B : 1;  // Break flag
+    bool H : 1;  // Half-carry flag
+    bool I : 1;  // Interrupt enable
+    bool Z : 1;  // Zero flag
+    bool C : 1;  // Carry flag
   };
   Flags PSW;  // Processor status word
 
@@ -139,12 +148,12 @@ class Spc700 {
   uint16_t read_word(uint16_t address) {
     uint8_t adrl = address;
     uint8_t adrh = address + 1;
-    uint8_t value = read(adrl);
-    return value | (read(adrh) << 8);
+    uint8_t value = callbacks_.read(adrl);
+    return value | (callbacks_.read(adrh) << 8);
   }
 
   uint8_t ReadOpcode() {
-    uint8_t opcode = read(PC++);
+    uint8_t opcode = callbacks_.read(PC++);
     return opcode;
   }
 
@@ -169,7 +178,7 @@ class Spc700 {
   }
 
   void push_byte(uint8_t value) {
-    write(0x100 | SP, value);
+    callbacks_.write(0x100 | SP, value);
     SP--;
   }
 

@@ -20,18 +20,24 @@ void Spc700::MOVY(uint16_t adr) {
 }
 
 void Spc700::MOVS(uint16_t adr) {
-  read(adr);
-  write(adr, A);
+  switch (bstep) {
+    case 0: read(adr); break;
+    case 1: write(adr, A); bstep = 0; break;
+  }
 }
 
 void Spc700::MOVSX(uint16_t adr) {
-  read(adr);
-  write(adr, X);
+  switch (bstep) {
+    case 0: read(adr); break;
+    case 1: write(adr, X); bstep = 0; break;
+  }
 }
 
 void Spc700::MOVSY(uint16_t adr) {
-  read(adr);
-  write(adr, Y);
+  switch (bstep) {
+    case 0: read(adr); break;
+    case 1: write(adr, Y); bstep = 0; break;
+  }
 }
 
 void Spc700::MOV(uint16_t adr) {

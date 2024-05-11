@@ -22,6 +22,7 @@ void Spc700::Reset(bool hard) {
     SP = 0x00;
     PSW = ByteToFlags(0x00);
   }
+  step = 0;
   stopped_ = false;
   reset_wanted_ = true;
 }
@@ -44,7 +45,14 @@ void Spc700::RunOpcode() {
     callbacks_.idle(true);
     return;
   }
-  ExecuteInstructions(ReadOpcode());
+  if (step == 0) {
+    bstep = 0;
+    opcode = ReadOpcode();
+    step = 1;
+    return;
+  }
+  ExecuteInstructions(opcode);
+  if (step == 1) step = 0;  // reset step for non cycle-stepped opcodes.
 }
 
 void Spc700::ExecuteInstructions(uint8_t opcode) {
@@ -814,7 +822,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       A--;
       PSW.Z = (A == 0);
       PSW.N = (A & 0x80);
-      ;
       break;
     }
     case 0x9d: {  // movxp imp
@@ -843,7 +850,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       A = yva & 0xff;
       PSW.Z = (A == 0);
       PSW.N = (A & 0x80);
-      ;
       break;
     }
     case 0x9f: {  // xcn imp
@@ -991,7 +997,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       }
       PSW.Z = (A == 0);
       PSW.N = (A & 0x80);
-      ;
       break;
     }
     case 0xbf: {  // mov ind+
@@ -1069,7 +1074,21 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xd0: {  // bne rel
-      DoBranch(ReadOpcode(), !PSW.Z);
+      switch (step++) {
+        case 1:
+          dat = ReadOpcode();
+          if (PSW.Z) step = 0;
+          break;
+        case 2:
+          callbacks_.idle(false);
+          break;
+        case 3:
+          callbacks_.idle(false);
+          PC += (int8_t)dat;
+          step = 0;
+          break;
+      }
+      // DoBranch(ReadOpcode(), !PSW.Z);
       break;
     }
     case 0xd4: {  // movs dpx
@@ -1276,8 +1295,6 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       throw std::runtime_error("Unknown SPC opcode: " + std::to_string(opcode));
       break;
   }
-
-  //LogInstruction(initialPC, opcode);
 }
 
 void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
