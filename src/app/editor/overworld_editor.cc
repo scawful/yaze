@@ -1734,24 +1734,54 @@ void OverworldEditor::DrawOverworldProperties() {
       std::string area_graphics_str = absl::StrFormat(
           "0x%02hX", overworld_.overworld_map(i)->area_graphics());
       properties_canvas_.mutable_labels(0)->push_back(area_graphics_str);
+      area_graphics_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i + 0x40)->area_graphics());
+      properties_canvas_.mutable_labels(3)->push_back(area_graphics_str);
     }
     for (int i = 0; i < 0x40; i++) {
       std::string area_palette_str = absl::StrFormat(
           "0x%02hX", overworld_.overworld_map(i)->area_palette());
       properties_canvas_.mutable_labels(1)->push_back(area_palette_str);
+      area_palette_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i + 0x40)->area_palette());
+      properties_canvas_.mutable_labels(4)->push_back(area_palette_str);
+    }
+    for (int i = 0; i < 0x40; i++) {
+      std::string sprite_palette_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i)->sprite_palette(1));
+      properties_canvas_.mutable_labels(2)->push_back(sprite_palette_str);
+      sprite_palette_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i + 0x40)->sprite_palette(1));
+      properties_canvas_.mutable_labels(5)->push_back(sprite_palette_str);
     }
     init_properties = true;
   }
 
-  if (ImGui::Button("Area Graphics")) {
-    properties_canvas_.set_current_labels(0);
-  }
-
-  if (ImGui::Button("Area Palette")) {
-    properties_canvas_.set_current_labels(1);
-  }
-
   properties_canvas_.UpdateInfoGrid(ImVec2(512, 512), 16, 1.0f, 64);
+  ImGui::Separator();
+
+  static bool dark_world = false;
+  int world = dark_world ? 3 : 0;
+  static int current = 0;
+
+  if (ImGui::Checkbox("Dark World", &dark_world)) {
+    properties_canvas_.set_current_labels(current + world);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Area Graphics")) {
+    current = 0;
+    properties_canvas_.set_current_labels(current + world);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Area Palette")) {
+    current = 1;
+    properties_canvas_.set_current_labels(current + world);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Sprite Palette")) {
+    current = 2;
+    properties_canvas_.set_current_labels(current + world);
+  }
 }
 
 absl::Status OverworldEditor::DrawExperimentalModal() {
