@@ -156,8 +156,8 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
 
-  std::string group_name = kPaletteGroupNames[category].data();
-  auto palette_group = *rom()->palette_group().get_group(group_name);
+  gfx::PaletteGroup palette_group =
+      *rom()->palette_group().get_group(kPaletteGroupNames[category].data());
   const auto size = palette_group.size();
 
   static bool edit_color = false;
@@ -166,7 +166,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
     // rom()->resource_label()->SelectableLabelWithNameEdit(
     //     false, "Palette Group Name", std::to_string(j),
     //     std::string(kPaletteGroupNames[category]));
-    auto palette = palette_group.mutable_palette(j);
+    gfx::SnesPalette* palette = palette_group.mutable_palette(j);
     auto pal_size = palette->size();
 
     for (int n = 0; n < pal_size; n++) {

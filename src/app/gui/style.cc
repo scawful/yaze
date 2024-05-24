@@ -12,7 +12,7 @@ void BeginWindowWithDisplaySettings(const char* id, bool* active,
                                     ImGuiWindowFlags flags) {
   ImGuiStyle* ref = &ImGui::GetStyle();
   static float childBgOpacity = 0.75f;
-  auto color = ImVec4(0.f, 0.f, 0.f, childBgOpacity);
+  auto color = ref->Colors[ImGuiCol_WindowBg];
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, color);
   ImGui::PushStyleColor(ImGuiCol_ChildBg, color);
