@@ -1,7 +1,6 @@
 var constants_8h =
 [
     [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ],
-    [ "IMGUI_DEFINE_MATH_OPERATORS", "constants_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "BASIC_BUTTON", "constants_8h.html#a2a6d3c544b489fef33df8e2da43bff75", null ],
     [ "TAB_BAR", "constants_8h.html#a2787dd8a1e56d8afff7bb6b2275a5631", null ],
     [ "END_TAB_BAR", "constants_8h.html#a2b70aa0177c9118ef7d48ec0596653f4", null ],
