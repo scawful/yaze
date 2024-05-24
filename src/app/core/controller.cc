@@ -247,7 +247,7 @@ void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
 void Controller::DoRender() const {
   ImGui::Render();
   SDL_RenderClear(renderer_.get());
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_.get());
   SDL_RenderPresent(renderer_.get());
 }
 
