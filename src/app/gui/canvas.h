@@ -148,6 +148,11 @@ class Canvas {
   }
   auto mutable_labels(int i) {
     if (i >= labels_.size()) {
+      int x = i;
+      while (x >= labels_.size()) {
+        labels_.push_back(ImVector<std::string>());
+        x--;
+      }
       labels_.push_back(ImVector<std::string>());
     }
     return &labels_[i];
