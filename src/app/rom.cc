@@ -251,7 +251,7 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
 
   // Run the other save functions
   if (flags()->kSaveAllPalettes) {
-    SaveAllPalettes();
+    RETURN_IF_ERROR(SaveAllPalettes());
   }
 
   if (save_new) {
@@ -325,7 +325,7 @@ absl::Status Rom::SavePalette(int index, const std::string& group_name,
 absl::Status Rom::SaveAllPalettes() {
   palette_groups_.for_each([&](gfx::PaletteGroup& group) {
     for (size_t i = 0; i < group.size(); ++i) {
-      SavePalette(i, group.name(), *group.mutable_palette(i));
+      RETURN_IF_ERROR(SavePalette(i, group.name(), *group.mutable_palette(i)));
     }
   });
 
