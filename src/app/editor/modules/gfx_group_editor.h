@@ -50,6 +50,7 @@ class GfxGroupEditor : public SharedRom {
   uint8_t selected_blockset_ = 0;
   uint8_t selected_roomset_ = 0;
   uint8_t selected_spriteset_ = 0;
+  uint8_t selected_paletteset_ = 0;
 
   PaletteEditor palette_editor_;
 
