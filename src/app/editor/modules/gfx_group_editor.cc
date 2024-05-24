@@ -34,27 +34,46 @@ absl::Status GfxGroupEditor::Update() {
   if (ImGui::BeginTabBar("GfxGroupEditor")) {
     if (ImGui::BeginTabItem("Main")) {
       gui::InputHexByte("Selected Blockset", &selected_blockset_);
-
+      if (selected_blockset_ >= 0x24) {
+        selected_blockset_ = 0x24;
+      }
+      rom()->resource_label()->SelectableLabelWithNameEdit(
+          false, "blockset", "0x" + std::to_string(selected_blockset_),
+          "Blockset " + std::to_string(selected_blockset_));
       DrawBlocksetViewer();
       ImGui::EndTabItem();
     }
 
     if (ImGui::BeginTabItem("Rooms")) {
       gui::InputHexByte("Selected Blockset", &selected_roomset_);
-
+      if (selected_roomset_ >= 81) {
+        selected_roomset_ = 81;
+      }
       DrawRoomsetViewer();
       ImGui::EndTabItem();
     }
 
     if (ImGui::BeginTabItem("Sprites")) {
       gui::InputHexByte("Selected Spriteset", &selected_spriteset_);
-
+      if (selected_spriteset_ >= 143) {
+        selected_spriteset_ = 143;
+      }
+      rom()->resource_label()->SelectableLabelWithNameEdit(
+          false, "spriteset", "0x" + std::to_string(selected_spriteset_),
+          "Spriteset " + std::to_string(selected_spriteset_));
       ImGui::Text("Values");
       DrawSpritesetViewer();
       ImGui::EndTabItem();
     }
 
     if (ImGui::BeginTabItem("Palettes")) {
+      gui::InputHexByte("Selected Paletteset", &selected_paletteset_);
+      if (selected_paletteset_ >= 71) {
+        selected_paletteset_ = 71;
+      }
+      rom()->resource_label()->SelectableLabelWithNameEdit(
+          false, "paletteset", "0x" + std::to_string(selected_paletteset_),
+          "Paletteset " + std::to_string(selected_paletteset_));
       DrawPaletteViewer();
       ImGui::EndTabItem();
     }
@@ -62,16 +81,13 @@ absl::Status GfxGroupEditor::Update() {
     ImGui::EndTabBar();
   }
 
-  ImGui::Separator();
-  ImGui::Text("Palette: ");
-  ImGui::InputInt("##PreviewPaletteID", &preview_palette_id_);
-
   return absl::OkStatus();
 }
 
 void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
   if (ImGui::BeginTable("##BlocksetTable", sheet_only ? 1 : 2,
-                        ImGuiTableFlags_Borders, ImVec2(0, 0))) {
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
+                        ImVec2(0, 0))) {
     if (!sheet_only) {
       TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
                        ImGui::GetContentRegionAvail().x);
@@ -116,13 +132,32 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
 
 void GfxGroupEditor::DrawRoomsetViewer() {
   ImGui::Text("Values - Overwrites 4 of main blockset");
-  if (ImGui::BeginTable("##Roomstable", 2, ImGuiTableFlags_Borders,
+  if (ImGui::BeginTable("##Roomstable", 3,
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                         ImVec2(0, 0))) {
+    TableSetupColumn("List", ImGuiTableColumnFlags_WidthFixed, 100);
     TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
     TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
     TableHeadersRow();
     TableNextRow();
+
+    TableNextColumn();
+    {
+      ImGui::BeginChild("##RoomsetList");
+      for (int i = 0; i < 0x51; i++) {
+        ImGui::BeginGroup();
+        std::string roomset_label = absl::StrFormat("0x%02X", i);
+        rom()->resource_label()->SelectableLabelWithNameEdit(
+            false, "roomset", roomset_label, "Roomset " + roomset_label);
+        if (ImGui::IsItemClicked()) {
+          selected_roomset_ = i;
+        }
+        ImGui::EndGroup();
+      }
+      ImGui::EndChild();
+    }
+
     TableNextColumn();
     {
       ImGui::BeginGroup();
@@ -150,7 +185,8 @@ void GfxGroupEditor::DrawRoomsetViewer() {
 
 void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
   if (ImGui::BeginTable("##SpritesTable", sheet_only ? 1 : 2,
-                        ImGuiTableFlags_Borders, ImVec2(0, 0))) {
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
+                        ImVec2(0, 0))) {
     if (!sheet_only) {
       TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
                        ImGui::GetContentRegionAvail().x);
@@ -206,14 +242,11 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
 }  // namespace
 
 void GfxGroupEditor::DrawPaletteViewer() {
-  static uint8_t selected_paletteset = 0;
-
-  gui::InputHexByte("Selected Paletteset", &selected_paletteset);
-
-  auto dungeon_main_palette_val = rom()->paletteset_ids[selected_paletteset][0];
-  auto dungeon_spr_pal_1_val = rom()->paletteset_ids[selected_paletteset][1];
-  auto dungeon_spr_pal_2_val = rom()->paletteset_ids[selected_paletteset][2];
-  auto dungeon_spr_pal_3_val = rom()->paletteset_ids[selected_paletteset][3];
+  auto dungeon_main_palette_val =
+      rom()->paletteset_ids[selected_paletteset_][0];
+  auto dungeon_spr_pal_1_val = rom()->paletteset_ids[selected_paletteset_][1];
+  auto dungeon_spr_pal_2_val = rom()->paletteset_ids[selected_paletteset_][2];
+  auto dungeon_spr_pal_3_val = rom()->paletteset_ids[selected_paletteset_][3];
 
   gui::InputHexByte("Dungeon Main", &dungeon_main_palette_val);
   gui::InputHexByte("Dungeon Spr Pal 1", &dungeon_spr_pal_1_val);
@@ -221,19 +254,19 @@ void GfxGroupEditor::DrawPaletteViewer() {
   gui::InputHexByte("Dungeon Spr Pal 3", &dungeon_spr_pal_3_val);
 
   auto &palette = *rom()->mutable_palette_group()->dungeon_main.mutable_palette(
-      rom()->paletteset_ids[selected_paletteset][0]);
+      rom()->paletteset_ids[selected_paletteset_][0]);
   DrawPaletteFromPaletteGroup(palette);
   auto &spr_aux_pal1 =
       *rom()->mutable_palette_group()->sprites_aux1.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset][1]);
+          rom()->paletteset_ids[selected_paletteset_][1]);
   DrawPaletteFromPaletteGroup(spr_aux_pal1);
   auto &spr_aux_pal2 =
       *rom()->mutable_palette_group()->sprites_aux2.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset][2]);
+          rom()->paletteset_ids[selected_paletteset_][2]);
   DrawPaletteFromPaletteGroup(spr_aux_pal2);
   auto &spr_aux_pal3 =
       *rom()->mutable_palette_group()->sprites_aux3.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset][3]);
+          rom()->paletteset_ids[selected_paletteset_][3]);
   DrawPaletteFromPaletteGroup(spr_aux_pal3);
 }
 
