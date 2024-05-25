@@ -76,18 +76,12 @@ class RoomObject : public SharedRom {
         height_(16),
         unique_id_(0) {}
 
-  virtual void Draw() {
-    // ... Draw function implementation here
-  }
-
   void GetObjectSize() {
     previous_size_ = size_;
     size_ = 1;
-    // Draw();
     GetBaseSize();
     UpdateSize();
     size_ = 2;
-    // Draw();
     GetSizeSized();
     UpdateSize();
     size_ = previous_size_;
@@ -172,7 +166,6 @@ class Subtype1 : public RoomObject {
            int tileCount)
       : RoomObject(id, x, y, size, layer), tile_count_(tileCount) {
     auto rom_data = rom()->data();
-    name = Type1RoomObjectNames[id & 0xFF];
     int pos =
         core::tile_address +
         static_cast<int16_t>(
@@ -182,7 +175,7 @@ class Subtype1 : public RoomObject {
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
-  void Draw() override {
+  void Draw() {
     for (int s = 0; s < size_ + (tile_count_ == 8 ? 1 : 0); s++) {
       for (int i = 0; i < tile_count_; i++) {
         // DrawTile(tiles[i], ((s * 2)) * 8, (i / 2) * 8);
@@ -201,7 +194,6 @@ class Subtype2 : public RoomObject {
   Subtype2(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
       : RoomObject(id, x, y, size, layer) {
     auto rom_data = rom()->data();
-    name = Type2RoomObjectNames[id & 0x7F];
     int pos =
         core::tile_address +
         static_cast<int16_t>(
@@ -211,7 +203,7 @@ class Subtype2 : public RoomObject {
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
-  void Draw() override {
+  void Draw() {
     for (int i = 0; i < 8; i++) {
       // DrawTile(tiles[i], x_ * 8, (y_ + i) * 8);
     }
@@ -228,7 +220,6 @@ class Subtype3 : public RoomObject {
   Subtype3(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
       : RoomObject(id, x, y, size, layer) {
     auto rom_data = rom()->data();
-    name = Type3RoomObjectNames[id & 0xFF];
     int pos =
         core::tile_address +
         static_cast<int16_t>(
@@ -238,7 +229,7 @@ class Subtype3 : public RoomObject {
     sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
   }
 
-  void Draw() override {
+  void Draw() {
     for (int i = 0; i < 8; i++) {
       // DrawTile(tiles[i], x_ * 8, (y_ + i) * 8);
     }
