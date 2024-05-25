@@ -6,7 +6,6 @@ var classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject =
       [ "BG3", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a1e78c05ffe02bb4bc7b2f9dfcb86ba5aa9995118f51c64a86c9d45cd427b3d3f7", null ]
     ] ],
     [ "RoomObject", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a1b8e62849aeab2fd77685dc9da0c82c2", null ],
-    [ "Draw", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aec2149dc77149c99402b6cf6925c05d4", null ],
     [ "GetObjectSize", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a5727ccdbd5e61524c491fd06413212d8", null ],
     [ "GetBaseSize", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a894011db4a1890dd5293884a1b44539f", null ],
     [ "GetSizeSized", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a72c0a79ec2c2309ae2649c0924f96a6f", null ],
