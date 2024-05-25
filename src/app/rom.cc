@@ -143,7 +143,7 @@ absl::Status Rom::LoadFromFile(const absl::string_view& filename,
   }
 
   // Get file size and resize rom_data_
-  size_ = std::filesystem::file_size(filename);
+  size_ = std::filesystem::file_size(filename_);
   rom_data_.resize(size_);
 
   // Read file into rom_data_

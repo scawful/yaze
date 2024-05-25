@@ -264,6 +264,10 @@ void Emulator::HandleEvents() {
 }
 
 void Emulator::RenderBreakpointList() {
+  if (ImGui::Button("Set SPC PC")) {
+    snes_.apu().spc700().PC = 0xFFEF;
+  }
+  Separator();
   Text("Breakpoints");
   Separator();
   static char breakpoint_input[10] = "";

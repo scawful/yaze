@@ -114,13 +114,6 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
       for (int i = 0; i < 8; i++) {
         int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
         auto &sheet = *rom()->bitmap_manager()[sheet_id];
-        // if (sheet_id != last_sheet_id_) {
-        //   last_sheet_id_ = sheet_id;
-        //   auto palette_group = rom()->palette_group("ow_main");
-        //   auto palette = palette_group[preview_palette_id_];
-        //   sheet.ApplyPalette(palette);
-        //   rom()->UpdateBitmap(&sheet);
-        // }
         gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 22);
       }
