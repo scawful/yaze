@@ -123,7 +123,7 @@ class OverworldMap : public editor::context::GfxContext {
   int large_index_ = 0;  // Quadrant ID [0-3]
   int world_ = 0;        // World ID [0-2]
   int game_state_ = 0;   // Game state [0-2]
-  int main_gfx_id_ = 0;  // Spr Pal Modifier
+  int main_gfx_id_ = 0;  // Main Gfx ID
 
   uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;

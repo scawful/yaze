@@ -306,8 +306,9 @@ class BitmapManager {
     if (it != bitmap_cache_.end()) {
       return it->second;
     }
-    throw std::runtime_error(
-        absl::StrCat("Bitmap with id ", id, " not found."));
+    std::cout << absl::StrCat("Bitmap with id ", id, " not found.")
+              << std::endl;
+    return bitmap_cache_.begin()->second;
   }
   std::shared_ptr<gfx::Bitmap> const &shared_bitmap(int id) {
     auto it = bitmap_cache_.find(id);
