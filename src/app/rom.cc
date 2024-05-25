@@ -128,8 +128,12 @@ absl::Status Rom::LoadAllGraphicsData() {
 
 absl::Status Rom::LoadFromFile(const absl::string_view& filename,
                                bool z3_load) {
+  if (filename.empty()) {
+    return absl::InvalidArgumentError(
+        "Could not load ROM: parameter `filename` is empty.");
+  }
   // Set filename
-  filename_ = filename;
+  filename_ = filename.data();
 
   // Open file
   std::ifstream file(filename.data(), std::ios::binary);
