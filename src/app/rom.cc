@@ -136,7 +136,7 @@ absl::Status Rom::LoadFromFile(const absl::string_view& filename,
   filename_ = filename.data();
 
   // Open file
-  std::ifstream file(filename.data(), std::ios::binary);
+  std::ifstream file(filename_, std::ios::binary);
   if (!file.is_open()) {
     return absl::InternalError(
         absl::StrCat("Could not open ROM file: ", filename));
@@ -245,7 +245,7 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
 
     // Now, copy the original file to the backup file
     try {
-      std::filesystem::copy(filename, backup_filename,
+      std::filesystem::copy(filename_, backup_filename,
                             std::filesystem::copy_options::overwrite_existing);
     } catch (const std::filesystem::filesystem_error& e) {
       non_firing_status = absl::InternalError(absl::StrCat(
