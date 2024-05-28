@@ -58,7 +58,9 @@ class Bitmap {
         data_(data),
         palette_(palette) {
     InitializeFromData(width, height, depth, data);
-    ApplyPalette(palette);
+    if (!ApplyPalette(palette).ok()) {
+      std::cerr << "Error applying palette in bitmap constructor." << std::endl;
+    }
   }
 
   /**
