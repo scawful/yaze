@@ -58,7 +58,8 @@ class MasterEditor : public SharedRom,
  public:
   MasterEditor() { current_editor_ = &overworld_editor_; }
 
-  void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
+  void SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
+                   std::string filename = "");
   absl::Status Update();
 
   void Shutdown() { overworld_editor_.Shutdown(); }

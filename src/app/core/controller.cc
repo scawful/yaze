@@ -190,7 +190,7 @@ void HandleMouseMovement(int &wheel) {
 
 }  // namespace
 
-absl::Status Controller::OnEntry() {
+absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())

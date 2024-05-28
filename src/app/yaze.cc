@@ -25,6 +25,11 @@ int main(int argc, char** argv) {
   options.alarm_on_failure_secs = true;
   absl::InstallFailureSignalHandler(options);
 
+  std::string rom_filename;
+  if (argc > 1) {
+    rom_filename = argv[1];
+  }
+
   core::Controller controller;
   EXIT_IF_ERROR(controller.OnEntry())
 
