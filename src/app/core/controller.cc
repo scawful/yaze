@@ -389,31 +389,33 @@ absl::Status Controller::LoadFontFamilies() const {
   for (const auto &font_path : font_paths) {
     float font_size =
         (font_path == DROID_SANS) ? FONT_SIZE_DROID_SANS : FONT_SIZE_DEFAULT;
-
+    std::string actual_font_path = font_path;
 #ifdef __linux__
     std::string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
-    font_path = absl::StrCat(HOME, "/", font_path);
+    actual_font_path = absl::StrCat(HOME, "/", font_path);
 #endif
 
-    if (!io.Fonts->AddFontFromFileTTF(font_path, font_size)) {
+    if (!io.Fonts->AddFontFromFileTTF(actual_font_path.data(), font_size)) {
       return absl::InternalError(
-          absl::StrFormat("Failed to load font from %s", font_path));
+          absl::StrFormat("Failed to load font from %s", actual_font_path));
     }
 
     // Merge icon set
     const char *icon_font_path = FONT_ICON_FILE_NAME_MD;
+    std::string actual_icon_font_path = icon_font_path;
 #ifdef __linux__
-    icon_font_path = absl::StrCat(HOME, "/", icon_font_path);
+    actual_icon_font_path = absl::StrCat(HOME, "/", icon_font_path);
 #endif
-    io.Fonts->AddFontFromFileTTF(icon_font_path, ICON_FONT_SIZE, &icons_config,
-                                 icons_ranges);
+    io.Fonts->AddFontFromFileTTF(actual_icon_font_path.data(), ICON_FONT_SIZE,
+                                 &icons_config, icons_ranges);
 
     // Merge Japanese font
     const char *japanese_font_path = NOTO_SANS_JP;
+    std::string actual_japanese_font_path = japanese_font_path;
 #ifdef __linux__
-    japanese_font_path = absl::StrCat(HOME, "/", japanese_font_path);
+    actual_japanese_font_path = absl::StrCat(HOME, "/", japanese_font_path);
 #endif
-    io.Fonts->AddFontFromFileTTF(japanese_font_path, 18.0f,
+    io.Fonts->AddFontFromFileTTF(actual_japanese_font_path.data(), 18.0f,
                                  &japanese_font_config,
                                  io.Fonts->GetGlyphRangesJapanese());
   }
