@@ -582,12 +582,29 @@ void MasterEditor::DrawHelpMenu() {
   if (open_supported_features) ImGui::OpenPopup("Supported Features");
   if (ImGui::BeginPopupModal("Supported Features", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    // TODO: Expand on details of what is currently implemented.
-    ImGui::BulletText("Overworld Editing");
-    ImGui::BulletText("Dungeon Editing");
-    ImGui::BulletText("Sprite Editing");
-    ImGui::BulletText("Palette Editing");
-    ImGui::BulletText("Screen Editing");
+    ImGui::Text("Overworld");
+    ImGui::BulletText("LW/DW/SW Tilemap Editing");
+    ImGui::BulletText("LW/DW/SW Map Properties");
+    ImGui::BulletText("Create/Delete/Update Entrances");
+    ImGui::BulletText("Create/Delete/Update Exits");
+    ImGui::BulletText("Create/Delete/Update Sprites");
+    ImGui::BulletText("Create/Delete/Update Items");
+
+    ImGui::Text("Dungeon");
+    ImGui::BulletText("View Room Header Properties");
+    ImGui::BulletText("View Entrance Properties");
+
+    ImGui::Text("Graphics");
+    ImGui::BulletText("View Decompressed Graphics Sheets");
+
+    ImGui::Text("Palettes");
+    ImGui::BulletText("View Palette Groups");
+
+    ImGui::Text("Saveable");
+    ImGui::BulletText("All Listed Overworld Features");
+    ImGui::BulletText("Hex Editor Changes");
+
+
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       open_supported_features = false;
