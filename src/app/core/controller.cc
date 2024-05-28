@@ -392,7 +392,7 @@ absl::Status Controller::LoadFontFamilies() const {
 
 #ifdef __linux__
     std::string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
-    font_path = HOME + "/" + font_path;
+    font_path = absl::StrCat(HOME, "/", font_path);
 #endif
 
     if (!io.Fonts->AddFontFromFileTTF(font_path, font_size)) {
@@ -403,7 +403,7 @@ absl::Status Controller::LoadFontFamilies() const {
     // Merge icon set
     const char *icon_font_path = FONT_ICON_FILE_NAME_MD;
 #ifdef __linux__
-    icon_font_path = HOME + "/" + icon_font_path;
+    icon_font_path = absl::StrCat(HOME, "/", icon_font_path);
 #endif
     io.Fonts->AddFontFromFileTTF(icon_font_path, ICON_FONT_SIZE, &icons_config,
                                  icons_ranges);
@@ -411,7 +411,7 @@ absl::Status Controller::LoadFontFamilies() const {
     // Merge Japanese font
     const char *japanese_font_path = NOTO_SANS_JP;
 #ifdef __linux__
-    japanese_font_path = HOME + "/" + japanese_font_path;
+    japanese_font_path = absl::StrCat(HOME, "/", japanese_font_path);
 #endif
     io.Fonts->AddFontFromFileTTF(japanese_font_path, 18.0f,
                                  &japanese_font_config,
