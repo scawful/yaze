@@ -10,12 +10,12 @@ namespace app {
 namespace zelda3 {
 namespace screen {
 
-void Inventory::Create() {
+absl::Status Inventory::Create() {
   data_.reserve(256 * 256);
   for (int i = 0; i < 256 * 256; i++) {
     data_.push_back(0xFF);
   }
-  PRINT_IF_ERROR(BuildTileset())
+  RETURN_IF_ERROR(BuildTileset())
   for (int i = 0; i < 0x500; i += 0x08) {
     tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos)));
     tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos + 0x02)));
@@ -64,8 +64,9 @@ void Inventory::Create() {
   }
 
   bitmap_.Create(256, 256, 8, data_);
-  bitmap_.ApplyPalette(palette_);
+  RETURN_IF_ERROR(bitmap_.ApplyPalette(palette_));
   rom()->RenderBitmap(&bitmap_);
+  return absl::OkStatus();
 }
 
 absl::Status Inventory::BuildTileset() {
