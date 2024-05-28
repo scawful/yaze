@@ -83,6 +83,8 @@ class ScreenEditor : public SharedRom {
   gfx::BitmapTable sheets_;
 
   gfx::Tilesheet tile16_sheet_;
+
+  absl::Status status_;
 };
 
 }  // namespace editor

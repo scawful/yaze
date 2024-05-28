@@ -141,6 +141,8 @@ class DungeonEditor : public Editor,
 
   std::unordered_map<int, int> room_size_addresses_;
   std::unordered_map<int, ImVec4> room_palette_;
+
+  absl::Status status_;
 };
 
 }  // namespace editor

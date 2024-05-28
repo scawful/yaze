@@ -41,7 +41,7 @@ absl::Status DungeonEditor::Update() {
 
   TAB_BAR("##DungeonEditorTabBar")
   TAB_ITEM("Room Editor")
-  UpdateDungeonRoomView();
+  status_ = UpdateDungeonRoomView();
   END_TAB_ITEM()
   TAB_ITEM("Usage Statistics")
   if (is_loaded_) {
@@ -107,8 +107,8 @@ absl::Status DungeonEditor::RefreshGraphics() {
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
   for (int i = 9; i < 16; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
-    graphics_bin_[block].get()->ApplyPaletteWithTransparent(
-        sprites_aux1_pal_group[current_palette_id_], 0);
+    RETURN_IF_ERROR(graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+        sprites_aux1_pal_group[current_palette_id_], 0));
     rom()->UpdateBitmap(graphics_bin_[block].get(), true);
   }
   return absl::OkStatus();
@@ -833,8 +833,8 @@ void DungeonEditor::DrawUsageGrid() {
         ImGui::Text("Floor1: %#02x", room.floor1);
         ImGui::Text("Floor2: %#02x", room.floor2);
         ImGui::Text("Message ID: %#04x", room.message_id_);
-        ImGui::Text("Size: %#06x", room.room_size());
-        ImGui::Text("Size Pointer: %#06x", room.room_size_ptr());
+        ImGui::Text("Size: %#016llx", room.room_size());
+        ImGui::Text("Size Pointer: %#016llx", room.room_size_ptr());
         ImGui::EndTooltip();
       }
 

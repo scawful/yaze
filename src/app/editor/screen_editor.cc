@@ -74,7 +74,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
     tilesheet_canvas_.DrawOverlay();
 
     ImGui::TableNextColumn();
-    gui::DisplayPalette(palette_, create);
+    status_ = gui::DisplayPalette(palette_, create);
 
     ImGui::EndTable();
   }
@@ -233,8 +233,8 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
     tile16_sheet_.ComposeTile16(rom()->graphics_buffer(), t1, t2, t3, t4);
   }
 
-  tile16_sheet_.mutable_bitmap()->ApplyPalette(
-      *rom()->mutable_dungeon_palette(3));
+  RETURN_IF_ERROR(tile16_sheet_.mutable_bitmap()->ApplyPalette(
+      *rom()->mutable_dungeon_palette(3)));
   rom()->RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
 
   for (int i = 0; i < tile16_sheet_.num_tiles(); ++i) {
