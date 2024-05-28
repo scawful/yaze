@@ -818,7 +818,7 @@ absl::Status OverworldEditor::DrawTileSelector() {
   if (BeginTabBar(kTileSelectorTab.data(),
                   ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (BeginTabItem("Tile16")) {
-      RETURN_IF_ERROR(DrawTile16Selector());
+      status_ = DrawTile16Selector();
       EndTabItem();
     }
     if (BeginTabItem("Tile8")) {
@@ -830,7 +830,7 @@ absl::Status OverworldEditor::DrawTileSelector() {
       EndTabItem();
     }
     if (BeginTabItem("Area Graphics")) {
-      DrawAreaGraphics();
+      status_ = DrawAreaGraphics();
       EndTabItem();
     }
     EndTabBar();
@@ -1601,12 +1601,14 @@ absl::Status OverworldEditor::LoadGraphics() {
   palette_ = overworld_.AreaPalette();
 
   // Create the area graphics image
-  rom()->CreateAndRenderBitmap(0x80, 0x200, 0x40, overworld_.current_graphics(),
-                               current_gfx_bmp_, palette_);
+  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x200, 0x40,
+                                               overworld_.current_graphics(),
+                                               current_gfx_bmp_, palette_));
 
   // Create the tile16 blockset image
-  rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x08, overworld_.Tile16Blockset(),
-                               tile16_blockset_bmp_, palette_);
+  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x08,
+                                               overworld_.Tile16Blockset(),
+                                               tile16_blockset_bmp_, palette_));
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.

@@ -261,7 +261,7 @@ void PaletteEditor::DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   // Generate a default palette. The palette will persist and can be edited.
   static bool init = false;
   if (loaded && !init) {
-    InitializeSavedPalette(palette);
+    status_ = InitializeSavedPalette(palette);
     init = true;
   }
 
@@ -333,7 +333,7 @@ void PaletteEditor::DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 void PaletteEditor::DrawPortablePalette(gfx::SnesPalette& palette) {
   static bool init = false;
   if (!init) {
-    InitializeSavedPalette(palette);
+    status_ = InitializeSavedPalette(palette);
     init = true;
   }
 

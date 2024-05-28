@@ -435,7 +435,7 @@ absl::Status GraphicsEditor::UpdateScadView() {
   if (super_donkey_) {
     if (refresh_graphics_) {
       for (int i = 0; i < graphics_bin_.size(); i++) {
-        graphics_bin_[i].ApplyPalette(
+        status_ = graphics_bin_[i].ApplyPalette(
             col_file_palette_group_[current_palette_index_]);
         rom()->UpdateBitmap(&graphics_bin_[i]);
       }
@@ -740,9 +740,9 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     auto palette_group = rom()->palette_group().overworld_animated;
     z3_rom_palette_ = palette_group[current_palette_];
     if (col_file_) {
-      bin_bitmap_.ApplyPalette(col_file_palette_);
+      status_ = bin_bitmap_.ApplyPalette(col_file_palette_);
     } else {
-      bin_bitmap_.ApplyPalette(z3_rom_palette_);
+      status_ = bin_bitmap_.ApplyPalette(z3_rom_palette_);
     }
   }
 
@@ -765,7 +765,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                     core::kTilesheetDepth, converted_sheet);
     if (col_file_) {
-      graphics_bin_[i].ApplyPalette(
+      status_ = graphics_bin_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
@@ -773,7 +773,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
-      graphics_bin_[i].ApplyPalette(z3_rom_palette_);
+      status_ = graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 
     rom()->RenderBitmap(&graphics_bin_[i]);
@@ -791,14 +791,14 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
         gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                     core::kTilesheetDepth, converted_sheet);
     if (col_file_) {
-      graphics_bin_[i].ApplyPalette(
+      status_ = graphics_bin_[i].ApplyPalette(
           col_file_palette_group_[current_palette_index_]);
     } else {
       // ROM palette
       auto palette_group = rom()->palette_group().get_group(
           kPaletteGroupAddressesKeys[current_palette_]);
       z3_rom_palette_ = *palette_group->mutable_palette(current_palette_index_);
-      graphics_bin_[i].ApplyPalette(z3_rom_palette_);
+      status_ = graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 
     rom()->RenderBitmap(&graphics_bin_[i]);

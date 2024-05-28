@@ -209,89 +209,114 @@ class RoomEntrance {
     }
   }
 
-  void Save(Rom& rom, int entrance_id, bool is_spawn_point = false) {
+  absl::Status Save(Rom& rom, int entrance_id, bool is_spawn_point = false) {
     if (!is_spawn_point) {
-      rom.WriteShort(entrance_room + (entrance_id * 2), room_);
-      rom.WriteShort(entrance_yposition + (entrance_id * 2), y_position_);
-      rom.WriteShort(entrance_xposition + (entrance_id * 2), x_position_);
-      rom.WriteShort(entrance_yscroll + (entrance_id * 2), camera_y_);
-      rom.WriteShort(entrance_xscroll + (entrance_id * 2), camera_x_);
-      rom.WriteShort(entrance_cameraxtrigger + (entrance_id * 2),
-                     camera_trigger_x_);
-      rom.WriteShort(entrance_cameraytrigger + (entrance_id * 2),
-                     camera_trigger_y_);
-
-      rom.WriteShort(entrance_exit + (entrance_id * 2), exit_);
-      rom.Write(entrance_blockset + entrance_id, (uint8_t)(blockset_ & 0xFF));
-      rom.Write(entrance_music + entrance_id, (uint8_t)(music_ & 0xFF));
-      rom.Write(entrance_dungeon + entrance_id, (uint8_t)(dungeon_id_ & 0xFF));
-      rom.Write(entrance_door + entrance_id, (uint8_t)(door_ & 0xFF));
-      rom.Write(entrance_floor + entrance_id, (uint8_t)(floor_ & 0xFF));
-      rom.Write(entrance_ladderbg + entrance_id, (uint8_t)(ladder_bg_ & 0xFF));
-      rom.Write(entrance_scrolling + entrance_id, (uint8_t)(scrolling_ & 0xFF));
-      rom.Write(entrance_scrollquadrant + entrance_id,
-                (uint8_t)(scroll_quadrant_ & 0xFF));
-
-      rom.Write(entrance_scrolledge + 0 + (entrance_id * 8),
-                camera_boundary_qn_);
-      rom.Write(entrance_scrolledge + 1 + (entrance_id * 8),
-                camera_boundary_fn_);
-      rom.Write(entrance_scrolledge + 2 + (entrance_id * 8),
-                camera_boundary_qs_);
-      rom.Write(entrance_scrolledge + 3 + (entrance_id * 8),
-                camera_boundary_fs_);
-      rom.Write(entrance_scrolledge + 4 + (entrance_id * 8),
-                camera_boundary_qw_);
-      rom.Write(entrance_scrolledge + 5 + (entrance_id * 8),
-                camera_boundary_fw_);
-      rom.Write(entrance_scrolledge + 6 + (entrance_id * 8),
-                camera_boundary_qe_);
-      rom.Write(entrance_scrolledge + 7 + (entrance_id * 8),
-                camera_boundary_fe_);
+      RETURN_IF_ERROR(
+          rom.WriteShort(entrance_yposition + (entrance_id * 2), y_position_));
+      RETURN_IF_ERROR(
+          rom.WriteShort(entrance_xposition + (entrance_id * 2), x_position_));
+      RETURN_IF_ERROR(
+          rom.WriteShort(entrance_yscroll + (entrance_id * 2), camera_y_));
+      RETURN_IF_ERROR(
+          rom.WriteShort(entrance_xscroll + (entrance_id * 2), camera_x_));
+      RETURN_IF_ERROR(rom.WriteShort(
+          entrance_cameraxtrigger + (entrance_id * 2), camera_trigger_x_));
+      RETURN_IF_ERROR(rom.WriteShort(
+          entrance_cameraytrigger + (entrance_id * 2), camera_trigger_y_));
+      RETURN_IF_ERROR(rom.WriteShort(entrance_exit + (entrance_id * 2), exit_));
+      RETURN_IF_ERROR(rom.Write(entrance_blockset + entrance_id,
+                                (uint8_t)(blockset_ & 0xFF)));
+      RETURN_IF_ERROR(
+          rom.Write(entrance_music + entrance_id, (uint8_t)(music_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(entrance_dungeon + entrance_id,
+                                (uint8_t)(dungeon_id_ & 0xFF)));
+      RETURN_IF_ERROR(
+          rom.Write(entrance_door + entrance_id, (uint8_t)(door_ & 0xFF)));
+      RETURN_IF_ERROR(
+          rom.Write(entrance_floor + entrance_id, (uint8_t)(floor_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(entrance_ladderbg + entrance_id,
+                                (uint8_t)(ladder_bg_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolling + entrance_id,
+                                (uint8_t)(scrolling_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(entrance_scrollquadrant + entrance_id,
+                                (uint8_t)(scroll_quadrant_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 0 + (entrance_id * 8),
+                                camera_boundary_qn_));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 1 + (entrance_id * 8),
+                                camera_boundary_fn_));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 2 + (entrance_id * 8),
+                                camera_boundary_qs_));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 3 + (entrance_id * 8),
+                                camera_boundary_fs_));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 4 + (entrance_id * 8),
+                                camera_boundary_qw_));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 5 + (entrance_id * 8),
+                                camera_boundary_fw_));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 6 + (entrance_id * 8),
+                                camera_boundary_qe_));
+      RETURN_IF_ERROR(rom.Write(entrance_scrolledge + 7 + (entrance_id * 8),
+                                camera_boundary_fe_));
     } else {
-      rom.WriteShort(startingentrance_room + (entrance_id * 2), room_);
-      rom.WriteShort(startingentrance_yposition + (entrance_id * 2),
-                     y_position_);
-      rom.WriteShort(startingentrance_xposition + (entrance_id * 2),
-                     x_position_);
-      rom.WriteShort(startingentrance_yscroll + (entrance_id * 2), camera_y_);
-      rom.WriteShort(startingentrance_xscroll + (entrance_id * 2), camera_x_);
-      rom.WriteShort(startingentrance_cameraxtrigger + (entrance_id * 2),
-                     camera_trigger_x_);
-      rom.WriteShort(startingentrance_cameraytrigger + (entrance_id * 2),
-                     camera_trigger_y_);
-      rom.WriteShort(startingentrance_exit + (entrance_id * 2), exit_);
-
-      rom.Write(startingentrance_blockset + entrance_id,
-                (uint8_t)(blockset_ & 0xFF));
-      rom.Write(startingentrance_music + entrance_id, (uint8_t)(music_ & 0xFF));
-      rom.Write(startingentrance_dungeon + entrance_id,
-                (uint8_t)(dungeon_id_ & 0xFF));
-      rom.Write(startingentrance_door + entrance_id, (uint8_t)(door_ & 0xFF));
-      rom.Write(startingentrance_floor + entrance_id, (uint8_t)(floor_ & 0xFF));
-      rom.Write(startingentrance_ladderbg + entrance_id,
-                (uint8_t)(ladder_bg_ & 0xFF));
-      rom.Write(startingentrance_scrolling + entrance_id,
-                (uint8_t)(scrolling_ & 0xFF));
-      rom.Write(startingentrance_scrollquadrant + entrance_id,
-                (uint8_t)(scroll_quadrant_ & 0xFF));
-      rom.Write(startingentrance_scrolledge + 0 + (entrance_id * 8),
-                camera_boundary_qn_);
-      rom.Write(startingentrance_scrolledge + 1 + (entrance_id * 8),
-                camera_boundary_fn_);
-      rom.Write(startingentrance_scrolledge + 2 + (entrance_id * 8),
-                camera_boundary_qs_);
-      rom.Write(startingentrance_scrolledge + 3 + (entrance_id * 8),
-                camera_boundary_fs_);
-      rom.Write(startingentrance_scrolledge + 4 + (entrance_id * 8),
-                camera_boundary_qw_);
-      rom.Write(startingentrance_scrolledge + 5 + (entrance_id * 8),
-                camera_boundary_fw_);
-      rom.Write(startingentrance_scrolledge + 6 + (entrance_id * 8),
-                camera_boundary_qe_);
-      rom.Write(startingentrance_scrolledge + 7 + (entrance_id * 8),
-                camera_boundary_fe_);
+      RETURN_IF_ERROR(
+          rom.WriteShort(startingentrance_room + (entrance_id * 2), room_));
+      RETURN_IF_ERROR(rom.WriteShort(
+          startingentrance_yposition + (entrance_id * 2), y_position_));
+      RETURN_IF_ERROR(rom.WriteShort(
+          startingentrance_xposition + (entrance_id * 2), x_position_));
+      RETURN_IF_ERROR(rom.WriteShort(
+          startingentrance_yscroll + (entrance_id * 2), camera_y_));
+      RETURN_IF_ERROR(rom.WriteShort(
+          startingentrance_xscroll + (entrance_id * 2), camera_x_));
+      RETURN_IF_ERROR(
+          rom.WriteShort(startingentrance_cameraxtrigger + (entrance_id * 2),
+                         camera_trigger_x_));
+      RETURN_IF_ERROR(
+          rom.WriteShort(startingentrance_cameraytrigger + (entrance_id * 2),
+                         camera_trigger_y_));
+      RETURN_IF_ERROR(
+          rom.WriteShort(startingentrance_exit + (entrance_id * 2), exit_));
+      RETURN_IF_ERROR(rom.Write(startingentrance_blockset + entrance_id,
+                                (uint8_t)(blockset_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(startingentrance_music + entrance_id,
+                                (uint8_t)(music_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(startingentrance_dungeon + entrance_id,
+                                (uint8_t)(dungeon_id_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(startingentrance_door + entrance_id,
+                                (uint8_t)(door_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(startingentrance_floor + entrance_id,
+                                (uint8_t)(floor_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(startingentrance_ladderbg + entrance_id,
+                                (uint8_t)(ladder_bg_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(startingentrance_scrolling + entrance_id,
+                                (uint8_t)(scrolling_ & 0xFF)));
+      RETURN_IF_ERROR(rom.Write(startingentrance_scrollquadrant + entrance_id,
+                                (uint8_t)(scroll_quadrant_ & 0xFF)));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 0 + (entrance_id * 8),
+                    camera_boundary_qn_));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 1 + (entrance_id * 8),
+                    camera_boundary_fn_));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 2 + (entrance_id * 8),
+                    camera_boundary_qs_));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 3 + (entrance_id * 8),
+                    camera_boundary_fs_));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 4 + (entrance_id * 8),
+                    camera_boundary_qw_));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 5 + (entrance_id * 8),
+                    camera_boundary_fw_));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 6 + (entrance_id * 8),
+                    camera_boundary_qe_));
+      RETURN_IF_ERROR(
+          rom.Write(startingentrance_scrolledge + 7 + (entrance_id * 8),
+                    camera_boundary_fe_));
     }
+    return absl::OkStatus();
   }
 
   uint16_t entrance_id_;
