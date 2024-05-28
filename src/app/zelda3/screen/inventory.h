@@ -21,7 +21,7 @@ class Inventory : public SharedRom {
   auto Tilesheet() const { return tilesheets_bmp_; }
   auto Palette() const { return palette_; }
 
-  void Create();
+  absl::Status Create();
 
  private:
   absl::Status BuildTileset();
