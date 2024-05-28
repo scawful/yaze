@@ -31,5 +31,6 @@ var classyaze_1_1app_1_1editor_1_1ScreenEditor =
     [ "tilesheet_canvas_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ad65ead871549de1923c00729f0b72d46", null ],
     [ "tilemap_canvas_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a000696f10ff256d28fb16260d0b27416", null ],
     [ "sheets_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#abe64d48a0fe1ba02325f290a38c1f7ae", null ],
-    [ "tile16_sheet_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a6ac772677f43a6a6e079a6926e33e1e6", null ]
+    [ "tile16_sheet_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a6ac772677f43a6a6e079a6926e33e1e6", null ],
+    [ "status_", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a4da093058d84665c2bd1b71afb7cc0aa", null ]
 ];

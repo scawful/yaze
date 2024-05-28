@@ -75,5 +75,6 @@ var classyaze_1_1app_1_1editor_1_1DungeonEditor =
     [ "selected_palette_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a8a8ab3ff843107b5c0c70fe72e761678", null ],
     [ "total_room_size_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9b9b2ccd2108bb5c29c8add15a8f1169", null ],
     [ "room_size_addresses_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a251d4dfa1d508783aed989c39552df5c", null ],
-    [ "room_palette_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa26bac26291f7808a367dc36c7aa5f7c", null ]
+    [ "room_palette_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa26bac26291f7808a367dc36c7aa5f7c", null ],
+    [ "status_", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#adbd9b1dcc626a6bf912437d9664c1b3e", null ]
 ];

@@ -419,6 +419,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a251d4dfa1d508783aed989c39552df5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa26bac26291f7808a367dc36c7aa5f7c" id="r_aa26bac26291f7808a367dc36c7aa5f7c"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; int, ImVec4 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa26bac26291f7808a367dc36c7aa5f7c">room_palette_</a></td></tr>
 <tr class="separator:aa26bac26291f7808a367dc36c7aa5f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbd9b1dcc626a6bf912437d9664c1b3e" id="r_adbd9b1dcc626a6bf912437d9664c1b3e"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adbd9b1dcc626a6bf912437d9664c1b3e">status_</a></td></tr>
+<tr class="separator:adbd9b1dcc626a6bf912437d9664c1b3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -514,7 +516,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">yaze::app::editor::Editor</a>.</p>
 
-<p class="reference">References <a class="el" href="#a940d533e3715c1e55d84291396a2229d">CalculateUsageStats()</a>, <a class="el" href="#aabd3b0ab5140092ec573f3a12cff4227">DrawUsageStats()</a>, <a class="el" href="constants_8h.html#a2b70aa0177c9118ef7d48ec0596653f4">END_TAB_BAR</a>, <a class="el" href="constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11">END_TAB_ITEM</a>, <a class="el" href="#ade3be524545cc675650a5c28fb83f9fd">Initialize()</a>, <a class="el" href="#a37e8de98c6d50c2fdedb77f667f44bbc">is_loaded_</a>, <a class="el" href="#a8355fc1c5f44823030df548abb7bd948">refresh_graphics_</a>, <a class="el" href="#aad3299e7770b0e4ebadb94d9eb3e3879">RefreshGraphics()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="constants_8h.html#a2787dd8a1e56d8afff7bb6b2275a5631">TAB_BAR</a>, <a class="el" href="constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c">TAB_ITEM</a>, and <a class="el" href="#ad76ae6efb9d5fea979a9d41ddfdd9d67">UpdateDungeonRoomView()</a>.</p>
+<p class="reference">References <a class="el" href="#a940d533e3715c1e55d84291396a2229d">CalculateUsageStats()</a>, <a class="el" href="#aabd3b0ab5140092ec573f3a12cff4227">DrawUsageStats()</a>, <a class="el" href="constants_8h.html#a2b70aa0177c9118ef7d48ec0596653f4">END_TAB_BAR</a>, <a class="el" href="constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11">END_TAB_ITEM</a>, <a class="el" href="#ade3be524545cc675650a5c28fb83f9fd">Initialize()</a>, <a class="el" href="#a37e8de98c6d50c2fdedb77f667f44bbc">is_loaded_</a>, <a class="el" href="#a8355fc1c5f44823030df548abb7bd948">refresh_graphics_</a>, <a class="el" href="#aad3299e7770b0e4ebadb94d9eb3e3879">RefreshGraphics()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="#adbd9b1dcc626a6bf912437d9664c1b3e">status_</a>, <a class="el" href="constants_8h.html#a2787dd8a1e56d8afff7bb6b2275a5631">TAB_BAR</a>, <a class="el" href="constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c">TAB_ITEM</a>, and <a class="el" href="#ad76ae6efb9d5fea979a9d41ddfdd9d67">UpdateDungeonRoomView()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16">yaze::app::editor::MasterEditor::Update()</a>.</p>
 <div class="dynheader">
@@ -2866,6 +2868,30 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#a9f72129930b21b7dcb62375278f70c5a">DrawUsageGrid()</a>, and <a class="el" href="#ade3be524545cc675650a5c28fb83f9fd">Initialize()</a>.</p>
+
+</div>
+</div>
+<a id="adbd9b1dcc626a6bf912437d9664c1b3e" name="adbd9b1dcc626a6bf912437d9664c1b3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbd9b1dcc626a6bf912437d9664c1b3e">&#9670;&#160;</a></span>status_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::app::editor::DungeonEditor::status_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#aa1996432de42e435b2aebfda3d7346b6">Update()</a>.</p>
 
 </div>
 </div>
