@@ -340,6 +340,44 @@ absl::Status Rom::SaveAllPalettes() {
   return absl::OkStatus();
 }
 
+void Rom::LoadGfxGroups() {
+  main_blockset_ids.resize(37, std::vector<uint8_t>(8));
+  room_blockset_ids.resize(82, std::vector<uint8_t>(4));
+  spriteset_ids.resize(144, std::vector<uint8_t>(4));
+  paletteset_ids.resize(72, std::vector<uint8_t>(4));
+
+  int gfxPointer =
+      (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
+  gfxPointer = core::SnesToPc(gfxPointer);
+
+  for (int i = 0; i < 37; i++) {
+    for (int j = 0; j < 8; j++) {
+      main_blockset_ids[i][j] = rom_data_[gfxPointer + (i * 8) + j];
+    }
+  }
+
+  for (int i = 0; i < 82; i++) {
+    for (int j = 0; j < 4; j++) {
+      room_blockset_ids[i][j] =
+          rom_data_[core::entrance_gfx_group + (i * 4) + j];
+    }
+  }
+
+  for (int i = 0; i < 144; i++) {
+    for (int j = 0; j < 4; j++) {
+      spriteset_ids[i][j] =
+          rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
+    }
+  }
+
+  for (int i = 0; i < 72; i++) {
+    for (int j = 0; j < 4; j++) {
+      paletteset_ids[i][j] =
+          rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
+    }
+  }
+}
+
 void Rom::SaveGroupsToRom() {
   int gfxPointer =
       (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
