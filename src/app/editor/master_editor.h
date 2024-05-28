@@ -65,6 +65,7 @@ class MasterEditor : public SharedRom,
   void Shutdown() { overworld_editor_.Shutdown(); }
 
   auto emulator() -> emu::Emulator& { return emulator_; }
+  auto quit() { return quit_; }
 
  private:
   void DrawFileDialog();
@@ -81,6 +82,7 @@ class MasterEditor : public SharedRom,
   void LoadRom();
   void SaveRom();
 
+  bool quit_ = false;
   bool about_ = false;
   bool rom_info_ = false;
   bool backup_rom_ = false;
