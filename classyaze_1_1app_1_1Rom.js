@@ -62,7 +62,7 @@ var classyaze_1_1app_1_1Rom =
     [ "RenderBitmap", "classyaze_1_1app_1_1Rom.html#a8c77151f22c9c57fcdab28502aa1255f", null ],
     [ "UpdateBitmap", "classyaze_1_1app_1_1Rom.html#a210de65569d0b088013280d1e45f5c6a", null ],
     [ "LoadGfxGroups", "classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe", null ],
-    [ "SaveGroupsToRom", "classyaze_1_1app_1_1Rom.html#a1ff502f2d01d7181e9b6260dca4e3819", null ],
+    [ "SaveGroupsToRom", "classyaze_1_1app_1_1Rom.html#a32176a26208fc061f4120781d5d69315", null ],
     [ "resource_label", "classyaze_1_1app_1_1Rom.html#a0ab5edcc4038c88025b8d852909b9876", null ],
     [ "WriteHelper", "classyaze_1_1app_1_1Rom.html#a25138516f1c68cb74a5e0905c8a89669", null ],
     [ "ReadHelper", "classyaze_1_1app_1_1Rom.html#a99dae24153d271a7feab7740b8f752a7", null ],
