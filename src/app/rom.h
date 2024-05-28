@@ -171,8 +171,7 @@ class Rom : public core::ExperimentFlags {
    * @param z3_load Whether to load data specific to Zelda 3.
    *
    */
-  absl::Status LoadFromFile(const absl::string_view& filename,
-                            bool z3_load = true);
+  absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
 
