@@ -330,13 +330,15 @@ absl::Status Rom::SavePalette(int index, const std::string& group_name,
 }
 
 absl::Status Rom::SaveAllPalettes() {
-  palette_groups_.for_each([&](gfx::PaletteGroup& group) -> absl::Status {
-    for (size_t i = 0; i < group.size(); ++i) {
-      RETURN_IF_ERROR(SavePalette(i, group.name(), *group.mutable_palette(i)));
-    }
-    return absl::OkStatus();
-  });
-
+  RETURN_IF_ERROR(
+      palette_groups_.for_each([&](gfx::PaletteGroup& group) -> absl::Status {
+        for (size_t i = 0; i < group.size(); ++i) {
+          RETURN_IF_ERROR(
+              SavePalette(i, group.name(), *group.mutable_palette(i)));
+        }
+        return absl::OkStatus();
+      }));
+  
   return absl::OkStatus();
 }
 

@@ -274,22 +274,22 @@ struct PaletteGroupMap {
   }
 
   template <typename Func>
-  void for_each(Func&& func) {
-    func(overworld_main);
-    func(overworld_aux);
-    func(overworld_animated);
-    func(hud);
-    func(global_sprites);
-    func(armors);
-    func(swords);
-    func(shields);
-    func(sprites_aux1);
-    func(sprites_aux2);
-    func(sprites_aux3);
-    func(dungeon_main);
-    func(grass);
-    func(object_3d);
-    func(overworld_mini_map);
+  absl::Status for_each(Func&& func) {
+    RETURN_IF_ERROR(func(overworld_aux));
+    RETURN_IF_ERROR(func(overworld_animated));
+    RETURN_IF_ERROR(func(hud));
+    RETURN_IF_ERROR(func(global_sprites));
+    RETURN_IF_ERROR(func(armors));
+    RETURN_IF_ERROR(func(swords));
+    RETURN_IF_ERROR(func(shields));
+    RETURN_IF_ERROR(func(sprites_aux1));
+    RETURN_IF_ERROR(func(sprites_aux2));
+    RETURN_IF_ERROR(func(sprites_aux3));
+    RETURN_IF_ERROR(func(dungeon_main));
+    RETURN_IF_ERROR(func(grass));
+    RETURN_IF_ERROR(func(object_3d));
+    RETURN_IF_ERROR(func(overworld_mini_map));
+    return absl::OkStatus();
   }
 };
 
