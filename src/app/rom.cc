@@ -127,6 +127,7 @@ absl::Status Rom::LoadAllGraphicsData() {
 }
 
 absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
+  std::cout << "Loading ROM: " << filename << std::endl;
   if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
@@ -142,7 +143,14 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   }
 
   // Get file size and resize rom_data_
-  size_ = std::filesystem::file_size(filename_);
+  std::cout << "Getting file size" << std::endl;
+  try {
+    size_ = std::filesystem::file_size(filename_);
+  } catch (const std::filesystem::filesystem_error& e) {
+    return absl::InternalError(
+        absl::StrCat("Could not get file size: ", filename, " - ", e.what()));
+  }
+  std::cout << "Size of file: " << size_ << std::endl;
   rom_data_.resize(size_);
 
   // Read file into rom_data_
@@ -152,6 +160,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   constexpr size_t baseROMSize = 1048576;  // 1MB
   constexpr size_t headerSize = 0x200;     // 512 bytes
   if (size_ % baseROMSize == headerSize) {
+    std::cout << "ROM has a header" << std::endl;
     has_header_ = true;
   }
 
@@ -168,6 +177,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
 
   // Load Zelda 3 specific data if requested
   if (z3_load) {
+    std::cout << "Loading Zelda 3 specific data" << std::endl;
     // Copy ROM title
     constexpr uint32_t kTitleStringOffset = 0x7FC0;
     constexpr uint32_t kTitleStringLength = 20;
@@ -185,6 +195,9 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   rom_data_.resize(baseROMSize * 2);
   size_ = baseROMSize * 2;
 
+  std::cout
+      << "ROM loaded successfully, attempting to create resource label file."
+      << std::endl;
   // Set up the resource labels
   std::string resource_label_filename = absl::StrFormat("%s.labels", filename);
   resource_label_manager_.LoadLabels(resource_label_filename);
@@ -338,7 +351,7 @@ absl::Status Rom::SaveAllPalettes() {
         }
         return absl::OkStatus();
       }));
-  
+
   return absl::OkStatus();
 }
 
