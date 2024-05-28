@@ -200,7 +200,7 @@ absl::Status Controller::OnEntry(std::string filename) {
     master_editor_.emulator().set_audio_device_id(audio_device_);
   }
   InitializeKeymap();
-  master_editor_.SetupScreen(renderer_);
+  master_editor_.SetupScreen(renderer_, filename);
   active_ = true;
   return absl::OkStatus();
 }
