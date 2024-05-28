@@ -61,7 +61,7 @@ var searchData=
   ['font_5floader_2eh_58',['font_loader.h',['../font__loader_8h.html',1,'']]],
   ['font_5floader_2emm_59',['font_loader.mm',['../font__loader_8mm.html',1,'']]],
   ['for_20compression_20v3_20_3a_60',['3. CompressionContext (for Compression V3):',['../md_docs_2compression.html#autotoc_md9',1,'']]],
-  ['for_5feach_61',['for_each',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a68ceafdc2a8f70e468c0c4ff2d7dbd46',1,'yaze::app::gfx::PaletteGroupMap']]],
+  ['for_5feach_61',['for_each',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['forced_5fblank_5f_62',['forced_blank_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a7d5954ae3ba4f3b986dc859ea20e0317',1,'yaze::app::emu::video::Ppu']]],
   ['forced_5fblanking_63',['forced_blanking',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a0d251e71a1b82779b44c09b86cbedcdc',1,'yaze::app::emu::video::PpuRegisters::INIDISP']]],
   ['frame_5fbuffer_5f_64',['frame_buffer_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5129ea2bc44bc0ee9c3b6cb086afd2cf',1,'yaze::app::emu::video::Ppu']]],
