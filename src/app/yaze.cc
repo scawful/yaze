@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
   }
 
   core::Controller controller;
-  EXIT_IF_ERROR(controller.OnEntry())
+  EXIT_IF_ERROR(controller.OnEntry(rom_filename))
 
 #ifdef __APPLE__
   InitializeCocoa();
