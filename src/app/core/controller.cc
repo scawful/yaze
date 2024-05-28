@@ -244,7 +244,12 @@ void Controller::OnInput() {
   HandleMouseMovement(wheel);
 }
 
-void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
+void Controller::OnLoad() {
+  if (master_editor_.quit()) {
+    active_ = false;
+  }
+  PRINT_IF_ERROR(master_editor_.Update());
+}
 
 void Controller::DoRender() const {
   ImGui::Render();

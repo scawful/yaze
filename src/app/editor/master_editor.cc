@@ -411,7 +411,7 @@ void MasterEditor::DrawFileMenu() {
     ImGui::Separator();
 
     if (MenuItem("Quit", "Ctrl+Q")) {
-      // TODO: Implement quit confirmation dialog.
+      quit_ = true;
     }
 
     ImGui::EndMenu();
