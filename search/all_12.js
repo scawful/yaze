@@ -49,7 +49,7 @@ var searchData=
   ['offset_5fx_5f_46',['offset_x_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a3f45f6a2d1fbbfea50c20e5f3079c323',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['offset_5fy_5f_47',['offset_y_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a286182f9f81d26a1e933d9378c087d5b',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['oldstylejoypadregisters_48',['oldStyleJoypadRegisters',['../structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html#a55e95d7513686a76b6cf965439c9883a',1,'yaze::app::emu::video::JoypadRegisters']]],
-  ['onentry_49',['OnEntry',['../classyaze_1_1app_1_1core_1_1Controller.html#a96a47fb759041832df66d9fd1e4d40f1',1,'yaze::app::core::Controller']]],
+  ['onentry_49',['OnEntry',['../classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1',1,'yaze::app::core::Controller']]],
   ['onexit_50',['OnExit',['../classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760',1,'yaze::app::core::Controller']]],
   ['oninput_51',['OnInput',['../classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd',1,'yaze::app::core::Controller']]],
   ['onload_52',['OnLoad',['../classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0',1,'yaze::app::core::Controller']]],

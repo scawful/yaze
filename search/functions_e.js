@@ -2,7 +2,7 @@ var searchData=
 [
   ['oamtile_0',['OamTile',['../classyaze_1_1app_1_1gfx_1_1OamTile.html#a45e0e4bd747265a14017aea5ad58fc75',1,'yaze::app::gfx::OamTile::OamTile()=default'],['../classyaze_1_1app_1_1gfx_1_1OamTile.html#a85a3cb194fd6c30500dd5e076af1b484',1,'yaze::app::gfx::OamTile::OamTile(int x, int y, uint16_t tile, int pal, bool upper=false, int mx=0, int my=0)']]],
   ['object_5fdoor_1',['object_door',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a9d51755c7ccb531d888a12737e0549bc',1,'yaze::app::zelda3::dungeon::object_door::object_door()=default'],['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#aac6ab6d02c15a68f8ed2ffd1a5045756',1,'yaze::app::zelda3::dungeon::object_door::object_door(short id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)']]],
-  ['onentry_2',['OnEntry',['../classyaze_1_1app_1_1core_1_1Controller.html#a96a47fb759041832df66d9fd1e4d40f1',1,'yaze::app::core::Controller']]],
+  ['onentry_2',['OnEntry',['../classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1',1,'yaze::app::core::Controller']]],
   ['onexit_3',['OnExit',['../classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760',1,'yaze::app::core::Controller']]],
   ['oninput_4',['OnInput',['../classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd',1,'yaze::app::core::Controller']]],
   ['onload_5',['OnLoad',['../classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0',1,'yaze::app::core::Controller']]],

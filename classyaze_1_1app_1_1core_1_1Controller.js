@@ -2,7 +2,7 @@ var classyaze_1_1app_1_1core_1_1Controller =
 [
     [ "sdl_deleter", "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter.html", "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter" ],
     [ "IsActive", "classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d", null ],
-    [ "OnEntry", "classyaze_1_1app_1_1core_1_1Controller.html#a96a47fb759041832df66d9fd1e4d40f1", null ],
+    [ "OnEntry", "classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1", null ],
     [ "OnInput", "classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd", null ],
     [ "OnLoad", "classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0", null ],
     [ "DoRender", "classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00", null ],

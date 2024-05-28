@@ -316,8 +316,8 @@ Collaboration diagram for yaze::app::editor::MasterEditor:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a8b1b4a7824557c7394dd7a1d606bac21" id="r_a8b1b4a7824557c7394dd7a1d606bac21"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8b1b4a7824557c7394dd7a1d606bac21">MasterEditor</a> ()</td></tr>
 <tr class="separator:a8b1b4a7824557c7394dd7a1d606bac21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a382d87ffac35130578ccf04d118f5c9e" id="r_a382d87ffac35130578ccf04d118f5c9e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a382d87ffac35130578ccf04d118f5c9e">SetupScreen</a> (std::shared_ptr&lt; SDL_Renderer &gt; renderer)</td></tr>
-<tr class="separator:a382d87ffac35130578ccf04d118f5c9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac67ef851a62f7d2ccd7342f666066dee" id="r_ac67ef851a62f7d2ccd7342f666066dee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac67ef851a62f7d2ccd7342f666066dee">SetupScreen</a> (std::shared_ptr&lt; SDL_Renderer &gt; renderer, std::string filename=&quot;&quot;)</td></tr>
+<tr class="separator:ac67ef851a62f7d2ccd7342f666066dee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21434e7f576e94c503ed7f7ff2801d16" id="r_a21434e7f576e94c503ed7f7ff2801d16"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a21434e7f576e94c503ed7f7ff2801d16">Update</a> ()</td></tr>
 <tr class="separator:a21434e7f576e94c503ed7f7ff2801d16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adec58165d7b7febdfb676c50b7261e3e" id="r_adec58165d7b7febdfb676c50b7261e3e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adec58165d7b7febdfb676c50b7261e3e">Shutdown</a> ()</td></tr>
@@ -455,8 +455,8 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a382d87ffac35130578ccf04d118f5c9e" name="a382d87ffac35130578ccf04d118f5c9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a382d87ffac35130578ccf04d118f5c9e">&#9670;&#160;</a></span>SetupScreen()</h2>
+<a id="ac67ef851a62f7d2ccd7342f666066dee" name="ac67ef851a62f7d2ccd7342f666066dee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac67ef851a62f7d2ccd7342f666066dee">&#9670;&#160;</a></span>SetupScreen()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -464,20 +464,24 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void yaze::app::editor::MasterEditor::SetupScreen </td>
           <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; SDL_Renderer &gt;</td>          <td class="paramname"><span class="paramname"><em>renderer</em></span></td><td>)</td>
+          <td class="paramtype">std::shared_ptr&lt; SDL_Renderer &gt;</td>          <td class="paramname"><span class="paramname"><em>renderer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>filename</em></span><span class="paramdefsep"> = </span><span class="paramdefval">&quot;&quot;</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="reference">References <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9">yaze::app::editor::OverworldEditor::InitializeZeml()</a>, <a class="el" href="#ae3e6367019a598087c3d29e2fe981c0d">overworld_editor_</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, and <a class="el" href="#a435c0469551f95287f3c7e0d8f5c8a19">sdl_renderer_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1core_1_1Controller.html#a96a47fb759041832df66d9fd1e4d40f1">yaze::app::core::Controller::OnEntry()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1">yaze::app::core::Controller::OnEntry()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MasterEditor_a382d87ffac35130578ccf04d118f5c9e_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MasterEditor_a382d87ffac35130578ccf04d118f5c9e_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1MasterEditor_a382d87ffac35130578ccf04d118f5c9e_cgraph" id="aclassyaze_1_1app_1_1editor_1_1MasterEditor_a382d87ffac35130578ccf04d118f5c9e_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1MasterEditor_ac67ef851a62f7d2ccd7342f666066dee_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1MasterEditor_ac67ef851a62f7d2ccd7342f666066dee_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1MasterEditor_ac67ef851a62f7d2ccd7342f666066dee_cgraph" id="aclassyaze_1_1app_1_1editor_1_1MasterEditor_ac67ef851a62f7d2ccd7342f666066dee_cgraph">
 <area shape="rect" title=" " alt="" coords="5,169,181,210"/>
 <area shape="rect" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9" title=" " alt="" coords="229,128,424,169"/>
 <area shape="poly" title=" " alt="" coords="180,172,213,166,214,171,181,177"/>
@@ -724,7 +728,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a2333f055ab8e2a7d55eee1bb9437e507">emulator_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ac6d751f5f503987b8a5d28cd42c78d7a">yaze::app::core::anonymous_namespace{controller.cc}::HandleKeyDown()</a>, <a class="el" href="namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aff87aa6c49f935a01d5e385bdebeafe9">yaze::app::core::anonymous_namespace{controller.cc}::HandleKeyUp()</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1Controller.html#a38dbbdccc2f338bee9fd0662e1957895">yaze::app::core::Controller::LoadAudioDevice()</a>, and <a class="el" href="classyaze_1_1app_1_1core_1_1Controller.html#a96a47fb759041832df66d9fd1e4d40f1">yaze::app::core::Controller::OnEntry()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ac6d751f5f503987b8a5d28cd42c78d7a">yaze::app::core::anonymous_namespace{controller.cc}::HandleKeyDown()</a>, <a class="el" href="namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aff87aa6c49f935a01d5e385bdebeafe9">yaze::app::core::anonymous_namespace{controller.cc}::HandleKeyUp()</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1Controller.html#a38dbbdccc2f338bee9fd0662e1957895">yaze::app::core::Controller::LoadAudioDevice()</a>, and <a class="el" href="classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1">yaze::app::core::Controller::OnEntry()</a>.</p>
 
 </div>
 </div>
@@ -1607,7 +1611,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a382d87ffac35130578ccf04d118f5c9e">SetupScreen()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ac67ef851a62f7d2ccd7342f666066dee">SetupScreen()</a>.</p>
 
 </div>
 </div>
@@ -1751,7 +1755,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a8b1b4a7824557c7394dd7a1d606bac21">MasterEditor()</a>, <a class="el" href="#a5778a42abd5d52e437aa22a27f6879ca">SaveRom()</a>, <a class="el" href="#a382d87ffac35130578ccf04d118f5c9e">SetupScreen()</a>, <a class="el" href="#adec58165d7b7febdfb676c50b7261e3e">Shutdown()</a>, and <a class="el" href="#a21434e7f576e94c503ed7f7ff2801d16">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8b1b4a7824557c7394dd7a1d606bac21">MasterEditor()</a>, <a class="el" href="#a5778a42abd5d52e437aa22a27f6879ca">SaveRom()</a>, <a class="el" href="#ac67ef851a62f7d2ccd7342f666066dee">SetupScreen()</a>, <a class="el" href="#adec58165d7b7febdfb676c50b7261e3e">Shutdown()</a>, and <a class="el" href="#a21434e7f576e94c503ed7f7ff2801d16">Update()</a>.</p>
 
 </div>
 </div>

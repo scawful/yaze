@@ -1,7 +1,7 @@
 var classyaze_1_1app_1_1editor_1_1MasterEditor =
 [
     [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a8b1b4a7824557c7394dd7a1d606bac21", null ],
-    [ "SetupScreen", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a382d87ffac35130578ccf04d118f5c9e", null ],
+    [ "SetupScreen", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac67ef851a62f7d2ccd7342f666066dee", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16", null ],
     [ "Shutdown", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#adec58165d7b7febdfb676c50b7261e3e", null ],
     [ "emulator", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c329d941533145ee9a6a1e76f560ab4", null ],
