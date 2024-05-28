@@ -128,6 +128,12 @@ absl::Status Rom::LoadAllGraphicsData() {
 
 absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   std::cout << "Loading ROM: " << filename << std::endl;
+#ifdef __linux__
+  std::string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
+  std::cout << "Home directory: " << HOME << std::endl;
+  filename = HOME + "/" + filename;
+  std::cout << "Full path: " << filename << std::endl;
+#endif
   if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
