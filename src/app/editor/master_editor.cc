@@ -382,6 +382,8 @@ void MasterEditor::DrawFileMenu() {
           ImGui::EndMenu();
         }
 
+        Checkbox("Use built-in file dialog",
+                 &mutable_flags()->kNewFileDialogWrapper);
         Checkbox("Enable Console Logging", &mutable_flags()->kLogToConsole);
         Checkbox("Enable Texture Streaming",
                  &mutable_flags()->kLoadTexturesAsStreaming);
