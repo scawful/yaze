@@ -132,7 +132,6 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   std::string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
   std::cout << "Home directory: " << HOME << std::endl;
   full_filename = absl::StrCat(HOME, "/", filename);
-  std::cout << "Full path: " << full_path << std::endl;
 #endif
   if (full_filename.empty()) {
     return absl::InvalidArgumentError(
