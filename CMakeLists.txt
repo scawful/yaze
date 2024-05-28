@@ -21,7 +21,6 @@ include(cmake/absl.cmake)
 
 # Video Libraries 
 find_package(PNG REQUIRED)
-find_package(OpenGL REQUIRED)
 include(cmake/sdl2.cmake)
 
 # Asar 
