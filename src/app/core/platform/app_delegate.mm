@@ -2,9 +2,9 @@
 #import <Cocoa/Cocoa.h>
 
 #import "app/core/controller.h"
-#import "app/editor/utils/editor.h"
 #import "app/core/platform/app_delegate.h"
 #import "app/core/platform/file_dialog.h"
+#import "app/editor/utils/editor.h"
 #import "app/rom.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
@@ -195,7 +195,14 @@
 }
 
 - (void)openFileAction:(id)sender {
-  yaze::app::SharedRom::shared_rom_->LoadFromFile(FileDialogWrapper::ShowOpenFileDialog());
+  if (!yaze::app::SharedRom::shared_rom_->LoadFromFile(FileDialogWrapper::ShowOpenFileDialog())
+           .ok()) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setMessageText:@"Error"];
+    [alert setInformativeText:@"Failed to load file."];
+    [alert addButtonWithTitle:@"OK"];
+    [alert runModal];
+  }
 }
 
 - (void)cutAction:(id)sender {
