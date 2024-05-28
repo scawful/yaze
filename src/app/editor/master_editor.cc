@@ -400,8 +400,7 @@ void MasterEditor::DrawFileMenu() {
         Checkbox("Log Instructions to Debugger",
                  &mutable_flags()->kLogInstructions);
         Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
-        Checkbox("Save With Change Queue",
-                 &mutable_flags()->kSaveWithChangeQueue);
+        Checkbox("Save Gfx Groups", &mutable_flags()->kSaveGfxGroups);
         Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
         ImGui::EndMenu();
       }
@@ -596,6 +595,7 @@ void MasterEditor::DrawHelpMenu() {
 
     ImGui::Text("Graphics");
     ImGui::BulletText("View Decompressed Graphics Sheets");
+    ImGui::BulletText("View/Update Graphics Groups");
 
     ImGui::Text("Palettes");
     ImGui::BulletText("View Palette Groups");
@@ -603,8 +603,6 @@ void MasterEditor::DrawHelpMenu() {
     ImGui::Text("Saveable");
     ImGui::BulletText("All Listed Overworld Features");
     ImGui::BulletText("Hex Editor Changes");
-
-
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       open_supported_features = false;

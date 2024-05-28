@@ -42,6 +42,9 @@ class ExperimentFlags {
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
 
+    // Flag to enable the saving of gfx groups to the rom.
+    bool kSaveGfxGroups = false;
+
     // Flag to enable the change queue, which could have any anonymous
     // save routine for the Rom. In practice, just the overworld tilemap
     // and tile32 save.
