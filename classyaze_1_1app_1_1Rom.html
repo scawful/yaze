@@ -166,8 +166,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8afecbb24f3daf7a1df52586be587d82" id="r_a8afecbb24f3daf7a1df52586be587d82"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData</a> ()</td></tr>
 <tr class="memdesc:a8afecbb24f3daf7a1df52586be587d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
 <tr class="separator:a8afecbb24f3daf7a1df52586be587d82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a4bdcc9210cab7916c5f6138908431a" id="r_a2a4bdcc9210cab7916c5f6138908431a"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile</a> (const absl::string_view &amp;<a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>, bool z3_load=true)</td></tr>
-<tr class="separator:a2a4bdcc9210cab7916c5f6138908431a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd54932cc184cdb1d66ab026c66b1197" id="r_acd54932cc184cdb1d66ab026c66b1197"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile</a> (const std::string &amp;<a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>, bool z3_load=true)</td></tr>
+<tr class="separator:acd54932cc184cdb1d66ab026c66b1197"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36712f23f472fdf5e25c85096463082b" id="r_a36712f23f472fdf5e25c85096463082b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer</a> (<a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, size_t length)</td></tr>
 <tr class="separator:a36712f23f472fdf5e25c85096463082b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a651c07af2317f9c3206738506cad01e0" id="r_a651c07af2317f9c3206738506cad01e0"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes</a> (const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>)</td></tr>
@@ -521,8 +521,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a2a4bdcc9210cab7916c5f6138908431a" name="a2a4bdcc9210cab7916c5f6138908431a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2a4bdcc9210cab7916c5f6138908431a">&#9670;&#160;</a></span>LoadFromFile()</h2>
+<a id="acd54932cc184cdb1d66ab026c66b1197" name="acd54932cc184cdb1d66ab026c66b1197"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd54932cc184cdb1d66ab026c66b1197">&#9670;&#160;</a></span>LoadFromFile()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -530,7 +530,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">absl::Status yaze::app::Rom::LoadFromFile </td>
           <td>(</td>
-          <td class="paramtype">const absl::string_view &amp;</td>          <td class="paramname"><span class="paramname"><em>filename</em></span>, </td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>filename</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -554,8 +554,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph" id="aclassyaze_1_1app_1_1Rom_a2a4bdcc9210cab7916c5f6138908431a_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph" id="aclassyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph">
 <area shape="rect" title=" " alt="" coords="5,769,199,795"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="268,588,430,613"/>
 <area shape="poly" title=" " alt="" coords="109,767,160,697,200,656,245,622,254,617,257,622,248,627,203,660,164,701,114,770"/>
@@ -1688,14 +1688,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, and <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>.</p>
+<p class="reference">References <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, and <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph" id="aclassyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph">
 <area shape="rect" title=" " alt="" coords="5,769,159,795"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a" title=" " alt="" coords="207,769,400,795"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="207,769,400,795"/>
 <area shape="poly" title=" " alt="" coords="159,779,191,779,191,784,159,784"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="470,588,631,613"/>
 <area shape="poly" title=" " alt="" coords="311,767,362,697,401,656,447,622,456,617,458,622,449,627,404,660,366,701,315,770"/>
@@ -2430,7 +2430,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0">yaze::app::editor::MasterEditor::DrawViewMenu()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, and <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0">yaze::app::editor::MasterEditor::DrawViewMenu()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
 
 </div>
 </div>
@@ -2838,7 +2838,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1core.html#aac0c2d9bcb6a3f76f9119bdfc1b915e9">yaze::app::core::entrance_gfx_group</a>, <a class="el" href="structyaze_1_1app_1_1VersionConstants.html#a93fade8afdbd74721e0e939bba3b269f">yaze::app::VersionConstants::kDungeonPalettesGroups</a>, <a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a>, <a class="el" href="structyaze_1_1app_1_1VersionConstants.html#af30df1c4cf8b9c366a45e6694cd6a3b9">yaze::app::VersionConstants::kSpriteBlocksetPointer</a>, <a class="el" href="#ad83d5b6b95b233acc09c29605cfac3dd">main_blockset_ids</a>, <a class="el" href="#a3151d4007fba5c139472f8b975768c81">paletteset_ids</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a7d0f6c6698cda9faad65023a65d04f26">room_blockset_ids</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d">yaze::app::core::SnesToPc()</a>, <a class="el" href="#a6392c0e5a9e6c98a2b0179a501888d58">spriteset_ids</a>, and <a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -3113,7 +3113,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, and <a class="el" href="#a648c0cee09095aad6aa881fc114a9f5f">size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, and <a class="el" href="#a648c0cee09095aad6aa881fc114a9f5f">size()</a>.</p>
 
 </div>
 </div>
@@ -3137,7 +3137,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a97244952183e1d6e2fc285057bcf6491">is_loaded()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, and <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a97244952183e1d6e2fc285057bcf6491">is_loaded()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, and <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>.</p>
 
 </div>
 </div>
@@ -3161,7 +3161,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>.</p>
 
 </div>
 </div>
@@ -3185,7 +3185,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, and <a class="el" href="#aa0a63ed3d9bfbe780f45f1b063c4fc98">title()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#aa0a63ed3d9bfbe780f45f1b063c4fc98">title()</a>.</p>
 
 </div>
 </div>
@@ -3209,7 +3209,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a92a9aaae6d5d567853724ea5ab42e54b">Reload()</a>, and <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a92a9aaae6d5d567853724ea5ab42e54b">Reload()</a>, and <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
 
 </div>
 </div>
@@ -3233,7 +3233,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a189bdc638fc1fd968f10498325c300d9">begin()</a>, <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#a9d41a050bde62f6868d5ef92547c0b73">end()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="#a5f6c2e2348b481f499fa9bdf3c2e9464">operator&amp;()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, <a class="el" href="#a4c39a9d08fcf5864affdbf85aac1c181">push_back()</a>, <a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a189bdc638fc1fd968f10498325c300d9">begin()</a>, <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#a9d41a050bde62f6868d5ef92547c0b73">end()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="#a5f6c2e2348b481f499fa9bdf3c2e9464">operator&amp;()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, <a class="el" href="#a4c39a9d08fcf5864affdbf85aac1c181">push_back()</a>, <a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a1ff502f2d01d7181e9b6260dca4e3819">SaveGroupsToRom()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
 
 </div>
 </div>
@@ -3281,7 +3281,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a70fa50ea0fbfd2c40aebdbcf8b93b9b2">version()</a>, and <a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a70fa50ea0fbfd2c40aebdbcf8b93b9b2">version()</a>, and <a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants()</a>.</p>
 
 </div>
 </div>
@@ -3401,7 +3401,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abc79426dc768d8d43bd9bab55ef11660">dungeon_palette()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, <a class="el" href="#a9f00106cd357c95213ff5bd8cbaba9c5">mutable_dungeon_palette()</a>, <a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group()</a>, <a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group()</a>, and <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#abc79426dc768d8d43bd9bab55ef11660">dungeon_palette()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, <a class="el" href="#a9f00106cd357c95213ff5bd8cbaba9c5">mutable_dungeon_palette()</a>, <a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group()</a>, <a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group()</a>, and <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>.</p>
 
 </div>
 </div>
@@ -3425,7 +3425,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2a4bdcc9210cab7916c5f6138908431a">LoadFromFile()</a>, and <a class="el" href="#a0ab5edcc4038c88025b8d852909b9876">resource_label()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#a0ab5edcc4038c88025b8d852909b9876">resource_label()</a>.</p>
 
 </div>
 </div>

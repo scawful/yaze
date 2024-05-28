@@ -48,7 +48,7 @@ var searchData=
   ['loadfile_45',['LoadFile',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#ab66fc494201a906e415db8cddcde2e08',1,'yaze::app::gui::zeml']]],
   ['loadfontfamilies_46',['LoadFontFamilies',['../classyaze_1_1app_1_1core_1_1Controller.html#a303df51e1187d339e9548ea7d669df34',1,'yaze::app::core::Controller']]],
   ['loadfrombytes_47',['LoadFromBytes',['../classyaze_1_1app_1_1Rom.html#a651c07af2317f9c3206738506cad01e0',1,'yaze::app::Rom']]],
-  ['loadfromfile_48',['LoadFromFile',['../classyaze_1_1app_1_1Rom.html#a2a4bdcc9210cab7916c5f6138908431a',1,'yaze::app::Rom']]],
+  ['loadfromfile_48',['LoadFromFile',['../classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197',1,'yaze::app::Rom']]],
   ['loadfrompngdata_49',['LoadFromPngData',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aceb56456070b3d020bfa0e26866a9a46',1,'yaze::app::gfx::Bitmap']]],
   ['loadfrompointer_50',['LoadFromPointer',['../classyaze_1_1app_1_1Rom.html#a36712f23f472fdf5e25c85096463082b',1,'yaze::app::Rom']]],
   ['loadgfxgroups_51',['LoadGfxGroups',['../classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe',1,'yaze::app::Rom']]],
