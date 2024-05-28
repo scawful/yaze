@@ -34,7 +34,7 @@ Building and installation
 ## Documentation
 
 - For users, please refer to [getting_started.md](docs/getting-started.md) for instructions on how to use yaze.
-- For developers, please refer to [infrastructure.md](docs/infrastructure.md) for information on the project's infrastructure.
+- For developers, please refer to the [documentation](https://scawful.github.io/yaze/index.html) for information on the project's infrastructure.
 
 License
 --------
