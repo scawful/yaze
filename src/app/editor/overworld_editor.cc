@@ -1747,6 +1747,14 @@ void OverworldEditor::DrawOverworldProperties() {
       properties_canvas_.mutable_labels(4)->push_back(area_palette_str);
     }
     for (int i = 0; i < 0x40; i++) {
+      std::string sprite_gfx_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i)->sprite_graphics(1));
+      properties_canvas_.mutable_labels(6)->push_back(sprite_gfx_str);
+      sprite_gfx_str = absl::StrFormat(
+          "0x%02hX", overworld_.overworld_map(i + 0x40)->sprite_graphics(1));
+      properties_canvas_.mutable_labels(7)->push_back(sprite_gfx_str);
+    }
+    for (int i = 0; i < 0x40; i++) {
       std::string sprite_palette_str = absl::StrFormat(
           "0x%02hX", overworld_.overworld_map(i)->sprite_palette(1));
       properties_canvas_.mutable_labels(2)->push_back(sprite_palette_str);
@@ -1776,6 +1784,13 @@ void OverworldEditor::DrawOverworldProperties() {
   if (ImGui::Button("Area Palette")) {
     current = 1;
     properties_canvas_.set_current_labels(current + world);
+  }
+  if (ImGui::Button("Sprite Graphics")) {
+    if (dark_world) {
+      properties_canvas_.set_current_labels(7);
+    } else {
+      properties_canvas_.set_current_labels(6);
+    }
   }
   ImGui::SameLine();
   if (ImGui::Button("Sprite Palette")) {
