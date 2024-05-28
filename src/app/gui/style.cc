@@ -168,7 +168,6 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
       ImGui::SeparatorText("Widgets");
       ImGui::SliderFloat2("WindowTitleAlign", (float*)&style.WindowTitleAlign,
                           0.0f, 1.0f, "%.2f");
-      int window_menu_button_position = style.WindowMenuButtonPosition + 1;
       ImGui::Combo("ColorButtonPosition", (int*)&style.ColorButtonPosition,
                    "Left\0Right\0");
       ImGui::SliderFloat2("ButtonTextAlign", (float*)&style.ButtonTextAlign,
