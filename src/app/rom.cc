@@ -131,7 +131,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
 #ifdef __linux__
   std::string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
   std::cout << "Home directory: " << HOME << std::endl;
-  filename = HOME + "/" + filename;
+  filename = absl::StrCat(HOME, "/", filename);
   std::cout << "Full path: " << filename << std::endl;
 #endif
   if (filename.empty()) {
