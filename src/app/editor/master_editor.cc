@@ -382,6 +382,11 @@ void MasterEditor::DrawFileMenu() {
           ImGui::EndMenu();
         }
 
+        if (BeginMenu("Emulator Flags")) {
+          Checkbox("Load Audio Device", &mutable_flags()->kLoadAudioDevice);
+          ImGui::EndMenu();
+        }
+
         Checkbox("Use built-in file dialog",
                  &mutable_flags()->kNewFileDialogWrapper);
         Checkbox("Enable Console Logging", &mutable_flags()->kLogToConsole);
