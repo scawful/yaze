@@ -160,10 +160,12 @@ absl::Status MasterEditor::Update() {
   DrawInfoPopup();
 
   if (rom()->is_loaded() && !rom_assets_loaded_) {
+    std::cout << "Loading all graphics data from the game..." << std::endl;
     // Load all of the graphics data from the game.
     RETURN_IF_ERROR(rom()->LoadAllGraphicsData())
     // Initialize overworld graphics, maps, and palettes
     RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
+    std::cout << "Graphics data loaded." << std::endl;
     rom_assets_loaded_ = true;
   }
 
