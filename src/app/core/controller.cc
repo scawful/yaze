@@ -194,9 +194,11 @@ absl::Status Controller::OnEntry() {
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
-  RETURN_IF_ERROR(LoadAudioDevice())
-  master_editor_.emulator().set_audio_buffer(audio_buffer_);
-  master_editor_.emulator().set_audio_device_id(audio_device_);
+  if (flags()->kLoadAudioDevice) {
+    RETURN_IF_ERROR(LoadAudioDevice())
+    master_editor_.emulator().set_audio_buffer(audio_buffer_);
+    master_editor_.emulator().set_audio_device_id(audio_device_);
+  }
   InitializeKeymap();
   master_editor_.SetupScreen(renderer_);
   active_ = true;
@@ -253,9 +255,11 @@ void Controller::DoRender() const {
 
 void Controller::OnExit() {
   master_editor_.Shutdown();
-  SDL_PauseAudioDevice(audio_device_, 1);
-  SDL_CloseAudioDevice(audio_device_);
-  delete audio_buffer_;
+  if (flags()->kLoadAudioDevice) {
+    SDL_PauseAudioDevice(audio_device_, 1);
+    SDL_CloseAudioDevice(audio_device_);
+    delete audio_buffer_;
+  }
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -263,7 +267,16 @@ void Controller::OnExit() {
 }
 
 absl::Status Controller::CreateSDL_Window() {
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+  auto sdl_flags = SDL_INIT_VIDEO | SDL_INIT_TIMER;
+  if (flags()->kUseNewImGuiInput) {
+    sdl_flags |= SDL_INIT_GAMECONTROLLER;
+  }
+
+  if (flags()->kLoadAudioDevice) {
+    sdl_flags |= SDL_INIT_AUDIO;
+  }
+
+  if (SDL_Init(sdl_flags) != 0) {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));
   } else {

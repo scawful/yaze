@@ -66,6 +66,9 @@ class ExperimentFlags {
     // Log to the console.
     bool kLogToConsole = false;
 
+    // Load audio device for emulator
+    bool kLoadAudioDevice = false;
+
     // Overworld flags
     struct Overworld {
       // Load and render overworld sprites to the screen. Unstable.
