@@ -122,9 +122,13 @@ using ImGui::Checkbox;
 using ImGui::MenuItem;
 using ImGui::Text;
 
-void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer) {
+void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
+                               std::string filename) {
   sdl_renderer_ = renderer;
   rom()->SetupRenderer(renderer);
+  if (!filename.empty()) {
+    rom()->LoadFromFile(filename);
+  }
   overworld_editor_.InitializeZeml();
 }
 

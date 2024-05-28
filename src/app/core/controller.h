@@ -31,7 +31,7 @@ namespace core {
 class Controller : public ExperimentFlags {
  public:
   bool IsActive() const { return active_; }
-  absl::Status OnEntry();
+  absl::Status OnEntry(std::string filename = "");
   void OnInput();
   void OnLoad();
   void DoRender() const;
