@@ -161,12 +161,14 @@ var NAVTREEINDEX41 =
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a23ffa3479c7b8b16cf28828237a917e9":[9,0,0,0,0,1,0,10],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a464ef4f83132bcd5a3e3a7fec07f9259":[8,0,1,0,0,2,0,4],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a464ef4f83132bcd5a3e3a7fec07f9259":[9,0,0,0,0,1,0,4],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a4e136288c038565539e738dc1ae43114":[8,0,1,0,0,2,0,12],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a4e136288c038565539e738dc1ae43114":[9,0,0,0,0,1,0,12],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a648bfde808c507e74b9320b5859f826d":[8,0,1,0,0,2,0,5],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a648bfde808c507e74b9320b5859f826d":[9,0,0,0,0,1,0,5],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a8f98060d879a94a4cba5dfc2ee4d8e26":[8,0,1,0,0,2,0,11],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a8f98060d879a94a4cba5dfc2ee4d8e26":[9,0,0,0,0,1,0,11],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a957b9ff3e7b65985583bcc96d21e289c":[8,0,1,0,0,2,0,12],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a957b9ff3e7b65985583bcc96d21e289c":[9,0,0,0,0,1,0,12],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a957b9ff3e7b65985583bcc96d21e289c":[8,0,1,0,0,2,0,13],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a957b9ff3e7b65985583bcc96d21e289c":[9,0,0,0,0,1,0,13],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#ac5b5dcd2f777efd18e885133a70436a8":[8,0,1,0,0,2,0,2],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#ac5b5dcd2f777efd18e885133a70436a8":[9,0,0,0,0,1,0,2],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#ac9fa43f1f35d16eff95db35f44345ee7":[8,0,1,0,0,2,0,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX41 =
 "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#a1ebfe64940285cafd2f2285c56824e96":[9,0,0,0,2,0,1,0],
 "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae2de4a1b5eaaab325dd6733eaf3024df":[8,0,1,0,2,2,1,1],
 "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae2de4a1b5eaaab325dd6733eaf3024df":[9,0,0,0,2,0,1,1],
-"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae6ddaf7629d39fde5e7f42db5ab10ce0":[8,0,1,0,2,2,1,2],
-"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae6ddaf7629d39fde5e7f42db5ab10ce0":[9,0,0,0,2,0,1,2],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html":[8,0,1,0,2,2,5]
+"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae6ddaf7629d39fde5e7f42db5ab10ce0":[8,0,1,0,2,2,1,2]
 };
