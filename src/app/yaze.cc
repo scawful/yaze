@@ -36,12 +36,22 @@ int main(int argc, char** argv) {
 #ifdef __APPLE__
   InitializeCocoa();
 #endif
-
-  while (controller.IsActive()) {
-    controller.OnInput();
-    controller.OnLoad();
-    controller.DoRender();
+  try {
+    while (controller.IsActive()) {
+      controller.OnInput();
+      controller.OnLoad();
+      controller.DoRender();
+    }
+    controller.OnExit();
+  } catch (const std::bad_alloc& e) {
+    std::cerr << "Memory allocation failed: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+  } catch (const std::exception& e) {
+    std::cerr << "Exception: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+  } catch (...) {
+    std::cerr << "Unknown exception" << std::endl;
+    return EXIT_FAILURE;
   }
-  controller.OnExit();
   return EXIT_SUCCESS;
 }
