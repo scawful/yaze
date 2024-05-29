@@ -184,24 +184,7 @@ void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
 }
 
 Bitmap::Bitmap(int width, int height, int depth, int data_size) {
-  Create(width, height, depth, data_size);
-}
-
-// Reserves data to later draw to surface via pointer
-void Bitmap::Create(int width, int height, int depth, int size) {
-  active_ = true;
-  width_ = width;
-  height_ = height;
-  depth_ = depth;
-  data_size_ = size;
-  data_.reserve(size);
-  pixel_data_ = data_.data();
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_CreateRGBSurfaceWithFormat(0, width, height, depth,
-                                     SDL_PIXELFORMAT_INDEX8),
-      SDL_Surface_Deleter());
-  surface_->pixels = pixel_data_;
-  GrayscalePalette(surface_->format->palette);
+  Create(width, height, depth, Bytes(data_size, 0));
 }
 
 void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
@@ -219,9 +202,7 @@ void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
   GrayscalePalette(surface_->format->palette);
 }
 
-// Creates the texture that will be displayed to the screen.
 void Bitmap::CreateTexture(SDL_Renderer *renderer) {
-  // Ensure width and height are non-zero
   if (width_ <= 0 || height_ <= 0) {
     SDL_Log("Invalid texture dimensions: width=%d, height=%d\n", width_,
             height_);
@@ -239,11 +220,9 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
   SDL_Surface *converted_surface =
       SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0);
   if (converted_surface) {
-    // Create texture from the converted surface
     converted_surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
         converted_surface, SDL_Surface_Deleter());
   } else {
-    // Handle the error
     SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
   }
 
@@ -260,11 +239,9 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update) {
   SDL_Surface *converted_surface =
       SDL_ConvertSurfaceFormat(surface_.get(), SDL_PIXELFORMAT_ARGB8888, 0);
   if (converted_surface) {
-    // Create texture from the converted surface
     converted_surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
         converted_surface, SDL_Surface_Deleter());
   } else {
-    // Handle the error
     SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
   }
 
@@ -286,7 +263,6 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer, bool use_sdl_update) {
   SDL_UnlockTexture(texture_.get());
 }
 
-// Creates the texture that will be displayed to the screen.
 void Bitmap::CreateTexture(std::shared_ptr<SDL_Renderer> renderer) {
   texture_ = std::shared_ptr<SDL_Texture>{
       SDL_CreateTextureFromSurface(renderer.get(), surface_.get()),
@@ -419,25 +395,6 @@ void Bitmap::ApplyPalette(const std::vector<SDL_Color> &palette) {
     surface_->format->palette->colors[i].a = palette[i].a;
   }
   SDL_LockSurface(surface_.get());
-}
-
-void Bitmap::InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
-                                const Bytes &data) {
-  active_ = true;
-  width_ = width;
-  height_ = height;
-  depth_ = depth;
-  data_ = data;
-  data_size_ = data.size();
-  pixel_data_ = data_.data();
-
-  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
-      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
-                                     SDL_PIXELFORMAT_INDEX8),
-      SDL_Surface_Deleter());
-
-  surface_->pixels = pixel_data_;
-  GrayscalePalette(surface_->format->palette);
 }
 
 }  // namespace gfx

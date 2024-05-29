@@ -505,7 +505,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     status_ = gfx::scad_format::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                                         decoded_cgx_, extra_cgx_data_);
 
-    cgx_bitmap_.InitializeFromData(0x80, 0x200, 8, decoded_cgx_);
+    cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
       cgx_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&cgx_bitmap_);
@@ -540,7 +540,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
     status_ = gfx::scad_format::DrawScrWithCgx(current_bpp_, scr_data_,
                                                decoded_scr_data_, decoded_cgx_);
 
-    scr_bitmap_.InitializeFromData(0x100, 0x100, 8, decoded_scr_data_);
+    scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
       scr_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&scr_bitmap_);
