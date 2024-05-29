@@ -26,162 +26,162 @@ void GrayscalePalette(SDL_Palette *palette) {
 }
 
 void PngWriteCallback(png_structp png_ptr, png_bytep data, png_size_t length) {
-  // std::vector<uint8_t> *p = (std::vector<uint8_t> *)png_get_io_ptr(png_ptr);
-  // p->insert(p->end(), data, data + length);
+  std::vector<uint8_t> *p = (std::vector<uint8_t> *)png_get_io_ptr(png_ptr);
+  p->insert(p->end(), data, data + length);
 }
 
 void PngReadCallback(png_structp png_ptr, png_bytep outBytes,
                      png_size_t byteCountToRead) {
-  // png_voidp io_ptr = png_get_io_ptr(png_ptr);
-  // if (!io_ptr) return;
+  png_voidp io_ptr = png_get_io_ptr(png_ptr);
+  if (!io_ptr) return;
 
-  // std::vector<uint8_t> *png_data =
-  //     reinterpret_cast<std::vector<uint8_t> *>(io_ptr);
-  // static size_t pos = 0;  // Position to read from
+  std::vector<uint8_t> *png_data =
+      reinterpret_cast<std::vector<uint8_t> *>(io_ptr);
+  static size_t pos = 0;  // Position to read from
 
-  // if (pos + byteCountToRead <= png_data->size()) {
-  //   memcpy(outBytes, png_data->data() + pos, byteCountToRead);
-  //   pos += byteCountToRead;
-  // } else {
-  //   png_error(png_ptr, "Read error in PngReadCallback");
-  // }
+  if (pos + byteCountToRead <= png_data->size()) {
+    memcpy(outBytes, png_data->data() + pos, byteCountToRead);
+    pos += byteCountToRead;
+  } else {
+    png_error(png_ptr, "Read error in PngReadCallback");
+  }
 }
 }  // namespace
 
 bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
-  //   png_structp png_ptr = png_create_write_struct("1.6.40", NULL, NULL,
-  //   NULL); if (!png_ptr) {
-  //     SDL_Log("Failed to create PNG write struct");
-  //     return false;
-  //   }
+    png_structp png_ptr = png_create_write_struct("1.6.40", NULL, NULL,
+    NULL); if (!png_ptr) {
+      SDL_Log("Failed to create PNG write struct");
+      return false;
+    }
 
-  //   png_infop info_ptr = png_create_info_struct(png_ptr);
-  //   if (!info_ptr) {
-  //     png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-  //     SDL_Log("Failed to create PNG info struct");
-  //     return false;
-  //   }
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr) {
+      png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+      SDL_Log("Failed to create PNG info struct");
+      return false;
+    }
 
-  //   if (setjmp(png_jmpbuf(png_ptr))) {
-  //     png_destroy_write_struct(&png_ptr, &info_ptr);
-  //     SDL_Log("Error during PNG write");
-  //     return false;
-  //   }
+    if (setjmp(png_jmpbuf(png_ptr))) {
+      png_destroy_write_struct(&png_ptr, &info_ptr);
+      SDL_Log("Error during PNG write");
+      return false;
+    }
 
-  //   png_set_write_fn(png_ptr, &buffer, PngWriteCallback, NULL);
+    png_set_write_fn(png_ptr, &buffer, PngWriteCallback, NULL);
 
-  //   png_colorp pal_ptr;
+    png_colorp pal_ptr;
 
-  //   /* Prepare chunks */
-  //   int colortype = PNG_COLOR_MASK_COLOR;
-  //   int i = 0;
-  //   SDL_Palette *pal;
-  //   if (surface->format->BytesPerPixel > 0 &&
-  //       surface->format->BytesPerPixel <= 8 && (pal =
-  //       surface->format->palette)) {
-  //     SDL_Log("Writing PNG image with palette");
-  //     colortype |= PNG_COLOR_MASK_PALETTE;
-  //     pal_ptr = (png_colorp)malloc(pal->ncolors * sizeof(png_color));
-  //     for (i = 0; i < pal->ncolors; i++) {
-  //       pal_ptr[i].red = pal->colors[i].r;
-  //       pal_ptr[i].green = pal->colors[i].g;
-  //       pal_ptr[i].blue = pal->colors[i].b;
-  //     }
-  //     png_set_PLTE(png_ptr, info_ptr, pal_ptr, pal->ncolors);
-  //     free(pal_ptr);
-  //   }
+    /* Prepare chunks */
+    int colortype = PNG_COLOR_MASK_COLOR;
+    int i = 0;
+    SDL_Palette *pal;
+    if (surface->format->BytesPerPixel > 0 &&
+        surface->format->BytesPerPixel <= 8 && (pal =
+        surface->format->palette)) {
+      SDL_Log("Writing PNG image with palette");
+      colortype |= PNG_COLOR_MASK_PALETTE;
+      pal_ptr = (png_colorp)malloc(pal->ncolors * sizeof(png_color));
+      for (i = 0; i < pal->ncolors; i++) {
+        pal_ptr[i].red = pal->colors[i].r;
+        pal_ptr[i].green = pal->colors[i].g;
+        pal_ptr[i].blue = pal->colors[i].b;
+      }
+      png_set_PLTE(png_ptr, info_ptr, pal_ptr, pal->ncolors);
+      free(pal_ptr);
+    }
 
-  //   if (surface->format->Amask) {  // Check for alpha channel
-  //     colortype |= PNG_COLOR_MASK_ALPHA;
-  //   }
+    if (surface->format->Amask) {  // Check for alpha channel
+      colortype |= PNG_COLOR_MASK_ALPHA;
+    }
 
-  //   auto depth = surface->format->BitsPerPixel;
+    auto depth = surface->format->BitsPerPixel;
 
-  //   // Set image attributes.
-  //   png_set_IHDR(png_ptr, info_ptr, surface->w, surface->h, depth, colortype,
-  //                PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
-  //                PNG_FILTER_TYPE_DEFAULT);
+    // Set image attributes.
+    png_set_IHDR(png_ptr, info_ptr, surface->w, surface->h, depth, colortype,
+                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
+                 PNG_FILTER_TYPE_DEFAULT);
 
-  //   png_set_bgr(png_ptr);
+    png_set_bgr(png_ptr);
 
-  //   // Write the image data.
-  //   std::vector<png_bytep> row_pointers(surface->h);
-  //   for (int y = 0; y < surface->h; ++y) {
-  //     row_pointers[y] = (png_bytep)(surface->pixels) + y * surface->pitch;
-  //   }
+    // Write the image data.
+    std::vector<png_bytep> row_pointers(surface->h);
+    for (int y = 0; y < surface->h; ++y) {
+      row_pointers[y] = (png_bytep)(surface->pixels) + y * surface->pitch;
+    }
 
-  //   png_set_rows(png_ptr, info_ptr, row_pointers.data());
+    png_set_rows(png_ptr, info_ptr, row_pointers.data());
 
-  //   SDL_Log("Writing PNG image...");
-  //   png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-  //   SDL_Log("PNG image write complete");
+    SDL_Log("Writing PNG image...");
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+    SDL_Log("PNG image write complete");
 
-  //   png_destroy_write_struct(&png_ptr, &info_ptr);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
 
   return true;
 }
 
 void ConvertPngToSurface(const std::vector<uint8_t> &png_data,
                          SDL_Surface **outSurface) {
-  //   std::vector<uint8_t> data(png_data);
-  //   png_structp png_ptr = png_create_read_struct("1.6.40", NULL, NULL, NULL);
-  //   if (!png_ptr) {
-  //     throw std::runtime_error("Failed to create PNG read struct");
-  //   }
+    std::vector<uint8_t> data(png_data);
+    png_structp png_ptr = png_create_read_struct("1.6.40", NULL, NULL, NULL);
+    if (!png_ptr) {
+      throw std::runtime_error("Failed to create PNG read struct");
+    }
 
-  //   png_infop info_ptr = png_create_info_struct(png_ptr);
-  //   if (!info_ptr) {
-  //     png_destroy_read_struct(&png_ptr, NULL, NULL);
-  //     throw std::runtime_error("Failed to create PNG info struct");
-  //   }
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr) {
+      png_destroy_read_struct(&png_ptr, NULL, NULL);
+      throw std::runtime_error("Failed to create PNG info struct");
+    }
 
-  //   if (setjmp(png_jmpbuf(png_ptr))) {
-  //     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-  //     throw std::runtime_error("Error during PNG read");
-  //   }
+    if (setjmp(png_jmpbuf(png_ptr))) {
+      png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+      throw std::runtime_error("Error during PNG read");
+    }
 
-  //   // Set our custom read function
-  //   png_set_read_fn(png_ptr, &data, PngReadCallback);
+    // Set our custom read function
+    png_set_read_fn(png_ptr, &data, PngReadCallback);
 
-  //   // Read the PNG info
-  //   png_read_info(png_ptr, info_ptr);
+    // Read the PNG info
+    png_read_info(png_ptr, info_ptr);
 
-  //   uint32_t width = png_get_image_width(png_ptr, info_ptr);
-  //   uint32_t height = png_get_image_height(png_ptr, info_ptr);
-  //   png_byte color_type = png_get_color_type(png_ptr, info_ptr);
-  //   png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    uint32_t width = png_get_image_width(png_ptr, info_ptr);
+    uint32_t height = png_get_image_height(png_ptr, info_ptr);
+    png_byte color_type = png_get_color_type(png_ptr, info_ptr);
+    png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
-  //   // Apply necessary transformations...
-  //   // (Same as in your existing code)
+    // Apply necessary transformations...
+    // (Same as in your existing code)
 
-  //   // Update info structure with transformations
-  //   png_read_update_info(png_ptr, info_ptr);
+    // Update info structure with transformations
+    png_read_update_info(png_ptr, info_ptr);
 
-  //   // Read the file
-  //   std::vector<uint8_t> raw_data(width * height *
-  //                                 4);  // Assuming 4 bytes per pixel (RGBA)
-  //   std::vector<png_bytep> row_pointers(height);
-  //   for (size_t y = 0; y < height; y++) {
-  //     row_pointers[y] = raw_data.data() + y * width * 4;
-  //   }
+    // Read the file
+    std::vector<uint8_t> raw_data(width * height *
+                                  4);  // Assuming 4 bytes per pixel (RGBA)
+    std::vector<png_bytep> row_pointers(height);
+    for (size_t y = 0; y < height; y++) {
+      row_pointers[y] = raw_data.data() + y * width * 4;
+    }
 
-  //   png_read_image(png_ptr, row_pointers.data());
-  //   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+    png_read_image(png_ptr, row_pointers.data());
+    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
-  //   // Create an SDL_Surface
-  //   *outSurface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32,
-  //                                                SDL_PIXELFORMAT_RGBA32);
-  //   if (*outSurface == nullptr) {
-  //     SDL_Log("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
-  //     return;
-  //   }
+    // Create an SDL_Surface
+    *outSurface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32,
+                                                 SDL_PIXELFORMAT_RGBA32);
+    if (*outSurface == nullptr) {
+      SDL_Log("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
+      return;
+    }
 
-  //   // Copy the raw data into the SDL_Surface
-  //   SDL_LockSurface(*outSurface);
-  //   memcpy((*outSurface)->pixels, raw_data.data(), raw_data.size());
-  //   SDL_UnlockSurface(*outSurface);
+    // Copy the raw data into the SDL_Surface
+    SDL_LockSurface(*outSurface);
+    memcpy((*outSurface)->pixels, raw_data.data(), raw_data.size());
+    SDL_UnlockSurface(*outSurface);
 
-  //   SDL_Log("Successfully created SDL_Surface from PNG data");
+    SDL_Log("Successfully created SDL_Surface from PNG data");
 }
 
 Bitmap::Bitmap(int width, int height, int depth, int data_size) {
