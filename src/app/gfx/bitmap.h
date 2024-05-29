@@ -48,7 +48,7 @@ class Bitmap {
   Bitmap(int width, int height, int depth, int data_size);
   Bitmap(int width, int height, int depth, const Bytes &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
-    InitializeFromData(width, height, depth, data);
+    Create(width, height, depth, data);
   }
   Bitmap(int width, int height, int depth, const Bytes &data,
          const SnesPalette &palette)
@@ -57,24 +57,17 @@ class Bitmap {
         depth_(depth),
         data_(data),
         palette_(palette) {
-    InitializeFromData(width, height, depth, data);
+    Create(width, height, depth, data);
     if (!ApplyPalette(palette).ok()) {
       std::cerr << "Error applying palette in bitmap constructor." << std::endl;
     }
   }
 
   /**
-   * @brief Creates a bitmap object and reserves space for graphical data.
-   */
-  void Create(int width, int height, int depth, int data_size);
-
-  /**
    * @brief Creates a bitmap object with the provided graphical data.
    */
   void Create(int width, int height, int depth, const Bytes &data);
 
-  void InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
-                          const Bytes &data);
 
   /**
    * @brief Creates the underlying SDL_Texture to be displayed.
