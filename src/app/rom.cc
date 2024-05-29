@@ -127,12 +127,7 @@ absl::Status Rom::LoadAllGraphicsData() {
 }
 
 absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
-  std::string full_filename = filename;
-#ifdef __linux__
-  std::string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
-  std::cout << "Home directory: " << HOME << std::endl;
-  full_filename = absl::StrCat(HOME, "/", filename);
-#endif
+  std::string full_filename = std::filesystem::absolute(filename).string();
   if (full_filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
@@ -144,7 +139,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   std::ifstream file(filename_, std::ios::binary);
   if (!file.is_open()) {
     return absl::InternalError(
-        absl::StrCat("Could not open ROM file: ", filename));
+        absl::StrCat("Could not open ROM file: ", filename_));
   }
 
   // Get file size and resize rom_data_
@@ -152,7 +147,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
     size_ = std::filesystem::file_size(filename_);
   } catch (const std::filesystem::filesystem_error& e) {
     return absl::InternalError(
-        absl::StrCat("Could not get file size: ", filename, " - ", e.what()));
+        absl::StrCat("Could not get file size: ", filename_, " - ", e.what()));
   }
   rom_data_.resize(size_);
 
