@@ -260,7 +260,6 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() {
-  master_editor_.Shutdown();
   if (flags()->kLoadAudioDevice) {
     SDL_PauseAudioDevice(audio_device_, 1);
     SDL_CloseAudioDevice(audio_device_);

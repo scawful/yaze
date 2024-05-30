@@ -102,25 +102,6 @@ class OverworldEditor : public Editor,
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
-  void Shutdown() {
-    for (auto& bmp : tile16_individual_) {
-      bmp.Cleanup();
-    }
-    for (auto& [i, bmp] : maps_bmp_) {
-      bmp.Cleanup();
-    }
-    for (auto& [i, bmp] : graphics_bin_) {
-      bmp.Cleanup();
-    }
-    for (auto& [i, bmp] : current_graphics_set_) {
-      bmp.Cleanup();
-    }
-    maps_bmp_.clear();
-    overworld_.Destroy();
-    all_gfx_loaded_ = false;
-    map_blockset_loaded_ = false;
-  }
-
   /**
    * @brief Load the Bitmap objects for each OverworldMap.
    *
