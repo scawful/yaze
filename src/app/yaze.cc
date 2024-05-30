@@ -22,7 +22,9 @@ int main(int argc, char** argv) {
 
   absl::FailureSignalHandlerOptions options;
   options.symbolize_stacktrace = true;
+  options.use_alternate_stack = true;
   options.alarm_on_failure_secs = true;
+  options.call_previous_handler = true;
   absl::InstallFailureSignalHandler(options);
 
   std::string rom_filename;
