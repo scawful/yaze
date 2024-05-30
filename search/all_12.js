@@ -52,7 +52,7 @@ var searchData=
   ['onentry_49',['OnEntry',['../classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1',1,'yaze::app::core::Controller']]],
   ['onexit_50',['OnExit',['../classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760',1,'yaze::app::core::Controller']]],
   ['oninput_51',['OnInput',['../classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd',1,'yaze::app::core::Controller']]],
-  ['onload_52',['OnLoad',['../classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0',1,'yaze::app::core::Controller']]],
+  ['onload_52',['OnLoad',['../classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de',1,'yaze::app::core::Controller']]],
   ['ontop_53',['OnTop',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ae46a8c82ed18b9229dfc17bf90edbedd',1,'yaze::app::zelda3::dungeon']]],
   ['op_5flen_54',['op_len',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a2f5aa3904f04e200f4087d53c17f4d8d',1,'yaze::app::zelda3::music::Tracker::op_len'],['../namespaceyaze_1_1app_1_1zelda3_1_1music.html#af474276ff049f20df44cde7b0cd6c155',1,'yaze::app::zelda3::music::op_len']]],
   ['opcode_55',['opcode',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a16fce926940841e7bfaebe5a6cdc8c01',1,'yaze::app::emu::audio::Spc700::opcode'],['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#a298fbf6ee3485a0cb3d57ba9983a88a4',1,'yaze::app::emu::InstructionEntry::opcode']]],

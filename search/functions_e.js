@@ -5,7 +5,7 @@ var searchData=
   ['onentry_2',['OnEntry',['../classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1',1,'yaze::app::core::Controller']]],
   ['onexit_3',['OnExit',['../classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760',1,'yaze::app::core::Controller']]],
   ['oninput_4',['OnInput',['../classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd',1,'yaze::app::core::Controller']]],
-  ['onload_5',['OnLoad',['../classyaze_1_1app_1_1core_1_1Controller.html#a0b42f2be763cb6da1ccbd83fc2f96dc0',1,'yaze::app::core::Controller']]],
+  ['onload_5',['OnLoad',['../classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de',1,'yaze::app::core::Controller']]],
   ['open_5fbus_6',['open_bus',['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a71aaf1623d03b5b6e7a4c537b8183fbd',1,'yaze::app::emu::memory::Memory::open_bus()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab165116658b41810ae84c455e4759e3d',1,'yaze::app::emu::memory::MemoryImpl::open_bus()']]],
   ['operator_20t_7',['operator T',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a30bc0a6b388f40a9257d040c64effa2d',1,'yaze::app::core::NotifyValue']]],
   ['operator_21_3d_8',['operator!=',['../classyaze_1_1app_1_1gfx_1_1Tile32.html#a358fe2d7fa9891156da4e81a412aad05',1,'yaze::app::gfx::Tile32::operator!=()'],['../classyaze_1_1app_1_1gfx_1_1Tile16.html#ae95a949ab53aafba3c3eab1cd643004d',1,'yaze::app::gfx::Tile16::operator!=()']]],
