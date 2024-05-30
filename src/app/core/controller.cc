@@ -244,11 +244,12 @@ void Controller::OnInput() {
   HandleMouseMovement(wheel);
 }
 
-void Controller::OnLoad() {
+absl::Status Controller::OnLoad() {
   if (master_editor_.quit()) {
     active_ = false;
   }
-  PRINT_IF_ERROR(master_editor_.Update());
+  RETURN_IF_ERROR(master_editor_.Update());
+  return absl::OkStatus();
 }
 
 void Controller::DoRender() const {

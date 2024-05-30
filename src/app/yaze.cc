@@ -41,7 +41,10 @@ int main(int argc, char** argv) {
   try {
     while (controller.IsActive()) {
       controller.OnInput();
-      controller.OnLoad();
+      if (auto status = controller.OnLoad(); !status.ok()) {
+        std::cerr << status.message() << std::endl;
+        break;
+      }
       controller.DoRender();
     }
     controller.OnExit();

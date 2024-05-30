@@ -33,7 +33,7 @@ class Controller : public ExperimentFlags {
   bool IsActive() const { return active_; }
   absl::Status OnEntry(std::string filename = "");
   void OnInput();
-  void OnLoad();
+  absl::Status OnLoad();
   void DoRender() const;
   void OnExit();
 
