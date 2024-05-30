@@ -68,7 +68,6 @@ class Bitmap {
    */
   void Create(int width, int height, int depth, const Bytes &data);
 
-
   /**
    * @brief Creates the underlying SDL_Texture to be displayed.
    *
@@ -245,7 +244,6 @@ class Bitmap {
     void operator()(SDL_Texture *p) const {
       if (p != nullptr) {
         SDL_DestroyTexture(p);
-        p = nullptr;
       }
     }
   };
@@ -254,7 +252,6 @@ class Bitmap {
     void operator()(SDL_Surface *p) const {
       if (p != nullptr) {
         SDL_FreeSurface(p);
-        p = nullptr;
       }
     }
   };
