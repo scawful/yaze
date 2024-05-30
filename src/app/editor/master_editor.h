@@ -62,8 +62,6 @@ class MasterEditor : public SharedRom,
                    std::string filename = "");
   absl::Status Update();
 
-  void Shutdown() { overworld_editor_.Shutdown(); }
-
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() { return quit_; }
 
