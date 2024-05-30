@@ -63,6 +63,7 @@ void OverworldEditor::InitializeZeml() {
 }
 
 absl::Status OverworldEditor::Update() {
+  status_ = absl::OkStatus();
   if (rom()->is_loaded() && !all_gfx_loaded_) {
     tile16_editor_.InitBlockset(tile16_blockset_bmp_, current_gfx_bmp_,
                                 tile16_individual_,
@@ -77,9 +78,7 @@ absl::Status OverworldEditor::Update() {
   RETURN_IF_ERROR(UpdateFullscreenCanvas());
 
   gui::zeml::Render(layout_node_);
-
-  CLEAR_AND_RETURN_STATUS(status_);
-  return absl::OkStatus();
+  return status_;
 }
 
 absl::Status OverworldEditor::UpdateFullscreenCanvas() {
