@@ -1,9 +1,5 @@
 var NAVTREEINDEX41 =
 {
-"snes__palette_8cc.html#a885356ec4a36e5ef64119ca676b14257":[10,0,1,0,3,8,0],
-"snes__palette_8cc.html#aab4790ba080edc4104f90e2a7cc0a989":[10,0,1,0,3,8,11],
-"snes__palette_8cc.html#abd54b5c15508a816b7235ea37997e045":[10,0,1,0,3,8,5],
-"snes__palette_8cc.html#abdc15a02218fe29002585f61230af828":[10,0,1,0,3,8,18],
 "snes__palette_8cc.html#abfd54beae496fe3e6677c318323bd247":[10,0,1,0,3,8,13],
 "snes__palette_8cc.html#acf3dcbf9595622efea530ea4afed87b7":[10,0,1,0,3,8,7],
 "snes__palette_8cc.html#adef88d8d1e48d1cdad625fce5064f75f":[10,0,1,0,3,8,1],
@@ -249,5 +245,9 @@ var NAVTREEINDEX41 =
 "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html":[8,0,1,0,2,2,1],
 "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html":[9,0,0,0,2,0,1],
 "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#a1ebfe64940285cafd2f2285c56824e96":[8,0,1,0,2,2,1,0],
-"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#a1ebfe64940285cafd2f2285c56824e96":[9,0,0,0,2,0,1,0]
+"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#a1ebfe64940285cafd2f2285c56824e96":[9,0,0,0,2,0,1,0],
+"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae2de4a1b5eaaab325dd6733eaf3024df":[8,0,1,0,2,2,1,1],
+"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae2de4a1b5eaaab325dd6733eaf3024df":[9,0,0,0,2,0,1,1],
+"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae6ddaf7629d39fde5e7f42db5ab10ce0":[8,0,1,0,2,2,1,2],
+"structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html#ae6ddaf7629d39fde5e7f42db5ab10ce0":[9,0,0,0,2,0,1,2]
 };

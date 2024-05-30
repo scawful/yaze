@@ -257,8 +257,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1903f2ae00cdfd46e240771e37059900"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3bc9353c9acdd395f9fcc5039d71520" id="r_aa3bc9353c9acdd395f9fcc5039d71520"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa3bc9353c9acdd395f9fcc5039d71520">jump_to_tab</a> ()</td></tr>
 <tr class="separator:aa3bc9353c9acdd395f9fcc5039d71520"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3b303bbf07068908b036a63a36a1f67" id="r_ad3b303bbf07068908b036a63a36a1f67"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown</a> ()</td></tr>
-<tr class="separator:ad3b303bbf07068908b036a63a36a1f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7c906e2b0da4470e6f8179d72809390" id="r_ae7c906e2b0da4470e6f8179d72809390"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7c906e2b0da4470e6f8179d72809390">LoadGraphics</a> ()</td></tr>
 <tr class="memdesc:ae7c906e2b0da4470e6f8179d72809390"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the Bitmap objects for each OverworldMap.  <br /></td></tr>
 <tr class="separator:ae7c906e2b0da4470e6f8179d72809390"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -652,7 +650,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">yaze::app::editor::Editor</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h.html#aada67a2281f9b16dbb495ed05b8755e0">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2">yaze::app::gui::zeml::Render()</a>, and <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>.</p>
+<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1gui_1_1zeml.html#a732dbcfb7a29f82ace3062f1145485e2">yaze::app::gui::zeml::Render()</a>, and <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16">yaze::app::editor::MasterEditor::Update()</a>.</p>
 <div class="dynheader">
@@ -882,45 +880,6 @@ Here is the call graph for this function:</div>
 <p class="reference">References <a class="el" href="#a0ce38337ed23c201b03aa78d3ee9ae81">jump_to_tab_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16">yaze::app::editor::MasterEditor::Update()</a>.</p>
-
-</div>
-</div>
-<a id="ad3b303bbf07068908b036a63a36a1f67" name="ad3b303bbf07068908b036a63a36a1f67"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad3b303bbf07068908b036a63a36a1f67">&#9670;&#160;</a></span>Shutdown()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::editor::OverworldEditor::Shutdown </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a456f72d7d33608d4126305abeccb8eaf">all_gfx_loaded_</a>, <a class="el" href="#a2b4d5ac837a2450be390e37b4c648dc1">current_graphics_set_</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a9600fbda2ab20fc4611681a3e343bbe4">yaze::app::zelda3::overworld::Overworld::Destroy()</a>, <a class="el" href="#a30b8e64c0cf2963bca8c525288edd546">graphics_bin_</a>, <a class="el" href="#aafc4e7a6085dfa2187adb8312025d3de">map_blockset_loaded_</a>, <a class="el" href="#a943956d234068849aac0a0a9d225484c">maps_bmp_</a>, <a class="el" href="#a8c84cf5179f91884886d5d36d6e1a637">overworld_</a>, and <a class="el" href="#a246940a0d6e4a3a24a7b83d9787fbed4">tile16_individual_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#adec58165d7b7febdfb676c50b7261e3e">yaze::app::editor::MasterEditor::Shutdown()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1OverworldEditor_ad3b303bbf07068908b036a63a36a1f67_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1OverworldEditor_ad3b303bbf07068908b036a63a36a1f67_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1OverworldEditor_ad3b303bbf07068908b036a63a36a1f67_cgraph" id="aclassyaze_1_1app_1_1editor_1_1OverworldEditor_ad3b303bbf07068908b036a63a36a1f67_cgraph">
-<area shape="rect" title=" " alt="" coords="5,13,183,54"/>
-<area shape="rect" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a9600fbda2ab20fc4611681a3e343bbe4" title=" " alt="" coords="231,5,373,61"/>
-<area shape="poly" title=" " alt="" coords="183,31,216,31,216,36,183,36"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -2515,8 +2474,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown()</a>.</p>
-
 </div>
 </div>
 <a id="aafc4e7a6085dfa2187adb8312025d3de" name="aafc4e7a6085dfa2187adb8312025d3de"></a>
@@ -2538,8 +2495,6 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown()</a>.</p>
 
 </div>
 </div>
@@ -3069,8 +3024,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown()</a>.</p>
-
 </div>
 </div>
 <a id="afe06e9f429add5782dd0470ef1f51ad7" name="afe06e9f429add5782dd0470ef1f51ad7"></a>
@@ -3205,7 +3158,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a1903f2ae00cdfd46e240771e37059900">overworld()</a>, and <a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a1903f2ae00cdfd46e240771e37059900">overworld()</a>.</p>
 
 </div>
 </div>
@@ -3461,8 +3414,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown()</a>.</p>
-
 </div>
 </div>
 <a id="a30b8e64c0cf2963bca8c525288edd546" name="a30b8e64c0cf2963bca8c525288edd546"></a>
@@ -3485,8 +3436,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown()</a>.</p>
-
 </div>
 </div>
 <a id="a2b4d5ac837a2450be390e37b4c648dc1" name="a2b4d5ac837a2450be390e37b4c648dc1"></a>
@@ -3508,8 +3457,6 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#ad3b303bbf07068908b036a63a36a1f67">Shutdown()</a>.</p>
 
 </div>
 </div>

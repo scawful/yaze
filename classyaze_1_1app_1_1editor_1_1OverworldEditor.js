@@ -19,7 +19,6 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
     [ "Paste", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#abcff420d847ce60d7e59332ba47d3dc9", null ],
     [ "overworld", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a1903f2ae00cdfd46e240771e37059900", null ],
     [ "jump_to_tab", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#aa3bc9353c9acdd395f9fcc5039d71520", null ],
-    [ "Shutdown", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad3b303bbf07068908b036a63a36a1f67", null ],
     [ "LoadGraphics", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390", null ],
     [ "UpdateFullscreenCanvas", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab0b204a1b2847f231bc9de5e634fae8d", null ],
     [ "DrawToolset", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096", null ],
