@@ -44,7 +44,7 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
 
   absl::Status UpdateTransferTileCanvas();
 
-  void InitBlockset(const gfx::Bitmap& tile16_blockset_bmp,
+  void InitBlockset(gfx::Bitmap* tile16_blockset_bmp,
                     gfx::Bitmap current_gfx_bmp,
                     const std::vector<gfx::Bitmap>& tile16_individual,
                     uint8_t all_tiles_types[0x200]) {
@@ -59,11 +59,11 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
 
   absl::Status set_tile16(int id) {
     current_tile16_ = id;
-    current_tile16_bmp_ = tile16_individual_[id];
+    current_tile16_bmp_ = &tile16_individual_[id];
     auto ow_main_pal_group = rom()->palette_group().overworld_main;
     RETURN_IF_ERROR(
-        current_tile16_bmp_.ApplyPalette(ow_main_pal_group[current_palette_]));
-    rom()->RenderBitmap(&current_tile16_bmp_);
+        current_tile16_bmp_->ApplyPalette(ow_main_pal_group[current_palette_]));
+    rom()->RenderBitmap(current_tile16_bmp_);
     return absl::OkStatus();
   }
 
@@ -97,13 +97,13 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
   // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_{ImVec2(0x100, 0x4000),
                                gui::CanvasGridSize::k32x32};
-  gfx::Bitmap tile16_blockset_bmp_;
+  gfx::Bitmap* tile16_blockset_bmp_;
 
   // Canvas for editing the selected tile
   gui::Canvas tile16_edit_canvas_{ImVec2(0x40, 0x40),
                                   gui::CanvasGridSize::k64x64};
-  gfx::Bitmap current_tile16_bmp_;
-  gfx::Bitmap current_tile8_bmp_;
+  gfx::Bitmap* current_tile16_bmp_;
+  gfx::Bitmap* current_tile8_bmp_;
 
   // Tile8 canvas to get the tile to drawing in the tile16_edit_canvas_
   gui::Canvas tile8_source_canvas_{

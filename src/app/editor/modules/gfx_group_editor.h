@@ -7,8 +7,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/editor/utils/editor.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -42,7 +42,9 @@ class GfxGroupEditor : public SharedRom {
     selected_spriteset_ = spriteset;
   }
 
-  void InitBlockset(gfx::Bitmap tile16_blockset);
+  void InitBlockset(gfx::Bitmap* tile16_blockset) {
+    tile16_blockset_bmp_ = tile16_blockset;
+  }
 
  private:
   int preview_palette_id_ = 0;
@@ -60,7 +62,7 @@ class GfxGroupEditor : public SharedRom {
 
   gfx::SnesPalette palette_;
   gfx::PaletteGroup palette_group_;
-  gfx::Bitmap tile16_blockset_bmp_;
+  gfx::Bitmap* tile16_blockset_bmp_;
 
   std::vector<Bytes> tile16_individual_data_;
   std::vector<gfx::Bitmap> tile16_individual_;
