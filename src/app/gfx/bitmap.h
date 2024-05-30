@@ -185,23 +185,7 @@ class Bitmap {
   }
 
   void Cleanup() {
-    // Reset texture_
-    if (texture_) {
-      texture_.reset();
-    }
-
-    // Reset surface_ and its pixel data
-    if (surface_) {
-      surface_->pixels = nullptr;
-      surface_.reset();
-    }
-
-    // Reset data_
-    data_.clear();
-
-    // Reset other members if necessary
     active_ = false;
-    pixel_data_ = nullptr;
     width_ = 0;
     height_ = 0;
     depth_ = 0;
