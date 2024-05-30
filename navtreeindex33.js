@@ -1,7 +1,5 @@
 var NAVTREEINDEX33 =
 {
-"icons_8h.html#afce02e819d1128f6a54dc6d26938acdc":[10,0,1,0,4,4,694],
-"icons_8h.html#afcef49fd05a19d398e7d32623ed7a64d":[10,0,1,0,4,4,8],
 "icons_8h.html#afd109f37d4fb4a3f287b0d1a4be2aad0":[10,0,1,0,4,4,1899],
 "icons_8h.html#afd1a18f8ef7b1e6cf1735eb46a0b347c":[10,0,1,0,4,4,335],
 "icons_8h.html#afd252a477c703810ad3a55b8b1d0fb0e":[10,0,1,0,4,4,1371],
@@ -249,5 +247,7 @@ var NAVTREEINDEX33 =
 "namespaceyaze_1_1app_1_1core.html":[8,0,1,0,0],
 "namespaceyaze_1_1app_1_1core.html#a00498c7676bbf36c6d1fadbf7f6c1061":[8,0,1,0,0,45],
 "namespaceyaze_1_1app_1_1core.html#a06f756487fd5bb0ff152f21c3ad7893c":[8,0,1,0,0,44],
-"namespaceyaze_1_1app_1_1core.html#a08330cca752181dc42e537e696ae9520":[8,0,1,0,0,59]
+"namespaceyaze_1_1app_1_1core.html#a08330cca752181dc42e537e696ae9520":[8,0,1,0,0,59],
+"namespaceyaze_1_1app_1_1core.html#a09aa267e50eefee2178c5ef40e253f7c":[8,0,1,0,0,51],
+"namespaceyaze_1_1app_1_1core.html#a0b99de7088f320ebab6fadb299bbbcbd":[8,0,1,0,0,36]
 };
