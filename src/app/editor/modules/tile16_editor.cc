@@ -108,7 +108,7 @@ absl::Status Tile16Editor::UpdateBlockset() {
   {
     blockset_canvas_.DrawContextMenu();
     blockset_canvas_.DrawTileSelector(32);
-    blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, map_blockset_loaded_);
+    blockset_canvas_.DrawBitmap(*tile16_blockset_bmp_, 0, map_blockset_loaded_);
     blockset_canvas_.DrawGrid();
     blockset_canvas_.DrawOverlay();
     ImGui::EndChild();
@@ -123,11 +123,11 @@ absl::Status Tile16Editor::UpdateBlockset() {
     notify_tile16.apply_changes();
     if (notify_tile16.modified()) {
       current_tile16_ = notify_tile16.get();
-      current_tile16_bmp_ = tile16_individual_[notify_tile16];
+      current_tile16_bmp_ = &tile16_individual_[notify_tile16];
       auto ow_main_pal_group = rom()->palette_group().overworld_main;
-      RETURN_IF_ERROR(current_tile16_bmp_.ApplyPalette(
+      RETURN_IF_ERROR(current_tile16_bmp_->ApplyPalette(
           ow_main_pal_group[current_palette_]));
-      rom()->RenderBitmap(&current_tile16_bmp_);
+      rom()->RenderBitmap(current_tile16_bmp_);
     }
   }
 
@@ -158,7 +158,7 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
       int pixel_index =
           (start_position.y + y) * tile16_size + ((start_position.x) + x);
       int gfx_pixel_index = y * tile8_size + x;
-      current_tile16_bmp_.WriteToPixel(
+      current_tile16_bmp_->WriteToPixel(
           pixel_index,
           current_gfx_individual_[current_tile8_].data()[gfx_pixel_index]);
     }
@@ -202,14 +202,14 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   if (ImGui::BeginChild("Tile16 Editor Options",
                         ImVec2(ImGui::GetContentRegionAvail().x, 0x50), true)) {
     tile16_edit_canvas_.DrawBackground();
-    tile16_edit_canvas_.DrawContextMenu(&current_tile16_bmp_);
-    tile16_edit_canvas_.DrawBitmap(current_tile16_bmp_, 0, 0, 4.0f);
+    tile16_edit_canvas_.DrawContextMenu(current_tile16_bmp_);
+    tile16_edit_canvas_.DrawBitmap(*current_tile16_bmp_, 0, 0, 4.0f);
     if (!tile8_source_canvas_.points().empty()) {
       if (tile16_edit_canvas_.DrawTilePainter(
               current_gfx_individual_[current_tile8_], 16, 2.0f)) {
         RETURN_IF_ERROR(
             DrawToCurrentTile16(tile16_edit_canvas_.drawn_tile_position()));
-        rom()->UpdateBitmap(&current_tile16_bmp_);
+        rom()->UpdateBitmap(current_tile16_bmp_);
       }
     }
     tile16_edit_canvas_.DrawGrid();
@@ -241,9 +241,9 @@ absl::Status Tile16Editor::DrawTileEditControls() {
       RETURN_IF_ERROR(
           current_gfx_bmp_.ApplyPaletteWithTransparent(palette, value));
       RETURN_IF_ERROR(
-          current_tile16_bmp_.ApplyPaletteWithTransparent(palette, value));
+          current_tile16_bmp_->ApplyPaletteWithTransparent(palette, value));
       rom()->UpdateBitmap(&current_gfx_bmp_);
-      rom()->UpdateBitmap(&current_tile16_bmp_);
+      rom()->UpdateBitmap(current_tile16_bmp_);
     }
   }
 
@@ -353,9 +353,9 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
     palette_ = transfer_overworld_.AreaPalette();
 
     // Create the tile16 blockset image
-    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x80,
-                                 transfer_overworld_.Tile16Blockset(),
-                                 transfer_blockset_bmp_, palette_));
+    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+        0x80, 0x2000, 0x80, transfer_overworld_.Tile16Blockset(),
+        transfer_blockset_bmp_, palette_));
     transfer_blockset_loaded_ = true;
   }
 

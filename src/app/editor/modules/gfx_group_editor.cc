@@ -263,10 +263,6 @@ void GfxGroupEditor::DrawPaletteViewer() {
   DrawPaletteFromPaletteGroup(spr_aux_pal3);
 }
 
-void GfxGroupEditor::InitBlockset(gfx::Bitmap tile16_blockset) {
-  tile16_blockset_bmp_ = tile16_blockset;
-}
-
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze
