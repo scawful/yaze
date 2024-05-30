@@ -260,7 +260,6 @@ class OverworldEditor : public Editor,
   gfx::Bitmap all_gfx_bmp;
 
   gfx::BitmapTable maps_bmp_;
-  gfx::BitmapTable graphics_bin_;
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
 
