@@ -1867,6 +1867,18 @@ absl::Status OverworldEditor::UpdateUsageStats() {
         selected_usage_map_ = overworld_.entrances().at(i).map_id_;
         properties_canvas_.set_highlight_tile_id(selected_usage_map_);
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Entrance ID: %d", i);
+        ImGui::Text("Map ID: %d", overworld_.entrances().at(i).map_id_);
+        ImGui::Text("Entrance ID: %d",
+                    overworld_.entrances().at(i).entrance_id_);
+        ImGui::Text("X: %d", overworld_.entrances().at(i).x_);
+        ImGui::Text("Y: %d", overworld_.entrances().at(i).y_);
+        ImGui::Text("Deleted? %s",
+                    overworld_.entrances().at(i).deleted ? "Yes" : "No");
+        ImGui::EndTooltip();
+      }
     }
     ImGui::EndChild();
 
@@ -1886,6 +1898,9 @@ void OverworldEditor::CalculateUsageStats() {
         each_entrance.map_id_ >= (current_world_ * 0x40)) {
       entrance_usage[each_entrance.entrance_id_]++;
     }
+
+    if (each_entrance.deleted == true)
+      unused_entrances_.push_back(each_entrance.entrance_id_);
   }
 }
 
