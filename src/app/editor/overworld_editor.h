@@ -262,7 +262,6 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
-
   gfx::BitmapTable animated_maps_;
 
   gui::zeml::Node layout_node_;
