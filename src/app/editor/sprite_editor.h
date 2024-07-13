@@ -9,6 +9,21 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+
+
+constexpr ImGuiTabItemFlags kSpriteTabFlags =
+    ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip;
+
+constexpr ImGuiTabBarFlags kSpriteTabBarFlags =
+    ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
+    ImGuiTabBarFlags_FittingPolicyResizeDown |
+    ImGuiTabBarFlags_TabListPopupButton;
+
+constexpr ImGuiTableFlags kSpriteTableFlags =
+    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+    ImGuiTableFlags_BordersV;
+
 /**
  * @class SpriteEditor
  * @brief Allows the user to edit sprites.
@@ -27,6 +42,11 @@ class SpriteEditor : public SharedRom {
 
  private:
   /**
+   * @brief Draws the sprites list.
+   */
+  void DrawSpritesList();
+
+  /**
    * @brief Draws the sprite canvas.
    */
   void DrawSpriteCanvas();
@@ -36,6 +56,9 @@ class SpriteEditor : public SharedRom {
    */
   void DrawCurrentSheets();
 
+  ImVector<int> active_sprites_; /**< Active sprites. */
+
+  int current_sprite_id_;     /**< Current sprite ID. */
   uint8_t current_sheets_[8]; /**< Array to store the current sheets. */
   bool sheets_loaded_ =
       false; /**< Flag indicating whether the sheets are loaded or not. */
@@ -51,11 +74,15 @@ class SpriteEditor : public SharedRom {
     bool flip_y;      /**< Flip Y. */
   };
 
-  OAMConfig oam_config_; /**< OAM configuration. */
+  OAMConfig oam_config_;   /**< OAM configuration. */
   gui::Bitmap oam_bitmap_; /**< OAM bitmap. */
 
   gui::Canvas sprite_canvas_{
       ImVec2(0x200, 0x200), gui::CanvasGridSize::k32x32}; /**< Sprite canvas. */
+
+  gui::Canvas graphics_sheet_canvas_{
+      ImVec2(0x80 * 2 + 2, 0x40 * 8 + 2),
+      gui::CanvasGridSize::k16x16}; /**< Graphics sheet canvas. */
 };
 
 }  // namespace editor
