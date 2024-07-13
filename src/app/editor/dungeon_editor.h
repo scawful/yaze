@@ -4,10 +4,10 @@
 #include <imgui/imgui.h>
 
 #include "app/core/common.h"
-#include "app/editor/utils/editor.h"
 #include "app/core/labeling.h"
 #include "app/editor/modules/gfx_group_editor.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/rom.h"
@@ -46,6 +46,8 @@ class DungeonEditor : public Editor,
                       public SharedRom,
                       public core::ExperimentFlags {
  public:
+  DungeonEditor() { type_ = EditorType::kDungeon; }
+
   absl::Status Update() override;
   absl::Status Cut() override { return absl::OkStatus(); }
   absl::Status Copy() override { return absl::OkStatus(); }

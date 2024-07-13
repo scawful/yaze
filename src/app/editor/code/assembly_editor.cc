@@ -329,6 +329,33 @@ void AssemblyEditor::SetEditorText() {
   }
 }
 
+absl::Status AssemblyEditor::Cut() {
+  text_editor_.Cut();
+  return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::Copy() {
+  text_editor_.Copy();
+  return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::Paste() {
+  text_editor_.Paste();
+  return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::Undo() {
+  text_editor_.Undo();
+  return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::Redo() {
+  text_editor_.Redo();
+  return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::Update() { return absl::OkStatus(); }
+
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze

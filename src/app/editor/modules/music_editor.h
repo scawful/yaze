@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -58,9 +59,17 @@ static constexpr absl::string_view kSongNotes[] = {
  * @class MusicEditor
  * @brief A class for editing music data in a Rom.
  */
-class MusicEditor : public SharedRom {
+class MusicEditor : public SharedRom, public Editor {
  public:
-  void Update();
+  MusicEditor() { type_ = EditorType::kMusic; }
+
+  absl::Status Update() override;
+
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
 
  private:
   void DrawChannels();

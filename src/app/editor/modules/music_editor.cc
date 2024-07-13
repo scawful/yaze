@@ -12,7 +12,7 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-void MusicEditor::Update() {
+absl::Status MusicEditor::Update() {
   if (ImGui::BeginTable("MusicEditorColumns", 2, music_editor_flags_,
                         ImVec2(0, 0))) {
     ImGui::TableSetupColumn("Assembly");
@@ -30,6 +30,8 @@ void MusicEditor::Update() {
 
     ImGui::EndTable();
   }
+
+  return absl::OkStatus();
 }
 
 void MusicEditor::DrawChannels() {
