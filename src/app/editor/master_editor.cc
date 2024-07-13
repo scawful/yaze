@@ -499,6 +499,13 @@ void MasterEditor::DrawFileMenu() {
         if (status_.ok()) {
           status_ = rom()->LoadFromFile(current_project_.rom_filename_);
         }
+        if (status_.ok()) {
+          if (!rom()->resource_label()->LoadLabels(
+                  current_project_.labels_filename_)) {
+            status_ = absl::InternalError(
+                "Could not load labels file, update your project file.");
+          }
+        }
       }
       if (MenuItem("Save Project")) {
         // Save the current project
