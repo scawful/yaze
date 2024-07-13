@@ -769,7 +769,7 @@ void OverworldEditor::DrawTile8Selector() {
       if (key >= 1) {
         top_left_y = graphics_bin_canvas_.zero_point().y + 0x40 * key;
       }
-      auto texture = value.get()->texture();
+      auto texture = value.texture();
       graphics_bin_canvas_.draw_list()->AddImage(
           (void *)texture,
           ImVec2(graphics_bin_canvas_.zero_point().x + 2, top_left_y),

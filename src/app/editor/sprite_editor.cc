@@ -156,7 +156,7 @@ void SpriteEditor::DrawCurrentSheets() {
     graphics_sheet_canvas_.DrawTileSelector(32);
     for (int i = 0; i < 8; i++) {
       graphics_sheet_canvas_.DrawBitmap(
-          *rom()->bitmap_manager()[current_sheets_[i]], 1, (i * 0x40) + 1, 2);
+          rom()->bitmap_manager()[current_sheets_[i]], 1, (i * 0x40) + 1, 2);
     }
     graphics_sheet_canvas_.DrawGrid();
     graphics_sheet_canvas_.DrawOverlay();

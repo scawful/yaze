@@ -268,22 +268,21 @@ using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
  */
 class BitmapManager {
  private:
-  std::unordered_map<int, std::shared_ptr<gfx::Bitmap>> bitmap_cache_;
+  std::unordered_map<int, gfx::Bitmap> bitmap_cache_;
 
  public:
   void LoadBitmap(int id, const Bytes &data, int width, int height, int depth) {
-    bitmap_cache_[id] =
-        std::make_shared<gfx::Bitmap>(width, height, depth, data);
+    bitmap_cache_[id].Create(width, height, depth, data);
   }
 
-  std::shared_ptr<gfx::Bitmap> const &operator[](int id) {
+  gfx::Bitmap &operator[](int id) {
     auto it = bitmap_cache_.find(id);
     if (it != bitmap_cache_.end()) {
       return it->second;
     }
     return bitmap_cache_.begin()->second;
   }
-  std::shared_ptr<gfx::Bitmap> const &shared_bitmap(int id) {
+  gfx::Bitmap &shared_bitmap(int id) {
     auto it = bitmap_cache_.find(id);
     if (it != bitmap_cache_.end()) {
       return it->second;
@@ -291,14 +290,12 @@ class BitmapManager {
     throw std::runtime_error(
         absl::StrCat("Bitmap with id ", id, " not found."));
   }
-  auto mutable_bitmap(int id) { return bitmap_cache_[id]; }
+  auto mutable_bitmap(int id) { return &bitmap_cache_[id]; }
   void clear_cache() { bitmap_cache_.clear(); }
 
-  using value_type = std::pair<const int, std::shared_ptr<gfx::Bitmap>>;
-  using iterator =
-      std::unordered_map<int, std::shared_ptr<gfx::Bitmap>>::iterator;
-  using const_iterator =
-      std::unordered_map<int, std::shared_ptr<gfx::Bitmap>>::const_iterator;
+  using value_type = std::pair<const int, gfx::Bitmap>;
+  using iterator = std::unordered_map<int, gfx::Bitmap>::iterator;
+  using const_iterator = std::unordered_map<int, gfx::Bitmap>::const_iterator;
 
   iterator begin() noexcept { return bitmap_cache_.begin(); }
   iterator end() noexcept { return bitmap_cache_.end(); }

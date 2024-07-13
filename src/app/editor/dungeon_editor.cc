@@ -92,7 +92,7 @@ absl::Status DungeonEditor::Initialize() {
   graphics_bin_ = *rom()->mutable_bitmap_manager();
   // Create a vector of pointers to the current block bitmaps
   for (int block : rooms_[current_room_id_].blocks()) {
-    room_gfx_sheets_.emplace_back(graphics_bin_[block].get());
+    room_gfx_sheets_.emplace_back(&graphics_bin_[block]);
   }
   return absl::OkStatus();
 }
@@ -100,16 +100,16 @@ absl::Status DungeonEditor::Initialize() {
 absl::Status DungeonEditor::RefreshGraphics() {
   for (int i = 0; i < 8; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
-    RETURN_IF_ERROR(graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+    RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         current_palette_group_[current_palette_id_], 0));
-    rom()->UpdateBitmap(graphics_bin_[block].get(), true);
+    rom()->UpdateBitmap(&graphics_bin_[block], true);
   }
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
   for (int i = 9; i < 16; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
-    RETURN_IF_ERROR(graphics_bin_[block].get()->ApplyPaletteWithTransparent(
+    RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         sprites_aux1_pal_group[current_palette_id_], 0));
-    rom()->UpdateBitmap(graphics_bin_[block].get(), true);
+    rom()->UpdateBitmap(&graphics_bin_[block], true);
   }
   return absl::OkStatus();
 }
@@ -505,7 +505,7 @@ void DungeonEditor::DrawRoomGraphics() {
         top_left_y = room_gfx_canvas_.zero_point().y + height * current_block;
       }
       room_gfx_canvas_.draw_list()->AddImage(
-          (void*)graphics_bin_[block].get()->texture(),
+          (void*)graphics_bin_[block].texture(),
           ImVec2(room_gfx_canvas_.zero_point().x + 2, top_left_y),
           ImVec2(room_gfx_canvas_.zero_point().x + 0x100,
                  room_gfx_canvas_.zero_point().y + offset));
