@@ -1,5 +1,7 @@
 var NAVTREEINDEX11 =
 {
+"classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#aed066c57e629c3633b8624848fa984fc":[9,0,0,0,2,1,2,20],
+"classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#af9fcd47f95f1375fee36a88070ae7e6c":[8,0,1,0,2,3,3,21],
 "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#af9fcd47f95f1375fee36a88070ae7e6c":[9,0,0,0,2,1,2,21],
 "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#afbc68b5ef89712aaacd126de63d832b7":[8,0,1,0,2,3,3,0],
 "classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#afbc68b5ef89712aaacd126de63d832b7":[9,0,0,0,2,1,2,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX11 =
 "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a4a7c7461ce733f7d969949f32aefe9f4":[9,0,0,0,2,1,6,7],
 "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a430ad5d9ad998e7b6676831a4bba8":[8,0,1,0,2,3,7,3],
 "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a430ad5d9ad998e7b6676831a4bba8":[9,0,0,0,2,1,6,3],
-"classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a4c2b57823ff9dc94ba3a6e1197be8":[8,0,1,0,2,3,7,10],
-"classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a4c2b57823ff9dc94ba3a6e1197be8":[9,0,0,0,2,1,6,10],
-"classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a68327f3614c18b3f42c71314366ba61a":[8,0,1,0,2,3,7,8]
+"classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a4c2b57823ff9dc94ba3a6e1197be8":[8,0,1,0,2,3,7,10]
 };

@@ -1,5 +1,7 @@
 var NAVTREEINDEX41 =
 {
+"snes__palette_8cc.html#a0b33005e899a93e458f6b70f359f047b":[10,0,1,0,3,8,21],
+"snes__palette_8cc.html#a1c8f4a993ae8fb87c07f714b41a5991d":[10,0,1,0,3,8,8],
 "snes__palette_8cc.html#a2d6fee08ea00e55402ef8758ca853b76":[10,0,1,0,3,8,9],
 "snes__palette_8cc.html#a3942163d8d3f295042c5ec0cdb06d8b7":[10,0,1,0,3,8,3],
 "snes__palette_8cc.html#a484ece2a9dfd0fc5a61543db155b5754":[10,0,1,0,3,8,12],
@@ -247,7 +249,5 @@ var NAVTREEINDEX41 =
 "structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html#acdf0a246b19d934b35ffa9bdf08f5acc":[9,0,0,0,1,3,0,1],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[8,0,1,0,2,10,0],
 "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html":[9,0,0,0,2,8,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[8,0,1,0,2,10,0,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[9,0,0,0,2,8,0,0],
-"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a648410982bd27d1595954585265d5397":[8,0,1,0,2,10,0,1]
+"structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html#a1809514af68de6d3f90ef91080066f6f":[8,0,1,0,2,10,0,0]
 };

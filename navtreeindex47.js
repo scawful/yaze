@@ -1,5 +1,7 @@
 var NAVTREEINDEX47 =
 {
+"zelda3_2common_8h.html":[10,0,1,0,5,5],
+"zelda3_2common_8h_source.html":[10,0,1,0,5,5],
 "zeml_8cc.html":[10,0,1,0,4,13],
 "zeml_8cc.html#a03a069771465c842d3c6d861a4b6b539":[10,0,1,0,4,13,4],
 "zeml_8cc.html#a056789d5e258e0872015ee1c9dae628a":[10,0,1,0,4,13,5],
