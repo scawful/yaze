@@ -93,6 +93,10 @@ core::FolderItem LoadFolder(const std::string& folder) {
 
 }  // namespace
 
+void AssemblyEditor::OpenFolder(const std::string& folder_path) {
+  current_folder_ = LoadFolder(folder_path);
+}
+
 void AssemblyEditor::Update(bool& is_loaded) {
   ImGui::Begin("Assembly Editor", &is_loaded);
   MENU_BAR()

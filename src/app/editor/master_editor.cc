@@ -922,6 +922,10 @@ absl::Status MasterEditor::OpenProject() {
                   ".yaze");
   manager.Save();
 
+  assembly_editor_.OpenFolder(current_project_.code_folder_);
+
+  current_project_.project_opened_ = true;
+
   return absl::OkStatus();
 }
 
