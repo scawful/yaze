@@ -405,6 +405,13 @@ void MasterEditor::DrawYazeMenu() {
   DrawFileMenu();
   DrawEditMenu();
   DrawViewMenu();
+  if (current_project_.project_opened_) {
+    // Project Menu
+    if (BeginMenu("Project")) {
+      ImGui::Text("Project: %s", current_project_.name.c_str());
+    }
+    ImGui::EndMenu();
+  }
   DrawHelpMenu();
 
   ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
@@ -582,6 +589,9 @@ void MasterEditor::DrawFileMenu() {
     if (ImGui::Button("Create", gui::kDefaultModalSize)) {
       new_project_menu = false;
       status_ = current_project_.Create(save_as_filename);
+      if (status_.ok()) {
+        status_ = current_project_.Save();
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
@@ -728,9 +738,11 @@ void MasterEditor::DrawViewMenu() {
 void MasterEditor::DrawHelpMenu() {
   static bool open_rom_help = false;
   static bool open_supported_features = false;
+  static bool open_manage_project = false;
   if (BeginMenu("Help")) {
     if (MenuItem("How to open a ROM")) open_rom_help = true;
     if (MenuItem("Supported Features")) open_supported_features = true;
+    if (MenuItem("How to manage a project")) open_manage_project = true;
 
     if (MenuItem("About")) about_ = true;
     ImGui::EndMenu();
@@ -781,6 +793,25 @@ void MasterEditor::DrawHelpMenu() {
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       open_rom_help = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  if (open_manage_project) ImGui::OpenPopup("Manage Project");
+  if (ImGui::BeginPopupModal("Manage Project", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    Text("Project Menu");
+    Text("Create a new project or open an existing one.");
+    Text("Save the project to save the current state of the project.");
+    Text(
+        "To save a project, you need to first open a ROM and initialize your "
+        "code path and labels file. Label resource manager can be found in the "
+        "View menu. Code path is set in the Code editor after opening a "
+        "folder.");
+
+    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
+      open_manage_project = false;
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();

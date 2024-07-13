@@ -105,7 +105,9 @@ struct Project {
   absl::Status CheckForEmptyFields() {
     if (name.empty() || filepath.empty() || rom_filename_.empty() ||
         code_folder_.empty() || labels_filename_.empty()) {
-      return absl::InvalidArgumentError("Project fields cannot be empty.");
+      return absl::InvalidArgumentError(
+          "Project fields cannot be empty. Please load a rom file, set your "
+          "code folder, and set your labels file. See HELP for more details.");
     }
 
     return absl::OkStatus();
