@@ -99,13 +99,13 @@ absl::Status Rom::LoadAllGraphicsData() {
                                      core::kTilesheetDepth);
         if (i > 115) {
           // Apply sprites palette
-          RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
+          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
               palette_groups_.global_sprites[0], 0));
         } else {
-          RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
+          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
               palette_groups_.dungeon_main[0], 0));
         }
-        graphics_manager_[i]->CreateTexture(renderer_);
+        graphics_manager_[i].CreateTexture(renderer_);
       }
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
@@ -113,8 +113,8 @@ absl::Status Rom::LoadAllGraphicsData() {
       graphics_bin_.at(i).CreateTexture(renderer_);
 
       if (flags()->kUseBitmapManager) {
-        for (int j = 0; j < graphics_manager_[i].get()->size(); ++j) {
-          graphics_buffer_.push_back(graphics_manager_[i]->at(j));
+        for (int j = 0; j < graphics_manager_[i].size(); ++j) {
+          graphics_buffer_.push_back(graphics_manager_[i].at(j));
         }
       }
     } else {

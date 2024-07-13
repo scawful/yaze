@@ -113,7 +113,7 @@ void GraphicsManagerCanvasPipeline(int width, int height, int tile_size,
           top_left_y = canvas.zero_point().y + height * key;
         }
         canvas.draw_list()->AddImage(
-            (void*)value->texture(),
+            (void*)value.texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,
                    canvas.zero_point().y + offset));

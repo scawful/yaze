@@ -109,7 +109,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data =
-          rom()->bitmap_manager().shared_bitmap(current_sheet_)->GetPngData();
+          rom()->bitmap_manager().shared_bitmap(current_sheet_).GetPngData();
       CopyImageToClipboard(png_data);
     }
     HOVER_HINT("Copy to Clipboard");
@@ -124,10 +124,8 @@ void GraphicsEditor::DrawGfxEditToolset() {
             ->mutable_bitmap_manager()
             ->mutable_bitmap(current_sheet_)
             ->Create(width, height, 8, png_data);
-        rom()->UpdateBitmap(rom()
-                                ->mutable_bitmap_manager()
-                                ->mutable_bitmap(current_sheet_)
-                                .get());
+        rom()->UpdateBitmap(
+            rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_));
       }
     }
     HOVER_HINT("Paste from Clipboard");
@@ -148,7 +146,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
 
     TableNextColumn();
     auto bitmap = rom()->bitmap_manager()[current_sheet_];
-    auto palette = bitmap->palette();
+    auto palette = bitmap.palette();
     for (int i = 0; i < 8; i++) {
       ImGui::SameLine();
       auto color =
@@ -186,16 +184,16 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
 
     graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x40 + 1));
     graphics_bin_canvas_.DrawContextMenu();
-    if (value.get()->is_active()) {
-      auto texture = value.get()->texture();
+    if (value.is_active()) {
+      auto texture = value.texture();
       graphics_bin_canvas_.draw_list()->AddImage(
           (void*)texture,
           ImVec2(graphics_bin_canvas_.zero_point().x + 2,
                  graphics_bin_canvas_.zero_point().y + 2),
           ImVec2(graphics_bin_canvas_.zero_point().x +
-                     value.get()->width() * sheet_scale_,
+                     value.width() * sheet_scale_,
                  graphics_bin_canvas_.zero_point().y +
-                     value.get()->height() * sheet_scale_));
+                     value.height() * sheet_scale_));
 
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
         current_sheet_ = key;
@@ -269,7 +267,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         };
 
         current_sheet_canvas_.UpdateColorPainter(
-            *rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
+            rom()->bitmap_manager()[sheet_id], current_color_, draw_tile_event,
             tile_size_, current_scale_);
 
         ImGui::EndChild();
@@ -302,7 +300,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       current_sheet_ = id;
       //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
-          *rom()->bitmap_manager()[id], current_color_,
+          rom()->bitmap_manager()[id], current_color_,
           [&]() {
 
           },
@@ -342,11 +340,10 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 
   if (refresh_graphics_ && !open_sheets_.empty()) {
     RETURN_IF_ERROR(
-        rom()->bitmap_manager()[current_sheet_]->ApplyPaletteWithTransparent(
+        rom()->bitmap_manager()[current_sheet_].ApplyPaletteWithTransparent(
             palette, edit_palette_sub_index_));
     rom()->UpdateBitmap(
-        rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_).get(),
-        true);
+        rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_), true);
     refresh_graphics_ = false;
   }
 
