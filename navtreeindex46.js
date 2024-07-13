@@ -1,5 +1,7 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a34d520a19a07eb4fde9447d9c082e6da":[9,0,0,0,2,2,25,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a437efa2d2649429f6c7ec7812f9ce85c":[8,0,1,0,2,4,25,7],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a437efa2d2649429f6c7ec7812f9ce85c":[9,0,0,0,2,2,25,7],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a9501ca8c0d2317fa57f8c30c24c68774":[8,0,1,0,2,4,25,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a9501ca8c0d2317fa57f8c30c24c68774":[9,0,0,0,2,2,25,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#a11da3fca9f77d21f920f97e403be7c11":[9,0,0,0,4,0,1,0],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#a8bd2808883f09b5f709671ecc52eaef5":[8,0,1,0,4,1,1,1],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#a8bd2808883f09b5f709671ecc52eaef5":[9,0,0,0,4,0,1,1],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb":[8,0,1,0,4,1,1,3],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb":[9,0,0,0,4,0,1,3],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ad7e6555f90dc9a2765b7f74019f5eb8d":[8,0,1,0,4,1,1,5]
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb":[8,0,1,0,4,1,1,3]
 };

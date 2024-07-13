@@ -1,5 +1,7 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb":[9,0,0,0,4,0,1,3],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ad7e6555f90dc9a2765b7f74019f5eb8d":[8,0,1,0,4,1,1,5],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ad7e6555f90dc9a2765b7f74019f5eb8d":[9,0,0,0,4,0,1,5],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ae9aae2dced3f45f0c312d189dd8fd092":[8,0,1,0,4,1,1,4],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ae9aae2dced3f45f0c312d189dd8fd092":[9,0,0,0,4,0,1,4],

@@ -142,7 +142,7 @@ $(function(){initNavTree('project_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <a class="code hl_variable" href="structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681">filepath</a> = project_path;</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <a class="code hl_variable" href="structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe">name</a> = project_path.substr(project_path.find_last_of(<span class="stringliteral">&quot;/&quot;</span>) + 1);</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    std::ifstream in(project_path + <span class="stringliteral">&quot;/&quot;</span> + <a class="code hl_variable" href="structyaze_1_1app_1_1Project.html#a113a64ce6f082a98598e821feaeaebfe">name</a> + <span class="stringliteral">&quot;.yaze&quot;</span>);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    std::ifstream in(project_path);</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">if</span> (!in.good()) {</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;Could not open project file.&quot;</span>);</div>

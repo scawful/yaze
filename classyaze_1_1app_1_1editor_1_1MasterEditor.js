@@ -17,6 +17,7 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "DrawHelpMenu", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a1f0706c8efa1859f78125f414c05bce4", null ],
     [ "LoadRom", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a9f009622041f091ffd009851b5e21cfa", null ],
     [ "SaveRom", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a5778a42abd5d52e437aa22a27f6879ca", null ],
+    [ "OpenProject", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c39bdccd12331094a1aa809eb7ff506", null ],
     [ "quit_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a1a3727f5e972a49f5426e9c8ec772670", null ],
     [ "about_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a2d459e6d4453d01313d0c43161a4652e", null ],
     [ "rom_info_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a9b82d282989879a1930ef892d54bf4f3", null ],
