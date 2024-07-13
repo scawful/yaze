@@ -176,41 +176,56 @@ absl::Status MasterEditor::Update() {
   return absl::OkStatus();
 }
 
+namespace {
+bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
+  return std::find(active_editors.begin(), active_editors.end(), editor) !=
+         active_editors.end();
+}
+}  // namespace
+
 void MasterEditor::ManageActiveEditors() {
   // Show popup pane to select an editor to add
   static bool show_add_editor = false;
   if (show_add_editor) ImGui::OpenPopup("AddEditor");
 
   if (ImGui::BeginPopup("AddEditor", ImGuiWindowFlags_AlwaysAutoResize)) {
-    if (ImGui::MenuItem("Overworld")) {
+    if (ImGui::MenuItem("Overworld", nullptr, false,
+                        !IsEditorActive(&overworld_editor_, active_editors_))) {
       active_editors_.push_back(&overworld_editor_);
       ImGui::CloseCurrentPopup();
     }
-    if (ImGui::MenuItem("Dungeon")) {
+    if (ImGui::MenuItem("Dungeon", nullptr, false,
+                        !IsEditorActive(&dungeon_editor_, active_editors_))) {
       active_editors_.push_back(&dungeon_editor_);
       ImGui::CloseCurrentPopup();
     }
-    if (ImGui::MenuItem("Graphics")) {
+    if (ImGui::MenuItem("Graphics", nullptr, false,
+                        !IsEditorActive(&graphics_editor_, active_editors_))) {
       active_editors_.push_back(&graphics_editor_);
       ImGui::CloseCurrentPopup();
     }
-    if (ImGui::MenuItem("Music")) {
+    if (ImGui::MenuItem("Music", nullptr, false,
+                        !IsEditorActive(&music_editor_, active_editors_))) {
       active_editors_.push_back(&music_editor_);
       ImGui::CloseCurrentPopup();
     }
-    if (ImGui::MenuItem("Palette")) {
+    if (ImGui::MenuItem("Palette", nullptr, false,
+                        !IsEditorActive(&palette_editor_, active_editors_))) {
       active_editors_.push_back(&palette_editor_);
       ImGui::CloseCurrentPopup();
     }
-    if (ImGui::MenuItem("Screen")) {
+    if (ImGui::MenuItem("Screen", nullptr, false,
+                        !IsEditorActive(&screen_editor_, active_editors_))) {
       active_editors_.push_back(&screen_editor_);
       ImGui::CloseCurrentPopup();
     }
-    if (ImGui::MenuItem("Sprite")) {
+    if (ImGui::MenuItem("Sprite", nullptr, false,
+                        !IsEditorActive(&sprite_editor_, active_editors_))) {
       active_editors_.push_back(&sprite_editor_);
       ImGui::CloseCurrentPopup();
     }
-    if (ImGui::MenuItem("Code")) {
+    if (ImGui::MenuItem("Code", nullptr, false,
+                        !IsEditorActive(&assembly_editor_, active_editors_))) {
       active_editors_.push_back(&assembly_editor_);
       ImGui::CloseCurrentPopup();
     }
@@ -224,10 +239,11 @@ void MasterEditor::ManageActiveEditors() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_Reorderable |
                                          ImGuiTabBarFlags_AutoSelectNewTabs)) {
     for (auto editor : active_editors_) {
+      bool open = true;
       switch (editor->type()) {
         case EditorType::kOverworld:
           if (overworld_editor_.jump_to_tab() == -1) {
-            if (ImGui::BeginTabItem("Overworld")) {
+            if (ImGui::BeginTabItem("Overworld", &open)) {
               current_editor_ = &overworld_editor_;
               status_ = overworld_editor_.Update();
               ImGui::EndTabItem();
@@ -235,7 +251,7 @@ void MasterEditor::ManageActiveEditors() {
           }
           break;
         case EditorType::kDungeon:
-          if (ImGui::BeginTabItem("Dungeon")) {
+          if (ImGui::BeginTabItem("Dungeon", &open)) {
             current_editor_ = &dungeon_editor_;
             status_ = dungeon_editor_.Update();
             if (overworld_editor_.jump_to_tab() != -1) {
@@ -246,42 +262,43 @@ void MasterEditor::ManageActiveEditors() {
           }
           break;
         case EditorType::kGraphics:
-          current_editor_ = &graphics_editor_;
-          if (ImGui::BeginTabItem("Graphics")) {
+          if (ImGui::BeginTabItem("Graphics", &open)) {
+            current_editor_ = &graphics_editor_;
             status_ = graphics_editor_.Update();
             ImGui::EndTabItem();
           }
           break;
         case EditorType::kMusic:
-          current_editor_ = &music_editor_;
-          if (ImGui::BeginTabItem("Music")) {
+          if (ImGui::BeginTabItem("Music", &open)) {
+            current_editor_ = &music_editor_;
+
             status_ = music_editor_.Update();
             ImGui::EndTabItem();
           }
           break;
         case EditorType::kPalette:
-          current_editor_ = &palette_editor_;
-          if (ImGui::BeginTabItem("Palette")) {
+          if (ImGui::BeginTabItem("Palette", &open)) {
+            current_editor_ = &palette_editor_;
             status_ = palette_editor_.Update();
             ImGui::EndTabItem();
           }
           break;
         case EditorType::kScreen:
-          current_editor_ = &screen_editor_;
-          if (ImGui::BeginTabItem("Screen")) {
+          if (ImGui::BeginTabItem("Screen", &open)) {
+            current_editor_ = &screen_editor_;
             status_ = screen_editor_.Update();
             ImGui::EndTabItem();
           }
           break;
         case EditorType::kSprite:
-          current_editor_ = &sprite_editor_;
-          if (ImGui::BeginTabItem("Sprite")) {
+          if (ImGui::BeginTabItem("Sprite", &open)) {
+            current_editor_ = &sprite_editor_;
             status_ = sprite_editor_.Update();
             ImGui::EndTabItem();
           }
           break;
         case EditorType::kAssembly:
-          if (ImGui::BeginTabItem("Code")) {
+          if (ImGui::BeginTabItem("Code", &open)) {
             current_editor_ = &assembly_editor_;
             assembly_editor_.UpdateCodeView();
             ImGui::EndTabItem();
@@ -289,6 +306,11 @@ void MasterEditor::ManageActiveEditors() {
           break;
         default:
           break;
+      }
+      if (!open) {
+        active_editors_.erase(
+            std::remove(active_editors_.begin(), active_editors_.end(), editor),
+            active_editors_.end());
       }
     }
 
