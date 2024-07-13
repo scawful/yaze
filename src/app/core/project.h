@@ -47,7 +47,7 @@ struct Project {
     filepath = project_path;
     name = project_path.substr(project_path.find_last_of("/") + 1);
 
-    std::ifstream in(project_path + "/" + name + ".yaze");
+    std::ifstream in(project_path);
 
     if (!in.good()) {
       return absl::InternalError("Could not open project file.");

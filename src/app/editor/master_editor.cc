@@ -496,6 +496,9 @@ void MasterEditor::DrawFileMenu() {
         // Open an existing project
         status_ =
             current_project_.Open(FileDialogWrapper::ShowOpenFileDialog());
+        if (status_.ok()) {
+          status_ = rom()->LoadFromFile(current_project_.rom_filename_);
+        }
       }
       if (MenuItem("Save Project")) {
         // Save the current project
@@ -586,6 +589,29 @@ void MasterEditor::DrawFileMenu() {
                  ImGuiWindowFlags_AlwaysAutoResize);
     static std::string save_as_filename = "";
     ImGui::InputText("Project Name", &save_as_filename);
+    if (ImGui::Button("Destination Filepath", gui::kDefaultModalSize)) {
+      current_project_.filepath = FileDialogWrapper::ShowOpenFolderDialog();
+    }
+    ImGui::SameLine();
+    ImGui::Text("%s", current_project_.filepath.c_str());
+    if (ImGui::Button("ROM File", gui::kDefaultModalSize)) {
+      current_project_.rom_filename_ = FileDialogWrapper::ShowOpenFileDialog();
+    }
+    ImGui::SameLine();
+    ImGui::Text("%s", current_project_.rom_filename_.c_str());
+    if (ImGui::Button("Labels File", gui::kDefaultModalSize)) {
+      current_project_.labels_filename_ =
+          FileDialogWrapper::ShowOpenFileDialog();
+    }
+    ImGui::SameLine();
+    ImGui::Text("%s", current_project_.labels_filename_.c_str());
+    if (ImGui::Button("Code Folder", gui::kDefaultModalSize)) {
+      current_project_.code_folder_ = FileDialogWrapper::ShowOpenFolderDialog();
+    }
+    ImGui::SameLine();
+    ImGui::Text("%s", current_project_.code_folder_.c_str());
+
+    ImGui::Separator();
     if (ImGui::Button("Create", gui::kDefaultModalSize)) {
       new_project_menu = false;
       status_ = current_project_.Create(save_as_filename);
