@@ -413,8 +413,8 @@ void MasterEditor::DrawYazeMenu() {
       ImGui::Text("ROM: %s", current_project_.rom_filename_.c_str());
       ImGui::Text("Labels: %s", current_project_.labels_filename_.c_str());
       ImGui::Text("Code: %s", current_project_.code_folder_.c_str());
+      ImGui::EndMenu();
     }
-    ImGui::EndMenu();
   }
   DrawHelpMenu();
 
