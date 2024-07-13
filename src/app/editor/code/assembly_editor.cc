@@ -12,6 +12,27 @@ namespace editor {
 
 namespace {
 
+std::vector<std::string> RemoveIgnoredFiles(
+    const std::vector<std::string>& files,
+    const std::vector<std::string>& ignored_files) {
+  std::vector<std::string> filtered_files;
+  for (const auto& file : files) {
+    // Remove subdirectory files
+    if (file.find('/') != std::string::npos) {
+      continue;
+    }
+    // Make sure the file has an extension
+    if (file.find('.') == std::string::npos) {
+      continue;
+    }
+    if (std::find(ignored_files.begin(), ignored_files.end(), file) ==
+        ignored_files.end()) {
+      filtered_files.push_back(file);
+    }
+  }
+  return filtered_files;
+}
+
 core::FolderItem LoadFolder(const std::string& folder) {
   // Check if .gitignore exists in the folder
   std::ifstream gitignore(folder + "/.gitignore");
@@ -33,18 +54,7 @@ core::FolderItem LoadFolder(const std::string& folder) {
   core::FolderItem current_folder;
   current_folder.name = folder;
   auto root_files = FileDialogWrapper::GetFilesInFolder(current_folder.name);
-
-  for (const auto& files : root_files) {
-    // Remove subdirectory files
-    if (files.find('/') != std::string::npos) {
-      continue;
-    }
-    // Make sure the file has an extension
-    if (files.find('.') == std::string::npos) {
-      continue;
-    }
-    current_folder.files.push_back(files);
-  }
+  current_folder.files = RemoveIgnoredFiles(root_files, ignored_files);
 
   for (const auto& folder :
        FileDialogWrapper::GetSubdirectoriesInFolder(current_folder.name)) {
@@ -59,6 +69,10 @@ core::FolderItem LoadFolder(const std::string& folder) {
       }
       // Make sure the file has an extension
       if (files.find('.') == std::string::npos) {
+        continue;
+      }
+      if (std::find(ignored_files.begin(), ignored_files.end(), files) !=
+          ignored_files.end()) {
         continue;
       }
       folder_item.files.push_back(files);
