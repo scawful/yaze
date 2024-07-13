@@ -39,7 +39,7 @@ struct Project {
    */
   absl::Status Create(const std::string &project_name) {
     name = project_name;
-    
+    project_opened_ = true;
     return absl::OkStatus();
   }
 
@@ -78,6 +78,8 @@ struct Project {
   }
 
   absl::Status Save() {
+    RETURN_IF_ERROR(CheckForEmptyFields());
+
     std::ofstream out(filepath + "/" + name + ".yaze");
     if (!out.good()) {
       return absl::InternalError("Could not open project file.");
@@ -100,12 +102,21 @@ struct Project {
     return absl::OkStatus();
   }
 
+  absl::Status CheckForEmptyFields() {
+    if (name.empty() || filepath.empty() || rom_filename_.empty() ||
+        code_folder_.empty() || labels_filename_.empty()) {
+      return absl::InvalidArgumentError("Project fields cannot be empty.");
+    }
+
+    return absl::OkStatus();
+  }
+
   bool project_opened_ = false;
   std::string name;
   std::string filepath;
-  std::string rom_filename_;
-  std::string code_folder_;
-  std::string labels_filename_;
+  std::string rom_filename_ = "";
+  std::string code_folder_ = "";
+  std::string labels_filename_ = "";
   std::vector<std::string> previous_rom_filenames_;
 };
 
