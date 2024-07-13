@@ -12,6 +12,17 @@ namespace app {
  */
 namespace editor {
 
+enum class EditorType {
+  kAssembly,
+  kDungeon,
+  kGraphics,
+  kMusic,
+  kOverworld,
+  kPalette,
+  kScreen,
+  kSprite,
+};
+
 /**
  * @class Editor
  * @brief Interface for editor classes.
@@ -31,6 +42,11 @@ class Editor {
   virtual absl::Status Redo() = 0;
 
   virtual absl::Status Update() = 0;
+
+  EditorType type() const { return type_; }
+
+ protected:
+  EditorType type_;
 };
 
 }  // namespace editor
