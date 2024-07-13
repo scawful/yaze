@@ -37,11 +37,9 @@ struct Project {
    * @return An absl::Status indicating the success or failure of the project
    * creation.
    */
-  absl::Status Create(const std::string &project_name,
-                      const std::string &project_path) {
+  absl::Status Create(const std::string &project_name) {
     name = project_name;
-    filepath = project_path;
-
+    
     return absl::OkStatus();
   }
 

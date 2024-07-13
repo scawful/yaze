@@ -441,6 +441,7 @@ void MasterEditor::DrawYazeMenu() {
 
 void MasterEditor::DrawFileMenu() {
   static bool save_as_menu = false;
+  static bool new_project_menu = false;
 
   if (BeginMenu("File")) {
     if (MenuItem("Open", "Ctrl+O")) {
@@ -478,6 +479,24 @@ void MasterEditor::DrawFileMenu() {
     }
 
     ImGui::Separator();
+
+    if (BeginMenu("Project")) {
+      if (MenuItem("Create New Project")) {
+        // Create a new project
+        new_project_menu = true;
+      }
+      if (MenuItem("Open Project")) {
+        // Open an existing project
+        status_ =
+            current_project_.Open(FileDialogWrapper::ShowOpenFileDialog());
+      }
+      if (MenuItem("Save Project")) {
+        // Save the current project
+        status_ = current_project_.Save();
+      }
+
+      ImGui::EndMenu();
+    }
 
     if (BeginMenu("Options")) {
       MenuItem("Backup ROM", "", &backup_rom_);
@@ -551,6 +570,22 @@ void MasterEditor::DrawFileMenu() {
     ImGui::SameLine();
     if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
       save_as_menu = false;
+    }
+    ImGui::End();
+  }
+
+  if (new_project_menu) {
+    ImGui::Begin("New Project", &new_project_menu,
+                 ImGuiWindowFlags_AlwaysAutoResize);
+    static std::string save_as_filename = "";
+    ImGui::InputText("Project Name", &save_as_filename);
+    if (ImGui::Button("Create", gui::kDefaultModalSize)) {
+      new_project_menu = false;
+      status_ = current_project_.Create(save_as_filename);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
+      new_project_menu = false;
     }
     ImGui::End();
   }
