@@ -15,7 +15,7 @@
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
-#include "app/editor/modules/assembly_editor.h"
+#include "app/editor/code/assembly_editor.h"
 #include "app/editor/modules/music_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/editor/overworld_editor.h"
