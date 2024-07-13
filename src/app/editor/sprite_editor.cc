@@ -86,9 +86,7 @@ void SpriteEditor::DrawSpriteCanvas() {
   static bool flip_x = false;
   static bool flip_y = false;
   if (ImGui::BeginChild(gui::GetID("##SpriteCanvas"),
-                        ImGui::GetContentRegionAvail(), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                            ImGuiWindowFlags_AlwaysHorizontalScrollbar)) {
+                        ImGui::GetContentRegionAvail(), true)) {
     sprite_canvas_.DrawBackground();
     sprite_canvas_.DrawContextMenu();
     // sprite_canvas_.DrawBitmap(oam_bitmap_, 2, 2);
@@ -137,6 +135,8 @@ void SpriteEditor::DrawSpriteCanvas() {
       ImGui::EndTable();
     }
 
+    DrawAnimationFrames();
+
     ImGui::EndChild();
   }
 }
@@ -182,6 +182,15 @@ void SpriteEditor::DrawSpritesList() {
       i++;
     }
     ImGui::EndChild();
+  }
+}
+
+void SpriteEditor::DrawAnimationFrames() {
+  if (ImGui::Button("Add Frame")) {
+    // Add a new frame
+  }
+  if (ImGui::Button("Remove Frame")) {
+    // Remove the current frame
   }
 }
 

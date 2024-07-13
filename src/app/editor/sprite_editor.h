@@ -9,8 +9,6 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-
-
 constexpr ImGuiTabItemFlags kSpriteTabFlags =
     ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip;
 
@@ -55,6 +53,11 @@ class SpriteEditor : public SharedRom {
    * @brief Draws the current sheets.
    */
   void DrawCurrentSheets();
+
+  /**
+   * @brief Draws the animation frames manager.
+   */
+  void DrawAnimationFrames();
 
   ImVector<int> active_sprites_; /**< Active sprites. */
 
