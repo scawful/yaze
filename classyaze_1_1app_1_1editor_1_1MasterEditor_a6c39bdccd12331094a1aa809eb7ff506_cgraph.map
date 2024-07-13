@@ -1,8 +1,8 @@
 <map id="yaze::app::editor::MasterEditor::OpenProject" name="yaze::app::editor::MasterEditor::OpenProject">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,47,178,87"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3" title=" " alt="" coords="253,5,375,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,48,237,37,238,42,178,54"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="226,94,402,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,80,224,88,223,93,177,85"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="277,95,270,86,274,76,289,70,314,68,341,70,355,77,353,82,340,75,314,73,290,75,278,80,275,85,281,92"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a960ba162d79c13ce6e8fae545ab6dd2d" title=" " alt="" coords="226,5,410,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,49,210,43,211,48,179,54"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="230,94,406,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,80,227,88,226,93,178,85"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="280,95,273,86,277,76,293,70,318,68,345,70,360,77,357,82,344,75,318,73,294,75,281,80,278,85,284,92"/>
 </map>

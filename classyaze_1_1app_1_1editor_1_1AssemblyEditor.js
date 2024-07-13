@@ -11,6 +11,7 @@ var classyaze_1_1app_1_1editor_1_1AssemblyEditor =
     [ "Undo", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a0bffac3063b1972502af46e9229ef4d0", null ],
     [ "Redo", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a112fc4f29873b91b8278d040f98240f3", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#ac79b00af326333293d6334a4fa0a1271", null ],
+    [ "OpenFolder", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a960ba162d79c13ce6e8fae545ab6dd2d", null ],
     [ "DrawFileMenu", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a0b5f764b65ccd0c57c38f6ff583371e1", null ],
     [ "DrawEditMenu", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a5501638cd2a8b34016d6e96adc55d3b6", null ],
     [ "SetEditorText", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a8454aa52bbab115efca6cdba65ff791b", null ],
