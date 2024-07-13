@@ -2,6 +2,7 @@
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <abseil-cpp/absl/strings/match.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/backends/imgui_impl_sdlrenderer2.h>
 #include <imgui/imgui.h>
@@ -463,7 +464,11 @@ void MasterEditor::DrawFileMenu() {
       } else {
         for (const auto& filePath : manager.GetRecentFiles()) {
           if (MenuItem(filePath.c_str())) {
-            status_ = rom()->LoadFromFile(filePath);
+            if (absl::StrContains(filePath, ".yaze")) {
+              status_ = current_project_.Open(filePath);
+            } else {
+              status_ = rom()->LoadFromFile(filePath);
+            }
           }
         }
       }
@@ -494,18 +499,7 @@ void MasterEditor::DrawFileMenu() {
       }
       if (MenuItem("Open Project")) {
         // Open an existing project
-        status_ =
-            current_project_.Open(FileDialogWrapper::ShowOpenFileDialog());
-        if (status_.ok()) {
-          status_ = rom()->LoadFromFile(current_project_.rom_filename_);
-        }
-        if (status_.ok()) {
-          if (!rom()->resource_label()->LoadLabels(
-                  current_project_.labels_filename_)) {
-            status_ = absl::InternalError(
-                "Could not load labels file, update your project file.");
-          }
-        }
+        status_ = OpenProject();
       }
       if (MenuItem("Save Project")) {
         // Save the current project
@@ -842,7 +836,8 @@ void MasterEditor::DrawHelpMenu() {
     Text("Save the project to save the current state of the project.");
     Text(
         "To save a project, you need to first open a ROM and initialize your "
-        "code path and labels file. Label resource manager can be found in the "
+        "code path and labels file. Label resource manager can be found in "
+        "the "
         "View menu. Code path is set in the Code editor after opening a "
         "folder.");
 
@@ -901,6 +896,25 @@ void MasterEditor::SaveRom() {
   }
 
   status_ = rom()->SaveToFile(backup_rom_, save_new_auto_);
+}
+
+absl::Status MasterEditor::OpenProject() {
+  RETURN_IF_ERROR(
+      current_project_.Open(FileDialogWrapper::ShowOpenFileDialog()));
+  RETURN_IF_ERROR(rom()->LoadFromFile(current_project_.rom_filename_));
+
+  if (!rom()->resource_label()->LoadLabels(current_project_.labels_filename_)) {
+    return absl::InternalError(
+        "Could not load labels file, update your project file.");
+  }
+
+  static RecentFilesManager manager("recent_files.txt");
+  manager.Load();
+  manager.AddFile(current_project_.filepath + "/" + current_project_.name +
+                  ".yaze");
+  manager.Save();
+
+  return absl::OkStatus();
 }
 
 }  // namespace editor
