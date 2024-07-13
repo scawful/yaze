@@ -27,11 +27,6 @@ class SpriteEditor : public SharedRom {
 
  private:
   /**
-   * @brief Draws the editor table.
-   */
-  void DrawEditorTable();
-
-  /**
    * @brief Draws the sprite canvas.
    */
   void DrawSpriteCanvas();
@@ -44,6 +39,23 @@ class SpriteEditor : public SharedRom {
   uint8_t current_sheets_[8]; /**< Array to store the current sheets. */
   bool sheets_loaded_ =
       false; /**< Flag indicating whether the sheets are loaded or not. */
+
+  // OAM Configuration
+  struct OAMConfig {
+    uint16_t x;       /**< X offset. */
+    uint16_t y;       /**< Y offset. */
+    uint8_t tile;     /**< Tile number. */
+    uint8_t palette;  /**< Palette number. */
+    uint8_t priority; /**< Priority. */
+    bool flip_x;      /**< Flip X. */
+    bool flip_y;      /**< Flip Y. */
+  };
+
+  OAMConfig oam_config_; /**< OAM configuration. */
+  gui::Bitmap oam_bitmap_; /**< OAM bitmap. */
+
+  gui::Canvas sprite_canvas_{
+      ImVec2(0x200, 0x200), gui::CanvasGridSize::k32x32}; /**< Sprite canvas. */
 };
 
 }  // namespace editor
