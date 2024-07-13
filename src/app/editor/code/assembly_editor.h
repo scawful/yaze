@@ -47,6 +47,8 @@ class AssemblyEditor : public Editor {
 
   absl::Status Update() override;
 
+  void OpenFolder(const std::string &folder_path);
+
  private:
   void DrawFileMenu();
   void DrawEditMenu();
