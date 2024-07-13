@@ -18,7 +18,7 @@ var searchData=
   ['editcolorinpalette_15',['EditColorInPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da',1,'yaze::app::editor::PaletteEditor']]],
   ['editedfromeditor_16',['editedFromEditor',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#acd8b4977f977916542cc3acb0a09de49',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['editingmode_17',['EditingMode',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422f',1,'yaze::app::editor::OverworldEditor']]],
-  ['editlabel_18',['EditLabel',['../classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
+  ['editlabel_18',['EditLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
   ['editor_19',['Editor',['../classyaze_1_1app_1_1editor_1_1Editor.html',1,'yaze::app::editor::Editor'],['../classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653',1,'yaze::app::editor::Editor::Editor()'],['../md_README.html',1,'Yet Another Zelda3 Editor']]],
   ['editor_2eh_20',['editor.h',['../editor_8h.html',1,'']]],
   ['editortype_21',['EditorType',['../namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52',1,'yaze::app::editor']]],

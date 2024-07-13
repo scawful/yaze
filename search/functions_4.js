@@ -1,7 +1,7 @@
 var searchData=
 [
   ['editcolorinpalette_0',['EditColorInPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da',1,'yaze::app::editor::PaletteEditor']]],
-  ['editlabel_1',['EditLabel',['../classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
+  ['editlabel_1',['EditLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd',1,'yaze::app::core::ResourceLabelManager']]],
   ['editor_2',['Editor',['../classyaze_1_1app_1_1editor_1_1Editor.html#a27212f7c8f641e429a7c8e4613e48653',1,'yaze::app::editor::Editor']]],
   ['edittrack_3',['EditTrack',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a2aa4c35b85280b2fb5522d05d06dde30',1,'yaze::app::zelda3::music::Tracker']]],
   ['ei_4',['EI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af98ae59887dca4d31d5c3e214650b379',1,'yaze::app::emu::audio::Spc700']]],

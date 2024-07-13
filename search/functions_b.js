@@ -59,7 +59,7 @@ var searchData=
   ['loadheader_56',['LoadHeader',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ad6d8a1fb08cfe8ae312b1220fd6ab3eb',1,'yaze::app::zelda3::dungeon::Room']]],
   ['loadhudpalettes_57',['LoadHUDPalettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a3942163d8d3f295042c5ec0cdb06d8b7',1,'yaze::app::gfx::palette_group_internal']]],
   ['loaditems_58',['LoadItems',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0587df5bd63e09dc0cddd4e2e7e2edfa',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['loadlabels_59',['LoadLabels',['../classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a',1,'yaze::app::core::ResourceLabelManager']]],
+  ['loadlabels_59',['LoadLabels',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a',1,'yaze::app::core::ResourceLabelManager']]],
   ['loadlinkgraphics_60',['LoadLinkGraphics',['../classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624',1,'yaze::app::Rom']]],
   ['loadmainblocksetid_61',['LoadMainBlocksetId',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aee75a48b2066ce9755daf017e6b49457',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['loadmainblocksets_62',['LoadMainBlocksets',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140',1,'yaze::app::zelda3::overworld::OverworldMap']]],

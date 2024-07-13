@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: yaze::app::core::ResourceLabelManager Class Reference</title>
+<title>yaze: yaze::app::core::ResourceLabelManager Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -78,7 +78,7 @@ $(function() { codefold.init(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(function(){initNavTree('classyaze_1_1app_1_1core_1_1ResourceLabelManager.html',''); initResizable(true); });
+$(function(){initNavTree('structyaze_1_1app_1_1core_1_1ResourceLabelManager.html',''); initResizable(true); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -107,9 +107,9 @@ $(function(){initNavTree('classyaze_1_1app_1_1core_1_1ResourceLabelManager.html'
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pri-attribs">Private Attributes</a> &#124;
-<a href="classyaze_1_1app_1_1core_1_1ResourceLabelManager-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">yaze::app::core::ResourceLabelManager Class Reference</div></div>
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="structyaze_1_1app_1_1core_1_1ResourceLabelManager-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">yaze::app::core::ResourceLabelManager Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -122,8 +122,6 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aef91da809cd766845f5b0fce690a1bad" id="r_aef91da809cd766845f5b0fce690a1bad"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aef91da809cd766845f5b0fce690a1bad">ResourceLabelManager</a> ()=default</td></tr>
-<tr class="separator:aef91da809cd766845f5b0fce690a1bad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6c9aca968e58e66b174423eb1e7aa0a" id="r_aa6c9aca968e58e66b174423eb1e7aa0a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa6c9aca968e58e66b174423eb1e7aa0a">LoadLabels</a> (const std::string &amp;filename)</td></tr>
 <tr class="separator:aa6c9aca968e58e66b174423eb1e7aa0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed5f6e97efa683a19fe0d63371e0d904" id="r_aed5f6e97efa683a19fe0d63371e0d904"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed5f6e97efa683a19fe0d63371e0d904">SaveLabels</a> ()</td></tr>
@@ -139,8 +137,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a716f67562fe260f7efb65391494deceb" id="r_a716f67562fe260f7efb65391494deceb"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a716f67562fe260f7efb65391494deceb">CreateOrGetLabel</a> (const std::string &amp;type, const std::string &amp;key, const absl::string_view &amp;defaultValue)</td></tr>
 <tr class="separator:a716f67562fe260f7efb65391494deceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
-Private Attributes</h2></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
 <tr class="memitem:a701e040767f58f22b5172b6170b86c24" id="r_a701e040767f58f22b5172b6170b86c24"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a701e040767f58f22b5172b6170b86c24">labels_loaded_</a> = false</td></tr>
 <tr class="separator:a701e040767f58f22b5172b6170b86c24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa45ad7a2d16b486946224270eaeb0cec" id="r_aa45ad7a2d16b486946224270eaeb0cec"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa45ad7a2d16b486946224270eaeb0cec">filename_</a></td></tr>
@@ -148,32 +146,6 @@ Private Attributes</h2></td></tr>
 <tr class="memitem:a1d1299cd0ebdaa2a62d145cd04203149" id="r_a1d1299cd0ebdaa2a62d145cd04203149"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, std::unordered_map&lt; std::string, std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d1299cd0ebdaa2a62d145cd04203149">labels_</a></td></tr>
 <tr class="separator:a1d1299cd0ebdaa2a62d145cd04203149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aef91da809cd766845f5b0fce690a1bad" name="aef91da809cd766845f5b0fce690a1bad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aef91da809cd766845f5b0fce690a1bad">&#9670;&#160;</a></span>ResourceLabelManager()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::app::core::ResourceLabelManager::ResourceLabelManager </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">default</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="aa6c9aca968e58e66b174423eb1e7aa0a" name="aa6c9aca968e58e66b174423eb1e7aa0a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa6c9aca968e58e66b174423eb1e7aa0a">&#9670;&#160;</a></span>LoadLabels()</h2>
@@ -236,10 +208,10 @@ Private Attributes</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph" id="aclassyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph">
+<div class="center"><img src="structyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph.png" border="0" usemap="#astructyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph" alt=""/></div>
+<map name="astructyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph" id="astructyaze_1_1app_1_1core_1_1ResourceLabelManager_a4a7244cd437062f705d72ac6abc08f35_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,196,46"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904" title=" " alt="" coords="244,5,422,46"/>
+<area shape="rect" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904" title=" " alt="" coords="244,5,422,46"/>
 <area shape="poly" title=" " alt="" coords="196,23,228,23,228,28,196,28"/>
 </map>
 </div>
@@ -307,10 +279,10 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph" id="aclassyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph">
+<div class="center"><img src="structyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph.png" border="0" usemap="#astructyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph" alt=""/></div>
+<map name="astructyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph" id="astructyaze_1_1app_1_1core_1_1ResourceLabelManager_ae8b5387ea50ef824bd980bd8f4e63b3c_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,234,61"/>
-<area shape="rect" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1" title=" " alt="" coords="282,13,496,54"/>
+<area shape="rect" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1" title=" " alt="" coords="282,13,496,54"/>
 <area shape="poly" title=" " alt="" coords="234,31,266,31,266,36,234,36"/>
 </map>
 </div>
@@ -379,19 +351,11 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool yaze::app::core::ResourceLabelManager::labels_loaded_ = false</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#a4a7244cd437062f705d72ac6abc08f35">DisplayLabels()</a>, <a class="el" href="#aa6c9aca968e58e66b174423eb1e7aa0a">LoadLabels()</a>, and <a class="el" href="#aed5f6e97efa683a19fe0d63371e0d904">SaveLabels()</a>.</p>
@@ -403,19 +367,11 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">std::string yaze::app::core::ResourceLabelManager::filename_</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#aa6c9aca968e58e66b174423eb1e7aa0a">LoadLabels()</a>, and <a class="el" href="#aed5f6e97efa683a19fe0d63371e0d904">SaveLabels()</a>.</p>
@@ -427,26 +383,18 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">std::unordered_map&lt;std::string, std::unordered_map&lt;std::string, std::string&gt; &gt; yaze::app::core::ResourceLabelManager::labels_</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#ab5527e695ccdbad0e335d27b8e6cecc1">CreateOrGetLabel()</a>, <a class="el" href="#a4a7244cd437062f705d72ac6abc08f35">DisplayLabels()</a>, <a class="el" href="#adff5679951d249e2a677399f98f1d6dd">EditLabel()</a>, <a class="el" href="#aa6c9aca968e58e66b174423eb1e7aa0a">LoadLabels()</a>, <a class="el" href="#aed5f6e97efa683a19fe0d63371e0d904">SaveLabels()</a>, and <a class="el" href="#ae8b5387ea50ef824bd980bd8f4e63b3c">SelectableLabelWithNameEdit()</a>.</p>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following files:<ul>
+<hr/>The documentation for this struct was generated from the following files:<ul>
 <li>src/app/core/<a class="el" href="labeling_8h_source.html">labeling.h</a></li>
 <li>src/app/core/<a class="el" href="labeling_8cc.html">labeling.cc</a></li>
 </ul>
@@ -455,7 +403,7 @@ Here is the call graph for this function:</div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="namespaceyaze.html">yaze</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app.html">app</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app_1_1core.html">core</a></li><li class="navelem"><a class="el" href="classyaze_1_1app_1_1core_1_1ResourceLabelManager.html">ResourceLabelManager</a></li>
+    <li class="navelem"><a class="el" href="namespaceyaze.html">yaze</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app.html">app</a></li><li class="navelem"><a class="el" href="namespaceyaze_1_1app_1_1core.html">core</a></li><li class="navelem"><a class="el" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html">ResourceLabelManager</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0 </li>
   </ul>
 </div>

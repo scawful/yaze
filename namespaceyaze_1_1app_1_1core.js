@@ -16,7 +16,7 @@ var namespaceyaze_1_1app_1_1core =
     [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
     [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
     [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
-    [ "ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "classyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
+    [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
     [ "FolderItem", "namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd", null ],
     [ "UppercaseHexByte", "namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524", null ],
     [ "UppercaseHexWord", "namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38", null ],

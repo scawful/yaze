@@ -166,9 +166,10 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", [
       [ "yaze_test::emu_test::MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", null ]
     ] ],
+    [ "yaze::app::Project", "structyaze_1_1app_1_1Project.html", null ],
     [ "yaze::app::zelda3::dungeon::PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
     [ "yaze::app::editor::anonymous_namespace{master_editor.cc}::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html", null ],
-    [ "yaze::app::core::ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
+    [ "yaze::app::core::ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager::ResourceType", "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::app::emu::memory::RomInfo", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html", null ],
     [ "yaze::app::zelda3::dungeon::RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", null ],

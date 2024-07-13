@@ -62,7 +62,7 @@ var searchData=
   ['opcode_5fto_5fcycle_5fcount_59',['opcode_to_cycle_count',['../cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791',1,'opcodes.h']]],
   ['opcode_5fto_5fmnemonic_60',['opcode_to_mnemonic',['../cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd',1,'opcodes.h']]],
   ['opcodes_2eh_61',['opcodes.h',['../audio_2internal_2opcodes_8h.html',1,'(Global Namespace)'],['../cpu_2internal_2opcodes_8h.html',1,'(Global Namespace)']]],
-  ['open_62',['Open',['../classyaze_1_1cli_1_1Open.html',1,'yaze::cli']]],
+  ['open_62',['Open',['../classyaze_1_1cli_1_1Open.html',1,'yaze::cli::Open'],['../structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3',1,'yaze::app::Project::Open()']]],
   ['open_5fbus_63',['open_bus',['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a71aaf1623d03b5b6e7a4c537b8183fbd',1,'yaze::app::emu::memory::Memory::open_bus()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab165116658b41810ae84c455e4759e3d',1,'yaze::app::emu::memory::MemoryImpl::open_bus() const -&gt; uint8_t override']]],
   ['open_5fbus_5f_64',['open_bus_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#af429b465bbcd3def1bc06140c2aaae3c',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['open_5ffiles_5f_65',['open_files_',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a375089c848d053804920162367f1510b',1,'yaze::app::editor::AssemblyEditor']]],

@@ -45,7 +45,7 @@
 <area shape="poly" id="edge24_Node000017_Node000019" title=" " alt="" coords="568,746,728,764,803,774,802,779,728,770,568,751"/>
 <area shape="rect" id="Node000020" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="5,724,185,749"/>
 <area shape="poly" id="edge25_Node000019_Node000020" title=" " alt="" coords="200,734,348,734,348,739,200,739"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="368,773,534,814"/>
+<area shape="rect" id="Node000021" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="368,773,534,814"/>
 <area shape="poly" id="edge26_Node000017_Node000021" title=" " alt="" coords="550,788,802,782,802,787,550,794"/>
 <area shape="rect" id="Node000022" href="$structOWMapTiles.html" title=" " alt="" coords="808,721,904,747"/>
 <area shape="poly" id="edge27_Node000015_Node000022" title=" " alt="" coords="920,731,1170,733,1170,739,920,737"/>

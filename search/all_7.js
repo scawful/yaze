@@ -88,7 +88,7 @@ var searchData=
   ['display_85',['Display',['../classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7',1,'yaze::app::gui::BitmapViewer']]],
   ['display_5fdescription_86',['display_description',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa',1,'yaze::app::core::ResourceLabelManager::ResourceType']]],
   ['displaycategorytable_87',['DisplayCategoryTable',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9',1,'yaze::app::editor::PaletteEditor']]],
-  ['displaylabels_88',['DisplayLabels',['../classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a4a7244cd437062f705d72ac6abc08f35',1,'yaze::app::core::ResourceLabelManager']]],
+  ['displaylabels_88',['DisplayLabels',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a4a7244cd437062f705d72ac6abc08f35',1,'yaze::app::core::ResourceLabelManager']]],
   ['displaypalette_89',['DisplayPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aabc08b8ae1c0e6fa35d69700dec1ab10',1,'yaze::app::editor::PaletteEditor::DisplayPalette()'],['../namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0',1,'yaze::app::gui::DisplayPalette()']]],
   ['div_90',['DIV',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6570d92730e20c1b1619e5cdd8821073',1,'yaze::app::emu::audio::Spc700']]],
   ['divide_5fa_5f_91',['divide_a_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad',1,'yaze::app::emu::SNES']]],

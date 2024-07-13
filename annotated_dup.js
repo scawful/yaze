@@ -9,7 +9,7 @@ var annotated_dup =
           [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
-          [ "ResourceLabelManager", "classyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "classyaze_1_1app_1_1core_1_1ResourceLabelManager" ]
+          [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
           [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", [
@@ -230,6 +230,7 @@ var annotated_dup =
           [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
           [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ]
         ] ],
+        [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
         [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
         [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
         [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ]
