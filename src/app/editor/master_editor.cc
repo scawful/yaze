@@ -169,62 +169,135 @@ absl::Status MasterEditor::Update() {
     rom_assets_loaded_ = true;
   }
 
-  TAB_BAR("##TabBar")
-  auto current_tab_bar = ImGui::GetCurrentContext()->CurrentTabBar;
-
-  if (overworld_editor_.jump_to_tab() == -1) {
-    if (ImGui::BeginTabItem("Overworld")) {
-      current_editor_ = &overworld_editor_;
-      status_ = overworld_editor_.Update();
-      ImGui::EndTabItem();
-    }
-  }
-
-  if (ImGui::BeginTabItem("Dungeon")) {
-    current_editor_ = &dungeon_editor_;
-    status_ = dungeon_editor_.Update();
-    if (overworld_editor_.jump_to_tab() != -1) {
-      dungeon_editor_.add_room(overworld_editor_.jump_to_tab());
-      overworld_editor_.jump_to_tab_ = -1;
-    }
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Graphics")) {
-    status_ = graphics_editor_.Update();
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Sprites")) {
-    status_ = sprite_editor_.Update();
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Palettes")) {
-    status_ = palette_editor_.Update();
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Screens")) {
-    screen_editor_.Update();
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Music")) {
-    music_editor_.Update();
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Code")) {
-    assembly_editor_.UpdateCodeView();
-    ImGui::EndTabItem();
-  }
-
-  END_TAB_BAR()
+  ManageActiveEditors();
 
   ImGui::End();
 
   return absl::OkStatus();
+}
+
+void MasterEditor::ManageActiveEditors() {
+  // Show popup pane to select an editor to add
+  static bool show_add_editor = false;
+  if (show_add_editor) ImGui::OpenPopup("AddEditor");
+
+  if (ImGui::BeginPopup("AddEditor", ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::MenuItem("Overworld")) {
+      active_editors_.push_back(&overworld_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::MenuItem("Dungeon")) {
+      active_editors_.push_back(&dungeon_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::MenuItem("Graphics")) {
+      active_editors_.push_back(&graphics_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::MenuItem("Music")) {
+      active_editors_.push_back(&music_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::MenuItem("Palette")) {
+      active_editors_.push_back(&palette_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::MenuItem("Screen")) {
+      active_editors_.push_back(&screen_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::MenuItem("Sprite")) {
+      active_editors_.push_back(&sprite_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::MenuItem("Code")) {
+      active_editors_.push_back(&assembly_editor_);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  if (!ImGui::IsPopupOpen("AddEditor")) {
+    show_add_editor = false;
+  }
+
+  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_Reorderable |
+                                         ImGuiTabBarFlags_AutoSelectNewTabs)) {
+    for (auto editor : active_editors_) {
+      switch (editor->type()) {
+        case EditorType::kOverworld:
+          if (overworld_editor_.jump_to_tab() == -1) {
+            if (ImGui::BeginTabItem("Overworld")) {
+              current_editor_ = &overworld_editor_;
+              status_ = overworld_editor_.Update();
+              ImGui::EndTabItem();
+            }
+          }
+          break;
+        case EditorType::kDungeon:
+          if (ImGui::BeginTabItem("Dungeon")) {
+            current_editor_ = &dungeon_editor_;
+            status_ = dungeon_editor_.Update();
+            if (overworld_editor_.jump_to_tab() != -1) {
+              dungeon_editor_.add_room(overworld_editor_.jump_to_tab());
+              overworld_editor_.jump_to_tab_ = -1;
+            }
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kGraphics:
+          current_editor_ = &graphics_editor_;
+          if (ImGui::BeginTabItem("Graphics")) {
+            status_ = graphics_editor_.Update();
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kMusic:
+          current_editor_ = &music_editor_;
+          if (ImGui::BeginTabItem("Music")) {
+            status_ = music_editor_.Update();
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kPalette:
+          current_editor_ = &palette_editor_;
+          if (ImGui::BeginTabItem("Palette")) {
+            status_ = palette_editor_.Update();
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kScreen:
+          current_editor_ = &screen_editor_;
+          if (ImGui::BeginTabItem("Screen")) {
+            status_ = screen_editor_.Update();
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kSprite:
+          current_editor_ = &sprite_editor_;
+          if (ImGui::BeginTabItem("Sprite")) {
+            status_ = sprite_editor_.Update();
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kAssembly:
+          if (ImGui::BeginTabItem("Code")) {
+            current_editor_ = &assembly_editor_;
+            assembly_editor_.UpdateCodeView();
+            ImGui::EndTabItem();
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing)) {
+      show_add_editor = true;
+    }
+
+    ImGui::EndTabBar();
+  }
 }
 
 void MasterEditor::DrawFileDialog() {
