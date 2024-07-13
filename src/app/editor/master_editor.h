@@ -83,6 +83,8 @@ class MasterEditor : public SharedRom,
   void LoadRom();
   void SaveRom();
 
+  absl::Status OpenProject();
+
   bool quit_ = false;
   bool about_ = false;
   bool rom_info_ = false;
