@@ -43,10 +43,16 @@ class FileDialogWrapper {
 #elif defined(__APPLE__)
 
 #include <string>
+#include <vector>
 
 class FileDialogWrapper {
  public:
   static std::string ShowOpenFileDialog();
+  static std::string ShowOpenFolderDialog();
+  static std::vector<std::string> GetSubdirectoriesInFolder(
+      const std::string& folder_path);
+  static std::vector<std::string> GetFilesInFolder(
+      const std::string& folder_path);
 };
 
 #elif defined(__linux__)
