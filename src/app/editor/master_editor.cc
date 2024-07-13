@@ -717,6 +717,9 @@ void MasterEditor::DrawViewMenu() {
 
   if (show_resource_label_manager) {
     rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
+    if (current_project_.project_opened_) {
+      current_project_.labels_filename_ = rom()->resource_label()->filename_;
+    }
   }
 
   if (BeginMenu("View")) {
