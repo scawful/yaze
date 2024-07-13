@@ -8,6 +8,9 @@
 #include <istream>
 #include <string>
 
+#include "app/core/common.h"
+#include "app/gui/widgets.h"
+
 namespace yaze {
 namespace app {
 namespace editor {
@@ -18,23 +21,40 @@ namespace editor {
  */
 class AssemblyEditor {
  public:
-  AssemblyEditor();
+  AssemblyEditor() {
+    text_editor_.SetLanguageDefinition(gui::GetAssemblyLanguageDef());
+    text_editor_.SetPalette(TextEditor::GetDarkPalette());
+    text_editor_.SetShowWhitespaces(false);
+  }
+  void ChangeActiveFile(const std::string_view &filename) {
+    current_file_ = filename;
+    file_is_loaded_ = false;
+  }
 
   void Update(bool &is_loaded);
   void InlineUpdate();
-  void ChangeActiveFile(const std::string_view &);
+
+  void UpdateCodeView();
 
  private:
   void DrawFileMenu();
   void DrawEditMenu();
 
-  void DrawFileView();
-
   void SetEditorText();
+
+  void DrawCurrentFolder();
+
+  void DrawFileTabView();
 
   bool file_is_loaded_ = false;
 
+  std::vector<std::string> files_;
+  std::vector<TextEditor> open_files_;
+  ImVector<int> active_files_;
+  int current_file_id_ = 0;
+
   std::string current_file_;
+  core::FolderItem current_folder_;
   TextEditor text_editor_;
 };
 

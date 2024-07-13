@@ -1,5 +1,8 @@
 #include "assembly_editor.h"
 
+#include <ImGuiColorTextEdit/TextEditor.h>
+
+#include "app/core/platform/file_dialog.h"
 #include "app/gui/widgets.h"
 #include "core/constants.h"
 
@@ -7,10 +10,74 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-AssemblyEditor::AssemblyEditor() {
-  text_editor_.SetLanguageDefinition(gui::GetAssemblyLanguageDef());
-  text_editor_.SetPalette(TextEditor::GetDarkPalette());
+namespace {
+
+core::FolderItem LoadFolder(const std::string& folder) {
+  // Check if .gitignore exists in the folder
+  std::ifstream gitignore(folder + "/.gitignore");
+  std::vector<std::string> ignored_files;
+  if (gitignore.good()) {
+    std::string line;
+    while (std::getline(gitignore, line)) {
+      if (line[0] == '#') {
+        continue;
+      }
+      if (line[0] == '!') {
+        // Ignore the file
+        continue;
+      }
+      ignored_files.push_back(line);
+    }
+  }
+
+  core::FolderItem current_folder;
+  current_folder.name = folder;
+  auto root_files = FileDialogWrapper::GetFilesInFolder(current_folder.name);
+
+  for (const auto& files : root_files) {
+    // Remove subdirectory files
+    if (files.find('/') != std::string::npos) {
+      continue;
+    }
+    // Make sure the file has an extension
+    if (files.find('.') == std::string::npos) {
+      continue;
+    }
+    current_folder.files.push_back(files);
+  }
+
+  for (const auto& folder :
+       FileDialogWrapper::GetSubdirectoriesInFolder(current_folder.name)) {
+    core::FolderItem folder_item;
+    folder_item.name = folder;
+    std::string full_folder = current_folder.name + "/" + folder;
+    auto folder_files = FileDialogWrapper::GetFilesInFolder(full_folder);
+    for (const auto& files : folder_files) {
+      // Remove subdirectory files
+      if (files.find('/') != std::string::npos) {
+        continue;
+      }
+      // Make sure the file has an extension
+      if (files.find('.') == std::string::npos) {
+        continue;
+      }
+      folder_item.files.push_back(files);
+    }
+
+    for (const auto& subdir :
+         FileDialogWrapper::GetSubdirectoriesInFolder(full_folder)) {
+      core::FolderItem subfolder_item;
+      subfolder_item.name = subdir;
+      subfolder_item.files = FileDialogWrapper::GetFilesInFolder(subdir);
+      folder_item.subfolders.push_back(subfolder_item);
+    }
+    current_folder.subfolders.push_back(folder_item);
+  }
+
+  return current_folder;
 }
+
+}  // namespace
 
 void AssemblyEditor::Update(bool& is_loaded) {
   ImGui::Begin("Assembly Editor", &is_loaded);
@@ -46,18 +113,13 @@ void AssemblyEditor::InlineUpdate() {
   text_editor_.Render("##asm_editor", ImVec2(0, 0));
 }
 
-void AssemblyEditor::ChangeActiveFile(const std::string_view& filename) {
-  current_file_ = filename;
-}
-
-void AssemblyEditor::DrawFileView() {
-  ImGui::BeginTable("##table_view", 4,
-                    ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+void AssemblyEditor::UpdateCodeView() {
+  ImGui::BeginTable("##table_view", 2,
+                    ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                        ImGuiTableFlags_Resizable);
 
   // Table headers
-  ImGui::TableSetupColumn("Files", ImGuiTableColumnFlags_WidthFixed, 150.0f);
-  ImGui::TableSetupColumn("Line", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-  ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+  ImGui::TableSetupColumn("Files", ImGuiTableColumnFlags_WidthFixed, 256.0f);
   ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch);
 
   ImGui::TableHeadersRow();
@@ -65,13 +127,13 @@ void AssemblyEditor::DrawFileView() {
   // Table data
   ImGui::TableNextRow();
   ImGui::TableNextColumn();
-  // TODO: Add tree view of files
-
-  ImGui::TableNextColumn();
-  // TODO: Add line number
-
-  ImGui::TableNextColumn();
-  // TODO: Add address per line
+  if (current_folder_.name != "") {
+    DrawCurrentFolder();
+  } else {
+    if (ImGui::Button("Open Folder")) {
+      current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
+    }
+  }
 
   ImGui::TableNextColumn();
 
@@ -87,6 +149,109 @@ void AssemblyEditor::DrawFileView() {
   text_editor_.Render("##asm_editor");
 
   ImGui::EndTable();
+}
+
+void AssemblyEditor::DrawCurrentFolder() {
+  if (ImGui::BeginChild("##current_folder", ImVec2(0, 0), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    if (ImGui::BeginTable("##file_table", 2,
+                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                              ImGuiTableFlags_Resizable |
+                              ImGuiTableFlags_Sortable)) {
+      ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 256.0f);
+      ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableHeadersRow();
+
+      for (const auto& file : current_folder_.files) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(file.c_str())) {
+          ChangeActiveFile(absl::StrCat(current_folder_.name, "/", file));
+        }
+        ImGui::TableNextColumn();
+        ImGui::Text("File");
+      }
+
+      for (const auto& subfolder : current_folder_.subfolders) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::TreeNode(subfolder.name.c_str())) {
+          for (const auto& file : subfolder.files) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            if (ImGui::Selectable(file.c_str())) {
+              ChangeActiveFile(absl::StrCat(current_folder_.name, "/",
+                                            subfolder.name, "/", file));
+            }
+            ImGui::TableNextColumn();
+            ImGui::Text("File");
+          }
+          ImGui::TreePop();
+        } else {
+          ImGui::TableNextColumn();
+          ImGui::Text("Folder");
+        }
+      }
+
+      ImGui::EndTable();
+    }
+
+    ImGui::EndChild();
+  }
+}
+
+void AssemblyEditor::DrawFileTabView() {
+  static int next_tab_id = 0;
+
+  if (ImGui::BeginTabBar("AssemblyFileTabBar", ImGuiTabBarFlags_None)) {
+    if (ImGui::TabItemButton("+", ImGuiTabItemFlags_None)) {
+      if (std::find(active_files_.begin(), active_files_.end(),
+                    current_file_id_) != active_files_.end()) {
+        // Room is already open
+        next_tab_id++;
+      }
+      active_files_.push_back(next_tab_id++);  // Add new tab
+    }
+
+    // Submit our regular tabs
+    for (int n = 0; n < active_files_.Size;) {
+      bool open = true;
+
+      if (ImGui::BeginTabItem(files_[active_files_[n]].data(), &open,
+                              ImGuiTabItemFlags_None)) {
+        auto cpos = text_editor_.GetCursorPosition();
+        {
+          std::ifstream t(current_file_);
+          if (t.good()) {
+            std::string str((std::istreambuf_iterator<char>(t)),
+                            std::istreambuf_iterator<char>());
+            text_editor_.SetText(str);
+          } else {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                         "Error opening file: %s\n", current_file_.c_str());
+          }
+        }
+        ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
+                    cpos.mColumn + 1, text_editor_.GetTotalLines(),
+                    text_editor_.IsOverwrite() ? "Ovr" : "Ins",
+                    text_editor_.CanUndo() ? "*" : " ",
+                    text_editor_.GetLanguageDefinition().mName.c_str(),
+                    current_file_.c_str());
+
+        open_files_[active_files_[n]].Render("##asm_editor");
+        ImGui::EndTabItem();
+      }
+
+      if (!open)
+        active_files_.erase(active_files_.Data + n);
+      else
+        n++;
+    }
+
+    ImGui::EndTabBar();
+  }
+  ImGui::Separator();
 }
 
 void AssemblyEditor::DrawFileMenu() {
@@ -142,8 +307,11 @@ void AssemblyEditor::SetEditorText() {
       std::string str((std::istreambuf_iterator<char>(t)),
                       std::istreambuf_iterator<char>());
       text_editor_.SetText(str);
-      file_is_loaded_ = true;
+    } else {
+      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error opening file: %s\n",
+                   current_file_.c_str());
     }
+    file_is_loaded_ = true;
   }
 }
 
