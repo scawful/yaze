@@ -57,7 +57,11 @@ class MasterEditor : public SharedRom,
                      public context::GfxContext,
                      public core::ExperimentFlags {
  public:
-  MasterEditor() { current_editor_ = &overworld_editor_; }
+  MasterEditor() {
+    current_editor_ = &overworld_editor_;
+    active_editors_.push_back(&overworld_editor_);
+    active_editors_.push_back(&dungeon_editor_);
+  }
 
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
                    std::string filename = "");
