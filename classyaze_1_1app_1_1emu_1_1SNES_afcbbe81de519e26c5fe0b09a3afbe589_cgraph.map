@@ -1,7 +1,7 @@
 <map id="yaze::app::emu::SNES::Reset" name="yaze::app::emu::SNES::Reset">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,300,153,341"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a24631987a6d2a24f9179bee38da85f8d" title=" " alt="" coords="220,39,367,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,298,130,217,162,168,199,122,242,86,245,90,203,126,166,172,135,220,92,301"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a24631987a6d2a24f9179bee38da85f8d" title=" " alt="" coords="220,37,367,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,298,130,218,162,168,199,122,243,85,246,89,203,126,166,172,135,220,92,301"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac2936da37b32881c4ed74e20aefb789c" title=" " alt="" coords="222,136,365,177"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="93,298,136,243,166,214,199,187,209,182,211,186,202,192,170,218,140,247,97,301"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f" title=" " alt="" coords="226,201,361,242"/>
@@ -17,7 +17,7 @@
 <area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ab41c9716a08560681673c44e782f3078" title=" " alt="" coords="211,528,376,569"/>
 <area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="90,340,106,377,130,423,162,471,202,513,209,518,205,522,199,517,158,475,125,426,101,379,85,342"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a966f50d10633d4ad47a5f1042673ffdd" title=" " alt="" coords="456,5,603,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,46,440,36,440,41,368,51"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,45,440,35,440,40,368,50"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a96234b514b6cb9d56c48e6e8ac44af67" title=" " alt="" coords="458,71,600,111"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="364,134,442,112,444,117,365,139"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8a959cd07f045af98496d5c4bd8fb666" title=" " alt="" coords="458,136,600,177"/>

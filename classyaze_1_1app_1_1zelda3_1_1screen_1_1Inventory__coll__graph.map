@@ -5,8 +5,8 @@
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="279,119,423,144"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="439,127,544,116,567,111,568,117,544,121,439,132"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,88,180,114"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="195,92,204,92,374,84,544,86,568,87,567,93,544,91,374,90,204,97,195,97"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="195,93,204,93,374,85,544,86,568,87,567,93,544,91,374,90,204,98,195,98"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="196,110,278,120,278,126,195,116"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="277,168,425,194"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="440,171,492,162,543,147,573,132,600,114,603,119,576,136,545,152,493,167,440,176"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="440,172,492,163,543,148,574,133,601,114,604,119,577,137,545,153,493,168,441,177"/>
 </map>

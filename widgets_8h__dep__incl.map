@@ -16,7 +16,7 @@
 <area shape="poly" id="edge22_Node000001_Node000016" title=" " alt="" coords="666,29,960,76,994,83,993,89,959,82,665,34"/>
 <area shape="poly" id="edge15_Node000005_Node000004" title=" " alt="" coords="375,126,435,165,432,169,372,131"/>
 <area shape="rect" id="Node000006" href="$dungeon__editor_8h.html" title=" " alt="" coords="24,168,177,208"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="265,128,154,170,152,165,264,123"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="266,128,154,170,152,165,264,123"/>
 <area shape="rect" id="Node000013" href="$overworld__editor_8h.html" title=" " alt="" coords="202,168,362,208"/>
 <area shape="poly" id="edge16_Node000005_Node000013" title=" " alt="" coords="315,135,295,169,291,166,310,132"/>
 <area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="65,220,50,238,39,257,34,277,39,296,52,321,69,343,65,346,47,324,34,298,29,277,34,255,46,235,61,217"/>
@@ -31,7 +31,7 @@
 <area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="329,311,297,354,292,351,324,308"/>
 <area shape="poly" id="edge11_Node000010_Node000009" title=" " alt="" coords="322,384,420,438,417,443,319,388"/>
 <area shape="rect" id="Node000011" href="$app__delegate_8mm.html" title=" " alt="" coords="188,434,333,474"/>
-<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="281,394,269,434,263,433,275,392"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="281,394,269,434,264,433,275,392"/>
 <area shape="rect" id="Node000012" href="$yaze_8cc.html" title=" " alt="" coords="53,441,164,467"/>
 <area shape="poly" id="edge13_Node000010_Node000012" title=" " alt="" coords="248,388,134,443,132,438,246,383"/>
 <area shape="poly" id="edge17_Node000013_Node000002" title=" " alt="" coords="269,224,247,262,216,299,178,326,139,347,137,342,175,322,212,295,242,259,264,221"/>

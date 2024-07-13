@@ -9,6 +9,7 @@ var input_8cc =
     [ "InputHexByte", "input_8cc.html#a00b45dc4f42711dff98b2893eda7b2bb", null ],
     [ "ItemLabel", "input_8cc.html#a09b85853f6496c7b5eba061ea976c68e", null ],
     [ "ListBox", "input_8cc.html#ad1e770a2e8dbc1e8a62d33c3466ab2fe", null ],
+    [ "GetID", "input_8cc.html#a7384985f0828445ea12d9da02d92f4ec", null ],
     [ "kStepOneHex", "input_8cc.html#a7a6e5dd24afd88fdec480761eb826800", null ],
     [ "kStepFastHex", "input_8cc.html#a111f2967e1d2d56e2188777b4551a77b", null ]
 ];

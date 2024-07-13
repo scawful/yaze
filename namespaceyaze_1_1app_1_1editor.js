@@ -7,9 +7,6 @@ var namespaceyaze_1_1app_1_1editor =
       [ "DrawPaletteFromPaletteGroup", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#a77edb703f6d7539411087a40d6ddd01f", null ]
     ] ],
     [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03" ],
-    [ "anonymous_namespace{music_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02music__editor_8cc_03.html", [
-      [ "PlaySPC", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02music__editor_8cc_03.html#a5bea5d1ca3907e69f14d4d7b6be4e8c9", null ]
-    ] ],
     [ "anonymous_namespace{palette_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html", [
       [ "CustomFormatString", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html#a28830f354bea9a16ce56d9c8b30f8df7", null ]
     ] ],
@@ -63,5 +60,8 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kGamePartComboString", "namespaceyaze_1_1app_1_1editor.html#a612f649b633ee939924f6f56f7e1d1fa", null ],
     [ "kTileSelectorTab", "namespaceyaze_1_1app_1_1editor.html#a27ca683b9c4a9b8e530ed2cdd751989b", null ],
     [ "kOWEditTable", "namespaceyaze_1_1app_1_1editor.html#ae7bc8cccfba1fa113c9f0e2381589aff", null ],
-    [ "kOWMapTable", "namespaceyaze_1_1app_1_1editor.html#a38a54e512216d56370524903c0717d3d", null ]
+    [ "kOWMapTable", "namespaceyaze_1_1app_1_1editor.html#a38a54e512216d56370524903c0717d3d", null ],
+    [ "kSpriteTabFlags", "namespaceyaze_1_1app_1_1editor.html#aaf264499bf4cb9570f8f7661d0146051", null ],
+    [ "kSpriteTabBarFlags", "namespaceyaze_1_1app_1_1editor.html#a3deb5fa796785a483928050617a76edc", null ],
+    [ "kSpriteTableFlags", "namespaceyaze_1_1app_1_1editor.html#ad13ab0b69174d18b3d5dedde3f28e97e", null ]
 ];

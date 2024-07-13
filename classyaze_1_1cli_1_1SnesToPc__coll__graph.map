@@ -1,7 +1,7 @@
 <map id="yaze::cli::SnesToPc" name="yaze::cli::SnesToPc">
-<area shape="rect" id="Node000001" title="Convert a SNES address to a PC address." alt="" coords="1165,123,1298,149"/>
+<area shape="rect" id="Node000001" title="Convert a SNES address to a PC address." alt="" coords="1164,123,1297,149"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="939,123,1116,149"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1131,133,1165,133,1165,139,1131,139"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1131,133,1163,133,1163,139,1131,139"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="752,123,859,149"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="875,133,939,133,939,139,875,139"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,9,539,50"/>

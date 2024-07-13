@@ -34,9 +34,9 @@
 <area shape="poly" id="edge12_Node000009_Node000011" title=" " alt="" coords="640,487,747,542,745,547,638,492"/>
 <area shape="poly" id="edge37_Node000014_Node000013" title=" " alt="" coords="867,138,623,187,622,182,866,133"/>
 <area shape="rect" id="Node000015" href="$graphics__editor_8h.html" title=" " alt="" coords="467,271,620,312"/>
-<area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="868,137,792,157,715,185,634,229,570,273,567,269,631,225,713,180,790,152,867,132"/>
+<area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="867,137,791,157,714,185,633,229,570,273,567,269,630,225,711,180,789,152,866,132"/>
 <area shape="rect" id="Node000018" href="$gfx__group__editor_8cc.html" title=" " alt="" coords="644,271,797,312"/>
-<area shape="poly" id="edge23_Node000014_Node000018" title=" " alt="" coords="867,123,832,131,797,143,764,160,737,184,726,204,720,227,720,271,715,271,715,227,721,202,733,181,761,156,795,138,830,125,866,118"/>
+<area shape="poly" id="edge23_Node000014_Node000018" title=" " alt="" coords="867,123,832,131,798,143,766,161,739,184,727,204,721,227,720,271,715,271,716,227,722,202,734,181,763,156,795,138,831,126,866,118"/>
 <area shape="rect" id="Node000019" href="$gfx__group__editor_8h.html" title=" " alt="" coords="748,183,901,223"/>
 <area shape="poly" id="edge24_Node000014_Node000019" title=" " alt="" coords="921,145,858,185,855,180,918,141"/>
 <area shape="rect" id="Node000020" href="$overworld__editor_8h.html" title=" " alt="" coords="822,271,982,312"/>
@@ -44,7 +44,7 @@
 <area shape="rect" id="Node000021" href="$overworld__editor_8cc.html" title=" " alt="" coords="951,360,1111,401"/>
 <area shape="poly" id="edge35_Node000014_Node000021" title=" " alt="" coords="976,149,1029,359,1024,360,971,150"/>
 <area shape="rect" id="Node000022" href="$tile16__editor_8cc.html" title=" " alt="" coords="1107,271,1260,312"/>
-<area shape="poly" id="edge31_Node000014_Node000022" title=" " alt="" coords="1063,130,1143,151,1174,165,1195,181,1204,203,1206,228,1195,271,1190,270,1200,227,1199,205,1190,184,1172,170,1141,156,1062,135"/>
+<area shape="poly" id="edge31_Node000014_Node000022" title=" " alt="" coords="1063,130,1143,151,1175,165,1196,181,1206,203,1207,228,1195,271,1190,270,1201,227,1200,205,1192,184,1173,169,1142,156,1062,135"/>
 <area shape="rect" id="Node000023" href="$tile16__editor_8h.html" title=" " alt="" coords="1028,183,1181,223"/>
 <area shape="poly" id="edge32_Node000014_Node000023" title=" " alt="" coords="1011,141,1074,180,1071,185,1008,145"/>
 <area shape="rect" id="Node000024" href="$overworld__map_8cc.html" title=" " alt="" coords="1257,183,1422,223"/>
@@ -62,7 +62,7 @@
 <area shape="poly" id="edge26_Node000019_Node000018" title=" " alt="" coords="791,235,746,273,742,269,788,231"/>
 <area shape="poly" id="edge27_Node000019_Node000020" title=" " alt="" coords="854,233,886,269,882,273,850,237"/>
 <area shape="poly" id="edge28_Node000020_Node000006" title=" " alt="" coords="910,328,908,366,902,386,890,403,707,428,418,462,417,457,706,422,887,398,897,384,903,366,905,327"/>
-<area shape="poly" id="edge29_Node000020_Node000007" title=" " alt="" coords="807,315,671,339,538,363,527,365,526,360,537,357,670,333,806,310"/>
+<area shape="poly" id="edge29_Node000020_Node000007" title=" " alt="" coords="807,315,540,363,527,365,526,360,539,357,806,310"/>
 <area shape="poly" id="edge30_Node000020_Node000021" title=" " alt="" coords="945,319,1003,357,1000,362,942,323"/>
 <area shape="poly" id="edge34_Node000023_Node000020" title=" " alt="" coords="1046,232,949,273,947,268,1044,227"/>
 <area shape="poly" id="edge33_Node000023_Node000022" title=" " alt="" coords="1135,233,1167,269,1163,273,1131,237"/>

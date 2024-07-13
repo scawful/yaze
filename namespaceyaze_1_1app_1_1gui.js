@@ -35,6 +35,7 @@ var namespaceyaze_1_1app_1_1gui =
     [ "InputHexByte", "namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb", null ],
     [ "ItemLabel", "namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e", null ],
     [ "ListBox", "namespaceyaze_1_1app_1_1gui.html#ad1e770a2e8dbc1e8a62d33c3466ab2fe", null ],
+    [ "GetID", "namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec", null ],
     [ "InputHexWithScrollwheel", "namespaceyaze_1_1app_1_1gui.html#acd83fcf2e348b4ff76b5e8fce28a95e6", null ],
     [ "SelectablePalettePipeline", "namespaceyaze_1_1app_1_1gui.html#a3e37a9d87a9c3d7669d67fc7873f7c65", null ],
     [ "GraphicsBinCanvasPipeline", "namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006", null ],

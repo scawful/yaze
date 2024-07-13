@@ -1,7 +1,7 @@
 <map id="yaze::app::editor::GraphicsEditor::UpdateLinkGfxView" name="yaze::app::editor::GraphicsEditor::UpdateLinkGfxView">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,194,185,250"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="247,39,395,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,191,277,86,281,91,137,195"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e" title=" " alt="" coords="247,37,395,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,191,278,85,281,89,136,196"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32" title=" " alt="" coords="247,136,395,177"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,193,233,179,234,184,186,198"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4" title=" " alt="" coords="247,201,395,242"/>
@@ -11,7 +11,7 @@
 <area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="233,356,409,381"/>
 <area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="135,248,234,317,282,345,280,350,231,321,132,252"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#ac2d34563e8dab9da97186d48988bb7e7" title=" " alt="" coords="457,5,604,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,45,441,37,442,42,395,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,44,441,37,442,42,395,49"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="459,71,603,111"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="387,133,448,114,449,119,389,138"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e" title=" " alt="" coords="459,136,603,177"/>

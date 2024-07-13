@@ -1,18 +1,18 @@
 <map id="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap" name="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,162,223,218"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec" title="Creates a bitmap object with the provided graphical data." alt="" coords="287,104,431,145"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,159,271,145,272,150,222,164"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="277,169,441,210"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="223,187,261,187,261,192,223,192"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="271,258,447,284"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="201,216,304,250,302,255,199,221"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,161,223,216"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec" title="Creates a bitmap object with the provided graphical data." alt="" coords="287,103,431,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,157,271,144,272,149,222,162"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="277,168,441,209"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="223,186,261,186,261,191,223,191"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="271,257,447,283"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="201,214,304,249,302,254,199,219"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aae636e8223b7a47a961526120b85cd90" title=" " alt="" coords="495,5,639,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="401,101,494,57,506,51,509,55,496,61,404,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="403,100,494,57,506,51,509,55,496,61,405,105"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="495,71,639,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="431,110,479,102,480,108,432,115"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="431,109,479,102,480,107,432,115"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="495,136,639,177"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="432,133,480,140,479,146,431,138"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="432,132,480,140,479,145,431,137"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="495,201,639,242"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="420,143,448,155,496,186,507,192,505,196,494,191,446,160,418,148"/>
-<area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="324,259,317,250,321,240,336,234,359,232,384,234,397,241,395,246,383,239,359,237,337,239,325,244,323,249,328,256"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="421,141,448,154,473,170,496,186,507,192,504,196,494,191,470,174,446,159,419,146"/>
+<area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="324,258,317,248,321,238,336,232,359,230,384,233,397,240,395,244,383,238,359,235,337,237,325,242,323,248,328,255"/>
 </map>

@@ -135,6 +135,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::OAMADDH", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OAMADDL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDL.html", null ],
     [ "yaze::app::emu::video::OAMAddress", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html", null ],
+    [ "yaze::app::editor::SpriteEditor::OAMConfig", "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OAMDATA", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATA.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OAMDATAREAD", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATAREAD.html", null ],
     [ "yaze::app::emu::video::OAMSize", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html", null ],

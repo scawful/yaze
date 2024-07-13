@@ -1,0 +1,10 @@
+<map id="yaze::app::editor::SpriteEditor::DrawSpritesList" name="yaze::app::editor::SpriteEditor::DrawSpritesList">
+<area shape="rect" id="Node000001" title="Draws the sprites list." alt="" coords="5,71,193,112"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec" title=" " alt="" coords="260,5,398,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,68,240,40,261,33,263,38,241,45,158,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="241,79,417,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,89,225,89,225,94,193,94"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524" title=" " alt="" coords="242,129,416,169"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="184,110,230,122,229,127,182,115"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="291,80,283,70,288,60,303,54,329,52,357,55,371,62,369,66,355,60,329,57,304,59,291,64,289,69,295,77"/>
+</map>

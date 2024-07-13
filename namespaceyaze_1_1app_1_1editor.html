@@ -123,8 +123,6 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html">anonymous_namespace{master_editor.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02music__editor_8cc_03.html">anonymous_namespace{music_editor.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html">anonymous_namespace{palette_editor.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor_1_1context.html">context</a></td></tr>
@@ -221,6 +219,12 @@ Variables</h2></td></tr>
 <tr class="separator:ae7bc8cccfba1fa113c9f0e2381589aff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38a54e512216d56370524903c0717d3d" id="r_a38a54e512216d56370524903c0717d3d"><td class="memItemLeft" align="right" valign="top">constexpr absl::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38a54e512216d56370524903c0717d3d">kOWMapTable</a> = &quot;#MapSettingsTable&quot;</td></tr>
 <tr class="separator:a38a54e512216d56370524903c0717d3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf264499bf4cb9570f8f7661d0146051" id="r_aaf264499bf4cb9570f8f7661d0146051"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTabItemFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaf264499bf4cb9570f8f7661d0146051">kSpriteTabFlags</a></td></tr>
+<tr class="separator:aaf264499bf4cb9570f8f7661d0146051"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3deb5fa796785a483928050617a76edc" id="r_a3deb5fa796785a483928050617a76edc"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTabBarFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3deb5fa796785a483928050617a76edc">kSpriteTabBarFlags</a></td></tr>
+<tr class="separator:a3deb5fa796785a483928050617a76edc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad13ab0b69174d18b3d5dedde3f28e97e" id="r_ad13ab0b69174d18b3d5dedde3f28e97e"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad13ab0b69174d18b3d5dedde3f28e97e">kSpriteTableFlags</a></td></tr>
+<tr class="separator:ad13ab0b69174d18b3d5dedde3f28e97e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Editors are the view controllers for the application. </p>
@@ -718,6 +722,84 @@ Variables</h2></td></tr>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#afe914f5828f45abb1b44fbe377211d2f">yaze::app::editor::OverworldEditor::DrawOverworldMapSettings()</a>.</p>
 
+</div>
+</div>
+<a id="aaf264499bf4cb9570f8f7661d0146051" name="aaf264499bf4cb9570f8f7661d0146051"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf264499bf4cb9570f8f7661d0146051">&#9670;&#160;</a></span>kSpriteTabFlags</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImGuiTabItemFlags yaze::app::editor::kSpriteTabFlags</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a3deb5fa796785a483928050617a76edc" name="a3deb5fa796785a483928050617a76edc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3deb5fa796785a483928050617a76edc">&#9670;&#160;</a></span>kSpriteTabBarFlags</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImGuiTabBarFlags yaze::app::editor::kSpriteTabBarFlags</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |</div>
+<div class="line">    ImGuiTabBarFlags_FittingPolicyResizeDown |</div>
+<div class="line">    ImGuiTabBarFlags_TabListPopupButton</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a96254fb13edf738255f2e1e9914fdd3f">yaze::app::editor::SpriteEditor::Update()</a>.</p>
+
+</div>
+</div>
+<a id="ad13ab0b69174d18b3d5dedde3f28e97e" name="ad13ab0b69174d18b3d5dedde3f28e97e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad13ab0b69174d18b3d5dedde3f28e97e">&#9670;&#160;</a></span>kSpriteTableFlags</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImGuiTableFlags yaze::app::editor::kSpriteTableFlags</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |</div>
+<div class="line">    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |</div>
+<div class="line">    ImGuiTableFlags_BordersV</div>
+</div><!-- fragment -->
 </div>
 </div>
 </div><!-- contents -->

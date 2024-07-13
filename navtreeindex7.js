@@ -1,5 +1,17 @@
 var NAVTREEINDEX7 =
 {
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a81224bcd0e37d7898980e3f3b0accaf7":[9,0,0,0,2,6,11],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a8126f0d50c502dc6148c790fbe1ba25c":[8,0,1,0,2,8,12],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a8126f0d50c502dc6148c790fbe1ba25c":[9,0,0,0,2,6,12],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a8214807760de98b9c9f55682d37f1e77":[8,0,1,0,2,8,173],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a8214807760de98b9c9f55682d37f1e77":[9,0,0,0,2,6,173],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a82a63f123811c64ae6beebd6f53d094c":[8,0,1,0,2,8,69],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a82a63f123811c64ae6beebd6f53d094c":[9,0,0,0,2,6,69],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a844ce10d191580998718ee3ec1caef61":[8,0,1,0,2,8,216],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a844ce10d191580998718ee3ec1caef61":[9,0,0,0,2,6,216],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a8595bb0338a8626421fe1eba96ad523a":[8,0,1,0,2,8,78],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a8595bb0338a8626421fe1eba96ad523a":[9,0,0,0,2,6,78],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a86d5c6f2309b1702e1b7777cde844b1e":[8,0,1,0,2,8,229],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a86d5c6f2309b1702e1b7777cde844b1e":[9,0,0,0,2,6,229],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a87138812bacd8956b1432f2b26c922a1":[8,0,1,0,2,8,76],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a87138812bacd8956b1432f2b26c922a1":[9,0,0,0,2,6,76],
@@ -237,17 +249,5 @@ var NAVTREEINDEX7 =
 "classyaze_1_1app_1_1emu_1_1Emulator.html#a1a707b8ee2053f510becaf9033d5d3e3":[9,0,0,0,2,8,24],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#a1ea05a41b564d95fe929155e9edc4d7b":[8,0,1,0,2,10,31],
 "classyaze_1_1app_1_1emu_1_1Emulator.html#a1ea05a41b564d95fe929155e9edc4d7b":[9,0,0,0,2,8,31],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a36053b617e64b7588958f73b1a12948b":[8,0,1,0,2,10,21],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a36053b617e64b7588958f73b1a12948b":[9,0,0,0,2,8,21],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a4fbcfae2811c1534e06012f79364c237":[8,0,1,0,2,10,14],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a4fbcfae2811c1534e06012f79364c237":[9,0,0,0,2,8,14],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a4fdec129bd56bb57d0b474cc04f38ed7":[8,0,1,0,2,10,11],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a4fdec129bd56bb57d0b474cc04f38ed7":[9,0,0,0,2,8,11],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a503ffcfd6c1c67166f6f15b539cd4a18":[8,0,1,0,2,10,13],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a503ffcfd6c1c67166f6f15b539cd4a18":[9,0,0,0,2,8,13],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a57324824fdd7d03f6339ee8e410d804d":[8,0,1,0,2,10,26],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a57324824fdd7d03f6339ee8e410d804d":[9,0,0,0,2,8,26],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a5d0ad10b780e8373de10d79580cb9959":[8,0,1,0,2,10,23],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a5d0ad10b780e8373de10d79580cb9959":[9,0,0,0,2,8,23],
-"classyaze_1_1app_1_1emu_1_1Emulator.html#a6243b4d5bab5741b747a8b7755027dac":[8,0,1,0,2,10,1]
+"classyaze_1_1app_1_1emu_1_1Emulator.html#a36053b617e64b7588958f73b1a12948b":[8,0,1,0,2,10,21]
 };

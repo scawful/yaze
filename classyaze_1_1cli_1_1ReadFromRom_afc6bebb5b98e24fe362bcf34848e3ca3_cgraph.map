@@ -1,19 +1,19 @@
 <map id="yaze::cli::ReadFromRom::handle" name="yaze::cli::ReadFromRom::handle">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,632,165,672"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="213,590,406,615"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,632,232,617,233,622,166,637"/>
-<area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1Rom.html#adc977745ac851fd2b982e24bfc7053f3" title=" " alt="" coords="225,639,394,665"/>
-<area shape="poly" id="edge52_Node000001_Node000027" title=" " alt="" coords="165,649,209,649,209,655,165,655"/>
-<area shape="rect" id="Node000028" href="$classyaze_1_1app_1_1Rom.html#ae28fce4a12087576eb7ff35ec2a31a36" title=" " alt="" coords="225,689,394,730"/>
-<area shape="poly" id="edge53_Node000001_Node000028" title=" " alt="" coords="166,670,213,682,211,687,164,675"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,630,165,671"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="213,588,406,614"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,630,232,615,233,620,166,636"/>
+<area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1Rom.html#adc977745ac851fd2b982e24bfc7053f3" title=" " alt="" coords="225,638,394,663"/>
+<area shape="poly" id="edge52_Node000001_Node000027" title=" " alt="" coords="165,648,209,648,209,653,165,653"/>
+<area shape="rect" id="Node000028" href="$classyaze_1_1app_1_1Rom.html#ae28fce4a12087576eb7ff35ec2a31a36" title=" " alt="" coords="225,688,394,728"/>
+<area shape="poly" id="edge53_Node000001_Node000028" title=" " alt="" coords="166,668,213,680,211,686,164,673"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="476,515,637,541"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="344,587,453,549,479,542,480,547,455,554,346,592"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="345,585,453,549,479,542,480,547,455,554,347,590"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="459,564,654,590"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="406,590,443,586,444,591,407,595"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="406,589,443,585,443,591,407,594"/>
 <area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="454,614,658,639"/>
-<area shape="poly" id="edge50_Node000002_Node000025" title=" " alt="" coords="407,609,439,612,438,618,406,615"/>
+<area shape="poly" id="edge50_Node000002_Node000025" title=" " alt="" coords="407,608,439,612,438,617,406,614"/>
 <area shape="rect" id="Node000026" href="$classyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="468,664,645,704"/>
-<area shape="poly" id="edge51_Node000002_Node000026" title=" " alt="" coords="374,613,407,624,431,637,455,649,470,655,468,660,453,654,429,641,405,629,372,618"/>
+<area shape="poly" id="edge51_Node000002_Node000026" title=" " alt="" coords="375,612,407,623,431,636,455,649,470,655,468,660,453,654,429,641,405,628,373,617"/>
 <area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247" title=" " alt="" coords="722,693,920,749"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="641,588,660,599,678,619,685,640,692,660,708,679,713,683,709,687,704,683,688,662,680,641,673,622,657,603,638,593"/>
 <area shape="rect" id="Node000009" href="$namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abd54b5c15508a816b7235ea37997e045" title=" " alt="" coords="707,773,935,814"/>
