@@ -309,7 +309,7 @@ var searchData=
   ['sprite_5ftileset_5f_306',['sprite_tileset_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#adbac56d56b46745716532549e00c9a49',1,'yaze::app::zelda3::dungeon::Room']]],
   ['spriteattributes_307',['SpriteAttributes',['../structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html',1,'yaze::app::emu::video']]],
   ['spritedata_308',['spriteData',['../classyaze__test_1_1emu__test_1_1PpuTest.html#ac62af53e00d2426b74356dd2071998c3',1,'yaze_test::emu_test::PpuTest']]],
-  ['spriteeditor_309',['SpriteEditor',['../classyaze_1_1app_1_1editor_1_1SpriteEditor.html',1,'yaze::app::editor']]],
+  ['spriteeditor_309',['SpriteEditor',['../classyaze_1_1app_1_1editor_1_1SpriteEditor.html',1,'yaze::app::editor::SpriteEditor'],['../classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a50f16c13901c3e02ef449d8e05eab66f',1,'yaze::app::editor::SpriteEditor::SpriteEditor()']]],
   ['spriteitem_310',['SpriteItem',['../structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html',1,'yaze::app::editor::sprite_internal']]],
   ['spritepalettesaux1_311',['spritePalettesAux1',['../namespaceyaze_1_1app_1_1core.html#a2e81f4d36a2e7ddd6f27140c06b29920',1,'yaze::app::core']]],
   ['spritepalettesaux2_312',['spritePalettesAux2',['../namespaceyaze_1_1app_1_1core.html#a702a3451df694ac12427f0ba2c707b68',1,'yaze::app::core']]],

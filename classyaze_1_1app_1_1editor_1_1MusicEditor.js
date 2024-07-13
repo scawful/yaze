@@ -1,6 +1,12 @@
 var classyaze_1_1app_1_1editor_1_1MusicEditor =
 [
-    [ "Update", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a11d4736f5e2e29e1897ab0626b7877b1", null ],
+    [ "MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a9b8d58ef60249e15e14bbd9ed420e444", null ],
+    [ "Update", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a3c9ab52a4284ef052c735d8aa9927ac6", null ],
+    [ "Cut", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a813c730e67f3d88d8a6760e83da4f789", null ],
+    [ "Copy", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a0bbdbade3d653135b9377bc0580aa964", null ],
+    [ "Paste", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a398a48a1de73608eb73fb614f139ab5b", null ],
+    [ "Undo", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#aae87747996ea43ee94f83d46bed128d0", null ],
+    [ "Redo", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a2f21a35bf581286fdcfb4f07f214ec4e", null ],
     [ "DrawChannels", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#ab7d8289462e03bbd652b6f9a702cd3f9", null ],
     [ "DrawPianoStaff", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#ae2e02399794a3757208ef3be740d3953", null ],
     [ "DrawPianoRoll", "classyaze_1_1app_1_1editor_1_1MusicEditor.html#a6c8ed9394191c2702187f420f00d8e0c", null ],

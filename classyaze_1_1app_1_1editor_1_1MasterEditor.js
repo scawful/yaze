@@ -5,6 +5,7 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "Update", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16", null ],
     [ "emulator", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c329d941533145ee9a6a1e76f560ab4", null ],
     [ "quit", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#adde7f7131533b85f51cf10adcac3b03e", null ],
+    [ "ManageActiveEditors", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#aef088de58cae5ac63a9a5e1ca301a4f7", null ],
     [ "DrawFileDialog", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a0839e511445aa6f28549e2006d1a28f2", null ],
     [ "DrawStatusPopup", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a3d9f9cddcd5289a7b187be91cc898789", null ],
     [ "DrawAboutPopup", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a926b20f5ff986c9d4b5e13014ab36a6f", null ],
@@ -35,5 +36,7 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "palette_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a9c7bc7f75f429fcbae2c98df363eec98", null ],
     [ "screen_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a99487831b09607e2ad9ceadc08d5b47a", null ],
     [ "sprite_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a1e5a6fa4b5de15f225bce64a51a42dd9", null ],
+    [ "active_editors_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab572c55533755591b9f73eb10e6a9fda", null ],
+    [ "active_tabs_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac59d430f3393014ba01624d5c4f3ba1a", null ],
     [ "current_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a645254b4a00ec4b02df96fe868ca34cc", null ]
 ];

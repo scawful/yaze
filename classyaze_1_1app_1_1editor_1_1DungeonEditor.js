@@ -14,6 +14,7 @@ var classyaze_1_1app_1_1editor_1_1DungeonEditor =
       [ "kDoor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a79ca9b2e68af07ea7b21be213c02850da712264ed7d46e1b2d84eacdcceb687ac", null ],
       [ "kBlock", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a79ca9b2e68af07ea7b21be213c02850da92d5381cba7b07b013a54dc8da48b690", null ]
     ] ],
+    [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3326e7ce3b46c75cb7bb6d37960c69f6", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aa1996432de42e435b2aebfda3d7346b6", null ],
     [ "Cut", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d60f7e1e149769068acee4838a90474", null ],
     [ "Copy", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a6b52880e6db70e1f7739e43bd31cd940", null ],

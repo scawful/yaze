@@ -1,7 +1,13 @@
 var classyaze_1_1app_1_1editor_1_1SpriteEditor =
 [
     [ "OAMConfig", "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html", "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig" ],
-    [ "Update", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a96254fb13edf738255f2e1e9914fdd3f", null ],
+    [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a50f16c13901c3e02ef449d8e05eab66f", null ],
+    [ "Update", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae681d6ba4332c789e9df7323966868b2", null ],
+    [ "Cut", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af1f7b5eef4fe08eb0ea1fb172fc99746", null ],
+    [ "Copy", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a6be585477b8d452fcd186b4c965a8ded", null ],
+    [ "Paste", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a31111a8e9e7f2b9f94da5b5dd33f7e2c", null ],
+    [ "Undo", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a585867c4d96b5d11c36a080b38850ed5", null ],
+    [ "Redo", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#af10b8051a999b0f1414a119ccea6db6e", null ],
     [ "DrawSpritesList", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a108d7c1eae0d54813613f2da4b1918e5", null ],
     [ "DrawSpriteCanvas", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a69286e044baddb488f8f47e51ae47a1d", null ],
     [ "DrawCurrentSheets", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ad6c19a0b9f25ff3c2e986d75ad65e886", null ],

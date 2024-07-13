@@ -5,7 +5,13 @@ var classyaze_1_1app_1_1editor_1_1GraphicsEditor =
       [ "kPencil", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0fc14b4e3c56508c45dc93e8781d95d7a0833de46bd19decd0a9ce1541b6181ab", null ],
       [ "kFill", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0fc14b4e3c56508c45dc93e8781d95d7ae22acaa6e4e9a5118b4cf5b81f8fbe1e", null ]
     ] ],
+    [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2f438dd3f05d0df648ed38bf56c4381a", null ],
+    [ "Cut", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4e99fb8f2fcf76ac6e795556134ddf4f", null ],
+    [ "Copy", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2da56a06cd1b34d1b2b7d151a8a67375", null ],
+    [ "Paste", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a7c683d25a47a0a036f094eee357ab17c", null ],
+    [ "Undo", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a8ea8bacea6d1b572f28eecf000974199", null ],
+    [ "Redo", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4fccc044ee5808809efd0660cdf94d08", null ],
     [ "UpdateGfxEdit", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a73c3d73520a3953784992c471d53df75", null ],
     [ "UpdateGfxSheetList", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a36ae38b9937c7fe2f91c92dadae0c73a", null ],
     [ "UpdateGfxTabView", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a7eb7d1b7897ae57f031565d8e8a6e81c", null ],

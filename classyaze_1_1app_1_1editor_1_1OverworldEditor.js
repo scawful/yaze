@@ -10,6 +10,7 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
       [ "MUSIC", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fad74c735013cdd2b883e25ccca502a2e9", null ],
       [ "PAN", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fad74461db15255d85a44ffd72419646b3", null ]
     ] ],
+    [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a7710239a59515755a005fa060ae6a210", null ],
     [ "InitializeZeml", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a0ff14849f0f34648645a7ff8b12623ff", null ],
     [ "Undo", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ab28e9f8c4ef4f48f71939b37f8fbd253", null ],

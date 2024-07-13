@@ -1,13 +1,15 @@
 <map id="yaze::app::editor::SpriteEditor" name="yaze::app::editor::SpriteEditor">
-<area shape="rect" id="Node000001" title="Allows the user to edit sprites." alt="" coords="625,78,743,119"/>
+<area shape="rect" id="Node000001" title="Allows the user to edit sprites." alt="" coords="625,121,743,161"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="283,5,431,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="447,27,523,41,602,61,639,75,638,80,600,66,522,46,446,33"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html" title=" " alt="" coords="277,55,437,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="453,79,625,91,624,97,453,85"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="285,120,429,146"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="445,125,601,111,624,107,625,112,601,116,445,131"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,120,180,146"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="195,130,284,130,284,136,195,136"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="283,184,431,210"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="446,201,523,197,562,189,600,175,620,164,638,149,666,117,670,121,642,153,623,168,602,180,564,194,524,202,446,207"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="438,33,518,55,602,86,656,118,653,122,600,91,517,60,436,38"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="298,55,416,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="432,85,602,118,625,124,624,129,600,123,431,91"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html" title=" " alt="" coords="277,121,437,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="453,138,625,138,625,144,453,144"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="285,185,429,211"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="444,184,600,159,624,153,625,159,602,164,445,190"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,185,180,211"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="195,196,284,196,284,201,195,201"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="283,249,431,275"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="446,265,523,258,563,248,600,233,622,218,641,199,669,160,673,163,645,202,625,222,602,238,564,253,524,263,446,270"/>
 </map>

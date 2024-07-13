@@ -1,5 +1,7 @@
 <map id="yaze::app::editor::ScreenEditor" name="yaze::app::editor::ScreenEditor">
-<area shape="rect" id="Node000001" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me..." alt="" coords="20,79,139,120"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,5,154,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,46,82,79,77,79,77,46"/>
+<area shape="rect" id="Node000001" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me..." alt="" coords="99,94,217,135"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,13,154,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,48,143,92,139,96,98,52"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="178,5,296,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,60,178,95,174,92,207,56"/>
 </map>

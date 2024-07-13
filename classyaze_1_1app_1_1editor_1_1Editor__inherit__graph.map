@@ -1,7 +1,19 @@
 <map id="yaze::app::editor::Editor" name="yaze::app::editor::Editor">
-<area shape="rect" id="Node000001" title="Interface for editor classes." alt="" coords="76,5,194,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons." alt="" coords="5,94,124,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,60,83,95,78,92,107,57"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a Rom." alt="" coords="148,94,266,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,56,193,92,189,95,159,60"/>
+<area shape="rect" id="Node000001" title="Interface for editor classes." alt="" coords="5,235,124,275"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html" title="Text editor for modifying assembly code." alt="" coords="172,5,290,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,219,111,140,138,97,170,57,185,44,189,48,174,61,142,100,116,143,80,221"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons." alt="" coords="172,71,290,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="85,220,122,172,170,122,187,110,191,114,173,126,126,175,89,224"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1GraphicsEditor.html" title="Allows the user to edit graphics sheets from the game or view prototype graphics." alt="" coords="172,136,290,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="111,224,170,187,191,175,194,180,173,192,113,228"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1MusicEditor.html" title="A class for editing music data in a Rom." alt="" coords="172,201,290,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="138,238,171,231,172,236,139,243"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a Rom." alt="" coords="172,267,290,307"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="139,267,172,273,171,278,138,272"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="172,332,290,373"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="114,281,173,317,195,329,192,334,170,321,111,286"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1editor_1_1ScreenEditor.html" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me..." alt="" coords="172,397,290,438"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="90,286,127,334,173,382,191,395,187,399,170,386,123,338,86,290"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1editor_1_1SpriteEditor.html" title="Allows the user to edit sprites." alt="" coords="172,463,290,503"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="80,288,116,366,142,409,174,448,189,460,185,464,170,452,138,412,111,369,75,291"/>
 </map>

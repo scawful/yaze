@@ -41,7 +41,8 @@ var NAVTREEINDEX0 =
 "asm__parser_8h.html#a0aa8388686279d5dd279df126af111beafc6adf17891a646ee32f03f3da175e7d":[10,0,1,0,2,2,0,3,2],
 "asm__parser_8h_source.html":[10,0,1,0,2,2,0],
 "assembly__editor_8cc.html":[10,0,1,0,1,0,0],
-"assembly__editor_8cc.html#aa24a786b26c2f9d49f09de1d3338e459":[10,0,1,0,1,0,0,0],
+"assembly__editor_8cc.html#a691d9587a1c2d30c533a26743c4ab459":[10,0,1,0,1,0,0,0],
+"assembly__editor_8cc.html#aa24a786b26c2f9d49f09de1d3338e459":[10,0,1,0,1,0,0,1],
 "assembly__editor_8h.html":[10,0,1,0,1,0,1],
 "assembly__editor_8h_source.html":[10,0,1,0,1,0,1],
 "audio_2internal_2addressing_8cc.html":[10,0,1,0,2,0,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "classyaze_1_1app_1_1Rom.html#ae7b13c9229d8692c35e1c72e1e473583":[9,0,0,0,6,41],
 "classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27":[8,0,1,0,6,83],
 "classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27":[9,0,0,0,6,83],
-"classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605":[8,0,1,0,6,1],
-"classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605":[9,0,0,0,6,1]
+"classyaze_1_1app_1_1Rom.html#afc14270a29bc65dd89edd86823dbd605":[8,0,1,0,6,1]
 };

@@ -52,7 +52,8 @@ var searchData=
   ['is_5ftransparent_49',['is_transparent',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#afa9b649077606cd18ab6b408827b7830',1,'yaze::app::gfx::SnesColor']]],
   ['isactive_50',['IsActive',['../classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d',1,'yaze::app::core::Controller']]],
   ['isbreakpoint_51',['IsBreakpoint',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003',1,'yaze::app::emu::Cpu']]],
-  ['ismousehovering_52',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
-  ['ismousehoveringoverentity_53',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95',1,'yaze::app::editor::entity_internal']]],
-  ['itemlabel_54',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
+  ['iseditoractive_52',['IsEditorActive',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
+  ['ismousehovering_53',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
+  ['ismousehoveringoverentity_54',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95',1,'yaze::app::editor::entity_internal']]],
+  ['itemlabel_55',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
 ];

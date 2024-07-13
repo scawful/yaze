@@ -43,5 +43,6 @@ var searchData=
   ['txs_40',['TXS',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a31577451892d87de1df76267d8e81dac',1,'yaze::app::emu::Cpu']]],
   ['txy_41',['TXY',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a42ccbd5fdaa76cb74b3b3e87f82963c1',1,'yaze::app::emu::Cpu']]],
   ['tya_42',['TYA',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a8214807760de98b9c9f55682d37f1e77',1,'yaze::app::emu::Cpu']]],
-  ['tyx_43',['TYX',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a6bba02cc4a39e1261370ee5f9e02fb48',1,'yaze::app::emu::Cpu']]]
+  ['type_43',['type',['../classyaze_1_1app_1_1editor_1_1Editor.html#ad64a4e6d3447ecaa2dce1f08684d364c',1,'yaze::app::editor::Editor']]],
+  ['tyx_44',['TYX',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a6bba02cc4a39e1261370ee5f9e02fb48',1,'yaze::app::emu::Cpu']]]
 ];

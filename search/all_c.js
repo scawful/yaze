@@ -2317,12 +2317,13 @@ var searchData=
   ['is_5ftransparent_2314',['is_transparent',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#afa9b649077606cd18ab6b408827b7830',1,'yaze::app::gfx::SnesColor']]],
   ['isactive_2315',['IsActive',['../classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d',1,'yaze::app::core::Controller']]],
   ['isbreakpoint_2316',['IsBreakpoint',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003',1,'yaze::app::emu::Cpu']]],
-  ['ismousehovering_2317',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
-  ['ismousehoveringoverentity_2318',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95',1,'yaze::app::editor::entity_internal']]],
-  ['itemlabel_2319',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]],
-  ['itemlabelflags_2320',['ItemLabelFlags',['../namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958',1,'yaze::app::gui']]],
-  ['items_2321',['ITEMS',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fa9a932d55199939bfa5c0df5a8830fc1d',1,'yaze::app::editor::OverworldEditor']]],
-  ['items_5fdata_5fend_2322',['items_data_end',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188',1,'yaze::app::zelda3::dungeon']]],
-  ['items_5fdata_5fstart_2323',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]],
-  ['iterator_2324',['iterator',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a2cc72eaef324e5ae7547e26f0818f8e6',1,'yaze::app::gfx::BitmapManager']]]
+  ['iseditoractive_2317',['IsEditorActive',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
+  ['ismousehovering_2318',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
+  ['ismousehoveringoverentity_2319',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95',1,'yaze::app::editor::entity_internal']]],
+  ['itemlabel_2320',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]],
+  ['itemlabelflags_2321',['ItemLabelFlags',['../namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958',1,'yaze::app::gui']]],
+  ['items_2322',['ITEMS',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fa9a932d55199939bfa5c0df5a8830fc1d',1,'yaze::app::editor::OverworldEditor']]],
+  ['items_5fdata_5fend_2323',['items_data_end',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188',1,'yaze::app::zelda3::dungeon']]],
+  ['items_5fdata_5fstart_2324',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]],
+  ['iterator_2325',['iterator',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a2cc72eaef324e5ae7547e26f0818f8e6',1,'yaze::app::gfx::BitmapManager']]]
 ];

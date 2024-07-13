@@ -1,6 +1,7 @@
 var namespaceyaze_1_1app_1_1editor =
 [
     [ "anonymous_namespace{assembly_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html", [
+      [ "RemoveIgnoredFiles", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a691d9587a1c2d30c533a26743c4ab459", null ],
       [ "LoadFolder", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#aa24a786b26c2f9d49f09de1d3338e459", null ]
     ] ],
     [ "anonymous_namespace{dungeon_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html", [
@@ -45,6 +46,16 @@ var namespaceyaze_1_1app_1_1editor =
     [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
     [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],
     [ "Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", "classyaze_1_1app_1_1editor_1_1Tile16Editor" ],
+    [ "EditorType", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52", [
+      [ "kAssembly", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab686a008a9fc3fe70222034bef987ced", null ],
+      [ "kDungeon", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a773324726da2f589c757da4c39336156", null ],
+      [ "kGraphics", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a3e1c9b3724e1f17fea630f35337bc792", null ],
+      [ "kMusic", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a8949888d2b573f893130a7e12d8676f4", null ],
+      [ "kOverworld", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a29f266fe9c0da014314bf7c6a9b2a7a6", null ],
+      [ "kPalette", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb", null ],
+      [ "kScreen", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a999e1b181ff36a65c7fd5a32e4e627d8", null ],
+      [ "kSprite", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a7c10e40e40c6c0519ea3066c5c66733a", null ]
+    ] ],
     [ "kDungeonObjectTableFlags", "namespaceyaze_1_1app_1_1editor.html#a759334407b9c50f79df5b99931356832", null ],
     [ "kDungeonTabFlags", "namespaceyaze_1_1app_1_1editor.html#ae940471e79391cb6b9753359bb18870b", null ],
     [ "kDungeonTabBarFlags", "namespaceyaze_1_1app_1_1editor.html#a90b47303e5a0364d74f646617dbcd2e8", null ],

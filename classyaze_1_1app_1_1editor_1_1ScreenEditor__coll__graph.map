@@ -1,20 +1,22 @@
 <map id="yaze::app::editor::ScreenEditor" name="yaze::app::editor::ScreenEditor">
-<area shape="rect" id="Node000001" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me..." alt="" coords="863,132,981,173"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="277,57,425,83"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="441,66,521,69,606,76,672,87,723,99,839,130,863,135,862,141,838,135,722,104,671,92,605,82,521,74,441,72"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html" title=" " alt="" coords="629,132,753,173"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="441,74,522,86,606,107,656,129,654,134,604,112,521,92,440,79"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="768,150,862,150,862,155,768,155"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="279,173,423,199"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="438,183,519,179,605,170,628,166,629,171,606,176,520,184,438,188"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,129,180,155"/>
-<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="123,117,191,76,232,56,276,42,347,26,409,18,463,17,515,20,621,42,753,75,797,87,840,105,887,129,885,134,838,109,796,92,752,80,620,47,514,26,463,22,409,24,348,32,277,47,234,61,193,81,126,122"/>
-<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="195,136,385,134,605,140,629,142,629,147,605,146,385,140,195,141"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="187,155,279,171,278,176,186,160"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html" title="Represents a tilesheet, which is a collection of tiles stored in a bitmap." alt="" coords="449,300,605,325"/>
-<area shape="poly" id="edge11_Node000007_Node000005" title=" " alt="" coords="122,162,190,213,233,239,278,261,320,276,365,287,449,302,448,308,364,293,319,281,276,265,230,243,187,217,119,167"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="277,225,425,251"/>
-<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="440,245,509,249,588,249,671,242,752,227,823,201,883,171,886,176,825,206,753,232,671,247,588,254,508,254,440,250"/>
-<area shape="poly" id="edge7_Node000003_Node000006" title=" " alt="" coords="440,234,521,224,564,216,604,204,635,189,662,171,665,175,638,193,606,208,565,221,522,230,440,239"/>
-<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="618,325,672,327,730,323,786,308,813,296,837,281,863,256,883,227,911,172,915,174,888,230,867,259,840,285,815,301,788,313,730,328,672,332,618,330"/>
+<area shape="rect" id="Node000001" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me..." alt="" coords="863,189,981,230"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="277,46,425,72"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="440,52,521,54,606,66,688,90,767,122,836,157,888,187,886,191,834,162,765,127,687,95,605,71,521,60,440,58"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html" title=" " alt="" coords="629,144,753,185"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="441,59,523,71,565,82,606,97,642,117,671,141,667,146,639,122,604,101,564,87,522,76,440,65"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="632,364,750,405"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="764,368,802,353,837,333,862,309,882,281,910,229,914,232,887,284,866,313,840,337,805,358,766,373"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="768,177,863,195,862,201,767,182"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="279,162,423,188"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="438,170,629,164,629,169,439,175"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,118,180,144"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="123,106,191,65,232,46,276,31,367,15,440,16,606,40,681,47,714,53,754,67,800,92,840,125,904,187,900,191,837,129,797,96,752,72,712,59,680,53,605,46,440,21,368,20,277,36,234,51,193,70,126,111"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="195,118,283,113,387,111,497,116,606,130,644,141,643,146,605,135,496,121,386,116,283,118,195,123"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="187,144,279,160,278,165,186,150"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html" title="Represents a tilesheet, which is a collection of tiles stored in a bitmap." alt="" coords="449,289,605,315"/>
+<area shape="poly" id="edge12_Node000008_Node000006" title=" " alt="" coords="122,152,190,202,233,228,278,250,320,265,365,277,449,292,448,297,364,282,319,270,276,255,230,233,187,206,119,156"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="277,214,425,240"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="440,234,587,243,670,243,752,239,862,221,863,226,753,244,670,249,587,248,440,239"/>
+<area shape="poly" id="edge8_Node000004_Node000007" title=" " alt="" coords="439,217,520,206,605,190,631,183,633,188,606,195,521,211,440,222"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="621,308,672,307,728,302,784,290,837,270,869,250,896,228,900,233,872,254,840,275,786,296,729,308,673,313,621,313"/>
 </map>

@@ -71,6 +71,7 @@ var searchData=
   ['graphics_5fbin_68',['graphics_bin',['../classyaze_1_1app_1_1Rom.html#a6f1314506031b4a334b3d411116be32f',1,'yaze::app::Rom']]],
   ['graphics_5fbuffer_69',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610',1,'yaze::app::Rom']]],
   ['graphicsbincanvaspipeline_70',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui']]],
-  ['graphicsmanagercanvaspipeline_71',['GraphicsManagerCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#a34609a02f8c4abef89d99a65d59cdeb5',1,'yaze::app::gui']]],
-  ['grayscalepalette_72',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
+  ['graphicseditor_71',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
+  ['graphicsmanagercanvaspipeline_72',['GraphicsManagerCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#a34609a02f8c4abef89d99a65d59cdeb5',1,'yaze::app::gui']]],
+  ['grayscalepalette_73',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
 ];

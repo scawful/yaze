@@ -1,6 +1,12 @@
 var classyaze_1_1app_1_1editor_1_1PaletteEditor =
 [
-    [ "Update", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a511d7c2baa195ab9cb288099b8029b5f", null ],
+    [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a865d4949e8bec464289f8a2568a442f2", null ],
+    [ "Update", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e7aaa1c0187c37af4d1bb057a1af027", null ],
+    [ "Cut", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a4337ebaa162c41aa77043f680608d8e7", null ],
+    [ "Copy", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a469e3f5b06912764edee4696e6921b88", null ],
+    [ "Paste", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#acc5dce11559b34fc0fa20e5d77463956", null ],
+    [ "Undo", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#af002923d7c7af6506fd4773f770a4c07", null ],
+    [ "Redo", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a59776a2908123146e9bc21a328760682", null ],
     [ "DisplayCategoryTable", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9", null ],
     [ "DrawPaletteGroups", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad494120a52d9eea8684174b6993e5ade", null ],
     [ "EditColorInPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da", null ],

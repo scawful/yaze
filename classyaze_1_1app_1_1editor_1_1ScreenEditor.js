@@ -1,7 +1,12 @@
 var classyaze_1_1app_1_1editor_1_1ScreenEditor =
 [
     [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a57e1846d63486b8115f219d85f3c25f0", null ],
-    [ "Update", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a54dc435276eede16280b4f45bd9eeb8e", null ],
+    [ "Update", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a565a4af81f8980eb86101f381e8a55f2", null ],
+    [ "Cut", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5918aba16c908fe3a0cbc8efadadbd18", null ],
+    [ "Copy", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ad47ccf2047754bb733772d8a5d50c54b", null ],
+    [ "Paste", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a8c1ed60981eeddc0fc38eb1244447718", null ],
+    [ "Undo", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#abb059ba9e72d47f54a2a21bf8c290054", null ],
+    [ "Redo", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a88edc3fbd9ec862b315a94e553c3c452", null ],
     [ "SaveDungeonMaps", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2", null ],
     [ "DrawTitleScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a96a82f1ef00e876bfe218ab481e258e6", null ],
     [ "DrawNamingScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#acdba670fbc930b44519326d7087ef6fd", null ],

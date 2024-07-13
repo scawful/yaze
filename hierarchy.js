@@ -4,7 +4,6 @@ var hierarchy =
     [ "yaze::app::emu::audio::Apu", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html", null ],
     [ "yaze::app::emu::audio::ApuCallbacks", "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html", null ],
     [ "yaze::app::emu::AsmParser", "classyaze_1_1app_1_1emu_1_1AsmParser.html", null ],
-    [ "yaze::app::editor::AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", null ],
     [ "yaze::app::emu::audio::AudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html", [
       [ "yaze::app::emu::audio::AudioRamImpl", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html", null ],
       [ "yaze_test::emu_test::MockAudioRam", "classyaze__test_1_1emu__test_1_1MockAudioRam.html", null ]
@@ -64,8 +63,14 @@ var hierarchy =
     [ "yaze::app::zelda3::screen::DungeonMap", "classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html", null ],
     [ "yaze::app::gui::DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ],
     [ "yaze::app::editor::Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", [
+      [ "yaze::app::editor::AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
-      [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
+      [ "yaze::app::editor::GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", null ],
+      [ "yaze::app::editor::MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", null ],
+      [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
+      [ "yaze::app::editor::PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", null ],
+      [ "yaze::app::editor::ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", null ],
+      [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ]
     ] ],
     [ "yaze::app::editor::context::EntranceContext", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]

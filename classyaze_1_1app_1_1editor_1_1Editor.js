@@ -7,5 +7,7 @@ var classyaze_1_1app_1_1editor_1_1Editor =
     [ "Paste", "classyaze_1_1app_1_1editor_1_1Editor.html#acbcad60f025a80c9f1477ffe34dd1cba", null ],
     [ "Undo", "classyaze_1_1app_1_1editor_1_1Editor.html#a1b7f92efb9dd39fd68eae2363c108b1f", null ],
     [ "Redo", "classyaze_1_1app_1_1editor_1_1Editor.html#aaa80459a0949a512973a71cc6d9cad57", null ],
-    [ "Update", "classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7", null ]
+    [ "Update", "classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7", null ],
+    [ "type", "classyaze_1_1app_1_1editor_1_1Editor.html#ad64a4e6d3447ecaa2dce1f08684d364c", null ],
+    [ "type_", "classyaze_1_1app_1_1editor_1_1Editor.html#ab20ed881e86575206b5294a9fc8a9c6f", null ]
 ];
