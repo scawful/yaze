@@ -1,19 +1,17 @@
 <map id="yaze::app::Rom::LoadAllGraphicsData" name="yaze::app::Rom::LoadAllGraphicsData">
-<area shape="rect" id="Node000001" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="5,217,242,243"/>
+<area shape="rect" id="Node000001" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="5,185,242,211"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="549,118,687,144"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,214,196,158,240,128,289,106,324,97,360,92,433,91,501,99,558,111,557,116,500,104,432,96,360,97,325,102,291,111,243,133,200,163,139,218"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,182,204,142,245,121,289,106,358,95,428,95,494,102,550,112,550,117,493,107,428,100,358,101,290,111,247,126,206,146,144,187"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="317,5,457,46"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,215,194,144,238,101,288,62,308,51,311,55,291,67,242,105,198,148,137,218"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="137,182,199,126,242,93,288,62,311,50,313,55,291,67,245,97,203,130,140,186"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="299,144,475,185"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="178,214,287,186,288,192,179,219"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="230,182,283,175,284,180,230,187"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012" title=" " alt="" coords="294,209,480,250"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="242,227,278,227,278,232,242,232"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="235,208,279,214,278,219,234,214"/>
 <area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1e491fbd2f560c57aedae0e9dc684001" title=" " alt="" coords="290,275,484,315"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="179,240,288,268,287,273,178,246"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="319,340,455,365"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="145,241,208,282,291,325,311,332,309,337,289,329,205,286,142,245"/>
-<area shape="rect" id="Node000011" href="$namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f" title=" " alt="" coords="299,389,475,430"/>
-<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="138,241,199,305,243,342,291,375,300,380,297,385,288,380,240,347,196,309,134,245"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="159,209,291,259,311,267,309,272,289,264,157,213"/>
+<area shape="rect" id="Node000010" href="$namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f" title=" " alt="" coords="299,340,475,381"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="140,209,202,264,245,296,291,325,303,331,301,336,288,329,242,300,199,268,136,213"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="562,5,675,46"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="457,23,546,23,546,28,457,28"/>
 <area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="343,144,341,134,348,125,364,119,387,117,412,120,427,126,425,131,411,125,387,123,365,125,351,129,346,135,348,143"/>

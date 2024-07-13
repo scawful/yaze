@@ -129,7 +129,7 @@ var searchData=
   ['bitmap_2ecc_126',['bitmap.cc',['../bitmap_8cc.html',1,'']]],
   ['bitmap_2eh_127',['bitmap.h',['../bitmap_8h.html',1,'']]],
   ['bitmap_5f_128',['bitmap_',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#af7f2d997f7b6e73b0d0e390483f86356',1,'yaze::app::gfx::Tilesheet::bitmap_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a26e90a33ede9c0bef764301dab59c2ae',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer::bitmap_'],['../classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a365d3b08fb94b877387f6492d87e9023',1,'yaze::app::zelda3::screen::Inventory::bitmap_']]],
-  ['bitmap_5fcache_5f_129',['bitmap_cache_',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a0df41412659914b8e372e02bc918a503',1,'yaze::app::gfx::BitmapManager']]],
+  ['bitmap_5fcache_5f_129',['bitmap_cache_',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#af03e4b90fb287cfa9dd0264a962e2a94',1,'yaze::app::gfx::BitmapManager']]],
   ['bitmap_5fdata_130',['bitmap_data',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a1fc2d5586e7d9aee4c543dda523ac1a6',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['bitmap_5fdata_5f_131',['bitmap_data_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a5999feb740d3aecfd75c7123dfb76bb2',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['bitmap_5fmanager_132',['bitmap_manager',['../classyaze_1_1app_1_1Rom.html#a0d39a485896a82ecf534d8470a1f8f9c',1,'yaze::app::Rom']]],

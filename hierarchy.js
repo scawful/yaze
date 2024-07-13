@@ -82,6 +82,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::core::ExperimentFlags::Flags", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::app::emu::audio::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
+    [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", null ],
     [ "yaze::app::editor::context::GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", [
       [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],

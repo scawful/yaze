@@ -1,5 +1,8 @@
 var namespaceyaze_1_1app_1_1editor =
 [
+    [ "anonymous_namespace{assembly_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html", [
+      [ "LoadFolder", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#aa24a786b26c2f9d49f09de1d3338e459", null ]
+    ] ],
     [ "anonymous_namespace{dungeon_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html", [
       [ "RenderUnusedSets", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html#a855f42ed8bc436596ca3cb7f897ef357", null ]
     ] ],

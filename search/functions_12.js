@@ -109,7 +109,7 @@ var searchData=
   ['setupscreen_106',['SetupScreen',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac67ef851a62f7d2ccd7342f666066dee',1,'yaze::app::editor::MasterEditor']]],
   ['setzeroflag_107',['SetZeroFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a035ff1f28283ec6d08e3bb4900779f79',1,'yaze::app::emu::Cpu']]],
   ['setzn_108',['SetZN',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2bdaba9b1ce10d4a47e659b911a478c6',1,'yaze::app::emu::Cpu']]],
-  ['shared_5fbitmap_109',['shared_bitmap',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a15bc39c46fe2f1cc55b2e2c3c76a9d10',1,'yaze::app::gfx::BitmapManager']]],
+  ['shared_5fbitmap_109',['shared_bitmap',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1965bb7ba22f67455d15c120285eb57c',1,'yaze::app::gfx::BitmapManager']]],
   ['shared_5from_110',['shared_rom',['../classyaze_1_1app_1_1SharedRom.html#a6735dc4ff652117bd082712a87e48a94',1,'yaze::app::SharedRom']]],
   ['sharedrom_111',['SharedRom',['../classyaze_1_1app_1_1SharedRom.html#a36bcd9fe4e37b5474fd0462db10d6c11',1,'yaze::app::SharedRom']]],
   ['shoulddisplay_112',['ShouldDisplay',['../namespaceyaze_1_1app_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a8661d56df6530eb9b492271d63b262ac',1,'yaze::app::emu::anonymous_namespace{emulator.cc}']]],

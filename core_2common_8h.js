@@ -6,6 +6,8 @@ var core_2common_8h =
     [ "yaze::app::core::NotifyValue< T >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
     [ "yaze::app::core::ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
     [ "yaze::app::core::Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
+    [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", "structyaze_1_1app_1_1core_1_1FolderItem" ],
+    [ "FolderItem", "core_2common_8h.html#ae3d315799cc5396556e7b023473121dd", null ],
     [ "UppercaseHexByte", "core_2common_8h.html#adee4cb66335fc06d420159375b151524", null ],
     [ "UppercaseHexWord", "core_2common_8h.html#a5e6d56ec7e31e6b12a788d15c931ec38", null ],
     [ "UppercaseHexLong", "core_2common_8h.html#a9fc1194f545000fb140d178e5a54ff81", null ],

@@ -16,7 +16,7 @@ var searchData=
   ['catchupapu_13',['CatchUpApu',['../classyaze_1_1app_1_1emu_1_1SNES.html#a6c1abd10faa22d9a680130233a997127',1,'yaze::app::emu::SNES']]],
   ['cbegin_14',['cbegin',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a94565c671d37d022cdba5f02fc66b460',1,'yaze::app::gfx::BitmapManager']]],
   ['cend_15',['cend',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a8393f8507cbb97b1eb8b753d9a9dc12c',1,'yaze::app::gfx::BitmapManager']]],
-  ['changeactivefile_16',['ChangeActiveFile',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#ab54c6b6a765d2efe0e011a1d4985df61',1,'yaze::app::editor::AssemblyEditor']]],
+  ['changeactivefile_16',['ChangeActiveFile',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a10a8be6a9f198c73d1192887cfd06305',1,'yaze::app::editor::AssemblyEditor']]],
   ['changewindowsizeevent_17',['ChangeWindowSizeEvent',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ae74e0ed0e27003c9a7f411ac36bedf31',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['checkavailablecompressioncommands_18',['CheckAvailableCompressionCommands',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab38fd85b5bab43edf01facb52cfcf3a9',1,'yaze::app::gfx::lc_lz2']]],
   ['checkbyterepeat_19',['CheckByteRepeat',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a88ed0cde94f8737eec02a9ee0536dad3',1,'yaze::app::gfx::lc_lz2']]],
