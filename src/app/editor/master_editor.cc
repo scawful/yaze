@@ -13,9 +13,9 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
+#include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics_editor.h"
-#include "app/editor/code/assembly_editor.h"
 #include "app/editor/modules/music_editor.h"
 #include "app/editor/modules/palette_editor.h"
 #include "app/editor/overworld_editor.h"
@@ -215,9 +215,10 @@ absl::Status MasterEditor::Update() {
     ImGui::EndTabItem();
   }
 
-  // if (ImGui::TabItemButton("+", kDungeonTabFlags)) {
-    
-  // }
+  if (ImGui::BeginTabItem("Code")) {
+    assembly_editor_.UpdateCodeView();
+    ImGui::EndTabItem();
+  }
 
   END_TAB_BAR()
 
