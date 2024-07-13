@@ -212,6 +212,14 @@ uint16_t ldle16b(uint8_t const *const p_arr);
 
 void stle16b(uint8_t *const p_arr, uint16_t const p_val);
 
+struct FolderItem {
+  std::string name;
+  std::vector<FolderItem> subfolders;
+  std::vector<std::string> files;
+};
+
+typedef struct FolderItem FolderItem;
+
 }  // namespace core
 }  // namespace app
 }  // namespace yaze
