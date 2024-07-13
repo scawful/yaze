@@ -12,6 +12,7 @@
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/dungeon_editor.h"
@@ -97,6 +98,8 @@ class MasterEditor : public SharedRom,
 
   emu::Emulator emulator_;
 
+  Project current_project_;
+
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
@@ -106,9 +109,8 @@ class MasterEditor : public SharedRom,
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
 
-  std::vector<Editor*> active_editors_;
   ImVector<int> active_tabs_;
-
+  std::vector<Editor*> active_editors_;
   Editor* current_editor_ = nullptr;
 };
 
