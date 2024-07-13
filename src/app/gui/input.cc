@@ -226,6 +226,8 @@ bool ListBox(const char* label, int* current_item,
                         height_in_items);
 }
 
+ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
+
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze

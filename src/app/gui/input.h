@@ -43,6 +43,8 @@ using ItemLabelFlags = enum ItemLabelFlag {
 
 IMGUI_API void ItemLabel(absl::string_view title, ItemLabelFlags flags);
 
+IMGUI_API ImGuiID GetID(const std::string &id);
+
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze
