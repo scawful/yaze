@@ -173,27 +173,47 @@ absl::Status MasterEditor::Update() {
   auto current_tab_bar = ImGui::GetCurrentContext()->CurrentTabBar;
 
   if (overworld_editor_.jump_to_tab() == -1) {
-    gui::RenderTabItem("Overworld", [&]() {
+    if (ImGui::BeginTabItem("Overworld")) {
       current_editor_ = &overworld_editor_;
       status_ = overworld_editor_.Update();
-    });
+      ImGui::EndTabItem();
+    }
   }
 
-  gui::RenderTabItem("Dungeon", [&]() {
+  if (ImGui::BeginTabItem("Dungeon")) {
     current_editor_ = &dungeon_editor_;
     status_ = dungeon_editor_.Update();
     if (overworld_editor_.jump_to_tab() != -1) {
       dungeon_editor_.add_room(overworld_editor_.jump_to_tab());
       overworld_editor_.jump_to_tab_ = -1;
     }
-  });
+    ImGui::EndTabItem();
+  }
 
-  gui::RenderTabItem("Graphics",
-                     [&]() { status_ = graphics_editor_.Update(); });
-  gui::RenderTabItem("Sprites", [&]() { status_ = sprite_editor_.Update(); });
-  gui::RenderTabItem("Palettes", [&]() { status_ = palette_editor_.Update(); });
-  gui::RenderTabItem("Screens", [&]() { screen_editor_.Update(); });
-  gui::RenderTabItem("Music", [&]() { music_editor_.Update(); });
+  if (ImGui::BeginTabItem("Graphics")) {
+    status_ = graphics_editor_.Update();
+    ImGui::EndTabItem();
+  }
+
+  if (ImGui::BeginTabItem("Sprites")) {
+    status_ = sprite_editor_.Update();
+    ImGui::EndTabItem();
+  }
+
+  if (ImGui::BeginTabItem("Palettes")) {
+    status_ = palette_editor_.Update();
+    ImGui::EndTabItem();
+  }
+
+  if (ImGui::BeginTabItem("Screens")) {
+    screen_editor_.Update();
+    ImGui::EndTabItem();
+  }
+
+  if (ImGui::BeginTabItem("Music")) {
+    music_editor_.Update();
+    ImGui::EndTabItem();
+  }
   END_TAB_BAR()
 
   ImGui::End();

@@ -293,13 +293,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
             std::string label =
                 dungeon_map_labels_[selected_dungeon][floor_number][j];
             screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
-            // GFX.drawText(
-            //     e.Graphics, 16 + ((i % 5) * 32), 20 + ((i / 5) * 32),
           }
-
-          // if (dungmapSelectedTile == i)
-          //  Constants.AzurePen2,
-          //       10 + ((i % 5) * 32), 12 + ((i / 5) * 32), 32, 32));
         }
 
         screen_canvas_.DrawGrid(64.f, 5);
@@ -369,6 +363,9 @@ void ScreenEditor::DrawDungeonMapsEditor() {
       rom()->resource_label()->SelectableLabelWithNameEdit(
           selected_dungeon == i, "Dungeon Names", absl::StrFormat("%d", i),
           dungeon_names[i]);
+      if (ImGui::IsItemClicked()) {
+        selected_dungeon = i;
+      }
     }
 
     // Map column
