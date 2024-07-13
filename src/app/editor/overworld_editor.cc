@@ -1661,9 +1661,8 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   overworld_.set_current_map(current_map_);
   palette_ = overworld_.AreaPalette();
   // Create the tile16 blockset image
-  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x08,
-                                               overworld_.Tile16Blockset(),
-                                               tile16_blockset_bmp_, palette_));
+  rom()->UpdateBitmap(&tile16_blockset_bmp_);
+  RETURN_IF_ERROR(tile16_blockset_bmp_.ApplyPalette(palette_));
 
   // Copy the tile16 data into individual tiles.
   auto tile16_data = overworld_.Tile16Blockset();
@@ -1898,9 +1897,6 @@ void OverworldEditor::CalculateUsageStats() {
         each_entrance.map_id_ >= (current_world_ * 0x40)) {
       entrance_usage[each_entrance.entrance_id_]++;
     }
-
-    if (each_entrance.deleted == true)
-      unused_entrances_.push_back(each_entrance.entrance_id_);
   }
 }
 
