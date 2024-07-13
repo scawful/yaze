@@ -410,6 +410,9 @@ void MasterEditor::DrawYazeMenu() {
     // Project Menu
     if (BeginMenu("Project")) {
       ImGui::Text("Project: %s", current_project_.name.c_str());
+      ImGui::Text("ROM: %s", current_project_.rom_filename_.c_str());
+      ImGui::Text("Labels: %s", current_project_.labels_filename_.c_str());
+      ImGui::Text("Code: %s", current_project_.code_folder_.c_str());
     }
     ImGui::EndMenu();
   }
@@ -466,6 +469,9 @@ void MasterEditor::DrawFileMenu() {
           if (MenuItem(filePath.c_str())) {
             if (absl::StrContains(filePath, ".yaze")) {
               status_ = current_project_.Open(filePath);
+              if (status_.ok()) {
+                status_ = OpenProject();
+              }
             } else {
               status_ = rom()->LoadFromFile(filePath);
             }
@@ -499,7 +505,11 @@ void MasterEditor::DrawFileMenu() {
       }
       if (MenuItem("Open Project")) {
         // Open an existing project
-        status_ = OpenProject();
+        status_ =
+            current_project_.Open(FileDialogWrapper::ShowOpenFileDialog());
+        if (status_.ok()) {
+          status_ = OpenProject();
+        }
       }
       if (MenuItem("Save Project")) {
         // Save the current project
@@ -899,8 +909,6 @@ void MasterEditor::SaveRom() {
 }
 
 absl::Status MasterEditor::OpenProject() {
-  RETURN_IF_ERROR(
-      current_project_.Open(FileDialogWrapper::ShowOpenFileDialog()));
   RETURN_IF_ERROR(rom()->LoadFromFile(current_project_.rom_filename_));
 
   if (!rom()->resource_label()->LoadLabels(current_project_.labels_filename_)) {
