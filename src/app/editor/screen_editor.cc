@@ -25,9 +25,9 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-ScreenEditor::ScreenEditor() { screen_canvas_.SetCanvasSize(ImVec2(512, 512)); }
 
-void ScreenEditor::Update() {
+
+absl::Status ScreenEditor::Update() {
   TAB_BAR("##TabBar")
   TAB_ITEM("Dungeon Maps")
   if (rom()->is_loaded()) {
@@ -39,6 +39,8 @@ void ScreenEditor::Update() {
   DrawTitleScreenEditor();
   DrawNamingScreenEditor();
   END_TAB_BAR()
+
+  return absl::OkStatus();
 }
 
 void ScreenEditor::DrawInventoryMenuEditor() {

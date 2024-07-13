@@ -9,6 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/modules/palette_editor.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
@@ -73,9 +74,17 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
  * drawing toolsets, palette controls, clipboard imports, experimental features,
  * and memory editor.
  */
-class GraphicsEditor : public SharedRom {
+class GraphicsEditor : public SharedRom, public Editor {
  public:
+  GraphicsEditor() { type_ = EditorType::kGraphics; }
+
   absl::Status Update();
+
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
 
  private:
   enum class GfxEditMode {

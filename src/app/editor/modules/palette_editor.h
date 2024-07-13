@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "absl/status/status.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
@@ -81,9 +82,18 @@ class PaletteEditorHistory {
  * @class PaletteEditor
  * @brief Allows the user to view and edit in game palettes.
  */
-class PaletteEditor : public SharedRom {
+class PaletteEditor : public SharedRom, public Editor {
  public:
-  absl::Status Update();
+  PaletteEditor() { type_ = EditorType::kPalette; }
+
+  absl::Status Update() override;
+
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
+
   void DisplayCategoryTable();
   absl::Status DrawPaletteGroups();
 

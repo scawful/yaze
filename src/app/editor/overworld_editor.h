@@ -85,6 +85,8 @@ class OverworldEditor : public Editor,
                         public context::EntranceContext,
                         public core::ExperimentFlags {
  public:
+  OverworldEditor() { type_ = EditorType::kOverworld; }
+
   void InitializeZeml();
 
   absl::Status Update() final;

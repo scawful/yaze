@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/constants.h"
+#include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -36,10 +37,20 @@ namespace editor {
  *
  * The class inherits from the SharedRom class.
  */
-class ScreenEditor : public SharedRom {
+class ScreenEditor : public SharedRom, public Editor {
  public:
-  ScreenEditor();
-  void Update();
+  ScreenEditor() {
+    screen_canvas_.SetCanvasSize(ImVec2(512, 512));
+    type_ = EditorType::kScreen;
+  }
+
+  absl::Status Update() override;
+
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
 
   absl::Status SaveDungeonMaps();
 

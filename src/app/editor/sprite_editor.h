@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
 #include "absl/status/status.h"
+#include "app/editor/utils/editor.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 
@@ -29,14 +30,22 @@ constexpr ImGuiTableFlags kSpriteTableFlags =
  * This class provides functionality for updating the sprite editor, drawing the
  * editor table, drawing the sprite canvas, and drawing the current sheets.
  */
-class SpriteEditor : public SharedRom {
+class SpriteEditor : public SharedRom, public Editor {
  public:
+  SpriteEditor() { type_ = EditorType::kSprite; }
+
   /**
    * @brief Updates the sprite editor.
    *
    * @return An absl::Status indicating the success or failure of the update.
    */
-  absl::Status Update();
+  absl::Status Update() override;
+
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
 
  private:
   /**
