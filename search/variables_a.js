@@ -76,7 +76,7 @@ var searchData=
   ['knormalgfxspacestart_73',['kNormalGfxSpaceStart',['../namespaceyaze_1_1app.html#a3ef17b1c481a3e73d2d97a92e3995b04',1,'yaze::app']]],
   ['knormallengthmod_74',['kNormalLengthMod',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a2eb01c3eaf0d33c2f5289400a00f548b',1,'yaze::app::gfx::lc_lz2']]],
   ['knumoverworldmaps_75',['kNumOverworldMaps',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a70c7c08105d9eb4a588c0a3c99f069cb',1,'yaze::app::zelda3::overworld']]],
-  ['knumpalettes_76',['kNumPalettes',['../namespaceyaze_1_1app_1_1editor.html#a1475bf292c22487da0bb81305e7c6b8f',1,'yaze::app::editor']]],
+  ['knumpalettes_76',['kNumPalettes',['../namespaceyaze_1_1app_1_1gfx.html#aa82fac7101cc6d02ab0d5c2d5553213c',1,'yaze::app::gfx']]],
   ['koffsetfrommatchedbytesend_77',['kOffsetFromMatchedBytesEnd',['../namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#afab35951a3b84b5473006eca13ecf9d7',1,'yaze::app::gfx::scad_format']]],
   ['koverworldgfxgroups1_78',['kOverworldGfxGroups1',['../structyaze_1_1app_1_1VersionConstants.html#a80b73cffc5a9bf1707ae2cefbe24a352',1,'yaze::app::VersionConstants']]],
   ['koverworldgfxgroups2_79',['kOverworldGfxGroups2',['../structyaze_1_1app_1_1VersionConstants.html#a4234a733bb894b28e29544d432fb2f5c',1,'yaze::app::VersionConstants']]],

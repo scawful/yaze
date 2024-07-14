@@ -15,7 +15,6 @@ var classyaze_1_1app_1_1editor_1_1GfxGroupEditor =
     [ "selected_roomset_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#ae4903d5538b4ccc1915ded516a20e012", null ],
     [ "selected_spriteset_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a935c69479cb2f4e57fddedbdd1aeab98", null ],
     [ "selected_paletteset_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a877fa2abeab777a8a53c537c089a3d47", null ],
-    [ "palette_editor_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a315668257391c2edf6ec16a4c1e95f6d", null ],
     [ "blockset_canvas_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#ad62dbf0a0ece2771ded435df0f856624", null ],
     [ "roomset_canvas_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a78e6bc6710bb1866dba09d810ffc167a", null ],
     [ "spriteset_canvas_", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#ac1d76f4141145027288ca43adfc37d2b", null ],

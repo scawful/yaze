@@ -43,6 +43,22 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "snes_color", "namespaceyaze_1_1app_1_1gfx.html#a11bb1075953f57bafc5d9205682ea50e", null ],
     [ "snes_palette", "namespaceyaze_1_1app_1_1gfx.html#a2431c9510c885b5698d5aaac4d7e3094", null ],
     [ "tile8", "namespaceyaze_1_1app_1_1gfx.html#ae0f46c5ecd3ca9929d6baa039aeccbc7", null ],
+    [ "PaletteCategory", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39d", [
+      [ "kSword", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39daf22e7c2217ee73273e5298cc7f8cf3d8", null ],
+      [ "kShield", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39dab642b4174e77d1e5a8910c64b92aaed7", null ],
+      [ "kClothes", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39dac6cd8a6a5c9477329633d9d36ba782da", null ],
+      [ "kWorldColors", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da7e0abbddcfa0a281649c2eda4a10e7a8", null ],
+      [ "kAreaColors", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39dae53d104b1b340736a11ea28c94488248", null ],
+      [ "kGlobalSprites", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da6eab13ff195c496c37e6f31b62bd3602", null ],
+      [ "kSpritesAux1", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39daabfdab8ff5fa1b32c07f8247b01494ff", null ],
+      [ "kSpritesAux2", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da0ec8a0a7837de23f2ef9815b20172102", null ],
+      [ "kSpritesAux3", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39dabed07cc4b40045a72004222e32e88819", null ],
+      [ "kDungeons", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da48a70d0e95a80258cca7638a735565c1", null ],
+      [ "kWorldMap", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da8e750447f4a3a99a17ac9d37fc073c9f", null ],
+      [ "kDungeonMap", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39daf59b5b00d3468226089be51b38e41ca0", null ],
+      [ "kTriforce", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da127b314ca3e4ff0d03ed01160aa09d3e", null ],
+      [ "kCrystal", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da8c9e7cd75f952a57a2773aab224df39c", null ]
+    ] ],
     [ "TileType", "namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7", [
       [ "Tile8", "namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7af741ccc3c4a5d5202699b366e0b822a5", null ],
       [ "Tile16", "namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7a0136ed56bdc945f798e3b2ff271ba011", null ]
@@ -83,5 +99,6 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "SNES_BLUE_SHIFT", "namespaceyaze_1_1app_1_1gfx.html#aefdc5379d7c7907c0b2cf786b9e5d166", null ],
     [ "kPaletteGroupAddressMap", "namespaceyaze_1_1app_1_1gfx.html#a0b33005e899a93e458f6b70f359f047b", null ],
     [ "kPaletteGroupColorCounts", "namespaceyaze_1_1app_1_1gfx.html#a5cad6a1e7078e7d8717fcaae95411535", null ],
+    [ "kNumPalettes", "namespaceyaze_1_1app_1_1gfx.html#aa82fac7101cc6d02ab0d5c2d5553213c", null ],
     [ "kGraphicsBitmap", "namespaceyaze_1_1app_1_1gfx.html#aa4d05c0ec507bdb37d9c5b41f2d4ee58", null ]
 ];
