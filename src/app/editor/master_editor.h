@@ -61,6 +61,8 @@ class MasterEditor : public SharedRom,
     current_editor_ = &overworld_editor_;
     active_editors_.push_back(&overworld_editor_);
     active_editors_.push_back(&dungeon_editor_);
+    active_editors_.push_back(&graphics_editor_);
+    active_editors_.push_back(&palette_editor_);
   }
 
   void SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
