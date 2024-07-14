@@ -95,10 +95,8 @@ absl::Status PaletteEditor::Update() {
     TableHeadersRow();
     TableNextRow();
     TableNextColumn();
-    if (gui::SnesColorEdit4("Color Picker", &current_color_,
-                            ImGuiColorEditFlags_NoAlpha)) {
-      // TODO: Implement new update color function
-    }
+    gui::SnesColorEdit4("Current Color Picker", &current_color_,
+                        ImGuiColorEditFlags_NoAlpha);
     Separator();
     DisplayCategoryTable();
 
@@ -110,7 +108,7 @@ absl::Status PaletteEditor::Update() {
     Separator();
     static std::string palette_notes = "Notes about the palette";
     ImGui::InputTextMultiline("Notes", palette_notes.data(), 1024,
-                              ImVec2(-1, ImGui::GetTextLineHeight() * 16),
+                              ImVec2(-1, ImGui::GetTextLineHeight() * 4),
                               ImGuiInputTextFlags_AllowTabInput);
 
     EndTable();
@@ -224,7 +222,6 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
       if (gui::SnesColorButton(popup_id, *palette->mutable_color(n),
                                palette_button_flags)) {
         ASSIGN_OR_RETURN(current_color_, palette->GetColor(n));
-        // EditColorInPalette(*palette, n);
       }
 
       if (BeginPopupContextItem(popup_id.c_str())) {
@@ -265,7 +262,7 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
     if (Selectable(buf)) SetClipboardText(buf);
 
     // SNES Format
-    CustomFormatString(buf, IM_ARRAYSIZE(buf), "0x%04X",
+    CustomFormatString(buf, IM_ARRAYSIZE(buf), "$%04X",
                        ConvertRGBtoSNES(ImVec4(col[0], col[1], col[2], 1.0f)));
     if (Selectable(buf)) SetClipboardText(buf);
 

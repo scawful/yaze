@@ -25,8 +25,7 @@ ImVec4 ConvertSNESColorToImVec4(const SnesColor& color) {
 IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags,
                                const ImVec2& size_arg) {
-  // Convert the SNES color values to ImGui color values (normalized to 0-1
-  // range)
+  // Convert the SNES color values to ImGui color values
   ImVec4 displayColor = ConvertSNESColorToImVec4(color);
 
   // Call the original ImGui::ColorButton with the converted color
