@@ -40,6 +40,7 @@ add_executable(
   ../src/app/gfx/compression.cc
   ../src/app/core/common.cc
   ../src/app/core/labeling.cc
+  ../src/lib/imgui/misc/cpp/imgui_stdlib.cpp
   # ${ASAR_STATIC_SRC}
 )
 

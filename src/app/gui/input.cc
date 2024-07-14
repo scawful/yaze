@@ -4,6 +4,8 @@
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
+#include <string>
+
 #include "absl/strings/string_view.h"
 
 namespace ImGui {
