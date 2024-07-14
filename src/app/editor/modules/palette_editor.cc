@@ -95,7 +95,7 @@ absl::Status PaletteEditor::Update() {
     TableHeadersRow();
     TableNextRow();
     TableNextColumn();
-    if (gui::SnesColorEdit4("Color Picker", current_color_,
+    if (gui::SnesColorEdit4("Color Picker", &current_color_,
                             ImGuiColorEditFlags_NoAlpha)) {
       // TODO: Implement new update color function
     }
@@ -204,13 +204,13 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   }
 
   auto palette_group_name = kPaletteGroupNames[category];
-  gfx::PaletteGroup palette_group =
-      *rom()->palette_group().get_group(palette_group_name.data());
-  const auto size = palette_group.size();
+  gfx::PaletteGroup* palette_group =
+      rom()->mutable_palette_group()->get_group(palette_group_name.data());
+  const auto size = palette_group->size();
 
   static bool edit_color = false;
   for (int j = 0; j < size; j++) {
-    gfx::SnesPalette* palette = palette_group.mutable_palette(j);
+    gfx::SnesPalette* palette = palette_group->mutable_palette(j);
     auto pal_size = palette->size();
 
     for (int n = 0; n < pal_size; n++) {
@@ -230,12 +230,6 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
       if (BeginPopupContextItem(popup_id.c_str())) {
         RETURN_IF_ERROR(HandleColorPopup(*palette, category, j, n))
       }
-
-      // if (gui::SnesColorEdit4(popup_id.c_str(), (*palette)[n],
-      //                         palette_button_flags)) {
-      //   EditColorInPalette(*palette, n);
-      // }
-
       PopID();
     }
     SameLine();
@@ -249,7 +243,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
 absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
-  if (gui::SnesColorEdit4("Edit Color", palette[n], color_popup_flags)) {
+  if (gui::SnesColorEdit4("Edit Color", &palette[n], color_popup_flags)) {
     // TODO: Implement new update color function
   }
 

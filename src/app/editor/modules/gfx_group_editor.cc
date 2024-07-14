@@ -71,13 +71,6 @@ absl::Status GfxGroupEditor::Update() {
     }
 
     if (ImGui::BeginTabItem("Palettes")) {
-      gui::InputHexByte("Selected Paletteset", &selected_paletteset_);
-      if (selected_paletteset_ >= 71) {
-        selected_paletteset_ = 71;
-      }
-      rom()->resource_label()->SelectableLabelWithNameEdit(
-          false, "paletteset", "0x" + std::to_string(selected_paletteset_),
-          "Paletteset " + std::to_string(selected_paletteset_));
       DrawPaletteViewer();
       ImGui::EndTabItem();
     }
@@ -227,6 +220,7 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
     auto popup_id = absl::StrCat("Palette", n);
 
     // Small icon of the color in the palette
+
     if (gui::SnesColorButton(popup_id, palette[n],
                              ImGuiColorEditFlags_NoAlpha |
                                  ImGuiColorEditFlags_NoPicker |
@@ -239,6 +233,14 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
 }  // namespace
 
 void GfxGroupEditor::DrawPaletteViewer() {
+  gui::InputHexByte("Selected Paletteset", &selected_paletteset_);
+  if (selected_paletteset_ >= 71) {
+    selected_paletteset_ = 71;
+  }
+  rom()->resource_label()->SelectableLabelWithNameEdit(
+      false, "paletteset", "0x" + std::to_string(selected_paletteset_),
+      "Paletteset " + std::to_string(selected_paletteset_));
+
   uint8_t &dungeon_main_palette_val =
       rom()->paletteset_ids[selected_paletteset_][0];
   uint8_t &dungeon_spr_pal_1_val =
@@ -248,7 +250,7 @@ void GfxGroupEditor::DrawPaletteViewer() {
   uint8_t &dungeon_spr_pal_3_val =
       rom()->paletteset_ids[selected_paletteset_][3];
 
-  gui::InputHexByte("Dungeon Main", &selected_paletteset_);
+  gui::InputHexByte("Dungeon Main", &dungeon_main_palette_val);
 
   rom()->resource_label()->SelectableLabelWithNameEdit(
       false, kPaletteGroupNames[PaletteCategory::kDungeons].data(),
