@@ -110,9 +110,9 @@
 <area shape="poly" id="edge65_Node000193_Node000013" title=" " alt="" coords="613,1260,664,1230,724,1202,757,1191,786,1186,838,1183,886,1175,911,1164,938,1145,966,1118,989,1088,1027,1020,1052,955,1066,902,1071,904,1057,956,1032,1022,994,1091,969,1122,941,1149,914,1168,888,1180,839,1188,787,1191,758,1196,726,1207,667,1235,616,1265"/>
 <area shape="rect" id="Node000194" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9" title=" " alt="" coords="735,1297,930,1352"/>
 <area shape="poly" id="edge62_Node000193_Node000194" title=" " alt="" coords="653,1292,720,1303,719,1308,652,1297"/>
-<area shape="rect" id="Node000207" href="$classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125" title=" " alt="" coords="739,1217,926,1272"/>
-<area shape="poly" id="edge63_Node000193_Node000207" title=" " alt="" coords="652,1269,724,1258,724,1264,653,1275"/>
-<area shape="rect" id="Node000198" href="$namespaceyaze_1_1app_1_1gui.html#a3b370328eb751928718573d50f7df5be" title=" " alt="" coords="751,1376,914,1417"/>
+<area shape="rect" id="Node000210" href="$classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125" title=" " alt="" coords="739,1217,926,1272"/>
+<area shape="poly" id="edge63_Node000193_Node000210" title=" " alt="" coords="652,1269,724,1258,724,1264,653,1275"/>
+<area shape="rect" id="Node000198" href="$namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84" title=" " alt="" coords="751,1376,914,1417"/>
 <area shape="poly" id="edge66_Node000193_Node000198" title=" " alt="" coords="615,1302,667,1332,726,1362,742,1368,740,1373,724,1367,664,1337,613,1306"/>
-<area shape="poly" id="edge64_Node000207_Node000013" title=" " alt="" coords="914,1214,938,1196,967,1161,992,1122,1030,1040,1054,962,1067,902,1073,903,1059,963,1035,1042,997,1125,971,1164,942,1200,918,1218"/>
+<area shape="poly" id="edge64_Node000210_Node000013" title=" " alt="" coords="914,1214,938,1196,967,1161,992,1122,1030,1040,1054,962,1067,902,1073,903,1059,963,1035,1042,997,1125,971,1164,942,1200,918,1218"/>
 </map>
