@@ -1,5 +1,6 @@
 #include "color.h"
 
+#include <gfx/snes_color.h>
 #include <imgui/imgui.h>
 
 #include <cmath>
@@ -34,20 +35,16 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
   return pressed;
 }
 
-IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
+IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
                               ImGuiColorEditFlags flags) {
-  // Convert the SNES color values to ImGui color values (normalized to 0-1
-  // range)
-  ImVec4 displayColor = ConvertSNESColorToImVec4(color);
+  ImVec4 displayColor = ConvertSNESColorToImVec4(*color);
 
   // Call the original ImGui::ColorEdit4 with the converted color
-  bool pressed = ImGui::ColorEdit4(label.data(), (float*)&displayColor, flags);
+  bool pressed =
+      ImGui::ColorEdit4(label.data(), (float*)&displayColor.x, flags);
 
-  // Convert the ImGui color values back to SNES color values (normalized to
-  // 0-255 range)
-  color = SnesColor(static_cast<uint8_t>(displayColor.x * 255.0f),
-                    static_cast<uint8_t>(displayColor.y * 255.0f),
-                    static_cast<uint8_t>(displayColor.z * 255.0f));
+  color->set_rgb(displayColor);
+  color->set_snes(gfx::ConvertRGBtoSNES(displayColor));
 
   return pressed;
 }

@@ -25,7 +25,7 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags = 0,
                                const ImVec2& size_arg = ImVec2(0, 0));
 
-IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
+IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
                               ImGuiColorEditFlags flags = 0);
 
 absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded);
