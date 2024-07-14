@@ -1,5 +1,6 @@
 #include "sprite_editor.h"
 
+#include <gui/icons.h>
 #include <gui/input.h>
 
 namespace yaze {
@@ -37,7 +38,7 @@ absl::Status SpriteEditor::Update() {
       static int next_tab_id = 0;
 
       if (ImGui::BeginTabBar("SpriteTabBar", kSpriteTabBarFlags)) {
-        if (ImGui::TabItemButton("+", kSpriteTabBarFlags)) {
+        if (ImGui::TabItemButton(ICON_MD_ADD, kSpriteTabBarFlags)) {
           if (std::find(active_sprites_.begin(), active_sprites_.end(),
                         current_sprite_id_) != active_sprites_.end()) {
             // Room is already open

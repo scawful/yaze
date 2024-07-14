@@ -231,7 +231,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 
   if (ImGui::BeginTabBar("##GfxEditTabBar", kGfxEditTabBarFlags)) {
     if (ImGui::TabItemButton(
-            "+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+            ICON_MD_ADD, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
       open_sheets_.insert(next_tab_id++);
     }
 

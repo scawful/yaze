@@ -313,7 +313,7 @@ void MasterEditor::ManageActiveEditors() {
       }
     }
 
-    if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing)) {
+    if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_Trailing)) {
       show_add_editor = true;
     }
 
