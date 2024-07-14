@@ -111,10 +111,10 @@ void ResourceLabelManager::SelectableLabelWithNameEdit(
   }
 
   if (ImGui::BeginPopupContextItem(label_id.c_str())) {
-    char* new_label = labels_[type][key].data();
-    if (ImGui::InputText("##Label", new_label, labels_[type][key].size() + 1,
+    std::string* new_label = &labels_[type][key];
+    if (ImGui::InputText("##Label", new_label,
                          ImGuiInputTextFlags_EnterReturnsTrue)) {
-      labels_[type][key] = new_label;
+      labels_[type][key] = *new_label;
     }
     ImGui::EndPopup();
   }
