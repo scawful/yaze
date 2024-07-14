@@ -37,6 +37,15 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using ImGui::BeginMenu;
+using ImGui::BulletText;
+using ImGui::Checkbox;
+using ImGui::MenuItem;
+using ImGui::SameLine;
+using ImGui::Separator;
+using ImGui::Spacing;
+using ImGui::Text;
+
 namespace {
 
 constexpr ImGuiWindowFlags kMainEditorFlags =
@@ -139,11 +148,6 @@ bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
 
 }  // namespace
 
-using ImGui::BeginMenu;
-using ImGui::Checkbox;
-using ImGui::MenuItem;
-using ImGui::Text;
-
 void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
                                std::string filename) {
   sdl_renderer_ = renderer;
@@ -164,12 +168,10 @@ absl::Status MasterEditor::Update() {
   DrawInfoPopup();
 
   if (rom()->is_loaded() && !rom_assets_loaded_) {
-    std::cout << "Loading all graphics data from the game..." << std::endl;
     // Load all of the graphics data from the game.
     RETURN_IF_ERROR(rom()->LoadAllGraphicsData())
     // Initialize overworld graphics, maps, and palettes
     RETURN_IF_ERROR(overworld_editor_.LoadGraphics());
-    std::cout << "Graphics data loaded." << std::endl;
     rom_assets_loaded_ = true;
   }
 
@@ -343,17 +345,19 @@ void MasterEditor::DrawStatusPopup() {
   }
 
   if (show_status_ && (BeginCentered("StatusWindow"))) {
+    Text("%s", ICON_MD_ERROR);
     Text("%s", prev_status_.ToString().c_str());
-    ImGui::Spacing();
+    Spacing();
     ImGui::NextColumn();
     ImGui::Columns(1);
-    ImGui::Separator();
+    Separator();
     ImGui::NewLine();
-    ImGui::SameLine(270);
+    SameLine(128);
     if (ImGui::Button("OK", gui::kDefaultModalSize)) {
       show_status_ = false;
+      status_ = absl::OkStatus();
     }
-    ImGui::SameLine();
+    SameLine();
     if (ImGui::Button(ICON_MD_CONTENT_COPY, ImVec2(50, 0))) {
       ImGui::SetClipboardText(prev_status_.ToString().c_str());
     }
@@ -367,9 +371,9 @@ void MasterEditor::DrawAboutPopup() {
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     Text("Yet Another Zelda3 Editor - v%.2f", core::kYazeVersion);
     Text("Written by: scawful");
-    ImGui::Spacing();
+    Spacing();
     Text("Special Thanks: Zarby89, JaredBrian");
-    ImGui::Separator();
+    Separator();
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       about_ = false;
@@ -405,17 +409,17 @@ void MasterEditor::DrawYazeMenu() {
   if (current_project_.project_opened_) {
     // Project Menu
     if (BeginMenu("Project")) {
-      ImGui::Text("Project: %s", current_project_.name.c_str());
-      ImGui::Text("ROM: %s", current_project_.rom_filename_.c_str());
-      ImGui::Text("Labels: %s", current_project_.labels_filename_.c_str());
-      ImGui::Text("Code: %s", current_project_.code_folder_.c_str());
+      Text("Project: %s", current_project_.name.c_str());
+      Text("ROM: %s", current_project_.rom_filename_.c_str());
+      Text("Labels: %s", current_project_.labels_filename_.c_str());
+      Text("Code: %s", current_project_.code_folder_.c_str());
       ImGui::EndMenu();
     }
   }
   DrawHelpMenu();
 
-  ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
-                  ImGui::CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
+  SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
+           ImGui::CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
   // Modify the style of the button to have no background color
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
   if (ImGui::Button(ICON_MD_DISPLAY_SETTINGS)) {
@@ -492,7 +496,7 @@ void MasterEditor::DrawFileMenu() {
       }
     }
 
-    ImGui::Separator();
+    Separator();
 
     if (BeginMenu("Project")) {
       if (MenuItem("Create New Project")) {
@@ -518,12 +522,12 @@ void MasterEditor::DrawFileMenu() {
     if (BeginMenu("Options")) {
       MenuItem("Backup ROM", "", &backup_rom_);
       MenuItem("Save New Auto", "", &save_new_auto_);
-      ImGui::Separator();
+      Separator();
       if (BeginMenu("Experiment Flags")) {
         if (BeginMenu("Overworld Flags")) {
           Checkbox("Enable Overworld Sprites",
                    &mutable_flags()->overworld.kDrawOverworldSprites);
-          ImGui::Separator();
+          Separator();
           Checkbox("Save Overworld Maps",
                    &mutable_flags()->overworld.kSaveOverworldMaps);
           Checkbox("Save Overworld Entrances",
@@ -540,7 +544,7 @@ void MasterEditor::DrawFileMenu() {
         if (BeginMenu("Dungeon Flags")) {
           Checkbox("Draw Dungeon Room Graphics",
                    &mutable_flags()->kDrawDungeonRoomGraphics);
-          ImGui::Separator();
+          Separator();
           Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
           ImGui::EndMenu();
         }
@@ -567,7 +571,7 @@ void MasterEditor::DrawFileMenu() {
       ImGui::EndMenu();
     }
 
-    ImGui::Separator();
+    Separator();
 
     if (MenuItem("Quit", "Ctrl+Q")) {
       quit_ = true;
@@ -584,7 +588,7 @@ void MasterEditor::DrawFileMenu() {
       SaveRom();
       save_as_menu = false;
     }
-    ImGui::SameLine();
+    SameLine();
     if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
       save_as_menu = false;
     }
@@ -599,26 +603,26 @@ void MasterEditor::DrawFileMenu() {
     if (ImGui::Button("Destination Filepath", gui::kDefaultModalSize)) {
       current_project_.filepath = FileDialogWrapper::ShowOpenFolderDialog();
     }
-    ImGui::SameLine();
-    ImGui::Text("%s", current_project_.filepath.c_str());
+    SameLine();
+    Text("%s", current_project_.filepath.c_str());
     if (ImGui::Button("ROM File", gui::kDefaultModalSize)) {
       current_project_.rom_filename_ = FileDialogWrapper::ShowOpenFileDialog();
     }
-    ImGui::SameLine();
-    ImGui::Text("%s", current_project_.rom_filename_.c_str());
+    SameLine();
+    Text("%s", current_project_.rom_filename_.c_str());
     if (ImGui::Button("Labels File", gui::kDefaultModalSize)) {
       current_project_.labels_filename_ =
           FileDialogWrapper::ShowOpenFileDialog();
     }
-    ImGui::SameLine();
-    ImGui::Text("%s", current_project_.labels_filename_.c_str());
+    SameLine();
+    Text("%s", current_project_.labels_filename_.c_str());
     if (ImGui::Button("Code Folder", gui::kDefaultModalSize)) {
       current_project_.code_folder_ = FileDialogWrapper::ShowOpenFolderDialog();
     }
-    ImGui::SameLine();
-    ImGui::Text("%s", current_project_.code_folder_.c_str());
+    SameLine();
+    Text("%s", current_project_.code_folder_.c_str());
 
-    ImGui::Separator();
+    Separator();
     if (ImGui::Button("Create", gui::kDefaultModalSize)) {
       new_project_menu = false;
       status_ = current_project_.Create(save_as_filename);
@@ -626,7 +630,7 @@ void MasterEditor::DrawFileMenu() {
         status_ = current_project_.Save();
       }
     }
-    ImGui::SameLine();
+    SameLine();
     if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
       new_project_menu = false;
     }
@@ -638,13 +642,13 @@ void MasterEditor::DrawEditMenu() {
   if (BeginMenu("Edit")) {
     MENU_ITEM2("Undo", "Ctrl+Z") { status_ = current_editor_->Undo(); }
     MENU_ITEM2("Redo", "Ctrl+Y") { status_ = current_editor_->Redo(); }
-    ImGui::Separator();
+    Separator();
     MENU_ITEM2("Cut", "Ctrl+X") { status_ = current_editor_->Cut(); }
     MENU_ITEM2("Copy", "Ctrl+C") { status_ = current_editor_->Copy(); }
     MENU_ITEM2("Paste", "Ctrl+V") { status_ = current_editor_->Paste(); }
-    ImGui::Separator();
+    Separator();
     MENU_ITEM2("Find", "Ctrl+F") {}
-    ImGui::Separator();
+    Separator();
     MENU_ITEM("ROM Information") rom_info_ = true;
     ImGui::EndMenu();
   }
@@ -684,8 +688,8 @@ void MasterEditor::DrawViewMenu() {
 
     static uint64_t convert_address = 0;
     gui::InputHex("SNES to PC", (int*)&convert_address, 6, 200.f);
-    ImGui::SameLine();
-    ImGui::Text("%x", core::SnesToPc(convert_address));
+    SameLine();
+    Text("%x", core::SnesToPc(convert_address));
 
     // mem_edit.DrawWindow("Memory Editor", (void*)&(*rom()), rom()->size());
     BEGIN_TABLE("Memory Comparison", 2, ImGuiTableFlags_Resizable);
@@ -693,7 +697,7 @@ void MasterEditor::DrawViewMenu() {
     SETUP_COLUMN("Dest")
 
     NEXT_COLUMN()
-    ImGui::Text("%s", rom()->filename().data());
+    Text("%s", rom()->filename().data());
     mem_edit.DrawContents((void*)&(*rom()), rom()->size());
 
     NEXT_COLUMN()
@@ -701,7 +705,7 @@ void MasterEditor::DrawViewMenu() {
       comp_edit.SetComparisonData((void*)&(*rom()));
       ImGui::BeginGroup();
       ImGui::BeginChild("Comparison ROM");
-      ImGui::Text("%s", comparison_rom.filename().data());
+      Text("%s", comparison_rom.filename().data());
       comp_edit.DrawContents((void*)&(comparison_rom), comparison_rom.size());
       ImGui::EndChild();
       ImGui::EndGroup();
@@ -758,13 +762,13 @@ void MasterEditor::DrawViewMenu() {
   if (BeginMenu("View")) {
     MenuItem("Emulator", nullptr, &show_emulator);
     MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
-    ImGui::Separator();
+    Separator();
     MenuItem("Resource Label Manager", nullptr, &show_resource_label_manager);
-    ImGui::Separator();
+    Separator();
     MenuItem("Hex Editor", nullptr, &show_memory_editor);
     MenuItem("Assembly Editor", nullptr, &show_asm_editor);
     MenuItem("Palette Editor", nullptr, &show_palette_editor);
-    ImGui::Separator();
+    Separator();
     MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
     MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
     ImGui::EndMenu();
@@ -787,28 +791,28 @@ void MasterEditor::DrawHelpMenu() {
   if (open_supported_features) ImGui::OpenPopup("Supported Features");
   if (ImGui::BeginPopupModal("Supported Features", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Overworld");
-    ImGui::BulletText("LW/DW/SW Tilemap Editing");
-    ImGui::BulletText("LW/DW/SW Map Properties");
-    ImGui::BulletText("Create/Delete/Update Entrances");
-    ImGui::BulletText("Create/Delete/Update Exits");
-    ImGui::BulletText("Create/Delete/Update Sprites");
-    ImGui::BulletText("Create/Delete/Update Items");
+    Text("Overworld");
+    BulletText("LW/DW/SW Tilemap Editing");
+    BulletText("LW/DW/SW Map Properties");
+    BulletText("Create/Delete/Update Entrances");
+    BulletText("Create/Delete/Update Exits");
+    BulletText("Create/Delete/Update Sprites");
+    BulletText("Create/Delete/Update Items");
 
-    ImGui::Text("Dungeon");
-    ImGui::BulletText("View Room Header Properties");
-    ImGui::BulletText("View Entrance Properties");
+    Text("Dungeon");
+    BulletText("View Room Header Properties");
+    BulletText("View Entrance Properties");
 
-    ImGui::Text("Graphics");
-    ImGui::BulletText("View Decompressed Graphics Sheets");
-    ImGui::BulletText("View/Update Graphics Groups");
+    Text("Graphics");
+    BulletText("View Decompressed Graphics Sheets");
+    BulletText("View/Update Graphics Groups");
 
-    ImGui::Text("Palettes");
-    ImGui::BulletText("View Palette Groups");
+    Text("Palettes");
+    BulletText("View Palette Groups");
 
-    ImGui::Text("Saveable");
-    ImGui::BulletText("All Listed Overworld Features");
-    ImGui::BulletText("Hex Editor Changes");
+    Text("Saveable");
+    BulletText("All Listed Overworld Features");
+    BulletText("Hex Editor Changes");
 
     if (ImGui::Button("Close", gui::kDefaultModalSize)) {
       open_supported_features = false;
