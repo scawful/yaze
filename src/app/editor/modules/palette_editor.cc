@@ -92,25 +92,21 @@ absl::Status PaletteEditor::Update() {
     TableHeadersRow();
     TableNextRow();
     TableNextColumn();
-    DisplayCategoryTable();
-    Separator();
     if (gui::SnesColorEdit4("Color Picker", current_color_,
                             ImGuiColorEditFlags_NoAlpha)) {
       // TODO: Implement new update color function
     }
+    Separator();
+    DisplayCategoryTable();
 
     TableNextColumn();
-    if (BeginTable("Palette Metadata", 2)) {
-      TableSetupColumn("Palette Name");
-      TableSetupColumn("Palette Size");
-      TableHeadersRow();
-      TableNextRow();
-      TableNextColumn();
-      Text("Palette Name");
-      TableNextColumn();
-      Text("Palette Size");
-      EndTable();
-    }
+    static bool in_use = false;
+    ImGui::Checkbox("Palette in use? ", &in_use);
+    Separator();
+    static std::string palette_notes = "Notes about the palette";
+    ImGui::InputTextMultiline("Notes", palette_notes.data(), 1024,
+                              ImVec2(-1, ImGui::GetTextLineHeight() * 16),
+                              ImGuiInputTextFlags_AllowTabInput);
 
     EndTable();
   }
@@ -121,7 +117,11 @@ absl::Status PaletteEditor::Update() {
 }
 
 void PaletteEditor::DisplayCategoryTable() {
-  if (BeginTable("Category Table", 6)) {
+  if (BeginTable("Category Table", 6,
+                 ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+                     ImGuiTableFlags_SizingStretchSame |
+                     ImGuiTableFlags_Hideable,
+                 ImVec2(0, 0))) {
     TableSetupColumn("Weapons and Gear");
     TableSetupColumn("World and Global Sprites");
     TableSetupColumn("Sprites Aux1");
@@ -193,47 +193,22 @@ void PaletteEditor::DisplayCategoryTable() {
   }
 }
 
-absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
-                                               int index) {
-  if (index >= palette.size()) {
-    return absl::InvalidArgumentError("Index out of bounds");
-  }
-
-  // Get the current color
-  ASSIGN_OR_RETURN(auto color, palette.GetColor(index));
-  auto currentColor = color.rgb();
-  if (ColorPicker4("Color Picker", (float*)&palette[index])) {
-    // The color was modified, update it in the palette
-    palette(index, currentColor);
-  }
-  return absl::OkStatus();
-}
-
-absl::Status PaletteEditor::ResetColorToOriginal(
-    gfx::SnesPalette& palette, int index,
-    const gfx::SnesPalette& originalPalette) {
-  if (index >= palette.size() || index >= originalPalette.size()) {
-    return absl::InvalidArgumentError("Index out of bounds");
-  }
-  ASSIGN_OR_RETURN(auto color, originalPalette.GetColor(index));
-  auto originalColor = color.rgb();
-  palette(index, originalColor);
-  return absl::OkStatus();
-}
-
 absl::Status PaletteEditor::DrawPaletteGroup(int category) {
   if (!rom()->is_loaded()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
 
+  auto palette_group_name = kPaletteGroupNames[category];
   gfx::PaletteGroup palette_group =
-      *rom()->palette_group().get_group(kPaletteGroupNames[category].data());
+      *rom()->palette_group().get_group(palette_group_name.data());
   const auto size = palette_group.size();
 
   static bool edit_color = false;
   for (int j = 0; j < size; j++) {
     rom()->resource_label()->SelectableLabelWithNameEdit(
-        false, "Palette Name", /*key=*/std::to_string(j), "Unnamed Palette");
+        false, palette_group_name.data(), /*key=*/std::to_string(j),
+        "Unnamed Palette");
+    SameLine();
 
     gfx::SnesPalette* palette = palette_group.mutable_palette(j);
     auto pal_size = palette->size();
@@ -410,6 +385,34 @@ void PaletteEditor::DrawPortablePalette(gfx::SnesPalette& palette) {
     EndGroup();
   }
   EndChild();
+}
+
+absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
+                                               int index) {
+  if (index >= palette.size()) {
+    return absl::InvalidArgumentError("Index out of bounds");
+  }
+
+  // Get the current color
+  ASSIGN_OR_RETURN(auto color, palette.GetColor(index));
+  auto currentColor = color.rgb();
+  if (ColorPicker4("Color Picker", (float*)&palette[index])) {
+    // The color was modified, update it in the palette
+    palette(index, currentColor);
+  }
+  return absl::OkStatus();
+}
+
+absl::Status PaletteEditor::ResetColorToOriginal(
+    gfx::SnesPalette& palette, int index,
+    const gfx::SnesPalette& originalPalette) {
+  if (index >= palette.size() || index >= originalPalette.size()) {
+    return absl::InvalidArgumentError("Index out of bounds");
+  }
+  ASSIGN_OR_RETURN(auto color, originalPalette.GetColor(index));
+  auto originalColor = color.rgb();
+  palette(index, originalColor);
+  return absl::OkStatus();
 }
 
 }  // namespace editor
