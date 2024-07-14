@@ -217,11 +217,8 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
     ImGui::PushID(n);
     if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
-    auto popup_id = absl::StrCat("Palette", n);
-
     // Small icon of the color in the palette
-
-    if (gui::SnesColorButton(popup_id, palette[n],
+    if (gui::SnesColorButton(absl::StrCat("Palette", n), palette[n],
                              ImGuiColorEditFlags_NoAlpha |
                                  ImGuiColorEditFlags_NoPicker |
                                  ImGuiColorEditFlags_NoTooltip)) {
