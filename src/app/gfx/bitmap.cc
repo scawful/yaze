@@ -201,6 +201,7 @@ void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
       SDL_Surface_Deleter());
   surface_->pixels = pixel_data_;
   GrayscalePalette(surface_->format->palette);
+  active_ = true;
 }
 
 void Bitmap::CreateTexture(SDL_Renderer *renderer) {
@@ -312,17 +313,17 @@ absl::Status Bitmap::ApplyPalette(const SnesPalette &palette) {
 
   for (int i = 0; i < palette.size(); ++i) {
     ASSIGN_OR_RETURN(gfx::SnesColor pal_color, palette.GetColor(i));
-    if (pal_color.is_transparent()) {
-      sdlPalette->colors[i].r = 0;
-      sdlPalette->colors[i].g = 0;
-      sdlPalette->colors[i].b = 0;
-      sdlPalette->colors[i].a = 0;
-    } else {
-      sdlPalette->colors[i].r = pal_color.rgb().x;
-      sdlPalette->colors[i].g = pal_color.rgb().y;
-      sdlPalette->colors[i].b = pal_color.rgb().z;
-      sdlPalette->colors[i].a = pal_color.rgb().w;
-    }
+    // if (pal_color.is_transparent()) {
+    //   sdlPalette->colors[i].r = 0;
+    //   sdlPalette->colors[i].g = 0;
+    //   sdlPalette->colors[i].b = 0;
+    //   sdlPalette->colors[i].a = 0;
+    // } else {
+    sdlPalette->colors[i].r = pal_color.rgb().x;
+    sdlPalette->colors[i].g = pal_color.rgb().y;
+    sdlPalette->colors[i].b = pal_color.rgb().z;
+    sdlPalette->colors[i].a = pal_color.rgb().w;
+    // }
   }
 
   SDL_LockSurface(surface_.get());
