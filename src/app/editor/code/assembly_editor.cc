@@ -4,6 +4,8 @@
 
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/widgets.h"
+#include "app/gui/input.h"
+#include "app/gui/icons.h"
 #include "core/constants.h"
 
 namespace yaze {
@@ -223,7 +225,7 @@ void AssemblyEditor::DrawFileTabView() {
   static int next_tab_id = 0;
 
   if (ImGui::BeginTabBar("AssemblyFileTabBar", ImGuiTabBarFlags_None)) {
-    if (ImGui::TabItemButton("+", ImGuiTabItemFlags_None)) {
+    if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_None)) {
       if (std::find(active_files_.begin(), active_files_.end(),
                     current_file_id_) != active_files_.end()) {
         // Room is already open

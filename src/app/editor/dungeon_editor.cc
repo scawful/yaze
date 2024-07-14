@@ -420,7 +420,7 @@ void DungeonEditor::DrawDungeonTabView() {
   static int next_tab_id = 0;
 
   if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
-    if (ImGui::TabItemButton("+", kDungeonTabFlags)) {
+    if (ImGui::TabItemButton(ICON_MD_ADD, kDungeonTabFlags)) {
       if (std::find(active_rooms_.begin(), active_rooms_.end(),
                     current_room_id_) != active_rooms_.end()) {
         // Room is already open
