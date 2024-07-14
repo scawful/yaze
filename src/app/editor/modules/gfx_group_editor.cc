@@ -30,6 +30,9 @@ using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 
+using gfx::kPaletteGroupNames;
+using gfx::PaletteCategory;
+
 absl::Status GfxGroupEditor::Update() {
   if (ImGui::BeginTabBar("GfxGroupEditor")) {
     if (ImGui::BeginTabItem("Main")) {
@@ -235,11 +238,14 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
 }  // namespace
 
 void GfxGroupEditor::DrawPaletteViewer() {
-  auto dungeon_main_palette_val =
+  static uint8_t &dungeon_main_palette_val =
       rom()->paletteset_ids[selected_paletteset_][0];
-  auto dungeon_spr_pal_1_val = rom()->paletteset_ids[selected_paletteset_][1];
-  auto dungeon_spr_pal_2_val = rom()->paletteset_ids[selected_paletteset_][2];
-  auto dungeon_spr_pal_3_val = rom()->paletteset_ids[selected_paletteset_][3];
+  static uint8_t &dungeon_spr_pal_1_val =
+      rom()->paletteset_ids[selected_paletteset_][1];
+  static uint8_t &dungeon_spr_pal_2_val =
+      rom()->paletteset_ids[selected_paletteset_][2];
+  static uint8_t &dungeon_spr_pal_3_val =
+      rom()->paletteset_ids[selected_paletteset_][3];
 
   gui::InputHexByte("Dungeon Main", &dungeon_main_palette_val);
   gui::InputHexByte("Dungeon Spr Pal 1", &dungeon_spr_pal_1_val);
@@ -249,18 +255,37 @@ void GfxGroupEditor::DrawPaletteViewer() {
   auto &palette = *rom()->mutable_palette_group()->dungeon_main.mutable_palette(
       rom()->paletteset_ids[selected_paletteset_][0]);
   DrawPaletteFromPaletteGroup(palette);
+  SameLine();
+  rom()->resource_label()->SelectableLabelWithNameEdit(
+      false, kPaletteGroupNames[PaletteCategory::kDungeons].data(),
+      std::to_string(dungeon_main_palette_val), "Unnamed dungeon palette");
+
   auto &spr_aux_pal1 =
       *rom()->mutable_palette_group()->sprites_aux1.mutable_palette(
           rom()->paletteset_ids[selected_paletteset_][1]);
   DrawPaletteFromPaletteGroup(spr_aux_pal1);
+  SameLine();
+  rom()->resource_label()->SelectableLabelWithNameEdit(
+      false, kPaletteGroupNames[PaletteCategory::kSpritesAux1].data(),
+      std::to_string(dungeon_spr_pal_1_val), "Dungeon Spr Pal 1");
+
   auto &spr_aux_pal2 =
       *rom()->mutable_palette_group()->sprites_aux2.mutable_palette(
           rom()->paletteset_ids[selected_paletteset_][2]);
   DrawPaletteFromPaletteGroup(spr_aux_pal2);
+  SameLine();
+  rom()->resource_label()->SelectableLabelWithNameEdit(
+      false, kPaletteGroupNames[PaletteCategory::kSpritesAux2].data(),
+      std::to_string(dungeon_spr_pal_2_val), "Dungeon Spr Pal 2");
+
   auto &spr_aux_pal3 =
       *rom()->mutable_palette_group()->sprites_aux3.mutable_palette(
           rom()->paletteset_ids[selected_paletteset_][3]);
   DrawPaletteFromPaletteGroup(spr_aux_pal3);
+  SameLine();
+  rom()->resource_label()->SelectableLabelWithNameEdit(
+      false, kPaletteGroupNames[PaletteCategory::kSpritesAux3].data(),
+      std::to_string(dungeon_spr_pal_3_val), "Dungeon Spr Pal 3");
 }
 
 }  // namespace editor
