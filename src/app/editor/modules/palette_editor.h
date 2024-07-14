@@ -14,17 +14,36 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-constexpr int kNumPalettes = 11;
+constexpr int kNumPalettes = 14;
+
+enum PaletteCategory {
+  kSword,
+  kShield,
+  kClothes,
+  kWorldColors,
+  kAreaColors,
+  kGlobalSprites,
+  kSpritesAux1,
+  kSpritesAux2,
+  kSpritesAux3,
+  kDungeons,
+  kWorldMap,
+  kDungeonMap,
+  kTriforce,
+  kCrystal
+};
 
 static constexpr absl::string_view kPaletteCategoryNames[] = {
-    "Sword",       "Shield",   "Clothes",  "World Colors",
-    "Area Colors", "Enemies",  "Dungeons", "World Map",
-    "Dungeon Map", "Triforce", "Crystal"};
+    "Sword",        "Shield",         "Clothes",      "World Colors",
+    "Area Colors",  "Global Sprites", "Sprites Aux1", "Sprites Aux2",
+    "Sprites Aux3", "Dungeons",       "World Map",    "Dungeon Map",
+    "Triforce",     "Crystal"};
 
 static constexpr absl::string_view kPaletteGroupNames[] = {
-    "swords",      "shields",        "armors",       "ow_main",
-    "ow_aux",      "global_sprites", "dungeon_main", "ow_mini_map",
-    "ow_mini_map", "3d_object",      "3d_object"};
+    "swords",       "shields",        "armors",       "ow_main",
+    "ow_aux",       "global_sprites", "sprites_aux1", "sprites_aux2",
+    "sprites_aux3", "dungeon_main",   "ow_mini_map",  "ow_mini_map",
+    "3d_object",    "3d_object"};
 
 namespace palette_internal {
 struct PaletteChange {
@@ -95,7 +114,6 @@ class PaletteEditor : public SharedRom, public Editor {
   absl::Status Redo() override { return absl::OkStatus(); }
 
   void DisplayCategoryTable();
-  absl::Status DrawPaletteGroups();
 
   absl::Status EditColorInPalette(gfx::SnesPalette& palette, int index);
   absl::Status ResetColorToOriginal(gfx::SnesPalette& palette, int index,
@@ -106,7 +124,6 @@ class PaletteEditor : public SharedRom, public Editor {
 
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
-
   absl::Status InitializeSavedPalette(const gfx::SnesPalette& palette) {
     for (int n = 0; n < palette.size(); n++) {
       ASSIGN_OR_RETURN(auto color, palette.GetColor(n));
