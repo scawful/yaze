@@ -21,6 +21,37 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+constexpr int kNumPalettes = 14;
+
+enum PaletteCategory {
+  kSword,
+  kShield,
+  kClothes,
+  kWorldColors,
+  kAreaColors,
+  kGlobalSprites,
+  kSpritesAux1,
+  kSpritesAux2,
+  kSpritesAux3,
+  kDungeons,
+  kWorldMap,
+  kDungeonMap,
+  kTriforce,
+  kCrystal
+};
+
+static constexpr absl::string_view kPaletteCategoryNames[] = {
+    "Sword",        "Shield",         "Clothes",      "World Colors",
+    "Area Colors",  "Global Sprites", "Sprites Aux1", "Sprites Aux2",
+    "Sprites Aux3", "Dungeons",       "World Map",    "Dungeon Map",
+    "Triforce",     "Crystal"};
+
+static constexpr absl::string_view kPaletteGroupNames[] = {
+    "swords",       "shields",        "armors",       "ow_main",
+    "ow_aux",       "global_sprites", "sprites_aux1", "sprites_aux2",
+    "sprites_aux3", "dungeon_main",   "ow_mini_map",  "ow_mini_map",
+    "3d_object",    "3d_object"};
+
 /**
  * @brief Primitive of a SNES color palette.
  */
