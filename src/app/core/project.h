@@ -1,11 +1,14 @@
 #ifndef YAZE_APP_CORE_PROJECT_H
 #define YAZE_APP_CORE_PROJECT_H
 
+#include <abseil-cpp/absl/strings/match.h>
+
 #include <fstream>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/string_view.h"
 #include "app/core/common.h"
 
 namespace yaze {
@@ -65,7 +68,7 @@ struct Project {
         break;
       }
 
-      if (line.find(kPreviousRomFilenameDelimiter) != std::string::npos) {
+      if (absl::StrContains(line, kPreviousRomFilenameDelimiter)) {
         previous_rom_filenames_.push_back(
             line.substr(line.find(kPreviousRomFilenameDelimiter) +
                         kPreviousRomFilenameDelimiter.size() + 1));
