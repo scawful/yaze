@@ -7,7 +7,6 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/editor/modules/palette_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -53,8 +52,6 @@ class GfxGroupEditor : public SharedRom {
   uint8_t selected_roomset_ = 0;
   uint8_t selected_spriteset_ = 0;
   uint8_t selected_paletteset_ = 0;
-
-  PaletteEditor palette_editor_;
 
   gui::Canvas blockset_canvas_;
   gui::Canvas roomset_canvas_;

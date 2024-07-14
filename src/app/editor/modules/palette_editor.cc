@@ -45,6 +45,8 @@ using ImGui::Text;
 using ImGui::TreeNode;
 using ImGui::TreePop;
 
+using namespace gfx;
+
 constexpr ImGuiTableFlags kPaletteTableFlags =
     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable |
     ImGuiTableFlags_SizingStretchSame;
@@ -87,7 +89,8 @@ absl::Status PaletteEditor::Update() {
   if (BeginTable("paletteEditorTable", 2, kPaletteTableFlags, ImVec2(0, 0))) {
     TableSetupColumn("Palette Groups", ImGuiTableColumnFlags_WidthStretch,
                      GetContentRegionAvail().x);
-    TableSetupColumn("Metadata", ImGuiTableColumnFlags_WidthStretch,
+    TableSetupColumn("Palette Sets and Metadata",
+                     ImGuiTableColumnFlags_WidthStretch,
                      GetContentRegionAvail().x);
     TableHeadersRow();
     TableNextRow();
@@ -100,6 +103,8 @@ absl::Status PaletteEditor::Update() {
     DisplayCategoryTable();
 
     TableNextColumn();
+    gfx_group_editor_.DrawPaletteViewer();
+    Separator();
     static bool in_use = false;
     ImGui::Checkbox("Palette in use? ", &in_use);
     Separator();
@@ -205,11 +210,6 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
 
   static bool edit_color = false;
   for (int j = 0; j < size; j++) {
-    rom()->resource_label()->SelectableLabelWithNameEdit(
-        false, palette_group_name.data(), /*key=*/std::to_string(j),
-        "Unnamed Palette");
-    SameLine();
-
     gfx::SnesPalette* palette = palette_group.mutable_palette(j);
     auto pal_size = palette->size();
 
@@ -238,6 +238,10 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
 
       PopID();
     }
+    SameLine();
+    rom()->resource_label()->SelectableLabelWithNameEdit(
+        false, palette_group_name.data(), /*key=*/std::to_string(j),
+        "Unnamed Palette");
   }
   return absl::OkStatus();
 }
