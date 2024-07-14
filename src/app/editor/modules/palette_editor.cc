@@ -262,12 +262,19 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
 
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
                        col[1], col[2]);
-
     if (Selectable(buf)) SetClipboardText(buf);
+
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d)", cr, cg, cb);
     if (Selectable(buf)) SetClipboardText(buf);
+
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg, cb);
     if (Selectable(buf)) SetClipboardText(buf);
+
+    // SNES Format
+    CustomFormatString(buf, IM_ARRAYSIZE(buf), "0x%04X",
+                       ConvertRGBtoSNES(ImVec4(col[0], col[1], col[2], 1.0f)));
+    if (Selectable(buf)) SetClipboardText(buf);
+
     EndPopup();
   }
 
