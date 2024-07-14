@@ -78,7 +78,7 @@ class GraphicsEditor : public SharedRom, public Editor {
  public:
   GraphicsEditor() { type_ = EditorType::kGraphics; }
 
-  absl::Status Update();
+  absl::Status Update() override;
 
   absl::Status Cut() override { return absl::OkStatus(); }
   absl::Status Copy() override { return absl::OkStatus(); }

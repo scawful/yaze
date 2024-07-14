@@ -116,6 +116,27 @@ class RecentFilesManager {
   std::vector<std::string> recentFiles_;
 };
 
+// Function to switch the active tab in a tab bar
+void SetTabBarTab(ImGuiTabBar* tab_bar, ImGuiID tab_id) {
+  if (tab_bar == NULL) return;
+
+  // Find the tab item with the specified tab_id
+  ImGuiTabItem* tab_item = &tab_bar->Tabs[tab_id];
+  tab_item->LastFrameVisible = -1;
+  tab_item->LastFrameSelected = -1;
+  tab_bar->VisibleTabId = tab_id;
+  tab_bar->VisibleTabWasSubmitted = true;
+  tab_bar->SelectedTabId = tab_id;
+  tab_bar->NextSelectedTabId = tab_id;
+  tab_bar->ReorderRequestTabId = tab_id;
+  tab_bar->CurrFrameVisible = -1;
+}
+
+bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
+  return std::find(active_editors.begin(), active_editors.end(), editor) !=
+         active_editors.end();
+}
+
 }  // namespace
 
 using ImGui::BeginMenu;
@@ -132,24 +153,6 @@ void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
   }
   overworld_editor_.InitializeZeml();
 }
-
-namespace {
-// Function to switch the active tab in a tab bar
-void SetTabBarTab(ImGuiTabBar* tab_bar, ImGuiID tab_id) {
-  if (tab_bar == NULL) return;
-
-  // Find the tab item with the specified tab_id
-  ImGuiTabItem* tab_item = &tab_bar->Tabs[tab_id];
-  tab_item->LastFrameVisible = -1;
-  tab_item->LastFrameSelected = -1;
-  tab_bar->VisibleTabId = tab_id;
-  tab_bar->VisibleTabWasSubmitted = true;
-  tab_bar->SelectedTabId = tab_id;
-  tab_bar->NextSelectedTabId = tab_id;
-  tab_bar->ReorderRequestTabId = tab_id;
-  tab_bar->CurrFrameVisible = -1;
-}
-}  // namespace
 
 absl::Status MasterEditor::Update() {
   NewMasterFrame();
@@ -176,13 +179,6 @@ absl::Status MasterEditor::Update() {
 
   return absl::OkStatus();
 }
-
-namespace {
-bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
-  return std::find(active_editors.begin(), active_editors.end(), editor) !=
-         active_editors.end();
-}
-}  // namespace
 
 void MasterEditor::ManageActiveEditors() {
   // Show popup pane to select an editor to add
