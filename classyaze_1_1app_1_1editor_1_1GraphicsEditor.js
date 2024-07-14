@@ -6,7 +6,7 @@ var classyaze_1_1app_1_1editor_1_1GraphicsEditor =
       [ "kFill", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0fc14b4e3c56508c45dc93e8781d95d7ae22acaa6e4e9a5118b4cf5b81f8fbe1e", null ]
     ] ],
     [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e", null ],
-    [ "Update", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2f438dd3f05d0df648ed38bf56c4381a", null ],
+    [ "Update", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4793620335c1fef40414171397f51583", null ],
     [ "Cut", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4e99fb8f2fcf76ac6e795556134ddf4f", null ],
     [ "Copy", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2da56a06cd1b34d1b2b7d151a8a67375", null ],
     [ "Paste", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a7c683d25a47a0a036f094eee357ab17c", null ],

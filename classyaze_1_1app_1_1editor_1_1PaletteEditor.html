@@ -166,8 +166,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a59776a2908123146e9bc21a328760682"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e63e29b01fb5fd97acd9d710f5560a9" id="r_a3e63e29b01fb5fd97acd9d710f5560a9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3e63e29b01fb5fd97acd9d710f5560a9">DisplayCategoryTable</a> ()</td></tr>
 <tr class="separator:a3e63e29b01fb5fd97acd9d710f5560a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad494120a52d9eea8684174b6993e5ade" id="r_ad494120a52d9eea8684174b6993e5ade"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad494120a52d9eea8684174b6993e5ade">DrawPaletteGroups</a> ()</td></tr>
-<tr class="separator:ad494120a52d9eea8684174b6993e5ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad846ef8535f8cbe6f8e4a9a16e0a29da" id="r_ad846ef8535f8cbe6f8e4a9a16e0a29da"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad846ef8535f8cbe6f8e4a9a16e0a29da">EditColorInPalette</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, int index)</td></tr>
 <tr class="separator:ad846ef8535f8cbe6f8e4a9a16e0a29da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18e4b234d6b6a7d8d2ea8fa7c236415a" id="r_a18e4b234d6b6a7d8d2ea8fa7c236415a"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18e4b234d6b6a7d8d2ea8fa7c236415a">ResetColorToOriginal</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette, int index, const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;originalPalette)</td></tr>
@@ -281,10 +279,11 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000005">Todo</a></b></dt><dd>Implement new update color function </dd></dl>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">yaze::app::editor::Editor</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h.html#aada67a2281f9b16dbb495ed05b8755e0">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="#a686c9db845a36de764713129c19ef950">current_color_</a>, <a class="el" href="#a3e63e29b01fb5fd97acd9d710f5560a9">DisplayCategoryTable()</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1475bf292c22487da0bb81305e7c6b8f">yaze::app::editor::kNumPalettes</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a3b370328eb751928718573d50f7df5be">yaze::app::gui::SnesColorEdit4()</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#aada67a2281f9b16dbb495ed05b8755e0">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="#a686c9db845a36de764713129c19ef950">current_color_</a>, <a class="el" href="#a3e63e29b01fb5fd97acd9d710f5560a9">DisplayCategoryTable()</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1475bf292c22487da0bb81305e7c6b8f">yaze::app::editor::kNumPalettes</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a7240deb8b0e5909fa9c74659fcf0b20c">yaze::app::editor::kPaletteTableFlags</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a3b370328eb751928718573d50f7df5be">yaze::app::gui::SnesColorEdit4()</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0">yaze::app::editor::MasterEditor::DrawViewMenu()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#aef088de58cae5ac63a9a5e1ca301a4f7">yaze::app::editor::MasterEditor::ManageActiveEditors()</a>.</p>
 <div class="dynheader">
@@ -481,7 +480,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a9323bdc89bc5fba3c2c977a32e13ed2d">DrawPaletteGroup()</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
+<p class="reference">References <a class="el" href="#a9323bdc89bc5fba3c2c977a32e13ed2d">DrawPaletteGroup()</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6aa4efeea0f8af7219d2065ef8be00a5b6">yaze::app::editor::kAreaColors</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6ae1e94a4a184b2b7fc17beb77a0ca2553">yaze::app::editor::kClothes</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a228de3204f9b770692090af56633778f">yaze::app::editor::kCrystal</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a9c7267fcbcc52edc2c5b35af758df964">yaze::app::editor::kDungeonMap</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a30726a1b6c7beee7847d3e61dc994db9">yaze::app::editor::kDungeons</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a0ebafb87b8c9433df7bfa9d82e9edf2a">yaze::app::editor::kGlobalSprites</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a211d1f3d835fb927ec65b2bdbd3e8bca">yaze::app::editor::kShield</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a55080a7fe1a96773355d032acd07f8a1">yaze::app::editor::kSpritesAux1</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6adc7a91c776f75ef824ddff318748aeac">yaze::app::editor::kSpritesAux2</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a976cf45ba88c42031a224737f8c0f816">yaze::app::editor::kSpritesAux3</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a9a688b77968f99d70c13123f39e2177e">yaze::app::editor::kSword</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a8216df162a95c32ddc430c1d243f1705">yaze::app::editor::kTriforce</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6a27dbdbc29242a43a1a277ffc2b7dcb99">yaze::app::editor::kWorldColors</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a1dee58f6fe7a644958f2b50c3085c7d6af06803a14cde2dd8463748c4c286e5e9">yaze::app::editor::kWorldMap</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#a3e7aaa1c0187c37af4d1bb057a1af027">Update()</a>.</p>
 <div class="dynheader">
@@ -521,23 +520,6 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="801,335,975,184,979,188,804,339"/>
 </map>
 </div>
-
-</div>
-</div>
-<a id="ad494120a52d9eea8684174b6993e5ade" name="ad494120a52d9eea8684174b6993e5ade"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad494120a52d9eea8684174b6993e5ade">&#9670;&#160;</a></span>DrawPaletteGroups()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::app::editor::PaletteEditor::DrawPaletteGroups </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
 
 </div>
 </div>
@@ -778,7 +760,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000005">Todo</a></b></dt><dd>Implement new update color function </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000006">Todo</a></b></dt><dd>Implement new update color function </dd></dl>
 
 <p class="reference">References <a class="el" href="#a80fe2954b6dda845d09f510d2d558d6b">color_popup_flags</a>, <a class="el" href="palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a">F32_TO_INT8_SAT</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a3b370328eb751928718573d50f7df5be">yaze::app::gui::SnesColorEdit4()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef">yaze::app::gfx::ToFloatArray()</a>.</p>
 
