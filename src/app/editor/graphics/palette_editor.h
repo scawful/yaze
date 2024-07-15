@@ -4,7 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "absl/status/status.h"
-#include "app/editor/modules/gfx_group_editor.h"
+#include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
