@@ -53,7 +53,7 @@ var searchData=
   ['and1_50',['AND1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a69fdad3969f614b9fa565fe793b5765a',1,'yaze::app::emu::audio::Spc700']]],
   ['andabsolutelong_51',['ANDAbsoluteLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a0194a32ccd8e277478ae874b564f5ccd',1,'yaze::app::emu::Cpu']]],
   ['andm_52',['ANDM',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a02a08e3c2af343a2077640e936bd8d1d',1,'yaze::app::emu::audio::Spc700']]],
-  ['animationgroup_53',['AnimationGroup',['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#afa0f3ea57d1a2c693e1b1567c5498b89',1,'yaze::editor::zsprite::AnimationGroup']]],
+  ['animationgroup_53',['AnimationGroup',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a1dc626e6efc127624bcb9285c7c1822f',1,'yaze::app::editor::zsprite::AnimationGroup::AnimationGroup()=default'],['../structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#ab36ba050ab16d8a9eb89b9f593bbf713',1,'yaze::app::editor::zsprite::AnimationGroup::AnimationGroup(uint8_t fs, uint8_t fe, uint8_t fsp, std::string fn)']]],
   ['appendoperandbytes_54',['AppendOperandBytes',['../classyaze_1_1app_1_1emu_1_1AsmParser.html#a2a560cd05c6c0ea184f4c624101e5e93',1,'yaze::app::emu::AsmParser']]],
   ['apply_5fchanges_55',['apply_changes',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#aa2a4e853d2ab01d9b092916eabc8f437',1,'yaze::app::core::NotifyValue']]],
   ['applybpspatch_56',['ApplyBpsPatch',['../namespaceyaze_1_1cli.html#a6b6ba4e068a728eced706c97ab89fdca',1,'yaze::cli']]],

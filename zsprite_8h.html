@@ -110,39 +110,72 @@ $(function(){initNavTree('zsprite_8h.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">zsprite.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;imgui/imgui.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="snes__tile_8h_source.html">gfx/snes_tile.h</a>&gt;</code><br />
+<code>#include &lt;imgui/imgui.h&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
+<code>#include &quot;absl/status/status.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for zsprite.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="zsprite_8h__incl.png" border="0" usemap="#asrc_2app_2editor_2sprite_2zsprite_8h" alt=""/></div>
 <map name="asrc_2app_2editor_2sprite_2zsprite_8h" id="asrc_2app_2editor_2sprite_2zsprite_8h">
-<area shape="rect" title=" " alt="" coords="185,5,321,46"/>
-<area shape="rect" title=" " alt="" coords="5,94,103,120"/>
-<area shape="poly" title=" " alt="" coords="204,49,99,90,97,85,202,44"/>
-<area shape="rect" title=" " alt="" coords="292,168,352,193"/>
-<area shape="poly" title=" " alt="" coords="290,44,316,65,336,93,341,108,342,124,336,154,330,153,336,124,336,109,332,95,312,69,287,49"/>
-<area shape="rect" title=" " alt="" coords="179,94,244,120"/>
-<area shape="poly" title=" " alt="" coords="245,48,227,81,222,79,240,45"/>
-<area shape="rect" title=" " alt="" coords="269,94,322,120"/>
-<area shape="poly" title=" " alt="" coords="266,45,284,79,279,81,261,48"/>
-<area shape="rect" title=" " alt="" coords="357,249,415,275"/>
-<area shape="poly" title=" " alt="" coords="214,49,192,63,174,80,165,99,165,108,168,118,184,142,204,164,250,200,299,226,343,244,341,249,297,231,247,204,200,168,180,146,164,121,160,109,160,98,170,77,189,59,211,44"/>
-<area shape="rect" href="snes__tile_8h.html" title=" " alt="" coords="397,94,527,120"/>
-<area shape="poly" title=" " alt="" coords="306,44,417,86,415,91,304,49"/>
-<area shape="poly" title=" " alt="" coords="439,123,360,163,358,158,437,118"/>
-<area shape="poly" title=" " alt="" coords="453,122,435,143,418,169,404,202,394,234,389,233,399,201,413,166,430,140,449,118"/>
-<area shape="rect" title=" " alt="" coords="593,168,654,193"/>
-<area shape="poly" title=" " alt="" coords="490,118,583,159,581,163,488,123"/>
-<area shape="rect" href="constants_8h.html" title=" " alt="" coords="427,168,569,193"/>
-<area shape="poly" title=" " alt="" coords="470,119,488,153,483,155,466,121"/>
-<area shape="poly" title=" " alt="" coords="483,196,417,242,414,238,479,192"/>
-<area shape="rect" title=" " alt="" coords="439,241,563,282"/>
-<area shape="poly" title=" " alt="" coords="501,194,502,226,497,226,496,194"/>
+<area shape="rect" title=" " alt="" coords="478,5,614,46"/>
+<area shape="rect" href="snes__tile_8h.html" title=" " alt="" coords="234,94,338,120"/>
+<area shape="poly" title=" " alt="" coords="482,49,342,92,340,86,480,44"/>
+<area shape="rect" title=" " alt="" coords="5,168,66,193"/>
+<area shape="poly" title=" " alt="" coords="478,39,358,61,290,77,223,97,141,129,72,163,69,158,139,124,221,91,288,72,357,56,477,34"/>
+<area shape="rect" title=" " alt="" coords="326,249,383,275"/>
+<area shape="poly" title=" " alt="" coords="500,49,465,69,433,96,408,130,388,167,364,235,359,233,384,165,404,127,430,92,462,65,497,44"/>
+<area shape="rect" title=" " alt="" coords="443,94,540,120"/>
+<area shape="poly" title=" " alt="" coords="535,48,511,83,506,79,530,45"/>
+<area shape="rect" title=" " alt="" coords="564,94,638,120"/>
+<area shape="poly" title=" " alt="" coords="562,45,586,79,582,83,557,48"/>
+<area shape="rect" title=" " alt="" coords="662,94,727,120"/>
+<area shape="poly" title=" " alt="" coords="584,44,660,84,657,89,582,49"/>
+<area shape="rect" title=" " alt="" coords="752,94,805,120"/>
+<area shape="poly" title=" " alt="" coords="605,44,738,89,736,94,603,49"/>
+<area shape="rect" title=" " alt="" coords="829,94,965,120"/>
+<area shape="poly" title=" " alt="" coords="615,40,829,88,828,93,614,45"/>
+<area shape="poly" title=" " alt="" coords="244,123,81,169,80,164,243,118"/>
+<area shape="rect" title=" " alt="" coords="256,168,316,193"/>
+<area shape="poly" title=" " alt="" coords="289,120,289,152,284,152,284,120"/>
+<area shape="poly" title=" " alt="" coords="299,118,315,140,331,167,344,201,352,233,347,234,339,202,326,169,311,143,295,122"/>
+<area shape="rect" href="constants_8h.html" title=" " alt="" coords="90,168,232,193"/>
+<area shape="poly" title=" " alt="" coords="266,123,196,162,194,157,264,118"/>
+<area shape="poly" title=" " alt="" coords="192,191,312,240,310,245,190,196"/>
+<area shape="rect" title=" " alt="" coords="99,241,223,282"/>
+<area shape="poly" title=" " alt="" coords="164,194,164,226,158,226,158,194"/>
+</map>
+</div>
+</div><div class="textblock"><div class="dynheader">
+This graph shows which files directly or indirectly include this file:</div>
+<div class="dyncontent">
+<div class="center"><img src="zsprite_8h__dep__incl.png" border="0" usemap="#asrc_2app_2editor_2sprite_2zsprite_8hdep" alt=""/></div>
+<map name="asrc_2app_2editor_2sprite_2zsprite_8hdep" id="asrc_2app_2editor_2sprite_2zsprite_8hdep">
+<area shape="rect" title=" " alt="" coords="57,5,194,46"/>
+<area shape="rect" href="sprite__editor_8cc.html" title=" " alt="" coords="5,183,142,223"/>
+<area shape="poly" title=" " alt="" coords="114,61,101,95,80,183,75,182,96,93,109,60"/>
+<area shape="rect" href="sprite__editor_8h.html" title=" " alt="" coords="111,94,247,135"/>
+<area shape="poly" title=" " alt="" coords="148,58,169,92,165,95,143,61"/>
+<area shape="poly" title=" " alt="" coords="145,147,99,184,96,180,142,143"/>
+<area shape="rect" href="master__editor_8cc.html" title=" " alt="" coords="107,271,251,312"/>
+<area shape="poly" title=" " alt="" coords="182,150,182,271,176,271,176,150"/>
+<area shape="rect" href="master__editor_8h.html" title=" " alt="" coords="216,183,360,223"/>
+<area shape="poly" title=" " alt="" coords="217,143,265,180,262,184,214,147"/>
+<area shape="poly" title=" " alt="" coords="253,235,205,273,202,269,250,231"/>
+<area shape="rect" href="controller_8cc.html" title=" " alt="" coords="189,368,356,393"/>
+<area shape="poly" title=" " alt="" coords="288,239,276,367,271,367,282,238"/>
+<area shape="rect" href="controller_8h.html" title=" " alt="" coords="356,279,516,305"/>
+<area shape="poly" title=" " alt="" coords="336,229,417,276,414,281,334,234"/>
+<area shape="poly" title=" " alt="" coords="401,314,296,369,294,365,399,310"/>
+<area shape="rect" href="app__delegate_8mm.html" title=" " alt="" coords="380,360,524,401"/>
+<area shape="poly" title=" " alt="" coords="444,319,451,359,446,360,439,320"/>
+<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="549,368,660,393"/>
+<area shape="poly" title=" " alt="" coords="475,310,582,365,579,369,472,314"/>
 </map>
 </div>
 </div>
@@ -150,26 +183,31 @@ Include dependency graph for zsprite.h:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1zsprite_1_1OamTile.html">yaze::editor::zsprite::OamTile</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html">yaze::app::editor::zsprite::OamTile</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html">yaze::editor::zsprite::AnimationGroup</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html">yaze::app::editor::zsprite::AnimationGroup</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html">yaze::editor::zsprite::UserRoutine</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html">yaze::app::editor::zsprite::UserRoutine</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1zsprite_1_1SubEditor.html">yaze::editor::zsprite::SubEditor</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html">yaze::app::editor::zsprite::SubEditor</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html">yaze::editor::zsprite::SpriteProperty</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html">yaze::app::editor::zsprite::SpriteProperty</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1zsprite_1_1ZSprite.html">yaze::editor::zsprite::ZSprite</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html">yaze::app::editor::zsprite::ZSprite</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze.html">yaze</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html">yaze::editor</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app.html">yaze::app</a></td></tr>
+<tr class="memdesc:namespaceyaze_1_1app"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the <a class="el" href="namespaceImGui.html">ImGui</a> application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor_1_1zsprite.html">yaze::editor::zsprite</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor.html">yaze::app::editor</a></td></tr>
+<tr class="memdesc:namespaceyaze_1_1app_1_1editor"><td class="mdescLeft">&#160;</td><td class="mdescRight">Editors are the view controllers for the application. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1editor_1_1zsprite.html">yaze::app::editor::zsprite</a></td></tr>
+<tr class="memdesc:namespaceyaze_1_1app_1_1editor_1_1zsprite"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for the <a class="el" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html">ZSprite</a> format from Zarby's ZSpriteMaker. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

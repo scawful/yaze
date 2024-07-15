@@ -1,11 +1,11 @@
-<map id="src/app/editor/modules/music_editor.h" name="src/app/editor/modules/music_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="110,5,264,46"/>
+<map id="src/app/editor/music/music_editor.h" name="src/app/editor/music/music_editor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="117,5,257,46"/>
 <area shape="rect" id="Node000002" href="$master__editor_8cc.html" title=" " alt="" coords="5,183,150,223"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,57,122,75,105,95,94,117,87,140,81,183,76,182,82,139,89,115,101,93,118,71,139,53"/>
 <area shape="rect" id="Node000003" href="$master__editor_8h.html" title=" " alt="" coords="115,94,259,135"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,62,190,94,184,94,184,62"/>
-<area shape="rect" id="Node000008" href="$music__editor_8cc.html" title=" " alt="" coords="284,94,437,135"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="241,51,322,91,320,96,239,56"/>
+<area shape="rect" id="Node000008" href="$music__editor_8cc.html" title=" " alt="" coords="283,94,422,135"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="239,51,316,91,314,96,236,56"/>
 <area shape="poly" id="edge8_Node000003_Node000002" title=" " alt="" coords="152,147,104,184,101,180,148,143"/>
 <area shape="rect" id="Node000004" href="$controller_8cc.html" title=" " alt="" coords="87,279,255,305"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="186,150,175,278,169,278,181,150"/>

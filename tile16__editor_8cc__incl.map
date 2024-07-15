@@ -1,4 +1,4 @@
-<map id="src/app/editor/modules/tile16_editor.cc" name="src/app/editor/modules/tile16_editor.cc">
+<map id="src/app/editor/graphics/tile16_editor.cc" name="src/app/editor/graphics/tile16_editor.cc">
 <area shape="rect" id="Node000001" title=" " alt="" coords="2210,5,2363,46"/>
 <area shape="rect" id="Node000002" href="$tile16__editor_8h.html" title=" " alt="" coords="2236,94,2337,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2289,46,2289,78,2284,78,2284,46"/>

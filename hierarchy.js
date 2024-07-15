@@ -1,7 +1,7 @@
 var hierarchy =
 [
     [ "yaze::app::gui::zeml::Action", "structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html", null ],
-    [ "yaze::editor::zsprite::AnimationGroup", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
+    [ "yaze::app::editor::zsprite::AnimationGroup", "structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
     [ "yaze::app::emu::audio::Apu", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html", null ],
     [ "yaze::app::emu::audio::ApuCallbacks", "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html", null ],
     [ "yaze::app::emu::AsmParser", "classyaze_1_1app_1_1emu_1_1AsmParser.html", null ],
@@ -146,8 +146,8 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::OAMDATA", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATA.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OAMDATAREAD", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATAREAD.html", null ],
     [ "yaze::app::emu::video::OAMSize", "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html", null ],
+    [ "yaze::app::editor::zsprite::OamTile", "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html", null ],
     [ "yaze::app::gfx::OamTile", "classyaze_1_1app_1_1gfx_1_1OamTile.html", null ],
-    [ "yaze::editor::zsprite::OamTile", "structyaze_1_1editor_1_1zsprite_1_1OamTile.html", null ],
     [ "yaze::app::zelda3::dungeon::object_door", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OPHCT", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OPHCT.html", null ],
@@ -214,11 +214,11 @@ var hierarchy =
     [ "yaze::app::emu::audio::Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", null ],
     [ "yaze::app::emu::video::SpriteAttributes", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html", null ],
     [ "yaze::app::editor::sprite_internal::SpriteItem", "structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html", null ],
-    [ "yaze::editor::zsprite::SpriteProperty", "structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html", null ],
+    [ "yaze::app::editor::zsprite::SpriteProperty", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html", null ],
     [ "yaze::app::zelda3::dungeon::StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::STAT77", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::STAT78", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html", null ],
-    [ "yaze::editor::zsprite::SubEditor", "structyaze_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
+    [ "yaze::app::editor::zsprite::SubEditor", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
     [ "yaze::app::zelda3::dungeon::SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", null ],
     [ "testing::Test", null, [
       [ "yaze_test::emu_test::CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", null ],
@@ -243,7 +243,7 @@ var hierarchy =
     [ "yaze::app::zelda3::music::Tracker", "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TS", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::TSW", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TSW.html", null ],
-    [ "yaze::editor::zsprite::UserRoutine", "structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html", null ],
+    [ "yaze::app::editor::zsprite::UserRoutine", "structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html", null ],
     [ "yaze::app::VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", null ],
     [ "yaze::app::emu::video::VideoPortControl", "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::VMADDH", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDH.html", null ],
@@ -268,5 +268,5 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::WOBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html", null ],
     [ "yaze::app::emu::video::WramAccessRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html", null ],
     [ "yaze::app::Rom::WriteAction", "structyaze_1_1app_1_1Rom_1_1WriteAction.html", null ],
-    [ "yaze::editor::zsprite::ZSprite", "classyaze_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
+    [ "yaze::app::editor::zsprite::ZSprite", "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
 ];

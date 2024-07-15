@@ -19,5 +19,7 @@ var classyaze_1_1app_1_1editor_1_1SpriteEditor =
     [ "oam_config_", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a1a23a674e0163f649ea906127b9a3d92", null ],
     [ "oam_bitmap_", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a39bf8023b725f8753b29f9b9ff95f244", null ],
     [ "sprite_canvas_", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a06634d493cb970556b0629c1414217f7", null ],
-    [ "graphics_sheet_canvas_", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3742405e0081e791eb9025ea17061cf8", null ]
+    [ "graphics_sheet_canvas_", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#a3742405e0081e791eb9025ea17061cf8", null ],
+    [ "custom_sprites_", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#acc90288aa760ab4f319ff1d64973a29f", null ],
+    [ "status_", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae860f9a04a9377ad2301a08c28286a4e", null ]
 ];

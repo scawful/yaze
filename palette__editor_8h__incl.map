@@ -1,4 +1,4 @@
-<map id="src/app/editor/modules/palette_editor.h" name="src/app/editor/modules/palette_editor.h">
+<map id="src/app/editor/graphics/palette_editor.h" name="src/app/editor/graphics/palette_editor.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1102,5,1255,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="398,677,495,703"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1102,32,865,39,559,53,279,72,179,83,121,97,77,113,41,131,27,141,17,155,10,172,8,194,8,529,11,551,18,567,29,579,44,588,128,619,193,644,261,662,383,681,382,686,260,667,192,649,126,624,42,593,26,583,13,570,5,552,3,529,3,194,5,171,12,152,23,138,38,126,75,109,119,91,178,78,279,66,559,47,864,34,1101,26"/>

@@ -101,8 +101,8 @@
 <area shape="poly" id="edge67_Node000218_Node000328" title=" " alt="" coords="304,494,321,439,350,370,391,299,417,266,447,237,470,222,473,227,451,241,421,269,396,302,355,373,326,441,309,495"/>
 <area shape="rect" id="Node000361" href="$classyaze_1_1app_1_1editor_1_1SpriteEditor.html#ae681d6ba4332c789e9df7323966868b2" title="Updates the sprite editor." alt="" coords="490,251,626,291"/>
 <area shape="poly" id="edge69_Node000218_Node000361" title=" " alt="" coords="309,493,330,451,360,400,399,347,447,302,474,287,477,292,451,306,403,351,364,403,334,454,314,496"/>
-<area shape="rect" id="Node000367" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a59746a2b393de9ea60a246e8cd88d843" title=" " alt="" coords="449,771,667,811"/>
-<area shape="poly" id="edge71_Node000218_Node000367" title=" " alt="" coords="313,550,332,596,362,651,402,707,425,733,451,756,458,761,455,765,447,760,421,737,397,711,357,654,327,598,308,552"/>
+<area shape="rect" id="Node000368" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a59746a2b393de9ea60a246e8cd88d843" title=" " alt="" coords="449,771,667,811"/>
+<area shape="poly" id="edge71_Node000218_Node000368" title=" " alt="" coords="313,550,332,596,362,651,402,707,425,733,451,756,458,761,455,765,447,760,421,737,397,711,357,654,327,598,308,552"/>
 <area shape="poly" id="edge60_Node000221_Node000005" title=" " alt="" coords="629,355,650,366,669,381,680,395,687,408,693,434,699,459,706,471,717,482,743,501,767,513,814,523,864,527,926,539,1021,569,1019,574,925,544,864,532,813,529,766,518,741,506,714,486,702,474,694,461,688,435,682,410,676,397,665,385,647,371,627,359"/>
 <area shape="rect" id="Node000222" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a940d533e3715c1e55d84291396a2229d" title=" " alt="" coords="974,150,1177,206"/>
 <area shape="poly" id="edge52_Node000221_Node000222" title=" " alt="" coords="634,313,666,301,690,287,714,273,839,229,957,198,959,204,840,234,716,277,693,291,668,305,636,318"/>

@@ -1,15 +1,15 @@
 <map id="src/app/zelda3/music/tracker.h" name="src/app/zelda3/music/tracker.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="201,5,346,46"/>
-<area shape="rect" id="Node000002" href="$music__editor_8h.html" title=" " alt="" coords="110,94,264,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,59,208,95,205,92,241,55"/>
-<area shape="rect" id="Node000010" href="$tracker_8cc.html" title="Legacy code from Hyrule Magic TrackerLogic.c." alt="" coords="288,94,432,135"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="306,55,342,92,339,95,302,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="197,5,342,46"/>
+<area shape="rect" id="Node000002" href="$music__editor_8h.html" title=" " alt="" coords="117,94,257,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,59,207,95,204,92,238,56"/>
+<area shape="rect" id="Node000010" href="$tracker_8cc.html" title="Legacy code from Hyrule Magic TrackerLogic.c." alt="" coords="280,94,424,135"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="301,56,335,92,332,95,297,59"/>
 <area shape="rect" id="Node000003" href="$master__editor_8cc.html" title=" " alt="" coords="5,271,150,312"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="142,146,122,163,105,184,94,206,87,229,81,271,76,271,82,228,89,204,101,181,118,160,139,142"/>
 <area shape="rect" id="Node000004" href="$master__editor_8h.html" title=" " alt="" coords="115,183,259,223"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="190,150,190,182,184,182,184,150"/>
-<area shape="rect" id="Node000009" href="$music__editor_8cc.html" title=" " alt="" coords="284,183,437,223"/>
-<area shape="poly" id="edge10_Node000002_Node000009" title=" " alt="" coords="241,140,322,180,320,185,239,144"/>
+<area shape="rect" id="Node000009" href="$music__editor_8cc.html" title=" " alt="" coords="283,183,422,223"/>
+<area shape="poly" id="edge10_Node000002_Node000009" title=" " alt="" coords="239,140,316,180,314,185,236,144"/>
 <area shape="poly" id="edge9_Node000004_Node000003" title=" " alt="" coords="152,235,104,273,101,269,148,231"/>
 <area shape="rect" id="Node000005" href="$controller_8cc.html" title=" " alt="" coords="87,368,255,393"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="186,239,175,367,169,367,181,238"/>

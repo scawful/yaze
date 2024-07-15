@@ -39,7 +39,7 @@ var searchData=
   ['animated_36',['animated',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a9dd6fc6a7929d4ee784680448f632d3f',1,'yaze::app::gfx::Paletteset']]],
   ['animated_5fframe_5f_37',['animated_frame_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a67c6cc17db3f970dc1044100dc67f408',1,'yaze::app::zelda3::dungeon::Room']]],
   ['animated_5fmaps_5f_38',['animated_maps_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a8c7747dc9ab3ae6a3f521f2c55038165',1,'yaze::app::editor::OverworldEditor']]],
-  ['animations_39',['animations',['../classyaze_1_1editor_1_1zsprite_1_1ZSprite.html#ac8145742c90eb85db39776669e99664a',1,'yaze::editor::zsprite::ZSprite']]],
+  ['animations_39',['animations',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#aa1420f4b021c021a8f4e5e6b82898a66',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['apu_5f_40',['apu_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a161d21855366b234b651bbbc4870525a',1,'yaze::app::emu::SNES']]],
   ['apu_5fcatchup_5fcycles_5f_41',['apu_catchup_cycles_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a8ca11347c17a8bb5c39f47f153ed28a7',1,'yaze::app::emu::SNES']]],
   ['aram_5f_42',['aram_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a0c6b9d54aaed6103539d352aabee6911',1,'yaze::app::emu::audio::Dsp']]],

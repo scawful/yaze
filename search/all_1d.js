@@ -1,7 +1,7 @@
 var searchData=
 [
   ['z_0',['Z',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#af020c0066d3aaf643c44d107f5670aad',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['z_1',['z',['../structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a33e014ab838b89ea762c90f773c0a25b',1,'yaze::editor::zsprite::OamTile']]],
+  ['z_1',['z',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad779d1f733e79e51db14b576a4922696',1,'yaze::app::editor::zsprite::OamTile']]],
   ['z3_5from_5fpalette_5f_2',['z3_rom_palette_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#aa08f03b3f1cae1e05dcdabdf9a87a8f9',1,'yaze::app::editor::GraphicsEditor']]],
   ['z3_5fversion_3',['Z3_Version',['../namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47',1,'yaze::app']]],
   ['z3ed_20cli_4',['Z3ED cli',['../md_docs_2infrastructure.html#autotoc_md28',1,'']]],
@@ -17,6 +17,6 @@ var searchData=
   ['zero_5fpoint_14',['zero_point',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a725cdd037008035c36f62b7108c588d2',1,'yaze::app::gui::Canvas']]],
   ['zoomin_15',['ZoomIn',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3d245d538658062773a8972c57d43eae',1,'yaze::app::gui::Canvas']]],
   ['zoomout_16',['ZoomOut',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aaf4f7f9d8a94909686f2db38550df2f3',1,'yaze::app::gui::Canvas']]],
-  ['zsprite_17',['ZSprite',['../classyaze_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::editor::zsprite']]],
+  ['zsprite_17',['ZSprite',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::app::editor::zsprite']]],
   ['zsprite_2eh_18',['zsprite.h',['../zsprite_8h.html',1,'']]]
 ];
