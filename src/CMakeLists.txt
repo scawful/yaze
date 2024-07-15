@@ -8,16 +8,16 @@ set(
 set(
   YAZE_APP_EDITOR_SRC
   app/editor/dungeon_editor.cc
-  app/editor/graphics_editor.cc
   app/editor/master_editor.cc
   app/editor/overworld_editor.cc
-  app/editor/screen_editor.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
-  app/editor/modules/palette_editor.cc
   app/editor/code/assembly_editor.cc
-  app/editor/modules/tile16_editor.cc
-  app/editor/modules/gfx_group_editor.cc
+  app/editor/graphics/screen_editor.cc
+  app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/palette_editor.cc
+  app/editor/graphics/tile16_editor.cc
+  app/editor/graphics/gfx_group_editor.cc
   app/editor/context/gfx_context.cc
 )
 

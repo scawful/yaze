@@ -25,8 +25,6 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-
-
 absl::Status ScreenEditor::Update() {
   TAB_BAR("##TabBar")
   TAB_ITEM("Dungeon Maps")
