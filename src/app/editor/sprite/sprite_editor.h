@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
 #include "absl/status/status.h"
+#include "app/editor/sprite/zsprite.h"
 #include "app/editor/utils/editor.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
@@ -70,8 +71,8 @@ class SpriteEditor : public SharedRom, public Editor {
 
   ImVector<int> active_sprites_; /**< Active sprites. */
 
-  int current_sprite_id_;     /**< Current sprite ID. */
-  uint8_t current_sheets_[8]; /**< Array to store the current sheets. */
+  int current_sprite_id_; /**< Current sprite ID. */
+  uint8_t current_sheets_[8] = {0x00, 0x0A, 0x06, 0x07, 0x00, 0x00, 0x00, 0x00};
   bool sheets_loaded_ =
       false; /**< Flag indicating whether the sheets are loaded or not. */
 
@@ -95,6 +96,10 @@ class SpriteEditor : public SharedRom, public Editor {
   gui::Canvas graphics_sheet_canvas_{
       ImVec2(0x80 * 2 + 2, 0x40 * 8 + 2),
       gui::CanvasGridSize::k16x16}; /**< Graphics sheet canvas. */
+
+  std::vector<zsprite::ZSprite> custom_sprites_; /**< Sprites. */
+
+  absl::Status status_; /**< Status. */
 };
 
 }  // namespace editor

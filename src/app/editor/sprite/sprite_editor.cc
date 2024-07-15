@@ -1,5 +1,7 @@
 #include "sprite_editor.h"
 
+#include <core/platform/file_dialog.h>
+#include <editor/sprite/zsprite.h>
 #include <gui/icons.h>
 #include <gui/input.h>
 
@@ -34,43 +36,41 @@ absl::Status SpriteEditor::Update() {
     DrawSpritesList();
 
     TableNextColumn();
-    {
-      static int next_tab_id = 0;
+    static int next_tab_id = 0;
 
-      if (ImGui::BeginTabBar("SpriteTabBar", kSpriteTabBarFlags)) {
-        if (ImGui::TabItemButton(ICON_MD_ADD, kSpriteTabBarFlags)) {
-          if (std::find(active_sprites_.begin(), active_sprites_.end(),
-                        current_sprite_id_) != active_sprites_.end()) {
-            // Room is already open
-            next_tab_id++;
-          }
-          active_sprites_.push_back(next_tab_id++);  // Add new tab
+    if (ImGui::BeginTabBar("SpriteTabBar", kSpriteTabBarFlags)) {
+      if (ImGui::TabItemButton(ICON_MD_ADD, kSpriteTabBarFlags)) {
+        if (std::find(active_sprites_.begin(), active_sprites_.end(),
+                      current_sprite_id_) != active_sprites_.end()) {
+          // Room is already open
+          next_tab_id++;
         }
-
-        // Submit our regular tabs
-        for (int n = 0; n < active_sprites_.Size;) {
-          bool open = true;
-
-          if (active_sprites_[n] > sizeof(core::kSpriteDefaultNames) / 4) {
-            active_sprites_.erase(active_sprites_.Data + n);
-            continue;
-          }
-
-          if (ImGui::BeginTabItem(
-                  core::kSpriteDefaultNames[active_sprites_[n]].data(), &open,
-                  ImGuiTabItemFlags_None)) {
-            DrawSpriteCanvas();
-            ImGui::EndTabItem();
-          }
-
-          if (!open)
-            active_sprites_.erase(active_sprites_.Data + n);
-          else
-            n++;
-        }
-
-        ImGui::EndTabBar();
+        active_sprites_.push_back(next_tab_id++);  // Add new tab
       }
+
+      // Submit our regular tabs
+      for (int n = 0; n < active_sprites_.Size;) {
+        bool open = true;
+
+        if (active_sprites_[n] > sizeof(core::kSpriteDefaultNames) / 4) {
+          active_sprites_.erase(active_sprites_.Data + n);
+          continue;
+        }
+
+        if (ImGui::BeginTabItem(
+                core::kSpriteDefaultNames[active_sprites_[n]].data(), &open,
+                ImGuiTabItemFlags_None)) {
+          DrawSpriteCanvas();
+          ImGui::EndTabItem();
+        }
+
+        if (!open)
+          active_sprites_.erase(active_sprites_.Data + n);
+        else
+          n++;
+      }
+
+      ImGui::EndTabBar();
     }
 
     TableNextColumn();
@@ -80,7 +80,7 @@ absl::Status SpriteEditor::Update() {
     ImGui::EndTable();
   }
 
-  return absl::OkStatus();
+  return status_.ok() ? absl::OkStatus() : status_;
 }
 
 void SpriteEditor::DrawSpriteCanvas() {
@@ -96,7 +96,7 @@ void SpriteEditor::DrawSpriteCanvas() {
 
     // Draw a table with OAM configuration
     // X, Y, Tile, Palette, Priority, Flip X, Flip Y
-    if (ImGui::BeginTable("##OAMTable", 7, ImGuiTableFlags_None,
+    if (ImGui::BeginTable("##OAMTable", 7, ImGuiTableFlags_Resizable,
                           ImVec2(0, 0))) {
       TableSetupColumn("X", ImGuiTableColumnFlags_WidthStretch);
       TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
@@ -169,6 +169,21 @@ void SpriteEditor::DrawSpritesList() {
   if (ImGui::BeginChild(gui::GetID("##SpritesList"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0), true,
                         ImGuiWindowFlags_NoDecoration)) {
+    // ZSprite Maker format open file dialog
+    if (ImGui::Button("Open ZSprite")) {
+      // Open ZSprite file
+      std::string file_path = FileDialogWrapper::ShowOpenFileDialog();
+      if (!file_path.empty()) {
+        zsprite::ZSprite zsprite;
+        status_ = zsprite.Load(file_path);
+      }
+    }
+
+    for (const auto custom_sprite : custom_sprites_) {
+      Text("%s", custom_sprite.sprName.c_str());
+      Separator();
+    }
+
     int i = 0;
     for (const auto each_sprite_name : core::kSpriteDefaultNames) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
