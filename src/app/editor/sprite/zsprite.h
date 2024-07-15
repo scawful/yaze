@@ -8,31 +8,49 @@
 #include <string>
 #include <vector>
 
+#include "app/gfx/snes_tile.h"
+
 namespace yaze {
 namespace editor {
 namespace zsprite {
 
-struct Tile {
-  uint16_t id;
-  uint8_t palette;
-  bool mirrorX;
-  bool mirrorY;
-  uint8_t priority;
-  bool size;
+struct OamTile {
+  OamTile(uint8_t x, uint8_t y, bool mx, bool my, uint16_t id, uint8_t pal,
+          bool s, uint8_t p)
+      : x(x),
+        y(y),
+        mirrorX(mx),
+        mirrorY(my),
+        id(id),
+        palette(pal),
+        size(s),
+        priority(p) {}
+
   uint8_t x;
   uint8_t y;
+  bool mirrorX;
+  bool mirrorY;
+  uint16_t id;
+  uint8_t palette;
+  bool size;
+  uint8_t priority;
   uint8_t z;
 };
 
 struct AnimationGroup {
-  std::string FrameName;
-  uint8_t FrameStart;
-  uint8_t FrameEnd;
-  uint8_t FrameSpeed;
-  std::vector<Tile> Tiles;
+  AnimationGroup(uint8_t fs, uint8_t fe, uint8_t fsp, std::string fn)
+      : frame_start(fs), frame_end(fe), frame_speed(fsp), frame_name(fn) {}
+
+  std::string frame_name;
+  uint8_t frame_start;
+  uint8_t frame_end;
+  uint8_t frame_speed;
+  std::vector<OamTile> Tiles;
 };
 
 struct UserRoutine {
+  UserRoutine(std::string n, std::string c) : name(n), code(c) {}
+
   std::string name;
   std::string code;
   int Count;
@@ -40,7 +58,7 @@ struct UserRoutine {
 
 struct SubEditor {
   std::vector<AnimationGroup> Frames;
-  std::vector<UserRoutine> UserRoutines;
+  std::vector<UserRoutine> user_routines;
 };
 
 struct SpriteProperty {
@@ -50,18 +68,165 @@ struct SpriteProperty {
 
 class ZSprite {
  public:
-  void SaveZSpriteFormat() {
-    std::ofstream fs("filename.bin", std::ios::binary);
+  void LoadZSpriteFormat(const std::string& filename) {
+    std::ifstream fs(filename, std::ios::binary);
+
+    std::vector<char> buffer(std::istreambuf_iterator<char>(fs), {});
+
+    int aCount = *reinterpret_cast<int*>(&buffer[0]);
+    int offset = sizeof(int);
+
+    for (int i = 0; i < aCount; i++) {
+      std::string aname = std::string(&buffer[offset]);
+      offset += aname.size() + 1;
+      uint8_t afs = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+      offset += sizeof(uint8_t);
+      uint8_t afe = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+      offset += sizeof(uint8_t);
+      uint8_t afspeed = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+      offset += sizeof(uint8_t);
+
+      animations.push_back(AnimationGroup(afs, afe, afspeed, aname));
+    }
+    // RefreshAnimations();
+
+    int fCount = *reinterpret_cast<int*>(&buffer[offset]);
+    offset += sizeof(int);
+    for (int i = 0; i < fCount; i++) {
+      // editor.Frames[i] = new Frame();
+      editor.Frames.emplace_back();
+      // editor.AddUndo(i);
+      int tCount = *reinterpret_cast<int*>(&buffer[offset]);
+      offset += sizeof(int);
+
+      for (int j = 0; j < tCount; j++) {
+        ushort tid = *reinterpret_cast<ushort*>(&buffer[offset]);
+        offset += sizeof(ushort);
+        uint8_t tpal = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+        offset += sizeof(uint8_t);
+        bool tmx = *reinterpret_cast<bool*>(&buffer[offset]);
+        offset += sizeof(bool);
+        bool tmy = *reinterpret_cast<bool*>(&buffer[offset]);
+        offset += sizeof(bool);
+        uint8_t tprior = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+        offset += sizeof(uint8_t);
+        bool tsize = *reinterpret_cast<bool*>(&buffer[offset]);
+        offset += sizeof(bool);
+        uint8_t tx = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+        offset += sizeof(uint8_t);
+        uint8_t ty = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+        offset += sizeof(uint8_t);
+        uint8_t tz = *reinterpret_cast<uint8_t*>(&buffer[offset]);
+        offset += sizeof(uint8_t);
+        OamTile to(tx, ty, tmx, tmy, tid, tpal, tsize, tprior);
+        to.z = tz;
+        editor.Frames[i].Tiles.push_back(to);
+      }
+    }
+
+    // all sprites properties
+    property_blockable.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_canfall.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_collisionlayer.IsChecked =
+        *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_customdeath.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_damagesound.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_deflectarrows.IsChecked =
+        *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_deflectprojectiles.IsChecked =
+        *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_fast.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_harmless.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_impervious.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_imperviousarrow.IsChecked =
+        *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_imperviousmelee.IsChecked =
+        *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_interaction.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_isboss.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_persist.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_shadow.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_smallshadow.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_statis.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_statue.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+    property_watersprite.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
+    offset += sizeof(bool);
+
+    property_prize.Text =
+        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
+    offset += sizeof(uint8_t);
+    property_palette.Text =
+        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
+    offset += sizeof(uint8_t);
+    property_oamnbr.Text =
+        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
+    offset += sizeof(uint8_t);
+    property_hitbox.Text =
+        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
+    offset += sizeof(uint8_t);
+    property_health.Text =
+        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
+    offset += sizeof(uint8_t);
+    property_damage.Text =
+        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
+    offset += sizeof(uint8_t);
+
+    if (offset != buffer.size()) {
+      property_sprname.Text = std::string(&buffer[offset]);
+      offset += property_sprname.Text.size() + 1;
+
+      int actionL = *reinterpret_cast<int*>(&buffer[offset]);
+      offset += sizeof(int);
+      for (int i = 0; i < actionL; i++) {
+        std::string a = std::string(&buffer[offset]);
+        offset += a.size() + 1;
+        std::string b = std::string(&buffer[offset]);
+        offset += b.size() + 1;
+        userRoutines.push_back(UserRoutine(a, b));
+      }
+    }
+
+    if (offset != buffer.size()) {
+      property_sprid.Text = std::string(&buffer[offset]);
+      fs.close();
+    }
+
+    // UpdateUserRoutines();
+    // userroutinesListbox.SelectedIndex = 0;
+    // RefreshScreen();
+  }
+
+  void SaveZSpriteFormat(const std::string& filename) {
+    std::ofstream fs(filename, std::ios::binary);
     if (fs.is_open()) {
       // Write data to the file
       fs.write(reinterpret_cast<const char*>(animations.size()), sizeof(int));
       for (const AnimationGroup& anim : animations) {
-        fs.write(anim.FrameName.c_str(), anim.FrameName.size() + 1);
-        fs.write(reinterpret_cast<const char*>(&anim.FrameStart),
+        fs.write(anim.frame_name.c_str(), anim.frame_name.size() + 1);
+        fs.write(reinterpret_cast<const char*>(&anim.frame_start),
                  sizeof(uint8_t));
-        fs.write(reinterpret_cast<const char*>(&anim.FrameEnd),
+        fs.write(reinterpret_cast<const char*>(&anim.frame_end),
                  sizeof(uint8_t));
-        fs.write(reinterpret_cast<const char*>(&anim.FrameSpeed),
+        fs.write(reinterpret_cast<const char*>(&anim.frame_speed),
                  sizeof(uint8_t));
       }
 
@@ -198,6 +363,7 @@ class ZSprite {
   SpriteProperty property_statis;
   SpriteProperty property_statue;
   SpriteProperty property_watersprite;
+  SpriteProperty property_sprname;
 
   SpriteProperty property_prize;
   SpriteProperty property_palette;
