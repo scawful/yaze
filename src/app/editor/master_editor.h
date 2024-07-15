@@ -20,7 +20,7 @@
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld_editor.h"
-#include "app/editor/screen_editor.h"
+#include "app/editor/graphics/screen_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
