@@ -13,7 +13,7 @@ set(
   app/editor/overworld_editor.cc
   app/editor/screen_editor.cc
   app/editor/sprite/sprite_editor.cc
-  app/editor/modules/music_editor.cc
+  app/editor/music/music_editor.cc
   app/editor/modules/palette_editor.cc
   app/editor/code/assembly_editor.cc
   app/editor/modules/tile16_editor.cc
