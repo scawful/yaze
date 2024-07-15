@@ -5,7 +5,7 @@
 #include <cmath>
 #include <string>
 
-#include "app/editor/graphics_editor.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
 

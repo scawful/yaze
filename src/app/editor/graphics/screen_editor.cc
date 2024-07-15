@@ -1,4 +1,4 @@
-#include "app/editor/screen_editor.h"
+#include "screen_editor.h"
 
 #include <imgui/imgui.h>
 
