@@ -1,17 +1,23 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 #define YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 
+#include <gfx/snes_tile.h>
 #include <imgui/imgui.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <string>
 #include <vector>
 
-#include "app/gfx/snes_tile.h"
+#include "absl/status/status.h"
 
 namespace yaze {
+namespace app {
 namespace editor {
+/**
+ * @brief Namespace for the ZSprite format from Zarby's ZSpriteMaker.
+ */
 namespace zsprite {
 
 struct OamTile {
@@ -38,6 +44,7 @@ struct OamTile {
 };
 
 struct AnimationGroup {
+  AnimationGroup() = default;
   AnimationGroup(uint8_t fs, uint8_t fe, uint8_t fsp, std::string fn)
       : frame_start(fs), frame_end(fe), frame_speed(fsp), frame_name(fn) {}
 
@@ -66,10 +73,13 @@ struct SpriteProperty {
   std::string Text;
 };
 
-class ZSprite {
+struct ZSprite {
  public:
-  void LoadZSpriteFormat(const std::string& filename) {
+  absl::Status Load(const std::string& filename) {
     std::ifstream fs(filename, std::ios::binary);
+    if (!fs.is_open()) {
+      return absl::NotFoundError("File not found");
+    }
 
     std::vector<char> buffer(std::istreambuf_iterator<char>(fs), {});
 
@@ -213,9 +223,11 @@ class ZSprite {
     // UpdateUserRoutines();
     // userroutinesListbox.SelectedIndex = 0;
     // RefreshScreen();
+
+    return absl::OkStatus();
   }
 
-  void SaveZSpriteFormat(const std::string& filename) {
+  absl::Status Save(const std::string& filename) {
     std::ofstream fs(filename, std::ios::binary);
     if (fs.is_open()) {
       // Write data to the file
@@ -335,9 +347,10 @@ class ZSprite {
 
       fs.close();
     }
+
+    return absl::OkStatus();
   }
 
- private:
   std::string sprName;
   std::vector<AnimationGroup> animations;
   std::vector<UserRoutine> userRoutines;
@@ -377,6 +390,7 @@ class ZSprite {
 
 }  // namespace zsprite
 }  // namespace editor
+}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
