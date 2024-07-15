@@ -1,4 +1,4 @@
-#include "app/editor/graphics_editor.h"
+#include "graphics_editor.h"
 
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui/imgui.h>
@@ -230,8 +230,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
   static int next_tab_id = 0;
 
   if (ImGui::BeginTabBar("##GfxEditTabBar", kGfxEditTabBarFlags)) {
-    if (ImGui::TabItemButton(
-            ICON_MD_ADD, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+    if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_Trailing |
+                                              ImGuiTabItemFlags_NoTooltip)) {
       open_sheets_.insert(next_tab_id++);
     }
 
