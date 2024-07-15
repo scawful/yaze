@@ -1,4 +1,4 @@
-<map id="src/app/editor/sprite_editor.cc" name="src/app/editor/sprite_editor.cc">
+<map id="src/app/editor/sprite/sprite_editor.cc" name="src/app/editor/sprite/sprite_editor.cc">
 <area shape="rect" id="Node000001" title=" " alt="" coords="2817,5,2954,46"/>
 <area shape="rect" id="Node000002" href="$sprite__editor_8h.html" title=" " alt="" coords="341,94,443,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2817,32,458,106,458,101,2817,26"/>

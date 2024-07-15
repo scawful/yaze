@@ -92,12 +92,13 @@ var searchData=
   ['loadtile8_89',['LoadTile8',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b',1,'yaze::app::editor::Tile16Editor']]],
   ['loadtiletypes_90',['LoadTileTypes',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#af2b7f66590e74f60e28fce12f8ba028c',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['loadtitlescreen_91',['LoadTitleScreen',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f',1,'yaze::app::zelda3::screen::TitleScreen']]],
-  ['log_92',['Log',['../classyaze_1_1app_1_1emu_1_1Logger.html#afd1f918a7c87de7dcbadb0b866da3686',1,'yaze::app::emu::Logger']]],
-  ['log_93',['log',['../classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb',1,'yaze::app::core::Logger']]],
-  ['logger_94',['Logger',['../classyaze_1_1app_1_1emu_1_1Logger.html#ac6b659470db72724aa3b039383b5c875',1,'yaze::app::emu::Logger::Logger()=default'],['../classyaze_1_1app_1_1emu_1_1Logger.html#a649ab2d2f753cd558a70c92597f83e30',1,'yaze::app::emu::Logger::Logger(const Logger &amp;)=delete']]],
-  ['loginstruction_95',['LogInstruction',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a3271dbfd4c6e2c2d252b0cf780b1f396',1,'yaze::app::emu::audio::Spc700']]],
-  ['loginstructions_96',['LogInstructions',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a3361d0712df46b8fd18d91b57533a491',1,'yaze::app::emu::Cpu']]],
-  ['logmessage_97',['LogMessage',['../classyaze_1_1app_1_1emu_1_1Loggable.html#a17cc982c7eb52c90c85102cbe3eb2dd5',1,'yaze::app::emu::Loggable']]],
-  ['lsr_98',['LSR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213',1,'yaze::app::emu::audio::Spc700::LSR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5072f70a9c7470c467dee5c8172d5f5a',1,'yaze::app::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
-  ['lsr_99',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]]
+  ['loadzspriteformat_92',['LoadZSpriteFormat',['../classyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a7aac7b8352f8394d6f6489b854668eb5',1,'yaze::editor::zsprite::ZSprite']]],
+  ['log_93',['Log',['../classyaze_1_1app_1_1emu_1_1Logger.html#afd1f918a7c87de7dcbadb0b866da3686',1,'yaze::app::emu::Logger']]],
+  ['log_94',['log',['../classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb',1,'yaze::app::core::Logger']]],
+  ['logger_95',['Logger',['../classyaze_1_1app_1_1emu_1_1Logger.html#ac6b659470db72724aa3b039383b5c875',1,'yaze::app::emu::Logger::Logger()=default'],['../classyaze_1_1app_1_1emu_1_1Logger.html#a649ab2d2f753cd558a70c92597f83e30',1,'yaze::app::emu::Logger::Logger(const Logger &amp;)=delete']]],
+  ['loginstruction_96',['LogInstruction',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a3271dbfd4c6e2c2d252b0cf780b1f396',1,'yaze::app::emu::audio::Spc700']]],
+  ['loginstructions_97',['LogInstructions',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a3361d0712df46b8fd18d91b57533a491',1,'yaze::app::emu::Cpu']]],
+  ['logmessage_98',['LogMessage',['../classyaze_1_1app_1_1emu_1_1Loggable.html#a17cc982c7eb52c90c85102cbe3eb2dd5',1,'yaze::app::emu::Loggable']]],
+  ['lsr_99',['LSR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a56da1a2caefded33312287e67dd51213',1,'yaze::app::emu::audio::Spc700::LSR()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5072f70a9c7470c467dee5c8172d5f5a',1,'yaze::app::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
+  ['lsr_100',['Lsr',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a14badf0a328781809eb8e09dccb96321',1,'yaze::app::emu::Cpu']]]
 ];

@@ -253,6 +253,16 @@ var annotated_dup =
         [ "ReadFromRom", "classyaze_1_1cli_1_1ReadFromRom.html", "classyaze_1_1cli_1_1ReadFromRom" ],
         [ "SnesToPc", "classyaze_1_1cli_1_1SnesToPc.html", "classyaze_1_1cli_1_1SnesToPc" ],
         [ "Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", "classyaze_1_1cli_1_1Tile16Transfer" ]
+      ] ],
+      [ "editor", "namespaceyaze_1_1editor.html", [
+        [ "zsprite", "namespaceyaze_1_1editor_1_1zsprite.html", [
+          [ "AnimationGroup", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup" ],
+          [ "OamTile", "structyaze_1_1editor_1_1zsprite_1_1OamTile.html", "structyaze_1_1editor_1_1zsprite_1_1OamTile" ],
+          [ "SpriteProperty", "structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html", "structyaze_1_1editor_1_1zsprite_1_1SpriteProperty" ],
+          [ "SubEditor", "structyaze_1_1editor_1_1zsprite_1_1SubEditor.html", "structyaze_1_1editor_1_1zsprite_1_1SubEditor" ],
+          [ "UserRoutine", "structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html", "structyaze_1_1editor_1_1zsprite_1_1UserRoutine" ],
+          [ "ZSprite", "classyaze_1_1editor_1_1zsprite_1_1ZSprite.html", "classyaze_1_1editor_1_1zsprite_1_1ZSprite" ]
+        ] ]
       ] ]
     ] ],
     [ "yaze_test", "namespaceyaze__test.html", [

@@ -7,7 +7,7 @@ var searchData=
   ['oamdata_4',['OAMDATA',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATA.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['oamdataread_5',['OAMDATAREAD',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMDATAREAD.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['oamsize_6',['OAMSize',['../structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html',1,'yaze::app::emu::video']]],
-  ['oamtile_7',['OamTile',['../classyaze_1_1app_1_1gfx_1_1OamTile.html',1,'yaze::app::gfx']]],
+  ['oamtile_7',['OamTile',['../classyaze_1_1app_1_1gfx_1_1OamTile.html',1,'yaze::app::gfx::OamTile'],['../structyaze_1_1editor_1_1zsprite_1_1OamTile.html',1,'yaze::editor::zsprite::OamTile']]],
   ['object_5fdoor_8',['object_door',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html',1,'yaze::app::zelda3::dungeon']]],
   ['objsel_9',['OBJSEL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['open_10',['Open',['../classyaze_1_1cli_1_1Open.html',1,'yaze::cli']]],

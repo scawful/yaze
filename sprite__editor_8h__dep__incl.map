@@ -1,4 +1,4 @@
-<map id="src/app/editor/sprite_editor.h" name="src/app/editor/sprite_editor.h">
+<map id="src/app/editor/sprite/sprite_editor.h" name="src/app/editor/sprite/sprite_editor.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="119,5,255,46"/>
 <area shape="rect" id="Node000002" href="$master__editor_8cc.html" title=" " alt="" coords="5,183,150,223"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,57,122,75,105,95,94,117,87,140,81,183,76,182,82,139,89,115,101,93,118,71,139,53"/>

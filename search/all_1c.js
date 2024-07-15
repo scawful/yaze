@@ -1,7 +1,7 @@
 var searchData=
 [
   ['y_0',['Y',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ab07109f19d07b8e50994be9b990b6148',1,'yaze::app::emu::audio::Spc700::Y'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a629f11e7604fd8a84155a7ea088a291d',1,'yaze::app::emu::Cpu::Y']]],
-  ['y_1',['y',['../structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#adb711a45b219c31807471901aa0383f8',1,'yaze::app::editor::SpriteEditor::OAMConfig::y'],['../structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a72fbc356a242327ecac585cf686cb1e7',1,'yaze::app::emu::video::SpriteAttributes::y'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab63d0ebfbaf09520434422d51ad24449',1,'yaze::app::zelda3::Sprite::y()']]],
+  ['y_1',['y',['../structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#adb711a45b219c31807471901aa0383f8',1,'yaze::app::editor::SpriteEditor::OAMConfig::y'],['../structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a68de8194958c37e625ebf898de4678db',1,'yaze::editor::zsprite::OamTile::y'],['../structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html#a72fbc356a242327ecac585cf686cb1e7',1,'yaze::app::emu::video::SpriteAttributes::y'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab63d0ebfbaf09520434422d51ad24449',1,'yaze::app::zelda3::Sprite::y()']]],
   ['y_5f_2',['y_',['../classyaze_1_1app_1_1gfx_1_1OamTile.html#abbfba5fe4ff2a8a97ec4eaa82a5de7dc',1,'yaze::app::gfx::OamTile::y_'],['../classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#adbdde02a63cdec5a74d6d2b128b622d7',1,'yaze::app::zelda3::OverworldEntity::y_'],['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#aab6cfcb63f274b42a9e8ad4fd4db78ff',1,'yaze::app::zelda3::dungeon::object_door::y_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a6447ac9547a215947ea33677c5a1c29d',1,'yaze::app::zelda3::dungeon::RoomObject::y_']]],
   ['y_5fcamera_5f_3',['y_camera_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a37d684d9db57a61fb63c8300a03fa20c',1,'yaze::app::zelda3::overworld::OverworldExit']]],
   ['y_5fflip_4',['y_flip',['../classyaze_1_1app_1_1editor_1_1Tile16Editor.html#af14c909a64d4de800c5ef83d9bf13a82',1,'yaze::app::editor::Tile16Editor']]],
@@ -58,12 +58,14 @@ var searchData=
   ['yaze_3a_3acli_55',['cli',['../namespaceyaze_1_1cli.html',1,'yaze']]],
   ['yaze_3a_3acli_3a_3aanonymous_5fnamespace_7bz3ed_2ecc_7d_56',['anonymous_namespace{z3ed.cc}',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02z3ed_8cc_03.html',1,'yaze::cli']]],
   ['yaze_3a_3acli_3a_3acolor_57',['Color',['../namespaceyaze_1_1cli_1_1Color.html',1,'yaze::cli']]],
-  ['yaze_5ftest_58',['yaze_test',['../namespaceyaze__test.html',1,'']]],
-  ['yaze_5ftest_2ecc_59',['yaze_test.cc',['../yaze__test_8cc.html',1,'']]],
-  ['yaze_5ftest_3a_3aemu_5ftest_60',['emu_test',['../namespaceyaze__test_1_1emu__test.html',1,'yaze_test']]],
-  ['yaze_5ftest_3a_3agfx_5ftest_61',['gfx_test',['../namespaceyaze__test_1_1gfx__test.html',1,'yaze_test']]],
-  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_62',['anonymous_namespace{compression_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze_test::gfx_test']]],
-  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_63',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze_test::gfx_test']]],
-  ['yaze_5ftest_3a_3azelda3_5ftest_64',['zelda3_test',['../namespaceyaze__test_1_1zelda3__test.html',1,'yaze_test']]],
-  ['yet_20another_20zelda3_20editor_65',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
+  ['yaze_3a_3aeditor_58',['editor',['../namespaceyaze_1_1editor.html',1,'yaze']]],
+  ['yaze_3a_3aeditor_3a_3azsprite_59',['zsprite',['../namespaceyaze_1_1editor_1_1zsprite.html',1,'yaze::editor']]],
+  ['yaze_5ftest_60',['yaze_test',['../namespaceyaze__test.html',1,'']]],
+  ['yaze_5ftest_2ecc_61',['yaze_test.cc',['../yaze__test_8cc.html',1,'']]],
+  ['yaze_5ftest_3a_3aemu_5ftest_62',['emu_test',['../namespaceyaze__test_1_1emu__test.html',1,'yaze_test']]],
+  ['yaze_5ftest_3a_3agfx_5ftest_63',['gfx_test',['../namespaceyaze__test_1_1gfx__test.html',1,'yaze_test']]],
+  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bcompression_5ftest_2ecc_7d_64',['anonymous_namespace{compression_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html',1,'yaze_test::gfx_test']]],
+  ['yaze_5ftest_3a_3agfx_5ftest_3a_3aanonymous_5fnamespace_7bsnes_5fpalette_5ftest_2ecc_7d_65',['anonymous_namespace{snes_palette_test.cc}',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html',1,'yaze_test::gfx_test']]],
+  ['yaze_5ftest_3a_3azelda3_5ftest_66',['zelda3_test',['../namespaceyaze__test_1_1zelda3__test.html',1,'yaze_test']]],
+  ['yet_20another_20zelda3_20editor_67',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
 ];
