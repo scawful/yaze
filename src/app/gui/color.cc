@@ -30,7 +30,12 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
 
   // Call the original ImGui::ColorButton with the converted color
   bool pressed = ImGui::ColorButton(id.data(), displayColor, flags, size_arg);
-
+  // Add the SNES color representation to the tooltip
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::Text("SNES: $%04X", color.snes());
+    ImGui::EndTooltip();
+  }
   return pressed;
 }
 
