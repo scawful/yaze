@@ -23,6 +23,11 @@ enum class EditorType {
   kSprite,
 };
 
+constexpr std::array<const char*, 8> kEditorNames = {
+    "Assembly",  "Dungeon", "Graphics", "Music",
+    "Overworld", "Palette", "Screen",   "Sprite",
+};
+
 /**
  * @class Editor
  * @brief Interface for editor classes.
