@@ -49,7 +49,7 @@ using namespace gfx;
 
 constexpr ImGuiTableFlags kPaletteTableFlags =
     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable |
-    ImGuiTableFlags_SizingStretchSame;
+    ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Hideable;
 
 namespace {
 int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
@@ -97,6 +97,8 @@ absl::Status PaletteEditor::Update() {
     TableHeadersRow();
     TableNextRow();
     TableNextColumn();
+    DrawCustomPalette();
+    Separator();
     gui::SnesColorEdit4("Current Color Picker", &current_color_,
                         ImGuiColorEditFlags_NoAlpha);
     Separator();
@@ -119,6 +121,43 @@ absl::Status PaletteEditor::Update() {
   CLEAR_AND_RETURN_STATUS(status_)
 
   return absl::OkStatus();
+}
+
+void PaletteEditor::DrawCustomPalette() {
+  if (BeginChild("ColorPalette", ImVec2(0, 40), true,
+                 ImGuiWindowFlags_HorizontalScrollbar)) {
+    for (int i = 0; i < custom_palette_.size(); i++) {
+      PushID(i);
+      if ((i % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      gui::SnesColorEdit4("##customPalette", &custom_palette_[i],
+                          ImGuiColorEditFlags_NoInputs);
+      // Accept a drag drop target which adds a color to the custom_palette_
+      if (BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload =
+                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F)) {
+          ImVec4 color = ImVec4(0, 0, 0, 1.0f);
+          memcpy((float*)&color, payload->Data, sizeof(float));
+          custom_palette_.push_back(SnesColor(color));
+        }
+        EndDragDropTarget();
+      }
+
+      PopID();
+    }
+    SameLine();
+    if (ImGui::Button("Add Color")) {
+      custom_palette_.push_back(SnesColor(0x7FFF));
+    }
+    SameLine();
+    if (ImGui::Button("Export to Clipboard")) {
+      std::string clipboard;
+      for (const auto& color : custom_palette_) {
+        clipboard += absl::StrFormat("$%04X,", color.snes());
+      }
+      SetClipboardText(clipboard.c_str());
+    }
+  }
+  EndChild();
 }
 
 void PaletteEditor::DisplayCategoryTable() {
@@ -248,10 +287,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category, bool right_side) {
 absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
-  if (gui::SnesColorEdit4("Edit Color", &palette[n], color_popup_flags)) {
-    // TODO: Implement new update color function
-  }
-
+  gui::SnesColorEdit4("Edit Color", &palette[n], color_popup_flags);
   if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
   if (BeginPopup("Copy")) {
     int cr = F32_TO_INT8_SAT(col[0]);
