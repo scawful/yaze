@@ -73,7 +73,10 @@ class PaletteEditorHistory {
  */
 class PaletteEditor : public SharedRom, public Editor {
  public:
-  PaletteEditor() { type_ = EditorType::kPalette; }
+  PaletteEditor() {
+    type_ = EditorType::kPalette;
+    custom_palette_.push_back(gfx::SnesColor(0x7FFF));
+  }
 
   absl::Status Update() override;
 
@@ -92,6 +95,8 @@ class PaletteEditor : public SharedRom, public Editor {
   void DrawPortablePalette(gfx::SnesPalette& palette);
   absl::Status DrawPaletteGroup(int category, bool right_side = false);
 
+  void DrawCustomPalette();
+
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
   absl::Status InitializeSavedPalette(const gfx::SnesPalette& palette) {
@@ -109,6 +114,8 @@ class PaletteEditor : public SharedRom, public Editor {
   gfx::SnesColor current_color_;
 
   GfxGroupEditor gfx_group_editor_;
+
+  std::vector<gfx::SnesColor> custom_palette_;
 
   ImVec4 saved_palette_[256] = {};
   ImGuiColorEditFlags color_popup_flags =
