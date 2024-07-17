@@ -206,8 +206,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aabc08b8ae1c0e6fa35d69700dec1ab10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72bd6358e58d2ecd0422d69111cf94ec" id="r_a72bd6358e58d2ecd0422d69111cf94ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72bd6358e58d2ecd0422d69111cf94ec">DrawPortablePalette</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
 <tr class="separator:a72bd6358e58d2ecd0422d69111cf94ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9323bdc89bc5fba3c2c977a32e13ed2d" id="r_a9323bdc89bc5fba3c2c977a32e13ed2d"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9323bdc89bc5fba3c2c977a32e13ed2d">DrawPaletteGroup</a> (int category)</td></tr>
-<tr class="separator:a9323bdc89bc5fba3c2c977a32e13ed2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add001e703fbf0d541dde4a66a6c21ed1" id="r_add001e703fbf0d541dde4a66a6c21ed1"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#add001e703fbf0d541dde4a66a6c21ed1">DrawPaletteGroup</a> (int category, bool right_side=false)</td></tr>
+<tr class="separator:add001e703fbf0d541dde4a66a6c21ed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec2eb61af39135c7db4980a156d37249" id="r_aec2eb61af39135c7db4980a156d37249"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec2eb61af39135c7db4980a156d37249">DrawCustomPalette</a> ()</td></tr>
+<tr class="separator:aec2eb61af39135c7db4980a156d37249"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1app_1_1SharedRom"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1SharedRom')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1SharedRom.html">yaze::app::SharedRom</a></td></tr>
 <tr class="memitem:a36bcd9fe4e37b5474fd0462db10d6c11 inherit pub_methods_classyaze_1_1app_1_1SharedRom" id="r_a36bcd9fe4e37b5474fd0462db10d6c11"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1SharedRom.html#a36bcd9fe4e37b5474fd0462db10d6c11">SharedRom</a> ()=default</td></tr>
 <tr class="separator:a36bcd9fe4e37b5474fd0462db10d6c11 inherit pub_methods_classyaze_1_1app_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -240,6 +242,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a686c9db845a36de764713129c19ef950"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b9e5eb47ef22c1f936ef41e6a2a04bf" id="r_a4b9e5eb47ef22c1f936ef41e6a2a04bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html">GfxGroupEditor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4b9e5eb47ef22c1f936ef41e6a2a04bf">gfx_group_editor_</a></td></tr>
 <tr class="separator:a4b9e5eb47ef22c1f936ef41e6a2a04bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93233d24afaf20d810ff501f3897a99d" id="r_a93233d24afaf20d810ff501f3897a99d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a93233d24afaf20d810ff501f3897a99d">custom_palette_</a></td></tr>
+<tr class="separator:a93233d24afaf20d810ff501f3897a99d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06adbd3640d6ad11ae4be94fe660fe5b" id="r_a06adbd3640d6ad11ae4be94fe660fe5b"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a06adbd3640d6ad11ae4be94fe660fe5b">saved_palette_</a> [256] = {}</td></tr>
 <tr class="separator:a06adbd3640d6ad11ae4be94fe660fe5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80fe2954b6dda845d09f510d2d558d6b" id="r_a80fe2954b6dda845d09f510d2d558d6b"><td class="memItemLeft" align="right" valign="top">ImGuiColorEditFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a80fe2954b6dda845d09f510d2d558d6b">color_popup_flags</a></td></tr>
@@ -286,7 +290,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb">yaze::app::editor::kPalette</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#ab20ed881e86575206b5294a9fc8a9c6f">yaze::app::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="#a93233d24afaf20d810ff501f3897a99d">custom_palette_</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb">yaze::app::editor::kPalette</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#ab20ed881e86575206b5294a9fc8a9c6f">yaze::app::editor::Editor::type_</a>.</p>
 
 </div>
 </div>
@@ -316,7 +320,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">yaze::app::editor::Editor</a>.</p>
 
-<p class="reference">References <a class="el" href="constants_8h.html#aada67a2281f9b16dbb495ed05b8755e0">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="#a686c9db845a36de764713129c19ef950">current_color_</a>, <a class="el" href="#a3e63e29b01fb5fd97acd9d710f5560a9">DisplayCategoryTable()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125">yaze::app::editor::GfxGroupEditor::DrawPaletteViewer()</a>, <a class="el" href="#a4b9e5eb47ef22c1f936ef41e6a2a04bf">gfx_group_editor_</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#aa82fac7101cc6d02ab0d5c2d5553213c">yaze::app::gfx::kNumPalettes</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a7240deb8b0e5909fa9c74659fcf0b20c">yaze::app::editor::kPaletteTableFlags</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84">yaze::app::gui::SnesColorEdit4()</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#aada67a2281f9b16dbb495ed05b8755e0">CLEAR_AND_RETURN_STATUS</a>, <a class="el" href="#a686c9db845a36de764713129c19ef950">current_color_</a>, <a class="el" href="#a3e63e29b01fb5fd97acd9d710f5560a9">DisplayCategoryTable()</a>, <a class="el" href="#aec2eb61af39135c7db4980a156d37249">DrawCustomPalette()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125">yaze::app::editor::GfxGroupEditor::DrawPaletteViewer()</a>, <a class="el" href="#a4b9e5eb47ef22c1f936ef41e6a2a04bf">gfx_group_editor_</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#aa82fac7101cc6d02ab0d5c2d5553213c">yaze::app::gfx::kNumPalettes</a>, <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a7240deb8b0e5909fa9c74659fcf0b20c">yaze::app::editor::kPaletteTableFlags</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84">yaze::app::gui::SnesColorEdit4()</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0">yaze::app::editor::MasterEditor::DrawViewMenu()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#aef088de58cae5ac63a9a5e1ca301a4f7">yaze::app::editor::MasterEditor::ManageActiveEditors()</a>.</p>
 <div class="dynheader">
@@ -324,59 +328,62 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1PaletteEditor_a3e7aaa1c0187c37af4d1bb057a1af027_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a3e7aaa1c0187c37af4d1bb057a1af027_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a3e7aaa1c0187c37af4d1bb057a1af027_cgraph" id="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a3e7aaa1c0187c37af4d1bb057a1af027_cgraph">
-<area shape="rect" title=" " alt="" coords="5,347,149,387"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9" title=" " alt="" coords="197,320,391,376"/>
-<area shape="poly" title=" " alt="" coords="149,358,181,355,182,361,149,363"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84" title=" " alt="" coords="903,105,1066,146"/>
-<area shape="poly" title=" " alt="" coords="101,344,187,276,322,183,401,135,487,90,576,51,668,20,718,8,758,3,799,7,849,20,880,34,908,52,955,92,952,96,905,57,877,39,847,25,798,12,759,8,719,13,669,26,578,56,489,95,404,140,324,188,191,280,104,348"/>
-<area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="670,529,846,554"/>
-<area shape="poly" title=" " alt="" coords="150,383,690,522,689,527,148,388"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125" title=" " alt="" coords="201,512,387,568"/>
-<area shape="poly" title=" " alt="" coords="106,386,247,500,244,504,102,390"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a9323bdc89bc5fba3c2c977a32e13ed2d" title=" " alt="" coords="444,302,616,357"/>
-<area shape="poly" title=" " alt="" coords="391,338,428,335,428,340,392,343"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ac47243320078379b2b29cf6fcd3935c0" title=" " alt="" coords="671,165,845,206"/>
-<area shape="poly" title=" " alt="" coords="558,300,607,257,667,215,676,210,679,215,670,220,610,261,561,304"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1" title=" " alt="" coords="672,230,844,285"/>
-<area shape="poly" title=" " alt="" coords="616,300,656,287,658,292,617,305"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a3232fb97b5561c563c2e34041ea084a5" title=" " alt="" coords="671,375,845,415"/>
-<area shape="poly" title=" " alt="" coords="617,352,670,367,669,372,616,357"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afdc639f745c60b9b9375d1f3342c1411" title=" " alt="" coords="668,440,848,481"/>
-<area shape="poly" title=" " alt="" coords="567,356,615,391,670,425,682,431,680,436,667,429,612,395,564,360"/>
-<area shape="poly" title=" " alt="" coords="564,356,622,419,636,439,645,456,654,473,670,490,712,519,709,524,667,494,650,476,640,459,632,442,618,422,560,360"/>
-<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1e809967b23511be48bc9e034dabb98d" title=" " alt="" coords="668,35,848,75"/>
-<area shape="poly" title=" " alt="" coords="537,300,555,254,582,197,619,138,642,111,667,86,673,81,676,86,670,90,646,114,624,141,587,200,560,256,542,302"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="671,100,845,141"/>
-<area shape="poly" title=" " alt="" coords="544,300,593,227,627,187,667,152,675,146,678,150,670,156,631,190,597,230,549,303"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#af99fa533aa6eae061b9b4d583010e85d" title=" " alt="" coords="676,309,840,350"/>
-<area shape="poly" title=" " alt="" coords="616,327,661,327,661,332,616,332"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="1383,79,1607,105"/>
-<area shape="poly" title=" " alt="" coords="844,244,895,238,963,232,1022,233,1124,238,1171,238,1220,231,1274,215,1334,187,1349,175,1358,161,1366,145,1382,130,1424,108,1426,113,1385,134,1371,149,1362,164,1353,178,1337,192,1276,220,1222,236,1172,243,1124,244,1022,238,964,238,896,243,845,249"/>
-<area shape="poly" title=" " alt="" coords="824,227,846,215,942,153,945,158,849,220,827,232"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef" title=" " alt="" coords="896,253,1073,278"/>
-<area shape="poly" title=" " alt="" coords="845,258,880,259,880,265,844,263"/>
-<area shape="poly" title=" " alt="" coords="1017,102,1064,77,1120,58,1162,51,1204,47,1289,49,1367,59,1432,73,1431,78,1366,65,1288,55,1204,52,1162,56,1122,63,1067,82,1019,107"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a4223ea51fab06e8518219cf81049db0f" title=" " alt="" coords="1121,303,1335,343"/>
-<area shape="poly" title=" " alt="" coords="1013,144,1191,291,1188,295,1009,148"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#a477d2e3ceed1711ad288ba2b1448f5c6" title=" " alt="" coords="1147,72,1310,113"/>
-<area shape="poly" title=" " alt="" coords="1066,112,1131,103,1132,108,1067,117"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ae83a64c873979be91fb76d1815ab8e73" title=" " alt="" coords="1147,137,1310,178"/>
-<area shape="poly" title=" " alt="" coords="1067,134,1132,142,1131,148,1066,139"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="1401,281,1589,306"/>
-<area shape="poly" title=" " alt="" coords="1336,308,1385,303,1386,308,1336,314"/>
-<area shape="poly" title=" " alt="" coords="1310,90,1368,90,1368,95,1310,95"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#aab504a319aec14fc51e9f309d12c767b" title=" " alt="" coords="1383,145,1607,170"/>
-<area shape="poly" title=" " alt="" coords="1310,155,1368,155,1368,160,1310,160"/>
-<area shape="poly" title=" " alt="" coords="1074,268,1386,285,1386,290,1073,273"/>
-<area shape="poly" title=" " alt="" coords="720,530,713,520,717,510,733,504,758,502,786,505,800,512,797,516,784,510,758,507,734,509,721,514,718,520,725,527"/>
-<area shape="poly" title=" " alt="" coords="840,326,1105,322,1105,327,840,331"/>
-<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#adaa3a2d2195382f2172c39a62e33dcaa" title=" " alt="" coords="903,360,1066,401"/>
-<area shape="poly" title=" " alt="" coords="841,345,888,356,887,361,839,351"/>
-<area shape="poly" title=" " alt="" coords="387,538,654,539,654,544,387,543"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="439,578,620,604"/>
-<area shape="poly" title=" " alt="" coords="388,558,452,572,451,577,387,563"/>
-<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="682,578,834,604"/>
-<area shape="poly" title=" " alt="" coords="621,588,667,588,667,594,621,594"/>
+<area shape="rect" title=" " alt="" coords="5,322,149,363"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a3e63e29b01fb5fd97acd9d710f5560a9" title=" " alt="" coords="197,315,391,370"/>
+<area shape="poly" title=" " alt="" coords="149,340,181,340,181,345,149,345"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84" title=" " alt="" coords="939,25,1102,66"/>
+<area shape="poly" title=" " alt="" coords="93,320,137,271,195,218,258,170,309,135,364,107,438,79,501,60,566,46,698,31,821,28,924,33,923,38,821,34,698,36,567,51,502,65,440,84,367,112,312,140,261,174,198,222,141,275,97,323"/>
+<area shape="rect" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="706,574,882,599"/>
+<area shape="poly" title=" " alt="" coords="140,361,740,566,738,571,138,366"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aec2eb61af39135c7db4980a156d37249" title=" " alt="" coords="439,93,656,134"/>
+<area shape="poly" title=" " alt="" coords="120,319,489,138,491,143,122,324"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#a50ab0205a08f14928a2a6bad5403c125" title=" " alt="" coords="201,557,387,613"/>
+<area shape="poly" title=" " alt="" coords="99,361,260,544,256,547,95,365"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#add001e703fbf0d541dde4a66a6c21ed1" title=" " alt="" coords="462,315,634,370"/>
+<area shape="poly" title=" " alt="" coords="392,340,446,340,446,345,392,345"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ac47243320078379b2b29cf6fcd3935c0" title=" " alt="" coords="707,485,881,526"/>
+<area shape="poly" title=" " alt="" coords="587,369,658,427,681,450,706,470,716,476,714,480,703,474,678,454,655,431,583,373"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1" title=" " alt="" coords="708,79,880,134"/>
+<area shape="poly" title=" " alt="" coords="563,313,619,231,658,185,703,145,707,141,711,145,706,149,662,189,623,235,567,316"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a3232fb97b5561c563c2e34041ea084a5" title=" " alt="" coords="707,158,881,199"/>
+<area shape="poly" title=" " alt="" coords="575,312,631,261,703,210,714,204,717,208,706,214,635,265,578,316"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afdc639f745c60b9b9375d1f3342c1411" title=" " alt="" coords="704,224,884,264"/>
+<area shape="poly" title=" " alt="" coords="614,312,703,275,721,268,723,273,705,280,616,317"/>
+<area shape="poly" title=" " alt="" coords="595,369,628,395,658,428,675,457,682,484,689,509,706,535,724,551,745,564,742,569,721,556,702,539,684,511,676,485,670,459,654,431,624,399,592,373"/>
+<area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1e809967b23511be48bc9e034dabb98d" title=" " alt="" coords="704,289,884,330"/>
+<area shape="poly" title=" " alt="" coords="634,328,688,321,689,326,635,334"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="707,420,881,460"/>
+<area shape="poly" title=" " alt="" coords="618,369,705,404,723,411,721,416,703,409,616,374"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#af99fa533aa6eae061b9b4d583010e85d" title=" " alt="" coords="712,354,876,395"/>
+<area shape="poly" title=" " alt="" coords="635,351,697,359,697,365,634,356"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="1419,32,1643,58"/>
+<area shape="poly" title=" " alt="" coords="881,103,1103,97,1237,88,1371,75,1458,59,1459,64,1372,80,1238,93,1103,102,881,109"/>
+<area shape="poly" title=" " alt="" coords="880,81,927,68,928,73,881,86"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef" title=" " alt="" coords="932,151,1109,177"/>
+<area shape="poly" title=" " alt="" coords="881,126,953,144,951,149,880,131"/>
+<area shape="poly" title=" " alt="" coords="1096,22,1157,11,1264,3,1372,11,1462,26,1461,31,1371,16,1264,8,1157,16,1097,27"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a4223ea51fab06e8518219cf81049db0f" title=" " alt="" coords="1157,205,1371,246"/>
+<area shape="poly" title=" " alt="" coords="1043,64,1111,137,1133,166,1143,178,1158,190,1169,196,1166,200,1156,194,1139,182,1129,169,1107,140,1039,68"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#a477d2e3ceed1711ad288ba2b1448f5c6" title=" " alt="" coords="1183,25,1346,66"/>
+<area shape="poly" title=" " alt="" coords="1103,43,1167,43,1167,48,1103,48"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ae83a64c873979be91fb76d1815ab8e73" title=" " alt="" coords="1183,140,1346,180"/>
+<area shape="poly" title=" " alt="" coords="1066,64,1206,130,1204,135,1064,68"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="1437,240,1625,266"/>
+<area shape="poly" title=" " alt="" coords="1372,234,1422,239,1422,244,1372,239"/>
+<area shape="poly" title=" " alt="" coords="1346,43,1404,43,1404,48,1346,48"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#aab504a319aec14fc51e9f309d12c767b" title=" " alt="" coords="1419,147,1643,173"/>
+<area shape="poly" title=" " alt="" coords="1346,157,1404,157,1404,163,1346,163"/>
+<area shape="poly" title=" " alt="" coords="1036,175,1087,217,1121,239,1158,255,1231,270,1307,275,1380,273,1444,266,1444,271,1380,278,1307,281,1231,276,1156,260,1118,243,1084,222,1033,179"/>
+<area shape="poly" title=" " alt="" coords="756,575,749,565,753,555,769,549,794,547,822,550,836,557,833,561,820,555,794,552,770,554,757,559,754,564,761,572"/>
+<area shape="poly" title=" " alt="" coords="860,351,1183,248,1184,253,862,356"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#adaa3a2d2195382f2172c39a62e33dcaa" title=" " alt="" coords="939,354,1102,395"/>
+<area shape="poly" title=" " alt="" coords="876,372,923,372,923,377,876,377"/>
+<area shape="poly" title=" " alt="" coords="607,90,704,64,817,49,923,43,923,49,818,55,705,69,608,95"/>
+<area shape="poly" title=" " alt="" coords="388,583,690,584,690,589,388,588"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="457,623,638,649"/>
+<area shape="poly" title=" " alt="" coords="388,601,465,617,464,622,387,606"/>
+<area shape="rect" href="namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="718,623,870,649"/>
+<area shape="poly" title=" " alt="" coords="639,633,703,633,703,639,639,639"/>
 </map>
 </div>
 
@@ -532,7 +539,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a9323bdc89bc5fba3c2c977a32e13ed2d">DrawPaletteGroup()</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
+<p class="reference">References <a class="el" href="#add001e703fbf0d541dde4a66a6c21ed1">DrawPaletteGroup()</a>, and <a class="el" href="#a507634ca48adec6b06c620df5445f3c0">status_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#a3e7aaa1c0187c37af4d1bb057a1af027">Update()</a>.</p>
 <div class="dynheader">
@@ -541,7 +548,7 @@ Here is the call graph for this function:</div>
 <div class="center"><img src="classyaze_1_1app_1_1editor_1_1PaletteEditor_a3e63e29b01fb5fd97acd9d710f5560a9_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a3e63e29b01fb5fd97acd9d710f5560a9_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a3e63e29b01fb5fd97acd9d710f5560a9_cgraph" id="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a3e63e29b01fb5fd97acd9d710f5560a9_cgraph">
 <area shape="rect" title=" " alt="" coords="5,332,200,388"/>
-<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a9323bdc89bc5fba3c2c977a32e13ed2d" title=" " alt="" coords="248,332,420,388"/>
+<area shape="rect" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#add001e703fbf0d541dde4a66a6c21ed1" title=" " alt="" coords="248,332,420,388"/>
 <area shape="poly" title=" " alt="" coords="200,357,232,357,232,363,200,363"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ac47243320078379b2b29cf6fcd3935c0" title=" " alt="" coords="471,97,645,138"/>
 <area shape="poly" title=" " alt="" coords="343,330,362,290,388,241,423,191,466,147,470,144,474,148,470,151,427,194,393,244,366,292,348,333"/>
@@ -732,8 +739,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a9323bdc89bc5fba3c2c977a32e13ed2d" name="a9323bdc89bc5fba3c2c977a32e13ed2d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9323bdc89bc5fba3c2c977a32e13ed2d">&#9670;&#160;</a></span>DrawPaletteGroup()</h2>
+<a id="add001e703fbf0d541dde4a66a6c21ed1" name="add001e703fbf0d541dde4a66a6c21ed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add001e703fbf0d541dde4a66a6c21ed1">&#9670;&#160;</a></span>DrawPaletteGroup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -741,8 +748,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">absl::Status yaze::app::editor::PaletteEditor::DrawPaletteGroup </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>category</em></span></td><td>)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>category</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>right_side</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -753,8 +764,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1editor_1_1PaletteEditor_a9323bdc89bc5fba3c2c977a32e13ed2d_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a9323bdc89bc5fba3c2c977a32e13ed2d_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a9323bdc89bc5fba3c2c977a32e13ed2d_cgraph" id="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_a9323bdc89bc5fba3c2c977a32e13ed2d_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1PaletteEditor_add001e703fbf0d541dde4a66a6c21ed1_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1PaletteEditor_add001e703fbf0d541dde4a66a6c21ed1_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_add001e703fbf0d541dde4a66a6c21ed1_cgraph" id="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_add001e703fbf0d541dde4a66a6c21ed1_cgraph">
 <area shape="rect" title=" " alt="" coords="5,332,178,388"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ac47243320078379b2b29cf6fcd3935c0" title=" " alt="" coords="228,97,403,138"/>
 <area shape="poly" title=" " alt="" coords="101,330,119,290,146,241,181,191,224,147,228,144,231,148,227,151,185,194,150,244,124,292,106,333"/>
@@ -800,6 +811,50 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="aec2eb61af39135c7db4980a156d37249" name="aec2eb61af39135c7db4980a156d37249"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec2eb61af39135c7db4980a156d37249">&#9670;&#160;</a></span>DrawCustomPalette()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::editor::PaletteEditor::DrawCustomPalette </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a93233d24afaf20d810ff501f3897a99d">custom_palette_</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84">yaze::app::gui::SnesColorEdit4()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a3e7aaa1c0187c37af4d1bb057a1af027">Update()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1editor_1_1PaletteEditor_aec2eb61af39135c7db4980a156d37249_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1editor_1_1PaletteEditor_aec2eb61af39135c7db4980a156d37249_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_aec2eb61af39135c7db4980a156d37249_cgraph" id="aclassyaze_1_1app_1_1editor_1_1PaletteEditor_aec2eb61af39135c7db4980a156d37249_cgraph">
+<area shape="rect" title=" " alt="" coords="5,67,223,107"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84" title=" " alt="" coords="271,67,434,107"/>
+<area shape="poly" title=" " alt="" coords="223,84,255,84,255,90,223,90"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="744,13,968,39"/>
+<area shape="poly" title=" " alt="" coords="383,64,428,39,481,19,549,8,619,3,686,4,746,8,746,13,685,9,619,9,550,13,483,24,430,44,386,69"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gui.html#a4223ea51fab06e8518219cf81049db0f" title=" " alt="" coords="482,99,696,139"/>
+<area shape="poly" title=" " alt="" coords="435,96,467,100,466,105,434,101"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#a477d2e3ceed1711ad288ba2b1448f5c6" title=" " alt="" coords="508,33,671,74"/>
+<area shape="poly" title=" " alt="" coords="434,73,492,65,492,70,435,78"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ae83a64c873979be91fb76d1815ab8e73" title=" " alt="" coords="508,164,671,205"/>
+<area shape="poly" title=" " alt="" coords="393,106,483,149,503,156,501,161,481,154,391,110"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="762,106,950,132"/>
+<area shape="poly" title=" " alt="" coords="697,116,747,116,747,122,697,122"/>
+<area shape="poly" title=" " alt="" coords="671,43,729,36,729,42,671,48"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#aab504a319aec14fc51e9f309d12c767b" title=" " alt="" coords="744,172,968,197"/>
+<area shape="poly" title=" " alt="" coords="671,182,729,182,729,187,671,187"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="a5af7a85e1bc8545f5c22290c696259b1" name="a5af7a85e1bc8545f5c22290c696259b1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5af7a85e1bc8545f5c22290c696259b1">&#9670;&#160;</a></span>HandleColorPopup()</h2>
 
@@ -836,11 +891,10 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000005">Todo</a></b></dt><dd>Implement new update color function </dd></dl>
 
 <p class="reference">References <a class="el" href="#a80fe2954b6dda845d09f510d2d558d6b">color_popup_flags</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49">yaze::app::gfx::ConvertRGBtoSNES()</a>, <a class="el" href="palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a">F32_TO_INT8_SAT</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84">yaze::app::gui::SnesColorEdit4()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef">yaze::app::gfx::ToFloatArray()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9323bdc89bc5fba3c2c977a32e13ed2d">DrawPaletteGroup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#add001e703fbf0d541dde4a66a6c21ed1">DrawPaletteGroup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -957,7 +1011,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9323bdc89bc5fba3c2c977a32e13ed2d">DrawPaletteGroup()</a>, and <a class="el" href="#a3e7aaa1c0187c37af4d1bb057a1af027">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#add001e703fbf0d541dde4a66a6c21ed1">DrawPaletteGroup()</a>, and <a class="el" href="#a3e7aaa1c0187c37af4d1bb057a1af027">Update()</a>.</p>
 
 </div>
 </div>
@@ -982,6 +1036,30 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#a3e7aaa1c0187c37af4d1bb057a1af027">Update()</a>.</p>
+
+</div>
+</div>
+<a id="a93233d24afaf20d810ff501f3897a99d" name="a93233d24afaf20d810ff501f3897a99d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93233d24afaf20d810ff501f3897a99d">&#9670;&#160;</a></span>custom_palette_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>&gt; yaze::app::editor::PaletteEditor::custom_palette_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#aec2eb61af39135c7db4980a156d37249">DrawCustomPalette()</a>, and <a class="el" href="#a865d4949e8bec464289f8a2568a442f2">PaletteEditor()</a>.</p>
 
 </div>
 </div>
@@ -1055,7 +1133,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9323bdc89bc5fba3c2c977a32e13ed2d">DrawPaletteGroup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#add001e703fbf0d541dde4a66a6c21ed1">DrawPaletteGroup()</a>.</p>
 
 </div>
 </div>

@@ -1,6 +1,6 @@
 <map id="yaze::app::editor::PaletteEditor::DisplayCategoryTable" name="yaze::app::editor::PaletteEditor::DisplayCategoryTable">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,332,200,388"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a9323bdc89bc5fba3c2c977a32e13ed2d" title=" " alt="" coords="248,332,420,388"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html#add001e703fbf0d541dde4a66a6c21ed1" title=" " alt="" coords="248,332,420,388"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,357,232,357,232,363,200,363"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ac47243320078379b2b29cf6fcd3935c0" title=" " alt="" coords="471,97,645,138"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="343,330,362,290,388,241,423,191,466,147,470,144,474,148,470,151,427,194,393,244,366,292,348,333"/>

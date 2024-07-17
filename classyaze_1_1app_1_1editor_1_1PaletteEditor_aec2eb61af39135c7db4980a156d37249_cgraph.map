@@ -1,0 +1,18 @@
+<map id="yaze::app::editor::PaletteEditor::DrawCustomPalette" name="yaze::app::editor::PaletteEditor::DrawCustomPalette">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,223,107"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84" title=" " alt="" coords="271,67,434,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,84,255,84,255,90,223,90"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="744,13,968,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,64,428,39,481,19,549,8,619,3,686,4,746,8,746,13,685,9,619,9,550,13,483,24,430,44,386,69"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui.html#a4223ea51fab06e8518219cf81049db0f" title=" " alt="" coords="482,99,696,139"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="435,96,467,100,466,105,434,101"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#a477d2e3ceed1711ad288ba2b1448f5c6" title=" " alt="" coords="508,33,671,74"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="434,73,492,65,492,70,435,78"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ae83a64c873979be91fb76d1815ab8e73" title=" " alt="" coords="508,164,671,205"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="393,106,483,149,503,156,501,161,481,154,391,110"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7" title=" " alt="" coords="762,106,950,132"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="697,116,747,116,747,122,697,122"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="671,43,729,36,729,42,671,48"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1gfx.html#aab504a319aec14fc51e9f309d12c767b" title=" " alt="" coords="744,172,968,197"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="671,182,729,182,729,187,671,187"/>
+</map>
