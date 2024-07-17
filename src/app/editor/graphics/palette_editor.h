@@ -90,7 +90,7 @@ class PaletteEditor : public SharedRom, public Editor {
                                     const gfx::SnesPalette& originalPalette);
   void DisplayPalette(gfx::SnesPalette& palette, bool loaded);
   void DrawPortablePalette(gfx::SnesPalette& palette);
-  absl::Status DrawPaletteGroup(int category);
+  absl::Status DrawPaletteGroup(int category, bool right_side = false);
 
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
