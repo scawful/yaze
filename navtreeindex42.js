@@ -1,5 +1,7 @@
 var NAVTREEINDEX42 =
 {
+"spc700__test_8cc.html#acaa5ba360effcb045ba67094c917e145":[10,0,2,0,2,9],
+"spc700__test_8cc.html#ad8f2b9e7eb18cb3bf6530f864d82cacc":[10,0,2,0,2,21],
 "spc700__test_8cc.html#af39023b05efeaba0c8afc05848d7ca2c":[10,0,2,0,2,20],
 "spc700__test_8cc.html#af7634ac18c9b5018f52771f5d9a5ac61":[10,0,2,0,2,24],
 "spc700__test_8cc.html#af8a93055fd95c53e30150bb1a7afdc9c":[10,0,2,0,2,18],
@@ -247,7 +249,5 @@ var NAVTREEINDEX42 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html":[8,0,1,0,1,12,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html":[9,0,0,0,1,4,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729":[8,0,1,0,1,12,2,1],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729":[9,0,0,0,1,4,2,1],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#ad9fec8eb3aa77f33f3825b89575a0c9f":[8,0,1,0,1,12,2,0],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#ad9fec8eb3aa77f33f3825b89575a0c9f":[9,0,0,0,1,4,2,0]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729":[9,0,0,0,1,4,2,1]
 };

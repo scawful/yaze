@@ -10,5 +10,6 @@ var editor_8h =
       [ "kPalette", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb", null ],
       [ "kScreen", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a999e1b181ff36a65c7fd5a32e4e627d8", null ],
       [ "kSprite", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a7c10e40e40c6c0519ea3066c5c66733a", null ]
-    ] ]
+    ] ],
+    [ "kEditorNames", "editor_8h.html#a67984ade6b7fa3c0aab444f81cfc1081", null ]
 ];

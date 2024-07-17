@@ -1,5 +1,6 @@
 var NAVTREEINDEX34 =
 {
+"memory_8h.html#a8746750561338b2f964f81499005963c":[10,0,1,0,2,3,4,8],
 "memory_8h.html#a8746750561338b2f964f81499005963ca47d98b6e45441d43ace22338773d716e":[10,0,1,0,2,3,4,8,2],
 "memory_8h.html#a8746750561338b2f964f81499005963ca53fc8e61cfff609e2f4dc470ee019044":[10,0,1,0,2,3,4,8,3],
 "memory_8h.html#a8746750561338b2f964f81499005963ca7bcc111bc3e7527412b9d4de987f29b7":[10,0,1,0,2,3,4,8,1],
@@ -215,6 +216,7 @@ var NAVTREEINDEX34 =
 "namespaceyaze_1_1app_1_1editor.html#a4e2fdc967f4f1af218c03efeadbb4e7b":[8,0,1,0,1,30],
 "namespaceyaze_1_1app_1_1editor.html#a607cc1d6a18d503ac31793087f6b177f":[8,0,1,0,1,29],
 "namespaceyaze_1_1app_1_1editor.html#a612f649b633ee939924f6f56f7e1d1fa":[8,0,1,0,1,41],
+"namespaceyaze_1_1app_1_1editor.html#a67984ade6b7fa3c0aab444f81cfc1081":[8,0,1,0,1,48],
 "namespaceyaze_1_1app_1_1editor.html#a7240deb8b0e5909fa9c74659fcf0b20c":[8,0,1,0,1,36],
 "namespaceyaze_1_1app_1_1editor.html#a734a588c68d753b67fddf5b7bcac517b":[8,0,1,0,1,33],
 "namespaceyaze_1_1app_1_1editor.html#a759334407b9c50f79df5b99931356832":[8,0,1,0,1,26],
@@ -247,7 +249,5 @@ var NAVTREEINDEX34 =
 "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2ba6e51388d9b35fd4f27705a42659b8":[8,0,1,0,1,3,2],
 "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904":[8,0,1,0,1,3,4],
 "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a5035b7f9e50f6d99047aeb532d90b142":[8,0,1,0,1,3,5],
-"namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a6872020f533c742e88197014191b68ec":[8,0,1,0,1,3,1],
-"namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a81c57ba278b68d019be4d9b6dc76c89a":[8,0,1,0,1,3,3],
-"namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html":[8,0,1,0,1,4]
+"namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a6872020f533c742e88197014191b68ec":[8,0,1,0,1,3,1]
 };

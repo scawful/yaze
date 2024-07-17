@@ -78,5 +78,6 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kOWMapTable", "namespaceyaze_1_1app_1_1editor.html#a38a54e512216d56370524903c0717d3d", null ],
     [ "kSpriteTabFlags", "namespaceyaze_1_1app_1_1editor.html#aaf264499bf4cb9570f8f7661d0146051", null ],
     [ "kSpriteTabBarFlags", "namespaceyaze_1_1app_1_1editor.html#a3deb5fa796785a483928050617a76edc", null ],
-    [ "kSpriteTableFlags", "namespaceyaze_1_1app_1_1editor.html#ad13ab0b69174d18b3d5dedde3f28e97e", null ]
+    [ "kSpriteTableFlags", "namespaceyaze_1_1app_1_1editor.html#ad13ab0b69174d18b3d5dedde3f28e97e", null ],
+    [ "kEditorNames", "namespaceyaze_1_1app_1_1editor.html#a67984ade6b7fa3c0aab444f81cfc1081", null ]
 ];
