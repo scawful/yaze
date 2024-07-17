@@ -163,8 +163,7 @@ void PaletteEditor::DisplayCategoryTable() {
     }
 
     TableSetColumnIndex(2);
-    status_ = DrawPaletteGroup(PaletteCategory::kGlobalSprites);
-    TreePop();
+    status_ = DrawPaletteGroup(PaletteCategory::kGlobalSprites, true);
 
     TableSetColumnIndex(3);
     status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux1);
@@ -194,14 +193,13 @@ void PaletteEditor::DisplayCategoryTable() {
     }
 
     TableSetColumnIndex(7);
-    status_ = DrawPaletteGroup(PaletteCategory::kDungeons);
-    TreePop();
+    status_ = DrawPaletteGroup(PaletteCategory::kDungeons, true);
 
     EndTable();
   }
 }
 
-absl::Status PaletteEditor::DrawPaletteGroup(int category) {
+absl::Status PaletteEditor::DrawPaletteGroup(int category, bool right_side) {
   if (!rom()->is_loaded()) {
     return absl::NotFoundError("ROM not open, no palettes to display");
   }
@@ -218,7 +216,11 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
 
     for (int n = 0; n < pal_size; n++) {
       PushID(n);
-      if ((n % 7) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      if (!right_side) {
+        if ((n % 7) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      } else {
+        if ((n % 15) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      }
 
       auto popup_id =
           absl::StrCat(kPaletteCategoryNames[category].data(), j, "_", n);
@@ -238,6 +240,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category) {
     rom()->resource_label()->SelectableLabelWithNameEdit(
         false, palette_group_name.data(), /*key=*/std::to_string(j),
         "Unnamed Palette");
+    if (right_side) Separator();
   }
   return absl::OkStatus();
 }
