@@ -84,6 +84,8 @@ absl::Status PaletteEditor::Update() {
           "Palette Group Name", std::to_string(i),
           std::string(kPaletteGroupNames[i]));
     }
+  } else {
+    return absl::NotFoundError("ROM not open, no palettes to display");
   }
 
   if (BeginTable("paletteEditorTable", 2, kPaletteTableFlags, ImVec2(0, 0))) {
@@ -120,17 +122,19 @@ absl::Status PaletteEditor::Update() {
 }
 
 void PaletteEditor::DisplayCategoryTable() {
-  if (BeginTable("Category Table", 6,
+  if (BeginTable("Category Table", 8,
                  ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
                      ImGuiTableFlags_SizingStretchSame |
                      ImGuiTableFlags_Hideable,
                  ImVec2(0, 0))) {
     TableSetupColumn("Weapons and Gear");
-    TableSetupColumn("World and Global Sprites");
+    TableSetupColumn("Overworld and Area Colors");
+    TableSetupColumn("Global Sprites");
     TableSetupColumn("Sprites Aux1");
     TableSetupColumn("Sprites Aux2");
     TableSetupColumn("Sprites Aux3");
     TableSetupColumn("Maps and Items");
+    TableSetupColumn("Dungeons");
     TableHeadersRow();
     TableNextRow();
 
@@ -157,25 +161,21 @@ void PaletteEditor::DisplayCategoryTable() {
       status_ = DrawPaletteGroup(PaletteCategory::kAreaColors);
       TreePop();
     }
-    if (TreeNode("Enemies")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kGlobalSprites);
-      TreePop();
-    }
 
     TableSetColumnIndex(2);
-    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux1);
+    status_ = DrawPaletteGroup(PaletteCategory::kGlobalSprites);
+    TreePop();
 
     TableSetColumnIndex(3);
-    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux2);
+    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux1);
 
     TableSetColumnIndex(4);
-    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux3);
+    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux2);
 
     TableSetColumnIndex(5);
-    if (TreeNode("Dungeons")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kDungeons);
-      TreePop();
-    }
+    status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux3);
+
+    TableSetColumnIndex(6);
     if (TreeNode("World Map")) {
       status_ = DrawPaletteGroup(PaletteCategory::kWorldMap);
       TreePop();
@@ -192,6 +192,11 @@ void PaletteEditor::DisplayCategoryTable() {
       status_ = DrawPaletteGroup(PaletteCategory::kCrystal);
       TreePop();
     }
+
+    TableSetColumnIndex(7);
+    status_ = DrawPaletteGroup(PaletteCategory::kDungeons);
+    TreePop();
+
     EndTable();
   }
 }
