@@ -2,6 +2,7 @@ var classyaze_1_1app_1_1gfx_1_1SnesColor =
 [
     [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html#af0c4fae9177a2edf8fccfb03adff1a23", null ],
     [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a4634ce369c3e19f1a64924f111bcf032", null ],
+    [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html#acd901ec230518f0892508ceeea460c07", null ],
     [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a1bb4ec818579a0a98fffc3b1a5eb101d", null ],
     [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a4cb8232e76b978601a665d72a10eee1e", null ],
     [ "rgb", "classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7", null ],

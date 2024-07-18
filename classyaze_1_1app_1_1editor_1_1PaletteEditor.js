@@ -11,7 +11,6 @@ var classyaze_1_1app_1_1editor_1_1PaletteEditor =
     [ "EditColorInPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#ad846ef8535f8cbe6f8e4a9a16e0a29da", null ],
     [ "ResetColorToOriginal", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a18e4b234d6b6a7d8d2ea8fa7c236415a", null ],
     [ "DisplayPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aabc08b8ae1c0e6fa35d69700dec1ab10", null ],
-    [ "DrawPortablePalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a72bd6358e58d2ecd0422d69111cf94ec", null ],
     [ "DrawPaletteGroup", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#add001e703fbf0d541dde4a66a6c21ed1", null ],
     [ "DrawCustomPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aec2eb61af39135c7db4980a156d37249", null ],
     [ "HandleColorPopup", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1", null ],
@@ -21,8 +20,5 @@ var classyaze_1_1app_1_1editor_1_1PaletteEditor =
     [ "gfx_group_editor_", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a4b9e5eb47ef22c1f936ef41e6a2a04bf", null ],
     [ "custom_palette_", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a93233d24afaf20d810ff501f3897a99d", null ],
     [ "saved_palette_", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a06adbd3640d6ad11ae4be94fe660fe5b", null ],
-    [ "color_popup_flags", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a80fe2954b6dda845d09f510d2d558d6b", null ],
-    [ "palette_button_flags", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a73c1093708d3a9e58b46788360f874c7", null ],
-    [ "palette_button_flags_2", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aea8209183b39ea6e1b971c1fbe57e10f", null ],
     [ "history_", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#afca98075081fad36480541aed7bf9b66", null ]
 ];

@@ -1,8 +1,5 @@
 var NAVTREEINDEX40 =
 {
-"overworld_8h.html#ad266b472b4a925acb73a3f8cd6aa946f":[10,0,1,0,5,2,1,55],
-"overworld_8h.html#ad5c21466efad7fc0f0805a203d0b6162":[10,0,1,0,5,2,1,90],
-"overworld_8h.html#add8c14d645de65226eee243b8e7de800":[10,0,1,0,5,2,1,76],
 "overworld_8h.html#ade49e0d8a965cfdf7280908ed28fec84":[10,0,1,0,5,2,1,59],
 "overworld_8h.html#adf1ffc73e9e35405a28d6193eaac29db":[10,0,1,0,5,2,1,22],
 "overworld_8h.html#adf48643603a9b12466ce44b8510f96f6":[10,0,1,0,5,2,1,6],
@@ -49,7 +46,10 @@ var NAVTREEINDEX40 =
 "overworld__map_8h_source.html":[10,0,1,0,5,2,3],
 "pages.html":[],
 "palette__editor_8cc.html":[10,0,1,0,1,2,4],
+"palette__editor_8cc.html#a01297032ea6f9841c13ac229d798caaa":[10,0,1,0,1,2,4,5],
+"palette__editor_8cc.html#a2069f944ef53eb187dae126277941b42":[10,0,1,0,1,2,4,3],
 "palette__editor_8cc.html#a28830f354bea9a16ce56d9c8b30f8df7":[10,0,1,0,1,2,4,1],
+"palette__editor_8cc.html#a65e67f4ca487a23f1a6ac1f1f4d6f8bf":[10,0,1,0,1,2,4,4],
 "palette__editor_8cc.html#a7240deb8b0e5909fa9c74659fcf0b20c":[10,0,1,0,1,2,4,2],
 "palette__editor_8cc.html#ad2559c98ebd96ce5373e91ebc28f455a":[10,0,1,0,1,2,4,0],
 "palette__editor_8h.html":[10,0,1,0,1,2,5],
