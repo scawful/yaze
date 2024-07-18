@@ -49,7 +49,10 @@ class SnesColor {
     color.blue = val.z / 255;
     snes_ = ConvertRGBtoSNES(color);
   }
-
+  explicit SnesColor(const uint16_t val) : snes_(val) {
+    snes_color color = ConvertSNEStoRGB(val);
+    rgb_ = ImVec4(color.red, color.green, color.blue, 0.f);
+  }
   explicit SnesColor(const snes_color val)
       : rgb_(val.red, val.green, val.blue, 255.f),
         snes_(ConvertRGBtoSNES(val)),
