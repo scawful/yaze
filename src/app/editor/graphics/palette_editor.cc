@@ -1,5 +1,6 @@
 #include "palette_editor.h"
 
+#include <gui/style.h>
 #include <imgui/imgui.h>
 
 #include "absl/status/status.h"
@@ -50,6 +51,15 @@ using namespace gfx;
 constexpr ImGuiTableFlags kPaletteTableFlags =
     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable |
     ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Hideable;
+
+constexpr ImGuiColorEditFlags kPalNoAlpha = ImGuiColorEditFlags_NoAlpha;
+
+constexpr ImGuiColorEditFlags kPalButtonFlags2 = ImGuiColorEditFlags_NoAlpha |
+                                                 ImGuiColorEditFlags_NoPicker |
+                                                 ImGuiColorEditFlags_NoTooltip;
+
+constexpr ImGuiColorEditFlags kColorPopupFlags =
+    ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha;
 
 namespace {
 int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
@@ -128,7 +138,7 @@ void PaletteEditor::DrawCustomPalette() {
                  ImGuiWindowFlags_HorizontalScrollbar)) {
     for (int i = 0; i < custom_palette_.size(); i++) {
       PushID(i);
-      if ((i % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
+      SameLine(0.0f, GetStyle().ItemSpacing.y);
       gui::SnesColorEdit4("##customPalette", &custom_palette_[i],
                           ImGuiColorEditFlags_NoInputs);
       // Accept a drag drop target which adds a color to the custom_palette_
@@ -187,11 +197,12 @@ void PaletteEditor::DisplayCategoryTable() {
       TreePop();
     }
     if (TreeNode("Clothes")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kClothes);
+      status_ = DrawPaletteGroup(PaletteCategory::kClothes, true);
       TreePop();
     }
 
     TableSetColumnIndex(1);
+    gui::BeginChildWithScrollbar("##WorldPaletteScrollRegion");
     if (TreeNode("World Colors")) {
       status_ = DrawPaletteGroup(PaletteCategory::kWorldColors);
       TreePop();
@@ -200,6 +211,7 @@ void PaletteEditor::DisplayCategoryTable() {
       status_ = DrawPaletteGroup(PaletteCategory::kAreaColors);
       TreePop();
     }
+    EndChild();
 
     TableSetColumnIndex(2);
     status_ = DrawPaletteGroup(PaletteCategory::kGlobalSprites, true);
@@ -214,8 +226,9 @@ void PaletteEditor::DisplayCategoryTable() {
     status_ = DrawPaletteGroup(PaletteCategory::kSpritesAux3);
 
     TableSetColumnIndex(6);
+    gui::BeginChildWithScrollbar("##MapPaletteScrollRegion");
     if (TreeNode("World Map")) {
-      status_ = DrawPaletteGroup(PaletteCategory::kWorldMap);
+      status_ = DrawPaletteGroup(PaletteCategory::kWorldMap, true);
       TreePop();
     }
     if (TreeNode("Dungeon Map")) {
@@ -230,9 +243,12 @@ void PaletteEditor::DisplayCategoryTable() {
       status_ = DrawPaletteGroup(PaletteCategory::kCrystal);
       TreePop();
     }
+    EndChild();
 
     TableSetColumnIndex(7);
+    gui::BeginChildWithScrollbar("##DungeonPaletteScrollRegion");
     status_ = DrawPaletteGroup(PaletteCategory::kDungeons, true);
+    EndChild();
 
     EndTable();
   }
@@ -266,7 +282,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category, bool right_side) {
 
       // Small icon of the color in the palette
       if (gui::SnesColorButton(popup_id, *palette->mutable_color(n),
-                               palette_button_flags)) {
+                               kPalNoAlpha)) {
         ASSIGN_OR_RETURN(current_color_, palette->GetColor(n));
       }
 
@@ -287,7 +303,7 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category, bool right_side) {
 absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
-  gui::SnesColorEdit4("Edit Color", &palette[n], color_popup_flags);
+  gui::SnesColorEdit4("Edit Color", &palette[n], kColorPopupFlags);
   if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
   if (BeginPopup("Copy")) {
     int cr = F32_TO_INT8_SAT(col[0]);
@@ -373,7 +389,7 @@ void PaletteEditor::DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
       PushID(n);
       if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
 
-      if (ColorButton("##palette", saved_palette_[n], palette_button_flags_2,
+      if (ColorButton("##palette", saved_palette_[n], kPalButtonFlags2,
                       ImVec2(20, 20)))
         color = ImVec4(saved_palette_[n].x, saved_palette_[n].y,
                        saved_palette_[n].z, color.w);  // Preserve alpha!
@@ -393,44 +409,6 @@ void PaletteEditor::DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
     EndGroup();
     EndPopup();
   }
-}
-
-void PaletteEditor::DrawPortablePalette(gfx::SnesPalette& palette) {
-  static bool init = false;
-  if (!init) {
-    status_ = InitializeSavedPalette(palette);
-    init = true;
-  }
-
-  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)100);
-      BeginChild(child_id, GetContentRegionAvail(), true,
-                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    BeginGroup();  // Lock X position
-    Text("Palette");
-    for (int n = 0; n < IM_ARRAYSIZE(saved_palette_); n++) {
-      PushID(n);
-      if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
-
-      if (ColorButton("##palette", saved_palette_[n], palette_button_flags_2,
-                      ImVec2(20, 20)))
-        ImVec4(saved_palette_[n].x, saved_palette_[n].y, saved_palette_[n].z,
-               1.0f);  // Preserve alpha!
-
-      if (BeginDragDropTarget()) {
-        if (const ImGuiPayload* payload =
-                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
-          memcpy((float*)&saved_palette_[n], payload->Data, sizeof(float) * 3);
-        if (const ImGuiPayload* payload =
-                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
-          memcpy((float*)&saved_palette_[n], payload->Data, sizeof(float) * 4);
-        EndDragDropTarget();
-      }
-
-      PopID();
-    }
-    EndGroup();
-  }
-  EndChild();
 }
 
 absl::Status PaletteEditor::EditColorInPalette(gfx::SnesPalette& palette,
