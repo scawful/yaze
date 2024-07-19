@@ -1,3 +1,6 @@
+#ifndef YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
+#define YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
+
 #include <string>
 
 #ifdef _WIN32
@@ -69,3 +72,5 @@ class FileDialogWrapper {
 #else
 #error "Unsupported platform."
 #endif
+
+#endif  // YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
