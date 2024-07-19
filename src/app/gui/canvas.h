@@ -56,15 +56,9 @@ class Canvas {
     }
   }
 
-  void Update(const gfx::Bitmap& bitmap, ImVec2 bg_size, int tile_size,
-              float scale = 1.0f, float grid_size = 64.0f);
-
   void UpdateColorPainter(gfx::Bitmap& bitmap, const ImVec4& color,
                           const std::function<void()>& event, int tile_size,
                           float scale = 1.0f);
-
-  void UpdateEvent(const std::function<void()>& event, ImVec2 bg_size,
-                   int tile_size, float scale = 1.0f, float grid_size = 64.0f);
 
   void UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale = 1.0f,
                       float grid_size = 64.0f);
@@ -116,6 +110,20 @@ class Canvas {
   void DrawGridLines(float grid_step);
   void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
   void DrawOverlay();  // last
+
+  void DrawLayeredElements();
+
+  int GetTileIdFromMousePos() {
+    int x = mouse_pos_in_canvas_.x;
+    int y = mouse_pos_in_canvas_.y;
+    int num_columns = canvas_sz_.x / custom_step_;
+    int num_rows = canvas_sz_.y / custom_step_;
+    int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
+    if (tile_id >= num_columns * num_rows) {
+      tile_id = -1;  // Invalid tile ID
+    }
+    return tile_id;
+  }
   void SetCanvasSize(ImVec2 canvas_size) {
     canvas_sz_ = canvas_size;
     custom_canvas_size_ = true;
@@ -156,18 +164,6 @@ class Canvas {
       labels_.push_back(ImVector<std::string>());
     }
     return &labels_[i];
-  }
-
-  int GetTileIdFromMousePos() {
-    int x = mouse_pos_in_canvas_.x;
-    int y = mouse_pos_in_canvas_.y;
-    int num_columns = width() / custom_step_;
-    int num_rows = height() / custom_step_;
-    int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
-    if (tile_id >= num_columns * num_rows) {
-      tile_id = -1;  // Invalid tile ID
-    }
-    return tile_id;
   }
 
   auto set_current_labels(int i) { current_labels_ = i; }
