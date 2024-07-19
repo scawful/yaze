@@ -38,17 +38,30 @@ using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 
-absl::Status Tile16Editor::Update() {
-  if (rom()->is_loaded() && !map_blockset_loaded_) {
-    RETURN_IF_ERROR(LoadTile8());
-    ImVector<std::string> tile16_names;
-    for (int i = 0; i < 0x200; ++i) {
-      std::string str = core::UppercaseHexByte(all_tiles_types_[i]);
-      tile16_names.push_back(str);
-    }
+absl::Status Tile16Editor::InitBlockset(
+    gfx::Bitmap* tile16_blockset_bmp, gfx::Bitmap current_gfx_bmp,
+    const std::vector<gfx::Bitmap>& tile16_individual,
+    uint8_t all_tiles_types[0x200]) {
+  all_tiles_types_ = all_tiles_types;
+  tile16_blockset_bmp_ = tile16_blockset_bmp;
+  tile16_individual_ = tile16_individual;
+  current_gfx_bmp_ = current_gfx_bmp;
+  tile8_gfx_data_ = current_gfx_bmp_.vector();
+  RETURN_IF_ERROR(LoadTile8());
+  ImVector<std::string> tile16_names;
+  for (int i = 0; i < 0x200; ++i) {
+    std::string str = core::UppercaseHexByte(all_tiles_types_[i]);
+    tile16_names.push_back(str);
+  }
 
-    *tile8_source_canvas_.mutable_labels(0) = tile16_names;
-    *tile8_source_canvas_.custom_labels_enabled() = true;
+  *tile8_source_canvas_.mutable_labels(0) = tile16_names;
+  *tile8_source_canvas_.custom_labels_enabled() = true;
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::Update() {
+  if (!map_blockset_loaded_) {
+    return absl::InvalidArgumentError("Blockset not initialized, open a ROM.");
   }
 
   RETURN_IF_ERROR(DrawMenu());
@@ -364,6 +377,16 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
                             (8192 * 2), 0x20, transfer_blockset_loaded_, true,
                             3);
 
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::SetCurrentTile(int id) {
+  current_tile16_ = id;
+  current_tile16_bmp_ = &tile16_individual_[id];
+  auto ow_main_pal_group = rom()->palette_group().overworld_main;
+  RETURN_IF_ERROR(
+      current_tile16_bmp_->ApplyPalette(ow_main_pal_group[current_palette_]));
+  rom()->RenderBitmap(current_tile16_bmp_);
   return absl::OkStatus();
 }
 

@@ -75,9 +75,9 @@ void OverworldEditor::InitializeZeml() {
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
   if (rom()->is_loaded() && !all_gfx_loaded_) {
-    tile16_editor_.InitBlockset(&tile16_blockset_bmp_, current_gfx_bmp_,
-                                tile16_individual_,
-                                *overworld_.mutable_all_tiles_types());
+    RETURN_IF_ERROR(tile16_editor_.InitBlockset(
+        &tile16_blockset_bmp_, current_gfx_bmp_, tile16_individual_,
+        *overworld_.mutable_all_tiles_types()));
     gfx_group_editor_.InitBlockset(&tile16_blockset_bmp_);
     RETURN_IF_ERROR(LoadEntranceTileTypes(*rom()));
     all_gfx_loaded_ = true;
@@ -750,7 +750,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
       int grid_x = static_cast<int>(tile_pos.x / 32);
       int grid_y = static_cast<int>(tile_pos.y / 32);
       int id = grid_x + grid_y * 8;
-      RETURN_IF_ERROR(tile16_editor_.set_tile16(id));
+      RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
       show_tile16_editor_ = true;
     }
 
