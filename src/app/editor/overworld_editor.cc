@@ -60,6 +60,16 @@ void OverworldEditor::InitializeZeml() {
   });
   gui::zeml::Bind(&*layout_node_.GetNode("owToolset"),
                   [this]() { status_ = DrawToolset(); });
+  gui::zeml::Bind(&*layout_node_.GetNode("OwTile16Editor"), [this]() {
+    if (rom()->is_loaded()) {
+      status_ = tile16_editor_.Update();
+    }
+  });
+  gui::zeml::Bind(&*layout_node_.GetNode("OwGfxGroupEditor"), [this]() {
+    if (rom()->is_loaded()) {
+      status_ = gfx_group_editor_.Update();
+    }
+  });
 }
 
 absl::Status OverworldEditor::Update() {
@@ -90,14 +100,13 @@ absl::Status OverworldEditor::UpdateFullscreenCanvas() {
     ImGui::SetNextWindowSize(use_work_area ? viewport->WorkSize
                                            : viewport->Size);
 
-    if (ImGui::Begin("Example: Fullscreen window",
+    if (ImGui::Begin("Fullscreen Overworld Editor",
                      &overworld_canvas_fullscreen_, flags)) {
       // Draws the toolset for editing the Overworld.
       RETURN_IF_ERROR(DrawToolset())
       DrawOverworldCanvas();
     }
     ImGui::End();
-    return absl::OkStatus();
   }
   return absl::OkStatus();
 }

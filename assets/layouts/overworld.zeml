@@ -13,6 +13,12 @@ BeginTabBar title="##OwEditorTabBar" {
       Function id="OverworldTileSelector",
     }
   }
+  BeginTabItem title="Tile16 Editor" {
+    Function id="OwTile16Editor"
+  }
+  BeginTabItem title "Graphics Group Editor" {
+    Function id="OwGfxGroupEditor"
+  }
   BeginTabItem title="Usage Statistics" {
     Function id="OwUsageStats"
   }
