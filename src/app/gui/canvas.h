@@ -84,6 +84,10 @@ class Canvas {
   // in the canvas window. Represented and split apart into a grid of tiles.
   bool DrawTileSelector(int size);
 
+
+  void DrawSelectRect(int current_map, int tile_size = 0x10,
+                      float scale = 1.0f);
+
   // Draws the contents of the Bitmap image to the Canvas
   void DrawBitmap(const Bitmap& bitmap, int border_offset = 0,
                   bool ready = true);
