@@ -102,7 +102,6 @@ class Canvas {
 
   void DrawSelectRect(int current_map, int tile_size = 0x10,
                       float scale = 1.0f);
-  void DrawSelectRectTile16(int current_map);
 
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
 
