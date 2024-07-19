@@ -91,10 +91,11 @@ class SpriteEditor : public SharedRom, public Editor {
   gui::Bitmap oam_bitmap_; /**< OAM bitmap. */
 
   gui::Canvas sprite_canvas_{
-      ImVec2(0x200, 0x200), gui::CanvasGridSize::k32x32}; /**< Sprite canvas. */
+      "SpriteCanvas", ImVec2(0x200, 0x200),
+      gui::CanvasGridSize::k32x32}; /**< Sprite canvas. */
 
   gui::Canvas graphics_sheet_canvas_{
-      ImVec2(0x80 * 2 + 2, 0x40 * 8 + 2),
+      "GraphicsSheetCanvas", ImVec2(0x80 * 2 + 2, 0x40 * 8 + 2),
       gui::CanvasGridSize::k16x16}; /**< Graphics sheet canvas. */
 
   std::vector<zsprite::ZSprite> custom_sprites_; /**< Sprites. */

@@ -90,7 +90,6 @@ void SpriteEditor::DrawSpriteCanvas() {
                         ImGui::GetContentRegionAvail(), true)) {
     sprite_canvas_.DrawBackground();
     sprite_canvas_.DrawContextMenu();
-    // sprite_canvas_.DrawBitmap(oam_bitmap_, 2, 2);
     sprite_canvas_.DrawGrid();
     sprite_canvas_.DrawOverlay();
 

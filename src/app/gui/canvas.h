@@ -36,10 +36,14 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
 class Canvas {
  public:
   Canvas() = default;
-  explicit Canvas(ImVec2 canvas_size)
-      : custom_canvas_size_(true), canvas_sz_(canvas_size) {}
-  explicit Canvas(ImVec2 canvas_size, CanvasGridSize grid_size)
-      : custom_canvas_size_(true), canvas_sz_(canvas_size) {
+  explicit Canvas(const std::string& id, ImVec2 canvas_size)
+      : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size) {
+    context_id_ = id + "Context";
+  }
+  explicit Canvas(const std::string& id, ImVec2 canvas_size,
+                  CanvasGridSize grid_size)
+      : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size) {
+    context_id_ = id + "Context";
     switch (grid_size) {
       case CanvasGridSize::k8x8:
         custom_step_ = 8.0f;
@@ -84,7 +88,7 @@ class Canvas {
   // in the canvas window. Represented and split apart into a grid of tiles.
   bool DrawTileSelector(int size);
 
-
+  // Draws the selection rectangle when the user is selecting multiple tiles
   void DrawSelectRect(int current_map, int tile_size = 0x10,
                       float scale = 1.0f);
 
@@ -103,9 +107,6 @@ class Canvas {
   void DrawOutline(int x, int y, int w, int h);
   void DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color);
   void DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color);
-
-  void DrawSelectRect(int current_map, int tile_size = 0x10,
-                      float scale = 1.0f);
 
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
 
@@ -196,6 +197,9 @@ class Canvas {
 
   int current_labels_ = 0;
   int highlight_tile_id = -1;
+
+  std::string canvas_id_ = "Canvas";
+  std::string context_id_ = "CanvasContext";
 
   ImDrawList* draw_list_;
   ImVector<ImVec2> points_;

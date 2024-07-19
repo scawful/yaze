@@ -202,9 +202,10 @@ class GraphicsEditor : public SharedRom, public Editor {
   gui::Canvas import_canvas_;
   gui::Canvas scr_canvas_;
   gui::Canvas super_donkey_canvas_;
-  gui::Canvas current_sheet_canvas_{ImVec2(0x80, 0x20),
+  gui::Canvas current_sheet_canvas_{"CurrentSheetCanvas", ImVec2(0x80, 0x20),
                                     gui::CanvasGridSize::k8x8};
   gui::Canvas link_canvas_{
+      "LinkCanvas",
       ImVec2(core::kTilesheetWidth * 4, core::kTilesheetHeight * 0x10 * 4),
       gui::CanvasGridSize::k16x16};
   absl::Status status_;
