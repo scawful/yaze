@@ -5,8 +5,6 @@
 
 #include "absl/strings/string_view.h"
 
-#define BASIC_BUTTON(w) if (ImGui::Button(w))
-
 #define TAB_BAR(w) if (ImGui::BeginTabBar(w)) {
 #define END_TAB_BAR() \
   ImGui::EndTabBar(); \
@@ -15,11 +13,6 @@
 #define TAB_ITEM(w) if (ImGui::BeginTabItem(w)) {
 #define END_TAB_ITEM() \
   ImGui::EndTabItem(); \
-  }
-
-#define MENU_BAR() if (ImGui::BeginMenuBar()) {
-#define END_MENU_BAR() \
-  ImGui::EndMenuBar(); \
   }
 
 #define MENU_ITEM(w) if (ImGui::MenuItem(w))

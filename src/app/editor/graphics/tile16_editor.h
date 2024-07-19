@@ -79,10 +79,6 @@ class Tile16Editor : public context::GfxContext, public SharedRom {
   core::NotifyValue<uint32_t> notify_tile16;
   core::NotifyValue<uint8_t> notify_palette;
 
-  // Canvas dimensions
-  int canvas_width;
-  int canvas_height;
-
   // Texture ID for the canvas
   int texture_id;
 

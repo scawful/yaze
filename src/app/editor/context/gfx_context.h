@@ -24,9 +24,6 @@ namespace context {
  * @brief Shared graphical context across editors.
  */
 class GfxContext {
- public:
-  absl::Status Update();
-
  protected:
   // Palettesets for the tile16 individual tiles
   static std::unordered_map<uint8_t, gfx::Paletteset> palettesets_;
