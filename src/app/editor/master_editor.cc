@@ -22,6 +22,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/utils/recent_files.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -77,53 +78,6 @@ bool BeginCentered(const char* name) {
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
   return ImGui::Begin(name, nullptr, flags);
 }
-
-class RecentFilesManager {
- public:
-  RecentFilesManager(const std::string& filename) : filename_(filename) {}
-
-  void AddFile(const std::string& filePath) {
-    // Add a file to the list, avoiding duplicates
-    auto it = std::find(recentFiles_.begin(), recentFiles_.end(), filePath);
-    if (it == recentFiles_.end()) {
-      recentFiles_.push_back(filePath);
-    }
-  }
-
-  void Save() {
-    std::ofstream file(filename_);
-    if (!file.is_open()) {
-      return;  // Handle the error appropriately
-    }
-
-    for (const auto& filePath : recentFiles_) {
-      file << filePath << std::endl;
-    }
-  }
-
-  void Load() {
-    std::ifstream file(filename_);
-    if (!file.is_open()) {
-      return;  // Handle the error appropriately
-    }
-
-    recentFiles_.clear();
-    std::string line;
-    while (std::getline(file, line)) {
-      if (!line.empty()) {
-        recentFiles_.push_back(line);
-      }
-    }
-  }
-
-  const std::vector<std::string>& GetRecentFiles() const {
-    return recentFiles_;
-  }
-
- private:
-  std::string filename_;
-  std::vector<std::string> recentFiles_;
-};
 
 // Function to switch the active tab in a tab bar
 void SetTabBarTab(ImGuiTabBar* tab_bar, ImGuiID tab_id) {
