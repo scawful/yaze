@@ -24,6 +24,8 @@ using ImGui::IsItemHovered;
 using ImGui::IsMouseClicked;
 using ImGui::IsMouseDragging;
 using ImGui::MenuItem;
+using ImGui::Selectable;
+using ImGui::Separator;
 using ImGui::Text;
 
 constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
@@ -66,7 +68,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
   draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
 
   ImGui::InvisibleButton(
-      "canvas",
+      canvas_id_.c_str(),
       ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_),
       kMouseFlags);
 
@@ -99,21 +101,22 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
   // Context menu (under default mouse threshold)
   if (ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
       enable_context_menu_ && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
-    ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+    ImGui::OpenPopupOnItemClick(context_id_.c_str(),
+                                ImGuiPopupFlags_MouseButtonRight);
 
   // Contents of the Context Menu
-  if (ImGui::BeginPopup("context")) {
+  if (ImGui::BeginPopup(context_id_.c_str())) {
     if (MenuItem("Reset Position", nullptr, false)) {
       scrolling_.x = 0;
       scrolling_.y = 0;
     }
     MenuItem("Show Grid", nullptr, &enable_grid_);
-    ImGui::Selectable("Show Position Labels", &enable_hex_tile_labels_);
+    Selectable("Show Position Labels", &enable_hex_tile_labels_);
     if (BeginMenu("Canvas Properties")) {
       Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
       Text("Global Scale: %.1f", global_scale_);
       Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
-      ImGui::EndMenu();
+      EndMenu();
     }
     if (bitmap != nullptr) {
       if (BeginMenu("Bitmap Properties")) {
@@ -122,7 +125,7 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
              absl::StrFormat("%d", bitmap->surface()->pitch).c_str());
         Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
         Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
-        ImGui::EndMenu();
+        EndMenu();
       }
     }
     ImGui::Separator();
@@ -139,7 +142,7 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
       if (MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
         custom_step_ = 64.0f;
       }
-      ImGui::EndMenu();
+      EndMenu();
     }
     // TODO: Add a menu item for selecting the palette
 
