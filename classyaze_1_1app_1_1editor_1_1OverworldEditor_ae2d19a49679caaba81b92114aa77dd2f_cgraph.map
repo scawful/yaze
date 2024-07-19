@@ -1,9 +1,0 @@
-<map id="yaze::app::editor::OverworldEditor::DrawTile16Selector" name="yaze::app::editor::OverworldEditor::DrawTile16Selector">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,190,111"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a607720b784682d3ef9edce3bc2801a0f" title=" " alt="" coords="250,5,415,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,58,234,47,235,52,191,63"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c" title=" " alt="" coords="241,70,424,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,80,225,80,225,86,190,86"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188" title=" " alt="" coords="238,120,427,145"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="190,100,254,113,253,118,189,105"/>
-</map>

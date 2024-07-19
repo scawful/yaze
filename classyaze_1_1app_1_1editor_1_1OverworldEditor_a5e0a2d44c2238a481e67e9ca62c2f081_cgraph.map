@@ -1,5 +1,0 @@
-<map id="yaze::app::editor::OverworldEditor::DrawOverworldEntrances" name="yaze::app::editor::OverworldEditor::DrawOverworldEntrances">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,214,61"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524" title=" " alt="" coords="262,13,436,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,31,246,31,246,36,214,36"/>
-</map>

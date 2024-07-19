@@ -14,6 +14,7 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "DrawFileMenu", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a02ba4cfcf8b5f1ee9abcb95d47295d98", null ],
     [ "DrawEditMenu", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245", null ],
     [ "DrawViewMenu", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a14ebe8a3f3aad9a92ba57712cc758bf0", null ],
+    [ "DrawProjectMenu", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a427190142666bfe33426c91bf24c76ab", null ],
     [ "DrawHelpMenu", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a1f0706c8efa1859f78125f414c05bce4", null ],
     [ "LoadRom", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a9f009622041f091ffd009851b5e21cfa", null ],
     [ "SaveRom", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a5778a42abd5d52e437aa22a27f6879ca", null ],
@@ -38,6 +39,7 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "palette_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a9c7bc7f75f429fcbae2c98df363eec98", null ],
     [ "screen_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a99487831b09607e2ad9ceadc08d5b47a", null ],
     [ "sprite_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a1e5a6fa4b5de15f225bce64a51a42dd9", null ],
+    [ "memory_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a616ac073f1154a941fe693b6b4a33baf", null ],
     [ "active_tabs_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac59d430f3393014ba01624d5c4f3ba1a", null ],
     [ "active_editors_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab572c55533755591b9f73eb10e6a9fda", null ],
     [ "current_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a645254b4a00ec4b02df96fe868ca34cc", null ]

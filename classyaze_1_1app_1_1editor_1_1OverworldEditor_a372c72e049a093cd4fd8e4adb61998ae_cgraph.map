@@ -1,9 +1,0 @@
-<map id="yaze::app::editor::OverworldEditor::DrawExperimentalModal" name="yaze::app::editor::OverworldEditor::DrawExperimentalModal">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,229,119"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50" title=" " alt="" coords="277,5,437,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,60,264,48,266,53,222,65"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gui.html#a709c9067ac9d9b13573994b7aa5da7bc" title=" " alt="" coords="279,71,435,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,88,264,88,264,94,229,94"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173" title=" " alt="" coords="280,136,434,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="222,117,266,129,264,134,221,122"/>
-</map>

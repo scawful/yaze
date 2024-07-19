@@ -1,5 +1,11 @@
 var NAVTREEINDEX37 =
 {
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a201fb7d3caabcc52f1f2073734ce6dfe":[8,0,1,0,5,1,57],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a205a593a9e04cd8fff2dd217cb74ea65":[8,0,1,0,5,1,33],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a21aa3281b0882e27ecf96551fd127057":[8,0,1,0,5,1,31],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a23e14f92cbee2d45e7a316ae645bd210":[8,0,1,0,5,1,38],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a24492c71309519c4303e049e3c2e9e47":[8,0,1,0,5,1,47],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a248dcf615f475b227d61f3688c736804":[8,0,1,0,5,1,66],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a2b69e7b3a65b0c36c85de38f9c5df38d":[8,0,1,0,5,1,83],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a2e7f0d93bc2ed2cdd4b0a5e97307ad7b":[8,0,1,0,5,1,54],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a318974354aea6ec42a8a17fb6f349397":[8,0,1,0,5,1,100],
@@ -243,11 +249,5 @@ var NAVTREEINDEX37 =
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld__map_8cc_03.html#aa9f2d50afab4c50980a5ff43bf9b9471":[8,0,1,0,5,3,1,0],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html":[8,0,1,0,5,3,2],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1palette__internal.html#ac0260bcfd3c55dfe7d7155123619445d":[8,0,1,0,5,3,2,0],
-"namespaceyaze_1_1app_1_1zelda3_1_1screen.html":[8,0,1,0,5,4],
-"namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a04723792c33fb909313da909800e89d6":[8,0,1,0,5,4,13],
-"namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a1ed72ac083e2ac1b5de7d48af0f0ca5a":[8,0,1,0,5,4,6],
-"namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a39dc4dfcdf8dc19684de96af1de4d3e9":[8,0,1,0,5,4,11],
-"namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a5df76f56f213e4e18759fa79b74c5a7a":[8,0,1,0,5,4,15],
-"namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a7000fd703a3375e0589ae74637569ac1":[8,0,1,0,5,4,14],
-"namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a7e7695ce1dea25d8a4ebf2fc344c3f19":[8,0,1,0,5,4,9]
+"namespaceyaze_1_1app_1_1zelda3_1_1screen.html":[8,0,1,0,5,4]
 };

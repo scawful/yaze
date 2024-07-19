@@ -1,5 +1,15 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html":[8,0,1,0,5,1,13],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html":[9,0,0,0,5,0,13],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html":[8,0,1,0,5,1,3],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html":[9,0,0,0,5,0,3],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a23bcaee3e42fad705f1ba474d6ea0259":[8,0,1,0,5,1,3,2],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a23bcaee3e42fad705f1ba474d6ea0259":[9,0,0,0,5,0,3,2],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a69f0c610158dd49ff6d15cf034014bbd":[8,0,1,0,5,1,3,7],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a69f0c610158dd49ff6d15cf034014bbd":[9,0,0,0,5,0,3,7],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a7a5bd750bd3b036fea479f96a8a376a8":[8,0,1,0,5,1,3,3],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a7a5bd750bd3b036fea479f96a8a376a8":[9,0,0,0,5,0,3,3],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a82e391ab2b767bbe99b996f4304d8817":[8,0,1,0,5,1,3,5],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a82e391ab2b767bbe99b996f4304d8817":[9,0,0,0,5,0,3,5],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a9d51755c7ccb531d888a12737e0549bc":[8,0,1,0,5,1,3,0],

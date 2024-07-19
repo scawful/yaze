@@ -187,6 +187,7 @@ var hierarchy =
       [ "yaze::app::editor::GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", null ],
       [ "yaze::app::editor::GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", null ],
       [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
+      [ "yaze::app::editor::MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", null ],
       [ "yaze::app::editor::MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", null ],

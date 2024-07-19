@@ -37,6 +37,7 @@ var annotated_dup =
           [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor" ],
           [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1app_1_1editor_1_1GraphicsEditor" ],
           [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
+          [ "MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker" ],
           [ "MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", "classyaze_1_1app_1_1editor_1_1MusicEditor" ],
           [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
           [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", "classyaze_1_1app_1_1editor_1_1PaletteEditor" ],
