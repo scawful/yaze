@@ -416,6 +416,9 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
 }
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
+  if (!bitmap.is_active()) {
+    return;
+  }
   draw_list_->AddImage((void *)bitmap.texture(),
                        ImVec2(canvas_p0_.x, canvas_p0_.y),
                        ImVec2(canvas_p0_.x + (bitmap.width() * scale),
@@ -425,6 +428,9 @@ void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
 
 void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
                         float scale, int alpha) {
+  if (!bitmap.is_active()) {
+    return;
+  }
   draw_list_->AddImage(
       (void *)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
