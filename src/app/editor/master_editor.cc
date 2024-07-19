@@ -356,29 +356,30 @@ void MasterEditor::DrawYazeMenu() {
   static bool show_display_settings = false;
   static bool show_command_line_interface = false;
 
-  MENU_BAR()
-  DrawFileMenu();
-  DrawEditMenu();
-  DrawViewMenu();
-  DrawProjectMenu();
-  DrawHelpMenu();
+  if (ImGui::BeginMenuBar()) {
+    DrawFileMenu();
+    DrawEditMenu();
+    DrawViewMenu();
+    DrawProjectMenu();
+    DrawHelpMenu();
 
-  SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
-           ImGui::CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
-  // Modify the style of the button to have no background color
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-  if (ImGui::Button(ICON_MD_DISPLAY_SETTINGS)) {
-    show_display_settings = !show_display_settings;
+    SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
+             ImGui::CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 150);
+    // Modify the style of the button to have no background color
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    if (ImGui::Button(ICON_MD_DISPLAY_SETTINGS)) {
+      show_display_settings = !show_display_settings;
+    }
+
+    if (ImGui::Button(ICON_MD_TERMINAL)) {
+      show_command_line_interface = !show_command_line_interface;
+    }
+    ImGui::PopStyleColor();
+
+    Text("%s", absl::StrCat("yaze v", core::kYazeVersion).c_str());
+
+    ImGui::EndMenuBar();
   }
-
-  if (ImGui::Button(ICON_MD_TERMINAL)) {
-    show_command_line_interface = !show_command_line_interface;
-  }
-  ImGui::PopStyleColor();
-
-  Text("%s", absl::StrCat("yaze v", core::kYazeVersion).c_str());
-
-  END_MENU_BAR()
 
   if (show_display_settings) {
     ImGui::Begin("Display Settings", &show_display_settings,

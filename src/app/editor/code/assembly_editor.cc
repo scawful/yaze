@@ -3,9 +3,9 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 
 #include "app/core/platform/file_dialog.h"
-#include "app/gui/widgets.h"
-#include "app/gui/input.h"
 #include "app/gui/icons.h"
+#include "app/gui/input.h"
+#include "app/gui/widgets.h"
 #include "core/constants.h"
 
 namespace yaze {
@@ -101,10 +101,11 @@ void AssemblyEditor::OpenFolder(const std::string& folder_path) {
 
 void AssemblyEditor::Update(bool& is_loaded) {
   ImGui::Begin("Assembly Editor", &is_loaded);
-  MENU_BAR()
-  DrawFileMenu();
-  DrawEditMenu();
-  END_MENU_BAR()
+  if (ImGui::BeginMenuBar()) {
+    DrawFileMenu();
+    DrawEditMenu();
+    ImGui::EndMenuBar();
+  }
 
   auto cpos = text_editor_.GetCursorPosition();
   SetEditorText();
