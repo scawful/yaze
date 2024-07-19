@@ -18,20 +18,6 @@ constexpr uint32_t kRectangleBorder = IM_COL32(255, 255, 255, 255);
 constexpr ImGuiButtonFlags kMouseFlags =
     ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight;
 
-void Canvas::Update(const gfx::Bitmap &bitmap, ImVec2 bg_size, int tile_size,
-                    float scale, float grid_size) {
-  if (scale != 1.0f) {
-    bg_size.x *= scale / 2;
-    bg_size.y *= scale / 2;
-  }
-  DrawBackground(bg_size);
-  DrawContextMenu();
-  DrawTileSelector(tile_size);
-  DrawBitmap(bitmap, 2, scale);
-  DrawGrid(grid_size);
-  DrawOverlay();
-}
-
 void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
                                 const std::function<void()> &event,
                                 int tile_size, float scale) {
@@ -43,15 +29,6 @@ void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
     event();
   }
   DrawGrid();
-  DrawOverlay();
-}
-
-void Canvas::UpdateEvent(const std::function<void()> &event, ImVec2 bg_size,
-                         int tile_size, float scale, float grid_size) {
-  DrawBackground(bg_size);
-  DrawContextMenu();
-  event();
-  DrawGrid(grid_size);
   DrawOverlay();
 }
 
@@ -692,6 +669,48 @@ void Canvas::DrawOverlay() {
   }
 
   draw_list_->PopClipRect();
+}
+
+void Canvas::DrawLayeredElements() {
+  // Based on ImGui demo, should be adapted to use for OAM
+  ImDrawList *draw_list = ImGui::GetWindowDrawList();
+  {
+    ImGui::Text("Blue shape is drawn first: appears in back");
+    ImGui::Text("Red shape is drawn after: appears in front");
+    ImVec2 p0 = ImGui::GetCursorScreenPos();
+    draw_list->AddRectFilled(ImVec2(p0.x, p0.y), ImVec2(p0.x + 50, p0.y + 50),
+                             IM_COL32(0, 0, 255, 255));  // Blue
+    draw_list->AddRectFilled(ImVec2(p0.x + 25, p0.y + 25),
+                             ImVec2(p0.x + 75, p0.y + 75),
+                             IM_COL32(255, 0, 0, 255));  // Red
+    ImGui::Dummy(ImVec2(75, 75));
+  }
+  ImGui::Separator();
+  {
+    ImGui::Text("Blue shape is drawn first, into channel 1: appears in front");
+    ImGui::Text("Red shape is drawn after, into channel 0: appears in back");
+    ImVec2 p1 = ImGui::GetCursorScreenPos();
+
+    // Create 2 channels and draw a Blue shape THEN a Red shape.
+    // You can create any number of channels. Tables API use 1 channel per
+    // column in order to better batch draw calls.
+    draw_list->ChannelsSplit(2);
+    draw_list->ChannelsSetCurrent(1);
+    draw_list->AddRectFilled(ImVec2(p1.x, p1.y), ImVec2(p1.x + 50, p1.y + 50),
+                             IM_COL32(0, 0, 255, 255));  // Blue
+    draw_list->ChannelsSetCurrent(0);
+    draw_list->AddRectFilled(ImVec2(p1.x + 25, p1.y + 25),
+                             ImVec2(p1.x + 75, p1.y + 75),
+                             IM_COL32(255, 0, 0, 255));  // Red
+
+    // Flatten/reorder channels. Red shape is in channel 0 and it appears
+    // below the Blue shape in channel 1. This works by copying draw indices
+    // only (vertices are not copied).
+    draw_list->ChannelsMerge();
+    ImGui::Dummy(ImVec2(75, 75));
+    ImGui::Text(
+        "After reordering, contents of channel 0 appears below channel 1.");
+  }
 }
 
 }  // namespace gui
