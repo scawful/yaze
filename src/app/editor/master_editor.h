@@ -14,6 +14,7 @@
 #include "app/core/constants.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
+#include "app/editor/code/memory_editor.h"
 #include "app/editor/context/gfx_context.h"
 #include "app/editor/dungeon_editor.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -118,6 +119,7 @@ class MasterEditor : public SharedRom,
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
+  MemoryEditorWithDiffChecker memory_editor_;
 
   ImVector<int> active_tabs_;
   std::vector<Editor*> active_editors_;
