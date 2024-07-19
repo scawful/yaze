@@ -307,75 +307,6 @@ bool Canvas::DrawTileSelector(int size) {
   return false;
 }
 
-void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
-  if (ready) {
-    draw_list_->AddImage(
-        (void *)bitmap.texture(),
-        ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
-        ImVec2(canvas_p0_.x + (bitmap.width() * 2),
-               canvas_p0_.y + (bitmap.height() * 2)));
-  }
-}
-
-void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
-  draw_list_->AddImage((void *)bitmap.texture(),
-                       ImVec2(canvas_p0_.x, canvas_p0_.y),
-                       ImVec2(canvas_p0_.x + (bitmap.width() * scale),
-                              canvas_p0_.y + (bitmap.height() * scale)));
-  draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
-}
-
-void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
-                        float scale, int alpha) {
-  draw_list_->AddImage(
-      (void *)bitmap.texture(),
-      ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
-             canvas_p0_.y + y_offset + scrolling_.y),
-      ImVec2(
-          canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width() * scale),
-          canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height() * scale)),
-      ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
-}
-
-// TODO: Add parameters for sizing and positioning
-void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
-  for (const auto &[key, value] : gfx_bin) {
-    int offset = 0x40 * (key + 1);
-    int top_left_y = canvas_p0_.y + 2;
-    if (key >= 1) {
-      top_left_y = canvas_p0_.y + 0x40 * key;
-    }
-    draw_list_->AddImage((void *)value.texture(),
-                         ImVec2(canvas_p0_.x + 2, top_left_y),
-                         ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
-  }
-}
-
-void Canvas::DrawOutline(int x, int y, int w, int h) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 200), 0, 0, 1.5f);
-}
-
-void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size,
-                      IM_COL32(color.x, color.y, color.z, color.w));
-}
-
-void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size, color);
-}
-
 namespace {
 ImVec2 AlignPosToGrid(ImVec2 pos, float scale) {
   return ImVec2(std::floor((double)pos.x / scale) * scale,
@@ -469,6 +400,75 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
       select_rect_active_ = true;
     }
   }
+}
+
+void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, bool ready) {
+  if (ready) {
+    draw_list_->AddImage(
+        (void *)bitmap.texture(),
+        ImVec2(canvas_p0_.x + border_offset, canvas_p0_.y + border_offset),
+        ImVec2(canvas_p0_.x + (bitmap.width() * 2),
+               canvas_p0_.y + (bitmap.height() * 2)));
+  }
+}
+
+void Canvas::DrawBitmap(const Bitmap &bitmap, int border_offset, float scale) {
+  draw_list_->AddImage((void *)bitmap.texture(),
+                       ImVec2(canvas_p0_.x, canvas_p0_.y),
+                       ImVec2(canvas_p0_.x + (bitmap.width() * scale),
+                              canvas_p0_.y + (bitmap.height() * scale)));
+  draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
+}
+
+void Canvas::DrawBitmap(const Bitmap &bitmap, int x_offset, int y_offset,
+                        float scale, int alpha) {
+  draw_list_->AddImage(
+      (void *)bitmap.texture(),
+      ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
+             canvas_p0_.y + y_offset + scrolling_.y),
+      ImVec2(
+          canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width() * scale),
+          canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height() * scale)),
+      ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
+}
+
+// TODO: Add parameters for sizing and positioning
+void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
+  for (const auto &[key, value] : gfx_bin) {
+    int offset = 0x40 * (key + 1);
+    int top_left_y = canvas_p0_.y + 2;
+    if (key >= 1) {
+      top_left_y = canvas_p0_.y + 0x40 * key;
+    }
+    draw_list_->AddImage((void *)value.texture(),
+                         ImVec2(canvas_p0_.x + 2, top_left_y),
+                         ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
+  }
+}
+
+void Canvas::DrawOutline(int x, int y, int w, int h) {
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
+  draw_list_->AddRect(origin, size, IM_COL32(255, 255, 255, 200), 0, 0, 1.5f);
+}
+
+void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
+  draw_list_->AddRect(origin, size,
+                      IM_COL32(color.x, color.y, color.z, color.w));
+}
+
+void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
+                canvas_p0_.y + scrolling_.y + y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
+              canvas_p0_.y + scrolling_.y + y + h);
+  draw_list_->AddRect(origin, size, color);
 }
 
 void Canvas::DrawBitmapGroup(std::vector<int> &group,
