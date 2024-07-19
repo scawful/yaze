@@ -155,14 +155,14 @@ var NAVTREEINDEX =
 "namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a89f201570be22752c07c9e67335c1c00",
 "namespaceyaze__test_1_1emu__test.html#aa3e6e40d808277ea6713547c2f3aaf8f",
 "overworld_8h.html#ade49e0d8a965cfdf7280908ed28fec84",
-"room__entrance_8h.html#a1cf1ad6baffbbbe3afeeb7fd6f3a5547",
-"spc700__test_8cc.html#aaa9b121f56280639a391f71b334d418e",
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html",
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#acb4fc5d9084ee149ea2d396dc60885cd",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#a8ba56d9663f90207977b2cd6b5364cab",
-"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html",
-"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a9d51755c7ccb531d888a12737e0549bc"
+"room__entrance_8h.html#a1b593e7aba63f5f0ff94f05d47243417",
+"spc700__test_8cc.html#a9ff99659eaecfe80b79384d4b81b60d7",
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#afa3a562930e1aa2078fec5f2b9e21c3b",
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa496c7c0204d59918d683649f22d8b3e",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGDATAREAD.html#a9038e005a7d01930aca6c24995a8648f",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W34SEL.html#a2b2fdec1f893c67ee612662385a11f10",
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afdc639f745c60b9b9375d1f3342c1411",
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a82e391ab2b767bbe99b996f4304d8817"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

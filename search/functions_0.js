@@ -19,7 +19,7 @@ var searchData=
   ['addalternativecompressioncommand_16',['AddAlternativeCompressionCommand',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a7c322d88e059c6e52031a46badfa23c4',1,'yaze::app::gfx::lc_lz2']]],
   ['addcolor_17',['AddColor',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#adcf50af0ebbb8dfeb2a628b10100a9fc',1,'yaze::app::gfx::SnesPalette::AddColor(SnesColor color)'],['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a1c1c164ef1485c7c0f8fe0c16a47a89d',1,'yaze::app::gfx::SnesPalette::AddColor(snes_color color)'],['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808',1,'yaze::app::gfx::PaletteGroup::AddColor()']]],
   ['addcompressiontochain_18',['AddCompressionToChain',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a4bb15ea4d4366ad87a5f64081ad9de4e',1,'yaze::app::gfx::lc_lz2']]],
-  ['addfile_19',['AddFile',['../classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html#a49ce5ae1bc14d02d5fa89130516876d3',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}::RecentFilesManager']]],
+  ['addfile_19',['AddFile',['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a8a47476b701dec579f200d1b8aac6981',1,'yaze::app::editor::RecentFilesManager']]],
   ['addobject_20',['AddObject',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a4d37cedfc0a57ae1dd2187c399f12894',1,'yaze::app::zelda3::dungeon::Room']]],
   ['addpalette_21',['AddPalette',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b',1,'yaze::app::gfx::PaletteGroup']]],
   ['addr_5fplus_5fi_22',['addr_plus_i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a42caa9cb7b33962abfb9ecba4fb55227',1,'yaze::app::emu::audio::Spc700']]],

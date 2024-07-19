@@ -1,5 +1,7 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a82e391ab2b767bbe99b996f4304d8817":[8,0,1,0,5,1,3,5],
+"structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a82e391ab2b767bbe99b996f4304d8817":[9,0,0,0,5,0,3,5],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a9d51755c7ccb531d888a12737e0549bc":[8,0,1,0,5,1,3,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#a9d51755c7ccb531d888a12737e0549bc":[9,0,0,0,5,0,3,0],
 "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1object__door.html#aab6cfcb63f274b42a9e8ad4fd4db78ff":[8,0,1,0,5,1,3,4],

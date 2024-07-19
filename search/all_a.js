@@ -63,7 +63,7 @@ var searchData=
   ['getpixelformode7_60',['GetPixelForMode7',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#acb715cbced56d0eb9a0913840bfd54ea',1,'yaze::app::emu::video::Ppu']]],
   ['getpngdata_61',['GetPngData',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aa44b245b70e14ba19887a33455b7124b',1,'yaze::app::gfx::Bitmap']]],
   ['getrecentchanges_62',['GetRecentChanges',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#aac05c9a6eb5b4839b9862e7e38a21754',1,'yaze::app::editor::palette_internal::PaletteEditorHistory']]],
-  ['getrecentfiles_63',['GetRecentFiles',['../classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html#ada70c5bf58250b9d476718b6489556bc',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}::RecentFilesManager']]],
+  ['getrecentfiles_63',['GetRecentFiles',['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a57ea43d9bb4491e6c14de4e3c3a7e0a3',1,'yaze::app::editor::RecentFilesManager']]],
   ['getsample_64',['GetSample',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a883b5a69efbd9e1a6c80752a6dfdae57',1,'yaze::app::emu::audio::Dsp']]],
   ['getsamples_65',['GetSamples',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#af503d7987b4928da38fd9072f862dfc5',1,'yaze::app::emu::audio::Dsp']]],
   ['getsdl_5fpalette_66',['GetSDL_Palette',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a0ef3fb7e1506675e0109cf6c89eb5153',1,'yaze::app::gfx::SnesPalette']]],

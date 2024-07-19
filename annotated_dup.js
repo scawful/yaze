@@ -12,9 +12,6 @@ var annotated_dup =
           [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
-          [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", [
-            [ "RecentFilesManager", "classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager.html", "classyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03_1_1RecentFilesManager" ]
-          ] ],
           [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", [
             [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext" ],
             [ "GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext" ]
@@ -43,6 +40,7 @@ var annotated_dup =
           [ "MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", "classyaze_1_1app_1_1editor_1_1MusicEditor" ],
           [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
           [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", "classyaze_1_1app_1_1editor_1_1PaletteEditor" ],
+          [ "RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", "classyaze_1_1app_1_1editor_1_1RecentFilesManager" ],
           [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
           [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],
           [ "Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", "classyaze_1_1app_1_1editor_1_1Tile16Editor" ]
