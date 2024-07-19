@@ -360,16 +360,7 @@ void MasterEditor::DrawYazeMenu() {
   DrawFileMenu();
   DrawEditMenu();
   DrawViewMenu();
-  if (current_project_.project_opened_) {
-    // Project Menu
-    if (BeginMenu("Project")) {
-      Text("Project: %s", current_project_.name.c_str());
-      Text("ROM: %s", current_project_.rom_filename_.c_str());
-      Text("Labels: %s", current_project_.labels_filename_.c_str());
-      Text("Code: %s", current_project_.code_folder_.c_str());
-      ImGui::EndMenu();
-    }
-  }
+  DrawProjectMenu();
   DrawHelpMenu();
 
   SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().ItemSpacing.x -
@@ -613,10 +604,8 @@ void MasterEditor::DrawViewMenu() {
   static bool show_memory_editor = false;
   static bool show_asm_editor = false;
   static bool show_imgui_demo = false;
-  static bool show_memory_viewer = false;
   static bool show_palette_editor = false;
   static bool show_emulator = false;
-  static bool show_resource_label_manager = false;
 
   if (show_emulator) {
     ImGui::Begin("Emulator", &show_emulator, ImGuiWindowFlags_MenuBar);
@@ -683,41 +672,8 @@ void MasterEditor::DrawViewMenu() {
     ImGui::End();
   }
 
-  if (show_memory_viewer) {
-    ImGui::Begin("Memory Viewer (ImGui)", &show_memory_viewer);
-
-    const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
-    static ImGuiTableFlags flags =
-        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
-        ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg |
-        ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX;
-    if (auto outer_size = ImVec2(0.0f, TEXT_BASE_HEIGHT * 5.5f);
-        ImGui::BeginTable("table1", 3, flags, outer_size)) {
-      for (int row = 0; row < 10; row++) {
-        ImGui::TableNextRow();
-        for (int column = 0; column < 3; column++) {
-          ImGui::TableNextColumn();
-          Text("Cell %d,%d", column, row);
-        }
-      }
-      ImGui::EndTable();
-    }
-
-    ImGui::End();
-  }
-
-  if (show_resource_label_manager) {
-    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
-    if (current_project_.project_opened_) {
-      current_project_.labels_filename_ = rom()->resource_label()->filename_;
-    }
-  }
-
   if (BeginMenu("View")) {
     MenuItem("Emulator", nullptr, &show_emulator);
-    MenuItem("Memory Viewer", nullptr, &show_memory_viewer);
-    Separator();
-    MenuItem("Resource Label Manager", nullptr, &show_resource_label_manager);
     Separator();
     MenuItem("Hex Editor", nullptr, &show_memory_editor);
     MenuItem("Assembly Editor", nullptr, &show_asm_editor);
@@ -726,6 +682,30 @@ void MasterEditor::DrawViewMenu() {
     MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
     MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
     ImGui::EndMenu();
+  }
+}
+
+void MasterEditor::DrawProjectMenu() {
+  static bool show_resource_label_manager = false;
+
+  if (current_project_.project_opened_) {
+    // Project Menu
+    if (BeginMenu("Project")) {
+      Text("Name: %s", current_project_.name.c_str());
+      Text("ROM: %s", current_project_.rom_filename_.c_str());
+      Text("Labels: %s", current_project_.labels_filename_.c_str());
+      Text("Code: %s", current_project_.code_folder_.c_str());
+      Separator();
+      MenuItem("Resource Labels", nullptr, &show_resource_label_manager);
+      ImGui::EndMenu();
+    }
+  }
+  if (show_resource_label_manager) {
+    rom()->resource_label()->DisplayLabels(&show_resource_label_manager);
+    if (current_project_.project_opened_ &&
+        !current_project_.labels_filename_.empty()) {
+      current_project_.labels_filename_ = rom()->resource_label()->filename_;
+    }
   }
 }
 

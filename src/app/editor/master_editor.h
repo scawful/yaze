@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_MASTER_EDITOR_H
 #define YAZE_APP_EDITOR_MASTER_EDITOR_H
 
-#define IMGUI_DEFINE_MATH_OPERATORS 1
+#define IMGUI_DEFINE_MATH_OPERATORS
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
@@ -85,6 +85,7 @@ class MasterEditor : public SharedRom,
   void DrawFileMenu();
   void DrawEditMenu();
   void DrawViewMenu();
+  void DrawProjectMenu();
   void DrawHelpMenu();
 
   void LoadRom();
