@@ -13,6 +13,19 @@ namespace yaze {
 namespace app {
 namespace gui {
 
+using ImGui::BeginMenu;
+using ImGui::EndMenu;
+using ImGui::GetContentRegionAvail;
+using ImGui::GetCursorScreenPos;
+using ImGui::GetIO;
+using ImGui::GetWindowDrawList;
+using ImGui::IsItemActive;
+using ImGui::IsItemHovered;
+using ImGui::IsMouseClicked;
+using ImGui::IsMouseDragging;
+using ImGui::MenuItem;
+using ImGui::Text;
+
 constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
 constexpr uint32_t kRectangleBorder = IM_COL32(255, 255, 255, 255);
 constexpr ImGuiButtonFlags kMouseFlags =
@@ -41,22 +54,25 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale,
 }
 
 void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
-  canvas_p0_ = ImGui::GetCursorScreenPos();
-  if (!custom_canvas_size_) canvas_sz_ = ImGui::GetContentRegionAvail();
+  draw_list_ = GetWindowDrawList();
+  canvas_p0_ = GetCursorScreenPos();
+  if (!custom_canvas_size_) canvas_sz_ = GetContentRegionAvail();
   if (canvas_size.x != 0) canvas_sz_ = canvas_size;
   canvas_p1_ = ImVec2(canvas_p0_.x + (canvas_sz_.x * global_scale_),
                       canvas_p0_.y + (canvas_sz_.y * global_scale_));
-  draw_list_ = ImGui::GetWindowDrawList();  // Draw border and background color
+
+  // Draw border and background color
   draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, kRectangleColor);
   draw_list_->AddRect(canvas_p0_, canvas_p1_, kRectangleBorder);
 
-  const ImGuiIO &io = ImGui::GetIO();
-  auto scaled_sz =
-      ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
-  ImGui::InvisibleButton("canvas", scaled_sz, kMouseFlags);
+  ImGui::InvisibleButton(
+      "canvas",
+      ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_),
+      kMouseFlags);
 
-  if (draggable_ && ImGui::IsItemHovered()) {
-    const bool is_active = ImGui::IsItemActive();  // Held
+  if (draggable_ && IsItemHovered()) {
+    const ImGuiIO &io = GetIO();
+    const bool is_active = IsItemActive();  // Held
     const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                         canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
     const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
@@ -64,8 +80,8 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
     // Pan (we use a zero mouse threshold when there's no context menu)
     if (const float mouse_threshold_for_pan =
             enable_context_menu_ ? -1.0f : 0.0f;
-        is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right,
-                                            mouse_threshold_for_pan)) {
+        is_active &&
+        IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan)) {
       scrolling_.x += io.MouseDelta.x;
       scrolling_.y += io.MouseDelta.y;
     }
@@ -73,7 +89,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
 }
 
 void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
-  const ImGuiIO &io = ImGui::GetIO();
+  const ImGuiIO &io = GetIO();
   auto scaled_sz =
       ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
@@ -87,42 +103,40 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
 
   // Contents of the Context Menu
   if (ImGui::BeginPopup("context")) {
-    if (ImGui::MenuItem("Reset Position", nullptr, false)) {
+    if (MenuItem("Reset Position", nullptr, false)) {
       scrolling_.x = 0;
       scrolling_.y = 0;
     }
-    ImGui::MenuItem("Show Grid", nullptr, &enable_grid_);
+    MenuItem("Show Grid", nullptr, &enable_grid_);
     ImGui::Selectable("Show Position Labels", &enable_hex_tile_labels_);
-    if (ImGui::BeginMenu("Canvas Properties")) {
-      ImGui::Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
-      ImGui::Text("Global Scale: %.1f", global_scale_);
-      ImGui::Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
+    if (BeginMenu("Canvas Properties")) {
+      Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
+      Text("Global Scale: %.1f", global_scale_);
+      Text("Mouse Position: %.0f x %.0f", mouse_pos.x, mouse_pos.y);
       ImGui::EndMenu();
     }
     if (bitmap != nullptr) {
-      if (ImGui::BeginMenu("Bitmap Properties")) {
-        ImGui::Text("Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
-        ImGui::Text("Pitch: %s",
-                    absl::StrFormat("%d", bitmap->surface()->pitch).c_str());
-        ImGui::Text("BitsPerPixel: %d",
-                    bitmap->surface()->format->BitsPerPixel);
-        ImGui::Text("BytesPerPixel: %d",
-                    bitmap->surface()->format->BytesPerPixel);
+      if (BeginMenu("Bitmap Properties")) {
+        Text("Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
+        Text("Pitch: %s",
+             absl::StrFormat("%d", bitmap->surface()->pitch).c_str());
+        Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
+        Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
         ImGui::EndMenu();
       }
     }
     ImGui::Separator();
-    if (ImGui::BeginMenu("Grid Tile Size")) {
-      if (ImGui::MenuItem("8x8", nullptr, custom_step_ == 8.0f)) {
+    if (BeginMenu("Grid Tile Size")) {
+      if (MenuItem("8x8", nullptr, custom_step_ == 8.0f)) {
         custom_step_ = 8.0f;
       }
-      if (ImGui::MenuItem("16x16", nullptr, custom_step_ == 16.0f)) {
+      if (MenuItem("16x16", nullptr, custom_step_ == 16.0f)) {
         custom_step_ = 16.0f;
       }
-      if (ImGui::MenuItem("32x32", nullptr, custom_step_ == 32.0f)) {
+      if (MenuItem("32x32", nullptr, custom_step_ == 32.0f)) {
         custom_step_ = 32.0f;
       }
-      if (ImGui::MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
+      if (MenuItem("64x64", nullptr, custom_step_ == 64.0f)) {
         custom_step_ = 64.0f;
       }
       ImGui::EndMenu();
@@ -134,8 +148,8 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
 }
 
 bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
-  const ImGuiIO &io = ImGui::GetIO();
-  const bool is_hovered = ImGui::IsItemHovered();
+  const ImGuiIO &io = GetIO();
+  const bool is_hovered = IsItemHovered();
   is_hovered_ = is_hovered;
   // Lock scrolled origin
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
@@ -169,7 +183,7 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
                  origin.y + painter_pos.y + size * scale));
     }
 
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (IsMouseClicked(ImGuiMouseButton_Left)) {
       // Draw the currently selected tile on the overworld here
       // Save the coordinates of the selected tile.
       drawn_tile_pos_ = painter_pos;
@@ -188,8 +202,8 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
 }
 
 bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
-  const ImGuiIO &io = ImGui::GetIO();
-  const bool is_hovered = ImGui::IsItemHovered();
+  const ImGuiIO &io = GetIO();
+  const bool is_hovered = IsItemHovered();
   is_hovered_ = is_hovered;
   // Lock scrolled origin
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
@@ -218,10 +232,9 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
     painter_pos.y =
         std::clamp(painter_pos.y, 0.0f, canvas_sz_.y * global_scale_);
 
-    auto painter_pos_end = ImVec2(painter_pos.x + scaled_tile_size,
-                                  painter_pos.y + scaled_tile_size);
     points_.push_back(painter_pos);
-    points_.push_back(painter_pos_end);
+    points_.push_back(ImVec2(painter_pos.x + scaled_tile_size,
+                             painter_pos.y + scaled_tile_size));
 
     draw_list_->AddRectFilled(
         ImVec2(origin.x + painter_pos.x + 1, origin.y + painter_pos.y + 1),
@@ -229,7 +242,7 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
                origin.y + painter_pos.y + scaled_tile_size),
         IM_COL32(color.x * 255, color.y * 255, color.z * 255, 255));
 
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (IsMouseClicked(ImGuiMouseButton_Left)) {
       is_dragging = true;
       start_drag_pos = painter_pos;
     }
@@ -269,12 +282,12 @@ void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap,
 }
 
 bool Canvas::DrawTileSelector(int size) {
-  const ImGuiIO &io = ImGui::GetIO();
-  const bool is_hovered = ImGui::IsItemHovered();
+  const ImGuiIO &io = GetIO();
+  const bool is_hovered = IsItemHovered();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-  if (is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+  if (is_hovered && IsMouseClicked(ImGuiMouseButton_Left)) {
     if (!points_.empty()) {
       points_.clear();
     }
@@ -363,32 +376,6 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
   draw_list_->AddRect(origin, size, color);
 }
 
-void Canvas::DrawSelectRectTile16(int current_map) {
-  const ImGuiIO &io = ImGui::GetIO();
-  const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    // Calculate the coordinates of the mouse
-    ImVec2 painter_pos;
-    painter_pos.x = std::floor((double)mouse_pos.x / 16) * 16;
-    painter_pos.y = std::floor((double)mouse_pos.y / 16) * 16;
-    int painter_x = painter_pos.x;
-    int painter_y = painter_pos.y;
-    constexpr int small_map_size = 0x200;
-
-    auto tile16_x = (painter_x % small_map_size) / (small_map_size / 0x20);
-    auto tile16_y = (painter_y % small_map_size) / (small_map_size / 0x20);
-
-    int superY = current_map / 8;
-    int superX = current_map % 8;
-
-    int index_x = superX * 0x20 + tile16_x;
-    int index_y = superY * 0x20 + tile16_y;
-    selected_tiles_.push_back(ImVec2(index_x, index_y));
-  }
-}
-
 namespace {
 ImVec2 AlignPosToGrid(ImVec2 pos, float scale) {
   return ImVec2(std::floor((double)pos.x / scale) * scale,
@@ -397,7 +384,7 @@ ImVec2 AlignPosToGrid(ImVec2 pos, float scale) {
 }  // namespace
 
 void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
-  const ImGuiIO &io = ImGui::GetIO();
+  const ImGuiIO &io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
   static ImVec2 drag_start_pos;
@@ -408,7 +395,7 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   int superX = current_map % 8;
 
   // Handle right click for single tile selection
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+  if (IsMouseClicked(ImGuiMouseButton_Right)) {
     ImVec2 painter_pos = AlignPosToGrid(mouse_pos, scaled_size);
     int painter_x = painter_pos.x;
     int painter_y = painter_pos.y;
@@ -423,8 +410,7 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
     select_rect_active_ = false;
 
     // Start drag position for rectangle selection
-    drag_start_pos = {std::floor(mouse_pos.x / scaled_size) * scaled_size,
-                      std::floor(mouse_pos.y / scaled_size) * scaled_size};
+    drag_start_pos = AlignPosToGrid(mouse_pos, scaled_size);
   }
 
   // Calculate the rectangle's top-left and bottom-right corners
@@ -540,15 +526,14 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group,
     }
   }
 
-  const ImGuiIO &io = ImGui::GetIO();
+  const ImGuiIO &io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
   auto new_start_pos = AlignPosToGrid(mouse_pos, tile_size * scale);
-  auto new_end_pos =
-      ImVec2(new_start_pos.x + rect_width, new_start_pos.y + rect_height);
   selected_points_.clear();
   selected_points_.push_back(new_start_pos);
-  selected_points_.push_back(new_end_pos);
+  selected_points_.push_back(
+      ImVec2(new_start_pos.x + rect_width, new_start_pos.y + rect_height));
   select_rect_active_ = true;
 }
 
@@ -675,8 +660,8 @@ void Canvas::DrawLayeredElements() {
   // Based on ImGui demo, should be adapted to use for OAM
   ImDrawList *draw_list = ImGui::GetWindowDrawList();
   {
-    ImGui::Text("Blue shape is drawn first: appears in back");
-    ImGui::Text("Red shape is drawn after: appears in front");
+    Text("Blue shape is drawn first: appears in back");
+    Text("Red shape is drawn after: appears in front");
     ImVec2 p0 = ImGui::GetCursorScreenPos();
     draw_list->AddRectFilled(ImVec2(p0.x, p0.y), ImVec2(p0.x + 50, p0.y + 50),
                              IM_COL32(0, 0, 255, 255));  // Blue
@@ -687,8 +672,8 @@ void Canvas::DrawLayeredElements() {
   }
   ImGui::Separator();
   {
-    ImGui::Text("Blue shape is drawn first, into channel 1: appears in front");
-    ImGui::Text("Red shape is drawn after, into channel 0: appears in back");
+    Text("Blue shape is drawn first, into channel 1: appears in front");
+    Text("Red shape is drawn after, into channel 0: appears in back");
     ImVec2 p1 = ImGui::GetCursorScreenPos();
 
     // Create 2 channels and draw a Blue shape THEN a Red shape.
@@ -708,8 +693,7 @@ void Canvas::DrawLayeredElements() {
     // only (vertices are not copied).
     draw_list->ChannelsMerge();
     ImGui::Dummy(ImVec2(75, 75));
-    ImGui::Text(
-        "After reordering, contents of channel 0 appears below channel 1.");
+    Text("After reordering, contents of channel 0 appears below channel 1.");
   }
 }
 
