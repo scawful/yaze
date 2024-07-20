@@ -79,22 +79,6 @@ bool BeginCentered(const char* name) {
   return ImGui::Begin(name, nullptr, flags);
 }
 
-// Function to switch the active tab in a tab bar
-void SetTabBarTab(ImGuiTabBar* tab_bar, ImGuiID tab_id) {
-  if (tab_bar == NULL) return;
-
-  // Find the tab item with the specified tab_id
-  ImGuiTabItem* tab_item = &tab_bar->Tabs[tab_id];
-  tab_item->LastFrameVisible = -1;
-  tab_item->LastFrameSelected = -1;
-  tab_bar->VisibleTabId = tab_id;
-  tab_bar->VisibleTabWasSubmitted = true;
-  tab_bar->SelectedTabId = tab_id;
-  tab_bar->NextSelectedTabId = tab_id;
-  tab_bar->ReorderRequestTabId = tab_id;
-  tab_bar->CurrFrameVisible = -1;
-}
-
 bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
   return std::find(active_editors.begin(), active_editors.end(), editor) !=
          active_editors.end();
@@ -114,6 +98,8 @@ void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
 
 absl::Status MasterEditor::Update() {
   NewMasterFrame();
+
+  ManageKeyboardShortcuts();
 
   DrawYazeMenu();
   DrawFileDialog();
@@ -275,6 +261,20 @@ void MasterEditor::ManageActiveEditors() {
   }
 }
 
+void MasterEditor::ManageKeyboardShortcuts() {
+  // If CMD + R is pressed, reload the top result of recent files
+  if (ImGui::IsKeyDown(ImGuiKey_R) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    static RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    if (!manager.GetRecentFiles().empty()) {
+      auto front = manager.GetRecentFiles().front();
+      std::cout << "Reloading: " << front << std::endl;
+      OpenRomOrProject(front);
+    }
+  }
+}
+
 void MasterEditor::DrawFileDialog() {
   gui::FileDialogPipeline("ChooseFileDlgKey", ".sfc,.smc", std::nullopt, [&]() {
     std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
@@ -396,6 +396,17 @@ void MasterEditor::DrawYazeMenu() {
   }
 }
 
+void MasterEditor::OpenRomOrProject(const std::string& filename) {
+  if (absl::StrContains(filename, ".yaze")) {
+    status_ = current_project_.Open(filename);
+    if (status_.ok()) {
+      status_ = OpenProject();
+    }
+  } else {
+    status_ = rom()->LoadFromFile(filename);
+  }
+}
+
 void MasterEditor::DrawFileMenu() {
   static bool save_as_menu = false;
   static bool new_project_menu = false;
@@ -413,14 +424,7 @@ void MasterEditor::DrawFileMenu() {
       } else {
         for (const auto& filePath : manager.GetRecentFiles()) {
           if (MenuItem(filePath.c_str())) {
-            if (absl::StrContains(filePath, ".yaze")) {
-              status_ = current_project_.Open(filePath);
-              if (status_.ok()) {
-                status_ = OpenProject();
-              }
-            } else {
-              status_ = rom()->LoadFromFile(filePath);
-            }
+            OpenRomOrProject(filePath);
           }
         }
       }
