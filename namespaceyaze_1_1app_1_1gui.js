@@ -40,6 +40,7 @@ var namespaceyaze_1_1app_1_1gui =
     [ "InputHexWord", "namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd", null ],
     [ "InputHexWord", "namespaceyaze_1_1app_1_1gui.html#a0dee1b29d58201456f0fc225794a4a21", null ],
     [ "InputHexByte", "namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb", null ],
+    [ "InputHexByte", "namespaceyaze_1_1app_1_1gui.html#a54b571106f4a250d7a5d29ef87faf06f", null ],
     [ "ItemLabel", "namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e", null ],
     [ "ListBox", "namespaceyaze_1_1app_1_1gui.html#ad1e770a2e8dbc1e8a62d33c3466ab2fe", null ],
     [ "GetID", "namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec", null ],

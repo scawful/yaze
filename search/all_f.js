@@ -89,7 +89,7 @@ var searchData=
   ['loaddungeonmaptile16_86',['LoadDungeonMapTile16',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a36d2f69c38cf0a15353d3a16986ec0b0',1,'yaze::app::editor::ScreenEditor']]],
   ['loaddungeonroomsize_87',['LoadDungeonRoomSize',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d51398b7cfb24ece6f1db73d9fea4e7',1,'yaze::app::editor::DungeonEditor']]],
   ['loadentrances_88',['LoadEntrances',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#ab10e3104adf4804e20a61048d1e6c45d',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['loadentrancetiletypes_89',['LoadEntranceTileTypes',['../classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html#adb36153141bacff05fbb8ba38b296479',1,'yaze::app::editor::context::EntranceContext']]],
+  ['loadentrancetiletypes_89',['LoadEntranceTileTypes',['../classyaze_1_1app_1_1editor_1_1EntranceContext.html#a33e05c3134af0a0767b8f3d80dc28d9f',1,'yaze::app::editor::EntranceContext']]],
   ['loadexits_90',['LoadExits',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['loadfile_91',['LoadFile',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#ab66fc494201a906e415db8cddcde2e08',1,'yaze::app::gui::zeml']]],
   ['loadfolder_92',['LoadFolder',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#aa24a786b26c2f9d49f09de1d3338e459',1,'yaze::app::editor::anonymous_namespace{assembly_editor.cc}']]],

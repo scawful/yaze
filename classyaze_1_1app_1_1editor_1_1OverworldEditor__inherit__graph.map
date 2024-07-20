@@ -6,8 +6,8 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,98,181,106,229,120,228,125,180,111,154,103"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="26,120,160,161"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="175,138,228,138,228,143,175,143"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html" title=" " alt="" coords="11,185,175,226"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="169,177,228,158,229,163,171,182"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1EntranceContext.html" title=" " alt="" coords="34,185,152,226"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="166,178,228,158,229,163,168,183"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,251,181,291"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="169,241,179,235,228,197,267,159,270,163,232,201,182,240,172,246"/>
 </map>

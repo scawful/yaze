@@ -16,6 +16,7 @@ var classyaze_1_1app_1_1gfx_1_1SnesPalette =
     [ "mutable_color", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a3232fb97b5561c563c2e34041ea084a5", null ],
     [ "Clear", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a3b5ffdf58bc7bd0d99132637ca550bea", null ],
     [ "size", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed", null ],
+    [ "empty", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#acafdde853184fe8a13d3716a71a9280f", null ],
     [ "operator[]", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a973d2093118ecfef39b46c98f118d8ee", null ],
     [ "operator()", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#aef1cac61014a3cde058249a477818fd8", null ],
     [ "operator()", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a76531895525d33ae8c447225172c38ac", null ],

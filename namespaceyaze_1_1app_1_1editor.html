@@ -157,6 +157,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html">Editor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface for editor classes.  <a href="classyaze_1_1app_1_1editor_1_1Editor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1editor_1_1EntranceContext.html">EntranceContext</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html">GfxGroupEditor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manage graphics group configurations in a <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>.  <a href="classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -233,6 +235,8 @@ Variables</h2></td></tr>
 <tr class="separator:a65e67f4ca487a23f1a6ac1f1f4d6f8bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01297032ea6f9841c13ac229d798caaa" id="r_a01297032ea6f9841c13ac229d798caaa"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiColorEditFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a01297032ea6f9841c13ac229d798caaa">kColorPopupFlags</a></td></tr>
 <tr class="separator:a01297032ea6f9841c13ac229d798caaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d06221cd91107ded60d6b25c66005cc" id="r_a9d06221cd91107ded60d6b25c66005cc"><td class="memItemLeft" align="right" valign="top">constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9d06221cd91107ded60d6b25c66005cc">kOverworldMapSize</a> = 0x200</td></tr>
+<tr class="separator:a9d06221cd91107ded60d6b25c66005cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d9b8c9589c6b1455c34c618611b3303" id="r_a4d9b8c9589c6b1455c34c618611b3303"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4d9b8c9589c6b1455c34c618611b3303">kOWMapFlags</a></td></tr>
 <tr class="separator:a4d9b8c9589c6b1455c34c618611b3303"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab016b013560df6264216fd0a73b3f913" id="r_ab016b013560df6264216fd0a73b3f913"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab016b013560df6264216fd0a73b3f913">kToolsetTableFlags</a> = ImGuiTableFlags_SizingFixedFit</td></tr>
@@ -638,6 +642,30 @@ Variables</h2></td></tr>
 <div class="line">    ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha</div>
 </div><!-- fragment -->
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1">yaze::app::editor::PaletteEditor::HandleColorPopup()</a>.</p>
+
+</div>
+</div>
+<a id="a9d06221cd91107ded60d6b25c66005cc" name="a9d06221cd91107ded60d6b25c66005cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d06221cd91107ded60d6b25c66005cc">&#9670;&#160;</a></span>kOverworldMapSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t yaze::app::editor::kOverworldMapSize = 0x200</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a83d56f2744b5db04ff91c2eaaf8cb3d3">yaze::app::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a85251f34b6626f2d2d930dbe65f1b318">yaze::app::editor::OverworldEditor::DrawOverworldMaps()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a35cef335c227bf8884a42760cba04d3f">yaze::app::editor::OverworldEditor::LoadAnimatedMaps()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390">yaze::app::editor::OverworldEditor::LoadGraphics()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a800f8b17c76d3ccca98c2b7304bb2e1b">yaze::app::editor::OverworldEditor::RenderUpdatedMapBitmap()</a>.</p>
 
 </div>
 </div>

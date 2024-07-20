@@ -157,8 +157,8 @@
 <area shape="rect" id="Node000059" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html" title=" " alt="" coords="1567,504,1690,544"/>
 <area shape="poly" id="edge77_Node000058_Node000059" title=" " alt="" coords="1706,535,1900,568,1899,574,1705,540"/>
 <area shape="poly" id="edge79_Node000003_Node000060" title=" " alt="" coords="2298,2375,2337,2325,2382,2258,2425,2181,2459,2098,2474,2037,2488,1961,2509,1775,2524,1558,2533,1330,2541,909,2541,658,2546,658,2546,909,2539,1330,2529,1559,2514,1775,2493,1962,2480,2038,2464,2100,2430,2183,2386,2261,2341,2328,2302,2378"/>
-<area shape="rect" id="Node000061" href="$classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html" title=" " alt="" coords="1877,2214,2042,2255"/>
-<area shape="poly" id="edge83_Node000060_Node000061" title=" " alt="" coords="2057,2231,2125,2243,2158,2254,2189,2271,2217,2297,2239,2329,2266,2387,2261,2390,2235,2331,2213,2301,2185,2276,2156,2259,2123,2248,2057,2236"/>
+<area shape="rect" id="Node000061" href="$classyaze_1_1app_1_1editor_1_1EntranceContext.html" title=" " alt="" coords="1900,2214,2019,2255"/>
+<area shape="poly" id="edge83_Node000060_Node000061" title=" " alt="" coords="2034,2230,2072,2232,2112,2239,2152,2252,2189,2271,2217,2297,2239,2329,2266,2387,2261,2390,2235,2331,2213,2301,2185,2276,2150,2257,2111,2245,2071,2238,2034,2235"/>
 <area shape="rect" id="Node000062" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html" title="Base class for all overworld entities." alt="" coords="1567,2913,1690,2954"/>
 <area shape="poly" id="edge85_Node000060_Node000062" title=" " alt="" coords="1706,2930,1830,2925,1975,2912,2044,2900,2105,2885,2153,2866,2185,2842,2203,2810,2219,2762,2244,2641,2259,2518,2266,2430,2272,2430,2264,2519,2249,2642,2225,2764,2208,2812,2189,2846,2156,2871,2106,2890,2045,2906,1976,2917,1831,2931,1706,2935"/>
 <area shape="rect" id="Node000063" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldEntrance.html" title=" " alt="" coords="1863,2953,2056,2994"/>

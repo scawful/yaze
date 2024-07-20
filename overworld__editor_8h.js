@@ -1,5 +1,6 @@
 var overworld__editor_8h =
 [
+    [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1EntranceContext" ],
     [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
     [ "kOWMapFlags", "overworld__editor_8h.html#a4d9b8c9589c6b1455c34c618611b3303", null ],
     [ "kToolsetTableFlags", "overworld__editor_8h.html#ab016b013560df6264216fd0a73b3f913", null ],

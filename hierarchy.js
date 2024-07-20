@@ -79,7 +79,7 @@ var hierarchy =
       [ "yaze::app::editor::ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", null ],
       [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ]
     ] ],
-    [ "yaze::app::editor::context::EntranceContext", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html", [
+    [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
     [ "yaze::app::core::ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", [

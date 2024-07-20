@@ -13,6 +13,7 @@ var classyaze_1_1app_1_1editor_1_1PaletteEditor =
     [ "DisplayPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aabc08b8ae1c0e6fa35d69700dec1ab10", null ],
     [ "DrawPaletteGroup", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#add001e703fbf0d541dde4a66a6c21ed1", null ],
     [ "DrawCustomPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aec2eb61af39135c7db4980a156d37249", null ],
+    [ "DrawModifiedColors", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a923b195a3afdbb2bab8729071924c5ed", null ],
     [ "HandleColorPopup", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1", null ],
     [ "InitializeSavedPalette", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a982d41b1b6b8e6a481818417a3d1d407", null ],
     [ "status_", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a507634ca48adec6b06c620df5445f3c0", null ],

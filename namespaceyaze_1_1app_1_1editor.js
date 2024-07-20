@@ -13,7 +13,6 @@ var namespaceyaze_1_1app_1_1editor =
     [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", [
       [ "NewMasterFrame", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a6872020f533c742e88197014191b68ec", null ],
       [ "BeginCentered", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2ba6e51388d9b35fd4f27705a42659b8", null ],
-      [ "SetTabBarTab", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a81c57ba278b68d019be4d9b6dc76c89a", null ],
       [ "IsEditorActive", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904", null ],
       [ "kMainEditorFlags", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a5035b7f9e50f6d99047aeb532d90b142", null ]
     ] ],
@@ -44,6 +43,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", "classyaze_1_1app_1_1editor_1_1AssemblyEditor" ],
     [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
     [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
+    [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1EntranceContext" ],
     [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor" ],
     [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1app_1_1editor_1_1GraphicsEditor" ],
     [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
@@ -78,6 +78,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kPalNoAlpha", "namespaceyaze_1_1app_1_1editor.html#a2069f944ef53eb187dae126277941b42", null ],
     [ "kPalButtonFlags2", "namespaceyaze_1_1app_1_1editor.html#a65e67f4ca487a23f1a6ac1f1f4d6f8bf", null ],
     [ "kColorPopupFlags", "namespaceyaze_1_1app_1_1editor.html#a01297032ea6f9841c13ac229d798caaa", null ],
+    [ "kOverworldMapSize", "namespaceyaze_1_1app_1_1editor.html#a9d06221cd91107ded60d6b25c66005cc", null ],
     [ "kOWMapFlags", "namespaceyaze_1_1app_1_1editor.html#a4d9b8c9589c6b1455c34c618611b3303", null ],
     [ "kToolsetTableFlags", "namespaceyaze_1_1app_1_1editor.html#ab016b013560df6264216fd0a73b3f913", null ],
     [ "kOWEditFlags", "namespaceyaze_1_1app_1_1editor.html#aa2f8240c66088fdf579ae0becaa2d820", null ],

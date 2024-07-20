@@ -645,7 +645,7 @@ $(function(){initNavTree('asset__browser_8h_source.html',''); initResizable(true
 <div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span>                    ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));</div>
 <div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>                draw_list-&gt;AddText(</div>
 <div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span>                    ImVec2(box_min.x, box_max.y - ImGui::GetFontSize()),</div>
-<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>                    label_col, <span class="stringliteral">&quot;ID&quot;</span>);</div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>                    label_col, absl::StrFormat(<span class="stringliteral">&quot;%X&quot;</span>, item_data-&gt;<a class="code hl_variable" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e">ID</a>).c_str());</div>
 <div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span>              }</div>
 <div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>            }</div>
 <div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span> </div>

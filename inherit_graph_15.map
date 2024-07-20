@@ -16,8 +16,8 @@
 <area shape="poly" id="edge13_Node000000_Node000016" title=" " alt="" coords="168,327,278,342,277,347,167,333"/>
 <area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1editor_1_1SpriteEditor.html" title="Allows the user to edit sprites." alt="" coords="278,397,397,438"/>
 <area shape="poly" id="edge14_Node000000_Node000017" title=" " alt="" coords="149,346,230,382,278,399,277,404,228,387,147,350"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html" title=" " alt="" coords="11,71,175,111"/>
-<area shape="poly" id="edge15_Node000009_Node000008" title=" " alt="" coords="191,88,278,88,278,94,191,94"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1editor_1_1EntranceContext.html" title=" " alt="" coords="34,71,152,111"/>
+<area shape="poly" id="edge15_Node000009_Node000008" title=" " alt="" coords="167,88,278,88,278,94,167,94"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,741,181,782"/>
 <area shape="poly" id="edge18_Node000003_Node000002" title=" " alt="" coords="106,727,141,639,178,532,185,499,188,470,188,418,189,394,195,370,207,345,227,318,250,301,277,291,278,296,252,306,231,322,211,347,200,371,195,395,193,418,193,470,191,500,183,533,146,641,111,729"/>
 <area shape="poly" id="edge20_Node000003_Node000008" title=" " alt="" coords="108,726,144,639,178,532,184,492,186,441,188,321,191,261,197,205,208,157,227,123,250,104,277,94,279,99,252,109,231,126,213,159,202,206,196,261,194,321,192,441,189,492,183,533,149,641,113,728"/>
