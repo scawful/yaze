@@ -273,6 +273,24 @@ void MasterEditor::ManageKeyboardShortcuts() {
       OpenRomOrProject(front);
     }
   }
+
+  // If CMD + Q is pressed, quit the application
+  if (ImGui::IsKeyDown(ImGuiKey_Q) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    quit_ = true;
+  }
+
+  // If CMD + O is pressed, open a file dialog
+  if (ImGui::IsKeyDown(ImGuiKey_O) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    LoadRom();
+  }
+
+  // If CMD + S is pressed, save the current ROM
+  if (ImGui::IsKeyDown(ImGuiKey_S) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    SaveRom();
+  }
 }
 
 void MasterEditor::DrawFileDialog() {
