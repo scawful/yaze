@@ -44,7 +44,6 @@ const std::string kSuperDonkeySprites[] = {
     "BE115", "BE5C2", "BEB63", "BF0CB", "BF607", "BFA55", "BFD71", "C017D",
     "C0567", "C0981", "C0BA7", "C116D", "C166A", "C1FE0", "C24CE", "C2B19"};
 
-
 /**
  * @class GraphicsEditor
  * @brief Allows the user to edit graphics sheets from the game or view
@@ -65,11 +64,12 @@ class GraphicsEditor : public SharedRom, public Editor {
 
   absl::Status Update() override;
 
-  absl::Status Cut() override { return absl::OkStatus(); }
-  absl::Status Copy() override { return absl::OkStatus(); }
-  absl::Status Paste() override { return absl::OkStatus(); }
-  absl::Status Undo() override { return absl::OkStatus(); }
-  absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
+  absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
+  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
+  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Find() override { return absl::UnimplementedError("Find"); }
 
  private:
   enum class GfxEditMode {

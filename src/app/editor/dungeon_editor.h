@@ -49,11 +49,12 @@ class DungeonEditor : public Editor,
   DungeonEditor() { type_ = EditorType::kDungeon; }
 
   absl::Status Update() override;
-  absl::Status Cut() override { return absl::OkStatus(); }
-  absl::Status Copy() override { return absl::OkStatus(); }
-  absl::Status Paste() override { return absl::OkStatus(); }
-  absl::Status Undo() override { return absl::OkStatus(); }
-  absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Undo() { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() { return absl::UnimplementedError("Redo"); }
+  absl::Status Cut() { return absl::UnimplementedError("Cut"); }
+  absl::Status Copy() { return absl::UnimplementedError("Copy"); }
+  absl::Status Paste() { return absl::UnimplementedError("Paste"); }
+  absl::Status Find() override { return absl::UnimplementedError("Find"); }
 
   void add_room(int i) { active_rooms_.push_back(i); }
 

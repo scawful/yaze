@@ -48,6 +48,8 @@ class Editor {
 
   virtual absl::Status Update() = 0;
 
+  virtual absl::Status Find() = 0;
+
   EditorType type() const { return type_; }
 
  protected:
