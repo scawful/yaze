@@ -14,6 +14,7 @@
 #include "app/gfx/scad_format.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gui/asset_browser.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
@@ -52,6 +53,19 @@ absl::Status GraphicsEditor::Update() {
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
   TAB_ITEM("Sheet Editor")
+
+  static bool show_sheet_browser_ = false;
+  static gui::GfxSheetAssetBrowser asset_browser;
+
+  if (ImGui::Button("Sheet Browser")) {
+    show_sheet_browser_ = !show_sheet_browser_;
+    asset_browser.Initialize(rom()->mutable_bitmap_manager());
+  }
+
+  if (show_sheet_browser_) {
+    asset_browser.Draw("##SheetBrowser", &show_sheet_browser_,
+                       rom()->mutable_bitmap_manager());
+  }
 
   if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
                         ImVec2(0, 0))) {
