@@ -168,6 +168,11 @@ void MasterEditor::ManageActiveEditors() {
       active_editors_.push_back(&assembly_editor_);
       ImGui::CloseCurrentPopup();
     }
+    if (ImGui::MenuItem("Settings", nullptr, false,
+                        !IsEditorActive(&settings_editor_, active_editors_))) {
+      active_editors_.push_back(&settings_editor_);
+      ImGui::CloseCurrentPopup();
+    }
     ImGui::EndPopup();
   }
 
@@ -240,6 +245,13 @@ void MasterEditor::ManageActiveEditors() {
           if (ImGui::BeginTabItem("Code", &open)) {
             current_editor_ = &assembly_editor_;
             assembly_editor_.UpdateCodeView();
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kSettings:
+          if (ImGui::BeginTabItem("Settings", &open)) {
+            current_editor_ = &settings_editor_;
+            status_ = settings_editor_.Update();
             ImGui::EndTabItem();
           }
           break;
