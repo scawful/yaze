@@ -77,6 +77,7 @@ var hierarchy =
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", null ],
       [ "yaze::app::editor::ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", null ],
+      [ "yaze::app::editor::SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", null ],
       [ "yaze::app::editor::SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", null ]
     ] ],
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
@@ -86,6 +87,7 @@ var hierarchy =
       [ "yaze::app::Rom", "classyaze_1_1app_1_1Rom.html", null ],
       [ "yaze::app::core::Controller", "classyaze_1_1app_1_1core_1_1Controller.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
+      [ "yaze::app::editor::FlagsMenu", "structyaze_1_1app_1_1editor_1_1FlagsMenu.html", null ],
       [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::emu::Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", null ],

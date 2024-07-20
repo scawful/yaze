@@ -10,5 +10,7 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "master_editor.cc", "master__editor_8cc.html", "master__editor_8cc" ],
     [ "master_editor.h", "master__editor_8h.html", "master__editor_8h" ],
     [ "overworld_editor.cc", "overworld__editor_8cc.html", "overworld__editor_8cc" ],
-    [ "overworld_editor.h", "overworld__editor_8h.html", "overworld__editor_8h" ]
+    [ "overworld_editor.h", "overworld__editor_8h.html", "overworld__editor_8h" ],
+    [ "settings_editor.cc", "settings__editor_8cc.html", null ],
+    [ "settings_editor.h", "settings__editor_8h.html", "settings__editor_8h" ]
 ];

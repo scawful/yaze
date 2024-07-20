@@ -44,6 +44,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", "classyaze_1_1app_1_1editor_1_1DungeonEditor" ],
     [ "Editor", "classyaze_1_1app_1_1editor_1_1Editor.html", "classyaze_1_1app_1_1editor_1_1Editor" ],
     [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1EntranceContext" ],
+    [ "FlagsMenu", "structyaze_1_1app_1_1editor_1_1FlagsMenu.html", "structyaze_1_1app_1_1editor_1_1FlagsMenu" ],
     [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor" ],
     [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1app_1_1editor_1_1GraphicsEditor" ],
     [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
@@ -53,6 +54,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", "classyaze_1_1app_1_1editor_1_1PaletteEditor" ],
     [ "RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", "classyaze_1_1app_1_1editor_1_1RecentFilesManager" ],
     [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
+    [ "SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", "classyaze_1_1app_1_1editor_1_1SettingsEditor" ],
     [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],
     [ "Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", "classyaze_1_1app_1_1editor_1_1Tile16Editor" ],
     [ "EditorType", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52", [
@@ -63,7 +65,8 @@ var namespaceyaze_1_1app_1_1editor =
       [ "kOverworld", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a29f266fe9c0da014314bf7c6a9b2a7a6", null ],
       [ "kPalette", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb", null ],
       [ "kScreen", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a999e1b181ff36a65c7fd5a32e4e627d8", null ],
-      [ "kSprite", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a7c10e40e40c6c0519ea3066c5c66733a", null ]
+      [ "kSprite", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a7c10e40e40c6c0519ea3066c5c66733a", null ],
+      [ "kSettings", "namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ac935a934100d15241aefe3f7081e7767", null ]
     ] ],
     [ "kDungeonObjectTableFlags", "namespaceyaze_1_1app_1_1editor.html#a759334407b9c50f79df5b99931356832", null ],
     [ "kDungeonTabFlags", "namespaceyaze_1_1app_1_1editor.html#ae940471e79391cb6b9753359bb18870b", null ],
