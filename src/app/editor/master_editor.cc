@@ -540,8 +540,11 @@ void MasterEditor::DrawFileMenu() {
       MenuItem("Backup ROM", "", &backup_rom_);
       MenuItem("Save New Auto", "", &save_new_auto_);
       Separator();
-      static FlagsMenu flags_menu;
-      flags_menu.Draw();
+      if (BeginMenu("Experiment Flags")) {
+        static FlagsMenu flags_menu;
+        flags_menu.Draw();
+        ImGui::EndMenu();
+      }
       ImGui::EndMenu();
     }
 
