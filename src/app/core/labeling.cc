@@ -12,6 +12,7 @@
 
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/gui/icons.h"
 
 namespace yaze {
 namespace app {
@@ -115,6 +116,9 @@ void ResourceLabelManager::SelectableLabelWithNameEdit(
     if (ImGui::InputText("##Label", new_label,
                          ImGuiInputTextFlags_EnterReturnsTrue)) {
       labels_[type][key] = *new_label;
+    }
+    if (ImGui::Button(ICON_MD_CLOSE)) {
+      ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
   }
