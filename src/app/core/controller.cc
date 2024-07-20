@@ -75,6 +75,18 @@ void InitializeKeymap() {
   io.KeyMap[ImGuiKey_X] = SDL_GetScancodeFromKey(SDLK_x);
   io.KeyMap[ImGuiKey_Y] = SDL_GetScancodeFromKey(SDLK_y);
   io.KeyMap[ImGuiKey_Z] = SDL_GetScancodeFromKey(SDLK_z);
+  io.KeyMap[ImGuiKey_F1] = SDL_GetScancodeFromKey(SDLK_F1);
+  io.KeyMap[ImGuiKey_F2] = SDL_GetScancodeFromKey(SDLK_F2);
+  io.KeyMap[ImGuiKey_F3] = SDL_GetScancodeFromKey(SDLK_F3);
+  io.KeyMap[ImGuiKey_F4] = SDL_GetScancodeFromKey(SDLK_F4);
+  io.KeyMap[ImGuiKey_F5] = SDL_GetScancodeFromKey(SDLK_F5);
+  io.KeyMap[ImGuiKey_F6] = SDL_GetScancodeFromKey(SDLK_F6);
+  io.KeyMap[ImGuiKey_F7] = SDL_GetScancodeFromKey(SDLK_F7);
+  io.KeyMap[ImGuiKey_F8] = SDL_GetScancodeFromKey(SDLK_F8);
+  io.KeyMap[ImGuiKey_F9] = SDL_GetScancodeFromKey(SDLK_F9);
+  io.KeyMap[ImGuiKey_F10] = SDL_GetScancodeFromKey(SDLK_F10);
+  io.KeyMap[ImGuiKey_F11] = SDL_GetScancodeFromKey(SDLK_F11);
+  io.KeyMap[ImGuiKey_F12] = SDL_GetScancodeFromKey(SDLK_F12);
 }
 
 void ImGui_ImplSDL2_SetClipboardText(void *user_data, const char *text) {
