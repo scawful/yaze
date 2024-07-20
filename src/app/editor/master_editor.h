@@ -76,6 +76,8 @@ class MasterEditor : public SharedRom,
 
  private:
   void ManageActiveEditors();
+  void ManageKeyboardShortcuts();
+  void OpenRomOrProject(const std::string& filename);
 
   void DrawFileDialog();
   void DrawStatusPopup();
