@@ -84,6 +84,7 @@ var hierarchy =
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
     [ "yaze::app::core::ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", [
+      [ "yaze::app::Project", "structyaze_1_1app_1_1Project.html", null ],
       [ "yaze::app::Rom", "classyaze_1_1app_1_1Rom.html", null ],
       [ "yaze::app::core::Controller", "classyaze_1_1app_1_1core_1_1Controller.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
@@ -113,6 +114,7 @@ var hierarchy =
     [ "yaze::app::emu::InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", null ],
     [ "yaze::app::gfx::Tilesheet::InternalTile16", "structyaze_1_1app_1_1gfx_1_1Tilesheet_1_1InternalTile16.html", null ],
     [ "yaze::app::emu::video::JoypadRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1JoypadRegisters.html", null ],
+    [ "yaze::app::editor::KeyboardShortcuts", "structyaze_1_1app_1_1editor_1_1KeyboardShortcuts.html", null ],
     [ "yaze::app::emu::video::Layer", "structyaze_1_1app_1_1emu_1_1video_1_1Layer.html", null ],
     [ "yaze::app::emu::Loggable", "classyaze_1_1app_1_1emu_1_1Loggable.html", [
       [ "yaze::app::emu::Cpu", "classyaze_1_1app_1_1emu_1_1Cpu.html", null ],
@@ -180,7 +182,6 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", [
       [ "yaze_test::emu_test::MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", null ]
     ] ],
-    [ "yaze::app::Project", "structyaze_1_1app_1_1Project.html", null ],
     [ "yaze::app::zelda3::dungeon::PseudoVram", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html", null ],
     [ "yaze::app::editor::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
@@ -190,6 +191,7 @@ var hierarchy =
     [ "yaze::app::emu::video::ScreenDisplay", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html", null ],
     [ "yaze::app::emu::video::ScreenMode", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html", null ],
     [ "yaze::app::emu::video::ScrollRegister", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html", null ],
+    [ "sdl_deleter", "structsdl__deleter.html", null ],
     [ "yaze::app::core::Controller::sdl_deleter", "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter.html", null ],
     [ "yaze::app::gfx::Bitmap::SDL_Surface_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::app::gfx::Bitmap::SDL_Texture_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter.html", null ],

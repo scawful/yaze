@@ -8,5 +8,6 @@ var classyaze_1_1app_1_1editor_1_1SettingsEditor =
     [ "Copy", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html#ae636b82b58db020bfd31db9d94bd9f0f", null ],
     [ "Paste", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html#a31df466d7ffeaf4ba6e636b4967585e7", null ],
     [ "Find", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html#a1e68fbd7585493bde3393e92e48b16e1", null ],
+    [ "DrawGeneralSettings", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html#a51c707b2eaf978c5031aad0501c69a46", null ],
     [ "DrawKeyboardShortcuts", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html#ab1eaeb1a776078ff176308405e88fae9", null ]
 ];

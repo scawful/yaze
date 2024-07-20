@@ -1,12 +1,15 @@
 var searchData=
 [
-  ['readfromrom_0',['ReadFromRom',['../classyaze_1_1cli_1_1ReadFromRom.html',1,'yaze::cli']]],
-  ['recentfilesmanager_1',['RecentFilesManager',['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html',1,'yaze::app::editor']]],
-  ['resourcelabelmanager_2',['ResourceLabelManager',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html',1,'yaze::app::core']]],
-  ['resourcetype_3',['ResourceType',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html',1,'yaze::app::core::ResourceLabelManager']]],
-  ['rom_4',['Rom',['../classyaze_1_1app_1_1Rom.html',1,'yaze::app']]],
-  ['rominfo_5',['RomInfo',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html',1,'yaze::app::emu::memory']]],
-  ['room_6',['Room',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html',1,'yaze::app::zelda3::dungeon']]],
-  ['roomentrance_7',['RoomEntrance',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html',1,'yaze::app::zelda3::dungeon']]],
-  ['roomobject_8',['RoomObject',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html',1,'yaze::app::zelda3::dungeon']]]
+  ['palettechange_0',['PaletteChange',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html',1,'yaze::app::editor::palette_internal']]],
+  ['paletteeditor_1',['PaletteEditor',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html',1,'yaze::app::editor']]],
+  ['paletteeditorhistory_2',['PaletteEditorHistory',['../classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html',1,'yaze::app::editor::palette_internal']]],
+  ['palettegroup_3',['PaletteGroup',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html',1,'yaze::app::gfx']]],
+  ['palettegroupmap_4',['PaletteGroupMap',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html',1,'yaze::app::gfx']]],
+  ['paletteset_5',['Paletteset',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html',1,'yaze::app::gfx']]],
+  ['pctosnes_6',['PcToSnes',['../classyaze_1_1cli_1_1PcToSnes.html',1,'yaze::cli']]],
+  ['ppu_7',['Ppu',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html',1,'yaze::app::emu::video']]],
+  ['ppuinterface_8',['PpuInterface',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html',1,'yaze::app::emu::video']]],
+  ['pputest_9',['PpuTest',['../classyaze__test_1_1emu__test_1_1PpuTest.html',1,'yaze_test::emu_test']]],
+  ['project_10',['Project',['../structyaze_1_1app_1_1Project.html',1,'yaze::app']]],
+  ['pseudovram_11',['PseudoVram',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1PseudoVram.html',1,'yaze::app::zelda3::dungeon']]]
 ];

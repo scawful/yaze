@@ -1,7 +1,29 @@
 var searchData=
 [
-  ['node_0',['Node',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html',1,'yaze::app::gui::zeml']]],
-  ['notifyvalue_1',['NotifyValue',['../classyaze_1_1app_1_1core_1_1NotifyValue.html',1,'yaze::app::core']]],
-  ['notifyvalue_3c_20uint32_5ft_20_3e_2',['NotifyValue&lt; uint32_t &gt;',['../classyaze_1_1app_1_1core_1_1NotifyValue.html',1,'yaze::app::core']]],
-  ['notifyvalue_3c_20uint8_5ft_20_3e_3',['NotifyValue&lt; uint8_t &gt;',['../classyaze_1_1app_1_1core_1_1NotifyValue.html',1,'yaze::app::core']]]
+  ['m7a_0',['M7A',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7A.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['m7b_1',['M7B',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7B.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['m7c_2',['M7C',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7C.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['m7d_3',['M7D',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7D.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['m7sel_4',['M7SEL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['m7x_5',['M7X',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7X.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['m7y_6',['M7Y',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7Y.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['mainsubscreendesignation_7',['MainSubScreenDesignation',['../structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html',1,'yaze::app::emu::video']]],
+  ['mapdata_8',['MapData',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html',1,'yaze::app::zelda3::overworld']]],
+  ['masklogicsettings_9',['MaskLogicSettings',['../structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html',1,'yaze::app::emu::video']]],
+  ['mastereditor_10',['MasterEditor',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html',1,'yaze::app::editor']]],
+  ['memory_11',['Memory',['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html',1,'yaze::app::emu::memory']]],
+  ['memoryeditorwithdiffchecker_12',['MemoryEditorWithDiffChecker',['../structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html',1,'yaze::app::editor']]],
+  ['memoryimpl_13',['MemoryImpl',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html',1,'yaze::app::emu::memory']]],
+  ['mnemonicmode_14',['MnemonicMode',['../structyaze_1_1app_1_1emu_1_1MnemonicMode.html',1,'yaze::app::emu']]],
+  ['mnemonicmodehash_15',['MnemonicModeHash',['../structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html',1,'yaze::app::emu']]],
+  ['mockaudioram_16',['MockAudioRam',['../classyaze__test_1_1emu__test_1_1MockAudioRam.html',1,'yaze_test::emu_test']]],
+  ['mockclock_17',['MockClock',['../classyaze_1_1app_1_1emu_1_1memory_1_1MockClock.html',1,'yaze::app::emu::memory']]],
+  ['mockmemory_18',['MockMemory',['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html',1,'yaze::app::emu::memory']]],
+  ['mockppu_19',['MockPpu',['../classyaze__test_1_1emu__test_1_1MockPpu.html',1,'yaze_test::emu_test']]],
+  ['modifier_20',['Modifier',['../classyaze_1_1cli_1_1Color_1_1Modifier.html',1,'yaze::cli::Color']]],
+  ['mosaic_21',['Mosaic',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['mpyh_22',['MPYH',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYH.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['mpyl_23',['MPYL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYL.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['mpym_24',['MPYM',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html',1,'yaze::app::emu::video::PpuRegisters']]],
+  ['musiceditor_25',['MusicEditor',['../classyaze_1_1app_1_1editor_1_1MusicEditor.html',1,'yaze::app::editor']]]
 ];

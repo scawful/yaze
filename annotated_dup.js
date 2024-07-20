@@ -37,6 +37,7 @@ var annotated_dup =
           [ "FlagsMenu", "structyaze_1_1app_1_1editor_1_1FlagsMenu.html", "structyaze_1_1app_1_1editor_1_1FlagsMenu" ],
           [ "GfxGroupEditor", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1app_1_1editor_1_1GfxGroupEditor" ],
           [ "GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1app_1_1editor_1_1GraphicsEditor" ],
+          [ "KeyboardShortcuts", "structyaze_1_1app_1_1editor_1_1KeyboardShortcuts.html", "structyaze_1_1app_1_1editor_1_1KeyboardShortcuts" ],
           [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
           [ "MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker" ],
           [ "MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", "classyaze_1_1app_1_1editor_1_1MusicEditor" ],
@@ -281,5 +282,6 @@ var annotated_dup =
       ] ]
     ] ],
     [ "AppDelegate", "interfaceAppDelegate.html", "interfaceAppDelegate" ],
-    [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ]
+    [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ],
+    [ "sdl_deleter", "structsdl__deleter.html", "structsdl__deleter" ]
 ];

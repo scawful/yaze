@@ -1,3 +1,27 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structyaze_1_1cli_1_1Commands.html" title="Command handler for the CLI." alt="" coords="5,5,144,31"/>
+<area shape="rect" id="Node000000" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="5,277,182,303"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1cli_1_1ApplyPatch.html" title=" " alt="" coords="240,5,379,31"/>
+<area shape="poly" id="edge69_Node000000_Node000001" title=" " alt="" coords="100,262,116,214,142,154,179,93,202,65,228,40,246,29,248,34,231,44,206,68,183,96,147,157,121,216,105,264"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1Backup.html" title="Backup a Rom file." alt="" coords="251,55,368,80"/>
+<area shape="poly" id="edge70_Node000000_Node000002" title=" " alt="" coords="104,262,122,223,150,177,185,130,228,89,249,78,252,82,231,94,189,133,154,180,127,226,108,264"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1cli_1_1Compress.html" title=" " alt="" coords="244,104,375,130"/>
+<area shape="poly" id="edge71_Node000000_Node000003" title=" " alt="" coords="110,262,158,200,191,167,228,139,250,128,252,133,231,143,195,171,162,204,114,266"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1cli_1_1CreatePatch.html" title=" " alt="" coords="237,153,382,179"/>
+<area shape="poly" id="edge72_Node000000_Node000004" title=" " alt="" coords="119,265,168,226,228,188,254,177,256,182,231,193,171,230,122,269"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1cli_1_1Decompress.html" title=" " alt="" coords="237,203,382,228"/>
+<area shape="poly" id="edge73_Node000000_Node000005" title=" " alt="" coords="142,269,229,237,261,226,263,232,231,242,144,274"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1cli_1_1Emulator.html" title="Start the emulator on a SNES Rom file." alt="" coords="248,252,371,278"/>
+<area shape="poly" id="edge74_Node000000_Node000006" title=" " alt="" coords="197,275,247,269,248,275,197,281"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1cli_1_1Expand.html" title="Expand a Rom file." alt="" coords="252,301,367,327"/>
+<area shape="poly" id="edge75_Node000000_Node000007" title=" " alt="" coords="197,299,252,305,251,310,197,304"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1cli_1_1Open.html" title="Open a Rom file and display information about it." alt="" coords="258,351,361,376"/>
+<area shape="poly" id="edge76_Node000000_Node000008" title=" " alt="" coords="145,306,231,337,264,348,262,353,229,342,143,311"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1cli_1_1PcToSnes.html" title="Convert a PC address to a SNES address." alt="" coords="243,400,376,426"/>
+<area shape="poly" id="edge77_Node000000_Node000009" title=" " alt="" coords="123,311,171,350,231,386,257,397,255,402,228,391,168,354,119,315"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1cli_1_1ReadFromRom.html" title="Read from a Rom file." alt="" coords="230,449,389,475"/>
+<area shape="poly" id="edge78_Node000000_Node000010" title=" " alt="" coords="114,314,162,376,195,408,231,436,252,446,250,451,228,440,191,412,158,379,110,318"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1cli_1_1SnesToPc.html" title="Convert a SNES address to a PC address." alt="" coords="243,499,376,524"/>
+<area shape="poly" id="edge79_Node000000_Node000011" title=" " alt="" coords="109,316,127,354,154,400,189,446,231,485,250,496,247,500,228,490,185,450,150,403,122,357,104,318"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1cli_1_1Tile16Transfer.html" title="Transfer tile 16 data from one Rom to another." alt="" coords="232,548,387,574"/>
+<area shape="poly" id="edge80_Node000000_Node000012" title=" " alt="" coords="105,317,121,364,147,423,183,483,206,511,231,535,248,545,246,550,228,539,202,514,179,486,142,425,116,366,100,318"/>
 </map>

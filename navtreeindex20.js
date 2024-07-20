@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad6ec5bc90ba66b4a671dc9924313bc95":[8,0,1,0,5,3,8,59],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad6ec5bc90ba66b4a671dc9924313bc95":[9,0,0,0,5,2,5,59],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad93fffe42ffe8f9437e7b11ff833deaa":[8,0,1,0,5,3,8,24],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad93fffe42ffe8f9437e7b11ff833deaa":[9,0,0,0,5,2,5,24],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#adbb94f20c7d3eb8376616bb86b5c7f79":[8,0,1,0,5,3,8,15],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "classyaze__test_1_1emu__test_1_1MockAudioRam.html#a46f0e8de6ef6f40817562c8321f35bbe":[8,0,2,0,1,3],
 "classyaze__test_1_1emu__test_1_1MockAudioRam.html#a46f0e8de6ef6f40817562c8321f35bbe":[9,0,1,0,1,3],
 "classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf":[8,0,2,0,1,4],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf":[9,0,1,0,1,4],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#ac6687a7616372ba3f27896d979969dbe":[8,0,2,0,1,1],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#ac6687a7616372ba3f27896d979969dbe":[9,0,1,0,1,1]
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf":[9,0,1,0,1,4]
 };

@@ -1,5 +1,9 @@
 var NAVTREEINDEX33 =
 {
+"icons_8h.html#aeac82626c5c64f47009990f46c030674":[10,0,1,0,4,5,2150],
+"icons_8h.html#aeacd24963149e19e1ff95d155052093f":[10,0,1,0,4,5,253],
+"icons_8h.html#aead9b04fc9a43f47115b80117c2896ca":[10,0,1,0,4,5,643],
+"icons_8h.html#aeaf262ee12fe4500d8c0ee5461854397":[10,0,1,0,4,5,1791],
 "icons_8h.html#aeaf65e1a52a0529e3f7c2bd7aa6ef61c":[10,0,1,0,4,5,752],
 "icons_8h.html#aeb001ec5f5b602e6b0423eb193246943":[10,0,1,0,4,5,1034],
 "icons_8h.html#aeb2b9b3ca3620df9033a9e7b93ccaf36":[10,0,1,0,4,5,2025],
@@ -222,11 +226,13 @@ var NAVTREEINDEX33 =
 "inventory_8h.html#a5df76f56f213e4e18759fa79b74c5a7a":[10,0,1,0,5,3,2,2],
 "inventory_8h.html#a7000fd703a3375e0589ae74637569ac1":[10,0,1,0,5,3,2,1],
 "inventory_8h_source.html":[10,0,1,0,5,3,2],
+"keyboard__shortcuts_8h.html":[10,0,1,0,1,4,4],
+"keyboard__shortcuts_8h_source.html":[10,0,1,0,1,4,4],
 "labeling_8cc.html":[10,0,1,0,0,6],
 "labeling_8h.html":[10,0,1,0,0,7],
 "labeling_8h_source.html":[10,0,1,0,0,7],
-"log_8h.html":[10,0,1,0,2,2,2],
-"log_8h_source.html":[10,0,1,0,2,2,2],
+"log_8h.html":[10,0,1,0,2,2,3],
+"log_8h_source.html":[10,0,1,0,2,2,3],
 "master__editor_8cc.html":[10,0,1,0,1,7],
 "master__editor_8cc.html#a2ba6e51388d9b35fd4f27705a42659b8":[10,0,1,0,1,7,1],
 "master__editor_8cc.html#a2fc24babfcbf8040128e6cd2fd5ff904":[10,0,1,0,1,7,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX33 =
 "md_README.html#autotoc_md35":[4,4],
 "md_docs_2build-instructions.html":[0],
 "md_docs_2build-instructions.html#autotoc_md1":[0,0],
-"md_docs_2build-instructions.html#autotoc_md2":[0,1],
-"md_docs_2compression.html":[1],
-"md_docs_2compression.html#autotoc_md10":[1,1],
-"md_docs_2compression.html#autotoc_md11":[1,1,0],
-"md_docs_2compression.html#autotoc_md12":[1,1,1],
-"md_docs_2compression.html#autotoc_md13":[1,1,2],
-"md_docs_2compression.html#autotoc_md14":[1,2]
+"md_docs_2build-instructions.html#autotoc_md2":[0,1]
 };

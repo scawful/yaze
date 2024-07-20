@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"dir_13e138d54eb8818da29c3992edef070a.html":[10,0,2],
+"dir_1f6e893081ea55766fadff5a66800644.html":[10,0,1,0,2],
 "dir_3692ec13241b192189de912e0a54f355.html":[10,0,1,0,5],
 "dir_3dc0c4c6d28004fd0fdf97b9a3ae21fe.html":[10,0,1,0,5,0],
 "dir_47c4e98413e453c7bbaeb742d0253c57.html":[10,0,2,1],
@@ -91,6 +93,8 @@ var NAVTREEINDEX24 =
 "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb":[10,0,1,0,1,4,0,1,5],
 "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52ac935a934100d15241aefe3f7081e7767":[10,0,1,0,1,4,0,1,8],
 "editor_8h_source.html":[10,0,1,0,1,4,0],
+"emu_8cc.html":[10,0,1,0,2,2,2],
+"emu_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627":[10,0,1,0,2,2,2,1],
 "emulator_8cc.html":[10,0,1,0,2,5],
 "emulator_8cc.html#a8661d56df6530eb9b492271d63b262ac":[10,0,1,0,2,5,0],
 "emulator_8h.html":[10,0,1,0,2,6],
@@ -245,9 +249,5 @@ var NAVTREEINDEX24 =
 "graphics__editor_8h.html":[10,0,1,0,1,1,3],
 "graphics__editor_8h.html#a3719536e1885a648a2dd2338df5c57ac":[10,0,1,0,1,1,3,1],
 "graphics__editor_8h.html#a734a588c68d753b67fddf5b7bcac517b":[10,0,1,0,1,1,3,2],
-"graphics__editor_8h_source.html":[10,0,1,0,1,1,3],
-"hierarchy.html":[9,2],
-"icons_8h.html":[10,0,1,0,4,5],
-"icons_8h.html#a00461479997fc24161e5aef9c2c9cf06":[10,0,1,0,4,5,1551],
-"icons_8h.html#a005556c3bf9f26389a7ba1c73f04434a":[10,0,1,0,4,5,1104]
+"graphics__editor_8h_source.html":[10,0,1,0,1,1,3]
 };
