@@ -321,7 +321,10 @@ void MasterEditor::ManageKeyboardShortcuts() {
     status_ = current_editor_->Redo();
   }
 
-  // TODO: If CMD + F is pressed, open a search dialog
+  if (ImGui::IsKeyDown(ImGuiKey_F) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    status_ = current_editor_->Find();
+  }
 }
 
 void MasterEditor::DrawFileDialog() {
