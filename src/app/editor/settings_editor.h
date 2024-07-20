@@ -22,6 +22,8 @@ class SettingsEditor : public Editor {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
 
  private:
+  void DrawGeneralSettings();
+
   absl::Status DrawKeyboardShortcuts();
 };
 
