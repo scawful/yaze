@@ -32,7 +32,7 @@ constexpr absl::string_view kEndOfProjectFile = "EndOfProjectFile";
  * backups.
  */
 
-struct Project {
+struct Project : public core::ExperimentFlags {
   /**
    * @brief Creates a new project.
    *
@@ -114,6 +114,12 @@ struct Project {
           "code folder, and set your labels file. See HELP for more details.");
     }
 
+    return absl::OkStatus();
+  }
+
+  absl::Status SerializeExperimentFlags() {
+    auto flags = mutable_flags();
+    // TODO: Serialize flags
     return absl::OkStatus();
   }
 
