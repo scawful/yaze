@@ -594,8 +594,6 @@ void MasterEditor::DrawEditMenu() {
     MENU_ITEM2("Paste", "Ctrl+V") { status_ = current_editor_->Paste(); }
     Separator();
     MENU_ITEM2("Find", "Ctrl+F") {}
-    Separator();
-    MENU_ITEM("ROM Information") rom_info_ = true;
     ImGui::EndMenu();
   }
 }
@@ -642,6 +640,8 @@ void MasterEditor::DrawViewMenu() {
     MenuItem("Memory Editor", nullptr, &show_memory_editor);
     MenuItem("Assembly Editor", nullptr, &show_asm_editor);
     MenuItem("Palette Editor", nullptr, &show_palette_editor);
+    Separator();
+    MENU_ITEM("ROM Information") rom_info_ = true;
     Separator();
     MenuItem("ImGui Demo", nullptr, &show_imgui_demo);
     MenuItem("ImGui Metrics", nullptr, &show_imgui_metrics);
