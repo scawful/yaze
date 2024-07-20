@@ -503,7 +503,7 @@ struct GfxSheetAssetBrowser {
                     ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
                 draw_list->AddText(
                     ImVec2(box_min.x, box_max.y - ImGui::GetFontSize()),
-                    label_col, "ID");
+                    label_col, absl::StrFormat("%X", item_data->ID).c_str());
               }
             }
 

@@ -137,6 +137,7 @@ class SnesPalette {
   }
 
   auto size() const { return colors.size(); }
+  auto empty() const { return colors.empty(); }
 
   SnesColor& operator[](int i) {
     if (i > size_) {

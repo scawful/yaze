@@ -47,9 +47,9 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   //     value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
   // } else {
   const float button_size = GetFrameHeight();
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text("%s", label);
-  ImGui::SameLine();
+  AlignTextToFramePadding();
+  Text("%s", label);
+  SameLine();
   BeginGroup();  // The only purpose of the group here is to allow the caller
                  // to query item data e.g. IsItemActive()
   PushID(label);
@@ -57,12 +57,12 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
       1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
 
   // Place the label on the left of the input field
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                      ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                      ImVec2{style.FramePadding.x, style.FramePadding.y});
+  PushStyleVar(ImGuiStyleVar_ItemSpacing,
+               ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
+  PushStyleVar(ImGuiStyleVar_FramePadding,
+               ImVec2{style.FramePadding.x, style.FramePadding.y});
 
-  ImGui::SetNextItemWidth(input_width);
+  SetNextItemWidth(input_width);
   if (InputText("", buf, IM_ARRAYSIZE(buf),
                 flags))  // PushId(label) + "" gives us the expected ID
                          // from outside point of view
@@ -171,6 +171,19 @@ bool InputHexByte(const char* label, uint8_t* data, float input_width,
   return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
                                 &kStepFastHex, "%02X", input_width,
                                 ImGuiInputTextFlags_CharsHexadecimal, no_step);
+}
+
+bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
+                  float input_width, bool no_step) {
+  if (ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
+                             &kStepFastHex, "%02X", input_width,
+                             ImGuiInputTextFlags_CharsHexadecimal, no_step)) {
+    if (*data > max_value) {
+      *data = max_value;
+    }
+    return true;
+  }
+  return false;
 }
 
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
