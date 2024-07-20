@@ -32,7 +32,7 @@ add_executable(
   ../src/app/emu/audio/dsp.cc
   ../src/app/emu/audio/spc700.cc
   ../src/app/emu/memory/memory.cc
-  ../src/app/editor/context/gfx_context.cc
+  ../src/app/editor/utils/gfx_context.cc
   ../src/app/gfx/bitmap.cc
   ../src/app/gfx/snes_tile.cc
   ../src/app/gfx/snes_color.cc
