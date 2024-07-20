@@ -1,7 +1,7 @@
 <map id="yaze::app::editor::DungeonEditor::DrawToolset" name="yaze::app::editor::DungeonEditor::DrawToolset">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,190,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a30618f13aab0352d115037b9079b7abe" title=" " alt="" coords="238,5,380,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab6d3f19aa3eecaa8ea2d3e2ce278f614" title=" " alt="" coords="238,5,380,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,42,222,37,223,42,190,47"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4f14f9916e234f23265f3e4917f43dd2" title=" " alt="" coords="238,71,380,111"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ade5c72170feefa679436c185b92415dc" title=" " alt="" coords="238,71,380,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,70,223,75,222,81,189,76"/>
 </map>
