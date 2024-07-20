@@ -291,6 +291,33 @@ void MasterEditor::ManageKeyboardShortcuts() {
       (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
     SaveRom();
   }
+
+  if (ImGui::IsKeyDown(ImGuiKey_X) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    status_ = current_editor_->Cut();
+  }
+
+  if (ImGui::IsKeyDown(ImGuiKey_C) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    status_ = current_editor_->Copy();
+  }
+
+  if (ImGui::IsKeyDown(ImGuiKey_V) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    status_ = current_editor_->Paste();
+  }
+
+  if (ImGui::IsKeyDown(ImGuiKey_Z) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    status_ = current_editor_->Undo();
+  }
+
+  if (ImGui::IsKeyDown(ImGuiKey_Y) &&
+      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+    status_ = current_editor_->Redo();
+  }
+
+  // TODO: If CMD + F is pressed, open a search dialog
 }
 
 void MasterEditor::DrawFileDialog() {
