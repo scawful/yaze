@@ -23,6 +23,7 @@ namespace {
 
 void InitializeKeymap() {
   ImGuiIO &io = ImGui::GetIO();
+  io.KeyMap[ImGuiKey_LeftSuper] = SDL_GetScancodeFromKey(SDLK_LGUI);
   io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
   io.KeyMap[ImGuiKey_LeftShift] = SDL_GetScancodeFromKey(SDLK_LSHIFT);
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
@@ -48,6 +49,32 @@ void InitializeKeymap() {
   io.KeyMap[ImGuiKey_8] = SDL_GetScancodeFromKey(SDLK_8);
   io.KeyMap[ImGuiKey_9] = SDL_GetScancodeFromKey(SDLK_9);
   io.KeyMap[ImGuiKey_0] = SDL_GetScancodeFromKey(SDLK_0);
+  io.KeyMap[ImGuiKey_A] = SDL_GetScancodeFromKey(SDLK_a);
+  io.KeyMap[ImGuiKey_B] = SDL_GetScancodeFromKey(SDLK_b);
+  io.KeyMap[ImGuiKey_C] = SDL_GetScancodeFromKey(SDLK_c);
+  io.KeyMap[ImGuiKey_D] = SDL_GetScancodeFromKey(SDLK_d);
+  io.KeyMap[ImGuiKey_E] = SDL_GetScancodeFromKey(SDLK_e);
+  io.KeyMap[ImGuiKey_F] = SDL_GetScancodeFromKey(SDLK_f);
+  io.KeyMap[ImGuiKey_G] = SDL_GetScancodeFromKey(SDLK_g);
+  io.KeyMap[ImGuiKey_H] = SDL_GetScancodeFromKey(SDLK_h);
+  io.KeyMap[ImGuiKey_I] = SDL_GetScancodeFromKey(SDLK_i);
+  io.KeyMap[ImGuiKey_J] = SDL_GetScancodeFromKey(SDLK_j);
+  io.KeyMap[ImGuiKey_K] = SDL_GetScancodeFromKey(SDLK_k);
+  io.KeyMap[ImGuiKey_L] = SDL_GetScancodeFromKey(SDLK_l);
+  io.KeyMap[ImGuiKey_M] = SDL_GetScancodeFromKey(SDLK_m);
+  io.KeyMap[ImGuiKey_N] = SDL_GetScancodeFromKey(SDLK_n);
+  io.KeyMap[ImGuiKey_O] = SDL_GetScancodeFromKey(SDLK_o);
+  io.KeyMap[ImGuiKey_P] = SDL_GetScancodeFromKey(SDLK_p);
+  io.KeyMap[ImGuiKey_Q] = SDL_GetScancodeFromKey(SDLK_q);
+  io.KeyMap[ImGuiKey_R] = SDL_GetScancodeFromKey(SDLK_r);
+  io.KeyMap[ImGuiKey_S] = SDL_GetScancodeFromKey(SDLK_s);
+  io.KeyMap[ImGuiKey_T] = SDL_GetScancodeFromKey(SDLK_t);
+  io.KeyMap[ImGuiKey_U] = SDL_GetScancodeFromKey(SDLK_u);
+  io.KeyMap[ImGuiKey_V] = SDL_GetScancodeFromKey(SDLK_v);
+  io.KeyMap[ImGuiKey_W] = SDL_GetScancodeFromKey(SDLK_w);
+  io.KeyMap[ImGuiKey_X] = SDL_GetScancodeFromKey(SDLK_x);
+  io.KeyMap[ImGuiKey_Y] = SDL_GetScancodeFromKey(SDLK_y);
+  io.KeyMap[ImGuiKey_Z] = SDL_GetScancodeFromKey(SDLK_z);
 }
 
 void ImGui_ImplSDL2_SetClipboardText(void *user_data, const char *text) {
@@ -68,6 +95,11 @@ void InitializeClipboard() {
 void HandleKeyDown(SDL_Event &event, editor::MasterEditor &editor) {
   ImGuiIO &io = ImGui::GetIO();
   io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
+  io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+  io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+  io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+  io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+
   switch (event.key.keysym.sym) {
     case SDLK_BACKSPACE:
     case SDLK_LSHIFT:
