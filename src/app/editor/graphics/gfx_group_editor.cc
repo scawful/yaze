@@ -24,70 +24,85 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using ImGui::BeginChild;
+using ImGui::BeginGroup;
+using ImGui::BeginTabBar;
+using ImGui::BeginTabItem;
+using ImGui::BeginTable;
+using ImGui::ColorButton;
+using ImGui::EndChild;
+using ImGui::EndGroup;
+using ImGui::EndTabBar;
+using ImGui::EndTabItem;
+using ImGui::EndTable;
+using ImGui::GetContentRegionAvail;
+using ImGui::GetStyle;
+using ImGui::IsItemClicked;
+using ImGui::PopID;
+using ImGui::PushID;
 using ImGui::SameLine;
+using ImGui::Selectable;
 using ImGui::Separator;
+using ImGui::SetNextItemWidth;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
+using ImGui::Text;
 
 using gfx::kPaletteGroupNames;
 using gfx::PaletteCategory;
 
 absl::Status GfxGroupEditor::Update() {
-  if (ImGui::BeginTabBar("GfxGroupEditor")) {
-    if (ImGui::BeginTabItem("Main")) {
-      gui::InputHexByte("Selected Blockset", &selected_blockset_);
-      if (selected_blockset_ >= 0x24) {
-        selected_blockset_ = 0x24;
-      }
+  if (BeginTabBar("GfxGroupEditor")) {
+    if (BeginTabItem("Main")) {
+      gui::InputHexByte("Selected Blockset", &selected_blockset_,
+                        (uint8_t)0x24);
       rom()->resource_label()->SelectableLabelWithNameEdit(
           false, "blockset", "0x" + std::to_string(selected_blockset_),
           "Blockset " + std::to_string(selected_blockset_));
       DrawBlocksetViewer();
-      ImGui::EndTabItem();
+      EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("Rooms")) {
-      gui::InputHexByte("Selected Blockset", &selected_roomset_);
-      if (selected_roomset_ >= 81) {
-        selected_roomset_ = 81;
-      }
+    if (BeginTabItem("Rooms")) {
+      gui::InputHexByte("Selected Blockset", &selected_roomset_, (uint8_t)81);
+      rom()->resource_label()->SelectableLabelWithNameEdit(
+          false, "roomset", "0x" + std::to_string(selected_roomset_),
+          "Roomset " + std::to_string(selected_roomset_));
       DrawRoomsetViewer();
-      ImGui::EndTabItem();
+      EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("Sprites")) {
-      gui::InputHexByte("Selected Spriteset", &selected_spriteset_);
-      if (selected_spriteset_ >= 143) {
-        selected_spriteset_ = 143;
-      }
+    if (BeginTabItem("Sprites")) {
+      gui::InputHexByte("Selected Spriteset", &selected_spriteset_,
+                        (uint8_t)143);
       rom()->resource_label()->SelectableLabelWithNameEdit(
           false, "spriteset", "0x" + std::to_string(selected_spriteset_),
           "Spriteset " + std::to_string(selected_spriteset_));
-      ImGui::Text("Values");
+      Text("Values");
       DrawSpritesetViewer();
-      ImGui::EndTabItem();
+      EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("Palettes")) {
+    if (BeginTabItem("Palettes")) {
       DrawPaletteViewer();
-      ImGui::EndTabItem();
+      EndTabItem();
     }
 
-    ImGui::EndTabBar();
+    EndTabBar();
   }
 
   return absl::OkStatus();
 }
 
 void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
-  if (ImGui::BeginTable("##BlocksetTable", sheet_only ? 1 : 2,
-                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
-                        ImVec2(0, 0))) {
+  if (BeginTable("##BlocksetTable", sheet_only ? 1 : 2,
+                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
+                 ImVec2(0, 0))) {
     if (!sheet_only) {
       TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                       ImGui::GetContentRegionAvail().x);
+                       GetContentRegionAvail().x);
     }
 
     TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
@@ -96,90 +111,90 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
     if (!sheet_only) {
       TableNextColumn();
       {
-        ImGui::BeginGroup();
+        BeginGroup();
         for (int i = 0; i < 8; i++) {
-          ImGui::SetNextItemWidth(100.f);
+          SetNextItemWidth(100.f);
           gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
                             &rom()->main_blockset_ids[selected_blockset_][i]);
         }
-        ImGui::EndGroup();
+        EndGroup();
       }
     }
     TableNextColumn();
     {
-      ImGui::BeginGroup();
+      BeginGroup();
       for (int i = 0; i < 8; i++) {
         int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
         auto sheet = rom()->bitmap_manager()[sheet_id];
         gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 22);
       }
-      ImGui::EndGroup();
+      EndGroup();
     }
-    ImGui::EndTable();
+    EndTable();
   }
 }
 
 void GfxGroupEditor::DrawRoomsetViewer() {
-  ImGui::Text("Values - Overwrites 4 of main blockset");
-  if (ImGui::BeginTable("##Roomstable", 3,
-                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
-                        ImVec2(0, 0))) {
+  Text("Values - Overwrites 4 of main blockset");
+  if (BeginTable("##Roomstable", 3,
+                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
+                 ImVec2(0, 0))) {
     TableSetupColumn("List", ImGuiTableColumnFlags_WidthFixed, 100);
     TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                     ImGui::GetContentRegionAvail().x);
+                     GetContentRegionAvail().x);
     TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
     TableHeadersRow();
     TableNextRow();
 
     TableNextColumn();
     {
-      ImGui::BeginChild("##RoomsetList");
+      BeginChild("##RoomsetList");
       for (int i = 0; i < 0x51; i++) {
-        ImGui::BeginGroup();
+        BeginGroup();
         std::string roomset_label = absl::StrFormat("0x%02X", i);
         rom()->resource_label()->SelectableLabelWithNameEdit(
             false, "roomset", roomset_label, "Roomset " + roomset_label);
-        if (ImGui::IsItemClicked()) {
+        if (IsItemClicked()) {
           selected_roomset_ = i;
         }
-        ImGui::EndGroup();
+        EndGroup();
       }
-      ImGui::EndChild();
+      EndChild();
     }
 
     TableNextColumn();
     {
-      ImGui::BeginGroup();
+      BeginGroup();
       for (int i = 0; i < 4; i++) {
-        ImGui::SetNextItemWidth(100.f);
+        SetNextItemWidth(100.f);
         gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
                           &rom()->room_blockset_ids[selected_roomset_][i]);
       }
-      ImGui::EndGroup();
+      EndGroup();
     }
     TableNextColumn();
     {
-      ImGui::BeginGroup();
+      BeginGroup();
       for (int i = 0; i < 4; i++) {
         int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
         auto sheet = rom()->bitmap_manager()[sheet_id];
         gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 23);
       }
-      ImGui::EndGroup();
+      EndGroup();
     }
-    ImGui::EndTable();
+    EndTable();
   }
 }
 
 void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
-  if (ImGui::BeginTable("##SpritesTable", sheet_only ? 1 : 2,
-                        ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
-                        ImVec2(0, 0))) {
+  if (BeginTable("##SpritesTable", sheet_only ? 1 : 2,
+                 ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
+                 ImVec2(0, 0))) {
     if (!sheet_only) {
       TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                       ImGui::GetContentRegionAvail().x);
+                       GetContentRegionAvail().x);
     }
     TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
     TableHeadersRow();
@@ -187,35 +202,35 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
     if (!sheet_only) {
       TableNextColumn();
       {
-        ImGui::BeginGroup();
+        BeginGroup();
         for (int i = 0; i < 4; i++) {
-          ImGui::SetNextItemWidth(100.f);
+          SetNextItemWidth(100.f);
           gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
                             &rom()->spriteset_ids[selected_spriteset_][i]);
         }
-        ImGui::EndGroup();
+        EndGroup();
       }
     }
     TableNextColumn();
     {
-      ImGui::BeginGroup();
+      BeginGroup();
       for (int i = 0; i < 4; i++) {
         int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
         auto sheet = rom()->bitmap_manager()[115 + sheet_id];
         gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256, 0x10 * 0x04,
                                   0x20, true, false, 24);
       }
-      ImGui::EndGroup();
+      EndGroup();
     }
-    ImGui::EndTable();
+    EndTable();
   }
 }
 
 namespace {
 void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
   for (int n = 0; n < palette.size(); n++) {
-    ImGui::PushID(n);
-    if ((n % 8) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+    PushID(n);
+    if ((n % 8) != 0) SameLine(0.0f, GetStyle().ItemSpacing.y);
 
     // Small icon of the color in the palette
     if (gui::SnesColorButton(absl::StrCat("Palette", n), palette[n],
@@ -224,7 +239,7 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette &palette) {
                                  ImGuiColorEditFlags_NoTooltip)) {
     }
 
-    ImGui::PopID();
+    PopID();
   }
 }
 }  // namespace
