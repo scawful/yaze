@@ -107,6 +107,8 @@ absl::Status PaletteEditor::Update() {
     TableHeadersRow();
     TableNextRow();
     TableNextColumn();
+    DrawModifiedColors();
+
     DrawCustomPalette();
     Separator();
     gui::SnesColorEdit4("Current Color Picker", &current_color_,
@@ -300,10 +302,33 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category, bool right_side) {
   return absl::OkStatus();
 }
 
+void PaletteEditor::DrawModifiedColors() {
+  if (BeginChild("ModifiedColors", ImVec2(0, 100), true,
+                 ImGuiWindowFlags_HorizontalScrollbar)) {
+    for (int i = 0; i < history_.size(); i++) {
+      PushID(i);
+      gui::SnesColorEdit4("Original ", &history_.GetOriginalColor(i),
+                          ImGuiColorEditFlags_NoInputs);
+      SameLine(0.0f, GetStyle().ItemSpacing.y);
+      gui::SnesColorEdit4("Modified ", &history_.GetModifiedColor(i),
+                          ImGuiColorEditFlags_NoInputs);
+      PopID();
+    }
+  }
+  EndChild();
+}
+
 absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
                                              int j, int n) {
   auto col = gfx::ToFloatArray(palette[n]);
-  gui::SnesColorEdit4("Edit Color", &palette[n], kColorPopupFlags);
+  auto original_color = palette[n];
+  if (gui::SnesColorEdit4("Edit Color", &palette[n], kColorPopupFlags)) {
+    history_.RecordChange(/*group_name=*/std::string(kPaletteGroupNames[i]),
+                          /*palette_index=*/j, /*color_index=*/n,
+                          original_color, palette[n]);
+    palette[n].set_modified(true);
+  }
+
   if (Button("Copy as..", ImVec2(-1, 0))) OpenPopup("Copy");
   if (BeginPopup("Copy")) {
     int cr = F32_TO_INT8_SAT(col[0]);

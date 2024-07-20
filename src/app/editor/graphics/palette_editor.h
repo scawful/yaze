@@ -46,9 +46,9 @@ class PaletteEditorHistory {
   }
 
   // Restore the original color
-  gfx::SnesColor GetOriginalColor(const std::string& groupName,
-                                  size_t paletteIndex,
-                                  size_t colorIndex) const {
+  gfx::SnesColor RestoreOriginalColor(const std::string& groupName,
+                                      size_t paletteIndex,
+                                      size_t colorIndex) const {
     for (const auto& change : recentChanges) {
       if (change.group_name == groupName &&
           change.palette_index == paletteIndex &&
@@ -59,6 +59,15 @@ class PaletteEditorHistory {
     // Handle error or return default (this is just an example,
     // handle as appropriate for your application)
     return gfx::SnesColor();
+  }
+
+  auto size() const { return recentChanges.size(); }
+
+  gfx::SnesColor& GetModifiedColor(size_t index) {
+    return recentChanges[index].new_color;
+  }
+  gfx::SnesColor& GetOriginalColor(size_t index) {
+    return recentChanges[index].original_color;
   }
 
  private:
@@ -95,6 +104,8 @@ class PaletteEditor : public SharedRom, public Editor {
   absl::Status DrawPaletteGroup(int category, bool right_side = false);
 
   void DrawCustomPalette();
+
+  void DrawModifiedColors();
 
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
