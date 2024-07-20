@@ -292,6 +292,8 @@ class BitmapManager {
   }
   auto mutable_bitmap(int id) { return &bitmap_cache_[id]; }
   void clear_cache() { bitmap_cache_.clear(); }
+  auto size() const { return bitmap_cache_.size(); }
+  auto at(int id) const { return bitmap_cache_.at(id); }
 
   using value_type = std::pair<const int, gfx::Bitmap>;
   using iterator = std::unordered_map<int, gfx::Bitmap>::iterator;
