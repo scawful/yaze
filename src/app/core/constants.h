@@ -136,7 +136,7 @@ namespace app {
 namespace core {
 
 constexpr uint32_t kRedPen = 0xFF0000FF;
-constexpr float kYazeVersion = 0.10;
+constexpr float kYazeVersion = 0.2;
 
 // ============================================================================
 // Magic numbers
