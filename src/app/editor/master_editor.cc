@@ -22,6 +22,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/utils/flags.h"
 #include "app/editor/utils/recent_files.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
@@ -539,51 +540,8 @@ void MasterEditor::DrawFileMenu() {
       MenuItem("Backup ROM", "", &backup_rom_);
       MenuItem("Save New Auto", "", &save_new_auto_);
       Separator();
-      if (BeginMenu("Experiment Flags")) {
-        if (BeginMenu("Overworld Flags")) {
-          Checkbox("Enable Overworld Sprites",
-                   &mutable_flags()->overworld.kDrawOverworldSprites);
-          Separator();
-          Checkbox("Save Overworld Maps",
-                   &mutable_flags()->overworld.kSaveOverworldMaps);
-          Checkbox("Save Overworld Entrances",
-                   &mutable_flags()->overworld.kSaveOverworldEntrances);
-          Checkbox("Save Overworld Exits",
-                   &mutable_flags()->overworld.kSaveOverworldExits);
-          Checkbox("Save Overworld Items",
-                   &mutable_flags()->overworld.kSaveOverworldItems);
-          Checkbox("Save Overworld Properties",
-                   &mutable_flags()->overworld.kSaveOverworldProperties);
-          ImGui::EndMenu();
-        }
-
-        if (BeginMenu("Dungeon Flags")) {
-          Checkbox("Draw Dungeon Room Graphics",
-                   &mutable_flags()->kDrawDungeonRoomGraphics);
-          Separator();
-          Checkbox("Save Dungeon Maps", &mutable_flags()->kSaveDungeonMaps);
-          ImGui::EndMenu();
-        }
-
-        if (BeginMenu("Emulator Flags")) {
-          Checkbox("Load Audio Device", &mutable_flags()->kLoadAudioDevice);
-          ImGui::EndMenu();
-        }
-
-        Checkbox("Use built-in file dialog",
-                 &mutable_flags()->kNewFileDialogWrapper);
-        Checkbox("Enable Console Logging", &mutable_flags()->kLogToConsole);
-        Checkbox("Enable Texture Streaming",
-                 &mutable_flags()->kLoadTexturesAsStreaming);
-        Checkbox("Use Bitmap Manager", &mutable_flags()->kUseBitmapManager);
-        Checkbox("Log Instructions to Debugger",
-                 &mutable_flags()->kLogInstructions);
-        Checkbox("Save All Palettes", &mutable_flags()->kSaveAllPalettes);
-        Checkbox("Save Gfx Groups", &mutable_flags()->kSaveGfxGroups);
-        Checkbox("Use New ImGui Input", &mutable_flags()->kUseNewImGuiInput);
-        ImGui::EndMenu();
-      }
-
+      static FlagsMenu flags_menu;
+      flags_menu.Draw();
       ImGui::EndMenu();
     }
 

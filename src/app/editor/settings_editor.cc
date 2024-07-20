@@ -1,4 +1,6 @@
 #include <editor/settings_editor.h>
+#include <editor/utils/flags.h>
+#include <imgui/imgui.h>
 
 #include "absl/status/status.h"
 
@@ -6,20 +8,20 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::EndTabBar;
 using ImGui::EndTabItem;
-using ImGui::TabBar;
 using ImGui::Text;
 
 absl::Status SettingsEditor::Update() {
-  if (TabBar("Settings", ImGuiTabBarFlags_None)) {
+  if (BeginTabBar("Settings", ImGuiTabBarFlags_None)) {
     if (BeginTabItem("General")) {
-      Text("General settings");
+      static FlagsMenu flags;
+      flags.Draw();
       EndTabItem();
     }
     if (BeginTabItem("Keyboard Shortcuts")) {
-      
       EndTabItem();
     }
     EndTabBar();
@@ -31,7 +33,6 @@ absl::Status SettingsEditor::Update() {
 absl::Status SettingsEditor::DrawKeyboardShortcuts() {
   return absl::OkStatus();
 }
-
 
 }  // namespace editor
 }  // namespace app
