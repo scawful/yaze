@@ -76,8 +76,6 @@ class DungeonEditor : public Editor,
   void DrawTileSelector();
   void DrawObjectRenderer();
 
-  void LoadRoomEntrances();
-
   void CalculateUsageStats();
   void DrawUsageStats();
   void DrawUsageGrid();

@@ -18,15 +18,26 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-constexpr ImGuiTableFlags kDungeonObjectTableFlags =
-    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
-    ImGuiTableFlags_BordersV;
-
+using ImGui::BeginChild;
+using ImGui::BeginTabBar;
+using ImGui::BeginTabItem;
+using ImGui::BeginTable;
+using ImGui::Button;
+using ImGui::EndChild;
+using ImGui::EndTabBar;
+using ImGui::EndTabItem;
+using ImGui::RadioButton;
+using ImGui::SameLine;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
+using ImGui::Text;
+
+constexpr ImGuiTableFlags kDungeonObjectTableFlags =
+    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+    ImGuiTableFlags_BordersV;
 
 absl::Status DungeonEditor::Update() {
   if (!is_loaded_ && rom()->is_loaded()) {
@@ -82,7 +93,14 @@ absl::Status DungeonEditor::Initialize() {
   }
 
   LoadDungeonRoomSize();
-  LoadRoomEntrances();
+  // LoadRoomEntrances
+  for (int i = 0; i < 0x07; ++i) {
+    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, true));
+  }
+
+  for (int i = 0; i < 0x85; ++i) {
+    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, false));
+  }
 
   // Load the palette group and palette for the dungeon
   full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
@@ -168,8 +186,7 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     ImGui::End();
   }
 
-  if (ImGui::BeginTable("#DungeonEditTable", 3, kDungeonTableFlags,
-                        ImVec2(0, 0))) {
+  if (BeginTable("#DungeonEditTable", 3, kDungeonTableFlags, ImVec2(0, 0))) {
     TableSetupColumn("Room Selector");
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
@@ -198,8 +215,8 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
 }
 
 void DungeonEditor::DrawToolset() {
-  if (ImGui::BeginTable("DWToolset", 13, ImGuiTableFlags_SizingFixedFit,
-                        ImVec2(0, 0))) {
+  if (BeginTable("DWToolset", 13, ImGuiTableFlags_SizingFixedFit,
+                 ImVec2(0, 0))) {
     TableSetupColumn("#undoTool");
     TableSetupColumn("#redoTool");
     TableSetupColumn("#separator");
@@ -215,47 +232,43 @@ void DungeonEditor::DrawToolset() {
     TableSetupColumn("#blockTool");
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_UNDO)) {
+    if (Button(ICON_MD_UNDO)) {
       PRINT_IF_ERROR(Undo());
     }
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_REDO)) {
+    if (Button(ICON_MD_REDO)) {
       PRINT_IF_ERROR(Redo());
     }
 
     TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
+    Text(ICON_MD_MORE_VERT);
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_FILTER_NONE,
-                           background_type_ == kBackgroundAny)) {
+    if (RadioButton(ICON_MD_FILTER_NONE, background_type_ == kBackgroundAny)) {
       background_type_ = kBackgroundAny;
     }
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_FILTER_1,
-                           background_type_ == kBackground1)) {
+    if (RadioButton(ICON_MD_FILTER_1, background_type_ == kBackground1)) {
       background_type_ = kBackground1;
     }
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_FILTER_2,
-                           background_type_ == kBackground2)) {
+    if (RadioButton(ICON_MD_FILTER_2, background_type_ == kBackground2)) {
       background_type_ = kBackground2;
     }
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_FILTER_3,
-                           background_type_ == kBackground3)) {
+    if (RadioButton(ICON_MD_FILTER_3, background_type_ == kBackground3)) {
       background_type_ = kBackground3;
     }
 
     TableNextColumn();
-    ImGui::Text(ICON_MD_MORE_VERT);
+    Text(ICON_MD_MORE_VERT);
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_PEST_CONTROL, placement_type_ == kSprite)) {
+    if (RadioButton(ICON_MD_PEST_CONTROL, placement_type_ == kSprite)) {
       placement_type_ = kSprite;
     }
     if (ImGui::IsItemHovered()) {
@@ -263,7 +276,7 @@ void DungeonEditor::DrawToolset() {
     }
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_GRASS, placement_type_ == kItem)) {
+    if (RadioButton(ICON_MD_GRASS, placement_type_ == kItem)) {
       placement_type_ = kItem;
     }
     if (ImGui::IsItemHovered()) {
@@ -271,7 +284,7 @@ void DungeonEditor::DrawToolset() {
     }
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_SENSOR_DOOR, placement_type_ == kDoor)) {
+    if (RadioButton(ICON_MD_SENSOR_DOOR, placement_type_ == kDoor)) {
       placement_type_ = kDoor;
     }
     if (ImGui::IsItemHovered()) {
@@ -279,7 +292,7 @@ void DungeonEditor::DrawToolset() {
     }
 
     TableNextColumn();
-    if (ImGui::RadioButton(ICON_MD_SQUARE, placement_type_ == kBlock)) {
+    if (RadioButton(ICON_MD_SQUARE, placement_type_ == kBlock)) {
       placement_type_ = kBlock;
     }
     if (ImGui::IsItemHovered()) {
@@ -287,7 +300,7 @@ void DungeonEditor::DrawToolset() {
     }
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_PALETTE)) {
+    if (Button(ICON_MD_PALETTE)) {
       palette_showing_ = !palette_showing_;
     }
 
@@ -301,8 +314,8 @@ void DungeonEditor::DrawRoomSelector() {
     gui::InputHex("Palette ID", &current_palette_id_);
 
     if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
-        ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                   ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
       int i = 0;
       for (const auto each_room_name : zelda3::dungeon::kRoomNames) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -318,7 +331,7 @@ void DungeonEditor::DrawRoomSelector() {
         i += 1;
       }
     }
-    ImGui::EndChild();
+    EndChild();
   }
 }
 
@@ -329,37 +342,37 @@ void DungeonEditor::DrawEntranceSelector() {
 
     gui::InputHexWord("Room ID", &entrances_[current_entrance_id_].room_, 50.f,
                       true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("Dungeon ID",
                       &entrances_[current_entrance_id_].dungeon_id_, 50.f,
                       true);
 
     gui::InputHexByte("Blockset", &entrances_[current_entrance_id_].blockset_,
                       50.f, true);
-    ImGui::SameLine();
+    SameLine();
 
     gui::InputHexByte("Music", &entrances_[current_entrance_id_].music_, 50.f,
                       true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("Floor", &entrances_[current_entrance_id_].floor_);
 
     ImGui::Separator();
 
     gui::InputHexWord("Player X   ",
                       &entrances_[current_entrance_id_].x_position_);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexWord("Player Y   ",
                       &entrances_[current_entrance_id_].y_position_);
 
     gui::InputHexWord("Camera X",
                       &entrances_[current_entrance_id_].camera_trigger_x_);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexWord("Camera Y",
                       &entrances_[current_entrance_id_].camera_trigger_y_);
 
     gui::InputHexWord("Scroll X    ",
                       &entrances_[current_entrance_id_].camera_x_);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexWord("Scroll Y    ",
                       &entrances_[current_entrance_id_].camera_y_);
 
@@ -367,37 +380,37 @@ void DungeonEditor::DrawEntranceSelector() {
                       true);
 
     ImGui::Separator();
-    ImGui::Text("Camera Boundaries");
+    Text("Camera Boundaries");
     ImGui::Separator();
-    ImGui::Text("\t\t\t\t\tNorth         East         South         West");
+    Text("\t\t\t\t\tNorth         East         South         West");
     gui::InputHexByte("Quadrant",
                       &entrances_[current_entrance_id_].camera_boundary_qn_,
                       50.f, true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qe_,
                       50.f, true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qs_,
                       50.f, true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qw_,
                       50.f, true);
 
     gui::InputHexByte("Full room",
                       &entrances_[current_entrance_id_].camera_boundary_fn_,
                       50.f, true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fe_,
                       50.f, true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fs_,
                       50.f, true);
-    ImGui::SameLine();
+    SameLine();
     gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fw_,
                       50.f, true);
 
-    if (ImGui::BeginChild("EntranceSelector", ImVec2(0, 0), true,
-                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    if (BeginChild("EntranceSelector", ImVec2(0, 0), true,
+                   ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
       for (int i = 0; i < 0x85 + 7; i++) {
         rom()->resource_label()->SelectableLabelWithNameEdit(
             current_entrance_id_ == i, "Dungeon Entrance Names",
@@ -412,14 +425,14 @@ void DungeonEditor::DrawEntranceSelector() {
         }
       }
     }
-    ImGui::EndChild();
+    EndChild();
   }
 }
 
 void DungeonEditor::DrawDungeonTabView() {
   static int next_tab_id = 0;
 
-  if (ImGui::BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
+  if (BeginTabBar("MyTabBar", kDungeonTabBarFlags)) {
     if (ImGui::TabItemButton(ICON_MD_ADD, kDungeonTabFlags)) {
       if (std::find(active_rooms_.begin(), active_rooms_.end(),
                     current_room_id_) != active_rooms_.end()) {
@@ -438,11 +451,10 @@ void DungeonEditor::DrawDungeonTabView() {
         continue;
       }
 
-      if (ImGui::BeginTabItem(
-              zelda3::dungeon::kRoomNames[active_rooms_[n]].data(), &open,
-              ImGuiTabItemFlags_None)) {
+      if (BeginTabItem(zelda3::dungeon::kRoomNames[active_rooms_[n]].data(),
+                       &open, ImGuiTabItemFlags_None)) {
         DrawDungeonCanvas(active_rooms_[n]);
-        ImGui::EndTabItem();
+        EndTabItem();
       }
 
       if (!open)
@@ -451,7 +463,7 @@ void DungeonEditor::DrawDungeonTabView() {
         n++;
     }
 
-    ImGui::EndTabBar();
+    EndTabBar();
   }
   ImGui::Separator();
 }
@@ -460,24 +472,24 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   ImGui::BeginGroup();
 
   gui::InputHexByte("Layout", &rooms_[room_id].layout);
-  ImGui::SameLine();
+  SameLine();
 
   gui::InputHexByte("Blockset", &rooms_[room_id].blockset);
-  ImGui::SameLine();
+  SameLine();
 
   gui::InputHexByte("Spriteset", &rooms_[room_id].spriteset);
-  ImGui::SameLine();
+  SameLine();
 
   gui::InputHexByte("Palette", &rooms_[room_id].palette);
 
   gui::InputHexByte("Floor1", &rooms_[room_id].floor1);
-  ImGui::SameLine();
+  SameLine();
 
   gui::InputHexByte("Floor2", &rooms_[room_id].floor2);
-  ImGui::SameLine();
+  SameLine();
 
   gui::InputHexWord("Message ID", &rooms_[room_id].message_id_);
-  ImGui::SameLine();
+  SameLine();
 
   ImGui::EndGroup();
 
@@ -517,34 +529,34 @@ void DungeonEditor::DrawRoomGraphics() {
 }
 
 void DungeonEditor::DrawTileSelector() {
-  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
-    if (ImGui::BeginTabItem("Room Graphics")) {
+  if (BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
+    if (BeginTabItem("Room Graphics")) {
       if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
-          ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+          BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                     ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         DrawRoomGraphics();
       }
-      ImGui::EndChild();
-      ImGui::EndTabItem();
+      EndChild();
+      EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("Object Renderer")) {
+    if (BeginTabItem("Object Renderer")) {
       DrawObjectRenderer();
-      ImGui::EndTabItem();
+      EndTabItem();
     }
-    ImGui::EndTabBar();
+    EndTabBar();
   }
 }
 
 void DungeonEditor::DrawObjectRenderer() {
-  if (ImGui::BeginTable("DungeonObjectEditorTable", 2, kDungeonObjectTableFlags,
-                        ImVec2(0, 0))) {
+  if (BeginTable("DungeonObjectEditorTable", 2, kDungeonObjectTableFlags,
+                 ImVec2(0, 0))) {
     TableSetupColumn("Dungeon Objects", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
     TableSetupColumn("Canvas");
 
     TableNextColumn();
-    ImGui::BeginChild("DungeonObjectButtons", ImVec2(250, 0), true);
+    BeginChild("DungeonObjectButtons", ImVec2(250, 0), true);
 
     int selected_object = 0;
     int i = 0;
@@ -560,12 +572,11 @@ void DungeonEditor::DrawObjectRenderer() {
       i += 1;
     }
 
-    ImGui::EndChild();
+    EndChild();
 
     // Right side of the table - Canvas
     TableNextColumn();
-    ImGui::BeginChild("DungeonObjectCanvas", ImVec2(276, 0x10 * 0x40 + 1),
-                      true);
+    BeginChild("DungeonObjectCanvas", ImVec2(276, 0x10 * 0x40 + 1), true);
 
     object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
     object_canvas_.DrawContextMenu();
@@ -576,7 +587,7 @@ void DungeonEditor::DrawObjectRenderer() {
     object_canvas_.DrawGrid(32.0f);
     object_canvas_.DrawOverlay();
 
-    ImGui::EndChild();
+    EndChild();
     ImGui::EndTable();
   }
 
@@ -586,16 +597,6 @@ void DungeonEditor::DrawObjectRenderer() {
     mem_edit.DrawContents((void*)object_renderer_.mutable_memory(),
                           object_renderer_.mutable_memory()->size());
     ImGui::End();
-  }
-}
-
-void DungeonEditor::LoadRoomEntrances() {
-  for (int i = 0; i < 0x07; ++i) {
-    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, true));
-  }
-
-  for (int i = 0; i < 0x85; ++i) {
-    entrances_.emplace_back(zelda3::dungeon::RoomEntrance(*rom(), i, false));
   }
 }
 
@@ -663,16 +664,16 @@ void RenderUnusedSets(const absl::flat_hash_map<T, int>& usage_map, int max_set,
   }
   for (const auto& set : unused_sets) {
     if (spriteset_offset != 0x00) {
-      ImGui::Text("%#02x, %#02x", set, (set + spriteset_offset));
+      Text("%#02x, %#02x", set, (set + spriteset_offset));
     } else {
-      ImGui::Text("%#02x", set);
+      Text("%#02x", set);
     }
   }
 }
 }  // namespace
 
 void DungeonEditor::DrawUsageStats() {
-  if (ImGui::Button("Refresh")) {
+  if (Button("Refresh")) {
     selected_blockset_ = 0xFFFF;
     selected_spriteset_ = 0xFFFF;
     selected_palette_ = 0xFFFF;
@@ -684,9 +685,9 @@ void DungeonEditor::DrawUsageStats() {
 
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-  if (ImGui::BeginTable("DungeonUsageStatsTable", 8,
-                        kDungeonTableFlags | ImGuiTableFlags_SizingFixedFit,
-                        ImGui::GetContentRegionAvail())) {
+  if (BeginTable("DungeonUsageStatsTable", 8,
+                 kDungeonTableFlags | ImGuiTableFlags_SizingFixedFit,
+                 ImGui::GetContentRegionAvail())) {
     TableSetupColumn("Blockset Usage");
     TableSetupColumn("Unused Blockset");
     TableSetupColumn("Palette Usage");
@@ -699,51 +700,50 @@ void DungeonEditor::DrawUsageStats() {
     ImGui::PopStyleVar(2);
 
     TableNextColumn();
-    ImGui::BeginChild("BlocksetUsageScroll", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
+    BeginChild("BlocksetUsageScroll", ImVec2(0, 0), true,
+               ImGuiWindowFlags_HorizontalScrollbar);
     RenderSetUsage(blockset_usage_, selected_blockset_);
-    ImGui::EndChild();
+    EndChild();
 
     TableNextColumn();
-    ImGui::BeginChild("UnusedBlocksetScroll", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
+    BeginChild("UnusedBlocksetScroll", ImVec2(0, 0), true,
+               ImGuiWindowFlags_HorizontalScrollbar);
     RenderUnusedSets(blockset_usage_, 0x25);
-    ImGui::EndChild();
+    EndChild();
 
     TableNextColumn();
-    ImGui::BeginChild("PaletteUsageScroll", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
+    BeginChild("PaletteUsageScroll", ImVec2(0, 0), true,
+               ImGuiWindowFlags_HorizontalScrollbar);
     RenderSetUsage(palette_usage_, selected_palette_);
-    ImGui::EndChild();
+    EndChild();
 
     TableNextColumn();
-    ImGui::BeginChild("UnusedPaletteScroll", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
+    BeginChild("UnusedPaletteScroll", ImVec2(0, 0), true,
+               ImGuiWindowFlags_HorizontalScrollbar);
     RenderUnusedSets(palette_usage_, 0x48);
-    ImGui::EndChild();
+    EndChild();
 
     TableNextColumn();
 
-    ImGui::BeginChild("SpritesetUsageScroll", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
+    BeginChild("SpritesetUsageScroll", ImVec2(0, 0), true,
+               ImGuiWindowFlags_HorizontalScrollbar);
     RenderSetUsage(spriteset_usage_, selected_spriteset_, 0x40);
-    ImGui::EndChild();
+    EndChild();
 
     TableNextColumn();
-    ImGui::BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
+    BeginChild("UnusedSpritesetScroll", ImVec2(0, 0), true,
+               ImGuiWindowFlags_HorizontalScrollbar);
     RenderUnusedSets(spriteset_usage_, 0x90, 0x40);
-    ImGui::EndChild();
+    EndChild();
 
     TableNextColumn();
-    ImGui::BeginChild("UsageGrid", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
-    ImGui::Text("%s",
-                absl::StrFormat("Total size of all rooms: %d hex format: %#06x",
-                                total_room_size_, total_room_size_)
-                    .c_str());
+    BeginChild("UsageGrid", ImVec2(0, 0), true,
+               ImGuiWindowFlags_HorizontalScrollbar);
+    Text("%s", absl::StrFormat("Total size of all rooms: %d hex format: %#06x",
+                               total_room_size_, total_room_size_)
+                   .c_str());
     DrawUsageGrid();
-    ImGui::EndChild();
+    EndChild();
 
     TableNextColumn();
     if (selected_blockset_ < 0x25) {
@@ -801,10 +801,10 @@ void DungeonEditor::DrawUsageGrid() {
             ImGuiCol_Button,
             ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
       }
-      if (ImGui::Button(absl::StrFormat(
-                            "%#x", rooms_[row * squaresWide + col].room_size())
-                            .c_str(),
-                        ImVec2(55, 30))) {
+      if (Button(absl::StrFormat("%#x",
+                                 rooms_[row * squaresWide + col].room_size())
+                     .c_str(),
+                 ImVec2(55, 30))) {
         // Switch over to the room editor tab
         // and add a room tab by the ID of the square
         // that was clicked
@@ -826,20 +826,20 @@ void DungeonEditor::DrawUsageGrid() {
       if (ImGui::IsItemHovered()) {
         // Display a tooltip with all the room properties
         ImGui::BeginTooltip();
-        ImGui::Text("Room ID: %d", row * squaresWide + col);
-        ImGui::Text("Blockset: %#02x", room.blockset);
-        ImGui::Text("Spriteset: %#02x", room.spriteset);
-        ImGui::Text("Palette: %#02x", room.palette);
-        ImGui::Text("Floor1: %#02x", room.floor1);
-        ImGui::Text("Floor2: %#02x", room.floor2);
-        ImGui::Text("Message ID: %#04x", room.message_id_);
-        ImGui::Text("Size: %#016llx", room.room_size());
-        ImGui::Text("Size Pointer: %#016llx", room.room_size_ptr());
+        Text("Room ID: %d", row * squaresWide + col);
+        Text("Blockset: %#02x", room.blockset);
+        Text("Spriteset: %#02x", room.spriteset);
+        Text("Palette: %#02x", room.palette);
+        Text("Floor1: %#02x", room.floor1);
+        Text("Floor2: %#02x", room.floor2);
+        Text("Message ID: %#04x", room.message_id_);
+        Text("Size: %#016llx", room.room_size());
+        Text("Size Pointer: %#016llx", room.room_size_ptr());
         ImGui::EndTooltip();
       }
 
       // Keep squares in the same line
-      ImGui::SameLine();
+      SameLine();
     }
   }
 }
