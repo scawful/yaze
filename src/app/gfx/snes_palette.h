@@ -52,6 +52,13 @@ static constexpr absl::string_view kPaletteGroupNames[] = {
     "sprites_aux3", "dungeon_main",   "ow_mini_map",  "ow_mini_map",
     "3d_object",    "3d_object"};
 
+constexpr const char* kPaletteGroupAddressesKeys[] = {
+    "ow_main",        "ow_aux",       "ow_animated",  "hud",
+    "global_sprites", "armors",       "swords",       "shields",
+    "sprites_aux1",   "sprites_aux2", "sprites_aux3", "dungeon_main",
+    "grass",          "3d_object",    "ow_mini_map",
+};
+
 /**
  * @brief Primitive of a SNES color palette.
  */
