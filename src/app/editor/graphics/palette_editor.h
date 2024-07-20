@@ -94,6 +94,7 @@ class PaletteEditor : public SharedRom, public Editor {
   absl::Status Paste() override { return absl::OkStatus(); }
   absl::Status Undo() override { return absl::OkStatus(); }
   absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Find() override { return absl::OkStatus(); }
 
   void DisplayCategoryTable();
 

@@ -44,6 +44,7 @@ class AssemblyEditor : public Editor {
 
   absl::Status Undo() override;
   absl::Status Redo() override;
+  absl::Status Find() override { return absl::UnimplementedError("Find"); }
 
   absl::Status Update() override;
 

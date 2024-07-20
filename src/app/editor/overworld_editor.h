@@ -12,11 +12,11 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
-#include "app/editor/utils/gfx_context.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/tile16_editor.h"
 #include "app/editor/utils/editor.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -116,6 +116,7 @@ class OverworldEditor : public Editor,
   absl::Status Cut() { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() { return absl::UnimplementedError("Paste"); }
+  absl::Status Find() { return absl::UnimplementedError("Find Unused Tiles"); }
 
   auto overworld() { return &overworld_; }
 
