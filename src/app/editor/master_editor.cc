@@ -274,6 +274,10 @@ void MasterEditor::ManageKeyboardShortcuts() {
     }
   }
 
+  if (ImGui::IsKeyDown(ImGuiKey_F1)) {
+    about_ = true;
+  }
+
   // If CMD + Q is pressed, quit the application
   if (ImGui::IsKeyDown(ImGuiKey_Q) &&
       (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
@@ -352,7 +356,8 @@ void MasterEditor::DrawStatusPopup() {
     Separator();
     ImGui::NewLine();
     SameLine(128);
-    if (ImGui::Button("OK", gui::kDefaultModalSize)) {
+    if (ImGui::Button("OK", gui::kDefaultModalSize) ||
+        ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space))) {
       show_status_ = false;
       status_ = absl::OkStatus();
     }
@@ -389,7 +394,8 @@ void MasterEditor::DrawInfoPopup() {
     Text("Title: %s", rom()->title());
     Text("ROM Size: %ld", rom()->size());
 
-    if (ImGui::Button("Close", gui::kDefaultModalSize)) {
+    if (ImGui::Button("Close", gui::kDefaultModalSize) ||
+        ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space))) {
       rom_info_ = false;
       ImGui::CloseCurrentPopup();
     }
@@ -731,7 +737,7 @@ void MasterEditor::DrawHelpMenu() {
     if (MenuItem("Supported Features")) open_supported_features = true;
     if (MenuItem("How to manage a project")) open_manage_project = true;
 
-    if (MenuItem("About")) about_ = true;
+    if (MenuItem("About", "F1")) about_ = true;
     ImGui::EndMenu();
   }
 
