@@ -1,9 +1,5 @@
 var NAVTREEINDEX36 =
 {
-"namespaceyaze_1_1app_1_1gfx.html#abdc15a02218fe29002585f61230af828":[8,0,1,0,3,38],
-"namespaceyaze_1_1app_1_1gfx.html#acbccad0c8c3b4758e2ed3425058623d7":[8,0,1,0,3,45],
-"namespaceyaze_1_1app_1_1gfx.html#ad23eb7c59ab96c08179a6d6625ad0fdd":[8,0,1,0,3,55],
-"namespaceyaze_1_1app_1_1gfx.html#ad373c73aedd572d880fc5c49e0b4782e":[8,0,1,0,3,32],
 "namespaceyaze_1_1app_1_1gfx.html#ad8ba19f73c435e3e5527673d5b0cc096":[8,0,1,0,3,49],
 "namespaceyaze_1_1app_1_1gfx.html#ae0f46c5ecd3ca9929d6baa039aeccbc7":[8,0,1,0,3,22],
 "namespaceyaze_1_1app_1_1gfx.html#ae5807cdf64ba8eed9e0b94335c514674":[8,0,1,0,3,39],
@@ -13,6 +9,7 @@ var NAVTREEINDEX36 =
 "namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90":[8,0,1,0,3,52],
 "namespaceyaze_1_1app_1_1gfx.html#aefdc5379d7c7907c0b2cf786b9e5d166":[8,0,1,0,3,58],
 "namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa":[8,0,1,0,3,31],
+"namespaceyaze_1_1app_1_1gfx.html#afca5c6d2c283689f3def35935d0ace6e":[8,0,1,0,3,62],
 "namespaceyaze_1_1app_1_1gfx.html#afe2b409c93b8b037b20a8d4ac2df3353":[8,0,1,0,3,53],
 "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html":[8,0,1,0,3,0],
 "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a39681199e9a1c1462f86f3cf6f47949b":[8,0,1,0,3,0,1],
@@ -249,5 +246,8 @@ var NAVTREEINDEX36 =
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a24492c71309519c4303e049e3c2e9e47":[8,0,1,0,5,1,47],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a248dcf615f475b227d61f3688c736804":[8,0,1,0,5,1,66],
 "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a2b69e7b3a65b0c36c85de38f9c5df38d":[8,0,1,0,5,1,83],
-"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a2e7f0d93bc2ed2cdd4b0a5e97307ad7b":[8,0,1,0,5,1,54]
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a2e7f0d93bc2ed2cdd4b0a5e97307ad7b":[8,0,1,0,5,1,54],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a318974354aea6ec42a8a17fb6f349397":[8,0,1,0,5,1,100],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a3235497c08a2e5e78249ac79a8fed0cf":[8,0,1,0,5,1,106],
+"namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a32b59ef37653bde9297b927d9f156bca":[8,0,1,0,5,1,20]
 };

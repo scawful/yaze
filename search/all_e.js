@@ -146,7 +146,7 @@ var searchData=
   ['kpaint_143',['kPaint',['../namespaceyaze_1_1app_1_1gui.html#a7f4c0d3abbc863e7fc3465cc79028a3dabe579a9078c06d1cd7c291ae5c92485f',1,'yaze::app::gui']]],
   ['kpalbuttonflags2_144',['kPalButtonFlags2',['../namespaceyaze_1_1app_1_1editor.html#a65e67f4ca487a23f1a6ac1f1f4d6f8bf',1,'yaze::app::editor']]],
   ['kpalette_145',['kPalette',['../namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb',1,'yaze::app::editor']]],
-  ['kpalettegroupaddresseskeys_146',['kPaletteGroupAddressesKeys',['../namespaceyaze_1_1app_1_1editor.html#a0a567a3becbbd0c093031ba4d6f70e5f',1,'yaze::app::editor']]],
+  ['kpalettegroupaddresseskeys_146',['kPaletteGroupAddressesKeys',['../namespaceyaze_1_1app_1_1gfx.html#afca5c6d2c283689f3def35935d0ace6e',1,'yaze::app::gfx']]],
   ['kpalettegroupaddressmap_147',['kPaletteGroupAddressMap',['../namespaceyaze_1_1app_1_1gfx.html#a0b33005e899a93e458f6b70f359f047b',1,'yaze::app::gfx']]],
   ['kpalettegroupcolorcounts_148',['kPaletteGroupColorCounts',['../namespaceyaze_1_1app_1_1gfx.html#a5cad6a1e7078e7d8717fcaae95411535',1,'yaze::app::gfx']]],
   ['kpalettetableflags_149',['kPaletteTableFlags',['../namespaceyaze_1_1app_1_1editor.html#a7240deb8b0e5909fa9c74659fcf0b20c',1,'yaze::app::editor']]],

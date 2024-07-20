@@ -34,7 +34,6 @@ var classyaze_1_1app_1_1editor_1_1DungeonEditor =
     [ "DrawRoomGraphics", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ad7d7dec042753480a8b1664c5f7ce1c4", null ],
     [ "DrawTileSelector", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aabfd9ffe70c9373316e34e19c04527f2", null ],
     [ "DrawObjectRenderer", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#ab9991a4d7673044078d2c530fa3149ab", null ],
-    [ "LoadRoomEntrances", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a214a5202e94f568df8706325e86e4742", null ],
     [ "CalculateUsageStats", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a940d533e3715c1e55d84291396a2229d", null ],
     [ "DrawUsageStats", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#aabd3b0ab5140092ec573f3a12cff4227", null ],
     [ "DrawUsageGrid", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9f72129930b21b7dcb62375278f70c5a", null ],

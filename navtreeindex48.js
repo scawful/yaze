@@ -1,7 +1,5 @@
 var NAVTREEINDEX48 =
 {
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html":[8,0,1,0,4,1,0],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html":[9,0,0,0,4,0,0],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html#a2d68080353e3c8d3dec70b5ee363b38f":[8,0,1,0,4,1,0,1],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html#a2d68080353e3c8d3dec70b5ee363b38f":[9,0,0,0,4,0,0,1],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html#aad44c6f12a02ebef133a04700f01b4e4":[8,0,1,0,4,1,0,0],
@@ -249,5 +247,6 @@ var NAVTREEINDEX48 =
 "zeml_8h.html#ad579d58e78d2fd24d70a4e4afa4d8307":[10,0,1,0,4,15,13],
 "zeml_8h.html#aef3beb3e97e844a0512d586ecfb7bf06":[10,0,1,0,4,15,7],
 "zeml_8h_source.html":[10,0,1,0,4,15],
-"zsprite_8h.html":[10,0,1,0,1,4,2]
+"zsprite_8h.html":[10,0,1,0,1,4,2],
+"zsprite_8h_source.html":[10,0,1,0,1,4,2]
 };

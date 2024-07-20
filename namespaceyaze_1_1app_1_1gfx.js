@@ -100,5 +100,6 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "kPaletteGroupAddressMap", "namespaceyaze_1_1app_1_1gfx.html#a0b33005e899a93e458f6b70f359f047b", null ],
     [ "kPaletteGroupColorCounts", "namespaceyaze_1_1app_1_1gfx.html#a5cad6a1e7078e7d8717fcaae95411535", null ],
     [ "kNumPalettes", "namespaceyaze_1_1app_1_1gfx.html#aa82fac7101cc6d02ab0d5c2d5553213c", null ],
+    [ "kPaletteGroupAddressesKeys", "namespaceyaze_1_1app_1_1gfx.html#afca5c6d2c283689f3def35935d0ace6e", null ],
     [ "kGraphicsBitmap", "namespaceyaze_1_1app_1_1gfx.html#aa4d05c0ec507bdb37d9c5b41f2d4ee58", null ]
 ];

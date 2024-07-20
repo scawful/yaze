@@ -219,14 +219,12 @@ Variables</h2></td></tr>
 <tr class="separator:a4e2fdc967f4f1af218c03efeadbb4e7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d26ca53d73b81e2de5e8e8fb1f5f39d" id="r_a0d26ca53d73b81e2de5e8e8fb1f5f39d"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTabBarFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d26ca53d73b81e2de5e8e8fb1f5f39d">kGfxEditTabBarFlags</a></td></tr>
 <tr class="separator:a0d26ca53d73b81e2de5e8e8fb1f5f39d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb56eccacd0c92f50ac9f67f53da559b" id="r_adb56eccacd0c92f50ac9f67f53da559b"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adb56eccacd0c92f50ac9f67f53da559b">kGfxEditFlags</a></td></tr>
+<tr class="separator:adb56eccacd0c92f50ac9f67f53da559b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3719536e1885a648a2dd2338df5c57ac" id="r_a3719536e1885a648a2dd2338df5c57ac"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3719536e1885a648a2dd2338df5c57ac">kSuperDonkeyTiles</a> []</td></tr>
 <tr class="separator:a3719536e1885a648a2dd2338df5c57ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a734a588c68d753b67fddf5b7bcac517b" id="r_a734a588c68d753b67fddf5b7bcac517b"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a734a588c68d753b67fddf5b7bcac517b">kSuperDonkeySprites</a> []</td></tr>
 <tr class="separator:a734a588c68d753b67fddf5b7bcac517b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a567a3becbbd0c093031ba4d6f70e5f" id="r_a0a567a3becbbd0c093031ba4d6f70e5f"><td class="memItemLeft" align="right" valign="top">constexpr const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a567a3becbbd0c093031ba4d6f70e5f">kPaletteGroupAddressesKeys</a> []</td></tr>
-<tr class="separator:a0a567a3becbbd0c093031ba4d6f70e5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb56eccacd0c92f50ac9f67f53da559b" id="r_adb56eccacd0c92f50ac9f67f53da559b"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adb56eccacd0c92f50ac9f67f53da559b">kGfxEditFlags</a></td></tr>
-<tr class="separator:adb56eccacd0c92f50ac9f67f53da559b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7240deb8b0e5909fa9c74659fcf0b20c" id="r_a7240deb8b0e5909fa9c74659fcf0b20c"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7240deb8b0e5909fa9c74659fcf0b20c">kPaletteTableFlags</a></td></tr>
 <tr class="separator:a7240deb8b0e5909fa9c74659fcf0b20c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2069f944ef53eb187dae126277941b42" id="r_a2069f944ef53eb187dae126277941b42"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiColorEditFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2069f944ef53eb187dae126277941b42">kPalNoAlpha</a> = ImGuiColorEditFlags_NoAlpha</td></tr>
@@ -462,6 +460,33 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="adb56eccacd0c92f50ac9f67f53da559b" name="adb56eccacd0c92f50ac9f67f53da559b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb56eccacd0c92f50ac9f67f53da559b">&#9670;&#160;</a></span>kGfxEditFlags</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ImGuiTableFlags yaze::app::editor::kGfxEditFlags</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= ImGuiTableFlags_Reorderable |</div>
+<div class="line">                                          ImGuiTableFlags_Resizable |</div>
+<div class="line">                                          ImGuiTableFlags_SizingStretchSame</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a9dcbf951a287a6fde9097f42c93be063">yaze::app::editor::GraphicsEditor::UpdateScadView()</a>.</p>
+
+</div>
+</div>
 <a id="a3719536e1885a648a2dd2338df5c57ac" name="a3719536e1885a648a2dd2338df5c57ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3719536e1885a648a2dd2338df5c57ac">&#9670;&#160;</a></span>kSuperDonkeyTiles</h2>
 
@@ -509,63 +534,6 @@ Variables</h2></td></tr>
 <div class="line">    <span class="stringliteral">&quot;C0567&quot;</span>, <span class="stringliteral">&quot;C0981&quot;</span>, <span class="stringliteral">&quot;C0BA7&quot;</span>, <span class="stringliteral">&quot;C116D&quot;</span>, <span class="stringliteral">&quot;C166A&quot;</span>, <span class="stringliteral">&quot;C1FE0&quot;</span>, <span class="stringliteral">&quot;C24CE&quot;</span>, <span class="stringliteral">&quot;C2B19&quot;</span>}</div>
 </div><!-- fragment -->
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>.</p>
-
-</div>
-</div>
-<a id="a0a567a3becbbd0c093031ba4d6f70e5f" name="a0a567a3becbbd0c093031ba4d6f70e5f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a567a3becbbd0c093031ba4d6f70e5f">&#9670;&#160;</a></span>kPaletteGroupAddressesKeys</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* yaze::app::editor::kPaletteGroupAddressesKeys[]</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= {</div>
-<div class="line">    <span class="stringliteral">&quot;ow_main&quot;</span>,        <span class="stringliteral">&quot;ow_aux&quot;</span>,       <span class="stringliteral">&quot;ow_animated&quot;</span>,  <span class="stringliteral">&quot;hud&quot;</span>,</div>
-<div class="line">    <span class="stringliteral">&quot;global_sprites&quot;</span>, <span class="stringliteral">&quot;armors&quot;</span>,       <span class="stringliteral">&quot;swords&quot;</span>,       <span class="stringliteral">&quot;shields&quot;</span>,</div>
-<div class="line">    <span class="stringliteral">&quot;sprites_aux1&quot;</span>,   <span class="stringliteral">&quot;sprites_aux2&quot;</span>, <span class="stringliteral">&quot;sprites_aux3&quot;</span>, <span class="stringliteral">&quot;dungeon_main&quot;</span>,</div>
-<div class="line">    <span class="stringliteral">&quot;grass&quot;</span>,          <span class="stringliteral">&quot;3d_object&quot;</span>,    <span class="stringliteral">&quot;ow_mini_map&quot;</span>,</div>
-<div class="line">}</div>
-</div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#af9599db948c4b604e58de2246f049626">yaze::app::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
-
-</div>
-</div>
-<a id="adb56eccacd0c92f50ac9f67f53da559b" name="adb56eccacd0c92f50ac9f67f53da559b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb56eccacd0c92f50ac9f67f53da559b">&#9670;&#160;</a></span>kGfxEditFlags</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ImGuiTableFlags yaze::app::editor::kGfxEditFlags</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= ImGuiTableFlags_Reorderable |</div>
-<div class="line">                                          ImGuiTableFlags_Resizable |</div>
-<div class="line">                                          ImGuiTableFlags_SizingStretchSame</div>
-</div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a9dcbf951a287a6fde9097f42c93be063">yaze::app::editor::GraphicsEditor::UpdateScadView()</a>.</p>
 
 </div>
 </div>
