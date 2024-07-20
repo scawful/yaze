@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "app/core/common.h"
-#include "app/editor/context/gfx_context.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"

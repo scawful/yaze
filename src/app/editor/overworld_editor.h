@@ -12,8 +12,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/core/common.h"
-#include "app/editor/context/entrance_context.h"
-#include "app/editor/context/gfx_context.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/tile16_editor.h"
@@ -63,6 +62,28 @@ constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
 constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
+class EntranceContext {
+ public:
+  absl::Status LoadEntranceTileTypes(Rom& rom) {
+    int offset_low = 0xDB8BF;
+    int offset_high = 0xDB917;
+
+    for (int i = 0; i < 0x2C; i++) {
+      // Load entrance tile types
+      ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(offset_low + i));
+      entrance_tile_types_low_.push_back(value_low);
+      ASSIGN_OR_RETURN(auto value_high, rom.ReadWord(offset_high + i));
+      entrance_tile_types_low_.push_back(value_high);
+    }
+
+    return absl::OkStatus();
+  }
+
+ private:
+  std::vector<uint16_t> entrance_tile_types_low_;
+  std::vector<uint16_t> entrance_tile_types_high_;
+};
+
 /**
  * @class OverworldEditor
  * @brief Manipulates the Overworld and OverworldMap data in a Rom.
@@ -82,7 +103,7 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 class OverworldEditor : public Editor,
                         public SharedRom,
                         public context::GfxContext,
-                        public context::EntranceContext,
+                        public EntranceContext,
                         public core::ExperimentFlags {
  public:
   OverworldEditor() { type_ = EditorType::kOverworld; }

@@ -18,7 +18,7 @@ set(
   app/editor/graphics/palette_editor.cc
   app/editor/graphics/tile16_editor.cc
   app/editor/graphics/gfx_group_editor.cc
-  app/editor/context/gfx_context.cc
+  app/editor/utils/gfx_context.cc
 )
 
 set(
