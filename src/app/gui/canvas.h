@@ -185,12 +185,13 @@ class Canvas {
 
  private:
   bool draggable_ = false;
+  bool is_hovered_ = false;
   bool enable_grid_ = true;
   bool enable_hex_tile_labels_ = false;
   bool enable_custom_labels_ = false;
   bool enable_context_menu_ = true;
   bool custom_canvas_size_ = false;
-  bool is_hovered_ = false;
+  bool select_rect_active_ = false;
 
   float custom_step_ = 0.0f;
   float global_scale_ = 1.0f;
@@ -208,10 +209,8 @@ class Canvas {
   ImVec2 canvas_sz_;
   ImVec2 canvas_p0_;
   ImVec2 canvas_p1_;
-  ImVec2 mouse_pos_in_canvas_;
   ImVec2 drawn_tile_pos_;
-
-  bool select_rect_active_ = false;
+  ImVec2 mouse_pos_in_canvas_;
   ImVec2 selected_tile_pos_ = ImVec2(-1, -1);
   ImVector<ImVec2> selected_points_;
   std::vector<ImVec2> selected_tiles_;
