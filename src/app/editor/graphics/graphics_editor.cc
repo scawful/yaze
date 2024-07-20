@@ -183,7 +183,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
 
     TableNextColumn();
-    gui::InputHexByte("Tile Size", &tile_size_, 0x01);
+    gui::InputHexByte("Tile Size", &tile_size_);
 
     ImGui::EndTable();
   }

@@ -43,6 +43,8 @@ using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
 
+constexpr uint16_t kOverworldMapSize = 0x200;
+
 void OverworldEditor::InitializeZeml() {
   // Load zeml string from layouts/overworld.zeml
   std::string layout = gui::zeml::LoadFile("overworld.zeml");
@@ -461,8 +463,8 @@ void OverworldEditor::DrawOverworldMaps() {
   int yy = 0;
   for (int i = 0; i < 0x40; i++) {
     int world_index = i + (current_world_ * 0x40);
-    int map_x = (xx * 0x200 * ow_map_canvas_.global_scale());
-    int map_y = (yy * 0x200 * ow_map_canvas_.global_scale());
+    int map_x = (xx * kOverworldMapSize * ow_map_canvas_.global_scale());
+    int map_y = (yy * kOverworldMapSize * ow_map_canvas_.global_scale());
     ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
                               ow_map_canvas_.global_scale());
     xx++;
@@ -531,7 +533,8 @@ void OverworldEditor::RenderUpdatedMapBitmap(const ImVec2 &click_position,
   // Update the bitmap's pixel data based on the start_position and tile_data
   for (int y = 0; y < tile_size; ++y) {
     for (int x = 0; x < tile_size; ++x) {
-      int pixel_index = (start_position.y + y) * 0x200 + (start_position.x + x);
+      int pixel_index =
+          (start_position.y + y) * kOverworldMapSize + (start_position.x + x);
       current_bitmap.WriteToPixel(pixel_index, tile_data[y * tile_size + x]);
     }
   }
@@ -797,7 +800,8 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
       palette_ = overworld_.AreaPalette();
       gfx::Bitmap bmp;
       RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
-          0x80, 0x200, 0x08, overworld_.current_graphics(), bmp, palette_));
+          0x80, kOverworldMapSize, 0x08, overworld_.current_graphics(), bmp,
+          palette_));
       current_graphics_set_[current_map_] = bmp;
     }
   }
@@ -1605,7 +1609,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   palette_ = overworld_.AreaPalette();
 
   // Create the area graphics image
-  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x200, 0x40,
+  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x40,
                                                overworld_.current_graphics(),
                                                current_gfx_bmp_, palette_));
 
@@ -1650,7 +1654,8 @@ absl::Status OverworldEditor::LoadGraphics() {
     overworld_.set_current_map(i);
     auto palette = overworld_.AreaPalette();
     RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
-        0x200, 0x200, 0x200, overworld_.BitmapData(), maps_bmp_[i], palette));
+        kOverworldMapSize, kOverworldMapSize, 0x200, overworld_.BitmapData(),
+        maps_bmp_[i], palette));
   }
 
   if (flags()->overworld.kDrawOverworldSprites) {
@@ -1977,8 +1982,8 @@ absl::Status OverworldEditor::LoadAnimatedMaps() {
     RETURN_IF_ERROR(map.BuildBitmap(blockset));
 
     RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
-        0x200, 0x200, 0x200, map.bitmap_data(), animated_maps_[world_index],
-        *map.mutable_current_palette()));
+        kOverworldMapSize, kOverworldMapSize, 0x200, map.bitmap_data(),
+        animated_maps_[world_index], *map.mutable_current_palette()));
 
     animated_built[world_index] = true;
   }
