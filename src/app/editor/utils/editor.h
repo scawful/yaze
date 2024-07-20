@@ -21,6 +21,7 @@ enum class EditorType {
   kPalette,
   kScreen,
   kSprite,
+  kSettings,
 };
 
 constexpr std::array<const char*, 8> kEditorNames = {
