@@ -10,6 +10,8 @@ namespace editor {
 
 class SettingsEditor : public Editor {
  public:
+  SettingsEditor() : Editor() { type_ = EditorType::kSettings; }
+
   absl::Status Update() override;
 
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
