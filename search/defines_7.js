@@ -2184,5 +2184,8 @@ var searchData=
   ['icon_5fmd_5fzoom_5fout_2181',['ICON_MD_ZOOM_OUT',['../icons_8h.html#a5a3f2eab21905f6fc007e48141de6c86',1,'icons.h']]],
   ['icon_5fmd_5fzoom_5fout_5fmap_2182',['ICON_MD_ZOOM_OUT_MAP',['../icons_8h.html#ace2817113f9d8a6274d99786716f2223',1,'icons.h']]],
   ['icon_5fmin_5fmd_2183',['ICON_MIN_MD',['../icons_8h.html#a6cb0d114de0f8bb079998be79d3b001c',1,'icons.h']]],
-  ['imgui_5fdefine_5fmath_5foperators_2184',['IMGUI_DEFINE_MATH_OPERATORS',['../master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'master_editor.h']]]
+  ['im_5fclamp_2184',['IM_CLAMP',['../asset__browser_8h.html#a25d1e4d29150e7587f99e0723493a004',1,'asset_browser.h']]],
+  ['im_5fmax_2185',['IM_MAX',['../asset__browser_8h.html#a9d0693fad89638629beea97300c8f8f6',1,'asset_browser.h']]],
+  ['im_5fmin_2186',['IM_MIN',['../asset__browser_8h.html#af25a13a96600f1a018104f6c2d3da645',1,'asset_browser.h']]],
+  ['imgui_5fdefine_5fmath_5foperators_2187',['IMGUI_DEFINE_MATH_OPERATORS',['../master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'master_editor.h']]]
 ];

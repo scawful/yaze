@@ -14,7 +14,7 @@ var annotated_dup =
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
           [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", [
             [ "EntranceContext", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext.html", "classyaze_1_1app_1_1editor_1_1context_1_1EntranceContext" ],
-            [ "GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext" ]
+            [ "GfxContext", "classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html", null ]
           ] ],
           [ "palette_internal", "namespaceyaze_1_1app_1_1editor_1_1palette__internal.html", [
             [ "PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange" ],
@@ -197,9 +197,16 @@ var annotated_dup =
             [ "Token", "structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html", "structyaze_1_1app_1_1gui_1_1zeml_1_1Token" ],
             [ "WidgetAttributes", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html", "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes" ]
           ] ],
+          [ "AssetObject", "structyaze_1_1app_1_1gui_1_1AssetObject.html", "structyaze_1_1app_1_1gui_1_1AssetObject" ],
           [ "BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", "classyaze_1_1app_1_1gui_1_1BitmapViewer" ],
           [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", "classyaze_1_1app_1_1gui_1_1Canvas" ],
-          [ "DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ]
+          [ "DungeonAsset", "structyaze_1_1app_1_1gui_1_1DungeonAsset.html", "structyaze_1_1app_1_1gui_1_1DungeonAsset" ],
+          [ "DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ],
+          [ "ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion" ],
+          [ "GfxSheetAssetBrowser", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser" ],
+          [ "OverworldAsset", "structyaze_1_1app_1_1gui_1_1OverworldAsset.html", "structyaze_1_1app_1_1gui_1_1OverworldAsset" ],
+          [ "SpriteAsset", "structyaze_1_1app_1_1gui_1_1SpriteAsset.html", "structyaze_1_1app_1_1gui_1_1SpriteAsset" ],
+          [ "UnsortedAsset", "structyaze_1_1app_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1app_1_1gui_1_1UnsortedAsset" ]
         ] ],
         [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", [
           [ "dungeon", "namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html", [

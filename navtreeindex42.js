@@ -1,13 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"spc700__test_8cc.html#a5ac6fd47dc8026531f4ea342bee84ae0":[10,0,2,0,2,13],
-"spc700__test_8cc.html#a5de85d3b08552136d091b5533796ee49":[10,0,2,0,2,19],
-"spc700__test_8cc.html#a745d2267977135acb0bf15f014e93627":[10,0,2,0,2,7],
-"spc700__test_8cc.html#a7bb9f13b8edcbef06cdb8a5489f11199":[10,0,2,0,2,10],
-"spc700__test_8cc.html#a8708845a62971fe92703b5f66d21e029":[10,0,2,0,2,14],
-"spc700__test_8cc.html#a91aa2a4bc61e113a5f5cb640672d5229":[10,0,2,0,2,27],
-"spc700__test_8cc.html#a9ff99659eaecfe80b79384d4b81b60d7":[10,0,2,0,2,22],
-"spc700__test_8cc.html#aa6b300d16df8258b186515a863ba3888":[10,0,2,0,2,26],
 "spc700__test_8cc.html#aaa9b121f56280639a391f71b334d418e":[10,0,2,0,2,16],
 "spc700__test_8cc.html#ab91a1ea4d8b7c432e8bda2ee0d4c8c61":[10,0,2,0,2,25],
 "spc700__test_8cc.html#aba4d4f89daa2ea2e0bc6bc1710ecd835":[10,0,2,0,2,23],
@@ -249,5 +241,13 @@ var NAVTREEINDEX42 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[8,0,1,0,1,12,1,6],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[9,0,0,0,1,3,1,6],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[8,0,1,0,1,12,1,5],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[9,0,0,0,1,3,1,5]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[9,0,0,0,1,3,1,5],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aacfc410659b92938ba62ef9b7fd1af0a":[8,0,1,0,1,12,1,2],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aacfc410659b92938ba62ef9b7fd1af0a":[9,0,0,0,1,3,1,2],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ac5ba3ba2261ff5594ef1f1b73336f818":[8,0,1,0,1,12,1,3],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ac5ba3ba2261ff5594ef1f1b73336f818":[9,0,0,0,1,3,1,3],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad49bad9b74ff6aa9a08c0d8a0036a6fc":[8,0,1,0,1,12,1,1],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad49bad9b74ff6aa9a08c0d8a0036a6fc":[9,0,0,0,1,3,1,1],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad779d1f733e79e51db14b576a4922696":[8,0,1,0,1,12,1,9],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#ad779d1f733e79e51db14b576a4922696":[9,0,0,0,1,3,1,9]
 };

@@ -17,6 +17,7 @@ var searchData=
   ['zero_5fpoint_14',['zero_point',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a725cdd037008035c36f62b7108c588d2',1,'yaze::app::gui::Canvas']]],
   ['zoomin_15',['ZoomIn',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3d245d538658062773a8972c57d43eae',1,'yaze::app::gui::Canvas']]],
   ['zoomout_16',['ZoomOut',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aaf4f7f9d8a94909686f2db38550df2f3',1,'yaze::app::gui::Canvas']]],
-  ['zsprite_17',['ZSprite',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::app::editor::zsprite']]],
-  ['zsprite_2eh_18',['zsprite.h',['../zsprite_8h.html',1,'']]]
+  ['zoomwheelaccum_17',['ZoomWheelAccum',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aedd3e084649438eb1a78fe210cc13470',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
+  ['zsprite_18',['ZSprite',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::app::editor::zsprite']]],
+  ['zsprite_2eh_19',['zsprite.h',['../zsprite_8h.html',1,'']]]
 ];

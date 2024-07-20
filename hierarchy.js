@@ -5,6 +5,12 @@ var hierarchy =
     [ "yaze::app::emu::audio::Apu", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html", null ],
     [ "yaze::app::emu::audio::ApuCallbacks", "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html", null ],
     [ "yaze::app::emu::AsmParser", "classyaze_1_1app_1_1emu_1_1AsmParser.html", null ],
+    [ "yaze::app::gui::AssetObject", "structyaze_1_1app_1_1gui_1_1AssetObject.html", [
+      [ "yaze::app::gui::DungeonAsset", "structyaze_1_1app_1_1gui_1_1DungeonAsset.html", null ],
+      [ "yaze::app::gui::OverworldAsset", "structyaze_1_1app_1_1gui_1_1OverworldAsset.html", null ],
+      [ "yaze::app::gui::SpriteAsset", "structyaze_1_1app_1_1gui_1_1SpriteAsset.html", null ],
+      [ "yaze::app::gui::UnsortedAsset", "structyaze_1_1app_1_1gui_1_1UnsortedAsset.html", null ]
+    ] ],
     [ "yaze::app::emu::audio::AudioRam", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html", [
       [ "yaze::app::emu::audio::AudioRamImpl", "classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html", null ],
       [ "yaze_test::emu_test::MockAudioRam", "classyaze__test_1_1emu__test_1_1MockAudioRam.html", null ]
@@ -95,7 +101,11 @@ var hierarchy =
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::app::zelda3::overworld::OverworldMap", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html", null ]
     ] ],
+    [ "yaze::app::gui::GfxSheetAssetBrowser", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "yaze::app::core::ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
+    [ "ImGuiSelectionBasicStorage", null, [
+      [ "yaze::app::gui::ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
+    ] ],
     [ "yaze::app::emu::video::PpuRegisters::INIDISP", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html", null ],
     [ "yaze::app::emu::Input", "structyaze_1_1app_1_1emu_1_1Input.html", null ],
     [ "yaze::app::emu::InstructionEntry", "classyaze_1_1app_1_1emu_1_1InstructionEntry.html", null ],

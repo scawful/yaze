@@ -1,14 +1,5 @@
 var NAVTREEINDEX11 =
 {
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af0c4d1ab8982af720f8a98274e029613":[9,0,0,0,2,0,6,122],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af55b44f441379166bc8c7852c1a25b69":[8,0,1,0,2,2,6,112],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af55b44f441379166bc8c7852c1a25b69":[9,0,0,0,2,0,6,112],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af57e6036e9debe00a415aa44a22014cd":[8,0,1,0,2,2,6,62],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af57e6036e9debe00a415aa44a22014cd":[9,0,0,0,2,0,6,62],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7098fe4b498624c7bf810c2dae2f6cd":[8,0,1,0,2,2,6,11],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7098fe4b498624c7bf810c2dae2f6cd":[9,0,0,0,2,0,6,11],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af72fca7b16ff8ecb8688365e0490f703":[8,0,1,0,2,2,6,21],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af72fca7b16ff8ecb8688365e0490f703":[9,0,0,0,2,0,6,21],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017":[8,0,1,0,2,2,6,8],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017":[9,0,0,0,2,0,6,8],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af82a5af8b95ad22204ab6de079f9fad0":[8,0,1,0,2,2,6,24],
@@ -249,5 +240,14 @@ var NAVTREEINDEX11 =
 "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a1e01eaf2862a5d14ce85636a8202b4f8":[9,0,0,0,2,1,5,26],
 "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a259eb37eba4c2a535ace1cc35b9ca851":[8,0,1,0,2,3,6,34],
 "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a259eb37eba4c2a535ace1cc35b9ca851":[9,0,0,0,2,1,5,34],
-"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a26074def754b5a41e8db5cceef28d1b8":[8,0,1,0,2,3,6,32]
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a26074def754b5a41e8db5cceef28d1b8":[8,0,1,0,2,3,6,32],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a26074def754b5a41e8db5cceef28d1b8":[9,0,0,0,2,1,5,32],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a26b9e068ff9e2bdcb3831c4b6643fdab":[8,0,1,0,2,3,6,31],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a26b9e068ff9e2bdcb3831c4b6643fdab":[9,0,0,0,2,1,5,31],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2795ba480c04276ccb5e9db7f092980b":[8,0,1,0,2,3,6,5],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2795ba480c04276ccb5e9db7f092980b":[9,0,0,0,2,1,5,5],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2b274d2e230ba601f741a742a6b2ef02":[8,0,1,0,2,3,6,33],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2b274d2e230ba601f741a742a6b2ef02":[9,0,0,0,2,1,5,33],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2fd95d602806c412f6b5fd94b245964c":[8,0,1,0,2,3,6,40],
+"classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#a2fd95d602806c412f6b5fd94b245964c":[9,0,0,0,2,1,5,40]
 };

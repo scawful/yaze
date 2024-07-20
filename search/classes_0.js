@@ -8,6 +8,7 @@ var searchData=
   ['apucallbacks_5',['ApuCallbacks',['../structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html',1,'yaze::app::emu::audio']]],
   ['asmparser_6',['AsmParser',['../classyaze_1_1app_1_1emu_1_1AsmParser.html',1,'yaze::app::emu']]],
   ['assemblyeditor_7',['AssemblyEditor',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html',1,'yaze::app::editor']]],
-  ['audioram_8',['AudioRam',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html',1,'yaze::app::emu::audio']]],
-  ['audioramimpl_9',['AudioRamImpl',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html',1,'yaze::app::emu::audio']]]
+  ['assetobject_8',['AssetObject',['../structyaze_1_1app_1_1gui_1_1AssetObject.html',1,'yaze::app::gui']]],
+  ['audioram_9',['AudioRam',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html',1,'yaze::app::emu::audio']]],
+  ['audioramimpl_10',['AudioRamImpl',['../classyaze_1_1app_1_1emu_1_1audio_1_1AudioRamImpl.html',1,'yaze::app::emu::audio']]]
 ];

@@ -8,6 +8,8 @@ var classyaze_1_1app_1_1gfx_1_1BitmapManager =
     [ "shared_bitmap", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1965bb7ba22f67455d15c120285eb57c", null ],
     [ "mutable_bitmap", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#ad06e8da1b914ae28026e3445aeb840a3", null ],
     [ "clear_cache", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#aeb7888d2921893232ce9845a950246bf", null ],
+    [ "size", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3d5b03ec8e7cf6320a507ff26960438e", null ],
+    [ "at", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a90ff681071c6a9d0ae6ce0448ca318f5", null ],
     [ "begin", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a03c82d939ecc58d288e8ae6734cf0175", null ],
     [ "end", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a0e8e8ea7d962ed66975a7b99aaf96dc0", null ],
     [ "begin", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a004c7efab1d44df8489c3818e54811c9", null ],

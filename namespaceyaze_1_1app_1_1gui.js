@@ -4,9 +4,16 @@ var namespaceyaze_1_1app_1_1gui =
       [ "AlignPosToGrid", "namespaceyaze_1_1app_1_1gui_1_1anonymous__namespace_02canvas_8cc_03.html#a6739cf66e8926a0ff5db236971ab9eaf", null ]
     ] ],
     [ "zeml", "namespaceyaze_1_1app_1_1gui_1_1zeml.html", "namespaceyaze_1_1app_1_1gui_1_1zeml" ],
+    [ "AssetObject", "structyaze_1_1app_1_1gui_1_1AssetObject.html", "structyaze_1_1app_1_1gui_1_1AssetObject" ],
     [ "BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", "classyaze_1_1app_1_1gui_1_1BitmapViewer" ],
     [ "Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", "classyaze_1_1app_1_1gui_1_1Canvas" ],
+    [ "DungeonAsset", "structyaze_1_1app_1_1gui_1_1DungeonAsset.html", "structyaze_1_1app_1_1gui_1_1DungeonAsset" ],
     [ "DynamicLayout", "classyaze_1_1app_1_1gui_1_1DynamicLayout.html", null ],
+    [ "ExampleSelectionWithDeletion", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html", "structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion" ],
+    [ "GfxSheetAssetBrowser", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser" ],
+    [ "OverworldAsset", "structyaze_1_1app_1_1gui_1_1OverworldAsset.html", "structyaze_1_1app_1_1gui_1_1OverworldAsset" ],
+    [ "SpriteAsset", "structyaze_1_1app_1_1gui_1_1SpriteAsset.html", "structyaze_1_1app_1_1gui_1_1SpriteAsset" ],
+    [ "UnsortedAsset", "structyaze_1_1app_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1app_1_1gui_1_1UnsortedAsset" ],
     [ "ItemLabelFlags", "namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958", null ],
     [ "CanvasType", "namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202e", [
       [ "kTile", "namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202eac06bd766ba0c680aa7ce4145dd31eb99", null ],
