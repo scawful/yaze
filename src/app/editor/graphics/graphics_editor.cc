@@ -25,11 +25,17 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using gfx::kPaletteGroupAddressesKeys;
 using ImGui::Button;
 using ImGui::InputInt;
 using ImGui::InputText;
 using ImGui::SameLine;
 using ImGui::TableNextColumn;
+
+static constexpr absl::string_view kGfxToolsetColumnNames[] = {
+    "#memoryEditor",
+    "##separator_gfx1",
+};
 
 constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
@@ -40,6 +46,10 @@ constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
     ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
     ImGuiTabBarFlags_FittingPolicyResizeDown |
     ImGuiTabBarFlags_TabListPopupButton;
+
+constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
+                                          ImGuiTableFlags_Resizable |
+                                          ImGuiTableFlags_SizingStretchSame;
 
 absl::Status GraphicsEditor::Update() {
   TAB_BAR("##TabBar")
@@ -184,17 +194,25 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
       "##GfxEditChild", ImVec2(0, 0), true,
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  // TODO: Update the interaction for multi select on sheets
+  static ImGuiSelectionBasicStorage selection;
+  ImGuiMultiSelectFlags flags =
+      ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_BoxSelect1d;
+  ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(
+      flags, selection.Size, rom()->bitmap_manager().size());
+  selection.ApplyRequests(ms_io);
+  ImGuiListClipper clipper;
+  clipper.Begin(rom()->bitmap_manager().size());
+  if (ms_io->RangeSrcItem != -1)
+    clipper.IncludeItemByIndex(
+        (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
+
   for (auto& [key, value] : rom()->bitmap_manager()) {
     ImGui::BeginChild(absl::StrFormat("##GfxSheet%02X", key).c_str(),
                       ImVec2(0x100 + 1, 0x40 + 1), true,
                       ImGuiWindowFlags_NoDecoration);
     ImGui::PopStyleVar();
     gui::Canvas graphics_bin_canvas_;
-    // auto select_tile_event = [&]() {
-    // };
-    // graphics_bin_canvas_.UpdateEvent(
-    //     select_tile_event, ImVec2(0x100 + 1, 0x40 + 1), 0x20, sheet_scale_,
-    //     /*grid_size=*/16.0f);
 
     graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x40 + 1));
     graphics_bin_canvas_.DrawContextMenu();
@@ -236,6 +254,8 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
     ImGui::EndChild();
   }
   ImGui::PopStyleVar();
+  ms_io = ImGui::EndMultiSelect();
+  selection.ApplyRequests(ms_io);
   ImGui::EndChild();
   return absl::OkStatus();
 }

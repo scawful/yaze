@@ -44,21 +44,6 @@ const std::string kSuperDonkeySprites[] = {
     "BE115", "BE5C2", "BEB63", "BF0CB", "BF607", "BFA55", "BFD71", "C017D",
     "C0567", "C0981", "C0BA7", "C116D", "C166A", "C1FE0", "C24CE", "C2B19"};
 
-constexpr const char* kPaletteGroupAddressesKeys[] = {
-    "ow_main",        "ow_aux",       "ow_animated",  "hud",
-    "global_sprites", "armors",       "swords",       "shields",
-    "sprites_aux1",   "sprites_aux2", "sprites_aux3", "dungeon_main",
-    "grass",          "3d_object",    "ow_mini_map",
-};
-
-static constexpr absl::string_view kGfxToolsetColumnNames[] = {
-    "#memoryEditor",
-    "##separator_gfx1",
-};
-
-constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
-                                          ImGuiTableFlags_Resizable |
-                                          ImGuiTableFlags_SizingStretchSame;
 
 /**
  * @class GraphicsEditor
