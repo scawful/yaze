@@ -50,6 +50,8 @@ class SpriteEditor : public SharedRom, public Editor {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
 
  private:
+  void DrawVanillaSpriteEditor();
+
   /**
    * @brief Draws the sprites list.
    */
@@ -64,6 +66,10 @@ class SpriteEditor : public SharedRom, public Editor {
    * @brief Draws the current sheets.
    */
   void DrawCurrentSheets();
+
+  void DrawCustomSprites();
+
+  void DrawCustomSpritesMetadata();
 
   /**
    * @brief Draws the animation frames manager.
