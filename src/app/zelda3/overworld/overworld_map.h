@@ -51,6 +51,8 @@ class OverworldMap : public editor::context::GfxContext {
   auto is_initialized() const { return initialized_; }
   auto parent() const { return parent_; }
 
+  auto mutable_mosaic() { return &mosaic_; }
+
   auto mutable_current_palette() { return &current_palette_; }
 
   auto area_graphics() const { return area_graphics_; }
@@ -117,6 +119,8 @@ class OverworldMap : public editor::context::GfxContext {
   bool built_ = false;
   bool large_map_ = false;
   bool initialized_ = false;
+
+  bool mosaic_ = false;
 
   int index_ = 0;        // Map index
   int parent_ = 0;       // Parent map index
