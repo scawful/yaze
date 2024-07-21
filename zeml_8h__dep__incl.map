@@ -6,9 +6,9 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="436,39,312,81,311,76,435,34"/>
 <area shape="rect" id="Node000011" href="$emulator_8cc.html" title=" " alt="" coords="574,175,738,201"/>
 <area shape="poly" id="edge15_Node000001_Node000011" title=" " alt="" coords="523,37,551,55,578,77,622,129,651,173,647,176,618,132,574,81,548,59,520,41"/>
-<area shape="rect" id="Node000012" href="$emulator_8h.html" title=" " alt="" coords="407,87,564,112"/>
+<area shape="rect" id="Node000012" href="$emulator_8h.html" title=" " alt="" coords="407,86,564,112"/>
 <area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="488,47,488,86,483,86,483,47"/>
-<area shape="rect" id="Node000013" href="$zeml_8cc.html" title=" " alt="" coords="639,87,772,112"/>
+<area shape="rect" id="Node000013" href="$zeml_8cc.html" title=" " alt="" coords="639,86,772,112"/>
 <area shape="poly" id="edge21_Node000001_Node000013" title=" " alt="" coords="534,34,672,83,671,88,532,39"/>
 <area shape="poly" id="edge14_Node000003_Node000002" title=" " alt="" coords="203,129,125,170,122,165,201,125"/>
 <area shape="rect" id="Node000004" href="$memory__editor_8h.html" title=" " alt="" coords="291,168,424,208"/>
@@ -21,7 +21,7 @@
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="360,224,360,256,355,256,355,224"/>
 <area shape="rect" id="Node000006" href="$controller_8cc.html" title=" " alt="" coords="262,441,429,467"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="358,312,349,441,344,440,352,312"/>
-<area shape="rect" id="Node000007" href="$controller_8h.html" title=" " alt="" coords="417,353,578,378"/>
+<area shape="rect" id="Node000007" href="$controller_8h.html" title=" " alt="" coords="417,352,578,378"/>
 <area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="403,303,479,350,477,354,401,308"/>
 <area shape="poly" id="edge11_Node000005_Node000010" title=" " alt="" coords="322,309,275,347,271,342,319,305"/>
 <area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="465,388,368,443,366,438,462,384"/>

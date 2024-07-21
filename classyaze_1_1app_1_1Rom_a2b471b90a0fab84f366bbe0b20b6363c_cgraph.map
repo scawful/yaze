@@ -1,5 +1,5 @@
 <map id="yaze::app::Rom::mutable_graphics_sheet" name="yaze::app::Rom::mutable_graphics_sheet">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,165,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a315f547b5c28c691400f92fc529f8a0e" title=" " alt="" coords="213,13,374,39"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a315f547b5c28c691400f92fc529f8a0e" title=" " alt="" coords="213,13,374,38"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,23,197,23,197,28,165,28"/>
 </map>

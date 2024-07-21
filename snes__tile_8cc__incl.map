@@ -1,6 +1,6 @@
 <map id="src/app/gfx/snes_tile.cc" name="src/app/gfx/snes_tile.cc">
 <area shape="rect" id="Node000001" title=" " alt="" coords="120,5,279,31"/>
-<area shape="rect" id="Node000002" href="$snes__tile_8h.html" title=" " alt="" coords="119,79,203,105"/>
+<area shape="rect" id="Node000002" href="$snes__tile_8h.html" title=" " alt="" coords="119,79,202,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,32,177,66,172,64,191,30"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,153,66,178"/>
 <area shape="poly" id="edge8_Node000001_Node000003" title=" " alt="" coords="178,34,145,54,109,81,79,111,55,142,51,138,76,108,106,77,142,50,176,29"/>

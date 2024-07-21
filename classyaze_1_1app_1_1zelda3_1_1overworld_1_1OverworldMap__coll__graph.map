@@ -2,21 +2,21 @@
 <area shape="rect" id="Node000001" title="Represents a single Overworld map screen." alt="" coords="999,219,1167,259"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1context_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="752,116,885,157"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="901,160,976,187,1040,216,1038,220,974,192,899,165"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="765,181,872,207"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="765,181,872,206"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="888,203,999,222,998,227,888,208"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,71,539,111"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="363,71,538,111"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="554,90,642,105,687,118,730,138,742,152,754,166,775,178,772,183,750,170,738,156,726,142,685,123,641,110,553,95"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="354,136,548,161"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="563,156,728,175,765,181,764,186,728,180,562,161"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="364,252,538,277"/>
 <area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="553,258,999,240,999,245,554,263"/>
 <area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="553,246,727,214,767,205,769,210,729,219,554,251"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="349,185,553,211"/>
+<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="349,185,553,210"/>
 <area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="568,194,764,192,764,197,569,199"/>
-<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="5,185,185,211"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="5,185,185,210"/>
 <area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="200,195,348,195,348,200,200,200"/>
 <area shape="rect" id="Node000009" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="368,5,534,46"/>
-<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="550,23,596,29,644,41,690,60,730,89,742,109,743,129,744,148,754,167,769,178,766,182,750,170,739,149,738,129,737,111,726,93,687,65,642,46,595,34,549,28"/>
-<area shape="rect" id="Node000010" href="$structOWMapTiles.html" title=" " alt="" coords="771,332,867,357"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="550,27,596,35,643,49,689,69,730,99,741,116,743,134,745,150,754,167,770,178,767,183,750,170,740,152,738,134,736,118,726,102,687,74,642,54,594,40,549,32"/>
+<area shape="rect" id="Node000010" href="$structOWMapTiles.html" title=" " alt="" coords="770,332,867,357"/>
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="882,337,928,329,974,314,1020,288,1058,258,1061,262,1023,292,976,319,930,334,883,342"/>
 </map>

@@ -16,7 +16,7 @@
 <area shape="poly" id="edge56_Node000001_Node000022" title=" " alt="" coords="1059,27,1166,49,1228,67,1290,91,1352,121,1410,157,1461,202,1504,255,1511,271,1510,287,1503,301,1490,313,1455,333,1414,348,1412,343,1453,328,1487,309,1498,297,1505,285,1505,272,1499,258,1457,206,1406,162,1349,125,1288,96,1226,72,1165,54,1058,32"/>
 <area shape="rect" id="Node000025" href="$overworld__editor_8cc.html" title=" " alt="" coords="1584,434,1744,474"/>
 <area shape="poly" id="edge58_Node000001_Node000025" title=" " alt="" coords="1059,21,1118,27,1183,37,1251,54,1316,77,1428,126,1473,150,1512,176,1548,206,1581,242,1614,288,1647,344,1656,367,1662,391,1667,433,1661,433,1657,392,1651,368,1642,346,1609,291,1577,246,1544,210,1509,180,1470,155,1425,131,1314,81,1249,59,1182,43,1117,32,1058,26"/>
-<area shape="rect" id="Node000027" href="$widgets_8cc.html" title=" " alt="" coords="1870,87,2021,112"/>
+<area shape="rect" id="Node000027" href="$widgets_8cc.html" title=" " alt="" coords="1870,86,2021,112"/>
 <area shape="poly" id="edge59_Node000001_Node000027" title=" " alt="" coords="1059,19,1406,35,1628,52,1851,76,1892,83,1891,89,1850,82,1628,57,1406,40,1059,24"/>
 <area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="303,305,174,347,172,342,301,300"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="439,302,472,320,503,343,545,388,575,432,571,435,541,392,500,347,469,325,436,307"/>
@@ -31,7 +31,7 @@
 <area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="642,479,731,519,729,524,640,484"/>
 <area shape="rect" id="Node000006" href="$controller_8cc.html" title=" " alt="" coords="764,707,932,733"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="789,576,845,705,840,708,784,578"/>
-<area shape="rect" id="Node000007" href="$controller_8h.html" title=" " alt="" coords="627,619,787,644"/>
+<area shape="rect" id="Node000007" href="$controller_8h.html" title=" " alt="" coords="627,618,787,644"/>
 <area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="750,577,718,620,714,617,746,574"/>
 <area shape="poly" id="edge12_Node000005_Node000010" title=" " alt="" coords="860,564,1033,609,1031,614,859,569"/>
 <area shape="poly" id="edge9_Node000007_Node000006" title=" " alt="" coords="741,650,830,704,827,709,738,655"/>

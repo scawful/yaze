@@ -1,14 +1,14 @@
 <map id="src/app/emu/audio/spc700.cc" name="src/app/emu/audio/spc700.cc">
 <area shape="rect" id="Node000001" title=" " alt="" coords="350,5,541,31"/>
-<area shape="rect" id="Node000002" href="$spc700_8h.html" title=" " alt="" coords="246,87,408,112"/>
+<area shape="rect" id="Node000002" href="$spc700_8h.html" title=" " alt="" coords="246,86,408,112"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="429,34,359,80,356,75,426,29"/>
 <area shape="rect" id="Node000005" title=" " alt="" coords="403,168,474,193"/>
 <area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="447,32,442,152,437,152,442,31"/>
 <area shape="rect" id="Node000007" title=" " alt="" coords="498,168,555,193"/>
 <area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="454,30,516,152,511,155,449,33"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="534,87,600,112"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="534,86,600,112"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="465,29,537,76,534,80,462,34"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="625,87,693,112"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="624,86,693,112"/>
 <area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="482,29,613,77,617,78,615,83,611,81,480,34"/>
 <area shape="rect" id="Node000010" title=" " alt="" coords="5,168,59,193"/>
 <area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="350,25,267,31,182,41,107,57,79,68,59,81,47,96,40,115,34,153,29,152,34,113,43,94,56,77,77,64,106,52,181,36,267,25,349,20"/>

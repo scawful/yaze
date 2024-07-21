@@ -8,7 +8,7 @@
 <area shape="poly" id="edge53_Node000001_Node000028" title=" " alt="" coords="166,668,213,680,211,686,164,673"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="476,515,637,541"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="345,585,453,549,479,542,480,547,455,554,347,590"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="459,564,654,590"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="458,564,654,590"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="406,589,443,585,443,591,407,594"/>
 <area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="454,614,658,639"/>
 <area shape="poly" id="edge50_Node000002_Node000025" title=" " alt="" coords="407,608,439,612,438,617,406,614"/>
@@ -41,15 +41,15 @@
 <area shape="rect" id="Node000022" href="$namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a2d6fee08ea00e55402ef8758ca853b76" title=" " alt="" coords="717,469,925,525"/>
 <area shape="poly" id="edge41_Node000004_Node000022" title=" " alt="" coords="618,561,658,551,724,528,726,533,659,556,619,566"/>
 <area shape="rect" id="Node000023" href="$namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aee28ac501ff95be94bc01b0fbbcb0545" title=" " alt="" coords="717,549,925,605"/>
-<area shape="poly" id="edge44_Node000004_Node000023" title=" " alt="" coords="654,575,702,575,702,580,654,580"/>
+<area shape="poly" id="edge44_Node000004_Node000023" title=" " alt="" coords="654,574,702,574,702,580,654,580"/>
 <area shape="rect" id="Node000024" href="$namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#ae251945cd53721f7e2d027ebc3cec6c9" title=" " alt="" coords="706,629,936,670"/>
 <area shape="poly" id="edge47_Node000004_Node000024" title=" " alt="" coords="619,588,659,599,707,615,730,622,729,627,706,620,658,604,617,593"/>
 <area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b" title=" " alt="" coords="984,481,1163,522"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="919,691,934,679,947,662,954,646,958,612,961,576,968,558,982,539,994,528,998,532,986,543,973,560,967,578,963,612,959,647,952,665,938,683,922,696"/>
-<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="986,553,1161,594"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gfx.html#a03f22b0abee97bf4bcb4d226a7148f96" title=" " alt="" coords="986,553,1160,594"/>
 <area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="911,690,934,679,990,641,1038,602,1041,606,994,646,937,683,913,695"/>
 <area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1gfx.html#a1d7b7b9da156693ec13b608343cd7b49" title=" " alt="" coords="1211,560,1434,586"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1161,571,1195,571,1195,576,1161,576"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1161,570,1195,570,1195,576,1161,576"/>
 <area shape="poly" id="edge9_Node000009_Node000006" title=" " alt="" coords="920,770,934,759,952,733,961,707,962,680,959,653,956,626,957,598,964,569,982,540,992,529,996,533,986,543,969,571,962,598,962,626,964,653,967,680,966,707,957,735,938,763,924,775"/>
 <area shape="poly" id="edge10_Node000009_Node000007" title=" " alt="" coords="915,770,934,759,974,724,1007,684,1034,642,1054,606,1059,609,1039,645,1011,687,977,728,937,763,918,775"/>
 <area shape="poly" id="edge12_Node000010_Node000006" title=" " alt="" coords="917,838,934,823,956,788,964,753,964,719,959,685,953,650,952,614,960,578,982,540,992,529,995,533,986,543,965,579,957,615,959,650,964,684,969,719,970,754,961,790,938,827,921,842"/>

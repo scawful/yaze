@@ -1,5 +1,5 @@
 <map id="yaze::app::editor::sprite_internal::DrawSpriteEditorPopup" name="yaze::app::editor::sprite_internal::DrawSpriteEditorPopup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,129,178,184"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,128,178,184"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="47,128,47,118,55,109,70,104,92,102,115,104,130,111,128,116,114,110,91,107,71,109,58,114,52,120,52,128"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a4a8839525e930bb383c0cdd7cad012d2" title=" " alt="" coords="258,5,381,46"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="124,126,170,91,224,57,242,48,244,53,227,61,173,95,128,130"/>

@@ -1,5 +1,13 @@
 var NAVTREEINDEX42 =
 {
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39da8e750447f4a3a99a17ac9d37fc073c9f":[10,0,1,0,3,9,6,10],
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39daabfdab8ff5fa1b32c07f8247b01494ff":[10,0,1,0,3,9,6,6],
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39dab642b4174e77d1e5a8910c64b92aaed7":[10,0,1,0,3,9,6,1],
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39dabed07cc4b40045a72004222e32e88819":[10,0,1,0,3,9,6,8],
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39dac6cd8a6a5c9477329633d9d36ba782da":[10,0,1,0,3,9,6,2],
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39dae53d104b1b340736a11ea28c94488248":[10,0,1,0,3,9,6,4],
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39daf22e7c2217ee73273e5298cc7f8cf3d8":[10,0,1,0,3,9,6,0],
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39daf59b5b00d3468226089be51b38e41ca0":[10,0,1,0,3,9,6,11],
 "snes__palette_8h.html#a770b616b1a09b80f72fdd549ec6a7f34":[10,0,1,0,3,9,8],
 "snes__palette_8h.html#aa82fac7101cc6d02ab0d5c2d5553213c":[10,0,1,0,3,9,13],
 "snes__palette_8h.html#abdc15a02218fe29002585f61230af828":[10,0,1,0,3,9,10],
@@ -241,13 +249,5 @@ var NAVTREEINDEX42 =
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd":[9,0,0,0,0,6,4],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ae8b5387ea50ef824bd980bd8f4e63b3c":[8,0,1,0,0,7,5],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ae8b5387ea50ef824bd980bd8f4e63b3c":[9,0,0,0,0,6,5],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904":[8,0,1,0,0,7,2],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904":[9,0,0,0,0,6,2],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html":[8,0,1,0,0,7,0],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html":[9,0,0,0,0,6,0],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[8,0,1,0,0,7,0,1],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[9,0,0,0,0,6,0,1],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[8,0,1,0,0,7,0,0],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[9,0,0,0,0,6,0,0],
-"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[8,0,1,0,1,17]
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904":[8,0,1,0,0,7,2]
 };

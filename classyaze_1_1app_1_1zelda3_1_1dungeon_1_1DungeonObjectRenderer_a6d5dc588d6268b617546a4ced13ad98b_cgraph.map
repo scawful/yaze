@@ -1,10 +1,10 @@
 <map id="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap" name="yaze::app::zelda3::dungeon::DungeonObjectRenderer::UpdateObjectBitmap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,161,223,216"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,160,223,216"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2809cc0b6a95a467a182c7777b65c8ec" title="Creates a bitmap object with the provided graphical data." alt="" coords="287,103,431,143"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,157,271,144,272,149,222,162"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="277,168,441,209"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="223,186,261,186,261,191,223,191"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="271,257,447,283"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="271,257,447,282"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="201,214,304,249,302,254,199,219"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#aae636e8223b7a47a961526120b85cd90" title=" " alt="" coords="495,5,639,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="403,100,494,57,506,51,509,55,496,61,405,105"/>

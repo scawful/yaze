@@ -3,7 +3,7 @@
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="336,11,343,17,346,26,338,39,320,44,319,39,335,34,341,25,339,20,332,16"/>
 <area shape="rect" id="Node000002" href="$master__editor_8h.html" title=" " alt="" coords="181,94,325,135"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="256,62,256,94,250,94,250,62"/>
-<area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="5,279,173,305"/>
+<area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="5,279,173,304"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="210,146,163,185,123,236,97,280,93,277,119,233,159,181,207,141"/>
 <area shape="rect" id="Node000004" href="$controller_8h.html" title=" " alt="" coords="173,190,333,216"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="256,150,256,190,250,190,250,150"/>
@@ -12,6 +12,6 @@
 <area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="218,226,113,281,111,276,215,221"/>
 <area shape="rect" id="Node000005" href="$app__delegate_8mm.html" title=" " alt="" coords="197,271,341,312"/>
 <area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="261,231,268,271,263,272,255,232"/>
-<area shape="rect" id="Node000006" href="$yaze_8cc.html" title=" " alt="" coords="365,279,477,305"/>
+<area shape="rect" id="Node000006" href="$yaze_8cc.html" title=" " alt="" coords="365,279,477,304"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="291,221,399,276,396,281,289,226"/>
 </map>

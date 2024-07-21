@@ -1,16 +1,16 @@
 <map id="src/app/gui/input.cc" name="src/app/gui/input.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="300,5,435,31"/>
-<area shape="rect" id="Node000002" href="$input_8h.html" title=" " alt="" coords="216,87,276,112"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="300,5,434,31"/>
+<area shape="rect" id="Node000002" href="$input_8h.html" title=" " alt="" coords="216,86,276,112"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="350,34,278,80,276,76,347,29"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,175,103,201"/>
 <area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="326,34,268,54,206,81,137,125,82,167,78,163,134,120,203,77,266,49,324,29"/>
 <area shape="rect" id="Node000007" title=" " alt="" coords="381,168,506,208"/>
 <area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="361,33,349,50,339,72,335,96,340,119,358,140,380,158,377,162,354,144,336,121,330,96,334,71,345,48,356,30"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="350,87,497,112"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="350,86,496,112"/>
 <area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="378,30,408,72,404,75,374,33"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="521,79,665,120"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="520,79,665,120"/>
 <area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="403,29,523,71,521,76,401,34"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="689,87,742,112"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="689,86,742,112"/>
 <area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="435,25,550,44,614,58,677,76,680,77,678,82,676,82,613,63,549,49,435,30"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="220,115,96,171,94,166,218,110"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="127,175,192,201"/>

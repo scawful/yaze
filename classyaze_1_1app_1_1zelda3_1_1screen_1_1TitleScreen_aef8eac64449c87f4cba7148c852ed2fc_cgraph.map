@@ -1,5 +1,5 @@
 <map id="yaze::app::zelda3::screen::TitleScreen::BuildTileset" name="yaze::app::zelda3::screen::TitleScreen::BuildTileset">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,138,61"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae50d84bd88d181d2c1dae099c046e653" title=" " alt="" coords="186,13,330,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,31,170,31,170,36,138,36"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,30,170,30,170,36,138,36"/>
 </map>

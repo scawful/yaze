@@ -1,5 +1,13 @@
 var NAVTREEINDEX21 =
 {
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html":[8,0,2,0,1],
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html":[9,0,1,0,1],
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a0fffb1b9f3b622546816afeedd51603d":[8,0,2,0,1,6],
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a0fffb1b9f3b622546816afeedd51603d":[9,0,1,0,1,6],
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a46f0e8de6ef6f40817562c8321f35bbe":[8,0,2,0,1,3],
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a46f0e8de6ef6f40817562c8321f35bbe":[9,0,1,0,1,3],
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf":[8,0,2,0,1,4],
+"classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf":[9,0,1,0,1,4],
 "classyaze__test_1_1emu__test_1_1MockAudioRam.html#ac6687a7616372ba3f27896d979969dbe":[8,0,2,0,1,1],
 "classyaze__test_1_1emu__test_1_1MockAudioRam.html#ac6687a7616372ba3f27896d979969dbe":[9,0,1,0,1,1],
 "classyaze__test_1_1emu__test_1_1MockAudioRam.html#acd7ec7a04fb64adb5f1104bd98e68196":[8,0,2,0,1,2],
@@ -241,13 +249,5 @@ var NAVTREEINDEX21 =
 "compression_8h.html#a64c9eccb0e6bde5044cfd0b85126a423":[10,0,1,0,3,3,69],
 "compression_8h.html#a6704a0d05d04ae6217e4cf143d5862be":[10,0,1,0,3,3,34],
 "compression_8h.html#a6d13ac7649343808451edc35c4b9d74f":[10,0,1,0,3,3,12],
-"compression_8h.html#a767f193a16c49b5f65dbc9c0beeb422f":[10,0,1,0,3,3,60],
-"compression_8h.html#a77887f1e77391d7c90c5019790041ff4":[10,0,1,0,3,3,29],
-"compression_8h.html#a876aa4cf19da24112d3d66afd49eb8f2":[10,0,1,0,3,3,30],
-"compression_8h.html#a88255058fe586bfb7eda1c2a847bd2c8":[10,0,1,0,3,3,4],
-"compression_8h.html#a88ed0cde94f8737eec02a9ee0536dad3":[10,0,1,0,3,3,11],
-"compression_8h.html#a8a5cd746989bba5ac64eef034b664a92":[10,0,1,0,3,3,49],
-"compression_8h.html#a9768d31ade99cfac5c730a47fd9bd944":[10,0,1,0,3,3,46],
-"compression_8h.html#a99a3331f6a6866bb8a694c1d828154fc":[10,0,1,0,3,3,27],
-"compression_8h.html#a99f113d574564e9fb02470d77369b435":[10,0,1,0,3,3,18]
+"compression_8h.html#a767f193a16c49b5f65dbc9c0beeb422f":[10,0,1,0,3,3,60]
 };

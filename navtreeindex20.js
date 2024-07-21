@@ -1,5 +1,13 @@
 var NAVTREEINDEX20 =
 {
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ac8c739a55379d446b3d57b568bc28998":[8,0,1,0,5,3,8,49],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ac8c739a55379d446b3d57b568bc28998":[9,0,0,0,5,2,5,49],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aca7498e557c5e2dbb6051c4e881b3921":[8,0,1,0,5,3,8,9],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aca7498e557c5e2dbb6051c4e881b3921":[9,0,0,0,5,2,5,9],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#acd121506346b91c913c783e66cce6dea":[8,0,1,0,5,3,8,36],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#acd121506346b91c913c783e66cce6dea":[9,0,0,0,5,2,5,36],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#acdb31d7dc119cd9849a5e495f284e656":[8,0,1,0,5,3,8,52],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#acdb31d7dc119cd9849a5e495f284e656":[9,0,0,0,5,2,5,52],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad6ec5bc90ba66b4a671dc9924313bc95":[8,0,1,0,5,3,8,59],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad6ec5bc90ba66b4a671dc9924313bc95":[9,0,0,0,5,2,5,59],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#ad93fffe42ffe8f9437e7b11ff833deaa":[8,0,1,0,5,3,8,24],
@@ -241,13 +249,5 @@ var NAVTREEINDEX20 =
 "classyaze__test_1_1emu__test_1_1CpuTest.html#ad4a55434b7953a58f483bfd4a5e38b88":[8,0,2,0,0,4],
 "classyaze__test_1_1emu__test_1_1CpuTest.html#ad4a55434b7953a58f483bfd4a5e38b88":[9,0,1,0,0,4],
 "classyaze__test_1_1emu__test_1_1CpuTest.html#adc39581559a3921822adaa22c77d7926":[8,0,2,0,0,0],
-"classyaze__test_1_1emu__test_1_1CpuTest.html#adc39581559a3921822adaa22c77d7926":[9,0,1,0,0,0],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html":[8,0,2,0,1],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html":[9,0,1,0,1],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a0fffb1b9f3b622546816afeedd51603d":[8,0,2,0,1,6],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a0fffb1b9f3b622546816afeedd51603d":[9,0,1,0,1,6],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a46f0e8de6ef6f40817562c8321f35bbe":[8,0,2,0,1,3],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#a46f0e8de6ef6f40817562c8321f35bbe":[9,0,1,0,1,3],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf":[8,0,2,0,1,4],
-"classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf":[9,0,1,0,1,4]
+"classyaze__test_1_1emu__test_1_1CpuTest.html#adc39581559a3921822adaa22c77d7926":[9,0,1,0,0,0]
 };

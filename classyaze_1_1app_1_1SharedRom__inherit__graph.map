@@ -1,45 +1,47 @@
 <map id="yaze::app::SharedRom" name="yaze::app::SharedRom">
-<area shape="rect" id="Node000001" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,569,154,595"/>
+<area shape="rect" id="Node000001" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,601,154,626"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons." alt="" coords="251,5,370,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,553,94,445,118,297,134,221,153,153,175,96,200,57,223,40,250,30,252,35,225,45,204,61,180,99,158,154,140,223,123,298,99,446,86,554"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,585,93,471,116,313,132,233,151,159,174,99,200,57,223,40,250,30,252,35,226,44,204,61,179,101,156,161,137,234,121,314,98,471,86,585"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1GfxGroupEditor.html" title="Manage graphics group configurations in a Rom." alt="" coords="251,71,370,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="82,553,97,457,123,329,157,205,177,156,200,122,223,106,250,95,252,100,226,110,204,126,182,159,162,206,128,330,102,458,87,554"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="82,585,96,483,120,345,137,275,155,211,176,159,200,123,223,105,250,95,252,100,226,110,204,126,181,161,160,213,142,276,126,346,101,484,87,586"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1GraphicsEditor.html" title="Allows the user to edit graphics sheets from the game or view prototype graphics." alt="" coords="251,136,370,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="78,553,84,480,101,383,116,330,137,279,165,230,200,188,223,171,250,161,252,166,226,176,203,192,169,233,142,281,121,332,106,384,89,481,84,553"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="78,585,81,507,97,401,112,344,134,288,162,235,200,188,223,171,250,161,252,166,226,176,204,192,167,238,138,290,117,346,102,402,86,508,83,585"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html" title="The MasterEditor class represents the main editor for a Rom in the Yaze application." alt="" coords="251,201,370,242"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="80,553,89,491,109,411,125,368,145,327,170,287,200,253,224,237,250,227,252,232,226,242,203,257,174,291,149,329,130,370,115,412,95,492,86,554"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="79,585,86,518,105,429,121,382,141,335,167,292,200,253,223,237,250,227,252,232,226,241,203,257,172,295,146,338,126,384,110,430,92,519,85,586"/>
 <area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html" title=" " alt="" coords="214,267,407,307"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="83,553,96,503,118,440,152,375,174,345,200,318,219,306,222,310,203,322,178,348,157,378,123,442,101,504,89,554"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="82,585,93,529,114,458,129,420,149,383,172,349,200,318,218,306,221,310,203,322,176,352,153,386,134,422,119,459,98,530,87,586"/>
 <area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1editor_1_1MusicEditor.html" title="A class for editing music data in a Rom." alt="" coords="251,332,370,373"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="88,553,104,515,128,470,160,423,200,384,224,369,250,360,252,365,226,374,203,388,164,427,133,472,109,518,93,555"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="85,585,100,541,123,487,156,431,177,406,200,384,224,369,250,359,252,364,226,374,203,388,181,410,161,435,128,489,105,543,91,587"/>
 <area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a Rom." alt="" coords="251,397,370,438"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="96,554,139,501,168,473,200,449,225,436,250,427,252,432,227,441,203,453,172,477,143,505,100,558"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="92,585,134,517,164,480,200,449,224,435,250,426,252,431,226,440,203,453,168,484,138,520,96,588"/>
 <area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1editor_1_1PaletteEditor.html" title="Allows the user to view and edit in game palettes." alt="" coords="251,463,370,503"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="114,558,201,514,250,496,252,501,203,519,117,563"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="103,588,146,550,200,514,250,494,252,499,203,519,149,555,106,592"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1editor_1_1ScreenEditor.html" title="The ScreenEditor class allows the user to edit a variety of screens in the game or create a custom me..." alt="" coords="251,528,370,569"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="169,566,250,554,251,560,170,571"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="141,594,250,563,251,568,143,599"/>
 <area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1editor_1_1SpriteEditor.html" title="Allows the user to edit sprites." alt="" coords="251,593,370,634"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="170,591,251,603,250,608,169,597"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="170,611,251,611,251,616,170,616"/>
 <area shape="rect" id="Node000012" href="$classyaze_1_1app_1_1editor_1_1Tile16Editor.html" title="Popup window to edit Tile16 data." alt="" coords="251,659,370,699"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="117,600,203,643,252,661,250,666,201,648,115,605"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="143,629,251,660,250,665,141,634"/>
 <area shape="rect" id="Node000013" href="$classyaze_1_1app_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="229,724,392,749"/>
-<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="100,606,143,659,171,686,203,709,230,721,228,725,200,713,168,690,139,663,96,609"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html" title=" " alt="" coords="225,773,396,799"/>
-<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="94,608,110,643,134,685,165,725,203,759,226,771,223,776,200,764,161,729,130,687,105,646,89,610"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html" title=" " alt="" coords="202,823,419,863"/>
-<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="90,609,105,653,128,707,160,762,180,787,203,809,220,820,217,824,200,813,177,791,156,765,123,709,100,655,85,610"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html" title=" " alt="" coords="249,888,372,929"/>
-<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="87,609,98,665,119,736,134,773,153,810,176,843,203,873,225,887,249,897,248,902,222,892,200,877,172,847,149,812,129,775,114,738,93,666,82,610"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html" title=" " alt="" coords="236,953,385,994"/>
-<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="85,610,92,677,110,765,126,812,146,858,172,901,204,938,219,950,237,959,235,964,216,955,200,942,167,904,141,860,121,814,105,766,86,677,79,610"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="239,1019,382,1059"/>
-<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="83,610,86,687,102,793,117,850,138,906,167,958,204,1004,220,1017,240,1026,238,1030,217,1021,200,1008,162,961,134,908,112,851,97,794,81,688,78,610"/>
-<area shape="rect" id="Node000022" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html" title=" " alt="" coords="249,1084,372,1125"/>
-<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="87,610,101,711,126,849,142,919,160,982,181,1034,204,1069,225,1085,249,1094,247,1099,222,1089,200,1073,176,1037,155,984,137,920,120,850,96,712,82,610"/>
-<area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html" title=" " alt="" coords="467,888,597,929"/>
-<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="395,946,466,925,467,930,397,951"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html" title=" " alt="" coords="467,953,597,994"/>
-<area shape="poly" id="edge18_Node000017_Node000019" title=" " alt="" coords="400,971,467,971,467,976,400,976"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html" title=" " alt="" coords="467,1019,597,1059"/>
-<area shape="poly" id="edge19_Node000017_Node000020" title=" " alt="" coords="397,996,467,1017,466,1022,395,1001"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="106,636,149,673,203,709,234,720,232,725,200,713,145,678,102,640"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html" title=" " alt="" coords="225,773,396,798"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="97,639,139,700,169,733,203,759,225,770,223,775,200,764,165,737,135,704,93,642"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="237,822,384,848"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="92,640,108,679,131,725,163,771,203,809,237,825,235,829,200,813,159,774,127,728,103,681,87,642"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html" title=" " alt="" coords="202,872,419,913"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="89,641,103,688,125,747,158,807,179,834,203,858,220,869,217,874,200,862,175,838,154,810,120,749,98,690,84,642"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html" title=" " alt="" coords="249,937,372,978"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="86,642,96,701,117,776,132,816,151,855,175,891,203,922,225,937,249,946,247,951,222,942,200,926,171,894,147,857,127,818,112,778,91,702,81,643"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html" title=" " alt="" coords="236,1003,384,1043"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="84,642,90,711,108,804,123,854,144,902,170,948,204,988,219,1000,237,1008,234,1013,216,1004,200,992,166,951,139,905,118,856,103,806,85,712,79,642"/>
+<area shape="rect" id="Node000022" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="239,1068,382,1109"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="83,642,85,722,90,775,100,833,115,892,137,950,166,1005,204,1053,220,1066,240,1075,237,1080,217,1071,200,1057,161,1008,132,952,110,893,95,834,85,776,80,723,77,642"/>
+<area shape="rect" id="Node000023" href="$classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html" title=" " alt="" coords="249,1133,372,1174"/>
+<area shape="poly" id="edge22_Node000001_Node000023" title=" " alt="" coords="87,641,100,746,124,890,141,962,159,1028,180,1082,204,1119,224,1134,249,1144,247,1149,222,1139,200,1122,176,1084,154,1030,135,963,119,891,95,747,81,642"/>
+<area shape="rect" id="Node000019" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype1.html" title=" " alt="" coords="467,937,597,978"/>
+<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="395,995,466,974,467,979,397,1000"/>
+<area shape="rect" id="Node000020" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype2.html" title=" " alt="" coords="467,1003,597,1043"/>
+<area shape="poly" id="edge19_Node000018_Node000020" title=" " alt="" coords="400,1020,467,1020,467,1026,400,1026"/>
+<area shape="rect" id="Node000021" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html" title=" " alt="" coords="467,1068,597,1109"/>
+<area shape="poly" id="edge20_Node000018_Node000021" title=" " alt="" coords="397,1046,467,1067,466,1072,395,1051"/>
 </map>

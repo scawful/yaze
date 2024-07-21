@@ -1,5 +1,5 @@
 <map id="yaze::app::emu::Cpu::Dec" name="yaze::app::emu::Cpu::Dec">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,193,169,219"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,193,169,218"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a68c403ec77f43ce410cf881717274997" title=" " alt="" coords="411,128,545,169"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,190,216,171,309,158,396,150,396,156,310,164,217,176,136,195"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a4e5ba113200a9712892064a68e558caa" title=" " alt="" coords="217,71,363,111"/>

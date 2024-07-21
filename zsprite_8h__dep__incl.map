@@ -1,11 +1,11 @@
 <map id="src/app/editor/sprite/zsprite.h" name="src/app/editor/sprite/zsprite.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="102,5,239,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="102,5,238,46"/>
 <area shape="rect" id="Node000002" href="$sprite__editor_8cc.html" title=" " alt="" coords="24,183,160,223"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,61,103,183,98,181,153,59"/>
-<area shape="rect" id="Node000003" href="$sprite__editor_8h.html" title=" " alt="" coords="182,94,319,135"/>
+<area shape="rect" id="Node000003" href="$sprite__editor_8h.html" title=" " alt="" coords="182,94,318,135"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,56,234,92,230,95,197,59"/>
 <area shape="poly" id="edge14_Node000003_Node000002" title=" " alt="" coords="202,145,129,185,126,180,200,140"/>
-<area shape="rect" id="Node000004" href="$memory__editor_8h.html" title=" " alt="" coords="184,183,317,223"/>
+<area shape="rect" id="Node000004" href="$memory__editor_8h.html" title=" " alt="" coords="184,183,316,223"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="253,150,253,182,248,182,248,150"/>
 <area shape="rect" id="Node000005" href="$master__editor_8h.html" title=" " alt="" coords="181,271,325,312"/>
 <area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="314,141,337,158,355,181,362,203,355,225,332,253,302,273,299,269,328,249,351,222,357,203,351,184,334,162,311,145"/>

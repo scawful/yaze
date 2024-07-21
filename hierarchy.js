@@ -26,7 +26,6 @@ var hierarchy =
     [ "yaze::app::gfx::BitmapManager", "classyaze_1_1app_1_1gfx_1_1BitmapManager.html", null ],
     [ "yaze::app::gui::BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", null ],
     [ "yaze::app::emu::Emulator::Bookmark", "structyaze_1_1app_1_1emu_1_1Emulator_1_1Bookmark.html", null ],
-    [ "yaze::app::gui::Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::CGADD", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADD.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::CGADSUB", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::CGDATA", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGDATA.html", null ],
@@ -210,6 +209,7 @@ var hierarchy =
       [ "yaze::app::editor::Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::app::emu::Emulator", "classyaze_1_1app_1_1emu_1_1Emulator.html", null ],
       [ "yaze::app::emu::video::Ppu", "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html", null ],
+      [ "yaze::app::gui::Canvas", "classyaze_1_1app_1_1gui_1_1Canvas.html", null ],
       [ "yaze::app::zelda3::dungeon::DungeonObjectRenderer", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html", null ],
       [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ],
       [ "yaze::app::zelda3::dungeon::RoomObject", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html", [

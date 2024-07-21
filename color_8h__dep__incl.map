@@ -6,9 +6,9 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="397,40,305,81,303,76,394,35"/>
 <area shape="rect" id="Node000004" href="$screen__editor_8h.html" title=" " alt="" coords="360,79,513,120"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="439,46,439,79,434,79,434,46"/>
-<area shape="rect" id="Node000013" href="$color_8cc.html" title=" " alt="" coords="538,87,672,112"/>
+<area shape="rect" id="Node000013" href="$color_8cc.html" title=" " alt="" coords="538,86,672,112"/>
 <area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="477,36,580,84,578,88,475,40"/>
-<area shape="rect" id="Node000014" href="$pipeline_8cc.html" title=" " alt="" coords="696,87,847,112"/>
+<area shape="rect" id="Node000014" href="$pipeline_8cc.html" title=" " alt="" coords="696,86,846,112"/>
 <area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="504,32,720,83,719,88,502,38"/>
 <area shape="rect" id="Node000005" href="$memory__editor_8h.html" title=" " alt="" coords="217,168,350,208"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="390,130,319,170,317,165,388,125"/>
@@ -22,7 +22,7 @@
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="287,224,288,256,283,256,282,224"/>
 <area shape="rect" id="Node000007" href="$controller_8cc.html" title=" " alt="" coords="38,441,206,467"/>
 <area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="243,308,196,347,156,398,130,442,126,440,152,395,192,343,240,304"/>
-<area shape="rect" id="Node000008" href="$controller_8h.html" title=" " alt="" coords="206,353,366,378"/>
+<area shape="rect" id="Node000008" href="$controller_8h.html" title=" " alt="" coords="206,352,366,378"/>
 <area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="289,313,289,352,283,352,283,313"/>
 <area shape="poly" id="edge12_Node000006_Node000011" title=" " alt="" coords="341,302,423,342,421,347,339,307"/>
 <area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="251,388,146,443,144,438,248,383"/>

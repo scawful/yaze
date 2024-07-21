@@ -1,6 +1,6 @@
 <map id="yaze::app::emu::SNES::RunCycle" name="yaze::app::emu::SNES::RunCycle">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,1656,153,1697"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a6c1abd10faa22d9a680130233a997127" title=" " alt="" coords="209,1179,357,1220"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a6c1abd10faa22d9a680130233a997127" title=" " alt="" coords="209,1179,356,1220"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,1656,81,1580,97,1470,112,1409,134,1348,162,1289,199,1236,208,1227,212,1231,203,1240,167,1292,139,1350,118,1410,103,1471,87,1581,83,1656"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ad1c2080e714a5543f6aff7c2c1ae1f63" title=" " alt="" coords="645,1236,809,1277"/>
 <area shape="poly" id="edge53_Node000001_Node000004" title=" " alt="" coords="81,1655,96,1572,121,1458,137,1401,156,1349,176,1307,199,1280,231,1263,276,1252,330,1244,390,1240,516,1240,630,1246,630,1251,516,1246,390,1246,330,1250,277,1257,233,1268,202,1284,181,1310,161,1351,142,1403,126,1460,101,1573,86,1656"/>
@@ -12,7 +12,7 @@
 <area shape="poly" id="edge47_Node000001_Node000064" title=" " alt="" coords="85,1655,101,1617,126,1570,158,1520,199,1476,205,1471,208,1476,202,1480,162,1523,130,1572,106,1620,90,1657"/>
 <area shape="rect" id="Node000065" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab4b1433221c31364affdbb889135d646" title=" " alt="" coords="202,1490,364,1530"/>
 <area shape="poly" id="edge48_Node000001_Node000065" title=" " alt="" coords="92,1654,136,1599,166,1569,199,1541,208,1536,210,1540,202,1546,170,1572,140,1603,96,1658"/>
-<area shape="rect" id="Node000066" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a6e0577ca69eb03193f5abd9f44723968" title=" " alt="" coords="209,1555,357,1596"/>
+<area shape="rect" id="Node000066" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a6e0577ca69eb03193f5abd9f44723968" title=" " alt="" coords="209,1555,356,1596"/>
 <area shape="poly" id="edge49_Node000001_Node000066" title=" " alt="" coords="113,1654,199,1606,213,1600,215,1605,202,1611,116,1658"/>
 <area shape="rect" id="Node000067" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a77fb8958c75d9038648c802a7027ae60" title=" " alt="" coords="212,1620,354,1661"/>
 <area shape="poly" id="edge50_Node000001_Node000067" title=" " alt="" coords="152,1661,196,1653,197,1659,153,1666"/>
@@ -110,7 +110,7 @@
 <area shape="poly" id="edge59_Node000074_Node000075" title=" " alt="" coords="576,1903,640,1894,641,1899,577,1908"/>
 <area shape="rect" id="Node000078" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab98435209212151dc85b98cf8f6a0eb1" title=" " alt="" coords="875,1930,1030,1970"/>
 <area shape="poly" id="edge64_Node000074_Node000078" title=" " alt="" coords="577,1918,860,1940,859,1946,577,1924"/>
-<area shape="rect" id="Node000076" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a16b376a4daab7485f74d4c74160075fa" title=" " alt="" coords="866,1864,1039,1905"/>
+<area shape="rect" id="Node000076" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a16b376a4daab7485f74d4c74160075fa" title=" " alt="" coords="866,1864,1038,1905"/>
 <area shape="poly" id="edge60_Node000075_Node000076" title=" " alt="" coords="799,1882,851,1882,851,1887,799,1887"/>
 <area shape="rect" id="Node000077" href="$classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#acb715cbced56d0eb9a0913840bfd54ea" title=" " alt="" coords="871,1734,1034,1774"/>
 <area shape="poly" id="edge61_Node000075_Node000077" title=" " alt="" coords="749,1862,796,1824,855,1785,868,1779,871,1784,858,1790,800,1828,753,1866"/>
