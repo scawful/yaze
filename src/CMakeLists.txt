@@ -48,6 +48,7 @@ set(
 
 set(
   YAZE_GUI_SRC
+  app/gui/asset_browser.cc
   app/gui/canvas.cc
   app/gui/input.cc
   app/gui/style.cc
