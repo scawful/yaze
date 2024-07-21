@@ -206,10 +206,10 @@ $(function(){initNavTree('zsprite_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    std::vector&lt;char&gt; buffer(std::istreambuf_iterator&lt;char&gt;(fs), {});</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordtype">int</span> aCount = *<span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">int</span>*<span class="keyword">&gt;</span>(&amp;buffer[0]);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordtype">int</span> animation_count = *<span class="keyword">reinterpret_cast&lt;</span>int32_t*<span class="keyword">&gt;</span>(&amp;buffer[0]);</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="keywordtype">int</span> offset = <span class="keyword">sizeof</span>(int);</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; aCount; i++) {</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; animation_count; i++) {</div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      std::string aname = std::string(&amp;buffer[offset]);</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      offset += aname.size() + 1;</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>      uint8_t afs = *<span class="keyword">reinterpret_cast&lt;</span>uint8_t*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
@@ -223,9 +223,9 @@ $(function(){initNavTree('zsprite_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    }</div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <span class="comment">// RefreshAnimations();</span></div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordtype">int</span> fCount = *<span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">int</span>*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordtype">int</span> frame_count = *<span class="keyword">reinterpret_cast&lt;</span>int32_t*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    offset += <span class="keyword">sizeof</span>(int);</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; fCount; i++) {</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; frame_count; i++) {</div>
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      <span class="comment">// editor.Frames[i] = new Frame();</span></div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>      <a class="code hl_variable" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#acc342b1cba0b94980db3ccdde423c197">editor</a>.<a class="code hl_variable" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a0471980f75c395f09e6bb7cfa12610a7">Frames</a>.emplace_back();</div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>      <span class="comment">// editor.AddUndo(i);</span></div>
@@ -327,7 +327,7 @@ $(function(){initNavTree('zsprite_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>      <a class="code hl_variable" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a0a1211e8c693ddb14de51c5c2e1bf24d">property_sprname</a>.<a class="code hl_variable" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729">Text</a> = std::string(&amp;buffer[offset]);</div>
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>      offset += <a class="code hl_variable" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a0a1211e8c693ddb14de51c5c2e1bf24d">property_sprname</a>.<a class="code hl_variable" href="structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#a5551bf8b22273217faab619c0541e729">Text</a>.size() + 1;</div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>      <span class="keywordtype">int</span> actionL = *<span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">int</span>*<span class="keyword">&gt;</span>(&amp;buffer[offset]);</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>      <span class="keywordtype">int</span> actionL = buffer[offset];</div>
 <div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>      offset += <span class="keyword">sizeof</span>(int);</div>
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; actionL; i++) {</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        std::string a = std::string(&amp;buffer[offset]);</div>

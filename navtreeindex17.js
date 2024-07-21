@@ -1,5 +1,11 @@
 var NAVTREEINDEX17 =
 {
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a75fe01efde8fe81135d7ed615113d5ac":[9,0,0,0,5,0,5,46],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a7a0af46a98a84130370d6fc45ad49699":[8,0,1,0,5,1,5,27],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a7a0af46a98a84130370d6fc45ad49699":[9,0,0,0,5,0,5,27],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a7f4066ace207c98a6a69bc5e6a5160c4":[8,0,1,0,5,1,5,51],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a7f4066ace207c98a6a69bc5e6a5160c4":[9,0,0,0,5,0,5,51],
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a81bf0ac0b3b1c23054ad445e1353ce50":[8,0,1,0,5,1,5,59],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a81bf0ac0b3b1c23054ad445e1353ce50":[9,0,0,0,5,0,5,59],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a81d9682dd2fd3381253a154db5affb5d":[8,0,1,0,5,1,5,41],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a81d9682dd2fd3381253a154db5affb5d":[9,0,0,0,5,0,5,41],
@@ -243,11 +249,5 @@ var NAVTREEINDEX17 =
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html":[9,0,0,0,5,0,11],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a09dd72020e58759fba0e0f66e47d9931":[8,0,1,0,5,1,11,3],
 "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a09dd72020e58759fba0e0f66e47d9931":[9,0,0,0,5,0,11,3],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a36f197599e80027d03ad7d7bec68d13f":[8,0,1,0,5,1,11,0],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a36f197599e80027d03ad7d7bec68d13f":[9,0,0,0,5,0,11,0],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a3fc861b995011aa2340795a07a091347":[8,0,1,0,5,1,11,4],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a3fc861b995011aa2340795a07a091347":[9,0,0,0,5,0,11,4],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a50cf20988ecf51efe898dd5274202c69":[8,0,1,0,5,1,11,2],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a50cf20988ecf51efe898dd5274202c69":[9,0,0,0,5,0,11,2],
-"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a578f1455567e731f08de832e3da35a6b":[8,0,1,0,5,1,11,5]
+"classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Subtype3.html#a36f197599e80027d03ad7d7bec68d13f":[8,0,1,0,5,1,11,0]
 };

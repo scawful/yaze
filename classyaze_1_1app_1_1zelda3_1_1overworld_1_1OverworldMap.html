@@ -189,6 +189,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a84d10cf4fde7abb0eaba6cdd4234546b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbb94f20c7d3eb8376616bb86b5c7f79" id="r_adbb94f20c7d3eb8376616bb86b5c7f79"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adbb94f20c7d3eb8376616bb86b5c7f79">parent</a> () const</td></tr>
 <tr class="separator:adbb94f20c7d3eb8376616bb86b5c7f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c3753688687926cf4fbeaaca8bd4755" id="r_a6c3753688687926cf4fbeaaca8bd4755"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6c3753688687926cf4fbeaaca8bd4755">mutable_mosaic</a> ()</td></tr>
+<tr class="separator:a6c3753688687926cf4fbeaaca8bd4755"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcbdb9cf69017776edbba44232140708" id="r_afcbdb9cf69017776edbba44232140708"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afcbdb9cf69017776edbba44232140708">mutable_current_palette</a> ()</td></tr>
 <tr class="separator:afcbdb9cf69017776edbba44232140708"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52aa16be4832b99c556556305f74c77f" id="r_a52aa16be4832b99c556556305f74c77f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a52aa16be4832b99c556556305f74c77f">area_graphics</a> () const</td></tr>
@@ -265,6 +267,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ac8c739a55379d446b3d57b568bc28998"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a893e77234b43245b83d428dc9611e0c2" id="r_a893e77234b43245b83d428dc9611e0c2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a893e77234b43245b83d428dc9611e0c2">initialized_</a> = false</td></tr>
 <tr class="separator:a893e77234b43245b83d428dc9611e0c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a831ff6e1f8cce59f6e4377b6c79c9dde" id="r_a831ff6e1f8cce59f6e4377b6c79c9dde"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a831ff6e1f8cce59f6e4377b6c79c9dde">mosaic_</a> = false</td></tr>
+<tr class="separator:a831ff6e1f8cce59f6e4377b6c79c9dde"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36bbe66e8eafda0024f8b4752d991730" id="r_a36bbe66e8eafda0024f8b4752d991730"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36bbe66e8eafda0024f8b4752d991730">index_</a> = 0</td></tr>
 <tr class="separator:a36bbe66e8eafda0024f8b4752d991730"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acdb31d7dc119cd9849a5e495f284e656" id="r_acdb31d7dc119cd9849a5e495f284e656"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acdb31d7dc119cd9849a5e495f284e656">parent_</a> = 0</td></tr>
@@ -1001,6 +1005,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">References <a class="el" href="#acdb31d7dc119cd9849a5e495f284e656">parent_</a>.</p>
+
+</div>
+</div>
+<a id="a6c3753688687926cf4fbeaaca8bd4755" name="a6c3753688687926cf4fbeaaca8bd4755"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c3753688687926cf4fbeaaca8bd4755">&#9670;&#160;</a></span>mutable_mosaic()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::zelda3::overworld::OverworldMap::mutable_mosaic </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a831ff6e1f8cce59f6e4377b6c79c9dde">mosaic_</a>.</p>
 
 </div>
 </div>
@@ -2039,6 +2070,30 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#ae92286a9910136f008547268b1e6e415">BuildMap()</a>, and <a class="el" href="#a84d10cf4fde7abb0eaba6cdd4234546b">is_initialized()</a>.</p>
+
+</div>
+</div>
+<a id="a831ff6e1f8cce59f6e4377b6c79c9dde" name="a831ff6e1f8cce59f6e4377b6c79c9dde"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a831ff6e1f8cce59f6e4377b6c79c9dde">&#9670;&#160;</a></span>mosaic_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::app::zelda3::overworld::OverworldMap::mosaic_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a6c3753688687926cf4fbeaaca8bd4755">mutable_mosaic()</a>.</p>
 
 </div>
 </div>

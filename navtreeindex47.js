@@ -1,5 +1,17 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html#a45f436ae3bffb8704932a565f4a0fa3a":[8,0,1,0,2,4,20,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html#a45f436ae3bffb8704932a565f4a0fa3a":[9,0,0,0,2,2,20,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[8,0,1,0,2,4,21],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[9,0,0,0,2,2,21],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[8,0,1,0,2,4,21,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[9,0,0,0,2,2,21,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[8,0,1,0,2,4,21,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[9,0,0,0,2,2,21,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[8,0,1,0,2,4,21,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[9,0,0,0,2,2,21,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a654a3fdd5af0541e335317700d5f8b09":[8,0,1,0,2,4,21,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a654a3fdd5af0541e335317700d5f8b09":[9,0,0,0,2,2,21,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b":[8,0,1,0,2,4,21,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b":[9,0,0,0,2,2,21,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html":[8,0,1,0,2,4,23],
@@ -237,17 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7957ad1e30021e96ae8f52a78fb3ebe7":[8,0,1,0,3,3,0,6],
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a7957ad1e30021e96ae8f52a78fb3ebe7":[9,0,0,0,3,1,0,6],
 "structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a9d40192fa23bb60f470e7942a87a6908":[8,0,1,0,3,3,0,8],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a9d40192fa23bb60f470e7942a87a6908":[9,0,0,0,3,1,0,8],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#aa4256048c610b0905f30486c42b093cb":[8,0,1,0,3,3,0,5],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#aa4256048c610b0905f30486c42b093cb":[9,0,0,0,3,1,0,5],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad09af6b5547da2559e46583f2d37b4d0":[8,0,1,0,3,3,0,0],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad09af6b5547da2559e46583f2d37b4d0":[9,0,0,0,3,1,0,0],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#af9325a3713946ab60323ae6eea38ad88":[8,0,1,0,3,3,0,1],
-"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#af9325a3713946ab60323ae6eea38ad88":[9,0,0,0,3,1,0,1],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html":[8,0,1,0,3,10],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html":[9,0,0,0,3,8],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9":[8,0,1,0,3,10,0],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9":[9,0,0,0,3,8,0],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[8,0,1,0,3,10,2],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[9,0,0,0,3,8,2]
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a9d40192fa23bb60f470e7942a87a6908":[9,0,0,0,3,1,0,8]
 };

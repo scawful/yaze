@@ -1,5 +1,11 @@
 var NAVTREEINDEX15 =
 {
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a2ffb94ffb630c4f75ae893ba09e2df79":[9,0,0,0,3,16,26],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3631b95b8895dca807064f2b3e1e9114":[8,0,1,0,3,18,31],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3631b95b8895dca807064f2b3e1e9114":[9,0,0,0,3,16,31],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87":[8,0,1,0,3,18,5],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87":[9,0,0,0,3,16,5],
+"classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3d47fcb7e4afe690b68f3b84ebc40db5":[8,0,1,0,3,18,32],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3d47fcb7e4afe690b68f3b84ebc40db5":[9,0,0,0,3,16,32],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a4575c8eaa2336fb84adc5f2c0b78e1b2":[8,0,1,0,3,18,2],
 "classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a4575c8eaa2336fb84adc5f2c0b78e1b2":[9,0,0,0,3,16,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX15 =
 "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a039476bc5127718f110382ca6d160095":[9,0,0,0,5,4,3],
 "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a27ba0c0186fb1c5b27b8aec437457e42":[8,0,1,0,5,5,10],
 "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a27ba0c0186fb1c5b27b8aec437457e42":[9,0,0,0,5,4,10],
-"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a2a68113a53f6a08947dbea06de02b9fc":[8,0,1,0,5,5,9],
-"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a2a68113a53f6a08947dbea06de02b9fc":[9,0,0,0,5,4,9],
-"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a3f02e182efd8ed7a87214b81a811da96":[8,0,1,0,5,5,8],
-"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a3f02e182efd8ed7a87214b81a811da96":[9,0,0,0,5,4,8],
-"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a4c5e288c97ff2884a282a11b6f7e16b5":[8,0,1,0,5,5,0],
-"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a4c5e288c97ff2884a282a11b6f7e16b5":[9,0,0,0,5,4,0],
-"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a4c5e288c97ff2884a282a11b6f7e16b5a03def5d9d6e8c06bda849c6a9daf31c4":[8,0,1,0,5,5,0,6]
+"classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html#a2a68113a53f6a08947dbea06de02b9fc":[8,0,1,0,5,5,9]
 };

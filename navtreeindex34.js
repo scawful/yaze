@@ -1,5 +1,15 @@
 var NAVTREEINDEX34 =
 {
+"labeling_8h.html":[10,0,1,0,0,7],
+"labeling_8h_source.html":[10,0,1,0,0,7],
+"log_8h.html":[10,0,1,0,2,2,3],
+"log_8h_source.html":[10,0,1,0,2,2,3],
+"master__editor_8cc.html":[10,0,1,0,1,7],
+"master__editor_8cc.html#a2ba6e51388d9b35fd4f27705a42659b8":[10,0,1,0,1,7,1],
+"master__editor_8cc.html#a2fc24babfcbf8040128e6cd2fd5ff904":[10,0,1,0,1,7,2],
+"master__editor_8cc.html#a5035b7f9e50f6d99047aeb532d90b142":[10,0,1,0,1,7,3],
+"master__editor_8cc.html#a6872020f533c742e88197014191b68ec":[10,0,1,0,1,7,0],
+"master__editor_8h.html":[10,0,1,0,1,8],
 "master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38":[10,0,1,0,1,8,1],
 "master__editor_8h_source.html":[10,0,1,0,1,8],
 "md_README.html":[4],
@@ -239,15 +249,5 @@ var NAVTREEINDEX34 =
 "namespaceyaze_1_1app_1_1core.html#ac2588b6c37606c1692a7a4771dfc5356":[8,0,1,0,0,29],
 "namespaceyaze_1_1app_1_1core.html#ac31ff6426029e67c6488639438f319b1":[8,0,1,0,0,27],
 "namespaceyaze_1_1app_1_1core.html#ac381f3839d2bd1c264675d5cc113e7ec":[8,0,1,0,0,59],
-"namespaceyaze_1_1app_1_1core.html#ac45100a1fa231127736ef1e2e1a001c5":[8,0,1,0,0,14],
-"namespaceyaze_1_1app_1_1core.html#ac553ac7a4fb1da8826212a15f8fc0548":[8,0,1,0,0,24],
-"namespaceyaze_1_1app_1_1core.html#ac87655502556452f5b28c73ea443efee":[8,0,1,0,0,77],
-"namespaceyaze_1_1app_1_1core.html#aca9765be2c114fb95a5a3724fad4b994":[8,0,1,0,0,48],
-"namespaceyaze_1_1app_1_1core.html#acabdb9f5536c40280ef09cdc1c6711b8":[8,0,1,0,0,34],
-"namespaceyaze_1_1app_1_1core.html#acbf84d390f95f66321e932ccf79c43a4":[8,0,1,0,0,91],
-"namespaceyaze_1_1app_1_1core.html#acd96e8461287964a49ff0a4311e51567":[8,0,1,0,0,25],
-"namespaceyaze_1_1app_1_1core.html#ad1b9b539b2fe081253a8d14f80c654ae":[8,0,1,0,0,41],
-"namespaceyaze_1_1app_1_1core.html#ad9676b418ff21dd1cb96efa0198c1453":[8,0,1,0,0,56],
-"namespaceyaze_1_1app_1_1core.html#ad9d7f8c3a344e69cdb20c165a893b9b8":[8,0,1,0,0,26],
-"namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524":[8,0,1,0,0,9]
+"namespaceyaze_1_1app_1_1core.html#ac45100a1fa231127736ef1e2e1a001c5":[8,0,1,0,0,14]
 };

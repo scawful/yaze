@@ -1,5 +1,17 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a2ba431f858a28ec8e99e5c520bc7a3d6":[8,0,1,0,2,4,0,30,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a2ba431f858a28ec8e99e5c520bc7a3d6":[9,0,0,0,2,2,0,30,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a3bd8b9efd9284f969f85555e1af83992":[8,0,1,0,2,4,0,30,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a3bd8b9efd9284f969f85555e1af83992":[9,0,0,0,2,2,0,30,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a4f17bd08b165350b771b5ba1fb98153d":[8,0,1,0,2,4,0,30,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a4f17bd08b165350b771b5ba1fb98153d":[9,0,0,0,2,2,0,30,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b":[8,0,1,0,2,4,0,30,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b":[9,0,0,0,2,2,0,30,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#ac79d6f29079ec5695104d51523d65628":[8,0,1,0,2,4,0,30,6],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#ac79d6f29079ec5695104d51523d65628":[9,0,0,0,2,2,0,30,6],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#ad2394a1790c1ac207ecd9d5c3ad2bd7e":[8,0,1,0,2,4,0,30,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#ad2394a1790c1ac207ecd9d5c3ad2bd7e":[9,0,0,0,2,2,0,30,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html":[8,0,1,0,2,4,0,31],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html":[9,0,0,0,2,2,0,31],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html#aa8d33e9542abca40fcb7102b13a7f99f":[8,0,1,0,2,4,0,31,0],
@@ -237,17 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation.html#a80fa72bcc9c2ce0a87e7923766ffb28f":[8,0,1,0,2,4,22,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1TileMapLocation.html#a80fa72bcc9c2ce0a87e7923766ffb28f":[9,0,0,0,2,2,22,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html":[8,0,1,0,2,4,20],
-"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html":[9,0,0,0,2,2,20],
-"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html#a45f436ae3bffb8704932a565f4a0fa3a":[8,0,1,0,2,4,20,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html#a45f436ae3bffb8704932a565f4a0fa3a":[9,0,0,0,2,2,20,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[8,0,1,0,2,4,21],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html":[9,0,0,0,2,2,21],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[8,0,1,0,2,4,21,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a444549c6f7fdca6cd0c030afe322c408":[9,0,0,0,2,2,21,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[8,0,1,0,2,4,21,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4ea833ba45199d9be83d84739649d997":[9,0,0,0,2,2,21,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[8,0,1,0,2,4,21,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a4f5e11fcc7c601b7c0335cd1fa83b9fd":[9,0,0,0,2,2,21,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a654a3fdd5af0541e335317700d5f8b09":[8,0,1,0,2,4,21,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a654a3fdd5af0541e335317700d5f8b09":[9,0,0,0,2,2,21,3]
+"structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html":[9,0,0,0,2,2,20]
 };

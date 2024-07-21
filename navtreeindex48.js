@@ -1,5 +1,17 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#aa4256048c610b0905f30486c42b093cb":[8,0,1,0,3,3,0,5],
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#aa4256048c610b0905f30486c42b093cb":[9,0,0,0,3,1,0,5],
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad09af6b5547da2559e46583f2d37b4d0":[8,0,1,0,3,3,0,0],
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad09af6b5547da2559e46583f2d37b4d0":[9,0,0,0,3,1,0,0],
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#af9325a3713946ab60323ae6eea38ad88":[8,0,1,0,3,3,0,1],
+"structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#af9325a3713946ab60323ae6eea38ad88":[9,0,0,0,3,1,0,1],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html":[8,0,1,0,3,10],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html":[9,0,0,0,3,8],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9":[8,0,1,0,3,10,0],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9":[9,0,0,0,3,8,0],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[8,0,1,0,3,10,2],
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[9,0,0,0,3,8,2],
 "structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395":[8,0,1,0,3,10,1],
 "structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395":[9,0,0,0,3,8,1],
 "structyaze_1_1app_1_1gfx_1_1snes__palette.html":[8,0,1,0,3,11],
@@ -237,17 +249,5 @@ var NAVTREEINDEX48 =
 "style_8h_source.html":[10,0,1,0,4,12],
 "test.html":[7],
 "tile16__editor_8cc.html":[10,0,1,0,1,1,8],
-"tile16__editor_8h.html":[10,0,1,0,1,1,9],
-"tile16__editor_8h_source.html":[10,0,1,0,1,1,9],
-"tilesheet_8cc.html":[10,0,1,0,3,12],
-"tilesheet_8cc.html#afe2b409c93b8b037b20a8d4ac2df3353":[10,0,1,0,3,12,0],
-"tilesheet_8h.html":[10,0,1,0,3,13],
-"tilesheet_8h.html#ae95a00ff98c9e69d426f80c487e2dac7":[10,0,1,0,3,13,2],
-"tilesheet_8h.html#ae95a00ff98c9e69d426f80c487e2dac7a0136ed56bdc945f798e3b2ff271ba011":[10,0,1,0,3,13,2,1],
-"tilesheet_8h.html#ae95a00ff98c9e69d426f80c487e2dac7af741ccc3c4a5d5202699b366e0b822a5":[10,0,1,0,3,13,2,0],
-"tilesheet_8h.html#afe2b409c93b8b037b20a8d4ac2df3353":[10,0,1,0,3,13,3],
-"tilesheet_8h_source.html":[10,0,1,0,3,13],
-"title__screen_8cc.html":[10,0,1,0,5,3,3],
-"title__screen_8h.html":[10,0,1,0,5,3,4],
-"title__screen_8h_source.html":[10,0,1,0,5,3,4]
+"tile16__editor_8h.html":[10,0,1,0,1,1,9]
 };

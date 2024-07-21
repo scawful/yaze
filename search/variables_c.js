@@ -95,7 +95,7 @@ var searchData=
   ['modified_92',['modified',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html#ae36f4d390882bdee941195214c450172',1,'yaze::app::gfx::SnesColor']]],
   ['modified_5f_93',['modified_',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a4a6aa7feda4ee383e11addcfd9b726c4',1,'yaze::app::core::NotifyValue::modified_'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ad77e203b98312b3add6918574fe1cd50',1,'yaze::app::gfx::Bitmap::modified_']]],
   ['mosaic_94',['MOSAIC',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#afeaa3157a66a6e476691aaecaed33ec9',1,'yaze::app::emu::video::PpuRegisters']]],
-  ['mosaic_5f_95',['mosaic_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a3aca33be6aee6690df5ad16cc282ca43',1,'yaze::app::emu::video::Ppu']]],
+  ['mosaic_5f_95',['mosaic_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a3aca33be6aee6690df5ad16cc282ca43',1,'yaze::app::emu::video::Ppu::mosaic_'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a831ff6e1f8cce59f6e4377b6c79c9dde',1,'yaze::app::zelda3::overworld::OverworldMap::mosaic_']]],
   ['mosaic_5fsize_96',['mosaic_size',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#a2aed862f530e9c1ac5886d978760b348',1,'yaze::app::emu::video::PpuRegisters::Mosaic']]],
   ['mosaic_5fsize_5f_97',['mosaic_size_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a267296f31044a5696778dd6686b59fdf',1,'yaze::app::emu::video::Ppu']]],
   ['mosaic_5fstartline_5f_98',['mosaic_startline_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a5fe6c177792250ddb1977fa9a60178fe',1,'yaze::app::emu::video::Ppu']]],

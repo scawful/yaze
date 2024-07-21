@@ -20,5 +20,6 @@ var overworld__editor_8cc =
     [ "DrawSpriteTable", "overworld__editor_8cc.html#af8c262f4f4532022c69bfea7fcadcd9d", null ],
     [ "DrawSpriteInserterPopup", "overworld__editor_8cc.html#ad5b1ca928d14672e68b458d65427ed7d", null ],
     [ "DrawSpriteEditorPopup", "overworld__editor_8cc.html#a97b1247be06a5454f1f03978608a7ecd", null ],
-    [ "kOverworldMapSize", "overworld__editor_8cc.html#a9d06221cd91107ded60d6b25c66005cc", null ]
+    [ "kTile16Size", "overworld__editor_8cc.html#a82580c78db5fc851768be8445138aa3c", null ],
+    [ "kOverworldMapSize", "overworld__editor_8cc.html#ad773c0030307cc45282b8e59b648dff6", null ]
 ];
