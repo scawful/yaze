@@ -136,8 +136,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a77893e087ccbfe8d29a5679d2961d37d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af09965d44fc67e7f85078f61610631b5" id="r_af09965d44fc67e7f85078f61610631b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes</a> (float avail_width)</td></tr>
 <tr class="separator:af09965d44fc67e7f85078f61610631b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad786ecd87133254ff7415f4e2f292bc3" id="r_ad786ecd87133254ff7415f4e2f292bc3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw</a> (const char *title, bool *p_open, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html">gfx::BitmapManager</a> *bmp_manager)</td></tr>
-<tr class="separator:ad786ecd87133254ff7415f4e2f292bc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae62b5b7ba729909123634806b50f0a8" id="r_aae62b5b7ba729909123634806b50f0a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html">gfx::BitmapManager</a> *bmp_manager)</td></tr>
+<tr class="separator:aae62b5b7ba729909123634806b50f0a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -183,6 +183,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a9b3937a44b047741c1b670b153246665"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a794a113371288bf0f1df82afc3e14fb1" id="r_a794a113371288bf0f1df82afc3e14fb1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a794a113371288bf0f1df82afc3e14fb1">LayoutLineCount</a> = 0</td></tr>
 <tr class="separator:a794a113371288bf0f1df82afc3e14fb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e14b0bf60f228633941f3429959aad5" id="r_a5e14b0bf60f228633941f3429959aad5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5e14b0bf60f228633941f3429959aad5">Initialized</a> = false</td></tr>
+<tr class="separator:a5e14b0bf60f228633941f3429959aad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="aee98693d62a66268f32505781a6b8354" name="aee98693d62a66268f32505781a6b8354"></a>
@@ -208,9 +210,9 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#ad180999245dee44a239d4e90954c8193">Items</a>, and <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3d5b03ec8e7cf6320a507ff26960438e">yaze::app::gfx::BitmapManager::size()</a>.</p>
+<p class="reference">References <a class="el" href="#a5e14b0bf60f228633941f3429959aad5">Initialized</a>, <a class="el" href="#ad180999245dee44a239d4e90954c8193">Items</a>, and <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3d5b03ec8e7cf6320a507ff26960438e">yaze::app::gfx::BitmapManager::size()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a73c3d73520a3953784992c471d53df75">yaze::app::editor::GraphicsEditor::UpdateGfxEdit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4793620335c1fef40414171397f51583">yaze::app::editor::GraphicsEditor::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -303,50 +305,33 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a2e45bf741560645132d2d60d3225d472">IconHitSpacing</a>, <a class="el" href="#a8991d96479e9977691a6585d86135f41">IconSize</a>, <a class="el" href="#ab21bdab609c5dcb099545933413582c9">IconSpacing</a>, <a class="el" href="asset__browser_8h.html#a9d0693fad89638629beea97300c8f8f6">IM_MAX</a>, <a class="el" href="#ad180999245dee44a239d4e90954c8193">Items</a>, <a class="el" href="#a9b3937a44b047741c1b670b153246665">LayoutColumnCount</a>, <a class="el" href="#a5c03c4c4290102ede4ea4bbfa58bd193">LayoutItemSize</a>, <a class="el" href="#a30b83de12c4c494c892ab4ee3e5683fa">LayoutItemSpacing</a>, <a class="el" href="#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>, <a class="el" href="#a794a113371288bf0f1df82afc3e14fb1">LayoutLineCount</a>, <a class="el" href="#aa4aadd67dcba60877013cc88d8d2effb">LayoutOuterPadding</a>, <a class="el" href="#adbffdb3417817678bf9c3d62bb46e122">LayoutSelectableSpacing</a>, and <a class="el" href="#a44df45da08d9aaf2e494a58980359c56">StretchSpacing</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
-<a id="ad786ecd87133254ff7415f4e2f292bc3" name="ad786ecd87133254ff7415f4e2f292bc3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad786ecd87133254ff7415f4e2f292bc3">&#9670;&#160;</a></span>Draw()</h2>
+<a id="aae62b5b7ba729909123634806b50f0a8" name="aae62b5b7ba729909123634806b50f0a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae62b5b7ba729909123634806b50f0a8">&#9670;&#160;</a></span>Draw()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void yaze::app::gui::GfxSheetAssetBrowser::Draw </td>
           <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>title</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html">gfx::BitmapManager</a> *</td>          <td class="paramname"><span class="paramname"><em>bmp_manager</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">bool *</td>          <td class="paramname"><span class="paramname"><em>p_open</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html">gfx::BitmapManager</a> *</td>          <td class="paramname"><span class="paramname"><em>bmp_manager</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p class="reference">References <a class="el" href="#a2317c8c54583812a23f520bda520a48d">AllowBoxSelect</a>, <a class="el" href="#a5f4c8ad1eef9f6952dd86bd70e95be67">AllowDragUnselected</a>, <a class="el" href="#afc2849681a7eefa51da3a5efd3958746">AllowSorting</a>, <a class="el" href="structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#a89b3f1bc90a0517598b5ba7950f77882">yaze::app::gui::ExampleSelectionWithDeletion::ApplyDeletionPostLoop()</a>, <a class="el" href="structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#ae875ea39bd408fb139cb4f551d9df949">yaze::app::gui::ExampleSelectionWithDeletion::ApplyDeletionPreLoop()</a>, <a class="el" href="#a2e45bf741560645132d2d60d3225d472">IconHitSpacing</a>, <a class="el" href="#a8991d96479e9977691a6585d86135f41">IconSize</a>, <a class="el" href="#ab21bdab609c5dcb099545933413582c9">IconSpacing</a>, <a class="el" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e">yaze::app::gui::AssetObject::ID</a>, <a class="el" href="asset__browser_8h.html#a25d1e4d29150e7587f99e0723493a004">IM_CLAMP</a>, <a class="el" href="asset__browser_8h.html#af25a13a96600f1a018104f6c2d3da645">IM_MIN</a>, <a class="el" href="#ad180999245dee44a239d4e90954c8193">Items</a>, <a class="el" href="#a9b3937a44b047741c1b670b153246665">LayoutColumnCount</a>, <a class="el" href="#a5c03c4c4290102ede4ea4bbfa58bd193">LayoutItemSize</a>, <a class="el" href="#a30b83de12c4c494c892ab4ee3e5683fa">LayoutItemSpacing</a>, <a class="el" href="#a90d19ddf6a34d2066a5092cbcc2eb03f">LayoutItemStep</a>, <a class="el" href="#a794a113371288bf0f1df82afc3e14fb1">LayoutLineCount</a>, <a class="el" href="#aa4aadd67dcba60877013cc88d8d2effb">LayoutOuterPadding</a>, <a class="el" href="#adbffdb3417817678bf9c3d62bb46e122">LayoutSelectableSpacing</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#ad06e8da1b914ae28026e3445aeb840a3">yaze::app::gfx::BitmapManager::mutable_bitmap()</a>, <a class="el" href="#a4ee25156523b89e757d8f442e2c82408">RequestDelete</a>, <a class="el" href="#ac2ab61a7f8e00ecf713e6cbd05909748">RequestSort</a>, <a class="el" href="#a8da3b94e27da48c986531b865ef96d24">Selection</a>, <a class="el" href="#a7a5e3bfaf6fc5af5bbe6e24d5857d688">ShowTypeOverlay</a>, <a class="el" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a692735fd9e043634acfc76b6ebfa1688">yaze::app::gui::AssetObject::SortWithSortSpecs()</a>, <a class="el" href="#a44df45da08d9aaf2e494a58980359c56">StretchSpacing</a>, <a class="el" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac">yaze::app::gui::AssetObject::Type</a>, <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>, and <a class="el" href="#aedd3e084649438eb1a78fe210cc13470">ZoomWheelAccum</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a73c3d73520a3953784992c471d53df75">yaze::app::editor::GraphicsEditor::UpdateGfxEdit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4793620335c1fef40414171397f51583">yaze::app::editor::GraphicsEditor::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_ad786ecd87133254ff7415f4e2f292bc3_cgraph.png" border="0" usemap="#astructyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_ad786ecd87133254ff7415f4e2f292bc3_cgraph" alt=""/></div>
-<map name="astructyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_ad786ecd87133254ff7415f4e2f292bc3_cgraph" id="astructyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_ad786ecd87133254ff7415f4e2f292bc3_cgraph">
+<div class="center"><img src="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_aae62b5b7ba729909123634806b50f0a8_cgraph.png" border="0" usemap="#astructyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_aae62b5b7ba729909123634806b50f0a8_cgraph" alt=""/></div>
+<map name="astructyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_aae62b5b7ba729909123634806b50f0a8_cgraph" id="astructyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser_aae62b5b7ba729909123634806b50f0a8_cgraph">
 <area shape="rect" title=" " alt="" coords="5,136,163,177"/>
 <area shape="rect" href="structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#a89b3f1bc90a0517598b5ba7950f77882" title=" " alt="" coords="211,5,446,46"/>
 <area shape="poly" title=" " alt="" coords="105,134,151,95,209,57,225,50,227,54,212,61,154,99,108,138"/>
@@ -358,7 +343,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="163,175,235,194,234,199,162,180"/>
 <area shape="rect" href="structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#af09965d44fc67e7f85078f61610631b5" title=" " alt="" coords="217,267,440,307"/>
 <area shape="poly" title=" " alt="" coords="108,175,154,214,212,251,227,258,225,263,209,256,151,218,105,179"/>
-<area shape="rect" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a96252947db3f60b83bdbc61f9b08b472" title=" " alt="" coords="494,201,669,242"/>
+<area shape="rect" href="structyaze_1_1app_1_1gui_1_1AssetObject.html#a6e18b5f8ddb99ffa8d72c305986aa8e4" title=" " alt="" coords="494,201,669,242"/>
 <area shape="poly" title=" " alt="" coords="417,219,479,219,479,224,417,224"/>
 </map>
 </div>
@@ -378,7 +363,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -394,7 +379,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -410,7 +395,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -426,7 +411,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -442,7 +427,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -458,7 +443,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -474,7 +459,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -490,7 +475,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -506,7 +491,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55d5ed61e002b42434b0e6a4c4605cb">AddItems()</a>, <a class="el" href="#a77893e087ccbfe8d29a5679d2961d37d">ClearItems()</a>, <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, <a class="el" href="#aee98693d62a66268f32505781a6b8354">Initialize()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#af55d5ed61e002b42434b0e6a4c4605cb">AddItems()</a>, <a class="el" href="#a77893e087ccbfe8d29a5679d2961d37d">ClearItems()</a>, <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, <a class="el" href="#aee98693d62a66268f32505781a6b8354">Initialize()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -522,7 +507,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a77893e087ccbfe8d29a5679d2961d37d">ClearItems()</a>, and <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a77893e087ccbfe8d29a5679d2961d37d">ClearItems()</a>, and <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -554,7 +539,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -570,7 +555,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#af55d5ed61e002b42434b0e6a4c4605cb">AddItems()</a>, and <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#af55d5ed61e002b42434b0e6a4c4605cb">AddItems()</a>, and <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -586,7 +571,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>.</p>
 
 </div>
 </div>
@@ -602,7 +587,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -618,7 +603,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -634,7 +619,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -650,7 +635,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -666,7 +651,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -682,7 +667,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
@@ -698,12 +683,29 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ad786ecd87133254ff7415f4e2f292bc3">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aae62b5b7ba729909123634806b50f0a8">Draw()</a>, and <a class="el" href="#af09965d44fc67e7f85078f61610631b5">UpdateLayoutSizes()</a>.</p>
 
 </div>
 </div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<a id="a5e14b0bf60f228633941f3429959aad5" name="a5e14b0bf60f228633941f3429959aad5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e14b0bf60f228633941f3429959aad5">&#9670;&#160;</a></span>Initialized</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::app::gui::GfxSheetAssetBrowser::Initialized = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#aee98693d62a66268f32505781a6b8354">Initialize()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a4793620335c1fef40414171397f51583">yaze::app::editor::GraphicsEditor::Update()</a>.</p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following files:<ul>
 <li>src/app/gui/<a class="el" href="asset__browser_8h_source.html">asset_browser.h</a></li>
+<li>src/app/gui/<a class="el" href="asset__browser_8cc.html">asset_browser.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

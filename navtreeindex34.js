@@ -1,5 +1,8 @@
 var NAVTREEINDEX34 =
 {
+"master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38":[10,0,1,0,1,8,1],
+"master__editor_8h_source.html":[10,0,1,0,1,8],
+"md_README.html":[4],
 "md_README.html#autotoc_md31":[4,0],
 "md_README.html#autotoc_md32":[4,1],
 "md_README.html#autotoc_md33":[4,2],
@@ -246,8 +249,5 @@ var NAVTREEINDEX34 =
 "namespaceyaze_1_1app_1_1core.html#ad1b9b539b2fe081253a8d14f80c654ae":[8,0,1,0,0,41],
 "namespaceyaze_1_1app_1_1core.html#ad9676b418ff21dd1cb96efa0198c1453":[8,0,1,0,0,56],
 "namespaceyaze_1_1app_1_1core.html#ad9d7f8c3a344e69cdb20c165a893b9b8":[8,0,1,0,0,26],
-"namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524":[8,0,1,0,0,9],
-"namespaceyaze_1_1app_1_1core.html#adeee2f15a01705bd473a4324309d828e":[8,0,1,0,0,52],
-"namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd":[8,0,1,0,0,8],
-"namespaceyaze_1_1app_1_1core.html#ae3e7136b912d3ffcf4bf2cd39af7fcab":[8,0,1,0,0,85]
+"namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524":[8,0,1,0,0,9]
 };

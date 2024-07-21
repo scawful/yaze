@@ -1,5 +1,8 @@
 var NAVTREEINDEX47 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b":[8,0,1,0,2,4,21,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1TilemapEntry.html#a984940db659b968c30b27d01518b215b":[9,0,0,0,2,2,21,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html":[8,0,1,0,2,4,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html":[9,0,0,0,2,2,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29":[8,0,1,0,2,4,23,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#a05b95b8bfff1c172634780c21e57ae29":[9,0,0,0,2,2,23,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9":[8,0,1,0,3,10,0],
 "structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9":[9,0,0,0,3,8,0],
 "structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[8,0,1,0,3,10,2],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[9,0,0,0,3,8,2],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395":[8,0,1,0,3,10,1],
-"structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395":[9,0,0,0,3,8,1],
-"structyaze_1_1app_1_1gfx_1_1snes__palette.html":[8,0,1,0,3,11]
+"structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40":[9,0,0,0,3,8,2]
 };

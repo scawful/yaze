@@ -59,13 +59,14 @@ var searchData=
   ['armors_56',['armors',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ae8ed03533649af573e16611c86ea532f',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['asm_5fparser_57',['asm_parser',['../classyaze__test_1_1emu__test_1_1CpuTest.html#a8a27ddcdb37dbb42c2ee8e2629879ffe',1,'yaze_test::emu_test::CpuTest']]],
   ['assembly_5feditor_5f_58',['assembly_editor_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a7698596df9b109e73fb8abe8c2ced5a1',1,'yaze::app::editor::MasterEditor::assembly_editor_'],['../classyaze_1_1app_1_1editor_1_1MusicEditor.html#a19ac93c06947b9d269f8a268e2c18c67',1,'yaze::app::editor::MusicEditor::assembly_editor_']]],
-  ['attributes_59',['attributes',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad',1,'yaze::app::gui::zeml::Node']]],
-  ['audio_5fbuffer_5f_60',['audio_buffer_',['../classyaze_1_1app_1_1core_1_1Controller.html#aedd8bb2ace258403e9f3808e2520e4b9',1,'yaze::app::core::Controller::audio_buffer_'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#ae0afccc1d612dd7c8ad96f74e44b9a37',1,'yaze::app::emu::Emulator::audio_buffer_']]],
-  ['audio_5fdevice_5f_61',['audio_device_',['../classyaze_1_1app_1_1core_1_1Controller.html#a04c21c318b230bba2f09201b47bb1f7d',1,'yaze::app::core::Controller::audio_device_'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#a133affc39ccc0e14517b0bfef883b2f0',1,'yaze::app::emu::Emulator::audio_device_']]],
-  ['audio_5ffrequency_5f_62',['audio_frequency_',['../classyaze_1_1app_1_1core_1_1Controller.html#a2aa3c78db90d65c697c2af17ac00f904',1,'yaze::app::core::Controller']]],
-  ['audioram_63',['audioRAM',['../classyaze__test_1_1emu__test_1_1Spc700Test.html#a16e468b0d870da29cd5e1e23ca8dce79',1,'yaze_test::emu_test::Spc700Test']]],
-  ['auto_5fjoy_5fread_5f_64',['auto_joy_read_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a89c5f3a1cc06a3f78398dfba567936b9',1,'yaze::app::emu::SNES']]],
-  ['auto_5fjoy_5ftimer_5f_65',['auto_joy_timer_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a8d4279e4bd9798fc575b69e7e26f0504',1,'yaze::app::emu::SNES']]],
-  ['aux1_66',['aux1',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#ad0bc06ae38b4884a940bdffae0abd2e9',1,'yaze::app::gfx::Paletteset']]],
-  ['aux2_67',['aux2',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a0a80e06e1afb298ef992e5d4ff92ef54',1,'yaze::app::gfx::Paletteset']]]
+  ['asset_5fbrowser_5f_59',['asset_browser_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a67a99323a438a1cc452076c8e32d9164',1,'yaze::app::editor::GraphicsEditor']]],
+  ['attributes_60',['attributes',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad',1,'yaze::app::gui::zeml::Node']]],
+  ['audio_5fbuffer_5f_61',['audio_buffer_',['../classyaze_1_1app_1_1core_1_1Controller.html#aedd8bb2ace258403e9f3808e2520e4b9',1,'yaze::app::core::Controller::audio_buffer_'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#ae0afccc1d612dd7c8ad96f74e44b9a37',1,'yaze::app::emu::Emulator::audio_buffer_']]],
+  ['audio_5fdevice_5f_62',['audio_device_',['../classyaze_1_1app_1_1core_1_1Controller.html#a04c21c318b230bba2f09201b47bb1f7d',1,'yaze::app::core::Controller::audio_device_'],['../classyaze_1_1app_1_1emu_1_1Emulator.html#a133affc39ccc0e14517b0bfef883b2f0',1,'yaze::app::emu::Emulator::audio_device_']]],
+  ['audio_5ffrequency_5f_63',['audio_frequency_',['../classyaze_1_1app_1_1core_1_1Controller.html#a2aa3c78db90d65c697c2af17ac00f904',1,'yaze::app::core::Controller']]],
+  ['audioram_64',['audioRAM',['../classyaze__test_1_1emu__test_1_1Spc700Test.html#a16e468b0d870da29cd5e1e23ca8dce79',1,'yaze_test::emu_test::Spc700Test']]],
+  ['auto_5fjoy_5fread_5f_65',['auto_joy_read_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a89c5f3a1cc06a3f78398dfba567936b9',1,'yaze::app::emu::SNES']]],
+  ['auto_5fjoy_5ftimer_5f_66',['auto_joy_timer_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a8d4279e4bd9798fc575b69e7e26f0504',1,'yaze::app::emu::SNES']]],
+  ['aux1_67',['aux1',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#ad0bc06ae38b4884a940bdffae0abd2e9',1,'yaze::app::gfx::Paletteset']]],
+  ['aux2_68',['aux2',['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a0a80e06e1afb298ef992e5d4ff92ef54',1,'yaze::app::gfx::Paletteset']]]
 ];

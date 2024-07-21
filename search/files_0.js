@@ -8,5 +8,6 @@ var searchData=
   ['asm_5fparser_2eh_5',['asm_parser.h',['../asm__parser_8h.html',1,'']]],
   ['assembly_5feditor_2ecc_6',['assembly_editor.cc',['../assembly__editor_8cc.html',1,'']]],
   ['assembly_5feditor_2eh_7',['assembly_editor.h',['../assembly__editor_8h.html',1,'']]],
-  ['asset_5fbrowser_2eh_8',['asset_browser.h',['../asset__browser_8h.html',1,'']]]
+  ['asset_5fbrowser_2ecc_8',['asset_browser.cc',['../asset__browser_8cc.html',1,'']]],
+  ['asset_5fbrowser_2eh_9',['asset_browser.h',['../asset__browser_8h.html',1,'']]]
 ];

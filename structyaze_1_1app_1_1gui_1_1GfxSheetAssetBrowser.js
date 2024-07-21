@@ -4,7 +4,7 @@ var structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser =
     [ "AddItems", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#af55d5ed61e002b42434b0e6a4c4605cb", null ],
     [ "ClearItems", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a77893e087ccbfe8d29a5679d2961d37d", null ],
     [ "UpdateLayoutSizes", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#af09965d44fc67e7f85078f61610631b5", null ],
-    [ "Draw", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad786ecd87133254ff7415f4e2f292bc3", null ],
+    [ "Draw", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aae62b5b7ba729909123634806b50f0a8", null ],
     [ "ShowTypeOverlay", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a7a5e3bfaf6fc5af5bbe6e24d5857d688", null ],
     [ "AllowSorting", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#afc2849681a7eefa51da3a5efd3958746", null ],
     [ "AllowDragUnselected", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a5f4c8ad1eef9f6952dd86bd70e95be67", null ],
@@ -25,5 +25,6 @@ var structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser =
     [ "LayoutSelectableSpacing", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#adbffdb3417817678bf9c3d62bb46e122", null ],
     [ "LayoutOuterPadding", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#aa4aadd67dcba60877013cc88d8d2effb", null ],
     [ "LayoutColumnCount", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a9b3937a44b047741c1b670b153246665", null ],
-    [ "LayoutLineCount", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a794a113371288bf0f1df82afc3e14fb1", null ]
+    [ "LayoutLineCount", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a794a113371288bf0f1df82afc3e14fb1", null ],
+    [ "Initialized", "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a5e14b0bf60f228633941f3429959aad5", null ]
 ];

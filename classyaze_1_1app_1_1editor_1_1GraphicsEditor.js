@@ -74,6 +74,7 @@ var classyaze_1_1app_1_1editor_1_1GraphicsEditor =
     [ "obj_file_path_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#aaff766a19d3a2e85af67cd266bd89fa9", null ],
     [ "tilemap_file_path_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#aa570f08c7883a47d8e6e7ba20af4de4d", null ],
     [ "tilemap_file_name_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a46239e06455dda3abe987e48e3bbc4d0", null ],
+    [ "asset_browser_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a67a99323a438a1cc452076c8e32d9164", null ],
     [ "gfx_edit_mode_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#aae2d9acd356b6383bf916eac01df9c66", null ],
     [ "temp_rom_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0c9a0a3223c2458f3948a9ee207bbf27", null ],
     [ "tilemap_rom_", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#aa351f7c0730c1ce61d47bdd3c41e9172", null ],
