@@ -83,10 +83,10 @@ struct ZSprite {
 
     std::vector<char> buffer(std::istreambuf_iterator<char>(fs), {});
 
-    int aCount = *reinterpret_cast<int*>(&buffer[0]);
+    int animation_count = *reinterpret_cast<int32_t*>(&buffer[0]);
     int offset = sizeof(int);
 
-    for (int i = 0; i < aCount; i++) {
+    for (int i = 0; i < animation_count; i++) {
       std::string aname = std::string(&buffer[offset]);
       offset += aname.size() + 1;
       uint8_t afs = *reinterpret_cast<uint8_t*>(&buffer[offset]);
@@ -100,9 +100,9 @@ struct ZSprite {
     }
     // RefreshAnimations();
 
-    int fCount = *reinterpret_cast<int*>(&buffer[offset]);
+    int frame_count = *reinterpret_cast<int32_t*>(&buffer[offset]);
     offset += sizeof(int);
-    for (int i = 0; i < fCount; i++) {
+    for (int i = 0; i < frame_count; i++) {
       // editor.Frames[i] = new Frame();
       editor.Frames.emplace_back();
       // editor.AddUndo(i);
@@ -204,7 +204,7 @@ struct ZSprite {
       property_sprname.Text = std::string(&buffer[offset]);
       offset += property_sprname.Text.size() + 1;
 
-      int actionL = *reinterpret_cast<int*>(&buffer[offset]);
+      int actionL = buffer[offset];
       offset += sizeof(int);
       for (int i = 0; i < actionL; i++) {
         std::string a = std::string(&buffer[offset]);
