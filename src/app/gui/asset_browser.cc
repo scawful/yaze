@@ -4,87 +4,82 @@ namespace yaze {
 namespace app {
 namespace gui {
 
+using namespace ImGui;
+
 const ImGuiTableSortSpecs* AssetObject::s_current_sort_specs = NULL;
 
 void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
-  // Menu bar
-  if (ImGui::BeginMenu("Edit")) {
-    if (ImGui::MenuItem("Delete", "Del", false, Selection.Size > 0))
-      RequestDelete = true;
-    ImGui::EndMenu();
-  }
-  if (ImGui::BeginMenu("Options")) {
-    ImGui::PushItemWidth(ImGui::GetFontSize() * 10);
+  PushItemWidth(GetFontSize() * 10);
+  SeparatorText("Contents");
+  Checkbox("Show Type Overlay", &ShowTypeOverlay);
+  SameLine();
+  Checkbox("Allow Sorting", &AllowSorting);
+  SameLine();
+  Checkbox("Stretch Spacing", &StretchSpacing);
 
-    ImGui::SeparatorText("Contents");
-    ImGui::Checkbox("Show Type Overlay", &ShowTypeOverlay);
-    ImGui::Checkbox("Allow Sorting", &AllowSorting);
+  SeparatorText("Selection Behavior");
+  Checkbox("Allow dragging unselected item", &AllowDragUnselected);
+  SameLine();
+  Checkbox("Allow box-selection", &AllowBoxSelect);
 
-    ImGui::SeparatorText("Selection Behavior");
-    ImGui::Checkbox("Allow dragging unselected item", &AllowDragUnselected);
-    ImGui::Checkbox("Allow box-selection", &AllowBoxSelect);
-
-    ImGui::SeparatorText("Layout");
-    ImGui::SliderFloat("Icon Size", &IconSize, 16.0f, 128.0f, "%.0f");
-    ImGui::SameLine();
-    ImGui::SliderInt("Icon Spacing", &IconSpacing, 0, 32);
-    ImGui::SliderInt("Icon Hit Spacing", &IconHitSpacing, 0, 32);
-    ImGui::Checkbox("Stretch Spacing", &StretchSpacing);
-    ImGui::PopItemWidth();
-    ImGui::EndMenu();
-  }
+  SeparatorText("Layout");
+  SliderFloat("Icon Size", &IconSize, 16.0f, 128.0f, "%.0f");
+  SameLine();
+  SliderInt("Icon Spacing", &IconSpacing, 0, 32);
+  SameLine();
+  SliderInt("Icon Hit Spacing", &IconHitSpacing, 0, 32);
+  PopItemWidth();
 
   // Filter by types
   static bool filter_type[4] = {true, true, true, true};
-  ImGui::Text("Filter by type:");
-  ImGui::SameLine();
-  ImGui::Checkbox("Unsorted", &filter_type[0]);
-  ImGui::SameLine();
-  ImGui::Checkbox("Dungeon", &filter_type[1]);
-  ImGui::SameLine();
-  ImGui::Checkbox("Overworld", &filter_type[2]);
-  ImGui::SameLine();
-  ImGui::Checkbox("Sprite", &filter_type[3]);
+  Text("Filter by type:");
+  SameLine();
+  Checkbox("Unsorted", &filter_type[0]);
+  SameLine();
+  Checkbox("Dungeon", &filter_type[1]);
+  SameLine();
+  Checkbox("Overworld", &filter_type[2]);
+  SameLine();
+  Checkbox("Sprite", &filter_type[3]);
 
   // Show a table with ONLY one header row to showcase the idea/possibility of
   // using this to provide a sorting UI
   if (AllowSorting) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     ImGuiTableFlags table_flags_for_sort_specs =
         ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti |
         ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders;
-    if (ImGui::BeginTable("for_sort_specs_only", 2, table_flags_for_sort_specs,
-                          ImVec2(0.0f, ImGui::GetFrameHeight()))) {
-      ImGui::TableSetupColumn("Index");
-      ImGui::TableSetupColumn("Type");
-      ImGui::TableHeadersRow();
-      if (ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs())
+    if (BeginTable("for_sort_specs_only", 2, table_flags_for_sort_specs,
+                   ImVec2(0.0f, GetFrameHeight()))) {
+      TableSetupColumn("Index");
+      TableSetupColumn("Type");
+      TableHeadersRow();
+      if (ImGuiTableSortSpecs* sort_specs = TableGetSortSpecs())
         if (sort_specs->SpecsDirty || RequestSort) {
           AssetObject::SortWithSortSpecs(sort_specs, Items.Data, Items.Size);
           sort_specs->SpecsDirty = RequestSort = false;
         }
-      ImGui::EndTable();
+      EndTable();
     }
-    ImGui::PopStyleVar();
+    PopStyleVar();
   }
 
-  ImGuiIO& io = ImGui::GetIO();
-  ImGui::SetNextWindowContentSize(ImVec2(
+  ImGuiIO& io = GetIO();
+  SetNextWindowContentSize(ImVec2(
       0.0f, LayoutOuterPadding +
                 LayoutLineCount * (LayoutItemSize.x + LayoutItemSpacing)));
-  if (ImGui::BeginChild("Assets",
-                        ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing()),
-                        ImGuiChildFlags_Border, ImGuiWindowFlags_NoMove)) {
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  if (BeginChild("Assets", ImVec2(0.0f, -GetTextLineHeightWithSpacing()),
+                 ImGuiChildFlags_Border, ImGuiWindowFlags_NoMove)) {
+    ImDrawList* draw_list = GetWindowDrawList();
 
-    const float avail_width = ImGui::GetContentRegionAvail().x;
+    const float avail_width = GetContentRegionAvail().x;
     UpdateLayoutSizes(avail_width);
 
     // Calculate and store start position.
-    ImVec2 start_pos = ImGui::GetCursorScreenPos();
+    ImVec2 start_pos = GetCursorScreenPos();
     start_pos = ImVec2(start_pos.x + LayoutOuterPadding,
                        start_pos.y + LayoutOuterPadding);
-    ImGui::SetCursorScreenPos(start_pos);
+    SetCursorScreenPos(start_pos);
 
     // Multi-select
     ImGuiMultiSelectFlags ms_flags = ImGuiMultiSelectFlags_ClearOnEscape |
@@ -102,14 +97,14 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
     // - Enable keyboard wrapping on X axis
     // (FIXME-MULTISELECT: We haven't designed/exposed a general nav wrapping
     // api yet, so this flag is provided as a courtesy to avoid doing:
-    //    ImGui::NavMoveRequestTryWrapping(ImGui::GetCurrentWindow(),
+    //    NavMoveRequestTryWrapping(GetCurrentWindow(),
     //    ImGuiNavMoveFlags_WrapX);
     // When we finish implementing a more general API for this, we will
     // obsolete this flag in favor of the new system)
     ms_flags |= ImGuiMultiSelectFlags_NavWrapX;
 
     ImGuiMultiSelectIO* ms_io =
-        ImGui::BeginMultiSelect(ms_flags, Selection.Size, Items.Size);
+        BeginMultiSelect(ms_flags, Selection.Size, Items.Size);
 
     // Use custom selection adapter: store ID in selection (recommended)
     Selection.UserData = this;
@@ -121,7 +116,7 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
     Selection.ApplyRequests(ms_io);
 
     const bool want_delete =
-        (ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat) &&
+        (Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat) &&
          (Selection.Size > 0)) ||
         RequestDelete;
     const int item_curr_idx_to_focus =
@@ -136,29 +131,29 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
     // items.
     // - The vertical spacing would be measured by Clipper to calculate line
     // height if we didn't provide it explicitly (here we do).
-    ImGui::PushStyleVar(
-        ImGuiStyleVar_ItemSpacing,
-        ImVec2(LayoutSelectableSpacing, LayoutSelectableSpacing));
+    PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                 ImVec2(LayoutSelectableSpacing, LayoutSelectableSpacing));
 
     // Rendering parameters
-    const ImU32 icon_type_overlay_colors[3] = {0, IM_COL32(200, 70, 70, 255),
-                                               IM_COL32(70, 170, 70, 255)};
-    const ImU32 icon_bg_color = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
-    const ImVec2 icon_type_overlay_size = ImVec2(4.0f, 4.0f);
-    const bool display_label =
-        (LayoutItemSize.x >= ImGui::CalcTextSize("999").x);
+    const ImU32 icon_type_overlay_colors[5] = {
+        0, IM_COL32(200, 70, 70, 255), IM_COL32(70, 170, 70, 255),
+        IM_COL32(70, 70, 200, 255), IM_COL32(200, 200, 200, 255)};
+    const ImU32 icon_bg_color = GetColorU32(ImGuiCol_MenuBarBg);
+    const ImVec2 icon_type_overlay_size = ImVec2(5.0f, 5.0f);
+    const bool display_label = (LayoutItemSize.x >= CalcTextSize("999").x);
 
     const int column_count = LayoutColumnCount;
     ImGuiListClipper clipper;
     clipper.Begin(LayoutLineCount, LayoutItemStep.y);
+
+    // Ensure focused item line is not clipped.
     if (item_curr_idx_to_focus != -1)
-      clipper.IncludeItemByIndex(
-          item_curr_idx_to_focus /
-          column_count);  // Ensure focused item line is not clipped.
+      clipper.IncludeItemByIndex(item_curr_idx_to_focus / column_count);
+
+    // Ensure RangeSrc item line is not clipped.
     if (ms_io->RangeSrcItem != -1)
-      clipper.IncludeItemByIndex(
-          (int)ms_io->RangeSrcItem /
-          column_count);  // Ensure RangeSrc item line is not clipped.
+      clipper.IncludeItemByIndex((int)ms_io->RangeSrcItem / column_count);
+
     while (clipper.Step()) {
       for (int line_idx = clipper.DisplayStart; line_idx < clipper.DisplayEnd;
            line_idx++) {
@@ -168,36 +163,34 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
         for (int item_idx = item_min_idx_for_current_line;
              item_idx < item_max_idx_for_current_line; ++item_idx) {
           AssetObject* item_data = &Items[item_idx];
-          ImGui::PushID((int)item_data->ID);
+          PushID((int)item_data->ID);
 
           // Position item
           ImVec2 pos =
               ImVec2(start_pos.x + (item_idx % column_count) * LayoutItemStep.x,
                      start_pos.y + line_idx * LayoutItemStep.y);
-          ImGui::SetCursorScreenPos(pos);
+          SetCursorScreenPos(pos);
 
-          ImGui::SetNextItemSelectionUserData(item_idx);
+          SetNextItemSelectionUserData(item_idx);
           bool item_is_selected = Selection.Contains((ImGuiID)item_data->ID);
-          bool item_is_visible = ImGui::IsRectVisible(LayoutItemSize);
-          ImGui::Selectable("", item_is_selected, ImGuiSelectableFlags_None,
-                            LayoutItemSize);
+          bool item_is_visible = IsRectVisible(LayoutItemSize);
+          Selectable("", item_is_selected, ImGuiSelectableFlags_None,
+                     LayoutItemSize);
 
           // Update our selection state immediately (without waiting for
           // EndMultiSelect() requests) because we use this to alter the color
           // of our text/icon.
-          if (ImGui::IsItemToggledSelection())
-            item_is_selected = !item_is_selected;
+          if (IsItemToggledSelection()) item_is_selected = !item_is_selected;
 
           // Focus (for after deletion)
-          if (item_curr_idx_to_focus == item_idx)
-            ImGui::SetKeyboardFocusHere(-1);
+          if (item_curr_idx_to_focus == item_idx) SetKeyboardFocusHere(-1);
 
           // Drag and drop
-          if (ImGui::BeginDragDropSource()) {
+          if (BeginDragDropSource()) {
             // Create payload with full selection OR single unselected item.
             // (the later is only possible when using
             // ImGuiMultiSelectFlags_SelectOnClickRelease)
-            if (ImGui::GetDragDropPayload() == NULL) {
+            if (GetDragDropPayload() == NULL) {
               ImVector<ImGuiID> payload_items;
               void* it = NULL;
               ImGuiID id = 0;
@@ -206,20 +199,19 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
               else
                 while (Selection.GetNextSelectedItem(&it, &id))
                   payload_items.push_back(id);
-              ImGui::SetDragDropPayload("ASSETS_BROWSER_ITEMS",
-                                        payload_items.Data,
-                                        (size_t)payload_items.size_in_bytes());
+              SetDragDropPayload("ASSETS_BROWSER_ITEMS", payload_items.Data,
+                                 (size_t)payload_items.size_in_bytes());
             }
 
             // Display payload content in tooltip, by extracting it from the
             // payload data (we could read from selection, but it is more
             // correct and reusable to read from payload)
-            const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+            const ImGuiPayload* payload = GetDragDropPayload();
             const int payload_count =
                 (int)payload->DataSize / (int)sizeof(ImGuiID);
-            ImGui::Text("%d assets", payload_count);
+            Text("%d assets", payload_count);
 
-            ImGui::EndDragDropSource();
+            EndDragDropSource();
           }
 
           // Render icon (a real app would likely display an image/thumbnail
@@ -232,6 +224,18 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
                            box_min.y + LayoutItemSize.y + 2);  // Dubious
             draw_list->AddRectFilled(box_min, box_max,
                                      icon_bg_color);  // Background color
+
+            if (display_label) {
+              ImU32 label_col = GetColorU32(
+                  item_is_selected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
+              draw_list->AddImage(
+                  (void*)bmp_manager->mutable_bitmap(item_data->ID)->texture(),
+                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),
+                  GetColorU32(ImVec4(1, 1, 1, 1)));
+              draw_list->AddText(ImVec2(box_min.x, box_max.y - GetFontSize()),
+                                 label_col,
+                                 absl::StrFormat("%X", item_data->ID).c_str());
+            }
             if (ShowTypeOverlay && item_data->Type != 0) {
               ImU32 type_col = icon_type_overlay_colors
                   [item_data->Type % IM_ARRAYSIZE(icon_type_overlay_colors)];
@@ -242,65 +246,57 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
                          box_min.y + 2 + icon_type_overlay_size.y),
                   type_col);
             }
-            if (display_label) {
-              ImU32 label_col = ImGui::GetColorU32(
-                  item_is_selected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
-              draw_list->AddImage(
-                  (void*)bmp_manager->mutable_bitmap(item_data->ID)->texture(),
-                  box_min, box_max, ImVec2(0, 0), ImVec2(1, 1),
-                  ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-              draw_list->AddText(
-                  ImVec2(box_min.x, box_max.y - ImGui::GetFontSize()),
-                  label_col, absl::StrFormat("%X", item_data->ID).c_str());
-            }
           }
 
-          ImGui::PopID();
+          PopID();
         }
       }
     }
     clipper.End();
-    ImGui::PopStyleVar();  // ImGuiStyleVar_ItemSpacing
+    PopStyleVar();  // ImGuiStyleVar_ItemSpacing
 
     // Context menu
-    if (ImGui::BeginPopupContextWindow()) {
-      ImGui::Text("Selection: %d items", Selection.Size);
-      ImGui::Separator();
-      if (ImGui::MenuItem("Set Type: Unsorted")) {
-        void* it = NULL;
-        ImGuiID id = 0;
-        while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 0;
+    if (BeginPopupContextWindow()) {
+      Text("Selection: %d items", Selection.Size);
+      Separator();
+      if (BeginMenu("Set Type")) {
+        if (MenuItem("Unsorted")) {
+          void* it = NULL;
+          ImGuiID id = 0;
+          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 0;
+        }
+        if (MenuItem("Dungeon")) {
+          void* it = NULL;
+          ImGuiID id = 0;
+          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 1;
+        }
+        if (MenuItem("Overworld")) {
+          void* it = NULL;
+          ImGuiID id = 0;
+          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 2;
+        }
+        if (MenuItem("Sprite")) {
+          void* it = NULL;
+          ImGuiID id = 0;
+          while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 3;
+        }
+        EndMenu();
       }
-      if (ImGui::MenuItem("Set Type: Dungeon")) {
-        void* it = NULL;
-        ImGuiID id = 0;
-        while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 1;
-      }
-      if (ImGui::MenuItem("Set Type: Overworld")) {
-        void* it = NULL;
-        ImGuiID id = 0;
-        while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 2;
-      }
-      if (ImGui::MenuItem("Set Type: Sprite")) {
-        void* it = NULL;
-        ImGuiID id = 0;
-        while (Selection.GetNextSelectedItem(&it, &id)) Items[id].Type = 3;
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Delete", "Del", false, Selection.Size > 0))
+      Separator();
+      if (MenuItem("Delete", "Del", false, Selection.Size > 0))
         RequestDelete = true;
-      ImGui::EndPopup();
+      EndPopup();
     }
 
-    ms_io = ImGui::EndMultiSelect();
+    ms_io = EndMultiSelect();
     Selection.ApplyRequests(ms_io);
     if (want_delete)
       Selection.ApplyDeletionPostLoop(ms_io, Items, item_curr_idx_to_focus);
 
     // Zooming with CTRL+Wheel
-    if (ImGui::IsWindowAppearing()) ZoomWheelAccum = 0.0f;
-    if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f &&
-        ImGui::IsKeyDown(ImGuiMod_Ctrl) && ImGui::IsAnyItemActive() == false) {
+    if (IsWindowAppearing()) ZoomWheelAccum = 0.0f;
+    if (IsWindowHovered() && io.MouseWheel != 0.0f &&
+        IsKeyDown(ImGuiMod_Ctrl) && IsAnyItemActive() == false) {
       ZoomWheelAccum += io.MouseWheel;
       if (fabsf(ZoomWheelAccum) >= 1.0f) {
         // Calculate hovered item index from mouse location
@@ -314,7 +310,7 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
             LayoutItemStep.y;
         const int hovered_item_idx =
             ((int)hovered_item_ny * LayoutColumnCount) + (int)hovered_item_nx;
-        // ImGui::SetTooltip("%f,%f -> item %d", hovered_item_nx,
+        // SetTooltip("%f,%f -> item %d", hovered_item_nx,
         // hovered_item_ny, hovered_item_idx); // Move those 4 lines in block
         // above for easy debugging
 
@@ -327,21 +323,21 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
         // Manipulate scroll to that we will land at the same Y location of
         // currently hovered item.
         // - Calculate next frame position of item under mouse
-        // - Set new scroll position to be used in next ImGui::BeginChild()
+        // - Set new scroll position to be used in next BeginChild()
         // call.
         float hovered_item_rel_pos_y =
             ((float)(hovered_item_idx / LayoutColumnCount) +
              fmodf(hovered_item_ny, 1.0f)) *
             LayoutItemStep.y;
-        hovered_item_rel_pos_y += ImGui::GetStyle().WindowPadding.y;
-        float mouse_local_y = io.MousePos.y - ImGui::GetWindowPos().y;
-        ImGui::SetScrollY(hovered_item_rel_pos_y - mouse_local_y);
+        hovered_item_rel_pos_y += GetStyle().WindowPadding.y;
+        float mouse_local_y = io.MousePos.y - GetWindowPos().y;
+        SetScrollY(hovered_item_rel_pos_y - mouse_local_y);
       }
     }
   }
-  ImGui::EndChild();
+  EndChild();
 
-  ImGui::Text("Selected: %d/%d items", Selection.Size, Items.Size);
+  Text("Selected: %d/%d items", Selection.Size, Items.Size);
 }
 
 }  // namespace gui
