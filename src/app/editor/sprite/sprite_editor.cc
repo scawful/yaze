@@ -9,7 +9,10 @@ namespace yaze {
 namespace app {
 namespace editor {
 
+using ImGui::BeginTable;
 using ImGui::Button;
+using ImGui::EndTable;
+using ImGui::Selectable;
 using ImGui::Separator;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
@@ -23,6 +26,22 @@ absl::Status SpriteEditor::Update() {
     sheets_loaded_ = true;
   }
 
+  if (ImGui::BeginTabBar("##SpriteEditorTabs")) {
+    if (ImGui::BeginTabItem("Vanilla")) {
+      DrawVanillaSpriteEditor();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Custom")) {
+      DrawCustomSprites();
+      ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
+  }
+
+  return status_.ok() ? absl::OkStatus() : status_;
+}
+
+void SpriteEditor::DrawVanillaSpriteEditor() {
   if (ImGui::BeginTable("##SpriteCanvasTable", 3, ImGuiTableFlags_Resizable,
                         ImVec2(0, 0))) {
     TableSetupColumn("Sprites List", ImGuiTableColumnFlags_WidthFixed, 256);
@@ -79,8 +98,6 @@ absl::Status SpriteEditor::Update() {
     }
     ImGui::EndTable();
   }
-
-  return status_.ok() ? absl::OkStatus() : status_;
 }
 
 void SpriteEditor::DrawSpriteCanvas() {
@@ -137,6 +154,8 @@ void SpriteEditor::DrawSpriteCanvas() {
 
     DrawAnimationFrames();
 
+    DrawCustomSpritesMetadata();
+
     ImGui::EndChild();
   }
 }
@@ -168,21 +187,6 @@ void SpriteEditor::DrawSpritesList() {
   if (ImGui::BeginChild(gui::GetID("##SpritesList"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0), true,
                         ImGuiWindowFlags_NoDecoration)) {
-    // ZSprite Maker format open file dialog
-    if (ImGui::Button("Open ZSprite")) {
-      // Open ZSprite file
-      std::string file_path = FileDialogWrapper::ShowOpenFileDialog();
-      if (!file_path.empty()) {
-        zsprite::ZSprite zsprite;
-        status_ = zsprite.Load(file_path);
-      }
-    }
-
-    for (const auto custom_sprite : custom_sprites_) {
-      Text("%s", custom_sprite.sprName.c_str());
-      Separator();
-    }
-
     int i = 0;
     for (const auto each_sprite_name : core::kSpriteDefaultNames) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -206,6 +210,66 @@ void SpriteEditor::DrawAnimationFrames() {
   }
   if (ImGui::Button("Remove Frame")) {
     // Remove the current frame
+  }
+}
+
+void SpriteEditor::DrawCustomSprites() {
+  if (BeginTable("##CustomSpritesTable", 3,
+                 ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders |
+                     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable,
+                 ImVec2(0, 0))) {
+    TableSetupColumn("Metadata", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableSetupColumn("TIlesheets", ImGuiTableColumnFlags_WidthFixed, 256);
+
+    TableHeadersRow();
+    TableNextRow();
+    TableNextColumn();
+
+    Separator();
+    DrawCustomSpritesMetadata();
+
+    TableNextColumn();
+    DrawSpriteCanvas();
+
+    TableNextColumn();
+    DrawCurrentSheets();
+
+    EndTable();
+  }
+}
+
+void SpriteEditor::DrawCustomSpritesMetadata() {
+  // ZSprite Maker format open file dialog
+  if (ImGui::Button("Open ZSprite")) {
+    // Open ZSprite file
+    std::string file_path = FileDialogWrapper::ShowOpenFileDialog();
+    if (!file_path.empty()) {
+      zsprite::ZSprite zsprite;
+      status_ = zsprite.Load(file_path);
+      if (status_.ok()) {
+        custom_sprites_.push_back(zsprite);
+      }
+    }
+  }
+
+  for (const auto custom_sprite : custom_sprites_) {
+    Selectable("%s", custom_sprite.sprName.c_str());
+    if (ImGui::IsItemClicked()) {
+      current_sprite_id_ = 256 + stoi(custom_sprite.property_sprid.Text);
+      if (!active_sprites_.contains(current_sprite_id_)) {
+        active_sprites_.push_back(current_sprite_id_);
+      }
+    }
+    Separator();
+  }
+
+  for (const auto custom_sprite : custom_sprites_) {
+    // Draw the custom sprite metadata
+    Text("Sprite ID: %s", custom_sprite.property_sprid.Text.c_str());
+    Text("Sprite Name: %s", custom_sprite.property_sprname.Text.c_str());
+    Text("Sprite Palette: %s", custom_sprite.property_palette.Text.c_str());
+    Separator();
   }
 }
 
