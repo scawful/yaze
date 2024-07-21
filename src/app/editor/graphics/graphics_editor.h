@@ -12,6 +12,7 @@
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
+#include "app/gui/asset_browser.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
@@ -156,6 +157,8 @@ class GraphicsEditor : public SharedRom, public Editor {
   char obj_file_path_[256] = "";
   char tilemap_file_path_[256] = "";
   char tilemap_file_name_[256] = "";
+
+  gui::GfxSheetAssetBrowser asset_browser_;
 
   GfxEditMode gfx_edit_mode_ = GfxEditMode::kSelect;
 
