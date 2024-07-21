@@ -26,17 +26,27 @@ namespace app {
 namespace editor {
 
 using ImGui::BeginChild;
+using ImGui::BeginMenu;
+using ImGui::BeginMenuBar;
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
+using ImGui::Button;
+using ImGui::Checkbox;
 using ImGui::Combo;
 using ImGui::EndChild;
+using ImGui::EndMenu;
+using ImGui::EndMenuBar;
 using ImGui::EndTabBar;
 using ImGui::EndTabItem;
+using ImGui::EndTable;
+using ImGui::GetContentRegionAvail;
+using ImGui::Separator;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
+using ImGui::Text;
 
 absl::Status Tile16Editor::InitBlockset(
     gfx::Bitmap* tile16_blockset_bmp, gfx::Bitmap current_gfx_bmp,
@@ -68,21 +78,21 @@ absl::Status Tile16Editor::Update() {
   if (BeginTabBar("Tile16 Editor Tabs")) {
     RETURN_IF_ERROR(DrawTile16Editor());
     RETURN_IF_ERROR(UpdateTile16Transfer());
-    ImGui::EndTabBar();
+    EndTabBar();
   }
 
   return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::DrawMenu() {
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("View")) {
-      ImGui::Checkbox("Show Collision Types",
-                      tile8_source_canvas_.custom_labels_enabled());
-      ImGui::EndMenu();
+  if (BeginMenuBar()) {
+    if (BeginMenu("View")) {
+      Checkbox("Show Collision Types",
+               tile8_source_canvas_.custom_labels_enabled());
+      EndMenu();
     }
 
-    ImGui::EndMenuBar();
+    EndMenuBar();
   }
 
   return absl::OkStatus();
@@ -93,9 +103,9 @@ absl::Status Tile16Editor::DrawTile16Editor() {
     if (BeginTable("#Tile16EditorTable", 2, TABLE_BORDERS_RESIZABLE,
                    ImVec2(0, 0))) {
       TableSetupColumn("Blockset", ImGuiTableColumnFlags_WidthFixed,
-                       ImGui::GetContentRegionAvail().x);
+                       GetContentRegionAvail().x);
       TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthStretch,
-                       ImGui::GetContentRegionAvail().x);
+                       GetContentRegionAvail().x);
       TableHeadersRow();
       TableNextRow();
       TableNextColumn();
@@ -105,10 +115,10 @@ absl::Status Tile16Editor::DrawTile16Editor() {
       RETURN_IF_ERROR(UpdateTile16Edit());
       RETURN_IF_ERROR(DrawTileEditControls());
 
-      ImGui::EndTable();
+      EndTable();
     }
 
-    ImGui::EndTabItem();
+    EndTabItem();
   }
   return absl::OkStatus();
 }
@@ -124,16 +134,13 @@ absl::Status Tile16Editor::UpdateBlockset() {
     blockset_canvas_.DrawBitmap(*tile16_blockset_bmp_, 0, map_blockset_loaded_);
     blockset_canvas_.DrawGrid();
     blockset_canvas_.DrawOverlay();
-    ImGui::EndChild();
+    EndChild();
   }
 
   if (!blockset_canvas_.points().empty()) {
-    uint16_t x = blockset_canvas_.points().front().x / 32;
-    uint16_t y = blockset_canvas_.points().front().y / 32;
-
-    // notify_tile16.mutable_get() = x + (y * 8);
     notify_tile16.mutable_get() = blockset_canvas_.GetTileIdFromMousePos();
     notify_tile16.apply_changes();
+
     if (notify_tile16.modified()) {
       current_tile16_ = notify_tile16.get();
       current_tile16_bmp_ = &tile16_individual_[notify_tile16];
@@ -183,9 +190,8 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
 absl::Status Tile16Editor::UpdateTile16Edit() {
   auto ow_main_pal_group = rom()->palette_group().overworld_main;
 
-  if (ImGui::BeginChild("Tile8 Selector",
-                        ImVec2(ImGui::GetContentRegionAvail().x, 0x175),
-                        true)) {
+  if (BeginChild("Tile8 Selector", ImVec2(GetContentRegionAvail().x, 0x175),
+                 true)) {
     tile8_source_canvas_.DrawBackground();
     tile8_source_canvas_.DrawContextMenu(&current_gfx_bmp_);
     if (tile8_source_canvas_.DrawTileSelector(32)) {
@@ -198,7 +204,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile8_source_canvas_.DrawGrid();
     tile8_source_canvas_.DrawOverlay();
   }
-  ImGui::EndChild();
+  EndChild();
 
   // The user selected a tile8
   if (!tile8_source_canvas_.points().empty()) {
@@ -212,8 +218,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
   }
 
-  if (ImGui::BeginChild("Tile16 Editor Options",
-                        ImVec2(ImGui::GetContentRegionAvail().x, 0x50), true)) {
+  if (BeginChild("Tile16 Editor Options",
+                 ImVec2(GetContentRegionAvail().x, 0x50), true)) {
     tile16_edit_canvas_.DrawBackground();
     tile16_edit_canvas_.DrawContextMenu(current_tile16_bmp_);
     tile16_edit_canvas_.DrawBitmap(*current_tile16_bmp_, 0, 0, 4.0f);
@@ -228,15 +234,15 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     tile16_edit_canvas_.DrawGrid();
     tile16_edit_canvas_.DrawOverlay();
   }
-  ImGui::EndChild();
+  EndChild();
   return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::DrawTileEditControls() {
-  ImGui::Separator();
-  ImGui::Text("Tile16 ID: %d", current_tile16_);
-  ImGui::Text("Tile8 ID: %d", current_tile8_);
-  ImGui::Text("Options:");
+  Separator();
+  Text("Tile16 ID: %d", current_tile16_);
+  Text("Tile8 ID: %d", current_tile8_);
+  Text("Options:");
   gui::InputHexByte("Palette", &notify_palette.mutable_get());
   notify_palette.apply_changes();
   if (notify_palette.modified()) {
@@ -260,9 +266,9 @@ absl::Status Tile16Editor::DrawTileEditControls() {
     }
   }
 
-  ImGui::Checkbox("X Flip", &x_flip);
-  ImGui::Checkbox("Y Flip", &y_flip);
-  ImGui::Checkbox("Priority Tile", &priority_tile);
+  Checkbox("X Flip", &x_flip);
+  Checkbox("Y Flip", &y_flip);
+  Checkbox("Priority Tile", &priority_tile);
 
   return absl::OkStatus();
 }
@@ -321,9 +327,9 @@ absl::Status Tile16Editor::UpdateTile16Transfer() {
     if (BeginTable("#Tile16TransferTable", 2, TABLE_BORDERS_RESIZABLE,
                    ImVec2(0, 0))) {
       TableSetupColumn("Current ROM Tiles", ImGuiTableColumnFlags_WidthFixed,
-                       ImGui::GetContentRegionAvail().x / 2);
+                       GetContentRegionAvail().x / 2);
       TableSetupColumn("Transfer ROM Tiles", ImGuiTableColumnFlags_WidthFixed,
-                       ImGui::GetContentRegionAvail().x / 2);
+                       GetContentRegionAvail().x / 2);
       TableHeadersRow();
       TableNextRow();
 
@@ -333,17 +339,17 @@ absl::Status Tile16Editor::UpdateTile16Transfer() {
       TableNextColumn();
       RETURN_IF_ERROR(UpdateTransferTileCanvas());
 
-      ImGui::EndTable();
+      EndTable();
     }
 
-    ImGui::EndTabItem();
+    EndTabItem();
   }
   return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::UpdateTransferTileCanvas() {
   // Create a button for loading another ROM
-  if (ImGui::Button("Load ROM")) {
+  if (Button("Load ROM")) {
     ImGuiFileDialog::Instance()->OpenDialog(
         "ChooseTransferFileDlgKey", "Open Transfer ROM", ".sfc,.smc", ".");
   }
