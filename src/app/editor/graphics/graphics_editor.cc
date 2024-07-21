@@ -354,12 +354,10 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 }
 
 absl::Status GraphicsEditor::UpdatePaletteColumn() {
-  auto palette_group = *rom()->palette_group().get_group(
-      kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
-
-  auto palette = palette_group.palette(edit_palette_index_);
-
   if (rom()->is_loaded()) {
+    auto palette_group = *rom()->palette_group().get_group(
+        kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
+    auto palette = palette_group.palette(edit_palette_index_);
     gui::TextWithSeparators("ROM Palette");
     ImGui::SetNextItemWidth(100.f);
     ImGui::Combo("Palette Group", (int*)&edit_palette_group_name_index_,
@@ -367,20 +365,20 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
                  IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
     ImGui::SetNextItemWidth(100.f);
     gui::InputHex("Palette Group Index", &edit_palette_index_);
+
+    gui::SelectablePalettePipeline(edit_palette_sub_index_, refresh_graphics_,
+                                   palette);
+
+    if (refresh_graphics_ && !open_sheets_.empty()) {
+      RETURN_IF_ERROR(
+          rom()->bitmap_manager()[current_sheet_].ApplyPaletteWithTransparent(
+              palette, edit_palette_sub_index_));
+      rom()->UpdateBitmap(
+          rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_),
+          true);
+      refresh_graphics_ = false;
+    }
   }
-
-  gui::SelectablePalettePipeline(edit_palette_sub_index_, refresh_graphics_,
-                                 palette);
-
-  if (refresh_graphics_ && !open_sheets_.empty()) {
-    RETURN_IF_ERROR(
-        rom()->bitmap_manager()[current_sheet_].ApplyPaletteWithTransparent(
-            palette, edit_palette_sub_index_));
-    rom()->UpdateBitmap(
-        rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_), true);
-    refresh_graphics_ = false;
-  }
-
   return absl::OkStatus();
 }
 
