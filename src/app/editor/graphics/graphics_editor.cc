@@ -54,6 +54,13 @@ constexpr ImGuiTableFlags kGfxEditFlags = ImGuiTableFlags_Reorderable |
 absl::Status GraphicsEditor::Update() {
   TAB_BAR("##TabBar")
   status_ = UpdateGfxEdit();
+  TAB_ITEM("Sheet Browser")
+  if (asset_browser_.Initialized == false) {
+    asset_browser_.Initialize(rom()->mutable_bitmap_manager());
+  }
+  asset_browser_.Draw(rom()->mutable_bitmap_manager());
+
+  END_TAB_ITEM()
   status_ = UpdateScadView();
   status_ = UpdateLinkGfxView();
   END_TAB_BAR()
@@ -63,19 +70,6 @@ absl::Status GraphicsEditor::Update() {
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
   TAB_ITEM("Sheet Editor")
-
-  static bool show_sheet_browser_ = false;
-  static gui::GfxSheetAssetBrowser asset_browser;
-
-  if (ImGui::Button("Sheet Browser")) {
-    show_sheet_browser_ = !show_sheet_browser_;
-    asset_browser.Initialize(rom()->mutable_bitmap_manager());
-  }
-
-  if (show_sheet_browser_) {
-    asset_browser.Draw("##SheetBrowser", &show_sheet_browser_,
-                       rom()->mutable_bitmap_manager());
-  }
 
   if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
                         ImVec2(0, 0))) {
