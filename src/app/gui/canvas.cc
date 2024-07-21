@@ -7,6 +7,8 @@
 
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/gfx/bitmap.h"
+#include "app/gui/input.h"
+#include "app/gui/style.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -127,6 +129,35 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
         Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
         EndMenu();
       }
+      if (BeginMenu("Bitmap Palette")) {
+        if (rom()->is_loaded()) {
+          gui::TextWithSeparators("ROM Palette");
+          ImGui::SetNextItemWidth(100.f);
+          ImGui::Combo("Palette Group", (int *)&edit_palette_group_name_index_,
+                       gfx::kPaletteGroupAddressesKeys,
+                       IM_ARRAYSIZE(gfx::kPaletteGroupAddressesKeys));
+          ImGui::SetNextItemWidth(100.f);
+          gui::InputHexWord("Palette Group Index", &edit_palette_index_);
+
+          auto palette_group = rom()->mutable_palette_group()->get_group(
+              gfx::kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
+          auto palette = palette_group->mutable_palette(edit_palette_index_);
+
+          if (ImGui::BeginChild("Palette", ImVec2(0, 300), true)) {
+            gui::SelectablePalettePipeline(edit_palette_sub_index_,
+                                           refresh_graphics_, *palette);
+
+            if (refresh_graphics_) {
+              auto status = bitmap->ApplyPaletteWithTransparent(
+                  *palette, edit_palette_sub_index_);
+              rom()->UpdateBitmap(bitmap);
+              refresh_graphics_ = false;
+            }
+            ImGui::EndChild();
+          }
+        }
+        EndMenu();
+      }
     }
     ImGui::Separator();
     if (BeginMenu("Grid Tile Size")) {
@@ -144,7 +175,6 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
       }
       EndMenu();
     }
-    // TODO: Add a menu item for selecting the palette
 
     ImGui::EndPopup();
   }

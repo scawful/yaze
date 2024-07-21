@@ -33,7 +33,7 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
  * on a canvas. It supports features such as bitmap drawing, context menu
  * handling, tile painting, custom grid, and more.
  */
-class Canvas {
+class Canvas : public SharedRom {
  public:
   Canvas() = default;
   explicit Canvas(const std::string& id, ImVec2 canvas_size)
@@ -198,6 +198,11 @@ class Canvas {
 
   int current_labels_ = 0;
   int highlight_tile_id = -1;
+
+  uint16_t edit_palette_index_ = 0;
+  uint64_t edit_palette_group_name_index_ = 0;
+  uint64_t edit_palette_sub_index_ = 0;
+  bool refresh_graphics_ = false;
 
   std::string canvas_id_ = "Canvas";
   std::string context_id_ = "CanvasContext";
