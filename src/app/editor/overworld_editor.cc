@@ -34,8 +34,10 @@ using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
 using ImGui::Button;
+using ImGui::Checkbox;
 using ImGui::EndTabBar;
 using ImGui::EndTabItem;
+using ImGui::Selectable;
 using ImGui::Separator;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
@@ -122,29 +124,29 @@ absl::Status OverworldEditor::DrawToolset() {
       ImGui::TableSetupColumn(name.data());
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_UNDO)) {
+    if (Button(ICON_MD_UNDO)) {
       status_ = Undo();
     }
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_REDO)) {
+    if (Button(ICON_MD_REDO)) {
       status_ = Redo();
     }
 
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
+    if (Button(ICON_MD_ZOOM_OUT)) {
       ow_map_canvas_.ZoomOut();
     }
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_ZOOM_IN)) {
+    if (Button(ICON_MD_ZOOM_IN)) {
       ow_map_canvas_.ZoomIn();
     }
 
     NEXT_COLUMN()
-    if (ImGui::Button(ICON_MD_OPEN_IN_FULL)) {
+    if (Button(ICON_MD_OPEN_IN_FULL)) {
       overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
     }
     HOVER_HINT("Fullscreen Canvas")
@@ -152,63 +154,58 @@ absl::Status OverworldEditor::DrawToolset() {
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_PAN_TOOL_ALT,
-                          current_mode == EditingMode::PAN)) {
+    if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
       current_mode = EditingMode::PAN;
       ow_map_canvas_.set_draggable(true);
     }
     HOVER_HINT("Pan (Right click and drag)")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_DRAW,
-                          current_mode == EditingMode::DRAW_TILE)) {
+    if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
       current_mode = EditingMode::DRAW_TILE;
     }
     HOVER_HINT("Draw Tile")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_DOOR_FRONT,
-                          current_mode == EditingMode::ENTRANCES))
+    if (Selectable(ICON_MD_DOOR_FRONT, current_mode == EditingMode::ENTRANCES))
       current_mode = EditingMode::ENTRANCES;
     HOVER_HINT("Entrances")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_DOOR_BACK,
-                          current_mode == EditingMode::EXITS))
+    if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
       current_mode = EditingMode::EXITS;
     HOVER_HINT("Exits")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
+    if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
       current_mode = EditingMode::ITEMS;
     HOVER_HINT("Items")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_PEST_CONTROL_RODENT,
-                          current_mode == EditingMode::SPRITES))
+    if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
+                   current_mode == EditingMode::SPRITES))
       current_mode = EditingMode::SPRITES;
     HOVER_HINT("Sprites")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_ADD_LOCATION,
-                          current_mode == EditingMode::TRANSPORTS))
+    if (Selectable(ICON_MD_ADD_LOCATION,
+                   current_mode == EditingMode::TRANSPORTS))
       current_mode = EditingMode::TRANSPORTS;
     HOVER_HINT("Transports")
 
     NEXT_COLUMN()
-    if (ImGui::Selectable(ICON_MD_MUSIC_NOTE,
-                          current_mode == EditingMode::MUSIC))
+    if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
       current_mode = EditingMode::MUSIC;
     HOVER_HINT("Music")
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_GRID_VIEW)) {
+    if (Button(ICON_MD_GRID_VIEW)) {
       show_tile16_editor_ = !show_tile16_editor_;
     }
     HOVER_HINT("Tile16 Editor")
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_TABLE_CHART)) {
+    if (Button(ICON_MD_TABLE_CHART)) {
       show_gfx_group = !show_gfx_group;
     }
     HOVER_HINT("Gfx Group Editor")
@@ -234,10 +231,10 @@ absl::Status OverworldEditor::DrawToolset() {
     TEXT_COLUMN(ICON_MD_MORE_VERT)  // Separator
 
     TableNextColumn();  // Experimental
-    ImGui::Checkbox("Experimental", &show_experimental);
+    Checkbox("Experimental", &show_experimental);
 
     TableNextColumn();
-    ImGui::Checkbox("Properties", &show_properties);
+    Checkbox("Properties", &show_properties);
 
     ImGui::EndTable();
   }
@@ -948,13 +945,13 @@ bool DrawEntranceInserterPopup() {
     static int entrance_id = 0;
     gui::InputHex("Entrance ID", &entrance_id);
 
-    if (ImGui::Button(ICON_MD_DONE)) {
+    if (Button(ICON_MD_DONE)) {
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CANCEL)) {
+    if (Button(ICON_MD_CANCEL)) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -978,16 +975,16 @@ bool DrawOverworldEntrancePopup(
     gui::InputHex("X", &entrance.x_);
     gui::InputHex("Y", &entrance.y_);
 
-    if (ImGui::Button(ICON_MD_DONE)) {
+    if (Button(ICON_MD_DONE)) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CANCEL)) {
+    if (Button(ICON_MD_CANCEL)) {
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_DELETE)) {
+    if (Button(ICON_MD_DELETE)) {
       entrance.deleted = true;
       ImGui::CloseCurrentPopup();
     }
@@ -1076,12 +1073,12 @@ void DrawExitInserterPopup() {
     static int exit_id = 0;
     gui::InputHex("Exit ID", &exit_id);
 
-    if (ImGui::Button(ICON_MD_DONE)) {
+    if (Button(ICON_MD_DONE)) {
       ImGui::CloseCurrentPopup();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CANCEL)) {
+    if (Button(ICON_MD_CANCEL)) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -1125,7 +1122,7 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
     gui::InputHex("Entity ID", &exit.entity_id_, 4);
     gui::InputHex("Map", &exit.map_id_);
     ImGui::SameLine();
-    ImGui::Checkbox("Automatic", &exit.is_automatic_);
+    Checkbox("Automatic", &exit.is_automatic_);
 
     gui::InputHex("X Positon", &exit.x_);
     ImGui::SameLine();
@@ -1142,7 +1139,7 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
     ImGui::Separator();
 
     static bool show_properties = false;
-    ImGui::Checkbox("Show properties", &show_properties);
+    Checkbox("Show properties", &show_properties);
     if (show_properties) {
       ImGui::Text("Deleted? %s", exit.deleted_ ? "true" : "false");
       ImGui::Text("Hole? %s", exit.is_hole_ ? "true" : "false");
@@ -1176,7 +1173,7 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
     }
 
     static bool special_exit = false;
-    ImGui::Checkbox("Special exit", &special_exit);
+    Checkbox("Special exit", &special_exit);
     if (special_exit) {
       gui::InputHex("Center X", &centerX);
 
@@ -1198,19 +1195,19 @@ bool DrawExitEditorPopup(zelda3::overworld::OverworldExit &exit) {
       gui::InputHex("Left edge of map", &leftEdgeOfMap);
     }
 
-    if (ImGui::Button(ICON_MD_DONE)) {
+    if (Button(ICON_MD_DONE)) {
       ImGui::CloseCurrentPopup();
     }
 
     ImGui::SameLine();
 
-    if (ImGui::Button(ICON_MD_CANCEL)) {
+    if (Button(ICON_MD_CANCEL)) {
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_DELETE)) {
+    if (Button(ICON_MD_DELETE)) {
       exit.deleted_ = true;
       ImGui::CloseCurrentPopup();
     }
@@ -1286,21 +1283,21 @@ void DrawItemInsertPopup() {
     ImGui::BeginChild("ScrollRegion", ImVec2(150, 150), true,
                       ImGuiWindowFlags_AlwaysVerticalScrollbar);
     for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
-      if (ImGui::Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
-                            i == new_item_id)) {
+      if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
+                     i == new_item_id)) {
         new_item_id = i;
       }
     }
     ImGui::EndChild();
 
-    if (ImGui::Button(ICON_MD_DONE)) {
+    if (Button(ICON_MD_DONE)) {
       // Add the new item to the overworld
       new_item_id = 0;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
 
-    if (ImGui::Button(ICON_MD_CANCEL)) {
+    if (Button(ICON_MD_CANCEL)) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -1320,22 +1317,22 @@ bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
                       ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
     for (int i = 0; i < zelda3::overworld::kSecretItemNames.size(); i++) {
-      if (ImGui::Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
-                            item.id == i)) {
+      if (Selectable(zelda3::overworld::kSecretItemNames[i].c_str(),
+                     item.id == i)) {
         item.id = i;
       }
     }
     ImGui::EndGroup();
     ImGui::EndChild();
 
-    if (ImGui::Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
+    if (Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CLOSE)) {
+    if (Button(ICON_MD_CLOSE)) {
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_DELETE)) {
+    if (Button(ICON_MD_DELETE)) {
       item.deleted = true;
       ImGui::CloseCurrentPopup();
     }
@@ -1477,8 +1474,8 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
         ImGui::Text("%d", item.id);
         ImGui::TableSetColumnIndex(1);
 
-        if (ImGui::Selectable(item.name, selected_id == item.id,
-                              ImGuiSelectableFlags_SpanAllColumns)) {
+        if (Selectable(item.name, selected_id == item.id,
+                       ImGuiSelectableFlags_SpanAllColumns)) {
           selected_id = item.id;
           onSpriteSelect(item.id);
         }
@@ -1499,14 +1496,14 @@ void DrawSpriteInserterPopup() {
         [](int selected_id) { new_sprite_id = selected_id; });
     ImGui::EndChild();
 
-    if (ImGui::Button(ICON_MD_DONE)) {
+    if (Button(ICON_MD_DONE)) {
       // Add the new item to the overworld
       new_sprite_id = 0;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
 
-    if (ImGui::Button(ICON_MD_CANCEL)) {
+    if (Button(ICON_MD_CANCEL)) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -1533,14 +1530,14 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
     ImGui::EndGroup();
     ImGui::EndChild();
 
-    if (ImGui::Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
+    if (Button(ICON_MD_DONE)) ImGui::CloseCurrentPopup();
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CLOSE)) {
+    if (Button(ICON_MD_CLOSE)) {
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_DELETE)) {
+    if (Button(ICON_MD_DELETE)) {
       sprite.set_deleted(true);
       ImGui::CloseCurrentPopup();
     }
@@ -1782,20 +1779,20 @@ void OverworldEditor::DrawOverworldProperties() {
   int world = dark_world ? 3 : 0;
   static int current = 0;
 
-  if (ImGui::Checkbox("Dark World", &dark_world)) {
+  if (Checkbox("Dark World", &dark_world)) {
     properties_canvas_.set_current_labels(current + world);
   }
   ImGui::SameLine();
-  if (ImGui::Button("Area Graphics")) {
+  if (Button("Area Graphics")) {
     current = 0;
     properties_canvas_.set_current_labels(current + world);
   }
   ImGui::SameLine();
-  if (ImGui::Button("Area Palette")) {
+  if (Button("Area Palette")) {
     current = 1;
     properties_canvas_.set_current_labels(current + world);
   }
-  if (ImGui::Button("Sprite Graphics")) {
+  if (Button("Sprite Graphics")) {
     if (dark_world) {
       properties_canvas_.set_current_labels(7);
     } else {
@@ -1803,7 +1800,7 @@ void OverworldEditor::DrawOverworldProperties() {
     }
   }
   ImGui::SameLine();
-  if (ImGui::Button("Sprite Palette")) {
+  if (Button("Sprite Palette")) {
     current = 2;
     properties_canvas_.set_current_labels(current + world);
   }
@@ -1840,7 +1837,7 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
                                 ImGuiFileDialog::Instance()->GetFilePathName();
                           });
 
-  if (ImGui::Button("Load Prototype Overworld with ROM graphics")) {
+  if (Button("Load Prototype Overworld with ROM graphics")) {
     RETURN_IF_ERROR(LoadGraphics())
     all_gfx_loaded_ = true;
   }
@@ -1872,10 +1869,10 @@ absl::Status OverworldEditor::UpdateUsageStats() {
                       ImGuiWindowFlags_HorizontalScrollbar);
     for (int i = 0; i < 0x81; i++) {
       std::string str = absl::StrFormat("%#x", i);
-      if (ImGui::Selectable(str.c_str(), selected_entrance_ == i,
-                            overworld_.entrances().at(i).deleted
-                                ? ImGuiSelectableFlags_Disabled
-                                : 0)) {
+      if (Selectable(str.c_str(), selected_entrance_ == i,
+                     overworld_.entrances().at(i).deleted
+                         ? ImGuiSelectableFlags_Disabled
+                         : 0)) {
         selected_entrance_ = i;
         selected_usage_map_ = overworld_.entrances().at(i).map_id_;
         properties_canvas_.set_highlight_tile_id(selected_usage_map_);
@@ -1940,7 +1937,7 @@ void OverworldEditor::DrawUsageGrid() {
       }
 
       // Create a button or selectable for each square
-      if (ImGui::Button("##square", ImVec2(20, 20))) {
+      if (Button("##square", ImVec2(20, 20))) {
         // Switch over to the room editor tab
         // and add a room tab by the ID of the square
         // that was clicked
@@ -2012,7 +2009,7 @@ void OverworldEditor::DrawDebugWindow() {
   static bool view_lw_map_tiles = false;
   static MemoryEditor mem_edit;
   // Let's create buttons which let me view containers in the memory editor
-  if (ImGui::Button("View Light World Map Tiles")) {
+  if (Button("View Light World Map Tiles")) {
     view_lw_map_tiles = !view_lw_map_tiles;
   }
 
