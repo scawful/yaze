@@ -947,7 +947,7 @@ void OverworldEditor::DrawOverworldSprites() {
         }
       }
 
-      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.Name()), map_x,
+      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), map_x,
                               map_y);
     }
     i++;
@@ -1028,9 +1028,9 @@ absl::Status OverworldEditor::LoadGraphics() {
         maps_bmp_[i], palette));
   }
 
-  // if (flags()->overworld.kDrawOverworldSprites) {
-  //   RETURN_IF_ERROR(LoadSpriteGraphics());
-  // }
+  if (flags()->overworld.kDrawOverworldSprites) {
+    RETURN_IF_ERROR(LoadSpriteGraphics());
+  }
 
   return absl::OkStatus();
 }
