@@ -205,38 +205,6 @@ constexpr int GraveLinkSpecialHole = 0x46DD9;    // short
 constexpr int GraveLinkSpecialStairs = 0x46DE0;  // short
 
 // ============================================================================
-// Palettes Related Variables - This contain all the palettes of the game
-// ============================================================================
-constexpr int overworldPaletteMain = 0xDE6C8;
-constexpr int overworldPaletteAuxialiary = 0xDE86C;
-constexpr int overworldPaletteAnimated = 0xDE604;
-constexpr int globalSpritePalettesLW = 0xDD218;
-constexpr int globalSpritePalettesDW = 0xDD290;
-// Green, Blue, Red, Bunny, Electrocuted (15 colors each)
-constexpr int armorPalettes = 0xDD308;
-constexpr int spritePalettesAux1 = 0xDD39E;  // 7 colors each
-constexpr int spritePalettesAux2 = 0xDD446;  // 7 colors each
-constexpr int spritePalettesAux3 = 0xDD4E0;  // 7 colors each
-constexpr int swordPalettes = 0xDD630;       // 3 colors each - 4 entries
-constexpr int shieldPalettes = 0xDD648;      // 4 colors each - 3 entries
-constexpr int hudPalettes = 0xDD660;
-constexpr int dungeonMapPalettes = 0xDD70A;    // 21 colors
-constexpr int dungeonMainPalettes = 0xDD734;   //(15*6) colors each - 20 entries
-constexpr int dungeonMapBgPalettes = 0xDE544;  // 16*6
-// Mirrored Value at 0x75645 : 0x75625
-constexpr int hardcodedGrassLW = 0x5FEA9;
-constexpr int hardcodedGrassDW = 0x05FEB3;  // 0x7564F
-constexpr int hardcodedGrassSpecial = 0x75640;
-constexpr int overworldMiniMapPalettes = 0x55B27;
-constexpr int triforcePalette = 0x64425;
-constexpr int crystalPalette = 0xF4CD3;
-constexpr int customAreaSpecificBGPalette =
-    0x140000;  // 2 bytes for each overworld area (320)
-constexpr int customAreaSpecificBGASM = 0x140150;
-constexpr int customAreaSpecificBGEnabled =
-    0x140140;  // 1 byte, not 0 if enabled
-
-// ============================================================================
 // Names
 // ============================================================================
 
