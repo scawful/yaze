@@ -335,79 +335,59 @@ void DungeonEditor::DrawRoomSelector() {
   }
 }
 
+using ImGui::Separator;
+
 void DungeonEditor::DrawEntranceSelector() {
   if (rom()->is_loaded()) {
-    gui::InputHexWord("Entrance ID",
-                      &entrances_[current_entrance_id_].entrance_id_);
-
-    gui::InputHexWord("Room ID", &entrances_[current_entrance_id_].room_, 50.f,
-                      true);
-    SameLine();
-    gui::InputHexByte("Dungeon ID",
-                      &entrances_[current_entrance_id_].dungeon_id_, 50.f,
-                      true);
-
-    gui::InputHexByte("Blockset", &entrances_[current_entrance_id_].blockset_,
-                      50.f, true);
+    auto current_entrance = entrances_[current_entrance_id_];
+    gui::InputHexWord("Entrance ID", &current_entrance.entrance_id_);
+    gui::InputHexWord("Room ID", &current_entrance.room_, 50.f, true);
     SameLine();
 
-    gui::InputHexByte("Music", &entrances_[current_entrance_id_].music_, 50.f,
-                      true);
+    gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_, 50.f, true);
+    gui::InputHexByte("Blockset", &current_entrance.blockset_, 50.f, true);
     SameLine();
-    gui::InputHexByte("Floor", &entrances_[current_entrance_id_].floor_);
 
-    ImGui::Separator();
-
-    gui::InputHexWord("Player X   ",
-                      &entrances_[current_entrance_id_].x_position_);
+    gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
     SameLine();
-    gui::InputHexWord("Player Y   ",
-                      &entrances_[current_entrance_id_].y_position_);
+    gui::InputHexByte("Floor", &current_entrance.floor_);
+    Separator();
 
-    gui::InputHexWord("Camera X",
-                      &entrances_[current_entrance_id_].camera_trigger_x_);
+    gui::InputHexWord("Player X   ", &current_entrance.x_position_);
     SameLine();
-    gui::InputHexWord("Camera Y",
-                      &entrances_[current_entrance_id_].camera_trigger_y_);
+    gui::InputHexWord("Player Y   ", &current_entrance.y_position_);
 
-    gui::InputHexWord("Scroll X    ",
-                      &entrances_[current_entrance_id_].camera_x_);
+    gui::InputHexWord("Camera X", &current_entrance.camera_trigger_x_);
     SameLine();
-    gui::InputHexWord("Scroll Y    ",
-                      &entrances_[current_entrance_id_].camera_y_);
+    gui::InputHexWord("Camera Y", &current_entrance.camera_trigger_y_);
 
-    gui::InputHexWord("Exit", &entrances_[current_entrance_id_].exit_, 50.f,
-                      true);
+    gui::InputHexWord("Scroll X    ", &current_entrance.camera_x_);
+    SameLine();
+    gui::InputHexWord("Scroll Y    ", &current_entrance.camera_y_);
 
-    ImGui::Separator();
+    gui::InputHexWord("Exit", &current_entrance.exit_, 50.f, true);
+
+    Separator();
     Text("Camera Boundaries");
-    ImGui::Separator();
+    Separator();
     Text("\t\t\t\t\tNorth         East         South         West");
-    gui::InputHexByte("Quadrant",
-                      &entrances_[current_entrance_id_].camera_boundary_qn_,
-                      50.f, true);
+    gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f,
+                      true);
     SameLine();
-    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qe_,
-                      50.f, true);
+    gui::InputHexByte("", &current_entrance.camera_boundary_qe_, 50.f, true);
     SameLine();
-    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qs_,
-                      50.f, true);
+    gui::InputHexByte("", &current_entrance.camera_boundary_qs_, 50.f, true);
     SameLine();
-    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_qw_,
-                      50.f, true);
+    gui::InputHexByte("", &current_entrance.camera_boundary_qw_, 50.f, true);
 
-    gui::InputHexByte("Full room",
-                      &entrances_[current_entrance_id_].camera_boundary_fn_,
-                      50.f, true);
+    gui::InputHexByte("Full room", &current_entrance.camera_boundary_fn_, 50.f,
+                      true);
     SameLine();
-    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fe_,
-                      50.f, true);
+    gui::InputHexByte("", &current_entrance.camera_boundary_fe_, 50.f, true);
     SameLine();
-    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fs_,
-                      50.f, true);
+    gui::InputHexByte("", &current_entrance.camera_boundary_fs_, 50.f, true);
     SameLine();
-    gui::InputHexByte("", &entrances_[current_entrance_id_].camera_boundary_fw_,
-                      50.f, true);
+    gui::InputHexByte("", &current_entrance.camera_boundary_fw_, 50.f, true);
 
     if (BeginChild("EntranceSelector", ImVec2(0, 0), true,
                    ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
@@ -465,7 +445,7 @@ void DungeonEditor::DrawDungeonTabView() {
 
     EndTabBar();
   }
-  ImGui::Separator();
+  Separator();
 }
 
 void DungeonEditor::DrawDungeonCanvas(int room_id) {
@@ -504,7 +484,8 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
 void DungeonEditor::DrawRoomGraphics() {
   const auto height = 0x40;
-  room_gfx_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x10 * 0x40 + 1));
+  const int num_sheets = 0x10;
+  room_gfx_canvas_.DrawBackground(ImVec2(0x100 + 1, num_sheets * height + 1));
   room_gfx_canvas_.DrawContextMenu();
   room_gfx_canvas_.DrawTileSelector(32);
   if (is_loaded_) {

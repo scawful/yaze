@@ -376,7 +376,6 @@ bool DrawItemEditorPopup(zelda3::overworld::OverworldItem &item) {
 
 const ImGuiTableSortSpecs *SpriteItem::s_current_sort_specs = nullptr;
 
-
 void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   static ImGuiTextFilter filter;
   static int selected_id = 0;
@@ -432,8 +431,7 @@ void DrawSpriteInserterPopup() {
     Text("Add Sprite");
     BeginChild("ScrollRegion", ImVec2(250, 250), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    DrawSpriteTable(
-        [](int selected_id) { new_sprite_id = selected_id; });
+    DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; });
     EndChild();
 
     if (Button(ICON_MD_DONE)) {
@@ -461,7 +459,7 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
     BeginChild("ScrollRegion", ImVec2(350, 350), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
-    Text("%s", sprite.Name().c_str());
+    Text("%s", sprite.name().c_str());
 
     DrawSpriteTable([&sprite](int selected_id) {
       sprite.set_id(selected_id);
@@ -486,7 +484,6 @@ bool DrawSpriteEditorPopup(zelda3::Sprite &sprite) {
   }
   return set_done;
 }
-
 
 }  // namespace editor
 }  // namespace app

@@ -25,8 +25,8 @@ struct OamTile {
           bool s, uint8_t p)
       : x(x),
         y(y),
-        mirrorX(mx),
-        mirrorY(my),
+        mirror_x(mx),
+        mirror_y(my),
         id(id),
         palette(pal),
         size(s),
@@ -34,8 +34,8 @@ struct OamTile {
 
   uint8_t x;
   uint8_t y;
-  bool mirrorX;
-  bool mirrorY;
+  bool mirror_x;
+  bool mirror_y;
   uint16_t id;
   uint8_t palette;
   bool size;
@@ -254,12 +254,12 @@ struct ZSprite {
           fs.write(
               reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].palette),
               sizeof(uint8_t));
-          fs.write(
-              reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].mirrorX),
-              sizeof(bool));
-          fs.write(
-              reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].mirrorY),
-              sizeof(bool));
+          fs.write(reinterpret_cast<const char*>(
+                       &editor.Frames[i].Tiles[j].mirror_x),
+                   sizeof(bool));
+          fs.write(reinterpret_cast<const char*>(
+                       &editor.Frames[i].Tiles[j].mirror_y),
+                   sizeof(bool));
           fs.write(reinterpret_cast<const char*>(
                        &editor.Frames[i].Tiles[j].priority),
                    sizeof(uint8_t));
