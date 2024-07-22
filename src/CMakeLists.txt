@@ -20,6 +20,8 @@ set(
   app/editor/graphics/tile16_editor.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/utils/gfx_context.cc
+  app/editor/overworld/refresh.cc
+  app/editor/overworld/entity.cc
 )
 
 set(
