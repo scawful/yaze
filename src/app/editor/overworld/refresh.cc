@@ -62,6 +62,8 @@ void OverworldEditor::RefreshOverworldMap() {
 }
 
 absl::Status OverworldEditor::RefreshMapPalette() {
+  RETURN_IF_ERROR(
+      overworld_.mutable_overworld_map(current_map_)->LoadPalette());
   const auto current_map_palette =
       overworld_.overworld_map(current_map_)->current_palette();
 
