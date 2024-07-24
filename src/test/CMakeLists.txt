@@ -10,6 +10,12 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
+# Append the ../ prefix to the include directories
+list(TRANSFORM YAZE_APP_GFX_SRC PREPEND "../")
+list(TRANSFORM YAZE_APP_EMU_SRC PREPEND "../")
+list(TRANSFORM YAZE_APP_CORE_SRC PREPEND "../")
+list(TRANSFORM YAZE_GUI_SRC PREPEND "../")
+
 add_executable(
   yaze_test
   yaze_test.cc
@@ -22,24 +28,14 @@ add_executable(
   ../cli/patch.cc
   ../cli/command_handler.cc
   ../app/rom.cc
-  ../app/emu/cpu/cpu.cc
-  ../app/emu/cpu/internal/instructions.cc
-  ../app/emu/cpu/internal/addressing.cc
-  ../app/emu/audio/internal/addressing.cc
-  ../app/emu/audio/internal/instructions.cc
-  ../app/emu/audio/apu.cc
-  ../app/emu/video/ppu.cc
-  ../app/emu/audio/dsp.cc
-  ../app/emu/audio/spc700.cc
-  ../app/emu/memory/memory.cc
-  ../app/editor/utils/gfx_context.cc
-  ../app/gfx/bitmap.cc
-  ../app/gfx/snes_tile.cc
-  ../app/gfx/snes_color.cc
-  ../app/gfx/snes_palette.cc
-  ../app/gfx/compression.cc
+  ../app/rom_test.cc
   ../app/core/common.cc
   ../app/core/labeling.cc
+  ../app/editor/utils/gfx_context.cc
+  ${YAZE_APP_EMU_SRC}
+  ${YAZE_APP_GFX_SRC}
+  ${YAZE_GUI_SRC}
+  ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
   ../lib/imgui/misc/cpp/imgui_stdlib.cpp
   # ${ASAR_STATIC_SRC}
 )
@@ -47,6 +43,7 @@ add_executable(
 target_include_directories(
   yaze_test PUBLIC
   ../
+  ../app/
   ../lib/
   ${SDL2_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
@@ -54,8 +51,8 @@ target_include_directories(
 
 target_link_libraries(
   yaze_test
-  ${ABSL_TARGETS}
   SDL2::SDL2
+  ${ABSL_TARGETS}
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
