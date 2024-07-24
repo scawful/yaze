@@ -7,6 +7,7 @@
 
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/gfx/bitmap.h"
+#include "app/gui/color.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
@@ -758,6 +759,61 @@ void Canvas::DrawLayeredElements() {
     draw_list->ChannelsMerge();
     ImGui::Dummy(ImVec2(75, 75));
     Text("After reordering, contents of channel 0 appears below channel 1.");
+  }
+}
+
+void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
+                               int num_sheets_to_load, int canvas_id,
+                               bool is_loaded, gfx::BitmapTable &graphics_bin) {
+  gui::Canvas canvas;
+  if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)canvas_id);
+      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    canvas.DrawBackground(ImVec2(width + 1, num_sheets_to_load * height + 1));
+    canvas.DrawContextMenu();
+    if (is_loaded) {
+      for (const auto &[key, value] : graphics_bin) {
+        int offset = height * (key + 1);
+        int top_left_y = canvas.zero_point().y + 2;
+        if (key >= 1) {
+          top_left_y = canvas.zero_point().y + height * key;
+        }
+        canvas.draw_list()->AddImage(
+            (void *)value.texture(),
+            ImVec2(canvas.zero_point().x + 2, top_left_y),
+            ImVec2(canvas.zero_point().x + 0x100,
+                   canvas.zero_point().y + offset));
+      }
+    }
+    canvas.DrawTileSelector(tile_size);
+    canvas.DrawGrid(tile_size);
+    canvas.DrawOverlay();
+  }
+  ImGui::EndChild();
+}
+
+void BitmapCanvasPipeline(gui::Canvas &canvas, const gfx::Bitmap &bitmap,
+                          int width, int height, int tile_size, bool is_loaded,
+                          bool scrollbar, int canvas_id) {
+  auto draw_canvas = [](gui::Canvas &canvas, const gfx::Bitmap &bitmap,
+                        int width, int height, int tile_size, bool is_loaded) {
+    canvas.DrawBackground(ImVec2(width + 1, height + 1));
+    canvas.DrawContextMenu();
+    canvas.DrawBitmap(bitmap, 2, is_loaded);
+    canvas.DrawTileSelector(tile_size);
+    canvas.DrawGrid(tile_size);
+    canvas.DrawOverlay();
+  };
+
+  if (scrollbar) {
+    if (ImGuiID child_id = ImGui::GetID((void *)(intptr_t)canvas_id);
+        ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
+    }
+    ImGui::EndChild();
+  } else {
+    draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
   }
 }
 

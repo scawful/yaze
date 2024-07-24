@@ -6,6 +6,7 @@
 #include "app/core/labeling.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"

@@ -221,6 +221,14 @@ class Canvas : public SharedRom {
   std::vector<ImVec2> selected_tiles_;
 };
 
+void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
+                               int num_sheets_to_load, int canvas_id,
+                               bool is_loaded, BitmapTable& graphics_bin);
+
+void BitmapCanvasPipeline(gui::Canvas& canvas, const gfx::Bitmap& bitmap,
+                          int width, int height, int tile_size, bool is_loaded,
+                          bool scrollbar, int canvas_id);
+
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze

@@ -16,6 +16,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/asset_browser.h"
 #include "app/gui/canvas.h"
+#include "app/gui/color.h"
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
 #include "app/gui/style.h"
@@ -523,10 +524,12 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     is_open_ = true;
     cgx_loaded_ = true;
   });
-  gui::ButtonPipe("Copy CGX Path",
-                  [this]() { ImGui::SetClipboardText(cgx_file_path_); });
 
-  gui::ButtonPipe("Load CGX Data", [this]() {
+  if (ImGui::Button("Copy CGX Path")) {
+    ImGui::SetClipboardText(cgx_file_path_);
+  }
+
+  if (ImGui::Button("Load CGX Data")) {
     status_ = gfx::scad_format::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                                         decoded_cgx_, extra_cgx_data_);
 
@@ -535,7 +538,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
       cgx_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&cgx_bitmap_);
     }
-  });
+  }
 
   return absl::OkStatus();
 }
@@ -557,7 +560,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
 
   InputInt("SCR Mod", &scr_mod_value_);
 
-  gui::ButtonPipe("Load Scr Data", [this]() {
+  if (ImGui::Button("Load Scr Data")) {
     status_ =
         gfx::scad_format::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
 
@@ -570,7 +573,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
       scr_bitmap_.ApplyPalette(decoded_col_);
       rom()->RenderBitmap(&scr_bitmap_);
     }
-  });
+  }
 
   return absl::OkStatus();
 }
@@ -607,8 +610,9 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
         is_open_ = true;
       });
 
-  gui::ButtonPipe("Copy COL Path",
-                  [this]() { ImGui::SetClipboardText(col_file_path_); });
+  if (ImGui::Button("Copy Col Path")) {
+    ImGui::SetClipboardText(col_file_path_);
+  }
 
   if (rom()->is_loaded()) {
     gui::TextWithSeparators("ROM Palette");
@@ -680,8 +684,9 @@ absl::Status GraphicsEditor::DrawFileImport() {
     is_open_ = true;
   });
 
-  gui::ButtonPipe("Copy File Path",
-                  [this]() { ImGui::SetClipboardText(file_path_); });
+  if (Button("Copy File Path")) {
+    ImGui::SetClipboardText(file_path_);
+  }
 
   gui::InputHex("BIN Offset", &current_offset_);
   gui::InputHex("BIN Size", &bin_size_);
@@ -700,7 +705,7 @@ absl::Status GraphicsEditor::DrawFileImport() {
 
 absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::TextWithSeparators("Clipboard Import");
-  gui::ButtonPipe("Paste from Clipboard", [this]() {
+  if (Button("Paste From Clipboard")) {
     const char* text = ImGui::GetClipboardText();
     if (text) {
       const auto clipboard_data = Bytes(text, text + strlen(text));
@@ -709,12 +714,12 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
       is_open_ = true;
       open_memory_editor_ = true;
     }
-  });
+  }
   gui::InputHex("Offset", &clipboard_offset_);
   gui::InputHex("Size", &clipboard_size_);
   gui::InputHex("Num Sheets", &num_sheets_to_load_);
 
-  gui::ButtonPipe("Decompress Clipboard Data", [this]() {
+  if (Button("Decompress Clipboard Data")) {
     if (temp_rom_.is_loaded()) {
       status_ = DecompressImportData(0x40000);
     } else {
@@ -722,7 +727,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
           "Please paste data into the clipboard before "
           "decompressing.");
     }
-  });
+  }
 
   return absl::OkStatus();
 }

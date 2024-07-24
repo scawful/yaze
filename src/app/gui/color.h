@@ -30,6 +30,9 @@ IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
 
 absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded);
 
+void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
+                               gfx::SnesPalette& palette);
+
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze
