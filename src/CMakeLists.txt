@@ -17,26 +17,12 @@ set(
 )
 
 set(
-  YAZE_APP_ZELDA3_SRC
-  app/zelda3/overworld/overworld_map.cc
-  app/zelda3/overworld/overworld.cc
-  app/zelda3/screen/inventory.cc
-  app/zelda3/screen/title_screen.cc
-  app/zelda3/sprite/sprite.cc
-  app/zelda3/music/tracker.cc
-  app/zelda3/dungeon/room.cc
-  app/zelda3/dungeon/room_object.cc
-  app/zelda3/dungeon/object_renderer.cc
-)
-
-set(
   YAZE_GUI_SRC
   app/gui/asset_browser.cc
   app/gui/canvas.cc
   app/gui/input.cc
   app/gui/style.cc
   app/gui/color.cc
-  app/gui/pipeline.cc
   app/gui/zeml.cc
 )
 

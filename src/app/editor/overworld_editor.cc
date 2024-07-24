@@ -21,7 +21,6 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/gui/pipeline.h"
 #include "app/gui/style.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
