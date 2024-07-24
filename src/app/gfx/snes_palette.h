@@ -69,11 +69,11 @@ constexpr int kArmorPalettes = 0xDD308;
 constexpr int kSpritesPalettesAux1 = 0xDD39E;  // 7 colors each
 constexpr int kSpritesPalettesAux2 = 0xDD446;  // 7 colors each
 constexpr int kSpritesPalettesAux3 = 0xDD4E0;  // 7 colors each
-constexpr int kSwordPalettes = 0xDD630;       // 3 colors each - 4 entries
-constexpr int kShieldPalettes = 0xDD648;      // 4 colors each - 3 entries
+constexpr int kSwordPalettes = 0xDD630;        // 3 colors each - 4 entries
+constexpr int kShieldPalettes = 0xDD648;       // 4 colors each - 3 entries
 constexpr int kHudPalettes = 0xDD660;
 constexpr int dungeonMapPalettes = 0xDD70A;    // 21 colors
-constexpr int kDungeonMainPalettes = 0xDD734;   //(15*6) colors each - 20 entries
+constexpr int kDungeonMainPalettes = 0xDD734;  //(15*6) colors each - 20 entries
 constexpr int dungeonMapBgPalettes = 0xDE544;  // 16*6
 // Mirrored Value at 0x75645 : 0x75625
 constexpr int kHardcodedGrassLW = 0x5FEA9;
