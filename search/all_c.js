@@ -2204,7 +2204,7 @@ var searchData=
   ['im_5fmax_2201',['IM_MAX',['../asset__browser_8h.html#a9d0693fad89638629beea97300c8f8f6',1,'asset_browser.h']]],
   ['im_5fmin_2202',['IM_MIN',['../asset__browser_8h.html#af25a13a96600f1a018104f6c2d3da645',1,'asset_browser.h']]],
   ['imgui_2203',['ImGui',['../namespaceImGui.html',1,'']]],
-  ['imgui_5fdefine_5fmath_5foperators_2204',['IMGUI_DEFINE_MATH_OPERATORS',['../master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'master_editor.h']]],
+  ['imgui_5fdefine_5fmath_5foperators_2204',['IMGUI_DEFINE_MATH_OPERATORS',['../master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;master_editor.h'],['../input_8h.html#adf4d73301961430d50d7edd96f92ce38',1,'IMGUI_DEFINE_MATH_OPERATORS:&#160;input.h']]],
   ['imgui_5fimplsdl2_5fgetclipboardtext_2205',['ImGui_ImplSDL2_GetClipboardText',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a4f7ea20b69b7320bab22711cf18cb436',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['imgui_5fimplsdl2_5fsetclipboardtext_2206',['ImGui_ImplSDL2_SetClipboardText',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a7cedf84adb43edcf0230f6589e90d588',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['imguiidissuer_2207',['ImGuiIdIssuer',['../classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html',1,'yaze::app::core']]],

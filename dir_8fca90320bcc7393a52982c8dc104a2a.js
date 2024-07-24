@@ -9,8 +9,6 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "icons.h", "icons_8h.html", "icons_8h" ],
     [ "input.cc", "input_8cc.html", "input_8cc" ],
     [ "input.h", "input_8h.html", "input_8h" ],
-    [ "pipeline.cc", "pipeline_8cc.html", "pipeline_8cc" ],
-    [ "pipeline.h", "pipeline_8h.html", "pipeline_8h" ],
     [ "style.cc", "style_8cc.html", "style_8cc" ],
     [ "style.h", "style_8h.html", "style_8h" ],
     [ "zeml.cc", "zeml_8cc.html", "zeml_8cc" ],

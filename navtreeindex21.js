@@ -1,5 +1,11 @@
 var NAVTREEINDEX21 =
 {
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#acc8828b02e28e1d027b7988d7d23d650":[9,0,0,0,5,3,1,12],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939":[8,0,1,0,5,4,1,4],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939":[9,0,0,0,5,3,1,4],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html":[8,0,1,0,5,4,2],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html":[9,0,0,0,5,3,2],
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a01acc36e96a39a48b28bff01ac7943a9":[8,0,1,0,5,4,2,38],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a01acc36e96a39a48b28bff01ac7943a9":[9,0,0,0,5,3,2,38],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a024a8b899d5df16e0a0828620a633dc3":[8,0,1,0,5,4,2,27],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a024a8b899d5df16e0a0828620a633dc3":[9,0,0,0,5,3,2,27],
@@ -243,11 +249,5 @@ var NAVTREEINDEX21 =
 "classyaze__test_1_1emu__test_1_1MockPpu.html#aee8bb2d9f6884b2560e1cc5e05299c5d":[9,0,1,0,2,10],
 "classyaze__test_1_1emu__test_1_1MockPpu.html#af55d48ad55f0911f4e1f42efdc34de00":[8,0,2,0,2,17],
 "classyaze__test_1_1emu__test_1_1MockPpu.html#af55d48ad55f0911f4e1f42efdc34de00":[9,0,1,0,2,17],
-"classyaze__test_1_1emu__test_1_1MockPpu.html#aff15c5e301bd7c355d29c1442ffa2858":[8,0,2,0,2,25],
-"classyaze__test_1_1emu__test_1_1MockPpu.html#aff15c5e301bd7c355d29c1442ffa2858":[9,0,1,0,2,25],
-"classyaze__test_1_1emu__test_1_1MockPpu.html#affd25a8fa8e94ebf6d88c56871bc39e4":[8,0,2,0,2,9],
-"classyaze__test_1_1emu__test_1_1MockPpu.html#affd25a8fa8e94ebf6d88c56871bc39e4":[9,0,1,0,2,9],
-"classyaze__test_1_1emu__test_1_1PpuTest.html":[8,0,2,0,3],
-"classyaze__test_1_1emu__test_1_1PpuTest.html":[9,0,1,0,3],
-"classyaze__test_1_1emu__test_1_1PpuTest.html#a02ba523db7d64313e47a62b2311f87ca":[8,0,2,0,3,6]
+"classyaze__test_1_1emu__test_1_1MockPpu.html#aff15c5e301bd7c355d29c1442ffa2858":[8,0,2,0,2,25]
 };

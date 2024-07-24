@@ -125,6 +125,7 @@ var classyaze_1_1app_1_1editor_1_1OverworldEditor =
     [ "current_graphics_set_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a2b4d5ac837a2450be390e37b4c648dc1", null ],
     [ "sprite_previews_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ad2f9ccf2715ea7e4f64a50354fbb34d0", null ],
     [ "animated_maps_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a8c7747dc9ab3ae6a3f521f2c55038165", null ],
+    [ "refresh_blockset_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#af940abeeb591a64d8166bd44bbd6ee6b", null ],
     [ "layout_node_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#acbd340bb22f1f44d2705cd907657198c", null ],
     [ "status_", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a9de06aac79d57f095bf23e1c417a3640", null ]
 ];

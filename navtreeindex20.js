@@ -1,5 +1,11 @@
 var NAVTREEINDEX20 =
 {
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a13b80fcd396ae1ee67a5e4985142c4ba":[9,0,0,0,5,2,3,9],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a21b1a250e9c075831de29139a42cf32f":[8,0,1,0,5,3,6,6],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a21b1a250e9c075831de29139a42cf32f":[9,0,0,0,5,2,3,6],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a277a7ded0d28e34ac6e3acc48945e71a":[8,0,1,0,5,3,6,1],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a277a7ded0d28e34ac6e3acc48945e71a":[9,0,0,0,5,2,3,1],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a37d684d9db57a61fb63c8300a03fa20c":[8,0,1,0,5,3,6,7],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a37d684d9db57a61fb63c8300a03fa20c":[9,0,0,0,5,2,3,7],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a3fd1d6dc724281f7be3bbe5588337126":[8,0,1,0,5,3,6,19],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a3fd1d6dc724281f7be3bbe5588337126":[9,0,0,0,5,2,3,19],
@@ -243,11 +249,5 @@ var NAVTREEINDEX20 =
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ab4f6e14828b66b9e79d1f709024c3744":[9,0,0,0,5,3,1,3],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ac95abe6cfdfd32f15bec41b1319b4fc5":[8,0,1,0,5,4,1,5],
 "classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ac95abe6cfdfd32f15bec41b1319b4fc5":[9,0,0,0,5,3,1,5],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#acc8828b02e28e1d027b7988d7d23d650":[8,0,1,0,5,4,1,12],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#acc8828b02e28e1d027b7988d7d23d650":[9,0,0,0,5,3,1,12],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939":[8,0,1,0,5,4,1,4],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939":[9,0,0,0,5,3,1,4],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html":[8,0,1,0,5,4,2],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html":[9,0,0,0,5,3,2],
-"classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a01acc36e96a39a48b28bff01ac7943a9":[8,0,1,0,5,4,2,38]
+"classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#acc8828b02e28e1d027b7988d7d23d650":[8,0,1,0,5,4,1,12]
 };

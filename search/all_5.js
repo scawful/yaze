@@ -187,10 +187,9 @@ var searchData=
   ['built_5f_184',['built_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a36e352c4704510da5c38f1af045cf0a3',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['button_185',['Button',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a87b7760f14fbff78d8819291f36ab9a0',1,'yaze::app::gui::zeml']]],
   ['button_5fcolumn_186',['BUTTON_COLUMN',['../constants_8h.html#ae7499c3a615a8657bdf2d38994f0d231',1,'constants.h']]],
-  ['buttonpipe_187',['ButtonPipe',['../namespaceyaze_1_1app_1_1gui.html#a21cf03d73a6f5ee2e9bf2baa76c1a2dc',1,'yaze::app::gui']]],
-  ['bvc_188',['BVC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aca60949ae005fb59a1d5a6ab8c7d9330',1,'yaze::app::emu::audio::Spc700::BVC()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2c8e1332a02ce8427623c246523060f0',1,'yaze::app::emu::Cpu::BVC()']]],
-  ['bvs_189',['BVS',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ac7d3840c74b7f5a238a327094d444a01',1,'yaze::app::emu::audio::Spc700::BVS()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#ad650bfa11fa31f5306a9da570a47c258',1,'yaze::app::emu::Cpu::BVS()']]],
-  ['bytes_190',['Bytes',['../constants_8h.html#a2640b748d10e1cbab1f408f43c52449d',1,'constants.h']]],
-  ['bytestotransfer_191',['bytesToTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de',1,'yaze::app::emu::video::DmaRegisters']]],
-  ['bytetoflags_192',['ByteToFlags',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360',1,'yaze::app::emu::audio::Spc700']]]
+  ['bvc_187',['BVC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aca60949ae005fb59a1d5a6ab8c7d9330',1,'yaze::app::emu::audio::Spc700::BVC()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2c8e1332a02ce8427623c246523060f0',1,'yaze::app::emu::Cpu::BVC()']]],
+  ['bvs_188',['BVS',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ac7d3840c74b7f5a238a327094d444a01',1,'yaze::app::emu::audio::Spc700::BVS()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#ad650bfa11fa31f5306a9da570a47c258',1,'yaze::app::emu::Cpu::BVS()']]],
+  ['bytes_189',['Bytes',['../constants_8h.html#a2640b748d10e1cbab1f408f43c52449d',1,'constants.h']]],
+  ['bytestotransfer_190',['bytesToTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#a5b9c7746a851eb1b1864279b496a59de',1,'yaze::app::emu::video::DmaRegisters']]],
+  ['bytetoflags_191',['ByteToFlags',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a65622d99c19be43c3905541e06805360',1,'yaze::app::emu::audio::Spc700']]]
 ];

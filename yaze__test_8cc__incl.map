@@ -1,5 +1,5 @@
-<map id="test/yaze_test.cc" name="test/yaze_test.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="136,5,256,31"/>
+<map id="src/test/yaze_test.cc" name="src/test/yaze_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="125,5,267,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,86,99,112"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,34,89,81,86,76,173,29"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="122,79,270,120"/>

@@ -1,10 +1,5 @@
 var NAVTREEINDEX47 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html":[9,0,0,0,2,2,0,16],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a3dc9d3102e442f6a14ccd34096c6b248":[8,0,1,0,2,4,0,16,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a3dc9d3102e442f6a14ccd34096c6b248":[9,0,0,0,2,2,0,16,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac":[8,0,1,0,2,4,0,16,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac":[9,0,0,0,2,2,0,16,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#aab6fa113fc35796aafae59fdf50e5b79":[8,0,1,0,2,4,0,16,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#aab6fa113fc35796aafae59fdf50e5b79":[9,0,0,0,2,2,0,16,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#ab47b238a6b141afda1726dcc32260b51":[8,0,1,0,2,4,0,16,1],
@@ -249,5 +244,10 @@ var NAVTREEINDEX47 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html#a215ce6545058c9aed83daebf7a3fe802":[9,0,0,0,2,2,0,51,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html#a7c2855179d3c157f43efa8bf353fdd66":[8,0,1,0,2,4,0,51,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html#a7c2855179d3c157f43efa8bf353fdd66":[9,0,0,0,2,2,0,51,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html#ae7993f9876a1f45a150901ba6bb3392b":[8,0,1,0,2,4,0,51,2]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html#ae7993f9876a1f45a150901ba6bb3392b":[8,0,1,0,2,4,0,51,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJLOG.html#ae7993f9876a1f45a150901ba6bb3392b":[9,0,0,0,2,2,0,51,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html":[8,0,1,0,2,4,0,52],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html":[9,0,0,0,2,2,0,52],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a29e7bf37f18dc58a0a3a66ffd0c7042b":[8,0,1,0,2,4,0,52,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a29e7bf37f18dc58a0a3a66ffd0c7042b":[9,0,0,0,2,2,0,52,4]
 };
