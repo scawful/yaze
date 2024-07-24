@@ -218,6 +218,32 @@ void Bitmap::Create(int width, int height, int depth, const Bytes &data) {
   active_ = true;
 }
 
+void Bitmap::Create(int width, int height, int depth, int format,
+                    const Bytes &data) {
+  active_ = true;
+  width_ = width;
+  height_ = height;
+  depth_ = depth;
+  data_ = data;
+  data_size_ = data.size();
+  pixel_data_ = data_.data();
+  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
+                                     GetSnesPixelFormat(format)),
+      SDL_Surface_Deleter());
+  surface_->pixels = pixel_data_;
+  active_ = true;
+}
+
+void Bitmap::Reformat(int format) {
+  surface_ = std::unique_ptr<SDL_Surface, SDL_Surface_Deleter>(
+      SDL_CreateRGBSurfaceWithFormat(0, width_, height_, depth_,
+                                     GetSnesPixelFormat(format)),
+      SDL_Surface_Deleter());
+  surface_->pixels = pixel_data_;
+  active_ = true;
+}
+
 void Bitmap::CreateTexture(SDL_Renderer *renderer) {
   if (width_ <= 0 || height_ <= 0) {
     SDL_Log("Invalid texture dimensions: width=%d, height=%d\n", width_,

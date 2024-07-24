@@ -85,6 +85,9 @@ class Bitmap {
    * @brief Creates a bitmap object with the provided graphical data.
    */
   void Create(int width, int height, int depth, const Bytes &data);
+  void Create(int width, int height, int depth, int format, const Bytes &data);
+
+  void Reformat(int format);
 
   /**
    * @brief Creates the underlying SDL_Texture to be displayed.
@@ -218,6 +221,7 @@ class Bitmap {
     return surface_->format->palette;
   }
   auto palette() const { return palette_; }
+  auto mutable_palette() { return &palette_; }
   auto palette_size() const { return palette_.size(); }
 
   int width() const { return width_; }
