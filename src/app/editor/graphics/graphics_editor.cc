@@ -389,10 +389,12 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
     NEXT_COLUMN();
     link_canvas_.DrawBackground();
     link_canvas_.DrawGrid(16.0f);
+
     int i = 0;
-    for (auto [key, link_sheet] : rom()->link_graphics()) {
+    for (auto [key, link_sheet] : *rom()->mutable_link_graphics()) {
       int x_offset = 0;
       int y_offset = core::kTilesheetHeight * i * 4;
+      link_canvas_.DrawContextMenu(&link_sheet);
       link_canvas_.DrawBitmap(link_sheet, x_offset, y_offset, 4);
       i++;
     }

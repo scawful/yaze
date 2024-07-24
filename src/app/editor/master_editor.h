@@ -15,7 +15,7 @@
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
-#include "app/editor/dungeon_editor.h"
+#include "app/editor/dungeon/dungeon_editor.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"

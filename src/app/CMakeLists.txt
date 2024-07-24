@@ -1,3 +1,5 @@
+include(app/editor/CMakeLists.txt)
+
 add_executable(
   yaze
   app/yaze.cc

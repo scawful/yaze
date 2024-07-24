@@ -15,7 +15,7 @@
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/editor/code/assembly_editor.h"
-#include "app/editor/dungeon_editor.h"
+#include "app/editor/dungeon/dungeon_editor.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"
@@ -32,7 +32,6 @@
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
 #include "app/gui/style.h"
-#include "app/gui/widgets.h"
 #include "app/rom.h"
 
 namespace yaze {
