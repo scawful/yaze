@@ -16,16 +16,19 @@ namespace app {
 namespace gui {
 
 using ImGui::BeginMenu;
+using ImGui::BeginPopup;
 using ImGui::EndMenu;
 using ImGui::GetContentRegionAvail;
 using ImGui::GetCursorScreenPos;
 using ImGui::GetIO;
+using ImGui::GetMouseDragDelta;
 using ImGui::GetWindowDrawList;
 using ImGui::IsItemActive;
 using ImGui::IsItemHovered;
 using ImGui::IsMouseClicked;
 using ImGui::IsMouseDragging;
 using ImGui::MenuItem;
+using ImGui::OpenPopupOnItemClick;
 using ImGui::Selectable;
 using ImGui::Separator;
 using ImGui::Text;
@@ -101,10 +104,9 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
   // Context menu (under default mouse threshold)
-  if (ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+  if (ImVec2 drag_delta = GetMouseDragDelta(ImGuiMouseButton_Right);
       enable_context_menu_ && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
-    ImGui::OpenPopupOnItemClick(context_id_.c_str(),
-                                ImGuiPopupFlags_MouseButtonRight);
+    OpenPopupOnItemClick(context_id_.c_str(), ImGuiPopupFlags_MouseButtonRight);
 
   // Contents of the Context Menu
   if (ImGui::BeginPopup(context_id_.c_str())) {
@@ -127,6 +129,29 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
              absl::StrFormat("%d", bitmap->surface()->pitch).c_str());
         Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
         Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
+        EndMenu();
+      }
+      if (BeginMenu("Bitmap Format")) {
+        if (MenuItem("Indexed")) {
+          bitmap->Reformat(0);
+          bitmap->ApplyPalette(bitmap->palette());
+          rom()->UpdateBitmap(bitmap);
+        }
+        if (MenuItem("2BPP")) {
+          bitmap->Reformat(1);
+          bitmap->ApplyPalette(bitmap->palette());
+          rom()->UpdateBitmap(bitmap);
+        }
+        if (MenuItem("4BPP")) {
+          bitmap->Reformat(2);
+          bitmap->ApplyPalette(bitmap->palette());
+          rom()->UpdateBitmap(bitmap);
+        }
+        if (MenuItem("8BPP")) {
+          bitmap->Reformat(3);
+          bitmap->ApplyPalette(bitmap->palette());
+          rom()->UpdateBitmap(bitmap);
+        }
         EndMenu();
       }
       if (BeginMenu("Bitmap Palette")) {
