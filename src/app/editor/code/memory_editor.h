@@ -12,7 +12,6 @@
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
-#include "app/editor/utils/gfx_context.h"
 #include "app/editor/dungeon/dungeon_editor.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_editor.h"
@@ -21,6 +20,7 @@
 #include "app/editor/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/utils/editor.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/editor/utils/recent_files.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
@@ -28,7 +28,6 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/gui/pipeline.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
 

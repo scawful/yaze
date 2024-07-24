@@ -20,7 +20,6 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
-#include "app/gui/pipeline.h"
 #include "app/rom.h"  // for Rom
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/patch.h"  // for ApplyBpsPatch, CreateBpsPatch

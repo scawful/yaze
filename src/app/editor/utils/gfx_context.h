@@ -12,7 +12,6 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
-#include "app/gui/pipeline.h"
 #include "app/rom.h"
 
 namespace yaze {

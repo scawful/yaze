@@ -7,16 +7,15 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/editor/utils/gfx_context.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/utils/editor.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
-#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 
@@ -30,9 +29,9 @@ namespace editor {
 class Tile16Editor : public context::GfxContext, public SharedRom {
  public:
   absl::Status InitBlockset(gfx::Bitmap* tile16_blockset_bmp,
-                    gfx::Bitmap current_gfx_bmp,
-                    const std::vector<gfx::Bitmap>& tile16_individual,
-                    uint8_t all_tiles_types[0x200]);
+                            gfx::Bitmap current_gfx_bmp,
+                            const std::vector<gfx::Bitmap>& tile16_individual,
+                            uint8_t all_tiles_types[0x200]);
 
   absl::Status Update();
   absl::Status DrawMenu();

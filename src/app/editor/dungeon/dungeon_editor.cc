@@ -9,7 +9,6 @@
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/gui/pipeline.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_names.h"
 #include "app/zelda3/dungeon/room_names.h"
