@@ -19,6 +19,7 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld_editor.h"
 #include "app/editor/settings_editor.h"
@@ -123,6 +124,7 @@ class MasterEditor : public SharedRom,
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
   SettingsEditor settings_editor_;
+  MessageEditor message_editor_;
   MemoryEditorWithDiffChecker memory_editor_;
 
   ImVector<int> active_tabs_;
