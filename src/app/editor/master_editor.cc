@@ -170,6 +170,11 @@ void MasterEditor::ManageActiveEditors() {
       active_editors_.push_back(&assembly_editor_);
       ImGui::CloseCurrentPopup();
     }
+    if (ImGui::MenuItem("Message", nullptr, false,
+                        !IsEditorActive(&message_editor_, active_editors_))) {
+      active_editors_.push_back(&message_editor_);
+      ImGui::CloseCurrentPopup();
+    }
     if (ImGui::MenuItem("Settings", nullptr, false,
                         !IsEditorActive(&settings_editor_, active_editors_))) {
       active_editors_.push_back(&settings_editor_);
@@ -254,6 +259,13 @@ void MasterEditor::ManageActiveEditors() {
           if (ImGui::BeginTabItem("Settings", &open)) {
             current_editor_ = &settings_editor_;
             status_ = settings_editor_.Update();
+            ImGui::EndTabItem();
+          }
+          break;
+        case EditorType::kMessage:
+          if (ImGui::BeginTabItem("Message", &open)) {
+            current_editor_ = &message_editor_;
+            status_ = message_editor_.Update();
             ImGui::EndTabItem();
           }
           break;

@@ -13,6 +13,7 @@ set(
   app/editor/overworld_editor.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
+  app/editor/message/message_editor.cc
   app/editor/code/assembly_editor.cc
   app/editor/graphics/screen_editor.cc
   app/editor/graphics/graphics_editor.cc
