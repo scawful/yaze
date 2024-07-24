@@ -180,7 +180,7 @@ void MessageEditor::DrawCurrentMessage() {
 
 absl::Status MessageEditor::Initialize() {
   for (int i = 0; i < 100; i++) {
-    widthArray[i] = rom()->data()[kCharactersWidth + i];
+    width_array[i] = rom()->data()[kCharactersWidth + i];
   }
 
   previewColors.AddColor(0x7FFF);  // White
@@ -417,7 +417,7 @@ absl::Status MessageEditor::Save() {
   std::vector<uint8_t> backup = rom()->vector();
 
   for (int i = 0; i < 100; i++) {
-    RETURN_IF_ERROR(rom()->Write(kCharactersWidth + i, widthArray[i]));
+    RETURN_IF_ERROR(rom()->Write(kCharactersWidth + i, width_array[i]));
   }
 
   int pos = kTextData;
@@ -434,11 +434,7 @@ absl::Status MessageEditor::Save() {
         // Make sure we didn't go over the space available in the first block.
         // 0x7FFF available.
         if ((!inSecondBank & pos) > kTextDataEnd) {
-          DisplayTextOverflowError(pos, true);
-          // *rom()->data() = backup.data();
-          // rom()->data() = (uint8_t[])backup.Clone();
-          return absl::InternalError(
-              "Too much text data in the first block to save.");
+          return absl::InternalError(DisplayTextOverflowError(pos, true));
         }
 
         // Switch to the second block.
@@ -456,11 +452,8 @@ absl::Status MessageEditor::Save() {
   // Verify that we didn't go over the space available for the second block.
   // 0x14BF available.
   if ((inSecondBank & pos) > kTextData2End) {
-    DisplayTextOverflowError(pos, false);
     // rom()->data() = backup;
-    // return true;
-    return absl::InternalError(
-        "Too much text data in the second block to save.");
+    return absl::InternalError(DisplayTextOverflowError(pos, false));
   }
 
   RETURN_IF_ERROR(rom()->Write(pos, 0xFF));  // , true, "End of text"
@@ -492,8 +485,10 @@ TextElement MessageEditor::FindMatchingSpecial(uint8_t value) {
 
 MessageEditor::DictionaryEntry MessageEditor::GetDictionaryFromID(
     uint8_t value) {
-  // return AllDictionaries.First(dictionary = > dictionary.ID == value);
-  return AllDictionaries[0];
+  if (value < 0 || value >= AllDictionaries.size()) {
+    return DictionaryEntry();
+  }
+  return AllDictionaries[value];
 }
 
 uint8_t MessageEditor::FindDictionaryEntry(uint8_t value) {
@@ -578,7 +573,7 @@ void MessageEditor::DrawCharacterToPreview(std::vector<uint8_t> text) {
 
       DrawTileToPreview(text_pos, text_line * 16, srcx, srcy, 0, false, false,
                         1, 2);
-      text_pos += widthArray[value];
+      text_pos += width_array[value];
     } else if (value == 0x74) {
       text_pos = 0;
       text_line = 0;
@@ -608,12 +603,8 @@ void MessageEditor::DrawCharacterToPreview(std::vector<uint8_t> text) {
       // characters.
       DrawStringToPreview("(NAME)");
     } else if (value >= DICTOFF && value < (DICTOFF + 97)) {
-      // DictionaryEntry dictionaryEntry =
-      //     GetDictionaryFromID((uint8_t)(value - DICTOFF));
-      // auto dictionaryEntry = GetDictionaryFromID(value - DICTOFF);
-      // if (dictionaryEntry != null) {
-      //   DrawCharacterToPreview(dictionaryEntry.Data);
-      // }
+      auto dictionaryEntry = GetDictionaryFromID(value - DICTOFF);
+      DrawCharacterToPreview(dictionaryEntry.Data);
     }
   }
 }
@@ -662,7 +653,7 @@ void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
   }
 }
 
-void MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
+std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
   int space = bank ? kTextDataEnd - kTextData : kTextData2End - kTextData2;
   string bankSTR = bank ? "1st" : "2nd";
   string posSTR = bank ? absl::StrFormat("%X4", pos & 0xFFFF)
@@ -671,7 +662,9 @@ void MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
       "There is too much text data in the %s block to save.\n"
       "Available: %X4 | Used: %s",
       bankSTR, space, posSTR);
+  return message;
 }
+
 
 }  // namespace editor
 }  // namespace app
