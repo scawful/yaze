@@ -46,6 +46,20 @@ void PngReadCallback(png_structp png_ptr, png_bytep outBytes,
     png_error(png_ptr, "Read error in PngReadCallback");
   }
 }
+
+Uint32 GetSnesPixelFormat(int format) {
+  switch (format) {
+    case 0:
+      return SDL_PIXELFORMAT_INDEX8;
+    case 1:
+      return SNES_PIXELFORMAT_2BPP;
+    case 2:
+      return SNES_PIXELFORMAT_4BPP;
+    case 3:
+      return SNES_PIXELFORMAT_8BPP;
+  }
+  return SDL_PIXELFORMAT_INDEX8;
+}
 }  // namespace
 
 bool ConvertSurfaceToPNG(SDL_Surface *surface, std::vector<uint8_t> &buffer) {
