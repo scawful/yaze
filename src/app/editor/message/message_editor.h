@@ -425,6 +425,7 @@ class MessageEditor : public Editor, public SharedRom {
     int Length;
     std::string Token;
 
+    DictionaryEntry() = default;
     DictionaryEntry(uint8_t i, std::string s)
         : Contents(s), ID(i), Length(s.length()) {
       Token = absl::StrFormat("[%s:%00X]", DICTIONARYTOKEN, ID);
@@ -490,11 +491,11 @@ class MessageEditor : public Editor, public SharedRom {
 
   void DrawStringToPreview(string str);
   void DrawMessagePreview();
-  void DisplayTextOverflowError(int pos, bool bank);
+  std::string DisplayTextOverflowError(int pos, bool bank);
 
   static const std::vector<DictionaryEntry> AllDicts;
 
-  uint8_t widthArray[100];
+  uint8_t width_array[100];
   string romname = "";
 
   int text_line = 0;
