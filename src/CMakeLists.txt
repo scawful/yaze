@@ -3,6 +3,7 @@ set(
   app/core/common.cc
   app/core/controller.cc
   app/core/labeling.cc
+  app/emu/emulator.cc
 )
 
 set(
@@ -28,7 +29,6 @@ set(
 
 set(
   YAZE_APP_EMU_SRC
-  app/emu/emulator.cc
   app/emu/audio/apu.cc
   app/emu/audio/spc700.cc
   app/emu/audio/dsp.cc
