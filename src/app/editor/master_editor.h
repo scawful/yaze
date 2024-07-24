@@ -8,6 +8,7 @@
 #include <imgui/imgui.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <imgui_memory_editor.h>
+#include <imgui_test_engine/imgui_te_context.h>
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
@@ -35,6 +36,16 @@
 
 namespace yaze {
 namespace app {
+
+namespace core {
+class GuiTestable {
+ public:
+  virtual void RegisterTests(ImGuiTestEngine* e) = 0;
+
+  ImGuiTestEngine* test_engine;
+};
+}  // namespace core
+
 namespace editor {
 
 /**
@@ -57,7 +68,8 @@ namespace editor {
  */
 class MasterEditor : public SharedRom,
                      public context::GfxContext,
-                     public core::ExperimentFlags {
+                     public core::ExperimentFlags,
+                     public core::GuiTestable {
  public:
   MasterEditor() {
     current_editor_ = &overworld_editor_;
@@ -75,6 +87,8 @@ class MasterEditor : public SharedRom,
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() { return quit_; }
 
+  void RegisterTests(ImGuiTestEngine* e) override;
+
  private:
   void ManageActiveEditors();
   void ManageKeyboardShortcuts();
@@ -89,6 +103,7 @@ class MasterEditor : public SharedRom,
   void DrawFileMenu();
   void DrawEditMenu();
   void DrawViewMenu();
+  void DrawTestMenu();
   void DrawProjectMenu();
   void DrawHelpMenu();
 
