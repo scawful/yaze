@@ -28,13 +28,10 @@ namespace gui {
 constexpr ImVec2 kDefaultModalSize = ImVec2(200, 0);
 constexpr ImVec2 kZeroPos = ImVec2(0, 0);
 
-IMGUI_API bool InputHexWithScrollwheel(const char* label, uint32_t* data,
-                                       uint32_t step = 0x01,
-                                       float input_width = 50.f);
-
 IMGUI_API bool InputHex(const char* label, uint64_t* data);
 IMGUI_API bool InputHex(const char* label, int* data, int num_digits = 4,
                         float input_width = 50.f);
+
 IMGUI_API bool InputHexShort(const char* label, uint32_t* data);
 IMGUI_API bool InputHexWord(const char* label, uint16_t* data,
                             float input_width = 50.f, bool no_step = false);

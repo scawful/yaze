@@ -66,7 +66,7 @@ class Emulator : public SharedRom {
 
         TableNextColumn,
         Function id="SnesPpu",
-        Function id="BreakpointList",
+        Function id="BreakpointList"
       }
     )";
     const std::map<std::string, void*> data_bindings = {
