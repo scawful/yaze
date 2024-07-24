@@ -5,7 +5,6 @@
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/gui/widgets.h"
 #include "core/constants.h"
 
 namespace yaze {

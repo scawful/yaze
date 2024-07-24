@@ -466,6 +466,7 @@ class Rom : public core::ExperimentFlags {
   auto bitmap_manager() { return graphics_manager_; }
   auto mutable_bitmap_manager() { return &graphics_manager_; }
   auto link_graphics() { return link_graphics_; }
+  auto mutable_link_graphics() { return &link_graphics_; }
 
   auto title() const { return title_; }
   auto size() const { return size_; }

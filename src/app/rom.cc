@@ -179,8 +179,9 @@ absl::Status Rom::LoadFontGraphicsData() {
     sheet_position += 0x400;
   }
 
+  font_gfx_data_.reserve(0x4000);
   for (int i = 0; i < 0x4000; i++) {
-    font_gfx_data_[i] = new_data[i];
+    font_gfx_data_.push_back(new_data[i]);
   }
 
   return absl::OkStatus();

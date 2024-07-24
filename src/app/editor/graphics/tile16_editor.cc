@@ -17,7 +17,6 @@
 #include "app/gui/input.h"
 #include "app/gui/pipeline.h"
 #include "app/gui/style.h"
-#include "app/gui/widgets.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 

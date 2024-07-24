@@ -14,7 +14,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/pipeline.h"
-#include "app/gui/widgets.h"
+#include "app/gui/style.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 

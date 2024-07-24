@@ -6,26 +6,6 @@ set(
 )
 
 set(
-  YAZE_APP_EDITOR_SRC
-  app/editor/dungeon_editor.cc
-  app/editor/master_editor.cc
-  app/editor/settings_editor.cc
-  app/editor/overworld_editor.cc
-  app/editor/sprite/sprite_editor.cc
-  app/editor/music/music_editor.cc
-  app/editor/message/message_editor.cc
-  app/editor/code/assembly_editor.cc
-  app/editor/graphics/screen_editor.cc
-  app/editor/graphics/graphics_editor.cc
-  app/editor/graphics/palette_editor.cc
-  app/editor/graphics/tile16_editor.cc
-  app/editor/graphics/gfx_group_editor.cc
-  app/editor/utils/gfx_context.cc
-  app/editor/overworld/refresh.cc
-  app/editor/overworld/entity.cc
-)
-
-set(
   YAZE_APP_GFX_SRC
   app/gfx/bitmap.cc
   app/gfx/compression.cc
@@ -55,7 +35,6 @@ set(
   app/gui/canvas.cc
   app/gui/input.cc
   app/gui/style.cc
-  app/gui/widgets.cc
   app/gui/color.cc
   app/gui/pipeline.cc
   app/gui/zeml.cc
