@@ -2,7 +2,6 @@
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
 
 #include <cmath>
 #include <unordered_map>
@@ -289,6 +288,8 @@ class OverworldEditor : public Editor,
   gfx::BitmapTable current_graphics_set_;
   gfx::BitmapTable sprite_previews_;
   gfx::BitmapTable animated_maps_;
+
+  OWBlockset refresh_blockset_;
 
   gui::zeml::Node layout_node_;
   absl::Status status_;

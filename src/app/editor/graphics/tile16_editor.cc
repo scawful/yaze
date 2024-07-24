@@ -1,5 +1,6 @@
 #include "tile16_editor.h"
 
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui/imgui.h>
 
 #include <cmath>

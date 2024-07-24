@@ -125,6 +125,49 @@ absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
                           ImGuiColorEditFlags_NoSmallPreview);
 }
 
+void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
+                               gfx::SnesPalette& palette) {
+  const auto palette_row_size = 7;
+  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)100);
+      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    ImGui::BeginGroup();  // Lock X position
+    ImGui::Text("Palette");
+    for (int n = 0; n < palette.size(); n++) {
+      ImGui::PushID(n);
+      if ((n % palette_row_size) != 0)
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+
+      // Check if the current row is selected
+      bool is_selected = (palette_id == n / palette_row_size);
+
+      // Add outline rectangle to the selected row
+      if (is_selected) {
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+      }
+
+      if (gui::SnesColorButton("##palette", palette[n],
+                               ImGuiColorEditFlags_NoAlpha |
+                                   ImGuiColorEditFlags_NoPicker |
+                                   ImGuiColorEditFlags_NoTooltip,
+                               ImVec2(20, 20))) {
+        palette_id = n / palette_row_size;
+        refresh_graphics = true;
+      }
+
+      if (is_selected) {
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
+      }
+
+      ImGui::PopID();
+    }
+    ImGui::EndGroup();
+  }
+  ImGui::EndChild();
+}
+
 }  // namespace gui
 }  // namespace app
 }  // namespace yaze

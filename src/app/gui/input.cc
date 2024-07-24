@@ -1,12 +1,20 @@
 #include "input.h"
 
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
+#include <functional>
+#include <optional>
 #include <string>
 
 #include "absl/strings/string_view.h"
+#include "app/core/common.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gui/canvas.h"
+#include "app/gui/color.h"
 
 namespace ImGui {
 
@@ -242,6 +250,24 @@ bool ListBox(const char* label, int* current_item,
 }
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
+
+void FileDialogPipeline(absl::string_view display_key,
+                        absl::string_view file_extensions,
+                        std::optional<absl::string_view> button_text,
+                        std::function<void()> callback) {
+  if (button_text.has_value() && ImGui::Button(button_text->data())) {
+    ImGuiFileDialog::Instance()->OpenDialog(display_key.data(), "Choose File",
+                                            file_extensions.data(), ".");
+  }
+
+  if (ImGuiFileDialog::Instance()->Display(
+          display_key.data(), ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      callback();
+    }
+    ImGuiFileDialog::Instance()->Close();
+  }
+}
 
 }  // namespace gui
 }  // namespace app

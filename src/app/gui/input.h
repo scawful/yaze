@@ -1,13 +1,25 @@
 #ifndef YAZE_APP_CORE_INPUT_H
 #define YAZE_APP_CORE_INPUT_H
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include <imgui/imgui.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
+#include <imgui_memory_editor.h>
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <optional>
+#include <string>
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "app/core/common.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gui/canvas.h"
+#include "app/gui/color.h"
 
 namespace yaze {
 namespace app {
@@ -47,6 +59,11 @@ using ItemLabelFlags = enum ItemLabelFlag {
 IMGUI_API void ItemLabel(absl::string_view title, ItemLabelFlags flags);
 
 IMGUI_API ImGuiID GetID(const std::string& id);
+
+void FileDialogPipeline(absl::string_view display_key,
+                        absl::string_view file_extensions,
+                        std::optional<absl::string_view> button_text,
+                        std::function<void()> callback);
 
 }  // namespace gui
 }  // namespace app
