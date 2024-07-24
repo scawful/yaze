@@ -1,5 +1,10 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#a9239e4dfb0cd13de06b658400a32525b":[9,0,0,0,4,0,3,3],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab3f542605d401c12d51fc6a8494e31bf":[8,0,1,0,4,1,3,10],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab3f542605d401c12d51fc6a8494e31bf":[9,0,0,0,4,0,3,10],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab6256b25d36406430539b5d997eb8bdd":[8,0,1,0,4,1,3,9],
+"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab6256b25d36406430539b5d997eb8bdd":[9,0,0,0,4,0,3,9],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac25e8b4fa6fdda74c26f600609949d70":[8,0,1,0,4,1,3,11],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac25e8b4fa6fdda74c26f600609949d70":[9,0,0,0,4,0,3,11],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac26b59be8f9cf9fd06239b55f5a57383":[8,0,1,0,4,1,3,0],
@@ -125,8 +130,8 @@ var NAVTREEINDEX50 =
 "tracker_8h.html#ae7b18fa864b8ce743eb6dde1dd35520f":[10,0,1,0,5,1,1,8],
 "tracker_8h.html#af474276ff049f20df44cde7b0cd6c155":[10,0,1,0,5,1,1,11],
 "tracker_8h_source.html":[10,0,1,0,5,1,1],
-"yaze_8cc.html":[10,0,1,0,8],
-"yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627":[10,0,1,0,8,0],
+"yaze_8cc.html":[10,0,1,0,9],
+"yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627":[10,0,1,0,9,0],
 "yaze__test_8cc.html":[10,0,1,2,3],
 "yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97":[10,0,1,2,3,1],
 "yaze__test_8cc.html#a51f528deaaeb973f417b46a2ec36f850":[10,0,1,2,3,0],

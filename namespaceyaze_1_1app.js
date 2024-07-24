@@ -8,6 +8,7 @@ var namespaceyaze_1_1app =
     [ "zelda3", "namespaceyaze_1_1app_1_1zelda3.html", "namespaceyaze_1_1app_1_1zelda3" ],
     [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
     [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
+    [ "RomTest", "classyaze_1_1app_1_1RomTest.html", "classyaze_1_1app_1_1RomTest" ],
     [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
     [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],
     [ "Z3_Version", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47", [
@@ -16,6 +17,7 @@ var namespaceyaze_1_1app =
       [ "SD", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a38f99abbc1d339c277c0669e7bc373c0", null ],
       [ "RANDO", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
+    [ "TEST_F", "namespaceyaze_1_1app.html#a86eab374d68c1cef70ab9b9814264e35", null ],
     [ "kProjectFileExtension", "namespaceyaze_1_1app.html#a7f1e90bf658edf14eb7038145d8be362", null ],
     [ "kProjectFileFilter", "namespaceyaze_1_1app.html#afe0922318fe6bfc7b4ea55bea180d456", null ],
     [ "kPreviousRomFilenameDelimiter", "namespaceyaze_1_1app.html#a2fefeaeeb2e8568fc27fcf1a4b984b4d", null ],

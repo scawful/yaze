@@ -49,7 +49,6 @@ var namespaceyaze_1_1app_1_1gui =
     [ "ListBox", "namespaceyaze_1_1app_1_1gui.html#ad1e770a2e8dbc1e8a62d33c3466ab2fe", null ],
     [ "GetID", "namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec", null ],
     [ "FileDialogPipeline", "namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50", null ],
-    [ "InputHexWithScrollwheel", "namespaceyaze_1_1app_1_1gui.html#acd83fcf2e348b4ff76b5e8fce28a95e6", null ],
     [ "BeginWindowWithDisplaySettings", "namespaceyaze_1_1app_1_1gui.html#a69040af6cbf02bd16c9e22e4bff2b99e", null ],
     [ "EndWindowWithDisplaySettings", "namespaceyaze_1_1app_1_1gui.html#afa54cc8c1238cb1d0bef794cbd947b7d", null ],
     [ "BeginPadding", "namespaceyaze_1_1app_1_1gui.html#a65f49225270284b6353e95334659788c", null ],

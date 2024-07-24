@@ -2,7 +2,6 @@ var input_8h =
 [
     [ "IMGUI_DEFINE_MATH_OPERATORS", "input_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "ItemLabelFlags", "input_8h.html#aa273fd9331a34be04e40b1929ff34958", null ],
-    [ "InputHexWithScrollwheel", "input_8h.html#acd83fcf2e348b4ff76b5e8fce28a95e6", null ],
     [ "InputHex", "input_8h.html#a3cce6ce5c9b245f61e6531334c427476", null ],
     [ "InputHex", "input_8h.html#ab2bd4df29f87d608f5dc34f91d8e88c2", null ],
     [ "InputHexShort", "input_8h.html#a709c9067ac9d9b13573994b7aa5da7bc", null ],

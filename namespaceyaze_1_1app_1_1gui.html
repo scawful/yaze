@@ -213,8 +213,6 @@ Functions</h2></td></tr>
 <tr class="separator:a7384985f0828445ea12d9da02d92f4ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a574b5072f4f467f12dbdb9ea2eb41e50" id="r_a574b5072f4f467f12dbdb9ea2eb41e50"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a574b5072f4f467f12dbdb9ea2eb41e50">FileDialogPipeline</a> (absl::string_view display_key, absl::string_view file_extensions, std::optional&lt; absl::string_view &gt; button_text, std::function&lt; void()&gt; callback)</td></tr>
 <tr class="separator:a574b5072f4f467f12dbdb9ea2eb41e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd83fcf2e348b4ff76b5e8fce28a95e6" id="r_acd83fcf2e348b4ff76b5e8fce28a95e6"><td class="memItemLeft" align="right" valign="top">IMGUI_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd83fcf2e348b4ff76b5e8fce28a95e6">InputHexWithScrollwheel</a> (const char *label, uint32_t *data, uint32_t step=0x01, float input_width=50.f)</td></tr>
-<tr class="separator:acd83fcf2e348b4ff76b5e8fce28a95e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69040af6cbf02bd16c9e22e4bff2b99e" id="r_a69040af6cbf02bd16c9e22e4bff2b99e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a69040af6cbf02bd16c9e22e4bff2b99e">BeginWindowWithDisplaySettings</a> (const char *id, bool *active, const ImVec2 &amp;size, ImGuiWindowFlags flags)</td></tr>
 <tr class="separator:a69040af6cbf02bd16c9e22e4bff2b99e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa54cc8c1238cb1d0bef794cbd947b7d" id="r_afa54cc8c1238cb1d0bef794cbd947b7d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afa54cc8c1238cb1d0bef794cbd947b7d">EndWindowWithDisplaySettings</a> ()</td></tr>
@@ -1238,37 +1236,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a7dc3dd8e855807ef0511f48d0f101079">yaze::app::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a0839e511445aa6f28549e2006d1a28f2">yaze::app::editor::MasterEditor::DrawFileDialog()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a49317ce814b909b9c3c9919b8c7a7f2c">yaze::app::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a59fd3f95621df3f8fa555849f694885c">yaze::app::editor::GraphicsEditor::DrawObjImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a8b4591841c9a34eddb10f4a1ea0b9307">yaze::app::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
-
-</div>
-</div>
-<a id="acd83fcf2e348b4ff76b5e8fce28a95e6" name="acd83fcf2e348b4ff76b5e8fce28a95e6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd83fcf2e348b4ff76b5e8fce28a95e6">&#9670;&#160;</a></span>InputHexWithScrollwheel()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">IMGUI_API bool yaze::app::gui::InputHexWithScrollwheel </td>
-          <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint32_t *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>step</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0x01</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>input_width</em></span><span class="paramdefsep"> = </span><span class="paramdefval">50.f</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
 
 </div>
 </div>

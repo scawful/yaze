@@ -251,6 +251,7 @@ var annotated_dup =
         ] ],
         [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
         [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
+        [ "RomTest", "classyaze_1_1app_1_1RomTest.html", "classyaze_1_1app_1_1RomTest" ],
         [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
         [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ]
       ] ],

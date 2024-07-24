@@ -1,5 +1,10 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729a7bcea1112a95a00ed61d6b680f628c84":[9,0,0,0,2,2,1,0,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729aaf6bc4921532ebb1c732bfcfd864619f":[8,0,1,0,2,4,1,0,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#ae7f4b2873327c0de8e6200bda05c9729aaf6bc4921532ebb1c732bfcfd864619f":[9,0,0,0,2,2,1,0,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html":[8,0,1,0,2,4,2],
+"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html":[9,0,0,0,2,2,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353":[8,0,1,0,2,4,2,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353":[9,0,0,0,2,2,2,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a2bc5d22962313ad674b8ba58925fbce8":[8,0,1,0,2,4,2,5],
@@ -244,10 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7D.html":[9,0,0,0,2,2,0,15],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7D.html#aaeb1201c6fbc570febfb6c561a8f5368":[8,0,1,0,2,4,0,15,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7D.html#aaeb1201c6fbc570febfb6c561a8f5368":[9,0,0,0,2,2,0,15,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html":[8,0,1,0,2,4,0,16],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html":[9,0,0,0,2,2,0,16],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a3dc9d3102e442f6a14ccd34096c6b248":[8,0,1,0,2,4,0,16,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a3dc9d3102e442f6a14ccd34096c6b248":[9,0,0,0,2,2,0,16,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac":[8,0,1,0,2,4,0,16,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac":[9,0,0,0,2,2,0,16,0]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html":[8,0,1,0,2,4,0,16]
 };
