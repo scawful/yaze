@@ -1,5 +1,11 @@
 var NAVTREEINDEX20 =
 {
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa3568a846ad09825845cc9f0ce0410dc":[9,0,0,0,5,2,5,35],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa48c8633e9b3ac323461e2b004d61c3b":[8,0,1,0,5,3,8,27],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa48c8633e9b3ac323461e2b004d61c3b":[9,0,0,0,5,2,5,27],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa5f5de6ba6a9981025112ad3a82f12ff":[8,0,1,0,5,3,8,7],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa5f5de6ba6a9981025112ad3a82f12ff":[9,0,0,0,5,2,5,7],
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea":[8,0,1,0,5,3,8,43],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea":[9,0,0,0,5,2,5,43],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aaa47b58da90968f00ca117496dd1a802":[8,0,1,0,5,3,8,13],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aaa47b58da90968f00ca117496dd1a802":[9,0,0,0,5,2,5,13],
@@ -243,11 +249,5 @@ var NAVTREEINDEX20 =
 "classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3":[9,0,0,1,12,0],
 "classyaze_1_1cli_1_1SnesToPc.html":[8,0,1,1,14],
 "classyaze_1_1cli_1_1SnesToPc.html":[9,0,0,1,13],
-"classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0":[8,0,1,1,14,0],
-"classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0":[9,0,0,1,13,0],
-"classyaze_1_1cli_1_1Tile16Transfer.html":[8,0,1,1,15],
-"classyaze_1_1cli_1_1Tile16Transfer.html":[9,0,0,1,14],
-"classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3":[8,0,1,1,15,0],
-"classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3":[9,0,0,1,14,0],
-"classyaze__test_1_1emu__test_1_1CpuTest.html":[8,0,2,0,0]
+"classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0":[8,0,1,1,14,0]
 };

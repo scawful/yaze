@@ -1,7 +1,6 @@
 var namespacemembers_vars =
 [
-    [ "a", "namespacemembers_vars.html", null ],
-    [ "b", "namespacemembers_vars_b.html", null ],
+    [ "b", "namespacemembers_vars.html", null ],
     [ "c", "namespacemembers_vars_c.html", null ],
     [ "d", "namespacemembers_vars_d.html", null ],
     [ "e", "namespacemembers_vars_e.html", null ],

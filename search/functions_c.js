@@ -32,7 +32,7 @@ var searchData=
   ['mov_29',['MOV',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a13863acbe9fc43c2c6f7d0c7c6c6f8ee',1,'yaze::app::emu::audio::Spc700']]],
   ['mov1_30',['MOV1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a526242ac6bf18714f6ab3d7040e80935',1,'yaze::app::emu::audio::Spc700']]],
   ['mov_5faddr_31',['MOV_ADDR',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a800ff97f3c8b7b783222edd82fce826e',1,'yaze::app::emu::audio::Spc700']]],
-  ['moveentityongrid_32',['MoveEntityOnGrid',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#a58dc7249a61156c04451e80d470c598b',1,'yaze::app::editor::entity_internal']]],
+  ['moveentityongrid_32',['MoveEntityOnGrid',['../namespaceyaze_1_1app_1_1editor.html#aa29d0f421e7ccf6a963c1358791c99de',1,'yaze::app::editor']]],
   ['movs_33',['MOVS',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a288a6d20c4d124e5524a4a40fa78718f',1,'yaze::app::emu::audio::Spc700']]],
   ['movsx_34',['MOVSX',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a7f9936acafd805350c0cd4a22abb1617',1,'yaze::app::emu::audio::Spc700']]],
   ['movsy_35',['MOVSY',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aa6c25c64790ef3db4014cba7ee7849de',1,'yaze::app::emu::audio::Spc700']]],

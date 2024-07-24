@@ -23,7 +23,7 @@ var classyaze_1_1app_1_1zelda3_1_1Sprite =
     [ "keyDrop", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab39b6fe560fc64d1997e2e2c3740b4aa", null ],
     [ "Width", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ab319db57b91ed5319e67ccbdeb1517aa", null ],
     [ "Height", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a5e626f0aaf77ff65b663b8d85453d947", null ],
-    [ "Name", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a869fbb9610e3cc4a135e87f4b4c269be", null ],
+    [ "name", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a5aec436b8c78a4ed1a3a289c5b94a755", null ],
     [ "deleted", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a3ae065221d32ba32057f9c310801eae3", null ],
     [ "set_deleted", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a905beb8c98aadf360bb8c04cf60002f9", null ],
     [ "current_gfx_", "classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae59dbd9a7ad4f52f338cbd576c33e73f", null ],

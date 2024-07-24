@@ -19,9 +19,6 @@ var annotated_dup =
             [ "PaletteChange", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html", "structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange" ],
             [ "PaletteEditorHistory", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", "classyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteEditorHistory" ]
           ] ],
-          [ "sprite_internal", "namespaceyaze_1_1app_1_1editor_1_1sprite__internal.html", [
-            [ "SpriteItem", "structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html", "structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem" ]
-          ] ],
           [ "zsprite", "namespaceyaze_1_1app_1_1editor_1_1zsprite.html", [
             [ "AnimationGroup", "structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html", "structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup" ],
             [ "OamTile", "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html", "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile" ],
@@ -47,6 +44,7 @@ var annotated_dup =
           [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
           [ "SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", "classyaze_1_1app_1_1editor_1_1SettingsEditor" ],
           [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],
+          [ "SpriteItem", "structyaze_1_1app_1_1editor_1_1SpriteItem.html", "structyaze_1_1app_1_1editor_1_1SpriteItem" ],
           [ "Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", "classyaze_1_1app_1_1editor_1_1Tile16Editor" ]
         ] ],
         [ "emu", "namespaceyaze_1_1app_1_1emu.html", [

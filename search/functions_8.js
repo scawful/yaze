@@ -54,6 +54,6 @@ var searchData=
   ['isbreakpoint_51',['IsBreakpoint',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003',1,'yaze::app::emu::Cpu']]],
   ['iseditoractive_52',['IsEditorActive',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
   ['ismousehovering_53',['IsMouseHovering',['../classyaze_1_1app_1_1gui_1_1Canvas.html#aeaa4f10b3e51c996f98099d4944b1ae2',1,'yaze::app::gui::Canvas']]],
-  ['ismousehoveringoverentity_54',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor_1_1entity__internal.html#abd3579787800fd47dd23c7880af75a95',1,'yaze::app::editor::entity_internal']]],
+  ['ismousehoveringoverentity_54',['IsMouseHoveringOverEntity',['../namespaceyaze_1_1app_1_1editor.html#a9630e35305cf9e744b59e289ea1867ea',1,'yaze::app::editor']]],
   ['itemlabel_55',['ItemLabel',['../namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e',1,'yaze::app::gui']]]
 ];

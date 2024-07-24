@@ -23,7 +23,7 @@ var searchData=
   ['spriteasset_20',['SpriteAsset',['../structyaze_1_1app_1_1gui_1_1SpriteAsset.html',1,'yaze::app::gui']]],
   ['spriteattributes_21',['SpriteAttributes',['../structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html',1,'yaze::app::emu::video']]],
   ['spriteeditor_22',['SpriteEditor',['../classyaze_1_1app_1_1editor_1_1SpriteEditor.html',1,'yaze::app::editor']]],
-  ['spriteitem_23',['SpriteItem',['../structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html',1,'yaze::app::editor::sprite_internal']]],
+  ['spriteitem_23',['SpriteItem',['../structyaze_1_1app_1_1editor_1_1SpriteItem.html',1,'yaze::app::editor']]],
   ['spriteproperty_24',['SpriteProperty',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html',1,'yaze::app::editor::zsprite']]],
   ['staircaserooms_25',['StaircaseRooms',['../structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html',1,'yaze::app::zelda3::dungeon']]],
   ['stat77_26',['STAT77',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html',1,'yaze::app::emu::video::PpuRegisters']]],

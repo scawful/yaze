@@ -228,7 +228,7 @@ var hierarchy =
     [ "yaze::app::gfx::SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", null ],
     [ "yaze::app::emu::audio::Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", null ],
     [ "yaze::app::emu::video::SpriteAttributes", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html", null ],
-    [ "yaze::app::editor::sprite_internal::SpriteItem", "structyaze_1_1app_1_1editor_1_1sprite__internal_1_1SpriteItem.html", null ],
+    [ "yaze::app::editor::SpriteItem", "structyaze_1_1app_1_1editor_1_1SpriteItem.html", null ],
     [ "yaze::app::editor::zsprite::SpriteProperty", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html", null ],
     [ "yaze::app::zelda3::dungeon::StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::STAT77", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT77.html", null ],

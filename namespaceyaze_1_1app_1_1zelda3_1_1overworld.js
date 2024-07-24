@@ -55,7 +55,6 @@ var namespaceyaze_1_1app_1_1zelda3_1_1overworld =
     [ "OWHoleEntrance", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a082e5c7c386f119b49c474d43a3d1dc5", null ],
     [ "kCompressedAllMap32PointersHigh", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a9dfaaf3333bd0b324e47ee8ecf7829d2", null ],
     [ "kCompressedAllMap32PointersLow", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a6b61c7b9f06cacc6e195a63d29a06260", null ],
-    [ "overworldgfxGroups", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a09fd86eec2e33e66d3170f43abcaf0cb", null ],
     [ "overworldPalGroup1", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a5a796ac1caea3e148bab0b065f752537", null ],
     [ "overworldPalGroup2", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#af33dfff8b8655ab95f57076733b70854", null ],
     [ "overworldPalGroup3", "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a361265859fe3d22306d6128420c735b6", null ],
