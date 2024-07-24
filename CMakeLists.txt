@@ -32,4 +32,3 @@ include(cmake/imgui.cmake)
 
 # Project Files
 add_subdirectory(src)
-add_subdirectory(test)
