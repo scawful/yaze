@@ -151,6 +151,11 @@ class SnesPalette {
     size_++;
   }
 
+  void AddColor(uint16_t color) {
+    colors.emplace_back(color);
+    size_++;
+  }
+
   absl::StatusOr<SnesColor> GetColor(int i) const {
     if (i > size_) {
       return absl::InvalidArgumentError("SnesPalette: Index out of bounds");
