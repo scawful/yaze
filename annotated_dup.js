@@ -37,14 +37,18 @@ var annotated_dup =
           [ "KeyboardShortcuts", "structyaze_1_1app_1_1editor_1_1KeyboardShortcuts.html", "structyaze_1_1app_1_1editor_1_1KeyboardShortcuts" ],
           [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", "classyaze_1_1app_1_1editor_1_1MasterEditor" ],
           [ "MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker" ],
+          [ "MessageData", "structyaze_1_1app_1_1editor_1_1MessageData.html", "structyaze_1_1app_1_1editor_1_1MessageData" ],
+          [ "MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", "classyaze_1_1app_1_1editor_1_1MessageEditor" ],
           [ "MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", "classyaze_1_1app_1_1editor_1_1MusicEditor" ],
           [ "OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", "classyaze_1_1app_1_1editor_1_1OverworldEditor" ],
           [ "PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", "classyaze_1_1app_1_1editor_1_1PaletteEditor" ],
+          [ "ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", "structyaze_1_1app_1_1editor_1_1ParsedElement" ],
           [ "RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", "classyaze_1_1app_1_1editor_1_1RecentFilesManager" ],
           [ "ScreenEditor", "classyaze_1_1app_1_1editor_1_1ScreenEditor.html", "classyaze_1_1app_1_1editor_1_1ScreenEditor" ],
           [ "SettingsEditor", "classyaze_1_1app_1_1editor_1_1SettingsEditor.html", "classyaze_1_1app_1_1editor_1_1SettingsEditor" ],
           [ "SpriteEditor", "classyaze_1_1app_1_1editor_1_1SpriteEditor.html", "classyaze_1_1app_1_1editor_1_1SpriteEditor" ],
           [ "SpriteItem", "structyaze_1_1app_1_1editor_1_1SpriteItem.html", "structyaze_1_1app_1_1editor_1_1SpriteItem" ],
+          [ "TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", "structyaze_1_1app_1_1editor_1_1TextElement" ],
           [ "Tile16Editor", "classyaze_1_1app_1_1editor_1_1Tile16Editor.html", "classyaze_1_1app_1_1editor_1_1Tile16Editor" ]
         ] ],
         [ "emu", "namespaceyaze_1_1app_1_1emu.html", [

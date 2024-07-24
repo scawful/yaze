@@ -1,7 +1,10 @@
 <map id="yaze::app::editor::zsprite::ZSprite" name="yaze::app::editor::zsprite::ZSprite">
-<area shape="rect" id="Node000001" title=" " alt="" coords="86,259,204,300"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html" title=" " alt="" coords="5,5,127,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,60,141,258,136,259,74,62"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html" title=" " alt="" coords="151,5,298,46"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,62,203,143,172,236,160,260,155,257,168,234,198,141,216,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="480,201,598,242"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,59,106"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,73,148,45,196,31,248,21,302,16,356,19,409,30,457,53,476,67,492,85,515,125,530,167,537,201,532,202,524,168,510,128,487,88,472,71,455,57,407,35,355,24,302,22,249,27,197,37,150,50,74,78"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html" title=" " alt="" coords="135,132,282,173"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="75,105,146,129,144,134,73,110"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html" title=" " alt="" coords="148,247,269,287"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="284,273,367,275,412,272,455,263,482,254,507,240,509,245,484,258,457,269,413,277,368,280,284,279"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="244,180,273,202,307,217,351,227,396,231,480,228,480,233,396,237,350,233,305,223,270,206,241,185"/>
 </map>

@@ -20,5 +20,6 @@ var core_2common_8h =
     [ "stle16b_i", "core_2common_8h.html#ac553ac7a4fb1da8826212a15f8fc0548", null ],
     [ "ldle16b_i", "core_2common_8h.html#aa6c12bd455e5cf377d2362c6dc7fab85", null ],
     [ "ldle16b", "core_2common_8h.html#a65eee6b161b17a7cd555ae70cf65717a", null ],
-    [ "stle16b", "core_2common_8h.html#a58dc78cb3c691e3d7fa277549bc9bed3", null ]
+    [ "stle16b", "core_2common_8h.html#a58dc78cb3c691e3d7fa277549bc9bed3", null ],
+    [ "Get24LocalFromPC", "core_2common_8h.html#a5e080b3e77685d253aa26ee3c30df73c", null ]
 ];

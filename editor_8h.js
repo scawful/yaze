@@ -10,7 +10,8 @@ var editor_8h =
       [ "kPalette", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52ab7016fa0536d3c2f14454c2bb0b203cb", null ],
       [ "kScreen", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a999e1b181ff36a65c7fd5a32e4e627d8", null ],
       [ "kSprite", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a7c10e40e40c6c0519ea3066c5c66733a", null ],
+      [ "kMessage", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "kSettings", "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52ac935a934100d15241aefe3f7081e7767", null ]
     ] ],
-    [ "kEditorNames", "editor_8h.html#a67984ade6b7fa3c0aab444f81cfc1081", null ]
+    [ "kEditorNames", "editor_8h.html#a884f13b927c02e225d89c81df3212c01", null ]
 ];

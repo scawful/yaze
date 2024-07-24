@@ -42,6 +42,7 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "screen_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a99487831b09607e2ad9ceadc08d5b47a", null ],
     [ "sprite_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a1e5a6fa4b5de15f225bce64a51a42dd9", null ],
     [ "settings_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#af988d3157151ca82b28d199eb75b8087", null ],
+    [ "message_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a1249e4cc396965f84192442a4a7f706c", null ],
     [ "memory_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a616ac073f1154a941fe693b6b4a33baf", null ],
     [ "active_tabs_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac59d430f3393014ba01624d5c4f3ba1a", null ],
     [ "active_editors_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab572c55533755591b9f73eb10e6a9fda", null ],

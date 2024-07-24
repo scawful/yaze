@@ -61,6 +61,7 @@ var hierarchy =
     [ "yaze::app::emu::video::CounterIrqNmiRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::app::emu::memory::CpuCallbacks", "structyaze_1_1app_1_1emu_1_1memory_1_1CpuCallbacks.html", null ],
     [ "yaze::app::emu::Debugger", "classyaze_1_1app_1_1emu_1_1Debugger.html", null ],
+    [ "yaze::app::editor::MessageEditor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html", null ],
     [ "yaze::app::emu::memory::DmaChannel", "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html", null ],
     [ "yaze::app::emu::video::DmaRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html", null ],
     [ "yaze::app::emu::audio::Dsp", "classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html", null ],
@@ -72,6 +73,7 @@ var hierarchy =
       [ "yaze::app::editor::AssemblyEditor", "classyaze_1_1app_1_1editor_1_1AssemblyEditor.html", null ],
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],
       [ "yaze::app::editor::GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", null ],
+      [ "yaze::app::editor::MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", null ],
       [ "yaze::app::editor::MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", null ],
@@ -135,6 +137,7 @@ var hierarchy =
       [ "yaze::app::emu::memory::MemoryImpl", "classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html", null ],
       [ "yaze::app::emu::memory::MockMemory", "classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html", null ]
     ] ],
+    [ "yaze::app::editor::MessageData", "structyaze_1_1app_1_1editor_1_1MessageData.html", null ],
     [ "yaze::app::emu::MnemonicMode", "structyaze_1_1app_1_1emu_1_1MnemonicMode.html", null ],
     [ "yaze::app::emu::MnemonicModeHash", "structyaze_1_1app_1_1emu_1_1MnemonicModeHash.html", null ],
     [ "yaze::cli::Color::Modifier", "classyaze_1_1cli_1_1Color_1_1Modifier.html", null ],
@@ -178,6 +181,7 @@ var hierarchy =
     [ "yaze::app::gfx::PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", null ],
     [ "yaze::app::gfx::PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", null ],
     [ "yaze::app::gfx::Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", null ],
+    [ "yaze::app::editor::ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", null ],
     [ "yaze::app::emu::video::PpuInterface", "classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html", [
       [ "yaze_test::emu_test::MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", null ]
     ] ],
@@ -201,6 +205,7 @@ var hierarchy =
       [ "yaze::app::editor::GraphicsEditor", "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html", null ],
       [ "yaze::app::editor::MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html", null ],
       [ "yaze::app::editor::MemoryEditorWithDiffChecker", "structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html", null ],
+      [ "yaze::app::editor::MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", null ],
       [ "yaze::app::editor::MusicEditor", "classyaze_1_1app_1_1editor_1_1MusicEditor.html", null ],
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::app::editor::PaletteEditor", "classyaze_1_1app_1_1editor_1_1PaletteEditor.html", null ],
@@ -240,6 +245,10 @@ var hierarchy =
       [ "yaze_test::emu_test::PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", null ],
       [ "yaze_test::emu_test::Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", null ]
     ] ],
+    [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
+    [ "yaze::app::editor::TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", null ],
+    [ "yaze::app::editor::MessageEditor::TextMessageData", "classyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextMessageData.html", null ],
+    [ "yaze::app::editor::MessageEditor::TextMessageElement", "classyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextMessageElement.html", null ],
     [ "yaze::app::emu::video::Tile", "structyaze_1_1app_1_1emu_1_1video_1_1Tile.html", null ],
     [ "yaze::app::zelda3::dungeon::Tile", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1Tile.html", null ],
     [ "yaze::app::gfx::Tile16", "classyaze_1_1app_1_1gfx_1_1Tile16.html", null ],

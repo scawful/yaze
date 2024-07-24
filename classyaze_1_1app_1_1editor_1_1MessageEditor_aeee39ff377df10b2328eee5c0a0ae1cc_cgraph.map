@@ -1,0 +1,7 @@
+<map id="yaze::app::editor::MessageEditor::Undo" name="yaze::app::editor::MessageEditor::Undo">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,150,90"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#add48d3a7d89579d0ea0434cf4adf0a1a" title=" " alt="" coords="216,5,376,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,55,201,46,201,51,151,60"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#aeb8bf8a92d1e7b5d677129e7646f5873" title=" " alt="" coords="198,85,395,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,78,183,84,182,89,150,84"/>
+</map>
