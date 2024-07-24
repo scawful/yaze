@@ -121,3 +121,5 @@ set_target_properties(yaze
     LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/yaze.res"
 )
 endif()
+
+add_subdirectory(test)

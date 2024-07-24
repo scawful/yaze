@@ -13,42 +13,41 @@ enable_testing()
 add_executable(
   yaze_test
   yaze_test.cc
-  # emu/cpu_test.cc
+  emu/cpu_test.cc
   # emu/spc700_test.cc
   # emu/ppu_test.cc
   gfx/compression_test.cc
   gfx/snes_palette_test.cc
   zelda3/room_object_test.cc
-  ../src/cli/patch.cc
-  ../src/cli/command_handler.cc
-  ../src/app/rom.cc
-  ../src/app/emu/cpu/cpu.cc
-  ../src/app/emu/cpu/internal/instructions.cc
-  ../src/app/emu/cpu/internal/addressing.cc
-  ../src/app/emu/audio/internal/addressing.cc
-  ../src/app/emu/audio/internal/instructions.cc
-  ../src/app/emu/audio/apu.cc
-  ../src/app/emu/video/ppu.cc
-  ../src/app/emu/audio/dsp.cc
-  ../src/app/emu/audio/spc700.cc
-  ../src/app/emu/memory/memory.cc
-  ../src/app/editor/utils/gfx_context.cc
-  ../src/app/gfx/bitmap.cc
-  ../src/app/gfx/snes_tile.cc
-  ../src/app/gfx/snes_color.cc
-  ../src/app/gfx/snes_palette.cc
-  ../src/app/gfx/compression.cc
-  ../src/app/core/common.cc
-  ../src/app/core/labeling.cc
-  ../src/lib/imgui/misc/cpp/imgui_stdlib.cpp
+  ../cli/patch.cc
+  ../cli/command_handler.cc
+  ../app/rom.cc
+  ../app/emu/cpu/cpu.cc
+  ../app/emu/cpu/internal/instructions.cc
+  ../app/emu/cpu/internal/addressing.cc
+  ../app/emu/audio/internal/addressing.cc
+  ../app/emu/audio/internal/instructions.cc
+  ../app/emu/audio/apu.cc
+  ../app/emu/video/ppu.cc
+  ../app/emu/audio/dsp.cc
+  ../app/emu/audio/spc700.cc
+  ../app/emu/memory/memory.cc
+  ../app/editor/utils/gfx_context.cc
+  ../app/gfx/bitmap.cc
+  ../app/gfx/snes_tile.cc
+  ../app/gfx/snes_color.cc
+  ../app/gfx/snes_palette.cc
+  ../app/gfx/compression.cc
+  ../app/core/common.cc
+  ../app/core/labeling.cc
+  ../lib/imgui/misc/cpp/imgui_stdlib.cpp
   # ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_test PUBLIC
-  ../src/
-  ../src/lib/
-  # ../src/lib/asar/src/asar/
+  ../
+  ../lib/
   ${SDL2_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
 )
