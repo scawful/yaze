@@ -6,6 +6,7 @@
 #include <imgui/backends/imgui_impl_sdlrenderer2.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/imconfig.h>
 
 #include <memory>
 
