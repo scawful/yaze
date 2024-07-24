@@ -220,6 +220,8 @@ struct FolderItem {
 
 typedef struct FolderItem FolderItem;
 
+int Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
+
 }  // namespace core
 }  // namespace app
 }  // namespace yaze

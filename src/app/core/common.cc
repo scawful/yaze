@@ -174,6 +174,15 @@ uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index) {
 // Initialize the static member
 std::stack<ImGuiID> ImGuiIdIssuer::idStack;
 
+int Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
+  int ret = (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
+  if (pc) {
+    return SnesToPc(ret);
+  } else {
+    return ret;
+  }
+}
+
 }  // namespace core
 }  // namespace app
 }  // namespace yaze
