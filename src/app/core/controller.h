@@ -4,9 +4,9 @@
 #include <SDL.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <imgui/backends/imgui_impl_sdlrenderer2.h>
+#include <imgui/imconfig.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <imgui/imconfig.h>
 
 #include <memory>
 
@@ -56,6 +56,7 @@ class Controller : public ExperimentFlags {
   absl::Status CreateSDL_Window();
   absl::Status CreateRenderer();
   absl::Status CreateGuiContext();
+  absl::Status CreateTestContext();
   absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
   void CloseWindow() { active_ = false; }
@@ -65,6 +66,7 @@ class Controller : public ExperimentFlags {
   bool active_;
   int audio_frequency_ = 48000;
   int16_t *audio_buffer_;
+  ImGuiTestEngine *engine;
   editor::MasterEditor master_editor_;
   SDL_AudioDeviceID audio_device_;
   std::shared_ptr<SDL_Window> window_;

@@ -5,6 +5,7 @@
 #include <imgui/backends/imgui_impl_sdlrenderer2.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui_test_engine/imgui_te_context.h>
 
 #include <memory>
 
@@ -238,6 +239,7 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
+  RETURN_IF_ERROR(CreateTestContext())
   if (flags()->kLoadAudioDevice) {
     RETURN_IF_ERROR(LoadAudioDevice())
     master_editor_.emulator().set_audio_buffer(audio_buffer_);
@@ -304,6 +306,8 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() {
+  ImGuiTestEngine_Stop(engine);
+  ImGui::DestroyContext();
   if (flags()->kLoadAudioDevice) {
     SDL_PauseAudioDevice(audio_device_, 1);
     SDL_CloseAudioDevice(audio_device_);
@@ -312,6 +316,7 @@ void Controller::OnExit() {
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
+  ImGuiTestEngine_DestroyContext(engine);
   SDL_Quit();
 }
 
@@ -392,6 +397,25 @@ absl::Status Controller::CreateGuiContext() {
   // Build a new ImGui frame
   ImGui_ImplSDLRenderer2_NewFrame();
   ImGui_ImplSDL2_NewFrame();
+
+  return absl::OkStatus();
+}
+
+absl::Status Controller::CreateTestContext() {
+  // Initialize Test Engine
+  engine = ImGuiTestEngine_CreateContext();
+  ImGuiTestEngineIO &test_io = ImGuiTestEngine_GetIO(engine);
+  test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
+  test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
+
+  // Register your Tests
+  master_editor_.RegisterTests(engine);
+
+  // Start test engine
+  ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
+
+  // TODO: Setup with absl signal handler
+  ImGuiTestEngine_InstallDefaultCrashHandler();
 
   return absl::OkStatus();
 }
