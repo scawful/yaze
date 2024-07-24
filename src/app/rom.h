@@ -165,6 +165,11 @@ class Rom : public core::ExperimentFlags {
   absl::Status LoadAllGraphicsData();
 
   /**
+   * @brief Loads the font graphics data from the Rom.
+   */
+  absl::Status LoadFontGraphicsData();
+
+  /**
    * Load Rom data from a file.
    *
    * @param filename The name of the file to load.
@@ -536,6 +541,7 @@ class Rom : public core::ExperimentFlags {
   void SaveGroupsToRom();
 
   auto resource_label() { return &resource_label_manager_; }
+  auto font_gfx_data() { return font_gfx_data_; }
 
  private:
   struct WriteAction {
@@ -590,6 +596,7 @@ class Rom : public core::ExperimentFlags {
 
   Bytes rom_data_;
   Bytes graphics_buffer_;
+  Bytes font_gfx_data_;
 
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
