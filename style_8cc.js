@@ -10,5 +10,7 @@ var style_8cc =
     [ "BeginChildBothScrollbars", "style_8cc.html#a6b927b57b8d59997654118efa468b53e", null ],
     [ "DrawDisplaySettings", "style_8cc.html#a1ea1d6c7891279ea571030df8a323fd6", null ],
     [ "TextWithSeparators", "style_8cc.html#ab6367acf830417f141068389444b7173", null ],
-    [ "ColorsYaze", "style_8cc.html#a977a7571691d73f9f4ab817427cae497", null ]
+    [ "ColorsYaze", "style_8cc.html#a977a7571691d73f9f4ab817427cae497", null ],
+    [ "RenderTabItem", "style_8cc.html#a6102acd483c1a081fdb3aa350d8a0827", null ],
+    [ "GetAssemblyLanguageDef", "style_8cc.html#a374f2b642919cc9fed20c7fa82c5fab7", null ]
 ];

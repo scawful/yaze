@@ -3,7 +3,8 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "anonymous_namespace{bitmap.cc}", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html", [
       [ "GrayscalePalette", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118", null ],
       [ "PngWriteCallback", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a39681199e9a1c1462f86f3cf6f47949b", null ],
-      [ "PngReadCallback", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#aaf33c2cd8ed6392cfebc1bfa9f23c9b2", null ]
+      [ "PngReadCallback", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#aaf33c2cd8ed6392cfebc1bfa9f23c9b2", null ],
+      [ "GetSnesPixelFormat", "namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#ae7f2ff7c05fc2ee1712a7c71dc95a37a", null ]
     ] ],
     [ "lc_lz2", "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html", "namespaceyaze_1_1app_1_1gfx_1_1lc__lz2" ],
     [ "palette_group_internal", "namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html", [
@@ -92,6 +93,11 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "TileInfoToShort", "namespaceyaze_1_1app_1_1gfx.html#a8b918c5ebd5aeb116c421ae7125e4128", null ],
     [ "GetTilesInfo", "namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90", null ],
     [ "CreateTilesheetFromGraphicsBuffer", "namespaceyaze_1_1app_1_1gfx.html#afe2b409c93b8b037b20a8d4ac2df3353", null ],
+    [ "SNES_PIXELFORMAT_2BPP", "namespaceyaze_1_1app_1_1gfx.html#ac3ca822085590d5659e2873c56da76a2", null ],
+    [ "SNES_PIXELFORMAT_4BPP", "namespaceyaze_1_1app_1_1gfx.html#a0dafbd05dfc6f250f01cbd317b202a76", null ],
+    [ "SNES_PIXELFORMAT_8BPP", "namespaceyaze_1_1app_1_1gfx.html#ad4488b7d7b72bd23d9b6c8ceb2157214", null ],
+    [ "kFormat4bppIndexed", "namespaceyaze_1_1app_1_1gfx.html#aa27a16a16d66e49a26a5bf9e65ad6f63", null ],
+    [ "kFormat8bppIndexed", "namespaceyaze_1_1app_1_1gfx.html#ae8837e1649a4a5c5cd74d855ed6d6c37", null ],
     [ "SNES_RED_MASK", "namespaceyaze_1_1app_1_1gfx.html#a2c96a51c2e83a6e133720c10d10ebd17", null ],
     [ "SNES_GREEN_MASK", "namespaceyaze_1_1app_1_1gfx.html#ad23eb7c59ab96c08179a6d6625ad0fdd", null ],
     [ "SNES_BLUE_MASK", "namespaceyaze_1_1app_1_1gfx.html#a9f93560824621862a7e4889d592cb2df", null ],

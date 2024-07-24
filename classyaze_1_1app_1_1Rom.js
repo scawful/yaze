@@ -44,6 +44,7 @@ var classyaze_1_1app_1_1Rom =
     [ "bitmap_manager", "classyaze_1_1app_1_1Rom.html#a0d39a485896a82ecf534d8470a1f8f9c", null ],
     [ "mutable_bitmap_manager", "classyaze_1_1app_1_1Rom.html#ae7b13c9229d8692c35e1c72e1e473583", null ],
     [ "link_graphics", "classyaze_1_1app_1_1Rom.html#a48f0987559ea7f4f48c5cd41e3fe3f39", null ],
+    [ "mutable_link_graphics", "classyaze_1_1app_1_1Rom.html#ab991e800548e8f3c06b5880427697002", null ],
     [ "title", "classyaze_1_1app_1_1Rom.html#aa0a63ed3d9bfbe780f45f1b063c4fc98", null ],
     [ "size", "classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f", null ],
     [ "begin", "classyaze_1_1app_1_1Rom.html#a189bdc638fc1fd968f10498325c300d9", null ],

@@ -1,5 +1,13 @@
 var NAVTREEINDEX6 =
 {
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a88f59b26b11674da6989409cd58e0787":[9,0,0,0,1,20,31],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a8c1ed60981eeddc0fc38eb1244447718":[8,0,1,0,1,25,6],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a8c1ed60981eeddc0fc38eb1244447718":[9,0,0,0,1,20,6],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a96a82f1ef00e876bfe218ab481e258e6":[8,0,1,0,1,25,9],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a96a82f1ef00e876bfe218ab481e258e6":[9,0,0,0,1,20,9],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a9dcd046f7d190f067d3720f520b0328a":[8,0,1,0,1,25,18],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a9dcd046f7d190f067d3720f520b0328a":[9,0,0,0,1,20,18],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa093b0830089978f3b4e6e6732fd3bf5":[8,0,1,0,1,25,28],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa093b0830089978f3b4e6e6732fd3bf5":[9,0,0,0,1,20,28],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa47ebd5eeb69e582ef5ef7bd920d3940":[8,0,1,0,1,25,13],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa47ebd5eeb69e582ef5ef7bd920d3940":[9,0,0,0,1,20,13],
@@ -241,13 +249,5 @@ var NAVTREEINDEX6 =
 "classyaze_1_1app_1_1emu_1_1Clock.html":[9,0,0,0,2,4],
 "classyaze_1_1app_1_1emu_1_1Clock.html#a4523f58787502097d0b44e14c42076b2":[8,0,1,0,2,6,5],
 "classyaze_1_1app_1_1emu_1_1Clock.html#a4523f58787502097d0b44e14c42076b2":[9,0,0,0,2,4,5],
-"classyaze_1_1app_1_1emu_1_1Clock.html#ab4776a2649a3a77fbdae995bb7a9e4a9":[8,0,1,0,2,6,0],
-"classyaze_1_1app_1_1emu_1_1Clock.html#ab4776a2649a3a77fbdae995bb7a9e4a9":[9,0,0,0,2,4,0],
-"classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c":[8,0,1,0,2,6,4],
-"classyaze_1_1app_1_1emu_1_1Clock.html#aba3b62ac1870614b321f7c4d0997a84c":[9,0,0,0,2,4,4],
-"classyaze_1_1app_1_1emu_1_1Clock.html#abef1cd26ecfb2e9702d6573eda4838ab":[8,0,1,0,2,6,1],
-"classyaze_1_1app_1_1emu_1_1Clock.html#abef1cd26ecfb2e9702d6573eda4838ab":[9,0,0,0,2,4,1],
-"classyaze_1_1app_1_1emu_1_1Clock.html#ae6575e0403c9f6567e6e125f13349975":[8,0,1,0,2,6,3],
-"classyaze_1_1app_1_1emu_1_1Clock.html#ae6575e0403c9f6567e6e125f13349975":[9,0,0,0,2,4,3],
-"classyaze_1_1app_1_1emu_1_1Clock.html#af5eba8a7fbfc88b616681f45aee43363":[8,0,1,0,2,6,2]
+"classyaze_1_1app_1_1emu_1_1Clock.html#ab4776a2649a3a77fbdae995bb7a9e4a9":[8,0,1,0,2,6,0]
 };

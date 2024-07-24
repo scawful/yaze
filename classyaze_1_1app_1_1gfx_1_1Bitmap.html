@@ -148,6 +148,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2809cc0b6a95a467a182c7777b65c8ec" id="r_a2809cc0b6a95a467a182c7777b65c8ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create</a> (int <a class="el" href="#aadcfd533d552f042877e537d4ba56fd2">width</a>, int <a class="el" href="#a58894beb33c1cdc8d2bba3700e594775">height</a>, int <a class="el" href="#ade4282b4d82a1320b319665657d3072e">depth</a>, const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;<a class="el" href="#aae636e8223b7a47a961526120b85cd90">data</a>)</td></tr>
 <tr class="memdesc:a2809cc0b6a95a467a182c7777b65c8ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a bitmap object with the provided graphical data.  <br /></td></tr>
 <tr class="separator:a2809cc0b6a95a467a182c7777b65c8ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24c62c1c8ab874c81c0e8e6c4a8004bc" id="r_a24c62c1c8ab874c81c0e8e6c4a8004bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create</a> (int <a class="el" href="#aadcfd533d552f042877e537d4ba56fd2">width</a>, int <a class="el" href="#a58894beb33c1cdc8d2bba3700e594775">height</a>, int <a class="el" href="#ade4282b4d82a1320b319665657d3072e">depth</a>, int format, const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;<a class="el" href="#aae636e8223b7a47a961526120b85cd90">data</a>)</td></tr>
+<tr class="separator:a24c62c1c8ab874c81c0e8e6c4a8004bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a072eb3cffb58ce597eab175fde6cfb1a" id="r_a072eb3cffb58ce597eab175fde6cfb1a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a072eb3cffb58ce597eab175fde6cfb1a">Reformat</a> (int format)</td></tr>
+<tr class="separator:a072eb3cffb58ce597eab175fde6cfb1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60dbb218a86c57687580ec77be457511" id="r_a60dbb218a86c57687580ec77be457511"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60dbb218a86c57687580ec77be457511">CreateTexture</a> (std::shared_ptr&lt; SDL_Renderer &gt; renderer)</td></tr>
 <tr class="memdesc:a60dbb218a86c57687580ec77be457511"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the underlying SDL_Texture to be displayed.  <br /></td></tr>
 <tr class="separator:a60dbb218a86c57687580ec77be457511"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -193,6 +197,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9efa827efd4b03f98cff6029da7bccc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb279f4bb0cb3d5771ae33177d660de8" id="r_aeb279f4bb0cb3d5771ae33177d660de8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb279f4bb0cb3d5771ae33177d660de8">palette</a> () const</td></tr>
 <tr class="separator:aeb279f4bb0cb3d5771ae33177d660de8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac894d66713f4539b6358964674d6831d" id="r_ac894d66713f4539b6358964674d6831d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac894d66713f4539b6358964674d6831d">mutable_palette</a> ()</td></tr>
+<tr class="separator:ac894d66713f4539b6358964674d6831d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38247d9a80196ab3d56b4a7c7b32010c" id="r_a38247d9a80196ab3d56b4a7c7b32010c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38247d9a80196ab3d56b4a7c7b32010c">palette_size</a> () const</td></tr>
 <tr class="separator:a38247d9a80196ab3d56b4a7c7b32010c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aadcfd533d552f042877e537d4ba56fd2" id="r_aadcfd533d552f042877e537d4ba56fd2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aadcfd533d552f042877e537d4ba56fd2">width</a> () const</td></tr>
@@ -490,7 +496,7 @@ Here is the call graph for this function:</div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a2809cc0b6a95a467a182c7777b65c8ec" name="a2809cc0b6a95a467a182c7777b65c8ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2809cc0b6a95a467a182c7777b65c8ec">&#9670;&#160;</a></span>Create()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2809cc0b6a95a467a182c7777b65c8ec">&#9670;&#160;</a></span>Create() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -539,6 +545,81 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="118,143,199,186,211,192,208,197,196,191,115,148"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="a24c62c1c8ab874c81c0e8e6c4a8004bc" name="a24c62c1c8ab874c81c0e8e6c4a8004bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">&#9670;&#160;</a></span>Create() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::gfx::Bitmap::Create </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>width</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>height</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>depth</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>format</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#aa7db7aa31e134803f9b89303e4af09ca">active_</a>, <a class="el" href="#aae636e8223b7a47a961526120b85cd90">data()</a>, <a class="el" href="#abc00863f6f3c19a1757222ee3c459e32">data_</a>, <a class="el" href="#ad14573421c3b2c56a145e2e44dcd1360">data_size_</a>, <a class="el" href="#ade4282b4d82a1320b319665657d3072e">depth()</a>, <a class="el" href="#a332f7bcff7b77e4e4115412f6c32f346">depth_</a>, <a class="el" href="#a58894beb33c1cdc8d2bba3700e594775">height()</a>, <a class="el" href="#a353d04d8c2803b0f2e89aa6754d6e844">height_</a>, <a class="el" href="#a038d02d897c665fcd2a63aa5dab44117">pixel_data_</a>, <a class="el" href="#a1bdc41c93b1cdf24763e085f79b5043d">surface_</a>, <a class="el" href="#aadcfd533d552f042877e537d4ba56fd2">width()</a>, and <a class="el" href="#ae40c02d0cc8214e729384df698d2039a">width_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1app_1_1gfx_1_1Bitmap_a24c62c1c8ab874c81c0e8e6c4a8004bc_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1gfx_1_1Bitmap_a24c62c1c8ab874c81c0e8e6c4a8004bc_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1gfx_1_1Bitmap_a24c62c1c8ab874c81c0e8e6c4a8004bc_cgraph" id="aclassyaze_1_1app_1_1gfx_1_1Bitmap_a24c62c1c8ab874c81c0e8e6c4a8004bc_cgraph">
+<area shape="rect" title=" " alt="" coords="5,104,150,145"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#aae636e8223b7a47a961526120b85cd90" title=" " alt="" coords="198,5,342,46"/>
+<area shape="poly" title=" " alt="" coords="114,101,196,57,208,51,211,56,199,61,117,106"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#ade4282b4d82a1320b319665657d3072e" title=" " alt="" coords="198,71,342,111"/>
+<area shape="poly" title=" " alt="" coords="150,109,182,103,183,109,150,114"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a58894beb33c1cdc8d2bba3700e594775" title=" " alt="" coords="198,136,342,177"/>
+<area shape="poly" title=" " alt="" coords="150,134,183,139,182,145,150,139"/>
+<area shape="rect" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#aadcfd533d552f042877e537d4ba56fd2" title=" " alt="" coords="198,201,342,242"/>
+<area shape="poly" title=" " alt="" coords="118,143,199,186,211,192,208,197,196,191,115,148"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a072eb3cffb58ce597eab175fde6cfb1a" name="a072eb3cffb58ce597eab175fde6cfb1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a072eb3cffb58ce597eab175fde6cfb1a">&#9670;&#160;</a></span>Reformat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::gfx::Bitmap::Reformat </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>format</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#aa7db7aa31e134803f9b89303e4af09ca">active_</a>, <a class="el" href="#a332f7bcff7b77e4e4115412f6c32f346">depth_</a>, <a class="el" href="#a353d04d8c2803b0f2e89aa6754d6e844">height_</a>, <a class="el" href="#a038d02d897c665fcd2a63aa5dab44117">pixel_data_</a>, <a class="el" href="#a1bdc41c93b1cdf24763e085f79b5043d">surface_</a>, and <a class="el" href="#ae40c02d0cc8214e729384df698d2039a">width_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59">yaze::app::gui::Canvas::DrawContextMenu()</a>.</p>
 
 </div>
 </div>
@@ -791,7 +872,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#aeb279f4bb0cb3d5771ae33177d660de8">palette()</a>, <a class="el" href="#ad1496544dc223845f2c358beff8cf010">palette_</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ac521c69eed2432f839a39c0bbfb19be7">yaze::app::gfx::SnesColor::rgb()</a>, and <a class="el" href="#a1bdc41c93b1cdf24763e085f79b5043d">surface_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939">yaze::app::zelda3::screen::Inventory::BuildTileset()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ab4f6e14828b66b9e79d1f709024c3744">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#aa72443cf6bb48f5c0a08d6e16a90748d">yaze::app::Rom::CreateAndRenderBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a7dc3dd8e855807ef0511f48d0f101079">yaze::app::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a8b4591841c9a34eddb10f4a1ea0b9307">yaze::app::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#aa9025199f02098f6657436cfa8155567">yaze::app::editor::OverworldEditor::RefreshTile16Blockset()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a7ae28463b1e3cd53e192877a0c12dd48">yaze::app::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1">yaze::app::editor::Tile16Editor::UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#adf5e92395a8357970ba6355f3d73f939">yaze::app::zelda3::screen::Inventory::BuildTileset()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ab4f6e14828b66b9e79d1f709024c3744">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#aa72443cf6bb48f5c0a08d6e16a90748d">yaze::app::Rom::CreateAndRenderBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a7dc3dd8e855807ef0511f48d0f101079">yaze::app::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a8b4591841c9a34eddb10f4a1ea0b9307">yaze::app::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#aa9025199f02098f6657436cfa8155567">yaze::app::editor::OverworldEditor::RefreshTile16Blockset()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a7ae28463b1e3cd53e192877a0c12dd48">yaze::app::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a1709ecca119ad2a307eccb9b1f5e9ea1">yaze::app::editor::Tile16Editor::UpdateBlockset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1240,7 +1321,36 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#ad1496544dc223845f2c358beff8cf010">palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a63a3008e5953e88af8a8ed6667ab2a61">ApplyPalette()</a>, <a class="el" href="#a1dd346f8c7f2faf2765f19539012ecf0">ApplyPalette()</a>, <a class="el" href="#abd48b40af92ef2e71ba442471734af8a">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="#a24c4b7b033b5edee88e552ecc4cd1103">ApplyPaletteWithTransparent()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ad40e04b04c13c2365d38fdcd631ed128">yaze::app::editor::MessageEditor::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a63a3008e5953e88af8a8ed6667ab2a61">ApplyPalette()</a>, <a class="el" href="#a1dd346f8c7f2faf2765f19539012ecf0">ApplyPalette()</a>, <a class="el" href="#abd48b40af92ef2e71ba442471734af8a">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="#a24c4b7b033b5edee88e552ecc4cd1103">ApplyPaletteWithTransparent()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59">yaze::app::gui::Canvas::DrawContextMenu()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ad40e04b04c13c2365d38fdcd631ed128">yaze::app::editor::MessageEditor::Initialize()</a>.</p>
+
+</div>
+</div>
+<a id="ac894d66713f4539b6358964674d6831d" name="ac894d66713f4539b6358964674d6831d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac894d66713f4539b6358964674d6831d">&#9670;&#160;</a></span>mutable_palette()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::app::gfx::Bitmap::mutable_palette </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#ad1496544dc223845f2c358beff8cf010">palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ad40e04b04c13c2365d38fdcd631ed128">yaze::app::editor::MessageEditor::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1306,7 +1416,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#ae40c02d0cc8214e729384df698d2039a">width_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#afe4955e48e94c72d6ce5b39eb2a3c17d">Bitmap()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7">yaze::app::gui::BitmapViewer::Display()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#af86e6f70cf21cced45d5866eeb371a88">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ae8c5d2a0fc2771d51ee3d2883f14fde3">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a466f57cce1b95294a745a8302f05acd8">yaze::app::gui::Canvas::DrawTileOnBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a6dcb1b373c60e1b65e55ce70f3e7daa5">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b">yaze::app::editor::Tile16Editor::LoadTile8()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#afe4955e48e94c72d6ce5b39eb2a3c17d">Bitmap()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7">yaze::app::gui::BitmapViewer::Display()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#af86e6f70cf21cced45d5866eeb371a88">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ae8c5d2a0fc2771d51ee3d2883f14fde3">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a466f57cce1b95294a745a8302f05acd8">yaze::app::gui::Canvas::DrawTileOnBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a6dcb1b373c60e1b65e55ce70f3e7daa5">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b">yaze::app::editor::Tile16Editor::LoadTile8()</a>.</p>
 
 </div>
 </div>
@@ -1335,7 +1445,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a353d04d8c2803b0f2e89aa6754d6e844">height_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#afe4955e48e94c72d6ce5b39eb2a3c17d">Bitmap()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7">yaze::app::gui::BitmapViewer::Display()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#af86e6f70cf21cced45d5866eeb371a88">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ae8c5d2a0fc2771d51ee3d2883f14fde3">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b">yaze::app::editor::Tile16Editor::LoadTile8()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#afe4955e48e94c72d6ce5b39eb2a3c17d">Bitmap()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7">yaze::app::gui::BitmapViewer::Display()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#af86e6f70cf21cced45d5866eeb371a88">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#ae8c5d2a0fc2771d51ee3d2883f14fde3">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b">yaze::app::editor::Tile16Editor::LoadTile8()</a>.</p>
 
 </div>
 </div>
@@ -1364,7 +1474,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a332f7bcff7b77e4e4115412f6c32f346">depth_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#afe4955e48e94c72d6ce5b39eb2a3c17d">Bitmap()</a>, and <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#afe4955e48e94c72d6ce5b39eb2a3c17d">Bitmap()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, and <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>.</p>
 
 </div>
 </div>
@@ -1420,7 +1530,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#abc00863f6f3c19a1757222ee3c459e32">data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b">yaze::app::editor::Tile16Editor::LoadTile8()</a>, and <a class="el" href="#a57e5cd8e6551ab85736e3dde766d2761">set_data()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a9d6c809ffd9849ac5575879ac3710ca5">Bitmap()</a>, <a class="el" href="#a87cf19397188c2833d41e468055e8c0d">Bitmap()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a9a3d5d744dfdde97b8ff83c2b4a13e5b">yaze::app::editor::Tile16Editor::LoadTile8()</a>, and <a class="el" href="#a57e5cd8e6551ab85736e3dde766d2761">set_data()</a>.</p>
 
 </div>
 </div>
@@ -1861,7 +1971,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#ac325d7d569706b4d3b5ccc450b8efff0">CreateTexture()</a>, <a class="el" href="#a1fbe253c667ffd6b30e15061d0dbb33b">Get16x16Tile()</a>, <a class="el" href="#af3c3f536a72f348f005ebfe78c951a60">Get16x16Tile()</a>, <a class="el" href="#a3c00caf9c86a212f6d3513fdef477e6e">Get8x8Tile()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, and <a class="el" href="#aadcfd533d552f042877e537d4ba56fd2">width()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="#ac325d7d569706b4d3b5ccc450b8efff0">CreateTexture()</a>, <a class="el" href="#a1fbe253c667ffd6b30e15061d0dbb33b">Get16x16Tile()</a>, <a class="el" href="#af3c3f536a72f348f005ebfe78c951a60">Get16x16Tile()</a>, <a class="el" href="#a3c00caf9c86a212f6d3513fdef477e6e">Get8x8Tile()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, <a class="el" href="#a072eb3cffb58ce597eab175fde6cfb1a">Reformat()</a>, and <a class="el" href="#aadcfd533d552f042877e537d4ba56fd2">width()</a>.</p>
 
 </div>
 </div>
@@ -1885,7 +1995,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#ac325d7d569706b4d3b5ccc450b8efff0">CreateTexture()</a>, <a class="el" href="#a1fbe253c667ffd6b30e15061d0dbb33b">Get16x16Tile()</a>, <a class="el" href="#a3c00caf9c86a212f6d3513fdef477e6e">Get8x8Tile()</a>, <a class="el" href="#a58894beb33c1cdc8d2bba3700e594775">height()</a>, and <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="#ac325d7d569706b4d3b5ccc450b8efff0">CreateTexture()</a>, <a class="el" href="#a1fbe253c667ffd6b30e15061d0dbb33b">Get16x16Tile()</a>, <a class="el" href="#a3c00caf9c86a212f6d3513fdef477e6e">Get8x8Tile()</a>, <a class="el" href="#a58894beb33c1cdc8d2bba3700e594775">height()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, and <a class="el" href="#a072eb3cffb58ce597eab175fde6cfb1a">Reformat()</a>.</p>
 
 </div>
 </div>
@@ -1909,7 +2019,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, and <a class="el" href="#ade4282b4d82a1320b319665657d3072e">depth()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="#ade4282b4d82a1320b319665657d3072e">depth()</a>, and <a class="el" href="#a072eb3cffb58ce597eab175fde6cfb1a">Reformat()</a>.</p>
 
 </div>
 </div>
@@ -1933,7 +2043,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, and <a class="el" href="#af3b83bf650d6acc73d46543367b944c1">size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, and <a class="el" href="#af3b83bf650d6acc73d46543367b944c1">size()</a>.</p>
 
 </div>
 </div>
@@ -1979,7 +2089,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#af000dd41553b175927de20edeb82fe0f">is_active()</a>, and <a class="el" href="#ae6c7ff58611e24e659db248206eb7c68">set_active()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="#af000dd41553b175927de20edeb82fe0f">is_active()</a>, <a class="el" href="#a072eb3cffb58ce597eab175fde6cfb1a">Reformat()</a>, and <a class="el" href="#ae6c7ff58611e24e659db248206eb7c68">set_active()</a>.</p>
 
 </div>
 </div>
@@ -2051,7 +2161,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a69cd109c0caf4882996a817bfccec7e3">mutable_pixel_data()</a>, <a class="el" href="#af20be33e40dcf614313fb3fbcd0ff762">WriteColor()</a>, <a class="el" href="#a968fb5a195cd65700f66b82b839e3d4a">WriteToPixel()</a>, and <a class="el" href="#ad1c0b2278d1e5f600449165b13f26ea5">WriteWordToPixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="#a69cd109c0caf4882996a817bfccec7e3">mutable_pixel_data()</a>, <a class="el" href="#a072eb3cffb58ce597eab175fde6cfb1a">Reformat()</a>, <a class="el" href="#af20be33e40dcf614313fb3fbcd0ff762">WriteColor()</a>, <a class="el" href="#a968fb5a195cd65700f66b82b839e3d4a">WriteToPixel()</a>, and <a class="el" href="#ad1c0b2278d1e5f600449165b13f26ea5">WriteWordToPixel()</a>.</p>
 
 </div>
 </div>
@@ -2075,7 +2185,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a315f547b5c28c691400f92fc529f8a0e">at()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#aae636e8223b7a47a961526120b85cd90">data()</a>, <a class="el" href="#a1fbe253c667ffd6b30e15061d0dbb33b">Get16x16Tile()</a>, <a class="el" href="#af3c3f536a72f348f005ebfe78c951a60">Get16x16Tile()</a>, <a class="el" href="#a3c00caf9c86a212f6d3513fdef477e6e">Get8x8Tile()</a>, <a class="el" href="#ae50d84bd88d181d2c1dae099c046e653">mutable_data()</a>, <a class="el" href="#a57e5cd8e6551ab85736e3dde766d2761">set_data()</a>, <a class="el" href="#a2a93a310b1a281e6af3705476f279291">vector()</a>, <a class="el" href="#a968fb5a195cd65700f66b82b839e3d4a">WriteToPixel()</a>, and <a class="el" href="#ad1c0b2278d1e5f600449165b13f26ea5">WriteWordToPixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a315f547b5c28c691400f92fc529f8a0e">at()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="#aae636e8223b7a47a961526120b85cd90">data()</a>, <a class="el" href="#a1fbe253c667ffd6b30e15061d0dbb33b">Get16x16Tile()</a>, <a class="el" href="#af3c3f536a72f348f005ebfe78c951a60">Get16x16Tile()</a>, <a class="el" href="#a3c00caf9c86a212f6d3513fdef477e6e">Get8x8Tile()</a>, <a class="el" href="#ae50d84bd88d181d2c1dae099c046e653">mutable_data()</a>, <a class="el" href="#a57e5cd8e6551ab85736e3dde766d2761">set_data()</a>, <a class="el" href="#a2a93a310b1a281e6af3705476f279291">vector()</a>, <a class="el" href="#a968fb5a195cd65700f66b82b839e3d4a">WriteToPixel()</a>, and <a class="el" href="#ad1c0b2278d1e5f600449165b13f26ea5">WriteWordToPixel()</a>.</p>
 
 </div>
 </div>
@@ -2123,7 +2233,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a63a3008e5953e88af8a8ed6667ab2a61">ApplyPalette()</a>, <a class="el" href="#abd48b40af92ef2e71ba442471734af8a">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="#a24c4b7b033b5edee88e552ecc4cd1103">ApplyPaletteWithTransparent()</a>, <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#aeb279f4bb0cb3d5771ae33177d660de8">palette()</a>, and <a class="el" href="#a38247d9a80196ab3d56b4a7c7b32010c">palette_size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a63a3008e5953e88af8a8ed6667ab2a61">ApplyPalette()</a>, <a class="el" href="#abd48b40af92ef2e71ba442471734af8a">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="#a24c4b7b033b5edee88e552ecc4cd1103">ApplyPaletteWithTransparent()</a>, <a class="el" href="#a92e9eee7eb9444d8b4b199d42be570dd">Cleanup()</a>, <a class="el" href="#ac894d66713f4539b6358964674d6831d">mutable_palette()</a>, <a class="el" href="#aeb279f4bb0cb3d5771ae33177d660de8">palette()</a>, and <a class="el" href="#a38247d9a80196ab3d56b4a7c7b32010c">palette_size()</a>.</p>
 
 </div>
 </div>
@@ -2171,7 +2281,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a63a3008e5953e88af8a8ed6667ab2a61">ApplyPalette()</a>, <a class="el" href="#a1dd346f8c7f2faf2765f19539012ecf0">ApplyPalette()</a>, <a class="el" href="#abd48b40af92ef2e71ba442471734af8a">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="#a24c4b7b033b5edee88e552ecc4cd1103">ApplyPaletteWithTransparent()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#ac325d7d569706b4d3b5ccc450b8efff0">CreateTexture()</a>, <a class="el" href="#a60dbb218a86c57687580ec77be457511">CreateTexture()</a>, <a class="el" href="#aa44b245b70e14ba19887a33455b7124b">GetPngData()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, <a class="el" href="#ab9c29b7fb6fe7830ca51adcfa5387c9e">mutable_surface()</a>, <a class="el" href="#a5aa228b19b8cc24290dc02f98930b3f4">SaveSurfaceToFile()</a>, <a class="el" href="#a9efa827efd4b03f98cff6029da7bccc7">sdl_palette()</a>, <a class="el" href="#aab3104391e87093b99e94fb4464a1c51">SetSurface()</a>, <a class="el" href="#a484c886ec526a3541338c4b32005399b">surface()</a>, <a class="el" href="#ab913d3944f3fb3c1af51516c8084b153">UpdateTexture()</a>, <a class="el" href="#ae061f9e46947eddeab58c59a2aaeaff2">UpdateTexture()</a>, and <a class="el" href="#af20be33e40dcf614313fb3fbcd0ff762">WriteColor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a63a3008e5953e88af8a8ed6667ab2a61">ApplyPalette()</a>, <a class="el" href="#a1dd346f8c7f2faf2765f19539012ecf0">ApplyPalette()</a>, <a class="el" href="#abd48b40af92ef2e71ba442471734af8a">ApplyPaletteFromPaletteGroup()</a>, <a class="el" href="#a24c4b7b033b5edee88e552ecc4cd1103">ApplyPaletteWithTransparent()</a>, <a class="el" href="#a2809cc0b6a95a467a182c7777b65c8ec">Create()</a>, <a class="el" href="#a24c62c1c8ab874c81c0e8e6c4a8004bc">Create()</a>, <a class="el" href="#ac325d7d569706b4d3b5ccc450b8efff0">CreateTexture()</a>, <a class="el" href="#a60dbb218a86c57687580ec77be457511">CreateTexture()</a>, <a class="el" href="#aa44b245b70e14ba19887a33455b7124b">GetPngData()</a>, <a class="el" href="#aceb56456070b3d020bfa0e26866a9a46">LoadFromPngData()</a>, <a class="el" href="#ab9c29b7fb6fe7830ca51adcfa5387c9e">mutable_surface()</a>, <a class="el" href="#a072eb3cffb58ce597eab175fde6cfb1a">Reformat()</a>, <a class="el" href="#a5aa228b19b8cc24290dc02f98930b3f4">SaveSurfaceToFile()</a>, <a class="el" href="#a9efa827efd4b03f98cff6029da7bccc7">sdl_palette()</a>, <a class="el" href="#aab3104391e87093b99e94fb4464a1c51">SetSurface()</a>, <a class="el" href="#a484c886ec526a3541338c4b32005399b">surface()</a>, <a class="el" href="#ab913d3944f3fb3c1af51516c8084b153">UpdateTexture()</a>, <a class="el" href="#ae061f9e46947eddeab58c59a2aaeaff2">UpdateTexture()</a>, and <a class="el" href="#af20be33e40dcf614313fb3fbcd0ff762">WriteColor()</a>.</p>
 
 </div>
 </div>

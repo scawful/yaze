@@ -73,7 +73,7 @@ var searchData=
   ['di_70',['DI',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aa359808b7793f7c3cf34809b8667e17c',1,'yaze::app::emu::audio::Spc700']]],
   ['diagonal_5ffix_5f_71',['diagonal_fix_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a2bd7880886b5ed338c1de9915dd1df56',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['dictionaryelement_72',['DictionaryElement',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a4f607e0d1b4f712cf88883fdc517ea43',1,'yaze::app::editor::MessageEditor']]],
-  ['dictionaryentry_73',['DictionaryEntry',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html',1,'yaze::app::editor::MessageEditor::DictionaryEntry'],['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a6b8e37c82576963597a46b0a3a27242a',1,'yaze::app::editor::MessageEditor::DictionaryEntry::DictionaryEntry()']]],
+  ['dictionaryentry_73',['DictionaryEntry',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html',1,'yaze::app::editor::MessageEditor::DictionaryEntry'],['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a08319c6c72f68154abf815f2cceaa431',1,'yaze::app::editor::MessageEditor::DictionaryEntry::DictionaryEntry()=default'],['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html#a6b8e37c82576963597a46b0a3a27242a',1,'yaze::app::editor::MessageEditor::DictionaryEntry::DictionaryEntry(uint8_t i, std::string s)']]],
   ['dictionarytoken_74',['DICTIONARYTOKEN',['../namespaceyaze_1_1app_1_1editor.html#a85d85e7b31b095e3f405e7aaa0cfb318',1,'yaze::app::editor']]],
   ['dictoff_75',['DICTOFF',['../namespaceyaze_1_1app_1_1editor.html#ae0ffdfe2fe8d70d8a2df747e934e328a',1,'yaze::app::editor']]],
   ['dimension_76',['Dimension',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#aea2948feee1b3c64223ba46292e45e53',1,'yaze::app::zelda3::overworld::Overworld']]],
@@ -97,7 +97,7 @@ var searchData=
   ['displayedmessages_94',['DisplayedMessages',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#aa9ec3bb876ccbd2294bea355095d1754',1,'yaze::app::editor::MessageEditor']]],
   ['displaylabels_95',['DisplayLabels',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a4a7244cd437062f705d72ac6abc08f35',1,'yaze::app::core::ResourceLabelManager']]],
   ['displaypalette_96',['DisplayPalette',['../classyaze_1_1app_1_1editor_1_1PaletteEditor.html#aabc08b8ae1c0e6fa35d69700dec1ab10',1,'yaze::app::editor::PaletteEditor::DisplayPalette()'],['../namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0',1,'yaze::app::gui::DisplayPalette()']]],
-  ['displaytextoverflowerror_97',['DisplayTextOverflowError',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ad2b0eb5d9874f22b930eb51da5518b64',1,'yaze::app::editor::MessageEditor']]],
+  ['displaytextoverflowerror_97',['DisplayTextOverflowError',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a24a9e21df7d1ca2e0ac038bd4f2991e7',1,'yaze::app::editor::MessageEditor']]],
   ['div_98',['DIV',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a6570d92730e20c1b1619e5cdd8821073',1,'yaze::app::emu::audio::Spc700']]],
   ['divide_5fa_5f_99',['divide_a_',['../classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad',1,'yaze::app::emu::SNES']]],
   ['divide_5fresult_5f_100',['divide_result_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a6bb6cb96206f332d09a8934796dbe7c5',1,'yaze::app::emu::SNES']]],
@@ -302,6 +302,5 @@ var searchData=
   ['dungeons_5fstartrooms_299',['dungeons_startrooms',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#aebf1a9703c178e34de564ce0ca3ea7ee',1,'yaze::app::zelda3::dungeon']]],
   ['dungmap_5fselected_5f_300',['dungmap_selected_',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#af4db8c06e4092f2187f538150f405f88',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['dungmap_5fselected_5ftile_5f_301',['dungmap_selected_tile_',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a47e912dcc1c85fffdef87a24904cfcc8',1,'yaze::app::zelda3::screen::TitleScreen']]],
-  ['dwmapdata_302',['dwmapdata',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a56935ed61bc47613e2155e0f49e47cae',1,'yaze::app::zelda3::screen::TitleScreen']]],
-  ['dynamiclayout_303',['DynamicLayout',['../classyaze_1_1app_1_1gui_1_1DynamicLayout.html',1,'yaze::app::gui']]]
+  ['dwmapdata_302',['dwmapdata',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a56935ed61bc47613e2155e0f49e47cae',1,'yaze::app::zelda3::screen::TitleScreen']]]
 ];

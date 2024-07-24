@@ -14,7 +14,7 @@ var searchData=
   ['wh3_11',['WH3',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a62f11b2698b5a60d29e5c60a2339a022',1,'yaze::app::emu::video::PpuRegisters']]],
   ['width_12',['width',['../structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ac6ae054a393303e48b3a873b7930e866',1,'yaze::app::gui::zeml::WidgetAttributes']]],
   ['width_5f_13',['width_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae40c02d0cc8214e729384df698d2039a',1,'yaze::app::gfx::Bitmap::width_'],['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#acceb001d4e8f45b1e5e3982f415bd56a',1,'yaze::app::zelda3::dungeon::RoomObject::width_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a033fe72f32bfc5c52ffc9c2803c34e9f',1,'yaze::app::zelda3::Sprite::width_']]],
-  ['widtharray_14',['widthArray',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a3d8554a98a41b245ac4ef1540d660ec0',1,'yaze::app::editor::MessageEditor']]],
+  ['width_5farray_14',['width_array',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ae10cb315386ef60b1ace7215bc300d1b',1,'yaze::app::editor::MessageEditor']]],
   ['window1enabled_15',['window1enabled',['../structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a318e61fd5c7de073d4ecac150dbe87d2',1,'yaze::app::emu::video::WindowLayer']]],
   ['window1inversed_16',['window1inversed',['../structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a2c244a9fe4c6618dc357cac5e95f580c',1,'yaze::app::emu::video::WindowLayer']]],
   ['window1left_17',['window1left',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a87aa2bbd5e683c1d0e9593f46f780111',1,'yaze::app::emu::video::Ppu']]],

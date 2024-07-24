@@ -1,13 +1,13 @@
 <map id="src/app/emu/cpu" name="src/app/emu/cpu">
 <area shape="rect" id="node1" href="dir_64878442d2f9c4453080996f299a5b19.html" title="memory" alt="" coords="125,137,192,162"/>
 <area shape="rect" id="node2" href="dir_c1473f55b0a1d048d00ce031b1d35655.html" title="debug" alt="" coords="216,137,272,162"/>
-<area shape="poly" id="edge1" href="dir_000005_000018.html" alt="" coords="94,87,136,124,132,128,91,91"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000005_000018.html" title="1" alt="" coords="134,110,141,125"/>
+<area shape="poly" id="edge1" href="dir_000005_000019.html" alt="" coords="94,87,136,124,132,128,91,91"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000005_000019.html" title="1" alt="" coords="134,110,141,125"/>
 <area shape="poly" id="edge3" href="dir_000005_000006.html" alt="" coords="102,84,204,128,201,133,100,89"/>
 <area shape="rect" id="edge3-headlabel" href="dir_000005_000006.html" title="1" alt="" coords="200,114,207,129"/>
 <area shape="rect" id="node4" href="dir_ac9716ce92441e3698fcd9f6407e814c.html" title="internal" alt="" coords="38,137,101,162"/>
-<area shape="poly" id="edge2" href="dir_000005_000017.html" alt="" coords="81,89,76,122,71,121,76,88"/>
-<area shape="rect" id="edge2-headlabel" href="dir_000005_000017.html" title="2" alt="" coords="79,112,86,127"/>
+<area shape="poly" id="edge2" href="dir_000005_000018.html" alt="" coords="81,89,76,122,71,121,76,88"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000005_000018.html" title="2" alt="" coords="79,112,86,127"/>
 <area shape="rect" id="node5" href="dir_fcc5e025f1b672ef47e35e5c700d9477.html" title="core" alt="" coords="297,137,343,162"/>
 <area shape="poly" id="edge4" href="dir_000005_000004.html" alt="" coords="102,80,283,132,281,137,100,85"/>
 <area shape="rect" id="edge4-headlabel" href="dir_000005_000004.html" title="1" alt="" coords="278,118,285,133"/>

@@ -11,6 +11,5 @@ var searchData=
   ['dungeondestination_8',['DungeonDestination',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonDestination.html',1,'yaze::app::zelda3::dungeon']]],
   ['dungeoneditor_9',['DungeonEditor',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html',1,'yaze::app::editor']]],
   ['dungeonmap_10',['DungeonMap',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html',1,'yaze::app::zelda3::screen']]],
-  ['dungeonobjectrenderer_11',['DungeonObjectRenderer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html',1,'yaze::app::zelda3::dungeon']]],
-  ['dynamiclayout_12',['DynamicLayout',['../classyaze_1_1app_1_1gui_1_1DynamicLayout.html',1,'yaze::app::gui']]]
+  ['dungeonobjectrenderer_11',['DungeonObjectRenderer',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html',1,'yaze::app::zelda3::dungeon']]]
 ];

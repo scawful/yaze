@@ -1,5 +1,7 @@
 var style_8h =
 [
+    [ "yaze::app::gui::BitmapViewer", "classyaze_1_1app_1_1gui_1_1BitmapViewer.html", "classyaze_1_1app_1_1gui_1_1BitmapViewer" ],
+    [ "yaze::app::gui::MultiSelectWithClipper", "structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html", "structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper" ],
     [ "BeginWindowWithDisplaySettings", "style_8h.html#a69040af6cbf02bd16c9e22e4bff2b99e", null ],
     [ "EndWindowWithDisplaySettings", "style_8h.html#afa54cc8c1238cb1d0bef794cbd947b7d", null ],
     [ "BeginPadding", "style_8h.html#a65f49225270284b6353e95334659788c", null ],
@@ -10,5 +12,7 @@ var style_8h =
     [ "BeginChildBothScrollbars", "style_8h.html#a6b927b57b8d59997654118efa468b53e", null ],
     [ "DrawDisplaySettings", "style_8h.html#a1ea1d6c7891279ea571030df8a323fd6", null ],
     [ "TextWithSeparators", "style_8h.html#ab6367acf830417f141068389444b7173", null ],
-    [ "ColorsYaze", "style_8h.html#a977a7571691d73f9f4ab817427cae497", null ]
+    [ "ColorsYaze", "style_8h.html#a977a7571691d73f9f4ab817427cae497", null ],
+    [ "GetAssemblyLanguageDef", "style_8h.html#a374f2b642919cc9fed20c7fa82c5fab7", null ],
+    [ "RenderTabItem", "style_8h.html#a6102acd483c1a081fdb3aa350d8a0827", null ]
 ];

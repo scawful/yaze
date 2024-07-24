@@ -2333,7 +2333,8 @@ var searchData=
   ['itemlabelflags_2330',['ItemLabelFlags',['../namespaceyaze_1_1app_1_1gui.html#aa273fd9331a34be04e40b1929ff34958',1,'yaze::app::gui']]],
   ['items_2331',['ITEMS',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ada65fa31f9d3b0a085a5ab6d7f04422fa9a932d55199939bfa5c0df5a8830fc1d',1,'yaze::app::editor::OverworldEditor']]],
   ['items_2332',['Items',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#ad180999245dee44a239d4e90954c8193',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
-  ['items_5fdata_5fend_2333',['items_data_end',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188',1,'yaze::app::zelda3::dungeon']]],
-  ['items_5fdata_5fstart_2334',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]],
-  ['iterator_2335',['iterator',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a2cc72eaef324e5ae7547e26f0818f8e6',1,'yaze::app::gfx::BitmapManager']]]
+  ['items_5fcount_2333',['ITEMS_COUNT',['../structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec',1,'yaze::app::gui::MultiSelectWithClipper']]],
+  ['items_5fdata_5fend_2334',['items_data_end',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab3fbd338b4a847a3500635d5a170f188',1,'yaze::app::zelda3::dungeon']]],
+  ['items_5fdata_5fstart_2335',['items_data_start',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a949cad52fdce6419953d2ce9620de093',1,'yaze::app::zelda3::dungeon']]],
+  ['iterator_2336',['iterator',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a2cc72eaef324e5ae7547e26f0818f8e6',1,'yaze::app::gfx::BitmapManager']]]
 ];
