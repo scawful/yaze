@@ -42,6 +42,7 @@ namespace editor {
 using ImGui::BeginMenu;
 using ImGui::BulletText;
 using ImGui::Checkbox;
+using ImGui::IsKeyDown;
 using ImGui::MenuItem;
 using ImGui::SameLine;
 using ImGui::Separator;
@@ -275,9 +276,10 @@ void MasterEditor::ManageActiveEditors() {
 }
 
 void MasterEditor::ManageKeyboardShortcuts() {
+  bool ctrl_or_super = (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper);
+
   // If CMD + R is pressed, reload the top result of recent files
-  if (ImGui::IsKeyDown(ImGuiKey_R) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_R) && ctrl_or_super) {
     static RecentFilesManager manager("recent_files.txt");
     manager.Load();
     if (!manager.GetRecentFiles().empty()) {
@@ -287,55 +289,46 @@ void MasterEditor::ManageKeyboardShortcuts() {
     }
   }
 
-  if (ImGui::IsKeyDown(ImGuiKey_F1)) {
+  if (IsKeyDown(ImGuiKey_F1)) {
     about_ = true;
   }
 
   // If CMD + Q is pressed, quit the application
-  if (ImGui::IsKeyDown(ImGuiKey_Q) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_Q) && ctrl_or_super) {
     quit_ = true;
   }
 
   // If CMD + O is pressed, open a file dialog
-  if (ImGui::IsKeyDown(ImGuiKey_O) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_O) && ctrl_or_super) {
     LoadRom();
   }
 
   // If CMD + S is pressed, save the current ROM
-  if (ImGui::IsKeyDown(ImGuiKey_S) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_S) && ctrl_or_super) {
     SaveRom();
   }
 
-  if (ImGui::IsKeyDown(ImGuiKey_X) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_X) && ctrl_or_super) {
     status_ = current_editor_->Cut();
   }
 
-  if (ImGui::IsKeyDown(ImGuiKey_C) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_C) && ctrl_or_super) {
     status_ = current_editor_->Copy();
   }
 
-  if (ImGui::IsKeyDown(ImGuiKey_V) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_V) && ctrl_or_super) {
     status_ = current_editor_->Paste();
   }
 
-  if (ImGui::IsKeyDown(ImGuiKey_Z) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_Z) && ctrl_or_super) {
     status_ = current_editor_->Undo();
   }
 
-  if (ImGui::IsKeyDown(ImGuiKey_Y) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_Y) && ctrl_or_super) {
     status_ = current_editor_->Redo();
   }
 
-  if (ImGui::IsKeyDown(ImGuiKey_F) &&
-      (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeySuper)) {
+  if (IsKeyDown(ImGuiKey_F) && ctrl_or_super) {
     status_ = current_editor_->Find();
   }
 }
