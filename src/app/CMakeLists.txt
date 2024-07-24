@@ -19,6 +19,7 @@ target_include_directories(
   lib/
   app/
   ${CMAKE_SOURCE_DIR}/src/
+  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
 )
@@ -29,6 +30,7 @@ target_link_libraries(
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  ImGuiTestEngine
   ImGui
 )
 

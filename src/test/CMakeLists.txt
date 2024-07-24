@@ -57,6 +57,7 @@ target_link_libraries(
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  ImGuiTestEngine
   ImGui
   gmock_main
   gmock
