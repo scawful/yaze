@@ -133,5 +133,6 @@ var searchData=
   ['gravesytilepos_130',['GravesYTilePos',['../namespaceyaze_1_1app_1_1core.html#ac381f3839d2bd1c264675d5cc113e7ec',1,'yaze::app::core']]],
   ['grayscalepalette_131',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]],
   ['green_132',['green',['../structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40',1,'yaze::app::gfx::snes_color']]],
-  ['group_5fname_133',['group_name',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#a253b528bc00a090f79ce9e69f7b87032',1,'yaze::app::editor::palette_internal::PaletteChange']]]
+  ['group_5fname_133',['group_name',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#a253b528bc00a090f79ce9e69f7b87032',1,'yaze::app::editor::palette_internal::PaletteChange']]],
+  ['guitestable_134',['GuiTestable',['../classyaze_1_1app_1_1core_1_1GuiTestable.html',1,'yaze::app::core']]]
 ];

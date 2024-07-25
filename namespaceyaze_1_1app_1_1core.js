@@ -13,6 +13,7 @@ var namespaceyaze_1_1app_1_1core =
     [ "Controller", "classyaze_1_1app_1_1core_1_1Controller.html", "classyaze_1_1app_1_1core_1_1Controller" ],
     [ "ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", "classyaze_1_1app_1_1core_1_1ExperimentFlags" ],
     [ "FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", "structyaze_1_1app_1_1core_1_1FolderItem" ],
+    [ "GuiTestable", "classyaze_1_1app_1_1core_1_1GuiTestable.html", "classyaze_1_1app_1_1core_1_1GuiTestable" ],
     [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
     [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
     [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
