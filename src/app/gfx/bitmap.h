@@ -37,8 +37,9 @@ constexpr int SNES_PIXELFORMAT_8BPP = SDL_DEFINE_PIXELFORMAT(
 // SDL_PIXELFORMAT_INDEX8 =
 // SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_INDEX8, 0, 0, 8, 1),
 
-constexpr int kFormat4bppIndexed = 1;
-constexpr int kFormat8bppIndexed = 2;
+constexpr int kFormat2bppIndexed = 1;
+constexpr int kFormat4bppIndexed = 2;
+constexpr int kFormat8bppIndexed = 3;
 
 /**
  * @brief Convert SDL_Surface to PNG image data.
