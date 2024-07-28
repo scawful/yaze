@@ -281,6 +281,11 @@ absl::Status MessageEditor::Initialize() {
           // Command
           TextElement textElement = FindMatchingCommand(byte);
           if (!textElement.Empty()) {
+            // If the element is line 2, 3 or V we add a newline
+            if (textElement.ID == 0x73 || textElement.ID == 0x75 ||
+                textElement.ID == 0x76)
+              parsed_message.append("\n");
+
             parsed_message.append(textElement.GenericToken);
           }
         }
@@ -364,8 +369,10 @@ void MessageEditor::ReadAllTextData() {
         temp_bytes_parsed.push_back(current_byte);
       }
 
-      current_message_raw.append(textElement.GetParameterizedToken(current_byte));
-      current_message_parsed.append(textElement.GetParameterizedToken(current_byte));
+      current_message_raw.append(
+          textElement.GetParameterizedToken(current_byte));
+      current_message_parsed.append(
+          textElement.GetParameterizedToken(current_byte));
 
       if (textElement.Token == BANKToken) {
         pos = kTextData2;
