@@ -1,9 +1,11 @@
 <map id="src/app/editor/message/message_editor.h" name="src/app/editor/message/message_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="349,5,506,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="437,5,594,46"/>
 <area shape="rect" id="Node000002" href="$master__editor_8h.html" title=" " alt="" coords="269,94,413,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="399,59,362,95,359,92,395,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="464,56,382,96,379,91,461,51"/>
 <area shape="rect" id="Node000009" href="$message__editor_8cc.html" title=" " alt="" coords="437,94,594,135"/>
-<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="460,55,498,92,494,95,457,59"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="518,62,518,94,513,94,513,62"/>
+<area shape="rect" id="Node000010" href="$message__editor__test_8cc.html" title=" " alt="" coords="618,94,781,135"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="572,50,659,91,657,96,570,55"/>
 <area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="5,279,173,304"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="255,138,207,158,163,185,140,207,121,234,96,279,92,277,116,231,136,204,159,181,205,153,253,133"/>
 <area shape="rect" id="Node000004" href="$controller_8h.html" title=" " alt="" coords="173,190,333,216"/>

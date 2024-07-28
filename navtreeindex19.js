@@ -1,5 +1,7 @@
 var NAVTREEINDEX19 =
 {
+"classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8":[8,0,1,0,5,2,0,7],
+"classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8":[9,0,0,0,5,1,0,7],
 "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#ae79a37326cf4b3582f00998f34f86f0d":[8,0,1,0,5,2,0,35],
 "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#ae79a37326cf4b3582f00998f34f86f0d":[9,0,0,0,5,1,0,35],
 "classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aee4a0f9cc9252876777028361b41cfbb":[8,0,1,0,5,2,0,12],
@@ -247,7 +249,5 @@ var NAVTREEINDEX19 =
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#ab9f462b6526070992ed558903ee38950":[8,0,1,0,5,3,6,0],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#ab9f462b6526070992ed558903ee38950":[9,0,0,0,5,2,3,0],
 "classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#abba74e2153fce3c81f60e7dd91f0ad76":[8,0,1,0,5,3,6,18],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#abba74e2153fce3c81f60e7dd91f0ad76":[9,0,0,0,5,2,3,18],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#abceeb03cab09757c7a3be093d28321f6":[8,0,1,0,5,3,6,16],
-"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#abceeb03cab09757c7a3be093d28321f6":[9,0,0,0,5,2,3,16]
+"classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#abba74e2153fce3c81f60e7dd91f0ad76":[9,0,0,0,5,2,3,18]
 };

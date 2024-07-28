@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"cpu__test_8cc.html#a7d44d7a3bd113acb649f6989f22aea79":[10,0,1,2,0,0,29],
+"cpu__test_8cc.html#a7d579d9e03083aa6b80b6bf595af2080":[10,0,1,2,0,0,237],
 "cpu__test_8cc.html#a7e17891c84c341774d31d1ebdd370cd3":[10,0,1,2,0,0,261],
 "cpu__test_8cc.html#a7e9c54a10044a40c1890409b183f79df":[10,0,1,2,0,0,48],
 "cpu__test_8cc.html#a7fe1f38bfaaf758e7b2eb8482dc1f7a2":[10,0,1,2,0,0,137],
@@ -247,7 +249,5 @@ var NAVTREEINDEX24 =
 "editor_8h_source.html":[10,0,1,0,1,7,0],
 "emu_8cc.html":[10,0,1,0,2,2,2],
 "emu_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627":[10,0,1,0,2,2,2,1],
-"emulator_8cc.html":[10,0,1,0,2,5],
-"emulator_8cc.html#a8661d56df6530eb9b492271d63b262ac":[10,0,1,0,2,5,0],
-"emulator_8h.html":[10,0,1,0,2,6]
+"emulator_8cc.html":[10,0,1,0,2,5]
 };

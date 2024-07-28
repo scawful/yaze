@@ -17,6 +17,7 @@ var classyaze_1_1app_1_1editor_1_1MessageEditor =
     [ "Redo", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9b80e6534d17004854e9b5705158f62c", null ],
     [ "Find", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a4132306aac532000531b8dfddc781492", null ],
     [ "Save", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a60adbc581ef0146f823a90dcdc3cbc41", null ],
+    [ "RegisterTests", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ada2be9fa95b5ec64c4c17700f717477b", null ],
     [ "FindMatchingCommand", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a89baba38033bead5acbad6875cdd06d7", null ],
     [ "FindMatchingSpecial", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a66e60fe3fb008767506f41aa3353486f", null ],
     [ "ParseTextDataByte", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9668ae6e826f5368d513c026eb9d9c25", null ],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"emulator_8cc.html#a8661d56df6530eb9b492271d63b262ac":[10,0,1,0,2,5,0],
+"emulator_8h.html":[10,0,1,0,2,6],
 "emulator_8h_source.html":[10,0,1,0,2,6],
 "entity_8cc.html":[10,0,1,0,1,5,0],
 "entity_8cc.html#a2a5bf5f9e11b828afcf9859de7cb7658":[10,0,1,0,1,5,0,10],
@@ -247,7 +249,5 @@ var NAVTREEINDEX25 =
 "icons_8h.html#a0678bd5070ed545ab644181078fa17cb":[10,0,1,0,4,6,1036],
 "icons_8h.html#a0679d0ea0b40121afb994485cce2ca76":[10,0,1,0,4,6,195],
 "icons_8h.html#a067f691215cc664a66375a01f8aa5b8b":[10,0,1,0,4,6,2094],
-"icons_8h.html#a067fd17a0c0cc1ada6d5b88871787ae2":[10,0,1,0,4,6,540],
-"icons_8h.html#a068077d71999f84a659bc5ce02751fd1":[10,0,1,0,4,6,965],
-"icons_8h.html#a06f0a086864b451fe74a7b27ccbca5fc":[10,0,1,0,4,6,1715]
+"icons_8h.html#a067fd17a0c0cc1ada6d5b88871787ae2":[10,0,1,0,4,6,540]
 };

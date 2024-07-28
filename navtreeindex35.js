@@ -1,5 +1,7 @@
 var NAVTREEINDEX35 =
 {
+"memory_8h.html#ac5d8b87f3f4e87dd3e2dcc58bb570987":[10,0,1,0,2,3,4,12],
+"memory_8h.html#ac625af95a64851647d058db173743789":[10,0,1,0,2,3,4,15],
 "memory_8h.html#ae1f596ac5f8a1e7501c140f8415a11e1":[10,0,1,0,2,3,4,9],
 "memory_8h.html#ae1f596ac5f8a1e7501c140f8415a11e1a639ff04505dc710ee0436422e55ad043":[10,0,1,0,2,3,4,9,3],
 "memory_8h.html#ae1f596ac5f8a1e7501c140f8415a11e1abd0ff805d704e6ebc396433ad5ffd027":[10,0,1,0,2,3,4,9,0],
@@ -29,6 +31,7 @@ var NAVTREEINDEX35 =
 "message__editor_8h.html#abfd82e7b805800a75637b69dbc0aa028":[10,0,1,0,1,3,2,9],
 "message__editor_8h.html#ae0ffdfe2fe8d70d8a2df747e934e328a":[10,0,1,0,1,3,2,13],
 "message__editor_8h_source.html":[10,0,1,0,1,3,2],
+"message__editor__test_8cc.html":[10,0,1,0,1,3,3],
 "mock__memory_8h.html":[10,0,1,0,2,3,5],
 "mock__memory_8h_source.html":[10,0,1,0,2,3,5],
 "music__editor_8cc.html":[10,0,1,0,1,4,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX35 =
 "namespaceyaze_1_1app_1_1editor.html#aa1645f9cefd3a3eee31ab26d57e4df85":[8,0,1,0,1,60],
 "namespaceyaze_1_1app_1_1editor.html#aa29d0f421e7ccf6a963c1358791c99de":[8,0,1,0,1,34],
 "namespaceyaze_1_1app_1_1editor.html#aa2f8240c66088fdf579ae0becaa2d820":[8,0,1,0,1,75],
-"namespaceyaze_1_1app_1_1editor.html#aaf264499bf4cb9570f8f7661d0146051":[8,0,1,0,1,81],
-"namespaceyaze_1_1app_1_1editor.html#aafa4c7734912061b11c2e1400d48ea91":[8,0,1,0,1,62],
-"namespaceyaze_1_1app_1_1editor.html#ab016b013560df6264216fd0a73b3f913":[8,0,1,0,1,74],
-"namespaceyaze_1_1app_1_1editor.html#ab365f83737393fc1ac411d87ba2fbdb8":[8,0,1,0,1,76]
+"namespaceyaze_1_1app_1_1editor.html#aaf264499bf4cb9570f8f7661d0146051":[8,0,1,0,1,81]
 };

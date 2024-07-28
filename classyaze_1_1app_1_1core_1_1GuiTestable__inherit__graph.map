@@ -1,5 +1,7 @@
 <map id="yaze::app::core::GuiTestable" name="yaze::app::core::GuiTestable">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,187,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html" title="The MasterEditor class represents the main editor for a Rom in the Yaze application." alt="" coords="37,79,155,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,46,99,79,93,79,93,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="44,5,226,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html" title="The MasterEditor class represents the main editor for a Rom in the Yaze application." alt="" coords="5,79,124,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,45,84,80,80,77,112,41"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1MessageEditor.html" title=" " alt="" coords="148,79,266,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,41,191,77,187,80,155,45"/>
 </map>
