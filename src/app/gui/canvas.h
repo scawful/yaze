@@ -65,7 +65,7 @@ class Canvas : public SharedRom {
                           float scale = 1.0f);
 
   void UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale = 1.0f,
-                      float grid_size = 64.0f);
+                      float grid_size = 64.0f, int label_id = 0);
 
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
@@ -114,6 +114,9 @@ class Canvas : public SharedRom {
   void DrawGridLines(float grid_step);
   void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
   void DrawOverlay();  // last
+
+  void DrawInfoGrid(float grid_step = 64.0f, int tile_id_offset = 8,
+                    int label_id = 0);
 
   void DrawLayeredElements();
 
