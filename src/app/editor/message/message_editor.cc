@@ -26,12 +26,14 @@ namespace app {
 namespace editor {
 
 using ImGui::Begin;
+using ImGui::BeginChild;
 using ImGui::BeginTable;
 using ImGui::Button;
 using ImGui::End;
 using ImGui::EndChild;
 using ImGui::EndTable;
 using ImGui::InputText;
+using ImGui::InputTextMultiline;
 using ImGui::SameLine;
 using ImGui::Separator;
 using ImGui::TableHeadersRow;
@@ -121,19 +123,26 @@ absl::Status MessageEditor::Update() {
   if (rom()->is_loaded() && !data_loaded_) {
     RETURN_IF_ERROR(rom()->LoadFontGraphicsData())
     RETURN_IF_ERROR(Initialize());
+    CurrentMessage = ListOfTexts[1];
     data_loaded_ = true;
   }
 
-  if (BeginTable("##MessageEditor", 2,
+  if (BeginTable("##MessageEditor", 3,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
-    TableSetupColumn("##ListOfMessages");
-    TableSetupColumn("##MessageEditorColumn2");
+    TableSetupColumn("List");
+    TableSetupColumn("Contents");
+    TableSetupColumn("Commands");
+
+    TableHeadersRow();
 
     TableNextColumn();
     DrawMessageList();
 
     TableNextColumn();
     DrawCurrentMessage();
+
+    TableNextColumn();
+    DrawTextCommands();
 
     EndTable();
   }
@@ -142,24 +151,41 @@ absl::Status MessageEditor::Update() {
 }
 
 void MessageEditor::DrawMessageList() {
-  for (const auto& message : ListOfTexts) {
-    TextWrapped("%s", absl::StrCat("Message ", message.RawString).c_str());
-    SameLine();
-    if (Button(absl::StrCat("Message ", message.ID).c_str())) {
-      SelectMessageID(message.ID);
+  if (InputText("Search", &search_text_)) {
+    DisplayedMessages.clear();
+    for (const auto& message : ListOfTexts) {
+      if (absl::StrContains(message.ContentsParsed, search_text_)) {
+        DisplayedMessages.push_back(message);
+      }
     }
+  }
+
+  if (BeginChild("##MessagesList", ImVec2(0, 0), true,
+                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    for (const auto& message : ListOfTexts) {
+      if (Button(core::UppercaseHexWord(message.ID).c_str())) {
+        CurrentMessage = message;
+      }
+      SameLine();
+      TextWrapped("%s", ParsedMessages[message.ID].c_str());
+      Separator();
+    }
+    EndChild();
   }
 }
 
 void MessageEditor::DrawCurrentMessage() {
-  TextWrapped("%s", absl::StrCat("Message ", CurrentMessage.RawString).c_str());
-  SameLine();
-  if (Button(absl::StrCat("Message ", CurrentMessage.ID).c_str())) {
-    SelectMessageID(CurrentMessage.ID);
+  Button(absl::StrCat("Message ", CurrentMessage.ID).c_str());
+  if (InputTextMultiline("##MessageEditor", &ParsedMessages[CurrentMessage.ID],
+                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+    CurrentMessage.Data = ParseMessageToData(message_text_box_.text);
+    DrawMessagePreview();
   }
   Separator();
-  ImGui::BeginChild("MessageEditorCanvas", ImVec2(0, 0), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+  Text("Font Graphics");
+  BeginChild("MessageEditorCanvas", ImVec2(0, 128), true,
+             ImGuiWindowFlags_AlwaysVerticalScrollbar);
   font_gfx_canvas_.DrawBackground();
   font_gfx_canvas_.DrawContextMenu();
   font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0);
@@ -167,8 +193,10 @@ void MessageEditor::DrawCurrentMessage() {
   font_gfx_canvas_.DrawOverlay();
   EndChild();
   Separator();
-  ImGui::BeginChild("CurrentGfxFont", ImVec2(0, 0), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+  Text("Message Preview");
+  BeginChild("CurrentGfxFont", ImVec2(0, 0), true,
+             ImGuiWindowFlags_AlwaysVerticalScrollbar);
   current_font_gfx16_canvas_.DrawBackground();
   current_font_gfx16_canvas_.DrawContextMenu();
   current_font_gfx16_canvas_.DrawBitmap(current_font_gfx16_bitmap_, 0, 0);
@@ -178,22 +206,35 @@ void MessageEditor::DrawCurrentMessage() {
   Separator();
 }
 
+void MessageEditor::DrawTextCommands() {
+  if (BeginChild("##TextCommands", ImVec2(0, 0), true,
+                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    for (const auto& text_element : TextCommands) {
+      if (Button(text_element.GenericToken.c_str())) {
+      }
+      SameLine();
+      TextWrapped("%s", text_element.Description.c_str());
+      Separator();
+    }
+    EndChild();
+  }
+}
+
 absl::Status MessageEditor::Initialize() {
   for (int i = 0; i < 100; i++) {
     width_array[i] = rom()->data()[kCharactersWidth + i];
   }
 
-  previewColors.AddColor(0x7FFF);  // White
-  previewColors.AddColor(0x7C00);  // Red
-  previewColors.AddColor(0x03E0);  // Green
-  previewColors.AddColor(0x001F);  // Blue
+  font_preview_colors_.AddColor(0x7FFF);  // White
+  font_preview_colors_.AddColor(0x7C00);  // Red
+  font_preview_colors_.AddColor(0x03E0);  // Green
+  font_preview_colors_.AddColor(0x001F);  // Blue
 
   fontgfx16Ptr = rom()->font_gfx_data();
 
   // 4bpp
-  font_gfx_bitmap_.Create(128, 128, 64, gfx::kFormat4bppIndexed, fontgfx16Ptr);
-  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(128, 128, 64, fontgfx16Ptr,
-                                               font_gfx_bitmap_, previewColors))
+  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+      128, 128, 64, fontgfx16Ptr, font_gfx_bitmap_, font_preview_colors_))
 
   currentfontgfx16Ptr.reserve(172 * 4096);
   for (int i = 0; i < 172 * 4096; i++) {
@@ -201,22 +242,13 @@ absl::Status MessageEditor::Initialize() {
   }
 
   // 8bpp
-  current_font_gfx16_bitmap_.Create(172, 4096, 172, gfx::kFormat8bppIndexed,
-                                    currentfontgfx16Ptr);
-  RETURN_IF_ERROR(
-      rom()->CreateAndRenderBitmap(172, 4096, 172, currentfontgfx16Ptr,
-                                   current_font_gfx16_bitmap_, previewColors))
-
-  // auto previewColors = new Color[]{
-  //     Color.DimGray,
-  //     Color.DarkBlue,
-  //     Color.White,
-  //     Color.DarkOrange,
-  // };
+  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+      172, 4096, 172, currentfontgfx16Ptr, current_font_gfx16_bitmap_,
+      font_preview_colors_))
 
   gfx::SnesPalette color_palette = font_gfx_bitmap_.palette();
-  for (int i = 0; i < previewColors.size(); i++) {
-    *color_palette.mutable_color(i) = previewColors[i];
+  for (int i = 0; i < font_preview_colors_.size(); i++) {
+    *color_palette.mutable_color(i) = font_preview_colors_[i];
   }
 
   *font_gfx_bitmap_.mutable_palette() = color_palette;
@@ -224,25 +256,39 @@ absl::Status MessageEditor::Initialize() {
   BuildDictionaryEntries();
   ReadAllTextData();
 
-  // foreach (MessageData messageData in
-  // ListOfTexts) {
-  //   DisplayedMessages.push_back(messageData);
-  // }
-
-  // textListbox.BeginUpdate();
-  // textListbox.DataSource =
-  // DisplayedMessages;
-  // textListbox.EndUpdate();
-
-  // textListbox.DisplayMember = "Text";
-  // pictureBox2.Refresh();
-
-  // SelectedTileID.Text =
-  // selected_tile.ToString("X2");
-  // SelectedTileASCII.Text =
-  // ParseTextDataByte((uint8_t)selected_tile);
+  for (const auto& message : ListOfTexts) {
+    DisplayedMessages.push_back(message);
+  }
 
   // CreateFontGfxData(rom()->data());
+
+  for (const auto& each_message : ListOfTexts) {
+    // Each string has a [:XX] char encoded
+    // The corresponding character is found in CharEncoder unordered_map
+    std::string parsed_message = "";
+    for (const auto& byte : each_message.Data) {
+      // Find the char byte in the CharEncoder map
+      if (CharEncoder.contains(byte)) {
+        parsed_message.push_back(CharEncoder.at(byte));
+      } else {
+        // If the byte is not found in the CharEncoder map, it is a command
+        // or a dictionary entry
+        if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
+          // Dictionary entry
+          auto dictionaryEntry = GetDictionaryFromID(byte - DICTOFF);
+          parsed_message.append(dictionaryEntry.Contents);
+        } else {
+          // Command
+          TextElement textElement = FindMatchingCommand(byte);
+          if (!textElement.Empty()) {
+            parsed_message.append(textElement.GenericToken);
+          }
+        }
+      }
+    }
+    ParsedMessages.push_back(parsed_message);
+  }
+
   return absl::OkStatus();
 }
 
@@ -276,7 +322,7 @@ void MessageEditor::BuildDictionaryEntries() {
 
 void MessageEditor::ReadAllTextData() {
   int messageID = 0;
-  uint8_t value;
+  uint8_t current_byte;
   int pos = kTextData;
   std::vector<uint8_t> temp_bytes_raw;
   std::vector<uint8_t> temp_bytes_parsed;
@@ -286,9 +332,9 @@ void MessageEditor::ReadAllTextData() {
   TextElement textElement;
 
   while (true) {
-    value = rom()->data()[pos++];
+    current_byte = rom()->data()[pos++];
 
-    if (value == MESSAGETERMINATOR) {
+    if (current_byte == MESSAGETERMINATOR) {
       auto message =
           MessageData(messageID++, pos, current_message_raw, temp_bytes_raw,
                       current_message_parsed, temp_bytes_parsed);
@@ -301,25 +347,25 @@ void MessageEditor::ReadAllTextData() {
       current_message_parsed.clear();
 
       continue;
-    } else if (value == 0xFF) {
+    } else if (current_byte == 0xFF) {
       break;
     }
 
-    temp_bytes_raw.push_back(value);
+    temp_bytes_raw.push_back(current_byte);
 
     // Check for command.
-    textElement = FindMatchingCommand(value);
+    textElement = FindMatchingCommand(current_byte);
 
     if (!textElement.Empty()) {
-      temp_bytes_parsed.push_back(value);
+      temp_bytes_parsed.push_back(current_byte);
       if (textElement.HasArgument) {
-        value = rom()->data()[pos++];
-        temp_bytes_raw.push_back(value);
-        temp_bytes_parsed.push_back(value);
+        current_byte = rom()->data()[pos++];
+        temp_bytes_raw.push_back(current_byte);
+        temp_bytes_parsed.push_back(current_byte);
       }
 
-      current_message_raw.append(textElement.GetParameterizedToken(value));
-      current_message_parsed.append(textElement.GetParameterizedToken(value));
+      current_message_raw.append(textElement.GetParameterizedToken(current_byte));
+      current_message_parsed.append(textElement.GetParameterizedToken(current_byte));
 
       if (textElement.Token == BANKToken) {
         pos = kTextData2;
@@ -329,17 +375,17 @@ void MessageEditor::ReadAllTextData() {
     }
 
     // Check for special characters.
-    textElement = FindMatchingSpecial(value);
+    textElement = FindMatchingSpecial(current_byte);
 
     if (!textElement.Empty()) {
       current_message_raw.append(textElement.GetParameterizedToken());
       current_message_parsed.append(textElement.GetParameterizedToken());
-      temp_bytes_parsed.push_back(value);
+      temp_bytes_parsed.push_back(current_byte);
       continue;
     }
 
     // Check for dictionary.
-    int dictionary = FindDictionaryEntry(value);
+    int dictionary = FindDictionaryEntry(current_byte);
 
     if (dictionary >= 0) {
       current_message_raw.append("[");
@@ -362,16 +408,14 @@ void MessageEditor::ReadAllTextData() {
     }
 
     // Everything else.
-    if (CharEncoder.contains(value)) {
+    if (CharEncoder.contains(current_byte)) {
       std::string str = "";
-      str.push_back(CharEncoder.at(value));
+      str.push_back(CharEncoder.at(current_byte));
       current_message_raw.append(str);
       current_message_parsed.append(str);
-      temp_bytes_parsed.push_back(value);
+      temp_bytes_parsed.push_back(current_byte);
     }
   }
-
-  // 00074703
 }
 
 absl::Status MessageEditor::Cut() {
@@ -506,14 +550,6 @@ uint8_t MessageEditor::FindMatchingCharacter(char value) {
     }
   }
   return 0xFF;
-}
-
-bool MessageEditor::SelectMessageID(int id) {
-  // if (id < textListbox.Items.size()) {
-  //   textListbox.SelectedIndex = id;
-  //   return true;
-  // }
-  return false;
 }
 
 string MessageEditor::ParseTextDataByte(uint8_t value) {
