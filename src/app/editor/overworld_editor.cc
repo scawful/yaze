@@ -1055,46 +1055,62 @@ void OverworldEditor::DrawOverworldProperties() {
   if (!init_properties) {
     for (int i = 0; i < 0x40; i++) {
       std::string area_graphics_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i)->area_graphics());
+          "%02hX", overworld_.overworld_map(i)->area_graphics());
       properties_canvas_.mutable_labels(0)->push_back(area_graphics_str);
       area_graphics_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i + 0x40)->area_graphics());
+          "%02hX", overworld_.overworld_map(i + 0x40)->area_graphics());
       properties_canvas_.mutable_labels(3)->push_back(area_graphics_str);
     }
     for (int i = 0; i < 0x40; i++) {
-      std::string area_palette_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i)->area_palette());
+      std::string area_palette_str =
+          absl::StrFormat("%02hX", overworld_.overworld_map(i)->area_palette());
       properties_canvas_.mutable_labels(1)->push_back(area_palette_str);
       area_palette_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i + 0x40)->area_palette());
+          "%02hX", overworld_.overworld_map(i + 0x40)->area_palette());
       properties_canvas_.mutable_labels(4)->push_back(area_palette_str);
     }
     for (int i = 0; i < 0x40; i++) {
       std::string sprite_gfx_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i)->sprite_graphics(1));
+          "%02hX", overworld_.overworld_map(i)->sprite_graphics(1));
       properties_canvas_.mutable_labels(6)->push_back(sprite_gfx_str);
       sprite_gfx_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i + 0x40)->sprite_graphics(1));
+          "%02hX", overworld_.overworld_map(i + 0x40)->sprite_graphics(1));
       properties_canvas_.mutable_labels(7)->push_back(sprite_gfx_str);
     }
     for (int i = 0; i < 0x40; i++) {
       std::string sprite_palette_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i)->sprite_palette(1));
+          "%02hX", overworld_.overworld_map(i)->sprite_palette(1));
       properties_canvas_.mutable_labels(2)->push_back(sprite_palette_str);
       sprite_palette_str = absl::StrFormat(
-          "0x%02hX", overworld_.overworld_map(i + 0x40)->sprite_palette(1));
+          "%02hX", overworld_.overworld_map(i + 0x40)->sprite_palette(1));
       properties_canvas_.mutable_labels(5)->push_back(sprite_palette_str);
     }
     init_properties = true;
   }
 
-  properties_canvas_.UpdateInfoGrid(ImVec2(512, 512), 16, 1.0f, 64);
+  Text("Area Gfx LW/DW");
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 0);
+  SameLine();
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 1);
   ImGui::Separator();
+
+  Text("Sprite Gfx LW/DW");
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 6);
+  SameLine();
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 7);
+  ImGui::Separator();
+
+  Text("Area Pal LW/DW");
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 2);
+  SameLine();
+  properties_canvas_.UpdateInfoGrid(ImVec2(256, 256), 8, 1.0f, 32, 3);
 
   static bool dark_world = false;
   int world = dark_world ? 3 : 0;
   static int current = 0;
 
+  static bool show_gfx_group = false;
+  Checkbox("Show Gfx Group Editor", &show_gfx_group);
   if (Checkbox("Dark World", &dark_world)) {
     properties_canvas_.set_current_labels(current + world);
   }
@@ -1119,6 +1135,12 @@ void OverworldEditor::DrawOverworldProperties() {
   if (Button("Sprite Palette")) {
     current = 2;
     properties_canvas_.set_current_labels(current + world);
+  }
+
+  if (show_gfx_group) {
+    gui::BeginWindowWithDisplaySettings("Gfx Group Editor", &show_gfx_group);
+    status_ = gfx_group_editor_.Update();
+    gui::EndWindowWithDisplaySettings();
   }
 }
 
@@ -1172,7 +1194,7 @@ absl::Status OverworldEditor::DrawExperimentalModal() {
 }
 
 absl::Status OverworldEditor::UpdateUsageStats() {
-  if (BeginTable("##UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
+  if (BeginTable("UsageStatsTable", 3, kOWEditFlags, ImVec2(0, 0))) {
     TableSetupColumn("Entrances");
     TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
@@ -1210,8 +1232,10 @@ absl::Status OverworldEditor::UpdateUsageStats() {
 
     TableNextColumn();
     DrawUsageGrid();
+
     TableNextColumn();
     DrawOverworldProperties();
+
     EndTable();
   }
   return absl::OkStatus();
