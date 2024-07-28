@@ -47,7 +47,7 @@ var searchData=
   ['characters_5fwidth_44',['characters_width',['../namespaceyaze_1_1app_1_1core.html#ab3100848f4b1e5b64371fca5e0b15d09',1,'yaze::app::core']]],
   ['checksum_45',['checksum',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a4c2b57823ff9dc94ba3a6e1197be8',1,'yaze::app::emu::memory::RomInfo']]],
   ['checksumcomplement_46',['checksumComplement',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#ad669eb1b17c578d0c5c4643ed91a74b9',1,'yaze::app::emu::memory::RomInfo']]],
-  ['cheese_47',['CHEESE',['../structyaze_1_1app_1_1editor_1_1MessageData.html#a85a046a88d35cedd2fbf93d4308e33d1',1,'yaze::app::editor::MessageData']]],
+  ['cheese_47',['CHEESE',['../namespaceyaze_1_1app_1_1editor.html#ab97da3dff9dae706531f752f9f310f82',1,'yaze::app::editor']]],
   ['chest_5flist_5f_48',['chest_list_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a623a8a00c0b8212ab90e9fe632a4873f',1,'yaze::app::zelda3::dungeon::Room']]],
   ['chests_5fbackupitems_49',['chests_backupitems',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a0ddf57fc7d43fd83a994a477baae932a',1,'yaze::app::zelda3::dungeon']]],
   ['chests_5fdata_5fpointer1_50',['chests_data_pointer1',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a7232b6bc92b83dd879896a7dc5dde212',1,'yaze::app::zelda3::dungeon']]],

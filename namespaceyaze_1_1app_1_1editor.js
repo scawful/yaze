@@ -101,6 +101,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "MESSAGETERMINATOR", "namespaceyaze_1_1app_1_1editor.html#ad49c36e0b8bf699d3ef697d7a7c21e56", null ],
     [ "BANKToken", "namespaceyaze_1_1app_1_1editor.html#a5055242b61e103773f8f1919856ac198", null ],
     [ "BANKID", "namespaceyaze_1_1app_1_1editor.html#a76ccaa4ed9652d123bea40a369f314cf", null ],
+    [ "CHEESE", "namespaceyaze_1_1app_1_1editor.html#ab97da3dff9dae706531f752f9f310f82", null ],
     [ "kTile16Size", "namespaceyaze_1_1app_1_1editor.html#a82580c78db5fc851768be8445138aa3c", null ],
     [ "kOverworldMapSize", "namespaceyaze_1_1app_1_1editor.html#ad773c0030307cc45282b8e59b648dff6", null ],
     [ "kOWMapFlags", "namespaceyaze_1_1app_1_1editor.html#a4d9b8c9589c6b1455c34c618611b3303", null ],

@@ -1,5 +1,9 @@
 var NAVTREEINDEX35 =
 {
+"md_docs_2infrastructure.html#autotoc_md21":[3,0,0],
+"md_docs_2infrastructure.html#autotoc_md22":[3,1],
+"md_docs_2infrastructure.html#autotoc_md23":[3,2],
+"md_docs_2infrastructure.html#autotoc_md24":[3,3],
 "md_docs_2infrastructure.html#autotoc_md25":[3,4],
 "md_docs_2infrastructure.html#autotoc_md26":[3,4,0],
 "md_docs_2infrastructure.html#autotoc_md27":[3,4,1],
@@ -62,6 +66,7 @@ var NAVTREEINDEX35 =
 "message__editor_8h.html#a85d85e7b31b095e3f405e7aaa0cfb318":[10,0,1,0,1,3,1,15],
 "message__editor_8h.html#aa1645f9cefd3a3eee31ab26d57e4df85":[10,0,1,0,1,3,1,8],
 "message__editor_8h.html#aafa4c7734912061b11c2e1400d48ea91":[10,0,1,0,1,3,1,10],
+"message__editor_8h.html#ab97da3dff9dae706531f752f9f310f82":[10,0,1,0,1,3,1,20],
 "message__editor_8h.html#abfd82e7b805800a75637b69dbc0aa028":[10,0,1,0,1,3,1,12],
 "message__editor_8h.html#ad49c36e0b8bf699d3ef697d7a7c21e56":[10,0,1,0,1,3,1,17],
 "message__editor_8h.html#ae0ffdfe2fe8d70d8a2df747e934e328a":[10,0,1,0,1,3,1,16],
@@ -234,20 +239,15 @@ var NAVTREEINDEX35 =
 "namespaceyaze_1_1app_1_1editor.html#a07a7fd3cf970737d472b17df0a114b24":[8,0,1,0,1,61],
 "namespaceyaze_1_1app_1_1editor.html#a0d26ca53d73b81e2de5e8e8fb1f5f39d":[8,0,1,0,1,50],
 "namespaceyaze_1_1app_1_1editor.html#a2069f944ef53eb187dae126277941b42":[8,0,1,0,1,55],
-"namespaceyaze_1_1app_1_1editor.html#a27ca683b9c4a9b8e530ed2cdd751989b":[8,0,1,0,1,77],
+"namespaceyaze_1_1app_1_1editor.html#a27ca683b9c4a9b8e530ed2cdd751989b":[8,0,1,0,1,78],
 "namespaceyaze_1_1app_1_1editor.html#a2a5bf5f9e11b828afcf9859de7cb7658":[8,0,1,0,1,43],
 "namespaceyaze_1_1app_1_1editor.html#a32c555ef9d36855d86f302629fb71a6f":[8,0,1,0,1,63],
 "namespaceyaze_1_1app_1_1editor.html#a3719536e1885a648a2dd2338df5c57ac":[8,0,1,0,1,52],
-"namespaceyaze_1_1app_1_1editor.html#a38a54e512216d56370524903c0717d3d":[8,0,1,0,1,79],
-"namespaceyaze_1_1app_1_1editor.html#a3deb5fa796785a483928050617a76edc":[8,0,1,0,1,81],
+"namespaceyaze_1_1app_1_1editor.html#a38a54e512216d56370524903c0717d3d":[8,0,1,0,1,80],
+"namespaceyaze_1_1app_1_1editor.html#a3deb5fa796785a483928050617a76edc":[8,0,1,0,1,82],
 "namespaceyaze_1_1app_1_1editor.html#a42fb86004959376148f91a02ba3672a7":[8,0,1,0,1,36],
 "namespaceyaze_1_1app_1_1editor.html#a43631d73e1a962decb34959344a30598":[8,0,1,0,1,39],
-"namespaceyaze_1_1app_1_1editor.html#a4d9b8c9589c6b1455c34c618611b3303":[8,0,1,0,1,72],
+"namespaceyaze_1_1app_1_1editor.html#a4d9b8c9589c6b1455c34c618611b3303":[8,0,1,0,1,73],
 "namespaceyaze_1_1app_1_1editor.html#a4e2fdc967f4f1af218c03efeadbb4e7b":[8,0,1,0,1,49],
-"namespaceyaze_1_1app_1_1editor.html#a5055242b61e103773f8f1919856ac198":[8,0,1,0,1,68],
-"namespaceyaze_1_1app_1_1editor.html#a5378c14c6c09c86859f162a15d8f8b40":[8,0,1,0,1,59],
-"namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9":[8,0,1,0,1,31],
-"namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2289c3d3d4622c9558cb24ad8be37041":[8,0,1,0,1,31,0],
-"namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9a2c8a5284a6fd0fa69f3df471bf7f6cb0":[8,0,1,0,1,31,4],
-"namespaceyaze_1_1app_1_1editor.html#a568eb6ef1a6b96b1a90075ec38b7d1a9ad6ecde031e114c4933d033be84600cfb":[8,0,1,0,1,31,2]
+"namespaceyaze_1_1app_1_1editor.html#a5055242b61e103773f8f1919856ac198":[8,0,1,0,1,68]
 };

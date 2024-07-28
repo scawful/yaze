@@ -19,5 +19,6 @@ var message__editor_8h =
     [ "DICTOFF", "message__editor_8h.html#ae0ffdfe2fe8d70d8a2df747e934e328a", null ],
     [ "MESSAGETERMINATOR", "message__editor_8h.html#ad49c36e0b8bf699d3ef697d7a7c21e56", null ],
     [ "BANKToken", "message__editor_8h.html#a5055242b61e103773f8f1919856ac198", null ],
-    [ "BANKID", "message__editor_8h.html#a76ccaa4ed9652d123bea40a369f314cf", null ]
+    [ "BANKID", "message__editor_8h.html#a76ccaa4ed9652d123bea40a369f314cf", null ],
+    [ "CHEESE", "message__editor_8h.html#ab97da3dff9dae706531f752f9f310f82", null ]
 ];

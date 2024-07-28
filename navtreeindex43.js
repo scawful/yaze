@@ -1,5 +1,12 @@
 var NAVTREEINDEX43 =
 {
+"snes__palette_8h.html#ac965d3ca691429e5d401200b5064960f":[10,0,1,0,3,9,15],
+"snes__palette_8h.html#ace7f5fff742b86348e766115b8283d72":[10,0,1,0,3,9,16],
+"snes__palette_8h.html#ad2e65305aae5d8bd6e3302d17578a69e":[10,0,1,0,3,9,22],
+"snes__palette_8h.html#ad65648ff8763499c2b0092caf7af2534":[10,0,1,0,3,9,19],
+"snes__palette_8h.html#ae1d1dbe7d5ac2221fd0bee658639fabd":[10,0,1,0,3,9,38],
+"snes__palette_8h.html#ae291a690c13a2279f7e7bde3530d72ce":[10,0,1,0,3,9,18],
+"snes__palette_8h.html#ae5807cdf64ba8eed9e0b94335c514674":[10,0,1,0,3,9,11],
 "snes__palette_8h.html#ae9b7f2665bae4f2b5c325eee9fbfa6b8":[10,0,1,0,3,9,28],
 "snes__palette_8h.html#af24227f12e35cee27e02ac5cdf2917a7":[10,0,1,0,3,9,29],
 "snes__palette_8h.html#af9428fc450b4576d347b011dbe9f4de9":[10,0,1,0,3,9,37],
@@ -242,12 +249,5 @@ var NAVTREEINDEX43 =
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ae8b5387ea50ef824bd980bd8f4e63b3c":[8,0,1,0,0,8,5],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ae8b5387ea50ef824bd980bd8f4e63b3c":[9,0,0,0,0,7,5],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904":[8,0,1,0,0,8,2],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904":[9,0,0,0,0,7,2],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html":[8,0,1,0,0,8,0],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html":[9,0,0,0,0,7,0],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[8,0,1,0,0,8,0,1],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[9,0,0,0,0,7,0,1],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[8,0,1,0,0,8,0,0],
-"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[9,0,0,0,0,7,0,0],
-"structyaze_1_1app_1_1editor_1_1FlagsMenu.html":[8,0,1,0,1,12]
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aed5f6e97efa683a19fe0d63371e0d904":[9,0,0,0,0,7,2]
 };

@@ -1,5 +1,12 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9":[8,0,1,0,3,8,13],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9":[9,0,0,0,3,6,13],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac5f17ef2230b8b406444feacf37470d0":[8,0,1,0,3,8,15],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac5f17ef2230b8b406444feacf37470d0":[9,0,0,0,3,6,15],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376":[8,0,1,0,3,8,1],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376":[9,0,0,0,3,6,1],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ae8ed03533649af573e16611c86ea532f":[8,0,1,0,3,8,7],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ae8ed03533649af573e16611c86ea532f":[9,0,0,0,3,6,7],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#afbf55905426dab7e8d30555ac5696e36":[8,0,1,0,3,8,8],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#afbf55905426dab7e8d30555ac5696e36":[9,0,0,0,3,6,8],
@@ -242,12 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ae9aae2dced3f45f0c312d189dd8fd092":[8,0,1,0,4,1,1,4],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#ae9aae2dced3f45f0c312d189dd8fd092":[9,0,0,0,4,0,1,4],
 "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad":[8,0,1,0,4,1,1,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad":[9,0,0,0,4,0,1,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html":[8,0,1,0,4,1,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html":[9,0,0,0,4,0,2],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#a053fe2582d014967f8e4068720df561f":[8,0,1,0,4,1,2,0],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#a053fe2582d014967f8e4068720df561f":[9,0,0,0,4,0,2,0],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#acdede365098af306630412f5454ccb6c":[8,0,1,0,4,1,2,1],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1Token.html#acdede365098af306630412f5454ccb6c":[9,0,0,0,4,0,2,1],
-"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html":[8,0,1,0,4,1,3]
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#af43f4178a6f7aea3bedf8c22c90a04ad":[9,0,0,0,4,0,1,2]
 };

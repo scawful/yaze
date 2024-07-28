@@ -1,24 +1,26 @@
 <map id="src/app/zelda3/music/tracker.h" name="src/app/zelda3/music/tracker.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="414,5,558,46"/>
-<area shape="rect" id="Node000002" href="$music__editor_8h.html" title=" " alt="" coords="334,94,473,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="459,59,424,95,420,92,455,56"/>
-<area shape="rect" id="Node000011" href="$tracker_8cc.html" title="Legacy code from Hyrule Magic TrackerLogic.c." alt="" coords="497,94,641,135"/>
-<area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="518,56,552,92,548,95,514,59"/>
-<area shape="rect" id="Node000003" href="$memory__editor_8h.html" title=" " alt="" coords="184,183,316,223"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="357,145,286,185,284,180,355,140"/>
-<area shape="rect" id="Node000004" href="$master__editor_8h.html" title=" " alt="" coords="181,271,325,312"/>
-<area shape="poly" id="edge12_Node000002_Node000004" title=" " alt="" coords="396,150,379,188,355,225,325,252,293,273,290,269,322,248,351,222,375,185,391,148"/>
-<area shape="rect" id="Node000009" href="$master__editor_8cc.html" title=" " alt="" coords="357,360,501,401"/>
-<area shape="poly" id="edge11_Node000002_Node000009" title=" " alt="" coords="410,150,430,359,424,360,404,151"/>
-<area shape="rect" id="Node000010" href="$music__editor_8cc.html" title=" " alt="" coords="466,183,605,223"/>
-<area shape="poly" id="edge13_Node000002_Node000010" title=" " alt="" coords="448,141,507,180,504,184,445,146"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="333,189,340,194,343,203,335,216,318,222,316,216,332,212,338,203,336,198,330,193"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="254,239,255,271,250,271,249,239"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="582,5,726,46"/>
+<area shape="rect" id="Node000002" href="$music__editor_8h.html" title=" " alt="" coords="502,94,641,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="627,59,592,95,588,92,623,56"/>
+<area shape="rect" id="Node000012" href="$tracker_8cc.html" title="Legacy code from Hyrule Magic TrackerLogic.c." alt="" coords="665,94,809,135"/>
+<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="686,56,720,92,716,95,682,59"/>
+<area shape="rect" id="Node000003" href="$memory__editor_8h.html" title=" " alt="" coords="352,183,484,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="525,145,454,185,452,180,523,140"/>
+<area shape="rect" id="Node000004" href="$master__editor_8h.html" title=" " alt="" coords="352,271,496,312"/>
+<area shape="poly" id="edge13_Node000002_Node000004" title=" " alt="" coords="563,151,547,188,523,225,494,252,463,273,460,269,491,248,519,222,542,186,558,149"/>
+<area shape="rect" id="Node000009" href="$master__editor_8cc.html" title=" " alt="" coords="525,360,669,401"/>
+<area shape="poly" id="edge12_Node000002_Node000009" title=" " alt="" coords="578,150,598,359,592,360,572,151"/>
+<area shape="rect" id="Node000011" href="$music__editor_8cc.html" title=" " alt="" coords="634,183,773,223"/>
+<area shape="poly" id="edge14_Node000002_Node000011" title=" " alt="" coords="616,141,675,180,672,184,613,146"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="501,189,508,194,511,203,503,216,486,222,484,216,500,212,506,203,504,198,498,193"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="423,239,425,271,420,271,418,239"/>
 <area shape="rect" id="Node000005" href="$controller_8cc.html" title=" " alt="" coords="5,456,173,482"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="210,323,163,362,123,413,97,457,93,455,119,410,159,358,207,319"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="336,302,293,310,248,322,203,339,163,362,139,384,120,410,96,457,91,454,115,407,135,381,159,358,201,334,246,316,292,304,336,297"/>
 <area shape="rect" id="Node000006" href="$controller_8h.html" title=" " alt="" coords="173,368,333,393"/>
-<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="256,328,256,367,250,367,250,328"/>
-<area shape="poly" id="edge10_Node000004_Node000009" title=" " alt="" coords="308,317,390,357,388,362,306,322"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="373,322,278,369,276,365,370,317"/>
+<area shape="poly" id="edge10_Node000004_Node000009" title=" " alt="" coords="478,317,559,357,557,362,475,322"/>
+<area shape="rect" id="Node000010" href="$master__editor__test_8cc.html" title=" " alt="" coords="357,360,501,401"/>
+<area shape="poly" id="edge11_Node000004_Node000010" title=" " alt="" coords="428,327,430,359,425,360,423,328"/>
 <area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="218,403,113,458,111,453,215,398"/>
 <area shape="rect" id="Node000007" href="$app__delegate_8mm.html" title=" " alt="" coords="197,449,341,489"/>
 <area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="261,408,268,448,263,449,255,409"/>

@@ -67,11 +67,12 @@ var NAVTREEINDEX0 =
 "bitmap_8h.html#a069b0b0eeca9b5f4a98f38fcd86aaaa1":[10,0,1,0,3,1,6],
 "bitmap_8h.html#a0dafbd05dfc6f250f01cbd317b202a76":[10,0,1,0,3,1,8],
 "bitmap_8h.html#a3a4cc9da2681d2e1da832bda1ed8290d":[10,0,1,0,3,1,5],
+"bitmap_8h.html#a53356d69d89155ea03c8f8aed7bd352b":[10,0,1,0,3,1,10],
 "bitmap_8h.html#a858420796068f9283ed3cb7dd88f9138":[10,0,1,0,3,1,4],
-"bitmap_8h.html#aa27a16a16d66e49a26a5bf9e65ad6f63":[10,0,1,0,3,1,10],
+"bitmap_8h.html#aa27a16a16d66e49a26a5bf9e65ad6f63":[10,0,1,0,3,1,11],
 "bitmap_8h.html#ac3ca822085590d5659e2873c56da76a2":[10,0,1,0,3,1,7],
 "bitmap_8h.html#ad4488b7d7b72bd23d9b6c8ceb2157214":[10,0,1,0,3,1,9],
-"bitmap_8h.html#ae8837e1649a4a5c5cd74d855ed6d6c37":[10,0,1,0,3,1,11],
+"bitmap_8h.html#ae8837e1649a4a5c5cd74d855ed6d6c37":[10,0,1,0,3,1,12],
 "bitmap_8h_source.html":[10,0,1,0,3,1],
 "canvas_8cc.html":[10,0,1,0,4,2],
 "canvas_8cc.html#a5c3bc66feb8dec0e9d06a5d65411f0cd":[10,0,1,0,4,2,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "classyaze_1_1app_1_1Rom.html#ab991e800548e8f3c06b5880427697002":[8,0,1,0,7,44],
 "classyaze_1_1app_1_1Rom.html#ab991e800548e8f3c06b5880427697002":[9,0,0,0,7,44],
 "classyaze_1_1app_1_1Rom.html#abc79426dc768d8d43bd9bab55ef11660":[8,0,1,0,7,36],
-"classyaze_1_1app_1_1Rom.html#abc79426dc768d8d43bd9bab55ef11660":[9,0,0,0,7,36],
-"classyaze_1_1app_1_1Rom.html#ac44e734fa63168aba69b5177318445d4":[8,0,1,0,7,85]
+"classyaze_1_1app_1_1Rom.html#abc79426dc768d8d43bd9bab55ef11660":[9,0,0,0,7,36]
 };
