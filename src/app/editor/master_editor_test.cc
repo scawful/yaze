@@ -5,6 +5,8 @@ namespace app {
 namespace editor {
 
 void MasterEditor::RegisterTests(ImGuiTestEngine* e) {
+  message_editor_.RegisterTests(e);
+
   test_engine = e;
   ImGuiTest* t = nullptr;
 
