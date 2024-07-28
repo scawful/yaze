@@ -380,54 +380,6 @@ class MessageEditor : public Editor, public SharedRom {
     }
   };
 
-  class TextMessageElement {
-   private:
-    std::string Token;
-    std::string Pattern;
-    std::string StrictPattern;
-    std::string Description;
-    bool HasArgument;
-    uint8_t ID;
-    std::string GenericToken;
-
-   public:
-    TextMessageElement() = default;
-    TextMessageElement(uint8_t a, std::string t, bool arg, std::string d)
-        : Token(t), HasArgument(arg), Description(d), ID(a) {
-      Pattern =
-          arg ? absl::StrFormat(
-                    "\\[%s:?([0-9A-F]{1,2})\\]",
-                    std::regex_replace(
-                        Token, std::regex("([][(){}.*+?^$|\\\\])"), R"(\$1)"))
-              : absl::StrFormat(
-                    "\\[%s\\]",
-                    std::regex_replace(
-                        Token, std::regex("([][(){}.*+?^$|\\\\])"), R"(\$1)"));
-      StrictPattern = absl::StrFormat("^%s$", Pattern);
-      GenericToken = arg ? absl::StrFormat("[%s:##]", Token)
-                         : absl::StrFormat("[%s]", Token);
-    }
-
-    std::string GetParameterizedToken(uint8_t b = 0) {
-      if (HasArgument) {
-        return absl::StrFormat("[%s:%00X]", Token, b);
-      } else {
-        return absl::StrFormat("[%s]", Token);
-      }
-    }
-
-    std::string ToString() {
-      return absl::StrFormat("%s %s", GenericToken, Description);
-    }
-
-    std::smatch MatchMe(std::string dfrag) {
-      std::regex re(StrictPattern);
-      std::smatch match;
-      std::regex_search(dfrag, match, re);
-      return match;
-    }
-  };
-
   struct DictionaryEntry {
     uint8_t ID;
     std::string Contents;
@@ -457,17 +409,12 @@ class MessageEditor : public Editor, public SharedRom {
     }
   };
 
-  MessageEditor() {
-    type_ = EditorType::kMessage;
-    // TextCommandList.Items.AddRange(TextCommands);
-    // SpecialsList.Items.AddRange(SpecialChars);
-    // pictureBox1.MouseWheel += new
-    // MouseEventHandler(PictureBox1_MouseWheel);
-  }
+  MessageEditor() { type_ = EditorType::kMessage; }
 
   absl::Status Update() override;
   void DrawMessageList();
   void DrawCurrentMessage();
+  void DrawTextCommands();
 
   absl::Status Initialize();
   void ReadAllTextData();
@@ -492,7 +439,6 @@ class MessageEditor : public Editor, public SharedRom {
 
   static uint8_t FindDictionaryEntry(uint8_t value);
   static uint8_t FindMatchingCharacter(char value);
-  bool SelectMessageID(int id);
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
                          bool mirror_x = false, bool mirror_y = false,
                          int sizex = 1, int sizey = 1);
@@ -518,14 +464,21 @@ class MessageEditor : public Editor, public SharedRom {
 
   std::vector<MessageData> ListOfTexts;
   std::vector<MessageData> DisplayedMessages;
+  std::vector<std::string> ParsedMessages;
+
   MessageData CurrentMessage;
 
  private:
   static const TextElement DictionaryElement;
 
   bool data_loaded_ = false;
+  int current_message_id_ = 0;
+
+  std::string search_text_ = "";
+
   gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(128, 128)};
-  gui::Canvas current_font_gfx16_canvas_;
+  gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
+                                         ImVec2(128, 512)};
 
   gfx::Bitmap font_gfx_bitmap_;
   gfx::Bitmap current_font_gfx16_bitmap_;
