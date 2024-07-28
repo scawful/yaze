@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/core/testable.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
@@ -43,7 +44,6 @@ const uint8_t BANKID = 0x80;
 static int defaultColor = 6;
 
 static std::vector<uint8_t> ParseMessageToData(string str);
-
 
 struct TextElement {
   uint8_t ID;
@@ -242,7 +242,9 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
 static TextElement DictionaryElement =
     TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
 
-class MessageEditor : public Editor, public SharedRom {
+class MessageEditor : public Editor,
+                      public SharedRom,
+                      public core::GuiTestable {
  public:
   struct DictionaryEntry {
     uint8_t ID;
@@ -295,6 +297,7 @@ class MessageEditor : public Editor, public SharedRom {
     return absl::UnimplementedError("Find not implemented");
   }
   absl::Status Save();
+  void RegisterTests(ImGuiTestEngine* e) override;
 
   TextElement FindMatchingCommand(uint8_t byte);
   TextElement FindMatchingSpecial(uint8_t value);
