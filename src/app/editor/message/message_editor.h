@@ -45,28 +45,38 @@ static int defaultColor = 6;
 static std::vector<uint8_t> ParseMessageToData(string str);
 static string AddNewLinesToCommands(string str);
 static string ReplaceAllDictionaryWords(string str);
+const std::string CHEESE = "\uBEBE";  // Inserted into commands to protect
+                                      // them from dictionary replacements.
 
 struct MessageData {
-  const std::string CHEESE = "\uBEBE";  // Inserted into commands to protect
-                                        // them from dictionary replacements.
-
+  int ID;
+  int Address;
   std::string RawString;
   std::string ContentsParsed;
-  int ID;
   std::vector<uint8_t> Data;
   std::vector<uint8_t> DataParsed;
-  int Address;
 
   MessageData() = default;
-  MessageData(int id, int address, std::string rawString,
-              std::vector<uint8_t> rawData, std::string parsedString,
-              std::vector<uint8_t> parsedData)
+  MessageData(int id, int address, const std::string& rawString,
+              const std::vector<uint8_t>& rawData,
+              const std::string& parsedString,
+              const std::vector<uint8_t>& parsedData)
       : ID(id),
         Address(address),
         RawString(rawString),
         Data(rawData),
         DataParsed(parsedData),
         ContentsParsed(parsedString) {}
+
+  // Copy constructor
+  MessageData(const MessageData& other) {
+    ID = other.ID;
+    Address = other.Address;
+    RawString = other.RawString;
+    Data = other.Data;
+    DataParsed = other.DataParsed;
+    ContentsParsed = other.ContentsParsed;
+  }
 
   void SetMessage(std::string messageString) {
     ContentsParsed = messageString;
