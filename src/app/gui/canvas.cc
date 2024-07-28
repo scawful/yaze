@@ -54,10 +54,10 @@ void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
 }
 
 void Canvas::UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale,
-                            float grid_size) {
+                            float grid_size, int label_id) {
   enable_custom_labels_ = true;
   DrawBackground(bg_size);
-  DrawGrid(grid_size);
+  DrawInfoGrid(grid_size, 8, label_id);
   DrawOverlay();
 }
 
@@ -635,6 +635,39 @@ void Canvas::DrawGridLines(float grid_step) {
     draw_list_->AddLine(ImVec2(canvas_p0_.x, canvas_p0_.y + y),
                         ImVec2(canvas_p1_.x, canvas_p0_.y + y),
                         IM_COL32(200, 200, 200, 50), 0.5f);
+}
+
+void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
+  // Draw grid + all lines in the canvas
+  draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
+  if (enable_grid_) {
+    if (custom_step_ != 0.f) grid_step = custom_step_;
+    grid_step *= global_scale_;  // Apply global scale to grid step
+
+    DrawGridLines(grid_step);
+
+    if (enable_custom_labels_) {
+      // Draw the contents of labels on the grid
+      for (float x = fmodf(scrolling_.x, grid_step);
+           x < canvas_sz_.x * global_scale_; x += grid_step) {
+        for (float y = fmodf(scrolling_.y, grid_step);
+             y < canvas_sz_.y * global_scale_; y += grid_step) {
+          int tile_x = (x - scrolling_.x) / grid_step;
+          int tile_y = (y - scrolling_.y) / grid_step;
+          int tile_id = tile_x + (tile_y * tile_id_offset);
+
+          if (tile_id >= labels_[label_id].size()) {
+            break;
+          }
+          std::string label = labels_[label_id][tile_id];
+          draw_list_->AddText(
+              ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
+                     canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
+              IM_COL32(255, 255, 255, 255), label.data());
+        }
+      }
+    }
+  }
 }
 
 void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
