@@ -58,8 +58,11 @@ struct TextElement {
   TextElement(uint8_t id, string token, bool arg, string description) {
     ID = id;
     Token = token;
-    auto format_string = arg ? "[%s:##]" : "[%s]";
-    GenericToken = format_string + Token;
+    if (arg) {
+      GenericToken = absl::StrFormat("[%s:##]", Token);
+    } else {
+      GenericToken = absl::StrFormat("[%s]", Token);
+    }
     HasArgument = arg;
     Description = description;
     Pattern =
@@ -241,54 +244,6 @@ static TextElement DictionaryElement =
 
 class MessageEditor : public Editor, public SharedRom {
  public:
-  class TextMessageData {
-   private:
-    int ID;
-    std::string Contents;
-    std::string ContentsParsed;
-    std::vector<uint8_t> Data;
-    std::vector<uint8_t> DataParsed;
-
-   public:
-    TextMessageData(int i, std::string sraw, std::vector<uint8_t> draw,
-                    std::string spar, std::vector<uint8_t> dpar)
-        : ID(i),
-          Data(draw),
-          DataParsed(dpar),
-          Contents(sraw),
-          ContentsParsed(spar) {}
-
-    void SetMessage(std::string s) {
-      ContentsParsed = s;
-      // Contents = OptimizeMessageForDictionary(s);
-      RecalculateData();
-    }
-
-    void RecalculateData() {
-      Data = ParseMessageToData(Contents);
-      DataParsed = ParseMessageToData(ContentsParsed);
-    }
-
-    std::string ToString() {
-      return absl::StrFormat("%000X - %s", ID, ContentsParsed);
-    }
-
-    std::string GetReadableDumpedContents() {
-      std::stringstream d;
-      for (const auto& b : Data) {
-        d << absl::StrFormat("%00X ", b);
-      }
-
-      return absl::StrFormat(
-          "[[[[\nMessage %000X]]]]\n[Contents]\n%s\n\n[Data]\n%s\n\n\n\n", ID,
-          AddNewLinesToCommands(ContentsParsed), d.str());
-    }
-
-    std::string GetDumpedContents() {
-      return absl::StrFormat("%000X : %s\n\n", ID, ContentsParsed);
-    }
-  };
-
   struct DictionaryEntry {
     uint8_t ID;
     std::string Contents;
@@ -395,7 +350,7 @@ class MessageEditor : public Editor, public SharedRom {
   Bytes fontgfx16Ptr;
   Bytes currentfontgfx16Ptr;
 
-  gfx::SnesPalette previewColors;
+  gfx::SnesPalette font_preview_colors_;
 
   struct TextBox {
     std::string text;
