@@ -14,6 +14,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/project.h"
+#include "app/core/testable.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor.h"
@@ -36,16 +37,6 @@
 
 namespace yaze {
 namespace app {
-
-namespace core {
-class GuiTestable {
- public:
-  virtual void RegisterTests(ImGuiTestEngine* e) = 0;
-
-  ImGuiTestEngine* test_engine;
-};
-}  // namespace core
-
 namespace editor {
 
 /**
