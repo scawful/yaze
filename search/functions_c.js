@@ -11,7 +11,7 @@ var searchData=
   ['mapbanktowordaddress_8',['MapBankToWordAddress',['../namespaceyaze_1_1app_1_1core.html#ac45100a1fa231127736ef1e2e1a001c5',1,'yaze::app::core']]],
   ['maptype_9',['MapType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc',1,'yaze::app::gui::zeml']]],
   ['mastereditor_10',['MasterEditor',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a8b1b4a7824557c7394dd7a1d606bac21',1,'yaze::app::editor::MasterEditor']]],
-  ['matchme_11',['MatchMe',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a70901248823499d9b4d0484fefb9ec4e',1,'yaze::app::editor::TextElement::MatchMe()'],['../classyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextMessageElement.html#aff48732a6229d7f5fba10bcd913f3b18',1,'yaze::app::editor::MessageEditor::TextMessageElement::MatchMe()']]],
+  ['matchme_11',['MatchMe',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a70901248823499d9b4d0484fefb9ec4e',1,'yaze::app::editor::TextElement']]],
   ['memfill_12',['memfill',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785',1,'yaze::app::gfx::lc_lz2']]],
   ['memory_13',['Memory',['../classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c',1,'yaze::app::emu::SNES']]],
   ['memory_14',['memory',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a8713a11de497e422ca620bde6fc280e2',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],

@@ -15,7 +15,7 @@ var searchData=
   ['has_5ffocus_12',['has_focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#ad68bdd86956f9bd5a12a2a5784fac65b',1,'yaze::app::editor::MessageEditor::TextBox']]],
   ['has_5fheader_5f_13',['has_header_',['../classyaze_1_1app_1_1Rom.html#afcf31cdd3de12148c02881c93d24bc1a',1,'yaze::app::Rom']]],
   ['has_5fselection_14',['has_selection',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a60d7de0339d2c7db41676a6c44e05388',1,'yaze::app::editor::MessageEditor::TextBox']]],
-  ['hasargument_15',['HasArgument',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a7a25232e80972763abdc2cb59bcce790',1,'yaze::app::editor::TextElement::HasArgument'],['../classyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextMessageElement.html#ab78e6c29e673669c29ff21711e3d55c3',1,'yaze::app::editor::MessageEditor::TextMessageElement::HasArgument']]],
+  ['hasargument_15',['HasArgument',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a7a25232e80972763abdc2cb59bcce790',1,'yaze::app::editor::TextElement']]],
   ['hdma_5finit_5frequested_5f_16',['hdma_init_requested_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae3a1d940b99d76a16c4dc8a3358e0c80',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['hdma_5frun_5frequested_5f_17',['hdma_run_requested_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#aa24af0b6ff5f13a91a3411e066088bf7',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['hdmaactive_18',['hdmaActive',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a135697b1b2a3a314a292bf6144537311',1,'yaze::app::emu::memory::DmaChannel']]],
