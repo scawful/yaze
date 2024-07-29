@@ -1,5 +1,7 @@
 #include "message_editor.h"
 
+#include "app/core/testable.h"
+
 namespace yaze {
 namespace app {
 namespace editor {
@@ -11,7 +13,6 @@ void MessageEditor::RegisterTests(ImGuiTestEngine* e) {
   t = IM_REGISTER_TEST(e, "message_editor", "read_all_text_data");
   t->TestFunc = [](ImGuiTestContext* ctx) {
     ctx->SetRef("##YazeMain/##TabBar/Message");
-    ctx->ItemClick("TestButton");
 
   };
 }

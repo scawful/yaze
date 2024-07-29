@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
+
 namespace yaze {
 namespace app {
 namespace editor {
@@ -104,6 +106,70 @@ struct MessageData {
     DataParsed = ParseMessageToData(ContentsParsed);
   }
 };
+
+struct TextElement {
+  uint8_t ID;
+  std::string Token;
+  std::string GenericToken;
+  std::string Pattern;
+  std::string StrictPattern;
+  std::string Description;
+  bool HasArgument;
+
+  TextElement() = default;
+  TextElement(uint8_t id, std::string token, bool arg,
+              std::string description) {
+    ID = id;
+    Token = token;
+    if (arg) {
+      GenericToken = absl::StrFormat("[%s:##]", Token);
+    } else {
+      GenericToken = absl::StrFormat("[%s]", Token);
+    }
+    HasArgument = arg;
+    Description = description;
+    Pattern =
+        arg ? "\\[" + Token + ":?([0-9A-F]{1,2})\\]" : "\\[" + Token + "\\]";
+    Pattern = absl::StrReplaceAll(Pattern, {{"[", "\\["}, {"]", "\\]"}});
+    StrictPattern = absl::StrCat("^", Pattern, "$");
+    StrictPattern = "^" + Pattern + "$";
+  }
+
+  std::string GetParameterizedToken(uint8_t value = 0) {
+    if (HasArgument) {
+      return absl::StrFormat("[%s:%02X]", Token, value);
+    } else {
+      return absl::StrFormat("[%s]", Token);
+    }
+  }
+
+  std::string ToString() {
+    return absl::StrFormat("%s %s", GenericToken, Description);
+  }
+
+  std::smatch MatchMe(std::string dfrag) const {
+    std::regex pattern(StrictPattern);
+    std::smatch match;
+    std::regex_match(dfrag, match, pattern);
+    return match;
+  }
+
+  bool Empty() { return ID == 0; }
+};
+
+struct ParsedElement {
+  TextElement Parent;
+  uint8_t Value;
+  bool Active = false;
+
+  ParsedElement() = default;
+  ParsedElement(TextElement textElement, uint8_t value) {
+    Parent = textElement;
+    Value = value;
+    Active = true;
+  }
+};
+
 }  // namespace editor
 }  // namespace app
 }  // namespace yaze
