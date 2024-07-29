@@ -1,7 +1,5 @@
 var message__editor_8h =
 [
-    [ "yaze::app::editor::TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", "structyaze_1_1app_1_1editor_1_1TextElement" ],
-    [ "yaze::app::editor::ParsedElement", "structyaze_1_1app_1_1editor_1_1ParsedElement.html", "structyaze_1_1app_1_1editor_1_1ParsedElement" ],
     [ "yaze::app::editor::MessageEditor", "classyaze_1_1app_1_1editor_1_1MessageEditor.html", "classyaze_1_1app_1_1editor_1_1MessageEditor" ],
     [ "yaze::app::editor::MessageEditor::DictionaryEntry", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1DictionaryEntry" ],
     [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox" ],

@@ -1,5 +1,13 @@
 var NAVTREEINDEX40 =
 {
+"namespaceyaze__test_1_1emu__test.html#a8708845a62971fe92703b5f66d21e029":[8,0,2,0,318],
+"namespaceyaze__test_1_1emu__test.html#a871f4b985be99ff794292a5c1967710c":[8,0,2,0,210],
+"namespaceyaze__test_1_1emu__test.html#a87bb019054c360fa3e9d79ea8a7e2abf":[8,0,2,0,114],
+"namespaceyaze__test_1_1emu__test.html#a898bfaec1e10c2dd359d4c5fd7ea794d":[8,0,2,0,138],
+"namespaceyaze__test_1_1emu__test.html#a8af2d51bf038f9e8898e5c81352851c2":[8,0,2,0,140],
+"namespaceyaze__test_1_1emu__test.html#a8b174a2f9b19378d6e13a1056d2afa50":[8,0,2,0,130],
+"namespaceyaze__test_1_1emu__test.html#a8b20581134b42ded1247b70cf1fa25fd":[8,0,2,0,31],
+"namespaceyaze__test_1_1emu__test.html#a8b93570172b0a294f6064bc75a789400":[8,0,2,0,48],
 "namespaceyaze__test_1_1emu__test.html#a8ba7b5823f241e583f16df06a281bc5b":[8,0,2,0,170],
 "namespaceyaze__test_1_1emu__test.html#a8cf608612f14f13a2f21efa78ae96fbf":[8,0,2,0,233],
 "namespaceyaze__test_1_1emu__test.html#a8d18b0f6f9d24be9ccdf28d84ec8bb55":[8,0,2,0,180],
@@ -241,13 +249,5 @@ var NAVTREEINDEX40 =
 "overworld_8h.html#a71bf3f9dc107b8cfbff6c44306e73585":[10,0,1,0,5,2,1,27],
 "overworld_8h.html#a71e7c3f88db345b22ff25d448668a9cd":[10,0,1,0,5,2,1,68],
 "overworld_8h.html#a728311b050d23a3e5497f966585622d2":[10,0,1,0,5,2,1,65],
-"overworld_8h.html#a732b50ea9d1dea59f1dc95dcc9684162":[10,0,1,0,5,2,1,38],
-"overworld_8h.html#a7429b8e96ccd4f7512273403408bc0e3":[10,0,1,0,5,2,1,32],
-"overworld_8h.html#a76ece2972ccf898a60aa4d7d30a9e602":[10,0,1,0,5,2,1,33],
-"overworld_8h.html#a77664d2860100d190196f74ab9624ed7":[10,0,1,0,5,2,1,63],
-"overworld_8h.html#a788fcad4c2d3f7a3333365a5c6c7db5b":[10,0,1,0,5,2,1,29],
-"overworld_8h.html#a7ae607a6fe86024e79f4f0ebd62609d5":[10,0,1,0,5,2,1,82],
-"overworld_8h.html#a7af218fc1df073fe59c7500b42f2210e":[10,0,1,0,5,2,1,21],
-"overworld_8h.html#a7d3d672232c1cd193bcc7098a79df033":[10,0,1,0,5,2,1,57],
-"overworld_8h.html#a811d94c2818dab83a9e9a8ed9fda523d":[10,0,1,0,5,2,1,73]
+"overworld_8h.html#a732b50ea9d1dea59f1dc95dcc9684162":[10,0,1,0,5,2,1,38]
 };

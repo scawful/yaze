@@ -51,7 +51,7 @@ var searchData=
   ['getpackedvalue_48',['GetPackedValue',['../classyaze_1_1app_1_1gfx_1_1Tile32.html#a61c106ace1aa8223aba0c7476e76ad38',1,'yaze::app::gfx::Tile32']]],
   ['getpalette_49',['GetPalette',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa13df126e85f7968f40c45b49f22b214',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['getpaletteaddress_50',['GetPaletteAddress',['../namespaceyaze_1_1app_1_1gfx.html#a04544775b5724bfbe086cb024eb4091a',1,'yaze::app::gfx']]],
-  ['getparameterizedtoken_51',['GetParameterizedToken',['../structyaze_1_1app_1_1editor_1_1TextElement.html#aa5ff262a430438d675c2a67643b08ea9',1,'yaze::app::editor::TextElement']]],
+  ['getparameterizedtoken_51',['GetParameterizedToken',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a80dfd2ee2e1760a6c9603b59ad8cc39f',1,'yaze::app::editor::TextElement']]],
   ['getpixel_52',['GetPixel',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a910e0545161fb76b2596c928888057ff',1,'yaze::app::emu::video::Ppu']]],
   ['getpixelforbglayer_53',['GetPixelForBgLayer',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a16b376a4daab7485f74d4c74160075fa',1,'yaze::app::emu::video::Ppu']]],
   ['getpixelformode7_54',['GetPixelForMode7',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#acb715cbced56d0eb9a0913840bfd54ea',1,'yaze::app::emu::video::Ppu']]],

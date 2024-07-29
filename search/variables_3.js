@@ -35,7 +35,7 @@ var searchData=
   ['deleted_5f_32',['deleted_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#afe89f55f0c6db0168c5b83905ac4cd59',1,'yaze::app::zelda3::dungeon::RoomObject::deleted_'],['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a3fd1d6dc724281f7be3bbe5588337126',1,'yaze::app::zelda3::overworld::OverworldExit::deleted_'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a6ea3a34d8d7de28f8c1cb282f6bc291a',1,'yaze::app::zelda3::Sprite::deleted_']]],
   ['deleted_5fentrances_5f_33',['deleted_entrances_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a737dbaa05a8207a2fe087e52fa198d04',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['depth_5f_34',['depth_',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a332f7bcff7b77e4e4115412f6c32f346',1,'yaze::app::gfx::Bitmap']]],
-  ['description_35',['Description',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a1f78a6c9b4b2c1fc422984be07857ab4',1,'yaze::app::editor::TextElement']]],
+  ['description_35',['Description',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a0c2b38513ee4b04dbe1989e4004b4d59',1,'yaze::app::editor::TextElement']]],
   ['diagonal_5ffix_5f_36',['diagonal_fix_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a2bd7880886b5ed338c1de9915dd1df56',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['dictionaryelement_37',['DictionaryElement',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a4f607e0d1b4f712cf88883fdc517ea43',1,'yaze::app::editor::MessageEditor']]],
   ['dictionarytoken_38',['DICTIONARYTOKEN',['../namespaceyaze_1_1app_1_1editor.html#a85d85e7b31b095e3f405e7aaa0cfb318',1,'yaze::app::editor']]],

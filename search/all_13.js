@@ -49,7 +49,7 @@ var searchData=
   ['paste_5fbutton_5fpressed_46',['paste_button_pressed',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ab286ad9629ffa0fe75c0cfa3fa8885c0',1,'yaze::app::editor::ScreenEditor']]],
   ['patch_2ecc_47',['patch.cc',['../patch_8cc.html',1,'']]],
   ['patch_2eh_48',['patch.h',['../patch_8h.html',1,'']]],
-  ['pattern_49',['Pattern',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a2d1159f88ffa1c2bf76ecef8822bc585',1,'yaze::app::editor::TextElement']]],
+  ['pattern_49',['Pattern',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a35c0d52aaebe5434a1637bc8fc89ab13',1,'yaze::app::editor::TextElement']]],
   ['pb_50',['PB',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a552594250165fbb3711f5745932ac422',1,'yaze::app::emu::Cpu']]],
   ['pc_51',['PC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a973bcfea6165510283a1d020c0bdfd76',1,'yaze::app::emu::audio::Spc700::PC'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a619571cc34fec5105f208162139c1391',1,'yaze::app::emu::Cpu::PC']]],
   ['pc_5fwith_5frts_5f_52',['pc_with_rts_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1DungeonObjectRenderer.html#a21250fc11dfe25a7460ace7443a3a5fb',1,'yaze::app::zelda3::dungeon::DungeonObjectRenderer']]],
