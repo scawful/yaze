@@ -126,67 +126,6 @@ absl::Status Rom::LoadAllGraphicsData() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFontGraphicsData() {
-  std::vector<uint8_t> data(0x2000);
-  for (int i = 0; i < 0x2000; i++) {
-    data[i] = rom_data_[core::gfx_font + i];
-  }
-
-  // NEED TO GET THE APPROPRIATE SIZE FOR THAT
-  std::vector<uint8_t> new_data(0x2000);
-  std::vector<uint8_t> mask = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-  int sheet_position = 0;
-
-  // 8x8 tile
-  for (int s = 0; s < 4; s++)  // Per Sheet
-  {
-    for (int j = 0; j < 4; j++)  // Per Tile Line Y
-    {
-      for (int i = 0; i < 16; i++)  // Per Tile Line X
-      {
-        for (int y = 0; y < 8; y++)  // Per Pixel Line
-        {
-          auto position = (y * 2) + (i * 16) + (j * 256) + sheet_position;
-          uint8_t line_bits0 = data[position];
-          uint8_t line_bits1 = data[position + 1];
-
-          for (int x = 0; x < 4; x++)  // Per Pixel X
-          {
-            uint8_t pixdata = 0;
-            uint8_t pixdata2 = 0;
-
-            if ((line_bits0 & mask[(x * 2)]) == mask[(x * 2)]) {
-              pixdata += 1;
-            }
-            if ((line_bits1 & mask[(x * 2)]) == mask[(x * 2)]) {
-              pixdata += 2;
-            }
-
-            if ((line_bits0 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
-              pixdata2 += 1;
-            }
-            if ((line_bits1 & mask[(x * 2) + 1]) == mask[(x * 2) + 1]) {
-              pixdata2 += 2;
-            }
-
-            new_data[(y * 64) + (x) + (i * 4) + (j * 512) + (s * 2048)] =
-                (uint8_t)((pixdata << 4) | pixdata2);
-          }
-        }
-      }
-    }
-
-    sheet_position += 0x400;
-  }
-
-  font_gfx_data_.reserve(0x4000);
-  for (int i = 0; i < 0x4000; i++) {
-    font_gfx_data_.push_back(new_data[i]);
-  }
-
-  return absl::OkStatus();
-}
-
 absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   std::string full_filename = std::filesystem::absolute(filename).string();
   if (full_filename.empty()) {
