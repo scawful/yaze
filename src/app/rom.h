@@ -165,11 +165,6 @@ class Rom : public core::ExperimentFlags {
   absl::Status LoadAllGraphicsData();
 
   /**
-   * @brief Loads the font graphics data from the Rom.
-   */
-  absl::Status LoadFontGraphicsData();
-
-  /**
    * Load Rom data from a file.
    *
    * @param filename The name of the file to load.
