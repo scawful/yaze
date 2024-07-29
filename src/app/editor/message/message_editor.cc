@@ -305,8 +305,8 @@ absl::Status MessageEditor::Initialize() {
           TextElement textElement = FindMatchingCommand(byte);
           if (!textElement.Empty()) {
             // If the element is line 2, 3 or V we add a newline
-            if (textElement.ID == 0x73 || textElement.ID == 0x75 ||
-                textElement.ID == 0x76)
+            if (textElement.ID == kScrollVertical || textElement.ID == kLine2 ||
+                textElement.ID == kLine3)
               parsed_message.append("\n");
 
             parsed_message.append(textElement.GenericToken);
@@ -426,12 +426,12 @@ void MessageEditor::ReadAllTextData() {
       current_message_raw.append(core::UppercaseHexWord(dictionary));
       current_message_raw.append("]");
 
-      int address = core::Get24LocalFromPC(
+      uint32_t address = core::Get24LocalFromPC(
           rom()->data(), kPointersDictionaries + (dictionary * 2));
-      int addressEnd = core::Get24LocalFromPC(
+      uint32_t address_end = core::Get24LocalFromPC(
           rom()->data(), kPointersDictionaries + ((dictionary + 1) * 2));
 
-      for (int i = address; i < addressEnd; i++) {
+      for (uint32_t i = address; i < address_end; i++) {
         temp_bytes_parsed.push_back(rom()->data()[i]);
         current_message_parsed.append(ParseTextDataByte(rom()->data()[i]));
       }
@@ -448,93 +448,6 @@ void MessageEditor::ReadAllTextData() {
       temp_bytes_parsed.push_back(current_byte);
     }
   }
-}
-
-absl::Status MessageEditor::Cut() {
-  // Ensure that text is currently selected in the text box.
-  if (!message_text_box_.text.empty()) {
-    // Cut the selected text in the control and paste it into the Clipboard.
-    message_text_box_.Cut();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::Paste() {
-  // Determine if there is any text in the Clipboard to paste into the
-  if (ImGui::GetClipboardText() != nullptr) {
-    // Paste the text from the Clipboard into the text box.
-    message_text_box_.Paste();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::Copy() {
-  // Ensure that text is selected in the text box.
-  if (message_text_box_.selection_length > 0) {
-    // Copy the selected text to the Clipboard.
-    message_text_box_.Copy();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::Undo() {
-  // Determine if last operation can be undone in text box.
-  if (message_text_box_.can_undo) {
-    // Undo the last operation.
-    message_text_box_.Undo();
-
-    // clear the undo buffer to prevent last action from being redone.
-    message_text_box_.clearUndo();
-  }
-  return absl::OkStatus();
-}
-
-absl::Status MessageEditor::Save() {
-  std::vector<uint8_t> backup = rom()->vector();
-
-  for (int i = 0; i < 100; i++) {
-    RETURN_IF_ERROR(rom()->Write(kCharactersWidth + i, width_array[i]));
-  }
-
-  int pos = kTextData;
-  bool inSecondBank = false;
-
-  for (const auto& message : ListOfTexts) {
-    for (const auto value : message.Data) {
-      RETURN_IF_ERROR(rom()->Write(pos, value));
-
-      // TODO: 0x80 somehow means the end of the first block. Need to ask Zarby
-      // for clarification as to why this is the case. Check for the end of the
-      // first block.
-      if (value == 0x80) {
-        // Make sure we didn't go over the space available in the first block.
-        // 0x7FFF available.
-        if ((!inSecondBank & pos) > kTextDataEnd) {
-          return absl::InternalError(DisplayTextOverflowError(pos, true));
-        }
-
-        // Switch to the second block.
-        pos = kTextData2 - 1;
-        inSecondBank = true;
-      }
-
-      pos++;
-    }
-
-    RETURN_IF_ERROR(
-        rom()->Write(pos++, MESSAGETERMINATOR));  // , true, "Terminator text"
-  }
-
-  // Verify that we didn't go over the space available for the second block.
-  // 0x14BF available.
-  if ((inSecondBank & pos) > kTextData2End) {
-    // rom()->data() = backup;
-    return absl::InternalError(DisplayTextOverflowError(pos, false));
-  }
-
-  RETURN_IF_ERROR(rom()->Write(pos, 0xFF));  // , true, "End of text"
-
-  return absl::OkStatus();
 }
 
 TextElement MessageEditor::FindMatchingCommand(uint8_t b) {
@@ -652,7 +565,7 @@ void MessageEditor::DrawCharacterToPreview(char c) {
 }
 
 void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
-  for (const auto value : text) {
+  for (const uint8_t& value : text) {
     if (skip_next) {
       skip_next = false;
       continue;
@@ -670,16 +583,16 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
       DrawTileToPreview(text_pos, text_line * 16, srcx, srcy, 0, false, false,
                         1, 2);
       text_pos += width_array[value];
-    } else if (value == 0x74) {
+    } else if (value == kLine1) {
       text_pos = 0;
       text_line = 0;
-    } else if (value == 0x73) {
+    } else if (value == kScrollVertical) {
       text_pos = 0;
       text_line += 1;
-    } else if (value == 0x75) {
+    } else if (value == kLine2) {
       text_pos = 0;
       text_line = 1;
-    } else if (value == 0x76) {
+    } else if (value == kLine3) {
       text_pos = 0;
       text_line = 2;
     } else if (value == 0x6B || value == 0x6D || value == 0x6E ||
@@ -707,17 +620,97 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
 
 void MessageEditor::DrawMessagePreview()  // From Parsing.
 {
-  // defaultColor = 6;
   text_line = 0;
-
   for (int i = 0; i < (172 * 4096); i++) {
     current_font_gfx16_data_[i] = 0;
   }
-
   text_pos = 0;
   DrawCharacterToPreview(CurrentMessage.Data);
-
   shown_lines = 0;
+}
+
+absl::Status MessageEditor::Cut() {
+  // Ensure that text is currently selected in the text box.
+  if (!message_text_box_.text.empty()) {
+    // Cut the selected text in the control and paste it into the Clipboard.
+    message_text_box_.Cut();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Paste() {
+  // Determine if there is any text in the Clipboard to paste into the
+  if (ImGui::GetClipboardText() != nullptr) {
+    // Paste the text from the Clipboard into the text box.
+    message_text_box_.Paste();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Copy() {
+  // Ensure that text is selected in the text box.
+  if (message_text_box_.selection_length > 0) {
+    // Copy the selected text to the Clipboard.
+    message_text_box_.Copy();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Undo() {
+  // Determine if last operation can be undone in text box.
+  if (message_text_box_.can_undo) {
+    // Undo the last operation.
+    message_text_box_.Undo();
+
+    // clear the undo buffer to prevent last action from being redone.
+    message_text_box_.clearUndo();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::Save() {
+  std::vector<uint8_t> backup = rom()->vector();
+
+  for (int i = 0; i < 100; i++) {
+    RETURN_IF_ERROR(rom()->Write(kCharactersWidth + i, width_array[i]));
+  }
+
+  int pos = kTextData;
+  bool in_second_bank = false;
+
+  for (const auto& message : ListOfTexts) {
+    for (const auto value : message.Data) {
+      RETURN_IF_ERROR(rom()->Write(pos, value));
+
+      if (value == kBlockTerminator) {
+        // Make sure we didn't go over the space available in the first block.
+        // 0x7FFF available.
+        if ((!in_second_bank & pos) > kTextDataEnd) {
+          return absl::InternalError(DisplayTextOverflowError(pos, true));
+        }
+
+        // Switch to the second block.
+        pos = kTextData2 - 1;
+        in_second_bank = true;
+      }
+
+      pos++;
+    }
+
+    RETURN_IF_ERROR(
+        rom()->Write(pos++, MESSAGETERMINATOR));  // , true, "Terminator text"
+  }
+
+  // Verify that we didn't go over the space available for the second block.
+  // 0x14BF available.
+  if ((in_second_bank & pos) > kTextData2End) {
+    // rom()->data() = backup;
+    return absl::InternalError(DisplayTextOverflowError(pos, false));
+  }
+
+  RETURN_IF_ERROR(rom()->Write(pos, 0xFF));  // , true, "End of text"
+
+  return absl::OkStatus();
 }
 
 std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
@@ -774,7 +767,6 @@ void MessageEditor::SelectAll() {
     message_text_box_.Focus();
   }
 }
-
 
 }  // namespace editor
 }  // namespace app
