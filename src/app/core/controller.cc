@@ -415,7 +415,7 @@ absl::Status Controller::CreateTestContext() {
   ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
 
   // TODO: Setup with absl signal handler
-  ImGuiTestEngine_InstallDefaultCrashHandler();
+  // ImGuiTestEngine_InstallDefaultCrashHandler();
 
   return absl::OkStatus();
 }
