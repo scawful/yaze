@@ -158,13 +158,13 @@ var NAVTREEINDEX =
 "overworld_8h.html#a7429b8e96ccd4f7512273403408bc0e3",
 "room_8h.html#af1424eb7b499dacebbcd29f8c46fcf1a",
 "snes__tile_8cc.html#acbccad0c8c3b4758e2ed3425058623d7",
-"structyaze_1_1app_1_1editor_1_1MessageData.html",
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a60882a35480d30be5dabf52715ff67dd",
-"structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1M7SEL.html#a9d576ba251475b7a639c639b1b4c95ac",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html#a29e7bf37f18dc58a0a3a66ffd0c7042b",
-"structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c",
-"structyaze_1_1app_1_1gui_1_1zeml_1_1WidgetAttributes.html#ab6256b25d36406430539b5d997eb8bdd"
+"structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#a54b57aaec997c2b1b696e8294de309d6",
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html",
+"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html#a02e15c94d808663b011bb1733d5167bd",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1COLDATA.html",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WBGLOG.html",
+"structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a58a88c313cf21d850142d8ddb4df3f8f",
+"structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#a11da3fca9f77d21f920f97e403be7c11"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -1,0 +1,6 @@
+<map id="yaze::app::editor::ExampleAppPropertyEditor::Draw" name="yaze::app::editor::ExampleAppPropertyEditor::Draw">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,216,78"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a0fd07aa6fb39f57ad738e361d53e008c" title=" " alt="" coords="264,29,438,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,54,248,54,248,60,216,60"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="304,29,304,19,313,10,328,5,351,3,376,5,391,12,389,17,375,10,351,8,330,10,316,15,309,21,309,29"/>
+</map>

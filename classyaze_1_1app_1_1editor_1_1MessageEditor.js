@@ -26,7 +26,7 @@ var classyaze_1_1app_1_1editor_1_1MessageEditor =
     [ "GetDictionaryFromID", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#aba1875ff6fc2a84ec1c0ebe42474858e", null ],
     [ "DrawTileToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a18d553b29dc43a5e4a354ef3dfe6f69d", null ],
     [ "DrawCharacterToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a45714a30dbeca4ac0e6dab387e3f234c", null ],
-    [ "DrawCharacterToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a82d9be70e79ddd2ae7e5c2732e885ddc", null ],
+    [ "DrawCharacterToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9bd3cd61a4f3382c912ef9ccfb24e1dc", null ],
     [ "DrawStringToPreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ab182f10e510ab985622190ed8c86829d", null ],
     [ "DrawMessagePreview", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a63af96f2f33408282278ba6309997c0c", null ],
     [ "DisplayTextOverflowError", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a24a9e21df7d1ca2e0ac038bd4f2991e7", null ],
@@ -53,7 +53,7 @@ var classyaze_1_1app_1_1editor_1_1MessageEditor =
     [ "font_gfx_bitmap_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9f81e1c8a4aceca7198793e2e2a46d5f", null ],
     [ "current_font_gfx16_bitmap_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ac629c67abae9f4e06acfe55d5271d7d8", null ],
     [ "font_gfx16_data", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a00a8d1c03e567d70bd58e0b4a9d0fdf9", null ],
-    [ "currentfontgfx16Ptr", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ab35f96e6ceecce0acb6dbb9b9c789d3f", null ],
+    [ "current_font_gfx16_data_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#acd35ded67f5836bab3b1e2cacf42dd5d", null ],
     [ "font_preview_colors_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ab8d33cc219f86405907a07c2d4813a2a", null ],
     [ "message_text_box_", "classyaze_1_1app_1_1editor_1_1MessageEditor.html#a5b02a58e8cd30df8cb6e3d795fcaa618", null ]
 ];
