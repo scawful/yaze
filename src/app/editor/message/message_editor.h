@@ -45,68 +45,6 @@ static int defaultColor = 6;
 
 static std::vector<uint8_t> ParseMessageToData(string str);
 
-struct TextElement {
-  uint8_t ID;
-  string Token;
-  string GenericToken;
-  string Pattern;
-  string StrictPattern;
-  string Description;
-  bool HasArgument;
-
-  TextElement() = default;
-  TextElement(uint8_t id, string token, bool arg, string description) {
-    ID = id;
-    Token = token;
-    if (arg) {
-      GenericToken = absl::StrFormat("[%s:##]", Token);
-    } else {
-      GenericToken = absl::StrFormat("[%s]", Token);
-    }
-    HasArgument = arg;
-    Description = description;
-    Pattern =
-        arg ? "\\[" + Token + ":?([0-9A-F]{1,2})\\]" : "\\[" + Token + "\\]";
-    Pattern = absl::StrReplaceAll(Pattern, {{"[", "\\["}, {"]", "\\]"}});
-    StrictPattern = absl::StrCat("^", Pattern, "$");
-    StrictPattern = "^" + Pattern + "$";
-  }
-
-  string GetParameterizedToken(uint8_t value = 0) {
-    if (HasArgument) {
-      return absl::StrFormat("[%s:%02X]", Token, value);
-    } else {
-      return absl::StrFormat("[%s]", Token);
-    }
-  }
-
-  string ToString() {
-    return absl::StrFormat("%s %s", GenericToken, Description);
-  }
-
-  std::smatch MatchMe(std::string dfrag) const {
-    std::regex pattern(StrictPattern);
-    std::smatch match;
-    std::regex_match(dfrag, match, pattern);
-    return match;
-  }
-
-  bool Empty() { return ID == 0; }
-};
-
-struct ParsedElement {
-  TextElement Parent;
-  uint8_t Value;
-  bool Active = false;
-
-  ParsedElement() = default;
-  ParsedElement(TextElement textElement, uint8_t value) {
-    Parent = textElement;
-    Value = value;
-    Active = true;
-  }
-};
-
 static ParsedElement FindMatchingElement(string str);
 
 static const TextElement TextCommands[] = {
@@ -297,6 +235,8 @@ class MessageEditor : public Editor,
     return absl::UnimplementedError("Find not implemented");
   }
   absl::Status Save();
+  void Delete();
+  void SelectAll();
   void RegisterTests(ImGuiTestEngine* e) override;
 
   TextElement FindMatchingCommand(uint8_t byte);
@@ -315,6 +255,10 @@ class MessageEditor : public Editor,
   void DrawStringToPreview(string str);
   void DrawMessagePreview();
   std::string DisplayTextOverflowError(int pos, bool bank);
+
+  void InsertCommandButton_Click_1();
+  void InsertSpecialButton_Click();
+  void InsertSelectedText(string str);
 
   static const std::vector<DictionaryEntry> AllDicts;
 
@@ -350,7 +294,7 @@ class MessageEditor : public Editor,
   gfx::Bitmap font_gfx_bitmap_;
   gfx::Bitmap current_font_gfx16_bitmap_;
 
-  Bytes fontgfx16Ptr;
+  Bytes font_gfx16_data;
   Bytes currentfontgfx16Ptr;
 
   gfx::SnesPalette font_preview_colors_;
@@ -389,6 +333,25 @@ class MessageEditor : public Editor,
       has_selection = false;
       changed = true;
     }
+    void clear() {
+      text.clear();
+      buffer.clear();
+      cursor_pos = 0;
+      selection_start = 0;
+      selection_end = 0;
+      selection_length = 0;
+      has_selection = false;
+      has_focus = false;
+      changed = false;
+      can_undo = false;
+    }
+    void SelectAll() {
+      selection_start = 0;
+      selection_end = text.size();
+      selection_length = text.size();
+      has_selection = true;
+    }
+    void Focus() { has_focus = true; }
   };
 
   TextBox message_text_box_;

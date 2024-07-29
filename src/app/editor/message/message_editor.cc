@@ -121,7 +121,6 @@ static std::vector<uint8_t> ParseMessageToData(string str) {
 
 absl::Status MessageEditor::Update() {
   if (rom()->is_loaded() && !data_loaded_) {
-    RETURN_IF_ERROR(rom()->LoadFontGraphicsData())
     RETURN_IF_ERROR(Initialize());
     CurrentMessage = ListOfTexts[1];
     data_loaded_ = true;
@@ -162,13 +161,29 @@ void MessageEditor::DrawMessageList() {
 
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    for (const auto& message : ListOfTexts) {
-      if (Button(core::UppercaseHexWord(message.ID).c_str())) {
-        CurrentMessage = message;
+    if (BeginTable("##MessagesTable", 3,
+                   ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
+                       ImGuiTableFlags_Resizable)) {
+      TableSetupColumn("ID");
+      TableSetupColumn("Contents");
+      TableSetupColumn("Data");
+
+      TableHeadersRow();
+
+      for (const auto& message : ListOfTexts) {
+        TableNextColumn();
+        if (Button(core::UppercaseHexWord(message.ID).c_str())) {
+          CurrentMessage = message;
+        }
+        TableNextColumn();
+        TextWrapped("%s", ParsedMessages[message.ID].c_str());
+        TableNextColumn();
+        TextWrapped(
+            "%s",
+            core::UppercaseHexLong(ListOfTexts[message.ID].Address).c_str());
       }
-      SameLine();
-      TextWrapped("%s", ParsedMessages[message.ID].c_str());
-      Separator();
+
+      EndTable();
     }
     EndChild();
   }
@@ -230,11 +245,12 @@ absl::Status MessageEditor::Initialize() {
   font_preview_colors_.AddColor(0x03E0);  // Green
   font_preview_colors_.AddColor(0x001F);  // Blue
 
-  fontgfx16Ptr = rom()->font_gfx_data();
+  RETURN_IF_ERROR(rom()->LoadFontGraphicsData())
+  font_gfx16_data = rom()->font_gfx_data();
 
   // 4bpp
   RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
-      128, 128, 64, fontgfx16Ptr, font_gfx_bitmap_, font_preview_colors_))
+      128, 128, 8, font_gfx16_data, font_gfx_bitmap_, font_preview_colors_))
 
   currentfontgfx16Ptr.reserve(172 * 4096);
   for (int i = 0; i < 172 * 4096; i++) {
@@ -259,8 +275,6 @@ absl::Status MessageEditor::Initialize() {
   for (const auto& message : ListOfTexts) {
     DisplayedMessages.push_back(message);
   }
-
-  // CreateFontGfxData(rom()->data());
 
   for (const auto& each_message : ListOfTexts) {
     // Each string has a [:XX] char encoded
@@ -334,7 +348,7 @@ void MessageEditor::ReadAllTextData() {
 
   std::string current_message_raw;
   std::string current_message_parsed;
-  TextElement textElement;
+  TextElement text_element;
 
   while (true) {
     current_byte = rom()->data()[pos++];
@@ -359,22 +373,22 @@ void MessageEditor::ReadAllTextData() {
     temp_bytes_raw.push_back(current_byte);
 
     // Check for command.
-    textElement = FindMatchingCommand(current_byte);
+    text_element = FindMatchingCommand(current_byte);
 
-    if (!textElement.Empty()) {
+    if (!text_element.Empty()) {
       temp_bytes_parsed.push_back(current_byte);
-      if (textElement.HasArgument) {
+      if (text_element.HasArgument) {
         current_byte = rom()->data()[pos++];
         temp_bytes_raw.push_back(current_byte);
         temp_bytes_parsed.push_back(current_byte);
       }
 
       current_message_raw.append(
-          textElement.GetParameterizedToken(current_byte));
+          text_element.GetParameterizedToken(current_byte));
       current_message_parsed.append(
-          textElement.GetParameterizedToken(current_byte));
+          text_element.GetParameterizedToken(current_byte));
 
-      if (textElement.Token == BANKToken) {
+      if (text_element.Token == BANKToken) {
         pos = kTextData2;
       }
 
@@ -382,11 +396,11 @@ void MessageEditor::ReadAllTextData() {
     }
 
     // Check for special characters.
-    textElement = FindMatchingSpecial(current_byte);
+    text_element = FindMatchingSpecial(current_byte);
 
-    if (!textElement.Empty()) {
-      current_message_raw.append(textElement.GetParameterizedToken());
-      current_message_parsed.append(textElement.GetParameterizedToken());
+    if (!text_element.Empty()) {
+      current_message_raw.append(text_element.GetParameterizedToken());
+      current_message_parsed.append(text_element.GetParameterizedToken());
       temp_bytes_parsed.push_back(current_byte);
       continue;
     }
@@ -519,7 +533,6 @@ TextElement MessageEditor::FindMatchingCommand(uint8_t b) {
       return text_element;
     }
   }
-
   return empty_element;
 }
 
@@ -530,7 +543,6 @@ TextElement MessageEditor::FindMatchingSpecial(uint8_t value) {
       return text_element;
     }
   }
-
   return empty_element;
 }
 
@@ -679,7 +691,7 @@ void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
       // Formula information to get tile index position in the array.
       // ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))
       int tx = ((drawid / 16) * 512) + ((drawid - ((drawid / 16) * 16)) * 4);
-      uint8_t pixel = fontgfx16Ptr[tx + (yl * 64) + xl];
+      uint8_t pixel = font_gfx16_data[tx + (yl * 64) + xl];
 
       // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
       // position
@@ -706,6 +718,49 @@ std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
       "Available: %X4 | Used: %s",
       bankSTR, space, posSTR);
   return message;
+}
+
+// push_backs a command to the text field when the push_back command button is
+// pressed or the command is double clicked in the list.
+void MessageEditor::InsertCommandButton_Click_1() {
+  // InsertSelectedText(
+  //     TextCommands[TextCommandList.SelectedIndex].GetParameterizedToken(
+  //         (uint8_t)ParamsBox.HexValue));
+}
+
+// push_backs a special character to the text field when the push_back command
+// button is pressed or the character is double clicked in the list.
+void MessageEditor::InsertSpecialButton_Click() {
+  // InsertSelectedText(
+  //     SpecialChars[SpecialsList.SelectedIndex].GetParameterizedToken());
+}
+
+void MessageEditor::InsertSelectedText(string str) {
+  int textboxPos = message_text_box_.selection_start;
+  from_form = true;
+  // message_text_box_.Text = message_text_box_.Text.Insert(textboxPos, str);
+  from_form = false;
+  message_text_box_.selection_start = textboxPos + str.size();
+  message_text_box_.Focus();
+}
+
+void MessageEditor::Delete() {
+  // Determine if any text is selected in the TextBox control.
+  if (message_text_box_.selection_length == 0) {
+    // clear all of the text in the textbox.
+    message_text_box_.clear();
+  }
+}
+
+void MessageEditor::SelectAll() {
+  // Determine if any text is selected in the TextBox control.
+  if (message_text_box_.selection_length == 0) {
+    // Select all text in the text box.
+    message_text_box_.SelectAll();
+
+    // Move the cursor to the text box.
+    message_text_box_.Focus();
+  }
 }
 
 
