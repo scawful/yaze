@@ -174,6 +174,7 @@ void MessageEditor::DrawMessageList() {
         TableNextColumn();
         if (Button(core::UppercaseHexWord(message.ID).c_str())) {
           CurrentMessage = message;
+          DrawMessagePreview();
         }
         TableNextColumn();
         TextWrapped("%s", ParsedMessages[message.ID].c_str());
@@ -240,15 +241,25 @@ absl::Status MessageEditor::Initialize() {
     width_array[i] = rom()->data()[kCharactersWidth + i];
   }
 
+  BuildDictionaryEntries();
+  ReadAllTextData();
+
   font_preview_colors_.AddColor(0x7FFF);  // White
   font_preview_colors_.AddColor(0x7C00);  // Red
   font_preview_colors_.AddColor(0x03E0);  // Green
   font_preview_colors_.AddColor(0x001F);  // Blue
 
-  RETURN_IF_ERROR(rom()->LoadFontGraphicsData())
-  font_gfx16_data = rom()->font_gfx_data();
+  std::vector<uint8_t> data(0x2000, 0);
+  for (int i = 0; i < 0x2000; i++) {
+    data[i] = rom()->data()[core::gfx_font + i];
+  }
+
+  font_gfx16_data = gfx::SnesTo8bppSheet(data, 2);
 
   // 4bpp
+  // font_gfx_bitmap_.Create(128, 128, 64, gfx::kFormat8bppIndexed,
+  //                         font_gfx16_data);
+  // rom()->RenderBitmap(&font_gfx_bitmap_);
   RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
       128, 128, 8, font_gfx16_data, font_gfx_bitmap_, font_preview_colors_))
 
@@ -268,9 +279,6 @@ absl::Status MessageEditor::Initialize() {
   }
 
   *font_gfx_bitmap_.mutable_palette() = color_palette;
-
-  BuildDictionaryEntries();
-  ReadAllTextData();
 
   for (const auto& message : ListOfTexts) {
     DisplayedMessages.push_back(message);
@@ -307,6 +315,8 @@ absl::Status MessageEditor::Initialize() {
     }
     ParsedMessages.push_back(parsed_message);
   }
+
+  DrawMessagePreview();
 
   return absl::OkStatus();
 }
