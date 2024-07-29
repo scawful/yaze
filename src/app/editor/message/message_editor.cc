@@ -200,26 +200,31 @@ void MessageEditor::DrawCurrentMessage() {
   Separator();
 
   Text("Font Graphics");
-  BeginChild("MessageEditorCanvas", ImVec2(0, 128), true,
-             ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  gui::BeginPadding(1);
+  BeginChild("MessageEditorCanvas", ImVec2(0, 130));
   font_gfx_canvas_.DrawBackground();
   font_gfx_canvas_.DrawContextMenu();
   font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0);
   font_gfx_canvas_.DrawGrid();
   font_gfx_canvas_.DrawOverlay();
   EndChild();
+  gui::EndPadding();
   Separator();
 
   Text("Message Preview");
+  if (Button("Refresh Bitmap")) {
+    rom()->UpdateBitmap(&current_font_gfx16_bitmap_);
+  }
+  gui::BeginPadding(1);
   BeginChild("CurrentGfxFont", ImVec2(0, 0), true,
              ImGuiWindowFlags_AlwaysVerticalScrollbar);
   current_font_gfx16_canvas_.DrawBackground();
+  gui::EndPadding();
   current_font_gfx16_canvas_.DrawContextMenu();
   current_font_gfx16_canvas_.DrawBitmap(current_font_gfx16_bitmap_, 0, 0);
   current_font_gfx16_canvas_.DrawGrid();
   current_font_gfx16_canvas_.DrawOverlay();
   EndChild();
-  Separator();
 }
 
 void MessageEditor::DrawTextCommands() {
@@ -249,28 +254,24 @@ absl::Status MessageEditor::Initialize() {
   font_preview_colors_.AddColor(0x03E0);  // Green
   font_preview_colors_.AddColor(0x001F);  // Blue
 
-  std::vector<uint8_t> data(0x2000, 0);
-  for (int i = 0; i < 0x2000; i++) {
-    data[i] = rom()->data()[core::gfx_font + i];
+  std::vector<uint8_t> data(0x4000, 0);
+  for (int i = 0; i < 0x4000; i++) {
+    data[i] = rom()->data()[kGfxFont + i];
   }
-
-  font_gfx16_data = gfx::SnesTo8bppSheet(data, 2);
+  font_gfx16_data = gfx::SnesTo8bppSheet(data, /*bpp=*/2);
 
   // 4bpp
-  // font_gfx_bitmap_.Create(128, 128, 64, gfx::kFormat8bppIndexed,
-  //                         font_gfx16_data);
-  // rom()->RenderBitmap(&font_gfx_bitmap_);
   RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
       128, 128, 8, font_gfx16_data, font_gfx_bitmap_, font_preview_colors_))
 
-  currentfontgfx16Ptr.reserve(172 * 4096);
+  current_font_gfx16_data_.reserve(172 * 4096);
   for (int i = 0; i < 172 * 4096; i++) {
-    currentfontgfx16Ptr.push_back(0);
+    current_font_gfx16_data_.push_back(0);
   }
 
   // 8bpp
   RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
-      172, 4096, 172, currentfontgfx16Ptr, current_font_gfx16_bitmap_,
+      172, 4096, 64, current_font_gfx16_data_, current_font_gfx16_bitmap_,
       font_preview_colors_))
 
   gfx::SnesPalette color_palette = font_gfx_bitmap_.palette();
@@ -620,7 +621,7 @@ void MessageEditor::DrawCharacterToPreview(char c) {
   DrawCharacterToPreview(FindMatchingCharacter(c));
 }
 
-void MessageEditor::DrawCharacterToPreview(std::vector<uint8_t> text) {
+void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
   for (const auto value : text) {
     if (skip_next) {
       skip_next = false;
@@ -680,7 +681,7 @@ void MessageEditor::DrawMessagePreview()  // From Parsing.
   text_line = 0;
 
   for (int i = 0; i < (172 * 4096); i++) {
-    currentfontgfx16Ptr[i] = 0;
+    current_font_gfx16_data_[i] = 0;
   }
 
   text_pos = 0;
@@ -707,11 +708,12 @@ void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
       // position
       int index = x + (y * 172) + (mx * 2) + (my * 172);
       if ((pixel & 0x0F) != 0) {
-        currentfontgfx16Ptr[index + 1] = (uint8_t)((pixel & 0x0F) + (0 * 4));
+        current_font_gfx16_data_[index + 1] =
+            (uint8_t)((pixel & 0x0F) + (0 * 4));
       }
 
       if (((pixel >> 4) & 0x0F) != 0) {
-        currentfontgfx16Ptr[index + 0] =
+        current_font_gfx16_data_[index + 0] =
             (uint8_t)(((pixel >> 4) & 0x0F) + (0 * 4));
       }
     }

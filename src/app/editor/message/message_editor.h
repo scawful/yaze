@@ -250,7 +250,7 @@ class MessageEditor : public Editor,
                          bool mirror_x = false, bool mirror_y = false,
                          int sizex = 1, int sizey = 1);
   void DrawCharacterToPreview(char c);
-  void DrawCharacterToPreview(std::vector<uint8_t> text);
+  void DrawCharacterToPreview(const std::vector<uint8_t>& text);
 
   void DrawStringToPreview(string str);
   void DrawMessagePreview();
@@ -295,7 +295,7 @@ class MessageEditor : public Editor,
   gfx::Bitmap current_font_gfx16_bitmap_;
 
   Bytes font_gfx16_data;
-  Bytes currentfontgfx16Ptr;
+  Bytes current_font_gfx16_data_;
 
   gfx::SnesPalette font_preview_colors_;
 
