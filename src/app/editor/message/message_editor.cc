@@ -611,6 +611,36 @@ string MessageEditor::ParseTextDataByte(uint8_t value) {
   return "";
 }
 
+void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
+                                      bool mirror_x, bool mirror_y, int sizex,
+                                      int sizey) {
+  int drawid = srcx + (srcy * 32);
+  for (int yl = 0; yl < sizey * 8; yl++) {
+    for (int xl = 0; xl < 4; xl++) {
+      int mx = xl;
+      int my = yl;
+
+      // Formula information to get tile index position in the array.
+      // ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))
+      int tx = ((drawid / 16) * 512) + ((drawid - ((drawid / 16) * 16)) * 4);
+      uint8_t pixel = font_gfx16_data[tx + (yl * 64) + xl];
+
+      // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
+      // position
+      int index = x + (y * 172) + (mx * 2) + (my * 172);
+      if ((pixel & 0x0F) != 0) {
+        current_font_gfx16_data_[index + 1] =
+            (uint8_t)((pixel & 0x0F) + (0 * 4));
+      }
+
+      if (((pixel >> 4) & 0x0F) != 0) {
+        current_font_gfx16_data_[index + 0] =
+            (uint8_t)(((pixel >> 4) & 0x0F) + (0 * 4));
+      }
+    }
+  }
+}
+
 void MessageEditor::DrawStringToPreview(string str) {
   for (const auto c : str) {
     DrawCharacterToPreview(c);
@@ -688,36 +718,6 @@ void MessageEditor::DrawMessagePreview()  // From Parsing.
   DrawCharacterToPreview(CurrentMessage.Data);
 
   shown_lines = 0;
-}
-
-void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
-                                      bool mirror_x, bool mirror_y, int sizex,
-                                      int sizey) {
-  int drawid = srcx + (srcy * 32);
-  for (int yl = 0; yl < sizey * 8; yl++) {
-    for (int xl = 0; xl < 4; xl++) {
-      int mx = xl;
-      int my = yl;
-
-      // Formula information to get tile index position in the array.
-      // ((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))
-      int tx = ((drawid / 16) * 512) + ((drawid - ((drawid / 16) * 16)) * 4);
-      uint8_t pixel = font_gfx16_data[tx + (yl * 64) + xl];
-
-      // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
-      // position
-      int index = x + (y * 172) + (mx * 2) + (my * 172);
-      if ((pixel & 0x0F) != 0) {
-        current_font_gfx16_data_[index + 1] =
-            (uint8_t)((pixel & 0x0F) + (0 * 4));
-      }
-
-      if (((pixel >> 4) & 0x0F) != 0) {
-        current_font_gfx16_data_[index + 0] =
-            (uint8_t)(((pixel >> 4) & 0x0F) + (0 * 4));
-      }
-    }
-  }
 }
 
 std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {

@@ -11,15 +11,8 @@ void OverworldEditor::RefreshChildMap(int map_index) {
   status_ = overworld_.mutable_overworld_map(map_index)->BuildTiles16Gfx(
       overworld_.tiles16().size());
   PRINT_IF_ERROR(status_);
-  OWBlockset blockset;
-  if (current_world_ == 0) {
-    blockset = overworld_.map_tiles().light_world;
-  } else if (current_world_ == 1) {
-    blockset = overworld_.map_tiles().dark_world;
-  } else {
-    blockset = overworld_.map_tiles().special_world;
-  }
-  status_ = overworld_.mutable_overworld_map(map_index)->BuildBitmap(blockset);
+  status_ = overworld_.mutable_overworld_map(map_index)->BuildBitmap(
+      overworld_.GetMapTiles(current_world_));
   maps_bmp_[map_index].set_data(
       overworld_.mutable_overworld_map(map_index)->bitmap_data());
   maps_bmp_[map_index].set_modified(true);
@@ -64,8 +57,7 @@ void OverworldEditor::RefreshOverworldMap() {
 absl::Status OverworldEditor::RefreshMapPalette() {
   RETURN_IF_ERROR(
       overworld_.mutable_overworld_map(current_map_)->LoadPalette());
-  const auto current_map_palette =
-      overworld_.overworld_map(current_map_)->current_palette();
+  const auto current_map_palette = overworld_.AreaPalette();
 
   if (overworld_.overworld_map(current_map_)->is_large_map()) {
     // We need to update the map and its siblings if it's a large map
