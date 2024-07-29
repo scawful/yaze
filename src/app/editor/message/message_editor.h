@@ -41,11 +41,16 @@ const uint8_t DICTOFF = 0x88;
 const string BANKToken = "BANK";
 const uint8_t BANKID = 0x80;
 
-static int defaultColor = 6;
+constexpr uint8_t kBlockTerminator = 0x80;
 
 static std::vector<uint8_t> ParseMessageToData(string str);
 
 static ParsedElement FindMatchingElement(string str);
+
+constexpr uint8_t kScrollVertical = 0x73;
+constexpr uint8_t kLine1 = 0x74;
+constexpr uint8_t kLine2 = 0x75;
+constexpr uint8_t kLine3 = 0x76;
 
 static const TextElement TextCommands[] = {
     TextElement(0x6B, "W", true, "Window border"),
@@ -289,7 +294,7 @@ class MessageEditor : public Editor,
 
   gui::Canvas font_gfx_canvas_{"##FontGfxCanvas", ImVec2(128, 128)};
   gui::Canvas current_font_gfx16_canvas_{"##CurrentMessageGfx",
-                                         ImVec2(128, 512)};
+                                         ImVec2(172, 4096)};
 
   gfx::Bitmap font_gfx_bitmap_;
   gfx::Bitmap current_font_gfx16_bitmap_;
