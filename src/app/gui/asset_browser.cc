@@ -16,13 +16,11 @@ void GfxSheetAssetBrowser::Draw(gfx::BitmapManager* bmp_manager) {
   Checkbox("Allow Sorting", &AllowSorting);
   SameLine();
   Checkbox("Stretch Spacing", &StretchSpacing);
-
-  SeparatorText("Selection Behavior");
+  SameLine();
   Checkbox("Allow dragging unselected item", &AllowDragUnselected);
   SameLine();
   Checkbox("Allow box-selection", &AllowBoxSelect);
-
-  SeparatorText("Layout");
+  SameLine();
   SliderFloat("Icon Size", &IconSize, 16.0f, 128.0f, "%.0f");
   SameLine();
   SliderInt("Icon Spacing", &IconSpacing, 0, 32);

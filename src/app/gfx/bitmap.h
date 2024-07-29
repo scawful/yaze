@@ -22,15 +22,15 @@ namespace app {
  */
 namespace gfx {
 
-constexpr int SNES_PIXELFORMAT_2BPP = SDL_DEFINE_PIXELFORMAT(
+constexpr Uint32 SNES_PIXELFORMAT_2BPP = SDL_DEFINE_PIXELFORMAT(
     /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
     /*layouts=*/0, /*bits=*/2, /*bytes=*/1);
 
-constexpr int SNES_PIXELFORMAT_4BPP = SDL_DEFINE_PIXELFORMAT(
+constexpr Uint32 SNES_PIXELFORMAT_4BPP = SDL_DEFINE_PIXELFORMAT(
     /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
     /*layouts=*/0, /*bits=*/4, /*bytes=*/1);
 
-constexpr int SNES_PIXELFORMAT_8BPP = SDL_DEFINE_PIXELFORMAT(
+constexpr Uint32 SNES_PIXELFORMAT_8BPP = SDL_DEFINE_PIXELFORMAT(
     /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
     /*layouts=*/0, /*bits=*/8, /*bytes=*/1);
 
