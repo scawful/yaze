@@ -40,5 +40,4 @@ set(
   ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
   ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
   ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
-  ${IMGUI_TEST_ENGINE_SOURCES}
 )
