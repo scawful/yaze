@@ -2,7 +2,6 @@
 #define YAZE_APP_ROM_H
 
 #include <SDL.h>
-#include <asar/src/asar/interface-shared.h>
 
 #include <algorithm>
 #include <chrono>
@@ -22,7 +21,6 @@
 #include <variant>
 #include <vector>  // for vector
 
-#include "SDL_render.h"                    // for SDL_Renderer
 #include "absl/container/flat_hash_map.h"  // for flat_hash_map
 #include "absl/status/status.h"            // for Status
 #include "absl/status/statusor.h"          // for StatusOr
