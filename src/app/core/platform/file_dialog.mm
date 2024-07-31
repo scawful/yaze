@@ -12,9 +12,32 @@
 
 #if TARGET_IPHONE_SIMULATOR == 1
 /* iOS in Xcode simulator */
+std::string FileDialogWrapper::ShowOpenFileDialog() { return ""; }
+
+std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
+
+std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
+  return {};
+}
+
+std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
+  return {};
+}
 
 #elif TARGET_OS_IPHONE == 1
 /* iOS */
+
+std::string FileDialogWrapper::ShowOpenFileDialog() { return ""; }
+
+std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
+
+std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
+  return {};
+}
+
+std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
+  return {};
+}
 
 #elif TARGET_OS_MAC == 1
 /* macOS */

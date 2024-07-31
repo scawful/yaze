@@ -13,9 +13,11 @@
 
 #if TARGET_IPHONE_SIMULATOR == 1
 /* iOS in Xcode simulator */
+void LoadSystemFonts() {}
 
 #elif TARGET_OS_IPHONE == 1
 /* iOS */
+void LoadSystemFonts() {}
 
 #elif TARGET_OS_MAC == 1
 /* macOS */
