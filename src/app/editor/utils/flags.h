@@ -1,8 +1,9 @@
 #ifndef YAZE_APP_EDITOR_UTILS_FLAGS_H
 #define YAZE_APP_EDITOR_UTILS_FLAGS_H
 
-#include <core/common.h>
 #include <imgui/imgui.h>
+
+#include "core/common.h"
 
 namespace yaze {
 namespace app {

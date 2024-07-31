@@ -1,6 +1,5 @@
 #include "palette_editor.h"
 
-#include <gui/style.h>
 #include <imgui/imgui.h>
 
 #include "absl/status/status.h"
@@ -8,6 +7,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
+#include "app/gui/style.h"
 
 namespace yaze {
 namespace app {
