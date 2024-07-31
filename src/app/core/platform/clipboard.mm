@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 
+#ifdef TARGET_OS_MAC
 #import <Cocoa/Cocoa.h>
 
 void CopyImageToClipboard(const std::vector<uint8_t>& pngData) {
@@ -40,3 +41,5 @@ void GetImageFromClipboard(std::vector<uint8_t>& pixel_data, int& width, int& he
   CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);
   CGContextRelease(context);
 }
+
+#endif

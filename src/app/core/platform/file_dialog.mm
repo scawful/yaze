@@ -1,9 +1,25 @@
-#import <Cocoa/Cocoa.h>
 
 #include <string>
 #include <vector>
 
 #include "app/core/platform/file_dialog.h"
+
+#if defined(__APPLE__) && defined(__MACH__)
+/* Apple OSX and iOS (Darwin). */
+#include <TargetConditionals.h>
+
+#import <CoreText/CoreText.h>
+
+#if TARGET_IPHONE_SIMULATOR == 1
+/* iOS in Xcode simulator */
+
+#elif TARGET_OS_IPHONE == 1
+/* iOS */
+
+#elif TARGET_OS_MAC == 1
+/* macOS */
+
+#import <Cocoa/Cocoa.h>
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
@@ -70,3 +86,8 @@ std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std:
   }
   return subdirectories;
 }
+#else
+// Unsupported platform
+#endif  // TARGET_OS_MAC
+
+#endif  // __APPLE__ && __MACH__

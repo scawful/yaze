@@ -45,8 +45,13 @@ class FileDialogWrapper {
 
 #elif defined(__APPLE__)
 
+#include "TargetConditionals.h"
+
 #include <string>
 #include <vector>
+
+#ifdef TARGET_OS_MAC
+// Other kinds of Mac OS
 
 class FileDialogWrapper {
  public:
@@ -57,6 +62,21 @@ class FileDialogWrapper {
   static std::vector<std::string> GetFilesInFolder(
       const std::string& folder_path);
 };
+
+#elif TARGET_OS_IPHONE
+
+// iOS
+class FileDialogWrapper {
+ public:
+  static std::string ShowOpenFileDialog();
+  static std::string ShowOpenFolderDialog();
+  static std::vector<std::string> GetSubdirectoriesInFolder(
+      const std::string& folder_path);
+  static std::vector<std::string> GetFilesInFolder(
+      const std::string& folder_path);
+};
+
+#endif
 
 #elif defined(__linux__)
 
