@@ -1,16 +1,15 @@
 #include "message_editor.h"
 
-#include <absl/status/status.h>
-#include <absl/strings/str_format.h>
-#include <absl/strings/str_replace.h>
-#include <absl/strings/str_split.h>
-
 #include <regex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/str_replace.h"
+#include "absl/strings/str_split.h"
 #include "app/core/common.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
@@ -525,8 +524,7 @@ string MessageEditor::ParseTextDataByte(uint8_t value) {
 }
 
 void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
-                                      bool mirror_x, bool mirror_y, int sizex,
-                                      int sizey) {
+                                      int sizex, int sizey) {
   int drawid = srcx + (srcy * 32);
   for (int yl = 0; yl < sizey * 8; yl++) {
     for (int xl = 0; xl < 4; xl++) {
@@ -580,8 +578,7 @@ void MessageEditor::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
         text_line++;
       }
 
-      DrawTileToPreview(text_pos, text_line * 16, srcx, srcy, 0, false, false,
-                        1, 2);
+      DrawTileToPreview(text_pos, text_line * 16, srcx, srcy, 0, 1, 2);
       text_pos += width_array[value];
     } else if (value == kLine1) {
       text_pos = 0;

@@ -1,15 +1,14 @@
 #include "master_editor.h"
 
-#include <ImGuiColorTextEdit/TextEditor.h>
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
-#include <abseil-cpp/absl/strings/match.h>
-#include <imgui/backends/imgui_impl_sdl2.h>
-#include <imgui/backends/imgui_impl_sdlrenderer2.h>
-#include <imgui/imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <imgui_internal.h>
-#include <imgui_memory_editor.h>
-#include <imgui_test_engine/imgui_te_ui.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "abseil-cpp/absl/strings/match.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_internal.h"
+#include "imgui_memory_editor.h"
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
@@ -682,8 +681,6 @@ void MasterEditor::DrawTestMenu() {
     EndMenu();
   }
 
-  if (show_tests_)
-    ImGuiTestEngine_ShowTestEngineWindows(test_engine, &show_tests_);
 }
 
 void MasterEditor::DrawProjectMenu() {

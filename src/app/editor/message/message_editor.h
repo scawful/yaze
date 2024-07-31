@@ -1,11 +1,6 @@
 #ifndef YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
-#include <absl/status/status.h>
-#include <absl/strings/str_format.h>
-#include <absl/strings/str_replace.h>
-#include <absl/strings/str_split.h>
-
 #include <iostream>
 #include <regex>
 #include <sstream>
@@ -13,7 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/core/testable.h"
+#include "absl/status/status.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/str_replace.h"
+#include "absl/strings/str_split.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
@@ -185,9 +183,7 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
 static TextElement DictionaryElement =
     TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
 
-class MessageEditor : public Editor,
-                      public SharedRom,
-                      public core::GuiTestable {
+class MessageEditor : public Editor, public SharedRom {
  public:
   struct DictionaryEntry {
     uint8_t ID;
@@ -242,7 +238,7 @@ class MessageEditor : public Editor,
   absl::Status Save();
   void Delete();
   void SelectAll();
-  void RegisterTests(ImGuiTestEngine* e) override;
+  // void RegisterTests(ImGuiTestEngine* e) override;
 
   TextElement FindMatchingCommand(uint8_t byte);
   TextElement FindMatchingSpecial(uint8_t value);
@@ -252,7 +248,6 @@ class MessageEditor : public Editor,
   static uint8_t FindDictionaryEntry(uint8_t value);
   static uint8_t FindMatchingCharacter(char value);
   void DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
-                         bool mirror_x = false, bool mirror_y = false,
                          int sizex = 1, int sizey = 1);
   void DrawCharacterToPreview(char c);
   void DrawCharacterToPreview(const std::vector<uint8_t>& text);
