@@ -21,6 +21,34 @@ namespace core {
 
 namespace {
 
+constexpr ImGuiWindowFlags kMainEditorFlags =
+    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
+    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
+
+using ::ImVec2;
+using ImGui::Begin;
+using ImGui::End;
+using ImGui::GetIO;
+using ImGui::NewFrame;
+using ImGui::SetNextWindowPos;
+using ImGui::SetNextWindowSize;
+
+void NewMasterFrame() {
+  const ImGuiIO &io = GetIO();
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+  NewFrame();
+  SetNextWindowPos(gui::kZeroPos);
+  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
+  SetNextWindowSize(dimensions, ImGuiCond_Always);
+
+  if (!Begin("##YazeMain", nullptr, kMainEditorFlags)) {
+    End();
+    return;
+  }
+}
+
 void InitializeKeymap() {
   ImGuiIO &io = ImGui::GetIO();
   io.KeyMap[ImGuiKey_LeftSuper] = SDL_GetScancodeFromKey(SDLK_LGUI);
@@ -235,10 +263,28 @@ void HandleMouseMovement(int &wheel) {
 }  // namespace
 
 absl::Status Controller::OnEntry(std::string filename) {
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_IPHONE_SIMULATOR == 1
+  /* iOS in Xcode simulator */
+  platform_ = Platform::kiOS;
+#elif TARGET_OS_IPHONE == 1
+  /* iOS */
+  platform_ = Platform::kiOS;
+#elif TARGET_OS_MAC == 1
+  /* macOS */
+  platform_ = Platform::kMacOS;
+#endif
+#elif defined(_WIN32)
+  platform_ = Platform::kWindows;
+#elif defined(__linux__)
+  platform_ = Platform::kLinux;
+#else
+  platform_ = Platform::kUnknown;
+#endif 
+
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
-  RETURN_IF_ERROR(CreateTestContext())
   if (flags()->kLoadAudioDevice) {
     RETURN_IF_ERROR(LoadAudioDevice())
     master_editor_.emulator().set_audio_buffer(audio_buffer_);
@@ -293,6 +339,7 @@ absl::Status Controller::OnLoad() {
   if (master_editor_.quit()) {
     active_ = false;
   }
+  NewMasterFrame();
   RETURN_IF_ERROR(master_editor_.Update());
   return absl::OkStatus();
 }
@@ -397,7 +444,6 @@ absl::Status Controller::CreateGuiContext() {
 
   return absl::OkStatus();
 }
-
 
 absl::Status Controller::LoadFontFamilies() const {
   ImGuiIO &io = ImGui::GetIO();

@@ -40,29 +40,9 @@ namespace editor {
 using namespace ImGui;
 
 namespace {
-
-constexpr ImGuiWindowFlags kMainEditorFlags =
-    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
-    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
-
-void NewMasterFrame() {
-  const ImGuiIO& io = GetIO();
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
-  NewFrame();
-  SetNextWindowPos(gui::kZeroPos);
-  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
-  SetNextWindowSize(dimensions, ImGuiCond_Always);
-
-  if (!Begin("##YazeMain", nullptr, kMainEditorFlags)) {
-    End();
-    return;
-  }
-}
-
-bool BeginCentered(const char* name) {
-  ImGuiIO const& io = GetIO();
+  
+bool BeginCentered(const char *name) {
+  ImGuiIO const &io = GetIO();
   ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
   SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGuiWindowFlags flags =
@@ -89,8 +69,6 @@ void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
 }
 
 absl::Status MasterEditor::Update() {
-  NewMasterFrame();
-
   ManageKeyboardShortcuts();
 
   DrawYazeMenu();
