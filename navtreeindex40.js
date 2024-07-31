@@ -1,5 +1,13 @@
 var NAVTREEINDEX40 =
 {
+"namespaceyaze__test_1_1emu__test.html#a79793b7f1c3f9b4b0089e8559c1a8a62":[8,0,2,0,305],
+"namespaceyaze__test_1_1emu__test.html#a7a7d1858e67dcf5b374fdefa090a2866":[8,0,2,0,197],
+"namespaceyaze__test_1_1emu__test.html#a7ba50f4679455d669a4df12b01533aee":[8,0,2,0,193],
+"namespaceyaze__test_1_1emu__test.html#a7bb8eb0dbaa024df3f4e8a56c8ccac85":[8,0,2,0,121],
+"namespaceyaze__test_1_1emu__test.html#a7bb9f13b8edcbef06cdb8a5489f11199":[8,0,2,0,314],
+"namespaceyaze__test_1_1emu__test.html#a7c5a864936d300ec346a8de1e75c26c3":[8,0,2,0,223],
+"namespaceyaze__test_1_1emu__test.html#a7d44d7a3bd113acb649f6989f22aea79":[8,0,2,0,33],
+"namespaceyaze__test_1_1emu__test.html#a7d579d9e03083aa6b80b6bf595af2080":[8,0,2,0,241],
 "namespaceyaze__test_1_1emu__test.html#a7e17891c84c341774d31d1ebdd370cd3":[8,0,2,0,265],
 "namespaceyaze__test_1_1emu__test.html#a7e9c54a10044a40c1890409b183f79df":[8,0,2,0,52],
 "namespaceyaze__test_1_1emu__test.html#a7fe1f38bfaaf758e7b2eb8482dc1f7a2":[8,0,2,0,141],
@@ -241,13 +249,5 @@ var NAVTREEINDEX40 =
 "overworld_8h.html#a5166b928d6a093a71b355dc6105f0d0a":[10,0,1,0,5,2,1,95],
 "overworld_8h.html#a576e2b69a5247b1fc32b52b7a9a6f236":[10,0,1,0,5,2,1,97],
 "overworld_8h.html#a596fa39239f15d867878761bf6743f79":[10,0,1,0,5,2,1,76],
-"overworld_8h.html#a5a796ac1caea3e148bab0b065f752537":[10,0,1,0,5,2,1,43],
-"overworld_8h.html#a5d0d30e7b136539b27338406dd4debc6":[10,0,1,0,5,2,1,31],
-"overworld_8h.html#a614925fe8ad0001a00c2996af767e80d":[10,0,1,0,5,2,1,46],
-"overworld_8h.html#a61919214db4e995d9fd5364aad58c213":[10,0,1,0,5,2,1,55],
-"overworld_8h.html#a627325d434f85340abfbed9c71b3871d":[10,0,1,0,5,2,1,83],
-"overworld_8h.html#a6296c68a216aa7dc1dc79be000b0c4e1":[10,0,1,0,5,2,1,79],
-"overworld_8h.html#a6368fdd73a36241248ab1be9cc86f9b4":[10,0,1,0,5,2,1,37],
-"overworld_8h.html#a67a54cbed49b14d5eb5b24181c6f69d5":[10,0,1,0,5,2,1,67],
-"overworld_8h.html#a68d6f6bdbe29611536f936c351886954":[10,0,1,0,5,2,1,101]
+"overworld_8h.html#a5a796ac1caea3e148bab0b065f752537":[10,0,1,0,5,2,1,43]
 };

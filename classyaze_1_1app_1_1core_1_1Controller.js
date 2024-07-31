@@ -7,6 +7,7 @@ var classyaze_1_1app_1_1core_1_1Controller =
     [ "OnLoad", "classyaze_1_1app_1_1core_1_1Controller.html#a0fe694ddfbbfa5c288983d1e5cdb50de", null ],
     [ "DoRender", "classyaze_1_1app_1_1core_1_1Controller.html#a3bb770108edb03390f0458b1ad48af00", null ],
     [ "OnExit", "classyaze_1_1app_1_1core_1_1Controller.html#a473842231f08f37aba1e40ad62397760", null ],
+    [ "master_editor", "classyaze_1_1app_1_1core_1_1Controller.html#a04af31e0a744915d95f466cdee06da66", null ],
     [ "CreateSDL_Window", "classyaze_1_1app_1_1core_1_1Controller.html#a3994f2ee79504cd00f9f9e49f1462be0", null ],
     [ "CreateRenderer", "classyaze_1_1app_1_1core_1_1Controller.html#a7de45c3e705b21ddd623f5a36e3dfd55", null ],
     [ "CreateGuiContext", "classyaze_1_1app_1_1core_1_1Controller.html#a1a77e2f432d143785d65f70c1372cd50", null ],

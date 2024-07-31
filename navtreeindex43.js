@@ -1,5 +1,13 @@
 var NAVTREEINDEX43 =
 {
+"snes__palette__test_8cc.html#a553516597f84d193decd64cac53ae815":[10,0,1,2,1,1,4],
+"snes__palette__test_8cc.html#a7bc433fcb4d48845ad5aa57f317365af":[10,0,1,2,1,1,3],
+"snes__palette__test_8cc.html#aae614732019e6f806ae921acf0996a36":[10,0,1,2,1,1,7],
+"snes__palette__test_8cc.html#ac79465247aad16f5bf69c7bb4476eb6a":[10,0,1,2,1,1,1],
+"snes__palette__test_8cc.html#ad4f5b3190dfe909a51619ad862f3153b":[10,0,1,2,1,1,0],
+"snes__palette__test_8cc.html#ae20400d61a9b652970778a4b0fd554e4":[10,0,1,2,1,1,6],
+"snes__palette__test_8cc.html#ae974a1d17ac339bb96e17521b20b73e2":[10,0,1,2,1,1,5],
+"snes__tile_8cc.html":[10,0,1,0,3,10],
 "snes__tile_8cc.html#a12666f7bb6b6dcacbb721b16eded9000":[10,0,1,0,3,10,4],
 "snes__tile_8cc.html#a1c0d7314890a130ceda6eec9def39c4e":[10,0,1,0,3,10,8],
 "snes__tile_8cc.html#a4ec1226f327e64dcc4a789f6d21f4a24":[10,0,1,0,3,10,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX43 =
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a1b88eaa7bd767b2afd180f8b7d2acd17":[9,0,0,0,1,7,0],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a96af93dccfac2d3e1c16749ccd42c6bc":[8,0,1,0,1,12,2],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a96af93dccfac2d3e1c16749ccd42c6bc":[9,0,0,0,1,7,2],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html":[8,0,1,0,1,13],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html":[9,0,0,0,1,8],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#a9788bd766cb7aff98ad17e3c1c938de0":[8,0,1,0,1,13,1],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#a9788bd766cb7aff98ad17e3c1c938de0":[9,0,0,0,1,8,1],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#aaef2420ddf188add060293ab06480a99":[8,0,1,0,1,13,2],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#aaef2420ddf188add060293ab06480a99":[9,0,0,0,1,8,2],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#aba3275f10707e81df8e47d1428f9bd24":[8,0,1,0,1,13,3],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#aba3275f10707e81df8e47d1428f9bd24":[9,0,0,0,1,8,3],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#aedb3f7301672903f9a2a3397ed678750":[8,0,1,0,1,13,0]
+"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html":[8,0,1,0,1,13]
 };
