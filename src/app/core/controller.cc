@@ -1,10 +1,22 @@
 #include "controller.h"
 
 #include <SDL.h>
+
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+
+#if defined(__APPLE__) && defined(__MACH__)
+#include <TargetConditionals.h>
+#if TARGET_IPHONE_SIMULATOR == 1
+#include "imgui/backends/imgui_impl_metal.h"
+#elif TARGET_OS_IPHONE == 1
+#include "imgui/backends/imgui_impl_metal.h"
+#elif TARGET_OS_MAC == 1
+
+#endif
+#endif
 
 #include <memory>
 
@@ -280,7 +292,7 @@ absl::Status Controller::OnEntry(std::string filename) {
   platform_ = Platform::kLinux;
 #else
   platform_ = Platform::kUnknown;
-#endif 
+#endif
 
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
