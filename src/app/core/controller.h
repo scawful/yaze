@@ -40,6 +40,12 @@ class Controller : public ExperimentFlags {
   void DoRender() const;
   void OnExit();
 
+  absl::Status CreateSDL_Window();
+  absl::Status CreateRenderer();
+  absl::Status CreateGuiContext();
+  absl::Status LoadFontFamilies() const;
+  absl::Status LoadAudioDevice();
+
   auto master_editor() -> editor::MasterEditor & { return master_editor_; }
 
  private:
@@ -57,11 +63,6 @@ class Controller : public ExperimentFlags {
     void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
   };
 
-  absl::Status CreateSDL_Window();
-  absl::Status CreateRenderer();
-  absl::Status CreateGuiContext();
-  absl::Status LoadFontFamilies() const;
-  absl::Status LoadAudioDevice();
   void CloseWindow() { active_ = false; }
 
   friend int ::main(int argc, char **argv);
