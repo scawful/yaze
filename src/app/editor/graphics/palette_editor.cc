@@ -1,6 +1,6 @@
 #include "palette_editor.h"
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include "absl/status/status.h"
 #include "app/gfx/snes_palette.h"

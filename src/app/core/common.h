@@ -1,7 +1,7 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <chrono>
 #include <cstdint>
@@ -187,6 +187,11 @@ class Logger {
     static std::ofstream fout("log.txt", std::ios::out | std::ios::app);
     fout << message << std::endl;
   }
+
+  // log to console
+  static void logc(std::string message) { logs.emplace_back(message); }
+
+  static std::vector<std::string> logs;
 };
 
 std::string UppercaseHexByte(uint8_t byte, bool leading = false);
@@ -220,7 +225,7 @@ struct FolderItem {
 
 typedef struct FolderItem FolderItem;
 
-int Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
+uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
 
 }  // namespace core
 }  // namespace app

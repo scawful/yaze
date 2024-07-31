@@ -5,12 +5,10 @@
 #endif
 
 #include <SDL.h>
-#include <absl/status/status.h>
-#include <absl/strings/str_format.h>
-#include <failure_signal_handler.h>
-#include <imgui/imgui.h>
-#include <imgui_memory_editor.h>
-#include <rom.h>
+#include "absl/status/status.h"
+#include "absl/strings/str_format.h"
+#include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 #include <memory>
 #include <string>

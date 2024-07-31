@@ -2,7 +2,7 @@
 #define YAZE_APP_GFX_PALETTE_H
 
 #include <SDL.h>
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <cstdlib>

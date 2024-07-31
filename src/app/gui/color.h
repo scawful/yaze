@@ -1,7 +1,7 @@
 #ifndef YAZE_GUI_COLOR_H
 #define YAZE_GUI_COLOR_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cmath>
 #include <string>
