@@ -40,6 +40,8 @@ class Controller : public ExperimentFlags {
   void DoRender() const;
   void OnExit();
 
+  auto master_editor() -> editor::MasterEditor & { return master_editor_; }
+
  private:
   struct sdl_deleter {
     void operator()(SDL_Window *p) const {
