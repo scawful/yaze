@@ -13,6 +13,7 @@
 
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
+#include "app/core/platform/file_path.h"
 
 namespace yaze {
 namespace app {
@@ -590,7 +591,18 @@ void BindSelectable(Node* node, bool* selected,
 std::string LoadFile(const std::string& filename) {
   std::string fileContents;
   const std::string kPath = "assets/layouts/";
-  std::ifstream file(kPath + filename);
+
+  #ifdef __APPLE__
+    #ifdef TARGET_OS_IOS
+        
+      const std::string kBundlePath = GetBundleResourcePath();
+      std::ifstream file(kBundlePath + filename);
+    #else
+      std::ifstream file(kPath + filename);
+    #endif
+  #else
+    std::ifstream file(kPath + filename);
+  #endif
 
   if (file.is_open()) {
     std::string line;
