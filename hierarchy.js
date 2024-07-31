@@ -156,12 +156,6 @@ var hierarchy =
     [ "yaze::app::core::NotifyValue< T >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
     [ "yaze::app::core::NotifyValue< uint32_t >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
     [ "yaze::app::core::NotifyValue< uint8_t >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
-    [ "<NSApplicationDelegate>", null, [
-      [ "AppDelegate", "interfaceAppDelegate.html", null ]
-    ] ],
-    [ "NSObject", null, [
-      [ "AppDelegate", "interfaceAppDelegate.html", null ]
-    ] ],
     [ "yaze::app::emu::video::PpuRegisters::OAMADDH", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::OAMADDL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDL.html", null ],
     [ "yaze::app::emu::video::OAMAddress", "structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html", null ],

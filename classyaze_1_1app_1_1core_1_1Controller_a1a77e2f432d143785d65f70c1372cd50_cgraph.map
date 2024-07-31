@@ -1,12 +1,10 @@
 <map id="yaze::app::core::Controller::CreateGuiContext" name="yaze::app::core::Controller::CreateGuiContext">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,112,172,153"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,172,120"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a977a7571691d73f9f4ab817427cae497" title=" " alt="" coords="223,5,392,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,110,160,75,218,41,235,34,237,39,221,46,163,80,116,114"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,76,219,41,241,33,243,39,221,46,135,81"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="220,79,395,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,118,204,113,205,118,173,123"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,97,204,97,204,102,172,102"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1Controller.html#a303df51e1187d339e9548ea7d669df34" title=" " alt="" coords="224,144,390,185"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="173,142,209,148,208,153,172,148"/>
-<area shape="rect" id="Node000005" href="$font__loader_8mm.html#a7390a9bf6e7c82bbe4cddbf00844d86d" title=" " alt="" coords="244,209,371,235"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="129,151,221,194,241,202,240,207,219,199,127,156"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="160,118,223,137,221,142,158,123"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="266,79,264,69,271,60,285,55,307,53,331,55,345,61,343,66,330,60,307,58,287,60,274,64,269,70,271,78"/>
 </map>

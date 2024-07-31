@@ -42,7 +42,7 @@ var namespaceyaze_1_1app_1_1core =
     [ "ldle3", "namespaceyaze_1_1app_1_1core.html#ac2588b6c37606c1692a7a4771dfc5356", null ],
     [ "ldle16b", "namespaceyaze_1_1app_1_1core.html#a65eee6b161b17a7cd555ae70cf65717a", null ],
     [ "ldle16b_i", "namespaceyaze_1_1app_1_1core.html#aa6c12bd455e5cf377d2362c6dc7fab85", null ],
-    [ "Get24LocalFromPC", "namespaceyaze_1_1app_1_1core.html#a5e080b3e77685d253aa26ee3c30df73c", null ],
+    [ "Get24LocalFromPC", "namespaceyaze_1_1app_1_1core.html#a7b146f0a471eaf459077aadd4426caa6", null ],
     [ "kRedPen", "namespaceyaze_1_1app_1_1core.html#a386b985dabb5995d3943457a20547f19", null ],
     [ "kYazeVersion", "namespaceyaze_1_1app_1_1core.html#a6d651e38582177a01a8c5d06a1ddfb56", null ],
     [ "TilePriorityBit", "namespaceyaze_1_1app_1_1core.html#acabdb9f5536c40280ef09cdc1c6711b8", null ],

@@ -288,7 +288,6 @@ var annotated_dup =
         [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ]
       ] ]
     ] ],
-    [ "AppDelegate", "interfaceAppDelegate.html", "interfaceAppDelegate" ],
     [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ],
     [ "sdl_deleter", "structsdl__deleter.html", "structsdl__deleter" ]
 ];

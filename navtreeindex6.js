@@ -1,6 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa47ebd5eeb69e582ef5ef7bd920d3940":[8,0,1,0,1,28,13],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa47ebd5eeb69e582ef5ef7bd920d3940":[9,0,0,0,1,23,13],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2":[8,0,1,0,1,28,8],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2":[9,0,0,0,1,23,8],
@@ -249,5 +248,6 @@ var NAVTREEINDEX6 =
 "classyaze_1_1app_1_1emu_1_1Clock.html#ae6575e0403c9f6567e6e125f13349975":[8,0,1,0,2,6,3],
 "classyaze_1_1app_1_1emu_1_1Clock.html#ae6575e0403c9f6567e6e125f13349975":[9,0,0,0,2,4,3],
 "classyaze_1_1app_1_1emu_1_1Clock.html#af5eba8a7fbfc88b616681f45aee43363":[8,0,1,0,2,6,2],
-"classyaze_1_1app_1_1emu_1_1Clock.html#af5eba8a7fbfc88b616681f45aee43363":[9,0,0,0,2,4,2]
+"classyaze_1_1app_1_1emu_1_1Clock.html#af5eba8a7fbfc88b616681f45aee43363":[9,0,0,0,2,4,2],
+"classyaze_1_1app_1_1emu_1_1ClockImpl.html":[8,0,1,0,2,7]
 };

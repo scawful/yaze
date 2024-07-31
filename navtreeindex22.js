@@ -1,6 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"classyaze__test_1_1emu__test_1_1PpuTest.html#a8e2c5c9cbca0bb4aeb422e7f463b959f":[8,0,2,0,3,5],
 "classyaze__test_1_1emu__test_1_1PpuTest.html#a8e2c5c9cbca0bb4aeb422e7f463b959f":[9,0,1,0,3,5],
 "classyaze__test_1_1emu__test_1_1PpuTest.html#a997a34681c84e730bcaec26f93863155":[8,0,2,0,3,10],
 "classyaze__test_1_1emu__test_1_1PpuTest.html#a997a34681c84e730bcaec26f93863155":[9,0,1,0,3,10],
@@ -34,8 +33,6 @@ var NAVTREEINDEX22 =
 "clipboard_8h.html":[10,0,1,0,0,0,3],
 "clipboard_8h_source.html":[10,0,1,0,0,0,3],
 "clipboard_8mm.html":[10,0,1,0,0,0,4],
-"clipboard_8mm.html#a8f7238b3fa64f35b72f1caa300691bc1":[10,0,1,0,0,0,4,1],
-"clipboard_8mm.html#af53fc5435e3252ecfa941bedf62e2c96":[10,0,1,0,0,0,4,0],
 "clock_8h.html":[10,0,1,0,2,1,1],
 "clock_8h_source.html":[10,0,1,0,2,1,1],
 "color_8cc.html":[10,0,1,0,4,4],
@@ -77,10 +74,10 @@ var NAVTREEINDEX22 =
 "common_8cc.html#a43bceda6fbaf66c02016c87c83adec48":[10,0,1,0,0,1,4],
 "common_8cc.html#a57423a3f6c1ec89535f5e836dc1406fe":[10,0,1,0,0,1,9],
 "common_8cc.html#a58dc78cb3c691e3d7fa277549bc9bed3":[10,0,1,0,0,1,14],
-"common_8cc.html#a5e080b3e77685d253aa26ee3c30df73c":[10,0,1,0,0,1,23],
 "common_8cc.html#a5e6d56ec7e31e6b12a788d15c931ec38":[10,0,1,0,0,1,1],
 "common_8cc.html#a65eee6b161b17a7cd555ae70cf65717a":[10,0,1,0,0,1,21],
 "common_8cc.html#a6e7b585d457e19934e442cfd8c696e8d":[10,0,1,0,0,1,3],
+"common_8cc.html#a7b146f0a471eaf459077aadd4426caa6":[10,0,1,0,0,1,23],
 "common_8cc.html#a879d750a26ba80d053be5e4a76ecd0e8":[10,0,1,0,0,1,6],
 "common_8cc.html#a9fc1194f545000fb140d178e5a54ff81":[10,0,1,0,0,1,2],
 "common_8cc.html#aa38d793eae97bd4f5a931de9a1fffa1d":[10,0,1,0,0,1,7],
@@ -249,5 +246,8 @@ var NAVTREEINDEX22 =
 "compression__test_8cc.html#af40e0d4f10bb4b9ad27af81907a9426b":[10,0,1,2,1,0,16],
 "compression__test_8cc.html#af7d97bb47668a484667bf3236ff487d4":[10,0,1,2,1,0,5],
 "constants_8h.html":[10,0,1,0,0,3],
-"constants_8h.html#a00498c7676bbf36c6d1fadbf7f6c1061":[10,0,1,0,0,3,49]
+"constants_8h.html#a00498c7676bbf36c6d1fadbf7f6c1061":[10,0,1,0,0,3,49],
+"constants_8h.html#a0400ff495867d2b1173e970e6d9c478a":[10,0,1,0,0,3,10],
+"constants_8h.html#a06f756487fd5bb0ff152f21c3ad7893c":[10,0,1,0,0,3,48],
+"constants_8h.html#a08330cca752181dc42e537e696ae9520":[10,0,1,0,0,3,63]
 };

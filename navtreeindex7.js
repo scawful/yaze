@@ -1,6 +1,5 @@
 var NAVTREEINDEX7 =
 {
-"classyaze_1_1app_1_1emu_1_1ClockImpl.html":[8,0,1,0,2,7],
 "classyaze_1_1app_1_1emu_1_1ClockImpl.html":[9,0,0,0,2,5],
 "classyaze_1_1app_1_1emu_1_1ClockImpl.html#a0ad23ebc11f593d0fbb84a2dfe5a4963":[8,0,1,0,2,7,7],
 "classyaze_1_1app_1_1emu_1_1ClockImpl.html#a0ad23ebc11f593d0fbb84a2dfe5a4963":[9,0,0,0,2,5,7],
@@ -249,5 +248,6 @@ var NAVTREEINDEX7 =
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a655c272fc14f564995b7596cfa71fc3a":[8,0,1,0,2,8,116],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a655c272fc14f564995b7596cfa71fc3a":[9,0,0,0,2,6,116],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f":[8,0,1,0,2,8,2],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f":[9,0,0,0,2,6,2]
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a67d5417ca5a6682959430b5756d8c85f":[9,0,0,0,2,6,2],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a68c403ec77f43ce410cf881717274997":[8,0,1,0,2,8,209]
 };

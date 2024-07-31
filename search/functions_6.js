@@ -2,7 +2,7 @@ var searchData=
 [
   ['get_0',['get',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#a04463e5cc23e8afb393e359c2b7389d6',1,'yaze::app::core::NotifyValue']]],
   ['get16x16tile_1',['Get16x16Tile',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a1fbe253c667ffd6b30e15061d0dbb33b',1,'yaze::app::gfx::Bitmap::Get16x16Tile(int tile_index, int x, int y, std::vector&lt; uint8_t &gt; &amp;tile_data, int &amp;tile_data_offset)'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#af3c3f536a72f348f005ebfe78c951a60',1,'yaze::app::gfx::Bitmap::Get16x16Tile(int tile_x, int tile_y, std::vector&lt; uint8_t &gt; &amp;tile_data, int &amp;tile_data_offset)']]],
-  ['get24localfrompc_2',['Get24LocalFromPC',['../namespaceyaze_1_1app_1_1core.html#a5e080b3e77685d253aa26ee3c30df73c',1,'yaze::app::core']]],
+  ['get24localfrompc_2',['Get24LocalFromPC',['../namespaceyaze_1_1app_1_1core.html#a7b146f0a471eaf459077aadd4426caa6',1,'yaze::app::core']]],
   ['get8x8tile_3',['Get8x8Tile',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a3c00caf9c86a212f6d3513fdef477e6e',1,'yaze::app::gfx::Bitmap']]],
   ['get_5fdp_5faddr_4',['get_dp_addr',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af72fca7b16ff8ecb8688365e0490f703',1,'yaze::app::emu::audio::Spc700']]],
   ['get_5fgroup_5',['get_group',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a1c3d723bedf93eb7725c5b133b56f1b5',1,'yaze::app::gfx::PaletteGroupMap']]],
@@ -30,7 +30,7 @@ var searchData=
   ['getgraphicsaddress_27',['GetGraphicsAddress',['../classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012',1,'yaze::app::Rom']]],
   ['getheaderoffset_28',['GetHeaderOffset',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acdd6ac19d3999636b00d2e5c03047760',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['getid_29',['GetID',['../namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec',1,'yaze::app::gui']]],
-  ['getimagefromclipboard_30',['GetImageFromClipboard',['../clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a',1,'GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height):&#160;clipboard.cc'],['../clipboard_8mm.html#a8f7238b3fa64f35b72f1caa300691bc1',1,'GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;pixel_data, int &amp;width, int &amp;height):&#160;clipboard.mm']]],
+  ['getimagefromclipboard_30',['GetImageFromClipboard',['../clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a',1,'clipboard.cc']]],
   ['getindexsize_31',['GetIndexSize',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5adc7eff4a215152b75e0e81c60358c6',1,'yaze::app::emu::Cpu']]],
   ['getinstance_32',['GetInstance',['../classyaze_1_1app_1_1emu_1_1Logger.html#a97351340c6d5b10f47a68144524abe31',1,'yaze::app::emu::Logger']]],
   ['getinstruction_33',['GetInstruction',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#aa15536701eb857bfc8e1f6600e978eec',1,'yaze::app::emu::InstructionEntry']]],

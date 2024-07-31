@@ -1,6 +1,5 @@
 var NAVTREEINDEX14 =
 {
-"classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ac7247f7c1d7ae0cb8f5c922d8b9b396a":[8,0,1,0,2,4,13,72],
 "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ac7247f7c1d7ae0cb8f5c922d8b9b396a":[9,0,0,0,2,2,13,72],
 "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ac9724e9b10befa4d4d487ada4d9a9a35":[8,0,1,0,2,4,13,42],
 "classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ac9724e9b10befa4d4d487ada4d9a9a35":[9,0,0,0,2,2,13,42],
@@ -249,5 +248,6 @@ var NAVTREEINDEX14 =
 "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a13f58e36897e518cf3fd2614a0dc76f2":[8,0,1,0,3,12,8],
 "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a13f58e36897e518cf3fd2614a0dc76f2":[9,0,0,0,3,10,8],
 "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a1bb4ec818579a0a98fffc3b1a5eb101d":[8,0,1,0,3,12,3],
-"classyaze_1_1app_1_1gfx_1_1SnesColor.html#a1bb4ec818579a0a98fffc3b1a5eb101d":[9,0,0,0,3,10,3]
+"classyaze_1_1app_1_1gfx_1_1SnesColor.html#a1bb4ec818579a0a98fffc3b1a5eb101d":[9,0,0,0,3,10,3],
+"classyaze_1_1app_1_1gfx_1_1SnesColor.html#a3e744b22ab31142ad22076ed5b28fd56":[8,0,1,0,3,12,15]
 };
