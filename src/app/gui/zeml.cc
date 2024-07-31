@@ -593,8 +593,7 @@ std::string LoadFile(const std::string& filename) {
   const std::string kPath = "assets/layouts/";
 
   #ifdef __APPLE__
-    #ifdef TARGET_OS_IOS
-        
+    #if TARGET_OS_IOS == 1
       const std::string kBundlePath = GetBundleResourcePath();
       std::ifstream file(kBundlePath + filename);
     #else
