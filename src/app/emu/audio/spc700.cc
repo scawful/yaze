@@ -13,916 +13,1288 @@ namespace app {
 namespace emu {
 namespace audio {
 
-void Spc700::Reset() {
-  PC = 0;
-  A = 0;
-  X = 0;
-  Y = 0;
-  SP = 0xFF;
-  PSW = ByteToFlags(0x00);
-  aram_.reset();
+void Spc700::Reset(bool hard) {
+  if (hard) {
+    PC = 0;
+    A = 0;
+    X = 0;
+    Y = 0;
+    SP = 0x00;
+    PSW = ByteToFlags(0x00);
+  }
+  step = 0;
+  stopped_ = false;
+  reset_wanted_ = true;
 }
 
-void Spc700::BootIplRom() {
-  PC = 0xFFC0;
-  A = 0;
-  X = 0;
-  Y = 0;
-  int i = 0;
-  while (PC != 0xFFC0 + 0x3F) {
-    uint8_t opcode = read(PC);
-    ExecuteInstructions(opcode);
-    PC++;
-    i++;
-
-    if (i > 1000) {
-      break;
-    }
+void Spc700::RunOpcode() {
+  if (reset_wanted_) {
+    // based on 6502, brk without writes
+    reset_wanted_ = false;
+    read(PC);
+    read(PC);
+    read(0x100 | SP--);
+    read(0x100 | SP--);
+    read(0x100 | SP--);
+    callbacks_.idle(false);
+    PSW.I = false;
+    PC = read_word(0xfffe);
+    return;
   }
+  if (stopped_) {
+    callbacks_.idle(true);
+    return;
+  }
+  if (step == 0) {
+    bstep = 0;
+    opcode = ReadOpcode();
+    step = 1;
+    return;
+  }
+  ExecuteInstructions(opcode);
+  if (step == 1) step = 0;  // reset step for non cycle-stepped opcodes.
 }
 
 void Spc700::ExecuteInstructions(uint8_t opcode) {
   uint16_t initialPC = PC;
   switch (opcode) {
-    // 8-bit Move Memory to Register
-    case 0xE8:  // MOV A, #imm
-    {
-      MOV(A, imm());
+    case 0x00: {  // nop imp
+      read(PC);
+      // no operation
       break;
     }
-    case 0xE6:  // MOV A, (X)
-    {
-      MOV(A, X);
+    case 0x01:
+    case 0x11:
+    case 0x21:
+    case 0x31:
+    case 0x41:
+    case 0x51:
+    case 0x61:
+    case 0x71:
+    case 0x81:
+    case 0x91:
+    case 0xa1:
+    case 0xb1:
+    case 0xc1:
+    case 0xd1:
+    case 0xe1:
+    case 0xf1: {  // tcall imp
+      read(PC);
+      callbacks_.idle(false);
+      push_word(PC);
+      callbacks_.idle(false);
+      uint16_t adr = 0xffde - (2 * (opcode >> 4));
+      PC = read_word(adr);
       break;
     }
-    case 0xBF:  // MOV A, (X)+
-    {
-      MOV(A, X);
-      X++;
+    case 0x02:
+    case 0x22:
+    case 0x42:
+    case 0x62:
+    case 0x82:
+    case 0xa2:
+    case 0xc2:
+    case 0xe2: {  // set1 dp
+      uint16_t adr = dp();
+      write(adr, read(adr) | (1 << (opcode >> 5)));
       break;
     }
-    case 0xE4:  // MOV A, dp
-    {
-      MOV(A, dp());
+    case 0x12:
+    case 0x32:
+    case 0x52:
+    case 0x72:
+    case 0x92:
+    case 0xb2:
+    case 0xd2:
+    case 0xf2: {  // clr1 dp
+      uint16_t adr = dp();
+      write(adr, read(adr) & ~(1 << (opcode >> 5)));
       break;
     }
-    case 0xF4:  // MOV A, dp+X
-    {
-      MOV(A, dp_plus_x());
+    case 0x03:
+    case 0x23:
+    case 0x43:
+    case 0x63:
+    case 0x83:
+    case 0xa3:
+    case 0xc3:
+    case 0xe3: {  // bbs dp, rel
+      uint8_t val = read(dp());
+      callbacks_.idle(false);
+      DoBranch(ReadOpcode(), val & (1 << (opcode >> 5)));
       break;
     }
-    case 0xE5:  // MOV A, !abs
-    {
-      MOV(A, read(abs()));
-      break;
-    }
-    case 0xF5:  // MOV A, !abs+X
-    {
-      MOV(A, abs() + X);
-      break;
-    }
-    case 0xF6:  // MOV A, !abs+Y
-    {
-      MOV(A, abs() + Y);
-      break;
-    }
-    case 0xE7:  // MOV A, [dp+X]
-    {
-      MOV(A, read(dp_plus_x_indirect()));
-      break;
-    }
-    case 0xF7:  // MOV A, [dp]+Y
-    {
-      MOV(A, read(dp_indirect_plus_y()));
-      break;
-    }
-    case 0xCD:  // MOV X, #imm
-    {
-      MOV(X, imm());
-      break;
-    }
-    case 0xF8:  // MOV X, dp
-    {
-      MOV(X, dp());
-      break;
-    }
-    case 0xF9:  // MOV X, dp+Y
-    {
-      MOV(X, dp_plus_y());
-      break;
-    }
-    case 0xE9:  // MOV X, !abs
-    {
-      MOV(X, abs());
-      break;
-    }
-    case 0x8D:  // MOV Y, #imm
-    {
-      MOV(Y, imm());
-      break;
-    }
-    case 0xEB:  // MOV Y, dp
-    {
-      MOV(Y, dp());
-      break;
-    }
-    case 0xFB:  // MOV Y, dp+X
-    {
-      MOV(Y, dp_plus_x());
-      break;
-    }
-    case 0xEC:  // MOV Y, !abs
-    {
-      MOV(Y, abs());
+    case 0x13:
+    case 0x33:
+    case 0x53:
+    case 0x73:
+    case 0x93:
+    case 0xb3:
+    case 0xd3:
+    case 0xf3: {  // bbc dp, rel
+      uint8_t val = read(dp());
+      callbacks_.idle(false);
+      DoBranch(ReadOpcode(), (val & (1 << (opcode >> 5))) == 0);
       break;
     }
 
-    // 8-bit move register to memory
-    case 0xC6:  // MOV (X), A
-    {
-      MOV_ADDR(X, A);
+    case 0x04: {  // or  dp
+      OR(dp());
       break;
     }
-    case 0xAF:  // MOV (X)+, A
-    {
-      MOV_ADDR(X, A);
+    case 0x05: {  // or  abs
+      OR(abs());
       break;
     }
-    case 0xC4:  // MOV dp, A
-    {
-      MOV_ADDR(get_dp_addr(), A);
+    case 0x06: {  // or  ind
+      OR(ind());
       break;
     }
-    case 0xD4:  // MOV dp+X, A
-    {
-      MOV_ADDR(get_dp_addr() + X, A);
+    case 0x07: {  // or  idx
+      OR(idx());
       break;
     }
-    case 0xC5:  // MOV !abs, A
-    {
-      MOV_ADDR(abs(), A);
+    case 0x08: {  // or  imm
+      OR(imm());
       break;
     }
-    case 0xD5:  // MOV !abs+X, A
-    {
-      MOV_ADDR(abs() + X, A);
+    case 0x09: {  // orm dp, dp
+      uint8_t src = 0;
+      uint16_t dst = dp_dp(&src);
+      ORM(dst, src);
       break;
     }
-    case 0xD6:  // MOV !abs+Y, A
-    {
-      MOV_ADDR(abs() + Y, A);
+    case 0x0a: {  // or1 abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      PSW.C = PSW.C | ((read(adr) >> bit) & 1);
+      callbacks_.idle(false);
       break;
     }
-    case 0xC7:  // MOV [dp+X], A
-    {
-      MOV_ADDR(dp_plus_x_indirect(), A);
-      break;
-    }
-    case 0xD7:  // MOV [dp]+Y, A
-    {
-      MOV_ADDR(dp_indirect_plus_y(), A);
-      break;
-    }
-    case 0xD8:  // MOV dp, X
-    {
-      MOV_ADDR(get_dp_addr(), X);
-      break;
-    }
-    case 0xD9:  // MOV dp+Y, X
-    {
-      MOV_ADDR(get_dp_addr() + Y, X);
-      break;
-    }
-    case 0xC9:  // MOV !abs, X
-    {
-      MOV_ADDR(abs(), X);
-      break;
-    }
-    case 0xCB:  // MOV dp, Y
-    {
-      MOV_ADDR(get_dp_addr(), Y);
-      break;
-    }
-    case 0xDB:  // MOV dp+X, Y
-    {
-      MOV_ADDR(get_dp_addr() + X, Y);
-      break;
-    }
-    case 0xCC:  // MOV !abs, Y
-    {
-      MOV_ADDR(abs(), Y);
-      break;
-    }
-
-    // . 8-bit move register to register / special direct page moves
-    case 0x7D:  // MOV A, X
-    {
-      MOV(A, X);
-      break;
-    }
-    case 0xDD:  // MOV A, Y
-    {
-      MOV(A, Y);
-      break;
-    }
-    case 0x5D:  // MOV X, A
-    {
-      MOV(X, A);
-      break;
-    }
-    case 0xFD:  // MOV Y, A
-    {
-      MOV(Y, A);
-      break;
-    }
-    case 0x9D:  // MOV X, SP
-    {
-      MOV(X, SP);
-      break;
-    }
-    case 0xBD:  // MOV SP, X
-    {
-      MOV(SP, X);
-      break;
-    }
-    case 0xFA:  // MOV dp, dp
-    {
-      MOV_ADDR(get_dp_addr(), dp());
-      break;
-    }
-    case 0x8F:  // MOV dp, #imm
-    {
-      MOV_ADDR(get_dp_addr(), imm());
-      break;
-    }
-
-    // . 8-bit arithmetic
-    case 0x88:  // ADC A, #imm
-    {
-      ADC(A, imm());
-      break;
-    }
-    case 0x86:  // ADC A, (X)
-    {
-      ADC(A, X);
-      break;
-    }
-    case 0x84:  // ADC A, dp
-    {
-      ADC(A, dp());
-      break;
-    }
-    case 0x94:  // ADC A, dp+X
-    {
-      ADC(A, dp_plus_x());
-      break;
-    }
-    case 0x85:  // ADC A, !abs
-    {
-      ADC(A, abs());
-      break;
-    }
-    case 0x95:  // ADC A, !abs+X
-    {
-      ADC(A, abs() + X);
-      break;
-    }
-    case 0x96:  // ADC A, !abs+Y
-    {
-      ADC(A, abs() + Y);
-      break;
-    }
-    case 0x87:  // ADC A, [dp+X]
-    {
-      ADC(A, dp_plus_x_indirect());
-      break;
-    }
-    case 0x97:  // ADC A, [dp]+Y
-    {
-      ADC(A, dp_indirect_plus_y());
-      break;
-    }
-    case 0x99:  // ADC (X), (Y)
-      break;
-    case 0x89:  // ADC dp, dp
-    {
-      ADC(mutable_dp(), dp());
-      break;
-    }
-    case 0x98:  // ADC dp, #imm
-    {
-      ADC(mutable_dp(), imm());
-      break;
-    }
-
-    case 0xA8:  // SBC A, #imm
-    {
-      SBC(A, imm());
-      break;
-    }
-    case 0xA6:  // SBC A, (X)
-    {
-      SBC(A, mutable_read(X));
-      break;
-    }
-    case 0xA4:  // SBC A, dp
-    {
-      SBC(A, dp());
-      break;
-    }
-    case 0xB4:  // SBC A, dp+X
-    {
-      SBC(A, dp_plus_x());
-      break;
-    }
-    case 0xA5:  // SBC A, !abs
-    {
-      SBC(A, abs());
-      break;
-    }
-    case 0xB5:  // SBC A, !abs+X
-    {
-      SBC(A, abs() + X);
-      break;
-    }
-    case 0xB6:  // SBC A, !abs+Y
-    {
-      SBC(A, abs() + Y);
-      break;
-    }
-    case 0xA7:  // SBC A, [dp+X]
-    {
-      SBC(A, dp_plus_x_indirect());
-      break;
-    }
-    case 0xB7:  // SBC A, [dp]+Y
-    {
-      SBC(A, dp_indirect_plus_y());
-      break;
-    }
-    case 0xB9:  // SBC (X), (Y)
-    {
-      SBC(mutable_read(X), mutable_read(Y));
-      break;
-    }
-    case 0xA9:  // SBC dp, dp
-    {
-      SBC(mutable_dp(), dp());
-      break;
-    }
-    case 0xB8:  // SBC dp, #imm
-    {
-      SBC(mutable_dp(), imm());
-      break;
-    }
-
-    case 0x68:  // CMP A, #imm
-    {
-      CMP(A, imm());
-      break;
-    }
-    case 0x66:  // CMP A, (X)
-    {
-      CMP(A, read(X));
-      break;
-    }
-    case 0x64:  // CMP A, dp
-    {
-      CMP(A, dp());
-      break;
-    }
-    case 0x74:  // CMP A, dp+X
-    {
-      CMP(A, dp_plus_x());
-      break;
-    }
-    case 0x65:  // CMP A, !abs
-    {
-      CMP(A, abs());
-      break;
-    }
-    case 0x75:  // CMP A, !abs+X
-    {
-      CMP(A, abs() + X);
-      break;
-    }
-    case 0x76:  // CMP A, !abs+Y
-    {
-      CMP(A, abs() + Y);
-      break;
-    }
-    case 0x67:  // CMP A, [dp+X]
-      break;
-    case 0x77:  // CMP A, [dp]+Y
-      break;
-    case 0x79:  // CMP (X), (Y)
-      break;
-    case 0x69:  // CMP dp, dp
-    {
-      CMP(mutable_dp(), dp());
-      break;
-    }
-    case 0x78:  // CMP dp, #imm
-    {
-      CMP(mutable_dp(), imm());
-      break;
-    }
-    case 0xC8:  // CMP X, #imm
-    {
-      CMP(X, imm());
-      break;
-    }
-    case 0x3E:  // CMP X, dp
-    {
-      CMP(X, dp());
-      break;
-    }
-    case 0x1E:  // CMP X, !abs
-    {
-      CMP(X, abs());
-      break;
-    }
-    case 0xAD:  // CMP Y, #imm
-    {
-      CMP(Y, imm());
-      break;
-    }
-    case 0x7E:  // CMP Y, dp
-    {
-      CMP(Y, dp());
-      break;
-    }
-    case 0x5E:  // CMP Y, !abs
-    {
-      CMP(Y, abs());
-      break;
-    }
-
-    // 8-bit boolean logic
-    case 0x28:  // AND A, #imm
-    {
-      AND(A, imm());
-      break;
-    }
-    case 0x26:  // AND A, (X)
-    {
-      AND(A, mutable_read(X));
-      break;
-    }
-    case 0x24:  // AND A, dp
-    {
-      AND(A, dp());
-      break;
-    }
-    case 0x34:  // AND A, dp+X
-    {
-      AND(A, dp_plus_x());
-      break;
-    }
-    case 0x25:  // AND A, !abs
-    {
-      AND(A, abs());
-      break;
-    }
-    case 0x35:  // AND A, !abs+X
-    {
-      AND(A, abs() + X);
-      break;
-    }
-    case 0x36:  // AND A, !abs+Y
-    {
-      AND(A, abs() + Y);
-      break;
-    }
-    case 0x27:  // AND A, [dp+X]
-    {
-      AND(A, dp_plus_x_indirect());
-      break;
-    }
-    case 0x37:  // AND A, [dp]+Y
-    {
-      AND(A, dp_indirect_plus_y());
-      break;
-    }
-    case 0x39:  // AND (X), (Y)
-    {
-      AND(mutable_read(X), mutable_read(Y));
-      break;
-    }
-    case 0x29:  // AND dp, dp
-    {
-      AND(mutable_dp(), dp());
-      break;
-    }
-    case 0x38:  // AND dp, #imm
-    {
-      AND(mutable_dp(), imm());
-      break;
-    }
-
-    case 0x08:  // OR A, #imm
-    {
-      OR(A, imm());
-      break;
-    }
-    case 0x06:  // OR A, (X)
-    {
-      OR(A, mutable_read(X));
-      break;
-    }
-    case 0x04:  // OR A, dp
-    {
-      OR(A, dp());
-      break;
-    }
-    case 0x14:  // OR A, dp+X
-    {
-      OR(A, dp_plus_x());
-      break;
-    }
-    case 0x05:  // OR A, !abs
-    {
-      OR(A, abs());
-      break;
-    }
-    case 0x15:  // OR A, !abs+X
-    {
-      OR(A, abs() + X);
-      break;
-    }
-    case 0x16:  // OR A, !abs+Y
-    {
-      OR(A, abs() + Y);
-      break;
-    }
-    case 0x07:  // OR A, [dp+X]
-    {
-      OR(A, dp_plus_x_indirect());
-      break;
-    }
-    case 0x17:  // OR A, [dp]+Y
-    {
-      OR(A, dp_indirect_plus_y());
-      break;
-    }
-    case 0x19:  // OR (X), (Y)
-      OR(mutable_read(X), mutable_read(Y));
-      break;
-    case 0x09:  // OR dp, dp
-      OR(mutable_dp(), dp());
-      break;
-    case 0x18:  // OR dp, #imm
-      OR(mutable_dp(), imm());
-      break;
-    case 0x48:  // EOR A, #imm
-      EOR(A, imm());
-      break;
-    case 0x46:  // EOR A, (X)
-      EOR(A, mutable_read(X));
-      break;
-    case 0x44:  // EOR A, dp
-      EOR(A, dp());
-      break;
-    case 0x54:  // EOR A, dp+X
-      EOR(A, dp_plus_x());
-      break;
-    case 0x45:  // EOR A, !abs
-      EOR(A, abs());
-      break;
-    case 0x55:  // EOR A, !abs+X
-      EOR(A, abs() + X);
-      break;
-    case 0x56:  // EOR A, !abs+Y
-      EOR(A, abs() + Y);
-      break;
-    case 0x47:  // EOR A, [dp+X]
-      EOR(A, dp_plus_x_indirect());
-      break;
-    case 0x57:  // EOR A, [dp]+Y
-      EOR(A, dp_indirect_plus_y());
-      break;
-    case 0x59:  // EOR (X), (Y)
-      EOR(mutable_read(X), mutable_read(Y));
-      break;
-    case 0x49:  // EOR dp, dp
-      EOR(mutable_dp(), dp());
-      break;
-    case 0x58:  // EOR dp, #imm
-      EOR(mutable_dp(), imm());
-      break;
-
-      // . 8-bit increment / decrement
-
-    case 0xBC:  // INC A
-      INC(A);
-      break;
-    case 0xAB:  // INC dp
-      INC(mutable_dp());
-      break;
-    case 0xBB:  // INC dp+X
-      INC(mutable_read((PSW.P << 8) + dp_plus_x()));
-      break;
-    case 0xAC:  // INC !abs
-      INC(mutable_read(abs()));
-      break;
-    case 0x3D:  // INC X
-      INC(X);
-      break;
-    case 0xFC:  // INC Y
-      INC(Y);
-      break;
-    case 0x9C:  // DEC A
-      DEC(A);
-      break;
-    case 0x8B:  // DEC dp
-      DEC(mutable_dp());
-      break;
-    case 0x9B:  // DEC dp+X
-      DEC(mutable_read((PSW.P << 8) + dp_plus_x()));
-      break;
-    case 0x8C:  // DEC !abs
-      DEC(mutable_read(abs()));
-      break;
-    case 0x1D:  // DEC X
-      DEC(X);
-      break;
-    case 0xDC:  // DEC Y
-      DEC(Y);
-      break;
-
-      //  8-bit shift / rotation
-
-    case 0x1C:  // ASL A
-      ASL(A);
-      break;
-    case 0x0B:  // ASL dp
+    case 0x0b: {  // asl dp
       ASL(dp());
       break;
-    case 0x1B:  // ASL dp+X
-      ASL(dp_plus_x());
-      break;
-    case 0x0C:  // ASL !abs
+    }
+    case 0x0c: {  // asl abs
       ASL(abs());
       break;
-    case 0x5C:  // LSR A
-      LSR(A);
+    }
+    case 0x0d: {  // pushp imp
+      read(PC);
+      push_byte(FlagsToByte(PSW));
+      callbacks_.idle(false);
       break;
-    case 0x4B:  // LSR dp
-      LSR(mutable_dp());
+    }
+    case 0x0e: {  // tset1 abs
+      uint16_t adr = abs();
+      uint8_t val = read(adr);
+      read(adr);
+      uint8_t result = A + (val ^ 0xff) + 1;
+      PSW.Z = (result == 0);
+      PSW.N = (result & 0x80);
+      write(adr, val | A);
       break;
-    case 0x5B:  // LSR dp+X
-      LSR(mutable_read((PSW.P << 8) + dp_plus_x()));
+    }
+    case 0x0f: {  // brk imp
+      read(PC);
+      push_word(PC);
+      push_byte(FlagsToByte(PSW));
+      callbacks_.idle(false);
+      PSW.I = false;
+      PSW.B = true;
+      PC = read_word(0xffde);
       break;
-    case 0x4C:  // LSR !abs
-      LSR(mutable_read(abs()));
+    }
+    case 0x10: {  // bpl rel
+      DoBranch(ReadOpcode(), !PSW.N);
       break;
-
-    case 0x3C:  // ROL A
-      ROL(A);
+    }
+    case 0x14: {  // or  dpx
+      OR(dpx());
       break;
-    case 0x2B:  // ROL dp
+    }
+    case 0x15: {  // or  abx
+      OR(abs_x());
+      break;
+    }
+    case 0x16: {  // or  aby
+      OR(abs_y());
+      break;
+    }
+    case 0x17: {  // or  idy
+      OR(idy());
+      break;
+    }
+    case 0x18: {  // orm dp, imm
+      uint8_t src = 0;
+      uint16_t dst = dp_imm(&src);
+      ORM(dst, src);
+      break;
+    }
+    case 0x19: {  // orm ind, ind
+      uint8_t src = 0;
+      uint16_t dst = ind_ind(&src);
+      ORM(dst, src);
+      break;
+    }
+    case 0x1a: {  // decw dp
+      uint16_t low = 0;
+      uint16_t high = dp_word(&low);
+      uint16_t value = read(low) - 1;
+      write(low, value & 0xff);
+      value += read(high) << 8;
+      write(high, value >> 8);
+      PSW.Z = value == 0;
+      PSW.N = value & 0x8000;
+      break;
+    }
+    case 0x1b: {  // asl dpx
+      ASL(dpx());
+      break;
+    }
+    case 0x1c: {  // asla imp
+      read(PC);
+      PSW.C = A & 0x80;
+      A <<= 1;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0x1d: {  // decx imp
+      read(PC);
+      X--;
+      PSW.Z = (X == 0);
+      PSW.N = (X & 0x80);
+      break;
+    }
+    case 0x1e: {  // cmpx abs
+      CMPX(abs());
+      break;
+    }
+    case 0x1f: {  // jmp iax
+      uint16_t pointer = ReadOpcodeWord();
+      callbacks_.idle(false);
+      PC = read_word((pointer + X) & 0xffff);
+      break;
+    }
+    case 0x20: {  // clrp imp
+      read(PC);
+      PSW.P = false;
+      break;
+    }
+    case 0x24: {  // and dp
+      AND(dp());
+      break;
+    }
+    case 0x25: {  // and abs
+      AND(abs());
+      break;
+    }
+    case 0x26: {  // and ind
+      AND(ind());
+      break;
+    }
+    case 0x27: {  // and idx
+      AND(idx());
+      break;
+    }
+    case 0x28: {  // and imm
+      AND(imm());
+      break;
+    }
+    case 0x29: {  // andm dp, dp
+      uint8_t src = 0;
+      uint16_t dst = dp_dp(&src);
+      ANDM(dst, src);
+      break;
+    }
+    case 0x2a: {  // or1n abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      PSW.C = PSW.C | (~(read(adr) >> bit) & 1);
+      callbacks_.idle(false);
+      break;
+    }
+    case 0x2b: {  // rol dp
       ROL(dp());
       break;
-    case 0x3B:  // ROL dp+X
-      ROL(dp_plus_x());
-      break;
-    case 0x2C:  // ROL !abs
+    }
+    case 0x2c: {  // rol abs
       ROL(abs());
       break;
-    case 0x7C:  // ROR A
-      // ROR(A);
-      break;
-    case 0x6B:  // ROR dp
-      // ROR(dp());
-      break;
-    case 0x7B:  // ROR dp+X
-      // ROR(dp_plus_x());
-      break;
-    case 0x6C:  // ROR !abs
-      // ROR(abs());
-      break;
-    case 0x9F:  // XCN A Exchange nibbles of A
-      XCN(A);
-      break;
-
-      // . 16-bit operations
-
-    case 0xBA:  // MOVW YA, dp
-      MOVW(YA, dp());
-      break;
-    case 0xDA:  // MOVW dp, YA
-      MOVW(mutable_read_16(dp()), YA);
-      break;
-    case 0x3A:  // INCW dp
-      INCW(mutable_read_16(dp()));
-      break;
-    case 0x1A:  // DECW dp
-      DECW(mutable_read_16(dp()));
-      break;
-    case 0x7A:  // ADDW YA, dp
-      ADDW(YA, dp());
-      break;
-    case 0x9A:  // SUBW YA, dp
-      SUBW(YA, dp());
-      break;
-    case 0x5A:  // CMPW YA, dp
-      // CMPW(YA, dp());
-      break;
-    case 0xCF:  // MUL YA
-      MUL(YA);
-      break;
-    case 0x9E:  // DIV YA, X
-      // DIV(YA, X);
-      break;
-
-      // . decimal adjust
-
-    case 0xDF:  // DAA A
-      break;
-    case 0xBE:  // DAS A
-      break;
-
-      // . branching
-
-    case 0x2F:  // BRA rel
-      BRA(rel());
-      break;
-    case 0xF0:  // BEQ rel
-      BEQ(rel());
-      break;
-    case 0xD0:  // BNE rel
-      BNE(rel());
-      break;
-    case 0xB0:  // BCS rel
-      BCS(rel());
-      break;
-    case 0x90:  // BCC rel
-      BCC(rel());
-      break;
-    case 0x70:  // BVS rel
-      BVS(rel());
-      break;
-    case 0x50:  // BVC rel
-      BVC(rel());
-      break;
-    case 0x30:  // BMI rel
-      BMI(rel());
-      break;
-    case 0x10:  // BPL rel
-      BPL(rel());
-      break;
-    case 0x2E:  // CBNE dp, rel
-      break;
-    case 0xDE:  // CBNE dp+X, rel
-      break;
-    case 0x6E:  // DBNZ dp, rel
-      break;
-    case 0xFE:  // DBNZ Y, rel
-      break;
-    case 0x5F:  // JMP !abs
-      JMP(abs());
-      break;
-    case 0x1F:  // JMP [!abs+X]
-      // JMP_INDIRECT(abs() + X);
-      break;
-
-    // . subroutines
-    case 0x3F:  // CALL !abs
-    {
-      CALL(abs());
+    }
+    case 0x2d: {  // pusha imp
+      read(PC);
+      push_byte(A);
+      callbacks_.idle(false);
       break;
     }
-    case 0x4F:  // PCALL up
-    {
-      PCALL(imm());
+    case 0x2e: {  // cbne dp, rel
+      uint8_t val = read(dp()) ^ 0xff;
+      callbacks_.idle(false);
+      uint8_t result = A + val + 1;
+      DoBranch(ReadOpcode(), result != 0);
       break;
     }
-    case 0x6F:  // RET
-    {
-      RET();
+    case 0x2f: {  // bra rel
+      DoBranch(ReadOpcode(), true);
       break;
     }
-    case 0x7F:  // RETI
-    {
-      RETI();
+    case 0x30: {  // bmi rel
+      DoBranch(ReadOpcode(), PSW.N);
       break;
     }
-
-    // . stack
-    case 0x2D:  // PUSH A
-    {
-      PUSH(A);
+    case 0x34: {  // and dpx
+      AND(dpx());
       break;
     }
-    case 0x4D:  // PUSH X
-    {
-      PUSH(X);
+    case 0x35: {  // and abx
+      AND(abs_x());
       break;
     }
-    case 0x6D:  // PUSH Y
-    {
-      PUSH(Y);
+    case 0x36: {  // and aby
+      AND(abs_y());
       break;
     }
-    case 0x0D:  // PUSH PSW
-    {
-      PUSH(FlagsToByte(PSW));
+    case 0x37: {  // and idy
+      AND(idy());
       break;
     }
-
-    case 0xAE:  // POP A
-    {
-      POP(A);
+    case 0x38: {  // andm dp, imm
+      uint8_t src = 0;
+      uint16_t dst = dp_imm(&src);
+      ANDM(dst, src);
       break;
     }
-    case 0xCE:  // POP X
-    {
-      POP(X);
+    case 0x39: {  // andm ind, ind
+      uint8_t src = 0;
+      uint16_t dst = ind_ind(&src);
+      ANDM(dst, src);
       break;
     }
-    case 0xEE:  // POP Y
-    {
-      POP(Y);
+    case 0x3a: {  // incw dp
+      uint16_t low = 0;
+      uint16_t high = dp_word(&low);
+      uint16_t value = read(low) + 1;
+      write(low, value & 0xff);
+      value += read(high) << 8;
+      write(high, value >> 8);
+      PSW.Z = value == 0;
+      PSW.N = value & 0x8000;
       break;
     }
-    case 0x8E:  // POP PSW
-    {
-      uint8_t flags_byte;
-      POP(flags_byte);
-      PSW = ByteToFlags(flags_byte);
+    case 0x3b: {  // rol dpx
+      ROL(dpx());
       break;
     }
-
-      // . memory bit operations
-
-    case 0xEA:  // NOT1 abs, bit
-      // NOT1(abs(), bit());
-      break;
-    case 0xAA:  // MOV1 C, abs, bit
-      break;
-    case 0xCA:  // MOV1 abs, bit, C
-      break;
-    case 0x4A:  // AND1 C, abs, bit
-      break;
-    case 0x6A:  // AND1 C, /abs, bit
-      break;
-    case 0x0A:  // OR1 C, abs, bit
-      break;
-    case 0x2A:  // OR1 C, /abs, bit
-      break;
-    case 0x8A:  // EOR1 C, abs, bit
-      break;
-
-      // . status flags
-
-    case 0x60:  // CLRC
-      CLRC();
-      break;
-    case 0x80:  // SETC
-      SETC();
-      break;
-    case 0xED:  // NOTC
-      NOTC();
-      break;
-    case 0xE0:  // CLRV
-      CLRV();
-      break;
-    case 0x20:  // CLRP
-      CLRP();
-      break;
-    case 0x40:  // SETP
-      SETP();
-      break;
-    case 0xA0:  // EI
-      EI();
-      break;
-    case 0xC0:  // DI
-      DI();
-      break;
-
-    // .no-operation and haltF
-    case 0x00:  // NOP
-    {
-      NOP();
+    case 0x3c: {  // rola imp
+      read(PC);
+      bool newC = A & 0x80;
+      A = (A << 1) | PSW.C;
+      PSW.C = newC;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xEF:  // SLEEP
-    {
-      SLEEP();
+    case 0x3d: {  // incx imp
+      read(PC);
+      X++;
+      PSW.Z = (X == 0);
+      PSW.N = (X & 0x80);
       break;
     }
-    case 0x0F:  // STOP
-    {
-      STOP();
+    case 0x3e: {  // cmpx dp
+      CMPX(dp());
+      break;
+    }
+    case 0x3f: {  // call abs
+      uint16_t dst = ReadOpcodeWord();
+      callbacks_.idle(false);
+      push_word(PC);
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      PC = dst;
+      break;
+    }
+    case 0x40: {  // setp imp
+      read(PC);
+      PSW.P = true;
+      break;
+    }
+    case 0x44: {  // eor dp
+      EOR(dp());
+      break;
+    }
+    case 0x45: {  // eor abs
+      EOR(abs());
+      break;
+    }
+    case 0x46: {  // eor ind
+      EOR(ind());
+      break;
+    }
+    case 0x47: {  // eor idx
+      EOR(idx());
+      break;
+    }
+    case 0x48: {  // eor imm
+      EOR(imm());
+      break;
+    }
+    case 0x49: {  // eorm dp, dp
+      uint8_t src = 0;
+      uint16_t dst = dp_dp(&src);
+      EORM(dst, src);
+      break;
+    }
+    case 0x4a: {  // and1 abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      PSW.C = PSW.C & ((read(adr) >> bit) & 1);
+      break;
+    }
+    case 0x4b: {  // lsr dp
+      LSR(dp());
+      break;
+    }
+    case 0x4c: {  // lsr abs
+      LSR(abs());
+      break;
+    }
+    case 0x4d: {  // pushx imp
+      read(PC);
+      push_byte(X);
+      callbacks_.idle(false);
+      break;
+    }
+    case 0x4e: {  // tclr1 abs
+      uint16_t adr = abs();
+      uint8_t val = read(adr);
+      read(adr);
+      uint8_t result = A + (val ^ 0xff) + 1;
+      PSW.Z = (result == 0);
+      PSW.N = (result & 0x80);
+      write(adr, val & ~A);
+      break;
+    }
+    case 0x4f: {  // pcall dp
+      uint8_t dst = ReadOpcode();
+      callbacks_.idle(false);
+      push_word(PC);
+      callbacks_.idle(false);
+      PC = 0xff00 | dst;
+      break;
+    }
+    case 0x50: {  // bvc rel
+      DoBranch(ReadOpcode(), !PSW.V);
+      break;
+    }
+    case 0x54: {  // eor dpx
+      EOR(dpx());
+      break;
+    }
+    case 0x55: {  // eor abx
+      EOR(abs_x());
+      break;
+    }
+    case 0x56: {  // eor aby
+      EOR(abs_y());
+      break;
+    }
+    case 0x57: {  // eor idy
+      EOR(idy());
+      break;
+    }
+    case 0x58: {  // eorm dp, imm
+      uint8_t src = 0;
+      uint16_t dst = dp_imm(&src);
+      EORM(dst, src);
+      break;
+    }
+    case 0x59: {  // eorm ind, ind
+      uint8_t src = 0;
+      uint16_t dst = ind_ind(&src);
+      EORM(dst, src);
+      break;
+    }
+    case 0x5a: {  // cmpw dp
+      uint16_t low = 0;
+      // uint16_t high = dp_word(&low);
+      uint16_t value = read_word(low) ^ 0xffff;
+      uint16_t ya = A | (Y << 8);
+      int result = ya + value + 1;
+      PSW.C = result > 0xffff;
+      PSW.Z = (result & 0xffff) == 0;
+      PSW.N = result & 0x8000;
+      break;
+    }
+    case 0x5b: {  // lsr dpx
+      LSR(dpx());
+      break;
+    }
+    case 0x5c: {  // lsra imp
+      read(PC);
+      PSW.C = A & 1;
+      A >>= 1;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0x5d: {  // movxa imp
+      read(PC);
+      X = A;
+      PSW.Z = (X == 0);
+      PSW.N = (X & 0x80);
+      break;
+    }
+    case 0x5e: {  // cmpy abs
+      CMPY(abs());
+      break;
+    }
+    case 0x5f: {  // jmp abs
+      PC = ReadOpcodeWord();
+      break;
+    }
+    case 0x60: {  // clrc imp
+      read(PC);
+      PSW.C = false;
+      break;
+    }
+    case 0x64: {  // cmp dp
+      CMP(dp());
+      break;
+    }
+    case 0x65: {  // cmp abs
+      CMP(abs());
+      break;
+    }
+    case 0x66: {  // cmp ind
+      CMP(ind());
+      break;
+    }
+    case 0x67: {  // cmp idx
+      CMP(idx());
+      break;
+    }
+    case 0x68: {  // cmp imm
+      CMP(imm());
+      break;
+    }
+    case 0x69: {  // cmpm dp, dp
+      uint8_t src = 0;
+      uint16_t dst = dp_dp(&src);
+      CMPM(dst, src);
+      break;
+    }
+    case 0x6a: {  // and1n abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      PSW.C = PSW.C & (~(read(adr) >> bit) & 1);
+      break;
+    }
+    case 0x6b: {  // ror dp
+      ROR(dp());
+      break;
+    }
+    case 0x6c: {  // ror abs
+      ROR(abs());
+      break;
+    }
+    case 0x6d: {  // pushy imp
+      read(PC);
+      push_byte(Y);
+      callbacks_.idle(false);
+      break;
+    }
+    case 0x6e: {  // dbnz dp, rel
+      uint16_t adr = dp();
+      uint8_t result = read(adr) - 1;
+      write(adr, result);
+      DoBranch(ReadOpcode(), result != 0);
+      break;
+    }
+    case 0x6f: {  // ret imp
+      read(PC);
+      callbacks_.idle(false);
+      PC = pull_word();
+      break;
+    }
+    case 0x70: {  // bvs rel
+      DoBranch(ReadOpcode(), PSW.V);
+      break;
+    }
+    case 0x74: {  // cmp dpx
+      CMP(dpx());
+      break;
+    }
+    case 0x75: {  // cmp abx
+      CMP(abs_x());
+      break;
+    }
+    case 0x76: {  // cmp aby
+      CMP(abs_y());
+      break;
+    }
+    case 0x77: {  // cmp idy
+      CMP(idy());
+      break;
+    }
+    case 0x78: {  // cmpm dp, imm
+      uint8_t src = 0;
+      uint16_t dst = dp_imm(&src);
+      CMPM(dst, src);
+      break;
+    }
+    case 0x79: {  // cmpm ind, ind
+      uint8_t src = 0;
+      uint16_t dst = ind_ind(&src);
+      CMPM(dst, src);
+      break;
+    }
+    case 0x7a: {  // addw dp
+      uint16_t low = 0;
+      uint16_t high = dp_word(&low);
+      uint8_t vall = read(low);
+      callbacks_.idle(false);
+      uint16_t value = vall | (read(high) << 8);
+      uint16_t ya = A | (Y << 8);
+      int result = ya + value;
+      PSW.V = (ya & 0x8000) == (value & 0x8000) &&
+              (value & 0x8000) != (result & 0x8000);
+      PSW.H = ((ya & 0xfff) + (value & 0xfff)) > 0xfff;
+      PSW.C = result > 0xffff;
+      PSW.Z = (result & 0xffff) == 0;
+      PSW.N = result & 0x8000;
+      A = result & 0xff;
+      Y = result >> 8;
+      break;
+    }
+    case 0x7b: {  // ror dpx
+      ROR(dpx());
+      break;
+    }
+    case 0x7c: {  // rora imp
+      read(PC);
+      bool newC = A & 1;
+      A = (A >> 1) | (PSW.C << 7);
+      PSW.C = newC;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0x7d: {  // movax imp
+      read(PC);
+      A = X;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0x7e: {  // cmpy dp
+      CMPY(dp());
+      break;
+    }
+    case 0x7f: {  // reti imp
+      read(PC);
+      callbacks_.idle(false);
+      PSW = ByteToFlags(pull_byte());
+      PC = pull_word();
+      break;
+    }
+    case 0x80: {  // setc imp
+      read(PC);
+      PSW.C = true;
+      break;
+    }
+    case 0x84: {  // adc dp
+      ADC(dp());
+      break;
+    }
+    case 0x85: {  // adc abs
+      ADC(abs());
+      break;
+    }
+    case 0x86: {  // adc ind
+      ADC(ind());
+      break;
+    }
+    case 0x87: {  // adc idx
+      ADC(idx());
+      break;
+    }
+    case 0x88: {  // adc imm
+      ADC(imm());
+      break;
+    }
+    case 0x89: {  // adcm dp, dp
+      uint8_t src = 0;
+      uint16_t dst = dp_dp(&src);
+      ADCM(dst, src);
+      break;
+    }
+    case 0x8a: {  // eor1 abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      PSW.C = PSW.C ^ ((read(adr) >> bit) & 1);
+      callbacks_.idle(false);
+      break;
+    }
+    case 0x8b: {  // dec dp
+      DEC(dp());
+      break;
+    }
+    case 0x8c: {  // dec abs
+      DEC(abs());
+      break;
+    }
+    case 0x8d: {  // movy imm
+      MOVY(imm());
+      break;
+    }
+    case 0x8e: {  // popp imp
+      read(PC);
+      callbacks_.idle(false);
+      PSW = ByteToFlags(pull_byte());
+      break;
+    }
+    case 0x8f: {  // movm dp, imm
+      uint8_t val = 0;
+      uint16_t dst = dp_imm(&val);
+      read(dst);
+      write(dst, val);
+      break;
+    }
+    case 0x90: {  // bcc rel
+      DoBranch(ReadOpcode(), !PSW.C);
+      break;
+    }
+    case 0x94: {  // adc dpx
+      ADC(dpx());
+      break;
+    }
+    case 0x95: {  // adc abx
+      ADC(abs_x());
+      break;
+    }
+    case 0x96: {  // adc aby
+      ADC(abs_y());
+      break;
+    }
+    case 0x97: {  // adc idy
+      ADC(idy());
+      break;
+    }
+    case 0x98: {  // adcm dp, imm
+      uint8_t src = 0;
+      uint16_t dst = dp_imm(&src);
+      ADCM(dst, src);
+      break;
+    }
+    case 0x99: {  // adcm ind, ind
+      uint8_t src = 0;
+      uint16_t dst = ind_ind(&src);
+      ADCM(dst, src);
+      break;
+    }
+    case 0x9a: {  // subw dp
+      uint16_t low = 0;
+      uint16_t high = dp_word(&low);
+      uint8_t vall = read(low);
+      callbacks_.idle(false);
+      uint16_t value = (vall | (read(high) << 8)) ^ 0xffff;
+      uint16_t ya = A | (Y << 8);
+      int result = ya + value + 1;
+      PSW.V = (ya & 0x8000) == (value & 0x8000) &&
+              (value & 0x8000) != (result & 0x8000);
+      PSW.H = ((ya & 0xfff) + (value & 0xfff) + 1) > 0xfff;
+      PSW.C = result > 0xffff;
+      PSW.Z = (result & 0xffff) == 0;
+      PSW.N = result & 0x8000;
+      A = result & 0xff;
+      Y = result >> 8;
+      break;
+    }
+    case 0x9b: {  // dec dpx
+      DEC(dpx());
+      break;
+    }
+    case 0x9c: {  // deca imp
+      read(PC);
+      A--;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0x9d: {  // movxp imp
+      read(PC);
+      X = SP;
+      PSW.Z = (X == 0);
+      PSW.N = (X & 0x80);
+      break;
+    }
+    case 0x9e: {  // div imp
+      read(PC);
+      for (int i = 0; i < 10; i++) callbacks_.idle(false);
+      PSW.H = (X & 0xf) <= (Y & 0xf);
+      int yva = (Y << 8) | A;
+      int x = X << 9;
+      for (int i = 0; i < 9; i++) {
+        yva <<= 1;
+        yva |= (yva & 0x20000) ? 1 : 0;
+        yva &= 0x1ffff;
+        if (yva >= x) yva ^= 1;
+        if (yva & 1) yva -= x;
+        yva &= 0x1ffff;
+      }
+      Y = yva >> 9;
+      PSW.V = yva & 0x100;
+      A = yva & 0xff;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0x9f: {  // xcn imp
+      read(PC);
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      A = (A >> 4) | (A << 4);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0xa0: {  // ei  imp
+      read(PC);
+      callbacks_.idle(false);
+      PSW.I = true;
+      break;
+    }
+    case 0xa4: {  // sbc dp
+      SBC(dp());
+      break;
+    }
+    case 0xa5: {  // sbc abs
+      SBC(abs());
+      break;
+    }
+    case 0xa6: {  // sbc ind
+      SBC(ind());
+      break;
+    }
+    case 0xa7: {  // sbc idx
+      SBC(idx());
+      break;
+    }
+    case 0xa8: {  // sbc imm
+      SBC(imm());
+      break;
+    }
+    case 0xa9: {  // sbcm dp, dp
+      uint8_t src = 0;
+      uint16_t dst = dp_dp(&src);
+      SBCM(dst, src);
+      break;
+    }
+    case 0xaa: {  // mov1 abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      PSW.C = (read(adr) >> bit) & 1;
+      break;
+    }
+    case 0xab: {  // inc dp
+      INC(dp());
+      break;
+    }
+    case 0xac: {  // inc abs
+      INC(abs());
+      break;
+    }
+    case 0xad: {  // cmpy imm
+      CMPY(imm());
+      break;
+    }
+    case 0xae: {  // popa imp
+      read(PC);
+      callbacks_.idle(false);
+      A = pull_byte();
+      break;
+    }
+    case 0xaf: {  // movs ind+
+      uint16_t adr = ind_p();
+      callbacks_.idle(false);
+      write(adr, A);
+      break;
+    }
+    case 0xb0: {  // bcs rel
+      DoBranch(ReadOpcode(), PSW.C);
+      break;
+    }
+    case 0xb4: {  // sbc dpx
+      SBC(dpx());
+      break;
+    }
+    case 0xb5: {  // sbc abx
+      SBC(abs_x());
+      break;
+    }
+    case 0xb6: {  // sbc aby
+      SBC(abs_y());
+      break;
+    }
+    case 0xb7: {  // sbc idy
+      SBC(idy());
+      break;
+    }
+    case 0xb8: {  // sbcm dp, imm
+      uint8_t src = 0;
+      uint16_t dst = dp_imm(&src);
+      SBCM(dst, src);
+      break;
+    }
+    case 0xb9: {  // sbcm ind, ind
+      uint8_t src = 0;
+      uint16_t dst = ind_ind(&src);
+      SBCM(dst, src);
+      break;
+    }
+    case 0xba: {  // movw dp
+      uint16_t low = 0;
+      uint16_t high = dp_word(&low);
+      uint8_t vall = read(low);
+      callbacks_.idle(false);
+      uint16_t val = vall | (read(high) << 8);
+      A = val & 0xff;
+      Y = val >> 8;
+      PSW.Z = val == 0;
+      PSW.N = val & 0x8000;
+      break;
+    }
+    case 0xbb: {  // inc dpx
+      INC(dpx());
+      break;
+    }
+    case 0xbc: {  // inca imp
+      read(PC);
+      A++;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      ;
+      break;
+    }
+    case 0xbd: {  // movpx imp
+      read(PC);
+      SP = X;
+      break;
+    }
+    case 0xbe: {  // das imp
+      read(PC);
+      callbacks_.idle(false);
+      if (A > 0x99 || !PSW.C) {
+        A -= 0x60;
+        PSW.C = false;
+      }
+      if ((A & 0xf) > 9 || !PSW.H) {
+        A -= 6;
+      }
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0xbf: {  // mov ind+
+      uint16_t adr = ind_p();
+      A = read(adr);
+      callbacks_.idle(false);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0xc0: {  // di  imp
+      read(PC);
+      callbacks_.idle(false);
+      PSW.I = false;
+      break;
+    }
+    case 0xc4: {  // movs dp
+      MOVS(dp());
+      break;
+    }
+    case 0xc5: {  // movs abs
+      MOVS(abs());
+      break;
+    }
+    case 0xc6: {  // movs ind
+      MOVS(ind());
+      break;
+    }
+    case 0xc7: {  // movs idx
+      MOVS(idx());
+      break;
+    }
+    case 0xc8: {  // cmpx imm
+      CMPX(imm());
+      break;
+    }
+    case 0xc9: {  // movsx abs
+      MOVSX(abs());
+      break;
+    }
+    case 0xca: {  // mov1s abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      uint8_t result = (read(adr) & (~(1 << bit))) | (PSW.C << bit);
+      callbacks_.idle(false);
+      write(adr, result);
+      break;
+    }
+    case 0xcb: {  // movsy dp
+      MOVSY(dp());
+      break;
+    }
+    case 0xcc: {  // movsy abs
+      MOVSY(abs());
+      break;
+    }
+    case 0xcd: {  // movx imm
+      MOVX(imm());
+      break;
+    }
+    case 0xce: {  // popx imp
+      read(PC);
+      callbacks_.idle(false);
+      X = pull_byte();
+      break;
+    }
+    case 0xcf: {  // mul imp
+      read(PC);
+      for (int i = 0; i < 7; i++) callbacks_.idle(false);
+      uint16_t result = A * Y;
+      A = result & 0xff;
+      Y = result >> 8;
+      PSW.Z = ((Y & 0xFFFF) == 0);
+      PSW.N = (Y & 0x8000);
+      break;
+    }
+    case 0xd0: {  // bne rel
+      switch (step++) {
+        case 1:
+          dat = ReadOpcode();
+          if (PSW.Z) step = 0;
+          break;
+        case 2:
+          callbacks_.idle(false);
+          break;
+        case 3:
+          callbacks_.idle(false);
+          PC += (int8_t)dat;
+          step = 0;
+          break;
+      }
+      // DoBranch(ReadOpcode(), !PSW.Z);
+      break;
+    }
+    case 0xd4: {  // movs dpx
+      MOVS(dpx());
+      break;
+    }
+    case 0xd5: {  // movs abx
+      MOVS(abs_x());
+      break;
+    }
+    case 0xd6: {  // movs aby
+      MOVS(abs_y());
+      break;
+    }
+    case 0xd7: {  // movs idy
+      MOVS(idy());
+      break;
+    }
+    case 0xd8: {  // movsx dp
+      MOVSX(dp());
+      break;
+    }
+    case 0xd9: {  // movsx dpy
+      MOVSX(dp_y());
+      break;
+    }
+    case 0xda: {  // movws dp
+      uint16_t low = 0;
+      uint16_t high = dp_word(&low);
+      read(low);
+      write(low, A);
+      write(high, Y);
+      break;
+    }
+    case 0xdb: {  // movsy dpx
+      MOVSY(dpx());
+      break;
+    }
+    case 0xdc: {  // decy imp
+      read(PC);
+      Y--;
+      PSW.Z = ((Y & 0xFFFF) == 0);
+      PSW.N = (Y & 0x8000);
+      break;
+    }
+    case 0xdd: {  // movay imp
+      read(PC);
+      A = Y;
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0xde: {  // cbne dpx, rel
+      uint8_t val = read(dpx()) ^ 0xff;
+      callbacks_.idle(false);
+      uint8_t result = A + val + 1;
+      DoBranch(ReadOpcode(), result != 0);
+      break;
+    }
+    case 0xdf: {  // daa imp
+      read(PC);
+      callbacks_.idle(false);
+      if (A > 0x99 || PSW.C) {
+        A += 0x60;
+        PSW.C = true;
+      }
+      if ((A & 0xf) > 9 || PSW.H) {
+        A += 6;
+      }
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
+      break;
+    }
+    case 0xe0: {  // clrv imp
+      read(PC);
+      PSW.V = false;
+      PSW.H = false;
+      break;
+    }
+    case 0xe4: {  // mov dp
+      MOV(dp());
+      break;
+    }
+    case 0xe5: {  // mov abs
+      MOV(abs());
+      break;
+    }
+    case 0xe6: {  // mov ind
+      MOV(ind());
+      break;
+    }
+    case 0xe7: {  // mov idx
+      MOV(idx());
+      break;
+    }
+    case 0xe8: {  // mov imm
+      MOV(imm());
+      break;
+    }
+    case 0xe9: {  // movx abs
+      MOVX(abs());
+      break;
+    }
+    case 0xea: {  // not1 abs.bit
+      uint16_t adr = 0;
+      uint8_t bit = abs_bit(&adr);
+      uint8_t result = read(adr) ^ (1 << bit);
+      write(adr, result);
+      break;
+    }
+    case 0xeb: {  // movy dp
+      MOVY(dp());
+      break;
+    }
+    case 0xec: {  // movy abs
+      MOVY(abs());
+      break;
+    }
+    case 0xed: {  // notc imp
+      read(PC);
+      callbacks_.idle(false);
+      PSW.C = !PSW.C;
+      break;
+    }
+    case 0xee: {  // popy imp
+      read(PC);
+      callbacks_.idle(false);
+      Y = pull_byte();
+      break;
+    }
+    case 0xef: {  // sleep imp
+      read(PC);
+      callbacks_.idle(false);
+      stopped_ = true;  // no interrupts, so sleeping stops as well
+      break;
+    }
+    case 0xf0: {  // beq rel
+      DoBranch(ReadOpcode(), PSW.Z);
+      break;
+    }
+    case 0xf4: {  // mov dpx
+      MOV(dpx());
+      break;
+    }
+    case 0xf5: {  // mov abx
+      MOV(abs_x());
+      break;
+    }
+    case 0xf6: {  // mov aby
+      MOV(abs_y());
+      break;
+    }
+    case 0xf7: {  // mov idy
+      MOV(idy());
+      break;
+    }
+    case 0xf8: {  // movx dp
+      MOVX(dp());
+      break;
+    }
+    case 0xf9: {  // movx dpy
+      MOVX(dp_y());
+      break;
+    }
+    case 0xfa: {  // movm dp, dp
+      uint8_t val = 0;
+      uint16_t dst = dp_dp(&val);
+      write(dst, val);
+      break;
+    }
+    case 0xfb: {  // movy dpx
+      MOVY(dpx());
+      break;
+    }
+    case 0xfc: {  // incy imp
+      read(PC);
+      Y++;
+      PSW.Z = ((Y & 0xFFFF) == 0);
+      PSW.N = (Y & 0x8000);
+      break;
+    }
+    case 0xfd: {  // movya imp
+      read(PC);
+      Y = A;
+      PSW.Z = ((Y & 0xFFFF) == 0);
+      PSW.N = (Y & 0x8000);
+      break;
+    }
+    case 0xfe: {  // dbnzy rel
+      read(PC);
+      callbacks_.idle(false);
+      Y--;
+      DoBranch(ReadOpcode(), Y != 0);
+      break;
+    }
+    case 0xff: {  // stop imp
+      read(PC);
+      callbacks_.idle(false);
+      stopped_ = true;
       break;
     }
 
     default:
-      std::cout << "Unknown opcode: " << std::hex << opcode << std::endl;
+      throw std::runtime_error("Unknown SPC opcode: " + std::to_string(opcode));
       break;
   }
-
-  LogInstruction(initialPC, opcode);
 }
 
 void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
@@ -950,7 +1322,7 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
   std::cerr << log_entry << std::endl;
 
   // Append the log entry to the log
-  log_.push_back(log_entry);
+  // log_.push_back(log_entry);
 }
 
 }  // namespace audio

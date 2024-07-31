@@ -22,6 +22,25 @@ namespace app {
  */
 namespace gfx {
 
+constexpr Uint32 SNES_PIXELFORMAT_2BPP = SDL_DEFINE_PIXELFORMAT(
+    /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
+    /*layouts=*/0, /*bits=*/2, /*bytes=*/1);
+
+constexpr Uint32 SNES_PIXELFORMAT_4BPP = SDL_DEFINE_PIXELFORMAT(
+    /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
+    /*layouts=*/0, /*bits=*/4, /*bytes=*/1);
+
+constexpr Uint32 SNES_PIXELFORMAT_8BPP = SDL_DEFINE_PIXELFORMAT(
+    /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
+    /*layouts=*/0, /*bits=*/8, /*bytes=*/1);
+
+// SDL_PIXELFORMAT_INDEX8 =
+// SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_INDEX8, 0, 0, 8, 1),
+
+constexpr int kFormat2bppIndexed = 1;
+constexpr int kFormat4bppIndexed = 2;
+constexpr int kFormat8bppIndexed = 3;
+
 /**
  * @brief Convert SDL_Surface to PNG image data.
  */
@@ -48,7 +67,7 @@ class Bitmap {
   Bitmap(int width, int height, int depth, int data_size);
   Bitmap(int width, int height, int depth, const Bytes &data)
       : width_(width), height_(height), depth_(depth), data_(data) {
-    InitializeFromData(width, height, depth, data);
+    Create(width, height, depth, data);
   }
   Bitmap(int width, int height, int depth, const Bytes &data,
          const SnesPalette &palette)
@@ -57,22 +76,19 @@ class Bitmap {
         depth_(depth),
         data_(data),
         palette_(palette) {
-    InitializeFromData(width, height, depth, data);
-    ApplyPalette(palette);
+    Create(width, height, depth, data);
+    if (!ApplyPalette(palette).ok()) {
+      std::cerr << "Error applying palette in bitmap constructor." << std::endl;
+    }
   }
-
-  /**
-   * @brief Creates a bitmap object and reserves space for graphical data.
-   */
-  void Create(int width, int height, int depth, int data_size);
 
   /**
    * @brief Creates a bitmap object with the provided graphical data.
    */
   void Create(int width, int height, int depth, const Bytes &data);
+  void Create(int width, int height, int depth, int format, const Bytes &data);
 
-  void InitializeFromData(uint32_t width, uint32_t height, uint32_t depth,
-                          const Bytes &data);
+  void Reformat(int format);
 
   /**
    * @brief Creates the underlying SDL_Texture to be displayed.
@@ -191,23 +207,7 @@ class Bitmap {
   }
 
   void Cleanup() {
-    // Reset texture_
-    if (texture_) {
-      texture_.reset();
-    }
-
-    // Reset surface_ and its pixel data
-    if (surface_) {
-      surface_->pixels = nullptr;
-      surface_.reset();
-    }
-
-    // Reset data_
-    data_.clear();
-
-    // Reset other members if necessary
     active_ = false;
-    pixel_data_ = nullptr;
     width_ = 0;
     height_ = 0;
     depth_ = 0;
@@ -222,6 +222,7 @@ class Bitmap {
     return surface_->format->palette;
   }
   auto palette() const { return palette_; }
+  auto mutable_palette() { return &palette_; }
   auto palette_size() const { return palette_.size(); }
 
   int width() const { return width_; }
@@ -250,7 +251,6 @@ class Bitmap {
     void operator()(SDL_Texture *p) const {
       if (p != nullptr) {
         SDL_DestroyTexture(p);
-        p = nullptr;
       }
     }
   };
@@ -258,9 +258,7 @@ class Bitmap {
   struct SDL_Surface_Deleter {
     void operator()(SDL_Surface *p) const {
       if (p != nullptr) {
-        p->pixels = nullptr;
         SDL_FreeSurface(p);
-        p = nullptr;
       }
     }
   };
@@ -293,15 +291,21 @@ using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
  */
 class BitmapManager {
  private:
-  std::unordered_map<int, std::shared_ptr<gfx::Bitmap>> bitmap_cache_;
+  std::unordered_map<int, gfx::Bitmap> bitmap_cache_;
 
  public:
   void LoadBitmap(int id, const Bytes &data, int width, int height, int depth) {
-    bitmap_cache_[id] =
-        std::make_shared<gfx::Bitmap>(width, height, depth, data);
+    bitmap_cache_[id].Create(width, height, depth, data);
   }
 
-  std::shared_ptr<gfx::Bitmap> const &operator[](int id) {
+  gfx::Bitmap &operator[](int id) {
+    auto it = bitmap_cache_.find(id);
+    if (it != bitmap_cache_.end()) {
+      return it->second;
+    }
+    return bitmap_cache_.begin()->second;
+  }
+  gfx::Bitmap &shared_bitmap(int id) {
     auto it = bitmap_cache_.find(id);
     if (it != bitmap_cache_.end()) {
       return it->second;
@@ -309,22 +313,14 @@ class BitmapManager {
     throw std::runtime_error(
         absl::StrCat("Bitmap with id ", id, " not found."));
   }
-  std::shared_ptr<gfx::Bitmap> const &shared_bitmap(int id) {
-    auto it = bitmap_cache_.find(id);
-    if (it != bitmap_cache_.end()) {
-      return it->second;
-    }
-    throw std::runtime_error(
-        absl::StrCat("Bitmap with id ", id, " not found."));
-  }
-  auto mutable_bitmap(int id) { return bitmap_cache_[id]; }
+  auto mutable_bitmap(int id) { return &bitmap_cache_[id]; }
   void clear_cache() { bitmap_cache_.clear(); }
+  auto size() const { return bitmap_cache_.size(); }
+  auto at(int id) const { return bitmap_cache_.at(id); }
 
-  using value_type = std::pair<const int, std::shared_ptr<gfx::Bitmap>>;
-  using iterator =
-      std::unordered_map<int, std::shared_ptr<gfx::Bitmap>>::iterator;
-  using const_iterator =
-      std::unordered_map<int, std::shared_ptr<gfx::Bitmap>>::const_iterator;
+  using value_type = std::pair<const int, gfx::Bitmap>;
+  using iterator = std::unordered_map<int, gfx::Bitmap>::iterator;
+  using const_iterator = std::unordered_map<int, gfx::Bitmap>::const_iterator;
 
   iterator begin() noexcept { return bitmap_cache_.begin(); }
   iterator end() noexcept { return bitmap_cache_.end(); }

@@ -3,22 +3,7 @@ set(
   app/core/common.cc
   app/core/controller.cc
   app/core/labeling.cc
-)
-
-set(
-  YAZE_APP_EDITOR_SRC
-  app/editor/dungeon_editor.cc
-  app/editor/graphics_editor.cc
-  app/editor/master_editor.cc
-  app/editor/overworld_editor.cc
-  app/editor/screen_editor.cc
-  app/editor/sprite_editor.cc
-  app/editor/modules/music_editor.cc
-  app/editor/modules/palette_editor.cc
-  app/editor/modules/assembly_editor.cc
-  app/editor/modules/tile16_editor.cc
-  app/editor/modules/gfx_group_editor.cc
-  app/editor/context/gfx_context.cc
+  app/emu/emulator.cc
 )
 
 set(
@@ -33,31 +18,17 @@ set(
 )
 
 set(
-  YAZE_APP_ZELDA3_SRC
-  app/zelda3/overworld/overworld_map.cc
-  app/zelda3/overworld/overworld.cc
-  app/zelda3/screen/inventory.cc
-  app/zelda3/screen/title_screen.cc
-  app/zelda3/sprite/sprite.cc
-  app/zelda3/music/tracker.cc
-  app/zelda3/dungeon/room.cc
-  app/zelda3/dungeon/room_object.cc
-  app/zelda3/dungeon/object_renderer.cc
-)
-
-set(
   YAZE_GUI_SRC
+  app/gui/asset_browser.cc
   app/gui/canvas.cc
   app/gui/input.cc
   app/gui/style.cc
-  app/gui/widgets.cc
   app/gui/color.cc
-  app/gui/pipeline.cc
+  app/gui/zeml.cc
 )
 
 set(
   YAZE_APP_EMU_SRC
-  app/emu/emulator.cc
   app/emu/audio/apu.cc
   app/emu/audio/spc700.cc
   app/emu/audio/dsp.cc
@@ -92,6 +63,7 @@ if(APPLE)
       app/core/platform/app_delegate.mm
       app/core/platform/font_loader.mm
       app/core/platform/clipboard.mm
+      app/core/platform/file_path.mm
     )
 
     find_library(COCOA_LIBRARY Cocoa)
@@ -102,7 +74,7 @@ if(APPLE)
 endif()
 
 include(app/CMakeLists.txt)
-include(cli/CMakeLists.txt)
+# include(cli/CMakeLists.txt) Excluded for now, macOS include breaks action build
 
 if (UNIX)
   target_compile_definitions(yaze PRIVATE "linux")
@@ -136,3 +108,5 @@ set_target_properties(yaze
     LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/yaze.res"
 )
 endif()
+
+add_subdirectory(test)

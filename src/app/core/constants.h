@@ -5,10 +5,6 @@
 
 #include "absl/strings/string_view.h"
 
-#define IMGUI_DEFINE_MATH_OPERATORS
-
-#define BASIC_BUTTON(w) if (ImGui::Button(w))
-
 #define TAB_BAR(w) if (ImGui::BeginTabBar(w)) {
 #define END_TAB_BAR() \
   ImGui::EndTabBar(); \
@@ -17,11 +13,6 @@
 #define TAB_ITEM(w) if (ImGui::BeginTabItem(w)) {
 #define END_TAB_ITEM() \
   ImGui::EndTabItem(); \
-  }
-
-#define MENU_BAR() if (ImGui::BeginMenuBar()) {
-#define END_MENU_BAR() \
-  ImGui::EndMenuBar(); \
   }
 
 #define MENU_ITEM(w) if (ImGui::MenuItem(w))
@@ -145,7 +136,7 @@ namespace app {
 namespace core {
 
 constexpr uint32_t kRedPen = 0xFF0000FF;
-constexpr float kYazeVersion = 0.07;
+constexpr float kYazeVersion = 0.2;
 
 // ============================================================================
 // Magic numbers
@@ -214,121 +205,89 @@ constexpr int GraveLinkSpecialHole = 0x46DD9;    // short
 constexpr int GraveLinkSpecialStairs = 0x46DE0;  // short
 
 // ============================================================================
-// Palettes Related Variables - This contain all the palettes of the game
-// ============================================================================
-constexpr int overworldPaletteMain = 0xDE6C8;
-constexpr int overworldPaletteAuxialiary = 0xDE86C;
-constexpr int overworldPaletteAnimated = 0xDE604;
-constexpr int globalSpritePalettesLW = 0xDD218;
-constexpr int globalSpritePalettesDW = 0xDD290;
-// Green, Blue, Red, Bunny, Electrocuted (15 colors each)
-constexpr int armorPalettes = 0xDD308;
-constexpr int spritePalettesAux1 = 0xDD39E;  // 7 colors each
-constexpr int spritePalettesAux2 = 0xDD446;  // 7 colors each
-constexpr int spritePalettesAux3 = 0xDD4E0;  // 7 colors each
-constexpr int swordPalettes = 0xDD630;       // 3 colors each - 4 entries
-constexpr int shieldPalettes = 0xDD648;      // 4 colors each - 3 entries
-constexpr int hudPalettes = 0xDD660;
-constexpr int dungeonMapPalettes = 0xDD70A;    // 21 colors
-constexpr int dungeonMainPalettes = 0xDD734;   //(15*6) colors each - 20 entries
-constexpr int dungeonMapBgPalettes = 0xDE544;  // 16*6
-// Mirrored Value at 0x75645 : 0x75625
-constexpr int hardcodedGrassLW = 0x5FEA9;
-constexpr int hardcodedGrassDW = 0x05FEB3;  // 0x7564F
-constexpr int hardcodedGrassSpecial = 0x75640;
-constexpr int overworldMiniMapPalettes = 0x55B27;
-constexpr int triforcePalette = 0x64425;
-constexpr int crystalPalette = 0xF4CD3;
-constexpr int customAreaSpecificBGPalette =
-    0x140000;  // 2 bytes for each overworld area (320)
-constexpr int customAreaSpecificBGASM = 0x140150;
-constexpr int customAreaSpecificBGEnabled =
-    0x140140;  // 1 byte, not 0 if enabled
-
-// ============================================================================
 // Names
 // ============================================================================
 
-static const absl::string_view RoomEffect[] = {"Nothing",
-                                               "Nothing",
-                                               "Moving Floor",
-                                               "Moving Water",
-                                               "Trinexx Shell",
-                                               "Red Flashes",
-                                               "Light Torch to See Floor",
-                                               "Ganon's Darkness"};
+static const std::string RoomEffect[] = {"Nothing",
+                                         "Nothing",
+                                         "Moving Floor",
+                                         "Moving Water",
+                                         "Trinexx Shell",
+                                         "Red Flashes",
+                                         "Light Torch to See Floor",
+                                         "Ganon's Darkness"};
 
-static const absl::string_view RoomTag[] = {"Nothing",
+static const std::string RoomTag[] = {"Nothing",
 
-                                            "NW Kill Enemy to Open",
-                                            "NE Kill Enemy to Open",
-                                            "SW Kill Enemy to Open",
-                                            "SE Kill Enemy to Open",
-                                            "W Kill Enemy to Open",
-                                            "E Kill Enemy to Open",
-                                            "N Kill Enemy to Open",
-                                            "S Kill Enemy to Open",
-                                            "Clear Quadrant to Open",
-                                            "Clear Full Tile to Open",
+                                      "NW Kill Enemy to Open",
+                                      "NE Kill Enemy to Open",
+                                      "SW Kill Enemy to Open",
+                                      "SE Kill Enemy to Open",
+                                      "W Kill Enemy to Open",
+                                      "E Kill Enemy to Open",
+                                      "N Kill Enemy to Open",
+                                      "S Kill Enemy to Open",
+                                      "Clear Quadrant to Open",
+                                      "Clear Full Tile to Open",
 
-                                            "NW Push Block to Open",
-                                            "NE Push Block to Open",
-                                            "SW Push Block to Open",
-                                            "SE Push Block to Open",
-                                            "W Push Block to Open",
-                                            "E Push Block to Open",
-                                            "N Push Block to Open",
-                                            "S Push Block to Open",
-                                            "Push Block to Open",
-                                            "Pull Lever to Open",
-                                            "Collect Prize to Open",
+                                      "NW Push Block to Open",
+                                      "NE Push Block to Open",
+                                      "SW Push Block to Open",
+                                      "SE Push Block to Open",
+                                      "W Push Block to Open",
+                                      "E Push Block to Open",
+                                      "N Push Block to Open",
+                                      "S Push Block to Open",
+                                      "Push Block to Open",
+                                      "Pull Lever to Open",
+                                      "Collect Prize to Open",
 
-                                            "Hold Switch Open Door",
-                                            "Toggle Switch to Open Door",
-                                            "Turn off Water",
-                                            "Turn on Water",
-                                            "Water Gate",
-                                            "Water Twin",
-                                            "Moving Wall Right",
-                                            "Moving Wall Left",
-                                            "Crash",
-                                            "Crash",
-                                            "Push Switch Exploding Wall",
-                                            "Holes 0",
-                                            "Open Chest (Holes 0)",
-                                            "Holes 1",
-                                            "Holes 2",
-                                            "Defeat Boss for Dungeon Prize",
+                                      "Hold Switch Open Door",
+                                      "Toggle Switch to Open Door",
+                                      "Turn off Water",
+                                      "Turn on Water",
+                                      "Water Gate",
+                                      "Water Twin",
+                                      "Moving Wall Right",
+                                      "Moving Wall Left",
+                                      "Crash",
+                                      "Crash",
+                                      "Push Switch Exploding Wall",
+                                      "Holes 0",
+                                      "Open Chest (Holes 0)",
+                                      "Holes 1",
+                                      "Holes 2",
+                                      "Defeat Boss for Dungeon Prize",
 
-                                            "SE Kill Enemy to Push Block",
-                                            "Trigger Switch Chest",
-                                            "Pull Lever Exploding Wall",
-                                            "NW Kill Enemy for Chest",
-                                            "NE Kill Enemy for Chest",
-                                            "SW Kill Enemy for Chest",
-                                            "SE Kill Enemy for Chest",
-                                            "W Kill Enemy for Chest",
-                                            "E Kill Enemy for Chest",
-                                            "N Kill Enemy for Chest",
-                                            "S Kill Enemy for Chest",
-                                            "Clear Quadrant for Chest",
-                                            "Clear Full Tile for Chest",
+                                      "SE Kill Enemy to Push Block",
+                                      "Trigger Switch Chest",
+                                      "Pull Lever Exploding Wall",
+                                      "NW Kill Enemy for Chest",
+                                      "NE Kill Enemy for Chest",
+                                      "SW Kill Enemy for Chest",
+                                      "SE Kill Enemy for Chest",
+                                      "W Kill Enemy for Chest",
+                                      "E Kill Enemy for Chest",
+                                      "N Kill Enemy for Chest",
+                                      "S Kill Enemy for Chest",
+                                      "Clear Quadrant for Chest",
+                                      "Clear Full Tile for Chest",
 
-                                            "Light Torches to Open",
-                                            "Holes 3",
-                                            "Holes 4",
-                                            "Holes 5",
-                                            "Holes 6",
-                                            "Agahnim Room",
-                                            "Holes 7",
-                                            "Holes 8",
-                                            "Open Chest for Holes 8",
-                                            "Push Block for Chest",
-                                            "Clear Room for Triforce Door",
-                                            "Light Torches for Chest",
-                                            "Kill Boss Again"};
+                                      "Light Torches to Open",
+                                      "Holes 3",
+                                      "Holes 4",
+                                      "Holes 5",
+                                      "Holes 6",
+                                      "Agahnim Room",
+                                      "Holes 7",
+                                      "Holes 8",
+                                      "Open Chest for Holes 8",
+                                      "Push Block for Chest",
+                                      "Clear Room for Triforce Door",
+                                      "Light Torches for Chest",
+                                      "Kill Boss Again"};
 
-static const absl::string_view SecretItemNames[] = {
+static const std::string SecretItemNames[] = {
     "Nothing",    "Green Rupee", "Rock hoarder",  "Bee",       "Health pack",
     "Bomb",       "Heart ",      "Blue Rupee",
 
@@ -340,7 +299,7 @@ static const absl::string_view SecretItemNames[] = {
 
     "Hole",       "Warp",        "Staircase",     "Bombable",  "Switch"};
 
-static const absl::string_view TileTypeNames[] = {
+static const std::string TileTypeNames[] = {
     "$00 Nothing (standard floor)",
     "$01 Collision",
     "$02 Collision",
@@ -598,7 +557,7 @@ static const absl::string_view TileTypeNames[] = {
     "$FE Door X top? (unused?)",
     "$FF Door X top? (unused?)"};
 
-static const absl::string_view kSpriteDefaultNames[]{
+static const std::string kSpriteDefaultNames[]{
     "00 Raven",
     "01 Vulture",
     "02 Flying Stalfos Head",
@@ -857,7 +816,7 @@ static const absl::string_view kSpriteDefaultNames[]{
     "FF",
 };
 
-static const absl::string_view overlordnames[] = {
+static const std::string overlordnames[] = {
     "Overlord_SpritePositionTarget",
     "Overlord_AllDirectionMetalBallFactory",
     "Overlord_CascadeMetalBallFactory",

@@ -96,7 +96,6 @@ void DungeonObjectRenderer::ConfigureObject(const SubtypeInfo& info) {
 */
 void DungeonObjectRenderer::RenderObject(const SubtypeInfo& info) {
   cpu.PB = 0x01;
-  cpu.PC = cpu.ReadWord(0x01 << 16 | info.routine_ptr);
 
   // Push an initial value to the stack we can read later to confirm we are
   // done
@@ -106,15 +105,8 @@ void DungeonObjectRenderer::RenderObject(const SubtypeInfo& info) {
   while (true) {
     uint8_t opcode = cpu.ReadByte(cpu.PB << 16 | cpu.PC);
     cpu.ExecuteInstruction(opcode);
-    cpu.HandleInterrupts();
 
-    if ((i != 0 &&
-             (cpu.ReadWord((0x00 << 16 | cpu.SP() + 2)) == info.routine_ptr) ||
-         0x8b93 == cpu.PC)) {
-      std::cout << std::hex << cpu.ReadWord((0x00 << 16 | cpu.SP() + 3))
-                << std::endl;
-      break;
-    }
+
     i++;
   }
 

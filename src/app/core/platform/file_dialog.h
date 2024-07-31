@@ -1,3 +1,6 @@
+#ifndef YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
+#define YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
+
 #include <string>
 
 #ifdef _WIN32
@@ -42,12 +45,38 @@ class FileDialogWrapper {
 
 #elif defined(__APPLE__)
 
+#include "TargetConditionals.h"
+
 #include <string>
+#include <vector>
+
+#ifdef TARGET_OS_MAC
+// Other kinds of Mac OS
 
 class FileDialogWrapper {
  public:
   static std::string ShowOpenFileDialog();
+  static std::string ShowOpenFolderDialog();
+  static std::vector<std::string> GetSubdirectoriesInFolder(
+      const std::string& folder_path);
+  static std::vector<std::string> GetFilesInFolder(
+      const std::string& folder_path);
 };
+
+#elif TARGET_OS_IPHONE
+
+// iOS
+class FileDialogWrapper {
+ public:
+  static std::string ShowOpenFileDialog();
+  static std::string ShowOpenFolderDialog();
+  static std::vector<std::string> GetSubdirectoriesInFolder(
+      const std::string& folder_path);
+  static std::vector<std::string> GetFilesInFolder(
+      const std::string& folder_path);
+};
+
+#endif
 
 #elif defined(__linux__)
 
@@ -63,3 +92,5 @@ class FileDialogWrapper {
 #else
 #error "Unsupported platform."
 #endif
+
+#endif  // YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H

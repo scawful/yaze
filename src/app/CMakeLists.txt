@@ -1,3 +1,6 @@
+include(app/editor/CMakeLists.txt)
+include(app/zelda3/CMakeLists.txt)
+
 add_executable(
   yaze
   app/yaze.cc
@@ -9,14 +12,15 @@ add_executable(
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
+  ${IMGUI_TEST_ENGINE_SOURCES}
 )
 
 target_include_directories(
   yaze PUBLIC
   lib/
   app/
-  lib/SDL_mixer/include/
   ${CMAKE_SOURCE_DIR}/src/
+  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
 )
@@ -27,7 +31,7 @@ target_link_libraries(
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  SDL2_mixer
+  ImGuiTestEngine
   ImGui
 )
 

@@ -99,13 +99,13 @@ absl::Status Rom::LoadAllGraphicsData() {
                                      core::kTilesheetDepth);
         if (i > 115) {
           // Apply sprites palette
-          RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
+          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
               palette_groups_.global_sprites[0], 0));
         } else {
-          RETURN_IF_ERROR(graphics_manager_[i]->ApplyPaletteWithTransparent(
+          RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
               palette_groups_.dungeon_main[0], 0));
         }
-        graphics_manager_[i]->CreateTexture(renderer_);
+        graphics_manager_[i].CreateTexture(renderer_);
       }
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
@@ -113,8 +113,8 @@ absl::Status Rom::LoadAllGraphicsData() {
       graphics_bin_.at(i).CreateTexture(renderer_);
 
       if (flags()->kUseBitmapManager) {
-        for (int j = 0; j < graphics_manager_[i].get()->size(); ++j) {
-          graphics_buffer_.push_back(graphics_manager_[i]->at(j));
+        for (int j = 0; j < graphics_manager_[i].size(); ++j) {
+          graphics_buffer_.push_back(graphics_manager_[i].at(j));
         }
       }
     } else {
@@ -126,20 +126,29 @@ absl::Status Rom::LoadAllGraphicsData() {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromFile(const absl::string_view& filename,
-                               bool z3_load) {
+absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
+  std::string full_filename = std::filesystem::absolute(filename).string();
+  if (full_filename.empty()) {
+    return absl::InvalidArgumentError(
+        "Could not load ROM: parameter `filename` is empty.");
+  }
   // Set filename
-  filename_ = filename;
+  filename_ = full_filename;
 
   // Open file
-  std::ifstream file(filename.data(), std::ios::binary);
+  std::ifstream file(filename_, std::ios::binary);
   if (!file.is_open()) {
     return absl::InternalError(
-        absl::StrCat("Could not open ROM file: ", filename));
+        absl::StrCat("Could not open ROM file: ", filename_));
   }
 
   // Get file size and resize rom_data_
-  size_ = std::filesystem::file_size(filename);
+  try {
+    size_ = std::filesystem::file_size(filename_);
+  } catch (const std::filesystem::filesystem_error& e) {
+    return absl::InternalError(
+        absl::StrCat("Could not get file size: ", filename_, " - ", e.what()));
+  }
   rom_data_.resize(size_);
 
   // Read file into rom_data_
@@ -149,6 +158,7 @@ absl::Status Rom::LoadFromFile(const absl::string_view& filename,
   constexpr size_t baseROMSize = 1048576;  // 1MB
   constexpr size_t headerSize = 0x200;     // 512 bytes
   if (size_ % baseROMSize == headerSize) {
+    std::cout << "ROM has a header" << std::endl;
     has_header_ = true;
   }
 
@@ -241,7 +251,7 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
 
     // Now, copy the original file to the backup file
     try {
-      std::filesystem::copy(filename, backup_filename,
+      std::filesystem::copy(filename_, backup_filename,
                             std::filesystem::copy_options::overwrite_existing);
     } catch (const std::filesystem::filesystem_error& e) {
       non_firing_status = absl::InternalError(absl::StrCat(
@@ -251,7 +261,11 @@ absl::Status Rom::SaveToFile(bool backup, bool save_new, std::string filename) {
 
   // Run the other save functions
   if (flags()->kSaveAllPalettes) {
-    SaveAllPalettes();
+    RETURN_IF_ERROR(SaveAllPalettes());
+  }
+
+  if (flags()->kSaveGfxGroups) {
+    SaveGroupsToRom();
   }
 
   if (save_new) {
@@ -323,13 +337,87 @@ absl::Status Rom::SavePalette(int index, const std::string& group_name,
 }
 
 absl::Status Rom::SaveAllPalettes() {
-  palette_groups_.for_each([&](gfx::PaletteGroup& group) {
-    for (size_t i = 0; i < group.size(); ++i) {
-      SavePalette(i, group.name(), *group.mutable_palette(i));
-    }
-  });
+  RETURN_IF_ERROR(
+      palette_groups_.for_each([&](gfx::PaletteGroup& group) -> absl::Status {
+        for (size_t i = 0; i < group.size(); ++i) {
+          RETURN_IF_ERROR(
+              SavePalette(i, group.name(), *group.mutable_palette(i)));
+        }
+        return absl::OkStatus();
+      }));
 
   return absl::OkStatus();
+}
+
+void Rom::LoadGfxGroups() {
+  main_blockset_ids.resize(37, std::vector<uint8_t>(8));
+  room_blockset_ids.resize(82, std::vector<uint8_t>(4));
+  spriteset_ids.resize(144, std::vector<uint8_t>(4));
+  paletteset_ids.resize(72, std::vector<uint8_t>(4));
+
+  int gfxPointer =
+      (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
+  gfxPointer = core::SnesToPc(gfxPointer);
+
+  for (int i = 0; i < 37; i++) {
+    for (int j = 0; j < 8; j++) {
+      main_blockset_ids[i][j] = rom_data_[gfxPointer + (i * 8) + j];
+    }
+  }
+
+  for (int i = 0; i < 82; i++) {
+    for (int j = 0; j < 4; j++) {
+      room_blockset_ids[i][j] =
+          rom_data_[core::entrance_gfx_group + (i * 4) + j];
+    }
+  }
+
+  for (int i = 0; i < 144; i++) {
+    for (int j = 0; j < 4; j++) {
+      spriteset_ids[i][j] =
+          rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
+    }
+  }
+
+  for (int i = 0; i < 72; i++) {
+    for (int j = 0; j < 4; j++) {
+      paletteset_ids[i][j] =
+          rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
+    }
+  }
+}
+
+void Rom::SaveGroupsToRom() {
+  int gfxPointer =
+      (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
+  gfxPointer = core::SnesToPc(gfxPointer);
+
+  for (int i = 0; i < 37; i++) {
+    for (int j = 0; j < 8; j++) {
+      rom_data_[gfxPointer + (i * 8) + j] = main_blockset_ids[i][j];
+    }
+  }
+
+  for (int i = 0; i < 82; i++) {
+    for (int j = 0; j < 4; j++) {
+      rom_data_[core::entrance_gfx_group + (i * 4) + j] =
+          room_blockset_ids[i][j];
+    }
+  }
+
+  for (int i = 0; i < 144; i++) {
+    for (int j = 0; j < 4; j++) {
+      rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j] =
+          spriteset_ids[i][j];
+    }
+  }
+
+  for (int i = 0; i < 72; i++) {
+    for (int j = 0; j < 4; j++) {
+      rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j] =
+          paletteset_ids[i][j];
+    }
+  }
 }
 
 std::shared_ptr<Rom> SharedRom::shared_rom_ = nullptr;

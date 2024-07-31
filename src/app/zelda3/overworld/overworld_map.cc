@@ -1,6 +1,6 @@
 #include "overworld_map.h"
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "app/core/common.h"
-#include "app/editor/context/gfx_context.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -146,13 +146,13 @@ void OverworldMap::LoadAreaInfo() {
 
 // ============================================================================
 
-void OverworldMap::LoadWorldIndex() {
+void OverworldMap::LoadMainBlocksetId() {
   if (parent_ < 0x40) {
-    world_index_ = 0x20;
+    main_gfx_id_ = 0x20;
   } else if (parent_ >= 0x40 && parent_ < 0x80) {
-    world_index_ = 0x21;
+    main_gfx_id_ = 0x21;
   } else if (parent_ == 0x88) {
-    world_index_ = 0x24;
+    main_gfx_id_ = 0x24;
   }
 }
 
@@ -174,7 +174,7 @@ void OverworldMap::LoadSpritesBlocksets() {
 void OverworldMap::LoadMainBlocksets() {
   for (int i = 0; i < 8; i++) {
     static_graphics_[i] = rom_[rom_.version_constants().kOverworldGfxGroups2 +
-                               (world_index_ * 8) + i];
+                               (main_gfx_id_ * 8) + i];
   }
 }
 
@@ -221,7 +221,7 @@ void OverworldMap::LoadDeathMountainGFX() {
 }
 
 void OverworldMap::LoadAreaGraphics() {
-  LoadWorldIndex();
+  LoadMainBlocksetId();
   LoadSpritesBlocksets();
   LoadMainBlocksets();
   LoadAreaGraphicsBlocksets();

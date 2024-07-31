@@ -372,7 +372,6 @@ class OverworldEntrance : public OverworldEntity {
 
 constexpr int kCompressedAllMap32PointersHigh = 0x1794D;
 constexpr int kCompressedAllMap32PointersLow = 0x17B2D;
-constexpr int overworldgfxGroups = 0x05D97;
 constexpr int overworldPalGroup1 = 0xDE6C8;
 constexpr int overworldPalGroup2 = 0xDE86C;
 constexpr int overworldPalGroup3 = 0xDE604;
@@ -433,33 +432,37 @@ constexpr int transition_target_west = 0x13F62;
 constexpr int overworldCustomMosaicASM = 0x1301D0;
 constexpr int overworldCustomMosaicArray = 0x1301F0;
 
-constexpr int OverworldCustomASMHasBeenApplied =
-    0x140145;  // 1 byte, not 0 if enabled
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
 
-constexpr int OverworldCustomAreaSpecificBGPalette =
-    0x140000;  // 2 bytes for each overworld area (0x140)
-constexpr int OverworldCustomAreaSpecificBGEnabled =
-    0x140140;  // 1 byte, not 0 if enabled
+// 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomAreaSpecificBGPalette = 0x140000;
 
-constexpr int OverworldCustomMainPaletteArray =
-    0x140160;  // 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomMainPaletteEnabled =
-    0x140141;  // 1 byte, not 0 if enabled
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomAreaSpecificBGEnabled = 0x140140;
 
-constexpr int OverworldCustomMosaicArray =
-    0x140200;  // 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomMosaicEnabled =
-    0x140142;  // 1 byte, not 0 if enabled
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMainPaletteArray = 0x140160;
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
 
-constexpr int OverworldCustomAnimatedGFXArray =
-    0x1402A0;  // 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomAnimatedGFXEnabled =
-    0x140143;  // 1 byte, not 0 if enabled
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMosaicArray = 0x140200;
 
-constexpr int OverworldCustomSubscreenOverlayArray =
-    0x140340;  // 2 bytes for each overworld area (0x140)
-constexpr int OverworldCustomSubscreenOverlayEnabled =
-    0x140144;  // 1 byte, not 0 if enabled
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomMosaicEnabled = 0x140142;
+
+// 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomAnimatedGFXArray = 0x1402A0;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomAnimatedGFXEnabled = 0x140143;
+
+// 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomSubscreenOverlayArray = 0x140340;
+
+// 1 byte, not 0 if enabled
+constexpr int OverworldCustomSubscreenOverlayEnabled = 0x140144;
 
 constexpr int kMap16Tiles = 0x78000;
 constexpr int kNumOverworldMaps = 160;

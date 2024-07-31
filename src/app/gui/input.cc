@@ -1,10 +1,20 @@
 #include "input.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+
+#include <functional>
+#include <optional>
+#include <string>
 
 #include "absl/strings/string_view.h"
+#include "app/core/common.h"
+#include "app/gfx/bitmap.h"
+#include "app/gfx/snes_palette.h"
+#include "app/gui/canvas.h"
+#include "app/gui/color.h"
 
 namespace ImGui {
 
@@ -45,9 +55,9 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   //     value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
   // } else {
   const float button_size = GetFrameHeight();
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text("%s", label);
-  ImGui::SameLine();
+  AlignTextToFramePadding();
+  Text("%s", label);
+  SameLine();
   BeginGroup();  // The only purpose of the group here is to allow the caller
                  // to query item data e.g. IsItemActive()
   PushID(label);
@@ -55,12 +65,12 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
       1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
 
   // Place the label on the left of the input field
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                      ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                      ImVec2{style.FramePadding.x, style.FramePadding.y});
+  PushStyleVar(ImGuiStyleVar_ItemSpacing,
+               ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
+  PushStyleVar(ImGuiStyleVar_FramePadding,
+               ImVec2{style.FramePadding.x, style.FramePadding.y});
 
-  ImGui::SetNextItemWidth(input_width);
+  SetNextItemWidth(input_width);
   if (InputText("", buf, IM_ARRAYSIZE(buf),
                 flags))  // PushId(label) + "" gives us the expected ID
                          // from outside point of view
@@ -171,6 +181,19 @@ bool InputHexByte(const char* label, uint8_t* data, float input_width,
                                 ImGuiInputTextFlags_CharsHexadecimal, no_step);
 }
 
+bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
+                  float input_width, bool no_step) {
+  if (ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
+                             &kStepFastHex, "%02X", input_width,
+                             ImGuiInputTextFlags_CharsHexadecimal, no_step)) {
+    if (*data > max_value) {
+      *data = max_value;
+    }
+    return true;
+  }
+  return false;
+}
+
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
   const ImVec2 lineStart = ImGui::GetCursorScreenPos();
@@ -224,6 +247,26 @@ bool ListBox(const char* label, int* current_item,
   int items_count = static_cast<int>(items.size());
   return ImGui::ListBox(label, current_item, items_ptr.data(), items_count,
                         height_in_items);
+}
+
+ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
+
+void FileDialogPipeline(absl::string_view display_key,
+                        absl::string_view file_extensions,
+                        std::optional<absl::string_view> button_text,
+                        std::function<void()> callback) {
+  if (button_text.has_value() && ImGui::Button(button_text->data())) {
+    ImGuiFileDialog::Instance()->OpenDialog(display_key.data(), "Choose File",
+                                            file_extensions.data(), ".");
+  }
+
+  if (ImGuiFileDialog::Instance()->Display(
+          display_key.data(), ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      callback();
+    }
+    ImGuiFileDialog::Instance()->Close();
+  }
 }
 
 }  // namespace gui

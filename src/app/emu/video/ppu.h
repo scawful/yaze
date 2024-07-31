@@ -25,39 +25,6 @@ class PpuInterface {
   // Memory Interactions
   virtual void Write(uint16_t address, uint8_t data) = 0;
   virtual uint8_t Read(uint16_t address) const = 0;
-
-  // Rendering Controls
-  virtual void RenderFrame() = 0;
-  virtual void RenderScanline() = 0;
-  virtual void RenderBackground(int layer) = 0;
-  virtual void RenderSprites() = 0;
-
-  // State Management
-  virtual void Init() = 0;
-  virtual void Reset() = 0;
-  virtual void Update(double deltaTime) = 0;
-  virtual void UpdateClock(double deltaTime) = 0;
-  virtual void UpdateInternalState(int cycles) = 0;
-
-  // Data Access
-  virtual const std::vector<uint8_t>& GetFrameBuffer() const = 0;
-  virtual std::shared_ptr<gfx::Bitmap> GetScreen() const = 0;
-
-  // Mode and Setting Updates
-  virtual void UpdateModeSettings() = 0;
-  virtual void UpdateTileData() = 0;
-  virtual void UpdateTileMapData() = 0;
-  virtual void UpdatePaletteData() = 0;
-
-  // Layer Composition
-  virtual void ApplyEffects() = 0;
-  virtual void ComposeLayers() = 0;
-
-  // Display Output
-  virtual void DisplayFrameBuffer() = 0;
-
-  // Notification (Observer pattern)
-  virtual void Notify(uint32_t address, uint8_t data) = 0;
 };
 
 // Enum representing different background modes
@@ -247,6 +214,32 @@ struct Tile {
   uint8_t priority;  // Priority of this tile
 };
 
+typedef struct Layer {
+  bool mainScreenEnabled;
+  bool subScreenEnabled;
+  bool mainScreenWindowed;
+  bool subScreenWindowed;
+} Layer;
+
+typedef struct BgLayer {
+  uint16_t hScroll;
+  uint16_t vScroll;
+  bool tilemapWider;
+  bool tilemapHigher;
+  uint16_t tilemapAdr;
+  uint16_t tileAdr;
+  bool bigTiles;
+  bool mosaicEnabled;
+} BgLayer;
+
+typedef struct WindowLayer {
+  bool window1enabled;
+  bool window2enabled;
+  bool window1inversed;
+  bool window2inversed;
+  uint8_t maskLogic;
+} WindowLayer;
+
 struct BackgroundLayer {
   enum class Size { SIZE_32x32, SIZE_64x32, SIZE_32x64, SIZE_64x64 };
 
@@ -263,71 +256,195 @@ struct BackgroundLayer {
   bool enabled;                     // Whether the background layer is enabled
 };
 
-const int kPpuClockSpeed = 5369318;  // 5.369318 MHz
-
-class Ppu : public Observer, public SharedRom {
+class Ppu : public SharedRom {
  public:
   // Initializes the PPU with the necessary resources and dependencies
   Ppu(memory::Memory& memory, Clock& clock) : memory_(memory), clock_(clock) {}
 
   // Initialize the frame buffer
   void Init() {
-    clock_.SetFrequency(kPpuClockSpeed);
     frame_buffer_.resize(256 * 240, 0);
-    screen_ = std::make_shared<gfx::Bitmap>(256, 240, 8, 0x100);
-    screen_->set_active(false);
+    pixelOutputFormat = 1;
   }
 
   // Resets the PPU to its initial state
-  void Reset() { std::fill(frame_buffer_.begin(), frame_buffer_.end(), 0); }
+  void Reset();
 
   // Runs the PPU for one frame.
   void Update();
   void UpdateClock(double delta_time) { clock_.UpdateClock(delta_time); }
-  void UpdateInternalState(int cycles);
 
-  // Renders a scanline of the screen
-  void RenderScanline();
+  void HandleFrameStart();
+  void RunLine(int line);
+  void HandlePixel(int x, int y);
 
-  void Notify(uint32_t address, uint8_t data) override;
+  void LatchHV() {
+    h_count_ = memory_.h_pos() / 4;
+    v_count_ = memory_.v_pos();
+    counters_latched_ = true;
+  }
+
+  int GetPixel(int x, int y, bool sub, int* r, int* g, int* b);
+
+  void EvaluateSprites(int line);
+
+  void CalculateMode7Starts(int y);
+
+  bool GetWindowState(int layer, int x);
+
+  // if we are overscanning this frame (determined at  0,225)
+  bool frame_overscan_ = false;
+  bool overscan_ = false;
+
+  // settings
+  bool forced_blank_;
+  uint8_t brightness;
+  uint8_t mode;
+  bool bg3priority;
+  bool even_frame;
+  bool pseudo_hires_;
+  bool interlace;
+  bool frame_interlace;  // if we are interlacing this frame (determined at
+                         // start vblank)
+  bool direct_color_;
+
+  bool CheckOverscan() {
+    frame_overscan_ = overscan_;
+    return frame_overscan_;
+  }
+
+  void HandleVblank();
+  void HandleOPT(int layer, int* lx, int* ly);
+  uint16_t GetOffsetValue(int col, int row);
+  int GetPixelForBgLayer(int x, int y, int layer, bool priority);
+
+  uint8_t Read(uint8_t adr, bool latch);
+  void Write(uint8_t adr, uint8_t val);
+
+  uint16_t GetVramRemap();
+
+  void PutPixels(uint8_t* pixel_data);
 
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
 
-  auto GetScreen() const { return screen_; }
-
  private:
-  // Updates internal state based on PPU register settings
-  void UpdateModeSettings();
+  int GetPixelForMode7(int x, int layer, bool priority);
 
-  // Internal methods to handle PPU rendering and operations
-  void UpdateTileData();
+  const int cyclesPerScanline = 341;  // SNES PPU has 341 cycles per scanline
+  const int totalScanlines = 262;     // SNES PPU has 262 scanlines per frame
+  const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 
-  // Fetches the tile map data from memory and stores it in an internal buffer
-  void UpdateTileMapData();
+  bool enable_forced_blanking_ = false;
 
-  // Renders a background layer
-  void RenderBackground(int layer);
+  int cycle_count_ = 0;
+  int current_scanline_ = 0;
 
-  // Renders sprites (also known as objects)
-  void RenderSprites();
+  // vram access
+  uint16_t vram[0x8000];
+  uint16_t vram_pointer;
+  bool vram_increment_on_high_;
+  uint16_t vram_increment_;
+  uint8_t vram_remap_mode_;
+  uint16_t vram_read_buffer_;
 
-  // Fetches the palette data from CGRAM and stores it in an internal buffer
-  void UpdatePaletteData();
+  // cgram access
+  uint16_t cgram[0x100];
+  uint8_t cgram_pointer_;
+  bool cgram_second_write_;
+  uint8_t cgram_buffer_;
 
-  // Applies effects to the layers based on the current mode and register
-  void ApplyEffects();
+  // oam access
+  uint16_t oam[0x100];
+  uint8_t high_oam_[0x20];
+  uint8_t oam_adr_;
+  uint8_t oam_adr_written_;
+  bool oam_in_high_;
+  bool oam_in_high_written_;
+  bool oam_second_write_;
+  uint8_t oam_buffer_;
 
-  // Combines the layers into a single image and stores it in the frame buffer
-  void ComposeLayers();
+  // Objects / Sprites
+  bool time_over_ = false;
+  bool range_over_ = false;
+  bool obj_interlace_;
+  bool obj_priority_;
+  uint16_t obj_tile_adr1_;
+  uint16_t obj_tile_adr2_;
+  uint8_t obj_size_;
+  std::array<uint8_t, 256> obj_pixel_buffer_;
+  std::array<uint8_t, 256> obj_priority_buffer_;
 
-  // Sends the frame buffer to the display hardware (e.g., SDL2)
-  void DisplayFrameBuffer();
+  // Color Math
+  uint8_t clip_mode_ = 0;
+  uint8_t prevent_math_mode_ = 0;
+  bool math_enabled_array_[6] = {false, false, false, false, false, false};
+  bool add_subscreen_ = false;
+  bool subtract_color_;
+  bool half_color_;
+  uint8_t fixed_color_r_;
+  uint8_t fixed_color_g_;
+  uint8_t fixed_color_b_;
 
-  // ===========================================================
-  // Member variables to store internal PPU state and resources
+  // layers
+  Layer layer_[5];
+
+  // mode 7
+  int16_t m7matrix[8];  // a, b, c, d, x, y, h, v
+  uint8_t m7prev;
+  bool m7largeField;
+  bool m7charFill;
+  bool m7xFlip;
+  bool m7yFlip;
+  bool m7extBg;
+
+  // mode 7 internal
+  int32_t m7startX;
+  int32_t m7startY;
+
+  // windows
+  WindowLayer windowLayer[6];
+  uint8_t window1left;
+  uint8_t window1right;
+  uint8_t window2left;
+  uint8_t window2right;
+
+  // Background Layers
+  std::array<BackgroundLayer, 4> bg_layers_;
+  uint8_t mosaic_startline_ = 1;
+
+  BgLayer bg_layer_[4];
+  uint8_t scroll_prev_;
+  uint8_t scroll_prev2_;
+  uint8_t mosaic_size_;
+
+  // pixel buffer (xbgr)
+  // times 2 for even and odd frame
+  uint8_t pixelBuffer[512 * 4 * 239 * 2];
+  uint8_t pixelOutputFormat = 0;
+
+  // latching
+  uint16_t h_count_;
+  uint16_t v_count_;
+  bool h_count_second_;
+  bool v_count_second_;
+  bool counters_latched_;
+  uint8_t ppu1_open_bus_;
+  uint8_t ppu2_open_bus_;
+
+  uint16_t tile_data_size_;
+  uint16_t vram_base_address_;
+  uint16_t tilemap_base_address_;
+  uint16_t screen_brightness_ = 0x00;
+
   Memory& memory_;
   Clock& clock_;
+
+  Tilemap tilemap_;
+  BackgroundMode bg_mode_;
+  std::vector<SpriteAttributes> sprites_;
+  std::vector<uint8_t> tile_data_;
+  std::vector<uint8_t> frame_buffer_;
 
   // PPU registers
   OAMSize oam_size_;
@@ -337,55 +454,6 @@ class Ppu : public Observer, public SharedRom {
   std::array<BGNBA, 4> bgnba_;
   std::array<BGHOFS, 4> bghofs_;
   std::array<BGVOFS, 4> bgvofs_;
-  struct VMAIN vmain_;
-  struct VMADDL vmaddl_;
-  struct VMADDH vmaddh_;
-  // struct VMDATAL vmdatal_;
-  // struct VMDATAH vmdatah_;
-  struct M7SEL m7sel_;
-  struct M7A m7a_;
-  struct M7B m7b_;
-  struct M7C m7c_;
-  struct M7D m7d_;
-  struct M7X m7x_;
-  struct M7Y m7y_;
-  struct CGADD cgadd_;
-  struct CGDATA cgdata_;
-  struct W12SEL w12sel_;
-  struct W34SEL w34sel_;
-  struct WOBJSEL wobjsel_;
-  struct WH0 wh0_;
-  struct WH1 wh1_;
-  struct WH2 wh2_;
-  struct WH3 wh3_;
-  struct WBGLOG wbglog_;
-  struct WOBJLOG wobjlog_;
-  struct TM tm_;
-  struct TS ts_;
-  struct TSW tsw_;
-  struct TMW tmw_;
-  struct SETINI setini_;
-
-  Tilemap tilemap_;
-  BackgroundMode bg_mode_;
-  std::array<BackgroundLayer, 4> bg_layers_;
-  std::vector<SpriteAttributes> sprites_;
-  std::vector<uint8_t> tile_data_;
-  std::vector<uint8_t> frame_buffer_;
-  std::shared_ptr<gfx::Bitmap> screen_;
-
-  uint16_t tile_data_size_;
-  uint16_t vram_base_address_;
-  uint16_t tilemap_base_address_;
-  uint16_t screen_brightness_ = 0x00;
-
-  bool enable_forced_blanking_ = false;
-
-  int cycle_count_ = 0;
-  int current_scanline_ = 0;
-  const int cyclesPerScanline = 341;  // SNES PPU has 341 cycles per scanline
-  const int totalScanlines = 262;     // SNES PPU has 262 scanlines per frame
-  const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 };
 
 }  // namespace video

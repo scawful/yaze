@@ -1,7 +1,7 @@
 #include "app/core/labeling.h"
 
-#include <imgui/imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 #include <cstdint>
 #include <fstream>
@@ -12,6 +12,7 @@
 
 #include "app/core/common.h"
 #include "app/core/constants.h"
+#include "app/gui/icons.h"
 
 namespace yaze {
 namespace app {
@@ -111,10 +112,13 @@ void ResourceLabelManager::SelectableLabelWithNameEdit(
   }
 
   if (ImGui::BeginPopupContextItem(label_id.c_str())) {
-    char* new_label = labels_[type][key].data();
-    if (ImGui::InputText("##Label", new_label, labels_[type][key].size() + 1,
+    std::string* new_label = &labels_[type][key];
+    if (ImGui::InputText("##Label", new_label,
                          ImGuiInputTextFlags_EnterReturnsTrue)) {
-      labels_[type][key] = new_label;
+      labels_[type][key] = *new_label;
+    }
+    if (ImGui::Button(ICON_MD_CLOSE)) {
+      ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
   }

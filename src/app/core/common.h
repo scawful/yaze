@@ -1,7 +1,7 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <chrono>
 #include <cstdint>
@@ -32,7 +32,7 @@ class ExperimentFlags {
     bool kUseBitmapManager = true;
 
     // Log instructions to the GUI debugger.
-    bool kLogInstructions = false;
+    bool kLogInstructions = true;
 
     // Flag to enable ImGui input config flags. Currently is
     // handled manually by controller class but should be
@@ -41,6 +41,9 @@ class ExperimentFlags {
 
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
+
+    // Flag to enable the saving of gfx groups to the rom.
+    bool kSaveGfxGroups = false;
 
     // Flag to enable the change queue, which could have any anonymous
     // save routine for the Rom. In practice, just the overworld tilemap
@@ -65,6 +68,9 @@ class ExperimentFlags {
 
     // Log to the console.
     bool kLogToConsole = false;
+
+    // Load audio device for emulator
+    bool kLoadAudioDevice = false;
 
     // Overworld flags
     struct Overworld {
@@ -181,6 +187,11 @@ class Logger {
     static std::ofstream fout("log.txt", std::ios::out | std::ios::app);
     fout << message << std::endl;
   }
+
+  // log to console
+  static void logc(std::string message) { logs.emplace_back(message); }
+
+  static std::vector<std::string> logs;
 };
 
 std::string UppercaseHexByte(uint8_t byte, bool leading = false);
@@ -205,10 +216,16 @@ uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index);
 uint16_t ldle16b(uint8_t const *const p_arr);
 
 void stle16b(uint8_t *const p_arr, uint16_t const p_val);
-void stle32b(uint8_t *const p_arr, uint32_t const p_val);
 
-void stle32b_i(uint8_t *const p_arr, size_t const p_index,
-               uint32_t const p_val);
+struct FolderItem {
+  std::string name;
+  std::vector<FolderItem> subfolders;
+  std::vector<std::string> files;
+};
+
+typedef struct FolderItem FolderItem;
+
+uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
 
 }  // namespace core
 }  // namespace app

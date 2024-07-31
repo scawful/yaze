@@ -1,33 +1,36 @@
 #ifndef YAZE_APP_EDITOR_MASTER_EDITOR_H
 #define YAZE_APP_EDITOR_MASTER_EDITOR_H
 
-#define IMGUI_DEFINE_MATH_OPERATORS 1
+#define IMGUI_DEFINE_MATH_OPERATORS
 
-#include <ImGuiColorTextEdit/TextEditor.h>
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
-#include <imgui/imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <imgui_memory_editor.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
-#include "app/editor/context/gfx_context.h"
-#include "app/editor/dungeon_editor.h"
-#include "app/editor/graphics_editor.h"
-#include "app/editor/modules/assembly_editor.h"
-#include "app/editor/modules/music_editor.h"
-#include "app/editor/modules/palette_editor.h"
+#include "app/core/project.h"
+#include "app/editor/code/assembly_editor.h"
+#include "app/editor/code/memory_editor.h"
+#include "app/editor/dungeon/dungeon_editor.h"
+#include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/palette_editor.h"
+#include "app/editor/graphics/screen_editor.h"
+#include "app/editor/message/message_editor.h"
+#include "app/editor/music/music_editor.h"
 #include "app/editor/overworld_editor.h"
-#include "app/editor/screen_editor.h"
-#include "app/editor/sprite_editor.h"
+#include "app/editor/settings_editor.h"
+#include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/gui/pipeline.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -56,14 +59,29 @@ class MasterEditor : public SharedRom,
                      public context::GfxContext,
                      public core::ExperimentFlags {
  public:
-  MasterEditor() { current_editor_ = &overworld_editor_; }
+  MasterEditor() {
+    current_editor_ = &overworld_editor_;
+    active_editors_.push_back(&overworld_editor_);
+    active_editors_.push_back(&dungeon_editor_);
+    active_editors_.push_back(&graphics_editor_);
+    active_editors_.push_back(&palette_editor_);
+    active_editors_.push_back(&sprite_editor_);
+    active_editors_.push_back(&message_editor_);
+  }
 
-  void SetupScreen(std::shared_ptr<SDL_Renderer> renderer);
+  void SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
+                   std::string filename = "");
   absl::Status Update();
 
-  void Shutdown() { overworld_editor_.Shutdown(); }
+  auto emulator() -> emu::Emulator& { return emulator_; }
+  auto quit() { return quit_; }
+  auto overworld_editor() -> OverworldEditor& { return overworld_editor_; }
 
  private:
+  void ManageActiveEditors();
+  void ManageKeyboardShortcuts();
+  void OpenRomOrProject(const std::string& filename);
+
   void DrawFileDialog();
   void DrawStatusPopup();
   void DrawAboutPopup();
@@ -73,10 +91,16 @@ class MasterEditor : public SharedRom,
   void DrawFileMenu();
   void DrawEditMenu();
   void DrawViewMenu();
+  void DrawTestMenu();
+  void DrawProjectMenu();
   void DrawHelpMenu();
 
+  void LoadRom();
   void SaveRom();
 
+  absl::Status OpenProject();
+
+  bool quit_ = false;
   bool about_ = false;
   bool rom_info_ = false;
   bool backup_rom_ = false;
@@ -91,6 +115,8 @@ class MasterEditor : public SharedRom,
 
   emu::Emulator emulator_;
 
+  Project current_project_;
+
   AssemblyEditor assembly_editor_;
   DungeonEditor dungeon_editor_;
   GraphicsEditor graphics_editor_;
@@ -99,8 +125,13 @@ class MasterEditor : public SharedRom,
   PaletteEditor palette_editor_;
   ScreenEditor screen_editor_;
   SpriteEditor sprite_editor_;
+  SettingsEditor settings_editor_;
+  MessageEditor message_editor_;
+  MemoryEditorWithDiffChecker memory_editor_;
 
-  Editor *current_editor_ = nullptr;
+  ImVector<int> active_tabs_;
+  std::vector<Editor*> active_editors_;
+  Editor* current_editor_ = nullptr;
 };
 
 }  // namespace editor

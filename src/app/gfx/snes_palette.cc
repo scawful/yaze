@@ -1,7 +1,7 @@
 #include "snes_palette.h"
 
 #include <SDL.h>
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -30,7 +30,7 @@ absl::Status LoadOverworldMainPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 6; i++) {
     RETURN_IF_ERROR(palette_groups.overworld_main.AddPalette(
-        gfx::ReadPaletteFromRom(core::overworldPaletteMain + (i * (35 * 2)),
+        gfx::ReadPaletteFromRom(kOverworldPaletteMain + (i * (35 * 2)),
                                 /*num_colors*/ 35, data)))
   }
   return absl::OkStatus();
@@ -40,10 +40,9 @@ absl::Status LoadOverworldAuxiliaryPalettes(
     const Bytes& rom_data, gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
-    RETURN_IF_ERROR(
-        palette_groups.overworld_aux.AddPalette(gfx::ReadPaletteFromRom(
-            core::overworldPaletteAuxialiary + (i * (21 * 2)),
-            /*num_colors*/ 21, data)))
+    RETURN_IF_ERROR(palette_groups.overworld_aux.AddPalette(
+        gfx::ReadPaletteFromRom(kOverworldPaletteAux + (i * (21 * 2)),
+                                /*num_colors*/ 21, data)))
   }
   return absl::OkStatus();
 }
@@ -54,7 +53,7 @@ absl::Status LoadOverworldAnimatedPalettes(
   for (int i = 0; i < 14; i++) {
     RETURN_IF_ERROR(
         palette_groups.overworld_animated.AddPalette(gfx::ReadPaletteFromRom(
-            core::overworldPaletteAnimated + (i * (7 * 2)), 7, data)))
+            kOverworldPaletteAnimated + (i * (7 * 2)), 7, data)))
   }
   return absl::OkStatus();
 }
@@ -64,7 +63,7 @@ absl::Status LoadHUDPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 2; i++) {
     RETURN_IF_ERROR(palette_groups.hud.AddPalette(
-        gfx::ReadPaletteFromRom(core::hudPalettes + (i * 64), 32, data)))
+        gfx::ReadPaletteFromRom(kHudPalettes + (i * 64), 32, data)))
   }
   return absl::OkStatus();
 }
@@ -73,9 +72,9 @@ absl::Status LoadGlobalSpritePalettes(const Bytes& rom_data,
                                       gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   RETURN_IF_ERROR(palette_groups.global_sprites.AddPalette(
-      gfx::ReadPaletteFromRom(core::globalSpritePalettesLW, 60, data)))
+      gfx::ReadPaletteFromRom(kGlobalSpritesLW, 60, data)))
   RETURN_IF_ERROR(palette_groups.global_sprites.AddPalette(
-      gfx::ReadPaletteFromRom(core::globalSpritePalettesDW, 60, data)))
+      gfx::ReadPaletteFromRom(globalSpritePalettesDW, 60, data)))
   return absl::OkStatus();
 }
 
@@ -84,7 +83,7 @@ absl::Status LoadArmorPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 5; i++) {
     RETURN_IF_ERROR(palette_groups.armors.AddPalette(
-        gfx::ReadPaletteFromRom(core::armorPalettes + (i * 30), 15, data)))
+        gfx::ReadPaletteFromRom(kArmorPalettes + (i * 30), 15, data)))
   }
   return absl::OkStatus();
 }
@@ -94,7 +93,7 @@ absl::Status LoadSwordPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 4; i++) {
     RETURN_IF_ERROR(palette_groups.swords.AddPalette(
-        gfx::ReadPaletteFromRom(core::swordPalettes + (i * 6), 3, data)))
+        gfx::ReadPaletteFromRom(kSwordPalettes + (i * 6), 3, data)))
   }
   return absl::OkStatus();
 }
@@ -104,7 +103,7 @@ absl::Status LoadShieldPalettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 3; i++) {
     RETURN_IF_ERROR(palette_groups.shields.AddPalette(
-        gfx::ReadPaletteFromRom(core::shieldPalettes + (i * 8), 4, data)))
+        gfx::ReadPaletteFromRom(kShieldPalettes + (i * 8), 4, data)))
   }
   return absl::OkStatus();
 }
@@ -114,7 +113,7 @@ absl::Status LoadSpriteAux1Palettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 12; i++) {
     RETURN_IF_ERROR(palette_groups.sprites_aux1.AddPalette(
-        gfx::ReadPaletteFromRom(core::spritePalettesAux1 + (i * 14), 7, data)))
+        gfx::ReadPaletteFromRom(kSpritesPalettesAux1 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
@@ -124,7 +123,7 @@ absl::Status LoadSpriteAux2Palettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 11; i++) {
     RETURN_IF_ERROR(palette_groups.sprites_aux2.AddPalette(
-        gfx::ReadPaletteFromRom(core::spritePalettesAux2 + (i * 14), 7, data)))
+        gfx::ReadPaletteFromRom(kSpritesPalettesAux2 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
@@ -134,7 +133,7 @@ absl::Status LoadSpriteAux3Palettes(const Bytes& rom_data,
   auto data = rom_data.data();
   for (int i = 0; i < 24; i++) {
     RETURN_IF_ERROR(palette_groups.sprites_aux3.AddPalette(
-        gfx::ReadPaletteFromRom(core::spritePalettesAux3 + (i * 14), 7, data)))
+        gfx::ReadPaletteFromRom(kSpritesPalettesAux3 + (i * 14), 7, data)))
   }
   return absl::OkStatus();
 }
@@ -143,9 +142,8 @@ absl::Status LoadDungeonMainPalettes(const Bytes& rom_data,
                                      gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   for (int i = 0; i < 20; i++) {
-    RETURN_IF_ERROR(
-        palette_groups.dungeon_main.AddPalette(gfx::ReadPaletteFromRom(
-            core::dungeonMainPalettes + (i * 180), 90, data)))
+    RETURN_IF_ERROR(palette_groups.dungeon_main.AddPalette(
+        gfx::ReadPaletteFromRom(kDungeonMainPalettes + (i * 180), 90, data)))
   }
   return absl::OkStatus();
 }
@@ -153,11 +151,11 @@ absl::Status LoadDungeonMainPalettes(const Bytes& rom_data,
 absl::Status LoadGrassColors(const Bytes& rom_data,
                              gfx::PaletteGroupMap& palette_groups) {
   RETURN_IF_ERROR(palette_groups.grass.AddColor(
-      gfx::ReadColorFromRom(core::hardcodedGrassLW, rom_data.data())))
+      gfx::ReadColorFromRom(kHardcodedGrassLW, rom_data.data())))
   RETURN_IF_ERROR(palette_groups.grass.AddColor(
-      gfx::ReadColorFromRom(core::hardcodedGrassDW, rom_data.data())))
+      gfx::ReadColorFromRom(hardcodedGrassDW, rom_data.data())))
   RETURN_IF_ERROR(palette_groups.grass.AddColor(
-      gfx::ReadColorFromRom(core::hardcodedGrassSpecial, rom_data.data())))
+      gfx::ReadColorFromRom(hardcodedGrassSpecial, rom_data.data())))
   return absl::OkStatus();
 }
 
@@ -165,9 +163,9 @@ absl::Status Load3DObjectPalettes(const Bytes& rom_data,
                                   gfx::PaletteGroupMap& palette_groups) {
   auto data = rom_data.data();
   RETURN_IF_ERROR(palette_groups.object_3d.AddPalette(
-      gfx::ReadPaletteFromRom(core::triforcePalette, 8, data)))
+      gfx::ReadPaletteFromRom(kTriforcePalette, 8, data)))
   RETURN_IF_ERROR(palette_groups.object_3d.AddPalette(
-      gfx::ReadPaletteFromRom(core::crystalPalette, 8, data)))
+      gfx::ReadPaletteFromRom(crystalPalette, 8, data)))
   return absl::OkStatus();
 }
 
@@ -177,28 +175,28 @@ absl::Status LoadOverworldMiniMapPalettes(
   for (int i = 0; i < 2; i++) {
     RETURN_IF_ERROR(
         palette_groups.overworld_mini_map.AddPalette(gfx::ReadPaletteFromRom(
-            core::overworldMiniMapPalettes + (i * 256), 128, data)))
+            kOverworldMiniMapPalettes + (i * 256), 128, data)))
   }
   return absl::OkStatus();
 }
 }  // namespace palette_group_internal
 
 const absl::flat_hash_map<std::string, uint32_t> kPaletteGroupAddressMap = {
-    {"ow_main", core::overworldPaletteMain},
-    {"ow_aux", core::overworldPaletteAuxialiary},
-    {"ow_animated", core::overworldPaletteAnimated},
-    {"hud", core::hudPalettes},
-    {"global_sprites", core::globalSpritePalettesLW},
-    {"armors", core::armorPalettes},
-    {"swords", core::swordPalettes},
-    {"shields", core::shieldPalettes},
-    {"sprites_aux1", core::spritePalettesAux1},
-    {"sprites_aux2", core::spritePalettesAux2},
-    {"sprites_aux3", core::spritePalettesAux3},
-    {"dungeon_main", core::dungeonMainPalettes},
-    {"grass", core::hardcodedGrassLW},
-    {"3d_object", core::triforcePalette},
-    {"ow_mini_map", core::overworldMiniMapPalettes},
+    {"ow_main", kOverworldPaletteMain},
+    {"ow_aux", kOverworldPaletteAux},
+    {"ow_animated", kOverworldPaletteAnimated},
+    {"hud", kHudPalettes},
+    {"global_sprites", kGlobalSpritesLW},
+    {"armors", kArmorPalettes},
+    {"swords", kSwordPalettes},
+    {"shields", kShieldPalettes},
+    {"sprites_aux1", kSpritesPalettesAux1},
+    {"sprites_aux2", kSpritesPalettesAux2},
+    {"sprites_aux3", kSpritesPalettesAux3},
+    {"dungeon_main", kDungeonMainPalettes},
+    {"grass", kHardcodedGrassLW},
+    {"3d_object", kTriforcePalette},
+    {"ow_mini_map", kOverworldMiniMapPalettes},
 };
 
 const absl::flat_hash_map<std::string, uint32_t> kPaletteGroupColorCounts = {

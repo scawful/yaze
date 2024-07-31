@@ -21,10 +21,7 @@ namespace core {
 static constexpr absl::string_view kDefaultTypes[] = {
     "Dungeon Names", "Dungeon Room Names", "Overworld Map Names"};
 
-class ResourceLabelManager {
- public:
-  ResourceLabelManager() = default;
-
+struct ResourceLabelManager {
   bool LoadLabels(const std::string& filename);
   bool SaveLabels();
   void DisplayLabels(bool* p_open);
@@ -38,7 +35,6 @@ class ResourceLabelManager {
   std::string CreateOrGetLabel(const std::string& type, const std::string& key,
                                const absl::string_view& defaultValue);
 
- private:
   bool labels_loaded_ = false;
   std::string filename_;
   struct ResourceType {

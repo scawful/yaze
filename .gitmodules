@@ -7,9 +7,6 @@
 [submodule "src/lib/ImGuiColorTextEdit"]
 	path = src/lib/ImGuiColorTextEdit
 	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
-[submodule "src/lib/sneshacking"]
-	path = src/lib/sneshacking
-	url = https://github.com/Skarsnik/sneshacking.git
 [submodule "assets/asm/alttp-hacker-workspace"]
 	path = assets/asm/alttp-hacker-workspace
 	url = https://github.com/scawful/alttp-hacker-workspace.git
@@ -22,9 +19,6 @@
 [submodule "src/lib/asar"]
 	path = src/lib/asar
 	url = https://github.com/RPGHacker/asar.git
-[submodule "src/lib/snes_spc"]
-	path = src/lib/snes_spc
-	url = https://github.com/blarggs-audio-libraries/snes_spc.git
-[submodule "src/lib/SDL_mixer"]
-	path = src/lib/SDL_mixer
-	url = https://github.com/libsdl-org/SDL_mixer.git
+[submodule "src/lib/imgui_test_engine"]
+	path = src/lib/imgui_test_engine
+	url = https://github.com/ocornut/imgui_test_engine.git

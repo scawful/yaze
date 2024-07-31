@@ -59,7 +59,7 @@ class Sprite : public OverworldEntity {
 
   auto Width() const { return bounding_box_.w; }
   auto Height() const { return bounding_box_.h; }
-  std::string& Name() { return name_; }
+  auto name() { return name_; }
   auto deleted() const { return deleted_; }
   auto set_deleted(bool deleted) { deleted_ = deleted; }
 

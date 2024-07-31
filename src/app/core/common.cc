@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <chrono>
 #include <cstdint>
@@ -26,11 +26,11 @@ std::string UppercaseHexByte(uint8_t byte, bool leading) {
   return result;
 }
 std::string UppercaseHexWord(uint16_t word) {
-  std::string result = absl::StrFormat("0x%04x", word);
+  std::string result = absl::StrFormat("0x%04X", word);
   return result;
 }
 std::string UppercaseHexLong(uint32_t dword) {
-  std::string result = absl::StrFormat("0x%08x", dword);
+  std::string result = absl::StrFormat("0x%06X", dword);
   return result;
 }
 
@@ -173,6 +173,14 @@ uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index) {
 
 // Initialize the static member
 std::stack<ImGuiID> ImGuiIdIssuer::idStack;
+
+uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
+  uint32_t ret = (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
+  if (pc) {
+    return SnesToPc(ret);
+  }
+  return ret;
+}
 
 }  // namespace core
 }  // namespace app

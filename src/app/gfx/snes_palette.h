@@ -2,7 +2,7 @@
 #define YAZE_APP_GFX_PALETTE_H
 
 #include <SDL.h>
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -20,6 +20,73 @@
 namespace yaze {
 namespace app {
 namespace gfx {
+
+constexpr int kNumPalettes = 14;
+
+enum PaletteCategory {
+  kSword,
+  kShield,
+  kClothes,
+  kWorldColors,
+  kAreaColors,
+  kGlobalSprites,
+  kSpritesAux1,
+  kSpritesAux2,
+  kSpritesAux3,
+  kDungeons,
+  kWorldMap,
+  kDungeonMap,
+  kTriforce,
+  kCrystal
+};
+
+static constexpr absl::string_view kPaletteCategoryNames[] = {
+    "Sword",        "Shield",         "Clothes",      "World Colors",
+    "Area Colors",  "Global Sprites", "Sprites Aux1", "Sprites Aux2",
+    "Sprites Aux3", "Dungeons",       "World Map",    "Dungeon Map",
+    "Triforce",     "Crystal"};
+
+static constexpr absl::string_view kPaletteGroupNames[] = {
+    "swords",       "shields",        "armors",       "ow_main",
+    "ow_aux",       "global_sprites", "sprites_aux1", "sprites_aux2",
+    "sprites_aux3", "dungeon_main",   "ow_mini_map",  "ow_mini_map",
+    "3d_object",    "3d_object"};
+
+constexpr const char* kPaletteGroupAddressesKeys[] = {
+    "ow_main",        "ow_aux",       "ow_animated",  "hud",
+    "global_sprites", "armors",       "swords",       "shields",
+    "sprites_aux1",   "sprites_aux2", "sprites_aux3", "dungeon_main",
+    "grass",          "3d_object",    "ow_mini_map",
+};
+
+constexpr int kOverworldPaletteMain = 0xDE6C8;
+constexpr int kOverworldPaletteAux = 0xDE86C;
+constexpr int kOverworldPaletteAnimated = 0xDE604;
+constexpr int kGlobalSpritesLW = 0xDD218;
+constexpr int globalSpritePalettesDW = 0xDD290;
+// Green, Blue, Red, Bunny, Electrocuted (15 colors each)
+constexpr int kArmorPalettes = 0xDD308;
+constexpr int kSpritesPalettesAux1 = 0xDD39E;  // 7 colors each
+constexpr int kSpritesPalettesAux2 = 0xDD446;  // 7 colors each
+constexpr int kSpritesPalettesAux3 = 0xDD4E0;  // 7 colors each
+constexpr int kSwordPalettes = 0xDD630;        // 3 colors each - 4 entries
+constexpr int kShieldPalettes = 0xDD648;       // 4 colors each - 3 entries
+constexpr int kHudPalettes = 0xDD660;
+constexpr int dungeonMapPalettes = 0xDD70A;    // 21 colors
+constexpr int kDungeonMainPalettes = 0xDD734;  //(15*6) colors each - 20 entries
+constexpr int dungeonMapBgPalettes = 0xDE544;  // 16*6
+// Mirrored Value at 0x75645 : 0x75625
+constexpr int kHardcodedGrassLW = 0x5FEA9;
+constexpr int hardcodedGrassDW = 0x05FEB3;  // 0x7564F
+constexpr int hardcodedGrassSpecial = 0x75640;
+constexpr int kOverworldMiniMapPalettes = 0x55B27;
+constexpr int kTriforcePalette = 0x64425;
+constexpr int crystalPalette = 0xF4CD3;
+// 2 bytes for each overworld area (320)
+constexpr int customAreaSpecificBGPalette = 0x140000;
+constexpr int customAreaSpecificBGASM = 0x140150;
+// 1 byte, not 0 if enabled
+constexpr int customAreaSpecificBGEnabled = 0x140140;
 
 /**
  * @brief Primitive of a SNES color palette.
@@ -84,6 +151,11 @@ class SnesPalette {
     size_++;
   }
 
+  void AddColor(uint16_t color) {
+    colors.emplace_back(color);
+    size_++;
+  }
+
   absl::StatusOr<SnesColor> GetColor(int i) const {
     if (i > size_) {
       return absl::InvalidArgumentError("SnesPalette: Index out of bounds");
@@ -99,6 +171,7 @@ class SnesPalette {
   }
 
   auto size() const { return colors.size(); }
+  auto empty() const { return colors.empty(); }
 
   SnesColor& operator[](int i) {
     if (i > size_) {
@@ -274,22 +347,22 @@ struct PaletteGroupMap {
   }
 
   template <typename Func>
-  void for_each(Func&& func) {
-    func(overworld_main);
-    func(overworld_aux);
-    func(overworld_animated);
-    func(hud);
-    func(global_sprites);
-    func(armors);
-    func(swords);
-    func(shields);
-    func(sprites_aux1);
-    func(sprites_aux2);
-    func(sprites_aux3);
-    func(dungeon_main);
-    func(grass);
-    func(object_3d);
-    func(overworld_mini_map);
+  absl::Status for_each(Func&& func) {
+    RETURN_IF_ERROR(func(overworld_aux));
+    RETURN_IF_ERROR(func(overworld_animated));
+    RETURN_IF_ERROR(func(hud));
+    RETURN_IF_ERROR(func(global_sprites));
+    RETURN_IF_ERROR(func(armors));
+    RETURN_IF_ERROR(func(swords));
+    RETURN_IF_ERROR(func(shields));
+    RETURN_IF_ERROR(func(sprites_aux1));
+    RETURN_IF_ERROR(func(sprites_aux2));
+    RETURN_IF_ERROR(func(sprites_aux3));
+    RETURN_IF_ERROR(func(dungeon_main));
+    RETURN_IF_ERROR(func(grass));
+    RETURN_IF_ERROR(func(object_3d));
+    RETURN_IF_ERROR(func(overworld_mini_map));
+    return absl::OkStatus();
   }
 };
 

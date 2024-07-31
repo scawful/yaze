@@ -20,7 +20,6 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
-#include "app/gui/pipeline.h"
 #include "app/rom.h"  // for Rom
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/patch.h"  // for ApplyBpsPatch, CreateBpsPatch
@@ -315,39 +314,6 @@ class Emulator : public CommandHandler {
   absl::Status handle(const std::vector<std::string>& arg_vec) override {
     std::string filename = arg_vec[0];
     RETURN_IF_ERROR(rom_.LoadFromFile(filename))
-
-    bool step = false;
-    if (arg_vec[1].empty()) {
-      snes.SetCpuMode(0);
-    } else {
-      snes.SetCpuMode(1);
-      step = true;
-    }
-
-    snes.SetupMemory(rom_);
-    snes.Init(rom_);
-
-    if (!step) {
-      int i = 0;
-      while (i < 80000) {
-        snes.Run();
-        i++;
-      }
-    } else {
-      // This loop should take in input from the keyboard, such as pressing
-      // space to step through the loop and pressing x to end the execution.
-      bool stepping = true;
-      std::cout << "Press space to step, x to exit" << std::endl;
-      while (stepping) {
-        char input;
-        std::cin.get(input);
-        if (input == 'x') {
-          break;
-        } else {
-          snes.StepRun();
-        }
-      }
-    }
 
     return absl::OkStatus();
   }

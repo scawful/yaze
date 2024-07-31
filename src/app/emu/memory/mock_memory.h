@@ -72,6 +72,21 @@ class MockMemory : public Memory {
   MOCK_CONST_METHOD1(at, uint8_t(int i));
   uint8_t operator[](int i) const override { return memory_[i]; }
 
+  MOCK_METHOD0(init_hdma_request, void());
+  MOCK_METHOD0(run_hdma_request, void());
+  MOCK_METHOD1(set_hdma_run_requested, void(bool value));
+  MOCK_METHOD1(set_hdma_init_requested, void(bool value));
+  MOCK_CONST_METHOD0(hdma_init_requested, bool());
+  MOCK_CONST_METHOD0(hdma_run_requested, bool());
+  MOCK_METHOD1(set_pal_timing, void(bool value));
+  MOCK_CONST_METHOD0(pal_timing, bool());
+  MOCK_CONST_METHOD0(h_pos, uint16_t());
+  MOCK_CONST_METHOD0(v_pos, uint16_t());
+  MOCK_METHOD1(set_h_pos, void(uint16_t value));
+  MOCK_METHOD1(set_v_pos, void(uint16_t value));
+  MOCK_METHOD1(set_open_bus, void(uint8_t value));
+  MOCK_CONST_METHOD0(open_bus, uint8_t());
+
   void SetMemoryContents(const std::vector<uint8_t>& data) {
     if (data.size() > memory_.size()) {
       memory_.resize(data.size());

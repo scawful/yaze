@@ -2,7 +2,6 @@
 #define YAZE_APP_ROM_H
 
 #include <SDL.h>
-#include <asar/src/asar/interface-shared.h>
 
 #include <algorithm>
 #include <chrono>
@@ -22,7 +21,6 @@
 #include <variant>
 #include <vector>  // for vector
 
-#include "SDL_render.h"                    // for SDL_Renderer
 #include "absl/container/flat_hash_map.h"  // for flat_hash_map
 #include "absl/status/status.h"            // for Status
 #include "absl/status/statusor.h"          // for StatusOr
@@ -171,8 +169,7 @@ class Rom : public core::ExperimentFlags {
    * @param z3_load Whether to load data specific to Zelda 3.
    *
    */
-  absl::Status LoadFromFile(const absl::string_view& filename,
-                            bool z3_load = true);
+  absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
   absl::Status LoadFromPointer(uchar* data, size_t length);
   absl::Status LoadFromBytes(const Bytes& data);
 
@@ -462,6 +459,7 @@ class Rom : public core::ExperimentFlags {
   auto bitmap_manager() { return graphics_manager_; }
   auto mutable_bitmap_manager() { return &graphics_manager_; }
   auto link_graphics() { return link_graphics_; }
+  auto mutable_link_graphics() { return &link_graphics_; }
 
   auto title() const { return title_; }
   auto size() const { return size_; }
@@ -473,6 +471,7 @@ class Rom : public core::ExperimentFlags {
   auto filename() const { return filename_; }
   auto is_loaded() const { return is_loaded_; }
   auto version() const { return version_; }
+  auto renderer() const { return renderer_; }
 
   uint8_t& operator[](int i) {
     if (i > size_) {
@@ -532,80 +531,11 @@ class Rom : public core::ExperimentFlags {
   std::vector<std::vector<uint8_t>> spriteset_ids;
   std::vector<std::vector<uint8_t>> paletteset_ids;
 
-  void LoadGfxGroups() {
-    main_blockset_ids.resize(37, std::vector<uint8_t>(8));
-    room_blockset_ids.resize(82, std::vector<uint8_t>(4));
-    spriteset_ids.resize(144, std::vector<uint8_t>(4));
-    paletteset_ids.resize(72, std::vector<uint8_t>(4));
-
-    int gfxPointer =
-        (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
-    gfxPointer = core::SnesToPc(gfxPointer);
-
-    for (int i = 0; i < 37; i++) {
-      for (int j = 0; j < 8; j++) {
-        main_blockset_ids[i][j] = rom_data_[gfxPointer + (i * 8) + j];
-      }
-    }
-
-    for (int i = 0; i < 82; i++) {
-      for (int j = 0; j < 4; j++) {
-        room_blockset_ids[i][j] =
-            rom_data_[core::entrance_gfx_group + (i * 4) + j];
-      }
-    }
-
-    for (int i = 0; i < 144; i++) {
-      for (int j = 0; j < 4; j++) {
-        spriteset_ids[i][j] =
-            rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j];
-      }
-    }
-
-    for (int i = 0; i < 72; i++) {
-      for (int j = 0; j < 4; j++) {
-        paletteset_ids[i][j] =
-            rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j];
-      }
-    }
-  }
-
-  bool SaveGroupsToRom() {
-    int gfxPointer =
-        (rom_data_[kGfxGroupsPointer + 1] << 8) + rom_data_[kGfxGroupsPointer];
-    gfxPointer = core::SnesToPc(gfxPointer);
-
-    for (int i = 0; i < 37; i++) {
-      for (int j = 0; j < 8; j++) {
-        rom_data_[gfxPointer + (i * 8) + j] = main_blockset_ids[i][j];
-      }
-    }
-
-    for (int i = 0; i < 82; i++) {
-      for (int j = 0; j < 4; j++) {
-        rom_data_[core::entrance_gfx_group + (i * 4) + j] =
-            room_blockset_ids[i][j];
-      }
-    }
-
-    for (int i = 0; i < 144; i++) {
-      for (int j = 0; j < 4; j++) {
-        rom_data_[version_constants().kSpriteBlocksetPointer + (i * 4) + j] =
-            spriteset_ids[i][j];
-      }
-    }
-
-    for (int i = 0; i < 72; i++) {
-      for (int j = 0; j < 4; j++) {
-        rom_data_[version_constants().kDungeonPalettesGroups + (i * 4) + j] =
-            paletteset_ids[i][j];
-      }
-    }
-
-    return false;
-  }
+  void LoadGfxGroups();
+  void SaveGroupsToRom();
 
   auto resource_label() { return &resource_label_manager_; }
+  auto font_gfx_data() { return font_gfx_data_; }
 
  private:
   struct WriteAction {
@@ -660,6 +590,7 @@ class Rom : public core::ExperimentFlags {
 
   Bytes rom_data_;
   Bytes graphics_buffer_;
+  Bytes font_gfx_data_;
 
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;

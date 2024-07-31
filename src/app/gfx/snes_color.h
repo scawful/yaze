@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_SNES_COLOR_H_
 #define YAZE_APP_GFX_SNES_COLOR_H_
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <vector>
@@ -31,10 +31,10 @@ std::vector<char> Convert(const std::vector<snes_color>& palette);
 
 /**
  * @brief SNES Color container
- * 
- * Used for displaying the color to the screen and writing 
+ *
+ * Used for displaying the color to the screen and writing
  * the color to the Rom file in the correct format.
- * 
+ *
  * SNES colors may be represented in one of three formats:
  *  - Color data from the rom in a snes_color struct
  *  - Color data for displaying to the UI via ImVec4
@@ -49,7 +49,10 @@ class SnesColor {
     color.blue = val.z / 255;
     snes_ = ConvertRGBtoSNES(color);
   }
-
+  explicit SnesColor(const uint16_t val) : snes_(val) {
+    snes_color color = ConvertSNEStoRGB(val);
+    rgb_ = ImVec4(color.red, color.green, color.blue, 0.f);
+  }
   explicit SnesColor(const snes_color val)
       : rgb_(val.red, val.green, val.blue, 255.f),
         snes_(ConvertRGBtoSNES(val)),

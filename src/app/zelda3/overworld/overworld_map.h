@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 #define YAZE_APP_ZELDA3_OVERWORLD_MAP_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -11,7 +11,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
-#include "app/editor/context/gfx_context.h"
+#include "app/editor/utils/gfx_context.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -50,6 +50,8 @@ class OverworldMap : public editor::context::GfxContext {
   auto is_large_map() const { return large_map_; }
   auto is_initialized() const { return initialized_; }
   auto parent() const { return parent_; }
+
+  auto mutable_mosaic() { return &mosaic_; }
 
   auto mutable_current_palette() { return &current_palette_; }
 
@@ -103,7 +105,7 @@ class OverworldMap : public editor::context::GfxContext {
  private:
   void LoadAreaInfo();
 
-  void LoadWorldIndex();
+  void LoadMainBlocksetId();
   void LoadSpritesBlocksets();
   void LoadMainBlocksets();
   void LoadAreaGraphicsBlocksets();
@@ -118,12 +120,14 @@ class OverworldMap : public editor::context::GfxContext {
   bool large_map_ = false;
   bool initialized_ = false;
 
+  bool mosaic_ = false;
+
   int index_ = 0;        // Map index
   int parent_ = 0;       // Parent map index
   int large_index_ = 0;  // Quadrant ID [0-3]
   int world_ = 0;        // World ID [0-2]
   int game_state_ = 0;   // Game state [0-2]
-  int world_index_ = 0;  // Spr Pal Modifier
+  int main_gfx_id_ = 0;  // Main Gfx ID
 
   uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;

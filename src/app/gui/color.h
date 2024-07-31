@@ -1,7 +1,7 @@
 #ifndef YAZE_GUI_COLOR_H
 #define YAZE_GUI_COLOR_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cmath>
 #include <string>
@@ -25,10 +25,13 @@ IMGUI_API bool SnesColorButton(absl::string_view id, SnesColor& color,
                                ImGuiColorEditFlags flags = 0,
                                const ImVec2& size_arg = ImVec2(0, 0));
 
-IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor& color,
+IMGUI_API bool SnesColorEdit4(absl::string_view label, SnesColor* color,
                               ImGuiColorEditFlags flags = 0);
 
 absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded);
+
+void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
+                               gfx::SnesPalette& palette);
 
 }  // namespace gui
 }  // namespace app

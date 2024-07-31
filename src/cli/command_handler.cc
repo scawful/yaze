@@ -65,7 +65,8 @@ absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
 
       // Transfer if user confirms
       if (userChoice == 'y' || userChoice == 'Y') {
-        dest_rom.WriteTile16(tile16_id_int, source_tile16_data);
+        RETURN_IF_ERROR(
+            dest_rom.WriteTile16(tile16_id_int, source_tile16_data));
         std::cout << "Transferred tile16 ID " << tile16_id_int
                   << " to dest rom." << std::endl;
       } else {

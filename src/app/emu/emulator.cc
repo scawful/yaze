@@ -1,15 +1,17 @@
 #include "app/emu/emulator.h"
 
-#include <imgui/imgui.h>
-#include <imgui_memory_editor.h>
+#include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 #include <cstdint>
 #include <vector>
 
 #include "app/core/constants.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/emu/snes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/zeml.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -17,11 +19,26 @@ namespace app {
 namespace emu {
 
 namespace {
-bool ShouldDisplay(const InstructionEntry& entry, const char* filter,
-                   bool showAll) {
-  // Implement logic to determine if the entry should be displayed based on the
-  // filter and showAll flag
-  return true;
+bool ShouldDisplay(const InstructionEntry& entry, const char* filter) {
+  if (filter[0] == '\0') {
+    return true;
+  }
+
+  // Supported fields: address, opcode, operands
+  if (entry.operands.find(filter) != std::string::npos) {
+    return true;
+  }
+
+  if (absl::StrFormat("%06X", entry.address).find(filter) !=
+      std::string::npos) {
+    return true;
+  }
+
+  if (opcode_to_mnemonic.at(entry.opcode).find(filter) != std::string::npos) {
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace
@@ -33,35 +50,105 @@ using ImGui::TableNextColumn;
 using ImGui::Text;
 
 void Emulator::Run() {
+  static bool loaded = false;
   if (!snes_.running() && rom()->is_loaded()) {
-    snes_.SetupMemory(*rom());
-    snes_.Init(*rom());
+    ppu_texture_ =
+        SDL_CreateTexture(rom()->renderer().get(), SDL_PIXELFORMAT_ARGB8888,
+                          SDL_TEXTUREACCESS_STREAMING, 512, 480);
+    if (ppu_texture_ == NULL) {
+      printf("Failed to create texture: %s\n", SDL_GetError());
+      return;
+    }
+    rom_data_ = rom()->vector();
+    snes_.Init(rom_data_);
+    wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
+    wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
+    loaded = true;
+
+    count_frequency = SDL_GetPerformanceFrequency();
+    last_count = SDL_GetPerformanceCounter();
+    time_adder = 0.0;
   }
 
   RenderNavBar();
 
   if (running_) {
     HandleEvents();
-    if (!step_) {
-      snes_.Run();
+
+    uint64_t current_count = SDL_GetPerformanceCounter();
+    uint64_t delta = current_count - last_count;
+    last_count = current_count;
+    float seconds = delta / (float)count_frequency;
+    time_adder += seconds;
+    // allow 2 ms earlier, to prevent skipping due to being just below wanted
+    while (time_adder >= wanted_frames_ - 0.002) {
+      time_adder -= wanted_frames_;
+
+      if (loaded) {
+        if (turbo_mode_) {
+          snes_.RunFrame();
+        }
+        snes_.RunFrame();
+
+        snes_.SetSamples(audio_buffer_, wanted_samples_);
+        if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples_ * 4 * 6) {
+          SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples_ * 4);
+        }
+
+        void* ppu_pixels_;
+        int ppu_pitch_;
+        if (SDL_LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_) !=
+            0) {
+          printf("Failed to lock texture: %s\n", SDL_GetError());
+          return;
+        }
+        snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
+        SDL_UnlockTexture(ppu_texture_);
+      }
     }
   }
 
-  RenderEmulator();
+  gui::zeml::Render(emulator_node_);
+}
+
+void Emulator::RenderSnesPpu() {
+  ImVec2 size = ImVec2(512, 480);
+  if (snes_.running()) {
+    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 480), true,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
+    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
+    ImGui::Image((void*)ppu_texture_, size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::EndChild();
+
+  } else {
+    ImGui::Text("Emulator output not available.");
+    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 480), true,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+    ImGui::SetCursorPosX(((ImGui::GetWindowSize().x * 0.5f) - size.x) * 0.5f);
+    ImGui::SetCursorPosY(((ImGui::GetWindowSize().y * 0.5f) - size.y) * 0.5f);
+    ImGui::Dummy(size);
+    ImGui::EndChild();
+  }
+  ImGui::Separator();
 }
 
 void Emulator::RenderNavBar() {
-  MENU_BAR()
-  if (ImGui::BeginMenu("Options")) {
-    MENU_ITEM("Input") {}
-    MENU_ITEM("Audio") {}
-    MENU_ITEM("Video") {}
-    ImGui::EndMenu();
-  }
-  END_MENU_BAR()
+  std::string navbar_layout = R"(
+    BeginMenuBar {
+      BeginMenu title="Options" {
+        MenuItem title="Input" {}
+        MenuItem title="Audio" {}
+        MenuItem title="Video" {}
+      }
+    }
+  )";
+
+  static auto navbar_node = gui::zeml::Parse(navbar_layout);
+  gui::zeml::Render(navbar_node);
 
   if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
-    loading_ = true;
+    running_ = true;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Start Emulation");
@@ -69,7 +156,7 @@ void Emulator::RenderNavBar() {
   SameLine();
 
   if (ImGui::Button(ICON_MD_PAUSE)) {
-    snes_.SetCpuMode(1);
+    running_ = false;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Pause Emulation");
@@ -78,7 +165,7 @@ void Emulator::RenderNavBar() {
 
   if (ImGui::Button(ICON_MD_SKIP_NEXT)) {
     // Step through Code logic
-    snes_.StepRun();
+    snes_.cpu().RunOpcode();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Step Through Code");
@@ -87,6 +174,7 @@ void Emulator::RenderNavBar() {
 
   if (ImGui::Button(ICON_MD_REFRESH)) {
     // Reset Emulator logic
+    snes_.Reset(true);
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Reset Emulator");
@@ -125,13 +213,22 @@ void Emulator::RenderNavBar() {
     ImGui::SetTooltip("Settings");
   }
 
+  static bool open_file = false;
   SameLine();
   if (ImGui::Button(ICON_MD_INFO)) {
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("About Debugger");
-    }
+    open_file = true;
+
     // About Debugger logic
   }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("About Debugger");
+  }
+  SameLine();
+  ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions());
+
+  SameLine();
+  ImGui::Checkbox("Turbo", &turbo_mode_);
+
   static bool show_memory_viewer = false;
 
   SameLine();
@@ -147,6 +244,18 @@ void Emulator::RenderNavBar() {
     RenderMemoryViewer();
     ImGui::End();
   }
+
+  if (open_file) {
+    auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+    if (!file_name.empty()) {
+      std::ifstream file(file_name, std::ios::binary);
+      // Load the data directly into rom_data
+      rom_data_.assign(std::istreambuf_iterator<char>(file),
+                       std::istreambuf_iterator<char>());
+      snes_.Init(rom_data_);
+      open_file = false;
+    }
+  }
 }
 
 void Emulator::HandleEvents() {
@@ -154,54 +263,11 @@ void Emulator::HandleEvents() {
   // ...
 }
 
-void Emulator::RenderEmulator() {
-  if (ImGui::BeginTable("##Emulator", 3,
-                        ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
-    ImGui::TableSetupColumn("CPU");
-    ImGui::TableSetupColumn("PPU");
-    ImGui::TableHeadersRow();
-
-    TableNextColumn();
-    RenderCpuInstructionLog(snes_.cpu().instruction_log_);
-
-    TableNextColumn();
-    RenderSnesPpu();
-    RenderBreakpointList();
-
-    TableNextColumn();
-    ImGui::BeginChild("##", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
-    RenderCpuState(snes_.cpu());
-    ImGui::EndChild();
-
-    ImGui::EndTable();
-  }
-}
-
-void Emulator::RenderSnesPpu() {
-  ImVec2 size = ImVec2(320, 240);
-  if (snes_.running()) {
-    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 240), true,
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
-    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
-    ImGui::Image((void*)snes_.ppu().GetScreen()->texture(), size, ImVec2(0, 0),
-                 ImVec2(1, 1));
-    ImGui::EndChild();
-
-  } else {
-    ImGui::Text("Emulator output not available.");
-    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 240), true,
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
-    ImGui::SetCursorPosX(((ImGui::GetWindowSize().x * 0.5f) - size.x) * 0.5f);
-    ImGui::SetCursorPosY(((ImGui::GetWindowSize().y * 0.5f) - size.y) * 0.5f);
-    ImGui::Dummy(size);
-    ImGui::EndChild();
-  }
-  ImGui::Separator();
-}
-
 void Emulator::RenderBreakpointList() {
+  if (ImGui::Button("Set SPC PC")) {
+    snes_.apu().spc700().PC = 0xFFEF;
+  }
+  Separator();
   Text("Breakpoints");
   Separator();
   static char breakpoint_input[10] = "";
@@ -245,64 +311,31 @@ void Emulator::RenderBreakpointList() {
     for (auto breakpoint : breakpoints) {
       if (ImGui::Selectable(absl::StrFormat("0x%04X", breakpoint).c_str())) {
         // Jump to breakpoint
-        // snes_.Cpu().JumpToBreakpoint(breakpoint);
+        // snes_.cpu().JumpToBreakpoint(breakpoint);
       }
     }
     ImGui::EndChild();
   }
   Separator();
-  gui::InputHexByte("PB", &manual_pb_, 1, 25.f);
-  gui::InputHexWord("PC", &manual_pc_, 25.f);
+  gui::InputHexByte("PB", &manual_pb_, 50.f);
+  gui::InputHexWord("PC", &manual_pc_, 75.f);
   if (ImGui::Button("Set Current Address")) {
     snes_.cpu().PC = manual_pc_;
     snes_.cpu().PB = manual_pb_;
   }
 }
 
-void Emulator::RenderCpuState(Cpu& cpu) {
-  if (ImGui::CollapsingHeader("Register Values",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Columns(2, "RegistersColumns");
-    Separator();
-    Text("A: 0x%04X", cpu.A);
-    NextColumn();
-    Text("D: 0x%04X", cpu.D);
-    NextColumn();
-    Text("X: 0x%04X", cpu.X);
-    NextColumn();
-    Text("DB: 0x%02X", cpu.DB);
-    NextColumn();
-    Text("Y: 0x%04X", cpu.Y);
-    NextColumn();
-    Text("PB: 0x%02X", cpu.PB);
-    NextColumn();
-    Text("PC: 0x%04X", cpu.PC);
-    NextColumn();
-    Text("E: %d", cpu.E);
-    NextColumn();
-    ImGui::Columns(1);
-    Separator();
-  }
-
-  // Call Stack
-  if (ImGui::CollapsingHeader("Call Stack", ImGuiTreeNodeFlags_DefaultOpen)) {
-    // For each return address in the call stack:
-    Text("Return Address: 0x%08X", 0xFFFFFF);  // Placeholder
-  }
-
-  snes_.SetCpuMode(0);
-}
-
 void Emulator::RenderMemoryViewer() {
+  static MemoryEditor ram_edit;
+  static MemoryEditor aram_edit;
   static MemoryEditor mem_edit;
-  if (ImGui::Button("RAM")) {
-    mem_edit.GotoAddrAndHighlight(0x7E0000, 0x7E0001);
-  }
 
-  if (ImGui::BeginTable("MemoryViewerTable", 2,
+  if (ImGui::BeginTable("MemoryViewerTable", 4,
                         ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
     ImGui::TableSetupColumn("Bookmarks");
-    ImGui::TableSetupColumn("Memory");
+    ImGui::TableSetupColumn("RAM");
+    ImGui::TableSetupColumn("ARAM");
+    ImGui::TableSetupColumn("ROM");
     ImGui::TableHeadersRow();
 
     TableNextColumn();
@@ -343,41 +376,70 @@ void Emulator::RenderMemoryViewer() {
     }
 
     TableNextColumn();
-    mem_edit.DrawContents((void*)snes_.Memory()->data(),
-                          snes_.Memory()->size());
+    if (ImGui::BeginChild("RAM", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_NoMove |
+                              ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse)) {
+      ram_edit.DrawContents((void*)snes_.get_ram(), 0x20000);
+      ImGui::EndChild();
+    }
+
+    TableNextColumn();
+    if (ImGui::BeginChild("ARAM", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_NoMove |
+                              ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse)) {
+      aram_edit.DrawContents((void*)snes_.apu().ram.data(),
+                             snes_.apu().ram.size());
+      ImGui::EndChild();
+    }
+
+    TableNextColumn();
+    if (ImGui::BeginChild("ROM", ImVec2(0, 0), true,
+                          ImGuiWindowFlags_NoMove |
+                              ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse)) {
+      mem_edit.DrawContents((void*)snes_.Memory().rom_.data(),
+                            snes_.Memory().rom_.size());
+      ImGui::EndChild();
+    }
 
     ImGui::EndTable();
   }
 }
 
 void Emulator::RenderCpuInstructionLog(
-    const std::vector<InstructionEntry>& instructionLog) {
-  if (ImGui::CollapsingHeader("CPU Instruction Log")) {
+    const std::vector<InstructionEntry>& instruction_log) {
+  if (ImGui::CollapsingHeader("Instruction Log",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     // Filtering options
-    static char filterBuf[256];
-    ImGui::InputText("Filter", filterBuf, IM_ARRAYSIZE(filterBuf));
-    SameLine();
-    if (ImGui::Button("Clear")) { /* Clear filter logic */
-    }
-
-    // Toggle for showing all opcodes
-    static bool showAllOpcodes = true;
-    ImGui::Checkbox("Show All Opcodes", &showAllOpcodes);
+    static char filter[256];
+    ImGui::InputText("Filter", filter, IM_ARRAYSIZE(filter));
 
     // Instruction list
-    ImGui::BeginChild("InstructionList", ImVec2(0, 0),
-                      ImGuiChildFlags_None);
-    for (const auto& entry : instructionLog) {
-      if (ShouldDisplay(entry, filterBuf, showAllOpcodes)) {
+    ImGui::BeginChild("InstructionList", ImVec2(0, 0), ImGuiChildFlags_None);
+    for (const auto& entry : instruction_log) {
+      if (ShouldDisplay(entry, filter)) {
         if (ImGui::Selectable(
-                absl::StrFormat("%06X: %s %s", entry.address,
-                                opcode_to_mnemonic.at(entry.opcode),
-                                entry.operands)
-                    .c_str())) {
+                absl::StrFormat("%06X:", entry.address).c_str())) {
           // Logic to handle click (e.g., jump to address, set breakpoint)
         }
+
+        ImGui::SameLine();
+
+        ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        ImGui::TextColored(color, "%s",
+                           opcode_to_mnemonic.at(entry.opcode).c_str());
+        ImVec4 operand_color = ImVec4(0.7f, 0.5f, 0.3f, 1.0f);
+        ImGui::SameLine();
+        ImGui::TextColored(operand_color, "%s", entry.operands.c_str());
       }
     }
+    // Jump to the bottom of the child scrollbar
+    if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
+      ImGui::SetScrollHereY(1.0f);
+    }
+
     ImGui::EndChild();
   }
 }

@@ -1,11 +1,30 @@
 // FontLoader.mm
 #include "app/core/platform/font_loader.h"
-#import <Cocoa/Cocoa.h>
-#import <CoreText/CoreText.h>
-#include <imgui/imgui.h>
+
+#include "imgui/imgui.h"
 
 #include "app/gui/icons.h"
 
+#if defined(__APPLE__) && defined(__MACH__)
+/* Apple OSX and iOS (Darwin). */
+#include <TargetConditionals.h>
+
+#import <CoreText/CoreText.h>
+
+#if TARGET_IPHONE_SIMULATOR == 1
+/* iOS in Xcode simulator */
+void LoadSystemFonts() {}
+
+#elif TARGET_OS_IPHONE == 1
+/* iOS */
+void LoadSystemFonts() {}
+
+#elif TARGET_OS_MAC == 1
+/* macOS */
+
+#import <Cocoa/Cocoa.h>
+
+// MacOS Implementation
 void LoadSystemFonts() {
   // List of common macOS system fonts
   NSArray *fontNames = @[ @"Helvetica", @"Times New Roman", @"Courier", @"Arial", @"Verdana" ];
@@ -48,3 +67,8 @@ void LoadSystemFonts() {
     }
   }
 }
+#else
+// Unsupported platform
+#endif
+
+#endif

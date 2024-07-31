@@ -2,6 +2,7 @@
 #define YAZE_APP_EMU_SPC700_H
 
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <unordered_map>
 #include <vector>
@@ -21,6 +22,7 @@ class AudioRam {
   virtual uint8_t read(uint16_t address) const = 0;
   virtual uint8_t& mutable_read(uint16_t address) = 0;
   virtual void write(uint16_t address, uint8_t value) = 0;
+  uint8_t operator[](uint16_t address) { return mutable_read(address); }
 };
 
 /**
@@ -45,7 +47,16 @@ class AudioRamImpl : public AudioRam {
   void write(uint16_t address, uint8_t value) override {
     ram[address % ARAM_SIZE] = value;
   }
+
+  // add [] operators
+  uint8_t operator[](uint16_t address) const { return read(address); }
 };
+
+typedef struct ApuCallbacks {
+  std::function<void(uint16_t, uint8_t)> write;
+  std::function<uint8_t(uint16_t)> read;
+  std::function<void(bool)> idle;
+} ApuCallbacks;
 
 /**
  * @class Spc700
@@ -60,8 +71,20 @@ class AudioRamImpl : public AudioRam {
  */
 class Spc700 {
  private:
-  AudioRam& aram_;
+  ApuCallbacks callbacks_;
   std::vector<std::string> log_;
+
+  bool stopped_;
+  bool reset_wanted_;
+  // single-cycle
+  uint8_t opcode;
+  uint32_t step = 0;
+  uint32_t bstep;
+  uint16_t adr;
+  uint16_t adr1;
+  uint8_t dat;
+  uint16_t dat16;
+  uint8_t param;
 
   const uint8_t ipl_rom_[64]{
       0xCD, 0xEF, 0xBD, 0xE8, 0x00, 0xC6, 0x1D, 0xD0, 0xFC, 0x8F, 0xAA,
@@ -72,7 +95,7 @@ class Spc700 {
       0xDD, 0x5D, 0xD0, 0xDB, 0x1F, 0x00, 0x00, 0xC0, 0xFF};
 
  public:
-  explicit Spc700(AudioRam& aram) : aram_(aram) {}
+  explicit Spc700(ApuCallbacks& callbacks) : callbacks_(callbacks) {}
 
   // Registers
   uint8_t A = 0x00;      // 8-bit accumulator
@@ -83,14 +106,14 @@ class Spc700 {
   uint8_t SP = 0x00;     // stack pointer
 
   struct Flags {
-    uint8_t N : 1;  // Negative flag
-    uint8_t V : 1;  // Overflow flag
-    uint8_t P : 1;  // Direct page flag
-    uint8_t B : 1;  // Break flag
-    uint8_t H : 1;  // Half-carry flag
-    uint8_t I : 1;  // Interrupt enable
-    uint8_t Z : 1;  // Zero flag
-    uint8_t C : 1;  // Carry flag
+    bool N : 1;  // Negative flag
+    bool V : 1;  // Overflow flag
+    bool P : 1;  // Direct page flag
+    bool B : 1;  // Break flag
+    bool H : 1;  // Half-carry flag
+    bool I : 1;  // Interrupt enable
+    bool Z : 1;  // Zero flag
+    bool C : 1;  // Carry flag
   };
   Flags PSW;  // Processor status word
 
@@ -112,79 +135,96 @@ class Spc700 {
     return flags;
   }
 
-  void Reset();
+  void Reset(bool hard = false);
 
-  void BootIplRom();
+  void RunOpcode();
 
   void ExecuteInstructions(uint8_t opcode);
   void LogInstruction(uint16_t initial_pc, uint8_t opcode);
 
   // Read a byte from the memory-mapped registers
-  uint8_t read(uint16_t address) {
-    if (address < 0xFFC0) {
-      return aram_.read(address);
-    } else {
-      // Check if register is set to unmap the IPL ROM
-      if (read(0xF1) & 0x80) {
-        return aram_.read(address);
-      }
-      return ipl_rom_[address - 0xFFC0];
-    }
+  uint8_t read(uint16_t address) { return callbacks_.read(address); }
+
+  uint16_t read_word(uint16_t address) {
+    uint8_t adrl = address;
+    uint8_t adrh = address + 1;
+    uint8_t value = callbacks_.read(adrl);
+    return value | (callbacks_.read(adrh) << 8);
   }
 
-  uint8_t& mutable_read(uint16_t address) {
-    if (address < 0xFFC0) {
-      return aram_.mutable_read(address);
-    } else {
-      // NOTE: Mutable access to IPL ROM is not allowed
-      return aram_.mutable_read(address);
-    }
+  uint8_t ReadOpcode() {
+    uint8_t opcode = callbacks_.read(PC++);
+    return opcode;
   }
 
-  uint16_t& mutable_read_16(uint16_t address) {
-    if (address < 0xFFC0) {
-      return *reinterpret_cast<uint16_t*>(&aram_.mutable_read(address));
-    } else {
-      // NOTE: Mutable access to IPL ROM is not allowed
-      return *reinterpret_cast<uint16_t*>(&aram_.mutable_read(address));
-    }
+  uint16_t ReadOpcodeWord() {
+    uint8_t low = ReadOpcode();
+    uint8_t high = ReadOpcode();
+    return low | (high << 8);
   }
 
-  uint16_t read_16(uint16_t address) {
-    if (address < 0xFFC0) {
-      return (aram_.read(address) | (aram_.read(address + 1) << 8));
-    } else {
-      // Check if register is set to unmap the IPL ROM
-      if (read(0xF1) & 0x80) {
-        return aram_.read(address);
-      }
-      return ipl_rom_[address - 0xFFC0];
+  void DoBranch(uint8_t value, bool check) {
+    if (check) {
+      // taken branch: 2 extra cycles
+      callbacks_.idle(false);
+      callbacks_.idle(false);
+      PC += (int8_t)value;
     }
   }
 
   // Write a byte to the memory-mapped registers
   void write(uint16_t address, uint8_t value) {
-    if (address < 0xFFC0) {
-      aram_.write(address, value);
-    } else {
-      // Check if register is set to unmap the IPL ROM
-      if (read(0xF1) & 0x80) {
-        aram_.write(address, value);
-      }
-    }
+    callbacks_.write(address, value);
+  }
+
+  void push_byte(uint8_t value) {
+    callbacks_.write(0x100 | SP, value);
+    SP--;
+  }
+
+  void push_word(uint16_t value) {
+    push_byte(value >> 8);
+    push_byte(value & 0xFF);
+  }
+
+  uint8_t pull_byte() {
+    SP++;
+    return read(0x100 | SP);
+  }
+
+  uint16_t pull_word() {
+    uint16_t value = pull_byte();
+    value |= pull_byte() << 8;
+    return value;
   }
 
   // ======================================================
   // Addressing modes
 
   // Immediate
-  uint8_t imm();
+  uint16_t imm();
 
   // Direct page
   uint8_t dp();
-  uint8_t& mutable_dp();
+  uint16_t dpx();
 
   uint8_t get_dp_addr();
+
+  uint8_t abs_bit(uint16_t* adr);
+  uint16_t dp_dp(uint8_t* src);
+  uint16_t ind();
+  uint16_t ind_ind(uint8_t* srcVal);
+  uint16_t dp_word(uint16_t* low);
+  uint16_t ind_p();
+  uint16_t abs_x();
+  uint16_t abs_y();
+  uint16_t idx();
+  uint16_t idy();
+  uint16_t dp_y();
+  uint16_t dp_imm(uint8_t* srcVal);
+  uint16_t abs();
+
+  int8_t rel();
 
   // Direct page indexed by X
   uint8_t dp_plus_x();
@@ -197,11 +237,6 @@ class Spc700 {
 
   // Indirect indexed (add index after 16-bit lookup).
   uint16_t dp_indirect_plus_y();
-
-  uint16_t abs();
-
-  int8_t rel();
-
   uint8_t i();
 
   uint8_t i_postinc();
@@ -213,20 +248,43 @@ class Spc700 {
   // ==========================================================================
   // Instructions
 
-  void MOV(uint8_t& dest, uint8_t operand);
+  void MOV(uint16_t adr);
   void MOV_ADDR(uint16_t address, uint8_t operand);
-  void ADC(uint8_t& dest, uint8_t operand);
-  void SBC(uint8_t& dest, uint8_t operand);
-  void CMP(uint8_t& dest, uint8_t operand);
-  void AND(uint8_t& dest, uint8_t operand);
-  void OR(uint8_t& dest, uint8_t operand);
-  void EOR(uint8_t& dest, uint8_t operand);
-  void ASL(uint8_t operand);
-  void LSR(uint8_t& operand);
-  void ROL(uint8_t operand, bool isImmediate = false);
+  void MOVY(uint16_t adr);
+  void MOVX(uint16_t adr);
+  void MOVS(uint16_t adr);
+  void MOVSX(uint16_t adr);
+  void MOVSY(uint16_t adr);
+
+  void ADC(uint16_t adr);
+  void ADCM(uint16_t& dest, uint8_t operand);
+
+  void SBC(uint16_t adr);
+  void SBCM(uint16_t& dest, uint8_t operand);
+
+  void CMP(uint16_t adr);
+  void CMPX(uint16_t adr);
+  void CMPM(uint16_t dst, uint8_t value);
+  void CMPY(uint16_t adr);
+
+  void AND(uint16_t adr);
+  void ANDM(uint16_t dest, uint8_t operand);
+
+  void OR(uint16_t adr);
+  void ORM(uint16_t dest, uint8_t operand);
+
+  void EOR(uint16_t adr);
+  void EORM(uint16_t dest, uint8_t operand);
+
+  void ASL(uint16_t operand);
+  void LSR(uint16_t adr);
+
+  void ROL(uint16_t operand);
+  void ROR(uint16_t adr);
+
   void XCN(uint8_t operand, bool isImmediate = false);
-  void INC(uint8_t& operand);
-  void DEC(uint8_t& operand);
+  void INC(uint16_t adr);
+  void DEC(uint16_t operand);
   void MOVW(uint16_t& dest, uint16_t operand);
   void INCW(uint16_t& operand);
   void DECW(uint16_t& operand);

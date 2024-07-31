@@ -1,11 +1,22 @@
 #include "controller.h"
 
 #include <SDL.h>
-#include <SDL_mixer.h>
-#include <imgui/backends/imgui_impl_sdl2.h>
-#include <imgui/backends/imgui_impl_sdlrenderer2.h>
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
+
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+
+#if defined(__APPLE__) && defined(__MACH__)
+#include <TargetConditionals.h>
+#if TARGET_IPHONE_SIMULATOR == 1
+#include "imgui/backends/imgui_impl_metal.h"
+#elif TARGET_OS_IPHONE == 1
+#include "imgui/backends/imgui_impl_metal.h"
+#elif TARGET_OS_MAC == 1
+
+#endif
+#endif
 
 #include <memory>
 
@@ -22,8 +33,37 @@ namespace core {
 
 namespace {
 
+constexpr ImGuiWindowFlags kMainEditorFlags =
+    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
+    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
+
+using ::ImVec2;
+using ImGui::Begin;
+using ImGui::End;
+using ImGui::GetIO;
+using ImGui::NewFrame;
+using ImGui::SetNextWindowPos;
+using ImGui::SetNextWindowSize;
+
+void NewMasterFrame() {
+  const ImGuiIO &io = GetIO();
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+  NewFrame();
+  SetNextWindowPos(gui::kZeroPos);
+  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
+  SetNextWindowSize(dimensions, ImGuiCond_Always);
+
+  if (!Begin("##YazeMain", nullptr, kMainEditorFlags)) {
+    End();
+    return;
+  }
+}
+
 void InitializeKeymap() {
   ImGuiIO &io = ImGui::GetIO();
+  io.KeyMap[ImGuiKey_LeftSuper] = SDL_GetScancodeFromKey(SDLK_LGUI);
   io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
   io.KeyMap[ImGuiKey_LeftShift] = SDL_GetScancodeFromKey(SDLK_LSHIFT);
   io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
@@ -49,6 +89,44 @@ void InitializeKeymap() {
   io.KeyMap[ImGuiKey_8] = SDL_GetScancodeFromKey(SDLK_8);
   io.KeyMap[ImGuiKey_9] = SDL_GetScancodeFromKey(SDLK_9);
   io.KeyMap[ImGuiKey_0] = SDL_GetScancodeFromKey(SDLK_0);
+  io.KeyMap[ImGuiKey_A] = SDL_GetScancodeFromKey(SDLK_a);
+  io.KeyMap[ImGuiKey_B] = SDL_GetScancodeFromKey(SDLK_b);
+  io.KeyMap[ImGuiKey_C] = SDL_GetScancodeFromKey(SDLK_c);
+  io.KeyMap[ImGuiKey_D] = SDL_GetScancodeFromKey(SDLK_d);
+  io.KeyMap[ImGuiKey_E] = SDL_GetScancodeFromKey(SDLK_e);
+  io.KeyMap[ImGuiKey_F] = SDL_GetScancodeFromKey(SDLK_f);
+  io.KeyMap[ImGuiKey_G] = SDL_GetScancodeFromKey(SDLK_g);
+  io.KeyMap[ImGuiKey_H] = SDL_GetScancodeFromKey(SDLK_h);
+  io.KeyMap[ImGuiKey_I] = SDL_GetScancodeFromKey(SDLK_i);
+  io.KeyMap[ImGuiKey_J] = SDL_GetScancodeFromKey(SDLK_j);
+  io.KeyMap[ImGuiKey_K] = SDL_GetScancodeFromKey(SDLK_k);
+  io.KeyMap[ImGuiKey_L] = SDL_GetScancodeFromKey(SDLK_l);
+  io.KeyMap[ImGuiKey_M] = SDL_GetScancodeFromKey(SDLK_m);
+  io.KeyMap[ImGuiKey_N] = SDL_GetScancodeFromKey(SDLK_n);
+  io.KeyMap[ImGuiKey_O] = SDL_GetScancodeFromKey(SDLK_o);
+  io.KeyMap[ImGuiKey_P] = SDL_GetScancodeFromKey(SDLK_p);
+  io.KeyMap[ImGuiKey_Q] = SDL_GetScancodeFromKey(SDLK_q);
+  io.KeyMap[ImGuiKey_R] = SDL_GetScancodeFromKey(SDLK_r);
+  io.KeyMap[ImGuiKey_S] = SDL_GetScancodeFromKey(SDLK_s);
+  io.KeyMap[ImGuiKey_T] = SDL_GetScancodeFromKey(SDLK_t);
+  io.KeyMap[ImGuiKey_U] = SDL_GetScancodeFromKey(SDLK_u);
+  io.KeyMap[ImGuiKey_V] = SDL_GetScancodeFromKey(SDLK_v);
+  io.KeyMap[ImGuiKey_W] = SDL_GetScancodeFromKey(SDLK_w);
+  io.KeyMap[ImGuiKey_X] = SDL_GetScancodeFromKey(SDLK_x);
+  io.KeyMap[ImGuiKey_Y] = SDL_GetScancodeFromKey(SDLK_y);
+  io.KeyMap[ImGuiKey_Z] = SDL_GetScancodeFromKey(SDLK_z);
+  io.KeyMap[ImGuiKey_F1] = SDL_GetScancodeFromKey(SDLK_F1);
+  io.KeyMap[ImGuiKey_F2] = SDL_GetScancodeFromKey(SDLK_F2);
+  io.KeyMap[ImGuiKey_F3] = SDL_GetScancodeFromKey(SDLK_F3);
+  io.KeyMap[ImGuiKey_F4] = SDL_GetScancodeFromKey(SDLK_F4);
+  io.KeyMap[ImGuiKey_F5] = SDL_GetScancodeFromKey(SDLK_F5);
+  io.KeyMap[ImGuiKey_F6] = SDL_GetScancodeFromKey(SDLK_F6);
+  io.KeyMap[ImGuiKey_F7] = SDL_GetScancodeFromKey(SDLK_F7);
+  io.KeyMap[ImGuiKey_F8] = SDL_GetScancodeFromKey(SDLK_F8);
+  io.KeyMap[ImGuiKey_F9] = SDL_GetScancodeFromKey(SDLK_F9);
+  io.KeyMap[ImGuiKey_F10] = SDL_GetScancodeFromKey(SDLK_F10);
+  io.KeyMap[ImGuiKey_F11] = SDL_GetScancodeFromKey(SDLK_F11);
+  io.KeyMap[ImGuiKey_F12] = SDL_GetScancodeFromKey(SDLK_F12);
 }
 
 void ImGui_ImplSDL2_SetClipboardText(void *user_data, const char *text) {
@@ -66,25 +144,63 @@ void InitializeClipboard() {
   io.ClipboardUserData = nullptr;
 }
 
-void HandleKeyDown(SDL_Event &event) {
+void HandleKeyDown(SDL_Event &event, editor::MasterEditor &editor) {
   ImGuiIO &io = ImGui::GetIO();
   io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
+  io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+  io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+  io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+  io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+
   switch (event.key.keysym.sym) {
-    case SDLK_UP:
-    case SDLK_DOWN:
-    case SDLK_RETURN:
     case SDLK_BACKSPACE:
     case SDLK_LSHIFT:
     case SDLK_LCTRL:
     case SDLK_TAB:
       io.KeysDown[event.key.keysym.scancode] = (event.type == SDL_KEYDOWN);
       break;
+    case SDLK_z:
+      editor.emulator().snes().SetButtonState(1, 0, true);
+      break;
+    case SDLK_a:
+      editor.emulator().snes().SetButtonState(1, 1, true);
+      break;
+    case SDLK_RSHIFT:
+      editor.emulator().snes().SetButtonState(1, 2, true);
+      break;
+    case SDLK_RETURN:
+      editor.emulator().snes().SetButtonState(1, 3, true);
+      break;
+    case SDLK_UP:
+      editor.emulator().snes().SetButtonState(1, 4, true);
+      break;
+    case SDLK_DOWN:
+      editor.emulator().snes().SetButtonState(1, 5, true);
+      break;
+    case SDLK_LEFT:
+      editor.emulator().snes().SetButtonState(1, 6, true);
+      break;
+    case SDLK_RIGHT:
+      editor.emulator().snes().SetButtonState(1, 7, true);
+      break;
+    case SDLK_x:
+      editor.emulator().snes().SetButtonState(1, 8, true);
+      break;
+    case SDLK_s:
+      editor.emulator().snes().SetButtonState(1, 9, true);
+      break;
+    case SDLK_d:
+      editor.emulator().snes().SetButtonState(1, 10, true);
+      break;
+    case SDLK_c:
+      editor.emulator().snes().SetButtonState(1, 11, true);
+      break;
     default:
       break;
   }
 }
 
-void HandleKeyUp(SDL_Event &event) {
+void HandleKeyUp(SDL_Event &event, editor::MasterEditor &editor) {
   ImGuiIO &io = ImGui::GetIO();
   int key = event.key.keysym.scancode;
   IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
@@ -93,6 +209,47 @@ void HandleKeyUp(SDL_Event &event) {
   io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
   io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
   io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+
+  switch (event.key.keysym.sym) {
+    case SDLK_z:
+      editor.emulator().snes().SetButtonState(1, 0, false);
+      break;
+    case SDLK_a:
+      editor.emulator().snes().SetButtonState(1, 1, false);
+      break;
+    case SDLK_RSHIFT:
+      editor.emulator().snes().SetButtonState(1, 2, false);
+      break;
+    case SDLK_RETURN:
+      editor.emulator().snes().SetButtonState(1, 3, false);
+      break;
+    case SDLK_UP:
+      editor.emulator().snes().SetButtonState(1, 4, false);
+      break;
+    case SDLK_DOWN:
+      editor.emulator().snes().SetButtonState(1, 5, false);
+      break;
+    case SDLK_LEFT:
+      editor.emulator().snes().SetButtonState(1, 6, false);
+      break;
+    case SDLK_RIGHT:
+      editor.emulator().snes().SetButtonState(1, 7, false);
+      break;
+    case SDLK_x:
+      editor.emulator().snes().SetButtonState(1, 8, false);
+      break;
+    case SDLK_s:
+      editor.emulator().snes().SetButtonState(1, 9, false);
+      break;
+    case SDLK_d:
+      editor.emulator().snes().SetButtonState(1, 10, false);
+      break;
+    case SDLK_c:
+      editor.emulator().snes().SetButtonState(1, 11, false);
+      break;
+    default:
+      break;
+  }
 }
 
 void ChangeWindowSizeEvent(SDL_Event &event) {
@@ -117,12 +274,36 @@ void HandleMouseMovement(int &wheel) {
 
 }  // namespace
 
-absl::Status Controller::OnEntry() {
+absl::Status Controller::OnEntry(std::string filename) {
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_IPHONE_SIMULATOR == 1
+  /* iOS in Xcode simulator */
+  platform_ = Platform::kiOS;
+#elif TARGET_OS_IPHONE == 1
+  /* iOS */
+  platform_ = Platform::kiOS;
+#elif TARGET_OS_MAC == 1
+  /* macOS */
+  platform_ = Platform::kMacOS;
+#endif
+#elif defined(_WIN32)
+  platform_ = Platform::kWindows;
+#elif defined(__linux__)
+  platform_ = Platform::kLinux;
+#else
+  platform_ = Platform::kUnknown;
+#endif
+
   RETURN_IF_ERROR(CreateSDL_Window())
   RETURN_IF_ERROR(CreateRenderer())
   RETURN_IF_ERROR(CreateGuiContext())
+  if (flags()->kLoadAudioDevice) {
+    RETURN_IF_ERROR(LoadAudioDevice())
+    master_editor_.emulator().set_audio_buffer(audio_buffer_);
+    master_editor_.emulator().set_audio_device_id(audio_device_);
+  }
   InitializeKeymap();
-  master_editor_.SetupScreen(renderer_);
+  master_editor_.SetupScreen(renderer_, filename);
   active_ = true;
   return absl::OkStatus();
 }
@@ -135,10 +316,10 @@ void Controller::OnInput() {
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
       case SDL_KEYDOWN:
-        HandleKeyDown(event);
+        HandleKeyDown(event, master_editor_);
         break;
       case SDL_KEYUP:
-        HandleKeyUp(event);
+        HandleKeyUp(event, master_editor_);
         break;
       case SDL_TEXTINPUT:
         io.AddInputCharactersUTF8(event.text.text);
@@ -166,26 +347,57 @@ void Controller::OnInput() {
   HandleMouseMovement(wheel);
 }
 
-void Controller::OnLoad() { PRINT_IF_ERROR(master_editor_.Update()); }
+absl::Status Controller::OnLoad() {
+  if (master_editor_.quit()) {
+    active_ = false;
+  }
+  NewMasterFrame();
+  RETURN_IF_ERROR(master_editor_.Update());
+  return absl::OkStatus();
+}
 
 void Controller::DoRender() const {
   ImGui::Render();
   SDL_RenderClear(renderer_.get());
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_.get());
   SDL_RenderPresent(renderer_.get());
 }
 
 void Controller::OnExit() {
-  master_editor_.Shutdown();
-  Mix_CloseAudio();
-  ImGui_ImplSDLRenderer2_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+  if (flags()->kLoadAudioDevice) {
+    SDL_PauseAudioDevice(audio_device_, 1);
+    SDL_CloseAudioDevice(audio_device_);
+    delete audio_buffer_;
+  }
+  switch (platform_) {
+    case Platform::kMacOS:
+    case Platform::kWindows:
+    case Platform::kLinux:
+      ImGui_ImplSDLRenderer2_Shutdown();
+      ImGui_ImplSDL2_Shutdown();
+      break;
+    case Platform::kiOS:
+      // Deferred
+      break;
+    default:
+      break;
+  }
   ImGui::DestroyContext();
   SDL_Quit();
 }
 
 absl::Status Controller::CreateSDL_Window() {
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+  auto sdl_flags = SDL_INIT_VIDEO | SDL_INIT_TIMER;
+  if (flags()->kUseNewImGuiInput) {
+    sdl_flags |= SDL_INIT_GAMECONTROLLER;
+  }
+
+  if (flags()->kLoadAudioDevice) {
+    sdl_flags |= SDL_INIT_AUDIO;
+  }
+
+  if (SDL_Init(sdl_flags) != 0) {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));
   } else {
@@ -205,11 +417,6 @@ absl::Status Controller::CreateSDL_Window() {
     if (window_ == nullptr) {
       return absl::InternalError(
           absl::StrFormat("SDL_CreateWindow: %s\n", SDL_GetError()));
-    }
-    // Initialize SDL_mixer
-    if (Mix_OpenAudio(32000, MIX_DEFAULT_FORMAT, 2, 1024) < 0) {
-      printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n",
-             Mix_GetError());
     }
   }
   return absl::OkStatus();
@@ -264,13 +471,13 @@ absl::Status Controller::CreateGuiContext() {
 absl::Status Controller::LoadFontFamilies() const {
   ImGuiIO &io = ImGui::GetIO();
 
-  // Define constants
-  static const char *KARLA_REGULAR = "assets/font/Karla-Regular.ttf";
-  static const char *ROBOTO_MEDIUM = "assets/font/Roboto-Medium.ttf";
-  static const char *COUSINE_REGULAR = "assets/font/Cousine-Regular.ttf";
-  static const char *DROID_SANS = "assets/font/DroidSans.ttf";
-  static const char *NOTO_SANS_JP = "assets/font/NotoSansJP.ttf";
-  static const char *IBM_PLEX_JP = "assets/font/IBMPlexSansJP-Bold.ttf";
+  const char *font_path = "assets/font/";
+  static const char *KARLA_REGULAR = "Karla-Regular.ttf";
+  static const char *ROBOTO_MEDIUM = "Roboto-Medium.ttf";
+  static const char *COUSINE_REGULAR = "Cousine-Regular.ttf";
+  static const char *DROID_SANS = "DroidSans.ttf";
+  static const char *NOTO_SANS_JP = "NotoSansJP.ttf";
+  static const char *IBM_PLEX_JP = "IBMPlexSansJP-Bold.ttf";
   static const float FONT_SIZE_DEFAULT = 14.0f;
   static const float FONT_SIZE_DROID_SANS = 16.0f;
   static const float ICON_FONT_SIZE = 18.0f;
@@ -299,20 +506,75 @@ absl::Status Controller::LoadFontFamilies() const {
     float font_size =
         (font_path == DROID_SANS) ? FONT_SIZE_DROID_SANS : FONT_SIZE_DEFAULT;
 
-    if (!io.Fonts->AddFontFromFileTTF(font_path, font_size)) {
+    std::string actual_font_path;
+#ifdef __APPLE__
+#if TARGET_OS_IOS == 1
+    const std::string kBundlePath = GetBundleResourcePath();
+    actual_font_path = kBundlePath + font_path;
+#else
+    actual_font_path = std::filesystem::absolute(font_path).string();
+#endif
+#else
+    actual_font_path = font_path;
+#endif
+
+    if (!io.Fonts->AddFontFromFileTTF(actual_font_path.data(), font_size)) {
       return absl::InternalError(
-          absl::StrFormat("Failed to load font from %s", font_path));
+          absl::StrFormat("Failed to load font from %s", actual_font_path));
     }
 
     // Merge icon set
-    io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, ICON_FONT_SIZE,
+    std::string actual_icon_font_path = "";
+    const char *icon_font_path = FONT_ICON_FILE_NAME_MD;
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_OS_IOS == 1
+    const std::string kIconBundlePath = GetBundleResourcePath();
+    actual_icon_font_path = kIconBundlePath + "MaterialIcons-Regular.ttf";
+#else
+    actual_icon_font_path = std::filesystem::absolute(icon_font_path).string();
+#endif
+#else
+#endif
+    io.Fonts->AddFontFromFileTTF(actual_icon_font_path.data(), ICON_FONT_SIZE,
                                  &icons_config, icons_ranges);
 
     // Merge Japanese font
-    io.Fonts->AddFontFromFileTTF(NOTO_SANS_JP, 18.0f, &japanese_font_config,
+    std::string actual_japanese_font_path = "";
+    const char *japanese_font_path = NOTO_SANS_JP;
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_OS_IOS == 1
+    const std::string kJapaneseBundlePath = GetBundleResourcePath();
+    actual_japanese_font_path = kJapaneseBundlePath + japanese_font_path;
+#else
+    actual_japanese_font_path =
+        std::filesystem::absolute(japanese_font_path).string();
+#endif
+#else
+#endif
+    io.Fonts->AddFontFromFileTTF(actual_japanese_font_path.data(), 18.0f,
+                                 &japanese_font_config,
                                  io.Fonts->GetGlyphRangesJapanese());
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status Controller::LoadAudioDevice() {
+  SDL_AudioSpec want, have;
+  SDL_memset(&want, 0, sizeof(want));
+  want.freq = audio_frequency_;
+  want.format = AUDIO_S16;
+  want.channels = 2;
+  want.samples = 2048;
+  want.callback = NULL;  // Uses the queue
+  audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+  if (audio_device_ == 0) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
+  }
+  audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
+  master_editor_.emulator().set_audio_buffer(audio_buffer_);
+  SDL_PauseAudioDevice(audio_device_, 0);
   return absl::OkStatus();
 }
 

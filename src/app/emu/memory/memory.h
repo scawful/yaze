@@ -2,11 +2,13 @@
 #define MEM_H
 
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include "app/emu/debug/log.h"
+#include "app/emu/memory/dma_channel.h"
 
 // LoROM (Mode 20):
 
@@ -91,20 +93,16 @@ class RomInfo {
   uint16_t resetVector;
 };
 
-class Observer {
- public:
-  virtual ~Observer() = default;
-  virtual void Notify(uint32_t address, uint8_t data) = 0;
-};
+typedef struct CpuCallbacks {
+  std::function<uint8_t(uint32_t)> read_byte;
+  std::function<void(uint32_t, uint8_t)> write_byte;
+  std::function<void(bool waiting)> idle;
+} CpuCallbacks;
 
 constexpr uint32_t kROMStart = 0x008000;
 constexpr uint32_t kROMSize = 0x200000;
 constexpr uint32_t kRAMStart = 0x7E0000;
 constexpr uint32_t kRAMSize = 0x20000;
-constexpr uint32_t kVRAMStart = 0x210000;
-constexpr uint32_t kVRAMSize = 0x10000;
-constexpr uint32_t kOAMStart = 0x218000;
-constexpr uint32_t kOAMSize = 0x220;
 
 /**
  * @brief Memory interface
@@ -136,139 +134,86 @@ class Memory {
 
   virtual uint8_t operator[](int i) const = 0;
   virtual uint8_t at(int i) const = 0;
-};
 
-enum class MemoryMapping { SNES_LOROM = 0, PC_ADDRESS = 1 };
+  virtual uint8_t open_bus() const = 0;
+  virtual void set_open_bus(uint8_t value) = 0;
+
+  virtual bool hdma_init_requested() const = 0;
+  virtual bool hdma_run_requested() const = 0;
+  virtual void init_hdma_request() = 0;
+  virtual void run_hdma_request() = 0;
+  virtual void set_hdma_run_requested(bool value) = 0;
+  virtual void set_hdma_init_requested(bool value) = 0;
+  virtual void set_pal_timing(bool value) = 0;
+  virtual void set_h_pos(uint16_t value) = 0;
+  virtual void set_v_pos(uint16_t value) = 0;
+
+  // get h_pos and v_pos
+  virtual auto h_pos() const -> uint16_t = 0;
+  virtual auto v_pos() const -> uint16_t = 0;
+  // get pal timing
+  virtual auto pal_timing() const -> bool = 0;
+};
 
 /**
  * @class MemoryImpl
  * @brief Implementation of the Memory interface for emulating memory in a SNES
  * system.
  *
- * The MemoryImpl class provides methods for initializing and accessing memory
- * in a SNES system. It implements the Memory interface and inherits from the
- * Loggable class.
- *
- * The class supports different memory mappings, including LoROM and PC_ADDRESS
- * mappings. It provides methods for reading and writing bytes, words, and longs
- * from/to memory. It also supports stack operations for pushing and popping
- * values.
- *
- * The class maintains separate vectors for ROM, RAM, VRAM, and OAM memory
- * regions. It provides methods for accessing these memory regions and
- * retrieving their sizes.
- *
- * The class also allows adding observers to be notified when memory is read or
- * written.
- *
- * @note This class assumes a 16-bit address space.
  */
 class MemoryImpl : public Memory, public Loggable {
  public:
-  void Initialize(const std::vector<uint8_t>& romData, bool verbose = false,
-                  MemoryMapping mapping = MemoryMapping::SNES_LOROM) {
-    verbose_ = verbose;
-    mapping_ = mapping;
-    if (mapping == MemoryMapping::PC_ADDRESS) {
-      memory_.resize(romData.size());
-      std::copy(romData.begin(), romData.end(), memory_.begin());
-      return;
+  uint32_t romSize;
+  uint32_t sramSize;
+  void Initialize(const std::vector<uint8_t>& romData, bool verbose = false);
+
+  uint16_t GetHeaderOffset() {
+    uint8_t mapMode = memory_[(0x00 << 16) + 0xFFD5];
+    uint16_t offset;
+
+    switch (mapMode & 0x07) {
+      case 0:  // LoROM
+        offset = 0x7FC0;
+        break;
+      case 1:  // HiROM
+        offset = 0xFFC0;
+        break;
+      case 5:  // ExHiROM
+        offset = 0x40;
+        break;
+      default:
+        throw std::invalid_argument(
+            "Unable to locate supported ROM mapping mode in the provided ROM "
+            "file. Please try another ROM file.");
     }
 
-    memory_.resize(0x1000000);  // 16 MB
-
-    const size_t ROM_CHUNK_SIZE = 0x8000;           // 32 KB
-    const size_t SRAM_SIZE = 0x10000;               // 64 KB
-    const size_t SYSTEM_RAM_SIZE = 0x20000;         // 128 KB
-    const size_t EXPANSION_RAM_SIZE = 0x2000;       // 8 KB
-    const size_t HARDWARE_REGISTERS_SIZE = 0x4000;  // 16 KB
-
-    // Clear memory
-    std::fill(memory_.begin(), memory_.end(), 0);
-
-    // Load ROM data into memory based on LoROM mapping
-    size_t romSize = romData.size();
-    size_t romAddress = 0;
-    for (size_t bank = 0x00; bank <= 0x3F; ++bank) {
-      for (size_t offset = 0x8000; offset <= 0xFFFF; offset += ROM_CHUNK_SIZE) {
-        if (romAddress < romSize) {
-          std::copy(romData.begin() + romAddress,
-                    romData.begin() + romAddress + ROM_CHUNK_SIZE,
-                    memory_.begin() + (bank << 16) + offset);
-          romAddress += ROM_CHUNK_SIZE;
-        }
-      }
-    }
-
-    // Initialize SRAM at banks 0x7D and 0xFD
-    std::fill(memory_.begin() + (0x7D << 16), memory_.begin() + (0x7E << 16),
-              0);
-    std::fill(memory_.begin() + (0xFD << 16), memory_.begin() + (0xFE << 16),
-              0);
-
-    // Initialize System RAM at banks 0x7E and 0x7F
-    std::fill(memory_.begin() + (0x7E << 16),
-              memory_.begin() + (0x7E << 16) + SYSTEM_RAM_SIZE, 0);
-
-    // Initialize Shadow RAM at banks 0x00-0x3F and 0x80-0xBF
-    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
-      std::fill(memory_.begin() + (bank << 16),
-                memory_.begin() + (bank << 16) + 0x2000, 0);
-    }
-
-    // Initialize Hardware Registers at banks 0x00-0x3F and 0x80-0xBF
-    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
-      std::fill(
-          memory_.begin() + (bank << 16) + 0x2000,
-          memory_.begin() + (bank << 16) + 0x2000 + HARDWARE_REGISTERS_SIZE, 0);
-    }
-
-    // Initialize Expansion RAM at banks 0x00-0x3F and 0x80-0xBF
-    for (size_t bank = 0x00; bank <= 0xBF; bank += 0x80) {
-      std::fill(memory_.begin() + (bank << 16) + 0x6000,
-                memory_.begin() + (bank << 16) + 0x6000 + EXPANSION_RAM_SIZE,
-                0);
-    }
-
-    // Initialize Reset and NMI Vectors at bank 0xFF
-    std::fill(memory_.begin() + (0xFF << 16) + 0xFF00,
-              memory_.begin() + (0xFF << 16) + 0xFFFF + 1, 0);
-
-    // Copy data into rom_ vector
-    rom_.resize(kROMSize);
-    std::copy(memory_.begin() + kROMStart,
-              memory_.begin() + kROMStart + kROMSize, rom_.begin());
-
-    // Copy data into ram_ vector
-    ram_.resize(kRAMSize);
-    std::copy(memory_.begin() + kRAMStart,
-              memory_.begin() + kRAMStart + kRAMSize, ram_.begin());
-
-    // Copy data into vram_ vector
-    vram_.resize(kVRAMSize);
-    std::copy(memory_.begin() + kVRAMStart,
-              memory_.begin() + kVRAMStart + kVRAMSize, vram_.begin());
-
-    // Copy data into oam_ vector
-    oam_.resize(kOAMSize);
-    std::copy(memory_.begin() + kOAMStart,
-              memory_.begin() + kOAMStart + kOAMSize, oam_.begin());
+    return offset;
   }
+
+  memory::RomInfo ReadRomHeader();
+
+  uint8_t cart_read(uint8_t bank, uint16_t adr);
+  void cart_write(uint8_t bank, uint16_t adr, uint8_t val);
+
+  uint8_t cart_readLorom(uint8_t bank, uint16_t adr);
+  void cart_writeLorom(uint8_t bank, uint16_t adr, uint8_t val);
+
+  uint8_t cart_readHirom(uint8_t bank, uint16_t adr);
+  uint8_t cart_readExHirom(uint8_t bank, uint16_t adr);
+
+  void cart_writeHirom(uint8_t bank, uint16_t adr, uint8_t val);
 
   uint8_t ReadByte(uint32_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
-    NotifyObservers(mapped_address, /*data=*/0);
     return memory_.at(mapped_address);
   }
   uint16_t ReadWord(uint32_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
-    NotifyObservers(mapped_address, /*data=*/0);
     return static_cast<uint16_t>(memory_.at(mapped_address)) |
            (static_cast<uint16_t>(memory_.at(mapped_address + 1)) << 8);
   }
   uint32_t ReadWordLong(uint32_t address) const override {
     uint32_t mapped_address = GetMappedAddress(address);
-    NotifyObservers(mapped_address, /*data=*/0);
     return static_cast<uint32_t>(memory_.at(mapped_address)) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 1)) << 8) |
            (static_cast<uint32_t>(memory_.at(mapped_address + 2)) << 16);
@@ -276,7 +221,6 @@ class MemoryImpl : public Memory, public Loggable {
   std::vector<uint8_t> ReadByteVector(uint32_t address,
                                       uint16_t length) const override {
     uint32_t mapped_address = GetMappedAddress(address);
-    NotifyObservers(mapped_address, /*data=*/0);
     return std::vector<uint8_t>(memory_.begin() + mapped_address,
                                 memory_.begin() + mapped_address + length);
   }
@@ -343,10 +287,9 @@ class MemoryImpl : public Memory, public Loggable {
            (static_cast<uint32_t>(mid) << 8) | low;
   }
 
-  void AddObserver(Observer* observer) { observers_.push_back(observer); }
-
   // Stack Pointer access.
   uint16_t SP() const override { return SP_; }
+  auto mutable_sp() -> uint16_t& { return SP_; }
   void SetSP(uint16_t value) override { SP_ = value; }
   void ClearMemory() override { std::fill(memory_.begin(), memory_.end(), 0); }
 
@@ -363,61 +306,69 @@ class MemoryImpl : public Memory, public Loggable {
   auto begin() const { return memory_.begin(); }
   auto end() const { return memory_.end(); }
   auto data() const { return memory_.data(); }
+  void set_open_bus(uint8_t value) override { open_bus_ = value; }
+  auto open_bus() const -> uint8_t override { return open_bus_; }
+  auto hdma_init_requested() const -> bool override {
+    return hdma_init_requested_;
+  }
+  auto hdma_run_requested() const -> bool override {
+    return hdma_run_requested_;
+  }
+  void init_hdma_request() override { hdma_init_requested_ = true; }
+  void run_hdma_request() override { hdma_run_requested_ = true; }
+  void set_hdma_run_requested(bool value) override {
+    hdma_run_requested_ = value;
+  }
+  void set_hdma_init_requested(bool value) override {
+    hdma_init_requested_ = value;
+  }
+  void set_pal_timing(bool value) override { pal_timing_ = value; }
+  void set_h_pos(uint16_t value) override { h_pos_ = value; }
+  void set_v_pos(uint16_t value) override { v_pos_ = value; }
+  auto h_pos() const -> uint16_t override { return h_pos_; }
+  auto v_pos() const -> uint16_t override { return v_pos_; }
+  auto pal_timing() const -> bool override { return pal_timing_; }
+
+  auto dma_state() -> uint8_t& { return dma_state_; }
+  void set_dma_state(uint8_t value) { dma_state_ = value; }
+  auto dma_channels() -> DmaChannel* { return channel; }
 
   // Define memory regions
   std::vector<uint8_t> rom_;
   std::vector<uint8_t> ram_;
-  std::vector<uint8_t> vram_;
-  std::vector<uint8_t> oam_;
 
  private:
-  uint32_t GetMappedAddress(uint32_t address) const {
-    uint8_t bank = address >> 16;
-    uint32_t offset = address & 0xFFFF;
-
-    if (mapping_ == MemoryMapping::PC_ADDRESS) {
-      return address;
-    }
-
-    if (bank <= 0x3F) {
-      if (address <= 0x1FFF) {
-        return (0x7E << 16) + offset;  // Shadow RAM
-      } else if (address <= 0x5FFF) {
-        return (bank << 16) + (offset - 0x2000) + 0x2000;  // Hardware Registers
-      } else if (address <= 0x7FFF) {
-        return offset - 0x6000 + 0x6000;  // Expansion RAM
-      } else {
-        // Return lorom mapping
-        return (bank << 16) + (offset - 0x8000) + 0x8000;  // ROM
-      }
-    } else if (bank == 0x7D) {
-      return offset + 0x7D0000;  // SRAM
-    } else if (bank == 0x7E || bank == 0x7F) {
-      return offset + 0x7E0000;  // System RAM
-    } else if (bank >= 0x80) {
-      // Handle HiROM and mirrored areas
-    }
-
-    return address;  // Return the original address if no mapping is defined
-  }
-
-  void NotifyObservers(uint32_t address, uint8_t data) const {
-    for (auto observer : observers_) {
-      observer->Notify(address, data);
-    }
-  }
+  uint32_t GetMappedAddress(uint32_t address) const;
 
   bool verbose_ = false;
 
-  std::vector<Observer*> observers_;
+  // DMA requests
+  bool hdma_run_requested_ = false;
+  bool hdma_init_requested_ = false;
+
+  bool pal_timing_ = false;
+
+  // Frame timing
+  uint16_t h_pos_ = 0;
+  uint16_t v_pos_ = 0;
+
+  // Dma State
+  uint8_t dma_state_ = 0;
+
+  // Dma Channels
+  DmaChannel channel[8];
+
+  // Open bus
+  uint8_t open_bus_ = 0;
+
+  // Stack Pointer
+  uint16_t SP_ = 0;
+
+  // Cart Type
+  uint8_t type_ = 1;
 
   // Memory (64KB)
   std::vector<uint8_t> memory_;
-
-  // Stack Pointer
-  uint16_t SP_ = 0x01FF;
-
-  MemoryMapping mapping_ = MemoryMapping::SNES_LOROM;
 };
 
 void DrawSnesMemoryMapping(const MemoryImpl& memory);

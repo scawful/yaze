@@ -12,6 +12,24 @@ namespace app {
  */
 namespace editor {
 
+enum class EditorType {
+  kAssembly,
+  kDungeon,
+  kGraphics,
+  kMusic,
+  kOverworld,
+  kPalette,
+  kScreen,
+  kSprite,
+  kMessage,
+  kSettings,
+};
+
+constexpr std::array<const char*, 10> kEditorNames = {
+    "Assembly", "Dungeon", "Graphics", "Music",   "Overworld",
+    "Palette",  "Screen",  "Sprite",   "Message", "Settings",
+};
+
 /**
  * @class Editor
  * @brief Interface for editor classes.
@@ -31,6 +49,13 @@ class Editor {
   virtual absl::Status Redo() = 0;
 
   virtual absl::Status Update() = 0;
+
+  virtual absl::Status Find() = 0;
+
+  EditorType type() const { return type_; }
+
+ protected:
+  EditorType type_;
 };
 
 }  // namespace editor
