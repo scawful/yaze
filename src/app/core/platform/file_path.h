@@ -1,0 +1,6 @@
+#ifndef YAZE_APP_CORE_PLATFORM_FILE_PATH_H
+#define YAZE_APP_CORE_PLATFORM_FILE_PATH_H
+
+std::string GetBundleResourcePath();
+
+#endif  // YAZE_APP_CORE_PLATFORM_FILE_PATH_H
