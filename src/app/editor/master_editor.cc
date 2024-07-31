@@ -87,8 +87,6 @@ absl::Status MasterEditor::Update() {
 
   ManageActiveEditors();
 
-  End();
-
   return absl::OkStatus();
 }
 

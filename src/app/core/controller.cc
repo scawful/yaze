@@ -358,8 +358,19 @@ void Controller::OnExit() {
     SDL_CloseAudioDevice(audio_device_);
     delete audio_buffer_;
   }
-  ImGui_ImplSDLRenderer2_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
+  switch (platform_) {
+    case Platform::kMacOS:
+    case Platform::kWindows:
+    case Platform::kLinux:
+      ImGui_ImplSDLRenderer2_Shutdown();
+      ImGui_ImplSDL2_Shutdown();
+      break;
+    case Platform::kiOS:
+          // Deferred
+      break;
+    default:
+      break;
+  }
   ImGui::DestroyContext();
   SDL_Quit();
 }

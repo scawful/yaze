@@ -75,6 +75,7 @@ class MasterEditor : public SharedRom,
 
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() { return quit_; }
+  auto overworld_editor() -> OverworldEditor& { return overworld_editor_; }
 
  private:
   void ManageActiveEditors();
