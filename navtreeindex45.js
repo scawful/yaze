@@ -1,5 +1,11 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html#ad9fec8eb3aa77f33f3825b89575a0c9f":[9,0,0,0,1,2,2,0],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html":[8,0,1,0,1,7,3],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html":[9,0,0,0,1,2,3],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a0471980f75c395f09e6bb7cfa12610a7":[8,0,1,0,1,7,3,0],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a0471980f75c395f09e6bb7cfa12610a7":[9,0,0,0,1,2,3,0],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a7360988e9e7b46f993f2d83cde771012":[8,0,1,0,1,7,3,1],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a7360988e9e7b46f993f2d83cde771012":[9,0,0,0,1,2,3,1],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html":[8,0,1,0,1,7,4],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html":[9,0,0,0,1,2,4],
@@ -243,11 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#acb4fc5d9084ee149ea2d396dc60885cd":[9,0,0,0,2,1,1,13],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#acc1a94a8370739462fd30b0869ecb690":[8,0,1,0,2,3,2,7],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#acc1a94a8370739462fd30b0869ecb690":[9,0,0,0,2,1,1,7],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#accbd40a4e0c25da89868bc78cf935568":[8,0,1,0,2,3,2,8],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#accbd40a4e0c25da89868bc78cf935568":[9,0,0,0,2,1,1,8],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#af4ede9b218f284813cab28bee5905fd0":[8,0,1,0,2,3,2,3],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#af4ede9b218f284813cab28bee5905fd0":[9,0,0,0,2,1,1,3],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#afbceb9778d454262b94e315c05cdd8f6":[8,0,1,0,2,3,2,10],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#afbceb9778d454262b94e315c05cdd8f6":[9,0,0,0,2,1,1,10],
-"structyaze_1_1app_1_1emu_1_1video_1_1BackgroundLayer.html":[8,0,1,0,2,4,1]
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#accbd40a4e0c25da89868bc78cf935568":[8,0,1,0,2,3,2,8]
 };

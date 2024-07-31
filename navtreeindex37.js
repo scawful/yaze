@@ -1,5 +1,11 @@
 var NAVTREEINDEX37 =
 {
+"namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180":[8,0,1,0,3,40],
+"namespaceyaze_1_1app_1_1gfx.html#a552ecb78eb0a711234650adab705305c":[8,0,1,0,3,43],
+"namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f":[8,0,1,0,3,47],
+"namespaceyaze_1_1app_1_1gfx.html#a5cad6a1e7078e7d8717fcaae95411535":[8,0,1,0,3,66],
+"namespaceyaze_1_1app_1_1gfx.html#a674cd542901e81be5be7fe865bf6b1b9":[8,0,1,0,3,29],
+"namespaceyaze_1_1app_1_1gfx.html#a72e75c41a6c90cdfc4a26ddeb54cc1ef":[8,0,1,0,3,37],
 "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39d":[8,0,1,0,3,23],
 "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da0ec8a0a7837de23f2ef9815b20172102":[8,0,1,0,3,23,7],
 "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39da127b314ca3e4ff0d03ed01160aa09d3e":[8,0,1,0,3,23,12],
@@ -243,11 +249,5 @@ var NAVTREEINDEX37 =
 "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a87b7760f14fbff78d8819291f36ab9a0":[8,0,1,0,4,1,5,1],
 "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a8e2688d744f8c314acb52326f5ec2c0e":[8,0,1,0,4,1,5,6],
 "namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a9bcd3c3f49e92fc9edba1362c9fdb25e":[8,0,1,0,4,1,5,16],
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a9dffbf69ffba8bc38bc4e01abf4b1675":[8,0,1,0,4,1,5,3],
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824ac89686a387d2b12b3c729ce35a0bcb5b":[8,0,1,0,4,1,5,0],
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824ac9a123faa6ec225161d25f26796b2960":[8,0,1,0,4,1,5,18],
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824ad00665cd0efc22379ce24b61e50c16f0":[8,0,1,0,4,1,5,17],
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824ae69bf4d9adc4bddb109eed1becd717fa":[8,0,1,0,4,1,5,13],
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824afd974b19acafec5dc7e542582c3a87cc":[8,0,1,0,4,1,5,8],
-"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a056789d5e258e0872015ee1c9dae628a":[8,0,1,0,4,1,12]
+"namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a9dffbf69ffba8bc38bc4e01abf4b1675":[8,0,1,0,4,1,5,3]
 };

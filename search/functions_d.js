@@ -2,7 +2,7 @@ var searchData=
 [
   ['name_0',['name',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8dcaf29b0aa5d5202f20cfd7408aae5c',1,'yaze::app::gfx::PaletteGroup::name()'],['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a5aec436b8c78a4ed1a3a289c5b94a755',1,'yaze::app::zelda3::Sprite::name()']]],
   ['newframe_1',['NewFrame',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a50bc6784048f64b765f8026f7c67099e',1,'yaze::app::emu::audio::Dsp']]],
-  ['newmasterframe_2',['NewMasterFrame',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a6872020f533c742e88197014191b68ec',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
+  ['newmasterframe_2',['NewMasterFrame',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['newsr_3',['NewSR',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aa665abe6a912720085f051b40f170dde',1,'yaze::app::zelda3::music::Tracker']]],
   ['nmi_4',['Nmi',['../classyaze_1_1app_1_1emu_1_1Cpu.html#ad399989027f3767eb2ddf74d991d4a5a',1,'yaze::app::emu::Cpu']]],
   ['nop_5',['NOP',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a08491a73e714c14e55a219459106063e',1,'yaze::app::emu::audio::Spc700::NOP()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#a9637cbd326e98eca30f2797035851e65',1,'yaze::app::emu::Cpu::NOP()']]],

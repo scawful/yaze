@@ -1,7 +1,0 @@
-<map id="yaze::app::core::Controller::CreateTestContext" name="yaze::app::core::Controller::CreateTestContext">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,172,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a333eb6877eeba3b8c9b8f94de15661e8" title=" " alt="" coords="220,5,401,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,23,204,23,204,28,172,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1MessageEditor.html#ada2be9fa95b5ec64c4c17700f717477b" title=" " alt="" coords="449,5,643,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="401,23,433,23,433,28,401,28"/>
-</map>

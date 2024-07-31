@@ -11,10 +11,8 @@ var namespaceyaze_1_1app_1_1editor =
       [ "DrawPaletteFromPaletteGroup", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html#a77edb703f6d7539411087a40d6ddd01f", null ]
     ] ],
     [ "anonymous_namespace{master_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html", [
-      [ "NewMasterFrame", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a6872020f533c742e88197014191b68ec", null ],
       [ "BeginCentered", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2ba6e51388d9b35fd4f27705a42659b8", null ],
-      [ "IsEditorActive", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904", null ],
-      [ "kMainEditorFlags", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a5035b7f9e50f6d99047aeb532d90b142", null ]
+      [ "IsEditorActive", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a2fc24babfcbf8040128e6cd2fd5ff904", null ]
     ] ],
     [ "anonymous_namespace{palette_editor.cc}", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html", [
       [ "CustomFormatString", "namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html#a28830f354bea9a16ce56d9c8b30f8df7", null ]

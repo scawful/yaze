@@ -11,7 +11,7 @@ var searchData=
   ['nbr_5fof_5ffloor_8',['nbr_of_floor',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a869c6f5679814521a2d05bf6fbb2d2bb',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['new_5fcolor_9',['new_color',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#af74249fe652d2c8cab3ff2148c0f9f85',1,'yaze::app::editor::palette_internal::PaletteChange']]],
   ['newframe_10',['NewFrame',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a50bc6784048f64b765f8026f7c67099e',1,'yaze::app::emu::audio::Dsp']]],
-  ['newmasterframe_11',['NewMasterFrame',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a6872020f533c742e88197014191b68ec',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
+  ['newmasterframe_11',['NewMasterFrame',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['newsr_12',['NewSR',['../classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#aa665abe6a912720085f051b40f170dde',1,'yaze::app::zelda3::music::Tracker']]],
   ['next_13',['next',['../structyaze_1_1app_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a45a290ab1cc359c527b923b854601ccf',1,'yaze::app::gfx::lc_lz2::CompressionPiece']]],
   ['next_5fcolumn_14',['NEXT_COLUMN',['../constants_8h.html#a90be36f2e92f476b5bb13517da51afbe',1,'constants.h']]],

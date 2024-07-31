@@ -1,6 +1,7 @@
 var namespaceyaze_1_1app_1_1core =
 [
     [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
+      [ "NewMasterFrame", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824", null ],
       [ "InitializeKeymap", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6ec26934019f1b1ca5465fecdf13830e", null ],
       [ "ImGui_ImplSDL2_SetClipboardText", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a7cedf84adb43edcf0230f6589e90d588", null ],
       [ "ImGui_ImplSDL2_GetClipboardText", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a4f7ea20b69b7320bab22711cf18cb436", null ],
@@ -8,7 +9,8 @@ var namespaceyaze_1_1app_1_1core =
       [ "HandleKeyDown", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ac6d751f5f503987b8a5d28cd42c78d7a", null ],
       [ "HandleKeyUp", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aff87aa6c49f935a01d5e385bdebeafe9", null ],
       [ "ChangeWindowSizeEvent", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ae74e0ed0e27003c9a7f411ac36bedf31", null ],
-      [ "HandleMouseMovement", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a46122ee7395b7ce3cee8e8d45bc83a8d", null ]
+      [ "HandleMouseMovement", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a46122ee7395b7ce3cee8e8d45bc83a8d", null ],
+      [ "kMainEditorFlags", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#adeba22af4590368ef689e0db7206e78c", null ]
     ] ],
     [ "Controller", "classyaze_1_1app_1_1core_1_1Controller.html", "classyaze_1_1app_1_1core_1_1Controller" ],
     [ "ExperimentFlags", "classyaze_1_1app_1_1core_1_1ExperimentFlags.html", "classyaze_1_1app_1_1core_1_1ExperimentFlags" ],
@@ -19,6 +21,13 @@ var namespaceyaze_1_1app_1_1core =
     [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
     [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
     [ "FolderItem", "namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd", null ],
+    [ "Platform", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700", [
+      [ "kUnknown", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700a25c2dc47991b3df171ed5192bcf70390", null ],
+      [ "kMacOS", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700ad4b84d921444ff96b6ed220a036f9a8a", null ],
+      [ "kiOS", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700a693c2aebaf2fb12fb4dcc15732891b18", null ],
+      [ "kWindows", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700aad547616982f990862d4e1213452c089", null ],
+      [ "kLinux", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700ae3f917d82e495f1c002357925ca3047e", null ]
+    ] ],
     [ "UppercaseHexByte", "namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524", null ],
     [ "UppercaseHexWord", "namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38", null ],
     [ "UppercaseHexLong", "namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81", null ],

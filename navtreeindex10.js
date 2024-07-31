@@ -1,11 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classyaze_1_1app_1_1emu_1_1SNES.html#add087d492e9aa75e231433de84d37265":[9,0,0,0,2,15,59],
-"classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac":[8,0,1,0,2,17,15],
-"classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac":[9,0,0,0,2,15,15],
-"classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad":[8,0,1,0,2,17,60],
-"classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad":[9,0,0,0,2,15,60],
-"classyaze_1_1app_1_1emu_1_1SNES.html#ae7aa1b39b4da039a2223a0d11a544444":[8,0,1,0,2,17,40],
 "classyaze_1_1app_1_1emu_1_1SNES.html#ae7aa1b39b4da039a2223a0d11a544444":[9,0,0,0,2,15,40],
 "classyaze_1_1app_1_1emu_1_1SNES.html#aec031a73b0980b31d69fac3963f06d1e":[8,0,1,0,2,17,38],
 "classyaze_1_1app_1_1emu_1_1SNES.html#aec031a73b0980b31d69fac3963f06d1e":[9,0,0,0,2,15,38],
@@ -249,5 +243,11 @@ var NAVTREEINDEX10 =
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a254e611e7ef01bae5e005dbb3a343e14":[9,0,0,0,2,0,6,109],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a288a6d20c4d124e5524a4a40fa78718f":[8,0,1,0,2,2,6,48],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a288a6d20c4d124e5524a4a40fa78718f":[9,0,0,0,2,0,6,48],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a28be94c9eb0010c065e2c64f7fe373c4":[8,0,1,0,2,2,6,19]
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a28be94c9eb0010c065e2c64f7fe373c4":[8,0,1,0,2,2,6,19],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a28be94c9eb0010c065e2c64f7fe373c4":[9,0,0,0,2,0,6,19],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2b18dbab4ef5a5ecabbdf2ea67755c1d":[8,0,1,0,2,2,6,99],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2b18dbab4ef5a5ecabbdf2ea67755c1d":[9,0,0,0,2,0,6,99],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2e69d799f20d7bb65b2b0d89402cf298":[8,0,1,0,2,2,6,70],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2e69d799f20d7bb65b2b0d89402cf298":[9,0,0,0,2,0,6,70],
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a310bef2352b7ac4586e3be4ee519fc73":[8,0,1,0,2,2,6,138]
 };

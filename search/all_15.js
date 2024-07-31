@@ -48,7 +48,7 @@ var searchData=
   ['refreshmapproperties_45',['RefreshMapProperties',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a04034d7607a89a60e96c9cb5c0193b1b',1,'yaze::app::editor::OverworldEditor']]],
   ['refreshoverworldmap_46',['RefreshOverworldMap',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae6074600cb60368e702c2b7bc2aa42fc',1,'yaze::app::editor::OverworldEditor']]],
   ['refreshtile16blockset_47',['RefreshTile16Blockset',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#aa9025199f02098f6657436cfa8155567',1,'yaze::app::editor::OverworldEditor']]],
-  ['registertests_48',['RegisterTests',['../classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0',1,'yaze::app::core::GuiTestable::RegisterTests()'],['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a333eb6877eeba3b8c9b8f94de15661e8',1,'yaze::app::editor::MasterEditor::RegisterTests()'],['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ada2be9fa95b5ec64c4c17700f717477b',1,'yaze::app::editor::MessageEditor::RegisterTests()']]],
+  ['registertests_48',['RegisterTests',['../classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0',1,'yaze::app::core::GuiTestable']]],
   ['rel_49',['rel',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a225fb3c09dc421aed541bc18bd4bfad8',1,'yaze::app::emu::audio::Spc700']]],
   ['release_5fqueue_5f_50',['release_queue_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a945800e3039c0f98f9168a173e21de9a',1,'yaze::app::editor::GraphicsEditor']]],
   ['reload_51',['Reload',['../classyaze_1_1app_1_1Rom.html#a92a9aaae6d5d567853724ea5ab42e54b',1,'yaze::app::Rom']]],

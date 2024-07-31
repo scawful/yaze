@@ -75,7 +75,7 @@ var searchData=
   ['kloadtexturesasstreaming_72',['kLoadTexturesAsStreaming',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a14803cbe621eab0e83fcec4bcc353502',1,'yaze::app::core::ExperimentFlags::Flags']]],
   ['kloginstructions_73',['kLogInstructions',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#ac5b5dcd2f777efd18e885133a70436a8',1,'yaze::app::core::ExperimentFlags::Flags']]],
   ['klogtoconsole_74',['kLogToConsole',['../structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a8f98060d879a94a4cba5dfc2ee4d8e26',1,'yaze::app::core::ExperimentFlags::Flags']]],
-  ['kmaineditorflags_75',['kMainEditorFlags',['../namespaceyaze_1_1app_1_1editor_1_1anonymous__namespace_02master__editor_8cc_03.html#a5035b7f9e50f6d99047aeb532d90b142',1,'yaze::app::editor::anonymous_namespace{master_editor.cc}']]],
+  ['kmaineditorflags_75',['kMainEditorFlags',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#adeba22af4590368ef689e0db7206e78c',1,'yaze::app::core::anonymous_namespace{controller.cc}']]],
   ['kmap16tiles_76',['kMap16Tiles',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a5166b928d6a093a71b355dc6105f0d0a',1,'yaze::app::zelda3::overworld']]],
   ['kmap32tilebl_77',['kMap32TileBL',['../structyaze_1_1app_1_1VersionConstants.html#a173a06f01d6c2ad8d60a123b30b0d180',1,'yaze::app::VersionConstants']]],
   ['kmap32tilebr_78',['kMap32TileBR',['../structyaze_1_1app_1_1VersionConstants.html#a386a075f984f4def0a0fecc03eadfcd8',1,'yaze::app::VersionConstants']]],
