@@ -378,7 +378,7 @@ void Controller::OnExit() {
       ImGui_ImplSDL2_Shutdown();
       break;
     case Platform::kiOS:
-          // Deferred
+      // Deferred
       break;
     default:
       break;
@@ -471,13 +471,13 @@ absl::Status Controller::CreateGuiContext() {
 absl::Status Controller::LoadFontFamilies() const {
   ImGuiIO &io = ImGui::GetIO();
 
-  // Define constants
-  static const char *KARLA_REGULAR = "assets/font/Karla-Regular.ttf";
-  static const char *ROBOTO_MEDIUM = "assets/font/Roboto-Medium.ttf";
-  static const char *COUSINE_REGULAR = "assets/font/Cousine-Regular.ttf";
-  static const char *DROID_SANS = "assets/font/DroidSans.ttf";
-  static const char *NOTO_SANS_JP = "assets/font/NotoSansJP.ttf";
-  static const char *IBM_PLEX_JP = "assets/font/IBMPlexSansJP-Bold.ttf";
+  const char *font_path = "assets/font/";
+  static const char *KARLA_REGULAR = "Karla-Regular.ttf";
+  static const char *ROBOTO_MEDIUM = "Roboto-Medium.ttf";
+  static const char *COUSINE_REGULAR = "Cousine-Regular.ttf";
+  static const char *DROID_SANS = "DroidSans.ttf";
+  static const char *NOTO_SANS_JP = "NotoSansJP.ttf";
+  static const char *IBM_PLEX_JP = "IBMPlexSansJP-Bold.ttf";
   static const float FONT_SIZE_DEFAULT = 14.0f;
   static const float FONT_SIZE_DROID_SANS = 16.0f;
   static const float ICON_FONT_SIZE = 18.0f;
@@ -505,8 +505,18 @@ absl::Status Controller::LoadFontFamilies() const {
   for (const auto &font_path : font_paths) {
     float font_size =
         (font_path == DROID_SANS) ? FONT_SIZE_DROID_SANS : FONT_SIZE_DEFAULT;
-    std::string actual_font_path =
-        std::filesystem::absolute(font_path).string();
+
+    std::string actual_font_path;
+#ifdef __APPLE__
+#if TARGET_OS_IOS == 1
+    const std::string kBundlePath = GetBundleResourcePath();
+    actual_font_path = kBundlePath + font_path;
+#else
+    actual_font_path = std::filesystem::absolute(font_path).string();
+#endif
+#else
+    actual_font_path = font_path;
+#endif
 
     if (!io.Fonts->AddFontFromFileTTF(actual_font_path.data(), font_size)) {
       return absl::InternalError(
@@ -514,16 +524,33 @@ absl::Status Controller::LoadFontFamilies() const {
     }
 
     // Merge icon set
+    std::string actual_icon_font_path = "";
     const char *icon_font_path = FONT_ICON_FILE_NAME_MD;
-    std::string actual_icon_font_path =
-        std::filesystem::absolute(icon_font_path).string();
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_OS_IOS == 1
+    const std::string kIconBundlePath = GetBundleResourcePath();
+    actual_icon_font_path = kIconBundlePath + "MaterialIcons-Regular.ttf";
+#else
+    actual_icon_font_path = std::filesystem::absolute(icon_font_path).string();
+#endif
+#else
+#endif
     io.Fonts->AddFontFromFileTTF(actual_icon_font_path.data(), ICON_FONT_SIZE,
                                  &icons_config, icons_ranges);
 
     // Merge Japanese font
+    std::string actual_japanese_font_path = "";
     const char *japanese_font_path = NOTO_SANS_JP;
-    std::string actual_japanese_font_path =
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_OS_IOS == 1
+    const std::string kJapaneseBundlePath = GetBundleResourcePath();
+    actual_japanese_font_path = kJapaneseBundlePath + japanese_font_path;
+#else
+    actual_japanese_font_path =
         std::filesystem::absolute(japanese_font_path).string();
+#endif
+#else
+#endif
     io.Fonts->AddFontFromFileTTF(actual_japanese_font_path.data(), 18.0f,
                                  &japanese_font_config,
                                  io.Fonts->GetGlyphRangesJapanese());
