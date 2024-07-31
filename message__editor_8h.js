@@ -13,5 +13,10 @@ var message__editor_8h =
     [ "DICTIONARYTOKEN", "message__editor_8h.html#a85d85e7b31b095e3f405e7aaa0cfb318", null ],
     [ "DICTOFF", "message__editor_8h.html#ae0ffdfe2fe8d70d8a2df747e934e328a", null ],
     [ "BANKToken", "message__editor_8h.html#a5055242b61e103773f8f1919856ac198", null ],
-    [ "BANKID", "message__editor_8h.html#a76ccaa4ed9652d123bea40a369f314cf", null ]
+    [ "BANKID", "message__editor_8h.html#a76ccaa4ed9652d123bea40a369f314cf", null ],
+    [ "kBlockTerminator", "message__editor_8h.html#ac8b7c1572a3d598ce7b1eaa702542980", null ],
+    [ "kScrollVertical", "message__editor_8h.html#afb187108a5c884ecf602a288f963d16a", null ],
+    [ "kLine1", "message__editor_8h.html#aa73f642d6f89196ee44f4bbe47b77801", null ],
+    [ "kLine2", "message__editor_8h.html#abc8039376561d7f168e7fa3508aeafa7", null ],
+    [ "kLine3", "message__editor_8h.html#a033a615e52c32eb60c82a44d242d54de", null ]
 ];
