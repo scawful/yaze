@@ -1,7 +1,6 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 #define YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 
-#include <gfx/snes_tile.h>
 #include <imgui/imgui.h>
 
 #include <algorithm>
@@ -11,6 +10,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/gfx/snes_tile.h"
 
 namespace yaze {
 namespace app {

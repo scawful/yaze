@@ -1,10 +1,11 @@
-#include <editor/settings_editor.h>
-#include <editor/utils/flags.h>
+
 #include <imgui/imgui.h>
 
 #include "absl/status/status.h"
 #include "app/editor/utils/flags.h"
 #include "app/editor/utils/keyboard_shortcuts.h"
+#include "app/editor/settings_editor.h"
+#include "app/editor/utils/flags.h"
 
 namespace yaze {
 namespace app {

@@ -1,9 +1,9 @@
 #include "sprite_editor.h"
 
-#include <core/platform/file_dialog.h>
-#include <editor/sprite/zsprite.h>
-#include <gui/icons.h>
-#include <gui/input.h>
+#include "app/core/platform/file_dialog.h"
+#include "app/editor/sprite/zsprite.h"
+#include "app/gui/icons.h"
+#include "app/gui/input.h"
 
 namespace yaze {
 namespace app {
