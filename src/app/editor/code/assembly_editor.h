@@ -1,8 +1,8 @@
 #ifndef YAZE_APP_EDITOR_ASSEMBLY_EDITOR_H
 #define YAZE_APP_EDITOR_ASSEMBLY_EDITOR_H
 
-#include <ImGuiColorTextEdit/TextEditor.h>
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 
 #include <fstream>
 #include <istream>

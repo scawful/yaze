@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 #define YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <algorithm>
 #include <cstdint>

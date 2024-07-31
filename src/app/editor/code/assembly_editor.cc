@@ -1,6 +1,6 @@
 #include "assembly_editor.h"
 
-#include <ImGuiColorTextEdit/TextEditor.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
 
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"

@@ -2,11 +2,11 @@
 #define YAZE_APP_CORE_CONTROLLER_H
 
 #include <SDL.h>
-#include <imgui/backends/imgui_impl_sdl2.h>
-#include <imgui/backends/imgui_impl_sdlrenderer2.h>
-#include <imgui/imconfig.h>
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#include "imgui/imconfig.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include <memory>
 

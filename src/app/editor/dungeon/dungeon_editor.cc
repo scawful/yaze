@@ -1,6 +1,6 @@
 #include "dungeon_editor.h"
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include "app/core/common.h"
 #include "app/core/labeling.h"

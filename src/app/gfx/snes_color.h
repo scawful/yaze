@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_SNES_COLOR_H_
 #define YAZE_APP_GFX_SNES_COLOR_H_
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <vector>

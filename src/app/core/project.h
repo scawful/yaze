@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_CORE_PROJECT_H
 #define YAZE_APP_CORE_PROJECT_H
 
-#include <abseil-cpp/absl/strings/match.h>
+#include "absl/strings/match.h"
 
 #include <fstream>
 #include <string>

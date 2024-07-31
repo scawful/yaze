@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEONEDITOR_H
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include "app/core/common.h"
 #include "app/core/labeling.h"

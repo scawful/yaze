@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_CORE_EMULATOR_H
 #define YAZE_APP_CORE_EMULATOR_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <vector>

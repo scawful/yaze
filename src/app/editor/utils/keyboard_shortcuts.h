@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_UTILS_KEYBOARD_SHORTCUTS_H
 #define YAZE_APP_EDITOR_UTILS_KEYBOARD_SHORTCUTS_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {

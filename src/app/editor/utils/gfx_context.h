@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_VRAM_CONTEXT_H
 #define YAZE_APP_EDITOR_VRAM_CONTEXT_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cmath>
 #include <vector>

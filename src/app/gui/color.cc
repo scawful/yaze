@@ -1,13 +1,13 @@
 #include "color.h"
 
-#include <gfx/snes_color.h>
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include <cmath>
 #include <string>
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/snes_color.h"
 
 namespace yaze {
 namespace app {
@@ -123,6 +123,7 @@ absl::Status DisplayPalette(app::gfx::SnesPalette& palette, bool loaded) {
   ImGui::ColorPicker4("##picker", (float*)&color,
                       misc_flags | ImGuiColorEditFlags_NoSidePreview |
                           ImGuiColorEditFlags_NoSmallPreview);
+  return absl::OkStatus();
 }
 
 void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,

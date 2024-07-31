@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SETTINGS_EDITOR_H
 #define YAZE_APP_EDITOR_SETTINGS_EDITOR_H
 
-#include <imgui/imgui.h>
+#include "imgui/imgui.h"
 
 #include "absl/status/status.h"
 #include "app/editor/utils/editor.h"

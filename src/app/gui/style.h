@@ -1,9 +1,9 @@
 #ifndef YAZE_APP_CORE_STYLE_H
 #define YAZE_APP_CORE_STYLE_H
 
-#include <ImGuiColorTextEdit/TextEditor.h>
-#include <imgui/imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 #include <functional>
 #include <vector>

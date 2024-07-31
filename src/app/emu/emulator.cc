@@ -1,7 +1,7 @@
 #include "app/emu/emulator.h"
 
-#include <imgui/imgui.h>
-#include <imgui_memory_editor.h>
+#include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 #include <cstdint>
 #include <vector>

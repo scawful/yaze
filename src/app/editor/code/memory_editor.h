@@ -1,9 +1,9 @@
 #ifndef YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 #define YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 
-#include <imgui/imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <imgui_memory_editor.h>
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 #include "absl/status/status.h"
 #include "app/core/common.h"

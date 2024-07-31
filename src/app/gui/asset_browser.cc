@@ -1,5 +1,7 @@
 #include "asset_browser.h"
 
+#include "absl/strings/str_format.h"
+
 namespace yaze {
 namespace app {
 namespace gui {
