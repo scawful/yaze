@@ -3,18 +3,16 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include <ImGuiColorTextEdit/TextEditor.h>
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
-#include <imgui/imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <imgui_memory_editor.h>
-#include <imgui_test_engine/imgui_te_context.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/project.h"
-#include "app/core/testable.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor.h"
@@ -59,8 +57,7 @@ namespace editor {
  */
 class MasterEditor : public SharedRom,
                      public context::GfxContext,
-                     public core::ExperimentFlags,
-                     public core::GuiTestable {
+                     public core::ExperimentFlags {
  public:
   MasterEditor() {
     current_editor_ = &overworld_editor_;
@@ -78,8 +75,6 @@ class MasterEditor : public SharedRom,
 
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() { return quit_; }
-
-  void RegisterTests(ImGuiTestEngine* e) override;
 
  private:
   void ManageActiveEditors();
