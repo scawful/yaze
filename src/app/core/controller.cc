@@ -22,6 +22,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/core/platform/file_path.h"
 #include "app/core/platform/font_loader.h"
 #include "app/editor/master_editor.h"
 #include "app/gui/icons.h"
@@ -471,7 +472,7 @@ absl::Status Controller::CreateGuiContext() {
 absl::Status Controller::LoadFontFamilies() const {
   ImGuiIO &io = ImGui::GetIO();
 
-  const char *font_path = "assets/font/";
+  const char *assets_path = "assets/font/";
   static const char *KARLA_REGULAR = "Karla-Regular.ttf";
   static const char *ROBOTO_MEDIUM = "Roboto-Medium.ttf";
   static const char *COUSINE_REGULAR = "Cousine-Regular.ttf";
