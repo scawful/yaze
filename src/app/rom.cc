@@ -207,6 +207,23 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length) {
         "Could not load ROM: parameter `data` is empty.");
 
   for (int i = 0; i < length; ++i) rom_data_.push_back(data[i]);
+  
+  size_ = length;
+  
+  // Copy ROM title
+  constexpr uint32_t kTitleStringOffset = 0x7FC0;
+  constexpr uint32_t kTitleStringLength = 20;
+  memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
+  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
+    version_ = Z3_Version::JP;
+  } else {
+    version_ = Z3_Version::US;
+  }
+  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+  LoadGfxGroups();
+  
+  // Set is_loaded_ flag and return success
+  is_loaded_ = true;
 
   return absl::OkStatus();
 }
