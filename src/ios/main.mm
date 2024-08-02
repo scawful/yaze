@@ -58,8 +58,7 @@
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
-  // Setup Dear ImGui style
-  ImGui::StyleColorsDark();
+  yaze::app::gui::ColorsYaze();
 
   SDL_SetMainReady();
   SDL_iOSSetEventPump(SDL_TRUE);
@@ -165,7 +164,7 @@
   if (ImGui::Begin("##YazeMain", nullptr,
                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
-                       ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar)) {
+                       ImGuiWindowFlags_NoBringToFrontOnFocus)) {
     auto controller_status = _controller->OnLoad();
     if (!controller_status.ok()) {
       abort();
