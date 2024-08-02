@@ -189,7 +189,7 @@ var searchData=
   ['setup_5fcolumn_186',['SETUP_COLUMN',['../constants_8h.html#a0400ff495867d2b1173e970e6d9c478a',1,'constants.h']]],
   ['setupmemory_187',['SetupMemory',['../classyaze__test_1_1emu__test_1_1MockAudioRam.html#aa011fee27d961b438a332204537f43cf',1,'yaze_test::emu_test::MockAudioRam']]],
   ['setuprenderer_188',['SetupRenderer',['../classyaze_1_1app_1_1Rom.html#ae6c98f3218b2df9263371c7646b780fe',1,'yaze::app::Rom']]],
-  ['setupscreen_189',['SetupScreen',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac67ef851a62f7d2ccd7342f666066dee',1,'yaze::app::editor::MasterEditor']]],
+  ['setupscreen_189',['SetupScreen',['../classyaze_1_1app_1_1core_1_1Controller.html#a754ae5dac2fefc1128d2bf3d95333c07',1,'yaze::app::core::Controller::SetupScreen()'],['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac67ef851a62f7d2ccd7342f666066dee',1,'yaze::app::editor::MasterEditor::SetupScreen()']]],
   ['setzeroflag_190',['SetZeroFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a035ff1f28283ec6d08e3bb4900779f79',1,'yaze::app::emu::Cpu']]],
   ['setzn_191',['SetZN',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a2bdaba9b1ce10d4a47e659b911a478c6',1,'yaze::app::emu::Cpu']]],
   ['shared_5fbitmap_192',['shared_bitmap',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1965bb7ba22f67455d15c120285eb57c',1,'yaze::app::gfx::BitmapManager']]],

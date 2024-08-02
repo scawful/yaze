@@ -1,5 +1,13 @@
 var NAVTREEINDEX39 =
 {
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a732b50ea9d1dea59f1dc95dcc9684162":[8,0,1,0,5,3,42],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a7429b8e96ccd4f7512273403408bc0e3":[8,0,1,0,5,3,36],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a76ece2972ccf898a60aa4d7d30a9e602":[8,0,1,0,5,3,37],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a77664d2860100d190196f74ab9624ed7":[8,0,1,0,5,3,67],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a788fcad4c2d3f7a3333365a5c6c7db5b":[8,0,1,0,5,3,33],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a7ae607a6fe86024e79f4f0ebd62609d5":[8,0,1,0,5,3,86],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a7af218fc1df073fe59c7500b42f2210e":[8,0,1,0,5,3,25],
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a7d3d672232c1cd193bcc7098a79df033":[8,0,1,0,5,3,61],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a811d94c2818dab83a9e9a8ed9fda523d":[8,0,1,0,5,3,77],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a856cdd82779f7ccd18724185657a39cb":[8,0,1,0,5,3,102],
 "namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a85917294954c2a23bf0e788cf73d2312":[8,0,1,0,5,3,27],
@@ -241,13 +249,5 @@ var NAVTREEINDEX39 =
 "namespaceyaze__test_1_1emu__test.html#a6e89f763bd939c9e1276b77fed3f852b":[8,0,2,0,149],
 "namespaceyaze__test_1_1emu__test.html#a6eb689d5f200190dedb0b8bbe4980616":[8,0,2,0,195],
 "namespaceyaze__test_1_1emu__test.html#a6f35a5f120743adf354982309d661d8b":[8,0,2,0,98],
-"namespaceyaze__test_1_1emu__test.html#a6f7b811352e9f38d8dc53c82e21fe20c":[8,0,2,0,128],
-"namespaceyaze__test_1_1emu__test.html#a7074c3eaddec6301ecab6ee7d42eef3a":[8,0,2,0,213],
-"namespaceyaze__test_1_1emu__test.html#a707d7667423b96437b4601a350664442":[8,0,2,0,124],
-"namespaceyaze__test_1_1emu__test.html#a708f793586acfee0ae064e1737b69837":[8,0,2,0,303],
-"namespaceyaze__test_1_1emu__test.html#a73cb728ede25f84276c6f55c02c0558d":[8,0,2,0,103],
-"namespaceyaze__test_1_1emu__test.html#a745d2267977135acb0bf15f014e93627":[8,0,2,0,311],
-"namespaceyaze__test_1_1emu__test.html#a76ff604d09a91fc7d383bfd75dd73fc4":[8,0,2,0,111],
-"namespaceyaze__test_1_1emu__test.html#a78e4671e17cb8f38e54e9029ac614987":[8,0,2,0,67],
-"namespaceyaze__test_1_1emu__test.html#a78f7839d7fe9c5261ece265a88dfce5b":[8,0,2,0,238]
+"namespaceyaze__test_1_1emu__test.html#a6f7b811352e9f38d8dc53c82e21fe20c":[8,0,2,0,128]
 };

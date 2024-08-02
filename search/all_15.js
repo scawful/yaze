@@ -59,7 +59,7 @@ var searchData=
   ['renderbitmap_56',['RenderBitmap',['../classyaze_1_1app_1_1Rom.html#a8c77151f22c9c57fcdab28502aa1255f',1,'yaze::app::Rom']]],
   ['renderbreakpointlist_57',['RenderBreakpointList',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a4fdec129bd56bb57d0b474cc04f38ed7',1,'yaze::app::emu::Emulator']]],
   ['rendercpuinstructionlog_58',['RenderCpuInstructionLog',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a503ffcfd6c1c67166f6f15b539cd4a18',1,'yaze::app::emu::Emulator']]],
-  ['renderer_59',['renderer',['../classyaze_1_1app_1_1Rom.html#a385ff0c049e2359723d7ce39926a3487',1,'yaze::app::Rom']]],
+  ['renderer_59',['renderer',['../classyaze_1_1app_1_1core_1_1Controller.html#a746ab671d01d9038163e1d2997a2ab20',1,'yaze::app::core::Controller::renderer()'],['../classyaze_1_1app_1_1Rom.html#a385ff0c049e2359723d7ce39926a3487',1,'yaze::app::Rom::renderer()']]],
   ['renderer_5f_60',['renderer_',['../classyaze_1_1app_1_1core_1_1Controller.html#ae5142ea136f105c20b24cdcf98c30b9c',1,'yaze::app::core::Controller::renderer_'],['../classyaze_1_1app_1_1Rom.html#a2e058ea3ea8a945708246ad08d86e28e',1,'yaze::app::Rom::renderer_']]],
   ['rendermemoryviewer_61',['RenderMemoryViewer',['../classyaze_1_1app_1_1emu_1_1Emulator.html#abb2362878c817db5de336bdf4dab0710',1,'yaze::app::emu::Emulator']]],
   ['rendernavbar_62',['RenderNavBar',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a768f75e52c4da7c5d99cc0e527059379',1,'yaze::app::emu::Emulator']]],

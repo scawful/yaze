@@ -1,5 +1,13 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a89de7d5a6034f58e61e8d536612680ed":[9,0,0,0,3,5,0],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8dcaf29b0aa5d5202f20cfd7408aae5c":[8,0,1,0,3,7,5],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a8dcaf29b0aa5d5202f20cfd7408aae5c":[9,0,0,0,3,5,5],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#ae059dfe84cea6f5b98295eb3e4610b58":[8,0,1,0,3,7,14],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#ae059dfe84cea6f5b98295eb3e4610b58":[9,0,0,0,3,5,14],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#aeff3e7092775e7aca8837ba49fd12576":[8,0,1,0,3,7,8],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#aeff3e7092775e7aca8837ba49fd12576":[9,0,0,0,3,5,8],
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afd46f19d35a6100f024935b9f553a24d":[8,0,1,0,3,7,9],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afd46f19d35a6100f024935b9f553a24d":[9,0,0,0,3,5,9],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afdc639f745c60b9b9375d1f3342c1411":[8,0,1,0,3,7,7],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#afdc639f745c60b9b9375d1f3342c1411":[9,0,0,0,3,5,7],
@@ -241,13 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#afc2849681a7eefa51da3a5efd3958746":[9,0,0,0,4,6,6],
 "structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html":[8,0,1,0,4,8],
 "structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html":[9,0,0,0,4,7],
-"structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec":[8,0,1,0,4,8,1],
-"structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec":[9,0,0,0,4,7,1],
-"structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d":[8,0,1,0,4,8,0],
-"structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a8798a4cd12e16e002630a412f49b953d":[9,0,0,0,4,7,0],
-"structyaze_1_1app_1_1gui_1_1OverworldAsset.html":[8,0,1,0,4,9],
-"structyaze_1_1app_1_1gui_1_1OverworldAsset.html":[9,0,0,0,4,8],
-"structyaze_1_1app_1_1gui_1_1OverworldAsset.html#abbe32c85cceeb985b4abc9ce0909ab1b":[8,0,1,0,4,9,0],
-"structyaze_1_1app_1_1gui_1_1OverworldAsset.html#abbe32c85cceeb985b4abc9ce0909ab1b":[9,0,0,0,4,8,0],
-"structyaze_1_1app_1_1gui_1_1SpriteAsset.html":[8,0,1,0,4,10]
+"structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html#a0d93ece3c6a3cf5efcf601a410ee9aec":[8,0,1,0,4,8,1]
 };

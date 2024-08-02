@@ -1,5 +1,13 @@
 var NAVTREEINDEX43 =
 {
+"snes__palette_8h.html#ae9b7f2665bae4f2b5c325eee9fbfa6b8":[10,0,1,0,3,9,28],
+"snes__palette_8h.html#af24227f12e35cee27e02ac5cdf2917a7":[10,0,1,0,3,9,29],
+"snes__palette_8h.html#af9428fc450b4576d347b011dbe9f4de9":[10,0,1,0,3,9,37],
+"snes__palette_8h.html#afb93caf0e5c73561bb23e0a4e280b67b":[10,0,1,0,3,9,35],
+"snes__palette_8h.html#afca5c6d2c283689f3def35935d0ace6e":[10,0,1,0,3,9,14],
+"snes__palette_8h_source.html":[10,0,1,0,3,9],
+"snes__palette__test_8cc.html":[10,0,1,2,1,1],
+"snes__palette__test_8cc.html#a1a263e0ae5ef8848f9ab4910765f1db3":[10,0,1,2,1,1,2],
 "snes__palette__test_8cc.html#a553516597f84d193decd64cac53ae815":[10,0,1,2,1,1,4],
 "snes__palette__test_8cc.html#a7bc433fcb4d48845ad5aa57f317365af":[10,0,1,2,1,1,3],
 "snes__palette__test_8cc.html#aae614732019e6f806ae921acf0996a36":[10,0,1,2,1,1,7],
@@ -241,13 +249,5 @@ var NAVTREEINDEX43 =
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[9,0,0,0,0,7,0,1],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[8,0,1,0,0,8,0,0],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[9,0,0,0,0,7,0,0],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[8,0,1,0,1,12],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[9,0,0,0,1,7],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a0fd07aa6fb39f57ad738e361d53e008c":[8,0,1,0,1,12,1],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a0fd07aa6fb39f57ad738e361d53e008c":[9,0,0,0,1,7,1],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a1b88eaa7bd767b2afd180f8b7d2acd17":[8,0,1,0,1,12,0],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a1b88eaa7bd767b2afd180f8b7d2acd17":[9,0,0,0,1,7,0],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a96af93dccfac2d3e1c16749ccd42c6bc":[8,0,1,0,1,12,2],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a96af93dccfac2d3e1c16749ccd42c6bc":[9,0,0,0,1,7,2],
-"structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html":[8,0,1,0,1,13]
+"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[8,0,1,0,1,12]
 };

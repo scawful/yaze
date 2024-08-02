@@ -1,5 +1,13 @@
 var NAVTREEINDEX10 =
 {
+"classyaze_1_1app_1_1emu_1_1SNES.html#acf9605f781e127b38de974d8e06a0723":[9,0,0,0,2,15,53],
+"classyaze_1_1app_1_1emu_1_1SNES.html#ad8d5297f8875eb7fb0fb007f8926fd4c":[8,0,1,0,2,17,37],
+"classyaze_1_1app_1_1emu_1_1SNES.html#ad8d5297f8875eb7fb0fb007f8926fd4c":[9,0,0,0,2,15,37],
+"classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3":[8,0,1,0,2,17,24],
+"classyaze_1_1app_1_1emu_1_1SNES.html#ad979a75f4987c9787e1b5822e54bfaa3":[9,0,0,0,2,15,24],
+"classyaze_1_1app_1_1emu_1_1SNES.html#add087d492e9aa75e231433de84d37265":[8,0,1,0,2,17,59],
+"classyaze_1_1app_1_1emu_1_1SNES.html#add087d492e9aa75e231433de84d37265":[9,0,0,0,2,15,59],
+"classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac":[8,0,1,0,2,17,15],
 "classyaze_1_1app_1_1emu_1_1SNES.html#adead4de2b3da4d81edb7113191e81fac":[9,0,0,0,2,15,15],
 "classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad":[8,0,1,0,2,17,60],
 "classyaze_1_1app_1_1emu_1_1SNES.html#ae64f449564d9174c85588673295004ad":[9,0,0,0,2,15,60],
@@ -241,13 +249,5 @@ var NAVTREEINDEX10 =
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a225fb3c09dc421aed541bc18bd4bfad8":[9,0,0,0,2,0,6,35],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a22a0be9cf04f1a3e9db84b5866e3dea3":[8,0,1,0,2,2,6,23],
 "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a22a0be9cf04f1a3e9db84b5866e3dea3":[9,0,0,0,2,0,6,23],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a249f3a45da00f00ad29e3ca2a011874a":[8,0,1,0,2,2,6,88],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a249f3a45da00f00ad29e3ca2a011874a":[9,0,0,0,2,0,6,88],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a254e611e7ef01bae5e005dbb3a343e14":[8,0,1,0,2,2,6,109],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a254e611e7ef01bae5e005dbb3a343e14":[9,0,0,0,2,0,6,109],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a288a6d20c4d124e5524a4a40fa78718f":[8,0,1,0,2,2,6,48],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a288a6d20c4d124e5524a4a40fa78718f":[9,0,0,0,2,0,6,48],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a28be94c9eb0010c065e2c64f7fe373c4":[8,0,1,0,2,2,6,19],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a28be94c9eb0010c065e2c64f7fe373c4":[9,0,0,0,2,0,6,19],
-"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a2b18dbab4ef5a5ecabbdf2ea67755c1d":[8,0,1,0,2,2,6,99]
+"classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a249f3a45da00f00ad29e3ca2a011874a":[8,0,1,0,2,2,6,88]
 };

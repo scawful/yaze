@@ -1,5 +1,13 @@
 var NAVTREEINDEX16 =
 {
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a22a57a1d1d4a44ab04dc94a28df80930":[9,0,0,0,4,3,85],
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a251026f4c1d066563a118a919ef7a5fe":[8,0,1,0,4,4,34],
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a251026f4c1d066563a118a919ef7a5fe":[9,0,0,0,4,3,34],
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a2a3e458dc0afc50553d82a9b961344c5":[8,0,1,0,4,4,27],
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a2a3e458dc0afc50553d82a9b961344c5":[9,0,0,0,4,3,27],
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a2b51d13fc72fecc8bf9ede458f543130":[8,0,1,0,4,4,25],
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a2b51d13fc72fecc8bf9ede458f543130":[9,0,0,0,4,3,25],
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4":[8,0,1,0,4,4,23],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4":[9,0,0,0,4,3,23],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a2e1c4bb5ec3a671d8d2f228245585373":[8,0,1,0,4,4,16],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a2e1c4bb5ec3a671d8d2f228245585373":[9,0,0,0,4,3,16],
@@ -241,13 +249,5 @@ var NAVTREEINDEX16 =
 "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a865a93f22f2fd7d436e25ec927ca3c42":[9,0,0,0,5,5,8],
 "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a8e51c170f147a0934c4e6506e42a55b7":[8,0,1,0,5,6,33],
 "classyaze_1_1app_1_1zelda3_1_1Sprite.html#a8e51c170f147a0934c4e6506e42a55b7":[9,0,0,0,5,5,33],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#a905beb8c98aadf360bb8c04cf60002f9":[8,0,1,0,5,6,25],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#a905beb8c98aadf360bb8c04cf60002f9":[9,0,0,0,5,5,25],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#a92cad37264ab56fb46c4b4b2ebdc9d1a":[8,0,1,0,5,6,7],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#a92cad37264ab56fb46c4b4b2ebdc9d1a":[9,0,0,0,5,5,7],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#a94b7b1e97710881e402755f249f0124e":[8,0,1,0,5,6,35],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#a94b7b1e97710881e402755f249f0124e":[9,0,0,0,5,5,35],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa464a960f30fbda89b7534b22126d34c":[8,0,1,0,5,6,17],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa464a960f30fbda89b7534b22126d34c":[9,0,0,0,5,5,17],
-"classyaze_1_1app_1_1zelda3_1_1Sprite.html#aaa990c9bf0385267d954278b095da82d":[8,0,1,0,5,6,3]
+"classyaze_1_1app_1_1zelda3_1_1Sprite.html#a905beb8c98aadf360bb8c04cf60002f9":[8,0,1,0,5,6,25]
 };
