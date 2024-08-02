@@ -1,8 +1,8 @@
+#include "app/core/platform/file_dialog.h"
 
 #include <string>
 #include <vector>
-
-#include "app/core/platform/file_dialog.h"
+#include "imgui/imgui.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */
@@ -10,32 +10,51 @@
 
 #import <CoreText/CoreText.h>
 
-#if TARGET_IPHONE_SIMULATOR == 1
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
 /* iOS in Xcode simulator */
-std::string FileDialogWrapper::ShowOpenFileDialog() { return ""; }
+#import <UIKit/UIKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+
+#include "app/core/platform/app_delegate.h"
+
+namespace {
+static std::string selectedFile;
+
+void ShowOpenFileDialogImpl(void (^completionHandler)(std::string)) {
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  [appDelegate presentDocumentPickerWithCompletionHandler:^(NSString *filePath) {
+    selectedFile = std::string([filePath UTF8String]);
+    completionHandler(selectedFile);
+  }];
+}
+
+std::string ShowOpenFileDialogSync() {
+  __block std::string result;
+  
+  ShowOpenFileDialogImpl(^(std::string filePath) {
+    result = filePath;
+  });
+  
+  // Check if the documentPicker is done 
+//  while (result.empty()) {
+//    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+//  }
+
+  return result;
+}
+}
+
+std::string FileDialogWrapper::ShowOpenFileDialog() {
+  return ShowOpenFileDialogSync();
+}
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
 
-std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
+std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string &folder) {
   return {};
 }
 
-std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
-  return {};
-}
-
-#elif TARGET_OS_IPHONE == 1
-/* iOS */
-
-std::string FileDialogWrapper::ShowOpenFileDialog() { return ""; }
-
-std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
-
-std::vector<std::string> FileDialogWrapper::GetFilesInFolder(const std::string& folder) {
-  return {};
-}
-
-std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string& folder) {
+std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(const std::string &folder) {
   return {};
 }
 
