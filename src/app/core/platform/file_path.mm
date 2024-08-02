@@ -5,9 +5,7 @@
 #include <Foundation/Foundation.h>
 #include <TargetConditionals.h>
 
-#if TARGET_IPHONE_SIMULATOR == 1
-std::string GetBundleResourcePath() {}
-#elif TARGET_OS_IPHONE == 1
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
 std::string GetBundleResourcePath() {
   NSBundle* bundle = [NSBundle mainBundle];
   NSString* resourceDirectoryPath = [bundle bundlePath];
