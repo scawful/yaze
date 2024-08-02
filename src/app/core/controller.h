@@ -45,8 +45,14 @@ class Controller : public ExperimentFlags {
   absl::Status CreateGuiContext();
   absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
+  
+  void SetupScreen() {
+    master_editor_.SetupScreen(renderer_);
+  }
 
   auto master_editor() -> editor::MasterEditor & { return master_editor_; }
+  auto renderer() -> SDL_Renderer * { return renderer_.get(); }
+  auto window() -> SDL_Window * { return window_.get(); }
 
  private:
   struct sdl_deleter {
