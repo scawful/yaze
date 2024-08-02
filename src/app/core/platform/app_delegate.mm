@@ -11,11 +11,8 @@
 
 #import <CoreText/CoreText.h>
 
-#if TARGET_IPHONE_SIMULATOR == 1
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
 /* iOS in Xcode simulator */
-
-#elif TARGET_OS_IPHONE == 1
-/* iOS */
 
 #elif TARGET_OS_MAC == 1
 /* macOS */
