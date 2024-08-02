@@ -321,7 +321,19 @@
     if (selectedFileURL) {
       self.completionHandler(selectedFileURL.path);
       std::string fileName = std::string([selectedFileURL.path UTF8String]);
-      yaze::app::SharedRom::shared_rom_->LoadFromFile(fileName);
+
+      // Extract the data from the file 
+      [selectedFileURL startAccessingSecurityScopedResource];
+
+      auto data = [NSData dataWithContentsOfURL:selectedFileURL];
+      // Cast NSData* to uint8_t*
+      uchar *bytes = (uchar *)[data bytes];
+      // Size of the data
+      size_t size = [data length];
+      
+      PRINT_IF_ERROR(yaze::app::SharedRom::shared_rom_->LoadFromPointer(bytes, size));
+      [selectedFileURL stopAccessingSecurityScopedResource];
+    
     } else {
       self.completionHandler(@"");
     }
