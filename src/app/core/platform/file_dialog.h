@@ -50,8 +50,7 @@ class FileDialogWrapper {
 #include <string>
 #include <vector>
 
-#ifdef TARGET_OS_MAC
-// Other kinds of Mac OS
+#if TARGET_OS_MAC == 1
 
 class FileDialogWrapper {
  public:
@@ -63,7 +62,7 @@ class FileDialogWrapper {
       const std::string& folder_path);
 };
 
-#elif TARGET_OS_IPHONE
+#elif TARGET_OS_IPHONE == 1
 
 // iOS
 class FileDialogWrapper {
