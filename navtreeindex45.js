@@ -1,5 +1,10 @@
 var NAVTREEINDEX45 =
 {
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[8,0,1,0,1,7,1,3],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[9,0,0,0,1,2,1,3],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[8,0,1,0,1,7,1,0],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[9,0,0,0,1,2,1,0],
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[8,0,1,0,1,7,1,6],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[9,0,0,0,1,2,1,6],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[8,0,1,0,1,7,1,5],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#aa5ed1f032144f3dc87c9df90c3072f05":[9,0,0,0,1,2,1,5],
@@ -244,10 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a137677c6a8ecdd47022801cce3f26977":[8,0,1,0,2,3,2,11],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a137677c6a8ecdd47022801cce3f26977":[9,0,0,0,2,1,1,11],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a269e45276f12978aa45d942c4f94b88c":[8,0,1,0,2,3,2,4],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a269e45276f12978aa45d942c4f94b88c":[9,0,0,0,2,1,1,4],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a3038bda97e8763d68c575d7a8f14cd66":[8,0,1,0,2,3,2,15],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a3038bda97e8763d68c575d7a8f14cd66":[9,0,0,0,2,1,1,15],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a349209e52d75ba695c5bbc57a16ff573":[8,0,1,0,2,3,2,1],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a349209e52d75ba695c5bbc57a16ff573":[9,0,0,0,2,1,1,1],
-"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a5512f5d4aa27799dee71f756e3a10f92":[8,0,1,0,2,3,2,17]
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a269e45276f12978aa45d942c4f94b88c":[9,0,0,0,2,1,1,4]
 };

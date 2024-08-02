@@ -1,5 +1,10 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a979926365886a090a07fb67c713a6cbc":[8,0,1,0,2,4,0,44,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a979926365886a090a07fb67c713a6cbc":[9,0,0,0,2,2,0,44,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a9baf3354f8f5750e28cda3ebe951f1ca":[8,0,1,0,2,4,0,44,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#a9baf3354f8f5750e28cda3ebe951f1ca":[9,0,0,0,2,2,0,44,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#aa71900bfacc09de0cd70a2202703005c":[8,0,1,0,2,4,0,44,7],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#aa71900bfacc09de0cd70a2202703005c":[9,0,0,0,2,2,0,44,7],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#adca2cc0aecf325978df32d989972b4b4":[8,0,1,0,2,4,0,44,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1W12SEL.html#adca2cc0aecf325978df32d989972b4b4":[9,0,0,0,2,2,0,44,2],
@@ -244,10 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6064abf2f10cee1ac2f2e3debce222d6":[8,0,1,0,3,7,11],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6064abf2f10cee1ac2f2e3debce222d6":[9,0,0,0,3,5,11],
 "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a68529380eb9cb3e20d82d8f2be4a09b1":[8,0,1,0,3,7,10],
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a68529380eb9cb3e20d82d8f2be4a09b1":[9,0,0,0,3,5,10],
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808":[8,0,1,0,3,7,3],
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a6e10d3183951dbf8901440b4f5389808":[9,0,0,0,3,5,3],
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a83f3e12d8525d4e5017fc89244d1637f":[8,0,1,0,3,7,1],
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a83f3e12d8525d4e5017fc89244d1637f":[9,0,0,0,3,5,1],
-"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a89de7d5a6034f58e61e8d536612680ed":[8,0,1,0,3,7,0]
+"structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a68529380eb9cb3e20d82d8f2be4a09b1":[9,0,0,0,3,5,10]
 };

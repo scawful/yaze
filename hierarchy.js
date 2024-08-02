@@ -2,6 +2,8 @@ var hierarchy =
 [
     [ "yaze::app::gui::zeml::Action", "structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html", null ],
     [ "yaze::app::editor::zsprite::AnimationGroup", "structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
+    [ "AppDelegate", "classAppDelegate.html", null ],
+    [ "AppViewController", "classAppViewController.html", null ],
     [ "yaze::app::emu::audio::Apu", "classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html", null ],
     [ "yaze::app::emu::audio::ApuCallbacks", "structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html", null ],
     [ "yaze::app::emu::AsmParser", "classyaze_1_1app_1_1emu_1_1AsmParser.html", null ],

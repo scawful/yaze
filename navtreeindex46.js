@@ -1,5 +1,10 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a3038bda97e8763d68c575d7a8f14cd66":[8,0,1,0,2,3,2,15],
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a3038bda97e8763d68c575d7a8f14cd66":[9,0,0,0,2,1,1,15],
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a349209e52d75ba695c5bbc57a16ff573":[8,0,1,0,2,3,2,1],
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a349209e52d75ba695c5bbc57a16ff573":[9,0,0,0,2,1,1,1],
+"structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a5512f5d4aa27799dee71f756e3a10f92":[8,0,1,0,2,3,2,17],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a5512f5d4aa27799dee71f756e3a10f92":[9,0,0,0,2,1,1,17],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a55b8a7d418f9ef2990d943fa904a95d4":[8,0,1,0,2,3,2,0],
 "structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a55b8a7d418f9ef2990d943fa904a95d4":[9,0,0,0,2,1,1,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html":[8,0,1,0,2,4,0,6],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html":[9,0,0,0,2,2,0,6],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a283a86a3b69119e2cc7fada8b4d16124":[8,0,1,0,2,4,0,6,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a283a86a3b69119e2cc7fada8b4d16124":[9,0,0,0,2,2,0,6,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a361505ecd66826e2bc01f8eb0a7384e6":[8,0,1,0,2,4,0,6,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a361505ecd66826e2bc01f8eb0a7384e6":[9,0,0,0,2,2,0,6,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a8f43ee6dcaca039f5b47a014881d6234":[8,0,1,0,2,4,0,6,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a8f43ee6dcaca039f5b47a014881d6234":[9,0,0,0,2,2,0,6,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#af018e2b882d5daf0106bb2c75a2bdd09":[8,0,1,0,2,4,0,6,3]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGADSUB.html#a283a86a3b69119e2cc7fada8b4d16124":[9,0,0,0,2,2,0,6,1]
 };

@@ -1,5 +1,10 @@
 var NAVTREEINDEX44 =
 {
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[8,0,1,0,0,8,0,1],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a5cbd2921188ae566328aaa1b62c96faa":[9,0,0,0,0,7,0,1],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[8,0,1,0,0,8,0,0],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html#a9bb407e5132cd6819cf1e83d862eee4a":[9,0,0,0,0,7,0,0],
+"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[8,0,1,0,1,12],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[9,0,0,0,1,7],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a0fd07aa6fb39f57ad738e361d53e008c":[8,0,1,0,1,12,1],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a0fd07aa6fb39f57ad738e361d53e008c":[9,0,0,0,1,7,1],
@@ -244,10 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a2f827349481e112b292f919f4076bae5":[8,0,1,0,1,7,1,4],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a2f827349481e112b292f919f4076bae5":[9,0,0,0,1,2,1,4],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a31bf3f1491369f12fba719a7e379b4cb":[8,0,1,0,1,7,1,8],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a31bf3f1491369f12fba719a7e379b4cb":[9,0,0,0,1,2,1,8],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[8,0,1,0,1,7,1,3],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[9,0,0,0,1,2,1,3],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[8,0,1,0,1,7,1,0],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[9,0,0,0,1,2,1,0],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[8,0,1,0,1,7,1,6]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a31bf3f1491369f12fba719a7e379b4cb":[9,0,0,0,1,2,1,8]
 };
