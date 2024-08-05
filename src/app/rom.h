@@ -203,27 +203,6 @@ class Rom : public core::ExperimentFlags {
    */
   absl::Status SaveAllPalettes();
 
-  /**
-   * @brief Updates a color in a specified palette group.
-   *
-   * This function updates the color at the specified `colorIndex` in the
-   * palette at `palette_index` within the palette group with the given
-   * `group_name`. If the group, palette, or color indices are invalid, an error
-   * is returned.
-   *
-   * @param group_name The name of the palette group to update.
-   * @param palette_index The index of the palette within the group to update.
-   * @param colorIndex The index of the color within the palette to update.
-   * @param newColor The new color value to set.
-   *
-   * @return An `absl::Status` indicating whether the update was successful.
-   *         Returns `absl::OkStatus()` if successful, or an error status if the
-   *         group, palette, or color indices are invalid.
-   */
-  absl::Status UpdatePaletteColor(const std::string& group_name,
-                                  size_t palette_index, size_t colorIndex,
-                                  const gfx::SnesColor& newColor);
-
   // Read functions
   absl::StatusOr<uint8_t> ReadByte(int offset) {
     if (offset >= rom_data_.size()) {
@@ -433,13 +412,7 @@ class Rom : public core::ExperimentFlags {
     return kVersionConstantsMap.at(version_);
   }
 
-  int GetGraphicsAddress(const uchar* data, uint8_t addr) const {
-    auto part_one = data[version_constants().kOverworldGfxPtr1 + addr] << 16;
-    auto part_two = data[version_constants().kOverworldGfxPtr2 + addr] << 8;
-    auto part_three = data[version_constants().kOverworldGfxPtr3 + addr];
-    auto snes_addr = (part_one | part_two | part_three);
-    return core::SnesToPc(snes_addr);
-  }
+  int GetGraphicsAddress(const uchar* data, uint8_t addr);
 
   auto palette_group() { return palette_groups_; }
   auto mutable_palette_group() { return &palette_groups_; }
