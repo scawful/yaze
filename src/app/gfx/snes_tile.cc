@@ -9,6 +9,18 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+// Bit set for object priority
+constexpr ushort TilePriorityBit = 0x2000;
+
+// Bit set for object hflip
+constexpr ushort TileHFlipBit = 0x4000;
+
+// Bit set for object vflip
+constexpr ushort TileVFlipBit = 0x8000;
+
+// Bits used for tile name
+constexpr ushort TileNameMask = 0x03FF;
+
 tile8 UnpackBppTile(const Bytes& data, const uint32_t offset,
                     const uint32_t bpp) {
   tile8 tile;
@@ -337,28 +349,28 @@ uint16_t TileInfoToShort(TileInfo tile_info) {
   uint16_t value = 0;
   // vhopppcc cccccccc
   if (tile_info.over_) {
-    value |= core::TilePriorityBit;
+    value |= TilePriorityBit;
   }
   if (tile_info.horizontal_mirror_) {
-    value |= core::TileHFlipBit;
+    value |= TileHFlipBit;
   }
   if (tile_info.vertical_mirror_) {
-    value |= core::TileVFlipBit;
+    value |= TileVFlipBit;
   }
   value |= (uint16_t)((tile_info.palette_ << 10) & 0x1C00);
-  value |= (uint16_t)(tile_info.id_ & core::TileNameMask);
+  value |= (uint16_t)(tile_info.id_ & TileNameMask);
 
   return value;
 }
 
 TileInfo GetTilesInfo(uint16_t tile) {
   // vhopppcc cccccccc
-  uint16_t tid = (uint16_t)(tile & core::TileNameMask);
+  uint16_t tid = (uint16_t)(tile & TileNameMask);
   uint8_t p = (uint8_t)((tile >> 10) & 0x07);
 
-  bool o = ((tile & core::TilePriorityBit) == core::TilePriorityBit);
-  bool h = ((tile & core::TileHFlipBit) == core::TileHFlipBit);
-  bool v = ((tile & core::TileVFlipBit) == core::TileVFlipBit);
+  bool o = ((tile & TilePriorityBit) == TilePriorityBit);
+  bool h = ((tile & TileHFlipBit) == TileHFlipBit);
+  bool v = ((tile & TileVFlipBit) == TileVFlipBit);
 
   return TileInfo(tid, p, v, h, o);
 }

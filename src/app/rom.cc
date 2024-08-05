@@ -29,6 +29,17 @@
 namespace yaze {
 namespace app {
 
+constexpr int Uncompressed3BPPSize = 0x0600;
+constexpr int kEntranceGfxGroup = 0x5D97;
+
+int Rom::GetGraphicsAddress(const uchar* data, uint8_t addr) {
+  auto part_one = data[version_constants().kOverworldGfxPtr1 + addr] << 16;
+  auto part_two = data[version_constants().kOverworldGfxPtr2 + addr] << 8;
+  auto part_three = data[version_constants().kOverworldGfxPtr3 + addr];
+  auto snes_addr = (part_one | part_two | part_three);
+  return core::SnesToPc(snes_addr);
+}
+
 absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
   Bytes sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
@@ -77,9 +88,9 @@ absl::Status Rom::LoadAllGraphicsData() {
 
   for (int i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
-      sheet.resize(core::Uncompressed3BPPSize);
+      sheet.resize(Uncompressed3BPPSize);
       auto offset = GetGraphicsAddress(data(), i);
-      for (int j = 0; j < core::Uncompressed3BPPSize; j++) {
+      for (int j = 0; j < Uncompressed3BPPSize; j++) {
         sheet[j] = rom_data_[j + offset];
       }
       bpp3 = true;
@@ -207,9 +218,9 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length) {
         "Could not load ROM: parameter `data` is empty.");
 
   for (int i = 0; i < length; ++i) rom_data_.push_back(data[i]);
-  
+
   size_ = length;
-  
+
   // Copy ROM title
   constexpr uint32_t kTitleStringOffset = 0x7FC0;
   constexpr uint32_t kTitleStringLength = 20;
@@ -221,7 +232,7 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length) {
   }
   RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
   LoadGfxGroups();
-  
+
   // Set is_loaded_ flag and return success
   is_loaded_ = true;
 
@@ -384,8 +395,7 @@ void Rom::LoadGfxGroups() {
 
   for (int i = 0; i < 82; i++) {
     for (int j = 0; j < 4; j++) {
-      room_blockset_ids[i][j] =
-          rom_data_[core::entrance_gfx_group + (i * 4) + j];
+      room_blockset_ids[i][j] = rom_data_[kEntranceGfxGroup + (i * 4) + j];
     }
   }
 
@@ -417,8 +427,7 @@ void Rom::SaveGroupsToRom() {
 
   for (int i = 0; i < 82; i++) {
     for (int j = 0; j < 4; j++) {
-      rom_data_[core::entrance_gfx_group + (i * 4) + j] =
-          room_blockset_ids[i][j];
+      rom_data_[kEntranceGfxGroup + (i * 4) + j] = room_blockset_ids[i][j];
     }
   }
 

@@ -142,23 +142,9 @@ constexpr float kYazeVersion = 0.2;
 // Magic numbers
 // ============================================================================
 
-/// Bit set for object priority
-constexpr ushort TilePriorityBit = 0x2000;
-
-/// Bit set for object hflip
-constexpr ushort TileHFlipBit = 0x4000;
-
-/// Bit set for object vflip
-constexpr ushort TileVFlipBit = 0x8000;
-
-/// Bits used for tile name
-constexpr ushort TileNameMask = 0x03FF;
-
-constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int UncompressedSheetSize = 0x0800;
 
 constexpr int NumberOfRooms = 296;
-
 constexpr int NumberOfColors = 3143;
 
 // ============================================================================
@@ -178,15 +164,6 @@ constexpr int maxGfx = 0xC3FB5;
 constexpr int kTilesheetWidth = 128;
 constexpr int kTilesheetHeight = 32;
 constexpr int kTilesheetDepth = 8;
-
-// TEXT EDITOR RELATED CONSTANTS
-constexpr int gfx_font = 0x70000;  // 2bpp format
-constexpr int text_data = 0xE0000;
-constexpr int text_data2 = 0x75F40;
-constexpr int pointers_dictionaries = 0x74703;
-constexpr int characters_width = 0x74ADF;
-
-constexpr int entrance_gfx_group = 0x5D97;
 
 // ============================================================================
 // Gravestones related variables
@@ -218,7 +195,6 @@ static const std::string RoomEffect[] = {"Nothing",
                                          "Ganon's Darkness"};
 
 static const std::string RoomTag[] = {"Nothing",
-
                                       "NW Kill Enemy to Open",
                                       "NE Kill Enemy to Open",
                                       "SW Kill Enemy to Open",
@@ -286,18 +262,6 @@ static const std::string RoomTag[] = {"Nothing",
                                       "Clear Room for Triforce Door",
                                       "Light Torches for Chest",
                                       "Kill Boss Again"};
-
-static const std::string SecretItemNames[] = {
-    "Nothing",    "Green Rupee", "Rock hoarder",  "Bee",       "Health pack",
-    "Bomb",       "Heart ",      "Blue Rupee",
-
-    "Key",        "Arrow",       "Bomb",          "Heart",     "Magic",
-    "Full Magic", "Cucco",       "Green Soldier", "Bush Stal", "Blue Soldier",
-
-    "Landmine",   "Heart",       "Fairy",         "Heart",
-    "Nothing ",  // 22
-
-    "Hole",       "Warp",        "Staircase",     "Bombable",  "Switch"};
 
 static const std::string TileTypeNames[] = {
     "$00 Nothing (standard floor)",
