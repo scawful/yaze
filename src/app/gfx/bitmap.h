@@ -121,6 +121,14 @@ class Bitmap {
   absl::Status ApplyPaletteFromPaletteGroup(const SnesPalette &palette,
                                             int palette_id);
 
+  void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
+                  int &tile_data_offset);
+
+  void Get16x16Tile(int tile_index, int x, int y,
+                    std::vector<uint8_t> &tile_data, int &tile_data_offset);
+  void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
+                    int &tile_data_offset);
+
   void WriteToPixel(int position, uchar value) {
     if (pixel_data_ == nullptr) {
       pixel_data_ = data_.data();
@@ -138,73 +146,7 @@ class Bitmap {
     modified_ = true;
   }
 
-  void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
-                  int &tile_data_offset) {
-    int tile_offset = tile_index * (width_ * height_);
-    int tile_x = (x * 8) % width_;
-    int tile_y = (y * 8) % height_;
-    for (int i = 0; i < 8; i++) {
-      int row_offset = tile_offset + ((tile_y + i) * width_);
-      for (int j = 0; j < 8; j++) {
-        int pixel_offset = row_offset + (tile_x + j);
-        int pixel_value = data_[pixel_offset];
-        tile_data[tile_data_offset] = pixel_value;
-        tile_data_offset++;
-      }
-    }
-  }
-
-  void Get16x16Tile(int tile_index, int x, int y,
-                    std::vector<uint8_t> &tile_data, int &tile_data_offset) {
-    int tile_offset = tile_index * (width_ * height_);
-    int tile_x = x * 16;
-    int tile_y = y * 16;
-    for (int i = 0; i < 16; i++) {
-      int row_offset = tile_offset + ((i / 8) * (width_ * 8));
-      for (int j = 0; j < 16; j++) {
-        int pixel_offset =
-            row_offset + ((j / 8) * 8) + ((i % 8) * width_) + (j % 8);
-        int pixel_value = data_[pixel_offset];
-        tile_data[tile_data_offset] = pixel_value;
-        tile_data_offset++;
-      }
-    }
-  }
-
-  void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
-                    int &tile_data_offset) {
-    // Assuming 'width_' and 'height_' are the dimensions of the bitmap
-    // and 'data_' is the bitmap data.
-    for (int ty = 0; ty < 16; ty++) {
-      for (int tx = 0; tx < 16; tx++) {
-        // Calculate the pixel position in the bitmap
-        int pixel_x = tile_x + tx;
-        int pixel_y = tile_y + ty;
-        int pixel_offset = pixel_y * width_ + pixel_x;
-        int pixel_value = data_[pixel_offset];
-
-        // Store the pixel value in the tile data
-        tile_data[tile_data_offset++] = pixel_value;
-      }
-    }
-  }
-
-  void WriteColor(int position, const ImVec4 &color) {
-    // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
-    SDL_Color sdl_color;
-    sdl_color.r = static_cast<Uint8>(color.x * 255);
-    sdl_color.g = static_cast<Uint8>(color.y * 255);
-    sdl_color.b = static_cast<Uint8>(color.z * 255);
-    sdl_color.a = static_cast<Uint8>(color.w * 255);
-
-    // Map SDL_Color to the nearest color index in the surface's palette
-    Uint8 index =
-        SDL_MapRGB(surface_->format, sdl_color.r, sdl_color.g, sdl_color.b);
-
-    // Write the color index to the pixel data
-    pixel_data_[position] = index;
-    modified_ = true;
-  }
+  void WriteColor(int position, const ImVec4 &color);
 
   void Cleanup() {
     active_ = false;
