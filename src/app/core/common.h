@@ -194,20 +194,15 @@ class Logger {
   static std::vector<std::string> logs;
 };
 
-std::string UppercaseHexByte(uint8_t byte, bool leading = false);
-std::string UppercaseHexWord(uint16_t word);
-std::string UppercaseHexLong(uint32_t dword);
+inline uint32_t SnesToPc(uint32_t addr) noexcept;
 
-uint32_t SnesToPc(uint32_t addr);
-uint32_t PcToSnes(uint32_t addr);
+inline uint32_t PcToSnes(uint32_t addr);
 
-uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr);
+inline uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr);
 
-int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3);
+inline int AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) noexcept;
+
 int HexToDec(char *input, int length);
-
-bool StringReplace(std::string &str, const std::string &from,
-                   const std::string &to);
 
 void stle16b_i(uint8_t *const p_arr, size_t const p_index,
                uint16_t const p_val);
