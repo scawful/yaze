@@ -52,32 +52,17 @@ uint64_t decode(const std::vector<uint8_t> &input, size_t &offset) {
 
 std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
 
-std::string UppercaseHexByte(uint8_t byte, bool leading) {
-  if (leading) {
-    std::string result = absl::StrFormat("0x%02X", byte);
-    return result;
-  }
-  std::string result = absl::StrFormat("%02X", byte);
-  return result;
-}
-std::string UppercaseHexWord(uint16_t word) {
-  std::string result = absl::StrFormat("0x%04X", word);
-  return result;
-}
-std::string UppercaseHexLong(uint32_t dword) {
-  std::string result = absl::StrFormat("0x%06X", dword);
-  return result;
-}
+constexpr uint32_t kFastRomRegion = 0x808000;
 
-uint32_t SnesToPc(uint32_t addr) {
-  if (addr >= 0x808000) {
-    addr -= 0x808000;
+inline uint32_t SnesToPc(uint32_t addr) noexcept {
+  if (addr >= kFastRomRegion) {
+    addr -= kFastRomRegion;
   }
   uint32_t temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
   return (temp + 0x0);
 }
 
-uint32_t PcToSnes(uint32_t addr) {
+inline uint32_t PcToSnes(uint32_t addr) {
   uint8_t *b = reinterpret_cast<uint8_t *>(&addr);
   b[2] = static_cast<uint8_t>(b[2] * 2);
 
@@ -96,8 +81,8 @@ uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) {
   return result;
 }
 
-int AddressFromBytes(uint8_t addr1, uint8_t addr2, uint8_t addr3) {
-  return (addr1 << 16) | (addr2 << 8) | addr3;
+int AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) noexcept {
+  return (bank << 16) | (high << 8) | low;
 }
 
 // hextodec has been imported from SNESDisasm to parse hex numbers
@@ -128,15 +113,6 @@ int HexToDec(char *input, int length) {
   }
 
   return result;
-}
-
-bool StringReplace(std::string &str, const std::string &from,
-                   const std::string &to) {
-  size_t start = str.find(from);
-  if (start == std::string::npos) return false;
-
-  str.replace(start, from.length(), to);
-  return true;
 }
 
 void stle(uint8_t *const p_arr, size_t const p_index, unsigned const p_val) {

@@ -1,8 +1,5 @@
 #include "app/core/labeling.h"
 
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-
 #include <cstdint>
 #include <fstream>
 #include <sstream>
@@ -13,10 +10,38 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gui/icons.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace app {
 namespace core {
+
+std::string UppercaseHexByte(uint8_t byte, bool leading) {
+  if (leading) {
+    std::string result = absl::StrFormat("0x%02X", byte);
+    return result;
+  }
+  std::string result = absl::StrFormat("%02X", byte);
+  return result;
+}
+std::string UppercaseHexWord(uint16_t word) {
+  std::string result = absl::StrFormat("0x%04X", word);
+  return result;
+}
+std::string UppercaseHexLong(uint32_t dword) {
+  std::string result = absl::StrFormat("0x%06X", dword);
+  return result;
+}
+
+bool StringReplace(std::string& str, const std::string& from,
+                   const std::string& to) {
+  size_t start = str.find(from);
+  if (start == std::string::npos) return false;
+
+  str.replace(start, from.length(), to);
+  return true;
+}
 
 bool ResourceLabelManager::LoadLabels(const std::string& filename) {
   std::ifstream file(filename);

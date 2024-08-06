@@ -17,6 +17,13 @@ namespace yaze {
 namespace app {
 namespace core {
 
+std::string UppercaseHexByte(uint8_t byte, bool leading = false);
+std::string UppercaseHexWord(uint16_t word);
+std::string UppercaseHexLong(uint32_t dword);
+
+bool StringReplace(std::string& str, const std::string& from,
+                   const std::string& to);
+
 // Default types
 static constexpr absl::string_view kDefaultTypes[] = {
     "Dungeon Names", "Dungeon Room Names", "Overworld Map Names"};
@@ -32,8 +39,6 @@ struct ResourceLabelManager {
                                    const std::string& defaultValue);
   std::string CreateOrGetLabel(const std::string& type, const std::string& key,
                                const std::string& defaultValue);
-  std::string CreateOrGetLabel(const std::string& type, const std::string& key,
-                               const absl::string_view& defaultValue);
 
   bool labels_loaded_ = false;
   std::string filename_;
