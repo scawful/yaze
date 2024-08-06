@@ -266,6 +266,7 @@ void Bitmap::CreateTexture(SDL_Renderer *renderer) {
         converted_surface, SDL_Surface_Deleter());
   } else {
     SDL_Log("SDL_ConvertSurfaceFormat failed: %s\n", SDL_GetError());
+    return;
   }
 
   SDL_LockTexture(texture_.get(), nullptr, (void **)&texture_pixels,

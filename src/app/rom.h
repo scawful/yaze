@@ -404,10 +404,6 @@ class Rom : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
-  void QueueChanges(std::function<void()> const& function) {
-    changes_.push(function);
-  }
-
   VersionConstants version_constants() const {
     return kVersionConstantsMap.at(version_);
   }
@@ -573,7 +569,6 @@ class Rom : public core::ExperimentFlags {
   gfx::PaletteGroupMap palette_groups_;
   core::ResourceLabelManager resource_label_manager_;
 
-  std::stack<std::function<void()>> changes_;
   std::shared_ptr<SDL_Renderer> renderer_;
 };
 
