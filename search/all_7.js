@@ -39,7 +39,7 @@ var searchData=
   ['debugger_2eh_36',['debugger.h',['../debugger_8h.html',1,'']]],
   ['dec_37',['DEC',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5ff5f06d41678136c85609210c5ca9e0',1,'yaze::app::emu::audio::Spc700::DEC()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#adc9984b8a5eb1603eac494d2b00d886d',1,'yaze::app::emu::Cpu::DEC(uint32_t address, bool accumulator=false)']]],
   ['dec_38',['Dec',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a1882ad03a18706193eef850439ceceb8',1,'yaze::app::emu::Cpu']]],
-  ['decode_39',['decode',['../namespaceyaze_1_1cli.html#a720b64d1c21e254e6b99633fbe6e8e1d',1,'yaze::cli']]],
+  ['decode_39',['decode',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa650dcba786cb2df29aa1af7bbc967c7',1,'yaze::app::core::anonymous_namespace{common.cc}']]],
   ['decodebrr_40',['DecodeBrr',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#ab564940423a323f7e7e49485b7ad5f58',1,'yaze::app::emu::audio::Dsp']]],
   ['decodebuffer_41',['decodeBuffer',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#adb19f3bab5a89e2408a7211367bb5632',1,'yaze::app::emu::audio::DspChannel']]],
   ['decodecolfile_42',['DecodeColFile',['../namespaceyaze_1_1app_1_1gfx_1_1scad__format.html#a401765bf79628a0f353807bc0a825797',1,'yaze::app::gfx::scad_format']]],

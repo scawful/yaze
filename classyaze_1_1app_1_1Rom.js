@@ -10,7 +10,6 @@ var classyaze_1_1app_1_1Rom =
     [ "SaveToFile", "classyaze_1_1app_1_1Rom.html#a372a28056ae2edc74a0342b1e05ffc9f", null ],
     [ "SavePalette", "classyaze_1_1app_1_1Rom.html#a4ecd5e203ecac5987519ece53983fe63", null ],
     [ "SaveAllPalettes", "classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3", null ],
-    [ "UpdatePaletteColor", "classyaze_1_1app_1_1Rom.html#a3d7f8049f2dee1b02a03dca7c2f9f126", null ],
     [ "ReadByte", "classyaze_1_1app_1_1Rom.html#adc977745ac851fd2b982e24bfc7053f3", null ],
     [ "ReadWord", "classyaze_1_1app_1_1Rom.html#a997bfee0f4d228a4d9f30166647f8b37", null ],
     [ "toint16", "classyaze_1_1app_1_1Rom.html#a30813c409d2c6b4520e1a579289d3066", null ],
@@ -30,9 +29,8 @@ var classyaze_1_1app_1_1Rom =
     [ "Expand", "classyaze_1_1app_1_1Rom.html#a6763e33072305e9ecf662b366bd6f956", null ],
     [ "Reload", "classyaze_1_1app_1_1Rom.html#a92a9aaae6d5d567853724ea5ab42e54b", null ],
     [ "Close", "classyaze_1_1app_1_1Rom.html#a8e4dd51e01c06b634e20f8ad13efad4f", null ],
-    [ "QueueChanges", "classyaze_1_1app_1_1Rom.html#ac84dc904001c32fe4679722aabaad86a", null ],
     [ "version_constants", "classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139", null ],
-    [ "GetGraphicsAddress", "classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012", null ],
+    [ "GetGraphicsAddress", "classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b", null ],
     [ "palette_group", "classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d", null ],
     [ "mutable_palette_group", "classyaze_1_1app_1_1Rom.html#a051bf6416f14b1547621cc3d556a6e22", null ],
     [ "dungeon_palette", "classyaze_1_1app_1_1Rom.html#abc79426dc768d8d43bd9bab55ef11660", null ],
@@ -87,6 +85,5 @@ var classyaze_1_1app_1_1Rom =
     [ "link_palette_", "classyaze_1_1app_1_1Rom.html#ac44e734fa63168aba69b5177318445d4", null ],
     [ "palette_groups_", "classyaze_1_1app_1_1Rom.html#a84a871742c05354dc477c49bdd5a7496", null ],
     [ "resource_label_manager_", "classyaze_1_1app_1_1Rom.html#aeed1d79aa226ead085fab4a997396f27", null ],
-    [ "changes_", "classyaze_1_1app_1_1Rom.html#a788882f288cac479bc324ad96c6e48df", null ],
     [ "renderer_", "classyaze_1_1app_1_1Rom.html#a2e058ea3ea8a945708246ad08d86e28e", null ]
 ];

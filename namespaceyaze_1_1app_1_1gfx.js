@@ -132,5 +132,9 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "customAreaSpecificBGPalette", "namespaceyaze_1_1app_1_1gfx.html#a40019a86ba5949e9718f7b0c6bcbd0e5", null ],
     [ "customAreaSpecificBGASM", "namespaceyaze_1_1app_1_1gfx.html#af9428fc450b4576d347b011dbe9f4de9", null ],
     [ "customAreaSpecificBGEnabled", "namespaceyaze_1_1app_1_1gfx.html#ae1d1dbe7d5ac2221fd0bee658639fabd", null ],
+    [ "TilePriorityBit", "namespaceyaze_1_1app_1_1gfx.html#a2a7462981584270ed52ef80ea6cb031a", null ],
+    [ "TileHFlipBit", "namespaceyaze_1_1app_1_1gfx.html#a3dfbc94092307bb3201c87c5e9182e82", null ],
+    [ "TileVFlipBit", "namespaceyaze_1_1app_1_1gfx.html#a9edb3a29e85c2a935d0d0f7014b5fb2a", null ],
+    [ "TileNameMask", "namespaceyaze_1_1app_1_1gfx.html#ad7955598311233ccedaea17464db0dac", null ],
     [ "kGraphicsBitmap", "namespaceyaze_1_1app_1_1gfx.html#aa4d05c0ec507bdb37d9c5b41f2d4ee58", null ]
 ];

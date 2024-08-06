@@ -120,6 +120,8 @@ $(function(){initNavTree('namespaceyaze_1_1app_1_1core.html',''); initResizable(
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html">anonymous_namespace{common.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html">anonymous_namespace{controller.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -213,6 +215,12 @@ Functions</h2></td></tr>
 <tr class="separator:aa6c12bd455e5cf377d2362c6dc7fab85"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b146f0a471eaf459077aadd4426caa6" id="r_a7b146f0a471eaf459077aadd4426caa6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC</a> (uint8_t *data, int addr, bool pc)</td></tr>
 <tr class="separator:a7b146f0a471eaf459077aadd4426caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a0b17783f4959beac36130deffc51ca" id="r_a0a0b17783f4959beac36130deffc51ca"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32</a> (const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
+<tr class="separator:a0a0b17783f4959beac36130deffc51ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fb8f2496d6a4d905dac9bc80c02f803" id="r_a8fb8f2496d6a4d905dac9bc80c02f803"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8fb8f2496d6a4d905dac9bc80c02f803">CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
+<tr class="separator:a8fb8f2496d6a4d905dac9bc80c02f803"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0785e35814ceaa845a06f4a6b0d2bbb0" id="r_a0785e35814ceaa845a06f4a6b0d2bbb0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0785e35814ceaa845a06f4a6b0d2bbb0">ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
+<tr class="separator:a0785e35814ceaa845a06f4a6b0d2bbb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -220,20 +228,6 @@ Variables</h2></td></tr>
 <tr class="separator:a386b985dabb5995d3943457a20547f19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d651e38582177a01a8c5d06a1ddfb56" id="r_a6d651e38582177a01a8c5d06a1ddfb56"><td class="memItemLeft" align="right" valign="top">constexpr float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6d651e38582177a01a8c5d06a1ddfb56">kYazeVersion</a> = 0.2</td></tr>
 <tr class="separator:a6d651e38582177a01a8c5d06a1ddfb56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acabdb9f5536c40280ef09cdc1c6711b8" id="r_acabdb9f5536c40280ef09cdc1c6711b8"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acabdb9f5536c40280ef09cdc1c6711b8">TilePriorityBit</a> = 0x2000</td></tr>
-<tr class="memdesc:acabdb9f5536c40280ef09cdc1c6711b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit set for object priority.  <br /></td></tr>
-<tr class="separator:acabdb9f5536c40280ef09cdc1c6711b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6c68318bf89d0895e12ba1f83cd0903" id="r_ae6c68318bf89d0895e12ba1f83cd0903"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae6c68318bf89d0895e12ba1f83cd0903">TileHFlipBit</a> = 0x4000</td></tr>
-<tr class="memdesc:ae6c68318bf89d0895e12ba1f83cd0903"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit set for object hflip.  <br /></td></tr>
-<tr class="separator:ae6c68318bf89d0895e12ba1f83cd0903"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee9552c27c1dd9e8acc65ff262e6e666" id="r_aee9552c27c1dd9e8acc65ff262e6e666"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee9552c27c1dd9e8acc65ff262e6e666">TileVFlipBit</a> = 0x8000</td></tr>
-<tr class="memdesc:aee9552c27c1dd9e8acc65ff262e6e666"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit set for object vflip.  <br /></td></tr>
-<tr class="separator:aee9552c27c1dd9e8acc65ff262e6e666"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa463ab87a78c0703c5becfa7eba0d7a8" id="r_aa463ab87a78c0703c5becfa7eba0d7a8"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa463ab87a78c0703c5becfa7eba0d7a8">TileNameMask</a> = 0x03FF</td></tr>
-<tr class="memdesc:aa463ab87a78c0703c5becfa7eba0d7a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bits used for tile name.  <br /></td></tr>
-<tr class="separator:aa463ab87a78c0703c5becfa7eba0d7a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b99de7088f320ebab6fadb299bbbcbd" id="r_a0b99de7088f320ebab6fadb299bbbcbd"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0b99de7088f320ebab6fadb299bbbcbd">Uncompressed3BPPSize</a> = 0x0600</td></tr>
-<tr class="separator:a0b99de7088f320ebab6fadb299bbbcbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa81639987a081f9954d7d8d61d39c92d" id="r_aa81639987a081f9954d7d8d61d39c92d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa81639987a081f9954d7d8d61d39c92d">UncompressedSheetSize</a> = 0x0800</td></tr>
 <tr class="separator:aa81639987a081f9954d7d8d61d39c92d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9453e71bb422bc071352f1771d54cd1a" id="r_a9453e71bb422bc071352f1771d54cd1a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9453e71bb422bc071352f1771d54cd1a">NumberOfRooms</a> = 296</td></tr>
@@ -262,18 +256,6 @@ Variables</h2></td></tr>
 <tr class="separator:a31f53a26cadeced84ab6ba6020a4c5f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adeee2f15a01705bd473a4324309d828e" id="r_adeee2f15a01705bd473a4324309d828e"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adeee2f15a01705bd473a4324309d828e">kTilesheetDepth</a> = 8</td></tr>
 <tr class="separator:adeee2f15a01705bd473a4324309d828e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09aa267e50eefee2178c5ef40e253f7c" id="r_a09aa267e50eefee2178c5ef40e253f7c"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a09aa267e50eefee2178c5ef40e253f7c">gfx_font</a> = 0x70000</td></tr>
-<tr class="separator:a09aa267e50eefee2178c5ef40e253f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e81a43bb80ee808f93b323b6a2f697d" id="r_a0e81a43bb80ee808f93b323b6a2f697d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0e81a43bb80ee808f93b323b6a2f697d">text_data</a> = 0xE0000</td></tr>
-<tr class="separator:a0e81a43bb80ee808f93b323b6a2f697d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8d9536b60121e91655771af1b67eb07" id="r_af8d9536b60121e91655771af1b67eb07"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af8d9536b60121e91655771af1b67eb07">text_data2</a> = 0x75F40</td></tr>
-<tr class="separator:af8d9536b60121e91655771af1b67eb07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9676b418ff21dd1cb96efa0198c1453" id="r_ad9676b418ff21dd1cb96efa0198c1453"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad9676b418ff21dd1cb96efa0198c1453">pointers_dictionaries</a> = 0x74703</td></tr>
-<tr class="separator:ad9676b418ff21dd1cb96efa0198c1453"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3100848f4b1e5b64371fca5e0b15d09" id="r_ab3100848f4b1e5b64371fca5e0b15d09"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab3100848f4b1e5b64371fca5e0b15d09">characters_width</a> = 0x74ADF</td></tr>
-<tr class="separator:ab3100848f4b1e5b64371fca5e0b15d09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac0c2d9bcb6a3f76f9119bdfc1b915e9" id="r_aac0c2d9bcb6a3f76f9119bdfc1b915e9"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac0c2d9bcb6a3f76f9119bdfc1b915e9">entrance_gfx_group</a> = 0x5D97</td></tr>
-<tr class="separator:aac0c2d9bcb6a3f76f9119bdfc1b915e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac381f3839d2bd1c264675d5cc113e7ec" id="r_ac381f3839d2bd1c264675d5cc113e7ec"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac381f3839d2bd1c264675d5cc113e7ec">GravesYTilePos</a> = 0x49968</td></tr>
 <tr class="separator:ac381f3839d2bd1c264675d5cc113e7ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2479a12b250b2bc6926c5537e85efbf" id="r_ac2479a12b250b2bc6926c5537e85efbf"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac2479a12b250b2bc6926c5537e85efbf">GravesXTilePos</a> = 0x49986</td></tr>
@@ -417,7 +399,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ace1256aebd3505dbc421d28e711f2068">yaze::app::editor::MessageEditor::BuildDictionaryEntries()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1351191860902e038bd7f538f0bb87d4">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012">yaze::app::Rom::GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab4ab3d515b729f7bc09ca4babdce6af5">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab7d1ad237d5dba32a1d27da7de2ed4d2">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ad6d8a1fb08cfe8ae312b1220fd6ab3eb">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0587df5bd63e09dc0cddd4e2e7e2edfa">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a4d7405ccb2a91afb5149e9803befe544">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#abec4b139db7e26fb07c5260a12037d4f">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#af807491d98c8cfe17d907c5deff0af7f">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#adf72450fb09b8d14f5388c46f9e62329">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, and <a class="el" href="structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ace1256aebd3505dbc421d28e711f2068">yaze::app::editor::MessageEditor::BuildDictionaryEntries()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1351191860902e038bd7f538f0bb87d4">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b">yaze::app::Rom::GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab4ab3d515b729f7bc09ca4babdce6af5">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab7d1ad237d5dba32a1d27da7de2ed4d2">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ad6d8a1fb08cfe8ae312b1220fd6ab3eb">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0587df5bd63e09dc0cddd4e2e7e2edfa">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a4d7405ccb2a91afb5149e9803befe544">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#abec4b139db7e26fb07c5260a12037d4f">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#af807491d98c8cfe17d907c5deff0af7f">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#adf72450fb09b8d14f5388c46f9e62329">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, and <a class="el" href="structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
 
 </div>
 </div>
@@ -1048,6 +1030,118 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a0a0b17783f4959beac36130deffc51ca" name="a0a0b17783f4959beac36130deffc51ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a0b17783f4959beac36130deffc51ca">&#9670;&#160;</a></span>crc32()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::core::crc32 </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a0785e35814ceaa845a06f4a6b0d2bbb0">ApplyBpsPatch()</a>, <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>, and <a class="el" href="#a8fb8f2496d6a4d905dac9bc80c02f803">CreateBpsPatch()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph" id="anamespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,149,55"/>
+<area shape="poly" title=" " alt="" coords="52,30,48,21,50,11,61,5,77,3,95,5,104,12,101,16,93,10,77,8,62,10,55,14,53,20,57,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a8fb8f2496d6a4d905dac9bc80c02f803" name="a8fb8f2496d6a4d905dac9bc80c02f803"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fb8f2496d6a4d905dac9bc80c02f803">&#9670;&#160;</a></span>CreateBpsPatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::core::CreateBpsPatch </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>source</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>target</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>patch</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1CreatePatch.html#ad8379b3639cb96421e3d023cf7022063">yaze::cli::CreatePatch::handle()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph" id="anamespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph">
+<area shape="rect" title=" " alt="" coords="5,22,178,62"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a0a0b17783f4959beac36130deffc51ca" title=" " alt="" coords="226,29,369,55"/>
+<area shape="poly" title=" " alt="" coords="178,40,210,40,210,45,178,45"/>
+<area shape="poly" title=" " alt="" coords="263,31,256,21,260,11,274,5,297,3,323,5,336,12,333,17,321,10,297,8,276,10,264,15,262,20,267,27"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a0785e35814ceaa845a06f4a6b0d2bbb0" name="a0785e35814ceaa845a06f4a6b0d2bbb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0785e35814ceaa845a06f4a6b0d2bbb0">&#9670;&#160;</a></span>ApplyBpsPatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::app::core::ApplyBpsPatch </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>source</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>patch</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>target</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6">yaze::cli::ApplyPatch::handle()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph" id="anamespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph">
+<area shape="rect" title=" " alt="" coords="5,22,172,62"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a0a0b17783f4959beac36130deffc51ca" title=" " alt="" coords="220,29,363,55"/>
+<area shape="poly" title=" " alt="" coords="172,40,204,40,204,45,172,45"/>
+<area shape="poly" title=" " alt="" coords="257,31,251,21,255,11,269,5,291,3,316,5,329,12,326,17,315,10,291,8,270,10,259,15,256,20,262,27"/>
+</map>
+</div>
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="a386b985dabb5995d3943457a20547f19" name="a386b985dabb5995d3943457a20547f19"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a386b985dabb5995d3943457a20547f19">&#9670;&#160;</a></span>kRedPen</h2>
@@ -1094,134 +1188,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a926b20f5ff986c9d4b5e13014ab36a6f">yaze::app::editor::MasterEditor::DrawAboutPopup()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab5861cc4b21b5313826917a90747ac33">yaze::app::editor::MasterEditor::DrawYazeMenu()</a>.</p>
-
-</div>
-</div>
-<a id="acabdb9f5536c40280ef09cdc1c6711b8" name="acabdb9f5536c40280ef09cdc1c6711b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acabdb9f5536c40280ef09cdc1c6711b8">&#9670;&#160;</a></span>TilePriorityBit</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> yaze::app::core::TilePriorityBit = 0x2000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Bit set for object priority. </p>
-
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90">yaze::app::gfx::GetTilesInfo()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a8b918c5ebd5aeb116c421ae7125e4128">yaze::app::gfx::TileInfoToShort()</a>.</p>
-
-</div>
-</div>
-<a id="ae6c68318bf89d0895e12ba1f83cd0903" name="ae6c68318bf89d0895e12ba1f83cd0903"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6c68318bf89d0895e12ba1f83cd0903">&#9670;&#160;</a></span>TileHFlipBit</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> yaze::app::core::TileHFlipBit = 0x4000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Bit set for object hflip. </p>
-
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90">yaze::app::gfx::GetTilesInfo()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a8b918c5ebd5aeb116c421ae7125e4128">yaze::app::gfx::TileInfoToShort()</a>.</p>
-
-</div>
-</div>
-<a id="aee9552c27c1dd9e8acc65ff262e6e666" name="aee9552c27c1dd9e8acc65ff262e6e666"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee9552c27c1dd9e8acc65ff262e6e666">&#9670;&#160;</a></span>TileVFlipBit</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> yaze::app::core::TileVFlipBit = 0x8000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Bit set for object vflip. </p>
-
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90">yaze::app::gfx::GetTilesInfo()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a8b918c5ebd5aeb116c421ae7125e4128">yaze::app::gfx::TileInfoToShort()</a>.</p>
-
-</div>
-</div>
-<a id="aa463ab87a78c0703c5becfa7eba0d7a8" name="aa463ab87a78c0703c5becfa7eba0d7a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa463ab87a78c0703c5becfa7eba0d7a8">&#9670;&#160;</a></span>TileNameMask</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0">ushort</a> yaze::app::core::TileNameMask = 0x03FF</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Bits used for tile name. </p>
-
-<p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90">yaze::app::gfx::GetTilesInfo()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a8b918c5ebd5aeb116c421ae7125e4128">yaze::app::gfx::TileInfoToShort()</a>.</p>
-
-</div>
-</div>
-<a id="a0b99de7088f320ebab6fadb299bbbcbd" name="a0b99de7088f320ebab6fadb299bbbcbd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b99de7088f320ebab6fadb299bbbcbd">&#9670;&#160;</a></span>Uncompressed3BPPSize</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::Uncompressed3BPPSize = 0x0600</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82">yaze::app::Rom::LoadAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -1544,138 +1510,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a8afecbb24f3daf7a1df52586be587d82">yaze::app::Rom::LoadAllGraphicsData()</a>, and <a class="el" href="classyaze_1_1app_1_1Rom.html#a84a0ad99e1136f93397504493d644624">yaze::app::Rom::LoadLinkGraphics()</a>.</p>
-
-</div>
-</div>
-<a id="a09aa267e50eefee2178c5ef40e253f7c" name="a09aa267e50eefee2178c5ef40e253f7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a09aa267e50eefee2178c5ef40e253f7c">&#9670;&#160;</a></span>gfx_font</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::gfx_font = 0x70000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a0e81a43bb80ee808f93b323b6a2f697d" name="a0e81a43bb80ee808f93b323b6a2f697d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0e81a43bb80ee808f93b323b6a2f697d">&#9670;&#160;</a></span>text_data</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::text_data = 0xE0000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af8d9536b60121e91655771af1b67eb07" name="af8d9536b60121e91655771af1b67eb07"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8d9536b60121e91655771af1b67eb07">&#9670;&#160;</a></span>text_data2</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::text_data2 = 0x75F40</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad9676b418ff21dd1cb96efa0198c1453" name="ad9676b418ff21dd1cb96efa0198c1453"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9676b418ff21dd1cb96efa0198c1453">&#9670;&#160;</a></span>pointers_dictionaries</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::pointers_dictionaries = 0x74703</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab3100848f4b1e5b64371fca5e0b15d09" name="ab3100848f4b1e5b64371fca5e0b15d09"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab3100848f4b1e5b64371fca5e0b15d09">&#9670;&#160;</a></span>characters_width</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::characters_width = 0x74ADF</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aac0c2d9bcb6a3f76f9119bdfc1b915e9" name="aac0c2d9bcb6a3f76f9119bdfc1b915e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac0c2d9bcb6a3f76f9119bdfc1b915e9">&#9670;&#160;</a></span>entrance_gfx_group</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::entrance_gfx_group = 0x5D97</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
 
 </div>
 </div>

@@ -1,14 +1,5 @@
 var NAVTREEINDEX25 =
 {
-"dungeon__map_8h.html#ab1dd7f6b552064af99e2cc58d1aa1939":[10,0,1,0,5,3,0,6],
-"dungeon__map_8h.html#ac3b7b926de7a1ac7bced5b0bab75849f":[10,0,1,0,5,3,0,2],
-"dungeon__map_8h.html#ac7aab3f19216680ca568504a2f014b16":[10,0,1,0,5,3,0,1],
-"dungeon__map_8h.html#acd0c0e83ec226bf1c7dab09cbb193dac":[10,0,1,0,5,3,0,5],
-"dungeon__map_8h_source.html":[10,0,1,0,5,3,0],
-"editor_8h.html":[10,0,1,0,1,7,0],
-"editor_8h.html#a884f13b927c02e225d89c81df3212c01":[10,0,1,0,1,7,0,2],
-"editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52":[10,0,1,0,1,7,0,1],
-"editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a29f266fe9c0da014314bf7c6a9b2a7a6":[10,0,1,0,1,7,0,1,4],
 "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a3e1c9b3724e1f17fea630f35337bc792":[10,0,1,0,1,7,0,1,2],
 "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a773324726da2f589c757da4c39336156":[10,0,1,0,1,7,0,1,1],
 "editor_8h.html#a9bc6b53d6c4013c15c0dd5c838dedb52a7c10e40e40c6c0519ea3066c5c66733a":[10,0,1,0,1,7,0,1,7],
@@ -249,5 +240,14 @@ var NAVTREEINDEX25 =
 "icons_8h.html#a03b38d3e0a840630c9165e3fcc09e28b":[10,0,1,0,4,6,912],
 "icons_8h.html#a03c7ebba5cd0b9e5079c56598ed437e9":[10,0,1,0,4,6,900],
 "icons_8h.html#a0417ad7f7ff58cad937e917a762eaf70":[10,0,1,0,4,6,359],
-"icons_8h.html#a043dd854a8cf00c5fab256df41006d54":[10,0,1,0,4,6,1954]
+"icons_8h.html#a043dd854a8cf00c5fab256df41006d54":[10,0,1,0,4,6,1954],
+"icons_8h.html#a0465793ef9785bfda1af9245ac6db005":[10,0,1,0,4,6,1248],
+"icons_8h.html#a046bf69d31c09989e06f867700d91372":[10,0,1,0,4,6,1491],
+"icons_8h.html#a0493e7651fe70b5886286f64a9a95de8":[10,0,1,0,4,6,155],
+"icons_8h.html#a04a4e307f64ef0fae7b9dbd0d2184ced":[10,0,1,0,4,6,699],
+"icons_8h.html#a04d00cb15aa3e854feb7840cd43759ec":[10,0,1,0,4,6,1743],
+"icons_8h.html#a04d24756de28b77b9e3884833bbb4a7d":[10,0,1,0,4,6,432],
+"icons_8h.html#a04e08c1661adcceeb2487ee65db87ec3":[10,0,1,0,4,6,1728],
+"icons_8h.html#a04fcc3b76bc756a1800ac088303194c3":[10,0,1,0,4,6,176],
+"icons_8h.html#a0516aba5cf6030f8a0d979b8a56fc2a8":[10,0,1,0,4,6,1952]
 };

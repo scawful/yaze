@@ -22,6 +22,8 @@ var namespaceyaze_1_1app =
     [ "kProjectFileFilter", "namespaceyaze_1_1app.html#afe0922318fe6bfc7b4ea55bea180d456", null ],
     [ "kPreviousRomFilenameDelimiter", "namespaceyaze_1_1app.html#a2fefeaeeb2e8568fc27fcf1a4b984b4d", null ],
     [ "kEndOfProjectFile", "namespaceyaze_1_1app.html#a6448c74d503d426bcc66a4fb72789ab9", null ],
+    [ "Uncompressed3BPPSize", "namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b", null ],
+    [ "kEntranceGfxGroup", "namespaceyaze_1_1app.html#a02c28e406561ede6e5a46381e26b4653", null ],
     [ "kNormalGfxSpaceStart", "namespaceyaze_1_1app.html#a3ef17b1c481a3e73d2d97a92e3995b04", null ],
     [ "kNormalGfxSpaceEnd", "namespaceyaze_1_1app.html#a3ef7d1df5d323905102b5a1cef9d447d", null ],
     [ "kFontSpriteLocation", "namespaceyaze_1_1app.html#a6cba51ea80792c0f6a876549882f3778", null ],

@@ -184,9 +184,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3c470124716e2b4bb08f9b4ed1a19dd3" id="r_a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes</a> ()</td></tr>
 <tr class="memdesc:a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves all palettes in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>.  <br /></td></tr>
 <tr class="separator:a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d7f8049f2dee1b02a03dca7c2f9f126" id="r_a3d7f8049f2dee1b02a03dca7c2f9f126"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d7f8049f2dee1b02a03dca7c2f9f126">UpdatePaletteColor</a> (const std::string &amp;group_name, size_t palette_index, size_t colorIndex, const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;newColor)</td></tr>
-<tr class="memdesc:a3d7f8049f2dee1b02a03dca7c2f9f126"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates a color in a specified palette group.  <br /></td></tr>
-<tr class="separator:a3d7f8049f2dee1b02a03dca7c2f9f126"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc977745ac851fd2b982e24bfc7053f3" id="r_adc977745ac851fd2b982e24bfc7053f3"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte</a> (int offset)</td></tr>
 <tr class="separator:adc977745ac851fd2b982e24bfc7053f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a997bfee0f4d228a4d9f30166647f8b37" id="r_a997bfee0f4d228a4d9f30166647f8b37"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord</a> (int offset)</td></tr>
@@ -227,12 +224,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a92a9aaae6d5d567853724ea5ab42e54b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e4dd51e01c06b634e20f8ad13efad4f" id="r_a8e4dd51e01c06b634e20f8ad13efad4f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close</a> ()</td></tr>
 <tr class="separator:a8e4dd51e01c06b634e20f8ad13efad4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac84dc904001c32fe4679722aabaad86a" id="r_ac84dc904001c32fe4679722aabaad86a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac84dc904001c32fe4679722aabaad86a">QueueChanges</a> (std::function&lt; void()&gt; const &amp;function)</td></tr>
-<tr class="separator:ac84dc904001c32fe4679722aabaad86a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c5236f4dc9e1fd7ad98f058d154a139" id="r_a0c5236f4dc9e1fd7ad98f058d154a139"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1VersionConstants.html">VersionConstants</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants</a> () const</td></tr>
 <tr class="separator:a0c5236f4dc9e1fd7ad98f058d154a139"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a612948fa8435b1fe2bcd5c858b309012" id="r_a612948fa8435b1fe2bcd5c858b309012"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, uint8_t addr) const</td></tr>
-<tr class="separator:a612948fa8435b1fe2bcd5c858b309012"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a379a0859aa1428ff65a9760715e57a9b" id="r_a379a0859aa1428ff65a9760715e57a9b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, uint8_t addr)</td></tr>
+<tr class="separator:a379a0859aa1428ff65a9760715e57a9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0855ec3a63a82723541f870bdd00f53d" id="r_a0855ec3a63a82723541f870bdd00f53d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group</a> ()</td></tr>
 <tr class="separator:a0855ec3a63a82723541f870bdd00f53d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a051bf6416f14b1547621cc3d556a6e22" id="r_a051bf6416f14b1547621cc3d556a6e22"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group</a> ()</td></tr>
@@ -362,8 +357,6 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a84a871742c05354dc477c49bdd5a7496"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeed1d79aa226ead085fab4a997396f27" id="r_aeed1d79aa226ead085fab4a997396f27"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html">core::ResourceLabelManager</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeed1d79aa226ead085fab4a997396f27">resource_label_manager_</a></td></tr>
 <tr class="separator:aeed1d79aa226ead085fab4a997396f27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a788882f288cac479bc324ad96c6e48df" id="r_a788882f288cac479bc324ad96c6e48df"><td class="memItemLeft" align="right" valign="top">std::stack&lt; std::function&lt; void()&gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a788882f288cac479bc324ad96c6e48df">changes_</a></td></tr>
-<tr class="separator:a788882f288cac479bc324ad96c6e48df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e058ea3ea8a945708246ad08d86e28e" id="r_a2e058ea3ea8a945708246ad08d86e28e"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; SDL_Renderer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e058ea3ea8a945708246ad08d86e28e">renderer_</a></td></tr>
 <tr class="separator:a2e058ea3ea8a945708246ad08d86e28e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -388,7 +381,7 @@ Private Attributes</h2></td></tr>
 <p>Loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
 <p>This function loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data by iterating over a list of sheet IDs, decompressing the sheet data, converting it to 8bpp format, and appending the converted sheet data to a byte vector. </p>
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -399,7 +392,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="178,105,461,89,462,94,178,110"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="249,5,388,46"/>
 <area shape="poly" title=" " alt="" coords="146,89,248,50,250,55,148,94"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012" title=" " alt="" coords="226,120,412,161"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b" title=" " alt="" coords="226,120,412,161"/>
 <area shape="poly" title=" " alt="" coords="178,120,211,124,210,130,177,126"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f" title=" " alt="" coords="231,185,407,226"/>
 <area shape="poly" title=" " alt="" coords="138,131,227,170,245,177,243,182,225,175,136,136"/>
@@ -495,7 +488,7 @@ Here is the call graph for this function:</div>
 <td class="markdownTableBodyNone">218-222   </td><td class="markdownTableBodyNone">Compressed 2bpp   </td><td class="markdownTableBodyNone">0x800 chars   </td><td class="markdownTableBodyNone">Decompressed each   </td></tr>
 </table>
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a732269bb5e7ca5456b300caec6a568be">yaze::app::gfx::PaletteGroupMap::global_sprites</a>, <a class="el" href="#a305268d32995912a2e212100dc771689">graphics_bin_</a>, <a class="el" href="#a95a2922f020624c4e4f6efd999b504d6">graphics_buffer_</a>, <a class="el" href="#a8f6654753e3a5b9bf4a555792cf6e5dd">graphics_manager_</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#adeee2f15a01705bd473a4324309d828e">yaze::app::core::kTilesheetDepth</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a31f53a26cadeced84ab6ba6020a4c5f8">yaze::app::core::kTilesheetHeight</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a46743e1a4aa5c38b9bbb84a67d95916e">yaze::app::core::kTilesheetWidth</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1e491fbd2f560c57aedae0e9dc684001">yaze::app::gfx::BitmapManager::LoadBitmap()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#a2e058ea3ea8a945708246ad08d86e28e">renderer_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3d5b03ec8e7cf6320a507ff26960438e">yaze::app::gfx::BitmapManager::size()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1core.html#a0b99de7088f320ebab6fadb299bbbcbd">yaze::app::core::Uncompressed3BPPSize</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a732269bb5e7ca5456b300caec6a568be">yaze::app::gfx::PaletteGroupMap::global_sprites</a>, <a class="el" href="#a305268d32995912a2e212100dc771689">graphics_bin_</a>, <a class="el" href="#a95a2922f020624c4e4f6efd999b504d6">graphics_buffer_</a>, <a class="el" href="#a8f6654753e3a5b9bf4a555792cf6e5dd">graphics_manager_</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#adeee2f15a01705bd473a4324309d828e">yaze::app::core::kTilesheetDepth</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a31f53a26cadeced84ab6ba6020a4c5f8">yaze::app::core::kTilesheetHeight</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a46743e1a4aa5c38b9bbb84a67d95916e">yaze::app::core::kTilesheetWidth</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1e491fbd2f560c57aedae0e9dc684001">yaze::app::gfx::BitmapManager::LoadBitmap()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#a2e058ea3ea8a945708246ad08d86e28e">renderer_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3d5b03ec8e7cf6320a507ff26960438e">yaze::app::gfx::BitmapManager::size()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b">yaze::app::Uncompressed3BPPSize</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 <div class="dynheader">
@@ -510,7 +503,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="133,215,194,144,238,101,288,62,308,51,311,55,291,67,242,105,198,148,137,218"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="299,144,474,185"/>
 <area shape="poly" title=" " alt="" coords="178,214,287,186,288,192,179,219"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012" title=" " alt="" coords="294,209,480,250"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b" title=" " alt="" coords="294,209,480,250"/>
 <area shape="poly" title=" " alt="" coords="242,227,278,227,278,232,242,232"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1e491fbd2f560c57aedae0e9dc684001" title=" " alt="" coords="290,275,484,315"/>
 <area shape="poly" title=" " alt="" coords="179,240,288,268,287,273,178,246"/>
@@ -937,50 +930,6 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="212,23,244,23,244,28,212,28"/>
 </map>
 </div>
-
-</div>
-</div>
-<a id="a3d7f8049f2dee1b02a03dca7c2f9f126" name="a3d7f8049f2dee1b02a03dca7c2f9f126"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d7f8049f2dee1b02a03dca7c2f9f126">&#9670;&#160;</a></span>UpdatePaletteColor()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::app::Rom::UpdatePaletteColor </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>group_name</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>palette_index</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>colorIndex</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>newColor</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Updates a color in a specified palette group. </p>
-<p>This function updates the color at the specified <code>colorIndex</code> in the palette at <code>palette_index</code> within the palette group with the given <code>group_name</code>. If the group, palette, or color indices are invalid, an error is returned.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">group_name</td><td>The name of the palette group to update. </td></tr>
-    <tr><td class="paramname">palette_index</td><td>The index of the palette within the group to update. </td></tr>
-    <tr><td class="paramname">colorIndex</td><td>The index of the color within the palette to update. </td></tr>
-    <tr><td class="paramname">newColor</td><td>The new color value to set.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>An <code>absl::Status</code> indicating whether the update was successful. Returns <code>absl::OkStatus()</code> if successful, or an error status if the group, palette, or color indices are invalid. </dd></dl>
 
 </div>
 </div>
@@ -1823,33 +1772,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac84dc904001c32fe4679722aabaad86a" name="ac84dc904001c32fe4679722aabaad86a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac84dc904001c32fe4679722aabaad86a">&#9670;&#160;</a></span>QueueChanges()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::app::Rom::QueueChanges </td>
-          <td>(</td>
-          <td class="paramtype">std::function&lt; void()&gt; const &amp;</td>          <td class="paramname"><span class="paramname"><em>function</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a788882f288cac479bc324ad96c6e48df">changes_</a>.</p>
-
-</div>
-</div>
 <a id="a0c5236f4dc9e1fd7ad98f058d154a139" name="a0c5236f4dc9e1fd7ad98f058d154a139"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0c5236f4dc9e1fd7ad98f058d154a139">&#9670;&#160;</a></span>version_constants()</h2>
 
@@ -1875,18 +1797,15 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa13df126e85f7968f40c45b49f22b214">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8344a067db046a552dc13563d1525bca">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa13df126e85f7968f40c45b49f22b214">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8344a067db046a552dc13563d1525bca">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>.</p>
 
 </div>
 </div>
-<a id="a612948fa8435b1fe2bcd5c858b309012" name="a612948fa8435b1fe2bcd5c858b309012"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a612948fa8435b1fe2bcd5c858b309012">&#9670;&#160;</a></span>GetGraphicsAddress()</h2>
+<a id="a379a0859aa1428ff65a9760715e57a9b" name="a379a0859aa1428ff65a9760715e57a9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a379a0859aa1428ff65a9760715e57a9b">&#9670;&#160;</a></span>GetGraphicsAddress()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">int yaze::app::Rom::GetGraphicsAddress </td>
@@ -1896,14 +1815,9 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>&#160;) const</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p class="reference">References <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="structyaze_1_1app_1_1VersionConstants.html#a341a9ee60141bc00bb1f401db351a4e9">yaze::app::VersionConstants::kOverworldGfxPtr1</a>, <a class="el" href="structyaze_1_1app_1_1VersionConstants.html#aff3834bd22b601e0411194c1e23869cb">yaze::app::VersionConstants::kOverworldGfxPtr2</a>, <a class="el" href="structyaze_1_1app_1_1VersionConstants.html#afc98ca987308233703abbf22aa587555">yaze::app::VersionConstants::kOverworldGfxPtr3</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a6e7b585d457e19934e442cfd8c696e8d">yaze::app::core::SnesToPc()</a>, and <a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants()</a>.</p>
@@ -1912,8 +1826,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_cgraph" id="aclassyaze_1_1app_1_1Rom_a612948fa8435b1fe2bcd5c858b309012_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph" id="aclassyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph">
 <area shape="rect" title=" " alt="" coords="5,47,192,88"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="257,5,395,31"/>
 <area shape="poly" title=" " alt="" coords="191,45,248,32,249,38,192,50"/>
@@ -2388,7 +2302,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#aa72443cf6bb48f5c0a08d6e16a90748d">CreateAndRenderBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#abbf05d0ad8e06e75c003f47bced8a934">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>, <a class="el" href="#a612948fa8435b1fe2bcd5c858b309012">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7fe5a6e628d17d6468ffe79ac422c97b">yaze::app::zelda3::music::Tracker::GetSPCAddr()</a>, <a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0">yaze::app::zelda3::overworld::Overworld::LoadExits()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8">yaze::app::zelda3::music::Tracker::LoadSongs()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3c65ab80b58c071457f243066c294ab6">yaze::app::zelda3::music::Tracker::SaveSongs()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#afd53022c82e6fb4377ab72b823f6d6cf">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a91678682fc653894a94c95968f566025">yaze::app::zelda3::music::Tracker::WriteSPCData()</a>, and <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aa72443cf6bb48f5c0a08d6e16a90748d">CreateAndRenderBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#abbf05d0ad8e06e75c003f47bced8a934">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>, <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7fe5a6e628d17d6468ffe79ac422c97b">yaze::app::zelda3::music::Tracker::GetSPCAddr()</a>, <a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0">yaze::app::zelda3::overworld::Overworld::LoadExits()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8">yaze::app::zelda3::music::Tracker::LoadSongs()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3c65ab80b58c071457f243066c294ab6">yaze::app::zelda3::music::Tracker::SaveSongs()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#afd53022c82e6fb4377ab72b823f6d6cf">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a91678682fc653894a94c95968f566025">yaze::app::zelda3::music::Tracker::WriteSPCData()</a>, and <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>.</p>
 
 </div>
 </div>
@@ -2869,7 +2783,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a>.</p>
+<p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#a02c28e406561ede6e5a46381e26b4653">yaze::app::kEntranceGfxGroup</a>, and <a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>.</p>
 
@@ -2890,7 +2804,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a>.</p>
+<p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#a02c28e406561ede6e5a46381e26b4653">yaze::app::kEntranceGfxGroup</a>, and <a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
 
@@ -3472,30 +3386,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#a0ab5edcc4038c88025b8d852909b9876">resource_label()</a>.</p>
-
-</div>
-</div>
-<a id="a788882f288cac479bc324ad96c6e48df" name="a788882f288cac479bc324ad96c6e48df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a788882f288cac479bc324ad96c6e48df">&#9670;&#160;</a></span>changes_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::stack&lt;std::function&lt;void()&gt; &gt; yaze::app::Rom::changes_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#ac84dc904001c32fe4679722aabaad86a">QueueChanges()</a>.</p>
 
 </div>
 </div>

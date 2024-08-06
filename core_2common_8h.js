@@ -21,5 +21,8 @@ var core_2common_8h =
     [ "ldle16b_i", "core_2common_8h.html#aa6c12bd455e5cf377d2362c6dc7fab85", null ],
     [ "ldle16b", "core_2common_8h.html#a65eee6b161b17a7cd555ae70cf65717a", null ],
     [ "stle16b", "core_2common_8h.html#a58dc78cb3c691e3d7fa277549bc9bed3", null ],
-    [ "Get24LocalFromPC", "core_2common_8h.html#a7b146f0a471eaf459077aadd4426caa6", null ]
+    [ "Get24LocalFromPC", "core_2common_8h.html#a7b146f0a471eaf459077aadd4426caa6", null ],
+    [ "crc32", "core_2common_8h.html#a0a0b17783f4959beac36130deffc51ca", null ],
+    [ "CreateBpsPatch", "core_2common_8h.html#a8fb8f2496d6a4d905dac9bc80c02f803", null ],
+    [ "ApplyBpsPatch", "core_2common_8h.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ]
 ];

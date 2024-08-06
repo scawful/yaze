@@ -9,7 +9,7 @@ var searchData=
   ['empty_6',['empty',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html#acafdde853184fe8a13d3716a71a9280f',1,'yaze::app::gfx::SnesPalette']]],
   ['emulator_7',['Emulator',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a6243b4d5bab5741b747a8b7755027dac',1,'yaze::app::emu::Emulator']]],
   ['emulator_8',['emulator',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c329d941533145ee9a6a1e76f560ab4',1,'yaze::app::editor::MasterEditor']]],
-  ['encode_9',['encode',['../namespaceyaze_1_1cli.html#a26d6d890fd303ab241f26ba4a4d812ee',1,'yaze::cli']]],
+  ['encode_9',['encode',['../namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa92217917e3512f40ae3d7f2a2c2bf22',1,'yaze::app::core::anonymous_namespace{common.cc}']]],
   ['end_10',['end',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a46132400c7395ec5cbfbe8d548edc508',1,'yaze::app::emu::memory::MemoryImpl::end()'],['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a0e8e8ea7d962ed66975a7b99aaf96dc0',1,'yaze::app::gfx::BitmapManager::end() noexcept'],['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3f077a387ea3246d24f0b837427aed8d',1,'yaze::app::gfx::BitmapManager::end() const noexcept'],['../classyaze_1_1app_1_1Rom.html#a9d41a050bde62f6868d5ef92547c0b73',1,'yaze::app::Rom::end()']]],
   ['endnopadding_11',['EndNoPadding',['../namespaceyaze_1_1app_1_1gui.html#aa6e68e729a3c4a16fda2ff2409097188',1,'yaze::app::gui']]],
   ['endpadding_12',['EndPadding',['../namespaceyaze_1_1app_1_1gui.html#a4e98334d8cfb28352cebdd857eb52530',1,'yaze::app::gui']]],

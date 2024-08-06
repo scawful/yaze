@@ -1,7 +1,7 @@
 var searchData=
 [
   ['uid_0',['UID',['../structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#af16a2c4ed1011e499291387f41e9347d',1,'yaze::app::editor::ExampleTreeNode']]],
-  ['uncompressed3bppsize_1',['Uncompressed3BPPSize',['../namespaceyaze_1_1app_1_1core.html#a0b99de7088f320ebab6fadb299bbbcbd',1,'yaze::app::core']]],
+  ['uncompressed3bppsize_1',['Uncompressed3BPPSize',['../namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b',1,'yaze::app']]],
   ['uncompressedsheetsize_2',['UncompressedSheetSize',['../namespaceyaze_1_1app_1_1core.html#aa81639987a081f9954d7d8d61d39c92d',1,'yaze::app::core']]],
   ['unique_5fid_3',['unique_id',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldItem.html#ac6d903f47d5217aa6d272139442bb8de',1,'yaze::app::zelda3::overworld::OverworldItem']]],
   ['unique_5fid_5f_4',['unique_id_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#aafeecacb8f33011735e31d8913f592f1',1,'yaze::app::zelda3::dungeon::RoomObject']]],

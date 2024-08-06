@@ -28,7 +28,7 @@ var searchData=
   ['getflag_25',['GetFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aee773b2f63c083454611425037d2a8b1',1,'yaze::app::emu::Cpu']]],
   ['getframebuffer_26',['GetFrameBuffer',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#af954ff0aaefd20653c9457f2abf93079',1,'yaze::app::emu::video::Ppu']]],
   ['getfrequency_27',['GetFrequency',['../classyaze_1_1app_1_1emu_1_1Clock.html#a4523f58787502097d0b44e14c42076b2',1,'yaze::app::emu::Clock::GetFrequency()'],['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#a0ad23ebc11f593d0fbb84a2dfe5a4963',1,'yaze::app::emu::ClockImpl::GetFrequency()']]],
-  ['getgraphicsaddress_28',['GetGraphicsAddress',['../classyaze_1_1app_1_1Rom.html#a612948fa8435b1fe2bcd5c858b309012',1,'yaze::app::Rom']]],
+  ['getgraphicsaddress_28',['GetGraphicsAddress',['../classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b',1,'yaze::app::Rom']]],
   ['getheaderoffset_29',['GetHeaderOffset',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acdd6ac19d3999636b00d2e5c03047760',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['getid_30',['GetID',['../namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec',1,'yaze::app::gui']]],
   ['getimagefromclipboard_31',['GetImageFromClipboard',['../clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a',1,'clipboard.cc']]],

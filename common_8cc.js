@@ -1,5 +1,7 @@
 var common_8cc =
 [
+    [ "encode", "common_8cc.html#aa92217917e3512f40ae3d7f2a2c2bf22", null ],
+    [ "decode", "common_8cc.html#aa650dcba786cb2df29aa1af7bbc967c7", null ],
     [ "UppercaseHexByte", "common_8cc.html#adee4cb66335fc06d420159375b151524", null ],
     [ "UppercaseHexWord", "common_8cc.html#a5e6d56ec7e31e6b12a788d15c931ec38", null ],
     [ "UppercaseHexLong", "common_8cc.html#a9fc1194f545000fb140d178e5a54ff81", null ],
@@ -23,5 +25,8 @@ var common_8cc =
     [ "ldle3", "common_8cc.html#ac2588b6c37606c1692a7a4771dfc5356", null ],
     [ "ldle16b", "common_8cc.html#a65eee6b161b17a7cd555ae70cf65717a", null ],
     [ "ldle16b_i", "common_8cc.html#aa6c12bd455e5cf377d2362c6dc7fab85", null ],
-    [ "Get24LocalFromPC", "common_8cc.html#a7b146f0a471eaf459077aadd4426caa6", null ]
+    [ "Get24LocalFromPC", "common_8cc.html#a7b146f0a471eaf459077aadd4426caa6", null ],
+    [ "crc32", "common_8cc.html#a0a0b17783f4959beac36130deffc51ca", null ],
+    [ "CreateBpsPatch", "common_8cc.html#a8fb8f2496d6a4d905dac9bc80c02f803", null ],
+    [ "ApplyBpsPatch", "common_8cc.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ]
 ];

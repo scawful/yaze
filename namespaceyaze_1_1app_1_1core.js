@@ -1,5 +1,9 @@
 var namespaceyaze_1_1app_1_1core =
 [
+    [ "anonymous_namespace{common.cc}", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html", [
+      [ "encode", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa92217917e3512f40ae3d7f2a2c2bf22", null ],
+      [ "decode", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa650dcba786cb2df29aa1af7bbc967c7", null ]
+    ] ],
     [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
       [ "NewMasterFrame", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824", null ],
       [ "InitializeKeymap", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#a6ec26934019f1b1ca5465fecdf13830e", null ],
@@ -52,13 +56,11 @@ var namespaceyaze_1_1app_1_1core =
     [ "ldle16b", "namespaceyaze_1_1app_1_1core.html#a65eee6b161b17a7cd555ae70cf65717a", null ],
     [ "ldle16b_i", "namespaceyaze_1_1app_1_1core.html#aa6c12bd455e5cf377d2362c6dc7fab85", null ],
     [ "Get24LocalFromPC", "namespaceyaze_1_1app_1_1core.html#a7b146f0a471eaf459077aadd4426caa6", null ],
+    [ "crc32", "namespaceyaze_1_1app_1_1core.html#a0a0b17783f4959beac36130deffc51ca", null ],
+    [ "CreateBpsPatch", "namespaceyaze_1_1app_1_1core.html#a8fb8f2496d6a4d905dac9bc80c02f803", null ],
+    [ "ApplyBpsPatch", "namespaceyaze_1_1app_1_1core.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ],
     [ "kRedPen", "namespaceyaze_1_1app_1_1core.html#a386b985dabb5995d3943457a20547f19", null ],
     [ "kYazeVersion", "namespaceyaze_1_1app_1_1core.html#a6d651e38582177a01a8c5d06a1ddfb56", null ],
-    [ "TilePriorityBit", "namespaceyaze_1_1app_1_1core.html#acabdb9f5536c40280ef09cdc1c6711b8", null ],
-    [ "TileHFlipBit", "namespaceyaze_1_1app_1_1core.html#ae6c68318bf89d0895e12ba1f83cd0903", null ],
-    [ "TileVFlipBit", "namespaceyaze_1_1app_1_1core.html#aee9552c27c1dd9e8acc65ff262e6e666", null ],
-    [ "TileNameMask", "namespaceyaze_1_1app_1_1core.html#aa463ab87a78c0703c5becfa7eba0d7a8", null ],
-    [ "Uncompressed3BPPSize", "namespaceyaze_1_1app_1_1core.html#a0b99de7088f320ebab6fadb299bbbcbd", null ],
     [ "UncompressedSheetSize", "namespaceyaze_1_1app_1_1core.html#aa81639987a081f9954d7d8d61d39c92d", null ],
     [ "NumberOfRooms", "namespaceyaze_1_1app_1_1core.html#a9453e71bb422bc071352f1771d54cd1a", null ],
     [ "NumberOfColors", "namespaceyaze_1_1app_1_1core.html#ad1b9b539b2fe081253a8d14f80c654ae", null ],
@@ -73,12 +75,6 @@ var namespaceyaze_1_1app_1_1core =
     [ "kTilesheetWidth", "namespaceyaze_1_1app_1_1core.html#a46743e1a4aa5c38b9bbb84a67d95916e", null ],
     [ "kTilesheetHeight", "namespaceyaze_1_1app_1_1core.html#a31f53a26cadeced84ab6ba6020a4c5f8", null ],
     [ "kTilesheetDepth", "namespaceyaze_1_1app_1_1core.html#adeee2f15a01705bd473a4324309d828e", null ],
-    [ "gfx_font", "namespaceyaze_1_1app_1_1core.html#a09aa267e50eefee2178c5ef40e253f7c", null ],
-    [ "text_data", "namespaceyaze_1_1app_1_1core.html#a0e81a43bb80ee808f93b323b6a2f697d", null ],
-    [ "text_data2", "namespaceyaze_1_1app_1_1core.html#af8d9536b60121e91655771af1b67eb07", null ],
-    [ "pointers_dictionaries", "namespaceyaze_1_1app_1_1core.html#ad9676b418ff21dd1cb96efa0198c1453", null ],
-    [ "characters_width", "namespaceyaze_1_1app_1_1core.html#ab3100848f4b1e5b64371fca5e0b15d09", null ],
-    [ "entrance_gfx_group", "namespaceyaze_1_1app_1_1core.html#aac0c2d9bcb6a3f76f9119bdfc1b915e9", null ],
     [ "GravesYTilePos", "namespaceyaze_1_1app_1_1core.html#ac381f3839d2bd1c264675d5cc113e7ec", null ],
     [ "GravesXTilePos", "namespaceyaze_1_1app_1_1core.html#ac2479a12b250b2bc6926c5537e85efbf", null ],
     [ "GravesTilemapPos", "namespaceyaze_1_1app_1_1core.html#a08330cca752181dc42e537e696ae9520", null ],
