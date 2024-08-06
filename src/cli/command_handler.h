@@ -1,28 +1,27 @@
 #ifndef YAZE_CLI_COMMAND_HANDLER_H
 #define YAZE_CLI_COMMAND_HANDLER_H
 
-#include <cstdint>   // for uint8_t, uint32_t
-#include <iostream>  // for operator<<, string, ostream, basic_...
-#include <memory>    // for make_shared, shared_ptr
+#include <cstdint>
+#include <iostream>
+#include <memory>
 #include <sstream>
-#include <string>  // for char_traits, basic_string, hash
+#include <string>
 #include <string_view>
-#include <unordered_map>  // for unordered_map
-#include <vector>         // for vector, vector<>::value_type
+#include <unordered_map>
+#include <vector>
 
-#include "absl/status/status.h"  // for OkStatus, Status
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/core/common.h"     // for PcToSnes, SnesToPc
-#include "app/core/constants.h"  // for RETURN_IF_ERROR
+#include "app/core/common.h"
+#include "app/core/constants.h"
 #include "app/emu/snes.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
-#include "app/rom.h"  // for Rom
+#include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "cli/patch.h"  // for ApplyBpsPatch, CreateBpsPatch
 
 namespace yaze {
 namespace cli {
@@ -76,7 +75,7 @@ class ApplyPatch : public CommandHandler {
 
     // Apply patch
     std::vector<uint8_t> patched;
-    ApplyBpsPatch(source, patch, patched);
+    core::ApplyBpsPatch(source, patch, patched);
 
     // Save patched file
     std::ofstream patched_rom("patched.sfc", std::ios::binary);
@@ -93,7 +92,7 @@ class CreatePatch : public CommandHandler {
     std::vector<uint8_t> target;
     std::vector<uint8_t> patch;
     // Create patch
-    CreateBpsPatch(source, target, patch);
+    core::CreateBpsPatch(source, target, patch);
 
     // Save patch to file
     // std::ofstream patchFile("patch.bps", ios::binary);
