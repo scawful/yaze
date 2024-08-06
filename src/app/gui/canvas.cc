@@ -1,7 +1,5 @@
 #include "canvas.h"
 
-#include "imgui/imgui.h"
-
 #include <cmath>
 #include <string>
 
@@ -11,6 +9,7 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -98,8 +97,8 @@ void Canvas::DrawBackground(ImVec2 canvas_size, bool can_drag) {
 
 void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
   const ImGuiIO &io = GetIO();
-  auto scaled_sz =
-      ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_);
+  const ImVec2 scaled_sz(canvas_sz_.x * global_scale_,
+                         canvas_sz_.y * global_scale_);
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
@@ -126,31 +125,26 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
     if (bitmap != nullptr) {
       if (BeginMenu("Bitmap Properties")) {
         Text("Size: %.0f x %.0f", scaled_sz.x, scaled_sz.y);
-        Text("Pitch: %s",
-             absl::StrFormat("%d", bitmap->surface()->pitch).c_str());
+        Text("Pitch: %d", bitmap->surface()->pitch);
         Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
         Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
         EndMenu();
       }
       if (BeginMenu("Bitmap Format")) {
         if (MenuItem("Indexed")) {
-          bitmap->Reformat(0);
-          bitmap->ApplyPalette(bitmap->palette());
+          bitmap->Reformat(gfx::BitmapFormat::kIndexed);
           rom()->UpdateBitmap(bitmap);
         }
         if (MenuItem("2BPP")) {
-          bitmap->Reformat(1);
-          bitmap->ApplyPalette(bitmap->palette());
+          bitmap->Reformat(gfx::BitmapFormat::k2bpp);
           rom()->UpdateBitmap(bitmap);
         }
         if (MenuItem("4BPP")) {
-          bitmap->Reformat(2);
-          bitmap->ApplyPalette(bitmap->palette());
+          bitmap->Reformat(gfx::BitmapFormat::k4bpp);
           rom()->UpdateBitmap(bitmap);
         }
         if (MenuItem("8BPP")) {
-          bitmap->Reformat(3);
-          bitmap->ApplyPalette(bitmap->palette());
+          bitmap->Reformat(gfx::BitmapFormat::k8bpp);
           rom()->UpdateBitmap(bitmap);
         }
         EndMenu();
