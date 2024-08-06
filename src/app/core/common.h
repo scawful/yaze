@@ -1,8 +1,6 @@
 #ifndef YAZE_CORE_COMMON_H
 #define YAZE_CORE_COMMON_H
 
-#include "imgui/imgui.h"
-
 #include <chrono>
 #include <cstdint>
 #include <fstream>
@@ -11,6 +9,8 @@
 #include <memory>
 #include <stack>
 #include <string>
+
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -226,6 +226,16 @@ struct FolderItem {
 typedef struct FolderItem FolderItem;
 
 uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc = true);
+
+uint32_t crc32(const std::vector<uint8_t> &data);
+
+void CreateBpsPatch(const std::vector<uint8_t> &source,
+                    const std::vector<uint8_t> &target,
+                    std::vector<uint8_t> &patch);
+
+void ApplyBpsPatch(const std::vector<uint8_t> &source,
+                   const std::vector<uint8_t> &patch,
+                   std::vector<uint8_t> &target);
 
 }  // namespace core
 }  // namespace app
