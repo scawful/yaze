@@ -2,7 +2,8 @@ var namespaceyaze_1_1app_1_1core =
 [
     [ "anonymous_namespace{common.cc}", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html", [
       [ "encode", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa92217917e3512f40ae3d7f2a2c2bf22", null ],
-      [ "decode", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa650dcba786cb2df29aa1af7bbc967c7", null ]
+      [ "decode", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#aa650dcba786cb2df29aa1af7bbc967c7", null ],
+      [ "crc32", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02common_8cc_03.html#abce256524e8544fc43aaa56a4c23d807", null ]
     ] ],
     [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
       [ "NewMasterFrame", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#aaffe64ca7a9a2b85375f661ca0a50824", null ],
@@ -32,10 +33,7 @@ var namespaceyaze_1_1app_1_1core =
       [ "kWindows", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700aad547616982f990862d4e1213452c089", null ],
       [ "kLinux", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700ae3f917d82e495f1c002357925ca3047e", null ]
     ] ],
-    [ "SnesToPc", "namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a", null ],
-    [ "PcToSnes", "namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48", null ],
-    [ "MapBankToWordAddress", "namespaceyaze_1_1app_1_1core.html#ac45100a1fa231127736ef1e2e1a001c5", null ],
-    [ "AddressFromBytes", "namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c", null ],
+    [ "Get24LocalFromPC", "namespaceyaze_1_1app_1_1core.html#a7b146f0a471eaf459077aadd4426caa6", null ],
     [ "HexToDec", "namespaceyaze_1_1app_1_1core.html#aa38d793eae97bd4f5a931de9a1fffa1d", null ],
     [ "stle", "namespaceyaze_1_1app_1_1core.html#a57423a3f6c1ec89535f5e836dc1406fe", null ],
     [ "stle0", "namespaceyaze_1_1app_1_1core.html#a11f4840fb6dbe5e90fe675f3f59b3364", null ],
@@ -51,10 +49,12 @@ var namespaceyaze_1_1app_1_1core =
     [ "ldle3", "namespaceyaze_1_1app_1_1core.html#ac2588b6c37606c1692a7a4771dfc5356", null ],
     [ "ldle16b", "namespaceyaze_1_1app_1_1core.html#a65eee6b161b17a7cd555ae70cf65717a", null ],
     [ "ldle16b_i", "namespaceyaze_1_1app_1_1core.html#aa6c12bd455e5cf377d2362c6dc7fab85", null ],
-    [ "Get24LocalFromPC", "namespaceyaze_1_1app_1_1core.html#a7b146f0a471eaf459077aadd4426caa6", null ],
-    [ "crc32", "namespaceyaze_1_1app_1_1core.html#a0a0b17783f4959beac36130deffc51ca", null ],
     [ "CreateBpsPatch", "namespaceyaze_1_1app_1_1core.html#a8fb8f2496d6a4d905dac9bc80c02f803", null ],
     [ "ApplyBpsPatch", "namespaceyaze_1_1app_1_1core.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ],
+    [ "SnesToPc", "namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a", null ],
+    [ "PcToSnes", "namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48", null ],
+    [ "AddressFromBytes", "namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c", null ],
+    [ "MapBankToWordAddress", "namespaceyaze_1_1app_1_1core.html#a50d5d0cd99032ef3fb17675891cc00a1", null ],
     [ "UppercaseHexByte", "namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524", null ],
     [ "UppercaseHexWord", "namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38", null ],
     [ "UppercaseHexLong", "namespaceyaze_1_1app_1_1core.html#a9fc1194f545000fb140d178e5a54ff81", null ],

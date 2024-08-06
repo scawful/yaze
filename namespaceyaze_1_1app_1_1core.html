@@ -167,14 +167,8 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aac6170e3d4875c2f4cfcc39bee40eb1a" id="r_aac6170e3d4875c2f4cfcc39bee40eb1a"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac6170e3d4875c2f4cfcc39bee40eb1a">SnesToPc</a> (uint32_t addr) noexcept</td></tr>
-<tr class="separator:aac6170e3d4875c2f4cfcc39bee40eb1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43bceda6fbaf66c02016c87c83adec48" id="r_a43bceda6fbaf66c02016c87c83adec48"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a43bceda6fbaf66c02016c87c83adec48">PcToSnes</a> (uint32_t addr)</td></tr>
-<tr class="separator:a43bceda6fbaf66c02016c87c83adec48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac45100a1fa231127736ef1e2e1a001c5" id="r_ac45100a1fa231127736ef1e2e1a001c5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac45100a1fa231127736ef1e2e1a001c5">MapBankToWordAddress</a> (uint8_t bank, uint16_t addr)</td></tr>
-<tr class="separator:ac45100a1fa231127736ef1e2e1a001c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a883931821acdd5f501b3f0717d87951c" id="r_a883931821acdd5f501b3f0717d87951c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a883931821acdd5f501b3f0717d87951c">AddressFromBytes</a> (uint8_t bank, uint8_t high, uint8_t low) noexcept</td></tr>
-<tr class="separator:a883931821acdd5f501b3f0717d87951c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b146f0a471eaf459077aadd4426caa6" id="r_a7b146f0a471eaf459077aadd4426caa6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC</a> (uint8_t *data, int addr, bool pc)</td></tr>
+<tr class="separator:a7b146f0a471eaf459077aadd4426caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa38d793eae97bd4f5a931de9a1fffa1d" id="r_aa38d793eae97bd4f5a931de9a1fffa1d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa38d793eae97bd4f5a931de9a1fffa1d">HexToDec</a> (char *input, int length)</td></tr>
 <tr class="separator:aa38d793eae97bd4f5a931de9a1fffa1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57423a3f6c1ec89535f5e836dc1406fe" id="r_a57423a3f6c1ec89535f5e836dc1406fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a57423a3f6c1ec89535f5e836dc1406fe">stle</a> (uint8_t *const p_arr, size_t const p_index, unsigned const p_val)</td></tr>
@@ -205,14 +199,18 @@ Functions</h2></td></tr>
 <tr class="separator:a65eee6b161b17a7cd555ae70cf65717a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6c12bd455e5cf377d2362c6dc7fab85" id="r_aa6c12bd455e5cf377d2362c6dc7fab85"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa6c12bd455e5cf377d2362c6dc7fab85">ldle16b_i</a> (uint8_t const *const p_arr, size_t const p_index)</td></tr>
 <tr class="separator:aa6c12bd455e5cf377d2362c6dc7fab85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b146f0a471eaf459077aadd4426caa6" id="r_a7b146f0a471eaf459077aadd4426caa6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC</a> (uint8_t *data, int addr, bool pc)</td></tr>
-<tr class="separator:a7b146f0a471eaf459077aadd4426caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a0b17783f4959beac36130deffc51ca" id="r_a0a0b17783f4959beac36130deffc51ca"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32</a> (const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
-<tr class="separator:a0a0b17783f4959beac36130deffc51ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fb8f2496d6a4d905dac9bc80c02f803" id="r_a8fb8f2496d6a4d905dac9bc80c02f803"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8fb8f2496d6a4d905dac9bc80c02f803">CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
 <tr class="separator:a8fb8f2496d6a4d905dac9bc80c02f803"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0785e35814ceaa845a06f4a6b0d2bbb0" id="r_a0785e35814ceaa845a06f4a6b0d2bbb0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0785e35814ceaa845a06f4a6b0d2bbb0">ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
 <tr class="separator:a0785e35814ceaa845a06f4a6b0d2bbb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac6170e3d4875c2f4cfcc39bee40eb1a" id="r_aac6170e3d4875c2f4cfcc39bee40eb1a"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aac6170e3d4875c2f4cfcc39bee40eb1a">SnesToPc</a> (uint32_t addr) noexcept</td></tr>
+<tr class="separator:aac6170e3d4875c2f4cfcc39bee40eb1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43bceda6fbaf66c02016c87c83adec48" id="r_a43bceda6fbaf66c02016c87c83adec48"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a43bceda6fbaf66c02016c87c83adec48">PcToSnes</a> (uint32_t addr)</td></tr>
+<tr class="separator:a43bceda6fbaf66c02016c87c83adec48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a883931821acdd5f501b3f0717d87951c" id="r_a883931821acdd5f501b3f0717d87951c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a883931821acdd5f501b3f0717d87951c">AddressFromBytes</a> (uint8_t bank, uint8_t high, uint8_t low) noexcept</td></tr>
+<tr class="separator:a883931821acdd5f501b3f0717d87951c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50d5d0cd99032ef3fb17675891cc00a1" id="r_a50d5d0cd99032ef3fb17675891cc00a1"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a50d5d0cd99032ef3fb17675891cc00a1">MapBankToWordAddress</a> (uint8_t bank, uint16_t addr) noexcept</td></tr>
+<tr class="separator:a50d5d0cd99032ef3fb17675891cc00a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adee4cb66335fc06d420159375b151524" id="r_adee4cb66335fc06d420159375b151524"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adee4cb66335fc06d420159375b151524">UppercaseHexByte</a> (uint8_t byte, bool leading)</td></tr>
 <tr class="separator:adee4cb66335fc06d420159375b151524"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5e6d56ec7e31e6b12a788d15c931ec38" id="r_a5e6d56ec7e31e6b12a788d15c931ec38"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5e6d56ec7e31e6b12a788d15c931ec38">UppercaseHexWord</a> (uint16_t word)</td></tr>
@@ -325,122 +323,45 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="aac6170e3d4875c2f4cfcc39bee40eb1a" name="aac6170e3d4875c2f4cfcc39bee40eb1a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac6170e3d4875c2f4cfcc39bee40eb1a">&#9670;&#160;</a></span>SnesToPc()</h2>
+<a id="a7b146f0a471eaf459077aadd4426caa6" name="a7b146f0a471eaf459077aadd4426caa6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b146f0a471eaf459077aadd4426caa6">&#9670;&#160;</a></span>Get24LocalFromPC()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t yaze::app::core::SnesToPc </td>
+          <td class="memname">uint32_t yaze::app::core::Get24LocalFromPC </td>
           <td>(</td>
-          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#ab62c06b7266ecc1577fb9da5d8f7401c">kFastRomRegion</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ace1256aebd3505dbc421d28e711f2068">yaze::app::editor::MessageEditor::BuildDictionaryEntries()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1351191860902e038bd7f538f0bb87d4">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b">yaze::app::Rom::GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab4ab3d515b729f7bc09ca4babdce6af5">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab7d1ad237d5dba32a1d27da7de2ed4d2">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ad6d8a1fb08cfe8ae312b1220fd6ab3eb">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0587df5bd63e09dc0cddd4e2e7e2edfa">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a4d7405ccb2a91afb5149e9803befe544">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#abec4b139db7e26fb07c5260a12037d4f">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#af807491d98c8cfe17d907c5deff0af7f">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#adf72450fb09b8d14f5388c46f9e62329">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, and <a class="el" href="structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
-
-</div>
-</div>
-<a id="a43bceda6fbaf66c02016c87c83adec48" name="a43bceda6fbaf66c02016c87c83adec48"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a43bceda6fbaf66c02016c87c83adec48">&#9670;&#160;</a></span>PcToSnes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::app::core::PcToSnes </td>
-          <td>(</td>
-          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC()</a>, <a class="el" href="classyaze_1_1cli_1_1PcToSnes.html#ad709da89bda8d90180739f3bc135408f">yaze::cli::PcToSnes::handle()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a360abadc2ddbecea2f6810e25e8d0f9b">yaze::app::zelda3::overworld::Overworld::SaveItems()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a49556e3a62a2ec33a3edfcbd2b25a1fc">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>.</p>
-
-</div>
-</div>
-<a id="ac45100a1fa231127736ef1e2e1a001c5" name="ac45100a1fa231127736ef1e2e1a001c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac45100a1fa231127736ef1e2e1a001c5">&#9670;&#160;</a></span>MapBankToWordAddress()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::app::core::MapBankToWordAddress </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em></span>, </td>
+          <td class="paramtype">uint8_t *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a883931821acdd5f501b3f0717d87951c" name="a883931821acdd5f501b3f0717d87951c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a883931821acdd5f501b3f0717d87951c">&#9670;&#160;</a></span>AddressFromBytes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze::app::core::AddressFromBytes </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em></span>, </td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>high</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>low</em></span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>pc</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#a43bceda6fbaf66c02016c87c83adec48">PcToSnes()</a>, and <a class="el" href="#aac6170e3d4875c2f4cfcc39bee40eb1a">SnesToPc()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a3d72f76ce6ed3b8f7fa1cc5fa3281d0d">yaze::app::editor::MessageEditor::ReadAllTextData()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph" id="anamespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph">
+<area shape="rect" title=" " alt="" coords="5,23,184,64"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48" title=" " alt="" coords="232,5,404,31"/>
+<area shape="poly" title=" " alt="" coords="184,31,216,27,217,32,185,36"/>
+<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a" title=" " alt="" coords="232,55,404,80"/>
+<area shape="poly" title=" " alt="" coords="185,50,217,54,216,59,184,56"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -937,78 +858,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a7b146f0a471eaf459077aadd4426caa6" name="a7b146f0a471eaf459077aadd4426caa6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7b146f0a471eaf459077aadd4426caa6">&#9670;&#160;</a></span>Get24LocalFromPC()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::app::core::Get24LocalFromPC </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>pc</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a43bceda6fbaf66c02016c87c83adec48">PcToSnes()</a>, and <a class="el" href="#aac6170e3d4875c2f4cfcc39bee40eb1a">SnesToPc()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#a3d72f76ce6ed3b8f7fa1cc5fa3281d0d">yaze::app::editor::MessageEditor::ReadAllTextData()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph" id="anamespaceyaze_1_1app_1_1core_a7b146f0a471eaf459077aadd4426caa6_cgraph">
-<area shape="rect" title=" " alt="" coords="5,23,184,64"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48" title=" " alt="" coords="232,5,404,31"/>
-<area shape="poly" title=" " alt="" coords="184,31,216,27,217,32,185,36"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a" title=" " alt="" coords="232,55,404,80"/>
-<area shape="poly" title=" " alt="" coords="185,50,217,54,216,59,184,56"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a0a0b17783f4959beac36130deffc51ca" name="a0a0b17783f4959beac36130deffc51ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a0b17783f4959beac36130deffc51ca">&#9670;&#160;</a></span>crc32()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t yaze::app::core::crc32 </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a0785e35814ceaa845a06f4a6b0d2bbb0">ApplyBpsPatch()</a>, <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>, and <a class="el" href="#a8fb8f2496d6a4d905dac9bc80c02f803">CreateBpsPatch()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph" id="anamespaceyaze_1_1app_1_1core_a0a0b17783f4959beac36130deffc51ca_cgraph">
-<area shape="rect" title=" " alt="" coords="5,29,149,55"/>
-<area shape="poly" title=" " alt="" coords="52,30,48,21,50,11,61,5,77,3,95,5,104,12,101,16,93,10,77,8,62,10,55,14,53,20,57,28"/>
-</map>
-</div>
-
-</div>
-</div>
 <a id="a8fb8f2496d6a4d905dac9bc80c02f803" name="a8fb8f2496d6a4d905dac9bc80c02f803"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8fb8f2496d6a4d905dac9bc80c02f803">&#9670;&#160;</a></span>CreateBpsPatch()</h2>
 
@@ -1033,20 +882,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1CreatePatch.html#ad8379b3639cb96421e3d023cf7022063">yaze::cli::CreatePatch::handle()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph" id="anamespaceyaze_1_1app_1_1core_a8fb8f2496d6a4d905dac9bc80c02f803_cgraph">
-<area shape="rect" title=" " alt="" coords="5,22,178,62"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a0a0b17783f4959beac36130deffc51ca" title=" " alt="" coords="226,29,369,55"/>
-<area shape="poly" title=" " alt="" coords="178,40,210,40,210,45,178,45"/>
-<area shape="poly" title=" " alt="" coords="263,31,256,21,260,11,274,5,297,3,323,5,336,12,333,17,321,10,297,8,276,10,264,15,262,20,267,27"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -1074,20 +910,128 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a0a0b17783f4959beac36130deffc51ca">crc32()</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6">yaze::cli::ApplyPatch::handle()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="namespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph.png" border="0" usemap="#anamespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph" alt=""/></div>
-<map name="anamespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph" id="anamespaceyaze_1_1app_1_1core_a0785e35814ceaa845a06f4a6b0d2bbb0_cgraph">
-<area shape="rect" title=" " alt="" coords="5,22,172,62"/>
-<area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a0a0b17783f4959beac36130deffc51ca" title=" " alt="" coords="220,29,363,55"/>
-<area shape="poly" title=" " alt="" coords="172,40,204,40,204,45,172,45"/>
-<area shape="poly" title=" " alt="" coords="257,31,251,21,255,11,269,5,291,3,316,5,329,12,326,17,315,10,291,8,270,10,259,15,256,20,262,27"/>
-</map>
+
 </div>
+</div>
+<a id="aac6170e3d4875c2f4cfcc39bee40eb1a" name="aac6170e3d4875c2f4cfcc39bee40eb1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac6170e3d4875c2f4cfcc39bee40eb1a">&#9670;&#160;</a></span>SnesToPc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::core::SnesToPc </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="#ab62c06b7266ecc1577fb9da5d8f7401c">kFastRomRegion</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MessageEditor.html#ace1256aebd3505dbc421d28e711f2068">yaze::app::editor::MessageEditor::BuildDictionaryEntries()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a1351191860902e038bd7f538f0bb87d4">yaze::app::zelda3::overworld::Overworld::DecompressAllMapTiles()</a>, <a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b">yaze::app::Rom::GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1cli_1_1SnesToPc.html#aa01c863e42d7bc2d1b68b26de1b789d0">yaze::cli::SnesToPc::handle()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab4ab3d515b729f7bc09ca4babdce6af5">yaze::app::zelda3::dungeon::Room::LoadAnimatedGraphics()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ab7d1ad237d5dba32a1d27da7de2ed4d2">yaze::app::zelda3::dungeon::Room::LoadChests()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#ac0eaa18aa6166c0374516e091c97a2fa">yaze::app::editor::ScreenEditor::LoadDungeonMaps()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#ad6d8a1fb08cfe8ae312b1220fd6ab3eb">yaze::app::zelda3::dungeon::Room::LoadHeader()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a0587df5bd63e09dc0cddd4e2e7e2edfa">yaze::app::zelda3::overworld::Overworld::LoadItems()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#a4d7405ccb2a91afb5149e9803befe544">yaze::app::zelda3::dungeon::Room::LoadObjects()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#abec4b139db7e26fb07c5260a12037d4f">yaze::app::zelda3::dungeon::Room::LoadRoomFromROM()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html#af807491d98c8cfe17d907c5deff0af7f">yaze::app::zelda3::dungeon::Room::LoadSprites()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#adf72450fb09b8d14f5388c46f9e62329">yaze::app::zelda3::overworld::Overworld::LoadSpritesFromMap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a9450adba1736b84602290e3095535f4f">yaze::app::zelda3::screen::TitleScreen::LoadTitleScreen()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1ScreenEditor.html#aa8b8ec92880eda214d23e1572b021ee2">yaze::app::editor::ScreenEditor::SaveDungeonMaps()</a>, and <a class="el" href="structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
+
+</div>
+</div>
+<a id="a43bceda6fbaf66c02016c87c83adec48" name="a43bceda6fbaf66c02016c87c83adec48"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43bceda6fbaf66c02016c87c83adec48">&#9670;&#160;</a></span>PcToSnes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::core::PcToSnes </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="#a7b146f0a471eaf459077aadd4426caa6">Get24LocalFromPC()</a>, <a class="el" href="classyaze_1_1cli_1_1PcToSnes.html#ad709da89bda8d90180739f3bc135408f">yaze::cli::PcToSnes::handle()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a360abadc2ddbecea2f6810e25e8d0f9b">yaze::app::zelda3::overworld::Overworld::SaveItems()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a49556e3a62a2ec33a3edfcbd2b25a1fc">yaze::app::zelda3::overworld::Overworld::SaveOverworldMaps()</a>.</p>
+
+</div>
+</div>
+<a id="a883931821acdd5f501b3f0717d87951c" name="a883931821acdd5f501b3f0717d87951c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a883931821acdd5f501b3f0717d87951c">&#9670;&#160;</a></span>AddressFromBytes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::app::core::AddressFromBytes </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>high</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>low</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b">yaze::app::Rom::GetGraphicsAddress()</a>.</p>
+
+</div>
+</div>
+<a id="a50d5d0cd99032ef3fb17675891cc00a1" name="a50d5d0cd99032ef3fb17675891cc00a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50d5d0cd99032ef3fb17675891cc00a1">&#9670;&#160;</a></span>MapBankToWordAddress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t yaze::app::core::MapBankToWordAddress </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>bank</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

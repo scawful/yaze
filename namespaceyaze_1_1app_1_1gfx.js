@@ -44,6 +44,12 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "snes_color", "namespaceyaze_1_1app_1_1gfx.html#a11bb1075953f57bafc5d9205682ea50e", null ],
     [ "snes_palette", "namespaceyaze_1_1app_1_1gfx.html#a2431c9510c885b5698d5aaac4d7e3094", null ],
     [ "tile8", "namespaceyaze_1_1app_1_1gfx.html#ae0f46c5ecd3ca9929d6baa039aeccbc7", null ],
+    [ "BitmapFormat", "namespaceyaze_1_1app_1_1gfx.html#a9a4f97a4dc623c7581bf43f61a19f5ff", [
+      [ "kIndexed", "namespaceyaze_1_1app_1_1gfx.html#a9a4f97a4dc623c7581bf43f61a19f5ffa4c73c14797db718d5133dc97c2d617e2", null ],
+      [ "k2bpp", "namespaceyaze_1_1app_1_1gfx.html#a9a4f97a4dc623c7581bf43f61a19f5ffa0bb8835602af5ac322025d4a616fee99", null ],
+      [ "k4bpp", "namespaceyaze_1_1app_1_1gfx.html#a9a4f97a4dc623c7581bf43f61a19f5ffa8bfe24506d59df1a4476cd0a35a0e787", null ],
+      [ "k8bpp", "namespaceyaze_1_1app_1_1gfx.html#a9a4f97a4dc623c7581bf43f61a19f5ffae27e66cb9bf5a5fa97b12936990b150b", null ]
+    ] ],
     [ "PaletteCategory", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39d", [
       [ "kSword", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39daf22e7c2217ee73273e5298cc7f8cf3d8", null ],
       [ "kShield", "namespaceyaze_1_1app_1_1gfx.html#a76cda96f6c24e5962d99c9ffb0b9e39dab642b4174e77d1e5a8910c64b92aaed7", null ],
@@ -93,12 +99,10 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "TileInfoToShort", "namespaceyaze_1_1app_1_1gfx.html#a8b918c5ebd5aeb116c421ae7125e4128", null ],
     [ "GetTilesInfo", "namespaceyaze_1_1app_1_1gfx.html#aefa90c55f0eea489bc7a6dd716300e90", null ],
     [ "CreateTilesheetFromGraphicsBuffer", "namespaceyaze_1_1app_1_1gfx.html#afe2b409c93b8b037b20a8d4ac2df3353", null ],
+    [ "SNES_PIXELFORMAT_INDEXED", "namespaceyaze_1_1app_1_1gfx.html#abd8392f2567021f0b26d5f7a184329fa", null ],
     [ "SNES_PIXELFORMAT_2BPP", "namespaceyaze_1_1app_1_1gfx.html#a801752cb921f7e16a55028f76bdb1837", null ],
     [ "SNES_PIXELFORMAT_4BPP", "namespaceyaze_1_1app_1_1gfx.html#a192c4cda963b17f9be296f9ae193b501", null ],
     [ "SNES_PIXELFORMAT_8BPP", "namespaceyaze_1_1app_1_1gfx.html#ab1ea2f7bd64b3a175c493b5da918e2ca", null ],
-    [ "kFormat2bppIndexed", "namespaceyaze_1_1app_1_1gfx.html#a53356d69d89155ea03c8f8aed7bd352b", null ],
-    [ "kFormat4bppIndexed", "namespaceyaze_1_1app_1_1gfx.html#aa27a16a16d66e49a26a5bf9e65ad6f63", null ],
-    [ "kFormat8bppIndexed", "namespaceyaze_1_1app_1_1gfx.html#ae8837e1649a4a5c5cd74d855ed6d6c37", null ],
     [ "SNES_RED_MASK", "namespaceyaze_1_1app_1_1gfx.html#a2c96a51c2e83a6e133720c10d10ebd17", null ],
     [ "SNES_GREEN_MASK", "namespaceyaze_1_1app_1_1gfx.html#ad23eb7c59ab96c08179a6d6625ad0fdd", null ],
     [ "SNES_BLUE_MASK", "namespaceyaze_1_1app_1_1gfx.html#a9f93560824621862a7e4889d592cb2df", null ],

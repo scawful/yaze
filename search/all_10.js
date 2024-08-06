@@ -61,7 +61,7 @@ var searchData=
   ['map_5fx_5f_58',['map_x_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ad7db674f6d9592226e048c0f5d8873cc',1,'yaze::app::zelda3::Sprite']]],
   ['map_5fy_59',['map_y',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa464a960f30fbda89b7534b22126d34c',1,'yaze::app::zelda3::Sprite']]],
   ['map_5fy_5f_60',['map_y_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a3423650b97b36f638e718bea85b45c02',1,'yaze::app::zelda3::Sprite']]],
-  ['mapbanktowordaddress_61',['MapBankToWordAddress',['../namespaceyaze_1_1app_1_1core.html#ac45100a1fa231127736ef1e2e1a001c5',1,'yaze::app::core']]],
+  ['mapbanktowordaddress_61',['MapBankToWordAddress',['../namespaceyaze_1_1app_1_1core.html#a50d5d0cd99032ef3fb17675891cc00a1',1,'yaze::app::core']]],
   ['mapdata_62',['MapData',['../structyaze_1_1app_1_1zelda3_1_1overworld_1_1MapData.html',1,'yaze::app::zelda3::overworld']]],
   ['mapdata_63',['mapdata',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a245f8beb27d628dd19dea5156c665a88',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['mapgfx_64',['mapGfx',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a22cb1d1a21408f52da86e720731754fc',1,'yaze::app::zelda3::overworld']]],

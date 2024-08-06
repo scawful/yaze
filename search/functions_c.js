@@ -8,7 +8,7 @@ var searchData=
   ['map_5ftiles_5',['map_tiles',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a700a46d318e034bc2d61079ad14d3114',1,'yaze::app::zelda3::overworld::Overworld']]],
   ['map_5fx_6',['map_x',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a09c91782771ad5f4134d7bd32801f50b',1,'yaze::app::zelda3::Sprite']]],
   ['map_5fy_7',['map_y',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa464a960f30fbda89b7534b22126d34c',1,'yaze::app::zelda3::Sprite']]],
-  ['mapbanktowordaddress_8',['MapBankToWordAddress',['../namespaceyaze_1_1app_1_1core.html#ac45100a1fa231127736ef1e2e1a001c5',1,'yaze::app::core']]],
+  ['mapbanktowordaddress_8',['MapBankToWordAddress',['../namespaceyaze_1_1app_1_1core.html#a50d5d0cd99032ef3fb17675891cc00a1',1,'yaze::app::core']]],
   ['maptype_9',['MapType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#acc213c0cf052c4538f80f16261cbbcbc',1,'yaze::app::gui::zeml']]],
   ['master_5feditor_10',['master_editor',['../classyaze_1_1app_1_1core_1_1Controller.html#a04af31e0a744915d95f466cdee06da66',1,'yaze::app::core::Controller']]],
   ['mastereditor_11',['MasterEditor',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a8b1b4a7824557c7394dd7a1d606bac21',1,'yaze::app::editor::MasterEditor']]],

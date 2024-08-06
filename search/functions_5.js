@@ -15,6 +15,5 @@ var searchData=
   ['flags_12',['flags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116',1,'yaze::app::core::ExperimentFlags']]],
   ['flagstobyte_13',['FlagsToByte',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a832b5fee99b6f3f5db5346038336792f',1,'yaze::app::emu::audio::Spc700']]],
   ['focus_14',['Focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5',1,'yaze::app::editor::MessageEditor::TextBox']]],
-  ['font_5fgfx_5fdata_15',['font_gfx_data',['../classyaze_1_1app_1_1Rom.html#a19fcd6fe55dfdb7feeea115ec25ede0b',1,'yaze::app::Rom']]],
-  ['for_5feach_16',['for_each',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376',1,'yaze::app::gfx::PaletteGroupMap']]]
+  ['for_5feach_15',['for_each',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376',1,'yaze::app::gfx::PaletteGroupMap']]]
 ];

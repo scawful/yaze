@@ -108,7 +108,8 @@ $(function(){initNavTree('core_2common_8h.html',''); initResizable(true); });
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">common.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -377,10 +378,12 @@ Functions</h2></td></tr>
 <tr class="separator:aac6170e3d4875c2f4cfcc39bee40eb1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43bceda6fbaf66c02016c87c83adec48" id="r_a43bceda6fbaf66c02016c87c83adec48"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a43bceda6fbaf66c02016c87c83adec48">yaze::app::core::PcToSnes</a> (uint32_t addr)</td></tr>
 <tr class="separator:a43bceda6fbaf66c02016c87c83adec48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac45100a1fa231127736ef1e2e1a001c5" id="r_ac45100a1fa231127736ef1e2e1a001c5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#ac45100a1fa231127736ef1e2e1a001c5">yaze::app::core::MapBankToWordAddress</a> (uint8_t bank, uint16_t addr)</td></tr>
-<tr class="separator:ac45100a1fa231127736ef1e2e1a001c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a883931821acdd5f501b3f0717d87951c" id="r_a883931821acdd5f501b3f0717d87951c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c">yaze::app::core::AddressFromBytes</a> (uint8_t bank, uint8_t high, uint8_t low) noexcept</td></tr>
 <tr class="separator:a883931821acdd5f501b3f0717d87951c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50d5d0cd99032ef3fb17675891cc00a1" id="r_a50d5d0cd99032ef3fb17675891cc00a1"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a50d5d0cd99032ef3fb17675891cc00a1">yaze::app::core::MapBankToWordAddress</a> (uint8_t bank, uint16_t addr) noexcept</td></tr>
+<tr class="separator:a50d5d0cd99032ef3fb17675891cc00a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b146f0a471eaf459077aadd4426caa6" id="r_a7b146f0a471eaf459077aadd4426caa6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a7b146f0a471eaf459077aadd4426caa6">yaze::app::core::Get24LocalFromPC</a> (uint8_t *data, int addr, bool pc)</td></tr>
+<tr class="separator:a7b146f0a471eaf459077aadd4426caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa38d793eae97bd4f5a931de9a1fffa1d" id="r_aa38d793eae97bd4f5a931de9a1fffa1d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#aa38d793eae97bd4f5a931de9a1fffa1d">yaze::app::core::HexToDec</a> (char *input, int length)</td></tr>
 <tr class="separator:aa38d793eae97bd4f5a931de9a1fffa1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac553ac7a4fb1da8826212a15f8fc0548" id="r_ac553ac7a4fb1da8826212a15f8fc0548"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#ac553ac7a4fb1da8826212a15f8fc0548">yaze::app::core::stle16b_i</a> (uint8_t *const p_arr, size_t const p_index, uint16_t const p_val)</td></tr>
@@ -391,14 +394,15 @@ Functions</h2></td></tr>
 <tr class="separator:a65eee6b161b17a7cd555ae70cf65717a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58dc78cb3c691e3d7fa277549bc9bed3" id="r_a58dc78cb3c691e3d7fa277549bc9bed3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a58dc78cb3c691e3d7fa277549bc9bed3">yaze::app::core::stle16b</a> (uint8_t *const p_arr, uint16_t const p_val)</td></tr>
 <tr class="separator:a58dc78cb3c691e3d7fa277549bc9bed3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b146f0a471eaf459077aadd4426caa6" id="r_a7b146f0a471eaf459077aadd4426caa6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a7b146f0a471eaf459077aadd4426caa6">yaze::app::core::Get24LocalFromPC</a> (uint8_t *data, int addr, bool pc)</td></tr>
-<tr class="separator:a7b146f0a471eaf459077aadd4426caa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a0b17783f4959beac36130deffc51ca" id="r_a0a0b17783f4959beac36130deffc51ca"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a0a0b17783f4959beac36130deffc51ca">yaze::app::core::crc32</a> (const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
-<tr class="separator:a0a0b17783f4959beac36130deffc51ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fb8f2496d6a4d905dac9bc80c02f803" id="r_a8fb8f2496d6a4d905dac9bc80c02f803"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a8fb8f2496d6a4d905dac9bc80c02f803">yaze::app::core::CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
 <tr class="separator:a8fb8f2496d6a4d905dac9bc80c02f803"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0785e35814ceaa845a06f4a6b0d2bbb0" id="r_a0785e35814ceaa845a06f4a6b0d2bbb0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#a0785e35814ceaa845a06f4a6b0d2bbb0">yaze::app::core::ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
 <tr class="separator:a0785e35814ceaa845a06f4a6b0d2bbb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ab62c06b7266ecc1577fb9da5d8f7401c" id="r_ab62c06b7266ecc1577fb9da5d8f7401c"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1app_1_1core.html#ab62c06b7266ecc1577fb9da5d8f7401c">yaze::app::core::kFastRomRegion</a> = 0x808000</td></tr>
+<tr class="separator:ab62c06b7266ecc1577fb9da5d8f7401c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

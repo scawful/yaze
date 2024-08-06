@@ -2,10 +2,8 @@ var common_8cc =
 [
     [ "encode", "common_8cc.html#aa92217917e3512f40ae3d7f2a2c2bf22", null ],
     [ "decode", "common_8cc.html#aa650dcba786cb2df29aa1af7bbc967c7", null ],
-    [ "SnesToPc", "common_8cc.html#aac6170e3d4875c2f4cfcc39bee40eb1a", null ],
-    [ "PcToSnes", "common_8cc.html#a43bceda6fbaf66c02016c87c83adec48", null ],
-    [ "MapBankToWordAddress", "common_8cc.html#ac45100a1fa231127736ef1e2e1a001c5", null ],
-    [ "AddressFromBytes", "common_8cc.html#a883931821acdd5f501b3f0717d87951c", null ],
+    [ "crc32", "common_8cc.html#abce256524e8544fc43aaa56a4c23d807", null ],
+    [ "Get24LocalFromPC", "common_8cc.html#a7b146f0a471eaf459077aadd4426caa6", null ],
     [ "HexToDec", "common_8cc.html#aa38d793eae97bd4f5a931de9a1fffa1d", null ],
     [ "stle", "common_8cc.html#a57423a3f6c1ec89535f5e836dc1406fe", null ],
     [ "stle0", "common_8cc.html#a11f4840fb6dbe5e90fe675f3f59b3364", null ],
@@ -21,9 +19,6 @@ var common_8cc =
     [ "ldle3", "common_8cc.html#ac2588b6c37606c1692a7a4771dfc5356", null ],
     [ "ldle16b", "common_8cc.html#a65eee6b161b17a7cd555ae70cf65717a", null ],
     [ "ldle16b_i", "common_8cc.html#aa6c12bd455e5cf377d2362c6dc7fab85", null ],
-    [ "Get24LocalFromPC", "common_8cc.html#a7b146f0a471eaf459077aadd4426caa6", null ],
-    [ "crc32", "common_8cc.html#a0a0b17783f4959beac36130deffc51ca", null ],
     [ "CreateBpsPatch", "common_8cc.html#a8fb8f2496d6a4d905dac9bc80c02f803", null ],
-    [ "ApplyBpsPatch", "common_8cc.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ],
-    [ "kFastRomRegion", "common_8cc.html#ab62c06b7266ecc1577fb9da5d8f7401c", null ]
+    [ "ApplyBpsPatch", "common_8cc.html#a0785e35814ceaa845a06f4a6b0d2bbb0", null ]
 ];
