@@ -421,13 +421,15 @@ class Rom : public core::ExperimentFlags {
   // Full graphical data for the game
   Bytes graphics_buffer() const { return graphics_buffer_; }
 
-  gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
+  [[deprecated]] gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
 
-  gfx::Bitmap* mutable_graphics_sheet(int index) {
+  [[deprecated]] gfx::Bitmap* mutable_graphics_sheet(int index) {
     return &graphics_bin_.at(index);
   }
-  auto bitmap_manager() { return graphics_manager_; }
-  auto mutable_bitmap_manager() { return &graphics_manager_; }
+
+  [[deprecated]] auto bitmap_manager() { return graphics_manager_; }
+  [[deprecated]] auto mutable_bitmap_manager() { return &graphics_manager_; }
+
   auto link_graphics() { return link_graphics_; }
   auto mutable_link_graphics() { return &link_graphics_; }
 
@@ -505,7 +507,6 @@ class Rom : public core::ExperimentFlags {
   void SaveGroupsToRom();
 
   auto resource_label() { return &resource_label_manager_; }
-  auto font_gfx_data() { return font_gfx_data_; }
 
  private:
   struct WriteAction {
@@ -569,7 +570,9 @@ class Rom : public core::ExperimentFlags {
 
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
-  gfx::BitmapManager graphics_manager_;
+
+  [[deprecated("BitmapManager has unpredictable destructor behavior.")]] gfx::
+      BitmapManager graphics_manager_;
   gfx::BitmapTable link_graphics_;
   gfx::SnesPalette link_palette_;
   gfx::PaletteGroupMap palette_groups_;
