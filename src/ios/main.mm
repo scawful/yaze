@@ -70,15 +70,6 @@
 
   SDL_iOSSetEventPump(SDL_FALSE);
 
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
-    printf("Error: %s\n", SDL_GetError());
-    abort();
-  }
-
-  // Inform SDL that we will be using metal for rendering. Without this hint initialization of metal
-  // renderer may fail.
-  SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
-
   // Enable native IME.
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 
@@ -96,13 +87,8 @@
     abort();
   }
 
-  // Setup Platform/Renderer backends
-  CAMetalLayer *layer = (__bridge CAMetalLayer *)SDL_RenderGetMetalLayer(_controller->renderer());
-  layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-
-  // Setup Renderer backend
-  ImGui_ImplMetal_Init(layer.device);
-  ImGui_ImplSDL2_InitForMetal(_controller->window());
+  ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(), _controller->renderer());
+  ImGui_ImplSDLRenderer2_Init(_controller->renderer());
 
   _controller->master_editor().overworld_editor().InitializeZeml();
   if (!_controller->LoadFontFamilies().ok()) {
@@ -145,14 +131,8 @@
 #endif
   io.DisplayFramebufferScale = ImVec2(framebufferScale, framebufferScale);
 
-  id<MTLCommandBuffer> commandBuffer = [self.commandQueue commandBuffer];
-  MTLRenderPassDescriptor *renderPassDescriptor = view.currentRenderPassDescriptor;
-  if (renderPassDescriptor == nil) {
-    [commandBuffer commit];
-    return;
-  }
-
-  ImGui_ImplMetal_NewFrame(renderPassDescriptor);
+  ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
 #if TARGET_OS_OSX
   ImGui_ImplOSX_NewFrame(view);
 #endif
@@ -171,23 +151,7 @@
     }
     ImGui::End();
   }
-
-  ImGui::Render();
-  ImDrawData *draw_data = ImGui::GetDrawData();
-  static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-  renderPassDescriptor.colorAttachments[0].clearColor =
-      MTLClearColorMake(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
-                        clear_color.z * clear_color.w, clear_color.w);
-  id<MTLRenderCommandEncoder> renderEncoder =
-      [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-  [renderEncoder pushDebugGroup:@"Dear ImGui rendering"];
-  ImGui_ImplMetal_RenderDrawData(draw_data, commandBuffer, renderEncoder);
-  [renderEncoder popDebugGroup];
-  [renderEncoder endEncoding];
-
-  // Present
-  [commandBuffer presentDrawable:view.currentDrawable];
-  [commandBuffer commit];
+  _controller->DoRender();
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
@@ -297,6 +261,13 @@
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
   return YES;
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+  ImGui_ImplSDLRenderer2_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+  SDL_Quit();
 }
 
 - (void)presentDocumentPickerWithCompletionHandler:
