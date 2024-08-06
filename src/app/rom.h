@@ -117,6 +117,7 @@ static const std::map<Z3_Version, VersionConstants> kVersionConstantsMap = {
          0x67DD0,  // kDungeonPalettesGroups
      }}};
 
+constexpr uint32_t kNumGfxSheets = 223;
 constexpr uint32_t kNormalGfxSpaceStart = 0x87000;
 constexpr uint32_t kNormalGfxSpaceEnd = 0xC4200;
 constexpr uint32_t kFontSpriteLocation = 0x70000;
@@ -557,9 +558,14 @@ class Rom : public core::ExperimentFlags {
   uchar title_[21] = "ROM Not Loaded";
   std::string filename_;
 
+  // Full contiguous rom space
   Bytes rom_data_;
+
+  // Full contiguous graphics space
   Bytes graphics_buffer_;
-  Bytes font_gfx_data_;
+
+  // All graphics sheets in the game
+  std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets_;
 
   Z3_Version version_ = Z3_Version::US;
   gfx::BitmapTable graphics_bin_;
