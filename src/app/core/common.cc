@@ -48,9 +48,26 @@ uint64_t decode(const std::vector<uint8_t> &input, size_t &offset) {
   return data;
 }
 
+uint32_t crc32(const std::vector<uint8_t> &data) {
+  uint32_t crc = ::crc32(0L, Z_NULL, 0);
+  return ::crc32(crc, data.data(), data.size());
+}
+
 }  // namespace
 
 std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
+
+// Initialize the static member
+std::stack<ImGuiID> ImGuiIdIssuer::idStack;
+
+uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
+  uint32_t ret =
+      (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
+  if (pc) {
+    return SnesToPc(ret);
+  }
+  return ret;
+}
 
 // hextodec has been imported from SNESDisasm to parse hex numbers
 int HexToDec(char *input, int length) {
@@ -107,8 +124,7 @@ void stle16b(uint8_t *const p_arr, uint16_t const p_val) {
   stle0(p_arr, p_val);
   stle1(p_arr, p_val);
 }
-// "Store little endian 16-bit value using a byte pointer, offset by an
-// index before dereferencing"
+
 void stle16b_i(uint8_t *const p_arr, size_t const p_index,
                uint16_t const p_val) {
   stle16b(p_arr + (p_index * 2), p_val);
@@ -134,7 +150,7 @@ uint32_t ldle2(uint8_t const *const p_arr) { return ldle(p_arr, 2); }
 
 // Helper function to get the third byte in a little endian number
 uint32_t ldle3(uint8_t const *const p_arr) { return ldle(p_arr, 3); }
-// Load little endian halfword (16-bit) dereferenced from
+
 uint16_t ldle16b(uint8_t const *const p_arr) {
   uint16_t v = 0;
 
@@ -142,28 +158,9 @@ uint16_t ldle16b(uint8_t const *const p_arr) {
 
   return v;
 }
-// Load little endian halfword (16-bit) dereferenced from an arrays of bytes.
-// This version provides an index that will be multiplied by 2 and added to the
-// base address.
+
 uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index) {
   return ldle16b(p_arr + (2 * p_index));
-}
-
-// Initialize the static member
-std::stack<ImGuiID> ImGuiIdIssuer::idStack;
-
-uint32_t Get24LocalFromPC(uint8_t *data, int addr, bool pc) {
-  uint32_t ret =
-      (PcToSnes(addr) & 0xFF0000) | (data[addr + 1] << 8) | data[addr];
-  if (pc) {
-    return SnesToPc(ret);
-  }
-  return ret;
-}
-
-uint32_t crc32(const std::vector<uint8_t> &data) {
-  uint32_t crc = ::crc32(0L, Z_NULL, 0);
-  return ::crc32(crc, data.data(), data.size());
 }
 
 void CreateBpsPatch(const std::vector<uint8_t> &source,
