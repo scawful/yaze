@@ -22,6 +22,10 @@ namespace app {
  */
 namespace gfx {
 
+// Same as SDL_PIXELFORMAT_INDEX8 for reference
+constexpr Uint32 SNES_PIXELFORMAT_INDEXED =
+    SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_INDEX8, 0, 0, 8, 1);
+
 constexpr Uint32 SNES_PIXELFORMAT_2BPP = SDL_DEFINE_PIXELFORMAT(
     /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
     /*layouts=*/0, /*bits=*/2, /*bytes=*/1);
@@ -34,12 +38,12 @@ constexpr Uint32 SNES_PIXELFORMAT_8BPP = SDL_DEFINE_PIXELFORMAT(
     /*type=*/SDL_PIXELTYPE_INDEX8, /*order=*/0,
     /*layouts=*/0, /*bits=*/8, /*bytes=*/1);
 
-// SDL_PIXELFORMAT_INDEX8 =
-// SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_INDEX8, 0, 0, 8, 1),
-
-constexpr int kFormat2bppIndexed = 1;
-constexpr int kFormat4bppIndexed = 2;
-constexpr int kFormat8bppIndexed = 3;
+enum BitmapFormat {
+  kIndexed = 0,
+  k2bpp = 1,
+  k4bpp = 2,
+  k8bpp = 3,
+};
 
 /**
  * @brief Convert SDL_Surface to PNG image data.
