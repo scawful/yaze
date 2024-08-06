@@ -33,11 +33,10 @@ constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int kEntranceGfxGroup = 0x5D97;
 
 int Rom::GetGraphicsAddress(const uchar* data, uint8_t addr) {
-  auto part_one = data[version_constants().kOverworldGfxPtr1 + addr] << 16;
-  auto part_two = data[version_constants().kOverworldGfxPtr2 + addr] << 8;
-  auto part_three = data[version_constants().kOverworldGfxPtr3 + addr];
-  auto snes_addr = (part_one | part_two | part_three);
-  return core::SnesToPc(snes_addr);
+  return core::SnesToPc(core::AddressFromBytes(
+      data[version_constants().kOverworldGfxPtr1 + addr],
+      data[version_constants().kOverworldGfxPtr2 + addr],
+      data[version_constants().kOverworldGfxPtr3 + addr]));
 }
 
 absl::StatusOr<Bytes> Rom::Load2BppGraphics() {

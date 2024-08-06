@@ -52,39 +52,6 @@ uint64_t decode(const std::vector<uint8_t> &input, size_t &offset) {
 
 std::shared_ptr<ExperimentFlags::Flags> ExperimentFlags::flags_;
 
-constexpr uint32_t kFastRomRegion = 0x808000;
-
-inline uint32_t SnesToPc(uint32_t addr) noexcept {
-  if (addr >= kFastRomRegion) {
-    addr -= kFastRomRegion;
-  }
-  uint32_t temp = (addr & 0x7FFF) + ((addr / 2) & 0xFF8000);
-  return (temp + 0x0);
-}
-
-inline uint32_t PcToSnes(uint32_t addr) {
-  uint8_t *b = reinterpret_cast<uint8_t *>(&addr);
-  b[2] = static_cast<uint8_t>(b[2] * 2);
-
-  if (b[1] >= 0x80) {
-    b[2] += 1;
-  } else {
-    b[1] += 0x80;
-  }
-
-  return addr;
-}
-
-uint32_t MapBankToWordAddress(uint8_t bank, uint16_t addr) {
-  uint32_t result = 0;
-  result = (bank << 16) | addr;
-  return result;
-}
-
-int AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) noexcept {
-  return (bank << 16) | (high << 8) | low;
-}
-
 // hextodec has been imported from SNESDisasm to parse hex numbers
 int HexToDec(char *input, int length) {
   int result = 0;
