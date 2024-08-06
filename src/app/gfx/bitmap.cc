@@ -241,6 +241,9 @@ void Bitmap::Reformat(int format) {
                                      GetSnesPixelFormat(format)),
       SDL_Surface_Deleter());
   surface_->pixels = pixel_data_;
+  if (!ApplyPalette(palette_).ok()) {
+    // Some sort of error occurred, throw an exception?
+  }
   active_ = true;
 }
 
