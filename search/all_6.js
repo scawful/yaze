@@ -290,7 +290,7 @@ var searchData=
   ['createcompressionstring_287',['CreateCompressionString',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab84de3d8297ed4cef2d90c0a925cda6f',1,'yaze::app::gfx::lc_lz2']]],
   ['createguicontext_288',['CreateGuiContext',['../classyaze_1_1app_1_1core_1_1Controller.html#a1a77e2f432d143785d65f70c1372cd50',1,'yaze::app::core::Controller']]],
   ['createinternalopcodemap_289',['CreateInternalOpcodeMap',['../classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087',1,'yaze::app::emu::AsmParser']]],
-  ['createorgetlabel_290',['CreateOrGetLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1',1,'yaze::app::core::ResourceLabelManager::CreateOrGetLabel(const std::string &amp;type, const std::string &amp;key, const std::string &amp;defaultValue)'],['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#a716f67562fe260f7efb65391494deceb',1,'yaze::app::core::ResourceLabelManager::CreateOrGetLabel(const std::string &amp;type, const std::string &amp;key, const absl::string_view &amp;defaultValue)']]],
+  ['createorgetlabel_290',['CreateOrGetLabel',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1',1,'yaze::app::core::ResourceLabelManager']]],
   ['createpalettegroupfromcolfile_291',['CreatePaletteGroupFromColFile',['../namespaceyaze_1_1app_1_1gfx.html#abdc15a02218fe29002585f61230af828',1,'yaze::app::gfx']]],
   ['createpalettegroupfromlargepalette_292',['CreatePaletteGroupFromLargePalette',['../namespaceyaze_1_1app_1_1gfx.html#ae5807cdf64ba8eed9e0b94335c514674',1,'yaze::app::gfx']]],
   ['createpatch_293',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]],

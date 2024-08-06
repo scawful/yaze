@@ -55,7 +55,7 @@ var searchData=
   ['address_5flow_52',['address_low',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1VMADDL.html#a11be6a11821cc56569037e2ffc58bf43',1,'yaze::app::emu::video::PpuRegisters::VMADDL']]],
   ['addresses_53',['addresses',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a633ad3f84c0970e28afc6481d1ae74b9',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['addressesgfx_54',['addressesgfx',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#a7e9bdbc57e1645202ca15c25a3d4b59f',1,'yaze::app::zelda3::screen::TitleScreen']]],
-  ['addressfrombytes_55',['AddressFromBytes',['../namespaceyaze_1_1app_1_1core.html#a879d750a26ba80d053be5e4a76ecd0e8',1,'yaze::app::core']]],
+  ['addressfrombytes_55',['AddressFromBytes',['../namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c',1,'yaze::app::core']]],
   ['addressing_2ecc_56',['addressing.cc',['../audio_2internal_2addressing_8cc.html',1,'(Global Namespace)'],['../cpu_2internal_2addressing_8cc.html',1,'(Global Namespace)']]],
   ['addressingmode_57',['AddressingMode',['../namespaceyaze_1_1app_1_1emu.html#a0aa8388686279d5dd279df126af111be',1,'yaze::app::emu']]],
   ['addspcreloc_58',['AddSPCReloc',['../namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a472bdd7d0f3ed081e6559215b39cdf55',1,'yaze::app::zelda3::anonymous_namespace{tracker.cc}']]],

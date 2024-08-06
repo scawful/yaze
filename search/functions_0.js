@@ -25,7 +25,7 @@ var searchData=
   ['addpalette_22',['AddPalette',['../structyaze_1_1app_1_1gfx_1_1PaletteGroup.html#a1ddc8e3e0f2e6379693670a5accd0b3b',1,'yaze::app::gfx::PaletteGroup']]],
   ['addr_5fplus_5fi_23',['addr_plus_i',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a42caa9cb7b33962abfb9ecba4fb55227',1,'yaze::app::emu::audio::Spc700']]],
   ['addr_5fplus_5fi_5findexed_24',['addr_plus_i_indexed',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a03d652990219711cf9d6f7ac8b0f3eea',1,'yaze::app::emu::audio::Spc700']]],
-  ['addressfrombytes_25',['AddressFromBytes',['../namespaceyaze_1_1app_1_1core.html#a879d750a26ba80d053be5e4a76ecd0e8',1,'yaze::app::core']]],
+  ['addressfrombytes_25',['AddressFromBytes',['../namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c',1,'yaze::app::core']]],
   ['addspcreloc_26',['AddSPCReloc',['../namespaceyaze_1_1app_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a472bdd7d0f3ed081e6559215b39cdf55',1,'yaze::app::zelda3::anonymous_namespace{tracker.cc}']]],
   ['addtiles_27',['AddTiles',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a234aab69e6a7cb5ba7c78239b66d0bcd',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['addw_28',['ADDW',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#afee77e722a54df9fc66a57a0951f63a8',1,'yaze::app::emu::audio::Spc700']]],
