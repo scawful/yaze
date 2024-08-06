@@ -1,11 +1,9 @@
 #include "overworld_editor.h"
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-
 #include <cmath>
 #include <unordered_map>
 
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -25,6 +23,7 @@
 #include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -883,8 +882,6 @@ void OverworldEditor::DrawOverworldItems() {
     // Get the item's bitmap and real X and Y positions
     if (item.room_map_id < 0x40 + (current_world_ * 0x40) &&
         item.room_map_id >= (current_world_ * 0x40) && !item.deleted) {
-      std::string item_name = zelda3::overworld::kSecretItemNames[item.id];
-
       ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, ImVec4(255, 0, 0, 150));
 
       if (current_mode == EditingMode::ITEMS) {
@@ -900,6 +897,12 @@ void OverworldEditor::DrawOverworldItems() {
           current_item_ = item;
           current_entity_ = &item;
         }
+      }
+      std::string item_name = "";
+      if (item.id < zelda3::overworld::kSecretItemNames.size()) {
+        item_name = zelda3::overworld::kSecretItemNames[item.id];
+      } else {
+        item_name = absl::StrFormat("0x%02X", item.id);
       }
       ow_map_canvas_.DrawText(item_name, item.x_, item.y_);
     }
