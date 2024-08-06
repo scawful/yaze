@@ -81,7 +81,6 @@ absl::Status Rom::LoadLinkGraphics() {
 }
 
 absl::Status Rom::LoadAllGraphicsData() {
-  constexpr uint32_t kNumGfxSheets = 223;
   Bytes sheet;
   bool bpp3 = false;
 
@@ -103,6 +102,10 @@ absl::Status Rom::LoadAllGraphicsData() {
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
+      graphics_sheets_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
+                                 core::kTilesheetDepth, converted_sheet);
+      graphics_sheets_[i].CreateTexture(renderer_);
+
       if (flags()->kUseBitmapManager) {
         graphics_manager_.LoadBitmap(i, converted_sheet, core::kTilesheetWidth,
                                      core::kTilesheetHeight,
