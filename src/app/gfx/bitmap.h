@@ -234,6 +234,7 @@ using BitmapTable = std::unordered_map<int, gfx::Bitmap>;
 
 /**
  * @brief Hash map container of shared pointers to Bitmaps.
+ * \deprecated Moved to fixed array or vector for storing groups of bitmaps.
  */
 class BitmapManager {
  private:
