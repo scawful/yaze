@@ -25,7 +25,6 @@ add_executable(
   gfx/compression_test.cc
   gfx/snes_palette_test.cc
   zelda3/room_object_test.cc
-  ../cli/patch.cc
   ../cli/command_handler.cc
   ../app/rom.cc
   ../app/rom_test.cc
