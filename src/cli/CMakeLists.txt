@@ -1,7 +1,6 @@
 add_executable(
   z3ed
   cli/z3ed.cc
-  cli/patch.cc
   cli/command_handler.cc
   app/rom.cc
   app/core/common.cc
