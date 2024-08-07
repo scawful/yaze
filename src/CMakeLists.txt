@@ -115,7 +115,7 @@ include(test/CMakeLists.txt)
 
 # Yaze C API
 add_library(yaze_c SHARED
-  app/yaze.cc
+  ./yaze.cc
   app/rom.cc
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_CORE_SRC}
