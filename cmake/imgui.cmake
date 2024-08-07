@@ -41,3 +41,7 @@ set(
   ${IMGUI_FILE_DLG_PATH}/ImGuiFileDialog.cpp
   ${IMGUI_COLOR_TEXT_EDIT_PATH}/TextEditor.cpp
 )
+
+if (LINUX)
+  add_definitions("-DIMGUI_ENABLE_TEST_ENGINE -DIMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1")
+endif()
