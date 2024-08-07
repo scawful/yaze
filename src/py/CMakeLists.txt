@@ -10,7 +10,11 @@ add_library(
   py/yaze_py.cc
 )
 
-set(PYTHON_HEADERS /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Headers)
+if (APPLE)
+  set(PYTHON_HEADERS /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Headers)
+elseif(LINUX)
+  set(PYTHON_HEADERS /usr/include/python3.8)
+endif()
 
 target_include_directories(
   yaze_py PUBLIC
