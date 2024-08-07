@@ -2,7 +2,6 @@
 #define YAZE_APP_GFX_PALETTE_H
 
 #include <SDL.h>
-#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -16,6 +15,8 @@
 #include "absl/status/statusor.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_color.h"
+#include "base/snes_color.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -87,16 +88,6 @@ constexpr int customAreaSpecificBGPalette = 0x140000;
 constexpr int customAreaSpecificBGASM = 0x140150;
 // 1 byte, not 0 if enabled
 constexpr int customAreaSpecificBGEnabled = 0x140140;
-
-/**
- * @brief Primitive of a SNES color palette.
- */
-struct snes_palette {
-  uint id;            /**< ID of the palette. */
-  uint size;          /**< Size of the palette. */
-  snes_color* colors; /**< Pointer to the colors in the palette. */
-};
-using snes_palette = struct snes_palette;
 
 uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index);

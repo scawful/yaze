@@ -12,7 +12,6 @@ using ::testing::ElementsAreArray;
 using yaze::app::gfx::ConvertRGBtoSNES;
 using yaze::app::gfx::ConvertSNEStoRGB;
 using yaze::app::gfx::Extract;
-using yaze::app::gfx::snes_palette;
 using yaze::app::gfx::SnesPalette;
 
 namespace {
