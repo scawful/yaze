@@ -159,8 +159,13 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   try {
     size_ = std::filesystem::file_size(filename_);
   } catch (const std::filesystem::filesystem_error& e) {
-    return absl::InternalError(
-        absl::StrCat("Could not get file size: ", filename_, " - ", e.what()));
+    // Try to get the file size from the open file stream
+    file.seekg(0, std::ios::end);
+    if (!file) {
+      return absl::InternalError(absl::StrCat(
+          "Could not get file size: ", filename_, " - ", e.what()));
+    }
+    size_ = file.tellg();
   }
   rom_data_.resize(size_);
 
