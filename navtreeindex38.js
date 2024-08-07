@@ -1,7 +1,5 @@
 var NAVTREEINDEX38 =
 {
-"namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84":[8,0,1,0,4,21],
-"namespaceyaze_1_1app_1_1gui.html#a0dee1b29d58201456f0fc225794a4a21":[8,0,1,0,4,28],
 "namespaceyaze_1_1app_1_1gui.html#a0f01f74c711bfe7b939d8f239f5f4b31":[8,0,1,0,4,53],
 "namespaceyaze_1_1app_1_1gui.html#a111f2967e1d2d56e2188777b4551a77b":[8,0,1,0,4,52],
 "namespaceyaze_1_1app_1_1gui.html#a1ea1d6c7891279ea571030df8a323fd6":[8,0,1,0,4,43],
@@ -249,5 +247,7 @@ var NAVTREEINDEX38 =
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#a2b3c427473083d084492da3958e03e63":[8,0,1,0,5,2,6],
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#a3407566be0a556a2ebecf32b78d7dab9":[8,0,1,0,5,2,14],
 "namespaceyaze_1_1app_1_1zelda3_1_1music.html#a603a4a83eb4d9dfde0c14d3acc6f42ab":[8,0,1,0,5,2,2],
-"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd":[8,0,1,0,5,2,9]
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a84b93f0b01be6a6dd1e85dd11354d6bd":[8,0,1,0,5,2,9],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a98cdd85309c1dc75eba79a75d551ec4e":[8,0,1,0,5,2,4],
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#a9c6669c5e833cfd1c94ddf5ca2581a30":[8,0,1,0,5,2,5]
 };
