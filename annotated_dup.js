@@ -251,7 +251,9 @@ var annotated_dup =
           ] ],
           [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
           [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ],
-          [ "SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder" ]
+          [ "SpriteAction", "classyaze_1_1app_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteAction" ],
+          [ "SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder" ],
+          [ "SpriteInstruction", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction" ]
         ] ],
         [ "OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", "structyaze_1_1app_1_1OWMapTiles" ],
         [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
@@ -288,6 +290,9 @@ var annotated_dup =
         [ "MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", "classyaze__test_1_1emu__test_1_1MockPpu" ],
         [ "PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
         [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ]
+      ] ],
+      [ "zelda3_test", "namespaceyaze__test_1_1zelda3__test.html", [
+        [ "SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest" ]
       ] ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],

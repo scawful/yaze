@@ -239,8 +239,10 @@ var hierarchy =
     [ "sprite", "structsprite.html", null ],
     [ "sprite_action", "structsprite__action.html", null ],
     [ "sprite_instruction", "structsprite__instruction.html", null ],
+    [ "yaze::app::zelda3::SpriteAction", "classyaze_1_1app_1_1zelda3_1_1SpriteAction.html", null ],
     [ "yaze::app::emu::video::SpriteAttributes", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html", null ],
     [ "yaze::app::zelda3::SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", null ],
+    [ "yaze::app::zelda3::SpriteInstruction", "classyaze_1_1app_1_1zelda3_1_1SpriteInstruction.html", null ],
     [ "yaze::app::editor::SpriteItem", "structyaze_1_1app_1_1editor_1_1SpriteItem.html", null ],
     [ "yaze::app::editor::zsprite::SpriteProperty", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html", null ],
     [ "yaze::app::zelda3::dungeon::StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", null ],
@@ -252,7 +254,8 @@ var hierarchy =
       [ "yaze::app::RomTest", "classyaze_1_1app_1_1RomTest.html", null ],
       [ "yaze_test::emu_test::CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", null ],
       [ "yaze_test::emu_test::PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", null ],
-      [ "yaze_test::emu_test::Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", null ]
+      [ "yaze_test::emu_test::Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", null ],
+      [ "yaze_test::zelda3_test::SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", null ]
     ] ],
     [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
     [ "yaze::app::editor::TextElement", "structyaze_1_1app_1_1editor_1_1TextElement.html", null ],

@@ -23,8 +23,9 @@ var searchData=
   ['sprite_2eh_20',['sprite.h',['../app_2zelda3_2sprite_2sprite_8h.html',1,'(Global Namespace)'],['../base_2sprite_8h.html',1,'(Global Namespace)']]],
   ['sprite_5fbuilder_2ecc_21',['sprite_builder.cc',['../sprite__builder_8cc.html',1,'']]],
   ['sprite_5fbuilder_2eh_22',['sprite_builder.h',['../sprite__builder_8h.html',1,'']]],
-  ['sprite_5feditor_2ecc_23',['sprite_editor.cc',['../sprite__editor_8cc.html',1,'']]],
-  ['sprite_5feditor_2eh_24',['sprite_editor.h',['../sprite__editor_8h.html',1,'']]],
-  ['style_2ecc_25',['style.cc',['../style_8cc.html',1,'']]],
-  ['style_2eh_26',['style.h',['../style_8h.html',1,'']]]
+  ['sprite_5fbuilder_5ftest_2ecc_23',['sprite_builder_test.cc',['../sprite__builder__test_8cc.html',1,'']]],
+  ['sprite_5feditor_2ecc_24',['sprite_editor.cc',['../sprite__editor_8cc.html',1,'']]],
+  ['sprite_5feditor_2eh_25',['sprite_editor.h',['../sprite__editor_8h.html',1,'']]],
+  ['style_2ecc_26',['style.cc',['../style_8cc.html',1,'']]],
+  ['style_2eh_27',['style.h',['../style_8h.html',1,'']]]
 ];

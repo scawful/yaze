@@ -1,5 +1,8 @@
 <map id="yaze::app::zelda3::SpriteBuilder" name="yaze::app::zelda3::SpriteBuilder">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,129,135"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,213,129,253"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="40,5,94,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,46,70,93,64,93,64,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,46,62,95,61,150,67,212,62,212,56,150,57,94,61,46"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1SpriteAction.html" title=" " alt="" coords="105,109,229,150"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="90,41,151,107,147,110,86,44"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,163,88,214,84,210,135,159"/>
 </map>
