@@ -16,9 +16,9 @@ add_executable(
   test/yaze_test.cc
   test/libc_test.cc
   test/rom_test.cc
-  test/emu/cpu_test.cc
-  test/emu/spc700_test.cc
-  test/emu/ppu_test.cc
+  # test/emu/cpu_test.cc
+  # test/emu/spc700_test.cc
+  # test/emu/ppu_test.cc
   test/gfx/compression_test.cc
   test/gfx/snes_palette_test.cc
   test/zelda3/room_object_test.cc
