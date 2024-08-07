@@ -1,5 +1,9 @@
 var NAVTREEINDEX15 =
 {
+"classyaze_1_1app_1_1gfx_1_1OamTile.html#adda07fa8d15d6919ed667512091635a3":[8,0,1,0,3,6,7],
+"classyaze_1_1app_1_1gfx_1_1OamTile.html#adda07fa8d15d6919ed667512091635a3":[9,0,0,0,3,4,7],
+"classyaze_1_1app_1_1gfx_1_1SnesColor.html":[8,0,1,0,3,12],
+"classyaze_1_1app_1_1gfx_1_1SnesColor.html":[9,0,0,0,3,10],
 "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a13f58e36897e518cf3fd2614a0dc76f2":[8,0,1,0,3,12,8],
 "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a13f58e36897e518cf3fd2614a0dc76f2":[9,0,0,0,3,10,8],
 "classyaze_1_1app_1_1gfx_1_1SnesColor.html#a1bb4ec818579a0a98fffc3b1a5eb101d":[8,0,1,0,3,12,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX15 =
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a1ee6c782d10d1fa882d00fe8f19e1359":[8,0,1,0,4,4,73],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a1ee6c782d10d1fa882d00fe8f19e1359":[9,0,0,0,4,3,73],
 "classyaze_1_1app_1_1gui_1_1Canvas.html#a20a73ef4a6a6205e4c1a65828bc6c014":[8,0,1,0,4,4,2],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a20a73ef4a6a6205e4c1a65828bc6c014":[9,0,0,0,4,3,2],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a20aba6755245124ba776f05797eca510":[8,0,1,0,4,4,4],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a20aba6755245124ba776f05797eca510":[9,0,0,0,4,3,4],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a22a57a1d1d4a44ab04dc94a28df80930":[8,0,1,0,4,4,85],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a22a57a1d1d4a44ab04dc94a28df80930":[9,0,0,0,4,3,85]
+"classyaze_1_1app_1_1gui_1_1Canvas.html#a20a73ef4a6a6205e4c1a65828bc6c014":[9,0,0,0,4,3,2]
 };

@@ -109,6 +109,15 @@ $(function(){initNavTree('md_docs_2infrastructure.html',''); initResizable(true)
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md19"></a> For developers to reference.</p>
 <h1><a class="anchor" id="autotoc_md20"></a>
+Targets</h1>
+<ul>
+<li><b>yaze</b>: Desktop application for Windows/macOS/Linux</li>
+<li><b>yaze_c</b>: C Library</li>
+<li><b>yaze_py</b>: Python Module</li>
+<li><b>yaze_ext</b>: Extensions library</li>
+<li><b><a class="el" href="namespaceyaze__test.html">yaze_test</a></b>: Unit test executable</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md21"></a>
 Directory Structure</h1>
 <ul>
 <li>**.github/workflows**: Contains <code><a class="el" href="namespaceyaze__test.html">yaze_test</a></code> workflow config.</li>
@@ -122,6 +131,8 @@ Directory Structure</h1>
 <li><b>src</b>: Contains source files.<ul>
 <li><b>app</b>: Contains the GUI editor <code>yaze</code></li>
 <li><b>cli</b>: Contains the command line interface <code>z3ed</code></li>
+<li><b>ext</b>: Contains the extensions library <code>yaze_ext</code></li>
+<li><b>py</b>: Contains the Python module <code>yaze_py</code></li>
 <li><b>lib</b>: Contains git submodule dependencies.<ul>
 <li>Abseil-cpp</li>
 <li>Asar</li>
@@ -138,7 +149,7 @@ Directory Structure</h1>
 </li>
 <li><b>test</b>: Contains testing interface <code><a class="el" href="namespaceyaze__test.html">yaze_test</a></code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md21"></a>
+<h2><a class="anchor" id="autotoc_md22"></a>
 Flow of Control</h2>
 <ul>
 <li><a href="../src/app/yaze.cc">app/yaze.cc</a><ul>
@@ -194,12 +205,12 @@ Flow of Control</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<h1><a class="anchor" id="autotoc_md23"></a>
 ROM</h1>
 <ul>
 <li><a href="../src/app/rom.cc">app/rom.cc</a> </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md23"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 - <a href="../src/app/rom.h">app/rom.h</a></h1>
 <p>This <code>ROM</code> class provides methods to manipulate and access data from a ROM.</p>
 <ul>
@@ -227,22 +238,22 @@ ROM</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md25"></a>
 Bitmap</h1>
 <ul>
 <li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.cc</a> </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md25"></a>
+<h1><a class="anchor" id="autotoc_md26"></a>
 - <a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.h</a></h1>
 <p>This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using the <a class="el" href="namespaceImGui.html">ImGui</a> library.</p>
-<h2><a class="anchor" id="autotoc_md26"></a>
+<h2><a class="anchor" id="autotoc_md27"></a>
 Key Attributes:</h2>
 <ol type="1">
 <li><b>Width, Height, Depth, and Data Size</b>: These represent the dimensions and data size of the bitmap.</li>
 <li><b>Pixel Data</b>: Points to the raw data of the bitmap.</li>
 <li><b>Texture and Surface</b>: Use SDL to manage the graphical representation of the bitmap data. Both these attributes have custom deleters, ensuring proper resource management.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md28"></a>
 Main Functions:</h2>
 <ol type="1">
 <li><b>Constructors</b>: Multiple constructors allow for different ways to create a Bitmap instance, like specifying width, height, depth, and data.</li>
@@ -262,7 +273,7 @@ Main Functions:</h2>
 </li>
 <li><b>WriteToPixel</b>: Directly writes a value to a specified position in the pixel data.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md28"></a>
+<h1><a class="anchor" id="autotoc_md29"></a>
 Z3ED cli</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -288,7 +299,7 @@ Z3ED cli</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">PC to SNES Address   </td><td class="markdownTableBodyNone">-p   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md29"></a>
+<h1><a class="anchor" id="autotoc_md30"></a>
 Further Development Ideas</h1>
 <ul>
 <li>Extend <code>zelda3</code> namespace with additional functionalities.</li>

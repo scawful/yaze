@@ -1,8 +1,8 @@
 var searchData=
 [
   ['h_0',['H',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#ac8c7abba67c810daafa6a6c3352481f1',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['h_20a_1',['h a',['../md_docs_2infrastructure.html#autotoc_md25',1,'- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;'],['../md_docs_2infrastructure.html#autotoc_md23',1,'- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;']]],
-  ['h_20app_20rom_20h_20a_2',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
+  ['h_20a_1',['h a',['../md_docs_2infrastructure.html#autotoc_md26',1,'- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;'],['../md_docs_2infrastructure.html#autotoc_md24',1,'- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;']]],
+  ['h_20app_20rom_20h_20a_2',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md24',1,'']]],
   ['h_5fcount_5f_3',['h_count_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a62def520d87ddce3bb76d52d1c9aa8f7',1,'yaze::app::emu::video::Ppu']]],
   ['h_5fcount_5fsecond_5f_4',['h_count_second_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ac6cf9da9cf20d77657eb928214ed6d69',1,'yaze::app::emu::video::Ppu']]],
   ['h_5firq_5fenabled_5f_5',['h_irq_enabled_',['../classyaze_1_1app_1_1emu_1_1SNES.html#acf40f2555f47abbad4c2ed82edcf3418',1,'yaze::app::emu::SNES']]],
@@ -72,8 +72,8 @@ var searchData=
   ['horizontalscanlocation_69',['horizontalScanLocation',['../structyaze_1_1app_1_1emu_1_1video_1_1CounterIrqNmiRegisters.html#a5ed479b72951879a7e2515a90ae029a6',1,'yaze::app::emu::video::CounterIrqNmiRegisters']]],
   ['hover_5fhint_70',['HOVER_HINT',['../constants_8h.html#ae341b584a47fc74d82c009e929269df9',1,'constants.h']]],
   ['hover_5fmouse_5fpos_71',['hover_mouse_pos',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a3ea711829b4d116e65c82eb5687c8f0b',1,'yaze::app::gui::Canvas']]],
-  ['href_20src_20app_20gfx_20bitmap_20cc_20app_20gfx_20bitmap_20h_20a_72',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
-  ['href_20src_20app_20rom_20h_20app_20rom_20h_20a_73',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
+  ['href_20src_20app_20gfx_20bitmap_20cc_20app_20gfx_20bitmap_20h_20a_72',['- &lt;a href=&quot;../src/app/gfx/bitmap.cc&quot; &gt;app/gfx/bitmap.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md26',1,'']]],
+  ['href_20src_20app_20rom_20h_20app_20rom_20h_20a_73',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md24',1,'']]],
   ['hscroll_74',['hScroll',['../structyaze_1_1app_1_1emu_1_1video_1_1BgLayer.html#a18ce3edd06619cf78923e1fda841f353',1,'yaze::app::emu::video::BgLayer']]],
   ['hud_75',['hud',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a9a6153417857e46e9a17600179d72cf2',1,'yaze::app::gfx::PaletteGroupMap::hud'],['../structyaze_1_1app_1_1gfx_1_1Paletteset.html#a976ee6db80165948cb5926900634973c',1,'yaze::app::gfx::Paletteset::hud']]],
   ['hud_5fpalettes_76',['hud_palettes',['../namespaceyaze_1_1app_1_1core.html#aca9765be2c114fb95a5a3724fad4b994',1,'yaze::app::core']]]

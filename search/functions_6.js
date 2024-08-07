@@ -76,10 +76,11 @@ var searchData=
   ['getwindowstate_73',['GetWindowState',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#ab98435209212151dc85b98cf8f6a0eb1',1,'yaze::app::emu::video::Ppu']]],
   ['getzeroflag_74',['GetZeroFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a78ab4a43929b6149cadd3c39483f94c9',1,'yaze::app::emu::Cpu']]],
   ['gfx_5fgroup_5feditor_75',['gfx_group_editor',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a8c0cdb0a0b7bd8693e2fa44812d7b04e',1,'yaze::app::editor::OverworldEditor']]],
-  ['global_5fscale_76',['global_scale',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235',1,'yaze::app::gui::Canvas']]],
-  ['graphics_5fbin_77',['graphics_bin',['../classyaze_1_1app_1_1Rom.html#a6f1314506031b4a334b3d411116be32f',1,'yaze::app::Rom']]],
-  ['graphics_5fbuffer_78',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610',1,'yaze::app::Rom']]],
-  ['graphicsbincanvaspipeline_79',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui::GraphicsBinCanvasPipeline(int width, int height, int tile_size, int num_sheets_to_load, int canvas_id, bool is_loaded, gfx::BitmapTable &amp;graphics_bin)'],['../namespaceyaze_1_1app_1_1gui.html#a476c0e077fd2b72741ec330577da90d6',1,'yaze::app::gui::GraphicsBinCanvasPipeline(int width, int height, int tile_size, int num_sheets_to_load, int canvas_id, bool is_loaded, BitmapTable &amp;graphics_bin)']]],
-  ['graphicseditor_80',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
-  ['grayscalepalette_81',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
+  ['gfx_5fsheets_76',['gfx_sheets',['../classyaze_1_1app_1_1Rom.html#a0911436fac0734acd28f4fe24ab02c28',1,'yaze::app::Rom']]],
+  ['global_5fscale_77',['global_scale',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235',1,'yaze::app::gui::Canvas']]],
+  ['graphics_5fbin_78',['graphics_bin',['../classyaze_1_1app_1_1Rom.html#a6f1314506031b4a334b3d411116be32f',1,'yaze::app::Rom']]],
+  ['graphics_5fbuffer_79',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610',1,'yaze::app::Rom']]],
+  ['graphicsbincanvaspipeline_80',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui::GraphicsBinCanvasPipeline(int width, int height, int tile_size, int num_sheets_to_load, int canvas_id, bool is_loaded, gfx::BitmapTable &amp;graphics_bin)'],['../namespaceyaze_1_1app_1_1gui.html#a476c0e077fd2b72741ec330577da90d6',1,'yaze::app::gui::GraphicsBinCanvasPipeline(int width, int height, int tile_size, int num_sheets_to_load, int canvas_id, bool is_loaded, BitmapTable &amp;graphics_bin)']]],
+  ['graphicseditor_81',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
+  ['grayscalepalette_82',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
 ];

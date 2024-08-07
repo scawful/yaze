@@ -68,7 +68,7 @@ var searchData=
   ['floor_5fnumber_65',['floor_number',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8',1,'yaze::app::editor::ScreenEditor']]],
   ['floor_5frooms_66',['floor_rooms',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['floors_67',['Floors',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae70340033b22f19b9a25b59360eae20e',1,'yaze::app::zelda3::dungeon']]],
-  ['flow_20of_20control_68',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md21',1,'']]],
+  ['flow_20of_20control_68',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md22',1,'']]],
   ['focus_69',['Focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5',1,'yaze::app::editor::MessageEditor::TextBox']]],
   ['folderitem_70',['FolderItem',['../structyaze_1_1app_1_1core_1_1FolderItem.html',1,'yaze::app::core::FolderItem'],['../namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd',1,'yaze::app::core::FolderItem']]],
   ['font_5fgfx16_5fdata_71',['font_gfx16_data',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a00a8d1c03e567d70bd58e0b4a9d0fdf9',1,'yaze::app::editor::MessageEditor']]],
@@ -100,7 +100,7 @@ var searchData=
   ['full_5fpalette_5f_97',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
   ['function_98',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
   ['functions_99',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
-  ['functions_3a_100',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2infrastructure.html#autotoc_md27',1,'Main Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
-  ['further_20development_20ideas_101',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md29',1,'']]],
+  ['functions_3a_100',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2infrastructure.html#autotoc_md28',1,'Main Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
+  ['further_20development_20ideas_101',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md30',1,'']]],
   ['fx_102',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

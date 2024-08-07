@@ -46,7 +46,7 @@ var searchData=
   ['object_5fsize_43',['object_size',['../structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html#a2975e9ddec9871b9a9866c90576dd7c1',1,'yaze::app::emu::video::OAMSize']]],
   ['objectoption_44',['ObjectOption',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#abe17795abf1adfe947a81911733145da',1,'yaze::app::zelda3::dungeon']]],
   ['objsel_45',['OBJSEL',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OBJSEL.html',1,'yaze::app::emu::video::PpuRegisters::OBJSEL'],['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a5668b7ce55e5eb12bda791b26f5c1c5c',1,'yaze::app::emu::video::PpuRegisters::OBJSEL']]],
-  ['of_20control_46',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md21',1,'']]],
+  ['of_20control_46',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md22',1,'']]],
   ['off_47',['Off',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4af0345dc2e403e84cbdab450c6365a95b',1,'yaze::app::zelda3::dungeon']]],
   ['offset_48',['Offset',['../structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html#aba3275f10707e81df8e47d1428f9bd24',1,'yaze::app::editor::ExampleMemberInfo']]],
   ['offset_49',['offset',['../structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html#aa9ca54a92ab7593490f62b7f20818256',1,'yaze::app::emu::video::ScrollRegister']]],

@@ -1,5 +1,10 @@
 var NAVTREEINDEX44 =
 {
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa45ad7a2d16b486946224270eaeb0cec":[9,0,0,0,0,7,8],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a":[8,0,1,0,0,9,1],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a":[9,0,0,0,0,7,1],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1":[8,0,1,0,0,9,6],
+"structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ab5527e695ccdbad0e335d27b8e6cecc1":[9,0,0,0,0,7,6],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd":[8,0,1,0,0,9,4],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#adff5679951d249e2a677399f98f1d6dd":[9,0,0,0,0,7,4],
 "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#ae8b5387ea50ef824bd980bd8f4e63b3c":[8,0,1,0,0,9,5],
@@ -244,10 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a245a840c9f95468905b8e7e378595ff0":[9,0,0,0,1,2,0,6],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a6d3d212b9009e9ee560939c3c5bfd439":[8,0,1,0,1,7,0,2],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a6d3d212b9009e9ee560939c3c5bfd439":[9,0,0,0,1,2,0,2],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a9d463f5deaff76ede8bf8a880d24ab80":[8,0,1,0,1,7,0,5],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a9d463f5deaff76ede8bf8a880d24ab80":[9,0,0,0,1,2,0,5],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#aa7eafc2a8ab66dc94a25b2732d8d2dbc":[8,0,1,0,1,7,0,3],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#aa7eafc2a8ab66dc94a25b2732d8d2dbc":[9,0,0,0,1,2,0,3],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#ab36ba050ab16d8a9eb89b9f593bbf713":[8,0,1,0,1,7,0,1],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#ab36ba050ab16d8a9eb89b9f593bbf713":[9,0,0,0,1,2,0,1]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html#a9d463f5deaff76ede8bf8a880d24ab80":[8,0,1,0,1,7,0,5]
 };
