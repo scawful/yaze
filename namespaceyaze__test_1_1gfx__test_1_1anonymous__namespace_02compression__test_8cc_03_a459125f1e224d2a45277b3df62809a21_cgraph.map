@@ -1,7 +1,7 @@
 <map id="yaze_test::gfx_test::anonymous_namespace{compression_test::cc}::ExpectCompressOk" name="yaze_test::gfx_test::anonymous_namespace{compression_test::cc}::ExpectCompressOk">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,571,173,642"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,570,48,560,56,552,70,546,89,545,111,547,125,554,122,559,109,552,89,550,71,552,59,556,53,563,51,571"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a36712f23f472fdf5e25c85096463082b" title=" " alt="" coords="221,557,393,598"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#abb4d7c5afd07bb1a33d04c495090c638" title=" " alt="" coords="221,557,393,598"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="173,593,205,588,206,593,173,598"/>
 <area shape="rect" id="Node000026" href="$classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186" title=" " alt="" coords="232,622,382,647"/>
 <area shape="poly" id="edge52_Node000001_Node000026" title=" " alt="" coords="173,615,217,620,216,626,173,620"/>
@@ -9,7 +9,7 @@
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="393,557,463,542,464,547,394,562"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="446,564,641,590"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="393,574,430,574,430,580,393,580"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="441,614,645,639"/>
+<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="441,614,645,639"/>
 <area shape="poly" id="edge51_Node000002_Node000025" title=" " alt="" coords="394,593,464,607,463,613,393,598"/>
 <area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247" title=" " alt="" coords="709,693,907,749"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="628,588,647,599,665,619,672,640,679,660,695,679,700,683,696,687,691,683,675,662,667,641,660,622,644,603,625,593"/>

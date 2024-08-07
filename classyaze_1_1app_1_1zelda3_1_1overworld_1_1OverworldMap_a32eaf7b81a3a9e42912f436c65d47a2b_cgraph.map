@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,667,207,657,209,662,174,672"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="450,577,605,618"/>
 <area shape="poly" id="edge57_Node000001_Node000003" title=" " alt="" coords="113,665,159,622,188,602,220,587,274,574,330,569,384,570,434,576,434,581,384,576,330,574,275,579,222,592,191,607,162,626,116,669"/>
-<area shape="rect" id="Node000004" href="$yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="502,686,552,712"/>
+<area shape="rect" id="Node000004" href="$app_2yaze_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627" title="Main entry point for the application." alt="" coords="502,686,552,712"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="173,693,487,696,487,701,173,698"/>
 <area shape="rect" id="Node000455" href="$classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d" title=" " alt="" coords="451,805,603,846"/>
 <area shape="poly" id="edge52_Node000001_Node000455" title=" " alt="" coords="117,721,163,763,191,782,222,798,275,814,331,824,386,829,436,829,436,835,385,834,330,829,274,820,220,803,189,787,160,767,114,725"/>
@@ -19,7 +19,7 @@
 <area shape="poly" id="edge17_Node000004_Node000027" title=" " alt="" coords="551,684,584,661,599,646,612,628,629,589,635,552,634,517,629,483,625,449,626,415,637,380,660,344,681,327,685,331,664,347,642,383,632,416,631,449,634,483,639,517,640,553,634,590,617,631,603,649,587,665,554,689"/>
 <area shape="rect" id="Node000028" href="$classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d" title=" " alt="" coords="676,357,842,398"/>
 <area shape="poly" id="edge18_Node000004_Node000028" title=" " alt="" coords="551,684,583,661,612,628,626,598,632,570,630,516,629,490,631,463,641,436,660,408,662,406,666,410,664,411,646,438,637,464,634,490,636,516,637,570,631,600,617,631,587,665,554,688"/>
-<area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="662,422,856,448"/>
+<area shape="rect" id="Node000029" href="$classyaze_1_1app_1_1Rom.html#aba8b6cae625f88b7da18a984bf747a49" title=" " alt="" coords="662,422,856,448"/>
 <area shape="poly" id="edge19_Node000004_Node000029" title=" " alt="" coords="546,684,578,659,612,628,737,459,742,462,616,631,582,663,549,688"/>
 <area shape="rect" id="Node000054" href="$classyaze_1_1app_1_1emu_1_1SNES.html#a539231a4627a927d03a8d916d12c195c" title=" " alt="" coords="685,580,833,621"/>
 <area shape="poly" id="edge24_Node000004_Node000054" title=" " alt="" coords="551,684,661,631,679,624,681,629,663,636,553,689"/>
@@ -65,7 +65,7 @@
 <area shape="poly" id="edge20_Node000029_Node000030" title=" " alt="" coords="835,419,854,408,865,395,872,383,877,356,882,328,890,314,902,301,909,295,913,300,905,305,894,317,887,330,882,357,877,384,870,398,857,412,838,424"/>
 <area shape="rect" id="Node000031" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="908,316,1104,341"/>
 <area shape="poly" id="edge21_Node000029_Node000031" title=" " alt="" coords="830,419,854,407,869,394,877,380,886,364,902,350,911,345,913,350,905,355,890,368,882,382,873,397,857,412,832,424"/>
-<area shape="rect" id="Node000052" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="904,365,1108,390"/>
+<area shape="rect" id="Node000052" href="$classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="904,365,1108,390"/>
 <area shape="poly" id="edge22_Node000029_Node000052" title=" " alt="" coords="817,419,932,392,933,397,818,424"/>
 <area shape="rect" id="Node000053" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="917,415,1094,455"/>
 <area shape="poly" id="edge23_Node000029_Node000053" title=" " alt="" coords="856,432,902,432,902,438,856,438"/>

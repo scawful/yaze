@@ -290,6 +290,8 @@ var annotated_dup =
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
+    [ "Extension", "structExtension.html", "structExtension" ],
     [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ],
+    [ "Rom", "structRom.html", "structRom" ],
     [ "sdl_deleter", "structsdl__deleter.html", "structsdl__deleter" ]
 ];

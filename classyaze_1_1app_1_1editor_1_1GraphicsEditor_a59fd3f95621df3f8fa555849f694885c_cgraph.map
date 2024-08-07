@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,582,205,623"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50" title=" " alt="" coords="269,525,430,566"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,579,253,565,255,570,195,584"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="253,590,446,615"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#aba8b6cae625f88b7da18a984bf747a49" title=" " alt="" coords="253,590,446,615"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,600,237,600,237,605,205,605"/>
 <area shape="rect" id="Node000028" href="$namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173" title=" " alt="" coords="272,640,426,680"/>
 <area shape="poly" id="edge53_Node000001_Node000028" title=" " alt="" coords="195,621,258,636,256,641,194,626"/>
@@ -10,7 +10,7 @@
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="409,586,445,575,469,562,493,549,513,543,514,548,495,554,471,567,447,580,411,592"/>
 <area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="498,564,694,590"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="446,590,483,586,484,591,447,595"/>
-<area shape="rect" id="Node000026" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="494,614,698,639"/>
+<area shape="rect" id="Node000026" href="$classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="494,614,698,639"/>
 <area shape="poly" id="edge51_Node000003_Node000026" title=" " alt="" coords="447,609,479,612,478,618,446,615"/>
 <area shape="rect" id="Node000027" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="508,664,685,704"/>
 <area shape="poly" id="edge52_Node000003_Node000027" title=" " alt="" coords="410,613,447,625,495,649,511,655,509,660,493,654,445,630,408,618"/>

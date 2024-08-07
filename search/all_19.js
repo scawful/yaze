@@ -18,7 +18,7 @@ var searchData=
   ['value_5ftype_15',['value_type',['../classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a57cb8645564e3cb55e1e488361e977d5',1,'yaze::app::gfx::BitmapManager']]],
   ['vector_16',['vector',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291',1,'yaze::app::gfx::Bitmap::vector()'],['../classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186',1,'yaze::app::Rom::vector()']]],
   ['verbose_5f_17',['verbose_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a2dd494a961c9c31c823ab2e0517f8181',1,'yaze::app::emu::memory::MemoryImpl']]],
-  ['version_18',['version',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a68327f3614c18b3f42c71314366ba61a',1,'yaze::app::emu::memory::RomInfo::version'],['../classyaze_1_1app_1_1Rom.html#a70fa50ea0fbfd2c40aebdbcf8b93b9b2',1,'yaze::app::Rom::version()']]],
+  ['version_18',['version',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a68327f3614c18b3f42c71314366ba61a',1,'yaze::app::emu::memory::RomInfo::version'],['../structExtension.html#ad481c784744e81458a35fb44a5f69534',1,'Extension::version'],['../classyaze_1_1app_1_1Rom.html#a70fa50ea0fbfd2c40aebdbcf8b93b9b2',1,'yaze::app::Rom::version()']]],
   ['version_201_3a_19',['Version 1:',['../md_docs_2compression.html#autotoc_md11',1,'']]],
   ['version_202_3a_20',['Version 2:',['../md_docs_2compression.html#autotoc_md12',1,'']]],
   ['version_203_3a_21',['Version 3:',['../md_docs_2compression.html#autotoc_md13',1,'']]],

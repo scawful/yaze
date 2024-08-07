@@ -100,6 +100,7 @@ var hierarchy =
       [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ],
       [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", null ]
     ] ],
+    [ "Extension", "structExtension.html", null ],
     [ "yaze::app::core::ExperimentFlags::Flags", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::app::emu::audio::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", null ],
@@ -189,6 +190,7 @@ var hierarchy =
     [ "yaze::app::editor::RecentFilesManager", "classyaze_1_1app_1_1editor_1_1RecentFilesManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", null ],
     [ "yaze::app::core::ResourceLabelManager::ResourceType", "structyaze_1_1app_1_1core_1_1ResourceLabelManager_1_1ResourceType.html", null ],
+    [ "Rom", "structRom.html", null ],
     [ "yaze::app::emu::memory::RomInfo", "classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html", null ],
     [ "yaze::app::zelda3::dungeon::RoomEntrance", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html", null ],
     [ "yaze::app::emu::video::ScreenDisplay", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html", null ],

@@ -161,29 +161,29 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:afc14270a29bc65dd89edd86823dbd605" id="r_afc14270a29bc65dd89edd86823dbd605"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics</a> ()</td></tr>
-<tr class="memdesc:afc14270a29bc65dd89edd86823dbd605"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
-<tr class="separator:afc14270a29bc65dd89edd86823dbd605"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84a0ad99e1136f93397504493d644624" id="r_a84a0ad99e1136f93397504493d644624"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics</a> ()</td></tr>
-<tr class="memdesc:a84a0ad99e1136f93397504493d644624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the players 4bpp graphics sheet from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
-<tr class="separator:a84a0ad99e1136f93397504493d644624"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8afecbb24f3daf7a1df52586be587d82" id="r_a8afecbb24f3daf7a1df52586be587d82"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData</a> ()</td></tr>
-<tr class="memdesc:a8afecbb24f3daf7a1df52586be587d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
-<tr class="separator:a8afecbb24f3daf7a1df52586be587d82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd54932cc184cdb1d66ab026c66b1197" id="r_acd54932cc184cdb1d66ab026c66b1197"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile</a> (const std::string &amp;<a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>, bool z3_load=true)</td></tr>
-<tr class="separator:acd54932cc184cdb1d66ab026c66b1197"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36712f23f472fdf5e25c85096463082b" id="r_a36712f23f472fdf5e25c85096463082b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer</a> (<a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, size_t length)</td></tr>
-<tr class="separator:a36712f23f472fdf5e25c85096463082b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a651c07af2317f9c3206738506cad01e0" id="r_a651c07af2317f9c3206738506cad01e0"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes</a> (const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>)</td></tr>
-<tr class="separator:a651c07af2317f9c3206738506cad01e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a372a28056ae2edc74a0342b1e05ffc9f" id="r_a372a28056ae2edc74a0342b1e05ffc9f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile</a> (bool backup, bool save_new=false, std::string <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>=&quot;&quot;)</td></tr>
-<tr class="memdesc:a372a28056ae2edc74a0342b1e05ffc9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to a file.  <br /></td></tr>
-<tr class="separator:a372a28056ae2edc74a0342b1e05ffc9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ecd5e203ecac5987519ece53983fe63" id="r_a4ecd5e203ecac5987519ece53983fe63"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette</a> (int index, const std::string &amp;group_name, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
-<tr class="separator:a4ecd5e203ecac5987519ece53983fe63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c470124716e2b4bb08f9b4ed1a19dd3" id="r_a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes</a> ()</td></tr>
-<tr class="memdesc:a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves all palettes in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>.  <br /></td></tr>
-<tr class="separator:a3c470124716e2b4bb08f9b4ed1a19dd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a171af80e55800b0e4dc2c130510c2000" id="r_a171af80e55800b0e4dc2c130510c2000"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a171af80e55800b0e4dc2c130510c2000">Load2BppGraphics</a> ()</td></tr>
+<tr class="memdesc:a171af80e55800b0e4dc2c130510c2000"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
+<tr class="separator:a171af80e55800b0e4dc2c130510c2000"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0be846af21cbb3be669ee52f95251ee" id="r_ad0be846af21cbb3be669ee52f95251ee"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad0be846af21cbb3be669ee52f95251ee">LoadLinkGraphics</a> ()</td></tr>
+<tr class="memdesc:ad0be846af21cbb3be669ee52f95251ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the players 4bpp graphics sheet from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <br /></td></tr>
+<tr class="separator:ad0be846af21cbb3be669ee52f95251ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbfb078fe53fe7a3835c8c15686db1d9" id="r_afbfb078fe53fe7a3835c8c15686db1d9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData</a> ()</td></tr>
+<tr class="memdesc:afbfb078fe53fe7a3835c8c15686db1d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function iterates over all graphics sheets in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> and loads them into memory. Depending on the sheet's index, it may be uncompressed or compressed using the LC-LZ2 algorithm. The uncompressed sheets are 3 bits per pixel (BPP), while the compressed sheets are 4 BPP. The loaded graphics data is converted to 8 BPP and stored in a bitmap.  <br /></td></tr>
+<tr class="separator:afbfb078fe53fe7a3835c8c15686db1d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba8b6cae625f88b7da18a984bf747a49" id="r_aba8b6cae625f88b7da18a984bf747a49"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile</a> (const std::string &amp;<a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>, bool z3_load=true)</td></tr>
+<tr class="separator:aba8b6cae625f88b7da18a984bf747a49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb4d7c5afd07bb1a33d04c495090c638" id="r_abb4d7c5afd07bb1a33d04c495090c638"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer</a> (<a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, size_t length)</td></tr>
+<tr class="separator:abb4d7c5afd07bb1a33d04c495090c638"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67a1a485d5fef108b1820b30d1d7776f" id="r_a67a1a485d5fef108b1820b30d1d7776f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a67a1a485d5fef108b1820b30d1d7776f">LoadFromBytes</a> (const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>)</td></tr>
+<tr class="separator:a67a1a485d5fef108b1820b30d1d7776f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76b99ba3b4634433c678629a2b84abfa" id="r_a76b99ba3b4634433c678629a2b84abfa"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a76b99ba3b4634433c678629a2b84abfa">SaveToFile</a> (bool backup, bool save_new=false, std::string <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename</a>=&quot;&quot;)</td></tr>
+<tr class="memdesc:a76b99ba3b4634433c678629a2b84abfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data to a file.  <br /></td></tr>
+<tr class="separator:a76b99ba3b4634433c678629a2b84abfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64ccee69d07d91bd0c7dd4b76896a59e" id="r_a64ccee69d07d91bd0c7dd4b76896a59e"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64ccee69d07d91bd0c7dd4b76896a59e">SavePalette</a> (int index, const std::string &amp;group_name, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
+<tr class="separator:a64ccee69d07d91bd0c7dd4b76896a59e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d44bef2c7730a58b87aefdb865fd2d2" id="r_a7d44bef2c7730a58b87aefdb865fd2d2"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7d44bef2c7730a58b87aefdb865fd2d2">SaveAllPalettes</a> ()</td></tr>
+<tr class="memdesc:a7d44bef2c7730a58b87aefdb865fd2d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves all palettes in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>.  <br /></td></tr>
+<tr class="separator:a7d44bef2c7730a58b87aefdb865fd2d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc977745ac851fd2b982e24bfc7053f3" id="r_adc977745ac851fd2b982e24bfc7053f3"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte</a> (int offset)</td></tr>
 <tr class="separator:adc977745ac851fd2b982e24bfc7053f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a997bfee0f4d228a4d9f30166647f8b37" id="r_a997bfee0f4d228a4d9f30166647f8b37"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord</a> (int offset)</td></tr>
@@ -226,8 +226,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8e4dd51e01c06b634e20f8ad13efad4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c5236f4dc9e1fd7ad98f058d154a139" id="r_a0c5236f4dc9e1fd7ad98f058d154a139"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1VersionConstants.html">VersionConstants</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants</a> () const</td></tr>
 <tr class="separator:a0c5236f4dc9e1fd7ad98f058d154a139"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a379a0859aa1428ff65a9760715e57a9b" id="r_a379a0859aa1428ff65a9760715e57a9b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, uint8_t addr)</td></tr>
-<tr class="separator:a379a0859aa1428ff65a9760715e57a9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa06ec4cb1e61ae80a710d6e5929f5a86" id="r_aa06ec4cb1e61ae80a710d6e5929f5a86"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa06ec4cb1e61ae80a710d6e5929f5a86">GetGraphicsAddress</a> (const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *<a class="el" href="#a92d3c9243147354399c1914c255c113b">data</a>, uint8_t addr)</td></tr>
+<tr class="separator:aa06ec4cb1e61ae80a710d6e5929f5a86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0855ec3a63a82723541f870bdd00f53d" id="r_a0855ec3a63a82723541f870bdd00f53d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group</a> ()</td></tr>
 <tr class="separator:a0855ec3a63a82723541f870bdd00f53d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a051bf6416f14b1547621cc3d556a6e22" id="r_a051bf6416f14b1547621cc3d556a6e22"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group</a> ()</td></tr>
@@ -288,10 +288,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a210de65569d0b088013280d1e45f5c6a" id="r_a210de65569d0b088013280d1e45f5c6a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a210de65569d0b088013280d1e45f5c6a">UpdateBitmap</a> (<a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap, bool use_sdl_update=false)</td></tr>
 <tr class="memdesc:a210de65569d0b088013280d1e45f5c6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to update a bitmap on the screen.  <br /></td></tr>
 <tr class="separator:a210de65569d0b088013280d1e45f5c6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a789d5d8105c88938c104fecb53f70bfe" id="r_a789d5d8105c88938c104fecb53f70bfe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups</a> ()</td></tr>
-<tr class="separator:a789d5d8105c88938c104fecb53f70bfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32176a26208fc061f4120781d5d69315" id="r_a32176a26208fc061f4120781d5d69315"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32176a26208fc061f4120781d5d69315">SaveGroupsToRom</a> ()</td></tr>
-<tr class="separator:a32176a26208fc061f4120781d5d69315"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa92564f3dadb164c82231f141fa67ae9" id="r_aa92564f3dadb164c82231f141fa67ae9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa92564f3dadb164c82231f141fa67ae9">LoadGfxGroups</a> ()</td></tr>
+<tr class="separator:aa92564f3dadb164c82231f141fa67ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac88e7e35f5ac87481433cb2bb7bb6b4d" id="r_ac88e7e35f5ac87481433cb2bb7bb6b4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac88e7e35f5ac87481433cb2bb7bb6b4d">SaveGroupsToRom</a> ()</td></tr>
+<tr class="separator:ac88e7e35f5ac87481433cb2bb7bb6b4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ab5edcc4038c88025b8d852909b9876" id="r_a0ab5edcc4038c88025b8d852909b9876"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ab5edcc4038c88025b8d852909b9876">resource_label</a> ()</td></tr>
 <tr class="separator:a0ab5edcc4038c88025b8d852909b9876"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1app_1_1core_1_1ExperimentFlags"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1app_1_1core_1_1ExperimentFlags')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html">yaze::app::core::ExperimentFlags</a></td></tr>
@@ -361,14 +361,14 @@ Private Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> class is used to load, save, and modify <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="afc14270a29bc65dd89edd86823dbd605" name="afc14270a29bc65dd89edd86823dbd605"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc14270a29bc65dd89edd86823dbd605">&#9670;&#160;</a></span>Load2BppGraphics()</h2>
+<a id="a171af80e55800b0e4dc2c130510c2000" name="a171af80e55800b0e4dc2c130510c2000"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a171af80e55800b0e4dc2c130510c2000">&#9670;&#160;</a></span>Load2BppGraphics()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; yaze::app::Rom::Load2BppGraphics </td>
+          <td class="memname">absl::StatusOr&lt; <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &gt; Rom::Load2BppGraphics </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -379,18 +379,18 @@ Private Attributes</h2></td></tr>
 <p>Loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data. </p>
 <p>This function loads 2bpp graphics from <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data by iterating over a list of sheet IDs, decompressing the sheet data, converting it to 8bpp format, and appending the converted sheet data to a byte vector. </p>
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="#aa06ec4cb1e61ae80a710d6e5929f5a86">GetGraphicsAddress()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph" id="aclassyaze_1_1app_1_1Rom_afc14270a29bc65dd89edd86823dbd605_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a171af80e55800b0e4dc2c130510c2000_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a171af80e55800b0e4dc2c130510c2000_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a171af80e55800b0e4dc2c130510c2000_cgraph" id="aclassyaze_1_1app_1_1Rom_a171af80e55800b0e4dc2c130510c2000_cgraph">
 <area shape="rect" title="Loads 2bpp graphics from Rom data." alt="" coords="5,92,178,133"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="477,70,615,96"/>
 <area shape="poly" title=" " alt="" coords="178,104,461,86,462,91,178,109"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="249,5,388,46"/>
 <area shape="poly" title=" " alt="" coords="146,89,248,50,250,55,148,94"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b" title=" " alt="" coords="226,120,412,161"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#aa06ec4cb1e61ae80a710d6e5929f5a86" title=" " alt="" coords="226,120,412,161"/>
 <area shape="poly" title=" " alt="" coords="178,120,211,124,210,130,177,126"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f" title=" " alt="" coords="231,185,407,226"/>
 <area shape="poly" title=" " alt="" coords="138,131,227,170,245,177,243,182,225,175,136,136"/>
@@ -408,14 +408,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a84a0ad99e1136f93397504493d644624" name="a84a0ad99e1136f93397504493d644624"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a84a0ad99e1136f93397504493d644624">&#9670;&#160;</a></span>LoadLinkGraphics()</h2>
+<a id="ad0be846af21cbb3be669ee52f95251ee" name="ad0be846af21cbb3be669ee52f95251ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0be846af21cbb3be669ee52f95251ee">&#9670;&#160;</a></span>LoadLinkGraphics()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::LoadLinkGraphics </td>
+          <td class="memname">absl::Status Rom::LoadLinkGraphics </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -429,8 +429,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph" id="aclassyaze_1_1app_1_1Rom_a84a0ad99e1136f93397504493d644624_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_ad0be846af21cbb3be669ee52f95251ee_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_ad0be846af21cbb3be669ee52f95251ee_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_ad0be846af21cbb3be669ee52f95251ee_cgraph" id="aclassyaze_1_1app_1_1Rom_ad0be846af21cbb3be669ee52f95251ee_cgraph">
 <area shape="rect" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="5,116,173,157"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a12666f7bb6b6dcacbb721b16eded9000" title=" " alt="" coords="230,22,406,62"/>
 <area shape="poly" title=" " alt="" coords="130,114,220,73,238,66,240,71,222,78,133,119"/>
@@ -456,14 +456,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a8afecbb24f3daf7a1df52586be587d82" name="a8afecbb24f3daf7a1df52586be587d82"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8afecbb24f3daf7a1df52586be587d82">&#9670;&#160;</a></span>LoadAllGraphicsData()</h2>
+<a id="afbfb078fe53fe7a3835c8c15686db1d9" name="afbfb078fe53fe7a3835c8c15686db1d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbfb078fe53fe7a3835c8c15686db1d9">&#9670;&#160;</a></span>LoadAllGraphicsData()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::LoadAllGraphicsData </td>
+          <td class="memname">absl::Status Rom::LoadAllGraphicsData </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -488,14 +488,14 @@ Here is the call graph for this function:</div>
 <td class="markdownTableBodyNone">218-222   </td><td class="markdownTableBodyNone">Compressed 2bpp   </td><td class="markdownTableBodyNone">0x800 chars   </td><td class="markdownTableBodyNone">Decompressed each   </td></tr>
 </table>
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a732269bb5e7ca5456b300caec6a568be">yaze::app::gfx::PaletteGroupMap::global_sprites</a>, <a class="el" href="#a305268d32995912a2e212100dc771689">graphics_bin_</a>, <a class="el" href="#a95a2922f020624c4e4f6efd999b504d6">graphics_buffer_</a>, <a class="el" href="#a8f6654753e3a5b9bf4a555792cf6e5dd">graphics_manager_</a>, <a class="el" href="#a4cf6d30e97cf7bed332d5ad22a0e2f71">graphics_sheets_</a>, <a class="el" href="namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2">yaze::app::kNumGfxSheets</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#adeee2f15a01705bd473a4324309d828e">yaze::app::core::kTilesheetDepth</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a31f53a26cadeced84ab6ba6020a4c5f8">yaze::app::core::kTilesheetHeight</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a46743e1a4aa5c38b9bbb84a67d95916e">yaze::app::core::kTilesheetWidth</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1e491fbd2f560c57aedae0e9dc684001">yaze::app::gfx::BitmapManager::LoadBitmap()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#a2e058ea3ea8a945708246ad08d86e28e">renderer_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3d5b03ec8e7cf6320a507ff26960438e">yaze::app::gfx::BitmapManager::size()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b">yaze::app::Uncompressed3BPPSize</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92">yaze::app::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#ac0c357840dc06699f0e27b24e5c0f2d9">yaze::app::gfx::PaletteGroupMap::dungeon_main</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="#aa06ec4cb1e61ae80a710d6e5929f5a86">GetGraphicsAddress()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#a732269bb5e7ca5456b300caec6a568be">yaze::app::gfx::PaletteGroupMap::global_sprites</a>, <a class="el" href="#a305268d32995912a2e212100dc771689">graphics_bin_</a>, <a class="el" href="#a95a2922f020624c4e4f6efd999b504d6">graphics_buffer_</a>, <a class="el" href="#a8f6654753e3a5b9bf4a555792cf6e5dd">graphics_manager_</a>, <a class="el" href="#a4cf6d30e97cf7bed332d5ad22a0e2f71">graphics_sheets_</a>, <a class="el" href="namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2">yaze::app::kNumGfxSheets</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#adeee2f15a01705bd473a4324309d828e">yaze::app::core::kTilesheetDepth</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a31f53a26cadeced84ab6ba6020a4c5f8">yaze::app::core::kTilesheetHeight</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a46743e1a4aa5c38b9bbb84a67d95916e">yaze::app::core::kTilesheetWidth</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1e491fbd2f560c57aedae0e9dc684001">yaze::app::gfx::BitmapManager::LoadBitmap()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#a2e058ea3ea8a945708246ad08d86e28e">renderer_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a3d5b03ec8e7cf6320a507ff26960438e">yaze::app::gfx::BitmapManager::size()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f">yaze::app::gfx::SnesTo8bppSheet()</a>, and <a class="el" href="namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b">yaze::app::Uncompressed3BPPSize</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph" id="aclassyaze_1_1app_1_1Rom_a8afecbb24f3daf7a1df52586be587d82_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_afbfb078fe53fe7a3835c8c15686db1d9_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_afbfb078fe53fe7a3835c8c15686db1d9_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_afbfb078fe53fe7a3835c8c15686db1d9_cgraph" id="aclassyaze_1_1app_1_1Rom_afbfb078fe53fe7a3835c8c15686db1d9_cgraph">
 <area shape="rect" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="5,217,242,242"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="549,90,687,116"/>
 <area shape="poly" title=" " alt="" coords="135,214,196,159,240,129,289,106,351,91,416,84,478,84,533,88,533,93,478,89,416,90,352,96,291,111,243,133,200,163,139,218"/>
@@ -503,7 +503,7 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="133,215,194,144,238,101,288,62,308,51,311,55,291,67,242,105,198,148,137,218"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="299,144,474,185"/>
 <area shape="poly" title=" " alt="" coords="178,214,287,186,288,192,179,219"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b" title=" " alt="" coords="294,209,480,250"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#aa06ec4cb1e61ae80a710d6e5929f5a86" title=" " alt="" coords="294,209,480,250"/>
 <area shape="poly" title=" " alt="" coords="242,227,278,227,278,232,242,232"/>
 <area shape="rect" href="classyaze_1_1app_1_1gfx_1_1BitmapManager.html#a1e491fbd2f560c57aedae0e9dc684001" title=" " alt="" coords="290,275,484,315"/>
 <area shape="poly" title=" " alt="" coords="179,240,288,268,287,273,178,246"/>
@@ -526,14 +526,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="acd54932cc184cdb1d66ab026c66b1197" name="acd54932cc184cdb1d66ab026c66b1197"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd54932cc184cdb1d66ab026c66b1197">&#9670;&#160;</a></span>LoadFromFile()</h2>
+<a id="aba8b6cae625f88b7da18a984bf747a49" name="aba8b6cae625f88b7da18a984bf747a49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba8b6cae625f88b7da18a984bf747a49">&#9670;&#160;</a></span>LoadFromFile()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::LoadFromFile </td>
+          <td class="memname">absl::Status Rom::LoadFromFile </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>filename</em></span>, </td>
         </tr>
@@ -553,20 +553,20 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 
-<p class="reference">References <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, <a class="el" href="#afcf31cdd3de12148c02881c93d24bc1a">has_header_</a>, <a class="el" href="#ab720ccf07dc591f330c0ea037a147efa">is_loaded_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180">yaze::app::gfx::LoadAllPalettes()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a">yaze::app::core::ResourceLabelManager::LoadLabels()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#aeed1d79aa226ead085fab4a997396f27">resource_label_manager_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a0de46f110cfc769f2dcf3508a9dee3dd">size_</a>, <a class="el" href="#a3998f6405edbf671bb52692c83d670cd">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, and <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
+<p class="reference">References <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, <a class="el" href="#afcf31cdd3de12148c02881c93d24bc1a">has_header_</a>, <a class="el" href="#ab720ccf07dc591f330c0ea037a147efa">is_loaded_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180">yaze::app::gfx::LoadAllPalettes()</a>, <a class="el" href="#aa92564f3dadb164c82231f141fa67ae9">LoadGfxGroups()</a>, <a class="el" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a">yaze::app::core::ResourceLabelManager::LoadLabels()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="#aeed1d79aa226ead085fab4a997396f27">resource_label_manager_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a0de46f110cfc769f2dcf3508a9dee3dd">size_</a>, <a class="el" href="#a3998f6405edbf671bb52692c83d670cd">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, and <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a49317ce814b909b9c3c9919b8c7a7f2c">yaze::app::editor::GraphicsEditor::DrawFileImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a59fd3f95621df3f8fa555849f694885c">yaze::app::editor::GraphicsEditor::DrawObjImport()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html#ad09fbd364de8de32d372d0a24959f5a6">yaze::cli::ApplyPatch::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498">yaze::cli::Backup::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Emulator.html#a729cde6d4ec8149867a2718dd31e1057">yaze::cli::Emulator::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Expand.html#abf197e6e18a4d8ecd1a7a551f2e7d995">yaze::cli::Expand::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Open.html#a93ec2d9f81970f0fba889a94fe92b9f5">yaze::cli::Open::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3">yaze::cli::Tile16Transfer::handle()</a>, <a class="el" href="controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627">main()</a>, <a class="el" href="#a92a9aaae6d5d567853724ea5ab42e54b">Reload()</a>, <a class="el" href="structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Tile16Editor.html#a56589492f25cc2c639071fe509a1d4ae">yaze::app::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph" id="aclassyaze_1_1app_1_1Rom_acd54932cc184cdb1d66ab026c66b1197_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_aba8b6cae625f88b7da18a984bf747a49_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_aba8b6cae625f88b7da18a984bf747a49_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_aba8b6cae625f88b7da18a984bf747a49_cgraph" id="aclassyaze_1_1app_1_1Rom_aba8b6cae625f88b7da18a984bf747a49_cgraph">
 <area shape="rect" title=" " alt="" coords="5,590,199,615"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="268,515,430,541"/>
 <area shape="poly" title=" " alt="" coords="137,587,246,549,271,542,273,547,247,554,139,592"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="251,564,446,590"/>
 <area shape="poly" title=" " alt="" coords="199,590,236,586,236,591,199,595"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="247,614,451,639"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="247,614,451,639"/>
 <area shape="poly" title=" " alt="" coords="199,609,231,612,231,618,199,615"/>
 <area shape="rect" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="260,664,438,704"/>
 <area shape="poly" title=" " alt="" coords="142,613,248,649,267,656,265,661,246,654,141,618"/>
@@ -641,14 +641,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a36712f23f472fdf5e25c85096463082b" name="a36712f23f472fdf5e25c85096463082b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36712f23f472fdf5e25c85096463082b">&#9670;&#160;</a></span>LoadFromPointer()</h2>
+<a id="abb4d7c5afd07bb1a33d04c495090c638" name="abb4d7c5afd07bb1a33d04c495090c638"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abb4d7c5afd07bb1a33d04c495090c638">&#9670;&#160;</a></span>LoadFromPointer()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::LoadFromPointer </td>
+          <td class="memname">absl::Status Rom::LoadFromPointer </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -660,20 +660,20 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#ab720ccf07dc591f330c0ea037a147efa">is_loaded_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180">yaze::app::gfx::LoadAllPalettes()</a>, <a class="el" href="#a789d5d8105c88938c104fecb53f70bfe">LoadGfxGroups()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a0de46f110cfc769f2dcf3508a9dee3dd">size_</a>, <a class="el" href="#a3998f6405edbf671bb52692c83d670cd">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, and <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
+<p class="reference">References <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#ab720ccf07dc591f330c0ea037a147efa">is_loaded_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a24d22e03afb23edb45c6c8cfa16a280e">yaze::app::JP</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180">yaze::app::gfx::LoadAllPalettes()</a>, <a class="el" href="#aa92564f3dadb164c82231f141fa67ae9">LoadGfxGroups()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a0de46f110cfc769f2dcf3508a9dee3dd">size_</a>, <a class="el" href="#a3998f6405edbf671bb52692c83d670cd">title_</a>, <a class="el" href="namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2">yaze::app::US</a>, and <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a459125f1e224d2a45277b3df62809a21">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectCompressOk()</a>, and <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a36712f23f472fdf5e25c85096463082b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a36712f23f472fdf5e25c85096463082b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a36712f23f472fdf5e25c85096463082b_cgraph" id="aclassyaze_1_1app_1_1Rom_a36712f23f472fdf5e25c85096463082b_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_abb4d7c5afd07bb1a33d04c495090c638_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_abb4d7c5afd07bb1a33d04c495090c638_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_abb4d7c5afd07bb1a33d04c495090c638_cgraph" id="aclassyaze_1_1app_1_1Rom_abb4d7c5afd07bb1a33d04c495090c638_cgraph">
 <area shape="rect" title=" " alt="" coords="5,557,178,598"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="259,515,397,541"/>
 <area shape="poly" title=" " alt="" coords="177,557,248,542,249,547,178,562"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="230,564,426,590"/>
 <area shape="poly" title=" " alt="" coords="178,574,215,574,215,580,178,580"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="226,614,430,639"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="226,614,430,639"/>
 <area shape="poly" title=" " alt="" coords="178,593,249,607,248,613,177,598"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247" title=" " alt="" coords="494,693,692,749"/>
 <area shape="poly" title=" " alt="" coords="412,588,432,599,449,619,457,640,464,660,480,679,484,683,481,687,476,683,459,662,452,641,445,622,428,603,410,593"/>
@@ -746,14 +746,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a651c07af2317f9c3206738506cad01e0" name="a651c07af2317f9c3206738506cad01e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a651c07af2317f9c3206738506cad01e0">&#9670;&#160;</a></span>LoadFromBytes()</h2>
+<a id="a67a1a485d5fef108b1820b30d1d7776f" name="a67a1a485d5fef108b1820b30d1d7776f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67a1a485d5fef108b1820b30d1d7776f">&#9670;&#160;</a></span>LoadFromBytes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::LoadFromBytes </td>
+          <td class="memname">absl::Status Rom::LoadFromBytes </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#a2640b748d10e1cbab1f408f43c52449d">Bytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
           <td></td>
@@ -767,8 +767,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a651c07af2317f9c3206738506cad01e0_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a651c07af2317f9c3206738506cad01e0_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a651c07af2317f9c3206738506cad01e0_cgraph" id="aclassyaze_1_1app_1_1Rom_a651c07af2317f9c3206738506cad01e0_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a67a1a485d5fef108b1820b30d1d7776f_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a67a1a485d5fef108b1820b30d1d7776f_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a67a1a485d5fef108b1820b30d1d7776f_cgraph" id="aclassyaze_1_1app_1_1Rom_a67a1a485d5fef108b1820b30d1d7776f_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,178,46"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="226,13,364,38"/>
 <area shape="poly" title=" " alt="" coords="178,23,210,23,210,28,178,28"/>
@@ -777,14 +777,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a372a28056ae2edc74a0342b1e05ffc9f" name="a372a28056ae2edc74a0342b1e05ffc9f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a372a28056ae2edc74a0342b1e05ffc9f">&#9670;&#160;</a></span>SaveToFile()</h2>
+<a id="a76b99ba3b4634433c678629a2b84abfa" name="a76b99ba3b4634433c678629a2b84abfa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76b99ba3b4634433c678629a2b84abfa">&#9670;&#160;</a></span>SaveToFile()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::SaveToFile </td>
+          <td class="memname">absl::Status Rom::SaveToFile </td>
           <td>(</td>
           <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>backup</em></span>, </td>
         </tr>
@@ -811,22 +811,22 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>absl::Status Returns an OK status if the save was successful, otherwise returns an error status </dd></dl>
 
-<p class="reference">References <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>, and <a class="el" href="#a32176a26208fc061f4120781d5d69315">SaveGroupsToRom()</a>.</p>
+<p class="reference">References <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116">yaze::app::core::ExperimentFlags::flags()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>, <a class="el" href="#a7d44bef2c7730a58b87aefdb865fd2d2">SaveAllPalettes()</a>, and <a class="el" href="#ac88e7e35f5ac87481433cb2bb7bb6b4d">SaveGroupsToRom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1Backup.html#a845ea1e5e58afebf7321edcb25e57498">yaze::cli::Backup::handle()</a>, and <a class="el" href="classyaze_1_1cli_1_1Tile16Transfer.html#a6e8c74f608ec900a390e9f94ca4868a3">yaze::cli::Tile16Transfer::handle()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph" id="aclassyaze_1_1app_1_1Rom_a372a28056ae2edc74a0342b1e05ffc9f_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a76b99ba3b4634433c678629a2b84abfa_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a76b99ba3b4634433c678629a2b84abfa_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a76b99ba3b4634433c678629a2b84abfa_cgraph" id="aclassyaze_1_1app_1_1Rom_a76b99ba3b4634433c678629a2b84abfa_cgraph">
 <area shape="rect" title="Saves the Rom data to a file." alt="" coords="5,116,185,142"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="255,5,416,31"/>
 <area shape="poly" title=" " alt="" coords="112,113,164,78,232,41,252,33,254,38,234,46,167,82,115,118"/>
 <area shape="rect" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="248,79,424,120"/>
 <area shape="poly" title=" " alt="" coords="185,115,232,109,233,115,185,121"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a3c470124716e2b4bb08f9b4ed1a19dd3" title="Saves all palettes in the Rom." alt="" coords="233,144,439,170"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a7d44bef2c7730a58b87aefdb865fd2d2" title="Saves all palettes in the Rom." alt="" coords="233,144,439,170"/>
 <area shape="poly" title=" " alt="" coords="185,137,217,140,217,146,185,142"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a32176a26208fc061f4120781d5d69315" title=" " alt="" coords="243,194,428,234"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#ac88e7e35f5ac87481433cb2bb7bb6b4d" title=" " alt="" coords="243,194,428,234"/>
 <area shape="poly" title=" " alt="" coords="130,140,234,180,253,186,251,191,232,185,128,145"/>
 <area shape="poly" title=" " alt="" coords="291,79,288,69,296,60,312,55,336,53,362,55,377,61,375,66,361,60,336,58,313,60,299,65,294,70,296,78"/>
 <area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376" title=" " alt="" coords="487,136,666,177"/>
@@ -836,14 +836,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a4ecd5e203ecac5987519ece53983fe63" name="a4ecd5e203ecac5987519ece53983fe63"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ecd5e203ecac5987519ece53983fe63">&#9670;&#160;</a></span>SavePalette()</h2>
+<a id="a64ccee69d07d91bd0c7dd4b76896a59e" name="a64ccee69d07d91bd0c7dd4b76896a59e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64ccee69d07d91bd0c7dd4b76896a59e">&#9670;&#160;</a></span>SavePalette()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::SavePalette </td>
+          <td class="memname">absl::Status Rom::SavePalette </td>
           <td>(</td>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>index</em></span>, </td>
         </tr>
@@ -873,8 +873,8 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_cgraph" id="aclassyaze_1_1app_1_1Rom_a4ecd5e203ecac5987519ece53983fe63_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a64ccee69d07d91bd0c7dd4b76896a59e_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a64ccee69d07d91bd0c7dd4b76896a59e_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a64ccee69d07d91bd0c7dd4b76896a59e_cgraph" id="aclassyaze_1_1app_1_1Rom_a64ccee69d07d91bd0c7dd4b76896a59e_cgraph">
 <area shape="rect" title=" " alt="" coords="5,144,190,169"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a04544775b5724bfbe086cb024eb4091a" title=" " alt="" coords="242,5,408,46"/>
 <area shape="poly" title=" " alt="" coords="113,141,167,101,236,57,249,50,251,55,239,61,170,105,117,145"/>
@@ -901,14 +901,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a3c470124716e2b4bb08f9b4ed1a19dd3" name="a3c470124716e2b4bb08f9b4ed1a19dd3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c470124716e2b4bb08f9b4ed1a19dd3">&#9670;&#160;</a></span>SaveAllPalettes()</h2>
+<a id="a7d44bef2c7730a58b87aefdb865fd2d2" name="a7d44bef2c7730a58b87aefdb865fd2d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d44bef2c7730a58b87aefdb865fd2d2">&#9670;&#160;</a></span>SaveAllPalettes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">absl::Status yaze::app::Rom::SaveAllPalettes </td>
+          <td class="memname">absl::Status Rom::SaveAllPalettes </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -917,16 +917,16 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Saves all palettes in the <a class="el" href="classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a>. </p>
-<p>This function iterates through all palette groups and all palettes in each group, and saves each palette using the <a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette()</a> function. </p>
+<p>This function iterates through all palette groups and all palettes in each group, and saves each palette using the <a class="el" href="#a64ccee69d07d91bd0c7dd4b76896a59e">SavePalette()</a> function. </p>
 
 <p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376">yaze::app::gfx::PaletteGroupMap::for_each()</a>, <a class="el" href="#a84a871742c05354dc477c49bdd5a7496">palette_groups_</a>, and <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a76b99ba3b4634433c678629a2b84abfa">SaveToFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph" id="aclassyaze_1_1app_1_1Rom_a3c470124716e2b4bb08f9b4ed1a19dd3_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_a7d44bef2c7730a58b87aefdb865fd2d2_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a7d44bef2c7730a58b87aefdb865fd2d2_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_a7d44bef2c7730a58b87aefdb865fd2d2_cgraph" id="aclassyaze_1_1app_1_1Rom_a7d44bef2c7730a58b87aefdb865fd2d2_cgraph">
 <area shape="rect" title="Saves all palettes in the Rom." alt="" coords="5,13,212,38"/>
 <area shape="rect" href="structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376" title=" " alt="" coords="260,5,439,46"/>
 <area shape="poly" title=" " alt="" coords="212,23,244,23,244,28,212,28"/>
@@ -1078,7 +1078,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, and <a class="el" href="#a99dae24153d271a7feab7740b8f752a7">ReadHelper()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1ReadFromRom.html#afc6bebb5b98e24fe362bcf34848e3ca3">yaze::cli::ReadFromRom::handle()</a>, <a class="el" href="#ad0be846af21cbb3be669ee52f95251ee">LoadLinkGraphics()</a>, and <a class="el" href="#a99dae24153d271a7feab7740b8f752a7">ReadHelper()</a>.</p>
 
 </div>
 </div>
@@ -1457,7 +1457,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb">yaze::app::core::Logger::log()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#adaa3a2d2195382f2172c39a62e33dcaa">yaze::app::gfx::SnesColor::snes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38">yaze::app::core::UppercaseHexWord()</a>, and <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a4ecd5e203ecac5987519ece53983fe63">SavePalette()</a>, and <a class="el" href="#a25138516f1c68cb74a5e0905c8a89669">WriteHelper()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a64ccee69d07d91bd0c7dd4b76896a59e">SavePalette()</a>, and <a class="el" href="#a25138516f1c68cb74a5e0905c8a89669">WriteHelper()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1659,20 +1659,20 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, and <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>.</p>
+<p class="reference">References <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>, and <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph" id="aclassyaze_1_1app_1_1Rom_a92a9aaae6d5d567853724ea5ab42e54b_cgraph">
 <area shape="rect" title=" " alt="" coords="5,590,159,615"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="207,590,400,615"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#aba8b6cae625f88b7da18a984bf747a49" title=" " alt="" coords="207,590,400,615"/>
 <area shape="poly" title=" " alt="" coords="159,600,191,600,191,605,159,605"/>
 <area shape="rect" href="classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="470,515,631,541"/>
 <area shape="poly" title=" " alt="" coords="338,587,447,549,473,542,474,547,449,554,340,592"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="452,564,648,590"/>
 <area shape="poly" title=" " alt="" coords="400,590,437,586,438,591,401,595"/>
-<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="448,614,652,639"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="448,614,652,639"/>
 <area shape="poly" title=" " alt="" coords="401,609,433,612,432,618,400,615"/>
 <area shape="rect" href="structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="462,664,639,704"/>
 <area shape="poly" title=" " alt="" coords="344,613,449,649,468,656,467,661,447,654,342,618"/>
@@ -1799,18 +1799,18 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a1346fc16ff818495adbff118422a3664">version_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa13df126e85f7968f40c45b49f22b214">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8344a067db046a552dc13563d1525bca">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aa06ec4cb1e61ae80a710d6e5929f5a86">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa13df126e85f7968f40c45b49f22b214">yaze::app::zelda3::overworld::OverworldMap::GetPalette()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8344a067db046a552dc13563d1525bca">yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphicsBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140">yaze::app::zelda3::overworld::OverworldMap::LoadMainBlocksets()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a32eaf7b81a3a9e42912f436c65d47a2b">yaze::app::zelda3::overworld::OverworldMap::LoadPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea">yaze::app::zelda3::overworld::OverworldMap::LoadSpritesBlocksets()</a>.</p>
 
 </div>
 </div>
-<a id="a379a0859aa1428ff65a9760715e57a9b" name="a379a0859aa1428ff65a9760715e57a9b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a379a0859aa1428ff65a9760715e57a9b">&#9670;&#160;</a></span>GetGraphicsAddress()</h2>
+<a id="aa06ec4cb1e61ae80a710d6e5929f5a86" name="aa06ec4cb1e61ae80a710d6e5929f5a86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa06ec4cb1e61ae80a710d6e5929f5a86">&#9670;&#160;</a></span>GetGraphicsAddress()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int yaze::app::Rom::GetGraphicsAddress </td>
+          <td class="memname">int Rom::GetGraphicsAddress </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21">uchar</a> *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -1824,12 +1824,12 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c">yaze::app::core::AddressFromBytes()</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a">yaze::app::core::SnesToPc()</a>, and <a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics()</a>, and <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a171af80e55800b0e4dc2c130510c2000">Load2BppGraphics()</a>, and <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph" id="aclassyaze_1_1app_1_1Rom_a379a0859aa1428ff65a9760715e57a9b_cgraph">
+<div class="center"><img src="classyaze_1_1app_1_1Rom_aa06ec4cb1e61ae80a710d6e5929f5a86_cgraph.png" border="0" usemap="#aclassyaze_1_1app_1_1Rom_aa06ec4cb1e61ae80a710d6e5929f5a86_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1app_1_1Rom_aa06ec4cb1e61ae80a710d6e5929f5a86_cgraph" id="aclassyaze_1_1app_1_1Rom_aa06ec4cb1e61ae80a710d6e5929f5a86_cgraph">
 <area shape="rect" title=" " alt="" coords="5,88,192,129"/>
 <area shape="rect" href="namespaceyaze_1_1app_1_1core.html#a883931821acdd5f501b3f0717d87951c" title=" " alt="" coords="246,5,406,46"/>
 <area shape="poly" title=" " alt="" coords="156,85,252,49,254,54,157,90"/>
@@ -2306,7 +2306,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a352975e58562e4e0b415f0e3761cfbc8">rom_data_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#aa72443cf6bb48f5c0a08d6e16a90748d">CreateAndRenderBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#abbf05d0ad8e06e75c003f47bced8a934">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>, <a class="el" href="#a379a0859aa1428ff65a9760715e57a9b">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7fe5a6e628d17d6468ffe79ac422c97b">yaze::app::zelda3::music::Tracker::GetSPCAddr()</a>, <a class="el" href="#afc14270a29bc65dd89edd86823dbd605">Load2BppGraphics()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0">yaze::app::zelda3::overworld::Overworld::LoadExits()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8">yaze::app::zelda3::music::Tracker::LoadSongs()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3c65ab80b58c071457f243066c294ab6">yaze::app::zelda3::music::Tracker::SaveSongs()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#afd53022c82e6fb4377ab72b823f6d6cf">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a91678682fc653894a94c95968f566025">yaze::app::zelda3::music::Tracker::WriteSPCData()</a>, and <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aa72443cf6bb48f5c0a08d6e16a90748d">CreateAndRenderBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398">yaze::app::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f">yaze::app::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#abbf05d0ad8e06e75c003f47bced8a934">yaze::app::editor::GraphicsEditor::DrawMemoryEditor()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a6b0c113fab0de282de31ad7219576f06">yaze::app::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a06ad238de7663a746a2ea27a97aae83a">yaze::app::editor::GraphicsEditor::DrawTilemapImport()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressBytesOk()</a>, <a class="el" href="namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9a4b5c91e8f06dcd94d036e9e7935c09">yaze_test::gfx_test::anonymous_namespace{compression_test.cc}::ExpectDecompressOk()</a>, <a class="el" href="#aa06ec4cb1e61ae80a710d6e5929f5a86">GetGraphicsAddress()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7fe5a6e628d17d6468ffe79ac422c97b">yaze::app::zelda3::music::Tracker::GetSPCAddr()</a>, <a class="el" href="#a171af80e55800b0e4dc2c130510c2000">Load2BppGraphics()</a>, <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a63cd6d964c33e6a1c4d72a29e7caffc0">yaze::app::zelda3::overworld::Overworld::LoadExits()</a>, <a class="el" href="#a67a1a485d5fef108b1820b30d1d7776f">LoadFromBytes()</a>, <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8">yaze::app::zelda3::music::Tracker::LoadSongs()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a3c65ab80b58c071457f243066c294ab6">yaze::app::zelda3::music::Tracker::SaveSongs()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a77887f1e77391d7c90c5019790041ff4">yaze::app::gfx::lc_lz2::ValidateCompressionResult()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#afd53022c82e6fb4377ab72b823f6d6cf">yaze::app::gfx::lc_lz2::ValidateCompressionResultV3()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a91678682fc653894a94c95968f566025">yaze::app::zelda3::music::Tracker::WriteSPCData()</a>, and <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>.</p>
 
 </div>
 </div>
@@ -2391,7 +2391,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="#a91a162b1c152c1c602ecc1501b248989">filename_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, and <a class="el" href="structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, <a class="el" href="#a76b99ba3b4634433c678629a2b84abfa">SaveToFile()</a>, and <a class="el" href="structyaze_1_1app_1_1editor_1_1MemoryEditorWithDiffChecker.html#aa354716a735200ebf42c2504de8d28fe">yaze::app::editor::MemoryEditorWithDiffChecker::Update()</a>.</p>
 
 </div>
 </div>
@@ -2709,7 +2709,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html#a60dbb218a86c57687580ec77be457511">yaze::app::gfx::Bitmap::CreateTexture()</a>, <a class="el" href="classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116">yaze::app::core::ExperimentFlags::flags()</a>, and <a class="el" href="#a2e058ea3ea8a945708246ad08d86e28e">renderer_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#aa72443cf6bb48f5c0a08d6e16a90748d">CreateAndRenderBitmap()</a>, and <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aa72443cf6bb48f5c0a08d6e16a90748d">CreateAndRenderBitmap()</a>, and <a class="el" href="#ad0be846af21cbb3be669ee52f95251ee">LoadLinkGraphics()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2772,14 +2772,14 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a789d5d8105c88938c104fecb53f70bfe" name="a789d5d8105c88938c104fecb53f70bfe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a789d5d8105c88938c104fecb53f70bfe">&#9670;&#160;</a></span>LoadGfxGroups()</h2>
+<a id="aa92564f3dadb164c82231f141fa67ae9" name="aa92564f3dadb164c82231f141fa67ae9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa92564f3dadb164c82231f141fa67ae9">&#9670;&#160;</a></span>LoadGfxGroups()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::app::Rom::LoadGfxGroups </td>
+          <td class="memname">void Rom::LoadGfxGroups </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -2789,18 +2789,18 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#a02c28e406561ede6e5a46381e26b4653">yaze::app::kEntranceGfxGroup</a>, and <a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, and <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>.</p>
 
 </div>
 </div>
-<a id="a32176a26208fc061f4120781d5d69315" name="a32176a26208fc061f4120781d5d69315"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32176a26208fc061f4120781d5d69315">&#9670;&#160;</a></span>SaveGroupsToRom()</h2>
+<a id="ac88e7e35f5ac87481433cb2bb7bb6b4d" name="ac88e7e35f5ac87481433cb2bb7bb6b4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac88e7e35f5ac87481433cb2bb7bb6b4d">&#9670;&#160;</a></span>SaveGroupsToRom()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::app::Rom::SaveGroupsToRom </td>
+          <td class="memname">void Rom::SaveGroupsToRom </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -2810,7 +2810,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="namespaceyaze_1_1app.html#a02c28e406561ede6e5a46381e26b4653">yaze::app::kEntranceGfxGroup</a>, and <a class="el" href="namespaceyaze_1_1app.html#aad75d3fb5bdf3b72aa19e3af3209082f">yaze::app::kGfxGroupsPointer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a76b99ba3b4634433c678629a2b84abfa">SaveToFile()</a>.</p>
 
 </div>
 </div>
@@ -3026,7 +3026,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, and <a class="el" href="#a648c0cee09095aad6aa881fc114a9f5f">size()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a67a1a485d5fef108b1820b30d1d7776f">LoadFromBytes()</a>, <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, and <a class="el" href="#a648c0cee09095aad6aa881fc114a9f5f">size()</a>.</p>
 
 </div>
 </div>
@@ -3050,7 +3050,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a97244952183e1d6e2fc285057bcf6491">is_loaded()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a97244952183e1d6e2fc285057bcf6491">is_loaded()</a>, <a class="el" href="#a67a1a485d5fef108b1820b30d1d7776f">LoadFromBytes()</a>, <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, and <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>.</p>
 
 </div>
 </div>
@@ -3074,7 +3074,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>.</p>
 
 </div>
 </div>
@@ -3098,7 +3098,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, and <a class="el" href="#aa0a63ed3d9bfbe780f45f1b063c4fc98">title()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>, and <a class="el" href="#aa0a63ed3d9bfbe780f45f1b063c4fc98">title()</a>.</p>
 
 </div>
 </div>
@@ -3122,7 +3122,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a92a9aaae6d5d567853724ea5ab42e54b">Reload()</a>, and <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a4de8b517183672043671781c9534a4dd">filename()</a>, <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, <a class="el" href="#a92a9aaae6d5d567853724ea5ab42e54b">Reload()</a>, and <a class="el" href="#a76b99ba3b4634433c678629a2b84abfa">SaveToFile()</a>.</p>
 
 </div>
 </div>
@@ -3146,7 +3146,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a189bdc638fc1fd968f10498325c300d9">begin()</a>, <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#a9d41a050bde62f6868d5ef92547c0b73">end()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a651c07af2317f9c3206738506cad01e0">LoadFromBytes()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a5f6c2e2348b481f499fa9bdf3c2e9464">operator&amp;()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, <a class="el" href="#a4c39a9d08fcf5864affdbf85aac1c181">push_back()</a>, <a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a372a28056ae2edc74a0342b1e05ffc9f">SaveToFile()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a189bdc638fc1fd968f10498325c300d9">begin()</a>, <a class="el" href="#a8e4dd51e01c06b634e20f8ad13efad4f">Close()</a>, <a class="el" href="#a92d3c9243147354399c1914c255c113b">data()</a>, <a class="el" href="#a9d41a050bde62f6868d5ef92547c0b73">end()</a>, <a class="el" href="#a6763e33072305e9ecf662b366bd6f956">Expand()</a>, <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>, <a class="el" href="#a67a1a485d5fef108b1820b30d1d7776f">LoadFromBytes()</a>, <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>, <a class="el" href="#a5f6c2e2348b481f499fa9bdf3c2e9464">operator&amp;()</a>, <a class="el" href="#a8c4fd038d5893274d170e579003b7333">operator+()</a>, <a class="el" href="#ada8907f270c4f42895a8a5f9b916ad78">operator[]()</a>, <a class="el" href="#a4c39a9d08fcf5864affdbf85aac1c181">push_back()</a>, <a class="el" href="#adc977745ac851fd2b982e24bfc7053f3">ReadByte()</a>, <a class="el" href="#ae28fce4a12087576eb7ff35ec2a31a36">ReadByteVector()</a>, <a class="el" href="#a3aef2571b980d4da3df2d9451cabad17">ReadLong()</a>, <a class="el" href="#a997bfee0f4d228a4d9f30166647f8b37">ReadWord()</a>, <a class="el" href="#a76b99ba3b4634433c678629a2b84abfa">SaveToFile()</a>, <a class="el" href="#a30813c409d2c6b4520e1a579289d3066">toint16()</a>, <a class="el" href="#a33fb74cfc42e9f3206dd266021bd1186">vector()</a>, <a class="el" href="#a8be1d128cb72aebd160e760076fad618">Write()</a>, <a class="el" href="#a0405fc759dcf30d80378d1f63f93cbc0">WriteByte()</a>, <a class="el" href="#a1dc9f6b0f774b6deec84663fea3add80">WriteLong()</a>, <a class="el" href="#a85ea52c315f6f5c8445bad7885e42d23">WriteShort()</a>, <a class="el" href="#adfbebd278484d9fdb859eeae59603bb3">WriteVector()</a>, and <a class="el" href="#aada27eed1d3e341c53cca7344cb3a0be">WriteWord()</a>.</p>
 
 </div>
 </div>
@@ -3170,7 +3170,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#addbd2dd0eaa13c92ed0f9c0b1e5e3610">graphics_buffer()</a>, and <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#addbd2dd0eaa13c92ed0f9c0b1e5e3610">graphics_buffer()</a>, and <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -3194,7 +3194,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>.</p>
 
 </div>
 </div>
@@ -3218,7 +3218,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a70fa50ea0fbfd2c40aebdbcf8b93b9b2">version()</a>, and <a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>, <a class="el" href="#a70fa50ea0fbfd2c40aebdbcf8b93b9b2">version()</a>, and <a class="el" href="#a0c5236f4dc9e1fd7ad98f058d154a139">version_constants()</a>.</p>
 
 </div>
 </div>
@@ -3242,7 +3242,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a6f1314506031b4a334b3d411116be32f">graphics_bin()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, and <a class="el" href="#a2b471b90a0fab84f366bbe0b20b6363c">mutable_graphics_sheet()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a6f1314506031b4a334b3d411116be32f">graphics_bin()</a>, <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>, and <a class="el" href="#a2b471b90a0fab84f366bbe0b20b6363c">mutable_graphics_sheet()</a>.</p>
 
 </div>
 </div>
@@ -3266,7 +3266,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a0d39a485896a82ecf534d8470a1f8f9c">bitmap_manager()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, and <a class="el" href="#ae7b13c9229d8692c35e1c72e1e473583">mutable_bitmap_manager()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a0d39a485896a82ecf534d8470a1f8f9c">bitmap_manager()</a>, <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>, and <a class="el" href="#ae7b13c9229d8692c35e1c72e1e473583">mutable_bitmap_manager()</a>.</p>
 
 </div>
 </div>
@@ -3290,7 +3290,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a48f0987559ea7f4f48c5cd41e3fe3f39">link_graphics()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, and <a class="el" href="#ab991e800548e8f3c06b5880427697002">mutable_link_graphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#a48f0987559ea7f4f48c5cd41e3fe3f39">link_graphics()</a>, <a class="el" href="#ad0be846af21cbb3be669ee52f95251ee">LoadLinkGraphics()</a>, and <a class="el" href="#ab991e800548e8f3c06b5880427697002">mutable_link_graphics()</a>.</p>
 
 </div>
 </div>
@@ -3314,7 +3314,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#ad0be846af21cbb3be669ee52f95251ee">LoadLinkGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3338,7 +3338,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abc79426dc768d8d43bd9bab55ef11660">dungeon_palette()</a>, <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, <a class="el" href="#a36712f23f472fdf5e25c85096463082b">LoadFromPointer()</a>, <a class="el" href="#a84a0ad99e1136f93397504493d644624">LoadLinkGraphics()</a>, <a class="el" href="#a9f00106cd357c95213ff5bd8cbaba9c5">mutable_dungeon_palette()</a>, <a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group()</a>, <a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group()</a>, and <a class="el" href="#a3c470124716e2b4bb08f9b4ed1a19dd3">SaveAllPalettes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#abc79426dc768d8d43bd9bab55ef11660">dungeon_palette()</a>, <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>, <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, <a class="el" href="#abb4d7c5afd07bb1a33d04c495090c638">LoadFromPointer()</a>, <a class="el" href="#ad0be846af21cbb3be669ee52f95251ee">LoadLinkGraphics()</a>, <a class="el" href="#a9f00106cd357c95213ff5bd8cbaba9c5">mutable_dungeon_palette()</a>, <a class="el" href="#a051bf6416f14b1547621cc3d556a6e22">mutable_palette_group()</a>, <a class="el" href="#a0855ec3a63a82723541f870bdd00f53d">palette_group()</a>, and <a class="el" href="#a7d44bef2c7730a58b87aefdb865fd2d2">SaveAllPalettes()</a>.</p>
 
 </div>
 </div>
@@ -3362,7 +3362,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#acd54932cc184cdb1d66ab026c66b1197">LoadFromFile()</a>, and <a class="el" href="#a0ab5edcc4038c88025b8d852909b9876">resource_label()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aba8b6cae625f88b7da18a984bf747a49">LoadFromFile()</a>, and <a class="el" href="#a0ab5edcc4038c88025b8d852909b9876">resource_label()</a>.</p>
 
 </div>
 </div>
@@ -3386,7 +3386,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a8afecbb24f3daf7a1df52586be587d82">LoadAllGraphicsData()</a>, <a class="el" href="#a8c77151f22c9c57fcdab28502aa1255f">RenderBitmap()</a>, <a class="el" href="#a385ff0c049e2359723d7ce39926a3487">renderer()</a>, <a class="el" href="#ae6c98f3218b2df9263371c7646b780fe">SetupRenderer()</a>, and <a class="el" href="#a210de65569d0b088013280d1e45f5c6a">UpdateBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#afbfb078fe53fe7a3835c8c15686db1d9">LoadAllGraphicsData()</a>, <a class="el" href="#a8c77151f22c9c57fcdab28502aa1255f">RenderBitmap()</a>, <a class="el" href="#a385ff0c049e2359723d7ce39926a3487">renderer()</a>, <a class="el" href="#ae6c98f3218b2df9263371c7646b780fe">SetupRenderer()</a>, and <a class="el" href="#a210de65569d0b088013280d1e45f5c6a">UpdateBitmap()</a>.</p>
 
 </div>
 </div>

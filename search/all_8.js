@@ -120,7 +120,12 @@ var searchData=
   ['expectnewcompressionpieceok_117',['ExpectNewCompressionPieceOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
   ['experimentflags_118',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html',1,'yaze::app::core::ExperimentFlags'],['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd',1,'yaze::app::core::ExperimentFlags::ExperimentFlags()']]],
   ['extbg_119',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['external_5fsync_120',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['extra_5fcgx_5fdata_5f_121',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]],
-  ['extract_122',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
+  ['extendfunctionality_120',['extendFunctionality',['../structExtension.html#a2b775c5f3b6dbd48ad8c4d9d360b619d',1,'Extension']]],
+  ['extension_121',['Extension',['../structExtension.html',1,'Extension'],['../extension_8h.html#ade50dd43821f56080b72c244a573339a',1,'Extension:&#160;extension.h']]],
+  ['extension_122',['extension',['../extension_8cc.html#a7a805add2cbfa5242ddb69d389267b71',1,'extension.cc']]],
+  ['extension_2ecc_123',['extension.cc',['../extension_8cc.html',1,'']]],
+  ['extension_2eh_124',['extension.h',['../extension_8h.html',1,'']]],
+  ['external_5fsync_125',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
+  ['extra_5fcgx_5fdata_5f_126',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]],
+  ['extract_127',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
 ];

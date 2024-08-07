@@ -96,7 +96,7 @@ var searchData=
   ['rol_93',['ROL',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a5acae392f43808bb021b102a35d867cd',1,'yaze::app::emu::audio::Spc700::ROL()'],['../classyaze_1_1app_1_1emu_1_1Cpu.html#aac1425622119cd6e0eb55c3c42ce0490',1,'yaze::app::emu::Cpu::ROL(uint32_t address, bool accumulator=false)']]],
   ['rol_94',['Rol',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aeca9ba85c2928d9bb1cad746c25eb7b7',1,'yaze::app::emu::Cpu']]],
   ['rom_95',['ROM',['../md_docs_2infrastructure.html#autotoc_md22',1,'']]],
-  ['rom_96',['Rom',['../classyaze_1_1app_1_1Rom.html',1,'yaze::app']]],
+  ['rom_96',['Rom',['../structRom.html',1,'Rom'],['../classyaze_1_1app_1_1Rom.html',1,'yaze::app::Rom'],['../yaze_8h.html#a16c6a1a1c55357d91fb786688e526750',1,'Rom:&#160;yaze.h']]],
   ['rom_97',['rom',['../classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff',1,'yaze::app::SharedRom']]],
   ['rom_20h_20a_98',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
   ['rom_20h_20app_20rom_20h_20a_99',['- &lt;a href=&quot;../src/app/rom.h&quot; &gt;app/rom.h&lt;/a&gt;',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
