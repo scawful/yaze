@@ -14,11 +14,7 @@
 namespace yaze {
 namespace app {
 
-constexpr std::string kProjectFileExtension = ".yaze";
-constexpr absl::string_view kProjectFileFilter =
-    "Yaze Project Files (*.yaze)\0*.yaze\0";
-constexpr std::string kPreviousRomFilenameDelimiter = "PreviousRomFilename";
-constexpr std::string kEndOfProjectFile = "EndOfProjectFile";
+constexpr char kEndOfProjectFile[] = "EndOfProjectFile";
 
 /**
  * @struct Project
@@ -66,15 +62,6 @@ struct Project : public core::ExperimentFlags {
       if (line == kEndOfProjectFile) {
         break;
       }
-
-      if (absl::StrContains(line, kPreviousRomFilenameDelimiter)) {
-        size_t delimiter_pos = line.find(kPreviousRomFilenameDelimiter);
-        if (delimiter_pos != std::string::npos) {
-          std::string filename =
-              line.substr(delimiter_pos + kPreviousRomFilenameDelimiter.size());
-          previous_rom_filenames_.push_back(filename);
-        }
-      }
     }
 
     in.close();
@@ -95,10 +82,6 @@ struct Project : public core::ExperimentFlags {
     out << rom_filename_ << std::endl;
     out << code_folder_ << std::endl;
     out << labels_filename_ << std::endl;
-
-    for (const auto &filename : previous_rom_filenames_) {
-      out << kPreviousRomFilenameDelimiter << " " << filename << std::endl;
-    }
 
     out << kEndOfProjectFile << std::endl;
 
