@@ -1,5 +1,6 @@
 var NAVTREEINDEX41 =
 {
+"overworld_8h.html#a76ece2972ccf898a60aa4d7d30a9e602":[10,0,1,0,5,2,1,33],
 "overworld_8h.html#a77664d2860100d190196f74ab9624ed7":[10,0,1,0,5,2,1,63],
 "overworld_8h.html#a788fcad4c2d3f7a3333365a5c6c7db5b":[10,0,1,0,5,2,1,29],
 "overworld_8h.html#a7ae607a6fe86024e79f4f0ebd62609d5":[10,0,1,0,5,2,1,82],
@@ -162,12 +163,12 @@ var NAVTREEINDEX41 =
 "ppu__registers_8h.html#afeaa3157a66a6e476691aaecaed33ec9":[10,0,1,0,2,4,2,59],
 "ppu__registers_8h_source.html":[10,0,1,0,2,4,2],
 "ppu__test_8cc.html":[10,0,1,6,0,1],
-"project_8h.html":[10,0,1,0,0,8],
-"project_8h.html#a2fefeaeeb2e8568fc27fcf1a4b984b4d":[10,0,1,0,0,8,3],
-"project_8h.html#a6448c74d503d426bcc66a4fb72789ab9":[10,0,1,0,0,8,4],
-"project_8h.html#a7f1e90bf658edf14eb7038145d8be362":[10,0,1,0,0,8,1],
-"project_8h.html#afe0922318fe6bfc7b4ea55bea180d456":[10,0,1,0,0,8,2],
-"project_8h_source.html":[10,0,1,0,0,8],
+"project_8h.html":[10,0,1,0,0,9],
+"project_8h.html#a2fefeaeeb2e8568fc27fcf1a4b984b4d":[10,0,1,0,0,9,3],
+"project_8h.html#a6448c74d503d426bcc66a4fb72789ab9":[10,0,1,0,0,9,4],
+"project_8h.html#a7f1e90bf658edf14eb7038145d8be362":[10,0,1,0,0,9,1],
+"project_8h.html#afe0922318fe6bfc7b4ea55bea180d456":[10,0,1,0,0,9,2],
+"project_8h_source.html":[10,0,1,0,0,9],
 "recent__files_8h.html":[10,0,1,0,1,7,5],
 "recent__files_8h_source.html":[10,0,1,0,1,7,5],
 "refresh_8cc.html":[10,0,1,0,1,5,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX41 =
 "room__entrance_8h.html#a1f62c460a95ffe74d1ef3c15138b3786":[10,0,1,0,5,0,5,23],
 "room__entrance_8h.html#a248dcf615f475b227d61f3688c736804":[10,0,1,0,5,0,5,4],
 "room__entrance_8h.html#a2b69e7b3a65b0c36c85de38f9c5df38d":[10,0,1,0,5,0,5,21],
-"room__entrance_8h.html#a318974354aea6ec42a8a17fb6f349397":[10,0,1,0,5,0,5,38],
-"room__entrance_8h.html#a3235497c08a2e5e78249ac79a8fed0cf":[10,0,1,0,5,0,5,44]
+"room__entrance_8h.html#a318974354aea6ec42a8a17fb6f349397":[10,0,1,0,5,0,5,38]
 };

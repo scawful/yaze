@@ -1,11 +1,9 @@
 var snes__palette_8h =
 [
-    [ "yaze::app::gfx::snes_palette", "structyaze_1_1app_1_1gfx_1_1snes__palette.html", "structyaze_1_1app_1_1gfx_1_1snes__palette" ],
     [ "yaze::app::gfx::SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", "classyaze_1_1app_1_1gfx_1_1SnesPalette" ],
     [ "yaze::app::gfx::PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroup" ],
     [ "yaze::app::gfx::PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap" ],
     [ "yaze::app::gfx::Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", "structyaze_1_1app_1_1gfx_1_1Paletteset" ],
-    [ "snes_palette", "snes__palette_8h.html#a2431c9510c885b5698d5aaac4d7e3094", null ],
     [ "PaletteCategory", "snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39d", [
       [ "kSword", "snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39daf22e7c2217ee73273e5298cc7f8cf3d8", null ],
       [ "kShield", "snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39dab642b4174e77d1e5a8910c64b92aaed7", null ],

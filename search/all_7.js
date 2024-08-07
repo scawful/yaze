@@ -12,7 +12,7 @@ var searchData=
   ['d_5fnintendo_5fc_5fmode2_9',['D_NINTENDO_C_MODE2',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#af7bda5a6d0bb6318c337c03ab8ba8a1e',1,'yaze::app::gfx::lc_lz2']]],
   ['dark_10',['Dark',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ae40f747bde1a0df3405a1ed9180db29f',1,'yaze::app::zelda3::dungeon']]],
   ['dark_5fmaps_5fto_5fload_5f_11',['dark_maps_to_load_',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a2ff17360fae7af2f1af81b14d0f5334c',1,'yaze::app::editor::OverworldEditor']]],
-  ['dark_5fworld_12',['dark_world',['../structOWMapTiles.html#ae6d5aad2dd4e800c413cbbb47a22fae3',1,'OWMapTiles']]],
+  ['dark_5fworld_12',['dark_world',['../structyaze_1_1app_1_1OWMapTiles.html#aa2db75f92b98857275bf36135d0431e4',1,'yaze::app::OWMapTiles']]],
   ['darkroom_13',['DarkRoom',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a6b6d941855be57abcd325bb7a72bc6e4ad9e1fb3111d9a8d704400749c4badbc7',1,'yaze::app::zelda3::dungeon']]],
   ['darkworld_14',['darkWorld',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1TitleScreen.html#ae09803203f46716ffc481b4d2a384cc1',1,'yaze::app::zelda3::screen::TitleScreen']]],
   ['dat_15',['dat',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a134d6deebe490a3f779b17c65801af50',1,'yaze::app::emu::audio::Spc700']]],

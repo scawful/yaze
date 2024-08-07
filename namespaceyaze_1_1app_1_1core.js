@@ -25,6 +25,7 @@ var namespaceyaze_1_1app_1_1core =
     [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
     [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
     [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
+    [ "sdl_deleter", "structyaze_1_1app_1_1core_1_1sdl__deleter.html", "structyaze_1_1app_1_1core_1_1sdl__deleter" ],
     [ "FolderItem", "namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd", null ],
     [ "Platform", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700", [
       [ "kUnknown", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700a25c2dc47991b3df171ed5192bcf70390", null ],

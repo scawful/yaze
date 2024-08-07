@@ -49,7 +49,6 @@ var classyaze_1_1app_1_1Rom =
     [ "begin", "classyaze_1_1app_1_1Rom.html#a189bdc638fc1fd968f10498325c300d9", null ],
     [ "end", "classyaze_1_1app_1_1Rom.html#a9d41a050bde62f6868d5ef92547c0b73", null ],
     [ "data", "classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b", null ],
-    [ "push_back", "classyaze_1_1app_1_1Rom.html#a4c39a9d08fcf5864affdbf85aac1c181", null ],
     [ "vector", "classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186", null ],
     [ "filename", "classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd", null ],
     [ "is_loaded", "classyaze_1_1app_1_1Rom.html#a97244952183e1d6e2fc285057bcf6491", null ],

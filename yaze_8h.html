@@ -111,18 +111,22 @@ $(function(){initNavTree('yaze_8h.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">yaze.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;cstddef&gt;</code><br />
-<code>#include &lt;cstdint&gt;</code><br />
+<div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
+<code>#include &lt;stdint.h&gt;</code><br />
+<code>#include &quot;<a class="el" href="base_2snes__color_8h_source.html">base/snes_color.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for yaze.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze_8h__incl.png" border="0" usemap="#asrc_2yaze_8h" alt=""/></div>
 <map name="asrc_2yaze_8h" id="asrc_2yaze_8h">
-<area shape="rect" title=" " alt="" coords="40,5,120,31"/>
-<area shape="rect" title=" " alt="" coords="5,79,70,105"/>
-<area shape="poly" title=" " alt="" coords="75,33,55,67,50,64,71,30"/>
-<area shape="rect" title=" " alt="" coords="94,79,154,105"/>
-<area shape="poly" title=" " alt="" coords="90,30,111,64,106,67,85,33"/>
+<area shape="rect" title=" " alt="" coords="70,5,149,31"/>
+<area shape="rect" title=" " alt="" coords="5,79,73,105"/>
+<area shape="poly" title=" " alt="" coords="100,33,63,70,60,66,96,29"/>
+<area shape="rect" title=" " alt="" coords="127,153,191,178"/>
+<area shape="poly" title=" " alt="" coords="115,30,138,104,150,137,145,139,132,106,110,32"/>
+<area shape="rect" href="base_2snes__color_8h.html" title=" " alt="" coords="146,79,273,105"/>
+<area shape="poly" title=" " alt="" coords="128,29,182,67,179,72,125,34"/>
+<area shape="poly" title=" " alt="" coords="203,106,178,141,174,138,199,103"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -130,11 +134,13 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze_8h__dep__incl.png" border="0" usemap="#asrc_2yaze_8hdep" alt=""/></div>
 <map name="asrc_2yaze_8hdep" id="asrc_2yaze_8hdep">
-<area shape="rect" title=" " alt="" coords="100,5,179,31"/>
-<area shape="rect" href="libc__test_8cc.html" title=" " alt="" coords="5,79,141,105"/>
-<area shape="poly" title=" " alt="" coords="120,44,86,80,82,77,116,40"/>
-<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="164,79,251,105"/>
-<area shape="poly" title=" " alt="" coords="163,40,198,77,194,80,160,44"/>
+<area shape="rect" title=" " alt="" coords="181,5,260,31"/>
+<area shape="rect" href="yaze__py_8cc.html" title=" " alt="" coords="5,79,129,105"/>
+<area shape="poly" title=" " alt="" coords="182,40,94,81,92,76,179,36"/>
+<area shape="rect" href="libc__test_8cc.html" title=" " alt="" coords="153,79,288,105"/>
+<area shape="poly" title=" " alt="" coords="223,46,223,79,218,79,218,46"/>
+<area shape="rect" href="yaze_8cc.html" title=" " alt="" coords="312,79,398,105"/>
+<area shape="poly" title=" " alt="" coords="258,36,333,76,331,81,256,41"/>
 </map>
 </div>
 </div>
@@ -160,6 +166,8 @@ Functions</h2></td></tr>
 <tr class="separator:a3759d6e11afa2f671447f2d4ba89ef31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a930dbf2234ffb958444bdd0c65ad09" id="r_a1a930dbf2234ffb958444bdd0c65ad09"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a930dbf2234ffb958444bdd0c65ad09">unload_rom</a> (<a class="el" href="structRom.html">Rom</a> rom)</td></tr>
 <tr class="separator:a1a930dbf2234ffb958444bdd0c65ad09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba747622bde6d819aca9e095c3249ba7" id="r_aba747622bde6d819aca9e095c3249ba7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba747622bde6d819aca9e095c3249ba7">get_color_from_paletteset</a> (const <a class="el" href="structRom.html">Rom</a> *rom, int palette_set, int palette, int color)</td></tr>
+<tr class="separator:aba747622bde6d819aca9e095c3249ba7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="a16c6a1a1c55357d91fb786688e526750" name="a16c6a1a1c55357d91fb786688e526750"></a>
@@ -340,6 +348,49 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">References <a class="el" href="structRom.html#a21c2a5af005ab68a96c9dc94e86b0e59">Rom::impl</a>.</p>
+
+</div>
+</div>
+<a id="aba747622bde6d819aca9e095c3249ba7" name="aba747622bde6d819aca9e095c3249ba7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba747622bde6d819aca9e095c3249ba7">&#9670;&#160;</a></span>get_color_from_paletteset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structsnes__color.html">snes_color</a> get_color_from_paletteset </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structRom.html">Rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>palette_set</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>palette</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, <a class="el" href="structRom.html#a21c2a5af005ab68a96c9dc94e86b0e59">Rom::impl</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#afca5c6d2c283689f3def35935d0ace6e">yaze::app::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d">yaze::app::Rom::palette_group()</a>, and <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="yaze_8h_aba747622bde6d819aca9e095c3249ba7_cgraph.png" border="0" usemap="#ayaze_8h_aba747622bde6d819aca9e095c3249ba7_cgraph" alt=""/></div>
+<map name="ayaze_8h_aba747622bde6d819aca9e095c3249ba7_cgraph" id="ayaze_8h_aba747622bde6d819aca9e095c3249ba7_cgraph">
+<area shape="rect" title=" " alt="" coords="5,13,177,38"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d" title=" " alt="" coords="225,5,377,46"/>
+<area shape="poly" title=" " alt="" coords="177,23,209,23,209,28,177,28"/>
+</map>
+</div>
 
 </div>
 </div>

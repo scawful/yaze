@@ -1,6 +1,6 @@
 var constants_8h =
 [
-    [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ],
+    [ "yaze::app::OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", "structyaze_1_1app_1_1OWMapTiles" ],
     [ "TAB_BAR", "constants_8h.html#a2787dd8a1e56d8afff7bb6b2275a5631", null ],
     [ "END_TAB_BAR", "constants_8h.html#a2b70aa0177c9118ef7d48ec0596653f4", null ],
     [ "TAB_ITEM", "constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c", null ],
@@ -32,8 +32,8 @@ var constants_8h =
     [ "uint", "constants_8h.html#a69aa29b598b851b0640aa225a9e5d61d", null ],
     [ "uchar", "constants_8h.html#ae48ac2456c5ad6c956fef86e7bef3a21", null ],
     [ "Bytes", "constants_8h.html#a2640b748d10e1cbab1f408f43c52449d", null ],
-    [ "OWBlockset", "constants_8h.html#ae6235510c5207aa5d2d8b84fcbdc3964", null ],
-    [ "OWMapTiles", "constants_8h.html#acee828f19f47e5c9d6e681568472c961", null ],
+    [ "OWBlockset", "constants_8h.html#a1528910dca250c6119a96d559b114430", null ],
+    [ "OWMapTiles", "constants_8h.html#a683a233a45db8227628e1d8a669157f6", null ],
     [ "kRedPen", "constants_8h.html#a386b985dabb5995d3943457a20547f19", null ],
     [ "kYazeVersion", "constants_8h.html#a6d651e38582177a01a8c5d06a1ddfb56", null ],
     [ "UncompressedSheetSize", "constants_8h.html#aa81639987a081f9954d7d8d61d39c92d", null ],

@@ -1,7 +1,10 @@
 <map id="src/yaze.h" name="src/yaze.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="40,5,120,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,70,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,33,55,67,50,64,71,30"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="94,79,154,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="90,30,111,64,106,67,85,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="70,5,149,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,73,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,33,63,70,60,66,96,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="127,153,191,178"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,30,138,104,150,137,145,139,132,106,110,32"/>
+<area shape="rect" id="Node000004" href="$base_2snes__color_8h.html" title=" " alt="" coords="146,79,273,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="128,29,182,67,179,72,125,34"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="203,106,178,141,174,138,199,103"/>
 </map>

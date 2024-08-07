@@ -1,0 +1,19 @@
+<map id="src/py/yaze_py.cc" name="src/py/yaze_py.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="106,5,230,31"/>
+<area shape="rect" id="Node000002" href="$yaze__py_8h.html" title=" " alt="" coords="5,79,83,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,34,79,73,77,69,146,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="47,153,118,178"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="163,33,100,140,95,138,159,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="158,79,277,105"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="178,30,203,65,198,68,174,33"/>
+<area shape="rect" id="Node000005" href="$yaze_8h.html" title=" " alt="" coords="301,79,358,105"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="196,29,289,70,287,75,194,34"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="53,104,71,138,67,140,48,106"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="225,153,292,178"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="320,107,283,143,279,140,316,103"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="347,226,410,252"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="335,104,357,177,370,211,365,213,352,179,330,106"/>
+<area shape="rect" id="Node000008" href="$base_2snes__color_8h.html" title=" " alt="" coords="366,153,492,178"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="348,103,401,141,398,145,345,107"/>
+<area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="423,180,398,215,394,212,419,177"/>
+</map>

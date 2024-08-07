@@ -110,7 +110,7 @@ $(function(){initNavTree('base_2snes__color_8h_source.html',''); initResizable(t
 <a href="base_2snes__color_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_BASE_SNES_COLOR_H_</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_BASE_SNES_COLOR_H_</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;stdint.h&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#ifdef __cplusplus</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> {</div>
@@ -125,15 +125,28 @@ $(function(){initNavTree('base_2snes__color_8h_source.html',''); initResizable(t
 </div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="base_2snes__color_8h.html#a7010d1b3caf12995e0ecb41a1c446b94">   18</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structsnes__color.html">snes_color</a> <a class="code hl_struct" href="structsnes__color.html">snes_color</a>;</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_BASE_SNES_COLOR_H_</span></div>
+<div class="foldopen" id="foldopen00023" data-start="{" data-end="};">
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="structsnes__palette.html">   23</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structsnes__palette.html">snes_palette</a> {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f">   24</a></span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f">id</a>;    </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965">   25</a></span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965">size</a>;  </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6">   26</a></span>  <a class="code hl_struct" href="structsnes__color.html">snes_color</a>* <a class="code hl_variable" href="structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6">colors</a>; </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>};</div>
+</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="base_2snes__color_8h.html#ae878f60a39304c3c09a219467e353cec">   28</a></span><span class="keyword">using </span><a class="code hl_struct" href="structsnes__palette.html">snes_palette</a> = <span class="keyword">struct </span><a class="code hl_struct" href="structsnes__palette.html">snes_palette</a>;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>}</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_BASE_SNES_COLOR_H_</span></div>
 <div class="ttc" id="astructsnes__color_html"><div class="ttname"><a href="structsnes__color.html">snes_color</a></div><div class="ttdoc">Primitive of 16-bit RGB SNES color.</div><div class="ttdef"><b>Definition</b> snes_color.h:13</div></div>
 <div class="ttc" id="astructsnes__color_html_a41ac72d54eb2dfa4383093677a111bd4"><div class="ttname"><a href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a></div><div class="ttdeci">uint16_t green</div><div class="ttdef"><b>Definition</b> snes_color.h:16</div></div>
 <div class="ttc" id="astructsnes__color_html_a60abec7840bbcbb72a19deef33c19a58"><div class="ttname"><a href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a></div><div class="ttdeci">uint16_t red</div><div class="ttdef"><b>Definition</b> snes_color.h:14</div></div>
 <div class="ttc" id="astructsnes__color_html_abe07ebebd2f735f932b7a7a065506f9f"><div class="ttname"><a href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a></div><div class="ttdeci">uint16_t blue</div><div class="ttdef"><b>Definition</b> snes_color.h:15</div></div>
+<div class="ttc" id="astructsnes__palette_html"><div class="ttname"><a href="structsnes__palette.html">snes_palette</a></div><div class="ttdoc">Primitive of a SNES color palette.</div><div class="ttdef"><b>Definition</b> snes_color.h:23</div></div>
+<div class="ttc" id="astructsnes__palette_html_aa3f32ff0f52e7ada19fb5afdd477258f"><div class="ttname"><a href="structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f">snes_palette::id</a></div><div class="ttdeci">unsigned int id</div><div class="ttdef"><b>Definition</b> snes_color.h:24</div></div>
+<div class="ttc" id="astructsnes__palette_html_ad4057af514d8aab3c6a429b693bb9ac6"><div class="ttname"><a href="structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6">snes_palette::colors</a></div><div class="ttdeci">snes_color * colors</div><div class="ttdef"><b>Definition</b> snes_color.h:26</div></div>
+<div class="ttc" id="astructsnes__palette_html_af78e1764df4b15340c56da97b8e2c965"><div class="ttname"><a href="structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965">snes_palette::size</a></div><div class="ttdeci">unsigned int size</div><div class="ttdef"><b>Definition</b> snes_color.h:25</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

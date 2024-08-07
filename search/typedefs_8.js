@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['owblockset_0',['OWBlockset',['../constants_8h.html#ae6235510c5207aa5d2d8b84fcbdc3964',1,'constants.h']]],
-  ['owmaptiles_1',['OWMapTiles',['../constants_8h.html#acee828f19f47e5c9d6e681568472c961',1,'constants.h']]]
+  ['owblockset_0',['OWBlockset',['../namespaceyaze_1_1app.html#a1528910dca250c6119a96d559b114430',1,'yaze::app']]],
+  ['owmaptiles_1',['OWMapTiles',['../namespaceyaze_1_1app.html#a683a233a45db8227628e1d8a669157f6',1,'yaze::app']]]
 ];

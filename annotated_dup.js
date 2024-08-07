@@ -10,7 +10,8 @@ var annotated_dup =
           [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
-          [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ]
+          [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
+          [ "sdl_deleter", "structyaze_1_1app_1_1core_1_1sdl__deleter.html", "structyaze_1_1app_1_1core_1_1sdl__deleter" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
           [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", [
@@ -189,7 +190,6 @@ var annotated_dup =
           [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroup" ],
           [ "PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap" ],
           [ "Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", "structyaze_1_1app_1_1gfx_1_1Paletteset" ],
-          [ "snes_palette", "structyaze_1_1app_1_1gfx_1_1snes__palette.html", "structyaze_1_1app_1_1gfx_1_1snes__palette" ],
           [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", "classyaze_1_1app_1_1gfx_1_1SnesColor" ],
           [ "SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", "classyaze_1_1app_1_1gfx_1_1SnesPalette" ],
           [ "Tile16", "classyaze_1_1app_1_1gfx_1_1Tile16.html", "classyaze_1_1app_1_1gfx_1_1Tile16" ],
@@ -252,6 +252,7 @@ var annotated_dup =
           [ "OverworldEntity", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html", "classyaze_1_1app_1_1zelda3_1_1OverworldEntity" ],
           [ "Sprite", "classyaze_1_1app_1_1zelda3_1_1Sprite.html", "classyaze_1_1app_1_1zelda3_1_1Sprite" ]
         ] ],
+        [ "OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", "structyaze_1_1app_1_1OWMapTiles" ],
         [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
         [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
         [ "RomTest", "classyaze_1_1app_1_1RomTest.html", "classyaze_1_1app_1_1RomTest" ],
@@ -290,8 +291,7 @@ var annotated_dup =
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
     [ "Extension", "structExtension.html", "structExtension" ],
-    [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ],
     [ "Rom", "structRom.html", "structRom" ],
-    [ "sdl_deleter", "structsdl__deleter.html", "structsdl__deleter" ],
-    [ "snes_color", "structsnes__color.html", "structsnes__color" ]
+    [ "snes_color", "structsnes__color.html", "structsnes__color" ],
+    [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ]
 ];

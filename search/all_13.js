@@ -167,12 +167,11 @@ var searchData=
   ['pull_5fbyte_164',['pull_byte',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#ae9cb5f269a7da0b7f7c7a0fe57eee315',1,'yaze::app::emu::audio::Spc700']]],
   ['pull_5fword_165',['pull_word',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a542d008df21df772bcb86e511d26c2a7',1,'yaze::app::emu::audio::Spc700']]],
   ['push_166',['PUSH',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a00e8c2f46b7d2c57df25f0daa2d14991',1,'yaze::app::emu::audio::Spc700']]],
-  ['push_5fback_167',['push_back',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a251026f4c1d066563a118a919ef7a5fe',1,'yaze::app::gui::Canvas::push_back()'],['../classyaze_1_1app_1_1Rom.html#a4c39a9d08fcf5864affdbf85aac1c181',1,'yaze::app::Rom::push_back()']]],
+  ['push_5fback_167',['push_back',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a251026f4c1d066563a118a919ef7a5fe',1,'yaze::app::gui::Canvas']]],
   ['push_5fbyte_168',['push_byte',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8ae4aa554650342dc21615ac88edbda7',1,'yaze::app::emu::audio::Spc700']]],
   ['push_5fword_169',['push_word',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a038513eaaf2e25b485789ea1a433aec1',1,'yaze::app::emu::audio::Spc700']]],
   ['pushbyte_170',['PushByte',['../classyaze_1_1app_1_1emu_1_1Cpu.html#add7919bb964f2c59741c702d70a914bf',1,'yaze::app::emu::Cpu::PushByte()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a3228ebfb57d9a23f6e3bfe08f9ca53a7',1,'yaze::app::emu::memory::Memory::PushByte()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ae328d319170e1bb4e36596597012ac0b',1,'yaze::app::emu::memory::MemoryImpl::PushByte()']]],
   ['pushlong_171',['PushLong',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a8fbe61b263b95e73d2702739183e81bb',1,'yaze::app::emu::Cpu::PushLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a096c6a0d0f6fe092b3810105f3c9a8ea',1,'yaze::app::emu::memory::Memory::PushLong()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a9b8e58090ad02e7d4c08c8c898533f1b',1,'yaze::app::emu::memory::MemoryImpl::PushLong()']]],
   ['pushword_172',['PushWord',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a6f886eb9db792ee52e64026ac30e309f',1,'yaze::app::emu::Cpu::PushWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1Memory.html#a47698f1cd27578e14af1219a8941c278',1,'yaze::app::emu::memory::Memory::PushWord()'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a2de591be654966d4fa2d2dd377ab4e6e',1,'yaze::app::emu::memory::MemoryImpl::PushWord()']]],
-  ['putpixels_173',['PutPixels',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abfae099f8f3ce10b2e043cc6adf4e7f5',1,'yaze::app::emu::video::Ppu']]],
-  ['pyinit_5fyaze_174',['PyInit_yaze',['../yaze__python_8h.html#aef320a05aa2384318172a534cbb2f11d',1,'yaze_python.h']]]
+  ['putpixels_173',['PutPixels',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#abfae099f8f3ce10b2e043cc6adf4e7f5',1,'yaze::app::emu::video::Ppu']]]
 ];
