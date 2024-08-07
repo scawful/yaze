@@ -15,6 +15,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_FIND_FRAMEWORK LAST) 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dlinux -Dstricmp=strcasecmp")
 
 # Abseil Standard Specifications
 include(cmake/absl.cmake)
