@@ -5,20 +5,21 @@ add_executable(
   app/rom.cc
   app/core/common.cc
   app/core/labeling.cc
-  app/gui/pipeline.cc
-  app/editor/context/gfx_context.cc
+  app/editor/utils/gfx_context.cc
   app/core/platform/file_dialog.mm
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
+  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   z3ed PUBLIC
   lib/
   app/
+  ${ASAR_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
@@ -27,11 +28,13 @@ target_include_directories(
 
 target_link_libraries(
   z3ed PUBLIC
+  asar-static
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
+  ImGuiTestEngine
   ImGui
 )
