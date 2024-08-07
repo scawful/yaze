@@ -12,12 +12,11 @@ using ::testing::ElementsAreArray;
 using yaze::app::gfx::ConvertRGBtoSNES;
 using yaze::app::gfx::ConvertSNEStoRGB;
 using yaze::app::gfx::Extract;
-using yaze::app::gfx::snes_color;
 using yaze::app::gfx::snes_palette;
 using yaze::app::gfx::SnesPalette;
 
 namespace {
-unsigned int test_convert(yaze::app::gfx::snes_color col) {
+unsigned int test_convert(snes_color col) {
   unsigned int toret;
   toret = col.red << 16;
   toret += col.green << 8;
@@ -99,7 +98,7 @@ TEST(SNESColorTest, Convert) {
                    static_cast<char>(0xFF),
                    0x1F};
   auto pal = Extract(data, 0, 5);
-  auto snes_string = Convert(pal);
+  auto snes_string = yaze::app::gfx::Convert(pal);
   EXPECT_EQ(10, snes_string.size());
   EXPECT_THAT(data, ElementsAreArray(snes_string.data(), 10));
 }
