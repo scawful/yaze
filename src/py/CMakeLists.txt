@@ -1,4 +1,4 @@
-find_package(PythonLibs 3.8 COMPONENTS Interpreter Development REQUIRED)
+find_package(PythonLibs 3.8 REQUIRED)
 cmake_policy(SET CMP0167 NEW)
 find_package(Boost COMPONENTS python3 REQUIRED)
 
