@@ -112,3 +112,37 @@ set_target_properties(yaze
 endif()
 
 add_subdirectory(test)
+
+# Yaze C API
+add_library(yaze_c SHARED
+  app/yaze.cc
+  app/rom.cc
+  ${YAZE_APP_EMU_SRC}
+  ${YAZE_APP_CORE_SRC}
+  ${YAZE_APP_EDITOR_SRC}
+  ${YAZE_APP_GFX_SRC}
+  ${YAZE_APP_ZELDA3_SRC}
+  ${YAZE_GUI_SRC}
+  ${IMGUI_SRC}
+  ${IMGUI_TEST_ENGINE_SOURCES}
+)
+
+target_include_directories(
+  yaze_c PUBLIC
+  lib/
+  app/
+  ${CMAKE_SOURCE_DIR}/src/
+  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${PNG_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
+)
+
+target_link_libraries(
+  yaze_c PUBLIC
+  ${ABSL_TARGETS}
+  ${SDL_TARGETS}
+  ${PNG_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ImGuiTestEngine
+  ImGui
+)
