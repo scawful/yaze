@@ -1,24 +1,15 @@
 #ifndef YAZE_APP_GFX_SNES_COLOR_H_
 #define YAZE_APP_GFX_SNES_COLOR_H_
 
-#include "imgui/imgui.h"
-
 #include <cstdint>
 #include <vector>
+
+#include "base/snes_color.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
 namespace gfx {
-
-/**
- * @brief Primitive of 16-bit RGB SNES color.
- */
-struct snes_color {
-  uint16_t red;   /**< Red component of the color. */
-  uint16_t blue;  /**< Blue component of the color. */
-  uint16_t green; /**< Green component of the color. */
-};
-typedef struct snes_color snes_color;
 
 snes_color ConvertSNEStoRGB(uint16_t snes_color);
 uint16_t ConvertRGBtoSNES(const snes_color& color);
