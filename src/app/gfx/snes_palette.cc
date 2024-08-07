@@ -1,7 +1,6 @@
 #include "snes_palette.h"
 
 #include <SDL.h>
-#include "imgui/imgui.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -15,6 +14,7 @@
 #include "absl/status/statusor.h"
 #include "app/core/constants.h"
 #include "app/gfx/snes_color.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
@@ -307,7 +307,7 @@ SnesPalette ReadPaletteFromRom(int offset, int num_colors, const uchar* rom) {
 
   while (color_offset < num_colors) {
     short color = (ushort)((rom[offset + 1]) << 8) | rom[offset];
-    gfx::snes_color new_color;
+    snes_color new_color;
     new_color.red = (color & 0x1F) * 8;
     new_color.green = ((color >> 5) & 0x1F) * 8;
     new_color.blue = ((color >> 10) & 0x1F) * 8;
