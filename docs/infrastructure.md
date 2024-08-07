@@ -2,6 +2,14 @@
 
 For developers to reference.
 
+## Targets
+
+- **yaze**: Desktop application for Windows/macOS/Linux
+- **yaze_c**: C Library
+- **yaze_py**: Python Module
+- **yaze_ext**: Extensions library
+- **yaze_test**: Unit test executable
+
 ## Directory Structure
 
 - **.github/workflows**: Contains `yaze_test` workflow config.
@@ -13,6 +21,8 @@ For developers to reference.
 - **src**: Contains source files. 
   - **app**: Contains the GUI editor `yaze`
   - **cli**: Contains the command line interface `z3ed`
+  - **ext**: Contains the extensions library `yaze_ext`
+  - **py**:  Contains the Python module `yaze_py`
   - **lib**: Contains git submodule dependencies.
     - Abseil-cpp
     - Asar
