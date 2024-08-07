@@ -433,6 +433,9 @@ class Rom : public core::ExperimentFlags {
   auto link_graphics() { return link_graphics_; }
   auto mutable_link_graphics() { return &link_graphics_; }
 
+  auto gfx_sheets() { return graphics_sheets_; }
+  auto mutable_gfx_sheets() { return &graphics_sheets_; }
+
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto begin() { return rom_data_.begin(); }
