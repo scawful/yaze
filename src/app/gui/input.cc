@@ -1,20 +1,19 @@
 #include "input.h"
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-
 #include <functional>
 #include <optional>
 #include <string>
 
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/strings/string_view.h"
 #include "app/core/common.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace ImGui {
 
@@ -46,7 +45,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                                    ImGuiInputTextFlags_CharsHexadecimal |
                                    ImGuiInputTextFlags_CharsScientific)) == 0)
     flags |= InputScalar_DefaultCharsFilter(data_type, format);
-  flags |= ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoMarkEdited;
+  flags |= ImGuiInputTextFlags_AutoSelectAll;
+  flags |= ImGuiInputTextFlags_NoMarkEdited;
 
   bool value_changed = false;
   // if (p_step == NULL) {
