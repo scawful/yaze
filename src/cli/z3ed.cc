@@ -60,7 +60,7 @@ void HelpCommand() {
 }
 
 int RunCommandHandler(int argc, char* argv[]) {
-  if (argv[1] == "-h" || argc == 1) {
+  if (std::strcmp(argv[1], "-h") == 0 || argc == 1) {
     HelpCommand();
     return EXIT_SUCCESS;
   }
