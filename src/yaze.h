@@ -1,12 +1,14 @@
 #ifndef YAZE_H
 #define YAZE_H
 
-#include <cstddef>
-#include <cstdint>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stddef.h>
+#include <stdint.h>
+
+#include "base/snes_color.h"
 
 void yaze_initialize(void);
 

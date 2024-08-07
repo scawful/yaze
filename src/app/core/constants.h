@@ -123,6 +123,9 @@ using uint = unsigned int;
 using uchar = unsigned char;
 using Bytes = std::vector<uint8_t>;
 
+namespace yaze {
+namespace app {
+
 using OWBlockset = std::vector<std::vector<uint16_t>>;
 struct OWMapTiles {
   OWBlockset light_world;    // 64 maps
@@ -131,8 +134,6 @@ struct OWMapTiles {
 };
 using OWMapTiles = struct OWMapTiles;
 
-namespace yaze {
-namespace app {
 namespace core {
 
 constexpr uint32_t kRedPen = 0xFF0000FF;
