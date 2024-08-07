@@ -13,7 +13,6 @@
 #include "app/core/constants.h"
 #include "app/rom.h"
 #include "cli/command_handler.h"
-#include "cli/patch.h"
 
 namespace yaze {
 

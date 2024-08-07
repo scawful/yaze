@@ -22,6 +22,7 @@
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "asar.h"
 
 namespace yaze {
 namespace cli {
