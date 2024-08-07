@@ -1,7 +1,7 @@
 #ifndef YAZE_BASE_SNES_COLOR_H_
 #define YAZE_BASE_SNES_COLOR_H_
 
-#include <cstdint>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +16,16 @@ struct snes_color {
   uint16_t green; /**< Green component of the color. */
 };
 typedef struct snes_color snes_color;
+
+/**
+ * @brief Primitive of a SNES color palette.
+ */
+struct snes_palette {
+  unsigned int id;    /**< ID of the palette. */
+  unsigned int size;  /**< Size of the palette. */
+  snes_color* colors; /**< Pointer to the colors in the palette. */
+};
+using snes_palette = struct snes_palette;
 
 #ifdef __cplusplus
 }
