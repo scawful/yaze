@@ -19,6 +19,7 @@ target_include_directories(
   yaze PUBLIC
   lib/
   app/
+  ${ASAR_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${PNG_INCLUDE_DIRS}
@@ -27,6 +28,7 @@ target_include_directories(
 
 target_link_libraries(
   yaze PUBLIC
+  asar-static
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
