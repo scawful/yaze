@@ -43,15 +43,11 @@ class FileDialogWrapper {
   }
 };
 
-#elif defined(__APPLE__)
-
-#include "TargetConditionals.h"
+#elif defined(__APPLE__) || defined(__linux__)
 
 #include <string>
 #include <vector>
 
-#if TARGET_OS_MAC == 1
-
 class FileDialogWrapper {
  public:
   static std::string ShowOpenFileDialog();
@@ -60,32 +56,6 @@ class FileDialogWrapper {
       const std::string& folder_path);
   static std::vector<std::string> GetFilesInFolder(
       const std::string& folder_path);
-};
-
-#elif TARGET_OS_IPHONE == 1
-
-// iOS
-class FileDialogWrapper {
- public:
-  static std::string ShowOpenFileDialog();
-  static std::string ShowOpenFolderDialog();
-  static std::vector<std::string> GetSubdirectoriesInFolder(
-      const std::string& folder_path);
-  static std::vector<std::string> GetFilesInFolder(
-      const std::string& folder_path);
-};
-
-#endif
-
-#elif defined(__linux__)
-
-class FileDialogWrapper {
- public:
-  static std::string ShowOpenFileDialog() {
-    // Linux-specific file dialog implementation using GTK
-    // ...
-    return "file_path_linux";
-  }
 };
 
 #else
