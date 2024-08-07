@@ -219,7 +219,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename, bool z3_load) {
   return absl::OkStatus();
 }
 
-absl::Status Rom::LoadFromPointer(uchar* data, size_t length) {
+absl::Status Rom::LoadFromPointer(uchar* data, size_t length, bool z3_load) {
   if (!data)
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
@@ -228,17 +228,19 @@ absl::Status Rom::LoadFromPointer(uchar* data, size_t length) {
 
   size_ = length;
 
-  // Copy ROM title
-  constexpr uint32_t kTitleStringOffset = 0x7FC0;
-  constexpr uint32_t kTitleStringLength = 20;
-  memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
-  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-    version_ = Z3_Version::JP;
-  } else {
-    version_ = Z3_Version::US;
+  if (z3_load) {
+    // Copy ROM title
+    constexpr uint32_t kTitleStringOffset = 0x7FC0;
+    constexpr uint32_t kTitleStringLength = 20;
+    memcpy(title_, rom_data_.data() + kTitleStringOffset, kTitleStringLength);
+    if (rom_data_[kTitleStringOffset + 0x19] == 0) {
+      version_ = Z3_Version::JP;
+    } else {
+      version_ = Z3_Version::US;
+    }
+    RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+    LoadGfxGroups();
   }
-  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
-  LoadGfxGroups();
 
   // Set is_loaded_ flag and return success
   is_loaded_ = true;
