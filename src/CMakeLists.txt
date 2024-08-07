@@ -76,7 +76,7 @@ endif()
 
 include(app/CMakeLists.txt)
 include(cli/CMakeLists.txt) 
-include(ext/CMakeLists.txt)
+# include(ext/CMakeLists.txt)
 include(py/CMakeLists.txt)
 
 if (UNIX)
