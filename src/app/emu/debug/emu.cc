@@ -5,10 +5,6 @@
 #endif
 
 #include <SDL.h>
-#include "absl/status/status.h"
-#include "absl/strings/str_format.h"
-#include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
 
 #include <memory>
 #include <string>
@@ -25,24 +21,13 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/core/utils/sdl_deleter.h"
 #include "app/emu/snes.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 using namespace yaze::app;
-
-struct sdl_deleter {
-  void operator()(SDL_Window *p) const {
-    if (p) {
-      SDL_DestroyWindow(p);
-    }
-  }
-  void operator()(SDL_Renderer *p) const {
-    if (p) {
-      SDL_DestroyRenderer(p);
-    }
-  }
-  void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
-};
 
 int main(int argc, char **argv) {
   absl::InitializeSymbolizer(argv[0]);
