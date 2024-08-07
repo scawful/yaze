@@ -1,26 +1,24 @@
 #ifndef YAZE_APP_CORE_PROJECT_H
 #define YAZE_APP_CORE_PROJECT_H
 
-#include "absl/strings/match.h"
-
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "absl/strings/string_view.h"
+#include "absl/strings/match.h"
 #include "app/core/common.h"
 
 namespace yaze {
 namespace app {
 
-constexpr absl::string_view kProjectFileExtension = ".yaze";
+constexpr std::string kProjectFileExtension = ".yaze";
 constexpr absl::string_view kProjectFileFilter =
     "Yaze Project Files (*.yaze)\0*.yaze\0";
-constexpr absl::string_view kPreviousRomFilenameDelimiter =
-    "PreviousRomFilename";
-constexpr absl::string_view kEndOfProjectFile = "EndOfProjectFile";
+constexpr std::string kPreviousRomFilenameDelimiter = "PreviousRomFilename";
+constexpr std::string kEndOfProjectFile = "EndOfProjectFile";
 
 /**
  * @struct Project
@@ -70,9 +68,12 @@ struct Project : public core::ExperimentFlags {
       }
 
       if (absl::StrContains(line, kPreviousRomFilenameDelimiter)) {
-        previous_rom_filenames_.push_back(
-            line.substr(line.find(kPreviousRomFilenameDelimiter) +
-                        kPreviousRomFilenameDelimiter.size() + 1));
+        size_t delimiter_pos = line.find(kPreviousRomFilenameDelimiter);
+        if (delimiter_pos != std::string::npos) {
+          std::string filename =
+              line.substr(delimiter_pos + kPreviousRomFilenameDelimiter.size());
+          previous_rom_filenames_.push_back(filename);
+        }
       }
     }
 
