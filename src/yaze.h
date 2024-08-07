@@ -15,19 +15,19 @@ void yaze_initialize(void);
 
 void yaze_cleanup(void);
 
-typedef struct Rom Rom;
+typedef struct rom rom;
 
-struct Rom {
+struct rom {
   const char* filename;
   const uint8_t* data;
   size_t size;
   void* impl;  // yaze::app::Rom*
 };
 
-Rom load_rom(const char* filename);
-void unload_rom(Rom rom);
+rom load_rom(const char* filename);
+void unload_rom(rom rom);
 
-snes_color get_color_from_paletteset(const Rom* rom, int palette_set,
+snes_color get_color_from_paletteset(const rom* rom, int palette_set,
                                      int palette, int color);
 
 #ifdef __cplusplus
