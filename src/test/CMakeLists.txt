@@ -21,6 +21,7 @@ add_executable(
   test/gfx/compression_test.cc
   test/gfx/snes_palette_test.cc
   test/zelda3/room_object_test.cc
+  test/zelda3/sprite_builder_test.cc
   cli/command_handler.cc
   app/rom.cc
   app/rom_test.cc
