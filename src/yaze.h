@@ -26,6 +26,9 @@ struct Rom {
 Rom load_rom(const char* filename);
 void unload_rom(Rom rom);
 
+snes_color get_color_from_paletteset(const Rom* rom, int palette_set,
+                                     int palette, int color);
+
 #ifdef __cplusplus
 }
 #endif
