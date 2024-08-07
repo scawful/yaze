@@ -1,5 +1,12 @@
 var NAVTREEINDEX8 =
 {
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a5af86ac3603178ff59652ae70b53822d":[9,0,0,0,2,6,140],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a5b496c018c921ed5e2f355ed2cf324bf":[8,0,1,0,2,8,106],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a5b496c018c921ed5e2f355ed2cf324bf":[9,0,0,0,2,6,106],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a5c534e20f2f55497a91ecf95e5f94e53":[8,0,1,0,2,8,120],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a5c534e20f2f55497a91ecf95e5f94e53":[9,0,0,0,2,6,120],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a5cab5717420a053a5d6835ec9b974e46":[8,0,1,0,2,8,112],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a5cab5717420a053a5d6835ec9b974e46":[9,0,0,0,2,6,112],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a5e83b2979e2abf51d730a5b0e7650097":[8,0,1,0,2,8,58],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a5e83b2979e2abf51d730a5b0e7650097":[9,0,0,0,2,6,58],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a5ed76b557a1708efa842c67829f44612":[8,0,1,0,2,8,97],
@@ -242,12 +249,5 @@ var NAVTREEINDEX8 =
 "classyaze_1_1app_1_1emu_1_1Cpu.html#ae5f8a8d0e5f8f1a72c4475ac402acda0":[9,0,0,0,2,6,4],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#ae6bd445503eaf0beab1c4512ad47451c":[8,0,1,0,2,8,83],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#ae6bd445503eaf0beab1c4512ad47451c":[9,0,0,0,2,6,83],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#ae93df22975121fd0d902a2c22dc5b137":[8,0,1,0,2,8,193],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#ae93df22975121fd0d902a2c22dc5b137":[9,0,0,0,2,6,193],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#ae9b61f01ebca0530a50e5dc52b995ffb":[8,0,1,0,2,8,103],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#ae9b61f01ebca0530a50e5dc52b995ffb":[9,0,0,0,2,6,103],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#aea9d18905569583bddad06838a3c86d2":[8,0,1,0,2,8,187],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#aea9d18905569583bddad06838a3c86d2":[9,0,0,0,2,6,187],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#aeac1d4fa688a68b1f542d0dd60b8e7ed":[8,0,1,0,2,8,125],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#aeac1d4fa688a68b1f542d0dd60b8e7ed":[9,0,0,0,2,6,125]
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae93df22975121fd0d902a2c22dc5b137":[8,0,1,0,2,8,193]
 };

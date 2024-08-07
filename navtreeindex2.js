@@ -1,5 +1,12 @@
 var NAVTREEINDEX2 =
 {
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d60f7e1e149769068acee4838a90474":[9,0,0,0,1,4,6],
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a414b0f5f565993549a0144818d19ec39":[8,0,1,0,1,9,19],
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a414b0f5f565993549a0144818d19ec39":[9,0,0,0,1,4,19],
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a46bda6e3cd93a139c2e800f575c46c3c":[8,0,1,0,1,9,10],
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a46bda6e3cd93a139c2e800f575c46c3c":[9,0,0,0,1,4,10],
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4eaeeb04ce0ce88147ea2361a1c26a10":[8,0,1,0,1,9,42],
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4eaeeb04ce0ce88147ea2361a1c26a10":[9,0,0,0,1,4,42],
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4f14f9916e234f23265f3e4917f43dd2":[8,0,1,0,1,9,4],
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4f14f9916e234f23265f3e4917f43dd2":[9,0,0,0,1,4,4],
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a51c53cfe19c74d6f44f8c24ccdbba77d":[8,0,1,0,1,9,16],
@@ -242,12 +249,5 @@ var NAVTREEINDEX2 =
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a207d9e69335aefc76d0e0f8e2bfc8ff2":[9,0,0,0,1,12,75],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a225f810e24ba46cb5c9420c429e9434f":[8,0,1,0,1,17,77],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a225f810e24ba46cb5c9420c429e9434f":[9,0,0,0,1,12,77],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398":[8,0,1,0,1,17,26],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398":[9,0,0,0,1,12,26],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2713f5d234699f8fe4f88ab05ddc564c":[8,0,1,0,1,17,57],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2713f5d234699f8fe4f88ab05ddc564c":[9,0,0,0,1,12,57],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2726fcff50d2227e2c230fd51b5957ac":[8,0,1,0,1,17,32],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2726fcff50d2227e2c230fd51b5957ac":[9,0,0,0,1,12,32],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2da56a06cd1b34d1b2b7d151a8a67375":[8,0,1,0,1,17,6],
-"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2da56a06cd1b34d1b2b7d151a8a67375":[9,0,0,0,1,12,6]
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a2603a99c7979d0047a099eb2af6bb398":[8,0,1,0,1,17,26]
 };

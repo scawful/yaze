@@ -1,5 +1,12 @@
 var NAVTREEINDEX4 =
 {
+"classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac67ef851a62f7d2ccd7342f666066dee":[9,0,0,0,1,14,1],
+"classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac91b54b25672b06cc545724c187b48a6":[8,0,1,0,1,19,29],
+"classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac91b54b25672b06cc545724c187b48a6":[9,0,0,0,1,14,29],
+"classyaze_1_1app_1_1editor_1_1MasterEditor.html#ad46300254acb8642a4b08f737d8bbb99":[8,0,1,0,1,19,31],
+"classyaze_1_1app_1_1editor_1_1MasterEditor.html#ad46300254acb8642a4b08f737d8bbb99":[9,0,0,0,1,14,31],
+"classyaze_1_1app_1_1editor_1_1MasterEditor.html#adde7f7131533b85f51cf10adcac3b03e":[8,0,1,0,1,19,4],
+"classyaze_1_1app_1_1editor_1_1MasterEditor.html#adde7f7131533b85f51cf10adcac3b03e":[9,0,0,0,1,14,4],
 "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae3e6367019a598087c3d29e2fe981c0d":[8,0,1,0,1,19,39],
 "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae3e6367019a598087c3d29e2fe981c0d":[9,0,0,0,1,14,39],
 "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ae46890418ec01f116a913d06cb31a245":[8,0,1,0,1,19,15],
@@ -242,12 +249,5 @@ var NAVTREEINDEX4 =
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a6dc0c0c4676400d5919c8f3a98c06d3d":[9,0,0,0,1,19,108],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a6e641aeb7780ec01f73f6af036ba0cf7":[8,0,1,0,1,24,30],
 "classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a6e641aeb7780ec01f73f6af036ba0cf7":[9,0,0,0,1,19,30],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a72af70519f52eaba9178828f2114bf5d":[8,0,1,0,1,24,41],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a72af70519f52eaba9178828f2114bf5d":[9,0,0,0,1,19,41],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a7710239a59515755a005fa060ae6a210":[8,0,1,0,1,24,1],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a7710239a59515755a005fa060ae6a210":[9,0,0,0,1,19,1],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a7a3b2cbce87c4b42102efa627db2d703":[8,0,1,0,1,24,102],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a7a3b2cbce87c4b42102efa627db2d703":[9,0,0,0,1,19,102],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a800f8b17c76d3ccca98c2b7304bb2e1b":[8,0,1,0,1,24,27],
-"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a800f8b17c76d3ccca98c2b7304bb2e1b":[9,0,0,0,1,19,27]
+"classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a72af70519f52eaba9178828f2114bf5d":[8,0,1,0,1,24,41]
 };

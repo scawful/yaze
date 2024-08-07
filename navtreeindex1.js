@@ -1,5 +1,12 @@
 var NAVTREEINDEX1 =
 {
+"classyaze_1_1app_1_1Rom.html#a9f00106cd357c95213ff5bd8cbaba9c5":[9,0,0,0,8,34],
+"classyaze_1_1app_1_1Rom.html#aa06ec4cb1e61ae80a710d6e5929f5a86":[8,0,1,0,8,30],
+"classyaze_1_1app_1_1Rom.html#aa06ec4cb1e61ae80a710d6e5929f5a86":[9,0,0,0,8,30],
+"classyaze_1_1app_1_1Rom.html#aa0a63ed3d9bfbe780f45f1b063c4fc98":[8,0,1,0,8,44],
+"classyaze_1_1app_1_1Rom.html#aa0a63ed3d9bfbe780f45f1b063c4fc98":[9,0,0,0,8,44],
+"classyaze_1_1app_1_1Rom.html#aa72443cf6bb48f5c0a08d6e16a90748d":[8,0,1,0,8,58],
+"classyaze_1_1app_1_1Rom.html#aa72443cf6bb48f5c0a08d6e16a90748d":[9,0,0,0,8,58],
 "classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9":[8,0,1,0,8,61],
 "classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9":[9,0,0,0,8,61],
 "classyaze_1_1app_1_1Rom.html#aada27eed1d3e341c53cca7344cb3a0be":[8,0,1,0,8,19],
@@ -242,12 +249,5 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a38172056cefbeade4f25bf3cfb4191fa":[9,0,0,0,1,4,35],
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d51398b7cfb24ece6f1db73d9fea4e7":[8,0,1,0,1,9,13],
 "classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d51398b7cfb24ece6f1db73d9fea4e7":[9,0,0,0,1,4,13],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d60f7e1e149769068acee4838a90474":[8,0,1,0,1,9,6],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d60f7e1e149769068acee4838a90474":[9,0,0,0,1,4,6],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a414b0f5f565993549a0144818d19ec39":[8,0,1,0,1,9,19],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a414b0f5f565993549a0144818d19ec39":[9,0,0,0,1,4,19],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a46bda6e3cd93a139c2e800f575c46c3c":[8,0,1,0,1,9,10],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a46bda6e3cd93a139c2e800f575c46c3c":[9,0,0,0,1,4,10],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4eaeeb04ce0ce88147ea2361a1c26a10":[8,0,1,0,1,9,42],
-"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a4eaeeb04ce0ce88147ea2361a1c26a10":[9,0,0,0,1,4,42]
+"classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a3d60f7e1e149769068acee4838a90474":[8,0,1,0,1,9,6]
 };

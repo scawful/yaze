@@ -1,5 +1,12 @@
 var NAVTREEINDEX15 =
 {
+"classyaze_1_1app_1_1gfx_1_1BitmapManager.html#aeb7888d2921893232ce9845a950246bf":[9,0,0,0,3,3,7],
+"classyaze_1_1app_1_1gfx_1_1BitmapManager.html#af03e4b90fb287cfa9dd0264a962e2a94":[8,0,1,0,3,5,16],
+"classyaze_1_1app_1_1gfx_1_1BitmapManager.html#af03e4b90fb287cfa9dd0264a962e2a94":[9,0,0,0,3,3,16],
+"classyaze_1_1app_1_1gfx_1_1OamTile.html":[8,0,1,0,3,6],
+"classyaze_1_1app_1_1gfx_1_1OamTile.html":[9,0,0,0,3,4],
+"classyaze_1_1app_1_1gfx_1_1OamTile.html#a17ab9a163670607b1cd35c1a2d010c5f":[8,0,1,0,3,6,4],
+"classyaze_1_1app_1_1gfx_1_1OamTile.html#a17ab9a163670607b1cd35c1a2d010c5f":[9,0,0,0,3,4,4],
 "classyaze_1_1app_1_1gfx_1_1OamTile.html#a45e0e4bd747265a14017aea5ad58fc75":[8,0,1,0,3,6,0],
 "classyaze_1_1app_1_1gfx_1_1OamTile.html#a45e0e4bd747265a14017aea5ad58fc75":[9,0,0,0,3,4,0],
 "classyaze_1_1app_1_1gfx_1_1OamTile.html#a5bcf364a46b7fa5a2f417e3c8245698e":[8,0,1,0,3,6,6],
@@ -242,12 +249,5 @@ var NAVTREEINDEX15 =
 "classyaze_1_1app_1_1gui_1_1BitmapViewer.html#a69ab7b5facc41aa7f20c065ed73b7a42":[9,0,0,0,4,2,0],
 "classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7":[8,0,1,0,4,3,1],
 "classyaze_1_1app_1_1gui_1_1BitmapViewer.html#ae6a86e35e36f01d7ee37de4408cb33a7":[9,0,0,0,4,2,1],
-"classyaze_1_1app_1_1gui_1_1Canvas.html":[8,0,1,0,4,4],
-"classyaze_1_1app_1_1gui_1_1Canvas.html":[9,0,0,0,4,3],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a01ba84d6ac00f77413d37ab7205a76bb":[8,0,1,0,4,4,74],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a01ba84d6ac00f77413d37ab7205a76bb":[9,0,0,0,4,3,74],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049":[8,0,1,0,4,4,10],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049":[9,0,0,0,4,3,10],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a0ace1c816323fe05d96cdba7aa89d6d9":[8,0,1,0,4,4,28],
-"classyaze_1_1app_1_1gui_1_1Canvas.html#a0ace1c816323fe05d96cdba7aa89d6d9":[9,0,0,0,4,3,28]
+"classyaze_1_1app_1_1gui_1_1Canvas.html":[8,0,1,0,4,4]
 };

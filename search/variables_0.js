@@ -6,7 +6,7 @@ var searchData=
   ['about_5f_3',['about_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a2d459e6d4453d01313d0c43161a4652e',1,'yaze::app::editor::MasterEditor']]],
   ['access_5ftime_4',['access_time',['../classyaze_1_1app_1_1emu_1_1SNES.html#a7a9e725bf9b84e1c84ee4487209207ec',1,'yaze::app::emu::SNES']]],
   ['accumulatedtime_5',['accumulatedTime',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#a76d39a1a8524d2305f834262696653bc',1,'yaze::app::emu::ClockImpl']]],
-  ['actions_6',['actions',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb',1,'yaze::app::gui::zeml::Node']]],
+  ['actions_6',['actions',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb',1,'yaze::app::gui::zeml::Node::actions'],['../structsprite.html#a61bda979b29b27f833ffd858ae117906',1,'sprite::actions']]],
   ['active_7',['Active',['../structyaze_1_1app_1_1editor_1_1ParsedElement.html#ae182c2be3d79eb3ba3af641bc94f2d43',1,'yaze::app::editor::ParsedElement']]],
   ['active_5f_8',['active_',['../classyaze_1_1app_1_1core_1_1Controller.html#a100a89b072e1fd51b58816c76f4f7a1c',1,'yaze::app::core::Controller::active_'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aa7db7aa31e134803f9b89303e4af09ca',1,'yaze::app::gfx::Bitmap::active_']]],
   ['active_5feditors_5f_9',['active_editors_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ab572c55533755591b9f73eb10e6a9fda',1,'yaze::app::editor::MasterEditor']]],

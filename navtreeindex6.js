@@ -1,5 +1,12 @@
 var NAVTREEINDEX6 =
 {
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a4da093058d84665c2bd1b71afb7cc0aa":[9,0,0,0,1,23,38],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8":[8,0,1,0,1,28,27],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8":[9,0,0,0,1,23,27],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a54cd7324648ecd704eada38906eb8b8f":[8,0,1,0,1,28,22],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a54cd7324648ecd704eada38906eb8b8f":[9,0,0,0,1,23,22],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a565a4af81f8980eb86101f381e8a55f2":[8,0,1,0,1,28,1],
+"classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a565a4af81f8980eb86101f381e8a55f2":[9,0,0,0,1,23,1],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a57e1846d63486b8115f219d85f3c25f0":[8,0,1,0,1,28,0],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a57e1846d63486b8115f219d85f3c25f0":[9,0,0,0,1,23,0],
 "classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5918aba16c908fe3a0cbc8efadadbd18":[8,0,1,0,1,28,4],
@@ -242,12 +249,5 @@ var NAVTREEINDEX6 =
 "classyaze_1_1app_1_1emu_1_1AsmParser.html":[9,0,0,0,2,3],
 "classyaze_1_1app_1_1emu_1_1AsmParser.html#a2a560cd05c6c0ea184f4c624101e5e93":[8,0,1,0,2,5,2],
 "classyaze_1_1app_1_1emu_1_1AsmParser.html#a2a560cd05c6c0ea184f4c624101e5e93":[9,0,0,0,2,3,2],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087":[8,0,1,0,2,5,6],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087":[9,0,0,0,2,3,6],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a4f2c9cab10ad45e17847630f5afbffb8":[8,0,1,0,2,5,7],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a4f2c9cab10ad45e17847630f5afbffb8":[9,0,0,0,2,3,7],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a515a27fe21bf66a9666dc944dc4ffc13":[8,0,1,0,2,5,5],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a515a27fe21bf66a9666dc944dc4ffc13":[9,0,0,0,2,3,5],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a5f479ca3409f183edaf2de57a0729a63":[8,0,1,0,2,5,3],
-"classyaze_1_1app_1_1emu_1_1AsmParser.html#a5f479ca3409f183edaf2de57a0729a63":[9,0,0,0,2,3,3]
+"classyaze_1_1app_1_1emu_1_1AsmParser.html#a3d939f3edae43a796e80acddf0e8a087":[8,0,1,0,2,5,6]
 };

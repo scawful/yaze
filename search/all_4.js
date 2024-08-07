@@ -23,7 +23,7 @@ var searchData=
   ['accesstype_20',['AccessType',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a324ba56e42b5f4c60bae35729e8b0f1d',1,'yaze::app::emu::Cpu']]],
   ['accumulatedtime_21',['accumulatedTime',['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#a76d39a1a8524d2305f834262696653bc',1,'yaze::app::emu::ClockImpl']]],
   ['action_22',['Action',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Action.html',1,'yaze::app::gui::zeml']]],
-  ['actions_23',['actions',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb',1,'yaze::app::gui::zeml::Node']]],
+  ['actions_23',['actions',['../structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html#aab250b6d856d3e634be2d7e7a62c44eb',1,'yaze::app::gui::zeml::Node::actions'],['../structsprite.html#a61bda979b29b27f833ffd858ae117906',1,'sprite::actions']]],
   ['actiontype_24',['ActionType',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a8012c292c03901c7a7f2aa7a0d82fee5',1,'yaze::app::gui::zeml']]],
   ['active_25',['Active',['../structyaze_1_1app_1_1editor_1_1ParsedElement.html#ae182c2be3d79eb3ba3af641bc94f2d43',1,'yaze::app::editor::ParsedElement']]],
   ['active_5f_26',['active_',['../classyaze_1_1app_1_1core_1_1Controller.html#a100a89b072e1fd51b58816c76f4f7a1c',1,'yaze::app::core::Controller::active_'],['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aa7db7aa31e134803f9b89303e4af09ca',1,'yaze::app::gfx::Bitmap::active_']]],

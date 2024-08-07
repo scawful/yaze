@@ -1,5 +1,12 @@
 var NAVTREEINDEX9 =
 {
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae93df22975121fd0d902a2c22dc5b137":[9,0,0,0,2,6,193],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae9b61f01ebca0530a50e5dc52b995ffb":[8,0,1,0,2,8,103],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#ae9b61f01ebca0530a50e5dc52b995ffb":[9,0,0,0,2,6,103],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#aea9d18905569583bddad06838a3c86d2":[8,0,1,0,2,8,187],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#aea9d18905569583bddad06838a3c86d2":[9,0,0,0,2,6,187],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#aeac1d4fa688a68b1f542d0dd60b8e7ed":[8,0,1,0,2,8,125],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#aeac1d4fa688a68b1f542d0dd60b8e7ed":[9,0,0,0,2,6,125],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#aead768fb8db5ce03b7f974ee6d53213f":[8,0,1,0,2,8,89],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#aead768fb8db5ce03b7f974ee6d53213f":[9,0,0,0,2,6,89],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#aeb25713b9300717fe6e75edc0bf2551b":[8,0,1,0,2,8,180],
@@ -242,12 +249,5 @@ var NAVTREEINDEX9 =
 "classyaze_1_1app_1_1emu_1_1SNES.html#a953a0ae3cc4751c61d53b15075699275":[9,0,0,0,2,15,14],
 "classyaze_1_1app_1_1emu_1_1SNES.html#a966f50d10633d4ad47a5f1042673ffdd":[8,0,1,0,2,17,17],
 "classyaze_1_1app_1_1emu_1_1SNES.html#a966f50d10633d4ad47a5f1042673ffdd":[9,0,0,0,2,15,17],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7":[8,0,1,0,2,17,25],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7":[9,0,0,0,2,15,25],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a9ac754f76c6b40ff850ad584c1da260a":[8,0,1,0,2,17,23],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a9ac754f76c6b40ff850ad584c1da260a":[9,0,0,0,2,15,23],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a9bdb60defe64d1ce05b9ebd5657f6338":[8,0,1,0,2,17,29],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a9bdb60defe64d1ce05b9ebd5657f6338":[9,0,0,0,2,15,29],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a9d4130b38ed588b9b9d7e768da2cb939":[8,0,1,0,2,17,52],
-"classyaze_1_1app_1_1emu_1_1SNES.html#a9d4130b38ed588b9b9d7e768da2cb939":[9,0,0,0,2,15,52]
+"classyaze_1_1app_1_1emu_1_1SNES.html#a993065537045cb8897aceff94b2941c7":[8,0,1,0,2,17,25]
 };

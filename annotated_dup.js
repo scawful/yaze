@@ -293,5 +293,8 @@ var annotated_dup =
     [ "Extension", "structExtension.html", "structExtension" ],
     [ "Rom", "structRom.html", "structRom" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
-    [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ]
+    [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
+    [ "sprite", "structsprite.html", "structsprite" ],
+    [ "sprite_action", "structsprite__action.html", "structsprite__action" ],
+    [ "sprite_instruction", "structsprite__instruction.html", "structsprite__instruction" ]
 ];

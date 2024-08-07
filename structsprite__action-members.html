@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/py/yaze_py.h Source File</title>
+<title>yaze: Member List</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -78,7 +78,7 @@ $(function() { codefold.init(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(function(){initNavTree('yaze__py_8h_source.html',''); initResizable(true); });
+$(function(){initNavTree('structsprite__action.html',''); initResizable(true); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -104,36 +104,20 @@ $(function(){initNavTree('yaze__py_8h_source.html',''); initResizable(true); });
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">yaze_py.h</div></div>
+  <div class="headertitle"><div class="title">sprite_action Member List</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="yaze__py_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_PYTHON_H</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_PYTHON_H</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;Python.h&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">static</span> PyObject *yaze_init(PyObject *self, PyObject *args);</div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">static</span> PyMethodDef YazeMethods[] = {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>    {<span class="stringliteral">&quot;system&quot;</span>, yaze_init, METH_VARARGS, <span class="stringliteral">&quot;Initialize the yaze lib.&quot;</span>},</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>    {NULL, NULL, 0, NULL} <span class="comment">/* Sentinel */</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>};</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">static</span> <span class="keyword">struct </span>PyModuleDef yaze_module = {PyModuleDef_HEAD_INIT,</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>                                         <span class="stringliteral">&quot;yaze&quot;</span>,  <span class="comment">// Module title</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>                                         NULL,    <span class="comment">// Documentation</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>                                         -1,      <span class="comment">// Interpreter state size</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>                                         YazeMethods};</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">// PyMODINIT_FUNC PyInit_yaze(void) { return PyModule_Create(&amp;yaze_module); }</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_PYTHON_H</span></div>
-</div><!-- fragment --></div><!-- contents -->
+
+<p>This is the complete list of members for <a class="el" href="structsprite__action.html">sprite_action</a>, including all inherited members.</p>
+<table class="directory">
+  <tr class="even"><td class="entry"><a class="el" href="structsprite__action.html#aa3f89163242bb3ed574b1d210fd47ce3">id</a></td><td class="entry"><a class="el" href="structsprite__action.html">sprite_action</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="structsprite__action.html#a89e2cbb1cddc446cf6f17fb85ef28047">instructions</a></td><td class="entry"><a class="el" href="structsprite__action.html">sprite_action</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="structsprite__action.html#a7c2fdf7dfe5b453eeafeddf46c9121ae">name</a></td><td class="entry"><a class="el" href="structsprite__action.html">sprite_action</a></td><td class="entry"></td></tr>
+</table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_a93a2bf9e4fdfd9b0c8f935e1e182eb2.html">py</a></li><li class="navelem"><a class="el" href="yaze__py_8h.html">yaze_py.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0 </li>
   </ul>
 </div>
