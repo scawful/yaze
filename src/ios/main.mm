@@ -196,6 +196,17 @@
     }
   }
   io.AddMouseButtonEvent(0, hasActiveTouch);
+  
+  UIHoverGestureRecognizer *hoverGestureRecognizer = [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(hoverGesture:)];
+  [self.view addGestureRecognizer:hoverGestureRecognizer];
+- (void)hoverGesture:(UIHoverGestureRecognizer *)gesture {
+  ImGuiIO &io = ImGui::GetIO();
+  io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+  // Cast to UIGestureRecognizer to UIGestureRecognizer to get locationInView
+  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
+  if (gesture.zOffset < 0.50) {
+    io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x, [gestureRecognizer locationInView:self.view].y);
+  }
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
