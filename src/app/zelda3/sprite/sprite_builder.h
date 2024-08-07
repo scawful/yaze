@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_SPRITE_SPRITE_BUILDER_H_
 #define YAZE_APP_ZELDA3_SPRITE_SPRITE_BUILDER_H_
 
+#include <array>
 #include <string>
 #include <vector>
 
