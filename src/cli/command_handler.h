@@ -75,7 +75,7 @@ class ApplyPatch : public CommandHandler {
 
     // Apply patch
     std::vector<uint8_t> patched;
-    core::ApplyBpsPatch(source, patch, patched);
+    app::core::ApplyBpsPatch(source, patch, patched);
 
     // Save patched file
     std::ofstream patched_rom("patched.sfc", std::ios::binary);
@@ -92,7 +92,7 @@ class CreatePatch : public CommandHandler {
     std::vector<uint8_t> target;
     std::vector<uint8_t> patch;
     // Create patch
-    core::CreateBpsPatch(source, target, patch);
+    app::core::CreateBpsPatch(source, target, patch);
 
     // Save patch to file
     // std::ofstream patchFile("patch.bps", ios::binary);
