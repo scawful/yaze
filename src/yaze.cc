@@ -8,12 +8,12 @@ void yaze_initialize(void) {}
 // TODO: Implement yaze_cleanup
 void yaze_cleanup(void) {}
 
-Rom load_rom(const char* filename) {
+rom load_rom(const char* filename) {
   yaze::app::Rom* internal_rom;
   internal_rom = new yaze::app::Rom();
   if (!internal_rom->LoadFromFile(filename).ok()) {
     delete internal_rom;
-    Rom rom;
+    rom rom;
     rom.impl = nullptr;
     rom.filename = filename;
     rom.data = nullptr;
@@ -21,7 +21,7 @@ Rom load_rom(const char* filename) {
     return rom;
   }
 
-  Rom rom;
+  rom rom;
   rom.impl = internal_rom;
   rom.filename = filename;
   rom.data = internal_rom->data();
@@ -29,13 +29,13 @@ Rom load_rom(const char* filename) {
   return rom;
 }
 
-void unload_rom(Rom rom) {
+void unload_rom(rom rom) {
   if (rom.impl) {
     delete static_cast<yaze::app::Rom*>(rom.impl);
   }
 }
 
-snes_color get_color_from_paletteset(const Rom* rom, int palette_set,
+snes_color get_color_from_paletteset(const rom* rom, int palette_set,
                                      int palette, int color) {
   snes_color color_struct;
   color_struct.red = 0;
