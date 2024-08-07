@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/gui/icons.h"
