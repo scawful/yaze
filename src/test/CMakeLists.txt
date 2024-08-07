@@ -15,6 +15,7 @@ add_executable(
   yaze_test
   test/yaze_test.cc
   test/libc_test.cc
+  test/rom_test.cc
   test/emu/cpu_test.cc
   test/emu/spc700_test.cc
   test/emu/ppu_test.cc
@@ -24,7 +25,6 @@ add_executable(
   test/zelda3/sprite_builder_test.cc
   cli/command_handler.cc
   app/rom.cc
-  app/rom_test.cc
   app/core/common.cc
   app/core/labeling.cc
   app/editor/utils/gfx_context.cc
