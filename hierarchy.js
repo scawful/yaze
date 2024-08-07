@@ -44,6 +44,7 @@ var hierarchy =
     [ "yaze::app::emu::video::Color", "structyaze_1_1app_1_1emu_1_1video_1_1Color.html", null ],
     [ "yaze::cli::CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", [
       [ "yaze::cli::ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", null ],
+      [ "yaze::cli::AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", null ],
       [ "yaze::cli::Backup", "classyaze_1_1cli_1_1Backup.html", null ],
       [ "yaze::cli::Compress", "classyaze_1_1cli_1_1Compress.html", null ],
       [ "yaze::cli::CreatePatch", "classyaze_1_1cli_1_1CreatePatch.html", null ],
@@ -85,6 +86,7 @@ var hierarchy =
     [ "yaze::app::editor::EntranceContext", "classyaze_1_1app_1_1editor_1_1EntranceContext.html", [
       [ "yaze::app::editor::OverworldEditor", "classyaze_1_1app_1_1editor_1_1OverworldEditor.html", null ]
     ] ],
+    [ "errordata", "structerrordata.html", null ],
     [ "yaze::app::editor::ExampleAppPropertyEditor", "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html", null ],
     [ "yaze::app::editor::ExampleMemberInfo", "structyaze_1_1app_1_1editor_1_1ExampleMemberInfo.html", null ],
     [ "yaze::app::editor::ExampleTreeNode", "structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html", null ],

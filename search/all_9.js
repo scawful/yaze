@@ -26,7 +26,7 @@ var searchData=
   ['file_5fpath_5f_23',['file_path_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0b3b3a88d5795cea8aaa5a3f573ef623',1,'yaze::app::editor::GraphicsEditor']]],
   ['file_5ftype_24',['file_type',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad09af6b5547da2559e46583f2d37b4d0',1,'yaze::app::gfx::scad_format::CgxHeader']]],
   ['filedialogpipeline_25',['FileDialogPipeline',['../namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50',1,'yaze::app::gui']]],
-  ['filename_26',['filename',['../structRom.html#a15514e27fc390561f6fcd42e7751aaef',1,'Rom::filename'],['../classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd',1,'yaze::app::Rom::filename()']]],
+  ['filename_26',['filename',['../structerrordata.html#a1b119a29ef2228f25a9090da6c729702',1,'errordata::filename'],['../structRom.html#a15514e27fc390561f6fcd42e7751aaef',1,'Rom::filename'],['../classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd',1,'yaze::app::Rom::filename()']]],
   ['filename_5f_27',['filename_',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa45ad7a2d16b486946224270eaeb0cec',1,'yaze::app::core::ResourceLabelManager::filename_'],['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#adea068b41f8a0e7a2b01493d660c49b4',1,'yaze::app::editor::RecentFilesManager::filename_'],['../classyaze_1_1app_1_1Rom.html#a91a162b1c152c1c602ecc1501b248989',1,'yaze::app::Rom::filename_']]],
   ['filepath_28',['filepath',['../structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681',1,'yaze::app::Project']]],
   ['files_29',['files',['../structyaze_1_1app_1_1core_1_1FolderItem.html#a5a873b932addb515f0a742abdb8faaa6',1,'yaze::app::core::FolderItem']]],
@@ -98,9 +98,10 @@ var searchData=
   ['fromb_95',['fromB',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa496c7c0204d59918d683649f22d8b3e',1,'yaze::app::emu::memory::DmaChannel']]],
   ['full_5fgraphic_96',['full_graphic',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0',1,'yaze::app::emu::video::VideoPortControl']]],
   ['full_5fpalette_5f_97',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
-  ['function_98',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
-  ['functions_99',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
-  ['functions_3a_100',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2infrastructure.html#autotoc_md28',1,'Main Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
-  ['further_20development_20ideas_101',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md30',1,'']]],
-  ['fx_102',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
+  ['fullerrdata_98',['fullerrdata',['../structerrordata.html#a866fc5064525eec012f305642b7e2c43',1,'errordata']]],
+  ['function_99',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
+  ['functions_100',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
+  ['functions_3a_101',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
+  ['further_20development_20ideas_102',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md28',1,'']]],
+  ['fx_103',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

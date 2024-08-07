@@ -63,12 +63,13 @@ var searchData=
   ['entrance_5fyscroll_60',['entrance_yscroll',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a42b13b90ef235bf6c84c6ea49ceb5533',1,'yaze::app::zelda3::dungeon']]],
   ['entrances_5f_61',['entrances_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a6823343cd60e49ccc8ab0d468406b842',1,'yaze::app::editor::DungeonEditor']]],
   ['entries_62',['entries',['../structyaze_1_1app_1_1emu_1_1video_1_1Tilemap.html#a45f436ae3bffb8704932a565f4a0fa3a',1,'yaze::app::emu::video::Tilemap']]],
-  ['even_5fframe_63',['even_frame',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aa666b326474a27aa582400f65b57fb0b',1,'yaze::app::emu::video::Ppu']]],
-  ['evencycle_64',['evenCycle',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a76298376619909b0620cad6f42abf860',1,'yaze::app::emu::audio::Dsp']]],
-  ['exit_5f_65',['exit_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#aa495b8ad153bf19ff919e93e78878a3a',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
-  ['extbg_66',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['extendfunctionality_67',['extendFunctionality',['../structExtension.html#a2b775c5f3b6dbd48ad8c4d9d360b619d',1,'Extension']]],
-  ['extension_68',['extension',['../extension_8cc.html#a7a805add2cbfa5242ddb69d389267b71',1,'extension.cc']]],
-  ['external_5fsync_69',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['extra_5fcgx_5fdata_5f_70',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]]
+  ['errid_63',['errid',['../structerrordata.html#a877faef0651bf147237511ffdb998bcd',1,'errordata']]],
+  ['even_5fframe_64',['even_frame',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aa666b326474a27aa582400f65b57fb0b',1,'yaze::app::emu::video::Ppu']]],
+  ['evencycle_65',['evenCycle',['../classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a76298376619909b0620cad6f42abf860',1,'yaze::app::emu::audio::Dsp']]],
+  ['exit_5f_66',['exit_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomEntrance.html#aa495b8ad153bf19ff919e93e78878a3a',1,'yaze::app::zelda3::dungeon::RoomEntrance']]],
+  ['extbg_67',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
+  ['extendfunctionality_68',['extendFunctionality',['../structExtension.html#a2b775c5f3b6dbd48ad8c4d9d360b619d',1,'Extension']]],
+  ['extension_69',['extension',['../extension_8cc.html#a7a805add2cbfa5242ddb69d389267b71',1,'extension.cc']]],
+  ['external_5fsync_70',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
+  ['extra_5fcgx_5fdata_5f_71',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]]
 ];

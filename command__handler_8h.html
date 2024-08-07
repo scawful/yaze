@@ -107,7 +107,8 @@ $(function(){initNavTree('command__handler_8h.html',''); initResizable(true); })
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#enum-members">Enumerations</a>  </div>
+<a href="#enum-members">Enumerations</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">command_handler.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -362,11 +363,15 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structerrordata.html">errordata</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1Color_1_1Modifier.html">yaze::cli::Color::Modifier</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1CommandHandler.html">yaze::cli::CommandHandler</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1ApplyPatch.html">yaze::cli::ApplyPatch</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1AsarPatch.html">yaze::cli::AsarPatch</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1cli_1_1CreatePatch.html">yaze::cli::CreatePatch</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -432,7 +437,67 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:a2aac92fcaacd2c1da7a5fcbaa85ddb07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ad4bb3b1dff789102c94b41235a6a29c2" id="r_ad4bb3b1dff789102c94b41235a6a29c2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad4bb3b1dff789102c94b41235a6a29c2">asar_patch</a> (const char *patchloc, char *romdata, int buflen, int *romlen)</td></tr>
+<tr class="separator:ad4bb3b1dff789102c94b41235a6a29c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a393c4a3ba5b30aedcb85e5e6b4b98399" id="r_a393c4a3ba5b30aedcb85e5e6b4b98399"><td class="memItemLeft" align="right" valign="top">const struct <a class="el" href="structerrordata.html">errordata</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a393c4a3ba5b30aedcb85e5e6b4b98399">asar_geterrors</a> (int *count)</td></tr>
+<tr class="separator:a393c4a3ba5b30aedcb85e5e6b4b98399"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="ad4bb3b1dff789102c94b41235a6a29c2" name="ad4bb3b1dff789102c94b41235a6a29c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4bb3b1dff789102c94b41235a6a29c2">&#9670;&#160;</a></span>asar_patch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool asar_patch </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>patchloc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *</td>          <td class="paramname"><span class="paramname"><em>romdata</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>buflen</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>romlen</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2">yaze::cli::AsarPatch::handle()</a>.</p>
+
+</div>
+</div>
+<a id="a393c4a3ba5b30aedcb85e5e6b4b98399" name="a393c4a3ba5b30aedcb85e5e6b4b98399"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a393c4a3ba5b30aedcb85e5e6b4b98399">&#9670;&#160;</a></span>asar_geterrors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const struct <a class="el" href="structerrordata.html">errordata</a> * asar_geterrors </td>
+          <td>(</td>
+          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>count</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1cli_1_1AsarPatch.html#ae1b0683ca9b985db4914475c3c5723f2">yaze::cli::AsarPatch::handle()</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

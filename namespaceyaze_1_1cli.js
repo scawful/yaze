@@ -6,6 +6,7 @@ var namespaceyaze_1_1cli =
     ] ],
     [ "Color", "namespaceyaze_1_1cli_1_1Color.html", "namespaceyaze_1_1cli_1_1Color" ],
     [ "ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
+    [ "AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
     [ "Backup", "classyaze_1_1cli_1_1Backup.html", "classyaze_1_1cli_1_1Backup" ],
     [ "CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", "classyaze_1_1cli_1_1CommandHandler" ],
     [ "Commands", "structyaze_1_1cli_1_1Commands.html", "structyaze_1_1cli_1_1Commands" ],

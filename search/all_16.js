@@ -53,7 +53,7 @@ var searchData=
   ['screendisplay_50',['ScreenDisplay',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenDisplay.html',1,'yaze::app::emu::video']]],
   ['screeneditor_51',['ScreenEditor',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html',1,'yaze::app::editor::ScreenEditor'],['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a57e1846d63486b8115f219d85f3c25f0',1,'yaze::app::editor::ScreenEditor::ScreenEditor()']]],
   ['screenmode_52',['ScreenMode',['../structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html',1,'yaze::app::emu::video']]],
-  ['screenshots_53',['Screenshots',['../md_README.html#autotoc_md36',1,'']]],
+  ['screenshots_53',['Screenshots',['../md_README.html#autotoc_md34',1,'']]],
   ['scroll_5fmod_5fx_5f_54',['scroll_mod_x_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a4c279851222f22c056f6eec0f63e30d1',1,'yaze::app::zelda3::overworld::OverworldExit']]],
   ['scroll_5fmod_5fy_5f_55',['scroll_mod_y_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldExit.html#a13b80fcd396ae1ee67a5e4985142c4ba',1,'yaze::app::zelda3::overworld::OverworldExit']]],
   ['scroll_5fprev2_5f_56',['scroll_prev2_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#aafba95e65bfe8d3735664e101d3a8510',1,'yaze::app::emu::video::Ppu']]],

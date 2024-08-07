@@ -264,6 +264,7 @@ var annotated_dup =
           [ "Modifier", "classyaze_1_1cli_1_1Color_1_1Modifier.html", "classyaze_1_1cli_1_1Color_1_1Modifier" ]
         ] ],
         [ "ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
+        [ "AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
         [ "Backup", "classyaze_1_1cli_1_1Backup.html", "classyaze_1_1cli_1_1Backup" ],
         [ "CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", "classyaze_1_1cli_1_1CommandHandler" ],
         [ "Commands", "structyaze_1_1cli_1_1Commands.html", "structyaze_1_1cli_1_1Commands" ],
@@ -290,6 +291,7 @@ var annotated_dup =
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
+    [ "errordata", "structerrordata.html", "structerrordata" ],
     [ "Extension", "structExtension.html", "structExtension" ],
     [ "Rom", "structRom.html", "structRom" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
