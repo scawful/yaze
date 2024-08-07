@@ -9,6 +9,7 @@ extern "C" {
 #include <stdint.h>
 
 #include "base/snes_color.h"
+#include "base/sprite.h"
 
 void yaze_initialize(void);
 
