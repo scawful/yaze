@@ -34,3 +34,28 @@ void unload_rom(Rom rom) {
     delete static_cast<yaze::app::Rom*>(rom.impl);
   }
 }
+
+snes_color get_color_from_paletteset(const Rom* rom, int palette_set,
+                                     int palette, int color) {
+  snes_color color_struct;
+  color_struct.red = 0;
+  color_struct.green = 0;
+  color_struct.blue = 0;
+
+  if (rom->impl) {
+    yaze::app::Rom* internal_rom = static_cast<yaze::app::Rom*>(rom->impl);
+    auto get_color =
+        internal_rom->palette_group()
+            .get_group(yaze::app::gfx::kPaletteGroupAddressesKeys[palette_set])
+            ->palette(palette)
+            .GetColor(color);
+    if (!get_color.ok()) {
+      return color_struct;
+    }
+    color_struct = get_color.value().rom_color();
+
+    return color_struct;
+  }
+
+  return color_struct;
+}
