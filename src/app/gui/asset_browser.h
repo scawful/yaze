@@ -112,7 +112,7 @@ struct AssetObject {
   }
 
   // Compare function to be used by qsort()
-  static int __cdecl CompareWithSortSpecs(const void* lhs, const void* rhs) {
+  static int CompareWithSortSpecs(const void* lhs, const void* rhs) {
     const AssetObject* a = (const AssetObject*)lhs;
     const AssetObject* b = (const AssetObject*)rhs;
     for (int n = 0; n < s_current_sort_specs->SpecsCount; n++) {
