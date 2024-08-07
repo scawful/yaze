@@ -16,6 +16,6 @@ static struct PyModuleDef yaze_module = {PyModuleDef_HEAD_INIT,
                                          -1,      // Interpreter state size
                                          YazeMethods};
 
-PyMODINIT_FUNC PyInit_yaze(void) { return PyModule_Create(&yaze_module); }
+// PyMODINIT_FUNC PyInit_yaze(void) { return PyModule_Create(&yaze_module); }
 
 #endif  // YAZE_PYTHON_H

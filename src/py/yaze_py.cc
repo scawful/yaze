@@ -1,6 +1,21 @@
-#include "yaze_python.h"
+#include "yaze_py.h"
 
 #include <Python.h>
+
+#include <boost/python.hpp>
+
+#include "yaze.h"
+
+BOOST_PYTHON_MODULE(yaze) {
+  using namespace boost::python;
+  def("yaze_init", yaze_init);
+
+  class_<Rom>("Rom")
+      .def_readonly("filename", &Rom::filename)
+      .def_readonly("data", &Rom::data)
+      .def_readonly("size", &Rom::size)
+      .def_readonly("impl", &Rom::impl);
+}
 
 static PyObject *SpamError;
 
