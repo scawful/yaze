@@ -9,6 +9,32 @@ namespace app {
 namespace zelda3 {
 
 
+class SpriteAction {
+ public:
+  // Factory method to create a new action
+  static SpriteAction Create(const std::string& actionName);
+
+  // Anonymously create an action
+  static SpriteAction Create();
+
+  // Add a predefined instruction to the action
+  SpriteAction& AddInstruction(const SpriteInstruction& instruction);
+
+  // Add custom raw ASM instruction to the action
+  SpriteAction& AddCustomInstruction(const std::string& asmCode);
+
+  // Set the next action to jump to
+  SpriteAction& SetNextAction(const std::string& nextActionName);
+
+  // Get the action configuration
+  std::string GetConfiguration() const;
+
+ private:
+  std::string name;
+  std::vector<std::string> instructions;
+  std::string nextAction;
+};
+
 // Array of sprite property names
 constexpr const char* kSpriteProperties[] = {"!SPRID",
                                              "!NbrTiles",
