@@ -1,20 +1,29 @@
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(PythonLibs 3.8 COMPONENTS Interpreter Development REQUIRED)
+cmake_policy(SET CMP0167 NEW)
+find_package(Boost COMPONENTS python3 REQUIRED)
 
+set(CMAKE_SHARED_MODULE_PREFIX "")
+
+# target x86_64 for module 
 add_library(
-  yaze_py
-  py/yaze_python.cc
+  yaze_py MODULE
+  py/yaze_py.cc
 )
 
 set(PYTHON_HEADERS /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Headers)
 
 target_include_directories(
   yaze_py PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/
   lib/
   app/
   ${PYTHON_HEADERS}
+  ${Boost_INCLUDE_DIRS}
+  ${PYTHON_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   yaze_py PUBLIC
-  Python
+  ${PYTHON_LIBRARIES}
+  Boost::python3
 )
