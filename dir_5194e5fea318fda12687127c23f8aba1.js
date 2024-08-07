@@ -8,6 +8,5 @@ var dir_5194e5fea318fda12687127c23f8aba1 =
     [ "zelda3", "dir_3692ec13241b192189de912e0a54f355.html", "dir_3692ec13241b192189de912e0a54f355" ],
     [ "rom.cc", "rom_8cc.html", "rom_8cc" ],
     [ "rom.h", "rom_8h.html", "rom_8h" ],
-    [ "rom_test.cc", "rom__test_8cc.html", "rom__test_8cc" ],
     [ "yaze.cc", "app_2yaze_8cc.html", "app_2yaze_8cc" ]
 ];

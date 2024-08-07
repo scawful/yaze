@@ -1,5 +1,5 @@
-<map id="src/app/rom_test.cc" name="src/app/rom_test.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1252,5,1388,31"/>
+<map id="src/test/rom_test.cc" name="src/test/rom_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1251,5,1389,31"/>
 <area shape="rect" id="Node000002" href="$rom_8h.html" title=" " alt="" coords="1161,79,1239,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1301,34,1235,73,1232,68,1298,29"/>
 <area shape="rect" id="Node000041" title=" " alt="" coords="1263,79,1377,105"/>
