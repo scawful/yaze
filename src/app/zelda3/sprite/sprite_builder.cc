@@ -90,6 +90,64 @@ SpriteAction& SpriteAction::SetNextAction(const std::string& nextActionName) {
 
 std::string SpriteAction::GetConfiguration() const { return ""; }
 
+// ============================================================================
+
+SpriteInstruction SpriteInstruction::PlayAnimation(int startFrame, int endFrame,
+                                                   int speed) {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::ApplySpeedTowardsPlayer(int speed) {
+  SpriteInstruction instruction;
+  instruction.SetConfiguration("JSL Sprite_ApplySpeedTowardsPlayer");
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::CheckDamageFromPlayer() {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::MoveXyz() {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::BounceFromTileCollision() {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::SetTimer(int timerId, int value) {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::Custom(const std::string& asmCode) {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::BehaveAsBarrier() {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
+SpriteInstruction SpriteInstruction::JumpToFunction(
+    const std::string& functionName) {
+  SpriteInstruction instruction;
+
+  return instruction;
+}
+
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
