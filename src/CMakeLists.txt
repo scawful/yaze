@@ -74,6 +74,7 @@ if(APPLE)
 endif()
 
 include(app/CMakeLists.txt)
+include(ext/CMakeLists.txt)
 include(py/CMakeLists.txt)
 # include(cli/CMakeLists.txt) Excluded for now, macOS include breaks action build
 
