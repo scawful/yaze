@@ -111,7 +111,7 @@ set_target_properties(yaze
 )
 endif()
 
-add_subdirectory(test)
+include(test/CMakeLists.txt)
 
 # Yaze C API
 add_library(yaze_c SHARED
