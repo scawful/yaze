@@ -171,7 +171,7 @@ class Rom : public core::ExperimentFlags {
    *
    */
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
-  absl::Status LoadFromPointer(uchar* data, size_t length);
+  absl::Status LoadFromPointer(uchar* data, size_t length, bool z3_load = true);
   absl::Status LoadFromBytes(const Bytes& data);
 
   /**

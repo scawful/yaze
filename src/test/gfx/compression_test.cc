@@ -33,7 +33,7 @@ using ::testing::TypedEq;
 namespace {
 
 Bytes ExpectCompressOk(Rom& rom, uchar* in, int in_size) {
-  auto load_status = rom.LoadFromPointer(in, in_size);
+  auto load_status = rom.LoadFromPointer(in, in_size, false);
   EXPECT_TRUE(load_status.ok());
   auto compression_status = CompressV3(rom.vector(), 0, in_size);
   EXPECT_TRUE(compression_status.ok());
@@ -51,7 +51,7 @@ Bytes ExpectDecompressBytesOk(Rom& rom, Bytes& in) {
 }
 
 Bytes ExpectDecompressOk(Rom& rom, uchar* in, int in_size) {
-  auto load_status = rom.LoadFromPointer(in, in_size);
+  auto load_status = rom.LoadFromPointer(in, in_size, false);
   EXPECT_TRUE(load_status.ok());
   auto decompression_status = DecompressV2(rom.data(), 0, in_size);
   EXPECT_TRUE(decompression_status.ok());
