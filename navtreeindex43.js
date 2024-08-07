@@ -1,5 +1,6 @@
 var NAVTREEINDEX43 =
 {
+"spc700_8cc.html":[10,0,1,0,2,0,5],
 "spc700_8h.html":[10,0,1,0,2,0,6],
 "spc700_8h.html#a5208202a4f25f5f6f30cf9b374de1cd1":[10,0,1,0,2,0,6,5],
 "spc700_8h_source.html":[10,0,1,0,2,0,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX43 =
 "structyaze_1_1app_1_1core_1_1sdl__deleter.html#a2d5c25c17e9cf13e70d78e4af17dd9df":[9,0,0,0,0,8,2],
 "structyaze_1_1app_1_1core_1_1sdl__deleter.html#aa5612ab0b382030d573f7aeda0c7ea81":[8,0,1,0,0,10,0],
 "structyaze_1_1app_1_1core_1_1sdl__deleter.html#aa5612ab0b382030d573f7aeda0c7ea81":[9,0,0,0,0,8,0],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[8,0,1,0,1,12],
-"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[9,0,0,0,1,7]
+"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[8,0,1,0,1,12]
 };
