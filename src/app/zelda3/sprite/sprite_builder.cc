@@ -60,6 +60,36 @@ std::string SpriteBuilder::Build() const {
   ss << BuildProperties();
   return ss.str();
 }
+
+// ============================================================================
+
+SpriteAction SpriteAction::Create(const std::string& actionName) {
+  SpriteAction action;
+
+  return action;
+}
+
+SpriteAction SpriteAction::Create() {
+  SpriteAction action;
+
+  return action;
+}
+
+SpriteAction& SpriteAction::AddInstruction(
+    const SpriteInstruction& instruction) {
+  return *this;
+}
+
+SpriteAction& SpriteAction::AddCustomInstruction(const std::string& asmCode) {
+  return *this;
+}
+
+SpriteAction& SpriteAction::SetNextAction(const std::string& nextActionName) {
+  return *this;
+}
+
+std::string SpriteAction::GetConfiguration() const { return ""; }
+
 }  // namespace zelda3
 }  // namespace app
 }  // namespace yaze
