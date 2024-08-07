@@ -1,12 +1,12 @@
 <map id="yaze::app::Rom::Reload" name="yaze::app::Rom::Reload">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,590,159,615"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#aba8b6cae625f88b7da18a984bf747a49" title=" " alt="" coords="207,590,400,615"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="207,590,400,615"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,600,191,600,191,605,159,605"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a4de8b517183672043671781c9534a4dd" title=" " alt="" coords="470,515,631,541"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="338,587,447,549,473,542,474,547,449,554,340,592"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="452,564,648,590"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="400,590,437,586,438,591,401,595"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="448,614,652,639"/>
+<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="448,614,652,639"/>
 <area shape="poly" id="edge50_Node000002_Node000025" title=" " alt="" coords="401,609,433,612,432,618,400,615"/>
 <area shape="rect" id="Node000026" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="462,664,639,704"/>
 <area shape="poly" id="edge51_Node000002_Node000026" title=" " alt="" coords="344,613,449,649,468,656,467,661,447,654,342,618"/>

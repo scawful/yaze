@@ -293,7 +293,7 @@ var annotated_dup =
     [ "AppViewController", "classAppViewController.html", null ],
     [ "errordata", "structerrordata.html", "structerrordata" ],
     [ "Extension", "structExtension.html", "structExtension" ],
-    [ "Rom", "structRom.html", "structRom" ],
+    [ "rom", "structrom.html", "structrom" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
     [ "sprite", "structsprite.html", "structsprite" ],

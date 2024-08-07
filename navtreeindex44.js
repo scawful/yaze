@@ -1,5 +1,6 @@
 var NAVTREEINDEX44 =
 {
+"structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[8,0,1,0,1,12],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html":[9,0,0,0,1,7],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a0fd07aa6fb39f57ad738e361d53e008c":[8,0,1,0,1,12,1],
 "structyaze_1_1app_1_1editor_1_1ExampleAppPropertyEditor.html#a0fd07aa6fb39f57ad738e361d53e008c":[9,0,0,0,1,7,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[8,0,1,0,1,7,1,3],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a400b506f1640f7770dd5d3c424430870":[9,0,0,0,1,2,1,3],
 "structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[8,0,1,0,1,7,1,0],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[9,0,0,0,1,2,1,0],
-"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a6809a42c2a00385b1505a5c8d895e9b3":[8,0,1,0,1,7,1,6]
+"structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html#a5ac36d6730066af39775e638fbbfa4fa":[9,0,0,0,1,2,1,0]
 };

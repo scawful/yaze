@@ -1,5 +1,6 @@
 var NAVTREEINDEX42 =
 {
+"room__entrance_8h.html#a1b593e7aba63f5f0ff94f05d47243417":[10,0,1,0,5,0,5,53],
 "room__entrance_8h.html#a1c24aec06bb62804a3536bfc63cf9d19":[10,0,1,0,5,0,5,45],
 "room__entrance_8h.html#a1cf1ad6baffbbbe3afeeb7fd6f3a5547":[10,0,1,0,5,0,5,5],
 "room__entrance_8h.html#a1f62c460a95ffe74d1ef3c15138b3786":[10,0,1,0,5,0,5,23],
@@ -248,6 +249,5 @@ var NAVTREEINDEX42 =
 "snes__tile_8h.html#acbccad0c8c3b4758e2ed3425058623d7":[10,0,1,0,3,11,11],
 "snes__tile_8h.html#ad8ba19f73c435e3e5527673d5b0cc096":[10,0,1,0,3,11,13],
 "snes__tile_8h.html#ae0f46c5ecd3ca9929d6baa039aeccbc7":[10,0,1,0,3,11,5],
-"snes__tile_8h.html#aefa90c55f0eea489bc7a6dd716300e90":[10,0,1,0,3,11,16],
-"snes__tile_8h_source.html":[10,0,1,0,3,11]
+"snes__tile_8h.html#aefa90c55f0eea489bc7a6dd716300e90":[10,0,1,0,3,11,16]
 };

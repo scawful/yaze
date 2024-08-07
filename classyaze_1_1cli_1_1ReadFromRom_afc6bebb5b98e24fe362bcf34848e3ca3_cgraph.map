@@ -1,6 +1,6 @@
 <map id="yaze::cli::ReadFromRom::handle" name="yaze::cli::ReadFromRom::handle">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,630,165,671"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#aba8b6cae625f88b7da18a984bf747a49" title=" " alt="" coords="213,588,406,614"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="213,588,406,614"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,630,232,615,233,620,166,636"/>
 <area shape="rect" id="Node000027" href="$classyaze_1_1app_1_1Rom.html#adc977745ac851fd2b982e24bfc7053f3" title=" " alt="" coords="225,638,394,663"/>
 <area shape="poly" id="edge52_Node000001_Node000027" title=" " alt="" coords="165,648,209,648,209,653,165,653"/>
@@ -10,7 +10,7 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="345,585,453,549,479,542,480,547,455,554,347,590"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx.html#a54b0c20ee2f3df0fb9a988b215754180" title="Loads all the palettes for the game." alt="" coords="458,564,654,590"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="406,589,443,585,443,591,407,594"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9" title=" " alt="" coords="454,614,658,639"/>
+<area shape="rect" id="Node000025" href="$classyaze_1_1app_1_1Rom.html#a789d5d8105c88938c104fecb53f70bfe" title=" " alt="" coords="454,614,658,639"/>
 <area shape="poly" id="edge50_Node000002_Node000025" title=" " alt="" coords="407,608,439,612,438,617,406,614"/>
 <area shape="rect" id="Node000026" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa6c9aca968e58e66b174423eb1e7aa0a" title=" " alt="" coords="468,664,645,704"/>
 <area shape="poly" id="edge51_Node000002_Node000026" title=" " alt="" coords="375,612,407,623,431,636,455,649,470,655,468,660,453,654,429,641,405,628,373,617"/>
