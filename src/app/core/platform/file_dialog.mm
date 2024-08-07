@@ -30,23 +30,21 @@ void ShowOpenFileDialogImpl(void (^completionHandler)(std::string)) {
 
 std::string ShowOpenFileDialogSync() {
   __block std::string result;
-  
+
   ShowOpenFileDialogImpl(^(std::string filePath) {
     result = filePath;
   });
-  
-  // Check if the documentPicker is done 
-//  while (result.empty()) {
-//    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
-//  }
+
+  // Check if the documentPicker is done
+  //  while (result.empty()) {
+  //    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+  //  }
 
   return result;
 }
 }
 
-std::string FileDialogWrapper::ShowOpenFileDialog() {
-  return ShowOpenFileDialogSync();
-}
+std::string FileDialogWrapper::ShowOpenFileDialog() { return ShowOpenFileDialogSync(); }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
 

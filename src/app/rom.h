@@ -441,7 +441,6 @@ class Rom : public core::ExperimentFlags {
   auto begin() { return rom_data_.begin(); }
   auto end() { return rom_data_.end(); }
   auto data() { return rom_data_.data(); }
-  auto push_back(uint8_t byte) { rom_data_.push_back(byte); }
   auto vector() const { return rom_data_; }
   auto filename() const { return filename_; }
   auto is_loaded() const { return is_loaded_; }

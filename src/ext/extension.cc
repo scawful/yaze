@@ -10,7 +10,7 @@ Extension* extension = nullptr;
 
 Extension* GetExtension() { return nullptr; }
 
-void loadCExtension(const char* extensionPath) {
+void LoadCExtension(const char* extensionPath) {
   handle = dlopen(extensionPath, RTLD_LAZY);
   if (!handle) {
     std::cerr << "Cannot open extension: " << dlerror() << std::endl;
