@@ -72,7 +72,7 @@ class Spc700Test : public ::testing::Test {
 
   testing::StrictMock<MockAudioRam> audioRAM;
   ApuCallbacks callbacks_;
-  Spc700 spc700{audioRAM, callbacks_};
+  Spc700 spc700{callbacks_};
 };
 
 // ========================================================
