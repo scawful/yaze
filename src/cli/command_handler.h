@@ -24,6 +24,23 @@
 #include "app/zelda3/overworld/overworld.h"
 #include "asar.h"
 
+extern "C" bool asar_patch(const char* patchloc, char* romdata, int buflen,
+                           int* romlen);
+
+// These structures are returned from various functions.
+struct errordata {
+  const char* fullerrdata;
+  const char* rawerrdata;
+  const char* block;
+  const char* filename;
+  int line;
+  const char* callerfilename;
+  int callerline;
+  int errid;
+};
+
+extern "C" const struct errordata* asar_geterrors(int* count);
+
 namespace yaze {
 namespace cli {
 
@@ -82,6 +99,28 @@ class ApplyPatch : public CommandHandler {
     std::ofstream patched_rom("patched.sfc", std::ios::binary);
     patched_rom.write((char*)patched.data(), patched.size());
     patched_rom.close();
+    return absl::OkStatus();
+  }
+};
+
+class AsarPatch : public CommandHandler {
+ public:
+  absl::Status handle(const std::vector<std::string>& arg_vec) override {
+    std::string patch_filename = arg_vec[1];
+    std::string rom_filename = arg_vec[2];
+    RETURN_IF_ERROR(rom_.LoadFromFile(rom_filename))
+    int buflen = rom_.vector().size();
+    int romlen = rom_.vector().size();
+    if (!asar_patch(patch_filename.c_str(), rom_filename.data(), buflen,
+                    &romlen)) {
+      std::string error_message = "Failed to apply patch: ";
+      int num_errors = 0;
+      const errordata* errors = asar_geterrors(&num_errors);
+      for (int i = 0; i < num_errors; i++) {
+        error_message += absl::StrFormat("%s", errors[i].fullerrdata);
+      }
+      return absl::InternalError(error_message);
+    }
     return absl::OkStatus();
   }
 };
@@ -328,6 +367,7 @@ struct Commands {
   std::unordered_map<std::string, std::shared_ptr<CommandHandler>> handlers = {
       {"-emu", std::make_shared<Emulator>()},
       {"-a", std::make_shared<ApplyPatch>()},
+      {"-asar", std::make_shared<AsarPatch>()},
       {"-c", std::make_shared<CreatePatch>()},
       {"-o", std::make_shared<Open>()},
       {"-b", std::make_shared<Backup>()},
