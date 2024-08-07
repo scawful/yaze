@@ -70,7 +70,7 @@ var searchData=
   ['commandhandler_67',['CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html#a5a563d425d0ee2d3779983ca83b35c3a',1,'yaze::cli::CommandHandler']]],
   ['compare_68',['compare',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aae63c3c8eed72dc79159fe44bf2480c9',1,'yaze::app::emu::Cpu']]],
   ['compareitemsarrays_69',['compareItemsArrays',['../namespaceyaze_1_1app_1_1zelda3_1_1overworld_1_1anonymous__namespace_02overworld_8cc_03.html#a2b56d8805cb8d768a32d570cc90b6ba1',1,'yaze::app::zelda3::overworld::anonymous_namespace{overworld.cc}']]],
-  ['comparewithsortspecs_70',['CompareWithSortSpecs',['../structyaze_1_1app_1_1editor_1_1SpriteItem.html#a77953aaf1c4451fc290877a7d347a9fc',1,'yaze::app::editor::SpriteItem::CompareWithSortSpecs()'],['../structyaze_1_1app_1_1gui_1_1AssetObject.html#a6e18b5f8ddb99ffa8d72c305986aa8e4',1,'yaze::app::gui::AssetObject::CompareWithSortSpecs()']]],
+  ['comparewithsortspecs_70',['CompareWithSortSpecs',['../structyaze_1_1app_1_1editor_1_1SpriteItem.html#a77953aaf1c4451fc290877a7d347a9fc',1,'yaze::app::editor::SpriteItem::CompareWithSortSpecs()'],['../structyaze_1_1app_1_1gui_1_1AssetObject.html#a2453e2ce7b7b1d84889745eba4b95f31',1,'yaze::app::gui::AssetObject::CompareWithSortSpecs()']]],
   ['composeandplacetilepart_71',['ComposeAndPlaceTilePart',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a3bbb033a4f1257e803eb61d078a14b87',1,'yaze::app::gfx::Tilesheet']]],
   ['composetile16_72',['ComposeTile16',['../classyaze_1_1app_1_1gfx_1_1Tilesheet.html#aca6ccf120099b7d1a53c4b4bf4c0bdb4',1,'yaze::app::gfx::Tilesheet']]],
   ['compress_73',['Compress',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ab3d49b0d0ddf4ea0f89f7e5f1aefdeb8',1,'yaze::app::gfx::lc_lz2']]],

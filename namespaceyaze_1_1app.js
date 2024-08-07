@@ -21,10 +21,7 @@ var namespaceyaze_1_1app =
       [ "RANDO", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
     [ "TEST_F", "namespaceyaze_1_1app.html#a86eab374d68c1cef70ab9b9814264e35", null ],
-    [ "kProjectFileExtension", "namespaceyaze_1_1app.html#aaa0ddd7e20ea275692f1b4d202615dde", null ],
-    [ "kProjectFileFilter", "namespaceyaze_1_1app.html#afe0922318fe6bfc7b4ea55bea180d456", null ],
-    [ "kPreviousRomFilenameDelimiter", "namespaceyaze_1_1app.html#abcb7444c0b9ae138cd8cf01578e2f516", null ],
-    [ "kEndOfProjectFile", "namespaceyaze_1_1app.html#a53e91aa44cc7b06a75b59816a76ead79", null ],
+    [ "kEndOfProjectFile", "namespaceyaze_1_1app.html#aa899c44eb9e83190d881c30296137bb3", null ],
     [ "Uncompressed3BPPSize", "namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b", null ],
     [ "kEntranceGfxGroup", "namespaceyaze_1_1app.html#a02c28e406561ede6e5a46381e26b4653", null ],
     [ "kNumGfxSheets", "namespaceyaze_1_1app.html#a9bbafa7d5f1809f3d216b5082f65d1b2", null ],
