@@ -53,7 +53,7 @@ var searchData=
   ['loadfrombytes_50',['LoadFromBytes',['../classyaze_1_1app_1_1Rom.html#a67a1a485d5fef108b1820b30d1d7776f',1,'yaze::app::Rom']]],
   ['loadfromfile_51',['LoadFromFile',['../classyaze_1_1app_1_1Rom.html#aba8b6cae625f88b7da18a984bf747a49',1,'yaze::app::Rom']]],
   ['loadfrompngdata_52',['LoadFromPngData',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#aceb56456070b3d020bfa0e26866a9a46',1,'yaze::app::gfx::Bitmap']]],
-  ['loadfrompointer_53',['LoadFromPointer',['../classyaze_1_1app_1_1Rom.html#abb4d7c5afd07bb1a33d04c495090c638',1,'yaze::app::Rom']]],
+  ['loadfrompointer_53',['LoadFromPointer',['../classyaze_1_1app_1_1Rom.html#a9b874fd97a42789b08d382d9ebbdde6f',1,'yaze::app::Rom']]],
   ['loadgfxgroups_54',['LoadGfxGroups',['../classyaze_1_1app_1_1Rom.html#aa92564f3dadb164c82231f141fa67ae9',1,'yaze::app::Rom']]],
   ['loadglobalspritepalettes_55',['LoadGlobalSpritePalettes',['../namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a6fcba58c441d2a0e28155df84118c907',1,'yaze::app::gfx::palette_group_internal']]],
   ['loadgraphics_56',['LoadGraphics',['../classyaze_1_1app_1_1editor_1_1OverworldEditor.html#ae7c906e2b0da4470e6f8179d72809390',1,'yaze::app::editor::OverworldEditor']]],

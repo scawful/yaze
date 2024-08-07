@@ -5,7 +5,7 @@ var classyaze_1_1app_1_1Rom =
     [ "LoadLinkGraphics", "classyaze_1_1app_1_1Rom.html#ad0be846af21cbb3be669ee52f95251ee", null ],
     [ "LoadAllGraphicsData", "classyaze_1_1app_1_1Rom.html#afbfb078fe53fe7a3835c8c15686db1d9", null ],
     [ "LoadFromFile", "classyaze_1_1app_1_1Rom.html#aba8b6cae625f88b7da18a984bf747a49", null ],
-    [ "LoadFromPointer", "classyaze_1_1app_1_1Rom.html#abb4d7c5afd07bb1a33d04c495090c638", null ],
+    [ "LoadFromPointer", "classyaze_1_1app_1_1Rom.html#a9b874fd97a42789b08d382d9ebbdde6f", null ],
     [ "LoadFromBytes", "classyaze_1_1app_1_1Rom.html#a67a1a485d5fef108b1820b30d1d7776f", null ],
     [ "SaveToFile", "classyaze_1_1app_1_1Rom.html#a76b99ba3b4634433c678629a2b84abfa", null ],
     [ "SavePalette", "classyaze_1_1app_1_1Rom.html#a64ccee69d07d91bd0c7dd4b76896a59e", null ],
