@@ -240,6 +240,7 @@ var hierarchy =
     [ "sprite_action", "structsprite__action.html", null ],
     [ "sprite_instruction", "structsprite__instruction.html", null ],
     [ "yaze::app::emu::video::SpriteAttributes", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html", null ],
+    [ "yaze::app::zelda3::SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", null ],
     [ "yaze::app::editor::SpriteItem", "structyaze_1_1app_1_1editor_1_1SpriteItem.html", null ],
     [ "yaze::app::editor::zsprite::SpriteProperty", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html", null ],
     [ "yaze::app::zelda3::dungeon::StaircaseRooms", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1StaircaseRooms.html", null ],

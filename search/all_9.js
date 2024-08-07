@@ -102,7 +102,8 @@ var searchData=
   ['fullerrdata_99',['fullerrdata',['../structerrordata.html#a866fc5064525eec012f305642b7e2c43',1,'errordata']]],
   ['function_100',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
   ['functions_101',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
-  ['functions_3a_102',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
-  ['further_20development_20ideas_103',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md28',1,'']]],
-  ['fx_104',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
+  ['functions_102',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]],
+  ['functions_3a_103',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
+  ['further_20development_20ideas_104',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md28',1,'']]],
+  ['fx_105',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

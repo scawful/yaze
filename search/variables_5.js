@@ -59,5 +59,6 @@ var searchData=
   ['fromb_56',['fromB',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#aa496c7c0204d59918d683649f22d8b3e',1,'yaze::app::emu::memory::DmaChannel']]],
   ['full_5fgraphic_57',['full_graphic',['../structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#aa3366284a3078a891e3b57ca7b9124c0',1,'yaze::app::emu::video::VideoPortControl']]],
   ['full_5fpalette_5f_58',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
-  ['fullerrdata_59',['fullerrdata',['../structerrordata.html#a866fc5064525eec012f305642b7e2c43',1,'errordata']]]
+  ['fullerrdata_59',['fullerrdata',['../structerrordata.html#a866fc5064525eec012f305642b7e2c43',1,'errordata']]],
+  ['functions_60',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]]
 ];
