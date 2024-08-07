@@ -10,7 +10,7 @@ var namespaceyaze__test_1_1gfx__test =
       [ "CreateRepeatedBetweenUncompressable", "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a1fb9d104aaa5a98088365fc4fa9a4051", null ]
     ] ],
     [ "anonymous_namespace{snes_palette_test.cc}", "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html", [
-      [ "test_convert", "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#ad4f5b3190dfe909a51619ad862f3153b", null ]
+      [ "test_convert", "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#adf4131f02d62c5b0c5805036ea85d97a", null ]
     ] ],
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#a024464e63b6ccb40b3e7d7b19f64f90d", null ],
     [ "TEST", "namespaceyaze__test_1_1gfx__test.html#adfb53d60db9c464ebf4f0b816ed61296", null ],

@@ -196,7 +196,7 @@ $(function(){initNavTree('command__handler_8h_source.html',''); initResizable(tr
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="comment">// Apply patch</span></div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    std::vector&lt;uint8_t&gt; patched;</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#a0785e35814ceaa845a06f4a6b0d2bbb0">core::ApplyBpsPatch</a>(source, patch, patched);</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#a0785e35814ceaa845a06f4a6b0d2bbb0">app::core::ApplyBpsPatch</a>(source, patch, patched);</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="comment">// Save patched file</span></div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    std::ofstream patched_rom(<span class="stringliteral">&quot;patched.sfc&quot;</span>, std::ios::binary);</div>
@@ -217,7 +217,7 @@ $(function(){initNavTree('command__handler_8h_source.html',''); initResizable(tr
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    std::vector&lt;uint8_t&gt; target;</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    std::vector&lt;uint8_t&gt; patch;</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="comment">// Create patch</span></div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#a8fb8f2496d6a4d905dac9bc80c02f803">core::CreateBpsPatch</a>(source, target, patch);</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <a class="code hl_function" href="namespaceyaze_1_1app_1_1core.html#a8fb8f2496d6a4d905dac9bc80c02f803">app::core::CreateBpsPatch</a>(source, target, patch);</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="comment">// Save patch to file</span></div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="comment">// std::ofstream patchFile(&quot;patch.bps&quot;, ios::binary);</span></div>

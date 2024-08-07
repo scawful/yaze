@@ -12,7 +12,7 @@ var searchData=
   ['sharedrom_9',['SharedRom',['../classyaze_1_1app_1_1SharedRom.html',1,'yaze::app']]],
   ['slhv_10',['SLHV',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html',1,'yaze::app::emu::video::PpuRegisters']]],
   ['snes_11',['SNES',['../classyaze_1_1app_1_1emu_1_1SNES.html',1,'yaze::app::emu']]],
-  ['snes_5fcolor_12',['snes_color',['../structyaze_1_1app_1_1gfx_1_1snes__color.html',1,'yaze::app::gfx']]],
+  ['snes_5fcolor_12',['snes_color',['../structsnes__color.html',1,'']]],
   ['snes_5fpalette_13',['snes_palette',['../structyaze_1_1app_1_1gfx_1_1snes__palette.html',1,'yaze::app::gfx']]],
   ['snescolor_14',['SnesColor',['../classyaze_1_1app_1_1gfx_1_1SnesColor.html',1,'yaze::app::gfx']]],
   ['snespalette_15',['SnesPalette',['../classyaze_1_1app_1_1gfx_1_1SnesPalette.html',1,'yaze::app::gfx']]],

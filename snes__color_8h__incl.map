@@ -1,9 +1,0 @@
-<map id="src/app/gfx/snes_color.h" name="src/app/gfx/snes_color.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="76,5,238,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,103,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,34,85,72,82,68,138,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="126,79,187,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,31,159,63,154,63,154,31"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="211,79,268,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,30,216,67,212,71,169,34"/>
-</map>

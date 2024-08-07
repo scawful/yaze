@@ -152,9 +152,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1gfx_1_1Paletteset.html">Paletteset</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a set of palettes used in a SNES graphics system.  <a href="structyaze_1_1app_1_1gfx_1_1Paletteset.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of 16-bit RGB SNES color.  <a href="structyaze_1_1app_1_1gfx_1_1snes__color.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__palette.html">snes_palette</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a SNES color palette.  <a href="structyaze_1_1app_1_1gfx_1_1snes__palette.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -183,8 +180,6 @@ Classes</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr class="memitem:a858420796068f9283ed3cb7dd88f9138" id="r_a858420796068f9283ed3cb7dd88f9138"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a858420796068f9283ed3cb7dd88f9138">BitmapTable</a> = std::unordered_map&lt;int, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&gt;</td></tr>
 <tr class="separator:a858420796068f9283ed3cb7dd88f9138"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a11bb1075953f57bafc5d9205682ea50e" id="r_a11bb1075953f57bafc5d9205682ea50e"><td class="memItemLeft" align="right" valign="top">typedef struct snes_color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a11bb1075953f57bafc5d9205682ea50e">snes_color</a></td></tr>
-<tr class="separator:a11bb1075953f57bafc5d9205682ea50e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2431c9510c885b5698d5aaac4d7e3094" id="r_a2431c9510c885b5698d5aaac4d7e3094"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2431c9510c885b5698d5aaac4d7e3094">snes_palette</a> = struct snes_palette</td></tr>
 <tr class="separator:a2431c9510c885b5698d5aaac4d7e3094"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0f46c5ecd3ca9929d6baa039aeccbc7" id="r_ae0f46c5ecd3ca9929d6baa039aeccbc7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0f46c5ecd3ca9929d6baa039aeccbc7">tile8</a> = struct tile8</td></tr>
@@ -232,17 +227,17 @@ Functions</h2></td></tr>
 <tr class="memitem:a069b0b0eeca9b5f4a98f38fcd86aaaa1" id="r_a069b0b0eeca9b5f4a98f38fcd86aaaa1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a069b0b0eeca9b5f4a98f38fcd86aaaa1">ConvertPngToSurface</a> (const std::vector&lt; uint8_t &gt; &amp;png_data, SDL_Surface **outSurface)</td></tr>
 <tr class="memdesc:a069b0b0eeca9b5f4a98f38fcd86aaaa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert PNG image data to SDL_Surface.  <br /></td></tr>
 <tr class="separator:a069b0b0eeca9b5f4a98f38fcd86aaaa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab504a319aec14fc51e9f309d12c767b" id="r_aab504a319aec14fc51e9f309d12c767b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aab504a319aec14fc51e9f309d12c767b">ConvertSNEStoRGB</a> (uint16_t color_snes)</td></tr>
+<tr class="memitem:aab504a319aec14fc51e9f309d12c767b" id="r_aab504a319aec14fc51e9f309d12c767b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aab504a319aec14fc51e9f309d12c767b">ConvertSNEStoRGB</a> (uint16_t color_snes)</td></tr>
 <tr class="separator:aab504a319aec14fc51e9f309d12c767b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d7b7b9da156693ec13b608343cd7b49" id="r_a1d7b7b9da156693ec13b608343cd7b49"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d7b7b9da156693ec13b608343cd7b49">ConvertRGBtoSNES</a> (const <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a> &amp;color)</td></tr>
+<tr class="memitem:a1d7b7b9da156693ec13b608343cd7b49" id="r_a1d7b7b9da156693ec13b608343cd7b49"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d7b7b9da156693ec13b608343cd7b49">ConvertRGBtoSNES</a> (const <a class="el" href="structsnes__color.html">snes_color</a> &amp;color)</td></tr>
 <tr class="separator:a1d7b7b9da156693ec13b608343cd7b49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a674cd542901e81be5be7fe865bf6b1b9" id="r_a674cd542901e81be5be7fe865bf6b1b9"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a674cd542901e81be5be7fe865bf6b1b9">ConvertRGBtoSNES</a> (const ImVec4 &amp;color)</td></tr>
 <tr class="separator:a674cd542901e81be5be7fe865bf6b1b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a276da0ce346e9b3837ef0483e04eedd4" id="r_a276da0ce346e9b3837ef0483e04eedd4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">SnesColor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a276da0ce346e9b3837ef0483e04eedd4">ReadColorFromRom</a> (int offset, const uint8_t *rom)</td></tr>
 <tr class="separator:a276da0ce346e9b3837ef0483e04eedd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af350b17d01f5a0bc15edc46e05fedcaa" id="r_af350b17d01f5a0bc15edc46e05fedcaa"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af350b17d01f5a0bc15edc46e05fedcaa">Extract</a> (const char *data, unsigned int offset, unsigned int palette_size)</td></tr>
+<tr class="memitem:af350b17d01f5a0bc15edc46e05fedcaa" id="r_af350b17d01f5a0bc15edc46e05fedcaa"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structsnes__color.html">snes_color</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af350b17d01f5a0bc15edc46e05fedcaa">Extract</a> (const char *data, unsigned int offset, unsigned int palette_size)</td></tr>
 <tr class="separator:af350b17d01f5a0bc15edc46e05fedcaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad373c73aedd572d880fc5c49e0b4782e" id="r_ad373c73aedd572d880fc5c49e0b4782e"><td class="memItemLeft" align="right" valign="top">std::vector&lt; char &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad373c73aedd572d880fc5c49e0b4782e">Convert</a> (const std::vector&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a> &gt; &amp;palette)</td></tr>
+<tr class="memitem:ad373c73aedd572d880fc5c49e0b4782e" id="r_ad373c73aedd572d880fc5c49e0b4782e"><td class="memItemLeft" align="right" valign="top">std::vector&lt; char &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad373c73aedd572d880fc5c49e0b4782e">Convert</a> (const std::vector&lt; <a class="el" href="structsnes__color.html">snes_color</a> &gt; &amp;palette)</td></tr>
 <tr class="separator:ad373c73aedd572d880fc5c49e0b4782e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b60824abe89dea75cf945b0e77f1b8d" id="r_a1b60824abe89dea75cf945b0e77f1b8d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html">SnesColor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1b60824abe89dea75cf945b0e77f1b8d">GetCgxColor</a> (uint16_t color)</td></tr>
 <tr class="separator:a1b60824abe89dea75cf945b0e77f1b8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -386,20 +381,6 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="#a858420796068f9283ed3cb7dd88f9138">yaze::app::gfx::BitmapTable</a> = std::unordered_map&lt;int, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a11bb1075953f57bafc5d9205682ea50e" name="a11bb1075953f57bafc5d9205682ea50e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a11bb1075953f57bafc5d9205682ea50e">&#9670;&#160;</a></span>snes_color</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct snes_color yaze::app::gfx::snes_color</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -569,7 +550,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a> yaze::app::gfx::ConvertSNEStoRGB </td>
+          <td class="memname"><a class="el" href="structsnes__color.html">snes_color</a> yaze::app::gfx::ConvertSNEStoRGB </td>
           <td>(</td>
           <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>color_snes</em></span></td><td>)</td>
           <td></td>
@@ -577,7 +558,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395">yaze::app::gfx::snes_color::blue</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40">yaze::app::gfx::snes_color::green</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9">yaze::app::gfx::snes_color::red</a>, <a class="el" href="#a9f93560824621862a7e4889d592cb2df">SNES_BLUE_MASK</a>, <a class="el" href="#aefdc5379d7c7907c0b2cf786b9e5d166">SNES_BLUE_SHIFT</a>, <a class="el" href="#ad23eb7c59ab96c08179a6d6625ad0fdd">SNES_GREEN_MASK</a>, and <a class="el" href="#a2c96a51c2e83a6e133720c10d10ebd17">SNES_RED_MASK</a>.</p>
+<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>, <a class="el" href="#a9f93560824621862a7e4889d592cb2df">SNES_BLUE_MASK</a>, <a class="el" href="#aefdc5379d7c7907c0b2cf786b9e5d166">SNES_BLUE_SHIFT</a>, <a class="el" href="#ad23eb7c59ab96c08179a6d6625ad0fdd">SNES_GREEN_MASK</a>, and <a class="el" href="#a2c96a51c2e83a6e133720c10d10ebd17">SNES_RED_MASK</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#af350b17d01f5a0bc15edc46e05fedcaa">Extract()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#ae83a64c873979be91fb76d1815ab8e73">yaze::app::gfx::SnesColor::set_snes()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#acd901ec230518f0892508ceeea460c07">yaze::app::gfx::SnesColor::SnesColor()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a85ee18604b72eea4c6d7a5833463b4a6">yaze::app::gfx::SnesPalette::SnesPalette()</a>, and <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#a6a663120991292d7496f232e488a98c1">yaze::app::gfx::SnesPalette::SnesPalette()</a>.</p>
 
@@ -592,13 +573,13 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">uint16_t yaze::app::gfx::ConvertRGBtoSNES </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="structsnes__color.html">snes_color</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>color</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395">yaze::app::gfx::snes_color::blue</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40">yaze::app::gfx::snes_color::green</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9">yaze::app::gfx::snes_color::red</a>, <a class="el" href="#aefdc5379d7c7907c0b2cf786b9e5d166">SNES_BLUE_SHIFT</a>, and <a class="el" href="#a0912d77a56151905de5232b2a90cb5f8">SNES_GREEN_SHIFT</a>.</p>
+<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>, <a class="el" href="#aefdc5379d7c7907c0b2cf786b9e5d166">SNES_BLUE_SHIFT</a>, and <a class="el" href="#a0912d77a56151905de5232b2a90cb5f8">SNES_GREEN_SHIFT</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="#ad373c73aedd572d880fc5c49e0b4782e">Convert()</a>, <a class="el" href="#a674cd542901e81be5be7fe865bf6b1b9">ConvertRGBtoSNES()</a>, <a class="el" href="classyaze_1_1app_1_1editor_1_1PaletteEditor.html#a5af7a85e1bc8545f5c22290c696259b1">yaze::app::editor::PaletteEditor::HandleColorPopup()</a>, <a class="el" href="#a03f22b0abee97bf4bcb4d226a7148f96">ReadPaletteFromRom()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#a477d2e3ceed1711ad288ba2b1448f5c6">yaze::app::gfx::SnesColor::set_rgb()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#a4634ce369c3e19f1a64924f111bcf032">yaze::app::gfx::SnesColor::SnesColor()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesColor.html#a4cb8232e76b978601a665d72a10eee1e">yaze::app::gfx::SnesColor::SnesColor()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84">yaze::app::gui::SnesColorEdit4()</a>, and <a class="el" href="classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ab293fa2a07b9fe77d66ed4d0a6f6ad95">yaze::app::gfx::SnesPalette::SnesPalette()</a>.</p>
 
@@ -619,7 +600,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395">yaze::app::gfx::snes_color::blue</a>, <a class="el" href="#a1d7b7b9da156693ec13b608343cd7b49">ConvertRGBtoSNES()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40">yaze::app::gfx::snes_color::green</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9">yaze::app::gfx::snes_color::red</a>.</p>
+<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="#a1d7b7b9da156693ec13b608343cd7b49">ConvertRGBtoSNES()</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, and <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -652,7 +633,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395">yaze::app::gfx::snes_color::blue</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40">yaze::app::gfx::snes_color::green</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9">yaze::app::gfx::snes_color::red</a>.</p>
+<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, and <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a484ece2a9dfd0fc5a61543db155b5754">yaze::app::gfx::palette_group_internal::LoadGrassColors()</a>.</p>
 
@@ -665,7 +646,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a> &gt; yaze::app::gfx::Extract </td>
+          <td class="memname">std::vector&lt; <a class="el" href="structsnes__color.html">snes_color</a> &gt; yaze::app::gfx::Extract </td>
           <td>(</td>
           <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
         </tr>
@@ -705,13 +686,15 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">std::vector&lt; char &gt; yaze::app::gfx::Convert </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html">snes_color</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>palette</em></span></td><td>)</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="structsnes__color.html">snes_color</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>palette</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="reference">References <a class="el" href="#a1d7b7b9da156693ec13b608343cd7b49">ConvertRGBtoSNES()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="namespaceyaze__test_1_1gfx__test.html#aae614732019e6f806ae921acf0996a36">yaze_test::gfx_test::TEST()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -847,7 +830,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#af71bbef097923fed081c4d1b91f3a395">yaze::app::gfx::snes_color::blue</a>, <a class="el" href="#a1d7b7b9da156693ec13b608343cd7b49">ConvertRGBtoSNES()</a>, <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40">yaze::app::gfx::snes_color::green</a>, and <a class="el" href="structyaze_1_1app_1_1gfx_1_1snes__color.html#a73fb4b1a4442e8e1082e7861e22236d9">yaze::app::gfx::snes_color::red</a>.</p>
+<p class="reference">References <a class="el" href="structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a>, <a class="el" href="#a1d7b7b9da156693ec13b608343cd7b49">ConvertRGBtoSNES()</a>, <a class="el" href="structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a>, and <a class="el" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abfd54beae496fe3e6677c318323bd247">yaze::app::gfx::palette_group_internal::Load3DObjectPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#abd54b5c15508a816b7235ea37997e045">yaze::app::gfx::palette_group_internal::LoadArmorPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aab4790ba080edc4104f90e2a7cc0a989">yaze::app::gfx::palette_group_internal::LoadDungeonMainPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a6fcba58c441d2a0e28155df84118c907">yaze::app::gfx::palette_group_internal::LoadGlobalSpritePalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a3942163d8d3f295042c5ec0cdb06d8b7">yaze::app::gfx::palette_group_internal::LoadHUDPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a575aaf027a43b460824e247cb5c9baec">yaze::app::gfx::palette_group_internal::LoadOverworldAnimatedPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#adef88d8d1e48d1cdad625fce5064f75f">yaze::app::gfx::palette_group_internal::LoadOverworldAuxiliaryPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a885356ec4a36e5ef64119ca676b14257">yaze::app::gfx::palette_group_internal::LoadOverworldMainPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#af624df2438c3def1da9a3c82ab7e58ee">yaze::app::gfx::palette_group_internal::LoadOverworldMiniMapPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#acf3dcbf9595622efea530ea4afed87b7">yaze::app::gfx::palette_group_internal::LoadShieldPalettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a1c8f4a993ae8fb87c07f714b41a5991d">yaze::app::gfx::palette_group_internal::LoadSpriteAux1Palettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#a2d6fee08ea00e55402ef8758ca853b76">yaze::app::gfx::palette_group_internal::LoadSpriteAux2Palettes()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#aee28ac501ff95be94bc01b0fbbcb0545">yaze::app::gfx::palette_group_internal::LoadSpriteAux3Palettes()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx_1_1palette__group__internal.html#ae251945cd53721f7e2d027ebc3cec6c9">yaze::app::gfx::palette_group_internal::LoadSwordPalettes()</a>.</p>
 <div class="dynheader">

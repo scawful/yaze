@@ -1,6 +1,6 @@
 var snes__palette__test_8cc =
 [
-    [ "test_convert", "snes__palette__test_8cc.html#ad4f5b3190dfe909a51619ad862f3153b", null ],
+    [ "test_convert", "snes__palette__test_8cc.html#adf4131f02d62c5b0c5805036ea85d97a", null ],
     [ "TEST", "snes__palette__test_8cc.html#ac79465247aad16f5bf69c7bb4476eb6a", null ],
     [ "TEST", "snes__palette__test_8cc.html#a1a263e0ae5ef8848f9ab4910765f1db3", null ],
     [ "TEST", "snes__palette__test_8cc.html#a7bc433fcb4d48845ad5aa57f317365af", null ],

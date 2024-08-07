@@ -31,7 +31,6 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroup" ],
     [ "PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap" ],
     [ "Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", "structyaze_1_1app_1_1gfx_1_1Paletteset" ],
-    [ "snes_color", "structyaze_1_1app_1_1gfx_1_1snes__color.html", "structyaze_1_1app_1_1gfx_1_1snes__color" ],
     [ "snes_palette", "structyaze_1_1app_1_1gfx_1_1snes__palette.html", "structyaze_1_1app_1_1gfx_1_1snes__palette" ],
     [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", "classyaze_1_1app_1_1gfx_1_1SnesColor" ],
     [ "SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", "classyaze_1_1app_1_1gfx_1_1SnesPalette" ],
@@ -41,7 +40,6 @@ var namespaceyaze_1_1app_1_1gfx =
     [ "TileInfo", "classyaze_1_1app_1_1gfx_1_1TileInfo.html", "classyaze_1_1app_1_1gfx_1_1TileInfo" ],
     [ "Tilesheet", "classyaze_1_1app_1_1gfx_1_1Tilesheet.html", "classyaze_1_1app_1_1gfx_1_1Tilesheet" ],
     [ "BitmapTable", "namespaceyaze_1_1app_1_1gfx.html#a858420796068f9283ed3cb7dd88f9138", null ],
-    [ "snes_color", "namespaceyaze_1_1app_1_1gfx.html#a11bb1075953f57bafc5d9205682ea50e", null ],
     [ "snes_palette", "namespaceyaze_1_1app_1_1gfx.html#a2431c9510c885b5698d5aaac4d7e3094", null ],
     [ "tile8", "namespaceyaze_1_1app_1_1gfx.html#ae0f46c5ecd3ca9929d6baa039aeccbc7", null ],
     [ "BitmapFormat", "namespaceyaze_1_1app_1_1gfx.html#a9a4f97a4dc623c7581bf43f61a19f5ff", [

@@ -38,6 +38,6 @@ var searchData=
   ['gravesxtilepos_35',['GravesXTilePos',['../namespaceyaze_1_1app_1_1core.html#ac2479a12b250b2bc6926c5537e85efbf',1,'yaze::app::core']]],
   ['gravesyline_36',['GravesYLine',['../namespaceyaze_1_1app_1_1core.html#a97e88b9c9e458b8898ae2bfddffd81c7',1,'yaze::app::core']]],
   ['gravesytilepos_37',['GravesYTilePos',['../namespaceyaze_1_1app_1_1core.html#ac381f3839d2bd1c264675d5cc113e7ec',1,'yaze::app::core']]],
-  ['green_38',['green',['../structyaze_1_1app_1_1gfx_1_1snes__color.html#abef5031477619064c6a135e88f92dc40',1,'yaze::app::gfx::snes_color']]],
+  ['green_38',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color']]],
   ['group_5fname_39',['group_name',['../structyaze_1_1app_1_1editor_1_1palette__internal_1_1PaletteChange.html#a253b528bc00a090f79ce9e69f7b87032',1,'yaze::app::editor::palette_internal::PaletteChange']]]
 ];

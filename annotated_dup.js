@@ -189,7 +189,6 @@ var annotated_dup =
           [ "PaletteGroup", "structyaze_1_1app_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroup" ],
           [ "PaletteGroupMap", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1app_1_1gfx_1_1PaletteGroupMap" ],
           [ "Paletteset", "structyaze_1_1app_1_1gfx_1_1Paletteset.html", "structyaze_1_1app_1_1gfx_1_1Paletteset" ],
-          [ "snes_color", "structyaze_1_1app_1_1gfx_1_1snes__color.html", "structyaze_1_1app_1_1gfx_1_1snes__color" ],
           [ "snes_palette", "structyaze_1_1app_1_1gfx_1_1snes__palette.html", "structyaze_1_1app_1_1gfx_1_1snes__palette" ],
           [ "SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", "classyaze_1_1app_1_1gfx_1_1SnesColor" ],
           [ "SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", "classyaze_1_1app_1_1gfx_1_1SnesPalette" ],
@@ -293,5 +292,6 @@ var annotated_dup =
     [ "Extension", "structExtension.html", "structExtension" ],
     [ "OWMapTiles", "structOWMapTiles.html", "structOWMapTiles" ],
     [ "Rom", "structRom.html", "structRom" ],
-    [ "sdl_deleter", "structsdl__deleter.html", "structsdl__deleter" ]
+    [ "sdl_deleter", "structsdl__deleter.html", "structsdl__deleter" ],
+    [ "snes_color", "structsnes__color.html", "structsnes__color" ]
 ];

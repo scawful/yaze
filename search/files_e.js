@@ -9,7 +9,7 @@ var searchData=
   ['snes_2ecc_6',['snes.cc',['../snes_8cc.html',1,'']]],
   ['snes_2eh_7',['snes.h',['../snes_8h.html',1,'']]],
   ['snes_5fcolor_2ecc_8',['snes_color.cc',['../snes__color_8cc.html',1,'']]],
-  ['snes_5fcolor_2eh_9',['snes_color.h',['../snes__color_8h.html',1,'']]],
+  ['snes_5fcolor_2eh_9',['snes_color.h',['../app_2gfx_2snes__color_8h.html',1,'(Global Namespace)'],['../base_2snes__color_8h.html',1,'(Global Namespace)']]],
   ['snes_5fpalette_2ecc_10',['snes_palette.cc',['../snes__palette_8cc.html',1,'']]],
   ['snes_5fpalette_2eh_11',['snes_palette.h',['../snes__palette_8h.html',1,'']]],
   ['snes_5fpalette_5ftest_2ecc_12',['snes_palette_test.cc',['../snes__palette__test_8cc.html',1,'']]],

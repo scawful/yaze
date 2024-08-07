@@ -229,7 +229,7 @@ var hierarchy =
     ] ],
     [ "yaze::app::emu::video::PpuRegisters::SLHV", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SLHV.html", null ],
     [ "yaze::app::emu::SNES", "classyaze_1_1app_1_1emu_1_1SNES.html", null ],
-    [ "yaze::app::gfx::snes_color", "structyaze_1_1app_1_1gfx_1_1snes__color.html", null ],
+    [ "snes_color", "structsnes__color.html", null ],
     [ "yaze::app::gfx::snes_palette", "structyaze_1_1app_1_1gfx_1_1snes__palette.html", null ],
     [ "yaze::app::gfx::SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", null ],
     [ "yaze::app::gfx::SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", null ],
