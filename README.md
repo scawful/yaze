@@ -1,7 +1,7 @@
 # Yet Another Zelda3 Editor
 
-- Platform: Windows, macOS, GNU/Linux
-- Dependencies: SDL2, ImGui
+- Platform: Windows, macOS, iOS, GNU/Linux
+- Dependencies: SDL2, ImGui, abseil-cpp
 
 ## Description
 
