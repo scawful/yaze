@@ -5,6 +5,7 @@ set(
   app/zelda3/screen/inventory.cc
   app/zelda3/screen/title_screen.cc
   app/zelda3/sprite/sprite.cc
+  app/zelda3/sprite/sprite_builder.cc
   app/zelda3/music/tracker.cc
   app/zelda3/dungeon/room.cc
   app/zelda3/dungeon/room_object.cc
