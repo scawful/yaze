@@ -32,13 +32,14 @@ add_executable(
   ${YAZE_APP_GFX_SRC}
   ${YAZE_GUI_SRC}
   lib/imgui/misc/cpp/imgui_stdlib.cpp
-  # ${ASAR_STATIC_SRC}
+  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   yaze_test PUBLIC
   app/
   lib/
+  ${ASAR_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
 )
@@ -46,6 +47,7 @@ target_include_directories(
 target_link_libraries(
   yaze_test
   SDL2::SDL2
+  asar-static
   ${ABSL_TARGETS}
   ${PNG_LIBRARIES}
   ${GLEW_LIBRARIES}
