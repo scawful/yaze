@@ -8,6 +8,31 @@ namespace yaze {
 namespace app {
 namespace zelda3 {
 
+class SpriteInstruction {
+ public:
+  // Predefined instructions
+  static SpriteInstruction PlayAnimation(int startFrame, int endFrame,
+                                         int speed);
+  static SpriteInstruction ApplySpeedTowardsPlayer(int speed);
+  static SpriteInstruction CheckDamageFromPlayer();
+  static SpriteInstruction MoveXyz();
+  static SpriteInstruction BounceFromTileCollision();
+  static SpriteInstruction SetTimer(int timerId, int value);
+  static SpriteInstruction BehaveAsBarrier();
+  static SpriteInstruction JumpToFunction(const std::string& functionName);
+
+  // Custom instruction
+  static SpriteInstruction Custom(const std::string& asmCode);
+
+  // Get the instruction configuration
+  std::string GetConfiguration() const { return instruction_; }
+  void SetConfiguration(const std::string& instruction) {
+    instruction_ = instruction;
+  }
+
+ private:
+  std::string instruction_;
+};
 
 class SpriteAction {
  public:
