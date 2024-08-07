@@ -39,7 +39,6 @@ constexpr ImGuiWindowFlags kMainEditorFlags =
     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
     ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar;
 
-using ::ImVec2;
 using ImGui::Begin;
 using ImGui::End;
 using ImGui::GetIO;
@@ -352,8 +351,17 @@ absl::Status Controller::OnLoad() {
   if (master_editor_.quit()) {
     active_ = false;
   }
-  NewMasterFrame();
+#if TARGET_OS_IPHONE != 1
+  if (platform_ != Platform::kiOS) {
+    NewMasterFrame();
+  }
+#endif
   RETURN_IF_ERROR(master_editor_.Update());
+#if TARGET_OS_IPHONE != 1
+  if (platform_ != Platform::kiOS) {
+    End();
+  }
+#endif
   return absl::OkStatus();
 }
 
@@ -365,25 +373,13 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() {
-  ImGui::DestroyContext();
   if (flags()->kLoadAudioDevice) {
     SDL_PauseAudioDevice(audio_device_, 1);
     SDL_CloseAudioDevice(audio_device_);
     delete audio_buffer_;
   }
-  switch (platform_) {
-    case Platform::kMacOS:
-    case Platform::kWindows:
-    case Platform::kLinux:
-      ImGui_ImplSDLRenderer2_Shutdown();
-      ImGui_ImplSDL2_Shutdown();
-      break;
-    case Platform::kiOS:
-      // Deferred
-      break;
-    default:
-      break;
-  }
+  ImGui_ImplSDLRenderer2_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
   SDL_Quit();
 }
