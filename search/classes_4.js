@@ -9,6 +9,5 @@ var searchData=
   ['exampleselectionwithdeletion_6',['ExampleSelectionWithDeletion',['../structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::app::gui']]],
   ['exampletreenode_7',['ExampleTreeNode',['../structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html',1,'yaze::app::editor']]],
   ['expand_8',['Expand',['../classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
-  ['experimentflags_9',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html',1,'yaze::app::core']]],
-  ['extension_10',['Extension',['../structExtension.html',1,'']]]
+  ['experimentflags_9',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html',1,'yaze::app::core']]]
 ];

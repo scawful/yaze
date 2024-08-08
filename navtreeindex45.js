@@ -1,11 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"structyaze_1_1app_1_1editor_1_1TextElement.html#a4a5a10c8d0d37ca58a9883b6efb3a41a":[8,0,0,0,1,27,6],
-"structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e":[7,0,1,0,1,32,5],
-"structyaze_1_1app_1_1editor_1_1TextElement.html#a5e4935ff0f5aa23e63c7369c4d0e9d2e":[8,0,0,0,1,27,5],
-"structyaze_1_1app_1_1editor_1_1TextElement.html#a685cf2bd70fa00156f7a78348073e693":[7,0,1,0,1,32,3],
-"structyaze_1_1app_1_1editor_1_1TextElement.html#a685cf2bd70fa00156f7a78348073e693":[8,0,0,0,1,27,3],
-"structyaze_1_1app_1_1editor_1_1TextElement.html#a70901248823499d9b4d0484fefb9ec4e":[7,0,1,0,1,32,4],
 "structyaze_1_1app_1_1editor_1_1TextElement.html#a70901248823499d9b4d0484fefb9ec4e":[8,0,0,0,1,27,4],
 "structyaze_1_1app_1_1editor_1_1TextElement.html#a7a25232e80972763abdc2cb59bcce790":[7,0,1,0,1,32,12],
 "structyaze_1_1app_1_1editor_1_1TextElement.html#a7a25232e80972763abdc2cb59bcce790":[8,0,0,0,1,27,12],
@@ -249,5 +243,11 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#adcd5d2d0d18f30777d23592530e7189c":[8,0,0,0,2,0,5,14],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#af34656afe3bba8ba5653b813c4b5d488":[7,0,1,0,2,2,5,0],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#af34656afe3bba8ba5653b813c4b5d488":[8,0,0,0,2,0,5,0],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#affc3d55a8d000409903ece4df0a4f509":[7,0,1,0,2,2,5,17]
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#affc3d55a8d000409903ece4df0a4f509":[7,0,1,0,2,2,5,17],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#affc3d55a8d000409903ece4df0a4f509":[8,0,0,0,2,0,5,17],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html":[7,0,1,0,2,2,6,0],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html":[8,0,0,0,2,0,6,0],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a133af349da92267a864af13cbaab87d3":[7,0,1,0,2,2,6,0,2],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a133af349da92267a864af13cbaab87d3":[8,0,0,0,2,0,6,0,2],
+"structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#a8afed17f7a90703f5e9ad57e10ace7d6":[7,0,1,0,2,2,6,0,3]
 };

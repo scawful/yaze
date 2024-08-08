@@ -122,12 +122,11 @@ var searchData=
   ['expectnewcompressionpieceok_119',['ExpectNewCompressionPieceOk',['../namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7',1,'yaze_test::gfx_test::anonymous_namespace{compression_test.cc}']]],
   ['experimentflags_120',['ExperimentFlags',['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html',1,'yaze::app::core::ExperimentFlags'],['../classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd',1,'yaze::app::core::ExperimentFlags::ExperimentFlags()']]],
   ['extbg_121',['extbg',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a759800c7b68e91f0289bc899fd02064b',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['extendfunctionality_122',['extendFunctionality',['../structExtension.html#a2b775c5f3b6dbd48ad8c4d9d360b619d',1,'Extension']]],
-  ['extension_123',['Extension',['../structExtension.html',1,'Extension'],['../extension_8h.html#ade50dd43821f56080b72c244a573339a',1,'Extension:&#160;extension.h']]],
-  ['extension_124',['extension',['../extension_8cc.html#a7a805add2cbfa5242ddb69d389267b71',1,'extension.cc']]],
-  ['extension_2ecc_125',['extension.cc',['../extension_8cc.html',1,'']]],
-  ['extension_2eh_126',['extension.h',['../extension_8h.html',1,'']]],
-  ['external_5fsync_127',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
-  ['extra_5fcgx_5fdata_5f_128',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]],
-  ['extract_129',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
+  ['extendfunctionality_122',['extendFunctionality',['../structyaze__extension.html#a785afb3f650843b437344487bccea722',1,'yaze_extension']]],
+  ['extension_123',['extension',['../extension_8cc.html#a520c3c16af760011d05f8def46e181ba',1,'extension.cc']]],
+  ['extension_2ecc_124',['extension.cc',['../extension_8cc.html',1,'']]],
+  ['extension_2eh_125',['extension.h',['../extension_8h.html',1,'']]],
+  ['external_5fsync_126',['external_sync',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html#a20dee2003c9c0ad373582fd62bd0fbea',1,'yaze::app::emu::video::PpuRegisters::SETINI']]],
+  ['extra_5fcgx_5fdata_5f_127',['extra_cgx_data_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a748446fa56fa4560d5c9a30647f5fd7c',1,'yaze::app::editor::GraphicsEditor']]],
+  ['extract_128',['Extract',['../namespaceyaze_1_1app_1_1gfx.html#af350b17d01f5a0bc15edc46e05fedcaa',1,'yaze::app::gfx']]]
 ];

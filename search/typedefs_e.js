@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['windowlayer_0',['WindowLayer',['../namespaceyaze_1_1app_1_1emu_1_1video.html#acbee865602b2059c92049273cad2622c',1,'yaze::app::emu::video']]]
+  ['yaze_5fextension_0',['yaze_extension',['../extension_8h.html#a84339e67846d381495b6fa1bd47dcf6d',1,'extension.h']]]
 ];

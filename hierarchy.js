@@ -102,7 +102,6 @@ var hierarchy =
       [ "yaze::app::zelda3::dungeon::Room", "classyaze_1_1app_1_1zelda3_1_1dungeon_1_1Room.html", null ],
       [ "yaze::app::zelda3::overworld::Overworld", "classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html", null ]
     ] ],
-    [ "Extension", "structExtension.html", null ],
     [ "yaze::app::core::ExperimentFlags::Flags", "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html", null ],
     [ "yaze::app::emu::audio::Spc700::Flags", "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::app::core::FolderItem", "structyaze_1_1app_1_1core_1_1FolderItem.html", null ],
@@ -302,5 +301,6 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::WOBJSEL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1WOBJSEL.html", null ],
     [ "yaze::app::emu::video::WramAccessRegisters", "structyaze_1_1app_1_1emu_1_1video_1_1WramAccessRegisters.html", null ],
     [ "yaze::app::Rom::WriteAction", "structyaze_1_1app_1_1Rom_1_1WriteAction.html", null ],
+    [ "yaze_extension", "structyaze__extension.html", null ],
     [ "yaze::app::editor::zsprite::ZSprite", "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
 ];

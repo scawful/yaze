@@ -40,7 +40,7 @@ var searchData=
   ['getdecimalflag_37',['GetDecimalFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a71b2370e61f38cc8db84eda58801d991',1,'yaze::app::emu::Cpu']]],
   ['getdictionaryfromid_38',['GetDictionaryFromID',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#aba1875ff6fc2a84ec1c0ebe42474858e',1,'yaze::app::editor::MessageEditor']]],
   ['getdumpedcontents_39',['GetDumpedContents',['../structyaze_1_1app_1_1editor_1_1MessageData.html#a7ff69ddabb84c55074236530be4da6af',1,'yaze::app::editor::MessageData']]],
-  ['getextension_40',['GetExtension',['../extension_8cc.html#a73b21e6323bb34292afc20daab8ac043',1,'GetExtension():&#160;extension.cc'],['../extension_8h.html#a73b21e6323bb34292afc20daab8ac043',1,'GetExtension():&#160;extension.cc']]],
+  ['getextension_40',['GetExtension',['../extension_8cc.html#ab698a186d73ae670c90bd50d214a4b3e',1,'GetExtension():&#160;extension.cc'],['../extension_8h.html#ab698a186d73ae670c90bd50d214a4b3e',1,'GetExtension():&#160;extension.cc']]],
   ['getflag_41',['GetFlag',['../classyaze_1_1app_1_1emu_1_1Cpu.html#aee773b2f63c083454611425037d2a8b1',1,'yaze::app::emu::Cpu']]],
   ['getframebuffer_42',['GetFrameBuffer',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#af954ff0aaefd20653c9457f2abf93079',1,'yaze::app::emu::video::Ppu']]],
   ['getfrequency_43',['GetFrequency',['../classyaze_1_1app_1_1emu_1_1Clock.html#a4523f58787502097d0b44e14c42076b2',1,'yaze::app::emu::Clock::GetFrequency()'],['../classyaze_1_1app_1_1emu_1_1ClockImpl.html#a0ad23ebc11f593d0fbb84a2dfe5a4963',1,'yaze::app::emu::ClockImpl::GetFrequency()']]],

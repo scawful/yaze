@@ -1,11 +1,5 @@
 var NAVTREEINDEX48 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TMW.html#a7508715ea0b3408c84c5ae622219fa85":[8,0,0,0,2,2,0,35,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html":[7,0,1,0,2,4,0,36],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html":[8,0,0,0,2,2,0,36],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html#a368a40ae19af2a021ff2c9a6cabe034a":[7,0,1,0,2,4,0,36,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html#a368a40ae19af2a021ff2c9a6cabe034a":[8,0,0,0,2,2,0,36,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html#ae2365347ad2ddb53e27438d95273e96e":[7,0,1,0,2,4,0,36,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TS.html#ae2365347ad2ddb53e27438d95273e96e":[8,0,0,0,2,2,0,36,1],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TSW.html":[7,0,1,0,2,4,0,37],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TSW.html":[8,0,0,0,2,2,0,37],
@@ -249,5 +243,11 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a9501ca8c0d2317fa57f8c30c24c68774":[8,0,0,0,2,2,25,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#acb440327bf4a8fafb09512a980e27a2d":[7,0,1,0,2,4,25,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#acb440327bf4a8fafb09512a980e27a2d":[8,0,0,0,2,2,25,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#ae67a295f855a678443b5797815cba289":[7,0,1,0,2,4,25,6]
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#ae67a295f855a678443b5797815cba289":[7,0,1,0,2,4,25,6],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#ae67a295f855a678443b5797815cba289":[8,0,0,0,2,2,25,6],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#aea00d1c36c8899cd2b3a12574ad276f7":[7,0,1,0,2,4,25,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#aea00d1c36c8899cd2b3a12574ad276f7":[8,0,0,0,2,2,25,4],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html":[7,0,1,0,2,4,26],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html":[8,0,0,0,2,2,26],
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings2.html#a100631f4d359032c35409b4ce395d2d9":[7,0,1,0,2,4,26,2]
 };

@@ -27,7 +27,7 @@ var searchData=
   ['inidisp_24',['INIDISP',['../namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#aaf073d12e4e995b4777fbbb1b54fcf5f',1,'yaze::app::emu::video::PpuRegisters']]],
   ['initial_5falloc_5fsize_25',['INITIAL_ALLOC_SIZE',['../namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#ace40cf24cf8f92d193c9d6758acca741',1,'yaze::app::gfx::lc_lz2']]],
   ['initial_5fequipement_26',['initial_equipement',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a318974354aea6ec42a8a17fb6f349397',1,'yaze::app::zelda3::dungeon']]],
-  ['initialize_27',['initialize',['../structExtension.html#a07d12b2769d62c06abec781e20e0d5ff',1,'Extension']]],
+  ['initialize_27',['initialize',['../structyaze__extension.html#a24c9e7db82ccbb58a930f3fa6b4c4c6d',1,'yaze_extension']]],
   ['initialized_28',['Initialized',['../structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a5e14b0bf60f228633941f3429959aad5',1,'yaze::app::gui::GfxSheetAssetBrowser']]],
   ['initialized_5f_29',['initialized_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a893e77234b43245b83d428dc9611e0c2',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['input1_30',['input1',['../classyaze_1_1app_1_1emu_1_1SNES.html#aafb1c39fe377bf20383ba46785423861',1,'yaze::app::emu::SNES']]],

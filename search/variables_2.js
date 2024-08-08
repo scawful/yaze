@@ -66,7 +66,7 @@ var searchData=
   ['childs_63',['Childs',['../structyaze_1_1app_1_1editor_1_1ExampleTreeNode.html#accea715679a6045b5bd6fabf6665719f',1,'yaze::app::editor::ExampleTreeNode']]],
   ['chr_5fbase_5faddress_5f1_64',['chr_base_address_1',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGNBA.html#a3b2edf97dc4e6f400a370495e147c4da',1,'yaze::app::emu::video::PpuRegisters::BGNBA']]],
   ['chr_5fbase_5faddress_5f2_65',['chr_base_address_2',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGNBA.html#a16457db9f457725daa4b04a35c2587cb',1,'yaze::app::emu::video::PpuRegisters::BGNBA']]],
-  ['cleanup_66',['cleanup',['../structExtension.html#acb7800f8dc1351a54bb8e1cd75648152',1,'Extension']]],
+  ['cleanup_66',['cleanup',['../structyaze__extension.html#a5437179462b8d5046807baf3ecee4fcd',1,'yaze_extension']]],
   ['clip_5fmode_5f_67',['clip_mode_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a50039ccf288b66e3153654854fc082b3',1,'yaze::app::emu::video::Ppu']]],
   ['clipboard_5fgraphics_5fbin_5f_68',['clipboard_graphics_bin_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a14f476da08176e3fa48797b78a129c75',1,'yaze::app::editor::GraphicsEditor']]],
   ['clipboard_5foffset_5f_69',['clipboard_offset_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a9d8a02b352c8a287ec43ef5fd36a98cf',1,'yaze::app::editor::GraphicsEditor']]],
