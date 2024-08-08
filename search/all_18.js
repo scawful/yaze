@@ -49,13 +49,12 @@ var searchData=
   ['uppercasehexword_46',['UppercaseHexWord',['../namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38',1,'yaze::app::core']]],
   ['us_47',['US',['../namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a7516fd43adaa5e0b8a65a672c39845d2',1,'yaze::app']]],
   ['usa_48',['USA',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a82c121a932d402fbc78de6a189c6dc12a1288179b503be9fd3d0ec42cb345a794',1,'yaze::app::emu::memory']]],
-  ['usage_49',['Usage',['../md_docs_2getting-started.html#autotoc_md18',1,'']]],
-  ['usage_5fstats_5f_50',['usage_stats_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a3428daf21717a428618501086dcd85ba',1,'yaze::app::zelda3::overworld::Overworld']]],
-  ['usegain_51',['useGain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac',1,'yaze::app::emu::audio::DspChannel']]],
-  ['usenoise_52',['useNoise',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ac1082ac73482d5ff9423fa87b1b47d31',1,'yaze::app::emu::audio::DspChannel']]],
-  ['user_5froutines_53',['user_routines',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a7360988e9e7b46f993f2d83cde771012',1,'yaze::app::editor::zsprite::SubEditor']]],
-  ['userroutine_54',['UserRoutine',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::app::editor::zsprite::UserRoutine'],['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html#a309368e6eacf3a91ce676065c1b71a7e',1,'yaze::app::editor::zsprite::UserRoutine::UserRoutine()']]],
-  ['userroutines_55',['userRoutines',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a04253ed0fec3faabbadb137efd017c06',1,'yaze::app::editor::zsprite::ZSprite']]],
-  ['ushort_56',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]],
-  ['utility_20functions_3a_57',['Utility Functions:',['../md_docs_2compression.html#autotoc_md15',1,'']]]
+  ['usage_5fstats_5f_49',['usage_stats_',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html#a3428daf21717a428618501086dcd85ba',1,'yaze::app::zelda3::overworld::Overworld']]],
+  ['usegain_50',['useGain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac',1,'yaze::app::emu::audio::DspChannel']]],
+  ['usenoise_51',['useNoise',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ac1082ac73482d5ff9423fa87b1b47d31',1,'yaze::app::emu::audio::DspChannel']]],
+  ['user_5froutines_52',['user_routines',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html#a7360988e9e7b46f993f2d83cde771012',1,'yaze::app::editor::zsprite::SubEditor']]],
+  ['userroutine_53',['UserRoutine',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::app::editor::zsprite::UserRoutine'],['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html#a309368e6eacf3a91ce676065c1b71a7e',1,'yaze::app::editor::zsprite::UserRoutine::UserRoutine()']]],
+  ['userroutines_54',['userRoutines',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a04253ed0fec3faabbadb137efd017c06',1,'yaze::app::editor::zsprite::ZSprite']]],
+  ['ushort_55',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]],
+  ['utility_20functions_3a_56',['Utility Functions:',['../md_docs_2compression.html#autotoc_md15',1,'']]]
 ];

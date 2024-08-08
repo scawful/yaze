@@ -48,26 +48,23 @@ var NAVTREE =
     ] ],
     [ "Getting Started with YAZE", "md_docs_2getting-started.html", [
       [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md17", null ],
-      [ "Usage", "md_docs_2getting-started.html#autotoc_md18", null ]
+      [ "General Tips", "md_docs_2getting-started.html#autotoc_md18", null ]
     ] ],
     [ "YAZE Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Targets", "md_docs_2infrastructure.html#autotoc_md20", null ],
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md21", [
-        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md22", null ]
+      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md20", null ],
+      [ "Targets", "md_docs_2infrastructure.html#autotoc_md21", null ],
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md22", [
+        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md23", null ]
       ] ],
-      [ "ROM", "md_docs_2infrastructure.html#autotoc_md23", null ],
-      [ "app/rom.h", "md_docs_2infrastructure.html#autotoc_md24", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md25", null ],
-      [ "app/gfx/bitmap.h", "md_docs_2infrastructure.html#autotoc_md26", null ],
-      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md27", null ],
-      [ "Further Development Ideas", "md_docs_2infrastructure.html#autotoc_md28", null ]
+      [ "ROM", "md_docs_2infrastructure.html#autotoc_md24", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md25", null ]
     ] ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md30", null ],
-      [ "Building and installation", "md_README.html#autotoc_md31", null ],
-      [ "Documentation", "md_README.html#autotoc_md32", null ],
-      [ "License", "md_README.html#autotoc_md33", null ],
-      [ "Screenshots", "md_README.html#autotoc_md34", null ]
+      [ "Description", "md_README.html#autotoc_md27", null ],
+      [ "Building and installation", "md_README.html#autotoc_md28", null ],
+      [ "Documentation", "md_README.html#autotoc_md29", null ],
+      [ "License", "md_README.html#autotoc_md30", null ],
+      [ "Screenshots", "md_README.html#autotoc_md31", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Deprecated List", "deprecated.html", null ],
@@ -148,22 +145,22 @@ var NAVTREEINDEX =
 "icons_8h.html#ad00f4301a94d602bcd51a07f92478ced",
 "icons_8h.html#aeab8ab32cc3cc530bf8ebdc47577ddc4",
 "master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38",
-"namespaceyaze_1_1app_1_1core.html#ac553ac7a4fb1da8826212a15f8fc0548",
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a6fb00f65a358deca2c1ffe3c4f849410",
-"namespaceyaze_1_1app_1_1gui.html#a0f01f74c711bfe7b939d8f239f5f4b31",
-"namespaceyaze_1_1app_1_1zelda3_1_1music.html#aa04d07eb2b4d97ae99d0421370f23a84",
-"namespaceyaze__test_1_1emu__test.html#a4dea6d65a1d6e59c8143139da609e5a9",
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a1fb9d104aaa5a98088365fc4fa9a4051",
-"rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051",
-"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39dae53d104b1b340736a11ea28c94488248",
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a8f98060d879a94a4cba5dfc2ee4d8e26",
-"structyaze_1_1app_1_1editor_1_1SpriteItem.html#a0733085dda391fff2530f0d76cd8f2a8",
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#abd6f9d87654914484cde16d4718b1d61",
-"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a2b64b04438060665f25f8d702c0ee7cc",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#ac5ada8d72ffe62e7fcc41dcb035ddc73",
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html",
-"structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a2317c8c54583812a23f520bda520a48d",
-"yaze_8h.html#a0da7c730bc7cda0a4497722a0a5a140e"
+"namespaceyaze_1_1app_1_1core.html#ad1b9b539b2fe081253a8d14f80c654ae",
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a7d04d335a4454eeb9c470102bed49109",
+"namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202e",
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#ab8e8feb10728cf14eb3f5745c0eeac2a",
+"namespaceyaze__test_1_1emu__test.html#a4f4a59ee8a269b6e7b14831e98b60382",
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a6d3877d903d4a73f31adf0e7c136aa3b",
+"rom_8h.html#a6cba51ea80792c0f6a876549882f3778",
+"snes__palette_8h.html#a770b616b1a09b80f72fdd549ec6a7f34",
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a957b9ff3e7b65985583bcc96d21e289c",
+"structyaze_1_1app_1_1editor_1_1SpriteItem.html#a6ea5999310fad6f12a82c6c09b9f08da",
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ac1082ac73482d5ff9423fa87b1b47d31",
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a505e7768c91986523d38db8897ed872a",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#af7b4e004e2dd090971f78343c0ad1010",
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a0addc2d03786f54fc5014356b49fe640",
+"structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a2e45bf741560645132d2d60d3225d472",
+"yaze_8h.html#a3c42f8cb1bfba12aa06c785afe2a57da"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

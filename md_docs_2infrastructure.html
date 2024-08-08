@@ -111,19 +111,47 @@ $(function(){initNavTree('md_docs_2infrastructure.html',''); initResizable(true)
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md19"></a> For developers to reference.</p>
 <h1><a class="anchor" id="autotoc_md20"></a>
+Z3ED cli</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Command   </th><th class="markdownTableHeadNone">Arg   </th><th class="markdownTableHeadNone">Params   </th><th class="markdownTableHeadNone">Status    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Apply BPS Patch   </td><td class="markdownTableBodyNone">-a   </td><td class="markdownTableBodyNone">rom_file bps_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Create BPS Patch   </td><td class="markdownTableBodyNone">-c   </td><td class="markdownTableBodyNone">bps_file src_file modified_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Asar Patch   </td><td class="markdownTableBodyNone">-asar   </td><td class="markdownTableBodyNone">asm_file rom_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Open ROM   </td><td class="markdownTableBodyNone">-o   </td><td class="markdownTableBodyNone">rom_file   </td><td class="markdownTableBodyNone">Complete    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Backup ROM   </td><td class="markdownTableBodyNone">-b   </td><td class="markdownTableBodyNone">rom_file [new_file]   </td><td class="markdownTableBodyNone">In progress    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Expand ROM   </td><td class="markdownTableBodyNone">-x   </td><td class="markdownTableBodyNone">rom_file file_size   </td><td class="markdownTableBodyNone">Not started    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Transfer Tile16   </td><td class="markdownTableBodyNone">-t   </td><td class="markdownTableBodyNone">src_rom dest_rom tile32_id_list(csv)   </td><td class="markdownTableBodyNone">Complete    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Export Graphics   </td><td class="markdownTableBodyNone">-e   </td><td class="markdownTableBodyNone">rom_file bin_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Import Graphics   </td><td class="markdownTableBodyNone">-i   </td><td class="markdownTableBodyNone">bin_file rom_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">SNES to PC Address   </td><td class="markdownTableBodyNone">-s   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">PC to SNES Address   </td><td class="markdownTableBodyNone">-p   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md21"></a>
 Targets</h1>
 <ul>
 <li><b>yaze</b>: Desktop application for Windows/macOS/Linux</li>
+<li><b>z3ed</b>: Command Line Interface</li>
 <li><b>yaze_c</b>: C Library</li>
 <li><b>yaze_py</b>: Python Module</li>
 <li><b>yaze_ext</b>: Extensions library</li>
 <li><b><a class="el" href="namespaceyaze__test.html">yaze_test</a></b>: Unit test executable</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md21"></a>
+<h1><a class="anchor" id="autotoc_md22"></a>
 Directory Structure</h1>
 <ul>
-<li>**.github/workflows**: Contains <code><a class="el" href="namespaceyaze__test.html">yaze_test</a></code> workflow config.</li>
-<li><b>assets</b>: Hosts assets like fonts.</li>
+<li><b>assets</b>: Hosts assets like fonts, icons, assembly source, etc.</li>
 <li><b>cmake</b>: Contains CMake configurations.</li>
 <li><b>docs</b>: Contains documentation for users and developers.<ul>
 <li><a class="el" href="md_docs_2getting-started.html">Getting Started</a></li>
@@ -136,23 +164,12 @@ Directory Structure</h1>
 <li><b>cli</b>: Contains the command line interface <code>z3ed</code></li>
 <li><b>ext</b>: Contains the extensions library <code>yaze_ext</code></li>
 <li><b>py</b>: Contains the Python module <code>yaze_py</code></li>
-<li><b>lib</b>: Contains git submodule dependencies.<ul>
-<li>Abseil-cpp</li>
-<li>Asar</li>
-<li><a class="el" href="namespaceImGui.html">ImGui</a><ul>
-<li>ImGuiFileDialog</li>
-<li>ImGuiColorTextEdit</li>
-<li>imgui_memory_editor</li>
-</ul>
-</li>
-<li>SDL2</li>
-</ul>
-</li>
+<li><b>lib</b>: Contains the dependencies as git submodules</li>
 </ul>
 </li>
 <li><b>test</b>: Contains testing interface <code><a class="el" href="namespaceyaze__test.html">yaze_test</a></code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md22"></a>
+<h2><a class="anchor" id="autotoc_md23"></a>
 Flow of Control</h2>
 <ul>
 <li><a href="../src/app/yaze.cc">app/yaze.cc</a><ul>
@@ -170,29 +187,7 @@ Flow of Control</h2>
 </ul>
 </li>
 <li><a href="../src/app/editor/master_editor.cc">app/editor/master_editor.cc</a><ul>
-<li>Handles the main menu bar.<ul>
-<li>File<ul>
-<li>Open</li>
-<li>Save</li>
-</ul>
-</li>
-<li>Edit</li>
-<li>View<ul>
-<li>Emulator</li>
-<li>HEX Editor</li>
-<li>Palette Editor</li>
-<li>Memory Viewer</li>
-<li><a class="el" href="namespaceImGui.html">ImGui</a> Demo</li>
-<li>GUI Tools<ul>
-<li>Runtime Metrics</li>
-<li>Style Editor</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Help</li>
-</ul>
-</li>
+<li>Handles the main menu bar</li>
 <li>Handles <code>absl::Status</code> errors as popups delivered to the user.</li>
 <li>Update all the editors in a tab view.<ul>
 <li><a href="../src/app/editor/assembly_editor.cc">app/editor/assembly_editor.cc</a></li>
@@ -207,55 +202,20 @@ Flow of Control</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md23"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 ROM</h1>
 <ul>
-<li><a href="../src/app/rom.cc">app/rom.cc</a> </li>
+<li><a href="../src/app/rom.cc">app/rom.cc</a></li>
+<li><a href="../src/app/rom.h">app/rom.h</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md24"></a>
-- <a href="../src/app/rom.h">app/rom.h</a></h1>
 <p>This <code>ROM</code> class provides methods to manipulate and access data from a ROM.</p>
 <h1><a class="anchor" id="autotoc_md25"></a>
 Bitmap</h1>
 <ul>
-<li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.cc</a> </li>
+<li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.cc</a></li>
+<li><a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.h</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md26"></a>
-- <a href="../src/app/gfx/bitmap.cc">app/gfx/bitmap.h</a></h1>
-<p>This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using the <a class="el" href="namespaceImGui.html">ImGui</a> library.</p>
-<h1><a class="anchor" id="autotoc_md27"></a>
-Z3ED cli</h1>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Command   </th><th class="markdownTableHeadNone">Arg   </th><th class="markdownTableHeadNone">Params   </th><th class="markdownTableHeadNone">Status    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Apply BPS Patch   </td><td class="markdownTableBodyNone">-a   </td><td class="markdownTableBodyNone">rom_file bps_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Create BPS Patch   </td><td class="markdownTableBodyNone">-c   </td><td class="markdownTableBodyNone">bps_file src_file modified_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Open ROM   </td><td class="markdownTableBodyNone">-o   </td><td class="markdownTableBodyNone">rom_file   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Backup ROM   </td><td class="markdownTableBodyNone">-b   </td><td class="markdownTableBodyNone">rom_file [new_file]   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Expand ROM   </td><td class="markdownTableBodyNone">-x   </td><td class="markdownTableBodyNone">rom_file file_size   </td><td class="markdownTableBodyNone">Not started    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Transfer Tile16   </td><td class="markdownTableBodyNone">-t   </td><td class="markdownTableBodyNone">src_rom dest_rom tile32_id_list(csv)   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Export Graphics   </td><td class="markdownTableBodyNone">-e   </td><td class="markdownTableBodyNone">rom_file bin_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Import Graphics   </td><td class="markdownTableBodyNone">-i   </td><td class="markdownTableBodyNone">bin_file rom_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">SNES to PC Address   </td><td class="markdownTableBodyNone">-s   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">PC to SNES Address   </td><td class="markdownTableBodyNone">-p   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete   </td></tr>
-</table>
-<h1><a class="anchor" id="autotoc_md28"></a>
-Further Development Ideas</h1>
-<ul>
-<li>Extend <code>zelda3</code> namespace with additional functionalities.</li>
-<li>Optimize program performance.</li>
-<li>Introduce new features in the GUI editor. </li>
-</ul>
+<p>This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using the <a class="el" href="namespaceImGui.html">ImGui</a> library. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

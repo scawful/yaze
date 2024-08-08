@@ -69,7 +69,7 @@ var searchData=
   ['floor_5fnumber_66',['floor_number',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8',1,'yaze::app::editor::ScreenEditor']]],
   ['floor_5frooms_67',['floor_rooms',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['floors_68',['Floors',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae70340033b22f19b9a25b59360eae20e',1,'yaze::app::zelda3::dungeon']]],
-  ['flow_20of_20control_69',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md22',1,'']]],
+  ['flow_20of_20control_69',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
   ['focus_70',['Focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5',1,'yaze::app::editor::MessageEditor::TextBox']]],
   ['folderitem_71',['FolderItem',['../structyaze_1_1app_1_1core_1_1FolderItem.html',1,'yaze::app::core::FolderItem'],['../namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd',1,'yaze::app::core::FolderItem']]],
   ['font_5fgfx16_5fdata_72',['font_gfx16_data',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a00a8d1c03e567d70bd58e0b4a9d0fdf9',1,'yaze::app::editor::MessageEditor']]],
@@ -104,6 +104,5 @@ var searchData=
   ['functions_101',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
   ['functions_102',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]],
   ['functions_3a_103',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
-  ['further_20development_20ideas_104',['Further Development Ideas',['../md_docs_2infrastructure.html#autotoc_md28',1,'']]],
-  ['fx_105',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
+  ['fx_104',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];
