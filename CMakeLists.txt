@@ -5,6 +5,14 @@ cmake_minimum_required(VERSION 3.10)
 # by scawful
 project(yaze VERSION 0.2.0)
 
+# Build Flags
+set(YAZE_BUILD_APP ON)
+set(YAZE_BUILD_Z3ED ON)
+set(YAZE_BUILD_PYTHON ON)
+set(YAZE_BUILD_CLIB ON)
+set(YAZE_BUILD_TESTS OFF)
+set(YAZE_BUILD_EXTENSIONS OFF)
+
 # C++ Standard Specifications 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

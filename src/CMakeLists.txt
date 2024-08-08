@@ -74,10 +74,21 @@ if(APPLE)
     set(CMAKE_EXE_LINKER_FLAGS "-framework ServiceManagement -framework Foundation -framework Cocoa")
 endif()
 
-include(app/CMakeLists.txt)
-include(cli/CMakeLists.txt) 
-# include(ext/CMakeLists.txt)
-include(py/CMakeLists.txt)
+if (YAZE_BUILD_APP)
+  include(app/CMakeLists.txt)
+endif()
+
+if (YAZE_BUILD_Z3ED)
+  include(cli/CMakeLists.txt) 
+endif()
+
+if (YAZE_BUILD_EXTENSIONS)
+  include(ext/CMakeLists.txt)
+endif()
+
+if (YAZE_BUILD_PYTHON)
+  include(py/CMakeLists.txt)
+endif()
 
 if (UNIX)
   target_compile_definitions(yaze PRIVATE "linux")
