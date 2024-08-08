@@ -1,7 +1,0 @@
-<map id="sprite" name="sprite">
-<area shape="rect" id="Node000001" title="Primitive of a sprite." alt="" coords="39,183,92,208"/>
-<area shape="rect" id="Node000002" href="$structsprite__action.html" title="Sprite action." alt="" coords="18,94,113,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,135,68,182,63,182,63,135"/>
-<area shape="rect" id="Node000003" href="$structsprite__instruction.html" title="Sprite instruction." alt="" coords="5,5,126,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="68,47,68,94,63,94,63,47"/>
-</map>

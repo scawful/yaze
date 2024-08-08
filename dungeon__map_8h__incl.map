@@ -1,7 +1,0 @@
-<map id="src/app/zelda3/screen/dungeon_map.h" name="src/app/zelda3/screen/dungeon_map.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,154,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="16,94,66,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,48,56,81,51,79,68,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="90,94,147,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="91,45,108,79,103,81,87,48"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="yaze::app::zelda3::Sprite" name="yaze::app::zelda3::Sprite">
-<area shape="rect" id="Node000001" title="A class for managing sprites in the overworld and underworld." alt="" coords="61,109,185,150"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html" title="Base class for all overworld entities." alt="" coords="5,5,129,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,58,115,107,110,110,83,61"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="152,13,206,38"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,53,136,110,132,107,163,51"/>
-</map>

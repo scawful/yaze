@@ -1,7 +1,0 @@
-<map id="yaze_test::gfx_test::TEST" name="yaze_test::gfx_test::TEST">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,134,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#adcf50af0ebbb8dfeb2a628b10100a9fc" title=" " alt="" coords="182,5,356,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,46,166,40,167,45,135,51"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html#ad50a103d8012360fca29d69c20bd9bed" title=" " alt="" coords="182,71,356,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,67,167,72,166,77,134,72"/>
-</map>

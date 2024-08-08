@@ -1,6 +1,0 @@
-<map id="yaze::app::zelda3::dungeon::Room::LoadRoomGraphics" name="yaze::app::zelda3::dungeon::Room::LoadRoomGraphics">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,237,62"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="285,29,461,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,40,269,40,269,45,237,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="331,31,323,21,328,11,345,5,373,3,404,5,420,13,417,17,403,11,373,8,346,10,332,15,328,20,335,27"/>
-</map>

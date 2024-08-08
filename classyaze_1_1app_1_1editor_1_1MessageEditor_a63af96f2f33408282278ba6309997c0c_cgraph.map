@@ -1,8 +1,0 @@
-<map id="yaze::app::editor::MessageEditor::DrawMessagePreview" name="yaze::app::editor::MessageEditor::DrawMessagePreview">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,202,85"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MessageEditor.html#a45714a30dbeca4ac0e6dab387e3f234c" title=" " alt="" coords="250,29,449,85"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,54,234,54,234,60,202,60"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="302,29,302,19,311,10,327,5,349,3,375,5,390,12,388,17,374,10,349,8,328,10,314,15,307,21,307,29"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1MessageEditor.html#a6d358680a98b9024debe47681a7a14da" title=" " alt="" coords="497,29,688,85"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="450,54,482,54,482,60,450,60"/>
-</map>

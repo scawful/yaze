@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::audio::Spc700::MOVSX" name="yaze::app::emu::audio::Spc700::MOVSX">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,148,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#af7d758e22634c9e859822125326d1017" title=" " alt="" coords="196,5,338,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,44,180,38,181,43,149,49"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#aeb4aa58dfcf19eae733a75fae64f508b" title=" " alt="" coords="196,71,338,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,68,181,74,180,79,148,74"/>
-</map>

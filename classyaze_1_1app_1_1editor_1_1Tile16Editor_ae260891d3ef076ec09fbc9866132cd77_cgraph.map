@@ -1,5 +1,0 @@
-<map id="yaze::app::editor::Tile16Editor::DrawMenu" name="yaze::app::editor::Tile16Editor::DrawMenu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,163,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gui_1_1Canvas.html#ae8d7f558c1c4be753d7fa07869df8f39" title=" " alt="" coords="211,5,374,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,23,195,23,195,28,163,28"/>
-</map>

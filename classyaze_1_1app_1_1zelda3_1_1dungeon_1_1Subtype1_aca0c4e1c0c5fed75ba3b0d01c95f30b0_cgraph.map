@@ -1,9 +1,0 @@
-<map id="yaze::app::zelda3::dungeon::Subtype1::Subtype1" name="yaze::app::zelda3::dungeon::Subtype1::Subtype1">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,196,87"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a234aab69e6a7cb5ba7c78239b66d0bcd" title=" " alt="" coords="244,5,392,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,49,228,44,229,50,196,55"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="440,54,616,79"/>
-<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="196,69,244,71,392,71,424,69,424,75,392,76,244,76,196,74"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,42,428,48,427,53,392,48"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="493,55,486,45,490,35,505,29,528,27,554,30,567,37,565,41,552,35,528,32,506,34,494,39,491,44,497,52"/>
-</map>

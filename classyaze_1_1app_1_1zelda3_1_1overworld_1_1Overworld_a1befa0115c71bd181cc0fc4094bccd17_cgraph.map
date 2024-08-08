@@ -1,8 +1,0 @@
-<map id="yaze::app::zelda3::overworld::Overworld::CreateTile32Tilemap" name="yaze::app::zelda3::overworld::Overworld::CreateTile32Tilemap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,152,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="200,29,375,70"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,69,184,63,185,69,152,74"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Tile32.html#a61c106ace1aa8223aba0c7476e76ad38" title=" " alt="" coords="218,95,356,135"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="152,92,203,99,202,105,152,97"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="248,29,246,19,252,10,266,5,287,3,310,5,323,11,321,16,309,10,287,8,268,10,256,15,251,20,253,28"/>
-</map>

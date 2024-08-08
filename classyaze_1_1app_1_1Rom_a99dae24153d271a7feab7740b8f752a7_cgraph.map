@@ -1,9 +1,0 @@
-<map id="yaze::app::Rom::ReadHelper" name="yaze::app::Rom::ReadHelper">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,187,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#adc977745ac851fd2b982e24bfc7053f3" title=" " alt="" coords="237,5,406,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,59,252,33,254,38,150,65"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#ae28fce4a12087576eb7ff35ec2a31a36" title=" " alt="" coords="237,55,406,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,73,221,73,221,78,187,78"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a997bfee0f4d228a4d9f30166647f8b37" title=" " alt="" coords="235,120,408,146"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="150,86,254,113,252,118,149,92"/>
-</map>

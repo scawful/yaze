@@ -1,5 +1,0 @@
-<map id="yaze::app::editor::Tile16Editor::DrawToCurrentTile16" name="yaze::app::editor::Tile16Editor::DrawToCurrentTile16">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,188,61"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a968fb5a195cd65700f66b82b839e3d4a" title=" " alt="" coords="236,13,380,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,30,220,30,220,36,188,36"/>
-</map>

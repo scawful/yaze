@@ -1,9 +1,0 @@
-<map id="src/yaze.h" name="src/yaze.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="181,5,260,31"/>
-<area shape="rect" id="Node000002" href="$yaze__py_8cc.html" title=" " alt="" coords="5,79,129,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,40,94,81,92,76,179,36"/>
-<area shape="rect" id="Node000003" href="$libc__test_8cc.html" title=" " alt="" coords="153,79,288,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,46,223,79,218,79,218,46"/>
-<area shape="rect" id="Node000004" href="$yaze_8cc.html" title=" " alt="" coords="312,79,398,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="258,36,333,76,331,81,256,41"/>
-</map>

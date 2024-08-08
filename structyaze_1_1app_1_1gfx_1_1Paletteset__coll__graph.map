@@ -1,9 +1,0 @@
-<map id="yaze::app::gfx::Paletteset" name="yaze::app::gfx::Paletteset">
-<area shape="rect" id="Node000001" title="Represents a set of palettes used in a SNES graphics system." alt="" coords="57,288,219,313"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,94,180,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,134,138,287,132,288,96,135"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="204,94,368,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="278,135,246,198,223,233,196,266,164,289,160,285,192,262,218,230,241,195,273,133"/>
-<area shape="rect" id="Node000004" href="$structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="244,5,328,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="288,47,288,94,283,94,283,47"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="yaze::app::emu::Cpu::Immediate" name="yaze::app::emu::Cpu::Immediate">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,140,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a4e5ba113200a9712892064a68e558caa" title=" " alt="" coords="188,5,334,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,45,172,39,173,44,140,50"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a5adc7eff4a215152b75e0e81c60358c6" title=" " alt="" coords="194,71,328,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,68,179,74,178,80,139,73"/>
-</map>

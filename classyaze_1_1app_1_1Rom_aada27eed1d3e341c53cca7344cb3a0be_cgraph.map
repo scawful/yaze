@@ -1,7 +1,0 @@
-<map id="yaze::app::Rom::WriteWord" name="yaze::app::Rom::WriteWord">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,179,60"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb" title=" " alt="" coords="227,5,401,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,33,211,29,211,34,180,39"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38" title=" " alt="" coords="227,55,401,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,56,211,60,211,65,179,61"/>
-</map>
