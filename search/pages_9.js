@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['test_20list_0',['Test List',['../test.html',1,'']]],
-  ['todo_20list_1',['Todo List',['../todo.html',1,'']]]
+  ['started_20with_20yaze_0',['Getting Started with YAZE',['../md_docs_2getting-started.html',1,'']]]
 ];
