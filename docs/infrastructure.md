@@ -41,7 +41,7 @@ For developers to reference.
   - **lib**:  Contains the dependencies as git submodules
 - **test**: Contains testing interface `yaze_test`
 
-### Flow of Control
+## Flow of Control
 
 - [app/yaze.cc](../src/app/yaze.cc) 
   - Initializes `absl::FailureSignalHandler` for stack tracing.

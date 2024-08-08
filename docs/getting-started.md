@@ -1,4 +1,4 @@
-# Getting Started with YAZE
+# Getting Started
 
 This software allows you to modify "The Legend of Zelda: A Link to the Past".
 
