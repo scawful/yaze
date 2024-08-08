@@ -111,7 +111,7 @@ var searchData=
   ['ppuinterface_108',['PpuInterface',['../classyaze_1_1app_1_1emu_1_1video_1_1PpuInterface.html',1,'yaze::app::emu::video']]],
   ['pputest_109',['PpuTest',['../classyaze__test_1_1emu__test_1_1PpuTest.html',1,'yaze_test::emu_test::PpuTest'],['../classyaze__test_1_1emu__test_1_1PpuTest.html#aefe715923289ebbcd03f34bdc1599ebc',1,'yaze_test::emu_test::PpuTest::PpuTest()']]],
   ['preclampgain_110',['preclampGain',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a50fd8568dc14b1cd56d0ad228213ab40',1,'yaze::app::emu::audio::DspChannel']]],
-  ['prerequisites_111',['Prerequisites',['../md_docs_2getting-started.html#autotoc_md17',1,'']]],
+  ['prerequisites_111',['Prerequisites',['../md_docs_2getting-started.html#autotoc_md19',1,'']]],
   ['prev_5fstatus_5f_112',['prev_status_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#ad46300254acb8642a4b08f737d8bbb99',1,'yaze::app::editor::MasterEditor']]],
   ['prevent_5fmath_5fmode_5f_113',['prevent_math_mode_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a4a6e6e5a5e5ef05175e7ad07a02c6046',1,'yaze::app::emu::video::Ppu']]],
   ['preview_5fgfx_5f_114',['preview_gfx_',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#a58564852af4d78e4ecf2cccc4b426bc5',1,'yaze::app::zelda3::Sprite']]],

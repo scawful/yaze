@@ -69,7 +69,7 @@ var searchData=
   ['floor_5fnumber_66',['floor_number',['../classyaze_1_1app_1_1editor_1_1ScreenEditor.html#a5085b792c58db9657440783d875f07a8',1,'yaze::app::editor::ScreenEditor']]],
   ['floor_5frooms_67',['floor_rooms',['../classyaze_1_1app_1_1zelda3_1_1screen_1_1DungeonMap.html#a3f3b7570510506caa504d50d0d0807c6',1,'yaze::app::zelda3::screen::DungeonMap']]],
   ['floors_68',['Floors',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ac3c0be1a02f8dce7d5bbca92747b4f9cae70340033b22f19b9a25b59360eae20e',1,'yaze::app::zelda3::dungeon']]],
-  ['flow_20of_20control_69',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md23',1,'']]],
+  ['flow_20of_20control_69',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md25',1,'']]],
   ['focus_70',['Focus',['../structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html#a25effced7ec29b9cd4510b0ebe25b5c5',1,'yaze::app::editor::MessageEditor::TextBox']]],
   ['folderitem_71',['FolderItem',['../structyaze_1_1app_1_1core_1_1FolderItem.html',1,'yaze::app::core::FolderItem'],['../namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd',1,'yaze::app::core::FolderItem']]],
   ['font_5fgfx16_5fdata_72',['font_gfx16_data',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a00a8d1c03e567d70bd58e0b4a9d0fdf9',1,'yaze::app::editor::MessageEditor']]],
@@ -80,7 +80,7 @@ var searchData=
   ['font_5floader_2eh_77',['font_loader.h',['../font__loader_8h.html',1,'']]],
   ['font_5floader_2emm_78',['font_loader.mm',['../font__loader_8mm.html',1,'']]],
   ['font_5fpreview_5fcolors_5f_79',['font_preview_colors_',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ab8d33cc219f86405907a07c2d4813a2a',1,'yaze::app::editor::MessageEditor']]],
-  ['for_20compression_20v3_20_3a_80',['3. CompressionContext (for Compression V3):',['../md_docs_2compression.html#autotoc_md9',1,'']]],
+  ['for_20compression_20v3_20_3a_80',['3. CompressionContext (for Compression V3):',['../md_docs_2compression.html#autotoc_md11',1,'']]],
   ['for_5feach_81',['for_each',['../structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html#adcb7e249d2137ea11ef46872ea32d376',1,'yaze::app::gfx::PaletteGroupMap']]],
   ['forced_5fblank_5f_82',['forced_blank_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a7d5954ae3ba4f3b986dc859ea20e0317',1,'yaze::app::emu::video::Ppu']]],
   ['forced_5fblanking_83',['forced_blanking',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1INIDISP.html#a0d251e71a1b82779b44c09b86cbedcdc',1,'yaze::app::emu::video::PpuRegisters::INIDISP']]],
@@ -101,8 +101,8 @@ var searchData=
   ['full_5fpalette_5f_98',['full_palette_',['../classyaze_1_1app_1_1editor_1_1DungeonEditor.html#a9fb55b114a36b11d6474d778770f242a',1,'yaze::app::editor::DungeonEditor']]],
   ['fullerrdata_99',['fullerrdata',['../structerrordata.html#a866fc5064525eec012f305642b7e2c43',1,'errordata']]],
   ['function_100',['Function',['../namespaceyaze_1_1app_1_1gui_1_1zeml.html#a04d9f20f3406cf47d73f3868c9af4824a86408593c34af77fdd90df932f8b5261',1,'yaze::app::gui::zeml']]],
-  ['functions_101',['Compression Functions',['../md_docs_2compression.html#autotoc_md10',1,'']]],
+  ['functions_101',['Compression Functions',['../md_docs_2compression.html#autotoc_md12',1,'']]],
   ['functions_102',['functions',['../classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html#a7fbca91dff24d2693693c24b45e3092b',1,'yaze::app::zelda3::SpriteBuilder']]],
-  ['functions_3a_103',['Functions:',['../md_docs_2compression.html#autotoc_md14',1,'Decompression Functions:'],['../md_docs_2compression.html#autotoc_md15',1,'Utility Functions:']]],
+  ['functions_3a_103',['Functions:',['../md_docs_2compression.html#autotoc_md16',1,'Decompression Functions:'],['../md_docs_2compression.html#autotoc_md17',1,'Utility Functions:']]],
   ['fx_104',['FX',['../namespaceyaze_1_1app_1_1emu_1_1memory.html#a12641306720f09a7cef69ce4f30f2a42a25c6b7f8757be1397484ae6888e5a990',1,'yaze::app::emu::memory']]]
 ];

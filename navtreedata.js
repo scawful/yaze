@@ -27,44 +27,46 @@ var NAVTREE =
   [ "yaze", "index.html", [
     [ "Build Instructions", "md_docs_2build-instructions.html", [
       [ "Windows", "md_docs_2build-instructions.html#autotoc_md1", null ],
-      [ "macOS", "md_docs_2build-instructions.html#autotoc_md2", null ]
+      [ "macOS", "md_docs_2build-instructions.html#autotoc_md2", null ],
+      [ "iOS", "md_docs_2build-instructions.html#autotoc_md3", null ],
+      [ "GNU/Linux", "md_docs_2build-instructions.html#autotoc_md4", null ]
     ] ],
     [ "LC_LZ2 Compression", "md_docs_2compression.html", [
-      [ "Key Definitions", "md_docs_2compression.html#autotoc_md4", [
-        [ "Constants and Macros:", "md_docs_2compression.html#autotoc_md5", null ],
-        [ "Data Structures:", "md_docs_2compression.html#autotoc_md6", [
-          [ "CompressionCommand:", "md_docs_2compression.html#autotoc_md7", null ],
-          [ "CompressionPiece:", "md_docs_2compression.html#autotoc_md8", null ],
-          [ "CompressionContext (for Compression V3):", "md_docs_2compression.html#autotoc_md9", null ]
+      [ "Key Definitions", "md_docs_2compression.html#autotoc_md6", [
+        [ "Constants and Macros:", "md_docs_2compression.html#autotoc_md7", null ],
+        [ "Data Structures:", "md_docs_2compression.html#autotoc_md8", [
+          [ "CompressionCommand:", "md_docs_2compression.html#autotoc_md9", null ],
+          [ "CompressionPiece:", "md_docs_2compression.html#autotoc_md10", null ],
+          [ "CompressionContext (for Compression V3):", "md_docs_2compression.html#autotoc_md11", null ]
         ] ]
       ] ],
-      [ "Compression Functions", "md_docs_2compression.html#autotoc_md10", [
-        [ "Version 1:", "md_docs_2compression.html#autotoc_md11", null ],
-        [ "Version 2:", "md_docs_2compression.html#autotoc_md12", null ],
-        [ "Version 3:", "md_docs_2compression.html#autotoc_md13", null ]
+      [ "Compression Functions", "md_docs_2compression.html#autotoc_md12", [
+        [ "Version 1:", "md_docs_2compression.html#autotoc_md13", null ],
+        [ "Version 2:", "md_docs_2compression.html#autotoc_md14", null ],
+        [ "Version 3:", "md_docs_2compression.html#autotoc_md15", null ]
       ] ],
-      [ "Decompression Functions:", "md_docs_2compression.html#autotoc_md14", null ],
-      [ "Utility Functions:", "md_docs_2compression.html#autotoc_md15", null ]
+      [ "Decompression Functions:", "md_docs_2compression.html#autotoc_md16", null ],
+      [ "Utility Functions:", "md_docs_2compression.html#autotoc_md17", null ]
     ] ],
     [ "Getting Started with YAZE", "md_docs_2getting-started.html", [
-      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md17", null ],
-      [ "General Tips", "md_docs_2getting-started.html#autotoc_md18", null ]
+      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md19", null ],
+      [ "General Tips", "md_docs_2getting-started.html#autotoc_md20", null ]
     ] ],
     [ "YAZE Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md20", null ],
-      [ "Targets", "md_docs_2infrastructure.html#autotoc_md21", null ],
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md22", [
-        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md23", null ]
+      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md22", null ],
+      [ "Targets", "md_docs_2infrastructure.html#autotoc_md23", null ],
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md24", [
+        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md25", null ]
       ] ],
-      [ "ROM", "md_docs_2infrastructure.html#autotoc_md24", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md25", null ]
+      [ "ROM", "md_docs_2infrastructure.html#autotoc_md26", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md27", null ]
     ] ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md27", null ],
-      [ "Building and installation", "md_README.html#autotoc_md28", null ],
-      [ "Documentation", "md_README.html#autotoc_md29", null ],
-      [ "License", "md_README.html#autotoc_md30", null ],
-      [ "Screenshots", "md_README.html#autotoc_md31", null ]
+      [ "Description", "md_README.html#autotoc_md29", null ],
+      [ "Building and installation", "md_README.html#autotoc_md30", null ],
+      [ "Documentation", "md_README.html#autotoc_md31", null ],
+      [ "License", "md_README.html#autotoc_md32", null ],
+      [ "Screenshots", "md_README.html#autotoc_md33", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Deprecated List", "deprecated.html", null ],
@@ -145,22 +147,22 @@ var NAVTREEINDEX =
 "icons_8h.html#ad00f4301a94d602bcd51a07f92478ced",
 "icons_8h.html#aeab8ab32cc3cc530bf8ebdc47577ddc4",
 "master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38",
-"namespaceyaze_1_1app_1_1core.html#ad1b9b539b2fe081253a8d14f80c654ae",
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a7d04d335a4454eeb9c470102bed49109",
-"namespaceyaze_1_1app_1_1gui.html#a2bf29114274dce89e615eccfa0c8202e",
-"namespaceyaze_1_1app_1_1zelda3_1_1music.html#ab8e8feb10728cf14eb3f5745c0eeac2a",
-"namespaceyaze__test_1_1emu__test.html#a4f4a59ee8a269b6e7b14831e98b60382",
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a6d3877d903d4a73f31adf0e7c136aa3b",
-"rom_8h.html#a6cba51ea80792c0f6a876549882f3778",
-"snes__palette_8h.html#a770b616b1a09b80f72fdd549ec6a7f34",
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a957b9ff3e7b65985583bcc96d21e289c",
-"structyaze_1_1app_1_1editor_1_1SpriteItem.html#a6ea5999310fad6f12a82c6c09b9f08da",
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#ac1082ac73482d5ff9423fa87b1b47d31",
-"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a505e7768c91986523d38db8897ed872a",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#af7b4e004e2dd090971f78343c0ad1010",
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#a0addc2d03786f54fc5014356b49fe640",
-"structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a2e45bf741560645132d2d60d3225d472",
-"yaze_8h.html#a3c42f8cb1bfba12aa06c785afe2a57da"
+"namespaceyaze_1_1app_1_1core.html#aca9765be2c114fb95a5a3724fad4b994",
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a70a489fec05d234b20277caa3768598d",
+"namespaceyaze_1_1app_1_1gui.html#a111f2967e1d2d56e2188777b4551a77b",
+"namespaceyaze_1_1app_1_1zelda3_1_1music.html#aa76a3e96c7ad81d30e389fcb5634ed8c",
+"namespaceyaze__test_1_1emu__test.html#a4eabbbb840165c2456bd1dc315ebc61a",
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959",
+"rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04",
+"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39daf22e7c2217ee73273e5298cc7f8cf3d8",
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a8f98060d879a94a4cba5dfc2ee4d8e26",
+"structyaze_1_1app_1_1editor_1_1SpriteItem.html#a0733085dda391fff2530f0d76cd8f2a8",
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#abd6f9d87654914484cde16d4718b1d61",
+"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a2b64b04438060665f25f8d702c0ee7cc",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#ac5ada8d72ffe62e7fcc41dcb035ddc73",
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html",
+"structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a2317c8c54583812a23f520bda520a48d",
+"yaze_8h.html#a2219de43f7183c78e7aae4aae4d02f6a"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

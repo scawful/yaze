@@ -56,5 +56,5 @@ var searchData=
   ['userroutine_53',['UserRoutine',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::app::editor::zsprite::UserRoutine'],['../structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html#a309368e6eacf3a91ce676065c1b71a7e',1,'yaze::app::editor::zsprite::UserRoutine::UserRoutine()']]],
   ['userroutines_54',['userRoutines',['../structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html#a04253ed0fec3faabbadb137efd017c06',1,'yaze::app::editor::zsprite::ZSprite']]],
   ['ushort_55',['ushort',['../constants_8h.html#ae666ff9c44d45e6b7b6b8ed4340dd9c0',1,'constants.h']]],
-  ['utility_20functions_3a_56',['Utility Functions:',['../md_docs_2compression.html#autotoc_md15',1,'']]]
+  ['utility_20functions_3a_56',['Utility Functions:',['../md_docs_2compression.html#autotoc_md17',1,'']]]
 ];

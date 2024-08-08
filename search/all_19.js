@@ -1,7 +1,7 @@
 var searchData=
 [
   ['v_0',['V',['../structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html#ac02ae9430819b1efa584fdfe9c6674d9',1,'yaze::app::emu::audio::Spc700::Flags']]],
-  ['v3_20_3a_1',['3. CompressionContext (for Compression V3):',['../md_docs_2compression.html#autotoc_md9',1,'']]],
+  ['v3_20_3a_1',['3. CompressionContext (for Compression V3):',['../md_docs_2compression.html#autotoc_md11',1,'']]],
   ['v_5fcount_5f_2',['v_count_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a4d0a687aecbe91838a6633692edac081',1,'yaze::app::emu::video::Ppu']]],
   ['v_5fcount_5fsecond_5f_3',['v_count_second_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a0fd38c117ac448b7460796f1b4117a59',1,'yaze::app::emu::video::Ppu']]],
   ['v_5firq_5fenabled_5f_4',['v_irq_enabled_',['../classyaze_1_1app_1_1emu_1_1SNES.html#a361e4c7d3490fcff7f1951cab7fbf2da',1,'yaze::app::emu::SNES']]],
@@ -19,9 +19,9 @@ var searchData=
   ['vector_16',['vector',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a2a93a310b1a281e6af3705476f279291',1,'yaze::app::gfx::Bitmap::vector()'],['../classyaze_1_1app_1_1Rom.html#a33fb74cfc42e9f3206dd266021bd1186',1,'yaze::app::Rom::vector()']]],
   ['verbose_5f_17',['verbose_',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a2dd494a961c9c31c823ab2e0517f8181',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['version_18',['version',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a68327f3614c18b3f42c71314366ba61a',1,'yaze::app::emu::memory::RomInfo::version'],['../structExtension.html#ad481c784744e81458a35fb44a5f69534',1,'Extension::version'],['../classyaze_1_1app_1_1Rom.html#a70fa50ea0fbfd2c40aebdbcf8b93b9b2',1,'yaze::app::Rom::version()']]],
-  ['version_201_3a_19',['Version 1:',['../md_docs_2compression.html#autotoc_md11',1,'']]],
-  ['version_202_3a_20',['Version 2:',['../md_docs_2compression.html#autotoc_md12',1,'']]],
-  ['version_203_3a_21',['Version 3:',['../md_docs_2compression.html#autotoc_md13',1,'']]],
+  ['version_201_3a_19',['Version 1:',['../md_docs_2compression.html#autotoc_md13',1,'']]],
+  ['version_202_3a_20',['Version 2:',['../md_docs_2compression.html#autotoc_md14',1,'']]],
+  ['version_203_3a_21',['Version 3:',['../md_docs_2compression.html#autotoc_md15',1,'']]],
   ['version_5f_22',['version_',['../classyaze_1_1app_1_1Rom.html#a1346fc16ff818495adbff118422a3664',1,'yaze::app::Rom']]],
   ['version_5fconstants_23',['version_constants',['../classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139',1,'yaze::app::Rom']]],
   ['version_5fnumber_24',['version_number',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#a625b247c1299e1ea9c6cc9803ca58db8',1,'yaze::app::gfx::scad_format::CgxHeader']]],
