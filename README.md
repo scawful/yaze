@@ -31,10 +31,11 @@ By default this will build all targets.
 - **yaze**:       Editor Application
 - **yaze_c**:     C Library
 - **yaze_py**:    Python Module
+- **yaze_ext**:   Extensions Library
 - **yaze_test**:  Unit Tests
 - **z3ed**:       Command Line Interface
 
-Dependencies are included as submodules and will be built automatically.
+Dependencies are included as submodules and will be built automatically. For those who want to reduce compile times, consider installing the dependencies on your system. See [build-instructions.md](docs/build-instructions.md) for more information.
 
 ## Documentation
 
