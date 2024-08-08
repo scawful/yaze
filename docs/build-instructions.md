@@ -2,8 +2,10 @@
 
 For VSCode users, use the following CMake extensions
 
-https://marketplace.visualstudio.com/items?itemName=twxs.cmake
-https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools
+- https://marketplace.visualstudio.com/items?itemName=twxs.cmake
+- https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools
+
+For those who want to reduce compile times, consider installing the dependencies on your system. 
 
 ## Windows
 

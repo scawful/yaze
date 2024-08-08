@@ -1,4 +1,4 @@
-# YAZE Infrastructure Overview
+# Infrastructure Overview
 
 For developers to reference.
 
@@ -32,8 +32,6 @@ For developers to reference.
 - **assets**: Hosts assets like fonts, icons, assembly source, etc.
 - **cmake**: Contains CMake configurations.
 - **docs**: Contains documentation for users and developers.
-  - [Getting Started](./getting-started.md)
-  - [LC_LZ2 Compression](./compression.md)
 - **src**: Contains source files. 
   - **app**:  Contains the GUI editor `yaze`
   - **base**: Contains the base data headers for `yaze_c`
@@ -67,16 +65,17 @@ For developers to reference.
     - [app/editor/screen_editor.cc](../src/app/editor/screen_editor.cc)
     - [app/editor/sprite_editor.cc](../src/app/editor/sprite_editor.cc)
 
-## ROM
+## Rom
+
 - [app/rom.cc](../src/app/rom.cc)
 - [app/rom.h](../src/app/rom.h)
 
-This `ROM` class provides methods to manipulate and access data from a ROM.
+The `Rom` class provides methods to manipulate and access data from a ROM.
 
 ## Bitmap
 
 - [app/gfx/bitmap.cc](../src/app/gfx/bitmap.cc)
 - [app/gfx/bitmap.h](../src/app/gfx/bitmap.cc)
 
-This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using the ImGui library.
+This class is responsible for creating, managing, and manipulating bitmap data, which can be displayed on the screen using SDL2 Textures and the ImGui draw list.
 
