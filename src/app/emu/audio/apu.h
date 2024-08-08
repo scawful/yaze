@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
+#include <array>
 
 #include "app/emu/audio/dsp.h"
 #include "app/emu/audio/spc700.h"
