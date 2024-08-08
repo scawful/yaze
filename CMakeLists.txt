@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 
 # Yet Another Zelda3 Editor
 # by scawful
-project(yaze VERSION 0.10)
+project(yaze VERSION 0.2.0)
 
 # C++ Standard Specifications 
 set(CMAKE_CXX_STANDARD 20)
