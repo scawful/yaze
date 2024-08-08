@@ -82,7 +82,7 @@ var searchData=
   ['global_5fscale_79',['global_scale',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a8b45ea0c49744d0398c3f031e907f235',1,'yaze::app::gui::Canvas']]],
   ['graphics_5fbin_80',['graphics_bin',['../classyaze_1_1app_1_1Rom.html#a6f1314506031b4a334b3d411116be32f',1,'yaze::app::Rom']]],
   ['graphics_5fbuffer_81',['graphics_buffer',['../classyaze_1_1app_1_1Rom.html#addbd2dd0eaa13c92ed0f9c0b1e5e3610',1,'yaze::app::Rom']]],
-  ['graphicsbincanvaspipeline_82',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui::GraphicsBinCanvasPipeline(int width, int height, int tile_size, int num_sheets_to_load, int canvas_id, bool is_loaded, gfx::BitmapTable &amp;graphics_bin)'],['../namespaceyaze_1_1app_1_1gui.html#a476c0e077fd2b72741ec330577da90d6',1,'yaze::app::gui::GraphicsBinCanvasPipeline(int width, int height, int tile_size, int num_sheets_to_load, int canvas_id, bool is_loaded, BitmapTable &amp;graphics_bin)']]],
+  ['graphicsbincanvaspipeline_82',['GraphicsBinCanvasPipeline',['../namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006',1,'yaze::app::gui']]],
   ['graphicseditor_83',['GraphicsEditor',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e',1,'yaze::app::editor::GraphicsEditor']]],
   ['grayscalepalette_84',['GrayscalePalette',['../namespaceyaze_1_1app_1_1gfx_1_1anonymous__namespace_02bitmap_8cc_03.html#a94dc5ccbe969297d607afd1821c3d118',1,'yaze::app::gfx::anonymous_namespace{bitmap.cc}']]]
 ];

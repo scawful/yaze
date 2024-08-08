@@ -16,6 +16,6 @@ var canvas_8h =
       [ "k32x32", "canvas_8h.html#ab295b76337c74b554bf8921206cf0b3aa20e39deb41b95e8150718fbb7ce02774", null ],
       [ "k64x64", "canvas_8h.html#ab295b76337c74b554bf8921206cf0b3aa9420cc1a73b8e176c1b22cf835b3e9f7", null ]
     ] ],
-    [ "GraphicsBinCanvasPipeline", "canvas_8h.html#a476c0e077fd2b72741ec330577da90d6", null ],
+    [ "GraphicsBinCanvasPipeline", "canvas_8h.html#af3842eaca5095da067d7248aeda9d006", null ],
     [ "BitmapCanvasPipeline", "canvas_8h.html#ac8855b43699a5fdc16812db22be8cc43", null ]
 ];

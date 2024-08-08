@@ -31,42 +31,25 @@ var NAVTREE =
       [ "iOS", "md_docs_2build-instructions.html#autotoc_md3", null ],
       [ "GNU/Linux", "md_docs_2build-instructions.html#autotoc_md4", null ]
     ] ],
-    [ "LC_LZ2 Compression", "md_docs_2compression.html", [
-      [ "Key Definitions", "md_docs_2compression.html#autotoc_md6", [
-        [ "Constants and Macros:", "md_docs_2compression.html#autotoc_md7", null ],
-        [ "Data Structures:", "md_docs_2compression.html#autotoc_md8", [
-          [ "CompressionCommand:", "md_docs_2compression.html#autotoc_md9", null ],
-          [ "CompressionPiece:", "md_docs_2compression.html#autotoc_md10", null ],
-          [ "CompressionContext (for Compression V3):", "md_docs_2compression.html#autotoc_md11", null ]
-        ] ]
-      ] ],
-      [ "Compression Functions", "md_docs_2compression.html#autotoc_md12", [
-        [ "Version 1:", "md_docs_2compression.html#autotoc_md13", null ],
-        [ "Version 2:", "md_docs_2compression.html#autotoc_md14", null ],
-        [ "Version 3:", "md_docs_2compression.html#autotoc_md15", null ]
-      ] ],
-      [ "Decompression Functions:", "md_docs_2compression.html#autotoc_md16", null ],
-      [ "Utility Functions:", "md_docs_2compression.html#autotoc_md17", null ]
-    ] ],
     [ "Getting Started with YAZE", "md_docs_2getting-started.html", [
-      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md19", null ],
-      [ "General Tips", "md_docs_2getting-started.html#autotoc_md20", null ]
+      [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md6", null ],
+      [ "General Tips", "md_docs_2getting-started.html#autotoc_md7", null ]
     ] ],
-    [ "YAZE Infrastructure Overview", "md_docs_2infrastructure.html", [
-      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md22", null ],
-      [ "Targets", "md_docs_2infrastructure.html#autotoc_md23", null ],
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md24", [
-        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md25", null ]
+    [ "Infrastructure Overview", "md_docs_2infrastructure.html", [
+      [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md9", null ],
+      [ "Targets", "md_docs_2infrastructure.html#autotoc_md10", null ],
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md11", [
+        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md12", null ]
       ] ],
-      [ "ROM", "md_docs_2infrastructure.html#autotoc_md26", null ],
-      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md27", null ]
+      [ "Rom", "md_docs_2infrastructure.html#autotoc_md13", null ],
+      [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md14", null ]
     ] ],
     [ "Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Description", "md_README.html#autotoc_md29", null ],
-      [ "Building and installation", "md_README.html#autotoc_md30", null ],
-      [ "Documentation", "md_README.html#autotoc_md31", null ],
-      [ "License", "md_README.html#autotoc_md32", null ],
-      [ "Screenshots", "md_README.html#autotoc_md33", null ]
+      [ "Description", "md_README.html#autotoc_md16", null ],
+      [ "Building and installation", "md_README.html#autotoc_md17", null ],
+      [ "Documentation", "md_README.html#autotoc_md18", null ],
+      [ "License", "md_README.html#autotoc_md19", null ],
+      [ "Screenshots", "md_README.html#autotoc_md20", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Deprecated List", "deprecated.html", null ],
@@ -147,22 +130,22 @@ var NAVTREEINDEX =
 "icons_8h.html#ad00f4301a94d602bcd51a07f92478ced",
 "icons_8h.html#aeab8ab32cc3cc530bf8ebdc47577ddc4",
 "master__editor_8h.html#adf4d73301961430d50d7edd96f92ce38",
-"namespaceyaze_1_1app_1_1core.html#aca9765be2c114fb95a5a3724fad4b994",
-"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a70a489fec05d234b20277caa3768598d",
-"namespaceyaze_1_1app_1_1gui.html#a111f2967e1d2d56e2188777b4551a77b",
-"namespaceyaze_1_1app_1_1zelda3_1_1music.html#aa76a3e96c7ad81d30e389fcb5634ed8c",
-"namespaceyaze__test_1_1emu__test.html#a4eabbbb840165c2456bd1dc315ebc61a",
-"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#a3c947699f1339a039d54e26a7733f959",
-"rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04",
-"snes__palette_8h.html#a76cda96f6c24e5962d99c9ffb0b9e39daf22e7c2217ee73273e5298cc7f8cf3d8",
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a8f98060d879a94a4cba5dfc2ee4d8e26",
-"structyaze_1_1app_1_1editor_1_1SpriteItem.html#a0733085dda391fff2530f0d76cd8f2a8",
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#abd6f9d87654914484cde16d4718b1d61",
-"structyaze_1_1app_1_1emu_1_1video_1_1OAMAddress.html#a2b64b04438060665f25f8d702c0ee7cc",
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1STAT78.html#ac5ada8d72ffe62e7fcc41dcb035ddc73",
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html",
-"structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a2317c8c54583812a23f520bda520a48d",
-"yaze_8h.html#a2219de43f7183c78e7aae4aae4d02f6a"
+"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02controller_8cc_03.html",
+"namespaceyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters.html#a974642af2ae98776f8a2f7efe0c39a7f",
+"namespaceyaze_1_1app_1_1gui.html#a574b5072f4f467f12dbdb9ea2eb41e50",
+"namespaceyaze_1_1app_1_1zelda3_1_1overworld.html#a1a22d188af97dacd26d1c79528d96fc0",
+"namespaceyaze__test_1_1emu__test.html#a561fce76ce5c17cc9e730695c09692e9",
+"object__renderer_8cc.html",
+"room_8cc.html#a81d30544cb566859217c3521dadbdd76",
+"snes__palette_8h.html#ae1d1dbe7d5ac2221fd0bee658639fabd",
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html",
+"structyaze_1_1app_1_1editor_1_1TextElement.html#a4a5a10c8d0d37ca58a9883b6efb3a41a",
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#affc3d55a8d000409903ece4df0a4f509",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html#a27c1bde23d5ca6eaf9a0fec35ea9d4c2",
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1TMW.html#a7508715ea0b3408c84c5ae622219fa85",
+"structyaze_1_1app_1_1emu_1_1video_1_1WindowMaskSettings.html#ae67a295f855a678443b5797815cba289",
+"structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#a5f4c8ad1eef9f6952dd86bd70e95be67",
+"z3ed_8cc.html#a1c411f9b56b338d661c91c0dbdfac795"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

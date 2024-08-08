@@ -32,7 +32,6 @@ var namespaceyaze_1_1app_1_1gui =
     ] ],
     [ "GraphicsBinCanvasPipeline", "namespaceyaze_1_1app_1_1gui.html#af3842eaca5095da067d7248aeda9d006", null ],
     [ "BitmapCanvasPipeline", "namespaceyaze_1_1app_1_1gui.html#ac8855b43699a5fdc16812db22be8cc43", null ],
-    [ "GraphicsBinCanvasPipeline", "namespaceyaze_1_1app_1_1gui.html#a476c0e077fd2b72741ec330577da90d6", null ],
     [ "ConvertSNESColorToImVec4", "namespaceyaze_1_1app_1_1gui.html#a4223ea51fab06e8518219cf81049db0f", null ],
     [ "SnesColorButton", "namespaceyaze_1_1app_1_1gui.html#af99fa533aa6eae061b9b4d583010e85d", null ],
     [ "SnesColorEdit4", "namespaceyaze_1_1app_1_1gui.html#a0bc43cf96eee48124511ea473cb37b84", null ],
