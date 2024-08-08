@@ -1,18 +1,5 @@
 <map id="yaze::app::core::FolderItem" name="yaze::app::core::FolderItem">
-<area shape="rect" id="Node000001" title=" " alt="" coords="43,301,216,327"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="127,390,279,431"/>
-<area shape="poly" id="edge4_Node000004_Node000001" title=" " alt="" coords="115,341,112,354,115,365,125,377,139,387,136,392,122,381,110,367,107,354,110,340"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="28,109,106,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="54,149,41,185,40,204,44,222,57,246,75,267,113,299,109,303,71,271,53,249,39,224,35,204,36,184,49,148"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="89,198,248,223"/>
-<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="90,144,119,172,151,195,148,199,116,176,86,148"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,129,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="70,61,70,109,64,109,64,61"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="187,377,172,353,146,329,150,326,176,349,191,374"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="139,109,251,135"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="254,141,268,156,276,158,290,155,306,152,321,157,326,176,320,213,297,274,253,367,234,391,230,388,249,365,292,272,315,211,321,176,317,161,306,158,291,160,276,164,266,161,250,145"/>
-<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="189,150,175,198,169,197,184,149"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="176,13,214,38"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="198,54,198,108,192,108,192,54"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="161,239,137,302,132,300,156,237"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,179,120"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="65,5,119,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,47,95,94,89,94,89,47"/>
 </map>

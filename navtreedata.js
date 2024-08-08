@@ -40,16 +40,15 @@ var NAVTREE =
       [ "0.1.0 (05-11-2024)", "md_docs_2changelog.html#autotoc_md11", null ],
       [ "0.2.0 (07-20-2024)", "md_docs_2changelog.html#autotoc_md12", null ]
     ] ],
-    [ "Getting Started with YAZE", "md_docs_2getting-started.html", [
+    [ "Getting Started", "md_docs_2getting-started.html", [
       [ "Prerequisites", "md_docs_2getting-started.html#autotoc_md14", null ],
       [ "General Tips", "md_docs_2getting-started.html#autotoc_md15", null ]
     ] ],
     [ "Infrastructure Overview", "md_docs_2infrastructure.html", [
       [ "Z3ED cli", "md_docs_2infrastructure.html#autotoc_md17", null ],
       [ "Targets", "md_docs_2infrastructure.html#autotoc_md18", null ],
-      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md19", [
-        [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md20", null ]
-      ] ],
+      [ "Directory Structure", "md_docs_2infrastructure.html#autotoc_md19", null ],
+      [ "Flow of Control", "md_docs_2infrastructure.html#autotoc_md20", null ],
       [ "Rom", "md_docs_2infrastructure.html#autotoc_md21", null ],
       [ "Bitmap", "md_docs_2infrastructure.html#autotoc_md22", null ]
     ] ],

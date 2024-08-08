@@ -1,7 +1,5 @@
 <map id="yaze::app::editor::zsprite::SpriteProperty" name="yaze::app::editor::zsprite::SpriteProperty">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,184,153,225"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="40,95,118,121"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,136,82,183,76,183,76,136"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="17,5,141,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,61,82,95,76,95,76,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,153,135"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="52,5,106,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,46,82,93,76,93,76,46"/>
 </map>

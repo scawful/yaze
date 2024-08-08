@@ -1,9 +1,0 @@
-<map id="yaze::app::core::ImGuiIdIssuer" name="yaze::app::core::ImGuiIdIssuer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,271,163,312"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="10,183,158,208"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,224,87,271,81,271,81,224"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="30,94,138,120"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,135,87,182,81,182,81,135"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="65,5,103,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="87,47,87,94,81,94,81,47"/>
-</map>

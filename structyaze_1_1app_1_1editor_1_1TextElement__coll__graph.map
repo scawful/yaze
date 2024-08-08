@@ -1,7 +1,5 @@
 <map id="yaze::app::editor::TextElement" name="yaze::app::editor::TextElement">
-<area shape="rect" id="Node000001" title=" " alt="" coords="8,244,126,285"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="28,95,106,121"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,137,70,243,64,243,64,137"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,129,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="70,61,70,95,64,95,64,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,154,124,195"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="38,5,91,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,47,67,153,62,153,62,47"/>
 </map>

@@ -1,25 +1,7 @@
 <map id="yaze::app::Project" name="yaze::app::Project">
-<area shape="rect" id="Node000001" title="Represents a project in the application." alt="" coords="1315,122,1436,148"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="941,53,1117,94"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1132,85,1291,112,1321,119,1320,124,1290,118,1131,90"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="656,43,837,99"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="853,69,941,70,941,76,853,75"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html" title=" " alt="" coords="288,5,463,46"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="479,34,632,52,656,55,655,61,632,58,478,39"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags_1_1Overworld.html" title=" " alt="" coords="5,5,181,46"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="197,23,287,23,287,28,197,28"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="307,74,444,100"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="459,86,632,82,656,80,656,86,632,88,459,91"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="74,102,112,128"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="127,109,306,91,307,96,128,114"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="504,125,615,150"/>
-<area shape="poly" id="edge12_Node000011_Node000007" title=" " alt="" coords="128,116,205,122,504,134,504,139,205,127,128,121"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="708,217,785,242"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="801,239,865,249,944,257,1031,258,1116,248,1186,227,1253,199,1352,146,1354,150,1255,204,1188,232,1117,253,1031,264,944,263,864,255,800,244"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="949,122,1109,148"/>
-<area shape="poly" id="edge10_Node000010_Node000008" title=" " alt="" coords="799,209,987,146,989,151,801,215"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="314,209,437,250"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="453,227,707,227,707,232,453,232"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1124,132,1314,132,1314,138,1124,138"/>
-<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="631,135,949,133,949,138,631,140"/>
+<area shape="rect" id="Node000001" title="Represents a project in the application." alt="" coords="102,184,223,210"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,5,181,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,59,160,182,155,184,104,61"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="205,13,258,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,54,170,185,165,182,219,52"/>
 </map>

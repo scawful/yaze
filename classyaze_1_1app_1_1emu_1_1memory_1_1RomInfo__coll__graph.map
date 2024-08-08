@@ -1,7 +1,5 @@
 <map id="yaze::app::emu::memory::RomInfo" name="yaze::app::emu::memory::RomInfo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,184,163,225"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="45,95,123,121"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,136,87,183,81,183,81,136"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="22,5,146,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,61,87,95,81,95,81,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,163,135"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="57,5,111,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,46,87,93,81,93,81,46"/>
 </map>

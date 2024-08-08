@@ -1,14 +1,5 @@
 <map id="yaze::app::gfx::lc_lz2::CompressionPiece" name="yaze::app::gfx::lc_lz2::CompressionPiece">
-<area shape="rect" id="Node000001" title=" " alt="" coords="198,184,357,225"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="157,303,350,358"/>
-<area shape="poly" id="edge4_Node000004_Node000001" title=" " alt="" coords="257,239,253,249,249,276,251,302,245,302,244,276,248,248,252,237"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="239,95,316,121"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,136,280,183,275,183,275,136"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="216,5,339,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="280,61,280,95,275,95,275,61"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="268,287,271,278,275,225,281,225,276,279,274,289"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="5,192,142,217"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="76,232,81,256,93,277,123,299,158,314,156,319,120,304,89,280,76,258,71,233"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="54,95,93,121"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="76,137,76,191,71,191,71,137"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,165,135"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="58,5,112,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,46,88,93,82,93,82,46"/>
 </map>

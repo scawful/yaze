@@ -1,11 +1,5 @@
 <map id="yaze::app::emu::audio::AudioRamImpl" name="yaze::app::emu::audio::AudioRamImpl">
-<area shape="rect" id="Node000001" title="AudioRamImpl is an implementation of the AudioRam interface." alt="" coords="27,286,169,327"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html" title="AudioRam is an interface for the Audio RAM used by the SPC700." alt="" coords="5,183,148,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,238,96,285,91,286,81,239"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="172,190,314,216"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,227,128,288,124,284,212,223"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="188,94,299,120"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="246,135,246,190,240,190,240,135"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="224,5,262,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="246,47,246,94,240,94,240,47"/>
+<area shape="rect" id="Node000001" title="AudioRamImpl is an implementation of the AudioRam interface." alt="" coords="5,94,148,135"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1AudioRam.html" title="AudioRam is an interface for the Audio RAM used by the SPC700." alt="" coords="5,5,148,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,62,79,94,74,94,74,62"/>
 </map>

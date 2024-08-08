@@ -1,34 +1,10 @@
 <map id="yaze::app::editor::zsprite::ZSprite" name="yaze::app::editor::zsprite::ZSprite">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1643,267,1761,307"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="453,316,530,341"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="546,331,676,342,833,348,1500,348,1544,344,1586,334,1659,305,1661,310,1588,339,1545,350,1501,354,833,354,676,348,545,337"/>
-<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1AnimationGroup.html" title=" " alt="" coords="755,123,914,163"/>
-<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="520,304,547,287,576,272,620,261,655,260,690,257,730,242,757,225,780,204,817,162,821,166,784,208,760,229,733,247,691,262,656,265,621,267,578,278,549,292,523,308"/>
-<area shape="rect" id="Node000011" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1UserRoutine.html" title=" " alt="" coords="766,255,903,295"/>
-<area shape="poly" id="edge13_Node000011_Node000002" title=" " alt="" coords="545,323,633,316,731,302,768,293,770,298,732,308,633,322,546,329"/>
-<area shape="rect" id="Node000013" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html" title=" " alt="" coords="938,449,1085,490"/>
-<area shape="poly" id="edge19_Node000013_Node000002" title=" " alt="" coords="522,349,549,367,578,382,673,414,770,437,861,452,937,461,937,467,860,458,769,442,671,419,576,387,546,371,519,353"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="148,308,271,349"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="287,326,452,326,452,331,287,331"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="1109,124,1240,180"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="1256,147,1323,149,1401,155,1482,169,1561,193,1594,208,1626,227,1677,264,1674,268,1623,231,1592,213,1559,197,1481,174,1400,161,1323,154,1256,152"/>
-<area shape="rect" id="Node000012" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html" title=" " alt="" coords="1438,207,1560,247"/>
-<area shape="poly" id="edge16_Node000012_Node000004" title=" " alt="" coords="1256,182,1265,185,1356,205,1438,218,1438,223,1355,210,1264,190,1254,187"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="930,143,1109,148,1109,153,929,148"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="429,107,553,163"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="569,134,755,138,755,144,569,139"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1OamTile.html" title=" " alt="" coords="150,5,269,46"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="283,49,406,97,430,106,428,111,404,101,281,54"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="154,122,265,148"/>
-<area shape="poly" id="edge10_Node000004_Node000008" title=" " alt="" coords="248,113,294,96,332,90,362,90,429,92,672,94,914,108,1000,113,1086,124,1109,130,1108,135,1085,130,1000,118,914,114,671,99,429,98,362,95,332,96,296,102,250,118"/>
-<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="280,132,429,132,429,138,280,138"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="1113,223,1237,279"/>
-<area shape="poly" id="edge14_Node000010_Node000008" title=" " alt="" coords="281,147,429,172,613,194,757,205,901,216,1085,235,1113,239,1112,244,1085,240,900,221,757,211,613,199,429,178,280,152"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="5,122,44,148"/>
-<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="60,132,153,132,153,138,60,138"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="1253,256,1439,271,1642,282,1642,287,1438,277,1253,261"/>
-<area shape="poly" id="edge17_Node000012_Node000010" title=" " alt="" coords="1252,244,1414,233,1438,231,1438,236,1415,238,1253,249"/>
-<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="919,266,1112,253,1113,258,919,272"/>
-<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="1575,247,1643,267,1642,272,1574,252"/>
-<area shape="poly" id="edge18_Node000001_Node000013" title=" " alt="" coords="1072,494,1142,520,1229,541,1275,547,1322,548,1369,544,1414,532,1460,512,1503,485,1544,455,1581,422,1643,357,1684,306,1688,310,1647,361,1585,426,1547,459,1506,490,1462,517,1415,537,1370,549,1322,554,1275,552,1228,546,1141,525,1070,499"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="480,201,598,242"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,59,106"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,73,148,45,196,31,248,21,302,16,356,19,409,30,457,53,476,67,492,85,515,125,530,167,537,201,532,202,524,168,510,128,487,88,472,71,455,57,407,35,355,24,302,22,249,27,197,37,150,50,74,78"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SpriteProperty.html" title=" " alt="" coords="135,132,282,173"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="75,105,146,129,144,134,73,110"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html" title=" " alt="" coords="148,247,269,287"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="284,273,367,275,412,272,455,263,482,254,507,240,509,245,484,258,457,269,413,277,368,280,284,279"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="244,180,273,202,307,217,351,227,396,231,480,228,480,233,396,237,350,233,305,223,270,206,241,185"/>
 </map>

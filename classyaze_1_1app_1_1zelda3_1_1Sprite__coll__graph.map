@@ -1,15 +1,7 @@
 <map id="yaze::app::zelda3::Sprite" name="yaze::app::zelda3::Sprite">
-<area shape="rect" id="Node000001" title="A class for managing sprites in the overworld and underworld." alt="" coords="163,316,286,357"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html" title="Base class for all overworld entities." alt="" coords="5,198,129,238"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,245,199,314,196,318,104,250"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="153,205,296,231"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,246,227,316,222,316,222,246"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="163,102,275,127"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="223,143,226,205,221,205,218,143"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="200,5,238,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="222,47,222,101,216,101,216,47"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="320,205,398,231"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="347,246,330,270,307,294,272,318,269,314,304,290,326,267,343,243"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="299,94,422,135"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="363,150,362,205,356,205,357,150"/>
+<area shape="rect" id="Node000001" title="A class for managing sprites in the overworld and underworld." alt="" coords="61,109,185,150"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html" title="Base class for all overworld entities." alt="" coords="5,5,129,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,58,115,107,110,110,83,61"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="152,13,206,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,53,136,110,132,107,163,51"/>
 </map>

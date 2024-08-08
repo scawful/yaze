@@ -395,7 +395,7 @@ var searchData=
   ['startdelay_392',['startDelay',['../structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a5f2686188beea1b0ddf2c525b66c3ffc',1,'yaze::app::emu::audio::DspChannel']]],
   ['startdma_393',['StartDma',['../namespaceyaze_1_1app_1_1emu_1_1memory_1_1dma.html#afd0ff1f7ddf0403b29a9ae7e39e85bc5',1,'yaze::app::emu::memory::dma']]],
   ['startdmatransfer_394',['startDmaTransfer',['../structyaze_1_1app_1_1emu_1_1video_1_1DmaRegisters.html#abcc1ab58efc73f4f2e8746ea305667d4',1,'yaze::app::emu::video::DmaRegisters']]],
-  ['started_20with_20yaze_395',['Getting Started with YAZE',['../md_docs_2getting-started.html',1,'']]],
+  ['started_395',['Getting Started',['../md_docs_2getting-started.html',1,'']]],
   ['startingentrance_5fblockset_396',['startingentrance_blockset',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab28e69d7af2ba7e19460f0299ec4c04e',1,'yaze::app::zelda3::dungeon']]],
   ['startingentrance_5fcameraxtrigger_397',['startingentrance_cameraxtrigger',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#a484f052b7cd8186a64c2350088f4e966',1,'yaze::app::zelda3::dungeon']]],
   ['startingentrance_5fcameraytrigger_398',['startingentrance_cameraytrigger',['../namespaceyaze_1_1app_1_1zelda3_1_1dungeon.html#ab45eb1456b02983350fb4efc29fe6efe',1,'yaze::app::zelda3::dungeon']]],

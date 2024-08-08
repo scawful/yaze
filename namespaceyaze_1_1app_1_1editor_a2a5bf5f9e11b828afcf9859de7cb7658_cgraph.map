@@ -1,9 +1,7 @@
 <map id="yaze::app::editor::DrawSpriteInserterPopup" name="yaze::app::editor::DrawSpriteInserterPopup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,172,54"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor.html#ad79a7b2408242f84ae61bc0827ef4ee4" title=" " alt="" coords="220,13,338,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,30,204,30,204,36,172,36"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1SpriteItem.html#aa5735df6d38e1ef8a22dd199632ff0d5" title=" " alt="" coords="386,13,584,54"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="339,30,370,30,370,36,339,36"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1editor_1_1SpriteItem.html#a77953aaf1c4451fc290877a7d347a9fc" title=" " alt="" coords="632,5,822,61"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="585,30,617,30,617,36,585,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,172,46"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1editor.html#ad79a7b2408242f84ae61bc0827ef4ee4" title=" " alt="" coords="220,5,338,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,23,204,23,204,28,172,28"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1SpriteItem.html#aa5735df6d38e1ef8a22dd199632ff0d5" title=" " alt="" coords="386,5,584,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="339,23,370,23,370,28,339,28"/>
 </map>
