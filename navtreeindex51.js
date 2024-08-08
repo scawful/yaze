@@ -1,5 +1,7 @@
 var NAVTREEINDEX51 =
 {
+"yaze_8h.html#ae2c64be32a8f7916912aacef327b5f43":[10,0,1,8,3],
+"yaze_8h_source.html":[10,0,1,8],
 "yaze__c__py_8cc.html":[10,0,1,5,0],
 "yaze__py_8cc.html":[10,0,1,5,1],
 "yaze__py_8cc.html#ac188ed8af872505482048f48f3fcea1c":[10,0,1,5,1,0],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX41 =
 {
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#ad321fb3042ea69a672c2435bd7440db7":[8,0,2,1,0,3],
+"namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#af7d97bb47668a484667bf3236ff487d4":[8,0,2,1,0,4],
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[8,0,2,1,1],
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#adf4131f02d62c5b0c5805036ea85d97a":[8,0,2,1,1,0],
 "namespaceyaze__test_1_1zelda3__test.html":[8,0,2,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX41 =
 "rom_8h.html#a3ef17b1c481a3e73d2d97a92e3995b04":[10,0,1,0,7,6],
 "rom_8h.html#a3ef7d1df5d323905102b5a1cef9d447d":[10,0,1,0,7,7],
 "rom_8h.html#a6cba51ea80792c0f6a876549882f3778":[10,0,1,0,7,8],
-"rom_8h.html#a9bbafa7d5f1809f3d216b5082f65d1b2":[10,0,1,0,7,5],
-"rom_8h.html#aad75d3fb5bdf3b72aa19e3af3209082f":[10,0,1,0,7,9],
-"rom_8h_source.html":[10,0,1,0,7]
+"rom_8h.html#a9bbafa7d5f1809f3d216b5082f65d1b2":[10,0,1,0,7,5]
 };

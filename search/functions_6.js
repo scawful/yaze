@@ -34,7 +34,7 @@ var searchData=
   ['getgraphicsaddress_31',['GetGraphicsAddress',['../classyaze_1_1app_1_1Rom.html#a379a0859aa1428ff65a9760715e57a9b',1,'yaze::app::Rom']]],
   ['getheaderoffset_32',['GetHeaderOffset',['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acdd6ac19d3999636b00d2e5c03047760',1,'yaze::app::emu::memory::MemoryImpl']]],
   ['getid_33',['GetID',['../namespaceyaze_1_1app_1_1gui.html#a7384985f0828445ea12d9da02d92f4ec',1,'yaze::app::gui']]],
-  ['getimagefromclipboard_34',['GetImageFromClipboard',['../clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a',1,'clipboard.cc']]],
+  ['getimagefromclipboard_34',['GetImageFromClipboard',['../clipboard_8cc.html#af06810f16d07fa41a0345dfa0f61769a',1,'GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height):&#160;clipboard.cc'],['../clipboard_8h.html#af06810f16d07fa41a0345dfa0f61769a',1,'GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height):&#160;clipboard.cc']]],
   ['getindexsize_35',['GetIndexSize',['../classyaze_1_1app_1_1emu_1_1Cpu.html#a5adc7eff4a215152b75e0e81c60358c6',1,'yaze::app::emu::Cpu']]],
   ['getinstance_36',['GetInstance',['../classyaze_1_1app_1_1emu_1_1Logger.html#a97351340c6d5b10f47a68144524abe31',1,'yaze::app::emu::Logger']]],
   ['getinstruction_37',['GetInstruction',['../classyaze_1_1app_1_1emu_1_1InstructionEntry.html#aa15536701eb857bfc8e1f6600e978eec',1,'yaze::app::emu::InstructionEntry']]],

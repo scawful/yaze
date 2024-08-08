@@ -1,9 +1,12 @@
 <map id="src/app/core/platform/clipboard.mm" name="src/app/core/platform/clipboard.mm">
-<area shape="rect" id="Node000001" title=" " alt="" coords="76,5,220,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,5,198,46"/>
 <area shape="rect" id="Node000002" href="$clipboard_8h.html" title=" " alt="" coords="5,94,89,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,49,76,86,73,82,122,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="113,94,184,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,46,151,78,146,78,146,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="208,94,265,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,44,213,81,210,85,168,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,48,72,85,68,81,104,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="97,168,154,193"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="128,46,128,152,123,152,123,46"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="163,94,235,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="146,45,179,81,176,84,142,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="13,168,73,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="49,120,47,152,42,152,44,120"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="62,118,103,155,99,159,59,122"/>
 </map>

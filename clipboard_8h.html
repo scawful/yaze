@@ -106,10 +106,26 @@ $(function(){initNavTree('clipboard_8h.html',''); initResizable(true); });
 </div>
 
 <div class="header">
+  <div class="summary">
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">clipboard.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><div class="dynheader">
+<div class="textblock"><code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for clipboard.h:</div>
+<div class="dyncontent">
+<div class="center"><img src="clipboard_8h__incl.png" border="0" usemap="#asrc_2app_2core_2platform_2clipboard_8h" alt=""/></div>
+<map name="asrc_2app_2core_2platform_2clipboard_8h" id="asrc_2app_2core_2platform_2clipboard_8h">
+<area shape="rect" title=" " alt="" coords="5,5,150,46"/>
+<area shape="rect" title=" " alt="" coords="6,94,66,120"/>
+<area shape="poly" title=" " alt="" coords="70,48,52,81,47,79,65,45"/>
+<area shape="rect" title=" " alt="" coords="90,94,148,120"/>
+<area shape="poly" title=" " alt="" coords="90,45,108,79,103,81,85,48"/>
+</map>
+</div>
+</div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="clipboard_8h__dep__incl.png" border="0" usemap="#asrc_2app_2core_2platform_2clipboard_8hdep" alt=""/></div>
@@ -127,6 +143,62 @@ This graph shows which files directly or indirectly include this file:</div>
 </div>
 </div>
 <p><a href="clipboard_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a4119d0ecf1e8258e0383d1f120c7e0bd" id="r_a4119d0ecf1e8258e0383d1f120c7e0bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4119d0ecf1e8258e0383d1f120c7e0bd">CopyImageToClipboard</a> (const std::vector&lt; uint8_t &gt; &amp;data)</td></tr>
+<tr class="separator:a4119d0ecf1e8258e0383d1f120c7e0bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af06810f16d07fa41a0345dfa0f61769a" id="r_af06810f16d07fa41a0345dfa0f61769a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af06810f16d07fa41a0345dfa0f61769a">GetImageFromClipboard</a> (std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</td></tr>
+<tr class="separator:af06810f16d07fa41a0345dfa0f61769a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a4119d0ecf1e8258e0383d1f120c7e0bd" name="a4119d0ecf1e8258e0383d1f120c7e0bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4119d0ecf1e8258e0383d1f120c7e0bd">&#9670;&#160;</a></span>CopyImageToClipboard()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CopyImageToClipboard </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab31a4aaf2070ab88aefe6a5f4e411352">yaze::app::editor::GraphicsEditor::DrawGfxEditToolset()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1OverworldEditor.html#adacc9331ba9ee4ab27e8b96526e5a096">yaze::app::editor::OverworldEditor::DrawToolset()</a>.</p>
+
+</div>
+</div>
+<a id="af06810f16d07fa41a0345dfa0f61769a" name="af06810f16d07fa41a0345dfa0f61769a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af06810f16d07fa41a0345dfa0f61769a">&#9670;&#160;</a></span>GetImageFromClipboard()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GetImageFromClipboard </td>
+          <td>(</td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;</td>          <td class="paramname"><span class="paramname"><em>width</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;</td>          <td class="paramname"><span class="paramname"><em>height</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab31a4aaf2070ab88aefe6a5f4e411352">yaze::app::editor::GraphicsEditor::DrawGfxEditToolset()</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

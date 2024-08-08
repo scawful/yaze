@@ -1,13 +1,15 @@
 <map id="src/app/gfx/snes_tile.cc" name="src/app/gfx/snes_tile.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="120,5,279,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="160,5,319,31"/>
 <area shape="rect" id="Node000002" href="$snes__tile_8h.html" title=" " alt="" coords="119,79,202,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,32,177,66,172,64,191,30"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,34,187,70,184,66,224,30"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,153,66,178"/>
-<area shape="poly" id="edge8_Node000001_Node000003" title=" " alt="" coords="178,34,145,54,109,81,79,111,55,142,51,138,76,108,106,77,142,50,176,29"/>
+<area shape="poly" id="edge8_Node000001_Node000003" title=" " alt="" coords="202,34,156,53,109,81,78,111,53,142,49,138,74,107,106,77,153,49,200,29"/>
 <area shape="rect" id="Node000005" title=" " alt="" coords="207,234,264,260"/>
-<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="205,31,217,79,236,218,230,219,212,79,200,32"/>
+<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="242,32,239,219,233,219,237,32"/>
 <area shape="rect" id="Node000006" href="$constants_8h.html" title=" " alt="" coords="276,153,419,178"/>
-<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="213,29,326,140,322,143,210,33"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="250,30,332,139,328,142,246,33"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="328,79,405,105"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="262,29,333,69,330,73,260,34"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="141,108,71,147,69,142,138,103"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="141,153,202,178"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="165,104,170,137,165,138,160,105"/>
