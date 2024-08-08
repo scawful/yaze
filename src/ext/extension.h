@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-typedef struct Extension {
+typedef struct yaze_extension {
   const char* name;
   const char* version;
 
@@ -17,10 +17,10 @@ typedef struct Extension {
 
   // Function to extend editor functionality
   void (*extendFunctionality)(void* editorContext);
-} Extension;
+} yaze_extension;
 
 // Function to get the extension instance
-Extension* GetExtension();
+yaze_extension* GetExtension();
 
 void LoadCExtension(const char* extension_path);
 

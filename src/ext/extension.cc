@@ -6,9 +6,9 @@
 #include <iostream>
 
 void* handle = nullptr;
-Extension* extension = nullptr;
+yaze_extension* extension = nullptr;
 
-Extension* GetExtension() { return nullptr; }
+yaze_extension* GetExtension() { return nullptr; }
 
 void LoadCExtension(const char* extensionPath) {
   handle = dlopen(extensionPath, RTLD_LAZY);
@@ -18,8 +18,8 @@ void LoadCExtension(const char* extensionPath) {
   }
   dlerror();  // Clear any existing error
 
-  Extension* (*getExtension)();
-  getExtension = (Extension * (*)()) dlsym(handle, "getExtension");
+  yaze_extension* (*getExtension)();
+  getExtension = (yaze_extension * (*)()) dlsym(handle, "getExtension");
   const char* dlsym_error = dlerror();
   if (dlsym_error) {
     std::cerr << "Cannot load symbol 'getExtension': " << dlsym_error
@@ -47,7 +47,8 @@ void LoadPythonExtension(const char* script_path) {
     PyObject* pExtension = PyObject_CallObject(pFunc, nullptr);
     if (pExtension) {
       // Assume the Python extension has the same structure as the C extension
-      extension = reinterpret_cast<Extension*>(PyLong_AsVoidPtr(pExtension));
+      extension =
+          reinterpret_cast<yaze_extension*>(PyLong_AsVoidPtr(pExtension));
     }
   }
 }
