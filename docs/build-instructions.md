@@ -18,8 +18,9 @@ Install the following packages using `pacman -S <package-name>`
 - `mingw-w64-x86_64-gcc`
 - `mingw-w64-x86_64-gcc-libs`
 - `mingw-w64-x86_64-cmake`
-- `mingw-w64-x86_64-glew`
-- `mingw-w64-x86_64-lib-png`
+- `mingw-w64-x86_64-sdl2`
+- `mingw-w64-x86_64-libpng`
+- `mingw-w64-x86_64-abseil-cpp`
 
 For `yaze_py` you will need Boost Python
 
@@ -27,15 +28,16 @@ For `yaze_py` you will need Boost Python
 
 # macOS
 
-Prefer to use clang over gcc. 
+Prefer to use clang provided with XCode command line tools over gcc.
 
 Install the following packages using `brew install <package-name>`
 
 - `cmake`
-- `glew`
 - `sdl2`
-- `boost-python3`
+- `zlib`
 - `libpng`
+- `abseil`
+- `boost-python3`
 
 # iOS
 
