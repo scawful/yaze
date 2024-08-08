@@ -151,3 +151,17 @@ target_link_libraries(
   ImGuiTestEngine
   ImGui
 )
+
+if (YAZE_INSTALL_CLIB)
+  install(TARGETS yaze_c
+          RUNTIME DESTINATION bin
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib/static)
+
+  install(
+  FILES 
+    yaze.h 
+    base/sprite.h 
+    base/snes_color.h 
+  DESTINATION include)
+endif()

@@ -1,8 +1,6 @@
-# CMake Specifications 
-cmake_minimum_required(VERSION 3.10)
-
 # Yet Another Zelda3 Editor
 # by scawful
+cmake_minimum_required(VERSION 3.10)
 project(yaze VERSION 0.2.0)
 
 # Build Flags
@@ -10,10 +8,11 @@ set(YAZE_BUILD_APP ON)
 set(YAZE_BUILD_Z3ED ON)
 set(YAZE_BUILD_PYTHON ON)
 set(YAZE_BUILD_CLIB ON)
+set(YAZE_INSTALL_CLIB OFF)
 set(YAZE_BUILD_TESTS OFF)
 set(YAZE_BUILD_EXTENSIONS OFF)
 
-# C++ Standard Specifications 
+# C++ Standard and CMake Specifications 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -24,12 +23,14 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_FIND_FRAMEWORK LAST) 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dlinux -Dstricmp=strcasecmp")
+if (MACOS)
+  set(CMAKE_INSTALL_PREFIX /usr/local)
+endif()
 
 # Abseil Standard Specifications
 include(cmake/absl.cmake)
 
-# Video Libraries 
-find_package(PNG REQUIRED)
+# SDL2 and PNG
 include(cmake/sdl2.cmake)
 
 # Asar 

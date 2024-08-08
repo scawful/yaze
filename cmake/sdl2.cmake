@@ -11,3 +11,6 @@ if(WIN32 OR MINGW)
     list(PREPEND SDL_TARGETS SDL2::SDL2main ws2_32)
     add_definitions(-DSDL_MAIN_HANDLED)
 endif()
+
+# libpng
+find_package(PNG REQUIRED)
