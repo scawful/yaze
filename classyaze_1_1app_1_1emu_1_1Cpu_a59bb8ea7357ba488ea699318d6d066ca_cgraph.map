@@ -1,0 +1,9 @@
+<map id="yaze::app::emu::Cpu::DirectPageIndexedX" name="yaze::app::emu::Cpu::DirectPageIndexedX">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,151,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a4e5ba113200a9712892064a68e558caa" title=" " alt="" coords="199,5,345,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,44,183,38,184,44,152,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a9813c4c7e34c95f4b36571523bf139e3" title=" " alt="" coords="205,71,339,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,68,189,75,188,80,151,74"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a937e1ba87bfb9094a5d911d11990511d" title=" " alt="" coords="393,71,527,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="339,88,377,88,377,94,339,94"/>
+</map>

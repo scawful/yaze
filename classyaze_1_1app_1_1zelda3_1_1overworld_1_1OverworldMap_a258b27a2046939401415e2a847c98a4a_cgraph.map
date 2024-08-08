@@ -1,0 +1,17 @@
+<map id="yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphics" name="yaze::app::zelda3::overworld::OverworldMap::LoadAreaGraphics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,165,173,221"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a8344a067db046a552dc13563d1525bca" title=" " alt="" coords="221,5,414,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,163,160,117,219,71,227,66,230,71,222,75,164,121,117,167"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a190050fff92075ff85985bbbf9719299" title=" " alt="" coords="232,85,402,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,162,221,144,222,149,171,167"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aee75a48b2066ce9755daf017e6b49457" title=" " alt="" coords="234,165,401,221"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="173,190,218,190,218,196,173,196"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a0ddd082b5c5655b6be2fe0f5914c7140" title=" " alt="" coords="234,245,401,301"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="171,219,222,237,221,242,170,224"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#aa72dcf4181f2b183912085d81359c5ea" title=" " alt="" coords="234,325,401,381"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="117,220,164,265,222,311,230,315,227,320,219,315,160,269,114,223"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a0c5236f4dc9e1fd7ad98f058d154a139" title=" " alt="" coords="462,253,617,294"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="399,59,416,71,453,111,485,155,509,200,527,237,522,240,505,202,480,158,449,114,412,75,396,64"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="401,270,447,270,447,276,401,276"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="396,322,466,297,468,302,398,327"/>
+</map>

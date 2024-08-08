@@ -1,0 +1,7 @@
+<map id="yaze::app::zelda3::Sprite::updateCoordinates" name="yaze::app::zelda3::Sprite::updateCoordinates">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,175,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#a09c91782771ad5f4134d7bd32801f50b" title=" " alt="" coords="223,5,346,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,42,207,36,208,41,175,47"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1Sprite.html#aa464a960f30fbda89b7534b22126d34c" title=" " alt="" coords="223,71,346,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,70,208,76,207,81,174,76"/>
+</map>

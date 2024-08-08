@@ -1,0 +1,9 @@
+<map id="yaze::app::emu::memory::MemoryImpl::ReadRomHeader" name="yaze::app::emu::memory::MemoryImpl::ReadRomHeader">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,209,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acdd6ac19d3999636b00d2e5c03047760" title=" " alt="" coords="257,5,459,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,67,262,48,263,53,189,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#a614807d9ebf35a042c0fb71f0282c8fb" title=" " alt="" coords="278,71,438,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,88,262,88,262,94,209,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#acf0a6409c95662b9d56669be37e7eccd" title=" " alt="" coords="276,136,440,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="189,109,263,129,262,134,187,115"/>
+</map>

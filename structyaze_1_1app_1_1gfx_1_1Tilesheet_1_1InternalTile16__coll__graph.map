@@ -1,0 +1,11 @@
+<map id="yaze::app::gfx::Tilesheet::InternalTile16" name="yaze::app::gfx::Tilesheet::InternalTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="43,286,199,327"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="52,183,190,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,239,124,286,118,286,118,239"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1TileInfo.html" title="SNES 16&#45;bit tile metadata container." alt="" coords="5,94,152,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,133,115,181,110,183,88,135"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="176,94,280,120"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="205,132,145,184,142,180,201,128"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="209,5,247,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="230,47,230,94,225,94,225,47"/>
+</map>

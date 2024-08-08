@@ -1,0 +1,14 @@
+<map id="yaze::app::zelda3::screen::DungeonMap" name="yaze::app::zelda3::screen::DungeonMap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="58,416,200,456"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="57,297,201,338"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,353,132,415,126,415,126,353"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,193,133,234"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="90,246,120,295,115,298,86,249"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="29,94,133,120"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="56,132,49,145,47,156,48,168,58,192,53,194,43,170,41,156,44,143,52,130"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="120,5,159,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="113,43,102,56,92,76,86,94,81,93,87,74,97,54,109,40"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="144,144,255,169"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="154,44,158,54,197,142,192,145,153,56,149,46"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="197,185,186,228,167,274,150,298,146,295,163,272,181,227,192,184"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="yaze::app::core::Logger" name="yaze::app::core::Logger">
+<area shape="rect" id="Node000001" title=" " alt="" coords="50,286,201,312"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="46,198,205,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,239,128,286,123,286,123,239"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="28,109,106,135"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="80,147,95,172,115,196,111,199,90,175,76,150"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,5,129,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="70,61,70,109,64,109,64,61"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="130,109,241,135"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="171,149,136,199,132,196,167,146"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="166,13,205,38"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="188,54,188,108,183,108,183,54"/>
+</map>

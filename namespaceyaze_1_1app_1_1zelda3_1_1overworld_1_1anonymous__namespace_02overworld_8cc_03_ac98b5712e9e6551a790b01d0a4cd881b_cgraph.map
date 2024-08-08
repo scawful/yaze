@@ -1,0 +1,6 @@
+<map id="yaze::app::zelda3::overworld::anonymous_namespace{overworld::cc}::GetAllTile16" name="yaze::app::zelda3::overworld::anonymous_namespace{overworld::cc}::GetAllTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,161,100"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,28,46,18,53,10,66,5,83,3,103,5,115,12,113,17,101,10,83,8,67,10,57,14,51,21,49,29"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Tile32.html#a61c106ace1aa8223aba0c7476e76ad38" title=" " alt="" coords="209,44,347,85"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="161,62,193,62,193,67,161,67"/>
+</map>

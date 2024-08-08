@@ -1,0 +1,11 @@
+<map id="yaze::app::Rom::WriteTile16" name="yaze::app::Rom::WriteTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,42,184,68"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gfx.html#ad8ba19f73c435e3e5527673d5b0cc096" title=" " alt="" coords="246,5,392,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,41,230,35,231,40,184,46"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a85ea52c315f6f5c8445bad7885e42d23" title=" " alt="" coords="232,70,406,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,64,216,68,216,73,184,69"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1core_1_1Logger.html#a0098e5bb79a89a68494ae1604412b6cb" title=" " alt="" coords="454,41,628,66"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="406,69,438,65,439,70,407,74"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1core.html#a5e6d56ec7e31e6b12a788d15c931ec38" title=" " alt="" coords="454,91,628,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="407,91,439,95,438,101,406,97"/>
+</map>

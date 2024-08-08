@@ -1,0 +1,12 @@
+<map id="yaze::app::gfx::Tile16" name="yaze::app::gfx::Tile16">
+<area shape="rect" id="Node000001" title="Tile composition of four 8x8 tiles." alt="" coords="31,306,169,331"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1TileInfo.html" title="SNES 16&#45;bit tile metadata container." alt="" coords="5,94,152,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,135,94,242,101,305,96,305,89,243,78,135"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="137,192,262,233"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="106,128,179,190,175,194,102,132"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,246,113,307,109,304,169,242"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="176,94,288,120"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="226,135,208,193,203,191,221,134"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="213,5,251,31"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="234,47,234,94,229,94,229,47"/>
+</map>

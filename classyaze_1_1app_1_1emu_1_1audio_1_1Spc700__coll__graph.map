@@ -1,0 +1,17 @@
+<map id="yaze::app::emu::audio::Spc700" name="yaze::app::emu::audio::Spc700">
+<area shape="rect" id="Node000001" title="The Spc700 class represents the SPC700 processor." alt="" coords="745,63,888,103"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1emu_1_1audio_1_1ApuCallbacks.html" title=" " alt="" coords="482,5,624,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="640,42,745,65,744,70,639,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="473,70,632,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="648,80,745,80,745,86,648,86"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="250,42,327,68"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="343,58,473,72,472,77,342,63"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,33,129,74"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="145,51,249,52,249,57,145,57"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="233,96,344,121"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="359,107,449,102,496,94,497,99,449,107,360,112"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="48,98,86,124"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="102,108,232,106,232,112,102,113"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html" title=" " alt="" coords="482,120,624,161"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="639,119,744,96,745,101,640,124"/>
+</map>

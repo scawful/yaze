@@ -1,0 +1,5 @@
+<map id="yaze::app::editor::GfxGroupEditor" name="yaze::app::editor::GfxGroupEditor">
+<area shape="rect" id="Node000001" title="Manage graphics group configurations in a Rom." alt="" coords="20,79,139,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,5,154,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,46,82,79,77,79,77,46"/>
+</map>

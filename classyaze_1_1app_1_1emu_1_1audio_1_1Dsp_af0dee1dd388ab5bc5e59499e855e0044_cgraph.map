@@ -1,0 +1,18 @@
+<map id="yaze::app::emu::audio::Dsp::Cycle" name="yaze::app::emu::audio::Dsp::Cycle">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,135,148,175"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a69b7209c9e20ca38d02893f991fa663a" title=" " alt="" coords="196,69,338,110"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,132,191,113,192,118,139,137"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#adadfa13540507449f07b633a16f490fb" title=" " alt="" coords="196,135,338,175"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="148,152,180,152,180,158,148,158"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa93fd719351fc156f62ad671bcc26a3f" title=" " alt="" coords="196,200,338,241"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="139,173,192,192,191,197,137,178"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#ab564940423a323f7e7e49485b7ad5f58" title=" " alt="" coords="386,5,528,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="329,66,380,49,382,54,330,71"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a883b5a69efbd9e1a6c80752a6dfdae57" title=" " alt="" coords="386,71,528,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="339,88,371,88,371,93,339,93"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a2c5a39dae271e6e32fa25a8df46c001a" title=" " alt="" coords="386,137,528,178"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="327,108,385,129,383,134,325,113"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a3338c56b4a4ad1b02fad47f8a9a5413c" title=" " alt="" coords="576,168,719,209"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="529,167,561,172,561,177,528,172"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="338,212,560,193,561,198,339,217"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="yaze::app::core::NotifyValue&lt; T &gt;" name="yaze::app::core::NotifyValue&lt; T &gt;">
+<area shape="rect" id="Node000001" title="A class to manage a value that can be modified and notify when it changes." alt="" coords="5,109,214,135"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="90,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,47,112,109,107,109,107,47"/>
+</map>

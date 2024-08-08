@@ -1,0 +1,29 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="5,301,182,327"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1cli_1_1ApplyPatch.html" title=" " alt="" coords="240,5,378,31"/>
+<area shape="poly" id="edge72_Node000000_Node000001" title=" " alt="" coords="98,286,113,234,138,167,176,99,200,68,228,40,245,29,248,34,231,44,204,71,181,102,143,170,118,235,103,287"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1AsarPatch.html" title=" " alt="" coords="243,55,376,80"/>
+<area shape="poly" id="edge73_Node000000_Node000002" title=" " alt="" coords="101,286,119,243,146,190,182,136,204,111,228,89,246,79,249,83,231,94,208,115,186,139,150,193,124,245,106,288"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1cli_1_1Backup.html" title="Backup a Rom file." alt="" coords="251,104,368,130"/>
+<area shape="poly" id="edge74_Node000000_Node000003" title=" " alt="" coords="106,286,154,213,188,173,228,139,250,127,252,132,231,143,192,177,158,216,111,289"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1cli_1_1Compress.html" title=" " alt="" coords="244,153,375,179"/>
+<area shape="poly" id="edge75_Node000000_Node000004" title=" " alt="" coords="114,288,163,237,194,211,228,188,252,177,254,182,231,192,197,215,166,241,117,291"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1cli_1_1CreatePatch.html" title=" " alt="" coords="237,203,382,228"/>
+<area shape="poly" id="edge76_Node000000_Node000005" title=" " alt="" coords="127,291,174,264,229,237,258,226,259,231,231,242,177,268,130,295"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1cli_1_1Decompress.html" title=" " alt="" coords="237,252,382,278"/>
+<area shape="poly" id="edge77_Node000000_Node000006" title=" " alt="" coords="167,295,249,276,250,281,169,300"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1cli_1_1Emulator.html" title="Start the emulator on a SNES Rom file." alt="" coords="248,301,371,327"/>
+<area shape="poly" id="edge78_Node000000_Node000007" title=" " alt="" coords="197,312,247,312,247,317,197,317"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1cli_1_1Expand.html" title="Expand a Rom file." alt="" coords="252,351,366,376"/>
+<area shape="poly" id="edge79_Node000000_Node000008" title=" " alt="" coords="169,328,252,348,251,353,167,334"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1cli_1_1Open.html" title="Open a Rom file and display information about it." alt="" coords="258,400,361,426"/>
+<area shape="poly" id="edge80_Node000000_Node000009" title=" " alt="" coords="130,333,177,360,231,386,259,397,258,402,229,391,174,365,127,338"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1cli_1_1PcToSnes.html" title="Convert a PC address to a SNES address." alt="" coords="243,449,376,475"/>
+<area shape="poly" id="edge81_Node000000_Node000010" title=" " alt="" coords="117,337,166,387,197,413,231,436,254,446,252,451,228,440,194,418,163,391,114,341"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1cli_1_1ReadFromRom.html" title="Read from a Rom file." alt="" coords="230,499,389,524"/>
+<area shape="poly" id="edge82_Node000000_Node000011" title=" " alt="" coords="111,339,158,412,192,452,231,485,251,496,248,500,228,490,188,455,154,415,106,342"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1cli_1_1SnesToPc.html" title="Convert a SNES address to a PC address." alt="" coords="243,548,376,574"/>
+<area shape="poly" id="edge83_Node000000_Node000012" title=" " alt="" coords="106,340,124,383,150,436,186,489,208,513,231,535,249,545,246,550,228,539,204,517,182,492,146,438,119,385,101,342"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1cli_1_1Tile16Transfer.html" title="Transfer tile 16 data from one Rom to another." alt="" coords="232,597,387,623"/>
+<area shape="poly" id="edge84_Node000000_Node000013" title=" " alt="" coords="103,341,118,393,143,459,181,526,204,557,231,584,248,595,245,599,228,588,200,561,176,529,138,461,113,395,98,343"/>
+</map>

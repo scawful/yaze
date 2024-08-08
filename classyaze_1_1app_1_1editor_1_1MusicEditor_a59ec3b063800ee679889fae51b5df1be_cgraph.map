@@ -1,0 +1,19 @@
+<map id="yaze::app::editor::MusicEditor::DrawToolset" name="yaze::app::editor::MusicEditor::DrawToolset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,174,96"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a09b85853f6496c7b5eba061ea976c68e" title=" " alt="" coords="230,5,392,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,52,243,33,244,38,171,57"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#adf6e464d475742efff6c95e8546848d8" title=" " alt="" coords="222,55,400,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,73,206,73,206,78,174,78"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="223,144,399,170"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="148,94,260,136,258,141,146,99"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a7fe5a6e628d17d6468ffe79ac422c97b" title=" " alt="" coords="727,15,915,56"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="400,63,448,58,712,39,712,44,448,63,401,68"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#a8fd5047b9b35bf027f42d68764b4330b" title=" " alt="" coords="448,96,675,137"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="401,88,433,93,432,98,400,93"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="628,93,739,58,740,63,630,98"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="515,97,512,86,520,77,537,72,562,70,589,72,605,78,603,83,587,77,562,75,538,77,523,82,517,88,520,95"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1zelda3_1_1music_1_1Tracker.html#af2c98b9b30fb232019dbe4a88a7094eb" title=" " alt="" coords="723,104,919,145"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="676,118,708,119,707,124,676,123"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="772,105,770,94,778,85,795,80,821,78,849,80,865,86,864,91,848,85,821,83,796,85,781,90,775,96,778,103"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="274,145,267,135,271,126,286,119,311,117,338,120,352,127,349,132,336,125,311,123,287,125,275,129,272,135,278,142"/>
+</map>

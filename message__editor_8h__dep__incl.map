@@ -1,0 +1,20 @@
+<map id="src/app/editor/message/message_editor.h" name="src/app/editor/message/message_editor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="277,5,434,46"/>
+<area shape="rect" id="Node000002" href="$master__editor_8h.html" title=" " alt="" coords="197,94,341,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="327,59,290,95,287,92,323,55"/>
+<area shape="rect" id="Node000009" href="$message__editor_8cc.html" title=" " alt="" coords="365,94,522,135"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="388,55,426,92,422,95,385,59"/>
+<area shape="rect" id="Node000003" href="$controller_8cc.html" title=" " alt="" coords="5,279,173,304"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="227,146,179,185,132,236,99,280,95,277,128,233,175,181,224,142"/>
+<area shape="rect" id="Node000004" href="$controller_8h.html" title=" " alt="" coords="189,190,349,216"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="272,150,272,190,266,190,266,150"/>
+<area shape="rect" id="Node000008" href="$master__editor_8cc.html" title=" " alt="" coords="373,183,517,223"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="324,140,406,180,404,185,322,144"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="231,225,115,281,113,276,229,221"/>
+<area shape="rect" id="Node000005" href="$app__delegate_8mm.html" title=" " alt="" coords="197,271,341,312"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="272,232,272,271,266,271,266,232"/>
+<area shape="rect" id="Node000006" href="$app_2yaze_8cc.html" title=" " alt="" coords="365,279,477,304"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="304,221,401,276,398,281,302,226"/>
+<area shape="rect" id="Node000007" href="$main_8mm.html" title=" " alt="" coords="501,279,618,304"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="325,218,520,276,518,281,324,223"/>
+</map>

@@ -1,0 +1,22 @@
+<map id="yaze::app::gfx::PaletteGroup" name="yaze::app::gfx::PaletteGroup">
+<area shape="rect" id="Node000001" title="Represents a group of palettes." alt="" coords="64,494,243,519"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="46,398,123,423"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,434,147,492,143,495,100,437"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,286,129,327"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="76,342,85,397,80,398,70,343"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="164,390,317,431"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="214,444,166,495,163,492,210,440"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="153,294,328,320"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="243,335,243,389,238,389,238,335"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="137,183,280,223"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="222,237,239,293,234,294,216,239"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="40,94,203,120"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="120,135,125,157,136,170,150,180,147,184,132,174,121,160,115,136"/>
+<area shape="rect" id="Node000008" href="$structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="80,5,164,31"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="124,47,124,94,119,94,119,47"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="283,94,395,120"/>
+<area shape="poly" id="edge10_Node000004_Node000009" title=" " alt="" coords="370,129,378,142,383,147,388,149,403,142,433,123,438,126,438,133,426,163,341,328,328,348,312,365,277,392,274,387,308,361,324,344,337,326,422,161,433,132,434,129,433,129,406,147,388,154,380,152,374,145,366,132"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="270,114,237,125,223,134,212,145,205,163,206,182,201,183,200,162,207,142,220,129,235,120,268,109"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="320,5,358,31"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="342,47,342,94,336,94,336,47"/>
+</map>

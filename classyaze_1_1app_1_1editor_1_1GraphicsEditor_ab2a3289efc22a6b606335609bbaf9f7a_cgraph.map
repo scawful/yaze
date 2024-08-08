@@ -1,0 +1,18 @@
+<map id="yaze::app::editor::GraphicsEditor::DrawExperimentalFeatures" name="yaze::app::editor::GraphicsEditor::DrawExperimentalFeatures">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,125,222,181"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a00297998f13674b3f03fc1b5a4c9588f" title=" " alt="" coords="270,89,455,145"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,135,254,130,255,135,222,140"/>
+<area shape="rect" id="Node000008" href="$namespaceyaze_1_1app_1_1gui.html#ab6367acf830417f141068389444b7173" title=" " alt="" coords="285,168,440,209"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="222,166,270,173,270,178,222,171"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="522,5,660,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="410,86,502,41,522,34,524,39,504,46,413,91"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#a8a5cd746989bba5ac64eef034b664a92" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="522,55,661,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="455,97,506,88,507,93,456,103"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="503,144,679,170"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="456,130,500,138,499,143,455,136"/>
+<area shape="rect" id="Node000007" href="$namespaceyaze_1_1app_1_1gfx.html#a568c3c8e5996e53a73ef3cf6e1dd851f" title=" " alt="" coords="503,194,679,234"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="431,143,456,154,504,180,517,185,515,190,502,185,454,159,429,148"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1gfx_1_1lc__lz2.html#aa7583d0d15778f0286acdb9425628785" title=" " alt="" coords="727,55,841,96"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="661,73,712,73,712,78,661,78"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="559,145,552,135,556,126,570,120,591,117,615,120,627,127,624,132,613,125,591,123,571,125,560,129,558,135,563,142"/>
+</map>

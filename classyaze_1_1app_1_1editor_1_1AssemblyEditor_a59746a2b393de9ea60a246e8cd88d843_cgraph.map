@@ -1,0 +1,9 @@
+<map id="yaze::app::editor::AssemblyEditor::UpdateCodeView" name="yaze::app::editor::AssemblyEditor::UpdateCodeView">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,224,90"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a251e190bebef70d1bb97f0a4f69354ce" title=" " alt="" coords="275,5,464,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,51,259,46,260,51,225,56"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a8454aa52bbab115efca6cdba65ff791b" title=" " alt="" coords="272,85,467,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="225,82,257,87,256,92,224,87"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a10a8be6a9f198c73d1192887cfd06305" title=" " alt="" coords="515,13,734,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="464,30,499,30,499,36,464,36"/>
+</map>

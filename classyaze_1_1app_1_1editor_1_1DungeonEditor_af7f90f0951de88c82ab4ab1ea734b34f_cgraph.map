@@ -1,0 +1,15 @@
+<map id="yaze::app::editor::DungeonEditor::DrawEntranceSelector" name="yaze::app::editor::DungeonEditor::DrawEntranceSelector">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,198,133"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb" title=" " alt="" coords="248,5,429,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,74,245,40,265,33,266,38,247,45,163,79"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd" title=" " alt="" coords="246,55,431,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,87,237,81,238,86,198,92"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="250,128,426,154"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="198,117,235,123,235,128,198,122"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524" title=" " alt="" coords="251,178,426,218"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="167,131,247,164,262,170,260,175,245,169,165,136"/>
+<area shape="rect" id="Node000003" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="479,31,630,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="430,26,464,30,463,36,429,31"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="431,55,464,51,464,56,432,60"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="302,129,295,119,300,110,314,103,338,101,365,104,378,111,376,116,363,109,338,107,315,109,303,113,301,119,307,126"/>
+</map>

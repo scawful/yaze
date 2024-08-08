@@ -1,0 +1,5 @@
+<map id="yaze::app::emu::video::Ppu" name="yaze::app::emu::video::Ppu">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,177,105"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="17,5,165,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,46,94,79,88,79,88,46"/>
+</map>

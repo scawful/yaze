@@ -1,0 +1,7 @@
+<map id="src/app/emu/memory/dma.h" name="src/app/emu/memory/dma.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="88,5,231,46"/>
+<area shape="rect" id="Node000002" href="$dma_8cc.html" title=" " alt="" coords="5,94,149,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,59,98,95,94,92,128,56"/>
+<area shape="rect" id="Node000003" href="$snes_8cc.html" title=" " alt="" coords="172,102,315,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,55,234,99,230,103,187,59"/>
+</map>

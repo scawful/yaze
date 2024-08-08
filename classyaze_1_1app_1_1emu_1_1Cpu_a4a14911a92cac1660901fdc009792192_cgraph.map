@@ -1,0 +1,27 @@
+<map id="yaze::app::emu::Cpu::Bit" name="yaze::app::emu::Cpu::Bit">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,169,162,194"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a68c403ec77f43ce410cf881717274997" title=" " alt="" coords="404,11,538,51"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,167,104,136,130,95,165,55,185,38,209,24,253,9,300,3,346,4,389,9,389,14,346,9,300,9,254,15,211,29,189,42,168,59,134,99,109,138,93,169"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a4e5ba113200a9712892064a68e558caa" title=" " alt="" coords="210,39,356,79"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="100,166,148,130,208,90,219,84,221,89,211,94,151,134,103,170"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a937e1ba87bfb9094a5d911d11990511d" title=" " alt="" coords="404,133,538,174"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="162,173,388,157,389,162,162,179"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a3211fb1eb95e943c09718af5def02227" title=" " alt="" coords="216,104,350,145"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="130,166,200,145,201,150,132,171"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#af90740ac26ee90c4f9d39d96d01e116b" title=" " alt="" coords="216,219,350,259"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="132,192,201,213,200,218,130,198"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a9cb9163e38e7051277d7211195526faf" title=" " alt="" coords="216,284,350,325"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="103,193,151,229,211,269,221,274,219,279,208,273,148,233,100,197"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a035ff1f28283ec6d08e3bb4900779f79" title=" " alt="" coords="216,349,350,390"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="95,193,140,259,173,299,211,334,218,339,214,343,208,338,169,302,135,262,90,196"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#a069bd8e9cd5fbdc5571009fd92bc19f3" title=" " alt="" coords="586,11,721,51"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="539,28,571,28,571,34,539,34"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#aee773b2f63c083454611425037d2a8b1" title=" " alt="" coords="769,11,903,51"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="721,28,753,28,753,34,721,34"/>
+<area shape="poly" id="edge7_Node000007_Node000002" title=" " alt="" coords="329,101,355,88,417,56,419,61,357,93,331,106"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="351,132,389,138,388,143,350,137"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1emu_1_1Cpu.html#ae31d0d071f8797bc81228af1bb519a5d" title=" " alt="" coords="404,284,538,325"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="344,257,397,276,395,281,343,262"/>
+<area shape="poly" id="edge12_Node000010_Node000009" title=" " alt="" coords="350,302,388,302,388,307,350,307"/>
+<area shape="poly" id="edge14_Node000011_Node000009" title=" " alt="" coords="343,346,395,328,397,333,344,351"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="yaze::app::editor::MessageEditor::DictionaryEntry" name="yaze::app::editor::MessageEditor::DictionaryEntry">
+<area shape="rect" id="Node000001" title=" " alt="" coords="38,301,237,342"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="32,198,110,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,236,110,276,126,299,121,302,106,279,82,238"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,94,129,135"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="71,150,73,197,68,198,66,150"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="134,198,277,223"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,238,152,302,148,300,188,235"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="153,102,264,127"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="210,143,209,197,203,197,205,143"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="189,5,228,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="211,47,211,101,206,101,206,47"/>
+</map>

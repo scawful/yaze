@@ -1,0 +1,9 @@
+<map id="yaze::app::zelda3::music::Tracker" name="yaze::app::zelda3::music::Tracker">
+<area shape="rect" id="Node000001" title=" " alt="" coords="10,271,134,312"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,183,139,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,224,75,271,69,271,69,224"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="16,94,128,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="75,135,75,182,69,182,69,135"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="53,5,91,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="75,47,75,94,69,94,69,47"/>
+</map>

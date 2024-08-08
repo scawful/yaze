@@ -1,0 +1,13 @@
+<map id="src/app/emu/audio/spc700.h" name="src/app/emu/audio/spc700.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="135,5,320,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,66,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,34,81,76,80,71,194,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="90,79,168,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,34,159,72,156,68,209,29"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="192,79,263,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="230,31,230,63,225,63,225,31"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="287,79,397,105"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="248,29,311,68,308,73,246,34"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="422,79,479,105"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="266,29,408,74,406,79,264,34"/>
+</map>

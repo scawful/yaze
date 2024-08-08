@@ -1,0 +1,5 @@
+<map id="yaze::app::zelda3::overworld::OverworldExit" name="yaze::app::zelda3::overworld::OverworldExit">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,169,135"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1zelda3_1_1OverworldEntity.html" title="Base class for all overworld entities." alt="" coords="25,5,149,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,62,90,94,84,94,84,62"/>
+</map>

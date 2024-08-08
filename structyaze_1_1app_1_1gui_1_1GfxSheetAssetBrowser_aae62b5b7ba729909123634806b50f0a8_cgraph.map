@@ -1,0 +1,15 @@
+<map id="yaze::app::gui::GfxSheetAssetBrowser::Draw" name="yaze::app::gui::GfxSheetAssetBrowser::Draw">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,136,163,177"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#a89b3f1bc90a0517598b5ba7950f77882" title=" " alt="" coords="211,5,446,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,134,151,95,209,57,225,50,227,54,212,61,154,99,108,138"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#ae875ea39bd408fb139cb4f551d9df949" title=" " alt="" coords="214,71,442,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,133,234,113,235,119,163,138"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html#ad06e8da1b914ae28026e3445aeb840a3" title=" " alt="" coords="231,136,426,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="163,154,216,154,216,159,163,159"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1gui_1_1AssetObject.html#a692735fd9e043634acfc76b6ebfa1688" title=" " alt="" coords="241,201,416,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="163,175,235,194,234,199,162,180"/>
+<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gui_1_1GfxSheetAssetBrowser.html#af09965d44fc67e7f85078f61610631b5" title=" " alt="" coords="217,267,440,307"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="108,175,154,214,212,251,227,258,225,263,209,256,151,218,105,179"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gui_1_1AssetObject.html#a2453e2ce7b7b1d84889745eba4b95f31" title=" " alt="" coords="494,201,669,242"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="417,219,479,219,479,224,417,224"/>
+</map>

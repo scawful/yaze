@@ -1,0 +1,19 @@
+<map id="yaze::app::editor::MasterEditor::OpenRomOrProject" name="yaze::app::editor::MasterEditor::OpenRomOrProject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,184,219,224"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1Project.html#a44268c81f31bf4c22b5b934541fcdca3" title=" " alt="" coords="292,118,414,159"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,180,276,156,278,162,190,186"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c39bdccd12331094a1aa809eb7ff506" title=" " alt="" coords="267,184,439,224"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,201,251,201,251,206,219,206"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff" title=" " alt="" coords="491,304,667,330"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="200,222,509,298,508,303,198,227"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a8a47476b701dec579f200d1b8aac6981" title=" " alt="" coords="506,5,652,61"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="420,181,437,169,454,145,461,121,467,97,485,71,491,66,495,70,489,75,472,99,466,123,459,147,441,172,423,185"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#aa4ff9e370ef0f7f25247d4ad5970dabe" title=" " alt="" coords="492,85,667,126"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="411,180,438,168,461,152,486,136,500,129,502,134,488,141,464,157,440,173,414,185"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a960ba162d79c13ce6e8fae545ab6dd2d" title=" " alt="" coords="487,150,671,191"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="439,188,471,184,472,189,440,194"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="396,222,540,295,537,300,394,227"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#a9506c379037bc2bfdc71051c9d8d500e" title=" " alt="" coords="491,216,667,256"/>
+<area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="440,213,476,219,475,224,439,219"/>
+<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="542,306,534,296,539,286,554,280,579,278,607,280,621,287,619,292,605,285,579,283,555,285,542,290,540,295,546,302"/>
+</map>

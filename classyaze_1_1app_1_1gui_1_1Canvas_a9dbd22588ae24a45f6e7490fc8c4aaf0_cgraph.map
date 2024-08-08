@@ -1,0 +1,7 @@
+<map id="yaze::app::gui::Canvas::DrawTilePainter" name="yaze::app::gui::Canvas::DrawTilePainter">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,153,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#af000dd41553b175927de20edeb82fe0f" title=" " alt="" coords="201,5,345,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,44,185,38,186,43,154,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#a53138d1af2eb5e52a5b389f34e81c81e" title=" " alt="" coords="201,71,345,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,69,186,74,185,79,153,74"/>
+</map>

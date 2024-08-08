@@ -1,0 +1,19 @@
+<map id="yaze::app::editor::AssemblyEditor" name="yaze::app::editor::AssemblyEditor">
+<area shape="rect" id="Node000001" title="Text editor for modifying assembly code." alt="" coords="752,83,871,123"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="496,5,615,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="631,38,729,64,768,80,766,85,727,70,629,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="476,134,635,160"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="650,130,728,117,752,112,753,117,729,122,651,135"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="250,90,327,116"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="343,100,752,100,752,106,343,106"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="343,112,368,117,476,134,475,139,368,122,342,117"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,83,129,123"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="145,100,249,100,249,106,145,106"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="233,182,344,208"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="359,180,480,158,480,163,360,185"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="475,190,636,216"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="359,206,368,207,422,210,474,208,474,213,422,215,368,213,359,212"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="48,182,86,208"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="102,192,232,192,232,198,102,198"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="627,183,677,168,727,149,778,122,780,126,729,154,679,173,629,188"/>
+</map>

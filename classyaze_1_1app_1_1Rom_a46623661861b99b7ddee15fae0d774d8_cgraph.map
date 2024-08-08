@@ -1,0 +1,7 @@
+<map id="yaze::app::Rom::ReadTile16" name="yaze::app::Rom::ReadTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,184,56"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html#a997bfee0f4d228a4d9f30166647f8b37" title=" " alt="" coords="241,5,414,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,31,225,27,225,32,184,36"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1gfx.html#a1c0d7314890a130ceda6eec9def39c4e" title=" " alt="" coords="232,55,423,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,50,216,53,216,59,184,55"/>
+</map>
