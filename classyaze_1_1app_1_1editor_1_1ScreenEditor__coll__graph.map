@@ -15,9 +15,9 @@
 <area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="157,300,245,319,356,338,480,347,543,346,604,340,676,326,747,307,866,267,867,272,748,312,677,331,605,345,543,351,480,352,356,343,244,325,156,305"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="195,270,424,240,627,212,628,217,424,245,195,275"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="132,263,203,233,277,213,278,218,205,238,134,267"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html" title="Represents a tilesheet, which is a collection of tiles stored in a bitmap." alt="" coords="448,289,604,315"/>
-<area shape="poly" id="edge13_Node000009_Node000006" title=" " alt="" coords="195,286,448,297,447,302,195,292"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gfx_1_1Tilesheet.html" title="Represents a tilesheet, which is a collection of tiles stored in a bitmap." alt="" coords="448,289,604,315"/>
+<area shape="poly" id="edge13_Node000008_Node000006" title=" " alt="" coords="195,286,448,297,447,302,195,292"/>
 <area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="439,81,520,82,605,93,689,120,770,156,839,194,890,226,888,230,836,198,767,161,688,125,604,98,520,87,439,87"/>
 <area shape="poly" id="edge8_Node000004_Node000007" title=" " alt="" coords="435,105,448,108,493,114,528,117,563,123,605,139,641,160,669,183,666,187,637,164,603,143,562,128,528,123,492,120,448,113,434,111"/>
-<area shape="poly" id="edge12_Node000001_Node000009" title=" " alt="" coords="620,287,861,254,862,260,620,292"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="620,287,861,254,862,260,620,292"/>
 </map>

@@ -1,23 +1,20 @@
 <map id="yaze::app::zelda3::screen::TitleScreen" name="yaze::app::zelda3::screen::TitleScreen">
-<area shape="rect" id="Node000001" title=" " alt="" coords="904,290,1037,330"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="590,183,698,208"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="714,201,795,218,839,230,881,246,916,266,946,287,943,292,913,270,879,251,837,235,794,223,713,206"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="179,55,354,96"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,75,457,88,502,99,545,114,572,129,596,147,633,180,629,184,593,151,569,133,543,119,500,104,456,93,369,81"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="5,156,59,182"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="74,155,82,154,112,153,141,154,343,159,431,164,544,176,591,182,590,188,544,181,431,170,343,164,141,159,112,158,83,159,75,161"/>
-<area shape="rect" id="Node000009" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="184,183,350,224"/>
-<area shape="poly" id="edge8_Node000009_Node000004" title=" " alt="" coords="74,172,184,189,183,194,74,178"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="170,248,364,274"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="379,245,543,219,595,206,596,212,545,224,379,250"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="180,304,354,330"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="369,307,456,292,500,280,543,264,591,236,627,207,630,211,594,241,545,269,502,285,457,297,370,312"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="572,311,716,336"/>
-<area shape="poly" id="edge11_Node000011_Node000006" title=" " alt="" coords="370,326,393,328,468,330,544,328,571,326,572,332,544,333,468,335,393,333,369,332"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="165,5,369,31"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="385,25,467,44,507,59,545,79,576,102,602,130,637,181,633,184,598,134,573,106,543,83,505,64,465,49,384,31"/>
-<area shape="poly" id="edge7_Node000002_Node000009" title=" " alt="" coords="365,199,590,194,590,199,365,204"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1OamTile.html" title="Object Attribute Memory tile abstraction container." alt="" coords="568,373,720,399"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="736,388,808,383,844,377,879,367,914,350,944,329,947,333,917,355,881,372,845,382,808,389,736,393"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="732,317,904,310,904,316,732,323"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="745,241,877,282"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="431,158,538,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="554,168,636,176,680,185,722,198,758,217,788,239,785,243,755,221,720,203,678,190,635,181,553,174"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="20,71,195,111"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="211,101,296,115,385,134,451,155,449,160,384,139,295,120,210,106"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="10,136,205,161"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="221,152,431,165,431,170,220,158"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="20,253,195,278"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="210,251,295,237,384,214,423,199,458,182,460,187,425,204,385,219,297,242,211,257"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="413,249,557,274"/>
+<area shape="poly" id="edge9_Node000010_Node000005" title=" " alt="" coords="207,278,234,281,309,285,384,281,432,273,432,278,385,286,309,290,233,286,207,284"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,185,210,210"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="225,193,384,183,430,177,431,183,385,189,225,198"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="24,5,191,46"/>
+<area shape="poly" id="edge6_Node000002_Node000008" title=" " alt="" coords="207,43,295,67,386,102,432,129,469,156,466,160,429,133,384,107,293,72,205,48"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1gfx_1_1OamTile.html" title="Object Attribute Memory tile abstraction container." alt="" coords="409,325,561,350"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="576,334,648,326,720,309,751,296,779,280,781,285,753,301,722,315,649,331,577,339"/>
+<area shape="poly" id="edge8_Node000001_Node000010" title=" " alt="" coords="573,259,745,259,745,264,573,264"/>
 </map>

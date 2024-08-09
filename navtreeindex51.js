@@ -1,5 +1,10 @@
 var NAVTREEINDEX51 =
 {
+"structyaze_1_1cli_1_1Commands.html":[8,0,2,1,6],
+"structyaze_1_1cli_1_1Commands.html":[9,0,1,1,5],
+"structyaze_1_1cli_1_1Commands.html#a564941340fe0299473dafc0bb1a1d8a6":[8,0,2,1,6,0],
+"structyaze_1_1cli_1_1Commands.html#a564941340fe0299473dafc0bb1a1d8a6":[9,0,1,1,5,0],
+"structyaze__extension.html":[9,0,8],
 "structyaze__extension.html#a24c9e7db82ccbb58a930f3fa6b4c4c6d":[9,0,8,2],
 "structyaze__extension.html#a2bc8f6b71a997f957653060d17db482d":[9,0,8,4],
 "structyaze__extension.html#a5437179462b8d5046807baf3ecee4fcd":[9,0,8,3],

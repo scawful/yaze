@@ -44,7 +44,7 @@ var searchData=
   ['description_41',['Description',['../structyaze_1_1app_1_1editor_1_1TextElement.html#a0c2b38513ee4b04dbe1989e4004b4d59',1,'yaze::app::editor::TextElement']]],
   ['diagonal_5ffix_5f_42',['diagonal_fix_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a2bd7880886b5ed338c1de9915dd1df56',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['dictionaryelement_43',['DictionaryElement',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a4f607e0d1b4f712cf88883fdc517ea43',1,'yaze::app::editor::MessageEditor']]],
-  ['dictionarytoken_44',['DICTIONARYTOKEN',['../namespaceyaze_1_1app_1_1editor.html#a85d85e7b31b095e3f405e7aaa0cfb318',1,'yaze::app::editor']]],
+  ['dictionarytoken_44',['DICTIONARYTOKEN',['../namespaceyaze_1_1app_1_1editor.html#a0fa9018bc42caddcbec2c22a7418ce11',1,'yaze::app::editor']]],
   ['dictoff_45',['DICTOFF',['../namespaceyaze_1_1app_1_1editor.html#ae0ffdfe2fe8d70d8a2df747e934e328a',1,'yaze::app::editor']]],
   ['direct_5fcolor_46',['direct_color',['../structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1CGWSEL.html#af0546a51db8fb9c46cb43c978043788e',1,'yaze::app::emu::video::PpuRegisters::CGWSEL']]],
   ['direct_5fcolor_5f_47',['direct_color_',['../classyaze_1_1app_1_1emu_1_1video_1_1Ppu.html#a11ca94e5678362434d715d9ccf34b6b0',1,'yaze::app::emu::video::Ppu']]],

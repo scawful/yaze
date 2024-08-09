@@ -1,18 +1,15 @@
 <map id="yaze::cli::CommandHandler" name="yaze::cli::CommandHandler">
-<area shape="rect" id="Node000001" title=" " alt="" coords="755,170,932,196"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="568,170,675,196"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="691,180,755,180,755,186,691,186"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="179,5,354,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,19,414,22,459,30,504,44,545,65,572,88,593,117,618,168,613,171,589,120,568,92,543,69,502,49,458,35,413,28,370,24"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="5,106,59,132"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="74,106,82,104,112,103,141,104,345,106,434,116,545,143,599,167,597,172,543,148,433,121,345,111,141,110,112,108,83,110,75,111"/>
-<area shape="rect" id="Node000009" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="184,133,350,174"/>
-<area shape="poly" id="edge8_Node000009_Node000004" title=" " alt="" coords="74,122,184,139,183,144,74,128"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="170,198,364,224"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="380,211,460,209,544,201,576,194,577,199,544,206,461,214,380,216"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="180,248,354,273"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="369,260,456,252,500,244,543,232,577,214,604,194,607,199,579,219,545,236,501,249,456,258,370,265"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="165,297,369,322"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="385,315,424,313,465,307,505,296,543,280,567,261,586,239,612,195,617,198,591,242,570,265,545,284,507,301,466,312,425,318,385,321"/>
-<area shape="poly" id="edge7_Node000002_Node000009" title=" " alt="" coords="365,159,568,176,567,181,365,164"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="596,120,772,145"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="409,120,516,145"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="531,130,596,130,596,135,531,135"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="20,5,195,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="211,29,298,43,343,55,386,71,422,93,450,117,446,121,419,98,384,76,341,60,297,49,210,34"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1BitmapManager.html" title="Hash map container of shared pointers to Bitmaps." alt="" coords="10,70,205,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="220,88,301,97,385,110,415,116,413,121,384,115,301,102,219,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="20,120,195,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="210,130,409,130,409,135,210,135"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="5,169,210,194"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="225,171,304,162,384,150,415,143,416,148,385,155,304,168,226,176"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1app_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="24,219,191,259"/>
+<area shape="poly" id="edge6_Node000002_Node000008" title=" " alt="" coords="206,233,294,220,340,208,383,192,420,169,447,144,451,148,423,173,386,196,342,213,295,225,206,238"/>
 </map>

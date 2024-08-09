@@ -118,7 +118,7 @@ var searchData=
   ['serializeexperimentflags_115',['SerializeExperimentFlags',['../structyaze_1_1app_1_1Project.html#af787b1715ddb7d9ff91a0ddfefa145aa',1,'yaze::app::Project']]],
   ['set_116',['set',['../classyaze_1_1app_1_1core_1_1NotifyValue.html#aec7ae8f7e3f78e233089d28b9688e527',1,'yaze::app::core::NotifyValue']]],
   ['set1_117',['SET1',['../classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a09de75e428ca4f6dddddffe659636093',1,'yaze::app::emu::audio::Spc700']]],
-  ['set_5factive_118',['set_active',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae6c7ff58611e24e659db248206eb7c68',1,'yaze::app::gfx::Bitmap']]],
+  ['set_5factive_118',['set_active',['../classyaze_1_1app_1_1gfx_1_1Bitmap.html#a3abdd4c10bc1f36b9d96c7d2121871bb',1,'yaze::app::gfx::Bitmap']]],
   ['set_5farea_5fgraphics_119',['set_area_graphics',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a17f3ccd543f243c0953553b46eef55d3',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['set_5farea_5fpalette_120',['set_area_palette',['../classyaze_1_1app_1_1zelda3_1_1overworld_1_1OverworldMap.html#a69556a9f38f0a8e56d439080b14c8041',1,'yaze::app::zelda3::overworld::OverworldMap']]],
   ['set_5faudio_5fbuffer_121',['set_audio_buffer',['../classyaze_1_1app_1_1emu_1_1Emulator.html#a656c4a754f76d9370efc29e176939ef0',1,'yaze::app::emu::Emulator']]],

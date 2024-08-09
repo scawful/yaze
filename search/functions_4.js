@@ -158,7 +158,7 @@ var searchData=
   ['drawspritetable_155',['DrawSpriteTable',['../namespaceyaze_1_1app_1_1editor.html#ad79a7b2408242f84ae61bc0827ef4ee4',1,'yaze::app::editor']]],
   ['drawspritetile_156',['DrawSpriteTile',['../classyaze_1_1app_1_1zelda3_1_1Sprite.html#ae952503a9ee84414beb369002187bc5e',1,'yaze::app::zelda3::Sprite']]],
   ['drawstatuspopup_157',['DrawStatusPopup',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a3d9f9cddcd5289a7b187be91cc898789',1,'yaze::app::editor::MasterEditor']]],
-  ['drawstringtopreview_158',['DrawStringToPreview',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ab182f10e510ab985622190ed8c86829d',1,'yaze::app::editor::MessageEditor']]],
+  ['drawstringtopreview_158',['DrawStringToPreview',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ae5473b0c01216d8c431519e8bce82fd7',1,'yaze::app::editor::MessageEditor']]],
   ['drawtestmenu_159',['DrawTestMenu',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a09f29a18f5ea60c4a0f29a30e8aef1c9',1,'yaze::app::editor::MasterEditor']]],
   ['drawtext_160',['DrawText',['../classyaze_1_1app_1_1gui_1_1Canvas.html#a34368006660aa3fdf79e9428af12e961',1,'yaze::app::gui::Canvas']]],
   ['drawtextcommands_161',['DrawTextCommands',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a9cde2031bd16ed689d7a45719293c70f',1,'yaze::app::editor::MessageEditor']]],

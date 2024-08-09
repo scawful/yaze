@@ -1,32 +1,28 @@
 <map id="yaze::app::editor::GfxGroupEditor" name="yaze::app::editor::GfxGroupEditor">
-<area shape="rect" id="Node000001" title="Manage graphics group configurations in a Rom." alt="" coords="1031,233,1149,274"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="308,157,456,182"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="472,171,664,186,836,203,1007,231,1031,236,1030,241,1006,236,835,209,663,191,472,177"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="706,106,853,132"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="472,154,484,152,705,125,706,130,484,158,472,159"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="708,233,851,274"/>
-<area shape="poly" id="edge12_Node000009_Node000002" title=" " alt="" coords="473,181,664,219,709,230,707,236,663,224,472,187"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="869,123,949,133,983,141,1008,150,1032,168,1052,189,1080,232,1076,235,1048,193,1028,172,1005,155,982,146,948,138,868,128"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="66,90,120,116"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="135,101,705,115,705,120,135,107"/>
-<area shape="rect" id="Node000006" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="484,33,663,58"/>
-<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="135,92,304,64,483,48,484,53,305,70,135,98"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="329,308,436,333"/>
-<area shape="poly" id="edge16_Node000011_Node000004" title=" " alt="" coords="117,126,194,208,248,254,306,294,329,305,327,310,303,299,244,258,191,212,113,129"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="6,365,180,390"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="196,372,411,360,537,350,663,335,865,301,1030,265,1031,270,866,306,664,341,538,355,411,365,196,377"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="502,412,646,437"/>
-<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="145,393,205,409,284,419,363,424,501,425,501,430,363,429,283,424,204,414,144,399"/>
-<area shape="poly" id="edge17_Node000011_Node000005" title=" " alt="" coords="176,359,328,328,329,334,177,364"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="651,27,731,18,824,18,873,24,920,35,966,52,1008,75,1027,91,1043,111,1066,154,1081,197,1088,233,1083,234,1076,199,1061,156,1038,114,1023,95,1005,80,964,56,919,40,872,29,824,23,732,23,652,32"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="659,437,738,444,828,443,875,437,920,426,964,411,1005,389,1033,364,1055,333,1070,301,1080,274,1085,276,1075,303,1059,336,1037,367,1008,393,967,415,922,431,876,442,829,448,738,450,659,443"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1gui_1_1BitmapViewer.html" title=" " alt="" coords="687,473,872,498"/>
-<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="886,492,949,483,978,472,1005,456,1025,437,1041,415,1065,364,1078,314,1084,274,1090,275,1083,315,1070,366,1046,417,1029,440,1008,460,981,477,950,488,887,497"/>
-<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="866,251,1030,251,1030,256,866,256"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,239,181,279"/>
-<area shape="poly" id="edge13_Node000009_Node000010" title=" " alt="" coords="196,237,204,236,344,229,484,230,708,244,708,249,483,236,344,235,205,242,196,243"/>
-<area shape="poly" id="edge15_Node000011_Node000010" title=" " alt="" coords="197,278,329,306,328,312,195,283"/>
-<area shape="poly" id="edge14_Node000009_Node000011" title=" " alt="" coords="451,317,552,310,663,293,728,272,730,277,664,298,552,315,452,322"/>
-<area shape="rect" id="Node000015" href="$structyaze_1_1app_1_1OWMapTiles.html" title=" " alt="" coords="305,258,460,284"/>
-<area shape="poly" id="edge18_Node000009_Node000015" title=" " alt="" coords="476,271,566,271,663,267,708,263,708,268,664,273,567,277,476,277"/>
+<area shape="rect" id="Node000001" title="Manage graphics group configurations in a Rom." alt="" coords="996,294,1114,335"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="308,94,456,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="472,104,580,112,709,133,778,149,846,171,912,198,973,232,1010,261,1039,292,1035,295,1006,265,970,237,909,203,844,176,776,154,708,138,579,118,472,110"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="671,43,818,68"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="467,88,484,85,670,61,671,66,484,90,468,93"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1zelda3_1_1overworld_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="673,195,816,236"/>
+<area shape="poly" id="edge10_Node000008_Node000002" title=" " alt="" coords="472,117,549,133,629,156,671,173,709,193,706,197,669,178,627,161,548,138,471,122"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="834,46,870,48,906,55,942,67,973,87,996,109,1013,135,1038,193,1050,250,1055,293,1050,294,1045,250,1033,195,1009,138,991,113,970,91,939,72,905,60,869,53,834,51"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="6,303,180,328"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="196,313,996,312,996,317,196,318"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="484,354,628,379"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="145,331,205,347,279,357,353,362,484,365,483,371,353,368,278,362,204,352,144,336"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1app_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="329,203,436,228"/>
+<area shape="poly" id="edge14_Node000010_Node000004" title=" " alt="" coords="143,295,304,237,336,227,338,232,306,242,145,300"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1app_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="655,415,834,440"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="849,427,911,418,942,410,970,398,991,384,1010,368,1038,334,1042,337,1013,372,994,389,973,402,943,415,912,423,850,432"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="644,361,797,352,971,330,995,326,996,331,972,336,797,357,644,366"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1app_1_1gui_1_1BitmapViewer.html" title=" " alt="" coords="652,464,837,490"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="852,480,913,471,943,461,970,447,998,423,1019,392,1035,361,1045,334,1050,336,1040,363,1024,395,1002,426,973,452,945,466,915,476,853,486"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="826,239,996,293,994,298,825,244"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html" title="A class to manage experimental feature flags." alt="" coords="5,162,181,203"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="196,177,396,179,513,184,629,193,673,199,673,204,628,198,512,189,396,184,196,183"/>
+<area shape="poly" id="edge13_Node000010_Node000009" title=" " alt="" coords="196,192,329,207,328,212,196,197"/>
+<area shape="poly" id="edge12_Node000008_Node000010" title=" " alt="" coords="451,213,673,213,673,218,451,218"/>
+<area shape="rect" id="Node000014" href="$structyaze_1_1app_1_1OWMapTiles.html" title=" " alt="" coords="305,252,460,278"/>
+<area shape="poly" id="edge15_Node000008_Node000014" title=" " alt="" coords="475,253,628,233,672,226,673,231,629,239,476,258"/>
 </map>

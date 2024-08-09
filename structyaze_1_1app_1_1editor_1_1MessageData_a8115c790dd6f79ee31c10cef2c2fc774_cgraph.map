@@ -2,6 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,49,186,90"/>
 <area shape="rect" id="Node000002" href="$structyaze_1_1app_1_1editor_1_1MessageData.html#aadd07b70dd09431d38aef82b06a8823e" title=" " alt="" coords="234,5,445,61"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,53,218,48,219,54,187,58"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1app_1_1editor_1_1MessageData.html#a7efb1c25f33e97c2abfb4602d7557652" title=" " alt="" coords="238,85,440,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,80,223,85,222,91,186,85"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1app_1_1editor_1_1MessageData.html#a7efb1c25f33e97c2abfb4602d7557652" title=" " alt="" coords="238,85,440,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="187,80,223,85,222,91,186,85"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1app_1_1editor.html#a15f24c296207cfe5e5d65f8e6ced2906" title=" " alt="" coords="493,13,670,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="445,30,477,30,477,36,445,36"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1app_1_1editor.html#adbfa49c529abc70e97df75a0ef62228d" title=" " alt="" coords="506,85,657,126"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="441,102,491,102,491,108,441,108"/>
 </map>

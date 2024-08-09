@@ -11,7 +11,7 @@ var searchData=
   ['badr_8',['bAdr',['../structyaze_1_1app_1_1emu_1_1memory_1_1DmaChannel.html#a55b8a7d418f9ef2990d943fa904a95d4',1,'yaze::app::emu::memory::DmaChannel']]],
   ['bankid_9',['BANKID',['../namespaceyaze_1_1app_1_1editor.html#a76ccaa4ed9652d123bea40a369f314cf',1,'yaze::app::editor']]],
   ['banksize_10',['bankSize',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a3949190d51d3c8aed1d4a693c12d95fc',1,'yaze::app::emu::memory::RomInfo']]],
-  ['banktoken_11',['BANKToken',['../namespaceyaze_1_1app_1_1editor.html#a5055242b61e103773f8f1919856ac198',1,'yaze::app::editor']]],
+  ['banktoken_11',['BANKToken',['../namespaceyaze_1_1app_1_1editor.html#a850a7222bba2ccad93ba6aadd8f37430',1,'yaze::app::editor']]],
   ['base_5fheight_5f_12',['base_height_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#a3c2f841d3d865ce6a5913650d4041024',1,'yaze::app::zelda3::dungeon::RoomObject']]],
   ['base_5fselection_13',['base_selection',['../structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html#a8b68e4ed8b9fca997bbecf481bc916aa',1,'yaze::app::emu::video::OAMSize']]],
   ['base_5fwidth_5f_14',['base_width_',['../classyaze_1_1app_1_1zelda3_1_1dungeon_1_1RoomObject.html#ad2d4db665e1759b135d723cfda898aa4',1,'yaze::app::zelda3::dungeon::RoomObject']]],

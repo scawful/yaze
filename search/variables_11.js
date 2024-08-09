@@ -38,7 +38,7 @@ var searchData=
   ['rom_5ffilename_5f_35',['rom_filename_',['../structyaze_1_1app_1_1Project.html#aaaec6f4568b290cb85dad5c0e58bd485',1,'yaze::app::Project']]],
   ['rom_5finfo_5f_36',['rom_info_',['../classyaze_1_1app_1_1editor_1_1MasterEditor.html#a9b82d282989879a1930ef892d54bf4f3',1,'yaze::app::editor::MasterEditor']]],
   ['rom_5freadable_5f_37',['rom_readable_',['../classyaze_1_1app_1_1emu_1_1audio_1_1Apu.html#ac072e06da2be5f74a17c8d122fb281da',1,'yaze::app::emu::audio::Apu']]],
-  ['romname_38',['romname',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ab9f44d39e2dfd62f3bbd4acb8a735000',1,'yaze::app::editor::MessageEditor']]],
+  ['romname_38',['romname',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#af67d21fd798db74621b1da0c2ac68417',1,'yaze::app::editor::MessageEditor']]],
   ['romsize_39',['romSize',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a0afba9e6f2360600fa9224bcc900af0d',1,'yaze::app::emu::memory::RomInfo::romSize'],['../classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ad5304c7686fdf1fbaed57c6d528b7d7a',1,'yaze::app::emu::memory::MemoryImpl::romSize']]],
   ['romspeed_40',['romSpeed',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a742c74c8a0caba5f8cb19108211a82ea',1,'yaze::app::emu::memory::RomInfo']]],
   ['romtype_41',['romType',['../classyaze_1_1app_1_1emu_1_1memory_1_1RomInfo.html#a67a430ad5d9ad998e7b6676831a4bba8',1,'yaze::app::emu::memory::RomInfo']]],

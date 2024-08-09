@@ -2265,7 +2265,7 @@ var searchData=
   ['inputscalarleft_2262',['InputScalarLeft',['../namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d',1,'ImGui']]],
   ['insertcommandbutton_5fclick_5f1_2263',['InsertCommandButton_Click_1',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a22e7e7c0b776c68b3daaf0351b50c827',1,'yaze::app::editor::MessageEditor']]],
   ['insertmemory_2264',['InsertMemory',['../classyaze_1_1app_1_1emu_1_1memory_1_1MockMemory.html#ae438b464cf0f93df524449ecc2badfb9',1,'yaze::app::emu::memory::MockMemory']]],
-  ['insertselectedtext_2265',['InsertSelectedText',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ac2ca61d36a96439813caf01ec971e9bc',1,'yaze::app::editor::MessageEditor']]],
+  ['insertselectedtext_2265',['InsertSelectedText',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#ac5e8e9cb6e7556d2d12b5d2832188a22',1,'yaze::app::editor::MessageEditor']]],
   ['insertspecialbutton_5fclick_2266',['InsertSpecialButton_Click',['../classyaze_1_1app_1_1editor_1_1MessageEditor.html#a87a319903c6f98f669fb7551a7396526',1,'yaze::app::editor::MessageEditor']]],
   ['inspectmemory_2267',['InspectMemory',['../classyaze_1_1app_1_1emu_1_1Debugger.html#ab61a3c5e93e674b09ceb73e0f2c40f75',1,'yaze::app::emu::Debugger']]],
   ['inspectregister_2268',['InspectRegister',['../classyaze_1_1app_1_1emu_1_1Debugger.html#af3f8bbae464d331e0ae27d670f4c7e6e',1,'yaze::app::emu::Debugger']]],
