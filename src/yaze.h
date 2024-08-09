@@ -13,6 +13,7 @@ extern "C" {
 #include "base/overworld.h"
 
 typedef struct yaze_flags yaze_flags;
+typedef struct yaze_project yaze_project;
 typedef struct z3_rom z3_rom;
 
 /**
@@ -37,6 +38,16 @@ void yaze_init(yaze_flags*);
  * @param flags Flags used to initialize the library.
  */
 void yaze_cleanup(yaze_flags*);
+
+/**
+ * @brief Primitive of a Yaze project.
+ */
+struct yaze_project {
+  const char* filename;
+
+  z3_rom* rom;
+  z3_overworld* overworld;
+};
 
 /**
  * @brief Primitive of a Zelda3 ROM.
