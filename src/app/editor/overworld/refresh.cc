@@ -1,8 +1,11 @@
+#include "app/core/platform/renderer.h"
 #include "app/editor/overworld_editor.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 void OverworldEditor::RefreshChildMap(int map_index) {
   overworld_.mutable_overworld_map(map_index)->LoadAreaGraphics();
@@ -50,7 +53,7 @@ void OverworldEditor::RefreshOverworldMap() {
   int n = is_large ? 4 : 1;
   // We do texture updating on the main thread
   for (int i = 0; i < n; ++i) {
-    rom()->UpdateBitmap(&maps_bmp_[indices[i]]);
+    Renderer::GetInstance().UpdateBitmap(&maps_bmp_[indices[i]]);
   }
 }
 
@@ -106,7 +109,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   overworld_.set_current_map(current_map_);
   palette_ = overworld_.AreaPalette();
   // Create the tile16 blockset image
-  rom()->UpdateBitmap(&tile16_blockset_bmp_);
+  Renderer::GetInstance().UpdateBitmap(&tile16_blockset_bmp_);
   RETURN_IF_ERROR(tile16_blockset_bmp_.ApplyPalette(palette_));
 
   // Copy the tile16 data into individual tiles.
@@ -146,7 +149,7 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   // Render the bitmaps of each tile.
   for (int id = 0; id < 4096; id++) {
     RETURN_IF_ERROR(tile16_individual_[id].ApplyPalette(palette_));
-    rom()->UpdateBitmap(&tile16_individual_[id]);
+    Renderer::GetInstance().UpdateBitmap(&tile16_individual_[id]);
   }
 
   return absl::OkStatus();

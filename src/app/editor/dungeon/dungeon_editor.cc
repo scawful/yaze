@@ -1,9 +1,8 @@
 #include "dungeon_editor.h"
 
-#include "imgui/imgui.h"
-
 #include "app/core/common.h"
 #include "app/core/labeling.h"
+#include "app/core/platform/renderer.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
@@ -12,11 +11,14 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_names.h"
 #include "app/zelda3/dungeon/room_names.h"
+#include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 using ImGui::BeginChild;
 using ImGui::BeginTabBar;
@@ -120,14 +122,14 @@ absl::Status DungeonEditor::RefreshGraphics() {
     int block = rooms_[current_room_id_].blocks()[i];
     RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         current_palette_group_[current_palette_id_], 0));
-    rom()->UpdateBitmap(&graphics_bin_[block], true);
+    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block], true);
   }
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
   for (int i = 9; i < 16; i++) {
     int block = rooms_[current_room_id_].blocks()[i];
     RETURN_IF_ERROR(graphics_bin_[block].ApplyPaletteWithTransparent(
         sprites_aux1_pal_group[current_palette_id_], 0));
-    rom()->UpdateBitmap(&graphics_bin_[block], true);
+    Renderer::GetInstance().UpdateBitmap(&graphics_bin_[block], true);
   }
   return absl::OkStatus();
 }
@@ -547,7 +549,7 @@ void DungeonEditor::DrawObjectRenderer() {
         current_object_ = i;
         object_renderer_.LoadObject(i,
                                     rooms_[current_room_id_].mutable_blocks());
-        rom()->RenderBitmap(object_renderer_.bitmap());
+        Renderer::GetInstance().RenderBitmap(object_renderer_.bitmap());
         object_loaded_ = true;
       }
       i += 1;

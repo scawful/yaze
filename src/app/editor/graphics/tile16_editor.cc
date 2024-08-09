@@ -1,12 +1,11 @@
 #include "tile16_editor.h"
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-
 #include <cmath>
 
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
@@ -19,10 +18,13 @@
 #include "app/gui/style.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 using ImGui::BeginChild;
 using ImGui::BeginMenu;
@@ -146,7 +148,7 @@ absl::Status Tile16Editor::UpdateBlockset() {
       auto ow_main_pal_group = rom()->palette_group().overworld_main;
       RETURN_IF_ERROR(current_tile16_bmp_->ApplyPalette(
           ow_main_pal_group[current_palette_]));
-      rom()->RenderBitmap(current_tile16_bmp_);
+      Renderer::GetInstance().RenderBitmap(current_tile16_bmp_);
     }
   }
 
@@ -197,7 +199,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       RETURN_IF_ERROR(
           current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
               ow_main_pal_group[0], current_palette_));
-      rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
+      Renderer::GetInstance().UpdateBitmap(
+          &current_gfx_individual_[current_tile8_]);
     }
     tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 0, 0, 4.0f);
     tile8_source_canvas_.DrawGrid();
@@ -214,7 +217,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     RETURN_IF_ERROR(
         current_gfx_individual_[current_tile8_].ApplyPaletteWithTransparent(
             ow_main_pal_group[0], current_palette_));
-    rom()->UpdateBitmap(&current_gfx_individual_[current_tile8_]);
+    Renderer::GetInstance().UpdateBitmap(
+        &current_gfx_individual_[current_tile8_]);
   }
 
   if (BeginChild("Tile16 Editor Options",
@@ -227,7 +231,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
               current_gfx_individual_[current_tile8_], 16, 2.0f)) {
         RETURN_IF_ERROR(
             DrawToCurrentTile16(tile16_edit_canvas_.drawn_tile_position()));
-        rom()->UpdateBitmap(current_tile16_bmp_);
+        Renderer::GetInstance().UpdateBitmap(current_tile16_bmp_);
       }
     }
     tile16_edit_canvas_.DrawGrid();
@@ -260,8 +264,8 @@ absl::Status Tile16Editor::DrawTileEditControls() {
           current_gfx_bmp_.ApplyPaletteWithTransparent(palette, value));
       RETURN_IF_ERROR(
           current_tile16_bmp_->ApplyPaletteWithTransparent(palette, value));
-      rom()->UpdateBitmap(&current_gfx_bmp_);
-      rom()->UpdateBitmap(current_tile16_bmp_);
+      Renderer::GetInstance().UpdateBitmap(&current_gfx_bmp_);
+      Renderer::GetInstance().UpdateBitmap(current_tile16_bmp_);
     }
   }
 
@@ -310,7 +314,7 @@ absl::Status Tile16Editor::LoadTile8() {
     current_gfx_individual_[index].Create(0x08, 0x08, 0x08, tile_data);
     RETURN_IF_ERROR(current_gfx_individual_[index].ApplyPaletteWithTransparent(
         ow_main_pal_group[0], current_palette_));
-    rom()->RenderBitmap(&current_gfx_individual_[index]);
+    Renderer::GetInstance().RenderBitmap(&current_gfx_individual_[index]);
   }
 
   map_blockset_loaded_ = true;
@@ -371,7 +375,7 @@ absl::Status Tile16Editor::UpdateTransferTileCanvas() {
     palette_ = transfer_overworld_.AreaPalette();
 
     // Create the tile16 blockset image
-    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
         0x80, 0x2000, 0x80, transfer_overworld_.Tile16Blockset(),
         transfer_blockset_bmp_, palette_));
     transfer_blockset_loaded_ = true;
@@ -391,7 +395,7 @@ absl::Status Tile16Editor::SetCurrentTile(int id) {
   auto ow_main_pal_group = rom()->palette_group().overworld_main;
   RETURN_IF_ERROR(
       current_tile16_bmp_->ApplyPalette(ow_main_pal_group[current_palette_]));
-  rom()->RenderBitmap(current_tile16_bmp_);
+  Renderer::GetInstance().RenderBitmap(current_tile16_bmp_);
   return absl::OkStatus();
 }
 

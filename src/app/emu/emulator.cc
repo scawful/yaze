@@ -1,18 +1,18 @@
 #include "app/emu/emulator.h"
 
-#include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
-
 #include <cstdint>
 #include <vector>
 
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
+#include "app/core/platform/renderer.h"
 #include "app/emu/snes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/zeml.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
@@ -52,9 +52,9 @@ using ImGui::Text;
 void Emulator::Run() {
   static bool loaded = false;
   if (!snes_.running() && rom()->is_loaded()) {
-    ppu_texture_ =
-        SDL_CreateTexture(rom()->renderer().get(), SDL_PIXELFORMAT_ARGB8888,
-                          SDL_TEXTUREACCESS_STREAMING, 512, 480);
+    ppu_texture_ = SDL_CreateTexture(core::Renderer::GetInstance().renderer(),
+                                     SDL_PIXELFORMAT_ARGB8888,
+                                     SDL_TEXTUREACCESS_STREAMING, 512, 480);
     if (ppu_texture_ == NULL) {
       printf("Failed to create texture: %s\n", SDL_GetError());
       return;

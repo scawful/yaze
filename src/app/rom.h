@@ -445,7 +445,6 @@ class Rom : public core::ExperimentFlags {
   auto filename() const { return filename_; }
   auto is_loaded() const { return is_loaded_; }
   auto version() const { return version_; }
-  auto renderer() const { return renderer_; }
 
   uint8_t& operator[](int i) {
     if (i > size_) {
@@ -464,41 +463,6 @@ class Rom : public core::ExperimentFlags {
     return rom_data_[i];
   }
   const uint8_t* operator&() { return rom_data_.data(); }
-
-  void SetupRenderer(std::shared_ptr<SDL_Renderer> renderer) {
-    renderer_ = renderer;
-  }
-
-  absl::Status CreateAndRenderBitmap(int width, int height, int depth,
-                                     const Bytes& data, gfx::Bitmap& bitmap,
-                                     gfx::SnesPalette& palette) {
-    bitmap.Create(width, height, depth, data);
-    RETURN_IF_ERROR(bitmap.ApplyPalette(palette));
-    RenderBitmap(&bitmap);
-    return absl::OkStatus();
-  }
-
-  /**
-   * @brief Used to render a bitmap to the screen.
-   */
-  void RenderBitmap(gfx::Bitmap* bitmap) {
-    if (flags()->kLoadTexturesAsStreaming) {
-      bitmap->CreateTexture(renderer_.get());
-    } else {
-      bitmap->CreateTexture(renderer_);
-    }
-  }
-
-  /**
-   * @brief Used to update a bitmap on the screen.
-   */
-  void UpdateBitmap(gfx::Bitmap* bitmap, bool use_sdl_update = false) {
-    if (flags()->kLoadTexturesAsStreaming) {
-      bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
-    } else {
-      bitmap->UpdateTexture(renderer_);
-    }
-  }
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;
@@ -579,8 +543,6 @@ class Rom : public core::ExperimentFlags {
   gfx::SnesPalette link_palette_;
   gfx::PaletteGroupMap palette_groups_;
   core::ResourceLabelManager resource_label_manager_;
-
-  std::shared_ptr<SDL_Renderer> renderer_;
 };
 
 /**

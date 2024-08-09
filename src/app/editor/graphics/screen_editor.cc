@@ -17,6 +17,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gfx/tilesheet.h"
 #include "app/gui/canvas.h"
+#include "app/core/platform/renderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/zelda3/dungeon/room.h"
@@ -24,6 +25,8 @@
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 absl::Status ScreenEditor::Update() {
   TAB_BAR("##TabBar")
@@ -235,13 +238,13 @@ absl::Status ScreenEditor::LoadDungeonMapTile16() {
 
   RETURN_IF_ERROR(tile16_sheet_.mutable_bitmap()->ApplyPalette(
       *rom()->mutable_dungeon_palette(3)));
-  rom()->RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
+  Renderer::GetInstance().RenderBitmap(&*tile16_sheet_.mutable_bitmap().get());
 
   for (int i = 0; i < tile16_sheet_.num_tiles(); ++i) {
     if (tile16_individual_.count(i) == 0) {
       auto tile = tile16_sheet_.GetTile16(i);
       tile16_individual_[i] = tile;
-      rom()->RenderBitmap(&tile16_individual_[i]);
+      Renderer::GetInstance().RenderBitmap(&tile16_individual_[i]);
     }
   }
 
@@ -279,7 +282,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
             if (tile16_individual_.count(tile16_id) == 0) {
               auto tile = tile16_sheet_.GetTile16(tile16_id);
               std::cout << "Tile16: " << tile16_id << std::endl;
-              rom()->RenderBitmap(&tile);
+              Renderer::GetInstance().RenderBitmap(&tile);
               tile16_individual_[tile16_id] = tile;
             }
             screen_canvas_.DrawBitmap(tile16_individual_[tile16_id], (posX * 2),

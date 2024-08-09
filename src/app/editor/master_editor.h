@@ -5,10 +5,6 @@
 
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_memory_editor.h"
-
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
@@ -32,6 +28,9 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
@@ -69,8 +68,7 @@ class MasterEditor : public SharedRom,
     active_editors_.push_back(&message_editor_);
   }
 
-  void SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
-                   std::string filename = "");
+  void SetupScreen(std::string filename = "");
   absl::Status Update();
 
   auto emulator() -> emu::Emulator& { return emulator_; }
@@ -110,8 +108,6 @@ class MasterEditor : public SharedRom,
 
   absl::Status status_;
   absl::Status prev_status_;
-
-  std::shared_ptr<SDL_Renderer> sdl_renderer_;
 
   emu::Emulator emulator_;
 

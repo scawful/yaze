@@ -11,6 +11,7 @@
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/platform/clipboard.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/overworld/entity.h"
 #include "app/gfx/bitmap.h"
@@ -28,6 +29,8 @@
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 using ImGui::BeginChild;
 using ImGui::BeginTabBar;
@@ -589,7 +592,7 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
       ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     RefreshOverworldMap();
     RETURN_IF_ERROR(RefreshTile16Blockset());
-    rom()->UpdateBitmap(&maps_bmp_[current_map_]);
+    Renderer::GetInstance().UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }
 
@@ -709,7 +712,7 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
       overworld_.set_current_map(current_map_);
       palette_ = overworld_.AreaPalette();
       gfx::Bitmap bmp;
-      RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+      RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
           0x80, kOverworldMapSize, 0x08, overworld_.current_graphics(), bmp,
           palette_));
       current_graphics_set_[current_map_] = bmp;
@@ -981,14 +984,14 @@ absl::Status OverworldEditor::LoadGraphics() {
   palette_ = overworld_.AreaPalette();
 
   // Create the area graphics image
-  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x40,
-                                               overworld_.current_graphics(),
-                                               current_gfx_bmp_, palette_));
+  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+      0x80, kOverworldMapSize, 0x40, overworld_.current_graphics(),
+      current_gfx_bmp_, palette_));
 
   // Create the tile16 blockset image
-  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(0x80, 0x2000, 0x08,
-                                               overworld_.Tile16Blockset(),
-                                               tile16_blockset_bmp_, palette_));
+  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
+      0x80, 0x2000, 0x08, overworld_.Tile16Blockset(), tile16_blockset_bmp_,
+      palette_));
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
@@ -1016,7 +1019,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Render the bitmaps of each tile.
   for (int id = 0; id < 4096; id++) {
     tile16_individual_.emplace_back();
-    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
         0x10, 0x10, 0x80, tile16_individual_data_[id], tile16_individual_[id],
         palette_));
   }
@@ -1025,7 +1028,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   for (int i = 0; i < zelda3::overworld::kNumOverworldMaps; ++i) {
     overworld_.set_current_map(i);
     auto palette = overworld_.AreaPalette();
-    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
         kOverworldMapSize, kOverworldMapSize, 0x200, overworld_.BitmapData(),
         maps_bmp_[i], palette));
   }
@@ -1047,7 +1050,7 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       auto spr_gfx = sprite.PreviewGraphics();
       sprite_previews_[sprite.id()].Create(width, height, depth, spr_gfx);
       RETURN_IF_ERROR(sprite_previews_[sprite.id()].ApplyPalette(palette_));
-      rom()->RenderBitmap(&(sprite_previews_[sprite.id()]));
+      Renderer::GetInstance().RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
   return absl::OkStatus();
 }
@@ -1321,7 +1324,7 @@ absl::Status OverworldEditor::LoadAnimatedMaps() {
     }
     RETURN_IF_ERROR(map.BuildBitmap(blockset));
 
-    RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+    RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
         kOverworldMapSize, kOverworldMapSize, 0x200, map.bitmap_data(),
         animated_maps_[world_index], *map.mutable_current_palette()));
 

@@ -2,6 +2,7 @@
 #define YAZE_APP_CORE_CONTROLLER_H
 
 #include <SDL.h>
+
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imconfig.h"
@@ -12,6 +13,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/common.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/master_editor.h"
 #include "app/editor/utils/editor.h"
 #include "app/gui/icons.h"
@@ -45,13 +47,12 @@ class Controller : public ExperimentFlags {
   absl::Status CreateGuiContext();
   absl::Status LoadFontFamilies() const;
   absl::Status LoadAudioDevice();
-  
-  void SetupScreen() {
-    master_editor_.SetupScreen(renderer_);
-  }
 
+  void SetupScreen() { master_editor_.SetupScreen(); }
   auto master_editor() -> editor::MasterEditor & { return master_editor_; }
-  auto renderer() -> SDL_Renderer * { return renderer_.get(); }
+  auto renderer() -> SDL_Renderer * {
+    return Renderer::GetInstance().renderer();
+  }
   auto window() -> SDL_Window * { return window_.get(); }
 
  private:
@@ -81,7 +82,6 @@ class Controller : public ExperimentFlags {
   int16_t *audio_buffer_;
   SDL_AudioDeviceID audio_device_;
   std::shared_ptr<SDL_Window> window_;
-  std::shared_ptr<SDL_Renderer> renderer_;
 };
 
 }  // namespace core

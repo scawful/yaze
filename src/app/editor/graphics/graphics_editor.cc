@@ -13,6 +13,8 @@
 #include "app/gfx/compression.h"
 #include "app/gfx/scad_format.h"
 #include "app/gfx/snes_palette.h"
+#include "app/core/platform/renderer.h"
+
 #include "app/gfx/snes_tile.h"
 #include "app/gui/asset_browser.h"
 #include "app/gui/canvas.h"
@@ -24,6 +26,8 @@
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 using gfx::kPaletteGroupAddressesKeys;
 using ImGui::Button;
@@ -142,7 +146,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
             ->mutable_bitmap_manager()
             ->mutable_bitmap(current_sheet_)
             ->Create(width, height, 8, png_data);
-        rom()->UpdateBitmap(
+        Renderer::GetInstance().UpdateBitmap(
             rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_));
       }
     }
@@ -291,7 +295,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          rom()->UpdateBitmap(&current_bitmap, true);
+          Renderer::GetInstance().UpdateBitmap(&current_bitmap, true);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
@@ -367,7 +371,7 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
       RETURN_IF_ERROR(
           rom()->bitmap_manager()[current_sheet_].ApplyPaletteWithTransparent(
               palette, edit_palette_sub_index_));
-      rom()->UpdateBitmap(
+      Renderer::GetInstance().UpdateBitmap(
           rom()->mutable_bitmap_manager()->mutable_bitmap(current_sheet_),
           true);
       refresh_graphics_ = false;
@@ -462,7 +466,7 @@ absl::Status GraphicsEditor::UpdateScadView() {
       for (int i = 0; i < graphics_bin_.size(); i++) {
         status_ = graphics_bin_[i].ApplyPalette(
             col_file_palette_group_[current_palette_index_]);
-        rom()->UpdateBitmap(&graphics_bin_[i]);
+        Renderer::GetInstance().UpdateBitmap(&graphics_bin_[i]);
       }
       refresh_graphics_ = false;
     }
@@ -535,7 +539,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
       cgx_bitmap_.ApplyPalette(decoded_col_);
-      rom()->RenderBitmap(&cgx_bitmap_);
+      Renderer::GetInstance().RenderBitmap(&cgx_bitmap_);
     }
   }
 
@@ -570,7 +574,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
     scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
       scr_bitmap_.ApplyPalette(decoded_col_);
-      rom()->RenderBitmap(&scr_bitmap_);
+      Renderer::GetInstance().RenderBitmap(&scr_bitmap_);
     }
   }
 
@@ -775,7 +779,7 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     }
   }
 
-  rom()->RenderBitmap(&bin_bitmap_);
+  Renderer::GetInstance().RenderBitmap(&bin_bitmap_);
   gfx_loaded_ = true;
 
   return absl::OkStatus();
@@ -805,7 +809,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       status_ = graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 
-    rom()->RenderBitmap(&graphics_bin_[i]);
+    Renderer::GetInstance().RenderBitmap(&graphics_bin_[i]);
     i++;
   }
 
@@ -830,7 +834,7 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       status_ = graphics_bin_[i].ApplyPalette(z3_rom_palette_);
     }
 
-    rom()->RenderBitmap(&graphics_bin_[i]);
+    Renderer::GetInstance().RenderBitmap(&graphics_bin_[i]);
     i++;
   }
   super_donkey_ = true;
