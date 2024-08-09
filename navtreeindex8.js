@@ -1,5 +1,14 @@
 var NAVTREEINDEX8 =
 {
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a227f81378528f276f4413c22b3ad5378":[8,0,2,0,2,8,181],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a227f81378528f276f4413c22b3ad5378":[9,0,1,0,2,6,181],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a22f505282963e09d2ce60ab9ee1ed09e":[8,0,2,0,2,8,22],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a22f505282963e09d2ce60ab9ee1ed09e":[9,0,1,0,2,6,22],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003":[8,0,2,0,2,8,204],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a2517d9afa3c27cd2385509b561f9a003":[9,0,1,0,2,6,204],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a26869180ff06142956897eaf20eb10bc":[8,0,2,0,2,8,226],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a26869180ff06142956897eaf20eb10bc":[9,0,1,0,2,6,226],
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a27f382e5cab3f3a9fdd40ccfbb2733e4":[8,0,2,0,2,8,41],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a27f382e5cab3f3a9fdd40ccfbb2733e4":[9,0,1,0,2,6,41],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a28f34f224a3790d84f853f022c5b13a2":[8,0,2,0,2,8,40],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a28f34f224a3790d84f853f022c5b13a2":[9,0,1,0,2,6,40],
@@ -240,14 +249,5 @@ var NAVTREEINDEX8 =
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a9813c4c7e34c95f4b36571523bf139e3":[8,0,2,0,2,8,34],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a9813c4c7e34c95f4b36571523bf139e3":[9,0,1,0,2,6,34],
 "classyaze_1_1app_1_1emu_1_1Cpu.html#a986f7e975fcbd396809c4ff12083c490":[8,0,2,0,2,8,105],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a986f7e975fcbd396809c4ff12083c490":[9,0,1,0,2,6,105],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9a51e64fe954d78f46c58076963d3bd7":[8,0,2,0,2,8,184],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9a51e64fe954d78f46c58076963d3bd7":[9,0,1,0,2,6,184],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9cb9163e38e7051277d7211195526faf":[8,0,2,0,2,8,21],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9cb9163e38e7051277d7211195526faf":[9,0,1,0,2,6,21],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9cfa97a6be404dd2bbb3cef547ff6f3e":[8,0,2,0,2,8,46],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9cfa97a6be404dd2bbb3cef547ff6f3e":[9,0,1,0,2,6,46],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9d43774a1ed216dd711040db19720e66":[8,0,2,0,2,8,168],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9d43774a1ed216dd711040db19720e66":[9,0,1,0,2,6,168],
-"classyaze_1_1app_1_1emu_1_1Cpu.html#a9d720287fbec0abd79133bc2b663f8cd":[8,0,2,0,2,8,33]
+"classyaze_1_1app_1_1emu_1_1Cpu.html#a986f7e975fcbd396809c4ff12083c490":[9,0,1,0,2,6,105]
 };

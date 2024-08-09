@@ -208,6 +208,8 @@ Private Attributes</h2></td></tr>
 <dl class="section user"><dt>IPL ROM Info</dt><dd>64 kilobytes of RAM are mapped across the 16-bit memory space of the SPC-700. Some regions of this space are overlaid with special hardware functions.</dd></dl>
 <dl class="section user"><dt>Range Note</dt><dd>$0000-00EF Zero Page RAM $00F0-00FF Sound CPU Registers $0100-01FF Stack Page RAM $0200-FFBF RAM $FFC0-FFFF IPL ROM or RAM</dd></dl>
 <p>The region at $FFC0-FFFF will normally read from the 64-byte IPL ROM, but the underlying RAM can always be written to, and the high bit of the Control register $F1 can be cleared to unmap the IPL ROM and allow read access to this RAM. </p>
+
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00053">53</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a408cf2cd3cb5e57ff594c771763c6786" name="a408cf2cd3cb5e57ff594c771763c6786"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a408cf2cd3cb5e57ff594c771763c6786">&#9670;&#160;</a></span>Apu()</h2>
@@ -232,6 +234,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00055">55</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -250,9 +254,11 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#adf4d534988bc002bb527b0b2efc4b417">ram</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00031">31</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a301e2a1e2a9d20dfe9824c8fc1c39b35">yaze::app::emu::SNES::Init()</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00076">ram</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00037">yaze::app::emu::SNES::Init()</a>.</p>
 
 </div>
 </div>
@@ -271,9 +277,11 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#af02fc4baffed0d1604b8f0377fb9d883">cycles_</a>, <a class="el" href="#a4bd8a35e4f90659e0602652cccff3f5b">dsp_</a>, <a class="el" href="#a75bb828dab0170df1922c2181b7cdfbb">dsp_adr_</a>, <a class="el" href="#aa942ee981aa7dde856a48f214a16f962">in_ports_</a>, <a class="el" href="#acb4a5047187a4e82c14a6040835d4750">out_ports_</a>, <a class="el" href="#adf4d534988bc002bb527b0b2efc4b417">ram</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a96234b514b6cb9d56c48e6e8ac44af67">yaze::app::emu::audio::Dsp::Reset()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8a959cd07f045af98496d5c4bd8fb666">yaze::app::emu::audio::Spc700::Reset()</a>, <a class="el" href="#ac072e06da2be5f74a17c8d122fb281da">rom_readable_</a>, <a class="el" href="#a2b1179dcfc9b246035ef6ec97c9ea7bb">spc700_</a>, and <a class="el" href="#a7987d0d775127223c65b8aa60d0a3776">timer_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00042">42</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#afcbbe81de519e26c5fe0b09a3afbe589">yaze::app::emu::SNES::Reset()</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00082">cycles_</a>, <a class="el" href="apu_8h_source.html#l00092">dsp_</a>, <a class="el" href="apu_8h_source.html#l00081">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00074">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00075">out_ports_</a>, <a class="el" href="apu_8h_source.html#l00076">ram</a>, <a class="el" href="dsp_8cc_source.html#l00071">yaze::app::emu::audio::Dsp::Reset()</a>, <a class="el" href="spc700_8cc_source.html#l00016">yaze::app::emu::audio::Spc700::Reset()</a>, <a class="el" href="apu_8h_source.html#l00079">rom_readable_</a>, <a class="el" href="apu_8h_source.html#l00093">spc700_</a>, and <a class="el" href="apu_8h_source.html#l00085">timer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00049">yaze::app::emu::SNES::Reset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -306,9 +314,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#af02fc4baffed0d1604b8f0377fb9d883">cycles_</a>, <a class="el" href="#a0aa509cadc3a6021bd1e1e74e454b10b">memory_</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1memory_1_1MemoryImpl.html#ad1c2080e714a5543f6aff7c2c1ae1f63">yaze::app::emu::memory::MemoryImpl::pal_timing()</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html#a8be7cee31f3e9ff7a82686b42298b219">yaze::app::emu::audio::Spc700::RunOpcode()</a>, and <a class="el" href="#a2b1179dcfc9b246035ef6ec97c9ea7bb">spc700_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00066">66</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a6c1abd10faa22d9a680130233a997127">yaze::app::emu::SNES::CatchUpApu()</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00082">cycles_</a>, <a class="el" href="apu_8h_source.html#l00084">memory_</a>, <a class="el" href="memory_8h_source.html#l00330">yaze::app::emu::memory::MemoryImpl::pal_timing()</a>, <a class="el" href="spc700_8cc_source.html#l00030">yaze::app::emu::audio::Spc700::RunOpcode()</a>, and <a class="el" href="apu_8h_source.html#l00093">spc700_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00099">yaze::app::emu::SNES::CatchUpApu()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -350,7 +360,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#ac02f7c3f7027eb940e00e6ffa7b5674d">Cycle()</a>, and <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00192">192</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8cc_source.html#l00076">Cycle()</a>, and <a class="el" href="apu_8cc_source.html#l00101">Read()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -389,7 +401,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#ac02f7c3f7027eb940e00e6ffa7b5674d">Cycle()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00197">197</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8cc_source.html#l00076">Cycle()</a>, and <a class="el" href="apu_8cc_source.html#l00138">Write()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -424,7 +438,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#ac02f7c3f7027eb940e00e6ffa7b5674d">Cycle()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00202">202</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8cc_source.html#l00076">Cycle()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -455,9 +471,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#af0dee1dd388ab5bc5e59499e855e0044">yaze::app::emu::audio::Dsp::Cycle()</a>, <a class="el" href="#af02fc4baffed0d1604b8f0377fb9d883">cycles_</a>, <a class="el" href="#a4bd8a35e4f90659e0602652cccff3f5b">dsp_</a>, and <a class="el" href="#a7987d0d775127223c65b8aa60d0a3776">timer_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00076">76</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a3515834953a3b748c95d0117b55b075e">SpcIdle()</a>, <a class="el" href="#a57fe32259ad8866d4b7df0ad78601e11">SpcRead()</a>, and <a class="el" href="#a1635c1bb61926cc862b49bb56e2e3e98">SpcWrite()</a>.</p>
+<p class="reference">References <a class="el" href="dsp_8cc_source.html#l00136">yaze::app::emu::audio::Dsp::Cycle()</a>, <a class="el" href="apu_8h_source.html#l00082">cycles_</a>, <a class="el" href="apu_8h_source.html#l00092">dsp_</a>, and <a class="el" href="apu_8h_source.html#l00085">timer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00202">SpcIdle()</a>, <a class="el" href="apu_8cc_source.html#l00192">SpcRead()</a>, and <a class="el" href="apu_8cc_source.html#l00197">SpcWrite()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -492,9 +510,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a4bd8a35e4f90659e0602652cccff3f5b">dsp_</a>, <a class="el" href="#a75bb828dab0170df1922c2181b7cdfbb">dsp_adr_</a>, <a class="el" href="#aa942ee981aa7dde856a48f214a16f962">in_ports_</a>, <a class="el" href="#adf4d534988bc002bb527b0b2efc4b417">ram</a>, <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#aa490dcc73a922a09bf62f1bfdaabbc3b">yaze::app::emu::audio::Dsp::Read()</a>, <a class="el" href="#ac072e06da2be5f74a17c8d122fb281da">rom_readable_</a>, and <a class="el" href="#a7987d0d775127223c65b8aa60d0a3776">timer_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00101">101</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a57fe32259ad8866d4b7df0ad78601e11">SpcRead()</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00092">dsp_</a>, <a class="el" href="apu_8h_source.html#l00081">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00074">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00076">ram</a>, <a class="el" href="dsp_8cc_source.html#l00432">yaze::app::emu::audio::Dsp::Read()</a>, <a class="el" href="apu_8h_source.html#l00079">rom_readable_</a>, and <a class="el" href="apu_8h_source.html#l00085">timer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00192">SpcRead()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -527,9 +547,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a4bd8a35e4f90659e0602652cccff3f5b">dsp_</a>, <a class="el" href="#a75bb828dab0170df1922c2181b7cdfbb">dsp_adr_</a>, <a class="el" href="#aa942ee981aa7dde856a48f214a16f962">in_ports_</a>, <a class="el" href="#acb4a5047187a4e82c14a6040835d4750">out_ports_</a>, <a class="el" href="#adf4d534988bc002bb527b0b2efc4b417">ram</a>, <a class="el" href="#ac072e06da2be5f74a17c8d122fb281da">rom_readable_</a>, <a class="el" href="#a7987d0d775127223c65b8aa60d0a3776">timer_</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1audio_1_1Dsp.html#a748bcb6fbed28aec5aa3e5c73de3a581">yaze::app::emu::audio::Dsp::Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00138">138</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a1635c1bb61926cc862b49bb56e2e3e98">SpcWrite()</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00092">dsp_</a>, <a class="el" href="apu_8h_source.html#l00081">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00074">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00075">out_ports_</a>, <a class="el" href="apu_8h_source.html#l00076">ram</a>, <a class="el" href="apu_8h_source.html#l00079">rom_readable_</a>, <a class="el" href="apu_8h_source.html#l00085">timer_</a>, and <a class="el" href="dsp_8cc_source.html#l00434">yaze::app::emu::audio::Dsp::Write()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00197">SpcWrite()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -566,9 +588,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a4bd8a35e4f90659e0602652cccff3f5b">dsp_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00070">70</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a7694ee6795ca7eed937619e87dfebbef">yaze::app::emu::SNES::RunCycle()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a64c3e853b26cde351c4925ba5f47072a">yaze::app::emu::SNES::SetSamples()</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00092">dsp_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00118">yaze::app::emu::SNES::RunCycle()</a>, and <a class="el" href="snes_8cc_source.html#l00546">yaze::app::emu::SNES::SetSamples()</a>.</p>
 
 </div>
 </div>
@@ -595,7 +619,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#a2b1179dcfc9b246035ef6ec97c9ea7bb">spc700_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00071">71</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00093">spc700_</a>.</p>
 
 </div>
 </div>
@@ -612,7 +638,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>, and <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#a953a0ae3cc4751c61d53b15075699275">yaze::app::emu::SNES::WriteBBus()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00074">74</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00101">Read()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, <a class="el" href="apu_8cc_source.html#l00138">Write()</a>, and <a class="el" href="snes_8cc_source.html#l00359">yaze::app::emu::SNES::WriteBBus()</a>.</p>
 
 </div>
 </div>
@@ -628,7 +656,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1emu_1_1SNES.html#af752beecbfc218cda7fcb8b32a9faf60">yaze::app::emu::SNES::ReadBBus()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00075">75</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="snes_8cc_source.html#l00254">yaze::app::emu::SNES::ReadBBus()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00138">Write()</a>.</p>
 
 </div>
 </div>
@@ -644,7 +674,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a683c5e94e45d1336df9be9ccf9660d9f">Init()</a>, <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00076">76</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00031">Init()</a>, <a class="el" href="apu_8cc_source.html#l00101">Read()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00138">Write()</a>.</p>
 
 </div>
 </div>
@@ -668,7 +700,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00079">79</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00101">Read()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00138">Write()</a>.</p>
 
 </div>
 </div>
@@ -692,7 +726,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00081">81</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00101">Read()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00138">Write()</a>.</p>
 
 </div>
 </div>
@@ -716,7 +752,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ac02f7c3f7027eb940e00e6ffa7b5674d">Cycle()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#afa010dcc9577f2afd47d7fa622036b1b">RunCycles()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00082">82</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00076">Cycle()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00066">RunCycles()</a>.</p>
 
 </div>
 </div>
@@ -740,7 +778,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#afa010dcc9577f2afd47d7fa622036b1b">RunCycles()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00084">84</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00066">RunCycles()</a>.</p>
 
 </div>
 </div>
@@ -764,7 +804,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ac02f7c3f7027eb940e00e6ffa7b5674d">Cycle()</a>, <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00085">85</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00076">Cycle()</a>, <a class="el" href="apu_8cc_source.html#l00101">Read()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00138">Write()</a>.</p>
 
 </div>
 </div>
@@ -792,10 +834,12 @@ Here is the call graph for this function:</div>
 <div class="line">      [&amp;](uint16_t adr) { <span class="keywordflow">return</span> <a class="code hl_function" href="#a57fe32259ad8866d4b7df0ad78601e11">SpcRead</a>(adr); },</div>
 <div class="line">      [&amp;](<span class="keywordtype">bool</span> waiting) { <a class="code hl_function" href="#a3515834953a3b748c95d0117b55b075e">SpcIdle</a>(waiting); },</div>
 <div class="line">  }</div>
-<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a1635c1bb61926cc862b49bb56e2e3e98"><div class="ttname"><a href="#a1635c1bb61926cc862b49bb56e2e3e98">yaze::app::emu::audio::Apu::SpcWrite</a></div><div class="ttdeci">void SpcWrite(uint16_t address, uint8_t data)</div><div class="ttdef"><b>Definition</b> apu.cc:197</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a3515834953a3b748c95d0117b55b075e"><div class="ttname"><a href="#a3515834953a3b748c95d0117b55b075e">yaze::app::emu::audio::Apu::SpcIdle</a></div><div class="ttdeci">void SpcIdle(bool waiting)</div><div class="ttdef"><b>Definition</b> apu.cc:202</div></div>
-<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a57fe32259ad8866d4b7df0ad78601e11"><div class="ttname"><a href="#a57fe32259ad8866d4b7df0ad78601e11">yaze::app::emu::audio::Apu::SpcRead</a></div><div class="ttdeci">uint8_t SpcRead(uint16_t address)</div><div class="ttdef"><b>Definition</b> apu.cc:192</div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a1635c1bb61926cc862b49bb56e2e3e98"><div class="ttname"><a href="#a1635c1bb61926cc862b49bb56e2e3e98">yaze::app::emu::audio::Apu::SpcWrite</a></div><div class="ttdeci">void SpcWrite(uint16_t address, uint8_t data)</div><div class="ttdef"><b>Definition</b> <a href="apu_8cc_source.html#l00197">apu.cc:197</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a3515834953a3b748c95d0117b55b075e"><div class="ttname"><a href="#a3515834953a3b748c95d0117b55b075e">yaze::app::emu::audio::Apu::SpcIdle</a></div><div class="ttdeci">void SpcIdle(bool waiting)</div><div class="ttdef"><b>Definition</b> <a href="apu_8cc_source.html#l00202">apu.cc:202</a></div></div>
+<div class="ttc" id="aclassyaze_1_1app_1_1emu_1_1audio_1_1Apu_html_a57fe32259ad8866d4b7df0ad78601e11"><div class="ttname"><a href="#a57fe32259ad8866d4b7df0ad78601e11">yaze::app::emu::audio::Apu::SpcRead</a></div><div class="ttdeci">uint8_t SpcRead(uint16_t address)</div><div class="ttdef"><b>Definition</b> <a href="apu_8cc_source.html#l00192">apu.cc:192</a></div></div>
 </div><!-- fragment -->
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00087">87</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
 </div>
 </div>
 <a id="a4bd8a35e4f90659e0602652cccff3f5b" name="a4bd8a35e4f90659e0602652cccff3f5b"></a>
@@ -818,7 +862,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ac02f7c3f7027eb940e00e6ffa7b5674d">Cycle()</a>, <a class="el" href="#ac5797bebb6a04d4fc65191e32916dc5a">dsp()</a>, <a class="el" href="#a32092c2de6e12034e61e856c8ac9d57d">Read()</a>, <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, and <a class="el" href="#a66f27b8a67915bb232ccf2b49290d9a8">Write()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00092">92</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00076">Cycle()</a>, <a class="el" href="apu_8h_source.html#l00070">dsp()</a>, <a class="el" href="apu_8cc_source.html#l00101">Read()</a>, <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00138">Write()</a>.</p>
 
 </div>
 </div>
@@ -842,13 +888,15 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#ac2936da37b32881c4ed74e20aefb789c">Reset()</a>, <a class="el" href="#afa010dcc9577f2afd47d7fa622036b1b">RunCycles()</a>, and <a class="el" href="#afa03a4680931fc7dd19dfd7ec09c43c8">spc700()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00093">93</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00042">Reset()</a>, <a class="el" href="apu_8cc_source.html#l00066">RunCycles()</a>, and <a class="el" href="apu_8h_source.html#l00071">spc700()</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/emu/audio/<a class="el" href="apu_8h_source.html">apu.h</a></li>
-<li>src/app/emu/audio/<a class="el" href="apu_8cc.html">apu.cc</a></li>
+<li>src/app/emu/audio/<a class="el" href="apu_8cc_source.html">apu.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

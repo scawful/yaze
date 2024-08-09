@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Primitive of a Yaze project." alt="" coords="18,183,112,208"/>
 <area shape="rect" id="Node000002" href="$structz3__rom.html" title="Primitive of a Zelda3 ROM." alt="" coords="5,94,69,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="48,134,64,181,59,183,43,135"/>
-<area shape="rect" id="Node000003" href="$structz3__overworld.html" title=" " alt="" coords="92,94,190,120"/>
+<area shape="rect" id="Node000003" href="$structz3__overworld.html" title="Primitive of the overworld." alt="" coords="92,94,190,120"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="122,133,77,184,73,181,118,130"/>
 <area shape="rect" id="Node000004" href="$structz3__overworld__map.html" title="Primitive of an overworld map." alt="" coords="76,5,206,31"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="144,47,144,94,138,94,138,47"/>

@@ -1,5 +1,14 @@
 var NAVTREEINDEX4 =
 {
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab34994ef177b4bb1d4bafc49f4492998":[8,0,2,0,1,17,59],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab34994ef177b4bb1d4bafc49f4492998":[9,0,1,0,1,12,59],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab3ef6d8c4bdbf2b67fd7fc74e16bff89":[8,0,2,0,1,17,99],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab3ef6d8c4bdbf2b67fd7fc74e16bff89":[9,0,1,0,1,12,99],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab55ef1c1523eccdd913e4b05988872e0":[8,0,2,0,1,17,44],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab55ef1c1523eccdd913e4b05988872e0":[9,0,1,0,1,12,44],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e":[8,0,2,0,1,17,1],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab83436301f2e730afbf6753e2827687e":[9,0,1,0,1,12,1],
+"classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab9fe4529225940832a979da221de34f8":[8,0,2,0,1,17,56],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#ab9fe4529225940832a979da221de34f8":[9,0,1,0,1,12,56],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#abb241be4d0930f67daa851139518845c":[8,0,2,0,1,17,61],
 "classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#abb241be4d0930f67daa851139518845c":[9,0,1,0,1,12,61],
@@ -240,14 +249,5 @@ var NAVTREEINDEX4 =
 "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ae6c32401c4c2fd1bef9532cfe0ca5024":[8,0,2,0,1,22,44],
 "classyaze_1_1app_1_1editor_1_1MessageEditor.html#ae6c32401c4c2fd1bef9532cfe0ca5024":[9,0,1,0,1,17,44],
 "classyaze_1_1app_1_1editor_1_1MessageEditor.html#aeee39ff377df10b2328eee5c0a0ae1cc":[8,0,2,0,1,22,13],
-"classyaze_1_1app_1_1editor_1_1MessageEditor.html#aeee39ff377df10b2328eee5c0a0ae1cc":[9,0,1,0,1,17,13],
-"classyaze_1_1app_1_1editor_1_1MessageEditor.html#aefd8258744f92a02d977e2e8c953f146":[8,0,2,0,1,22,38],
-"classyaze_1_1app_1_1editor_1_1MessageEditor.html#aefd8258744f92a02d977e2e8c953f146":[9,0,1,0,1,17,38],
-"classyaze_1_1app_1_1editor_1_1MusicEditor.html":[8,0,2,0,1,23],
-"classyaze_1_1app_1_1editor_1_1MusicEditor.html":[9,0,1,0,1,18],
-"classyaze_1_1app_1_1editor_1_1MusicEditor.html#a0bbdbade3d653135b9377bc0580aa964":[8,0,2,0,1,23,5],
-"classyaze_1_1app_1_1editor_1_1MusicEditor.html#a0bbdbade3d653135b9377bc0580aa964":[9,0,1,0,1,18,5],
-"classyaze_1_1app_1_1editor_1_1MusicEditor.html#a186af3eadcb185d7c32b483302ad517e":[8,0,2,0,1,23,11],
-"classyaze_1_1app_1_1editor_1_1MusicEditor.html#a186af3eadcb185d7c32b483302ad517e":[9,0,1,0,1,18,11],
-"classyaze_1_1app_1_1editor_1_1MusicEditor.html#a19ac93c06947b9d269f8a268e2c18c67":[8,0,2,0,1,23,14]
+"classyaze_1_1app_1_1editor_1_1MessageEditor.html#aeee39ff377df10b2328eee5c0a0ae1cc":[9,0,1,0,1,17,13]
 };

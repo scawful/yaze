@@ -1,5 +1,14 @@
 var NAVTREEINDEX1 =
 {
+"classsample_1_1MyExtension.html#a5cce56bac23d54f475fd2bcdbc16944b":[8,0,1,0,2],
+"classsample_1_1MyExtension.html#a5cce56bac23d54f475fd2bcdbc16944b":[9,0,0,0,2],
+"classsample_1_1MyExtension.html#a6eddcd2665f70a38edf5c793d6de0a01":[8,0,1,0,6],
+"classsample_1_1MyExtension.html#a6eddcd2665f70a38edf5c793d6de0a01":[9,0,0,0,6],
+"classyaze_1_1app_1_1Rom.html":[8,0,2,0,8],
+"classyaze_1_1app_1_1Rom.html":[9,0,1,0,8],
+"classyaze_1_1app_1_1Rom.html#a0405fc759dcf30d80378d1f63f93cbc0":[8,0,2,0,8,18],
+"classyaze_1_1app_1_1Rom.html#a0405fc759dcf30d80378d1f63f93cbc0":[9,0,1,0,8,18],
+"classyaze_1_1app_1_1Rom.html#a051bf6416f14b1547621cc3d556a6e22":[8,0,2,0,8,32],
 "classyaze_1_1app_1_1Rom.html#a051bf6416f14b1547621cc3d556a6e22":[9,0,1,0,8,32],
 "classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d":[8,0,2,0,8,31],
 "classyaze_1_1app_1_1Rom.html#a0855ec3a63a82723541f870bdd00f53d":[9,0,1,0,8,31],
@@ -240,14 +249,5 @@ var NAVTREEINDEX1 =
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd":[8,0,2,0,0,3,1],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#ab31b958a7216371310b254fdc2780dcd":[9,0,1,0,0,1,1],
 "classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7":[8,0,2,0,0,3,4],
-"classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7":[9,0,1,0,0,1,4],
-"classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0":[8,0,2,0,0,3,2],
-"classyaze_1_1app_1_1core_1_1ExperimentFlags.html#adfe896cce0f2a15e43e80667c0f46dd0":[9,0,1,0,0,1,2],
-"classyaze_1_1app_1_1core_1_1GuiTestable.html":[8,0,2,0,0,5],
-"classyaze_1_1app_1_1core_1_1GuiTestable.html":[9,0,1,0,0,3],
-"classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0":[8,0,2,0,0,5,0],
-"classyaze_1_1app_1_1core_1_1GuiTestable.html#aaf5d09f118abccfa38c08ed34bb0bbd0":[9,0,1,0,0,3,0],
-"classyaze_1_1app_1_1core_1_1GuiTestable.html#aded4d6a4666629c4eaec83a468e60a99":[8,0,2,0,0,5,1],
-"classyaze_1_1app_1_1core_1_1GuiTestable.html#aded4d6a4666629c4eaec83a468e60a99":[9,0,1,0,0,3,1],
-"classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html":[8,0,2,0,0,6]
+"classyaze_1_1app_1_1core_1_1ExperimentFlags.html#aceb78c3bf9ad001f9d111f50fe731ab7":[9,0,1,0,0,1,4]
 };

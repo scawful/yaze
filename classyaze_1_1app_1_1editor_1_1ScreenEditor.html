@@ -277,6 +277,8 @@ Additional Inherited Members</h2></td></tr>
 <p>This class is currently a work in progress (WIP) and provides functionality for updating the screens, saving dungeon maps, drawing different types of screens, loading dungeon maps, and managing various properties related to the editor.</p>
 <p>The screens that can be edited include the title screen, naming screen, overworld map, inventory menu, and more.</p>
 <p>The class inherits from the <a class="el" href="classyaze_1_1app_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object.">SharedRom</a> class. </p>
+
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00040">40</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a57e1846d63486b8115f219d85f3c25f0" name="a57e1846d63486b8115f219d85f3c25f0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a57e1846d63486b8115f219d85f3c25f0">&#9670;&#160;</a></span>ScreenEditor()</h2>
@@ -301,7 +303,9 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a999e1b181ff36a65c7fd5a32e4e627d8">yaze::app::editor::kScreen</a>, <a class="el" href="#a2d26cb69caa7e546be36fde44b6c1c8a">screen_canvas_</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a0ace1c816323fe05d96cdba7aa89d6d9">yaze::app::gui::Canvas::SetCanvasSize()</a>, and <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#ab20ed881e86575206b5294a9fc8a9c6f">yaze::app::editor::Editor::type_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00042">42</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">References <a class="el" href="namespaceyaze_1_1app_1_1editor.html#a9bc6b53d6c4013c15c0dd5c838dedb52a999e1b181ff36a65c7fd5a32e4e627d8">yaze::app::editor::kScreen</a>, <a class="el" href="screen__editor_8h_source.html#l00091">screen_canvas_</a>, <a class="el" href="canvas_8h_source.html#l00134">yaze::app::gui::Canvas::SetCanvasSize()</a>, and <a class="el" href="editor_8h_source.html#l00058">yaze::app::editor::Editor::type_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -343,9 +347,11 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a6221b25a61099137266cede698ecbfd7">yaze::app::editor::Editor</a>.</p>
 
-<p class="reference">References <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>, <a class="el" href="#a125632c18fa57d899728ac9bb9fb1236">DrawInventoryMenuEditor()</a>, <a class="el" href="#acdba670fbc930b44519326d7087ef6fd">DrawNamingScreenEditor()</a>, <a class="el" href="#aac71bfdcf351c5d2252bb4c645b7579e">DrawOverworldMapEditor()</a>, <a class="el" href="#a96a82f1ef00e876bfe218ab481e258e6">DrawTitleScreenEditor()</a>, <a class="el" href="constants_8h.html#a2b70aa0177c9118ef7d48ec0596653f4">END_TAB_BAR</a>, <a class="el" href="constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11">END_TAB_ITEM</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="constants_8h.html#a2787dd8a1e56d8afff7bb6b2275a5631">TAB_BAR</a>, and <a class="el" href="constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c">TAB_ITEM</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00028">28</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#aef088de58cae5ac63a9a5e1ca301a4f7">yaze::app::editor::MasterEditor::ManageActiveEditors()</a>.</p>
+<p class="reference">References <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00044">DrawInventoryMenuEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00406">DrawNamingScreenEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00410">DrawOverworldMapEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00402">DrawTitleScreenEditor()</a>, <a class="el" href="constants_8h_source.html#l00009">END_TAB_BAR</a>, <a class="el" href="constants_8h_source.html#l00014">END_TAB_ITEM</a>, <a class="el" href="rom_8h_source.html#l00601">yaze::app::SharedRom::rom()</a>, <a class="el" href="constants_8h_source.html#l00008">TAB_BAR</a>, and <a class="el" href="constants_8h_source.html#l00013">TAB_ITEM</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="master__editor_8cc_source.html#l00093">yaze::app::editor::MasterEditor::ManageActiveEditors()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -449,6 +455,8 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a1b7f92efb9dd39fd68eae2363c108b1f">yaze::app::editor::Editor</a>.</p>
 
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00049">49</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
 </div>
 </div>
 <a id="a88edc3fbd9ec862b315a94e553c3c452" name="a88edc3fbd9ec862b315a94e553c3c452"></a>
@@ -475,6 +483,8 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#aaa80459a0949a512973a71cc6d9cad57">yaze::app::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00050">50</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
 
 </div>
 </div>
@@ -503,6 +513,8 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#a0a6a8763609479556beea5fcdfbe9256">yaze::app::editor::Editor</a>.</p>
 
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00051">51</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
 </div>
 </div>
 <a id="ad47ccf2047754bb733772d8a5d50c54b" name="ad47ccf2047754bb733772d8a5d50c54b"></a>
@@ -529,6 +541,8 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#ab30eea7bb6fd2bc6dd5d7e2678a92596">yaze::app::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00052">52</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
 
 </div>
 </div>
@@ -557,6 +571,8 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#acbcad60f025a80c9f1477ffe34dd1cba">yaze::app::editor::Editor</a>.</p>
 
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00053">53</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
 </div>
 </div>
 <a id="ae5368583dac430cfef59d1698a5f1628" name="ae5368583dac430cfef59d1698a5f1628"></a>
@@ -584,6 +600,8 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="classyaze_1_1app_1_1editor_1_1Editor.html#aa3e4e4a595aeea6ff984d916e50f711b">yaze::app::editor::Editor</a>.</p>
 
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00054">54</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
 </div>
 </div>
 <a id="aa8b8ec92880eda214d23e1572b021ee2" name="aa8b8ec92880eda214d23e1572b021ee2"></a>
@@ -601,9 +619,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#ae0ed2f4361b29e64f37bb68cd24a583a">dungeon_maps_</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a9e212daa65e0459d494ff6b806fdb8ae">yaze::app::zelda3::screen::kDungeonMapGfxPtr</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#ac7aab3f19216680ca568504a2f014b16">yaze::app::zelda3::screen::kDungeonMapRoomsPtr</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a">yaze::app::core::SnesToPc()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00185">185</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="classyaze_1_1app_1_1editor_1_1MasterEditor.html#a5778a42abd5d52e437aa22a27f6879ca">yaze::app::editor::MasterEditor::SaveRom()</a>.</p>
+<p class="reference">References <a class="el" href="screen__editor_8h_source.html#l00072">dungeon_maps_</a>, <a class="el" href="dungeon__map_8h_source.html#l00015">yaze::app::zelda3::screen::kDungeonMapGfxPtr</a>, <a class="el" href="dungeon__map_8h_source.html#l00012">yaze::app::zelda3::screen::kDungeonMapRoomsPtr</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00601">yaze::app::SharedRom::rom()</a>, and <a class="el" href="core_2common_8h_source.html#l00199">yaze::app::core::SnesToPc()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="master__editor_8cc_source.html#l00784">yaze::app::editor::MasterEditor::SaveRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -643,9 +663,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11">END_TAB_ITEM</a>, and <a class="el" href="constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c">TAB_ITEM</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00402">402</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a565a4af81f8980eb86101f381e8a55f2">Update()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00014">END_TAB_ITEM</a>, and <a class="el" href="constants_8h_source.html#l00013">TAB_ITEM</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00028">Update()</a>.</p>
 
 </div>
 </div>
@@ -672,9 +694,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11">END_TAB_ITEM</a>, and <a class="el" href="constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c">TAB_ITEM</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00406">406</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a565a4af81f8980eb86101f381e8a55f2">Update()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00014">END_TAB_ITEM</a>, and <a class="el" href="constants_8h_source.html#l00013">TAB_ITEM</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00028">Update()</a>.</p>
 
 </div>
 </div>
@@ -701,9 +725,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11">END_TAB_ITEM</a>, and <a class="el" href="constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c">TAB_ITEM</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00410">410</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a565a4af81f8980eb86101f381e8a55f2">Update()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00014">END_TAB_ITEM</a>, and <a class="el" href="constants_8h_source.html#l00013">TAB_ITEM</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00028">Update()</a>.</p>
 
 </div>
 </div>
@@ -730,9 +756,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a550e848467ff431b8862e3f62c106471">yaze::app::zelda3::screen::Inventory::Bitmap()</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#ab4f6e14828b66b9e79d1f709024c3744">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a37d30bfb30a0b8009d689eee0085eed0">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="#add96fd1781c302cf95e2df7b4d5d1827">DrawInventoryToolset()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="constants_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11">END_TAB_ITEM</a>, <a class="el" href="#a88f59b26b11674da6989409cd58e0787">inventory_</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a8a8d3eac7eccffe1e75e3eadbb2f5175">yaze::app::zelda3::screen::Inventory::Palette()</a>, <a class="el" href="#aa92cc04d58d5ff066e47edd631fd4711">palette_</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="#a2d26cb69caa7e546be36fde44b6c1c8a">screen_canvas_</a>, <a class="el" href="#a4da093058d84665c2bd1b71afb7cc0aa">status_</a>, <a class="el" href="constants_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c">TAB_ITEM</a>, <a class="el" href="classyaze_1_1app_1_1zelda3_1_1screen_1_1Inventory.html#a872c3ca1d107c1df3ac5068592f706c8">yaze::app::zelda3::screen::Inventory::Tilesheet()</a>, and <a class="el" href="#ad65ead871549de1923c00729f0b72d46">tilesheet_canvas_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00044">44</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a565a4af81f8980eb86101f381e8a55f2">Update()</a>.</p>
+<p class="reference">References <a class="el" href="inventory_8h_source.html#l00020">yaze::app::zelda3::screen::Inventory::Bitmap()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::app::zelda3::screen::Inventory::Create()</a>, <a class="el" href="color_8cc_source.html#l00056">yaze::app::gui::DisplayPalette()</a>, <a class="el" href="canvas_8cc_source.html#l00063">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00458">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00098">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00667">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="screen__editor_8cc_source.html#l00085">DrawInventoryToolset()</a>, <a class="el" href="canvas_8cc_source.html#l00728">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="constants_8h_source.html#l00014">END_TAB_ITEM</a>, <a class="el" href="screen__editor_8h_source.html#l00089">inventory_</a>, <a class="el" href="inventory_8h_source.html#l00022">yaze::app::zelda3::screen::Inventory::Palette()</a>, <a class="el" href="screen__editor_8h_source.html#l00090">palette_</a>, <a class="el" href="rom_8h_source.html#l00601">yaze::app::SharedRom::rom()</a>, <a class="el" href="screen__editor_8h_source.html#l00091">screen_canvas_</a>, <a class="el" href="screen__editor_8h_source.html#l00099">status_</a>, <a class="el" href="constants_8h_source.html#l00013">TAB_ITEM</a>, <a class="el" href="inventory_8h_source.html#l00021">yaze::app::zelda3::screen::Inventory::Tilesheet()</a>, and <a class="el" href="screen__editor_8h_source.html#l00092">tilesheet_canvas_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00028">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -823,6 +851,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00415">415</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
+
 </div>
 </div>
 <a id="add96fd1781c302cf95e2df7b4d5d1827" name="add96fd1781c302cf95e2df7b4d5d1827"></a>
@@ -848,9 +878,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#ae7499c3a615a8657bdf2d38994f0d231">BUTTON_COLUMN</a>, <a class="el" href="icons_8h.html#ac0bb4c798c8bd9cd6fbc2a69d6a76fc7">ICON_MD_BUILD</a>, <a class="el" href="icons_8h.html#a4dfae6ca81fc0df3a36fd0ce8c2ca827">ICON_MD_DRAW</a>, <a class="el" href="icons_8h.html#a2af5d00433b3cf6006a7d497da613950">ICON_MD_MORE_VERT</a>, <a class="el" href="icons_8h.html#a62aa9516431327cc4a86c35e549b0528">ICON_MD_REDO</a>, <a class="el" href="icons_8h.html#af3b5d89358ec687366dae3ee3b73eacd">ICON_MD_UNDO</a>, <a class="el" href="icons_8h.html#aca4ed0c7c69f9b6e0da2410d0de5fb79">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h.html#a5a3f2eab21905f6fc007e48141de6c86">ICON_MD_ZOOM_OUT</a>, and <a class="el" href="constants_8h.html#ab26befe35e7dc3925d437d779a8c9f7c">TEXT_COLUMN</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00085">85</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a125632c18fa57d899728ac9bb9fb1236">DrawInventoryMenuEditor()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00021">BUTTON_COLUMN</a>, <a class="el" href="icons_8h_source.html#l00326">ICON_MD_BUILD</a>, <a class="el" href="icons_8h_source.html#l00623">ICON_MD_DRAW</a>, <a class="el" href="icons_8h_source.html#l01241">ICON_MD_MORE_VERT</a>, <a class="el" href="icons_8h_source.html#l01568">ICON_MD_REDO</a>, <a class="el" href="icons_8h_source.html#l02034">ICON_MD_UNDO</a>, <a class="el" href="icons_8h_source.html#l02189">ICON_MD_ZOOM_IN</a>, <a class="el" href="icons_8h_source.html#l02191">ICON_MD_ZOOM_OUT</a>, and <a class="el" href="constants_8h_source.html#l00025">TEXT_COLUMN</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00044">DrawInventoryMenuEditor()</a>.</p>
 
 </div>
 </div>
@@ -877,9 +909,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="#a0dd4b026b50d09f54e24404ec9d7bb39">dungeon_map_labels_</a>, <a class="el" href="#ae0ed2f4361b29e64f37bb68cd24a583a">dungeon_maps_</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#aad255887550f0005eecfcf041ff2edca">yaze::app::zelda3::screen::kDungeonMapBossRooms</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#ac3b7b926de7a1ac7bced5b0bab75849f">yaze::app::zelda3::screen::kDungeonMapFloors</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#ac7aab3f19216680ca568504a2f014b16">yaze::app::zelda3::screen::kDungeonMapRoomsPtr</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#aac6170e3d4875c2f4cfcc39bee40eb1a">yaze::app::core::SnesToPc()</a>, and <a class="el" href="namespaceyaze_1_1app_1_1core.html#adee4cb66335fc06d420159375b151524">yaze::app::core::UppercaseHexByte()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00110">110</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00079">ASSIGN_OR_RETURN</a>, <a class="el" href="screen__editor_8h_source.html#l00073">dungeon_map_labels_</a>, <a class="el" href="screen__editor_8h_source.html#l00072">dungeon_maps_</a>, <a class="el" href="dungeon__map_8h_source.html#l00026">yaze::app::zelda3::screen::kDungeonMapBossRooms</a>, <a class="el" href="dungeon__map_8h_source.html#l00013">yaze::app::zelda3::screen::kDungeonMapFloors</a>, <a class="el" href="dungeon__map_8h_source.html#l00012">yaze::app::zelda3::screen::kDungeonMapRoomsPtr</a>, <a class="el" href="rom_8h_source.html#l00601">yaze::app::SharedRom::rom()</a>, <a class="el" href="core_2common_8h_source.html#l00199">yaze::app::core::SnesToPc()</a>, and <a class="el" href="labeling_8cc_source.html#l00021">yaze::app::core::UppercaseHexByte()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -921,9 +955,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="constants_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#aca6ccf120099b7d1a53c4b4bf4c0bdb4">yaze::app::gfx::Tilesheet::ComposeTile16()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a69bef91dcc26fb952a982236fb484908">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a6571d25014f0c2fce8e26bc77557b16b">yaze::app::gfx::Tilesheet::Init()</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#acd0c0e83ec226bf1c7dab09cbb193dac">yaze::app::zelda3::screen::kDungeonMapExpCheck</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#ab1dd7f6b552064af99e2cc58d1aa1939">yaze::app::zelda3::screen::kDungeonMapTile16</a>, <a class="el" href="namespaceyaze_1_1app_1_1zelda3_1_1screen.html#a7e7695ce1dea25d8a4ebf2fc344c3f19">yaze::app::zelda3::screen::kDungeonMapTile16Expanded</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#ab010ddc618da1a868b3a6ad4319e72b3">yaze::app::gfx::Tilesheet::mutable_bitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a8baef78ba58fc7933571de5931735d57">yaze::app::gfx::Tilesheet::num_tiles()</a>, <a class="el" href="constants_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7a0136ed56bdc945f798e3b2ff271ba011">yaze::app::gfx::Tile16</a>, <a class="el" href="#ae29e935dafd44a9185783e25090e28e2">tile16_individual_</a>, <a class="el" href="#a6ac772677f43a6a6e079a6926e33e1e6">tile16_sheet_</a>, and <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#a1c0d7314890a130ceda6eec9def39c4e">yaze::app::gfx::WordToTileInfo()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00212">212</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>.</p>
+<p class="reference">References <a class="el" href="constants_8h_source.html#l00079">ASSIGN_OR_RETURN</a>, <a class="el" href="tilesheet_8cc_source.html#l00062">yaze::app::gfx::Tilesheet::ComposeTile16()</a>, <a class="el" href="tilesheet_8h_source.html#l00054">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="tilesheet_8cc_source.html#l00049">yaze::app::gfx::Tilesheet::Init()</a>, <a class="el" href="dungeon__map_8h_source.html#l00021">yaze::app::zelda3::screen::kDungeonMapExpCheck</a>, <a class="el" href="dungeon__map_8h_source.html#l00022">yaze::app::zelda3::screen::kDungeonMapTile16</a>, <a class="el" href="dungeon__map_8h_source.html#l00023">yaze::app::zelda3::screen::kDungeonMapTile16Expanded</a>, <a class="el" href="tilesheet_8h_source.html#l00079">yaze::app::gfx::Tilesheet::mutable_bitmap()</a>, <a class="el" href="tilesheet_8h_source.html#l00080">yaze::app::gfx::Tilesheet::num_tiles()</a>, <a class="el" href="constants_8h_source.html#l00071">RETURN_IF_ERROR</a>, <a class="el" href="rom_8h_source.html#l00601">yaze::app::SharedRom::rom()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gfx.html#ae95a00ff98c9e69d426f80c487e2dac7a0136ed56bdc945f798e3b2ff271ba011">yaze::app::gfx::Tile16</a>, <a class="el" href="screen__editor_8h_source.html#l00075">tile16_individual_</a>, <a class="el" href="screen__editor_8h_source.html#l00097">tile16_sheet_</a>, and <a class="el" href="snes__tile_8cc_source.html#l00321">yaze::app::gfx::WordToTileInfo()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -977,9 +1013,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="#afd90209d6c64318cb85e6ee7899c6b9e">boss_room</a>, <a class="el" href="#aa093b0830089978f3b4e6e6732fd3bf5">copy_button_pressed</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a7512bcb95bd84e63e1a2b345fc0f00a7">yaze::app::gui::Canvas::DrawOutlineWithColor()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a34368006660aa3fdf79e9428af12e961">yaze::app::gui::Canvas::DrawText()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="#a0dd4b026b50d09f54e24404ec9d7bb39">dungeon_map_labels_</a>, <a class="el" href="#ae0ed2f4361b29e64f37bb68cd24a583a">dungeon_maps_</a>, <a class="el" href="#a5085b792c58db9657440783d875f07a8">floor_number</a>, <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#a69bef91dcc26fb952a982236fb484908">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#a00b45dc4f42711dff98b2893eda7b2bb">yaze::app::gui::InputHexByte()</a>, <a class="el" href="namespaceyaze_1_1app_1_1gui.html#aeb673569b394c59150347b1c88016afd">yaze::app::gui::InputHexWord()</a>, <a class="el" href="namespaceyaze_1_1app_1_1core.html#a386b985dabb5995d3943457a20547f19">yaze::app::core::kRedPen</a>, <a class="el" href="#ab286ad9629ffa0fe75c0cfa3fa8885c0">paste_button_pressed</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a8540f6602c32ce8d64db7ecacbf93a8f">yaze::app::gui::Canvas::points()</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="#a2d26cb69caa7e546be36fde44b6c1c8a">screen_canvas_</a>, <a class="el" href="#a3e9843fbe3694bc47a27de1f13a0b3b4">selected_dungeon</a>, <a class="el" href="#a8184b64b976ab4d39d4d3e20108153d2">selected_room</a>, <a class="el" href="#ae29e935dafd44a9185783e25090e28e2">tile16_individual_</a>, and <a class="el" href="#a6ac772677f43a6a6e079a6926e33e1e6">tile16_sheet_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00251">251</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>.</p>
+<p class="reference">References <a class="el" href="screen__editor_8h_source.html#l00082">boss_room</a>, <a class="el" href="screen__editor_8h_source.html#l00085">copy_button_pressed</a>, <a class="el" href="canvas_8cc_source.html#l00063">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00458">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00667">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00516">yaze::app::gui::Canvas::DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00728">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00612">yaze::app::gui::Canvas::DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00337">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="screen__editor_8h_source.html#l00073">dungeon_map_labels_</a>, <a class="el" href="screen__editor_8h_source.html#l00072">dungeon_maps_</a>, <a class="el" href="screen__editor_8h_source.html#l00083">floor_number</a>, <a class="el" href="tilesheet_8h_source.html#l00054">yaze::app::gfx::Tilesheet::GetTile16()</a>, <a class="el" href="input_8cc_source.html#l00177">yaze::app::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00163">yaze::app::gui::InputHexWord()</a>, <a class="el" href="constants_8h_source.html#l00139">yaze::app::core::kRedPen</a>, <a class="el" href="screen__editor_8h_source.html#l00086">paste_button_pressed</a>, <a class="el" href="canvas_8h_source.html#l00142">yaze::app::gui::Canvas::points()</a>, <a class="el" href="rom_8h_source.html#l00601">yaze::app::SharedRom::rom()</a>, <a class="el" href="screen__editor_8h_source.html#l00091">screen_canvas_</a>, <a class="el" href="screen__editor_8h_source.html#l00080">selected_dungeon</a>, <a class="el" href="screen__editor_8h_source.html#l00081">selected_room</a>, <a class="el" href="screen__editor_8h_source.html#l00075">tile16_individual_</a>, and <a class="el" href="screen__editor_8h_source.html#l00097">tile16_sheet_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1052,9 +1090,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="classyaze_1_1app_1_1gfx_1_1Tilesheet.html#afd84418be2baaf812e2faf37429f3624">yaze::app::gfx::Tilesheet::bitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a1068606a5a066f19a39932e05d71da1e">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a546bca6ab34aed7e893ef6c5e8d56f32">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a9c0b8b1e13396a4c0ea677208f27f749">yaze::app::gui::Canvas::DrawBitmapTable()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#adcf94e785e5229860e85b8cd61248b59">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a2b6253806ad23fe0dcfb43a2560072e4">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#aabe6f55d89a641416172d54f83595105">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a0477eb766134ca850c832a30c2380049">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="#a54cd7324648ecd704eada38906eb8b8f">dungeon_maps_loaded_</a>, <a class="el" href="#ac0eaa18aa6166c0374516e091c97a2fa">LoadDungeonMaps()</a>, <a class="el" href="#a36d2f69c38cf0a15353d3a16986ec0b0">LoadDungeonMapTile16()</a>, <a class="el" href="classyaze_1_1app_1_1gui_1_1Canvas.html#a8540f6602c32ce8d64db7ecacbf93a8f">yaze::app::gui::Canvas::points()</a>, <a class="el" href="classyaze_1_1app_1_1SharedRom.html#a2847e836811cb7620c6c464bffb8e5ff">yaze::app::SharedRom::rom()</a>, <a class="el" href="#a3e9843fbe3694bc47a27de1f13a0b3b4">selected_dungeon</a>, <a class="el" href="#a4c235f20e875b33450dd8c9bd6cc2e98">selected_tile16_</a>, <a class="el" href="#abe64d48a0fe1ba02325f290a38c1f7ae">sheets_</a>, <a class="el" href="#a6ac772677f43a6a6e079a6926e33e1e6">tile16_sheet_</a>, <a class="el" href="#a000696f10ff256d28fb16260d0b27416">tilemap_canvas_</a>, and <a class="el" href="#ad65ead871549de1923c00729f0b72d46">tilesheet_canvas_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8cc_source.html#l00328">328</a> of file <a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a565a4af81f8980eb86101f381e8a55f2">Update()</a>.</p>
+<p class="reference">References <a class="el" href="tilesheet_8h_source.html#l00078">yaze::app::gfx::Tilesheet::bitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00063">yaze::app::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00458">yaze::app::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00495">yaze::app::gui::Canvas::DrawBitmapTable()</a>, <a class="el" href="canvas_8cc_source.html#l00098">yaze::app::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>, <a class="el" href="canvas_8cc_source.html#l00667">yaze::app::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00728">yaze::app::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00337">yaze::app::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="screen__editor_8h_source.html#l00077">dungeon_maps_loaded_</a>, <a class="el" href="screen__editor_8cc_source.html#l00110">LoadDungeonMaps()</a>, <a class="el" href="screen__editor_8cc_source.html#l00212">LoadDungeonMapTile16()</a>, <a class="el" href="canvas_8h_source.html#l00142">yaze::app::gui::Canvas::points()</a>, <a class="el" href="rom_8h_source.html#l00601">yaze::app::SharedRom::rom()</a>, <a class="el" href="screen__editor_8h_source.html#l00080">selected_dungeon</a>, <a class="el" href="screen__editor_8h_source.html#l00079">selected_tile16_</a>, <a class="el" href="screen__editor_8h_source.html#l00095">sheets_</a>, <a class="el" href="screen__editor_8h_source.html#l00097">tile16_sheet_</a>, <a class="el" href="screen__editor_8h_source.html#l00093">tilemap_canvas_</a>, and <a class="el" href="screen__editor_8h_source.html#l00092">tilesheet_canvas_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00028">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1147,7 +1187,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>, <a class="el" href="#ac0eaa18aa6166c0374516e091c97a2fa">LoadDungeonMaps()</a>, and <a class="el" href="#aa8b8ec92880eda214d23e1572b021ee2">SaveDungeonMaps()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00072">72</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>, <a class="el" href="screen__editor_8cc_source.html#l00110">LoadDungeonMaps()</a>, and <a class="el" href="screen__editor_8cc_source.html#l00185">SaveDungeonMaps()</a>.</p>
 
 </div>
 </div>
@@ -1171,7 +1213,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>, and <a class="el" href="#ac0eaa18aa6166c0374516e091c97a2fa">LoadDungeonMaps()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00073">73</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>, and <a class="el" href="screen__editor_8cc_source.html#l00110">LoadDungeonMaps()</a>.</p>
 
 </div>
 </div>
@@ -1195,7 +1239,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>, and <a class="el" href="#a36d2f69c38cf0a15353d3a16986ec0b0">LoadDungeonMapTile16()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00075">75</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>, and <a class="el" href="screen__editor_8cc_source.html#l00212">LoadDungeonMapTile16()</a>.</p>
 
 </div>
 </div>
@@ -1219,7 +1265,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00077">77</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>.</p>
 
 </div>
 </div>
@@ -1243,7 +1291,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00079">79</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>.</p>
 
 </div>
 </div>
@@ -1267,7 +1317,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>, and <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00080">80</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>, and <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>.</p>
 
 </div>
 </div>
@@ -1291,7 +1343,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00081">81</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>.</p>
 
 </div>
 </div>
@@ -1315,7 +1369,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00082">82</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>.</p>
 
 </div>
 </div>
@@ -1339,7 +1395,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00083">83</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>.</p>
 
 </div>
 </div>
@@ -1363,7 +1421,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00085">85</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>.</p>
 
 </div>
 </div>
@@ -1387,7 +1447,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00086">86</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>.</p>
 
 </div>
 </div>
@@ -1411,6 +1473,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00088">88</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
 </div>
 </div>
 <a id="a88f59b26b11674da6989409cd58e0787" name="a88f59b26b11674da6989409cd58e0787"></a>
@@ -1433,7 +1497,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a125632c18fa57d899728ac9bb9fb1236">DrawInventoryMenuEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00089">89</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00044">DrawInventoryMenuEditor()</a>.</p>
 
 </div>
 </div>
@@ -1457,7 +1523,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a125632c18fa57d899728ac9bb9fb1236">DrawInventoryMenuEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00090">90</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00044">DrawInventoryMenuEditor()</a>.</p>
 
 </div>
 </div>
@@ -1481,7 +1549,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>, <a class="el" href="#a125632c18fa57d899728ac9bb9fb1236">DrawInventoryMenuEditor()</a>, and <a class="el" href="#a57e1846d63486b8115f219d85f3c25f0">ScreenEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00091">91</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>, <a class="el" href="screen__editor_8cc_source.html#l00044">DrawInventoryMenuEditor()</a>, and <a class="el" href="screen__editor_8h_source.html#l00042">ScreenEditor()</a>.</p>
 
 </div>
 </div>
@@ -1505,7 +1575,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>, and <a class="el" href="#a125632c18fa57d899728ac9bb9fb1236">DrawInventoryMenuEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00092">92</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>, and <a class="el" href="screen__editor_8cc_source.html#l00044">DrawInventoryMenuEditor()</a>.</p>
 
 </div>
 </div>
@@ -1529,7 +1601,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00093">93</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>.</p>
 
 </div>
 </div>
@@ -1553,7 +1627,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00095">95</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>.</p>
 
 </div>
 </div>
@@ -1577,7 +1653,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a9dcd046f7d190f067d3720f520b0328a">DrawDungeonMapsEditor()</a>, <a class="el" href="#abcc115ac33f92c971fa197820e2cc517">DrawDungeonMapsTabs()</a>, and <a class="el" href="#a36d2f69c38cf0a15353d3a16986ec0b0">LoadDungeonMapTile16()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00097">97</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00328">DrawDungeonMapsEditor()</a>, <a class="el" href="screen__editor_8cc_source.html#l00251">DrawDungeonMapsTabs()</a>, and <a class="el" href="screen__editor_8cc_source.html#l00212">LoadDungeonMapTile16()</a>.</p>
 
 </div>
 </div>
@@ -1601,13 +1679,15 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="#a125632c18fa57d899728ac9bb9fb1236">DrawInventoryMenuEditor()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="screen__editor_8h_source.html#l00099">99</a> of file <a class="el" href="screen__editor_8h_source.html">screen_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00044">DrawInventoryMenuEditor()</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/app/editor/graphics/<a class="el" href="screen__editor_8h_source.html">screen_editor.h</a></li>
-<li>src/app/editor/graphics/<a class="el" href="screen__editor_8cc.html">screen_editor.cc</a></li>
+<li>src/app/editor/graphics/<a class="el" href="screen__editor_8cc_source.html">screen_editor.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
