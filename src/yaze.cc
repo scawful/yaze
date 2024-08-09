@@ -96,5 +96,11 @@ z3_overworld* yaze_load_overworld(const z3_rom* rom) {
 
   z3_overworld* overworld = new z3_overworld();
   overworld->impl = internal_overworld;
+  int map_id = 0;
+  for (const auto& ow_map : internal_overworld->overworld_maps()) {
+    overworld->maps[map_id] = new z3_overworld_map();
+    overworld->maps[map_id]->id = map_id;
+    map_id++;
+  }
   return overworld;
 }
