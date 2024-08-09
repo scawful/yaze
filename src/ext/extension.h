@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+typedef void (*yaze_imgui_render_callback)(void* editor_context);
+
+typedef void (*yaze_rom_operation)(z3_rom* rom);
+
 typedef struct yaze_extension {
   const char* name;
   const char* version;
@@ -16,16 +20,21 @@ typedef struct yaze_extension {
   void (*cleanup)(void);
 
   // Function to extend editor functionality
-  void (*extendFunctionality)(void* editorContext);
+  void (*extend_functionality)(void* editor_context);
+
+  // ImGui rendering callback
+  yaze_imgui_render_callback render_ui;
+
+  // ROM manipulation callback
+  yaze_rom_operation manipulate_rom;
+
 } yaze_extension;
 
-// Function to get the extension instance
-yaze_extension* GetExtension();
+yaze_extension* get_yaze_extension();
 
-void LoadCExtension(const char* extension_path);
+void yaze_load_c_extension(const char* extension_path);
 
-// Function to load a Python script as an extension
-void LoadPythonExtension(const char* script_path);
+void yaze_load_py_extension(const char* script_path);
 
 #ifdef __cplusplus
 }
