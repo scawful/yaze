@@ -8,30 +8,29 @@ void yaze_initialize(void) {}
 // TODO: Implement yaze_cleanup
 void yaze_cleanup(void) {}
 
-rom load_rom(const char* filename) {
+z3_rom* yaze_load_rom(const char* filename) {
   yaze::app::Rom* internal_rom;
   internal_rom = new yaze::app::Rom();
   if (!internal_rom->LoadFromFile(filename).ok()) {
     delete internal_rom;
-    rom rom;
-    rom.impl = nullptr;
-    rom.filename = filename;
-    rom.data = nullptr;
-    rom.size = 0;
-    return rom;
+    return nullptr;
   }
 
-  rom rom;
-  rom.impl = internal_rom;
-  rom.filename = filename;
-  rom.data = internal_rom->data();
-  rom.size = internal_rom->size();
+  z3_rom* rom = new z3_rom();
+  rom->filename = filename;
+  rom->impl = internal_rom;
+  rom->data = internal_rom->data();
+  rom->size = internal_rom->size();
   return rom;
 }
 
-void unload_rom(rom rom) {
-  if (rom.impl) {
-    delete static_cast<yaze::app::Rom*>(rom.impl);
+void yaze_unload_rom(z3_rom* rom) {
+  if (rom->impl) {
+    delete static_cast<yaze::app::Rom*>(rom->impl);
+  }
+
+  if (rom) {
+    delete rom;
   }
 }
 

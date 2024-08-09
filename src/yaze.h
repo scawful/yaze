@@ -15,17 +15,22 @@ void yaze_initialize(void);
 
 void yaze_cleanup(void);
 
-typedef struct rom rom;
-
-struct rom {
+typedef struct z3_rom z3_rom;
+struct z3_rom {
   const char* filename;
   const uint8_t* data;
   size_t size;
   void* impl;  // yaze::app::Rom*
 };
 
-rom load_rom(const char* filename);
-void unload_rom(rom rom);
+struct yaze_flags {
+  int debug;
+  const char* rom_filename;
+  z3_rom* rom;
+};
+
+z3_rom* yaze_load_rom(const char* filename);
+void yaze_unload_rom(z3_rom* rom);
 
 snes_color get_color_from_paletteset(const rom* rom, int palette_set,
                                      int palette, int color);

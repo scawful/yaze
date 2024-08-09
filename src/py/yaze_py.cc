@@ -7,11 +7,11 @@
 BOOST_PYTHON_MODULE(yaze) {
   using namespace boost::python;
 
-  class_<rom>("rom")
-      .def_readonly("filename", &rom::filename)
-      .def_readonly("data", &rom::data)
-      .def_readonly("size", &rom::size)
-      .def_readonly("impl", &rom::impl);
+  class_<z3_rom>("rom")
+      .def_readonly("filename", &z3_rom::filename)
+      .def_readonly("data", &z3_rom::data)
+      .def_readonly("size", &z3_rom::size)
+      .def_readonly("impl", &z3_rom::impl);
 
   class_<snes_color>("snes_color")
       .def_readonly("red", &snes_color::red)
