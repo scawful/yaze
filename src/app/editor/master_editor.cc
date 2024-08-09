@@ -473,7 +473,6 @@ void MasterEditor::DrawFileMenu() {
     MENU_ITEM("Save As..") { save_as_menu = true; }
 
     if (rom()->is_loaded()) {
-      MENU_ITEM("Reload") { status_ = rom()->Reload(); }
       MENU_ITEM("Close") {
         status_ = rom()->Close();
         rom_assets_loaded_ = false;
