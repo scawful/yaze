@@ -3,14 +3,13 @@
 
 #include <SDL.h>
 
+#include <memory>
+
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imconfig.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-
-#include <memory>
-
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/platform/renderer.h"
@@ -56,22 +55,6 @@ class Controller : public ExperimentFlags {
   auto window() -> SDL_Window * { return window_.get(); }
 
  private:
-  struct sdl_deleter {
-    void operator()(SDL_Window *p) const {
-      if (p) {
-        SDL_DestroyWindow(p);
-      }
-    }
-    void operator()(SDL_Renderer *p) const {
-      if (p) {
-        SDL_DestroyRenderer(p);
-      }
-    }
-    void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
-  };
-
-  void CloseWindow() { active_ = false; }
-
   friend int ::main(int argc, char **argv);
 
   bool active_;
