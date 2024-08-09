@@ -2,11 +2,23 @@
 
 #include "app/rom.h"
 
-// TODO: Implement yaze_initialize
-void yaze_initialize(void) {}
+void yaze_init(yaze_flags* flags) {
+  if (flags == nullptr) {
+    return;
+  }
 
-// TODO: Implement yaze_cleanup
-void yaze_cleanup(void) {}
+  if (flags->rom_filename == nullptr) {
+    return;
+  }
+
+  flags->rom = yaze_load_rom(flags->rom_filename);
+}
+
+void yaze_cleanup(yaze_flags* flags) {
+  if (flags->rom) {
+    yaze_unload_rom(flags->rom);
+  }
+}
 
 z3_rom* yaze_load_rom(const char* filename) {
   yaze::app::Rom* internal_rom;
