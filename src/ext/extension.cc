@@ -41,37 +41,40 @@ void yaze_load_c_extension(const char* extension_path) {
 }
 
 void yaze_load_py_extension(const char* script_path) {
-    Py_Initialize();
+  Py_Initialize();
 
-    FILE* fp = fopen(script_path, "r");
-    if (fp) {
-        PyRun_SimpleFile(fp, script_path);
-        fclose(fp);
+  FILE* fp = fopen(script_path, "r");
+  if (fp) {
+    PyRun_SimpleFile(fp, script_path);
+    fclose(fp);
+  } else {
+    std::cerr << "Cannot open Python script: " << script_path << std::endl;
+    return;
+  }
+
+  PyObject* pModule = PyImport_AddModule("__main__");
+  PyObject* pFunc = PyObject_GetAttrString(pModule, "get_yaze_extension");
+
+  if (pFunc && PyCallable_Check(pFunc)) {
+    PyObject* pExtension = PyObject_CallObject(pFunc, nullptr);
+    if (pExtension) {
+      extension =
+          reinterpret_cast<yaze_extension*>(PyLong_AsVoidPtr(pExtension));
+      if (extension && extension->initialize) {
+        extension->initialize();
+      }
     } else {
-        std::cerr << "Cannot open Python script: " << script_path << std::endl;
-        return;
+      std::cerr << "Failed to get extension from Python script." << std::endl;
     }
+    Py_XDECREF(pExtension);
+  } else {
+    std::cerr
+        << "Python function 'get_yaze_extension' not found or not callable."
+        << std::endl;
+  }
 
-    PyObject* pModule = PyImport_AddModule("__main__");
-    PyObject* pFunc = PyObject_GetAttrString(pModule, "get_yaze_extension");
-
-    if (pFunc && PyCallable_Check(pFunc)) {
-        PyObject* pExtension = PyObject_CallObject(pFunc, nullptr);
-        if (pExtension) {
-            extension = reinterpret_cast<yaze_extension*>(PyLong_AsVoidPtr(pExtension));
-            if (extension && extension->initialize) {
-                extension->initialize();
-            }
-        } else {
-            std::cerr << "Failed to get extension from Python script." << std::endl;
-        }
-        Py_XDECREF(pExtension);
-    } else {
-        std::cerr << "Python function 'get_yaze_extension' not found or not callable." << std::endl;
-    }
-
-    Py_XDECREF(pFunc);
-    Py_Finalize();
+  Py_XDECREF(pFunc);
+  Py_Finalize();
 }
 
 void yaze_cleanup_extension() {
