@@ -27,8 +27,8 @@ BOOST_PYTHON_MODULE(yaze) {
       .def_readonly("name", &sprite_action::name)
       .def_readonly("id", &sprite_action::id);
 
-  class_<sprite>("sprite")
-      .def_readonly("name", &sprite::name)
-      .def_readonly("id", &sprite::id)
-      .def_readonly("actions", &sprite::actions);
+  class_<z3_sprite>("sprite")
+      .def_readonly("name", &z3_sprite::name)
+      .def_readonly("id", &z3_sprite::id)
+      .def_readonly("actions", &z3_sprite::actions);
 }
