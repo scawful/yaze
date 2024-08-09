@@ -9,7 +9,6 @@ var namespaceyaze_1_1app =
     [ "OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", "structyaze_1_1app_1_1OWMapTiles" ],
     [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
     [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
-    [ "RomTest", "classyaze_1_1app_1_1RomTest.html", "classyaze_1_1app_1_1RomTest" ],
     [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
     [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ],
     [ "OWBlockset", "namespaceyaze_1_1app.html#a1528910dca250c6119a96d559b114430", null ],
@@ -20,7 +19,6 @@ var namespaceyaze_1_1app =
       [ "SD", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a38f99abbc1d339c277c0669e7bc373c0", null ],
       [ "RANDO", "namespaceyaze_1_1app.html#a24bebdceeb59d0f451c59123c0a38d47a9cffbad7f42a5a6e18e4a9431187b051", null ]
     ] ],
-    [ "TEST_F", "namespaceyaze_1_1app.html#a86eab374d68c1cef70ab9b9814264e35", null ],
     [ "kEndOfProjectFile", "namespaceyaze_1_1app.html#aa899c44eb9e83190d881c30296137bb3", null ],
     [ "Uncompressed3BPPSize", "namespaceyaze_1_1app.html#a4c2c2d45869b398e8183f4215fb8c25b", null ],
     [ "kEntranceGfxGroup", "namespaceyaze_1_1app.html#a02c28e406561ede6e5a46381e26b4653", null ],

@@ -261,7 +261,6 @@ var annotated_dup =
         [ "OWMapTiles", "structyaze_1_1app_1_1OWMapTiles.html", "structyaze_1_1app_1_1OWMapTiles" ],
         [ "Project", "structyaze_1_1app_1_1Project.html", "structyaze_1_1app_1_1Project" ],
         [ "Rom", "classyaze_1_1app_1_1Rom.html", "classyaze_1_1app_1_1Rom" ],
-        [ "RomTest", "classyaze_1_1app_1_1RomTest.html", "classyaze_1_1app_1_1RomTest" ],
         [ "SharedRom", "classyaze_1_1app_1_1SharedRom.html", "classyaze_1_1app_1_1SharedRom" ],
         [ "VersionConstants", "structyaze_1_1app_1_1VersionConstants.html", "structyaze_1_1app_1_1VersionConstants" ]
       ] ],
@@ -293,6 +292,9 @@ var annotated_dup =
         [ "MockPpu", "classyaze__test_1_1emu__test_1_1MockPpu.html", "classyaze__test_1_1emu__test_1_1MockPpu" ],
         [ "PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", "classyaze__test_1_1emu__test_1_1PpuTest" ],
         [ "Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", "classyaze__test_1_1emu__test_1_1Spc700Test" ]
+      ] ],
+      [ "rom_test", "namespaceyaze__test_1_1rom__test.html", [
+        [ "RomTest", "classyaze__test_1_1rom__test_1_1RomTest.html", "classyaze__test_1_1rom__test_1_1RomTest" ]
       ] ],
       [ "zelda3_test", "namespaceyaze__test_1_1zelda3__test.html", [
         [ "SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest" ]

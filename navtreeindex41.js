@@ -1,6 +1,5 @@
 var NAVTREEINDEX41 =
 {
-"namespaceyaze__test_1_1emu__test.html#a8d8251b492afaa8f8aff0ba9248ef510":[8,0,3,0,205],
 "namespaceyaze__test_1_1emu__test.html#a8ef0498a8d8a3c60c54daf8b11b394f9":[8,0,3,0,259],
 "namespaceyaze__test_1_1emu__test.html#a8f2cdba09e4c1d362cb578f8e6a2c1f0":[8,0,3,0,107],
 "namespaceyaze__test_1_1emu__test.html#a8f67b5806eff4c157848e9fbeade118a":[8,0,3,0,134],
@@ -174,10 +173,12 @@ var NAVTREEINDEX41 =
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02compression__test_8cc_03.html#af7d97bb47668a484667bf3236ff487d4":[8,0,3,1,0,4],
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html":[8,0,3,1,1],
 "namespaceyaze__test_1_1gfx__test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#adf4131f02d62c5b0c5805036ea85d97a":[8,0,3,1,1,0],
-"namespaceyaze__test_1_1zelda3__test.html":[8,0,3,2],
-"namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[8,0,3,2,1],
-"namespaceyaze__test_1_1zelda3__test.html#a4fb9d4eed544d8e7bb23bd4e8c52f49a":[8,0,3,2,3],
-"namespaceyaze__test_1_1zelda3__test.html#a7e08f34b925fb2b5072b4356130a8e08":[8,0,3,2,2],
+"namespaceyaze__test_1_1rom__test.html":[8,0,3,2],
+"namespaceyaze__test_1_1rom__test.html#a4ea4a19d28098c541431cc6487bb41ca":[8,0,3,2,1],
+"namespaceyaze__test_1_1zelda3__test.html":[8,0,3,3],
+"namespaceyaze__test_1_1zelda3__test.html#a07b9796f775461cda7052ae6b36c00f6":[8,0,3,3,1],
+"namespaceyaze__test_1_1zelda3__test.html#a4fb9d4eed544d8e7bb23bd4e8c52f49a":[8,0,3,3,3],
+"namespaceyaze__test_1_1zelda3__test.html#a7e08f34b925fb2b5072b4356130a8e08":[8,0,3,3,2],
 "object__names_8h.html":[10,0,1,0,5,0,0],
 "object__names_8h_source.html":[10,0,1,0,5,0,0],
 "object__renderer_8cc.html":[10,0,1,0,5,0,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX41 =
 "ppu__registers_8h.html#a095a39366cc74e3b4d2ff352b651b675":[10,0,1,0,2,4,2,70],
 "ppu__registers_8h.html#a137a89e211e1cd3682a1eec350a04e14":[10,0,1,0,2,4,2,58],
 "ppu__registers_8h.html#a20b4540bc753158ca97483620bf2df03":[10,0,1,0,2,4,2,76],
-"ppu__registers_8h.html#a22bd791fdf9d37bfbb0e6a909d030d40":[10,0,1,0,2,4,2,99],
-"ppu__registers_8h.html#a2dac7b7419e2607ea0aea3a78776b8a1":[10,0,1,0,2,4,2,61]
+"ppu__registers_8h.html#a22bd791fdf9d37bfbb0e6a909d030d40":[10,0,1,0,2,4,2,99]
 };

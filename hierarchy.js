@@ -247,10 +247,10 @@ var hierarchy =
     [ "yaze::app::editor::zsprite::SubEditor", "structyaze_1_1app_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
     [ "yaze::app::zelda3::dungeon::SubtypeInfo", "structyaze_1_1app_1_1zelda3_1_1dungeon_1_1SubtypeInfo.html", null ],
     [ "testing::Test", null, [
-      [ "yaze::app::RomTest", "classyaze_1_1app_1_1RomTest.html", null ],
       [ "yaze_test::emu_test::CpuTest", "classyaze__test_1_1emu__test_1_1CpuTest.html", null ],
       [ "yaze_test::emu_test::PpuTest", "classyaze__test_1_1emu__test_1_1PpuTest.html", null ],
       [ "yaze_test::emu_test::Spc700Test", "classyaze__test_1_1emu__test_1_1Spc700Test.html", null ],
+      [ "yaze_test::rom_test::RomTest", "classyaze__test_1_1rom__test_1_1RomTest.html", null ],
       [ "yaze_test::zelda3_test::SpriteBuilderTest", "classyaze__test_1_1zelda3__test_1_1SpriteBuilderTest.html", null ]
     ] ],
     [ "yaze::app::editor::MessageEditor::TextBox", "structyaze_1_1app_1_1editor_1_1MessageEditor_1_1TextBox.html", null ],
