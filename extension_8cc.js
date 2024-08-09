@@ -1,8 +1,7 @@
 var extension_8cc =
 [
-    [ "GetExtension", "extension_8cc.html#ab698a186d73ae670c90bd50d214a4b3e", null ],
-    [ "LoadCExtension", "extension_8cc.html#a0f7b2c5929856e9cb6131fc38345e2e1", null ],
-    [ "LoadPythonExtension", "extension_8cc.html#a10755f8f6528cff7a4bdaa3431204855", null ],
-    [ "handle", "extension_8cc.html#a81011b79683fab64ce3aff71114f8fdd", null ],
-    [ "extension", "extension_8cc.html#a520c3c16af760011d05f8def46e181ba", null ]
+    [ "get_yaze_extension", "extension_8cc.html#a5dabaad70704ecff759f67c5ddf63ff2", null ],
+    [ "yaze_load_c_extension", "extension_8cc.html#ad7ff704596102319fa64ae7043f91fc7", null ],
+    [ "yaze_load_py_extension", "extension_8cc.html#a9132b0bf264bc6cfc6cd123346b0a3e2", null ],
+    [ "yaze_cleanup_extension", "extension_8cc.html#adf21b7491daa4f0b9c1527463087eb1e", null ]
 ];

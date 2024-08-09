@@ -1,5 +1,6 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#affc3d55a8d000409903ece4df0a4f509":[8,0,1,0,2,2,5,17],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#affc3d55a8d000409903ece4df0a4f509":[9,0,0,0,2,0,5,17],
 "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html":[8,0,1,0,2,2,6,0],
 "structyaze_1_1app_1_1emu_1_1audio_1_1Spc700_1_1Flags.html":[9,0,0,0,2,0,6,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html#a8b68e4ed8b9fca997bbecf481bc916aa":[8,0,1,0,2,4,12,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1OAMSize.html#a8b68e4ed8b9fca997bbecf481bc916aa":[9,0,0,0,2,2,12,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html":[8,0,1,0,2,4,0,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html":[9,0,0,0,2,2,0,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html#a27c1bde23d5ca6eaf9a0fec35ea9d4c2":[8,0,1,0,2,4,0,0,1]
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1BGHOFS.html":[9,0,0,0,2,2,0,0]
 };

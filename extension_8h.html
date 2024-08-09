@@ -133,19 +133,51 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
+<tr class="memitem:a6a804aeb897c428855a7cf379bc122ab" id="r_a6a804aeb897c428855a7cf379bc122ab"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6a804aeb897c428855a7cf379bc122ab">yaze_imgui_render_callback</a>) (void *editor_context)</td></tr>
+<tr class="separator:a6a804aeb897c428855a7cf379bc122ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af35ab287f33dc4558b1d5628e8c2cd72" id="r_af35ab287f33dc4558b1d5628e8c2cd72"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af35ab287f33dc4558b1d5628e8c2cd72">yaze_rom_operation</a>) (<a class="el" href="structz3__rom.html">z3_rom</a> *rom)</td></tr>
+<tr class="separator:af35ab287f33dc4558b1d5628e8c2cd72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84339e67846d381495b6fa1bd47dcf6d" id="r_a84339e67846d381495b6fa1bd47dcf6d"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_extension&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a84339e67846d381495b6fa1bd47dcf6d">yaze_extension</a></td></tr>
 <tr class="separator:a84339e67846d381495b6fa1bd47dcf6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab698a186d73ae670c90bd50d214a4b3e" id="r_ab698a186d73ae670c90bd50d214a4b3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__extension.html">yaze_extension</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab698a186d73ae670c90bd50d214a4b3e">GetExtension</a> ()</td></tr>
-<tr class="separator:ab698a186d73ae670c90bd50d214a4b3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15d0c3f63c755a72fbb20dee1c94b182" id="r_a15d0c3f63c755a72fbb20dee1c94b182"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a15d0c3f63c755a72fbb20dee1c94b182">LoadCExtension</a> (const char *extension_path)</td></tr>
-<tr class="separator:a15d0c3f63c755a72fbb20dee1c94b182"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a10755f8f6528cff7a4bdaa3431204855" id="r_a10755f8f6528cff7a4bdaa3431204855"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a10755f8f6528cff7a4bdaa3431204855">LoadPythonExtension</a> (const char *script_path)</td></tr>
-<tr class="separator:a10755f8f6528cff7a4bdaa3431204855"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5dabaad70704ecff759f67c5ddf63ff2" id="r_a5dabaad70704ecff759f67c5ddf63ff2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__extension.html">yaze_extension</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5dabaad70704ecff759f67c5ddf63ff2">get_yaze_extension</a> ()</td></tr>
+<tr class="separator:a5dabaad70704ecff759f67c5ddf63ff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7ff704596102319fa64ae7043f91fc7" id="r_ad7ff704596102319fa64ae7043f91fc7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7ff704596102319fa64ae7043f91fc7">yaze_load_c_extension</a> (const char *extension_path)</td></tr>
+<tr class="separator:ad7ff704596102319fa64ae7043f91fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9132b0bf264bc6cfc6cd123346b0a3e2" id="r_a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9132b0bf264bc6cfc6cd123346b0a3e2">yaze_load_py_extension</a> (const char *script_path)</td></tr>
+<tr class="separator:a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="a6a804aeb897c428855a7cf379bc122ab" name="a6a804aeb897c428855a7cf379bc122ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a804aeb897c428855a7cf379bc122ab">&#9670;&#160;</a></span>yaze_imgui_render_callback</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* yaze_imgui_render_callback) (void *editor_context)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af35ab287f33dc4558b1d5628e8c2cd72" name="af35ab287f33dc4558b1d5628e8c2cd72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af35ab287f33dc4558b1d5628e8c2cd72">&#9670;&#160;</a></span>yaze_rom_operation</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* yaze_rom_operation) (<a class="el" href="structz3__rom.html">z3_rom</a> *rom)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a84339e67846d381495b6fa1bd47dcf6d" name="a84339e67846d381495b6fa1bd47dcf6d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a84339e67846d381495b6fa1bd47dcf6d">&#9670;&#160;</a></span>yaze_extension</h2>
 
@@ -161,14 +193,14 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ab698a186d73ae670c90bd50d214a4b3e" name="ab698a186d73ae670c90bd50d214a4b3e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab698a186d73ae670c90bd50d214a4b3e">&#9670;&#160;</a></span>GetExtension()</h2>
+<a id="a5dabaad70704ecff759f67c5ddf63ff2" name="a5dabaad70704ecff759f67c5ddf63ff2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5dabaad70704ecff759f67c5ddf63ff2">&#9670;&#160;</a></span>get_yaze_extension()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structyaze__extension.html">yaze_extension</a> * GetExtension </td>
+          <td class="memname"><a class="el" href="structyaze__extension.html">yaze_extension</a> * get_yaze_extension </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -178,14 +210,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a15d0c3f63c755a72fbb20dee1c94b182" name="a15d0c3f63c755a72fbb20dee1c94b182"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a15d0c3f63c755a72fbb20dee1c94b182">&#9670;&#160;</a></span>LoadCExtension()</h2>
+<a id="ad7ff704596102319fa64ae7043f91fc7" name="ad7ff704596102319fa64ae7043f91fc7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7ff704596102319fa64ae7043f91fc7">&#9670;&#160;</a></span>yaze_load_c_extension()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void LoadCExtension </td>
+          <td class="memname">void yaze_load_c_extension </td>
           <td>(</td>
           <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>extension_path</em></span></td><td>)</td>
           <td></td>
@@ -193,18 +225,18 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="extension_8cc.html#a520c3c16af760011d05f8def46e181ba">extension</a>, <a class="el" href="extension_8cc.html#a81011b79683fab64ce3aff71114f8fdd">handle</a>, and <a class="el" href="structyaze__extension.html#a24c9e7db82ccbb58a930f3fa6b4c4c6d">yaze_extension::initialize</a>.</p>
+<p class="reference">References <a class="el" href="structyaze__extension.html#a24c9e7db82ccbb58a930f3fa6b4c4c6d">yaze_extension::initialize</a>.</p>
 
 </div>
 </div>
-<a id="a10755f8f6528cff7a4bdaa3431204855" name="a10755f8f6528cff7a4bdaa3431204855"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a10755f8f6528cff7a4bdaa3431204855">&#9670;&#160;</a></span>LoadPythonExtension()</h2>
+<a id="a9132b0bf264bc6cfc6cd123346b0a3e2" name="a9132b0bf264bc6cfc6cd123346b0a3e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9132b0bf264bc6cfc6cd123346b0a3e2">&#9670;&#160;</a></span>yaze_load_py_extension()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void LoadPythonExtension </td>
+          <td class="memname">void yaze_load_py_extension </td>
           <td>(</td>
           <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>script_path</em></span></td><td>)</td>
           <td></td>
@@ -212,7 +244,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="extension_8cc.html#a520c3c16af760011d05f8def46e181ba">extension</a>.</p>
+<p class="reference">References <a class="el" href="structyaze__extension.html#a24c9e7db82ccbb58a930f3fa6b4c4c6d">yaze_extension::initialize</a>.</p>
 
 </div>
 </div>
