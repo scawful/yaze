@@ -8,6 +8,7 @@ var yaze_8h =
     [ "z3_rom", "yaze_8h.html#ac77c4e371c3965f72bf4ac3321600f54", null ],
     [ "yaze_init", "yaze_8h.html#af4c0f181175784dda7fdd05a462fae43", null ],
     [ "yaze_cleanup", "yaze_8h.html#a2f31206311a6fa23618eed894f1f5cd6", null ],
+    [ "yaze_load_project", "yaze_8h.html#a92aac5e465c19a821bf5ce2f19943651", null ],
     [ "yaze_load_rom", "yaze_8h.html#adfaf105df03accd07b94f1e60c6ed8bf", null ],
     [ "yaze_unload_rom", "yaze_8h.html#a883ab5865f5e61a639dc3dafcd45e8c7", null ],
     [ "yaze_get_color_from_paletteset", "yaze_8h.html#adfb236b5541502ced4544a6678e79d0e", null ],

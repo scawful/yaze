@@ -184,6 +184,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a29fdfcf0cfd5f08d2b6defbefc7a99bf" id="r_a29fdfcf0cfd5f08d2b6defbefc7a99bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a29fdfcf0cfd5f08d2b6defbefc7a99bf">yaze_cleanup</a> (<a class="el" href="structyaze__flags.html">yaze_flags</a> *flags)</td></tr>
 <tr class="memdesc:a29fdfcf0cfd5f08d2b6defbefc7a99bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the Yaze library.  <br /></td></tr>
 <tr class="separator:a29fdfcf0cfd5f08d2b6defbefc7a99bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92aac5e465c19a821bf5ce2f19943651" id="r_a92aac5e465c19a821bf5ce2f19943651"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__project.html">yaze_project</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a92aac5e465c19a821bf5ce2f19943651">yaze_load_project</a> (const char *filename)</td></tr>
+<tr class="separator:a92aac5e465c19a821bf5ce2f19943651"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adfaf105df03accd07b94f1e60c6ed8bf" id="r_adfaf105df03accd07b94f1e60c6ed8bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structz3__rom.html">z3_rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom</a> (const char *filename)</td></tr>
 <tr class="memdesc:adfaf105df03accd07b94f1e60c6ed8bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a Zelda3 ROM from a file.  <br /></td></tr>
 <tr class="separator:adfaf105df03accd07b94f1e60c6ed8bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -281,6 +283,43 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a92aac5e465c19a821bf5ce2f19943651" name="a92aac5e465c19a821bf5ce2f19943651"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92aac5e465c19a821bf5ce2f19943651">&#9670;&#160;</a></span>yaze_load_project()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structyaze__project.html">yaze_project</a> * yaze_load_project </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="structyaze__project.html#a7ed60b0607dbcd6641155f161fd7593f">yaze_project::filename</a>, <a class="el" href="structyaze__project.html#ad7a63c0a296c1b2d021e002abf114be6">yaze_project::overworld</a>, <a class="el" href="structyaze__project.html#a84af4b5ab51a85b5903704c0de8e83c9">yaze_project::rom</a>, <a class="el" href="#ac1b3f6a8db6317860537e91d20a2c7f5">yaze_load_overworld()</a>, and <a class="el" href="#adfaf105df03accd07b94f1e60c6ed8bf">yaze_load_rom()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="yaze_8cc_a92aac5e465c19a821bf5ce2f19943651_cgraph.png" border="0" usemap="#ayaze_8cc_a92aac5e465c19a821bf5ce2f19943651_cgraph" alt=""/></div>
+<map name="ayaze_8cc_a92aac5e465c19a821bf5ce2f19943651_cgraph" id="ayaze_8cc_a92aac5e465c19a821bf5ce2f19943651_cgraph">
+<area shape="rect" title=" " alt="" coords="5,31,130,56"/>
+<area shape="rect" href="yaze_8cc.html#ac1b3f6a8db6317860537e91d20a2c7f5" title=" " alt="" coords="178,5,319,31"/>
+<area shape="poly" title=" " alt="" coords="130,32,162,28,162,33,131,37"/>
+<area shape="rect" href="yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title="Load a Zelda3 ROM from a file." alt="" coords="195,55,302,80"/>
+<area shape="poly" title=" " alt="" coords="131,49,180,56,179,61,130,54"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="394,5,533,31"/>
+<area shape="poly" title=" " alt="" coords="302,53,389,32,390,38,303,58"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="367,55,560,80"/>
+<area shape="poly" title=" " alt="" coords="302,65,351,65,351,70,302,70"/>
+<area shape="rect" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="396,104,532,130"/>
+<area shape="poly" title=" " alt="" coords="303,77,390,97,389,103,302,82"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="adfaf105df03accd07b94f1e60c6ed8bf" name="adfaf105df03accd07b94f1e60c6ed8bf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adfaf105df03accd07b94f1e60c6ed8bf">&#9670;&#160;</a></span>yaze_load_rom()</h2>
 
@@ -300,7 +339,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b">yaze::app::Rom::data()</a>, <a class="el" href="structz3__rom.html#aebb69d9d2a7965247b86f454c54d4fa4">z3_rom::data</a>, <a class="el" href="structz3__rom.html#a2a47dd5739f2c3b3218f1760c7d54ede">z3_rom::filename</a>, <a class="el" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">z3_rom::impl</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197">yaze::app::Rom::LoadFromFile()</a>, <a class="el" href="classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f">yaze::app::Rom::size()</a>, and <a class="el" href="structz3__rom.html#a5f9ea7b175b6c9c43a2a5efec5a1fd5c">z3_rom::size</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#aa7a5ef35202509b12f43e4c52608ef49">yaze_init()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#aa7a5ef35202509b12f43e4c52608ef49">yaze_init()</a>, and <a class="el" href="#a92aac5e465c19a821bf5ce2f19943651">yaze_load_project()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -410,6 +449,8 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="reference">References <a class="el" href="structz3__overworld.html#a13da5630932291eaed93b6a173359f74">z3_overworld::impl</a>, and <a class="el" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">z3_rom::impl</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a92aac5e465c19a821bf5ce2f19943651">yaze_load_project()</a>.</p>
 
 </div>
 </div>

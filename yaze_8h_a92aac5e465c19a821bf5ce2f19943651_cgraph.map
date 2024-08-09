@@ -1,0 +1,13 @@
+<map id="yaze_load_project" name="yaze_load_project">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,130,56"/>
+<area shape="rect" id="Node000002" href="$yaze_8cc.html#ac1b3f6a8db6317860537e91d20a2c7f5" title=" " alt="" coords="178,5,319,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,32,162,28,162,33,131,37"/>
+<area shape="rect" id="Node000003" href="$yaze_8cc.html#adfaf105df03accd07b94f1e60c6ed8bf" title="Load a Zelda3 ROM from a file." alt="" coords="195,55,302,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="131,49,180,56,179,61,130,54"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1app_1_1Rom.html#a92d3c9243147354399c1914c255c113b" title=" " alt="" coords="394,5,533,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="302,53,389,32,390,38,303,58"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1app_1_1Rom.html#acd54932cc184cdb1d66ab026c66b1197" title=" " alt="" coords="367,55,560,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="302,65,351,65,351,70,302,70"/>
+<area shape="rect" id="Node000030" href="$classyaze_1_1app_1_1Rom.html#a648c0cee09095aad6aa881fc114a9f5f" title=" " alt="" coords="396,104,532,130"/>
+<area shape="poly" id="edge5_Node000003_Node000030" title=" " alt="" coords="303,77,390,97,389,103,302,82"/>
+</map>
