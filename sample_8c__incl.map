@@ -1,0 +1,17 @@
+<map id="src/ext/sample.c" name="src/ext/sample.c">
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,5,170,31"/>
+<area shape="rect" id="Node000002" href="$extension_8h.html" title=" " alt="" coords="5,79,113,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,33,79,68,75,65,101,30"/>
+<area shape="rect" id="Node000003" href="$yaze_8h.html" title=" " alt="" coords="137,79,194,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="123,30,150,65,145,68,119,33"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="12,153,79,178"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="147,108,80,147,78,142,144,103"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="185,226,248,252"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="159,106,143,140,140,159,144,177,160,199,180,216,177,220,156,202,139,179,135,159,138,138,155,104"/>
+<area shape="rect" id="Node000006" href="$base_2snes__color_8h.html" title=" " alt="" coords="153,153,280,178"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="176,103,201,138,197,141,172,106"/>
+<area shape="rect" id="Node000007" href="$base_2sprite_8h.html" title=" " alt="" coords="303,153,399,178"/>
+<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="196,102,307,144,305,149,194,107"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="219,179,219,211,214,211,214,179"/>
+<area shape="poly" id="edge8_Node000007_Node000005" title=" " alt="" coords="329,181,254,221,251,216,327,177"/>
+</map>

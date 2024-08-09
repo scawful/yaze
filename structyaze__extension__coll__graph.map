@@ -1,5 +1,5 @@
 <map id="yaze_extension" name="yaze_extension">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,115,120"/>
+<area shape="rect" id="Node000001" title="Extension interface for Yaze." alt="" coords="5,94,115,120"/>
 <area shape="rect" id="Node000002" href="$structz3__rom.html" title="Primitive of a Zelda3 ROM." alt="" coords="28,5,92,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="63,47,63,94,57,94,57,47"/>
 </map>

@@ -118,9 +118,11 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="extension_8h__dep__incl.png" border="0" usemap="#asrc_2ext_2extension_8hdep" alt=""/></div>
 <map name="asrc_2ext_2extension_8hdep" id="asrc_2ext_2extension_8hdep">
-<area shape="rect" title=" " alt="" coords="9,5,138,31"/>
+<area shape="rect" title=" " alt="" coords="84,5,213,31"/>
 <area shape="rect" href="extension_8cc.html" title=" " alt="" coords="5,79,142,105"/>
-<area shape="poly" title=" " alt="" coords="76,46,76,79,71,79,71,46"/>
+<area shape="poly" title=" " alt="" coords="126,44,88,81,84,77,123,40"/>
+<area shape="rect" href="sample_8c.html" title=" " alt="" coords="166,79,282,105"/>
+<area shape="poly" title=" " alt="" coords="174,40,213,77,210,81,170,44"/>
 </map>
 </div>
 </div>
@@ -129,6 +131,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__extension.html">yaze_extension</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension interface for Yaze.  <a href="structyaze__extension.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
@@ -138,16 +141,23 @@ Typedefs</h2></td></tr>
 <tr class="memitem:af35ab287f33dc4558b1d5628e8c2cd72" id="r_af35ab287f33dc4558b1d5628e8c2cd72"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af35ab287f33dc4558b1d5628e8c2cd72">yaze_rom_operation</a>) (<a class="el" href="structz3__rom.html">z3_rom</a> *rom)</td></tr>
 <tr class="separator:af35ab287f33dc4558b1d5628e8c2cd72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84339e67846d381495b6fa1bd47dcf6d" id="r_a84339e67846d381495b6fa1bd47dcf6d"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_extension&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a84339e67846d381495b6fa1bd47dcf6d">yaze_extension</a></td></tr>
+<tr class="memdesc:a84339e67846d381495b6fa1bd47dcf6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension interface for Yaze.  <br /></td></tr>
 <tr class="separator:a84339e67846d381495b6fa1bd47dcf6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a5dabaad70704ecff759f67c5ddf63ff2" id="r_a5dabaad70704ecff759f67c5ddf63ff2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__extension.html">yaze_extension</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5dabaad70704ecff759f67c5ddf63ff2">get_yaze_extension</a> ()</td></tr>
+<tr class="memdesc:a5dabaad70704ecff759f67c5ddf63ff2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the extension interface.  <br /></td></tr>
 <tr class="separator:a5dabaad70704ecff759f67c5ddf63ff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7ff704596102319fa64ae7043f91fc7" id="r_ad7ff704596102319fa64ae7043f91fc7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7ff704596102319fa64ae7043f91fc7">yaze_load_c_extension</a> (const char *extension_path)</td></tr>
+<tr class="memdesc:ad7ff704596102319fa64ae7043f91fc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a C extension.  <br /></td></tr>
 <tr class="separator:ad7ff704596102319fa64ae7043f91fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9132b0bf264bc6cfc6cd123346b0a3e2" id="r_a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9132b0bf264bc6cfc6cd123346b0a3e2">yaze_load_py_extension</a> (const char *script_path)</td></tr>
+<tr class="memdesc:a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a Python extension.  <br /></td></tr>
 <tr class="separator:a9132b0bf264bc6cfc6cd123346b0a3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf21b7491daa4f0b9c1527463087eb1e" id="r_adf21b7491daa4f0b9c1527463087eb1e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adf21b7491daa4f0b9c1527463087eb1e">yaze_cleanup_extension</a> ()</td></tr>
+<tr class="memdesc:adf21b7491daa4f0b9c1527463087eb1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the extension.  <br /></td></tr>
+<tr class="separator:adf21b7491daa4f0b9c1527463087eb1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="a6a804aeb897c428855a7cf379bc122ab" name="a6a804aeb897c428855a7cf379bc122ab"></a>
@@ -190,6 +200,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Extension interface for Yaze. </p>
+<p>Yaze extensions can be written in C or Python. </p>
+
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
@@ -208,6 +221,24 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Get the extension interface. </p>
+
+<p class="reference">References <a class="el" href="sample_8c.html#a3c7c4dec1ad5658afc76ca8ebc6f4c92">my_extension_cleanup()</a>, <a class="el" href="sample_8c.html#a4e881c1093a2a7718784c3156b29f69e">my_extension_initialize()</a>, and <a class="el" href="sample_8c.html#a9caf69a8b1426457bc1ee26e47479702">my_extension_manipulate_rom()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="extension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph.png" border="0" usemap="#aextension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph" alt=""/></div>
+<map name="aextension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph" id="aextension_8h_a5dabaad70704ecff759f67c5ddf63ff2_cgraph">
+<area shape="rect" title="Get the extension interface." alt="" coords="5,55,140,80"/>
+<area shape="rect" href="sample_8c.html#a3c7c4dec1ad5658afc76ca8ebc6f4c92" title=" " alt="" coords="211,5,364,31"/>
+<area shape="poly" title=" " alt="" coords="131,51,213,32,214,38,132,57"/>
+<area shape="rect" href="sample_8c.html#a4e881c1093a2a7718784c3156b29f69e" title=" " alt="" coords="211,55,364,80"/>
+<area shape="poly" title=" " alt="" coords="140,65,195,65,195,70,140,70"/>
+<area shape="rect" href="sample_8c.html#a9caf69a8b1426457bc1ee26e47479702" title=" " alt="" coords="188,104,387,130"/>
+<area shape="poly" title=" " alt="" coords="132,78,214,97,213,103,131,84"/>
+</map>
+</div>
+
 </div>
 </div>
 <a id="ad7ff704596102319fa64ae7043f91fc7" name="ad7ff704596102319fa64ae7043f91fc7"></a>
@@ -224,6 +255,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Load a C extension. </p>
 
 <p class="reference">References <a class="el" href="structyaze__extension.html#a24c9e7db82ccbb58a930f3fa6b4c4c6d">yaze_extension::initialize</a>.</p>
 
@@ -244,7 +277,30 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Load a Python extension. </p>
+
 <p class="reference">References <a class="el" href="structyaze__extension.html#a24c9e7db82ccbb58a930f3fa6b4c4c6d">yaze_extension::initialize</a>.</p>
+
+</div>
+</div>
+<a id="adf21b7491daa4f0b9c1527463087eb1e" name="adf21b7491daa4f0b9c1527463087eb1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf21b7491daa4f0b9c1527463087eb1e">&#9670;&#160;</a></span>yaze_cleanup_extension()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze_cleanup_extension </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Clean up the extension. </p>
+
+<p class="reference">References <a class="el" href="structyaze__extension.html#a5437179462b8d5046807baf3ecee4fcd">yaze_extension::cleanup</a>.</p>
 
 </div>
 </div>

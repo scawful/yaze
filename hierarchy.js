@@ -153,6 +153,7 @@ var hierarchy =
     [ "yaze::app::emu::video::PpuRegisters::MPYL", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYL.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::MPYM", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html", null ],
     [ "yaze::app::gui::MultiSelectWithClipper", "structyaze_1_1app_1_1gui_1_1MultiSelectWithClipper.html", null ],
+    [ "sample.MyExtension", "classsample_1_1MyExtension.html", null ],
     [ "yaze::app::gui::zeml::Node", "structyaze_1_1app_1_1gui_1_1zeml_1_1Node.html", null ],
     [ "yaze::app::core::NotifyValue< T >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],
     [ "yaze::app::core::NotifyValue< uint32_t >", "classyaze_1_1app_1_1core_1_1NotifyValue.html", null ],

@@ -1,5 +1,8 @@
 var annotated_dup =
 [
+    [ "sample", "namespacesample.html", [
+      [ "MyExtension", "classsample_1_1MyExtension.html", "classsample_1_1MyExtension" ]
+    ] ],
     [ "yaze", "namespaceyaze.html", [
       [ "app", "namespaceyaze_1_1app.html", [
         [ "core", "namespaceyaze_1_1app_1_1core.html", [
