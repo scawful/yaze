@@ -14,6 +14,17 @@ namespace yaze {
 namespace app {
 namespace core {
 
+/**
+ * @class Renderer
+ * @brief The Renderer class represents the renderer for the Yaze application.
+ *
+ * This class is a singleton that provides functionality for creating and
+ * rendering bitmaps to the screen. It also includes methods for updating
+ * bitmaps on the screen.
+ *
+ * The Renderer class uses the ExperimentFlags class to access the application's
+ * flags.
+ */
 class Renderer : public ExperimentFlags {
  public:
   static Renderer& GetInstance() {
@@ -42,7 +53,7 @@ class Renderer : public ExperimentFlags {
     if (flags()->kLoadTexturesAsStreaming) {
       bitmap->CreateTexture(renderer_.get());
     } else {
-      //bitmap->CreateTexture(renderer_);
+      // bitmap->CreateTexture(renderer_);
     }
   }
 
@@ -53,7 +64,7 @@ class Renderer : public ExperimentFlags {
     if (flags()->kLoadTexturesAsStreaming) {
       bitmap->UpdateTexture(renderer_.get(), use_sdl_update);
     } else {
-      //bitmap->UpdateTexture(renderer_);
+      // bitmap->UpdateTexture(renderer_);
     }
   }
 
