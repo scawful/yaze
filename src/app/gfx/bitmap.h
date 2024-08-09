@@ -11,6 +11,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/constants.h"
+#include "app/core/utils/sdl_deleter.h"
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {
@@ -193,22 +194,6 @@ class Bitmap {
   auto set_active(bool active) { active_ = active; }
 
  private:
-  struct SDL_Texture_Deleter {
-    void operator()(SDL_Texture *p) const {
-      if (p != nullptr) {
-        SDL_DestroyTexture(p);
-      }
-    }
-  };
-
-  struct SDL_Surface_Deleter {
-    void operator()(SDL_Surface *p) const {
-      if (p != nullptr) {
-        SDL_FreeSurface(p);
-      }
-    }
-  };
-
   int width_ = 0;
   int height_ = 0;
   int depth_ = 0;

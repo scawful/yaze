@@ -16,6 +16,9 @@ namespace yaze {
 namespace app {
 namespace gfx {
 
+using core::SDL_Surface_Deleter;
+using core::SDL_Texture_Deleter;
+
 namespace {
 void GrayscalePalette(SDL_Palette *palette) {
   for (int i = 0; i < 8; i++) {
