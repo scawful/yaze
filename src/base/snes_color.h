@@ -25,7 +25,7 @@ struct snes_palette {
   unsigned int size;  /**< Size of the palette. */
   snes_color* colors; /**< Pointer to the colors in the palette. */
 };
-using snes_palette = struct snes_palette;
+typedef struct snes_palette snes_palette;
 
 #ifdef __cplusplus
 }
