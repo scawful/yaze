@@ -34,19 +34,23 @@ using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int kEntranceGfxGroup = 0x5D97;
 
-int Rom::GetGraphicsAddress(const uchar* data, uint8_t addr) {
+namespace {
+int GetGraphicsAddress(const uchar* data, uint8_t addr, uint32_t ptr1,
+                       uint32_t ptr2, uint32_t ptr3) {
   return core::SnesToPc(core::AddressFromBytes(
-      data[version_constants().kOverworldGfxPtr1 + addr],
-      data[version_constants().kOverworldGfxPtr2 + addr],
-      data[version_constants().kOverworldGfxPtr3 + addr]));
+      data[ptr1 + addr], data[ptr2 + addr], data[ptr3 + addr]));
 }
+}  // namespace
 
 absl::StatusOr<Bytes> Rom::Load2BppGraphics() {
   Bytes sheet;
   const uint8_t sheets[] = {113, 114, 218, 219, 220, 221};
 
   for (const auto& sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(data(), sheet_id);
+    auto offset = GetGraphicsAddress(data(), sheet_id,
+                                     version_constants().kOverworldGfxPtr1,
+                                     version_constants().kOverworldGfxPtr2,
+                                     version_constants().kOverworldGfxPtr3);
     ASSIGN_OR_RETURN(auto decomp_sheet,
                      gfx::lc_lz2::DecompressV2(data(), offset))
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
@@ -89,7 +93,10 @@ absl::Status Rom::LoadAllGraphicsData() {
   for (int i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(Uncompressed3BPPSize);
-      auto offset = GetGraphicsAddress(data(), i);
+      auto offset =
+          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
+                             version_constants().kOverworldGfxPtr2,
+                             version_constants().kOverworldGfxPtr3);
       for (int j = 0; j < Uncompressed3BPPSize; j++) {
         sheet[j] = rom_data_[j + offset];
       }
@@ -97,7 +104,10 @@ absl::Status Rom::LoadAllGraphicsData() {
     } else if (i == 113 || i == 114 || i >= 218) {
       bpp3 = false;
     } else {
-      auto offset = GetGraphicsAddress(data(), i);
+      auto offset =
+          GetGraphicsAddress(data(), i, version_constants().kOverworldGfxPtr1,
+                             version_constants().kOverworldGfxPtr2,
+                             version_constants().kOverworldGfxPtr3);
       ASSIGN_OR_RETURN(sheet, gfx::lc_lz2::DecompressV2(data(), offset))
       bpp3 = true;
     }

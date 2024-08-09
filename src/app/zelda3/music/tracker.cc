@@ -1249,13 +1249,13 @@ void Tracker::SaveSongs(Rom &rom) {
         ssblt[i] = 0;
       }
       if (n > l + 4) {
-        *(short *)(rom + l) = n - l - 4;
-        *(short *)(rom + l + 2) = o ? bank_lwr[k] : 0xd000;
+        *(short *)(rom.data() + l) = n - l - 4;
+        *(short *)(rom.data() + l + 2) = o ? bank_lwr[k] : 0xd000;
         l = n;
       }
     }
-    *(short *)(rom + l) = 0;
-    *(short *)(rom + l + 2) = 0x800;
+    *(short *)(rom.data() + l) = 0;
+    *(short *)(rom.data() + l + 2) = 0x800;
     if (k == 1) m = l + 4;
   }
   free(ssblt);

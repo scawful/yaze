@@ -391,13 +391,6 @@ class Rom : public core::ExperimentFlags {
     size_ = size;
   }
 
-  absl::Status Reload() {
-    if (filename_.empty()) {
-      return absl::InvalidArgumentError("No filename specified");
-    }
-    return LoadFromFile(filename_);
-  }
-
   absl::Status Close() {
     rom_data_.clear();
     size_ = 0;
@@ -405,28 +398,20 @@ class Rom : public core::ExperimentFlags {
     return absl::OkStatus();
   }
 
+  core::ResourceLabelManager* resource_label() {
+    return &resource_label_manager_;
+  }
   VersionConstants version_constants() const {
     return kVersionConstantsMap.at(version_);
-  }
-
-  int GetGraphicsAddress(const uchar* data, uint8_t addr);
-
-  auto palette_group() { return palette_groups_; }
-  auto mutable_palette_group() { return &palette_groups_; }
-  auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
-  auto mutable_dungeon_palette(int i) {
-    return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
   // Full graphical data for the game
   Bytes graphics_buffer() const { return graphics_buffer_; }
 
   [[deprecated]] gfx::BitmapTable graphics_bin() const { return graphics_bin_; }
-
   [[deprecated]] gfx::Bitmap* mutable_graphics_sheet(int index) {
     return &graphics_bin_.at(index);
   }
-
   [[deprecated]] auto bitmap_manager() { return graphics_manager_; }
   [[deprecated]] auto mutable_bitmap_manager() { return &graphics_manager_; }
 
@@ -435,6 +420,13 @@ class Rom : public core::ExperimentFlags {
 
   auto gfx_sheets() { return graphics_sheets_; }
   auto mutable_gfx_sheets() { return &graphics_sheets_; }
+
+  auto palette_group() { return palette_groups_; }
+  auto mutable_palette_group() { return &palette_groups_; }
+  auto dungeon_palette(int i) { return palette_groups_.dungeon_main[i]; }
+  auto mutable_dungeon_palette(int i) {
+    return palette_groups_.dungeon_main.mutable_palette(i);
+  }
 
   auto title() const { return title_; }
   auto size() const { return size_; }
@@ -454,15 +446,6 @@ class Rom : public core::ExperimentFlags {
     }
     return rom_data_[i];
   }
-  uint8_t& operator+(int i) {
-    if (i > size_) {
-      std::cout << "ROM: Index " << i << " out of bounds, size: " << size_
-                << std::endl;
-      return rom_data_[0];
-    }
-    return rom_data_[i];
-  }
-  const uint8_t* operator&() { return rom_data_.data(); }
 
   std::vector<std::vector<uint8_t>> main_blockset_ids;
   std::vector<std::vector<uint8_t>> room_blockset_ids;
@@ -471,8 +454,6 @@ class Rom : public core::ExperimentFlags {
 
   void LoadGfxGroups();
   void SaveGroupsToRom();
-
-  auto resource_label() { return &resource_label_manager_; }
 
  private:
   struct WriteAction {
