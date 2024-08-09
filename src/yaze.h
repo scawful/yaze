@@ -49,6 +49,8 @@ struct yaze_project {
   z3_overworld* overworld;
 };
 
+yaze_project* yaze_load_project(const char* filename);
+
 /**
  * @brief Primitive of a Zelda3 ROM.
  */

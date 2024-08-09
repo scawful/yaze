@@ -21,6 +21,14 @@ void yaze_cleanup(yaze_flags* flags) {
   }
 }
 
+yaze_project* yaze_load_project(const char* filename) {
+  yaze_project* project = new yaze_project();
+  project->filename = filename;
+  project->rom = yaze_load_rom(filename);
+  project->overworld = yaze_load_overworld(project->rom);
+  return project;
+}
+
 z3_rom* yaze_load_rom(const char* filename) {
   yaze::app::Rom* internal_rom;
   internal_rom = new yaze::app::Rom();
