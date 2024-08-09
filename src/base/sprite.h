@@ -25,7 +25,7 @@ struct z3_sprite {
   const char* name; /**< Name of the sprite. */
   uint8_t id;       /**< ID of the sprite. */
 
-  sprite_action* actions; /**< Pointer to the actions of the sprite. */
+  z3_sprite_action* actions; /**< Pointer to the actions of the sprite. */
 };
 typedef struct z3_sprite z3_sprite;
 
