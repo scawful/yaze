@@ -46,7 +46,7 @@ using ImGui::Text;
 using ImGui::TextWrapped;
 using ImGui::TreeNode;
 
-static ParsedElement FindMatchingElement(string str) {
+static ParsedElement FindMatchingElement(std::string str) {
   std::smatch match;
   for (auto& textElement : TextCommands) {
     match = textElement.MatchMe(str);
@@ -68,8 +68,8 @@ static ParsedElement FindMatchingElement(string str) {
   return ParsedElement();
 }
 
-static string ReplaceAllDictionaryWords(string str) {
-  string temp = str;
+std::string ReplaceAllDictionaryWords(std::string str) {
+  std::string temp = str;
   for (const auto& entry : AllDictionaries) {
     if (absl::StrContains(temp, entry.Contents)) {
       temp = absl::StrReplaceAll(temp, {{entry.Contents, entry.Contents}});
@@ -79,9 +79,9 @@ static string ReplaceAllDictionaryWords(string str) {
   return temp;
 }
 
-static std::vector<uint8_t> ParseMessageToData(string str) {
+std::vector<uint8_t> ParseMessageToData(std::string str) {
   std::vector<uint8_t> bytes;
-  string tempString = str;
+  std::string tempString = str;
   int pos = 0;
 
   while (pos < tempString.size()) {
@@ -496,10 +496,10 @@ uint8_t MessageEditor::FindMatchingCharacter(char value) {
   return 0xFF;
 }
 
-string MessageEditor::ParseTextDataByte(uint8_t value) {
+std::string MessageEditor::ParseTextDataByte(uint8_t value) {
   if (CharEncoder.contains(value)) {
     char c = CharEncoder.at(value);
-    string str = "";
+    std::string str = "";
     str.push_back(c);
     return str;
   }
@@ -554,7 +554,7 @@ void MessageEditor::DrawTileToPreview(int x, int y, int srcx, int srcy, int pal,
   }
 }
 
-void MessageEditor::DrawStringToPreview(string str) {
+void MessageEditor::DrawStringToPreview(std::string str) {
   for (const auto c : str) {
     DrawCharacterToPreview(c);
   }
@@ -714,9 +714,10 @@ absl::Status MessageEditor::Save() {
 
 std::string MessageEditor::DisplayTextOverflowError(int pos, bool bank) {
   int space = bank ? kTextDataEnd - kTextData : kTextData2End - kTextData2;
-  string bankSTR = bank ? "1st" : "2nd";
-  string posSTR = bank ? absl::StrFormat("%X4", pos & 0xFFFF)
-                       : absl::StrFormat("%X4", (pos - kTextData2) & 0xFFFF);
+  std::string bankSTR = bank ? "1st" : "2nd";
+  std::string posSTR =
+      bank ? absl::StrFormat("%X4", pos & 0xFFFF)
+           : absl::StrFormat("%X4", (pos - kTextData2) & 0xFFFF);
   std::string message = absl::StrFormat(
       "There is too much text data in the %s block to save.\n"
       "Available: %X4 | Used: %s",
@@ -739,7 +740,7 @@ void MessageEditor::InsertSpecialButton_Click() {
   //     SpecialChars[SpecialsList.SelectedIndex].GetParameterizedToken());
 }
 
-void MessageEditor::InsertSelectedText(string str) {
+void MessageEditor::InsertSelectedText(std::string str) {
   int textboxPos = message_text_box_.selection_start;
   from_form = true;
   // message_text_box_.Text = message_text_box_.Text.Insert(textboxPos, str);
