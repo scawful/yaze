@@ -11,9 +11,11 @@ extern "C" {
 #include "base/snes_color.h"
 #include "base/sprite.h"
 
-void yaze_initialize(void);
+typedef struct yaze_flags yaze_flags;
 
-void yaze_cleanup(void);
+void yaze_init(yaze_flags*);
+
+void yaze_cleanup(yaze_flags*);
 
 typedef struct z3_rom z3_rom;
 struct z3_rom {
