@@ -3,8 +3,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace yaze {
-namespace app {
+namespace yaze_test {
+namespace rom_test {
+
+using yaze::app::Rom;
 
 class RomTest : public ::testing::Test {
  protected:
@@ -16,5 +18,5 @@ TEST_F(RomTest, RomTest) {
   EXPECT_EQ(rom_.data(), nullptr);
 }
 
-}  // namespace app
-}  // namespace yaze
+}  // namespace rom_test
+}  // namespace yaze_test
