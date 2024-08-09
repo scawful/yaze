@@ -23,8 +23,6 @@ namespace yaze {
 namespace app {
 namespace editor {
 
-using std::string;
-
 // TEXT EDITOR RELATED CONSTANTS
 const int kGfxFont = 0x70000;  // 2bpp format
 const int kTextData = 0xE0000;
@@ -35,16 +33,16 @@ const int kPointersDictionaries = 0x74703;
 const int kCharactersWidth = 0x74ADF;
 constexpr int kNumDictionaryEntries = 97;
 
-const string DICTIONARYTOKEN = "D";
+const std::string DICTIONARYTOKEN = "D";
 const uint8_t DICTOFF = 0x88;
-const string BANKToken = "BANK";
+const std::string BANKToken = "BANK";
 const uint8_t BANKID = 0x80;
 
 constexpr uint8_t kBlockTerminator = 0x80;
 
-static std::vector<uint8_t> ParseMessageToData(string str);
+std::vector<uint8_t> ParseMessageToData(std::string str);
 
-static ParsedElement FindMatchingElement(string str);
+static ParsedElement FindMatchingElement(std::string str);
 
 constexpr uint8_t kScrollVertical = 0x73;
 constexpr uint8_t kLine1 = 0x74;
@@ -243,7 +241,7 @@ class MessageEditor : public Editor, public SharedRom {
 
   TextElement FindMatchingCommand(uint8_t byte);
   TextElement FindMatchingSpecial(uint8_t value);
-  string ParseTextDataByte(uint8_t value);
+  std::string ParseTextDataByte(uint8_t value);
   DictionaryEntry GetDictionaryFromID(uint8_t value);
 
   static uint8_t FindDictionaryEntry(uint8_t value);
@@ -253,18 +251,18 @@ class MessageEditor : public Editor, public SharedRom {
   void DrawCharacterToPreview(char c);
   void DrawCharacterToPreview(const std::vector<uint8_t>& text);
 
-  void DrawStringToPreview(string str);
+  void DrawStringToPreview(std::string str);
   void DrawMessagePreview();
   std::string DisplayTextOverflowError(int pos, bool bank);
 
   void InsertCommandButton_Click_1();
   void InsertSpecialButton_Click();
-  void InsertSelectedText(string str);
+  void InsertSelectedText(std::string str);
 
   static const std::vector<DictionaryEntry> AllDicts;
 
   uint8_t width_array[100];
-  string romname = "";
+  std::string romname = "";
 
   int text_line = 0;
   int text_pos = 0;

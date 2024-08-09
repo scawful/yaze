@@ -12,9 +12,8 @@ namespace editor {
 
 const uint8_t MESSAGETERMINATOR = 0x7F;
 
-static std::string AddNewLinesToCommands(std::string str);
-static std::string ReplaceAllDictionaryWords(std::string str);
-static std::vector<uint8_t> ParseMessageToData(std::string str);
+std::string ReplaceAllDictionaryWords(std::string str);
+std::vector<uint8_t> ParseMessageToData(std::string str);
 
 const std::string CHEESE = "\uBEBE";  // Inserted into commands to protect
                                       // them from dictionary replacements.
@@ -57,20 +56,6 @@ struct MessageData {
 
   std::string ToString() {
     return absl::StrFormat("%0X - %s", ID, ContentsParsed);
-  }
-
-  std::string GetReadableDumpedContents() {
-    std::stringstream stringBuilder;
-    for (const auto& b : Data) {
-      stringBuilder << absl::StrFormat("%0X ", b);
-    }
-    stringBuilder << absl::StrFormat("%00X", MESSAGETERMINATOR);
-
-    return absl::StrFormat(
-        "[[[[\r\nMessage "
-        "%000X]]]]\r\n[Contents]\r\n%s\r\n\r\n[Data]\r\n%s"
-        "\r\n\r\n\r\n\r\n",
-        ID, AddNewLinesToCommands(ContentsParsed), stringBuilder.str());
   }
 
   std::string GetDumpedContents() {
