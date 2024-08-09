@@ -1,0 +1,16 @@
+<map id="src/base/overworld.h" name="src/base/overworld.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="201,5,342,31"/>
+<area shape="rect" id="Node000002" href="$yaze_8h.html" title=" " alt="" coords="232,79,311,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,46,274,79,269,79,269,46"/>
+<area shape="rect" id="Node000003" href="$extension_8h.html" title=" " alt="" coords="5,153,135,178"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="224,113,105,155,103,150,222,108"/>
+<area shape="rect" id="Node000005" href="$sample_8c.html" title=" " alt="" coords="62,226,179,252"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="245,116,200,155,133,228,129,224,196,151,241,112"/>
+<area shape="rect" id="Node000006" href="$yaze__py_8cc.html" title=" " alt="" coords="210,153,333,178"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="274,120,274,152,269,152,269,120"/>
+<area shape="rect" id="Node000007" href="$libc__test_8cc.html" title=" " alt="" coords="357,153,492,178"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="312,109,400,150,397,154,310,114"/>
+<area shape="rect" id="Node000008" href="$yaze_8cc.html" title=" " alt="" coords="516,153,602,178"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="327,104,517,151,515,156,325,109"/>
+<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="89,189,114,224,110,227,85,192"/>
+</map>

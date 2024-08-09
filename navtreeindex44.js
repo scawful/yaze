@@ -1,12 +1,5 @@
 var NAVTREEINDEX44 =
 {
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a03ccf185ab28a2136269f01bec2324d4":[8,0,2,0,0,3,0,1],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a03ccf185ab28a2136269f01bec2324d4":[9,0,1,0,0,1,0,1],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6":[8,0,2,0,0,3,0,3],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6":[9,0,1,0,0,1,0,3],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a14803cbe621eab0e83fcec4bcc353502":[8,0,2,0,0,3,0,10],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a14803cbe621eab0e83fcec4bcc353502":[9,0,1,0,0,1,0,10],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a23ffa3479c7b8b16cf28828237a917e9":[8,0,2,0,0,3,0,11],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a23ffa3479c7b8b16cf28828237a917e9":[9,0,1,0,0,1,0,11],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a464ef4f83132bcd5a3e3a7fec07f9259":[8,0,2,0,0,3,0,4],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a464ef4f83132bcd5a3e3a7fec07f9259":[9,0,1,0,0,1,0,4],
@@ -249,5 +242,12 @@ var NAVTREEINDEX44 =
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html":[8,0,2,0,1,30,0],
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html":[9,0,1,0,1,25,0],
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a22ffe973b4f00a6e26e884ce73fec3ca":[8,0,2,0,1,30,0,3],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a22ffe973b4f00a6e26e884ce73fec3ca":[9,0,1,0,1,25,0,3]
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a22ffe973b4f00a6e26e884ce73fec3ca":[9,0,1,0,1,25,0,3],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a2b652265b24cae91ddbc718ca700ae73":[8,0,2,0,1,30,0,4],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a2b652265b24cae91ddbc718ca700ae73":[9,0,1,0,1,25,0,4],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a35fab93fd8c045f0bf85cd20e56b14ec":[8,0,2,0,1,30,0,6],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a35fab93fd8c045f0bf85cd20e56b14ec":[9,0,1,0,1,25,0,6],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a5345e0974eb748812c1921370fbbc5c0":[8,0,2,0,1,30,0,0],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a5345e0974eb748812c1921370fbbc5c0":[9,0,1,0,1,25,0,0],
+"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a568be19eabf200b63fb15473e9b11bae":[8,0,2,0,1,30,0,5]
 };

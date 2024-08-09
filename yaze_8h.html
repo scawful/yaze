@@ -117,20 +117,23 @@ $(function(){initNavTree('yaze_8h.html',''); initResizable(true); });
 <code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="base_2snes__color_8h_source.html">base/snes_color.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="base_2sprite_8h_source.html">base/sprite.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="base_2overworld_8h_source.html">base/overworld.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for yaze.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze_8h__incl.png" border="0" usemap="#asrc_2yaze_8h" alt=""/></div>
 <map name="asrc_2yaze_8h" id="asrc_2yaze_8h">
-<area shape="rect" title=" " alt="" coords="119,5,199,31"/>
+<area shape="rect" title=" " alt="" coords="170,5,249,31"/>
 <area shape="rect" title=" " alt="" coords="5,79,73,105"/>
-<area shape="poly" title=" " alt="" coords="140,34,74,73,71,68,137,29"/>
+<area shape="poly" title=" " alt="" coords="182,34,83,75,81,70,180,29"/>
 <area shape="rect" title=" " alt="" coords="178,153,241,178"/>
-<area shape="poly" title=" " alt="" coords="153,33,137,66,134,85,137,104,153,125,174,142,170,146,149,129,133,106,128,85,132,64,148,30"/>
+<area shape="poly" title=" " alt="" coords="186,34,159,53,137,80,135,97,142,114,157,129,174,142,171,147,153,133,138,117,130,98,133,78,155,49,183,29"/>
 <area shape="rect" href="base_2snes__color_8h.html" title=" " alt="" coords="146,79,273,105"/>
-<area shape="poly" title=" " alt="" coords="170,30,195,65,190,68,165,33"/>
+<area shape="poly" title=" " alt="" coords="212,31,212,63,207,63,207,31"/>
 <area shape="rect" href="base_2sprite_8h.html" title=" " alt="" coords="297,79,392,105"/>
-<area shape="poly" title=" " alt="" coords="191,29,300,71,298,75,189,34"/>
+<area shape="poly" title=" " alt="" coords="234,29,309,69,307,74,231,34"/>
+<area shape="rect" href="base_2overworld_8h.html" title=" " alt="" coords="417,79,536,105"/>
+<area shape="poly" title=" " alt="" coords="250,28,417,72,416,77,249,33"/>
 <area shape="poly" title=" " alt="" coords="212,105,212,137,207,137,207,105"/>
 <area shape="poly" title=" " alt="" coords="323,108,247,147,245,143,320,103"/>
 </map>
@@ -164,6 +167,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__flags.html">yaze_flags</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flags to initialize the Yaze library.  <a href="structyaze__flags.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__project.html">yaze_project</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a Yaze project.  <a href="structyaze__project.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structz3__rom.html">z3_rom</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a Zelda3 ROM.  <a href="structz3__rom.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -172,6 +178,8 @@ Classes</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr class="memitem:a85553b5710db1102c037bdb355991631" id="r_a85553b5710db1102c037bdb355991631"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_flags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85553b5710db1102c037bdb355991631">yaze_flags</a></td></tr>
 <tr class="separator:a85553b5710db1102c037bdb355991631"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab59cfba52c0fddf9ea046b113ed2395" id="r_aab59cfba52c0fddf9ea046b113ed2395"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_project&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aab59cfba52c0fddf9ea046b113ed2395">yaze_project</a></td></tr>
+<tr class="separator:aab59cfba52c0fddf9ea046b113ed2395"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac77c4e371c3965f72bf4ac3321600f54" id="r_ac77c4e371c3965f72bf4ac3321600f54"><td class="memItemLeft" align="right" valign="top">typedef struct z3_rom&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac77c4e371c3965f72bf4ac3321600f54">z3_rom</a></td></tr>
 <tr class="separator:ac77c4e371c3965f72bf4ac3321600f54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -192,6 +200,8 @@ Functions</h2></td></tr>
 <tr class="memitem:adfb236b5541502ced4544a6678e79d0e" id="r_adfb236b5541502ced4544a6678e79d0e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adfb236b5541502ced4544a6678e79d0e">yaze_get_color_from_paletteset</a> (const <a class="el" href="structz3__rom.html">z3_rom</a> *rom, int palette_set, int palette, int color)</td></tr>
 <tr class="memdesc:adfb236b5541502ced4544a6678e79d0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a color from a palette set.  <br /></td></tr>
 <tr class="separator:adfb236b5541502ced4544a6678e79d0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1b3f6a8db6317860537e91d20a2c7f5" id="r_ac1b3f6a8db6317860537e91d20a2c7f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structz3__overworld.html">z3_overworld</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1b3f6a8db6317860537e91d20a2c7f5">yaze_load_overworld</a> (const <a class="el" href="structz3__rom.html">z3_rom</a> *rom)</td></tr>
+<tr class="separator:ac1b3f6a8db6317860537e91d20a2c7f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="a85553b5710db1102c037bdb355991631" name="a85553b5710db1102c037bdb355991631"></a>
@@ -202,6 +212,20 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef struct yaze_flags yaze_flags</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aab59cfba52c0fddf9ea046b113ed2395" name="aab59cfba52c0fddf9ea046b113ed2395"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab59cfba52c0fddf9ea046b113ed2395">&#9670;&#160;</a></span>yaze_project</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct yaze_project yaze_project</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -417,6 +441,25 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="146,23,178,23,178,28,146,28"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="ac1b3f6a8db6317860537e91d20a2c7f5" name="ac1b3f6a8db6317860537e91d20a2c7f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1b3f6a8db6317860537e91d20a2c7f5">&#9670;&#160;</a></span>yaze_load_overworld()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structz3__overworld.html">z3_overworld</a> * yaze_load_overworld </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structz3__rom.html">z3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="reference">References <a class="el" href="structz3__overworld.html#a13da5630932291eaed93b6a173359f74">z3_overworld::impl</a>, and <a class="el" href="structz3__rom.html#a45e40fd103967152330133b0f3c803d2">z3_rom::impl</a>.</p>
 
 </div>
 </div>

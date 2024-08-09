@@ -1,5 +1,8 @@
 var NAVTREEINDEX43 =
 {
+"snes__palette_8cc.html#ae5807cdf64ba8eed9e0b94335c514674":[10,0,1,0,3,8,19],
+"snes__palette_8cc.html#aee28ac501ff95be94bc01b0fbbcb0545":[10,0,1,0,3,8,10],
+"snes__palette_8cc.html#af624df2438c3def1da9a3c82ab7e58ee":[10,0,1,0,3,8,14],
 "snes__palette_8h.html":[10,0,1,0,3,9],
 "snes__palette_8h.html#a04544775b5724bfbe086cb024eb4091a":[10,0,1,0,3,9,5],
 "snes__palette_8h.html#a071c3bac19f7d896b905aae174b3b405":[10,0,1,0,3,9,25],
@@ -152,16 +155,6 @@ var NAVTREEINDEX43 =
 "structsnes__palette.html#aa3f32ff0f52e7ada19fb5afdd477258f":[9,0,7,0],
 "structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6":[9,0,7,2],
 "structsnes__palette.html#af78e1764df4b15340c56da97b8e2c965":[9,0,7,1],
-"structsprite.html":[9,0,8],
-"structsprite.html#a5a0faeff7103d92ff6d330a4c9ad6a1d":[9,0,8,0],
-"structsprite.html#a61bda979b29b27f833ffd858ae117906":[9,0,8,2],
-"structsprite.html#a7b88869fdcb3d9b6c1ff6669567e1316":[9,0,8,1],
-"structsprite__action.html":[9,0,9],
-"structsprite__action.html#a7c2fdf7dfe5b453eeafeddf46c9121ae":[9,0,9,0],
-"structsprite__action.html#a89e2cbb1cddc446cf6f17fb85ef28047":[9,0,9,2],
-"structsprite__action.html#aa3f89163242bb3ed574b1d210fd47ce3":[9,0,9,1],
-"structsprite__instruction.html":[9,0,10],
-"structsprite__instruction.html#a620a64b1c0677d131166448a90af7215":[9,0,10,0],
 "structyaze_1_1app_1_1OWMapTiles.html":[8,0,2,0,6],
 "structyaze_1_1app_1_1OWMapTiles.html":[9,0,1,0,6],
 "structyaze_1_1app_1_1OWMapTiles.html#a3e7fe9668f224335dc95d2668be8f5ae":[8,0,2,0,6,2],
@@ -249,5 +242,12 @@ var NAVTREEINDEX43 =
 "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter.html#af6d2d4a6ffbce1bc6ea7f31e27ac102e":[8,0,2,0,0,2,0,1],
 "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter.html#af6d2d4a6ffbce1bc6ea7f31e27ac102e":[9,0,1,0,0,0,0,1],
 "structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html":[8,0,2,0,0,3,0],
-"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html":[9,0,1,0,0,1,0]
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html":[9,0,1,0,0,1,0],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a03ccf185ab28a2136269f01bec2324d4":[8,0,2,0,0,3,0,1],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a03ccf185ab28a2136269f01bec2324d4":[9,0,1,0,0,1,0,1],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6":[8,0,2,0,0,3,0,3],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a0628f11c5b5638d2daa076847e05dad6":[9,0,1,0,0,1,0,3],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a14803cbe621eab0e83fcec4bcc353502":[8,0,2,0,0,3,0,10],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a14803cbe621eab0e83fcec4bcc353502":[9,0,1,0,0,1,0,10],
+"structyaze_1_1app_1_1core_1_1ExperimentFlags_1_1Flags.html#a23ffa3479c7b8b16cf28828237a917e9":[8,0,2,0,0,3,0,11]
 };

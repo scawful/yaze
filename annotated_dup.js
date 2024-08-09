@@ -303,10 +303,12 @@ var annotated_dup =
     [ "errordata", "structerrordata.html", "structerrordata" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],
-    [ "sprite", "structsprite.html", "structsprite" ],
-    [ "sprite_action", "structsprite__action.html", "structsprite__action" ],
-    [ "sprite_instruction", "structsprite__instruction.html", "structsprite__instruction" ],
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
     [ "yaze_flags", "structyaze__flags.html", "structyaze__flags" ],
-    [ "z3_rom", "structz3__rom.html", "structz3__rom" ]
+    [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
+    [ "z3_overworld", "structz3__overworld.html", "structz3__overworld" ],
+    [ "z3_overworld_map", "structz3__overworld__map.html", "structz3__overworld__map" ],
+    [ "z3_rom", "structz3__rom.html", "structz3__rom" ],
+    [ "z3_sprite", "structz3__sprite.html", "structz3__sprite" ],
+    [ "z3_sprite_action", "structz3__sprite__action.html", "structz3__sprite__action" ]
 ];

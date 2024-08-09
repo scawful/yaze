@@ -235,9 +235,6 @@ var hierarchy =
     [ "yaze::app::gfx::SnesColor", "classyaze_1_1app_1_1gfx_1_1SnesColor.html", null ],
     [ "yaze::app::gfx::SnesPalette", "classyaze_1_1app_1_1gfx_1_1SnesPalette.html", null ],
     [ "yaze::app::emu::audio::Spc700", "classyaze_1_1app_1_1emu_1_1audio_1_1Spc700.html", null ],
-    [ "sprite", "structsprite.html", null ],
-    [ "sprite_action", "structsprite__action.html", null ],
-    [ "sprite_instruction", "structsprite__instruction.html", null ],
     [ "yaze::app::zelda3::SpriteAction", "classyaze_1_1app_1_1zelda3_1_1SpriteAction.html", null ],
     [ "yaze::app::emu::video::SpriteAttributes", "structyaze_1_1app_1_1emu_1_1video_1_1SpriteAttributes.html", null ],
     [ "yaze::app::zelda3::SpriteBuilder", "classyaze_1_1app_1_1zelda3_1_1SpriteBuilder.html", null ],
@@ -303,6 +300,11 @@ var hierarchy =
     [ "yaze::app::Rom::WriteAction", "structyaze_1_1app_1_1Rom_1_1WriteAction.html", null ],
     [ "yaze_extension", "structyaze__extension.html", null ],
     [ "yaze_flags", "structyaze__flags.html", null ],
+    [ "yaze_project", "structyaze__project.html", null ],
+    [ "z3_overworld", "structz3__overworld.html", null ],
+    [ "z3_overworld_map", "structz3__overworld__map.html", null ],
     [ "z3_rom", "structz3__rom.html", null ],
+    [ "z3_sprite", "structz3__sprite.html", null ],
+    [ "z3_sprite_action", "structz3__sprite__action.html", null ],
     [ "yaze::app::editor::zsprite::ZSprite", "structyaze_1_1app_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
 ];

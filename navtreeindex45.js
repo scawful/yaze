@@ -1,12 +1,5 @@
 var NAVTREEINDEX45 =
 {
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a2b652265b24cae91ddbc718ca700ae73":[8,0,2,0,1,30,0,4],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a2b652265b24cae91ddbc718ca700ae73":[9,0,1,0,1,25,0,4],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a35fab93fd8c045f0bf85cd20e56b14ec":[8,0,2,0,1,30,0,6],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a35fab93fd8c045f0bf85cd20e56b14ec":[9,0,1,0,1,25,0,6],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a5345e0974eb748812c1921370fbbc5c0":[8,0,2,0,1,30,0,0],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a5345e0974eb748812c1921370fbbc5c0":[9,0,1,0,1,25,0,0],
-"structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a568be19eabf200b63fb15473e9b11bae":[8,0,2,0,1,30,0,5],
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#a568be19eabf200b63fb15473e9b11bae":[9,0,1,0,1,25,0,5],
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#ab50e6346c0cb6322665fb6a5b1d335b2":[8,0,2,0,1,30,0,2],
 "structyaze_1_1app_1_1editor_1_1SpriteEditor_1_1OAMConfig.html#ab50e6346c0cb6322665fb6a5b1d335b2":[9,0,1,0,1,25,0,2],
@@ -249,5 +242,12 @@ var NAVTREEINDEX45 =
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8":[8,0,2,0,2,2,5,4],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a61e3ba4cdc0ce7b12df4b3de31054fc8":[9,0,1,0,2,0,5,4],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6f21dc186cb7e8781f010dc575d1fae9":[8,0,2,0,2,2,5,2],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6f21dc186cb7e8781f010dc575d1fae9":[9,0,1,0,2,0,5,2]
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6f21dc186cb7e8781f010dc575d1fae9":[9,0,1,0,2,0,5,2],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46":[8,0,2,0,2,2,5,22],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46":[9,0,1,0,2,0,5,22],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a829cfa1b73ee390d599092701c2883e6":[8,0,2,0,2,2,5,6],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a829cfa1b73ee390d599092701c2883e6":[9,0,1,0,2,0,5,6],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac":[8,0,2,0,2,2,5,15],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac":[9,0,1,0,2,0,5,15],
+"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a8742b2e841d342e517ea4152f2bd16e7":[8,0,2,0,2,2,5,25]
 };

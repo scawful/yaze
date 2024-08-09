@@ -1,12 +1,5 @@
 var NAVTREEINDEX46 =
 {
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46":[8,0,2,0,2,2,5,22],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a6fe331f82365c68c78563f4f4b1a3d46":[9,0,1,0,2,0,5,22],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a829cfa1b73ee390d599092701c2883e6":[8,0,2,0,2,2,5,6],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a829cfa1b73ee390d599092701c2883e6":[9,0,1,0,2,0,5,6],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac":[8,0,2,0,2,2,5,15],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a82eda11d67a3cf502b5208a9f48381ac":[9,0,1,0,2,0,5,15],
-"structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a8742b2e841d342e517ea4152f2bd16e7":[8,0,2,0,2,2,5,25],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a8742b2e841d342e517ea4152f2bd16e7":[9,0,1,0,2,0,5,25],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a89d96202f034f8f7574b66475cfdf952":[8,0,2,0,2,2,5,1],
 "structyaze_1_1app_1_1emu_1_1audio_1_1DspChannel.html#a89d96202f034f8f7574b66475cfdf952":[9,0,1,0,2,0,5,1],
@@ -249,5 +242,12 @@ var NAVTREEINDEX46 =
 "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html#aea5366217762ba898372fd1c3e82214d":[8,0,2,0,2,4,9,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1MainSubScreenDesignation.html#aea5366217762ba898372fd1c3e82214d":[9,0,1,0,2,2,9,3],
 "structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html":[8,0,2,0,2,4,10],
-"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html":[9,0,1,0,2,2,10]
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html":[9,0,1,0,2,2,10],
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a310a0dc78c814ac9fa33b14285b50355":[8,0,2,0,2,4,10,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a310a0dc78c814ac9fa33b14285b50355":[9,0,1,0,2,2,10,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a462b72dfe69e1f5bb7beccf28010e08a":[8,0,2,0,2,4,10,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a462b72dfe69e1f5bb7beccf28010e08a":[9,0,1,0,2,2,10,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a561b6789bd0b8cc565ace80c7955b095":[8,0,2,0,2,4,10,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a561b6789bd0b8cc565ace80c7955b095":[9,0,1,0,2,2,10,3],
+"structyaze_1_1app_1_1emu_1_1video_1_1MaskLogicSettings.html#a98121aa8b3217e9e917793e951d8b861":[8,0,2,0,2,4,10,2]
 };

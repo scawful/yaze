@@ -8,7 +8,7 @@ var searchData=
   ['file_5fis_5floaded_5f_5',['file_is_loaded_',['../classyaze_1_1app_1_1editor_1_1AssemblyEditor.html#a86cbd9eaba3b7be06f13a56cbd9f9a37',1,'yaze::app::editor::AssemblyEditor']]],
   ['file_5fpath_5f_6',['file_path_',['../classyaze_1_1app_1_1editor_1_1GraphicsEditor.html#a0b3b3a88d5795cea8aaa5a3f573ef623',1,'yaze::app::editor::GraphicsEditor']]],
   ['file_5ftype_7',['file_type',['../structyaze_1_1app_1_1gfx_1_1scad__format_1_1CgxHeader.html#ad09af6b5547da2559e46583f2d37b4d0',1,'yaze::app::gfx::scad_format::CgxHeader']]],
-  ['filename_8',['filename',['../structerrordata.html#a1b119a29ef2228f25a9090da6c729702',1,'errordata::filename'],['../structz3__rom.html#a2a47dd5739f2c3b3218f1760c7d54ede',1,'z3_rom::filename']]],
+  ['filename_8',['filename',['../structerrordata.html#a1b119a29ef2228f25a9090da6c729702',1,'errordata::filename'],['../structyaze__project.html#a7ed60b0607dbcd6641155f161fd7593f',1,'yaze_project::filename'],['../structz3__rom.html#a2a47dd5739f2c3b3218f1760c7d54ede',1,'z3_rom::filename']]],
   ['filename_5f_9',['filename_',['../structyaze_1_1app_1_1core_1_1ResourceLabelManager.html#aa45ad7a2d16b486946224270eaeb0cec',1,'yaze::app::core::ResourceLabelManager::filename_'],['../classyaze_1_1app_1_1editor_1_1RecentFilesManager.html#adea068b41f8a0e7a2b01493d660c49b4',1,'yaze::app::editor::RecentFilesManager::filename_'],['../classyaze_1_1app_1_1Rom.html#a91a162b1c152c1c602ecc1501b248989',1,'yaze::app::Rom::filename_']]],
   ['filepath_10',['filepath',['../structyaze_1_1app_1_1Project.html#a1311a5bc2b450b80dca82fe1b42b6681',1,'yaze::app::Project']]],
   ['files_11',['files',['../structyaze_1_1app_1_1core_1_1FolderItem.html#a5a873b932addb515f0a742abdb8faaa6',1,'yaze::app::core::FolderItem']]],

@@ -1,12 +1,5 @@
 var NAVTREEINDEX49 =
 {
-"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#ad9e3d821b035da5413027615a2b5f3a0":[8,0,2,0,2,4,23,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1VideoPortControl.html#ad9e3d821b035da5413027615a2b5f3a0":[9,0,1,0,2,2,23,2],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html":[8,0,2,0,2,4,24],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html":[9,0,1,0,2,2,24],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a1d18f5c2625a5e95f72cdc4161095b91":[8,0,2,0,2,4,24,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a1d18f5c2625a5e95f72cdc4161095b91":[9,0,1,0,2,2,24,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a2c244a9fe4c6618dc357cac5e95f580c":[8,0,2,0,2,4,24,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a2c244a9fe4c6618dc357cac5e95f580c":[9,0,1,0,2,2,24,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a318e61fd5c7de073d4ecac150dbe87d2":[8,0,2,0,2,4,24,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1WindowLayer.html#a318e61fd5c7de073d4ecac150dbe87d2":[9,0,1,0,2,2,24,0],
@@ -249,5 +242,12 @@ var NAVTREEINDEX49 =
 "structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e":[8,0,2,0,4,2,1],
 "structyaze_1_1app_1_1gui_1_1AssetObject.html#a21ce3281b1913403a1e6155d868df59e":[9,0,1,0,4,1,1],
 "structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[8,0,2,0,4,2,2],
-"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[9,0,1,0,4,1,2]
+"structyaze_1_1app_1_1gui_1_1AssetObject.html#a3d61947c9f1aaf9a3bff84f9c27c25ac":[9,0,1,0,4,1,2],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[8,0,2,0,4,5],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html":[9,0,1,0,4,4],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html#a85ad3a711636fbfe817ad097e213cef1":[8,0,2,0,4,5,0],
+"structyaze_1_1app_1_1gui_1_1DungeonAsset.html#a85ad3a711636fbfe817ad097e213cef1":[9,0,1,0,4,4,0],
+"structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html":[8,0,2,0,4,6],
+"structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html":[9,0,1,0,4,5],
+"structyaze_1_1app_1_1gui_1_1ExampleSelectionWithDeletion.html#a89b3f1bc90a0517598b5ba7950f77882":[8,0,2,0,4,6,1]
 };
