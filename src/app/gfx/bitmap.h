@@ -183,15 +183,15 @@ class Bitmap {
   auto mutable_surface() { return surface_.get(); }
   auto converted_surface() const { return converted_surface_.get(); }
   auto mutable_converted_surface() { return converted_surface_.get(); }
-  void set_data(const Bytes &data) { data_ = data; }
 
   auto vector() const { return data_; }
   auto at(int i) const { return data_[i]; }
   auto texture() const { return texture_.get(); }
   auto modified() const { return modified_; }
-  void set_modified(bool modified) { modified_ = modified; }
   auto is_active() const { return active_; }
-  auto set_active(bool active) { active_ = active; }
+  void set_active(bool active) { active_ = active; }
+  void set_data(const Bytes &data) { data_ = data; }
+  void set_modified(bool modified) { modified_ = modified; }
 
  private:
   int width_ = 0;
