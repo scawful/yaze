@@ -14,13 +14,14 @@ void my_extension_manipulate_rom(z3_rom* rom) {
 }
 
 yaze_extension* get_yaze_extension() {
-    static yaze_extension ext = {
-        "My Extension", "1.0",
-        my_extension_initialize,
-        my_extension_cleanup,
-        nullptr,
-        nullptr,
-        my_extension_manipulate_rom
-    };
-    return &ext;
+  static yaze_extension ext = {
+      "My Extension",
+      "1.0",
+      my_extension_initialize,     // Initialization function
+      my_extension_cleanup,        // Cleanup function
+      NULL,                        // extend_functionality
+      NULL,                        // render_ui
+      my_extension_manipulate_rom  // manipulate_rom
+  };
+  return &ext;
 }
