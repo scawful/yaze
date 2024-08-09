@@ -322,16 +322,16 @@ absl::Status MessageEditor::Initialize() {
 }
 
 void MessageEditor::BuildDictionaryEntries() {
-  for (int i = 0; i < 97; i++) {
+  for (int i = 0; i < kNumDictionaryEntries; i++) {
     std::vector<uint8_t> bytes;
     std::stringstream stringBuilder;
 
     int address = core::SnesToPc(
-        0x0E0000 + (rom()->data()[kPointersDictionaries + (i * 2) + 1] << 8) +
+        kTextData + (rom()->data()[kPointersDictionaries + (i * 2) + 1] << 8) +
         rom()->data()[kPointersDictionaries + (i * 2)]);
 
     int temppush_backress = core::SnesToPc(
-        0x0E0000 +
+        kTextData +
         (rom()->data()[kPointersDictionaries + ((i + 1) * 2) + 1] << 8) +
         rom()->data()[kPointersDictionaries + ((i + 1) * 2)]);
 
@@ -341,7 +341,6 @@ void MessageEditor::BuildDictionaryEntries() {
       stringBuilder << ParseTextDataByte(uint8_tDictionary);
     }
 
-    // AllDictionaries[i] = DictionaryEntry{(uint8_t)i, stringBuilder.str()};
     AllDictionaries.push_back(DictionaryEntry{(uint8_t)i, stringBuilder.str()});
   }
 
@@ -350,9 +349,9 @@ void MessageEditor::BuildDictionaryEntries() {
 }
 
 void MessageEditor::ReadAllTextData() {
-  int messageID = 0;
-  uint8_t current_byte;
   int pos = kTextData;
+  int message_id = 0;
+  uint8_t current_byte;
   std::vector<uint8_t> temp_bytes_raw;
   std::vector<uint8_t> temp_bytes_parsed;
 
@@ -365,7 +364,7 @@ void MessageEditor::ReadAllTextData() {
 
     if (current_byte == MESSAGETERMINATOR) {
       auto message =
-          MessageData(messageID++, pos, current_message_raw, temp_bytes_raw,
+          MessageData(message_id++, pos, current_message_raw, temp_bytes_raw,
                       current_message_parsed, temp_bytes_parsed);
 
       ListOfTexts.push_back(message);
