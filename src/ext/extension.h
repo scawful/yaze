@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "yaze.h"
+
 typedef void (*yaze_imgui_render_callback)(void* editor_context);
 
 typedef void (*yaze_rom_operation)(z3_rom* rom);
