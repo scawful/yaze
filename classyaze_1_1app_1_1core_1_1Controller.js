@@ -1,6 +1,5 @@
 var classyaze_1_1app_1_1core_1_1Controller =
 [
-    [ "sdl_deleter", "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter.html", "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter" ],
     [ "IsActive", "classyaze_1_1app_1_1core_1_1Controller.html#afd6011a3b58a78452d3ab5308382bf0d", null ],
     [ "OnEntry", "classyaze_1_1app_1_1core_1_1Controller.html#a59403e741f392a42bdbbe874b9ebeea1", null ],
     [ "OnInput", "classyaze_1_1app_1_1core_1_1Controller.html#ab91b550d982432084d70abcbe0fa76bd", null ],
@@ -16,7 +15,6 @@ var classyaze_1_1app_1_1core_1_1Controller =
     [ "master_editor", "classyaze_1_1app_1_1core_1_1Controller.html#a04af31e0a744915d95f466cdee06da66", null ],
     [ "renderer", "classyaze_1_1app_1_1core_1_1Controller.html#a746ab671d01d9038163e1d2997a2ab20", null ],
     [ "window", "classyaze_1_1app_1_1core_1_1Controller.html#a55d3bd7071ec6cdfb11c795dc0b7b859", null ],
-    [ "CloseWindow", "classyaze_1_1app_1_1core_1_1Controller.html#addce44a5bf2ffd6e5cae6fc7d0c58f53", null ],
     [ "int::main", "classyaze_1_1app_1_1core_1_1Controller.html#a400fbb1fca81edc08b34219272eba877", null ],
     [ "active_", "classyaze_1_1app_1_1core_1_1Controller.html#a100a89b072e1fd51b58816c76f4f7a1c", null ],
     [ "platform_", "classyaze_1_1app_1_1core_1_1Controller.html#ab838dd08a4dcd9757d19d330fc22467e", null ],

@@ -1,13 +1,5 @@
 var NAVTREEINDEX42 =
 {
-"ppu__registers_8h.html#a05048f63c8c7246f44e67f5a0eb177bb":[10,0,1,0,2,4,2,89],
-"ppu__registers_8h.html#a06be98cf409ae590f3645a346f1d31b9":[10,0,1,0,2,4,2,107],
-"ppu__registers_8h.html#a095a39366cc74e3b4d2ff352b651b675":[10,0,1,0,2,4,2,70],
-"ppu__registers_8h.html#a137a89e211e1cd3682a1eec350a04e14":[10,0,1,0,2,4,2,58],
-"ppu__registers_8h.html#a20b4540bc753158ca97483620bf2df03":[10,0,1,0,2,4,2,76],
-"ppu__registers_8h.html#a22bd791fdf9d37bfbb0e6a909d030d40":[10,0,1,0,2,4,2,99],
-"ppu__registers_8h.html#a2dac7b7419e2607ea0aea3a78776b8a1":[10,0,1,0,2,4,2,61],
-"ppu__registers_8h.html#a30f7ab3067d2a6a0d121ab7021e869bb":[10,0,1,0,2,4,2,111],
 "ppu__registers_8h.html#a355b518616aa53d385f45b1be595cf32":[10,0,1,0,2,4,2,75],
 "ppu__registers_8h.html#a3d42d918afe637c13a1c380e2ff27cea":[10,0,1,0,2,4,2,115],
 "ppu__registers_8h.html#a3e3a5057c6eebc4bf5fb4a245f59d78a":[10,0,1,0,2,4,2,66],
@@ -76,8 +68,9 @@ var NAVTREEINDEX42 =
 "renderer_8h.html":[10,0,1,0,0,0,14],
 "renderer_8h_source.html":[10,0,1,0,0,0,14],
 "rom_8cc.html":[10,0,1,0,6],
-"rom_8cc.html#a02c28e406561ede6e5a46381e26b4653":[10,0,1,0,6,1],
-"rom_8cc.html#a4c2c2d45869b398e8183f4215fb8c25b":[10,0,1,0,6,0],
+"rom_8cc.html#a02c28e406561ede6e5a46381e26b4653":[10,0,1,0,6,2],
+"rom_8cc.html#a4c2c2d45869b398e8183f4215fb8c25b":[10,0,1,0,6,1],
+"rom_8cc.html#af32ff136fcce381db4ac72da93552f31":[10,0,1,0,6,0],
 "rom_8cc_source.html":[10,0,1,0,6],
 "rom_8h.html":[10,0,1,0,7],
 "rom_8h.html#a24bebdceeb59d0f451c59123c0a38d47":[10,0,1,0,7,4],
@@ -249,5 +242,12 @@ var NAVTREEINDEX42 =
 "sample_8c.html#a3c7c4dec1ad5658afc76ca8ebc6f4c92":[10,0,1,3,2,1],
 "sample_8c.html#a4e881c1093a2a7718784c3156b29f69e":[10,0,1,3,2,0],
 "sample_8c.html#a5dabaad70704ecff759f67c5ddf63ff2":[10,0,1,3,2,3],
-"sample_8c.html#a9caf69a8b1426457bc1ee26e47479702":[10,0,1,3,2,2]
+"sample_8c.html#a9caf69a8b1426457bc1ee26e47479702":[10,0,1,3,2,2],
+"sample_8c_source.html":[10,0,1,3,2],
+"sample_8py.html":[10,0,1,3,3],
+"sample_8py.html#a0603021e3c2bad26b919fd8b5e5132f6":[10,0,1,3,3,1],
+"sample_8py_source.html":[10,0,1,3,3],
+"scad__format_8cc.html":[10,0,1,0,3,4],
+"scad__format_8cc.html#a040f56ef613e47195e7749709b12073a":[10,0,1,0,3,4,1],
+"scad__format_8cc.html#a401765bf79628a0f353807bc0a825797":[10,0,1,0,3,4,4]
 };

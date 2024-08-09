@@ -199,9 +199,8 @@ var hierarchy =
     [ "yaze::app::emu::video::ScreenMode", "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html", null ],
     [ "yaze::app::emu::video::ScrollRegister", "structyaze_1_1app_1_1emu_1_1video_1_1ScrollRegister.html", null ],
     [ "yaze::app::core::SDL_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Deleter.html", null ],
-    [ "yaze::app::core::Controller::sdl_deleter", "structyaze_1_1app_1_1core_1_1Controller_1_1sdl__deleter.html", null ],
-    [ "yaze::app::gfx::Bitmap::SDL_Surface_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html", null ],
-    [ "yaze::app::gfx::Bitmap::SDL_Texture_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter.html", null ],
+    [ "yaze::app::core::SDL_Surface_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html", null ],
+    [ "yaze::app::core::SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", null ],
     [ "yaze::app::emu::video::PpuRegisters::SETINI", "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1SETINI.html", null ],
     [ "yaze::app::SharedRom", "classyaze_1_1app_1_1SharedRom.html", [
       [ "yaze::app::editor::DungeonEditor", "classyaze_1_1app_1_1editor_1_1DungeonEditor.html", null ],

@@ -1,7 +1,5 @@
 var classyaze_1_1app_1_1gfx_1_1Bitmap =
 [
-    [ "SDL_Surface_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter.html", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Surface__Deleter" ],
-    [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1gfx_1_1Bitmap_1_1SDL__Texture__Deleter" ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a632826783c32f69f3cadd272d5ccbe49", null ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#afe4955e48e94c72d6ce5b39eb2a3c17d", null ],
     [ "Bitmap", "classyaze_1_1app_1_1gfx_1_1Bitmap.html#a9d6c809ffd9849ac5575879ac3710ca5", null ],

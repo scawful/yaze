@@ -27,6 +27,8 @@ var namespaceyaze_1_1app_1_1core =
     [ "Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", "classyaze_1_1app_1_1core_1_1Renderer" ],
     [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
     [ "SDL_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Deleter" ],
+    [ "SDL_Surface_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Surface__Deleter" ],
+    [ "SDL_Texture_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Texture__Deleter" ],
     [ "FolderItem", "namespaceyaze_1_1app_1_1core.html#ae3d315799cc5396556e7b023473121dd", null ],
     [ "Platform", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700", [
       [ "kUnknown", "namespaceyaze_1_1app_1_1core.html#a4e61b0cd86cff55adee7c5b20c7dc700a25c2dc47991b3df171ed5192bcf70390", null ],

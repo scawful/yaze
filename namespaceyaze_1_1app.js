@@ -1,5 +1,8 @@
 var namespaceyaze_1_1app =
 [
+    [ "anonymous_namespace{rom.cc}", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html", [
+      [ "GetGraphicsAddress", "namespaceyaze_1_1app_1_1anonymous__namespace_02rom_8cc_03.html#af32ff136fcce381db4ac72da93552f31", null ]
+    ] ],
     [ "core", "namespaceyaze_1_1app_1_1core.html", "namespaceyaze_1_1app_1_1core" ],
     [ "editor", "namespaceyaze_1_1app_1_1editor.html", "namespaceyaze_1_1app_1_1editor" ],
     [ "emu", "namespaceyaze_1_1app_1_1emu.html", "namespaceyaze_1_1app_1_1emu" ],
