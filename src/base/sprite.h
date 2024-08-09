@@ -8,36 +8,26 @@ extern "C" {
 #include <stdint.h>
 
 /**
- * @brief Sprite instruction.
- */
-
-struct sprite_instruction {
-  const char* content; /**< Content of the instruction. */
-};
-typedef struct sprite_instruction sprite_instruction;
-
-/**
  * @brief Sprite action.
  */
-struct sprite_action {
+struct z3_sprite_action {
   const char* name; /**< Name of the action. */
   uint8_t id;       /**< ID of the action. */
 
-  sprite_instruction*
-      instructions; /**< Pointer to the instructions of the action. */
+  const char** instructions; /**< Pointer to the instructions of the action. */
 };
-typedef struct sprite_action sprite_action;
+typedef struct z3_sprite_action z3_sprite_action;
 
 /**
  * @brief Primitive of a sprite.
  */
-struct sprite {
+struct z3_sprite {
   const char* name; /**< Name of the sprite. */
   uint8_t id;       /**< ID of the sprite. */
 
   sprite_action* actions; /**< Pointer to the actions of the sprite. */
 };
-typedef struct sprite sprite;
+typedef struct z3_sprite z3_sprite;
 
 #ifdef __cplusplus
 }
