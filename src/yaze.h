@@ -10,6 +10,7 @@ extern "C" {
 
 #include "base/snes_color.h"
 #include "base/sprite.h"
+#include "base/overworld.h"
 
 typedef struct yaze_flags yaze_flags;
 typedef struct z3_rom z3_rom;
@@ -62,6 +63,8 @@ void yaze_unload_rom(z3_rom* rom);
  */
 snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
                                           int palette, int color);
+
+z3_overworld* yaze_load_overworld(const z3_rom* rom);
 
 #ifdef __cplusplus
 }

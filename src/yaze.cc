@@ -1,6 +1,7 @@
 #include "yaze.h"
 
 #include "app/rom.h"
+#include "app/zelda3/overworld/overworld.h"
 
 void yaze_init(yaze_flags* flags) {
   if (flags == nullptr) {
@@ -69,4 +70,23 @@ snes_color yaze_get_color_from_paletteset(const z3_rom* rom, int palette_set,
   }
 
   return color_struct;
+}
+
+z3_overworld* yaze_load_overworld(const z3_rom* rom) {
+  if (rom->impl == nullptr) {
+    return nullptr;
+  }
+
+  yaze::app::Rom* internal_rom = static_cast<yaze::app::Rom*>(rom->impl);
+
+  yaze::app::zelda3::Overworld* internal_overworld =
+      new yaze::app::zelda3::Overworld();
+  auto load_ow = internal_overworld->Load(internal_rom);
+  if (!load_ow.ok()) {
+    return nullptr;
+  }
+
+  z3_overworld* overworld = new z3_overworld();
+  overworld->impl = internal_overworld;
+  return overworld;
 }
