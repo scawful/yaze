@@ -24,6 +24,5 @@ var classyaze_1_1app_1_1core_1_1Controller =
     [ "audio_frequency_", "classyaze_1_1app_1_1core_1_1Controller.html#a2aa3c78db90d65c697c2af17ac00f904", null ],
     [ "audio_buffer_", "classyaze_1_1app_1_1core_1_1Controller.html#aedd8bb2ace258403e9f3808e2520e4b9", null ],
     [ "audio_device_", "classyaze_1_1app_1_1core_1_1Controller.html#a04c21c318b230bba2f09201b47bb1f7d", null ],
-    [ "window_", "classyaze_1_1app_1_1core_1_1Controller.html#a4eec59b32e068b3fd8df4a23732fb082", null ],
-    [ "renderer_", "classyaze_1_1app_1_1core_1_1Controller.html#ae5142ea136f105c20b24cdcf98c30b9c", null ]
+    [ "window_", "classyaze_1_1app_1_1core_1_1Controller.html#a4eec59b32e068b3fd8df4a23732fb082", null ]
 ];

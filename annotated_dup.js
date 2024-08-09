@@ -13,8 +13,9 @@ var annotated_dup =
           [ "ImGuiIdIssuer", "classyaze_1_1app_1_1core_1_1ImGuiIdIssuer.html", null ],
           [ "Logger", "classyaze_1_1app_1_1core_1_1Logger.html", null ],
           [ "NotifyValue", "classyaze_1_1app_1_1core_1_1NotifyValue.html", "classyaze_1_1app_1_1core_1_1NotifyValue" ],
+          [ "Renderer", "classyaze_1_1app_1_1core_1_1Renderer.html", "classyaze_1_1app_1_1core_1_1Renderer" ],
           [ "ResourceLabelManager", "structyaze_1_1app_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1app_1_1core_1_1ResourceLabelManager" ],
-          [ "sdl_deleter", "structyaze_1_1app_1_1core_1_1sdl__deleter.html", "structyaze_1_1app_1_1core_1_1sdl__deleter" ]
+          [ "SDL_Deleter", "structyaze_1_1app_1_1core_1_1SDL__Deleter.html", "structyaze_1_1app_1_1core_1_1SDL__Deleter" ]
         ] ],
         [ "editor", "namespaceyaze_1_1app_1_1editor.html", [
           [ "context", "namespaceyaze_1_1app_1_1editor_1_1context.html", [

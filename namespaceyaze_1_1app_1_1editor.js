@@ -99,6 +99,7 @@ var namespaceyaze_1_1app_1_1editor =
     [ "kTextData2End", "namespaceyaze_1_1app_1_1editor.html#abfd82e7b805800a75637b69dbc0aa028", null ],
     [ "kPointersDictionaries", "namespaceyaze_1_1app_1_1editor.html#a32c555ef9d36855d86f302629fb71a6f", null ],
     [ "kCharactersWidth", "namespaceyaze_1_1app_1_1editor.html#a85b0f79530b4f2732ec9001c0ded592d", null ],
+    [ "kNumDictionaryEntries", "namespaceyaze_1_1app_1_1editor.html#adda17c1c63e0d77cd9100cab3700d10d", null ],
     [ "DICTIONARYTOKEN", "namespaceyaze_1_1app_1_1editor.html#a85d85e7b31b095e3f405e7aaa0cfb318", null ],
     [ "DICTOFF", "namespaceyaze_1_1app_1_1editor.html#ae0ffdfe2fe8d70d8a2df747e934e328a", null ],
     [ "BANKToken", "namespaceyaze_1_1app_1_1editor.html#a5055242b61e103773f8f1919856ac198", null ],

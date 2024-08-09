@@ -1,6 +1,6 @@
 <map id="yaze::app::core::Controller::SetupScreen" name="yaze::app::core::Controller::SetupScreen">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,47,172,87"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac67ef851a62f7d2ccd7342f666066dee" title=" " alt="" coords="220,47,395,87"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1editor_1_1MasterEditor.html#a2fffd239b37c766e0ea7e41771fed34b" title=" " alt="" coords="220,47,395,87"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,64,204,64,204,70,172,70"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1editor_1_1OverworldEditor.html#a42629ebab5240eac4df7bccc9cc04bf9" title=" " alt="" coords="443,5,638,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="395,49,427,43,428,48,396,54"/>

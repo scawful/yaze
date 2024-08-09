@@ -1,5 +1,13 @@
 var NAVTREEINDEX48 =
 {
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html#ae7e514f658539ca86287131c1184dd9d":[8,0,2,0,2,4,0,22,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1MPYM.html#ae7e514f658539ca86287131c1184dd9d":[9,0,1,0,2,2,0,22,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html":[8,0,2,0,2,4,0,19],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html":[9,0,1,0,2,2,0,19],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#a2aed862f530e9c1ac5886d978760b348":[8,0,2,0,2,4,0,19,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#a2aed862f530e9c1ac5886d978760b348":[9,0,1,0,2,2,0,19,1],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#aba6c09b121212b08cf03d900e69fa695":[8,0,2,0,2,4,0,19,0],
+"structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1Mosaic.html#aba6c09b121212b08cf03d900e69fa695":[9,0,1,0,2,2,0,19,0],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html":[8,0,2,0,2,4,0,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html":[9,0,1,0,2,2,0,23],
 "structyaze_1_1app_1_1emu_1_1video_1_1PpuRegisters_1_1OAMADDH.html#a0abc0ca2f5b83a4e889bb325daf537d9":[8,0,2,0,2,4,0,23,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX48 =
 "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a081ba745ab987282db020cdb1cfb7202":[8,0,2,0,2,4,16,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a081ba745ab987282db020cdb1cfb7202":[9,0,1,0,2,2,16,2],
 "structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a08347aac7b05cbb6ffd59d1db8647b82":[8,0,2,0,2,4,16,5],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a08347aac7b05cbb6ffd59d1db8647b82":[9,0,1,0,2,2,16,5],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a51614870344d996f9b72233fb685be0d":[8,0,2,0,2,4,16,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a51614870344d996f9b72233fb685be0d":[9,0,1,0,2,2,16,1],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a8a72207fc1411a21ca4c1d488c29836f":[8,0,2,0,2,4,16,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a8a72207fc1411a21ca4c1d488c29836f":[9,0,1,0,2,2,16,4],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ab2615c0068251aa6b5481ca6bb91c345":[8,0,2,0,2,4,16,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ab2615c0068251aa6b5481ca6bb91c345":[9,0,1,0,2,2,16,0],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ae4673db8bb8e8e3227e4f5fafa3a0ca8":[8,0,2,0,2,4,16,3],
-"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#ae4673db8bb8e8e3227e4f5fafa3a0ca8":[9,0,1,0,2,2,16,3]
+"structyaze_1_1app_1_1emu_1_1video_1_1ScreenMode.html#a08347aac7b05cbb6ffd59d1db8647b82":[9,0,1,0,2,2,16,5]
 };

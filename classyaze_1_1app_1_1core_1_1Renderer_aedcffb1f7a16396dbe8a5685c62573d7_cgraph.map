@@ -1,0 +1,8 @@
+<map id="yaze::app::core::Renderer::UpdateBitmap" name="yaze::app::core::Renderer::UpdateBitmap">
+<area shape="rect" id="Node000001" title="Used to update a bitmap on the screen." alt="" coords="5,63,169,103"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1ExperimentFlags.html#a3ca4ac9c1ee303eef4c43b1d59eca116" title=" " alt="" coords="217,29,392,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,68,201,63,202,68,169,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1gfx_1_1Bitmap.html#ae061f9e46947eddeab58c59a2aaeaff2" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="232,95,376,135"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="169,92,217,99,216,105,168,98"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="263,29,261,19,268,10,282,5,304,3,328,5,342,11,340,16,327,10,304,8,284,10,271,15,266,21,268,28"/>
+</map>

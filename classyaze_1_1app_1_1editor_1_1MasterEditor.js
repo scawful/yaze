@@ -1,7 +1,7 @@
 var classyaze_1_1app_1_1editor_1_1MasterEditor =
 [
     [ "MasterEditor", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a8b1b4a7824557c7394dd7a1d606bac21", null ],
-    [ "SetupScreen", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac67ef851a62f7d2ccd7342f666066dee", null ],
+    [ "SetupScreen", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a2fffd239b37c766e0ea7e41771fed34b", null ],
     [ "Update", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a21434e7f576e94c503ed7f7ff2801d16", null ],
     [ "emulator", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a6c329d941533145ee9a6a1e76f560ab4", null ],
     [ "quit", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#adde7f7131533b85f51cf10adcac3b03e", null ],
@@ -32,7 +32,6 @@ var classyaze_1_1app_1_1editor_1_1MasterEditor =
     [ "rom_assets_loaded_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ac91b54b25672b06cc545724c187b48a6", null ],
     [ "status_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a4445657d7b1d57564203cc4a62ec6711", null ],
     [ "prev_status_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#ad46300254acb8642a4b08f737d8bbb99", null ],
-    [ "sdl_renderer_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a435c0469551f95287f3c7e0d8f5c8a19", null ],
     [ "emulator_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a2333f055ab8e2a7d55eee1bb9437e507", null ],
     [ "current_project_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a8d6290cf40387f35c702d3a192e08dc4", null ],
     [ "assembly_editor_", "classyaze_1_1app_1_1editor_1_1MasterEditor.html#a7698596df9b109e73fb8abe8c2ced5a1", null ],

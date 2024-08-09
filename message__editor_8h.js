@@ -10,6 +10,7 @@ var message__editor_8h =
     [ "kTextData2End", "message__editor_8h.html#abfd82e7b805800a75637b69dbc0aa028", null ],
     [ "kPointersDictionaries", "message__editor_8h.html#a32c555ef9d36855d86f302629fb71a6f", null ],
     [ "kCharactersWidth", "message__editor_8h.html#a85b0f79530b4f2732ec9001c0ded592d", null ],
+    [ "kNumDictionaryEntries", "message__editor_8h.html#adda17c1c63e0d77cd9100cab3700d10d", null ],
     [ "DICTIONARYTOKEN", "message__editor_8h.html#a85d85e7b31b095e3f405e7aaa0cfb318", null ],
     [ "DICTOFF", "message__editor_8h.html#ae0ffdfe2fe8d70d8a2df747e934e328a", null ],
     [ "BANKToken", "message__editor_8h.html#a5055242b61e103773f8f1919856ac198", null ],
