@@ -330,7 +330,7 @@ void Controller::OnInput() {
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_CLOSE:
-            CloseWindow();
+            active_ = false;
             break;
           case SDL_WINDOWEVENT_SIZE_CHANGED:
             ChangeWindowSizeEvent(event);
@@ -404,14 +404,14 @@ absl::Status Controller::CreateSDL_Window() {
     int screenWidth = displayMode.w * 0.8;
     int screenHeight = displayMode.h * 0.8;
 
-    window_ = std::unique_ptr<SDL_Window, sdl_deleter>(
+    window_ = std::unique_ptr<SDL_Window, core::SDL_Deleter>(
         SDL_CreateWindow("Yet Another Zelda3 Editor",  // window title
                          SDL_WINDOWPOS_UNDEFINED,      // initial x position
                          SDL_WINDOWPOS_UNDEFINED,      // initial y position
                          screenWidth,                  // width, in pixels
                          screenHeight,                 // height, in pixels
                          SDL_WINDOW_RESIZABLE),
-        sdl_deleter());
+        core::SDL_Deleter());
     if (window_ == nullptr) {
       return absl::InternalError(
           absl::StrFormat("SDL_CreateWindow: %s\n", SDL_GetError()));
