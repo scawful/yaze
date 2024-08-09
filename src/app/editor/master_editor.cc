@@ -3,17 +3,11 @@
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "abseil-cpp/absl/strings/match.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_sdlrenderer2.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "imgui_internal.h"
-#include "imgui_memory_editor.h"
-
 #include "absl/status/status.h"
 #include "app/core/common.h"
 #include "app/core/constants.h"
 #include "app/core/platform/file_dialog.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -32,6 +26,12 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_internal.h"
+#include "imgui_memory_editor.h"
 
 namespace yaze {
 namespace app {
@@ -40,9 +40,9 @@ namespace editor {
 using namespace ImGui;
 
 namespace {
-  
-bool BeginCentered(const char *name) {
-  ImGuiIO const &io = GetIO();
+
+bool BeginCentered(const char* name) {
+  ImGuiIO const& io = GetIO();
   ImVec2 pos(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
   SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGuiWindowFlags flags =
@@ -58,10 +58,7 @@ bool IsEditorActive(Editor* editor, std::vector<Editor*>& active_editors) {
 
 }  // namespace
 
-void MasterEditor::SetupScreen(std::shared_ptr<SDL_Renderer> renderer,
-                               std::string filename) {
-  sdl_renderer_ = renderer;
-  rom()->SetupRenderer(renderer);
+void MasterEditor::SetupScreen(std::string filename) {
   if (!filename.empty()) {
     PRINT_IF_ERROR(rom()->LoadFromFile(filename));
   }
@@ -656,7 +653,6 @@ void MasterEditor::DrawTestMenu() {
     MenuItem("Run Tests", nullptr, &show_tests_);
     EndMenu();
   }
-
 }
 
 void MasterEditor::DrawProjectMenu() {

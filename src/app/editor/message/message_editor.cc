@@ -11,6 +11,7 @@
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 #include "app/core/common.h"
+#include "app/core/platform/renderer.h"
 #include "app/editor/utils/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -23,6 +24,8 @@
 namespace yaze {
 namespace app {
 namespace editor {
+
+using core::Renderer;
 
 using ImGui::Begin;
 using ImGui::BeginChild;
@@ -212,7 +215,7 @@ void MessageEditor::DrawCurrentMessage() {
 
   Text("Message Preview");
   if (Button("Refresh Bitmap")) {
-    rom()->UpdateBitmap(&current_font_gfx16_bitmap_);
+    Renderer::GetInstance().UpdateBitmap(&current_font_gfx16_bitmap_);
   }
   gui::BeginPadding(1);
   BeginChild("CurrentGfxFont", ImVec2(0, 0), true,
@@ -260,7 +263,7 @@ absl::Status MessageEditor::Initialize() {
   font_gfx16_data = gfx::SnesTo8bppSheet(data, /*bpp=*/2);
 
   // 4bpp
-  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       128, 128, 8, font_gfx16_data, font_gfx_bitmap_, font_preview_colors_))
 
   current_font_gfx16_data_.reserve(172 * 4096);
@@ -269,7 +272,7 @@ absl::Status MessageEditor::Initialize() {
   }
 
   // 8bpp
-  RETURN_IF_ERROR(rom()->CreateAndRenderBitmap(
+  RETURN_IF_ERROR(Renderer::GetInstance().CreateAndRenderBitmap(
       172, 4096, 64, current_font_gfx16_data_, current_font_gfx16_bitmap_,
       font_preview_colors_))
 

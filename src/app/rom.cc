@@ -20,15 +20,17 @@
 #include "absl/strings/str_cat.h"          // for StrCat
 #include "absl/strings/string_view.h"      // for string_view, operator==
 #include "app/core/constants.h"            // for Bytes, ASSIGN_OR_RETURN
-#include "app/gfx/bitmap.h"                // for Bitmap, BitmapTable
-#include "app/gfx/compression.h"           // for DecompressV2
-#include "app/gfx/snes_color.h"            // for SNESColor
-#include "app/gfx/snes_palette.h"          // for PaletteGroup
-#include "app/gfx/snes_tile.h"             // for SnesTo8bppSheet
+#include "app/core/platform/renderer.h"
+#include "app/gfx/bitmap.h"        // for Bitmap, BitmapTable
+#include "app/gfx/compression.h"   // for DecompressV2
+#include "app/gfx/snes_color.h"    // for SNESColor
+#include "app/gfx/snes_palette.h"  // for PaletteGroup
+#include "app/gfx/snes_tile.h"     // for SnesTo8bppSheet
 
 namespace yaze {
 namespace app {
 
+using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 constexpr int kEntranceGfxGroup = 0x5D97;
 
@@ -74,7 +76,7 @@ absl::Status Rom::LoadLinkGraphics() {
                              core::kTilesheetDepth, link_sheet_8bpp);
     RETURN_IF_ERROR(
         link_graphics_[i].ApplyPaletteWithTransparent(link_palette_, 0));
-    RenderBitmap(&link_graphics_[i]);
+    Renderer::GetInstance().RenderBitmap(&link_graphics_[i]);
   }
 
   return absl::OkStatus();
@@ -104,7 +106,7 @@ absl::Status Rom::LoadAllGraphicsData() {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
       graphics_sheets_[i].Create(core::kTilesheetWidth, core::kTilesheetHeight,
                                  core::kTilesheetDepth, converted_sheet);
-      graphics_sheets_[i].CreateTexture(renderer_);
+      graphics_sheets_[i].CreateTexture(Renderer::GetInstance().renderer());
 
       if (flags()->kUseBitmapManager) {
         graphics_manager_.LoadBitmap(i, converted_sheet, core::kTilesheetWidth,
@@ -118,12 +120,12 @@ absl::Status Rom::LoadAllGraphicsData() {
           RETURN_IF_ERROR(graphics_manager_[i].ApplyPaletteWithTransparent(
               palette_groups_.dungeon_main[0], 0));
         }
-        graphics_manager_[i].CreateTexture(renderer_);
+        graphics_manager_[i].CreateTexture(Renderer::GetInstance().renderer());
       }
       graphics_bin_[i] =
           gfx::Bitmap(core::kTilesheetWidth, core::kTilesheetHeight,
                       core::kTilesheetDepth, converted_sheet);
-      graphics_bin_.at(i).CreateTexture(renderer_);
+      graphics_bin_.at(i).CreateTexture(Renderer::GetInstance().renderer());
 
       if (flags()->kUseBitmapManager) {
         for (int j = 0; j < graphics_manager_[i].size(); ++j) {

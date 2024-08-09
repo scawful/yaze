@@ -303,7 +303,7 @@ absl::Status Controller::OnEntry(std::string filename) {
     master_editor_.emulator().set_audio_device_id(audio_device_);
   }
   InitializeKeymap();
-  master_editor_.SetupScreen(renderer_, filename);
+  master_editor_.SetupScreen(filename);
   active_ = true;
   return absl::OkStatus();
 }
@@ -367,9 +367,10 @@ absl::Status Controller::OnLoad() {
 
 void Controller::DoRender() const {
   ImGui::Render();
-  SDL_RenderClear(renderer_.get());
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_.get());
-  SDL_RenderPresent(renderer_.get());
+  SDL_RenderClear(Renderer::GetInstance().renderer());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),
+                                        Renderer::GetInstance().renderer());
+  SDL_RenderPresent(Renderer::GetInstance().renderer());
 }
 
 void Controller::OnExit() {
@@ -420,18 +421,7 @@ absl::Status Controller::CreateSDL_Window() {
 }
 
 absl::Status Controller::CreateRenderer() {
-  renderer_ = std::unique_ptr<SDL_Renderer, sdl_deleter>(
-      SDL_CreateRenderer(window_.get(), -1,
-                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
-      sdl_deleter());
-  if (renderer_ == nullptr) {
-    return absl::InternalError(
-        absl::StrFormat("SDL_CreateRenderer: %s\n", SDL_GetError()));
-  } else {
-    SDL_SetRenderDrawBlendMode(renderer_.get(), SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer_.get(), 0x00, 0x00, 0x00, 0x00);
-  }
-  return absl::OkStatus();
+  return Renderer::GetInstance().CreateRenderer(window_.get());
 }
 
 absl::Status Controller::CreateGuiContext() {
@@ -446,8 +436,9 @@ absl::Status Controller::CreateGuiContext() {
   }
 
   // Initialize ImGui for SDL
-  ImGui_ImplSDL2_InitForSDLRenderer(window_.get(), renderer_.get());
-  ImGui_ImplSDLRenderer2_Init(renderer_.get());
+  ImGui_ImplSDL2_InitForSDLRenderer(window_.get(),
+                                    Renderer::GetInstance().renderer());
+  ImGui_ImplSDLRenderer2_Init(Renderer::GetInstance().renderer());
 
   if (flags()->kLoadSystemFonts) {
     LoadSystemFonts();

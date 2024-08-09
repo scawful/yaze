@@ -3,6 +3,7 @@
 #include <cmath>
 #include <string>
 
+#include "app/core/platform/renderer.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/color.h"
@@ -14,6 +15,8 @@
 namespace yaze {
 namespace app {
 namespace gui {
+
+using core::Renderer;
 
 using ImGui::BeginMenu;
 using ImGui::BeginPopup;
@@ -133,19 +136,19 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
       if (BeginMenu("Bitmap Format")) {
         if (MenuItem("Indexed")) {
           bitmap->Reformat(gfx::BitmapFormat::kIndexed);
-          rom()->UpdateBitmap(bitmap);
+          Renderer::GetInstance().UpdateBitmap(bitmap);
         }
         if (MenuItem("2BPP")) {
           bitmap->Reformat(gfx::BitmapFormat::k2bpp);
-          rom()->UpdateBitmap(bitmap);
+          Renderer::GetInstance().UpdateBitmap(bitmap);
         }
         if (MenuItem("4BPP")) {
           bitmap->Reformat(gfx::BitmapFormat::k4bpp);
-          rom()->UpdateBitmap(bitmap);
+          Renderer::GetInstance().UpdateBitmap(bitmap);
         }
         if (MenuItem("8BPP")) {
           bitmap->Reformat(gfx::BitmapFormat::k8bpp);
-          rom()->UpdateBitmap(bitmap);
+          Renderer::GetInstance().UpdateBitmap(bitmap);
         }
         EndMenu();
       }
@@ -170,7 +173,7 @@ void Canvas::DrawContextMenu(gfx::Bitmap *bitmap) {
             if (refresh_graphics_) {
               auto status = bitmap->ApplyPaletteWithTransparent(
                   *palette, edit_palette_sub_index_);
-              rom()->UpdateBitmap(bitmap);
+              Renderer::GetInstance().UpdateBitmap(bitmap);
               refresh_graphics_ = false;
             }
             ImGui::EndChild();
