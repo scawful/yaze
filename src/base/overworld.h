@@ -24,5 +24,6 @@ struct z3_overworld {
 
 #ifdef __cplusplus
 }
-
 #endif
+
+#endif  // YAZE_OVERWORLD_H
